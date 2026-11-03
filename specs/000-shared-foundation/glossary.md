@@ -350,6 +350,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | Tên logic | Mã |
 | --- | --- |
 | `/xac-thuc/dang-nhap`, `/xac-thuc/dang-nhap-qr`, `/xac-thuc/dang-xuat`, `/xac-thuc/doi-mat-khau` | `/auth/login`, `/auth/qr-login`, `/auth/logout`, `/auth/change-password` |
+| *(bổ sung 2026-11-03, Q-399)* tự đặt lại mật khẩu: có dùng được không, xin mã, đặt mật khẩu mới | `/auth/password-reset/availability`, `/auth/password-reset/request`, `/auth/password-reset/confirm` |
 | `/toi`, `/toi/quyen` | `/me`, `/me/permissions` |
 | `/tai-khoan`, `/tai-khoan/{id}`, `/tai-khoan-nguoi-than`, `/tai-khoan-nguoi-cao-tuoi` | `/accounts`, `/accounts/{id}`, `/family-accounts`, `/resident-accounts` |
 | `…/khoa`, `…/mo-khoa`, `…/mo-khoa-som`, `…/kich-hoat-lai`, `…/cap-lai-mat-khau` | `…/lock`, `…/unlock`, `…/early-unlock`, `…/reactivate`, `…/reset-password` |
@@ -417,6 +418,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `DANG_NHAP_KHONG_THANH` | `LOGIN_FAILED` |
 | `TAI_KHOAN_KHOA_TAM`, `TAI_KHOAN_CAN_LIEN_HE_VIEN`, `TAI_KHOAN_DA_KHOA` | `ACCOUNT_TEMPORARILY_LOCKED`, `ACCOUNT_CONTACT_FACILITY`, `ACCOUNT_LOCKED` |
 | `MAT_KHAU_KHONG_DAT` | `PASSWORD_POLICY_NOT_MET` |
+| *(bổ sung 2026-11-03, Q-399)* `MA_DAT_LAI_KHONG_HOP_LE` | `RESET_CODE_INVALID` |
 | `HO_SO_DA_CO_TAI_KHOAN`, `DA_CO_TAI_KHOAN` | `PROFILE_ALREADY_HAS_ACCOUNT`, `ALREADY_HAS_ACCOUNT` |
 | `NHAN_VIEN_NGHI_VIEC`, `CHUC_DANH_KHONG_DUNG_HE_THONG` | `STAFF_RESIGNED`, `POSITION_NOT_SYSTEM_USER` |
 | `KHONG_CON_QUAN_HE`, `XAC_MINH_KHONG_HOP_LE` | `RELATIONSHIP_ENDED`, `INVALID_VERIFICATION` |
@@ -1287,6 +1289,11 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
+| Tên logic | Mã |
+| --- | --- |
+| schema lỗi của 005 trong mã (T060, 2026-11-03) | `care.web.response.CareProblemBody` (`CareCatalogProblem`), `.TaskClosed` (`CareTaskClosedProblem`), `.RowErrors` (`CareTaskRowProblem`) |
+| nhận định tự quyết trong thân lệnh thỏa thuận rủi ro; thân lệnh Duyệt kế hoạch; phản hồi việc cùng loại đang mở | `RiskAssessmentWrite` (`CareSelfDeterminationAssessment`); `CarePlanApprovalWrite` (`CarePlanApproval`); `SameTypeTasksResponse` (`CareSameTypeTasks`) |
+
 ### 11.1. Phase 1 — khung gói và SPI (2026-10-26)
 
 Chưa dịch các endpoint/schema nghiệp vụ api-005. Riêng operation công tắc dưới đây được chủ dự án duyệt trong phiên 2026-10-26. Tên logic trong tasks/research không phải đường dẫn mã thật.
@@ -1690,6 +1697,52 @@ Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường
 
 *Chủ feature điền khi dịch `contracts/api-007.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
+| Tên logic | Mã |
+| --- | --- |
+| sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` | `IncidentRecorded(incidentId, residentId, type, level, needsReassessment)` |
+| `ChiSoApi.ganNhatMoiLoai` (`ganNhat` là tên logic 001 dùng), `ChiSoGanNhatView` | `VitalSignApi.latestPerType`, `LatestVitalSignView` (`recordId`, `indicatorId`, `indicatorCode`, `indicatorName`, `unit`, `values`, `measuredAt`) |
+| Đọc lịch sử, nhóm sinh hiệu | `VitalSignApi.withinRange`, `vitalSignIndicatorIds`; `VitalSignReadingView`; `VitalSignLevel`, `VitalSignConfirmationStatus`, `VitalSignLabel` |
+| Lịch đo, liên hệ viện, thống kê chỉ số | `MeasurementScheduleApi`, `MeasurementScheduleView`, `MeasurementFrequency`; `FacilityContactApi`, `FacilityContactView`; `VitalSignStatisticsApi`, `VitalSignReportView` |
+| Chỉ số đã xác nhận, đã đính chính; lịch đo đã đổi; nhắc thiếu ngưỡng cá nhân | `VitalSignConfirmed`, `VitalSignCorrected`, `MeasurementScheduleChanged`, `MissingPersonalThresholdReminder` (gói `health.api.events`) |
+| Bản ghi chỉ số, thành phần gộp JSON, danh mục chỉ số M06 | `vital_sign_record`, `VitalSignRecord`, `VitalSignComponent`; `HealthCatalogs.VITAL_SIGN` (`M06.VITAL_SIGN`), `VitalSignAttributes(unit, vitalSign)` |
+| Danh mục quy tắc xu hướng, loại diễn biến trên bảng chung (007 T005) | `M05.TREND_RULE`, `M05.PROGRESSION_TYPE` trong `catalog_item`; `attributes.level`, `parameterCode`, `group`, `resuscitation`; trạng thái `ACTIVE`/`INACTIVE` của quy tắc là bật/tắt |
+| Loại sự cố: Ngã; Đi lạc hoặc không trở về (T005, mục 9.3/BR-M04-17) | `M05.INCIDENT_TYPE`: `FALL`, `MISSING_OR_NOT_RETURNED`; `attributes.defaultLevel`, `nonHealth`, `allowsNoResident` là mức mặc định, dấu không thuộc sức khỏe, cho phép không gắn người cao tuổi |
+| Sụt cân, bỏ lỡ lần đo, mất ngủ kéo dài, từ chối cùng thuốc | `WEIGHT_LOSS`, `MISSED_MEASUREMENT`, `PROLONGED_INSOMNIA`, `MEDICATION_REFUSAL`; mức `LOW`, `MEDIUM`, `CRITICAL` là Nhẹ, Trung bình, Khẩn cấp |
+| Ép tim, hỗ trợ thông khí, sốc điện, đặt nội khí quản, dùng thuốc cấp cứu | `CHEST_COMPRESSION`, `VENTILATION_SUPPORT`, `DEFIBRILLATION`, `INTUBATION`, `EMERGENCY_MEDICATION` |
+| Gọi hỗ trợ, gọi cấp cứu, báo cơ quan y tế; nguồn đã xử lý, chuyển viện bị từ chối, đã tìm thấy, đề nghị hủy | `CALL_SUPPORT`, `CALL_EMERGENCY`, `REPORT_HEALTH_AUTHORITY`; `SOURCE_RESOLVED`, `TRANSFER_REFUSED`, `FOUND`, `CANCELLATION_REQUESTED` |
+| Nhóm diễn biến: đánh giá, hành động, thông báo, theo dõi, hệ thống | `EVALUATION`, `ACTION`, `NOTIFICATION`, `MONITORING`, `SYSTEM` |
+| Giao diện, DTO người thân và sự kiện công khai M05 (T004) | `IncidentCommandApi`, `AlertCommandApi`, `IncidentApi`, `AlertApi`, `IsolationApi`, `FamilyPortalHealthApi`, `IncidentStatisticsApi`; `FamilyIncidentView`, `FamilyIncidentGeneralPart`, `FamilyIncidentHealthPart`; sự kiện ở `incident.api.events`, chi tiết module-interfaces 007 mục 2.7–2.8 |
+| Handler chỉ số ngoại tuyến; cờ đồng bộ sau khi mất quyền; tác vụ xác nhận quá hạn đo lại (T014) | `VitalSignOfflineHandler`, `VitalSignOfflineContent`; `synced_after_permission_loss`; `OverdueRemeasurementTask` (nhịp `MINUTE`) |
+| Nguồn đọc thật chỉ số M06 | `DefaultVitalSignApi`, `VitalSignRecordStore`; loại đính chính `M06.VITAL_SIGN_RECORD` |
+| Nguồn thống kê lần đo cho 016, giữ mức lúc đo | `DefaultVitalSignStatistics`; `VitalSignStatisticsApi.readings` |
+| Dừng nhắc gọi khi hạ sự cố khỏi Khẩn cấp; đã có kết quả xác nhận lại | `CallReminderStopRequested(sourceRecordType, sourceRecordId)`; `WishReconfirmationCompleted(alertId)` |
+| Yêu cầu tạo, đóng nguồn, ghi diễn biến cảnh báo cho 011/014 | `AlertRequested`, `AlertSourceCloseRequested`, `AlertProgressionRequested` |
+| Thêm người tiếp xúc, tạo/gỡ khoanh vùng, đổi dấu nghi nhiễm | `ContactAdded`, `IsolationCreated`, `IsolationLifted`, `InfectionSuspicionChanged` |
+| Cảnh báo đã tạo, nâng mức, leo thang; dấu nguy kịch đã ghi; sự cố ngã | `AlertCreated`, `AlertLevelRaised`, `AlertEscalated`, `CriticalFlagRecorded`, `FallIncidentRecorded` |
+| `SoNguong`, bốn cận ngưỡng; test xếp mức SC-001 | `ThresholdComparator`, `ThresholdBand`; `ThresholdComparatorTest`, `SC_001_VitalSignLevelTest` |
+| Trạng thái chỉ số/theo dõi theo người sau gộp R-15 | `ResidentVitalSignState` (`M06.RESIDENT_VITAL_SIGNS`), `ResidentMonitoringState` (`M05.RESIDENT_MONITORING`) trong `resident_module_state` |
+| Khóa tuần tự lệnh M06/M05 theo người | `VitalSignLock`, `MonitoringLock`; `VitalSignStateMutex`, `MonitoringStateMutex` chỉ bảo vệ lần tạo dòng đầu bằng MySQL advisory lock |
+| Dịch vụ lệnh danh mục M05 (T006 một phần) | `IncidentCatalogService`, `IncidentCatalogs`; `TrendRuleAttributes`, `IncidentTypeAttributes`, `ProgressionTypeAttributes`; `IncidentLevel` (`LOW`, `MEDIUM`, `CRITICAL`), `ProgressionGroup` |
+| Nội dung lệnh/kết quả danh mục nội bộ M05 | `TrendRuleUpdate` (bật/tắt, mức; `Reason` truyền riêng vào lệnh), `TrendRuleView`, `IncidentTypeInput`, `IncidentTypeView`, `ProgressionTypeInput`, `ProgressionTypeView` ở `incident.internal.alert.domain` |
+| Nhật ký danh mục M05; nội dung danh mục không hợp lệ | `IncidentCatalogActions`: `TREND_RULE_UPDATED`, `INCIDENT_TYPE_CREATED`, `INCIDENT_TYPE_UPDATED`, `PROGRESSION_TYPE_CREATED`; `INVALID_CATALOG_INPUT` (422) |
+| Dịch vụ/kiểu danh mục chỉ số và thành phần M06 | `VitalSignCatalogService`, `VitalSignCatalogInput`, `VitalSignCatalogView`, `VitalSignComponentDefinition`, `VitalSignComponentAttributes`; `HealthCatalogs.VITAL_SIGN_COMPONENT` (`M06.VITAL_SIGN_COMPONENT`), `parent_id`, `attributes.decimalPlaces` |
+| Nhật ký tạo/sửa/ngừng danh mục chỉ số | `VitalSignCatalogActions`: `VITAL_SIGN_TYPE_CREATED`, `VITAL_SIGN_TYPE_UPDATED`, `VITAL_SIGN_TYPE_DEACTIVATED` |
+| Loại sự cố nghi lây nhiễm, cơ sở vật chất, đồ gửi thất lạc/hư hỏng; bảo vệ mã đặc biệt | `SUSPECTED_INFECTION`, `FACILITY`, `BELONGINGS_LOST`, `BELONGINGS_DAMAGED`; `IncidentCatalogs.PROTECTED_TYPES`, `PROTECTED_CATALOG_CODE` (409) |
+| `NguoiThanKhanCapPort` (`nguoiLienHeChinh`, `nguoiDaiDien`, `luotThamTrongKhoang`) | `EmergencyFamilyPort` (`primaryContact`, `representatives`, `visitsInRange`); `EmergencyFamilyContactView`, `VisitTraceView`, `VisitTracePersonView` |
+| `DiemDanhTruyVetPort.cungThamGia`, `BuoiCungThamGiaView` | `AttendanceTracePort.coAttendance`, `ActivityAttendanceTraceView` |
+| `NhatKyThongBaoPort.theoNguon`, `DaThongBaoView` | `NotificationLogPort.bySource`, `IncidentNotificationView` (`recipientType`, `recipientId`, `channel`, `sentAt`, `viewedAt`) |
+| gói chức năng M06: danh mục, lịch đo, chỉ số, ngưỡng, giấy phép, khám, tham gia trạng thái | `health.internal.catalog`, `schedule`, `measurement`, `threshold`, `license`, `examination`, `governance` (cùng dưới `health.internal`) |
+| Lệnh ghi chỉ số, đo lại, dịch vụ đo chỉ số, phân giải ngưỡng áp dụng | `RecordVitalSignCommand`, `RemeasureVitalSignCommand`, `VitalSignMeasurementService`, `ApplicableThresholdResolver`, `DefaultApplicableThresholdResolver` |
+| gói chức năng M05: cảnh báo, xu hướng, sự cố, khẩn cấp, nguy kịch, ngã, lây nhiễm, tham gia trạng thái | `incident.internal.alert`, `trend`, `incident`, `emergency`, `critical`, `fall`, `infection`, `governance` (cùng dưới `incident.internal`) |
+| Lịch sử và ghi chỉ số theo người cao tuổi (GET, POST); đo lại (POST) | `/residents/{residentId}/vital-signs`; `/vital-sign-records/{id}/remeasure`; client `getResidentsByResidentIdVitalSigns`, `postResidentsByResidentIdVitalSigns`, `postVitalSignRecordsByIdRemeasure` |
+| Màn web danh mục sức khỏe (T009) | `HealthCatalogPage` (`frontend/src/features/health-catalog/HealthCatalogPage.jsx`) |
+
+
+| Nguồn đọc giấy phép cơ sở, số liên hệ viện (S-16) | `health.internal.license.service.FacilitySources`; `M06.FACILITY_LICENSE`, `M06.FACILITY_CONTACT` qua `CatalogApi` |
+| Bản dịch đủ api-007 (T062, duyệt 2026-11-03): đường dẫn, tag, tham số, schema, enum, mã lỗi | bảng ở `specs/007-health-alert-incident/contracts/api-translation.md` mục 1 → 6 (`donViDuaDi` → `transferUnit` như 001) |
+| loại cảnh báo nút hỗ trợ `NV_YEU_CAU_HO_TRO` | `STAFF_ASSIST_REQUEST` (`V007_07__alert_staff_assist_type.sql`) |
+| schema lỗi của 007 trong mã | `M06Problem` (`health.web.response.M06ProblemBody`), `M05Problem` (`incident.web.response.M05ProblemBody`) |
+| nhóm dữ liệu `alert`, `monitoring_setting` | `BUSINESS` (`V007_06__alert_monitoring_data_group.sql`) |
 
 ## 14. Feature 008 (`008-staff-shift-handover`, E)
 

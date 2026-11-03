@@ -1,5 +1,6 @@
 package com.eldercare.backend.administration.parameter.internal.persistence;
 
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterHistoryRow;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterRow;
@@ -8,8 +9,11 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
@@ -22,6 +26,10 @@ public class ParameterStore {
     private static final String COLUMNS = "SELECT code, description, kind, unit, constraints, default_value,"
             + " current_value, used_in, version, changed_at FROM parameter";
 
+    /** Mã còn hiệu lực; dòng của mã bỏ theo Q-392 → Q-397 còn trong bảng (lịch sử chỉ thêm) nhưng không đọc ra. */
+    private static final Set<String> ACTIVE_CODES =
+            Arrays.stream(ParameterCode.values()).map(ParameterCode::code).collect(Collectors.toUnmodifiableSet());
+
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
 
@@ -32,13 +40,16 @@ public class ParameterStore {
 
     /** Mọi tham số, hoặc của một module ({@code CFG-<module>-…}), theo mã. */
     public List<ParameterRow> list(String module) {
-        if (module == null) {
-            return jdbc.query(COLUMNS + " ORDER BY code", (rs, i) -> row(rs));
-        }
-        return jdbc.query(COLUMNS + " WHERE code LIKE ? ORDER BY code", (rs, i) -> row(rs), "CFG-" + module + "-%");
+        List<ParameterRow> rows = module == null
+                ? jdbc.query(COLUMNS + " ORDER BY code", (rs, i) -> row(rs))
+                : jdbc.query(COLUMNS + " WHERE code LIKE ? ORDER BY code", (rs, i) -> row(rs), "CFG-" + module + "-%");
+        return rows.stream().filter(r -> ACTIVE_CODES.contains(r.code())).toList();
     }
 
     public Optional<ParameterRow> find(String code) {
+        if (!ACTIVE_CODES.contains(code)) {
+            return Optional.empty();
+        }
         return jdbc.query(COLUMNS + " WHERE code = ?", (rs, i) -> row(rs), code).stream()
                 .findFirst();
     }

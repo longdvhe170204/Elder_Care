@@ -6,6 +6,10 @@ import com.eldercare.backend.care.internal.checklist.domain.CareChecklist;
 import com.eldercare.backend.care.internal.checklist.service.CareChecklistService;
 import com.eldercare.backend.care.internal.task.service.CareTaskService;
 import com.eldercare.backend.care.web.response.*;
+import com.eldercare.backend.care.web.response.CareProblemBody;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.*;
@@ -52,6 +56,13 @@ public class CareChecklistController {
     }
 
     @PostMapping("/care-tasks/{id}/claim")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void claim(@PathVariable long id, @RequestHeader("Idempotency-Key") String key) {
         checklist.claim(tasks.target(id), id);
     }

@@ -3,8 +3,11 @@ package com.eldercare.backend.care.web;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.care.web.request.AttendanceCorrectionWrite;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,12 @@ public class DayCareAttendanceCorrectionController {
     }
 
     @PostMapping("/{id}/correct")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "Đã lưu hoặc gửi yêu cầu phê duyệt")
     public ResponseEntity<Void> correct(
             @PathVariable long id,

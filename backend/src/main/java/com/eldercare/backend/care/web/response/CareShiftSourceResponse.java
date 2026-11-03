@@ -9,8 +9,10 @@ import java.util.*;
 
 @Schema(name = "CareShiftSourceData")
 public record CareShiftSourceResponse(Shift shift, List<Resident> residents) {
+    @Schema(name = "CareSourceShift")
     public record Shift(long id, Instant startsAt, Instant endsAt, long floorAreaId) {}
 
+    @Schema(name = "CareSourceResident")
     public record Resident(
             long residentId,
             String attendance,
@@ -18,6 +20,7 @@ public record CareShiftSourceResponse(Shift shift, List<Resident> residents) {
             List<CarePlanItemResponse> planItems,
             List<OtherSource> otherSources) {}
 
+    @Schema(name = "CareOtherSource")
     public record OtherSource(
             com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType type,
             long id,

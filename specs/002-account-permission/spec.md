@@ -124,6 +124,14 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 - Q: Mật khẩu dự phòng của người cao tuổi lấy từ đâu? → A: Hành chính, Quản lý viện cấp lại khi chính người cao tuổi yêu cầu trực tiếp (FR-051a, theo 19.1).
 - Q: Làm gì để giảm rủi ro khi tạo mã? → A: Lệnh tạo mã ghi xác nhận của người cao tuổi; màn cảnh báo khi quét mã sẽ gỡ máy đang gắn (FR-069). Xác nhận khi tạo mã là quy tắc mới, nguồn nghiệp vụ chưa ghi.
 
+### Session 2026-11-03 (tự đặt lại mật khẩu, chủ dự án chốt, Q-399)
+
+- Q: Người dùng quên mật khẩu có phải đến viện không? → A: Không. Nhân viên (mọi vai trò, kể cả Quản lý viện) và người thân tự đặt lại bằng mã một lần gửi qua tin nhắn tới số điện thoại trong hồ sơ (FR-052a, BR-M15-25); hồ sơ không có số hợp lệ thì vẫn nhờ người quản lý tài khoản cấp lại.
+- Q: Người cao tuổi có tự đặt lại không? → A: Không. Người cao tuổi đăng nhập bằng mã QR; mở tự đặt lại qua tin nhắn thì ai cầm điện thoại nhận mã cũng gỡ được máy đang gắn và làm mất nút SOS (giữ Session 2026-11-02).
+- Q: Tài khoản không Hoạt động thì sao? → A: Khóa tạm (đăng nhập sai) thì đặt lại thành công là mở khóa; Đã khóa, Không hoạt động không mở được bằng cách này.
+- Q: Chống lạm dụng thế nào? → A: Mã hết hạn CFG-M15-12, sai quá CFG-M15-13 lần thì hủy, số lần xin theo CFG-M15-14; phản hồi như nhau dù tài khoản có tồn tại; đặt lại xong kết thúc mọi phiên, báo chủ tài khoản, Quản lý viện thì báo thêm các Quản lý viện khác.
+- Q: Khi chưa có nhà cung cấp tin nhắn? → A: Chức năng không hiện (Q-06). Cấp lại từ xa vẫn làm được: người quản lý tài khoản gọi lại số đã đăng ký rồi đọc mật khẩu tạm trong chính cuộc gọi đó (FR-052).
+
 ## Phạm vi
 
 **Trong phạm vi**:
@@ -218,6 +226,9 @@ Nhân viên và người thân đăng nhập bằng tài khoản của mình. H�
 9. **Given** tài khoản vừa được tạo hoặc vừa được cấp lại mật khẩu, **When** người dùng đăng nhập lần đầu, **Then** hệ thống buộc đổi mật khẩu trước khi dùng chức năng khác.
 10. **(Bổ sung, 2026-10-07, Q-309)** **Given** CFG-M15-09 mặc định \[tối thiểu 8 ký tự, có cả chữ và số\], **When** người dùng đổi mật khẩu thành "abcdefgh", **Then** hệ thống từ chối và nêu yêu cầu cần đạt; **When** đổi thành "abcd1234", **Then** được chấp nhận (FR-006a).
 11. **(Bổ sung, 2026-10-07, Q-309)** **Given** CFG-M15-10 mặc định với web là \[30 phút\], hành chính thao tác lần cuối trên web lúc 09:40, **When** bấm tiếp lúc 10:20, **Then** phiên đã kết thúc, hành chính được đưa về màn hình đăng nhập, tài khoản vẫn Hoạt động; **Given** điều dưỡng ghi nhận trên ứng dụng nhân viên lần cuối lúc 15:00 với mặc định \[12 giờ\], **When** mở lại ứng dụng lúc 17:30, **Then** vẫn dùng tiếp được (FR-013a).
+12. *(Bổ sung 2026-11-03, Q-399)* **Given** người thân T quên mật khẩu, hồ sơ có số đã đăng ký, kênh tin nhắn đã cấu hình, **When** T nhập tên đăng nhập ở "Quên mật khẩu", **Then** hệ thống gửi mã tới số trong hồ sơ; **When** T nhập đúng mã trong CFG-M15-12 kèm mật khẩu mới đạt CFG-M15-09, **Then** mật khẩu đổi, mọi phiên của T kết thúc, T được báo mật khẩu vừa đổi và nhật ký ghi lại.
+13. *(Bổ sung 2026-11-03, Q-399)* **Given** một tên đăng nhập không tồn tại, hoặc tài khoản không có số điện thoại, **When** xin mã, **Then** phản hồi giống hệt trường hợp tài khoản có thật; **When** nhập sai mã quá CFG-M15-13 lần hoặc xin mã quá CFG-M15-14, **Then** mã bị hủy hoặc lần xin bị từ chối, mật khẩu giữ nguyên.
+14. *(Bổ sung 2026-11-03, Q-399)* **Given** tài khoản Quản lý viện Q đang Khóa tạm, **When** Q tự đặt lại thành công, **Then** tài khoản trở về Hoạt động và các Quản lý viện khác được báo; **Given** tài khoản Đã khóa hoặc tài khoản người cao tuổi, **When** xin mã, **Then** không có mã nào được gửi.
 
 ---
 
@@ -507,7 +518,8 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - **FR-050**: Tài khoản người thân MUST chỉ được tạo cho hồ sơ người thân có ít nhất một quan hệ với người cao tuổi chưa ở trạng thái cuối. *(Nguồn: 14.1)*
 - **FR-051**: Nhân viên hành chính và Quản lý viện MUST được tạo, kích hoạt lại và cấp lại mật khẩu cho tài khoản người thân, không cần yêu cầu phê duyệt; tài khoản tạo ra MUST chỉ có vai trò Người thân. Nhân viên hành chính MUST NOT tạo hay thay đổi tài khoản nhân viên, gán vai trò khác, hay thay đổi quyền (FR-026). Khóa và mở khóa tài khoản Đã khóa vẫn do Quản lý viện (FR-011). Nhân viên hành chính MUST NOT mở khóa sớm tài khoản người thân đang Khóa tạm; việc này chỉ Quản lý viện làm, hoặc người thân chờ hết thời gian khóa (CHK008). Mỗi thao tác MUST có lý do (trừ tạo mới) và được ghi nhật ký. *(Nguồn: UC-55, NFR-01; Clarification 2026-09-25, đề xuất Q-16)*
 - **FR-051a**: *(Bổ sung 2026-11-02, chủ dự án chốt)* Nhân viên hành chính và Quản lý viện MUST cấp lại được mật khẩu cho tài khoản người cao tuổi khi chính người cao tuổi yêu cầu trực tiếp tại viện; lệnh MUST ghi người cao tuổi đã yêu cầu trực tiếp với ai. Người cao tuổi đăng nhập bằng mật khẩu này thì MUST đổi mật khẩu (FR-006). *(Nguồn: 19.1)*
-- **FR-052**: Trước khi tạo, cấp lại mật khẩu hoặc kích hoạt lại tài khoản người thân, người thực hiện MUST xác minh danh tính bằng một trong hai cách: (a) người thân có mặt tại viện, đối chiếu giấy tờ tùy thân với hồ sơ người thân; (b) gọi lại số điện thoại đã đăng ký trong hồ sơ người thân (không dùng số do người yêu cầu cung cấp lúc yêu cầu). Cách xác minh MUST được ghi vào nhật ký của thao tác; thao tác không có cách xác minh MUST bị từ chối. Mật khẩu tạm MUST chỉ giao trực tiếp cho người đã được xác minh. Giai đoạn đầu MUST NOT có chức năng người thân tự đặt lại mật khẩu; bổ sung sau khi chốt Q-06 (nhà cung cấp SMS). *(Nguồn: 5.1, 14.1, Q-06; Clarification 2026-09-25)*
+- **FR-052**: Trước khi tạo, cấp lại mật khẩu hoặc kích hoạt lại tài khoản người thân, người thực hiện MUST xác minh danh tính bằng một trong hai cách: (a) người thân có mặt tại viện, đối chiếu giấy tờ tùy thân với hồ sơ người thân; (b) gọi lại số điện thoại đã đăng ký trong hồ sơ người thân (không dùng số do người yêu cầu cung cấp lúc yêu cầu). Cách xác minh MUST được ghi vào nhật ký của thao tác; thao tác không có cách xác minh MUST bị từ chối. Mật khẩu tạm MUST chỉ giao trực tiếp cho người đã được xác minh: tại viện, hoặc đọc trong chính cuộc gọi lại số đã đăng ký ở cách (b) *(sửa 2026-11-03, Q-399)*. Người thân, nhân viên tự đặt lại mật khẩu theo FR-052a. *(Nguồn: 5.1, 14.1, Q-06; Clarification 2026-09-25)*
+- **FR-052a**: *(Bổ sung 2026-11-03, Q-399)* Tài khoản nhân viên (mọi vai trò) và người thân MUST tự đặt lại được mật khẩu bằng mã một lần gửi qua tin nhắn (009) tới số điện thoại trong hồ sơ của chủ tài khoản (hồ sơ người thân 012, hồ sơ nhân viên 008), không tới số người yêu cầu nhập, theo BR-M15-25: mã hết hạn sau CFG-M15-12; nhập sai quá CFG-M15-13 lần thì mã bị hủy; số lần xin mã theo CFG-M15-14; phản hồi lúc xin mã MUST giống nhau dù tên đăng nhập có tồn tại, có số điện thoại, có đúng trạng thái hay không; mật khẩu mới MUST đạt CFG-M15-09 và không gắn cờ buộc đổi. Đặt lại thành công MUST kết thúc mọi phiên của tài khoản, đưa bộ đếm đăng nhập sai về 0 (Khóa tạm trở về Hoạt động), ghi nhật ký và báo chủ tài khoản; tài khoản có vai trò Quản lý viện thì báo thêm các Quản lý viện khác. Chỉ áp cho tài khoản Hoạt động hoặc Khóa tạm; tài khoản Đã khóa, Không hoạt động và tài khoản người cao tuổi MUST NOT nhận mã. Khi kênh tin nhắn chưa cấu hình (Q-06), chức năng MUST NOT hiện trên màn đăng nhập. *(Nguồn: 19.1, BR-M15-25, Q-06, Q-399)*
 
 #### H. Tài khoản người cao tuổi *(bổ sung 2026-10-18, Q-365, Q-368, Q-370, Q-371)*
 
@@ -553,6 +565,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - **SC-011**: 100% lần cấp lại mật khẩu, kích hoạt lại tài khoản người thân và mở khóa sớm bởi trưởng tầng/người phụ trách ca có ghi cách xác minh và lý do trong nhật ký (FR-052, FR-019c).
 - **SC-012** *(bổ sung, CHK027)*: 0 lần người thân thấy thông tin sức khỏe khi thiếu quyền xem sức khỏe hoặc thiếu bản đồng ý Hiệu lực bao gồm mình; 0 lần người thân thấy người cao tuổi mình không có quan hệ Hiệu lực; 100% thao tác chỉ dành cho người đại diện bị từ chối với người thân khác (FR-045 → FR-047).
 - **SC-013** *(bổ sung 2026-10-18, Q-370)*: 0 lần người cao tuổi phải đăng nhập lại khi chưa đổi máy, chưa đổi mật khẩu và tài khoản chưa bị khóa; 100% lệnh SOS từ thiết bị đã gắn của tài khoản Hoạt động được nhận khi không có phiên đăng nhập.
+- **SC-014** *(bổ sung 2026-11-03, Q-399)*: Trong bộ kiểm thử tự đặt lại mật khẩu, 0 lần đổi được mật khẩu bằng mã sai, mã hết hạn, mã đã hủy hoặc trên tài khoản Đã khóa, Không hoạt động, người cao tuổi; 0 phản hồi xin mã khác nhau giữa tài khoản có thật và không có thật.
 
 ## Assumptions
 
@@ -581,7 +594,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 **Đã phản ánh vào tài liệu nguồn**
 
 1. TAI_KHOAN có vòng đời trạng thái: cột Nhóm ở 3.2 ghi "1 (vai trò); 2 (trạng thái tài khoản)".
-2. Hành chính (và Quản lý viện) quản lý tài khoản người thân, xác minh danh tính, chưa có tự đặt lại mật khẩu (Q-16): 19.1, chú thích ¹² của Permission Matrix 4.4, mục 24.2.
+2. Hành chính (và Quản lý viện) quản lý tài khoản người thân, xác minh danh tính, tự đặt lại mật khẩu qua tin nhắn từ 2026-11-03 (Q-16, Q-399): 19.1, chú thích ¹² của Permission Matrix 4.4, mục 24.2.
 3. Phạm vi theo ca ± CFG-M15-07 (Q-14): BR-M15-02, Phụ lục 25, mục 24.2. Thời gian ngoại tuyến tối đa CFG-M15-08 và trạng thái "chờ xem lại": cột Mặc định của Q-01, Phụ lục 25.
 4. Quản lý viện chỉ được thu hẹp quyền, ngoại lệ là quyền Duyệt kế hoạch chăm sóc (Q-15); hợp phạm vi khi nhiều vai trò: 19.2, đoạn bổ sung dưới Permission Matrix 4.4, mục 24.2.
 5. Ghi nhận sự cố / kích hoạt khẩn cấp ngoài phạm vi: BR-M15-01, chú thích ¹⁰ của 4.4.

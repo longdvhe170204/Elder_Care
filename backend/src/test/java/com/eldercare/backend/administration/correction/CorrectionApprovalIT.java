@@ -18,8 +18,10 @@ import com.eldercare.backend.administration.correction.api.CorrectionApi;
 import com.eldercare.backend.administration.correction.api.CorrectionResult;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.sample.CorrectionFixtures;
+import com.eldercare.backend.administration.sample.SampleAmendOnlyRecordProvider;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
@@ -103,6 +105,31 @@ class CorrectionApprovalIT extends MySqlIntegrationTestBase {
                 Integer.class,
                 OFFICE_RECORD,
                 id);
+    }
+
+    /** Loại đính chính provider không hỗ trợ bị từ chối trước khi chọn cách, không lập yêu cầu cách C (005 T029). */
+    @Test
+    void FR_024_unsupportedType_rejectedBeforeApprovalRequest() {
+        long id = officeRecord("điểm danh mẫu");
+        Integer before = jdbc.queryForObject("SELECT COUNT(*) FROM approval_request", Integer.class);
+        user.set(OFFICE_B);
+
+        assertThatThrownBy(() ->
+                        corrections.create(SampleAmendOnlyRecordProvider.TYPE, id, CorrectionType.VOID, null, REASON))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", "CORRECTION_NOT_SUPPORTED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM approval_request", Integer.class))
+                .isEqualTo(before);
+        assertThat(requestByColleagueOn(SampleAmendOnlyRecordProvider.TYPE, id).type())
+                .isEqualTo("M15.CORRECTION");
+    }
+
+    private ApprovalRequestView requestByColleagueOn(String recordType, long id) {
+        user.set(OFFICE_B);
+        CorrectionResult result =
+                corrections.create(recordType, id, CorrectionType.AMEND_CONTENT, Map.of("note", "sửa"), REASON);
+        assertThat(result).isInstanceOf(CorrectionResult.PendingApproval.class);
+        return ((CorrectionResult.PendingApproval) result).request();
     }
 
     @Test

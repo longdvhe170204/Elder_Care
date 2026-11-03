@@ -32,6 +32,11 @@ class SharedRowRetentionService implements SharedRowRetention {
     }
 
     @Override
+    public List<EntityRef> rowsFor(EntityRef record) {
+        return store.rowsFor(record.entityType(), record.entityId(), RESIDENT.equals(record.entityType()));
+    }
+
+    @Override
     public void deleteForResidents(Collection<Long> residentIds) {
         if (!residentIds.isEmpty()) {
             store.deleteForResidents(residentIds);
