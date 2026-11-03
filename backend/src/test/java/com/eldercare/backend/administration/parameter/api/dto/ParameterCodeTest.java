@@ -30,7 +30,7 @@ class ParameterCodeTest {
         Set<String> codes =
                 Arrays.stream(ParameterCode.values()).map(ParameterCode::code).collect(Collectors.toSet());
 
-        assertThat(codes).hasSize(112).isEqualTo(source);
+        assertThat(codes).hasSize(115).isEqualTo(source);
     }
 
     @Test
