@@ -669,3 +669,19 @@ Lệnh xác minh đã thực thi (backend, JDK25 và biến .env được nạp 
 Đã gỡ đủ8khối conflict, cập nhật import/FQN31file Java (22main+9test) và4tài liệu; không tạo/xóa class, đổi hợp đồng, thêm thư viện hoặc migration. Progress.md giữ mọi dòng không rỗng từ cả hai phía trước merge. Git được đánh dấu resolve bằng add đúng35file của lượt này; incoming staged có sẵn vẫn giữ, hand-over-task-003.md có sẵn vẫn untracked. Không commit/push/đổi nhánh hoặc kết thúc merge: feature/005-daily-care-and-hand-over,HEAD=e35a46a2,MERGE_HEAD=698932cd.
 
 Chưa nghiệm thu toànkho/phase hoặc đánh thêm[x]. Các gate T050→T051 (quantity E010, VOID ngủ D007, generic correction A và nguồn/payload trước đó) giữ nguyên; task mới tiếp theo theo tasks.md vẫn T052→T053 sau khi đủ điều kiện. Ba dòng bàn giao quan sát sau merge đã thêm vào team-plan; dòng ParameterAsOfIT cũ được xóa vì A đã sửa trên develop25f492a8 và full hiện tại xanh1/1, kết quả giữ tại progress/history. File lịch sử này chỉ bổ sung, không xóa nội dung cũ.
+
+### T060 — so operation api-005 và nới outbox (2026-11-03, A)
+
+- Khi đăng ký `api-005` ở `ApiContractIT`, lớp web của care trùng tên schema OpenAPI và đè schema của module khác: `SelfDeterminationAssessment` (001) do `CareRiskAgreementWrite` dùng thẳng DTO của resident, `Shift` (008) do record lồng `CareShiftSourceResponse.Shift`. Sửa:
+  - thêm `RiskAssessmentWrite` (schema `CareSelfDeterminationAssessment`);
+  - đặt tên `Care…` cho record lồng của `care/web`.
+- So operation lần đầu có 81 chỗ lệch ở 28 operation. Sửa:
+  - khai báo mã phản hồi theo hợp đồng, kể cả 200 (springdoc bỏ phản hồi mặc định khi đã có `@ApiResponse` khác);
+  - schema lỗi chỉ để mô tả `CareProblemBody` (`CareCatalogProblem`), `CareProblemBody.TaskClosed` (`CareTaskClosedProblem`), `CareProblemBody.RowErrors` (`CareTaskRowProblem`);
+  - trường bắt buộc và enum ở thân lệnh, phản hồi;
+  - `CarePlanApprovalWrite`: lý do của lệnh Duyệt không bắt buộc;
+  - `SameTypeTasksResponse` thay `Map` ở phản hồi 200 của Ghi nhận phát sinh.
+
+  Không đổi hành vi hay kiểu Java.
+- Hợp đồng: schema `Loi` dịch tên trường theo glossary 000 mục 6.2 (`maLoi` → `errorCode`, `dieuKienChuaThoa` → `unmetConditions` {`code`, `description`, `basis`}), không thêm bớt trường. Các schema, enum tiếng Việt khác của api-005 (`LoiDaDong`, `LoiTheoDong`, `MucQuanTrong`, `TrangThaiCongViec`, `LoaiCanCu` và hai đường dẫn) chưa dịch vì operation đã cài không dùng.
+- `V000_16__event_publication_text.sql` đổi `EVENT_PUBLICATION.SERIALIZED_EVENT` sang `TEXT`; ca biên `FR_003_maximumEscapedReturnReasonSurvivesOutboxStorage` xanh. Migration số nhỏ đến sau: cơ sở dữ liệu máy dev không bật `out-of-order` có thể cần chạy lại schema như với `V003_07`.

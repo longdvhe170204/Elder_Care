@@ -9,9 +9,12 @@ import com.eldercare.backend.care.internal.task.domain.*;
 import com.eldercare.backend.care.internal.task.service.*;
 import com.eldercare.backend.care.web.request.*;
 import com.eldercare.backend.care.web.response.*;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.resident.api.ResidentApi;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +80,18 @@ public class CareTaskController {
     }
 
     @PostMapping("/shifts/{shiftId}/care-tasks/plan")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.RowErrors.class)))
     @ApiResponse(responseCode = "201", description = "Đã lập toàn bộ lô")
     public ResponseEntity<List<CareTaskResponse>> plan(
             @PathVariable long shiftId,
@@ -97,6 +112,12 @@ public class CareTaskController {
     }
 
     @PostMapping("/care-tasks/ad-hoc")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "Đã tạo công việc phát sinh")
     public ResponseEntity<CareTaskResponse> adHoc(
             @RequestHeader("Idempotency-Key") String key, @RequestBody CareTaskWrite body) {
@@ -112,6 +133,12 @@ public class CareTaskController {
     }
 
     @PostMapping("/care-tasks/{id}/rework")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "Đã lập công việc làm lại")
     public ResponseEntity<Void> rework(
             @PathVariable long id,
@@ -165,6 +192,19 @@ public class CareTaskController {
     }
 
     @PostMapping("/care-tasks/{id}/cancel")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void cancel(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         commands.cancel(commands.target(id), id, body.reason());

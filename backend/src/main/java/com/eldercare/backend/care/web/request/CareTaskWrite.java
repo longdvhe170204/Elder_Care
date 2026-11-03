@@ -12,18 +12,28 @@ import java.util.Set;
 public record CareTaskWrite(
         Long residentId,
         Location location,
-        Long taskTypeId,
-        Basis basis,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long taskTypeId,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Basis basis,
         String content,
-        Instant plannedAt,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant plannedAt,
         Integer windowBeforeMinutes,
         Integer windowAfterMinutes,
-        Importance importance,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Importance importance,
         Long performerId,
         Boolean shared) {
-    public record Location(String type, Long id) {}
+    @Schema(name = "CareTaskLocation")
+    public record Location(
+            @Schema(allowableValues = {"ROOM", "BED", "FLOOR", "AREA"})
+            String type,
 
-    public record Basis(SourceType type, Long id) {}
+            Long id) {}
+
+    @Schema(name = "CareTaskBasisWrite")
+    public record Basis(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            SourceType type,
+
+            Long id) {}
 
     public CareTaskDraft draft() {
         if (taskTypeId == null

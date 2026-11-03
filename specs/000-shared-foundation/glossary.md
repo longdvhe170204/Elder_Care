@@ -1287,6 +1287,11 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
+| Tên logic | Mã |
+| --- | --- |
+| schema lỗi của 005 trong mã (T060, 2026-11-03) | `care.web.response.CareProblemBody` (`CareCatalogProblem`), `.TaskClosed` (`CareTaskClosedProblem`), `.RowErrors` (`CareTaskRowProblem`) |
+| nhận định tự quyết trong thân lệnh thỏa thuận rủi ro; thân lệnh Duyệt kế hoạch; phản hồi việc cùng loại đang mở | `RiskAssessmentWrite` (`CareSelfDeterminationAssessment`); `CarePlanApprovalWrite` (`CarePlanApproval`); `SameTypeTasksResponse` (`CareSameTypeTasks`) |
+
 ### 11.1. Phase 1 — khung gói và SPI (2026-10-26)
 
 Chưa dịch các endpoint/schema nghiệp vụ api-005. Riêng operation công tắc dưới đây được chủ dự án duyệt trong phiên 2026-10-26. Tên logic trong tasks/research không phải đường dẫn mã thật.

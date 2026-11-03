@@ -7,8 +7,12 @@ import com.eldercare.backend.care.internal.result.service.*;
 import com.eldercare.backend.care.internal.task.service.CareTaskService;
 import com.eldercare.backend.care.web.request.*;
 import com.eldercare.backend.care.web.response.*;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.time.BusinessTime;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.time.Instant;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +60,26 @@ public class CareResultController {
     }
 
     @PostMapping("/care-tasks/{id}/record")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(responseCode = "202", description = "Chờ xác nhận đo lại", content = @Content)
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.TaskClosed.class)))
+    @ApiResponse(
+            responseCode = "422",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public ResponseEntity<CareTaskDetailResponse> record(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareResultWrite body) {
         if (body == null) throw new InvalidValueException("Cần nội dung ghi nhận");
@@ -64,6 +88,26 @@ public class CareResultController {
     }
 
     @PostMapping("/ad-hoc-care-recordings")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Có công việc cùng loại đang mở",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = SameTypeTasksResponse.class)))
+    @ApiResponse(
+            responseCode = "201",
+            description = "Đã ghi",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CareTaskDetailResponse.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public ResponseEntity<?> adHoc(
             @RequestHeader("Idempotency-Key") String key, @RequestBody AdHocCareRecordingWrite body) {
         if (body == null || body.residentId() == null || body.taskTypeId() == null)
@@ -76,15 +120,20 @@ public class CareResultController {
                 Boolean.TRUE.equals(body.sameTypeTasksReviewed()),
                 body.originalTaskId());
         if (result.taskId() == null)
-            return ResponseEntity.ok(Map.of(
-                    "sameTypeTasks",
-                    result.sameTypeTasks().stream()
-                            .map(task -> taskDetails.get(task.id()).task())
-                            .toList()));
+            return ResponseEntity.ok(new SameTypeTasksResponse(result.sameTypeTasks().stream()
+                    .map(task -> taskDetails.get(task.id()).task())
+                    .toList()));
         return ResponseEntity.status(201).body(taskDetails.get(result.taskId()));
     }
 
     @PostMapping("/care-tasks/{id}/not-perform")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.TaskClosed.class)))
     public void notPerform(
             @PathVariable long id,
             @RequestHeader("Idempotency-Key") String key,
