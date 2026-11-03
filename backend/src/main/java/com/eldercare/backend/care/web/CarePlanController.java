@@ -6,8 +6,12 @@ import com.eldercare.backend.care.internal.careplan.domain.CarePlan;
 import com.eldercare.backend.care.internal.careplan.service.*;
 import com.eldercare.backend.care.web.request.*;
 import com.eldercare.backend.care.web.response.*;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +48,12 @@ public class CarePlanController {
     }
 
     @PostMapping("/residents/{residentId}/care-plans")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
             responseCode = "201",
             description = "Đã lập phiên bản Nháp",
@@ -61,6 +71,13 @@ public class CarePlanController {
     }
 
     @GetMapping("/residents/{residentId}/care-plans")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public List<CarePlanResponse> list(@PathVariable long residentId) {
         return queries.list(CarePlanService.residentTarget(residentId, 0), residentId).stream()
                 .map(this::response)
@@ -81,6 +98,25 @@ public class CarePlanController {
     }
 
     @PutMapping("/care-plans/{id}/items")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "412",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "422",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void items(
             @PathVariable long id,
             @RequestHeader("If-Match") String etag,
@@ -95,32 +131,79 @@ public class CarePlanController {
     }
 
     @PostMapping("/care-plans/{id}/submit")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void submit(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CarePlanSubmit body) {
         service.submit(service.target(id), id, body.effectiveFrom(), body.changeReason());
     }
 
     @PostMapping("/care-plans/{id}/approve")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void approve(
             @PathVariable long id,
             @RequestHeader("Idempotency-Key") String key,
-            @RequestBody(required = false) CareCatalogReason body) {
+            @RequestBody(required = false) CarePlanApprovalWrite body) {
         service.approve(service.target(id), id, body == null ? null : body.reason());
     }
 
     @PostMapping("/care-plans/{id}/return")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "422",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void returnToDraft(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         service.returnToDraft(service.target(id), id, body.reason());
     }
 
     @PostMapping("/care-plans/{id}/cancel")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void cancel(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         service.cancel(service.target(id), id, body.reason());
     }
 
     @PostMapping("/care-plans/{id}/withdraw-approval")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void withdraw(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         service.withdraw(service.target(id), id, body.reason());
@@ -143,6 +226,25 @@ public class CarePlanController {
     }
 
     @PutMapping("/care-plans/{id}/risk-agreements")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "412",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "422",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public void risks(
             @PathVariable long id,
             @RequestHeader("If-Match") String etag,

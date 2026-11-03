@@ -1,3 +1,6 @@
 package com.eldercare.backend.care.web.request;
 
-public record CareNotPerformedWrite(Long reasonTypeId, String note) {}
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record CareNotPerformedWrite(
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long reasonTypeId, String note) {}

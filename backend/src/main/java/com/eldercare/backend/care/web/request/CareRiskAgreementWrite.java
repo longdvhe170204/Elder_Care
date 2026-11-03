@@ -1,7 +1,6 @@
 package com.eldercare.backend.care.web.request;
 
 import com.eldercare.backend.care.internal.careplan.domain.*;
-import com.eldercare.backend.resident.api.dto.SelfDeterminationAssessment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.*;
 import java.util.*;
@@ -16,7 +15,7 @@ public record CareRiskAgreementWrite(
         boolean residentParticipates,
         List<RiskParticipantWrite> participants,
         long assessingDoctorId,
-        SelfDeterminationAssessment selfDeterminationAssessment,
+        RiskAssessmentWrite selfDeterminationAssessment,
         RiskDecisionMakerWrite decisionMaker,
         List<RiskOpinionWrite> opinions,
         LocalDate reviewDate) {
@@ -38,7 +37,7 @@ public record CareRiskAgreementWrite(
                                 .map(p -> new RiskParticipant(p.type(), p.id(), true))
                                 .toList(),
                 assessingDoctorId,
-                selfDeterminationAssessment,
+                selfDeterminationAssessment == null ? null : selfDeterminationAssessment.toAssessment(),
                 at,
                 decisionMaker == null
                         ? null

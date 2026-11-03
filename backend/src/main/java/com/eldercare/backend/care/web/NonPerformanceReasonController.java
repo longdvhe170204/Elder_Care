@@ -3,8 +3,8 @@ package com.eldercare.backend.care.web;
 import com.eldercare.backend.care.internal.catalog.service.NonPerformanceReasonService;
 import com.eldercare.backend.care.web.request.CareCatalogReason;
 import com.eldercare.backend.care.web.request.NonPerformanceReasonWrite;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.care.web.response.NonPerformanceReasonTypeResponse;
-import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.web.VersionEtag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +47,7 @@ public class NonPerformanceReasonController {
             content =
                     @Content(
                             mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemBody.class)))
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public ResponseEntity<Void> create(
             @RequestHeader("Idempotency-Key") String idempotencyKey, @RequestBody NonPerformanceReasonWrite body) {
         var row = service.create(body.name());
@@ -69,14 +69,14 @@ public class NonPerformanceReasonController {
             content =
                     @Content(
                             mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemBody.class)))
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @ApiResponse(
             responseCode = "412",
             description = "Phiên bản đã đổi",
             content =
                     @Content(
                             mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemBody.class)))
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public ResponseEntity<Void> rename(
             @PathVariable long id,
             @RequestHeader("If-Match") String ifMatch,
@@ -101,7 +101,7 @@ public class NonPerformanceReasonController {
             content =
                     @Content(
                             mediaType = "application/problem+json",
-                            schema = @Schema(implementation = ProblemBody.class)))
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public ResponseEntity<Void> deactivate(
             @PathVariable long id,
             @RequestHeader("Idempotency-Key") String idempotencyKey,

@@ -3,10 +3,12 @@ package com.eldercare.backend.care.web;
 import com.eldercare.backend.care.internal.catalog.service.CareCatalogService;
 import com.eldercare.backend.care.web.request.*;
 import com.eldercare.backend.care.web.response.*;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.web.VersionEtag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +38,12 @@ public class CareCatalogController {
     }
 
     @PostMapping("/task-types")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "Đã tạo")
     @Operation(
             parameters =
@@ -66,6 +74,13 @@ public class CareCatalogController {
     }
 
     @PutMapping("/task-types/{id}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "412",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @Operation(
             parameters =
                     @Parameter(
@@ -83,6 +98,13 @@ public class CareCatalogController {
     }
 
     @PutMapping("/result-values/{id}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "412",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     @Operation(
             parameters =
                     @Parameter(
