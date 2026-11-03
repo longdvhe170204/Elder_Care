@@ -320,6 +320,33 @@ public class CallReminderStore {
     }
 
     /** Lượt Chờ kết quả của chuỗi gọi. */
+    /** Chuỗi gọi có thông báo của bản ghi nguồn này (007 yêu cầu dừng, research B-08). */
+    public List<Long> chainsWithSource(String sourceRecordType, String sourceRecordId) {
+        return jdbc.queryForList(
+                "SELECT DISTINCT COALESCE(r.call_chain_id, r.id) FROM record_event l JOIN call_reminder r ON r.id = l.entity_id"
+                        + " JOIN notification n ON n.id = " + LINKED_NOTIFICATION
+                        + " JOIN notification_request q ON q.id = n.request_id WHERE " + LINK
+                        + " AND q.source_record_type = ? AND q.source_record_id = ?",
+                Long.class,
+                sourceRecordType,
+                sourceRecordId);
+    }
+
+    /** Chuỗi có thông báo của bản ghi nguồn khác. */
+    public boolean chainHasOtherSource(long chainId, String sourceRecordType, String sourceRecordId) {
+        return jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM record_event l JOIN call_reminder r ON r.id = l.entity_id"
+                                + " JOIN notification n ON n.id = " + LINKED_NOTIFICATION
+                                + " JOIN notification_request q ON q.id = n.request_id WHERE " + LINK
+                                + " AND COALESCE(r.call_chain_id, r.id) = ?"
+                                + " AND NOT (q.source_record_type = ? AND q.source_record_id = ?)",
+                        Integer.class,
+                        chainId,
+                        sourceRecordType,
+                        sourceRecordId)
+                > 0;
+    }
+
     public List<Long> awaitingInChain(long chainId) {
         return jdbc.queryForList(
                 "SELECT id FROM call_reminder WHERE COALESCE(call_chain_id, id) = ? AND status = 'AWAITING_RESULT'"
