@@ -150,6 +150,7 @@ default boolean choPhep(NguoiDung nd, CachTao cach, long id) { return true; } //
 default void sauKhiDinhChinh(DinhChinhView dc) {}  // tác động dây chuyền do module (ví dụ 010 lập khoản điều chỉnh)
 Object noiDungGoc(long id);                  // bổ sung khi cài 000 (2026-10-19): API GET /corrections trả originalContent
 default Optional<Long> nguoiCaoTuoi(long id) { return Optional.empty(); } // bổ sung 2026-10-27: dòng nhật ký đính chính mang resident_id (FR-049)
+default boolean hoTroKieu(KieuDinhChinh kieu) { return true; } // bổ sung 2026-11-03 (`supports`): kiểu không hỗ trợ trả 409 KHONG_HO_TRO_DINH_CHINH trước khi chọn cách, không lập yêu cầu cách C (005 T029)
 ```
 
 Sự kiện: `DaDinhChinh(loaiBanGhi, idGoc, kieu, dinhChinhId)`.
