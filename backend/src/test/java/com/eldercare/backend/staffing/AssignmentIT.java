@@ -110,8 +110,9 @@ class AssignmentIT extends MySqlIntegrationTestBase {
 
     @BeforeEach
     void setup() {
-        current.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
+        // Đặt đồng hồ trước khi tạo người dùng: quyền của Quản lý viện phải có hiệu lực từ trước mốc đồng hồ của test
         clock.setTo(Instant.parse("2026-11-01T01:00:00Z"));
+        current.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
         floor = TestUsers.nextId();
         room = TestUsers.nextId();
         resident = TestUsers.nextId();
