@@ -685,3 +685,16 @@ Chưa nghiệm thu toànkho/phase hoặc đánh thêm[x]. Các gate T050→T051 
   Không đổi hành vi hay kiểu Java.
 - Hợp đồng: schema `Loi` dịch tên trường theo glossary 000 mục 6.2 (`maLoi` → `errorCode`, `dieuKienChuaThoa` → `unmetConditions` {`code`, `description`, `basis`}), không thêm bớt trường. Các schema, enum tiếng Việt khác của api-005 (`LoiDaDong`, `LoiTheoDong`, `MucQuanTrong`, `TrangThaiCongViec`, `LoaiCanCu` và hai đường dẫn) chưa dịch vì operation đã cài không dùng.
 - `V000_16__event_publication_text.sql` đổi `EVENT_PUBLICATION.SERIALIZED_EVENT` sang `TEXT`; ca biên `FR_003_maximumEscapedReturnReasonSurvivesOutboxStorage` xanh. Migration số nhỏ đến sau: cơ sở dữ liệu máy dev không bật `out-of-order` có thể cần chạy lại schema như với `V003_07`.
+
+### Quyết định chủ dự án sau review sau merge (2026-11-03)
+
+1. **Retention điểm danh:** sửa khung chung. `SharedRowRetention.rowsFor` liệt kê dòng `record_event`, `simple_record` sẽ xóa cùng bản ghi; `ExpiredDataPurge` xét đính chính, nhật ký của các dòng đó trước khi xóa. Lượt đến, về `M04.ATTENDANCE_RECORD` gắn hồ sơ được xét theo chuỗi `M01.RESIDENT`. `CareRetentionType.DAY_CARE_ATTENDANCE`, `ATTENDANCE_RECORD` giữ khai báo (bảng cũ không còn, trả rỗng).
+2. **Đường đính chính chung với `M04.CARE_RESULT`:** giữ chặn 503 `CARE_SOURCE_UNAVAILABLE` khi transaction không phải `READ_COMMITTED`. Đính chính kết quả đi qua `/care-results/{id}/correct`; không đổi mức cách ly của `CorrectionService` cho các module khác.
+3. **`/sync` hai loại M04** (phase6-contract-proposal mục 4, đổi tên loại sang tiếng Anh):
+   - `M04.CARE_TASK_RESULT`: `{taskId, action: RECORD | NOT_PERFORM, recording?, reasonTypeId?, note?}`; `recording` là `CareResultWrite`, `NOT_PERFORM` bắt buộc `reasonTypeId`.
+   - `M04.AD_HOC_RECORDING`: đúng thân `/ad-hoc-care-recordings`.
+
+   Không đổi phong bì hay phản hồi `/sync`; nội dung bị từ chối giữ ở hàng đợi máy.
+4. **Payload, giữ luật không đưa danh sách id dài vào sự kiện:**
+   - Sự kiện gộp FR-052 mang `floorAreaId`, số việc, khoảng thời gian, thời điểm chạy bù; thông báo dẫn tới `GET /care-tasks/overdue?floorAreaId`.
+   - `ProlongedPoorEating` đổi `mealIds` thành `firstMealAt`, `lastMealAt`, `mealCount` ("Đổi api" sự kiện công khai, cần D/011 đồng ý); bỏ chặn 32 bữa.
