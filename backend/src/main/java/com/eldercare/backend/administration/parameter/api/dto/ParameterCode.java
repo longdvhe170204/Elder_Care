@@ -1,8 +1,9 @@
 package com.eldercare.backend.administration.parameter.api.dto;
 
 /**
- * Mã tham số cấu hình: đủ 122 mã của Phụ lục 25 (docs/business/nghiep-vu.md), sinh từ phụ lục (000 T030).
- * Không có lệnh tạo hay xóa mã (FR-011); thêm mã khi tài liệu nghiệp vụ bổ sung.
+ * Mã tham số cấu hình: các mã còn hiệu lực của Phụ lục 25 (docs/business/nghiep-vu.md), sinh từ phụ lục (000 T030).
+ * Không có lệnh tạo hay xóa mã (FR-011); thêm mã khi tài liệu nghiệp vụ bổ sung. Mã "Bỏ theo Q-…" (Q-392 → Q-397) không có
+ * trong enum; dòng của mã đó còn trong {@code parameter} vì lịch sử chỉ thêm, không hiện qua API.
  */
 public enum ParameterCode {
     /** Quá hạn trở lại sau tạm vắng (mặc định: 2 giờ) */
@@ -27,8 +28,6 @@ public enum ParameterCode {
     CFG_M02_06,
     /** Coi là vắng không báo sau giờ đến dự kiến (mặc định: 2 giờ) */
     CFG_M02_07,
-    /** Bảng điểm ưu tiên danh sách chờ (điểm theo ba mức chăm sóc ở mục 4) (mặc định: Mỗi 7 ngày chờ +1 điểm; tình huống đặc biệt theo cơ sở) */
-    CFG_M02_08,
     /** Chu kỳ nhắc danh sách việc sau qua đời (mặc định: 1 ngày) */
     CFG_M02_09,
     /** Số ngày hợp đồng quá hạn trước khi báo Quản lý viện (mặc định: 7 ngày) */
@@ -107,10 +106,6 @@ public enum ParameterCode {
     CFG_M07_04,
     /** Hạn hoàn thành đối chiếu thuốc (mặc định: 4 giờ) */
     CFG_M07_05,
-    /** Bỏ theo Q-393, giữ mã (Phụ lục 25): nhắc gia đình khi thuốc gửi sắp hết */
-    CFG_M07_06,
-    /** Bỏ theo Q-393, giữ mã (Phụ lục 25): mốc nhắc lần hai khi thuốc gia đình gửi sắp hết */
-    CFG_M07_07,
     /** Mốc Nhân viên bếp được chốt suất ăn (mặc định: 2 giờ trước bữa) */
     CFG_M08_01,
     /** Số ngày lặp món liên tiếp để cảnh báo (mặc định: 3 ngày) */
@@ -123,10 +118,6 @@ public enum ParameterCode {
     CFG_M08_06,
     /** Nhắc công bố thực đơn tuần kế tiếp (mặc định: 2 ngày trước ngày đầu tuần) */
     CFG_M08_07,
-    /** Bỏ theo Q-392, giữ mã (Phụ lục 25): nhắc lô nguyên liệu sắp hết hạn dùng */
-    CFG_M08_08,
-    /** Bỏ theo Q-392, giữ mã (Phụ lục 25): chu kỳ kiểm kê kho nguyên liệu */
-    CFG_M08_09,
     /** Ngưỡng tỷ lệ phục vụ: trọng số tối đa trên mỗi nhân viên, theo mẫu ca (Q-79, Q-205; trọng số ở CFG-M09-12) (mặc định: Theo cơ sở) */
     CFG_M09_01,
     /** Số giờ làm liên tục tối đa trước khi cảnh báo (mặc định: 16 giờ) */
@@ -137,16 +128,10 @@ public enum ParameterCode {
     CFG_M09_04,
     /** Nhắc khi ca sau chưa xác nhận bàn giao (mặc định: 30 phút từ đầu ca) */
     CFG_M09_05,
-    /** Nhắc lập lịch ca tháng trước đầu tháng (mặc định: 15 ngày) */
-    CFG_M09_06,
-    /** Yêu cầu phủ ca tối thiểu theo vai trò (mẫu ca, phạm vi, vai trò, số người). Dòng mặc định áp mọi tầng/khu vực, mọi mẫu ca; ca toàn viện không có dòng mặc định; chỉ tính nhân viên có giấy phép, đào tạo còn hiệu lực (Q-188). Mẫu xoay ca là danh mục riêng (13.2), không thuộc tham số này (mặc định: ≥ 1 điều dưỡng / tầng / ca) */
-    CFG_M09_07,
     /** Báo Quản lý viện khi ca dưới ngưỡng phục vụ sắp bắt đầu (mặc định: 24 giờ) */
     CFG_M09_08,
     /** Khoảng tối đa tìm ca sau để nhận bàn giao (mặc định: 24 giờ) */
     CFG_M09_09,
-    /** Nhắc công bố lịch ca tháng trước ngày đầu tháng (mặc định: 3 ngày) */
-    CFG_M09_10,
     /** Nhắc yêu cầu đổi ca, nghỉ đột xuất chưa quyết định trước giờ bắt đầu ca (mặc định: 24 giờ) */
     CFG_M09_11,
     /** Trọng số chăm sóc theo từng mức chăm sóc (Q-205; ba mức ở mục 4; nhu cầu chăm sóc không có trọng số) (mặc định: Theo cơ sở (ví dụ cơ bản = 1, đặc biệt = 2,5)) */
@@ -157,8 +142,6 @@ public enum ParameterCode {
     CFG_M10_01,
     /** Tự đóng phản hồi khi người gửi không phản hồi (mặc định: 7 ngày) */
     CFG_M10_02,
-    /** Kỳ bản tin (mốc nhắc lập) / hạn duyệt bản tin (mặc định: Thứ 2 hằng tuần / 48 giờ) */
-    CFG_M10_03,
     /** Khung giờ thăm và sức chứa mỗi khung (mặc định: 09:00–11:00 và 15:00–17:00; 20 người mỗi khung) */
     CFG_M10_04,
     /** Thời hạn đăng ký thăm trước (mặc định: Tối thiểu 2 giờ, tối đa 14 ngày) */
@@ -175,8 +158,6 @@ public enum ParameterCode {
     CFG_M10_10,
     /** Nhắc / báo Quản lý viện khi yêu cầu BR-M10-07 Chờ xác nhận lâu (mặc định: 48 giờ / 96 giờ) */
     CFG_M10_11,
-    /** Mốc Trưởng tầng được duyệt thay bản tin (mặc định: 96 giờ) */
-    CFG_M10_12,
     /** Hạn chốt bảng chi phí của kỳ vừa kết thúc (không đổi ranh giới kỳ; Q-132) (mặc định: Ngày cuối của tháng liền sau kỳ) */
     CFG_M11_01,
     /** Hạn mức mua hộ cần đồng ý/duyệt (mặc định: 500.000 đồng) */
