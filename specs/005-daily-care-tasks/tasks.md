@@ -241,6 +241,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 **Checkpoint**: Báo xem xét kế hoạch chạy.
 
+**Checkpoint 03/11/2026** — T052/T053 đã nối hai nguồn 001/004. Scoped 3 IT và 46 kiểm tra kiến trúc xanh. Clean verify exit 1 sau 39:13. 956 unit/kiến trúc xanh, 2.507 IT có 6 failure, 26 error, 2 skipped. Cả 3 IT Phase 10 xanh và không có tên test đỏ mới so mốc hòa merge. Còn chờ sự kiện ngã, chăm sóc giảm nhẹ và đổi lịch đo của 007, cùng kiểm nguồn điều dưỡng thực của 008. Chi tiết trong plan.md và Working-history.md.
+
 ---
 
 ## Phase 11: User Story 9 – Phân lại công việc chung và thời khóa biểu cá nhân (Priority: P3)
