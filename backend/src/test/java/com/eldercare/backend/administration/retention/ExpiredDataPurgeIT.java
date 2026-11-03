@@ -266,6 +266,39 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         assertThat(sharedRowsOf(FLOOR, kept)).isEqualTo(4);
     }
 
+    private long sharedEventFor(String type, long id) {
+        jdbc.update(
+                "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
+                        + " confirmed_at) VALUES (?, ?, 'M15', 'M15.TEST_EVENT', '{}', FALSE, UTC_TIMESTAMP(6),"
+                        + " UTC_TIMESTAMP(6))",
+                type,
+                id);
+        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+    }
+
+    /**
+     * Đính chính của dòng bảng chung (ví dụ lượt đến, về điểm danh 005 {@code M04.ATTENDANCE_RECORD} gắn hồ sơ) được xét
+     * hạn cùng chuỗi trước khi dòng bị xóa: còn hạn thì giữ cả chuỗi, hết hạn thì xóa cùng.
+     */
+    @Test
+    void R_15_FR_051a_correctionOfSharedRow_isCheckedBeforeSharedRowIsPurged() {
+        long withRecent = floorRecord(expired);
+        long recentRow = sharedEventFor(FLOOR, withRecent);
+        long recentCorrection = correctionFor("M15.TEST_EVENT", recentRow, recent);
+        long withOld = floorRecord(expired);
+        long oldRow = sharedEventFor(FLOOR, withOld);
+        long oldCorrection = correctionFor("M15.TEST_EVENT", oldRow, expired);
+
+        runJob();
+
+        assertThat(exists("sample_floor_record", withRecent)).isTrue();
+        assertThat(exists("record_event", recentRow)).isTrue();
+        assertThat(exists("correction", recentCorrection)).isTrue();
+        assertThat(exists("sample_floor_record", withOld)).isFalse();
+        assertThat(exists("record_event", oldRow)).isFalse();
+        assertThat(exists("correction", oldCorrection)).isFalse();
+    }
+
     @Test
     void FR_050_logOfResidentRecord_isKept_untilResidentRetentionIsKnown() {
         long linked = floorRecord(expired);

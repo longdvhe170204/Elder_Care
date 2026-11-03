@@ -12,6 +12,9 @@ public enum CareRetentionType {
     LOCATION_CARE_RESULT("care_task", false),
     TASK_HISTORY("care_task_history", true),
     LOCATION_TASK_HISTORY("care_task_history", false),
+    // Điểm danh đã gộp vào simple_record, record_event gắn M01.RESIDENT (R-15): job loại bỏ xóa cùng chuỗi hồ sơ và xét
+    // đính chính của từng dòng qua SharedRowRetention.rowsFor; hai loại dưới chỉ giữ khai báo, bảng cũ không còn nên
+    // rỗng.
     DAY_CARE_ATTENDANCE("care_day_attendance", true),
     ATTENDANCE_RECORD("care_attendance_record", true);
     private final String table;
