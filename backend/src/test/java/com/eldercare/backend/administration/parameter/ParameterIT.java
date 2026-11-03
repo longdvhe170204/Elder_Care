@@ -8,7 +8,9 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -25,16 +27,23 @@ class ParameterIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_011_allCodesLoaded_eachWithInitialHistoryRow() {
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM parameter", Integer.class))
+        // Mã bỏ theo Q-392 → Q-397 còn dòng trong bảng (lịch sử chỉ thêm) nên chỉ đếm các mã của enum.
+        String active = Arrays.stream(ParameterCode.values())
+                .map(c -> "'" + c.code() + "'")
+                .collect(Collectors.joining(", ", "(", ")"));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM parameter WHERE code IN " + active, Integer.class))
                 .isEqualTo(ParameterCode.values().length);
         // Lần nạp ban đầu: một dòng cho mỗi mã, người thực hiện là Bộ lập lịch (actor_id NULL). Test đổi tham số (T075)
         // thêm dòng lịch sử, nên chỉ đếm mã, không đếm dòng.
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(DISTINCT code) FROM parameter_history WHERE actor_id IS NULL", Integer.class))
+                        "SELECT COUNT(DISTINCT code) FROM parameter_history WHERE actor_id IS NULL AND code IN "
+                                + active,
+                        Integer.class))
                 .isEqualTo(ParameterCode.values().length);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(DISTINCT p.code) FROM parameter p JOIN parameter_history h ON h.code = p.code"
-                                + " WHERE JSON_CONTAINS(h.value, p.current_value) AND JSON_CONTAINS(p.current_value, h.value)",
+                                + " WHERE JSON_CONTAINS(h.value, p.current_value) AND JSON_CONTAINS(p.current_value, h.value)"
+                                + " AND p.code IN " + active,
                         Integer.class))
                 .isEqualTo(ParameterCode.values().length);
     }

@@ -28,8 +28,11 @@ import tools.jackson.databind.node.ObjectNode;
 @Import(ParameterFixtures.class)
 class ParameterTableIT extends MySqlIntegrationTestBase {
 
-    /** Tham số dạng bảng còn lại: CFG-M02-05 không còn là bảng từ Q-395 (V004_06). */
-    private static final String COVERAGE_TABLE = "CFG-M09-07";
+    /**
+     * Tham số dạng bảng còn hiệu lực: CFG-M02-05 không còn là bảng từ Q-395 (V004_06), CFG-M09-07 bỏ theo Q-397; khung giờ
+     * thăm chưa có mã đọc nên đổi trong test không ảnh hưởng nghiệp vụ khác.
+     */
+    private static final String VISIT_SLOTS = "CFG-M10-04";
 
     @Autowired
     MockMvc mvc;
@@ -53,36 +56,36 @@ class ParameterTableIT extends MySqlIntegrationTestBase {
 
     @AfterEach
     void restore() throws Exception {
-        api.restoreDefault(COVERAGE_TABLE, api.etag(COVERAGE_TABLE), "khôi phục sau test");
+        api.restoreDefault(VISIT_SLOTS, api.etag(VISIT_SLOTS), "khôi phục sau test");
     }
 
     @Test
     void US4_10_changingOneRow_logsWholeTableBeforeAndAfter() throws Exception {
-        JsonNode before = json.readTree(jdbc.queryForObject(
-                "SELECT current_value FROM parameter WHERE code = ?", String.class, COVERAGE_TABLE));
+        JsonNode before = json.readTree(
+                jdbc.queryForObject("SELECT current_value FROM parameter WHERE code = ?", String.class, VISIT_SLOTS));
         ObjectNode after = (ObjectNode) before.deepCopy();
-        ((ObjectNode) after.get("rows").get(0)).put("minCount", 2);
+        ((ObjectNode) after.get("slots").get(0)).put("to", "11:30");
 
-        api.change(COVERAGE_TABLE, api.etag(COVERAGE_TABLE), json.writeValueAsString(after), "Tăng phủ ca tối thiểu")
+        api.change(VISIT_SLOTS, api.etag(VISIT_SLOTS), json.writeValueAsString(after), "Kéo dài khung thăm sáng")
                 .andExpect(status().isOk());
 
         JsonNode history = json.readTree(jdbc.queryForObject(
                 "SELECT value FROM parameter_history WHERE code = ? ORDER BY effective_from DESC LIMIT 1",
                 String.class,
-                COVERAGE_TABLE));
+                VISIT_SLOTS));
         assertThat(history).isEqualTo(after);
         JsonNode logBefore = json.readTree(jdbc.queryForObject(
                 "SELECT JSON_EXTRACT(data_before, '$.value') FROM audit_log WHERE action = 'PARAMETER_CHANGED'"
                         + " AND entity_id = ? ORDER BY id DESC LIMIT 1",
                 String.class,
-                COVERAGE_TABLE));
+                VISIT_SLOTS));
         JsonNode logAfter = json.readTree(jdbc.queryForObject(
                 "SELECT JSON_EXTRACT(data_after, '$.value') FROM audit_log WHERE action = 'PARAMETER_CHANGED'"
                         + " AND entity_id = ? ORDER BY id DESC LIMIT 1",
                 String.class,
-                COVERAGE_TABLE));
+                VISIT_SLOTS));
         assertThat(logBefore).isEqualTo(before);
         assertThat(logAfter).isEqualTo(after);
-        assertThat(logAfter.get("rows")).hasSize(before.get("rows").size());
+        assertThat(logAfter.get("slots")).hasSize(before.get("slots").size());
     }
 }

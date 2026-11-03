@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -72,6 +74,37 @@ class ReminderMarkersIT extends MySqlIntegrationTestBase {
             second.get(10, TimeUnit.SECONDS);
         } finally {
             release.countDown();
+            pool.shutdownNow();
+        }
+    }
+
+    /**
+     * Khóa đã có dòng: INSERT IGNORE trùng khóa lấy khóa S, hai lệnh cùng giữ S rồi cùng nâng lên X ở FOR UPDATE thì
+     * MySQL báo bế tắc (004 EndingConcurrencyIT). Nhiều lệnh đồng thời trên cùng khóa phải chạy lần lượt, không lỗi.
+     */
+    @Test
+    void lock_existingKey_concurrentCallersDoNotDeadlock() throws Exception {
+        String key = "M15.TEST:" + TestUsers.nextId();
+        transaction.executeWithoutResult(s -> locks.lock(key));
+        int threads = 4;
+        int rounds = 25;
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<?>> callers = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                callers.add(pool.submit(() -> {
+                    await(start);
+                    for (int i = 0; i < rounds; i++) {
+                        transaction.executeWithoutResult(s -> locks.lock(key));
+                    }
+                }));
+            }
+            start.countDown();
+            for (Future<?> caller : callers) {
+                caller.get(60, TimeUnit.SECONDS);
+            }
+        } finally {
             pool.shutdownNow();
         }
     }
