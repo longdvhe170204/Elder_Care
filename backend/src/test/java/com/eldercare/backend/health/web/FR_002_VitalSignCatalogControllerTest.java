@@ -57,7 +57,13 @@ class FR_002_VitalSignCatalogControllerTest {
         var service = mock(VitalSignCatalogService.class);
         var controller = new VitalSignCatalogController(service);
         var request = new VitalSignCatalogRequest(
-                "HEART_RATE", "Nhịp tim", "bpm", true, List.of(new ComponentRequest("VALUE", "Giá trị", 0)));
+                null,
+                "HEART_RATE",
+                "Nhịp tim",
+                "bpm",
+                true,
+                List.of(new ComponentRequest("VALUE", "Giá trị", 0)),
+                null);
         var view = new VitalSignCatalogView(
                 7,
                 "HEART_RATE",
@@ -72,10 +78,10 @@ class FR_002_VitalSignCatalogControllerTest {
         when(service.create(request.toInput())).thenReturn(view);
         when(service.update(7, "\"3\"", request.toInput())).thenReturn(view);
 
-        assertThat(controller.create(request).getStatusCode().value()).isEqualTo(201);
-        assertThat(controller.update(7, "\"3\"", request).getStatusCode().value())
+        assertThat(controller.create(null, request).getStatusCode().value()).isEqualTo(201);
+        assertThat(controller.update(7, "\"3\"", null, request).getStatusCode().value())
                 .isEqualTo(200);
-        controller.deactivate(7, new ReasonBody(Reason.of("Không còn dùng")));
+        controller.deactivate(7, null, new ReasonBody(Reason.of("Không còn dùng")));
 
         verify(service).create(request.toInput());
         verify(service).update(7, "\"3\"", request.toInput());

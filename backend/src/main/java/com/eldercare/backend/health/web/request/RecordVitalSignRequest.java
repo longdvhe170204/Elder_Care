@@ -1,43 +1,30 @@
 package com.eldercare.backend.health.web.request;
 
 import com.eldercare.backend.health.api.dto.RecordVitalSignCommand;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
 
-/** Thân lệnh ghi chỉ số theo hợp đồng 007. */
+/** Thân lệnh ghi chỉ số ngoài lịch theo hợp đồng 007; công việc đo của 005 ghi qua {@code VitalSignPort}. */
 public record RecordVitalSignRequest(
-        Long indicatorId,
-        Long chiSoId,
-        Map<String, BigDecimal> values,
-        Map<String, BigDecimal> giaTri,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long indicatorId,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Map<String, BigDecimal> values,
         Instant measuredAt,
-        Instant thoiDiemDo,
         Boolean immediateAction,
-        Boolean xuLyNgay,
-        String notes,
-        String ghiChu,
-        Long taskId,
-        Long congViecId) {
+        String notes) {
 
     public RecordVitalSignCommand toCommand(long residentId, long actorId) {
-        long effectiveIndicatorId = indicatorId != null ? indicatorId : (chiSoId != null ? chiSoId : 0L);
-        Map<String, BigDecimal> effectiveValues = values != null ? values : (giaTri != null ? giaTri : Map.of());
-        Instant effectiveMeasuredAt = measuredAt != null ? measuredAt : thoiDiemDo;
-        boolean effectiveImmediateAction = Boolean.TRUE.equals(immediateAction) || Boolean.TRUE.equals(xuLyNgay);
-        String effectiveNotes = notes != null ? notes : ghiChu;
-        Long effectiveTaskId = taskId != null ? taskId : congViecId;
-
         return new RecordVitalSignCommand(
                 residentId,
-                effectiveIndicatorId,
-                effectiveMeasuredAt,
+                indicatorId != null ? indicatorId : 0L,
+                measuredAt,
                 actorId,
-                effectiveValues,
-                effectiveImmediateAction,
-                effectiveTaskId,
+                values != null ? values : Map.of(),
+                Boolean.TRUE.equals(immediateAction),
+                null,
                 null,
                 false,
-                effectiveNotes);
+                notes);
     }
 }
