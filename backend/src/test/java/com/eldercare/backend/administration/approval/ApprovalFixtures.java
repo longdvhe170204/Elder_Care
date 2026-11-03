@@ -48,6 +48,8 @@ public class ApprovalFixtures {
         volatile boolean failOnApply;
         volatile boolean allowSelfApproval = true;
         volatile Set<Role> roleRestriction;
+        /** Vai trò được sửa, gửi duyệt Nháp của người khác (plan 004 FR-039); null là chỉ người yêu cầu. */
+        volatile Set<Role> draftActorRoles;
 
         /** Đặt cả bốn công tắc một lần (chạy tay quickstart ở profile demo, T103). */
         public void configure(
@@ -63,6 +65,7 @@ public class ApprovalFixtures {
             failOnApply = false;
             allowSelfApproval = true;
             roleRestriction = null;
+            draftActorRoles = null;
         }
     }
 
@@ -133,6 +136,13 @@ public class ApprovalFixtures {
         @Override
         public Optional<Set<Role>> approverRoleRestriction(ApprovalRequestView request) {
             return Optional.ofNullable(control.roleRestriction);
+        }
+
+        @Override
+        public boolean mayActOnDraft(CurrentUser user, ApprovalRequestView request) {
+            Set<Role> roles = control.draftActorRoles;
+            return RequestTypeHandler.super.mayActOnDraft(user, request)
+                    || (roles != null && user.roles().stream().anyMatch(roles::contains));
         }
 
         static String effectName(ApprovalRequestView request) {

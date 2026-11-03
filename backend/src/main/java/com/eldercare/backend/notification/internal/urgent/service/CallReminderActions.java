@@ -109,6 +109,27 @@ class CallReminderActions {
     }
 
     /**
+     * Module nguồn yêu cầu dừng (research B-08): sự cố hạ mức khỏi Khẩn cấp (BR-M05-22), đã có kết quả xác nhận lại
+     * nguyện vọng (007 FR-050b d). Lượt Chờ kết quả của chuỗi mà mọi thông báo đều của nguồn này dừng, người được nhắc
+     * được báo không cần gọi; không tạo lượt mới cho chuỗi. Chuỗi còn thông báo của nguồn khác giữ nguyên.
+     */
+    void stopForSource(String sourceRecordType, String sourceRecordId, String reason, String text, Instant at) {
+        for (long chainId : store.chainsWithSource(sourceRecordType, sourceRecordId)) {
+            if (store.chainHasOtherSource(chainId, sourceRecordType, sourceRecordId)) {
+                continue;
+            }
+            for (long awaiting : store.awaitingInChain(chainId)) {
+                Reminder r = store.lock(awaiting).orElseThrow();
+                if (!"AWAITING_RESULT".equals(r.status())) {
+                    continue;
+                }
+                store.finish(r.id(), "STOPPED", null, reason);
+                notices.inform(r, List.of(r.currentStaffId()), "CALL_REMINDER_STOPPED", reason, text, at);
+            }
+        }
+    }
+
+    /**
      * Đã liên lạc được (FR-030, FR-044): thông báo gộp vào chính lượt vừa gọi ghi xác nhận qua cuộc gọi; thông báo đang Không
      * liên lạc được thì xác nhận muộn qua cuộc gọi; báo module nguồn. Gọi được người thân kế tiếp (lượt không gộp thông báo)
      * thì thông báo của người cần gọi trước giữ nguyên, vì chính họ chưa biết tin (FR-026; chủ dự án chọn 2026-10-27).
