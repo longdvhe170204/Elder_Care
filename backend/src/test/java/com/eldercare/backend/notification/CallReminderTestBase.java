@@ -131,11 +131,16 @@ abstract class CallReminderTestBase extends M13IntegrationTestBase {
     }
 
     NotificationRequest urgent(String key, RecipientGroup... groups) {
+        return urgent(new SourceRecord("M05.INCIDENT", key), key, groups);
+    }
+
+    /** Yêu cầu Khẩn cấp của một bản ghi nguồn đã cho (007 dừng lượt theo nguồn, BR-M05-22, FR-050b d). */
+    NotificationRequest urgent(SourceRecord source, String key, RecipientGroup... groups) {
         return new NotificationRequest(
                 "M05",
                 "INCIDENT_URGENT",
                 SourceGroup.OTHER,
-                new SourceRecord("M05.INCIDENT", key),
+                source,
                 key,
                 Optional.of(NotificationLevel.URGENT),
                 Optional.of(resident),
