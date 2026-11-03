@@ -47,8 +47,8 @@ class FR_039_IncidentCatalogControllerTest {
         var service = mock(IncidentCatalogService.class);
         var controller = new IncidentCatalogController(service);
         var trend = new TrendRuleRequest(false, IncidentLevel.CRITICAL, Reason.of("Tăng rủi ro"));
-        var incident = new IncidentTypeRequest("CUSTOM", "Khác", IncidentLevel.LOW, true, false);
-        var progression = new ProgressionTypeRequest("OBSERVE", "Theo dõi", ProgressionGroup.MONITORING, false);
+        var incident = new IncidentTypeRequest(null, "CUSTOM", "Khác", IncidentLevel.LOW, true, false);
+        var progression = new ProgressionTypeRequest(null, "OBSERVE", "Theo dõi", ProgressionGroup.MONITORING, false);
         when(service.updateTrendRule("WEIGHT_LOSS", "\"2\"", trend.toInput(), trend.reason()))
                 .thenReturn(
                         new TrendRuleView("WEIGHT_LOSS", "Sụt cân", false, IncidentLevel.CRITICAL, "CFG-M05-01", 3));
@@ -59,10 +59,10 @@ class FR_039_IncidentCatalogControllerTest {
         when(service.createProgressionType(progression.toInput()))
                 .thenReturn(new ProgressionTypeView(9, "OBSERVE", "Theo dõi", ProgressionGroup.MONITORING, false, 0));
 
-        controller.updateTrendRule("WEIGHT_LOSS", "\"2\"", trend);
-        controller.createIncidentType(incident);
-        controller.updateIncidentType(8, "\"1\"", incident);
-        controller.createProgressionType(progression);
+        controller.updateTrendRule("WEIGHT_LOSS", "\"2\"", null, trend);
+        controller.createIncidentType(null, incident);
+        controller.updateIncidentType(8, "\"1\"", null, incident);
+        controller.createProgressionType(null, progression);
 
         verify(service).updateTrendRule("WEIGHT_LOSS", "\"2\"", trend.toInput(), trend.reason());
         verify(service).createIncidentType(incident.toInput());

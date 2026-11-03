@@ -400,7 +400,7 @@ public class VitalSignMeasurementService {
                         if (val.compareTo(min) < 0) {
                             throw new BusinessException(
                                     HttpStatus.UNPROCESSABLE_ENTITY,
-                                    "NGOAI_KHOANG_VAT_LY",
+                                    "OUT_OF_PHYSICAL_RANGE",
                                     "Giá trị nhỏ hơn cận vật lý tối thiểu: " + min);
                         }
                     }
@@ -409,7 +409,7 @@ public class VitalSignMeasurementService {
                         if (val.compareTo(max) > 0) {
                             throw new BusinessException(
                                     HttpStatus.UNPROCESSABLE_ENTITY,
-                                    "NGOAI_KHOANG_VAT_LY",
+                                    "OUT_OF_PHYSICAL_RANGE",
                                     "Giá trị vượt quá cận vật lý tối đa: " + max);
                         }
                     }

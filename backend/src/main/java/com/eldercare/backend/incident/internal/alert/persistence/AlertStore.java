@@ -16,7 +16,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 /**
- * Lưu trữ bảng cảnh báo {@code alert} (nhóm 2 STATEFUL).
+ * Lưu trữ bảng cảnh báo {@code alert} (nhóm 2 BUSINESS).
  */
 @Repository
 public class AlertStore {

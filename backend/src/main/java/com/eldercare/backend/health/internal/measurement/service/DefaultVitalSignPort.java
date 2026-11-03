@@ -54,7 +54,7 @@ class DefaultVitalSignPort implements VitalSignPort {
             }
             return RecordResult.SAVED;
         } catch (BusinessException e) {
-            if ("NGOAI_KHOANG_VAT_LY".equals(e.errorCode())) {
+            if ("OUT_OF_PHYSICAL_RANGE".equals(e.errorCode())) {
                 return RecordResult.BLOCKED;
             }
             throw e;
