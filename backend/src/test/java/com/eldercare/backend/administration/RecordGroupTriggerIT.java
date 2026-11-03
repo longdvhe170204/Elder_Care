@@ -215,7 +215,6 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             "consent_family_member",
             "end_of_life_wish",
             "end_of_life_wish_opinion",
-            "file",
             "periodic_reminder",
             "reassessment_notice",
             "return_overdue_alert",

@@ -5,7 +5,10 @@ import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView
 import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
+import com.eldercare.backend.common.Reason;
+import java.time.LocalDate;
 import java.util.Optional;
+import tools.jackson.databind.JsonNode;
 
 /** Yêu cầu phê duyệt cho module khác (contracts/module-interfaces.md mục 1.5; FR-031 → FR-041). */
 public interface ApprovalRequestApi {
@@ -17,6 +20,14 @@ public interface ApprovalRequestApi {
 
     /** Chi tiết kèm lệnh người dùng hiện tại được phép; không xem được thì 404 (FR-042). */
     ApprovalRequestDetails detail(long id);
+
+    /**
+     * Sửa nội dung yêu cầu còn Nháp qua lệnh của module sở hữu (Propagation.MANDATORY; bổ sung theo plan 004 T043, {@code PUT
+     * /residency-change-requests/{id}}): cùng kiểm và nhật ký như {@code edit-content} của HTTP, người sửa theo
+     * {@code RequestTypeHandler.mayActOnDraft}; {@code ifMatch} là ETag của yêu cầu, ngày hiệu lực null thì giữ ngày cũ.
+     */
+    ApprovalRequestView editDraft(
+            long id, String ifMatch, JsonNode content, LocalDate requestedEffectiveDate, Reason reason);
 
     /** Kết quả áp dụng (FR-039). */
     Optional<ResultRef> applicationResult(long requestId);
