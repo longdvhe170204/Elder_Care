@@ -4,11 +4,14 @@ import 'package:http/http.dart' as http;
 
 /// Lỗi theo Problem Details của backend (RFC 9457; như `common/problem.js` của web).
 class ApiProblem implements Exception {
-  ApiProblem(this.status, this.errorCode, this.detail);
+  ApiProblem(this.status, this.errorCode, this.detail, [this.properties = const {}]);
 
   final int status;
   final String? errorCode;
   final String? detail;
+
+  /// Toàn bộ Problem Details backend trả, gồm thuộc tính mở rộng (ví dụ `rowErrors` của lô lập công việc 005).
+  final Map<String, dynamic> properties;
 
   @override
   String toString() => 'ApiProblem($status, $errorCode)';
@@ -36,28 +39,25 @@ class ApiClient {
   DateTime? lastConnectedAt;
 
   Future<Map<String, dynamic>?> get(String path) async {
-    final decoded = await _send('GET', path, null);
+    final decoded = await requestJson('GET', path);
     return decoded is Map<String, dynamic> ? decoded : null;
   }
 
   /// Endpoint trả mảng JSON.
   Future<List<dynamic>> getList(String path) async {
-    final decoded = await _send('GET', path, null);
+    final decoded = await requestJson('GET', path);
     return decoded is List<dynamic> ? decoded : const [];
   }
 
   /// `headers`: ví dụ `If-Match` của lệnh trên đối tượng có phiên bản (000 FR-040).
   Future<Map<String, dynamic>?> post(String path, Map<String, dynamic> body, {Map<String, String>? headers}) async {
-    final decoded = await _send('POST', path, body, headers);
+    final decoded = await requestJson('POST', path, body: body, headers: headers);
     return decoded is Map<String, dynamic> ? decoded : null;
   }
 
-  Future<Object?> _send(
-    String method,
-    String path,
-    Map<String, dynamic>? body, [
-    Map<String, String>? headers,
-  ]) async {
+  /// Gửi thân JSON bất kỳ (Map, mảng) và trả JSON đã giải mã, `null` khi phản hồi rỗng. `headers`: ví dụ
+  /// `Idempotency-Key` của lệnh ghi, `If-Match` của lệnh trên đối tượng có phiên bản.
+  Future<Object?> requestJson(String method, String path, {Object? body, Map<String, String>? headers}) async {
     final request = http.Request(method, Uri.parse('$baseUrl/api/v1$path'));
     request.headers['Accept'] = 'application/json, application/problem+json';
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
@@ -78,7 +78,7 @@ class ApiClient {
     final decoded = text.isEmpty ? null : jsonDecode(text);
     if (response.statusCode >= 400) {
       final problem = decoded is Map<String, dynamic> ? decoded : const <String, dynamic>{};
-      throw ApiProblem(response.statusCode, problem['errorCode'] as String?, problem['detail'] as String?);
+      throw ApiProblem(response.statusCode, problem['errorCode'] as String?, problem['detail'] as String?, problem);
     }
     return decoded;
   }
