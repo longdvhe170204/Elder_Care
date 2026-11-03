@@ -2,9 +2,11 @@ package com.eldercare.backend.health.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.health.api.dto.RecordVitalSignCommand;
 import com.eldercare.backend.health.api.dto.RemeasureVitalSignCommand;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +41,10 @@ class VitalSignControllerTest {
         currentUser = mock(CurrentUser.class);
         when(currentUser.accountId()).thenReturn(999L);
 
-        controller = new VitalSignController(measurementService, currentUser);
+        var accounts = mock(AccountApi.class);
+        when(accounts.fullName(anyLong())).thenReturn(Optional.of("Điều dưỡng A"));
+
+        controller = new VitalSignController(measurementService, currentUser, accounts);
     }
 
     @Test
@@ -46,18 +52,7 @@ class VitalSignControllerTest {
         long residentId = 10L;
         long indicatorId = 20L;
         var request = new RecordVitalSignRequest(
-                indicatorId,
-                null,
-                Map.of("VALUE", new BigDecimal("98.50")),
-                null,
-                NOW,
-                null,
-                false,
-                null,
-                "Bình thường",
-                null,
-                null,
-                null);
+                indicatorId, Map.of("VALUE", new BigDecimal("98.50")), NOW, false, "Bình thường");
 
         var components = Map.of("VALUE", new VitalSignComponent(new BigDecimal("98.50"), VitalSignLevel.NORMAL));
         var savedRecord = new VitalSignRecord(
@@ -74,12 +69,12 @@ class VitalSignControllerTest {
         when(measurementService.record(any(RecordVitalSignCommand.class), eq(currentUser)))
                 .thenReturn(savedRecord);
 
-        var response = controller.recordVitalSign(residentId, request);
+        var response = controller.recordVitalSign(residentId, null, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().id()).isEqualTo(100L);
-        assertThat(response.getBody().residentId()).isEqualTo(residentId);
+        assertThat(response.getBody().measuredBy()).isEqualTo("Điều dưỡng A");
         assertThat(response.getBody().level()).isEqualTo(VitalSignLevel.NORMAL);
         assertThat(response.getBody().values()).containsEntry("VALUE", new BigDecimal("98.50"));
         verify(measurementService).record(any(RecordVitalSignCommand.class), eq(currentUser));
@@ -88,8 +83,7 @@ class VitalSignControllerTest {
     @Test
     void remeasureVitalSign_callsServiceAndReturnsCreated() {
         long draftId = 100L;
-        var request = new RemeasureVitalSignRequest(
-                Map.of("VALUE", new BigDecimal("87.00")), null, NOW, null, "Đo lại lần 2", null);
+        var request = new RemeasureVitalSignRequest(Map.of("VALUE", new BigDecimal("87.00")), NOW, "Đo lại lần 2");
 
         var components = Map.of("VALUE", new VitalSignComponent(new BigDecimal("87.00"), VitalSignLevel.DANGEROUS));
         var remeasuredRecord = new VitalSignRecord(
@@ -117,7 +111,7 @@ class VitalSignControllerTest {
         when(measurementService.remeasure(any(RemeasureVitalSignCommand.class), eq(currentUser)))
                 .thenReturn(remeasuredRecord);
 
-        var response = controller.remeasureVitalSign(draftId, request);
+        var response = controller.remeasureVitalSign(draftId, null, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();

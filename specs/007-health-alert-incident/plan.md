@@ -393,3 +393,20 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
 - Người dùng duyệt đổi nhanh hai đường dẫn đang dùng: GET/POST `/residents/{residentId}/vital-signs`, POST `/vital-sign-records/{id}/remeasure`. Đổi đồng thời hai path của api-007 và binding `residentId` trong controller; thêm parameter ResidentId cho đúng operation, giữ NctId cho các endpoint khác chưa dịch. Không đổi số operation hoặc dữ liệu nghiệp vụ.
 - Sinh lại client bằng `npm run gen:api`: `getResidentsByResidentIdVitalSigns`, `postResidentsByResidentIdVitalSigns`, `postVitalSignRecordsByIdRemeasure`. Tìm toàn frontend/mobile không có consumer của ba hàm tên cũ ngoài file client sinh, nên không cần đổi màn hình/mobile.
 - Test HTTP FR_010_VitalSignRoutesTest chạy đỏ 404 trước cài; test VitalSignApi.test.js đỏ vì chưa có hàm tiếng Anh. Sau sửa kiểm GET/POST/đo lại đúng id, các đường cũ trả 404, client gọi đúng ba URL. T062 giữ trạng thái hiện tại: chỉ dịch đường dẫn hai endpoint này, chưa dịch toàn bộ schema/operation 007.
+
+### T062 — dịch đủ api-007 và so operation (2026-11-03, thay D)
+
+- Bản dịch ở `contracts/api-translation.md`, chủ dự án duyệt 2026-11-03. Chỉ đổi tên; số endpoint, trường, kiểu, mã phản hồi giữ nguyên. `donViDuaDi` dịch thành `transferUnit` theo lệnh Chuyển viện của 001, khác với `transportedBy` trong bản đề xuất.
+- Năm điểm ở mục 7 của bản dịch, áp theo đề xuất:
+  1. `V007_07__alert_staff_assist_type.sql` đổi `NV_YEU_CAU_HO_TRO` thành `STAFF_ASSIST_REQUEST`: sửa cột sinh, `CHECK`, các dòng cũ và tạo lại trigger chặn sửa.
+  2. Mã lỗi `OUT_OF_PHYSICAL_RANGE` thay `NGOAI_KHOANG_VAT_LY`; phạm vi ngưỡng trả `FACILITY` thay `CO_SO`.
+  3. Thân lệnh ghi, đo lại chỉ số bỏ tên trường tiếng Việt và bỏ `taskId`; 005 ghi qua `VitalSignPort`.
+  4. `measuredBy` trả họ tên người đo qua `AccountApi.fullName` (thiếu thì "#id"), bỏ `residentId` khỏi phản hồi.
+  5. `/sos` chỉ đổi tên header thành `X-Device-Token`.
+- Sửa thêm để khớp hợp đồng khi bật so operation:
+  - nhận `Idempotency-Key` (không bắt buộc, như 006);
+  - khai báo mã phản hồi 201, 403, 409, 412, 422;
+  - các trường bắt buộc; enum của mã quy tắc xu hướng;
+  - `id`, `active` ở thân ghi danh mục (bỏ qua khi ghi);
+  - schema lỗi riêng `M06Problem`, `M05Problem` chỉ để mô tả, như `M09Problem` của 008.
+- Còn lệch, chưa sửa: `VitalSignRecordResponse` luôn trả phạm vi `FACILITY` dù bản ghi so theo ngưỡng cá nhân. Sửa khi cài phần ngưỡng (T020 → T023).

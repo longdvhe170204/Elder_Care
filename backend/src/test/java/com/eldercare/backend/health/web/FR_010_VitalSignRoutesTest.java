@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.health.api.dto.*;
 import com.eldercare.backend.health.internal.measurement.domain.VitalSignRecord;
@@ -34,12 +35,18 @@ class FR_010_VitalSignRoutesTest {
                 Set.of(),
                 now);
         when(measurements.getHistory(42L, null, null, null)).thenReturn(List.of());
+        when(measurements.getHistory(42L, 2L, now, now)).thenReturn(List.of());
         when(measurements.record(any(), same(user))).thenReturn(record);
         when(measurements.remeasure(any(), same(user))).thenReturn(record);
-        var http = MockMvcBuilders.standaloneSetup(new VitalSignController(measurements, user))
+        var http = MockMvcBuilders.standaloneSetup(new VitalSignController(measurements, user, mock(AccountApi.class)))
                 .build();
 
         http.perform(get("/api/v1/residents/42/vital-signs")).andExpect(status().isOk());
+        http.perform(get("/api/v1/residents/42/vital-signs")
+                        .param("indicatorId", "2")
+                        .param("from", now.toString())
+                        .param("to", now.toString()))
+                .andExpect(status().isOk());
         http.perform(post("/api/v1/residents/42/vital-signs")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"indicatorId\":2,\"values\":{\"VALUE\":98}}"))
@@ -49,6 +56,7 @@ class FR_010_VitalSignRoutesTest {
                         .content("{\"values\":{\"VALUE\":98}}"))
                 .andExpect(status().isCreated());
         verify(measurements).getHistory(42L, null, null, null);
+        verify(measurements).getHistory(42L, 2L, now, now);
         verify(measurements).record(argThat(command -> command.residentId() == 42L), same(user));
         verify(measurements).remeasure(argThat(command -> command.originalRecordId() == 1L), same(user));
         http.perform(get("/api/v1/nguoi-cao-tuoi/42/chi-so")).andExpect(status().isNotFound());

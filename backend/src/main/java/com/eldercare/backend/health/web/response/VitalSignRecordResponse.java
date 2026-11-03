@@ -4,6 +4,7 @@ import com.eldercare.backend.health.api.dto.VitalSignConfirmationStatus;
 import com.eldercare.backend.health.api.dto.VitalSignLabel;
 import com.eldercare.backend.health.api.dto.VitalSignLevel;
 import com.eldercare.backend.health.internal.measurement.domain.VitalSignRecord;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -11,15 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Phản hồi bản ghi chỉ số theo hợp đồng 007. */
+/** Phản hồi bản ghi chỉ số theo hợp đồng 007; {@code measuredBy} là họ tên người đo. */
 public record VitalSignRecordResponse(
         long id,
-        long residentId,
         long indicatorId,
         Map<String, BigDecimal> values,
         Map<String, BigDecimal> originalValues,
         Instant measuredAt,
-        long measuredBy,
+        String measuredBy,
         ThresholdSummary threshold,
         VitalSignLevel level,
         VitalSignConfirmationStatus confirmationStatus,
@@ -28,11 +28,16 @@ public record VitalSignRecordResponse(
         Long remeasurementFor,
         List<String> hiddenFields) {
 
-    public record ThresholdSummary(Long versionId, String scope) {}
+    public record ThresholdSummary(
+            Long versionId,
 
-    public static VitalSignRecordResponse from(VitalSignRecord record) {
-        ThresholdSummary threshold =
-                record.thresholdVersionId() != null ? new ThresholdSummary(record.thresholdVersionId(), "CO_SO") : null;
+            @Schema(allowableValues = {"FACILITY", "PERSONAL"})
+            String scope) {}
+
+    public static VitalSignRecordResponse from(VitalSignRecord record, String measuredByName) {
+        ThresholdSummary threshold = record.thresholdVersionId() != null
+                ? new ThresholdSummary(record.thresholdVersionId(), "FACILITY")
+                : null;
 
         Map<String, BigDecimal> values = new LinkedHashMap<>();
         if (record.components() != null) {
@@ -41,12 +46,11 @@ public record VitalSignRecordResponse(
 
         return new VitalSignRecordResponse(
                 record.id(),
-                record.residentId(),
                 record.indicatorId(),
                 values,
                 null,
                 record.measuredAt(),
-                record.measuredBy(),
+                measuredByName,
                 threshold,
                 record.level(),
                 record.confirmationStatus(),

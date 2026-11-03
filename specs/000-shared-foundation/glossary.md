@@ -1430,6 +1430,10 @@ Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường
 
 
 | Nguồn đọc giấy phép cơ sở, số liên hệ viện (S-16) | `health.internal.license.service.FacilitySources`; `M06.FACILITY_LICENSE`, `M06.FACILITY_CONTACT` qua `CatalogApi` |
+| Bản dịch đủ api-007 (T062, duyệt 2026-11-03): đường dẫn, tag, tham số, schema, enum, mã lỗi | bảng ở `specs/007-health-alert-incident/contracts/api-translation.md` mục 1 → 6 (`donViDuaDi` → `transferUnit` như 001) |
+| loại cảnh báo nút hỗ trợ `NV_YEU_CAU_HO_TRO` | `STAFF_ASSIST_REQUEST` (`V007_07__alert_staff_assist_type.sql`) |
+| schema lỗi của 007 trong mã | `M06Problem` (`health.web.response.M06ProblemBody`), `M05Problem` (`incident.web.response.M05ProblemBody`) |
+| nhóm dữ liệu `alert`, `monitoring_setting` | `BUSINESS` (`V007_06__alert_monitoring_data_group.sql`) |
 
 ## 14. Feature 008 (`008-staff-shift-handover`, E)
 

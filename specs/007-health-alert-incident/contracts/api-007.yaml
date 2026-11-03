@@ -4,59 +4,59 @@ info:
   version: 1.0.0-design
   description: |
     Hợp đồng REST của feature 007 (module M06 – sức khỏe và M05 – sự cố, cảnh báo). Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], If-Match cho lệnh sửa danh mục (nhóm 1),
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], If-Match cho lệnh sửa danh mục (nhóm 1),
     Idempotency-Key cho mọi lệnh ghi. Lệnh chuyển trạng thái không dùng If-Match; backend khóa dòng và kiểm tra lại (research S-03).
-    Lần tiếp nhận thứ hai của một cảnh báo, sự cố trả 409 DA_CO_NGUOI_TIEP_NHAN kèm người và thời điểm.
-    Ghi chỉ số ngoại tuyến đi qua endpoint đồng bộ chung của api-002 với loại M06.BAN_GHI_CHI_SO; nội dung giống thân lệnh trực tuyến.
+    Lần tiếp nhận thứ hai của một cảnh báo, sự cố trả 409 ALREADY_RECEIVED kèm người và thời điểm.
+    Ghi chỉ số ngoại tuyến đi qua endpoint đồng bộ chung của api-002 với loại M06.VITAL_SIGN_RECORD; nội dung giống thân lệnh trực tuyến.
     Ghi sự cố và kích hoạt khẩn cấp bắt buộc trực tuyến (8.6, Q-01): không có loại ngoại tuyến tương ứng.
-    Ghi chỉ số từ công việc đo của 005 đi qua ChiSoPort (module-interfaces), không qua REST.
-    Đính chính đi qua khung của api-000 với loại M06.BAN_GHI_CHI_SO, M06.BAN_GHI_KHAM, M05.SU_CO (Hủy ghi nhận, đổi loại),
-    M05.DIEN_BIEN_SU_CO, M05.KET_QUA_XAC_NHAN_LAI, M05.LUA_CHON_THUC_HIEN.
+    Ghi chỉ số từ công việc đo của 005 đi qua VitalSignPort (module-interfaces), không qua REST.
+    Đính chính đi qua khung của api-000 với loại M06.VITAL_SIGN_RECORD, M06.EXAMINATION_RECORD, M05.INCIDENT (Hủy ghi nhận, đổi loại),
+    M05.INCIDENT_PROGRESSION, M05.WISH_RECONFIRMATION, M05.CHOICE_EXECUTION.
     Khoảng hợp lệ vật lý (CFG-M06-03) đổi qua màn tham số của api-000. Lệnh trạng thái người cao tuổi là endpoint của api-001.
-    Trường SUC_KHOE bị bỏ khỏi phản hồi theo 002 và liệt kê trong truongBiAn. Người thân xem sự cố, chỉ số, khám qua cổng 012.
+    Trường HEALTH bị bỏ khỏi phản hồi theo 002 và liệt kê trong hiddenFields. Người thân xem sự cố, chỉ số, khám qua cổng 012.
     Truy vết: mỗi operation có x-fr (FR của spec 007) và x-br khi có.
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
-  - { name: danh-muc, description: 'FR-001, FR-002, FR-039, FR-042, FR-048a' }
-  - { name: lich-do, description: 'UC-33; mục A' }
-  - { name: chi-so, description: 'UC-32; mục B' }
-  - { name: nguong, description: 'UC-33; mục C' }
-  - { name: canh-bao, description: 'UC-34, UC-38; mục D' }
-  - { name: su-co, description: 'UC-35; mục F, H' }
-  - { name: khan-cap, description: 'UC-36, UC-16; mục G' }
-  - { name: nguy-kich, description: 'UC-83, UC-84; mục G1' }
-  - { name: lay-nhiem, description: 'UC-37; mục I' }
-  - { name: giay-phep-kham, description: 'Mục J' }
+  - { name: catalogs, description: 'FR-001, FR-002, FR-039, FR-042, FR-048a' }
+  - { name: measurement-schedules, description: 'UC-33; mục A' }
+  - { name: vital-signs, description: 'UC-32; mục B' }
+  - { name: thresholds, description: 'UC-33; mục C' }
+  - { name: alerts, description: 'UC-34, UC-38; mục D' }
+  - { name: incidents, description: 'UC-35; mục F, H' }
+  - { name: emergency, description: 'UC-36, UC-16; mục G' }
+  - { name: critical-condition, description: 'UC-83, UC-84; mục G1' }
+  - { name: infection, description: 'UC-37; mục I' }
+  - { name: licenses-examinations, description: 'Mục J' }
 
 paths:
   # ---------------- Danh mục ----------------
   /vital-sign-catalog:
     get:
-      tags: [danh-muc]
-      summary: Danh mục chỉ số, kèm khoảng hợp lệ hiện hành từ CFG-M06-03 và dấu chuaCoKhoangHopLe
+      tags: [catalogs]
+      summary: Danh mục chỉ số, kèm khoảng hợp lệ hiện hành từ CFG-M06-03 và dấu missingValidRange
       x-fr: [FR-001]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/VitalSignIndicator' } } } } } }
     post:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Thêm chỉ số (Quản lý viện); khoảng hợp lệ thêm ở CFG-M06-03
       x-fr: [FR-001, FR-002]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VitalSignIndicator' } } } }
-      responses: { '201': { description: Đã thêm }, '403': { $ref: '#/components/responses/Loi' } }
+      responses: { '201': { description: Đã thêm }, '403': { $ref: '#/components/responses/Problem' } }
   /vital-sign-catalog/{id}:
     put:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Sửa tên, đơn vị, nhóm sinh hiệu (Quản lý viện)
       x-fr: [FR-002]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VitalSignIndicator' } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' } }
   /vital-sign-catalog/{id}/deactivate:
     post:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Ngừng hiệu lực chỉ số
       x-fr: [FR-002]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -64,27 +64,27 @@ paths:
       responses: { '200': { description: OK } }
   /trend-rules:
     get:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Danh mục quy tắc xu hướng
       x-fr: [FR-039]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TrendRule' } } } } } }
   /trend-rules/{code}:
     put:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Bật/tắt, đổi mức (Quản lý viện; lý do bắt buộc)
       x-fr: [FR-039]
       x-br: [BR-M05-04, BR-M15-04]
       parameters: [ { name: code, in: path, required: true, schema: { type: string, enum: [WEIGHT_LOSS, MISSED_MEASUREMENT, PROLONGED_INSOMNIA, MEDICATION_REFUSAL] } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [enabled, level, reason], properties: { enabled: { type: boolean }, level: { $ref: '#/components/schemas/IncidentLevel' }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
   /incident-types:
     get:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Danh mục loại sự cố (mức mặc định, dấu không thuộc sức khỏe)
       x-fr: [FR-042]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/IncidentType' } } } } } }
     post:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Thêm loại sự cố (Quản lý viện)
       x-fr: [FR-042]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -92,21 +92,21 @@ paths:
       responses: { '201': { description: Đã thêm } }
   /incident-types/{id}:
     put:
-      tags: [danh-muc]
-      summary: Sửa loại sự cố, gồm dấu khongThuocSucKhoe (nhật ký trước/sau)
+      tags: [catalogs]
+      summary: Sửa loại sự cố, gồm dấu nonHealth (nhật ký trước/sau)
       x-fr: [FR-042]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentType' } } } }
       responses: { '200': { description: OK } }
   /progression-types:
     get:
-      tags: [danh-muc]
-      summary: Danh mục loại diễn biến, có dấu bienPhapHoiSuc
+      tags: [catalogs]
+      summary: Danh mục loại diễn biến, có dấu resuscitation
       x-fr: [FR-048a]
       x-br: [BR-M05-20]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProgressionType' } } } } } }
     post:
-      tags: [danh-muc]
+      tags: [catalogs]
       summary: Thêm loại diễn biến (Quản lý viện)
       x-fr: [FR-048a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -114,603 +114,603 @@ paths:
       responses: { '201': { description: Đã thêm } }
 
   # ---------------- Lịch đo ----------------
-  /nguoi-cao-tuoi/{nctId}/lich-do:
+  /residents/{residentId}/measurement-schedules:
     get:
-      tags: [lich-do]
+      tags: [measurement-schedules]
       summary: Lịch đo của người cao tuổi (Bác sĩ, Điều dưỡng, Quản lý viện; Trưởng tầng trong phạm vi)
       x-fr: [FR-003, FR-080]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LichDo' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MeasurementSchedule' } } } } } }
     post:
-      tags: [lich-do]
+      tags: [measurement-schedules]
       summary: Tạo lịch đo (Bác sĩ)
       description: 'Hiệu lực nếu bắt đầu không sau thời điểm lệnh, ngược lại Chờ hiệu lực. Là căn cứ LAN_DO để Người phụ trách ca lập công việc; không sinh công việc (Q-306).'
       x-fr: [FR-003, FR-004, FR-006]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LichDoMoi' } } } }
-      responses: { '201': { description: Đã tạo }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /lich-do/{id}/moc-do:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewMeasurementSchedule' } } } }
+      responses: { '201': { description: Đã tạo }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /measurement-schedules/{id}/measurement-times:
     get:
-      tags: [lich-do]
+      tags: [measurement-schedules]
       summary: Các mốc đo dự kiến trong khoảng (tính, không lưu)
       x-fr: [FR-004]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { name: tu, in: query, required: true, schema: { type: string, format: date-time } }, { name: den, in: query, required: true, schema: { type: string, format: date-time } } ]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { name: from, in: query, required: true, schema: { type: string, format: date-time } }, { name: to, in: query, required: true, schema: { type: string, format: date-time } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { type: string, format: date-time } } } } } }
-  /lich-do/{id}/thay-doi:
+  /measurement-schedules/{id}/change:
     post:
-      tags: [lich-do]
+      tags: [measurement-schedules]
       summary: Thay đổi lịch đo (Bác sĩ; lý do bắt buộc)
       description: 'Lịch mới trỏ lịch cũ; lịch cũ Đã ngừng tại thời điểm hiệu lực của lịch mới, cùng một lệnh. 005 báo Người phụ trách ca, Trưởng tầng.'
       x-fr: [FR-005, FR-006]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/LichDoMoi' }, { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } ] } } } }
-      responses: { '201': { description: Lịch mới }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /lich-do/{id}/ngung:
+      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/NewMeasurementSchedule' }, { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } ] } } } }
+      responses: { '201': { description: Lịch mới }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /measurement-schedules/{id}/stop:
     post:
-      tags: [lich-do]
+      tags: [measurement-schedules]
       summary: Ngừng lịch đo (Bác sĩ; lý do bắt buộc)
       description: 'Công việc đo Chưa đến hạn có căn cứ lịch này bị 005 hủy theo 005 FR-022 (plan điểm báo lại 2).'
       x-fr: [FR-006]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Chỉ số ----------------
   /residents/{residentId}/vital-signs:
     get:
-      tags: [chi-so]
+      tags: [vital-signs]
       summary: Lịch sử chỉ số (giá trị hiện hành, giá trị gốc nếu đã đính chính, người đo, ngưỡng áp dụng, kết quả so)
       x-fr: [FR-010, FR-080]
       x-br: [BR-M06-06]
-      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: chiSoId, in: query, schema: { type: integer, format: int64 } }, { name: tu, in: query, schema: { type: string, format: date-time } }, { name: den, in: query, schema: { type: string, format: date-time } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanGhiChiSo' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: indicatorId, in: query, schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/VitalSignRecord' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
     post:
-      tags: [chi-so]
+      tags: [vital-signs]
       summary: Ghi chỉ số ngoài lịch (Nhân viên chăm sóc, Điều dưỡng trong phạm vi)
       description: |
-        Ngoài khoảng CFG-M06-03: 422 NGOAI_KHOANG_VAT_LY kèm khoảng (không lưu). Chỉ số chưa có khoảng: 409 CHUA_CO_KHOANG_HOP_LE.
-        Nguy hiểm không "xuLyNgay": trangThaiXacNhan = CHO_DO_LAI kèm hanDoLai; ngược lại xác nhận ngay.
+        Ngoài khoảng CFG-M06-03: 422 OUT_OF_PHYSICAL_RANGE kèm khoảng (không lưu). Chỉ số chưa có khoảng: 409 VALID_RANGE_MISSING.
+        Nguy hiểm không "immediateAction": confirmationStatus = AWAITING_REMEASUREMENT kèm remeasurementDeadline; ngược lại xác nhận ngay.
       x-fr: [FR-010, FR-011, FR-012, FR-013, FR-015]
       x-br: [BR-M06-03, BR-M06-04, BR-M04-12]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiChiSo' } } } }
-      responses: { '201': { description: Đã lưu, content: { application/json: { schema: { $ref: '#/components/schemas/BanGhiChiSo' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RecordVitalSign' } } } }
+      responses: { '201': { description: Đã lưu, content: { application/json: { schema: { $ref: '#/components/schemas/VitalSignRecord' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
   /vital-sign-records/{id}/remeasure:
     post:
-      tags: [chi-so]
+      tags: [vital-signs]
       summary: Ghi lần đo lại cho bản ghi "chờ đo lại"
-      description: 'Bản ghi đã được xác nhận (đo lại trước đó, hết CFG-M06-04) trả 409 DA_XAC_NHAN_KHONG_DO_LAI. Lần đo lại không yêu cầu đo lại thêm.'
+      description: 'Bản ghi đã được xác nhận (đo lại trước đó, hết CFG-M06-04) trả 409 RECORD_NOT_AWAITING_REMEASUREMENT. Lần đo lại không yêu cầu đo lại thêm.'
       x-fr: [FR-016, FR-017, FR-018]
       x-br: [BR-M06-04]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GiaTriThanhPhan' } } } }
-      responses: { '201': { description: Lần đo lại đã xác nhận, content: { application/json: { schema: { $ref: '#/components/schemas/BanGhiChiSo' } } } }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /chi-so/chua-co-nguong-ca-nhan:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ComponentValues' } } } }
+      responses: { '201': { description: Lần đo lại đã xác nhận, content: { application/json: { schema: { $ref: '#/components/schemas/VitalSignRecord' } } } }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /vital-signs/missing-personal-threshold:
     get:
-      tags: [chi-so]
+      tags: [vital-signs]
       summary: Danh sách người cao tuổi quá CFG-M06-01 chưa có ngưỡng cá nhân (Bác sĩ)
       x-fr: [FR-025]
       x-br: [BR-M06-02]
       responses: { '200': { description: OK } }
 
   # ---------------- Ngưỡng ----------------
-  /nguong:
+  /thresholds:
     get:
-      tags: [nguong]
+      tags: [thresholds]
       summary: Phiên bản ngưỡng (mặc định hoặc của một người), cả lịch sử
       x-fr: [FR-020, FR-022, FR-080]
-      parameters: [ { name: phamVi, in: query, schema: { type: string, enum: [CO_SO, CA_NHAN] } }, { name: nctId, in: query, schema: { type: integer, format: int64 } }, { name: chiSoId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhienBanNguong' } } } } } }
+      parameters: [ { name: scope, in: query, schema: { type: string, enum: [FACILITY, PERSONAL] } }, { name: residentId, in: query, schema: { type: integer, format: int64 } }, { name: indicatorId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ThresholdVersion' } } } } } }
     post:
-      tags: [nguong]
+      tags: [thresholds]
       summary: Thiết lập ngưỡng (Bác sĩ)
-      description: 'Kiểm FR-021 (trong khoảng vật lý, thứ tự bốn cận): 422 NGUONG_KHONG_HOP_LE. Phiên bản Hiệu lực cũ hết hiệu lực tại thời điểm hiệu lực; Chờ hiệu lực cũ Đã hủy. Lý do bắt buộc khi đã có phiên bản trước.'
+      description: 'Kiểm FR-021 (trong khoảng vật lý, thứ tự bốn cận): 422 INVALID_THRESHOLD. Phiên bản Hiệu lực cũ hết hiệu lực tại thời điểm hiệu lực; Chờ hiệu lực cũ Đã hủy. Lý do bắt buộc khi đã có phiên bản trước.'
       x-fr: [FR-020, FR-021, FR-022, FR-023]
       x-br: [BR-M06-01]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhienBanNguongMoi' } } } }
-      responses: { '201': { description: Đã thiết lập }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /nguong/{id}/huy:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewThresholdVersion' } } } }
+      responses: { '201': { description: Đã thiết lập }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /thresholds/{id}/cancel:
     post:
-      tags: [nguong]
+      tags: [thresholds]
       summary: Hủy phiên bản Chờ hiệu lực (Bác sĩ; lý do)
       x-fr: [FR-022]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /nguong/{id}/ngung:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /thresholds/{id}/stop:
     post:
-      tags: [nguong]
+      tags: [thresholds]
       summary: Ngừng ngưỡng cá nhân Hiệu lực (Bác sĩ; lý do); từ đó so theo ngưỡng mặc định
       x-fr: [FR-022]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Cảnh báo ----------------
-  /canh-bao:
+  /alerts:
     get:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Danh sách cảnh báo theo phạm vi (lọc trạng thái, mức, tầng, người phụ trách, leo thang tối đa)
       x-fr: [FR-027, FR-034, FR-036, FR-080]
-      parameters: [ { name: trangThai, in: query, schema: { type: array, items: { $ref: '#/components/schemas/TrangThaiCanhBao' } } }, { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } }, { name: nctId, in: query, schema: { type: integer, format: int64 } }, { name: leoThangToiDa, in: query, schema: { type: boolean } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CanhBao' } } } } } }
+      parameters: [ { name: status, in: query, schema: { type: array, items: { $ref: '#/components/schemas/AlertStatus' } } }, { name: floorAreaId, in: query, schema: { type: integer, format: int64 } }, { name: residentId, in: query, schema: { type: integer, format: int64 } }, { name: maxEscalationReached, in: query, schema: { type: boolean } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Alert' } } } } } }
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Tạo cảnh báo thủ công (Trưởng tầng, Bác sĩ, Điều dưỡng; mô tả bắt buộc)
-      description: 'Có cảnh báo đang mở cùng khóa loại thì gộp (201 với gop = true).'
+      description: 'Có cảnh báo đang mở cùng khóa loại thì gộp (201 với merged = true).'
       x-fr: [FR-026, FR-028, FR-030]
       x-br: [BR-M05-02]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nctId, loaiSuCoId, muc, moTa], properties: { nctId: { type: integer, format: int64 }, loaiSuCoId: { type: integer, format: int64 }, muc: { $ref: '#/components/schemas/Muc' }, moTa: { type: string, maxLength: 4000 } } } } } }
-      responses: { '201': { description: Tạo hoặc gộp, content: { application/json: { schema: { $ref: '#/components/schemas/CanhBao' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /canh-bao/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [residentId, incidentTypeId, level, description], properties: { residentId: { type: integer, format: int64 }, incidentTypeId: { type: integer, format: int64 }, level: { $ref: '#/components/schemas/IncidentLevel' }, description: { type: string, maxLength: 4000 } } } } } }
+      responses: { '201': { description: Tạo hoặc gộp, content: { application/json: { schema: { $ref: '#/components/schemas/Alert' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /alerts/{id}:
     get:
-      tags: [canh-bao]
-      summary: Chi tiết cảnh báo, nguồn, lịch sử, lần nhắc, lenhDuocPhep[]
+      tags: [alerts]
+      summary: Chi tiết cảnh báo, nguồn, lịch sử, lần nhắc, allowedCommands[]
       x-fr: [FR-027, FR-033]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CanhBao' } } } } }
-  /canh-bao/{id}/tiep-nhan:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Alert' } } } } }
+  /alerts/{id}/receive:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Tiếp nhận
-      description: 'Điều dưỡng, Trưởng tầng trong phạm vi, Bác sĩ, Người phụ trách ca theo nhiệm vụ; Quản lý viện chỉ khi Leo thang cấp 2 (Q-71). Đã có người tiếp nhận: 409 DA_CO_NGUOI_TIEP_NHAN. Gọi được từ "Xác nhận và tiếp nhận" của 009 (FR-026a của 009).'
+      description: 'Điều dưỡng, Trưởng tầng trong phạm vi, Bác sĩ, Người phụ trách ca theo nhiệm vụ; Quản lý viện chỉ khi Leo thang cấp 2 (Q-71). Đã có người tiếp nhận: 409 ALREADY_RECEIVED. Gọi được từ "Xác nhận và tiếp nhận" của 009 (FR-026a của 009).'
       x-fr: [FR-029, FR-036]
       x-br: [BR-M05-01]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiTiepNhan' } }
-  /canh-bao/{id}/giao-nguoi-phu-trach:
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/AlreadyReceived' } }
+  /alerts/{id}/assign:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Giao người phụ trách (Quản lý viện khi là người phụ trách; ghi chú bắt buộc)
       x-fr: [FR-029, FR-031, FR-036]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, ghiChu], properties: { nhanVienId: { type: integer, format: int64 }, ghiChu: { type: string, minLength: 1 } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /canh-bao/{id}/bat-dau-xu-ly:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [staffId, note], properties: { staffId: { type: integer, format: int64 }, note: { type: string, minLength: 1 } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /alerts/{id}/start-handling:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Bắt đầu xử lý
       x-fr: [FR-029, FR-036]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /canh-bao/{id}/doi-muc:
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /alerts/{id}/change-level:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Nâng / hạ mức (lý do bắt buộc; hạ từ Khẩn cấp chỉ Bác sĩ)
       x-fr: [FR-029, FR-038a]
       x-br: [BR-M05-03]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [mucMoi, lyDo], properties: { mucMoi: { $ref: '#/components/schemas/Muc' }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /canh-bao/{id}/dong:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [newLevel, reason], properties: { newLevel: { $ref: '#/components/schemas/IncidentLevel' }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /alerts/{id}/close:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Đóng (kết quả bắt buộc; lý do với cảnh báo công việc Bắt buộc quá hạn; nguy kịch cần kết quả xác nhận lại và lựa chọn)
       x-fr: [FR-029, FR-050d]
       x-br: [BR-M04-06]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua], properties: { ketQua: { type: string, minLength: 1 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /canh-bao/{id}/chuyen-su-co:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [resolution], properties: { resolution: { type: string, minLength: 1 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /alerts/{id}/convert-to-incident:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Chuyển sự cố (từ Đang xử lý); sự cố liên kết mức mặc định bằng mức cảnh báo
       x-fr: [FR-029, FR-040]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SuCoTuCanhBao' } } } }
-      responses: { '201': { description: Sự cố đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/SuCo' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /canh-bao/{id}/kich-hoat-khan-cap:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentFromAlert' } } } }
+      responses: { '201': { description: Sự cố đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/Incident' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
+  /alerts/{id}/activate-emergency:
     post:
-      tags: [canh-bao, khan-cap]
+      tags: [alerts, emergency]
       summary: Kích hoạt khẩn cấp từ cảnh báo (Mới, Leo thang, Đã tiếp nhận); bắt buộc trực tuyến
       x-fr: [FR-029, FR-047, FR-047a]
       x-br: [BR-M05-06, BR-M05-13]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SuCoTuCanhBao' } } } }
-      responses: { '201': { description: Sự cố Khẩn cấp và thẻ thông tin khẩn cấp, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKichHoat' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentFromAlert' } } } }
+      responses: { '201': { description: Sự cố Khẩn cấp và thẻ thông tin khẩn cấp, content: { application/json: { schema: { $ref: '#/components/schemas/ActivationResult' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Sự cố ----------------
-  /su-co:
+  /incidents:
     get:
-      tags: [su-co]
+      tags: [incidents]
       summary: Danh sách sự cố theo phạm vi (lọc trạng thái, mức, loại, tầng, người cao tuổi)
       x-fr: [FR-045, FR-080]
-      parameters: [ { name: trangThai, in: query, schema: { type: array, items: { $ref: '#/components/schemas/TrangThaiSuCo' } } }, { name: nctId, in: query, schema: { type: integer, format: int64 } }, { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SuCo' } } } } } }
+      parameters: [ { name: status, in: query, schema: { type: array, items: { $ref: '#/components/schemas/IncidentStatus' } } }, { name: residentId, in: query, schema: { type: integer, format: int64 } }, { name: floorAreaId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Incident' } } } } } }
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Ghi nhận sự cố (mọi nhân viên có quyền "T"; ngoại lệ ngoài phạm vi 002 FR-044a); bắt buộc trực tuyến
       description: |
-        Mức thấp hơn mặc định của loại cần lyDoMucThap (FR-042). Khẩn cấp kích hoạt quy trình (mục G) trong cùng lệnh.
-        Người cao tuổi đã có sự cố Khẩn cấp đang mở: 409 DA_CO_SU_CO_KHAN_CAP_MO kèm sự cố đó, trừ khi taoMoiDuDaCo = true (FR-041).
+        Mức thấp hơn mặc định của loại cần lowerLevelReason (FR-042). Khẩn cấp kích hoạt quy trình (mục G) trong cùng lệnh.
+        Người cao tuổi đã có sự cố Khẩn cấp đang mở: 409 OPEN_EMERGENCY_INCIDENT_EXISTS kèm sự cố đó, trừ khi createDespiteOpen = true (FR-041).
         Người ghi ngoài phạm vi chỉ nhận thông tin nhận dạng và "đã thông báo người xử lý" (FR-048).
       x-fr: [FR-040, FR-041, FR-042, FR-043, FR-047, FR-051, FR-060]
       x-br: [BR-M05-06, BR-M05-07, BR-M05-10, BR-M05-17, BR-M05-18]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiNhanSuCo' } } } }
-      responses: { '201': { description: Đã ghi nhận, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKichHoat' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /su-co/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RecordIncident' } } } }
+      responses: { '201': { description: Đã ghi nhận, content: { application/json: { schema: { $ref: '#/components/schemas/ActivationResult' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}:
     get:
-      tags: [su-co]
-      summary: Hồ sơ sự cố (nội dung, diễn biến, đổi mức, người xử lý, người được thông báo từ 009, lenhDuocPhep[])
+      tags: [incidents]
+      summary: Hồ sơ sự cố (nội dung, diễn biến, đổi mức, người xử lý, người được thông báo từ 009, allowedCommands[])
       x-fr: [FR-040, FR-048b]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SuCo' } } } } }
-  /su-co/{id}/tiep-nhan:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Incident' } } } } }
+  /incidents/{id}/receive:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Tiếp nhận xử lý (Mới → Đang xử lý)
       x-fr: [FR-044, FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiTiepNhan' } }
-  /su-co/{id}/giao-nguoi-xu-ly:
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/AlreadyReceived' } }
+  /incidents/{id}/assign-handler:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Giao người xử lý (Mới → Đang xử lý; hoặc giao lại khi Đang xử lý, Đang theo dõi)
       description: 'Trưởng tầng trong phạm vi, Bác sĩ, Quản lý viện; người xử lý hiện tại được giao lại. Người được giao là Điều dưỡng, Trưởng tầng, Bác sĩ có quyền xử lý sự cố với đối tượng. Ghi chú bắt buộc. Không dùng ngoại lệ phạm vi của lệnh ghi nhận (bổ sung 2026-10-11, Q-339).'
       x-fr: [FR-045, FR-045a, FR-044]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nguoiDuocGiaoId, ghiChu], properties: { nguoiDuocGiaoId: { type: integer, format: int64 }, ghiChu: { type: string, minLength: 1 } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /su-co/{id}/tham-gia-xu-ly:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [assigneeId, note], properties: { assigneeId: { type: integer, format: int64 }, note: { type: string, minLength: 1 } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}/join-handling:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Tham gia xử lý sự cố Khẩn cấp đang mở (không tạo sự cố mới)
       x-fr: [FR-041, FR-048b]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK } }
-  /su-co/{id}/dien-bien:
+  /incidents/{id}/progressions:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Ghi diễn biến (đánh giá, hành động, biện pháp hồi sức, thông báo, theo dõi, gọi hỗ trợ/cấp cứu, báo cơ quan y tế)
-      description: 'Loại có dấu biện pháp hồi sức khi người cao tuổi có nguyện vọng và chưa có xác nhận đối chiếu: 409 CHUA_DOI_CHIEU_NGUYEN_VONG kèm nguyện vọng (DBR-19).'
+      description: 'Loại có dấu biện pháp hồi sức khi người cao tuổi có nguyện vọng và chưa có xác nhận đối chiếu: 409 WISH_NOT_CHECKED kèm nguyện vọng (DBR-19).'
       x-fr: [FR-045, FR-048a, FR-048b, FR-066]
       x-br: [BR-M05-13, BR-M05-20]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [loaiDienBienId, noiDung], properties: { loaiDienBienId: { type: integer, format: int64 }, noiDung: { type: string }, dienRaLuc: { type: string, format: date-time } } } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /su-co/{id}/doi-muc:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [progressionTypeId, content], properties: { progressionTypeId: { type: integer, format: int64 }, content: { type: string }, occurredAt: { type: string, format: date-time } } } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /incidents/{id}/change-level:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Nâng / hạ mức (lý do; hạ từ Khẩn cấp chỉ Bác sĩ; nâng lên Khẩn cấp kích hoạt mục G; hạ khỏi Khẩn cấp dừng nhắc gọi điện)
       x-fr: [FR-044, FR-045]
       x-br: [BR-M05-22]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [mucMoi, lyDo], properties: { mucMoi: { $ref: '#/components/schemas/Muc' }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /su-co/{id}/chuyen-theo-doi:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [newLevel, reason], properties: { newLevel: { $ref: '#/components/schemas/IncidentLevel' }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}/move-to-monitoring:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Chuyển theo dõi (cần ít nhất một diễn biến đánh giá và một diễn biến xử lý)
       x-fr: [FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /su-co/{id}/mo-lai-xu-ly:
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /incidents/{id}/reopen:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Mở lại xử lý (lý do bắt buộc)
       x-fr: [FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
-  /su-co/{id}/dong:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '422': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}/close:
     post:
-      tags: [su-co]
-      summary: Đóng sự cố (kết quả bắt buộc; Trung bình, Khẩn cấp chỉ Điều dưỡng, Bác sĩ; lây nhiễm chọn ketQuaLayNhiem và không còn vùng chỉ gắn sự cố này)
+      tags: [incidents]
+      summary: Đóng sự cố (kết quả bắt buộc; Trung bình, Khẩn cấp chỉ Điều dưỡng, Bác sĩ; lây nhiễm chọn infectionOutcome và không còn vùng chỉ gắn sự cố này)
       x-fr: [FR-045, FR-066]
       x-br: [BR-M05-09, BR-M05-12]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua], properties: { ketQua: { type: string, minLength: 1 }, ketQuaLayNhiem: { type: string, enum: [XAC_NHAN_NHIEM, LOAI_TRU, KHONG_XAC_DINH] } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /su-co/{id}/ket-thuc-theo-doi-sau-nga:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [resolution], properties: { resolution: { type: string, minLength: 1 }, infectionOutcome: { type: string, enum: [CONFIRMED_INFECTION, RULED_OUT, UNDETERMINED] } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /incidents/{id}/end-post-fall-monitoring:
     post:
-      tags: [su-co]
+      tags: [incidents]
       summary: Kết thúc theo dõi sau ngã (Bác sĩ; lý do); công việc theo dõi Chưa đến hạn bị 005 hủy
       x-fr: [FR-052]
       x-br: [BR-M05-07]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Khẩn cấp ----------------
-  /su-co/{id}/the-khan-cap:
+  /incidents/{id}/emergency-card:
     get:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Thẻ thông tin khẩn cấp (bản chụp lúc kích hoạt và nội dung hiện hành); người không có quyền xem sức khỏe chỉ thấy nhận dạng
       x-fr: [FR-047, FR-048, FR-050f]
       x-br: [BR-M05-13]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TheKhanCap' } } } } }
-  /su-co/{id}/xac-nhan-doi-chieu-nguyen-vong:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EmergencyCard' } } } } }
+  /incidents/{id}/confirm-wish-check:
     post:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Xác nhận đã đối chiếu nguyện vọng (chỉ người được xem đủ thẻ); phản hồi hiển thị lại nguyện vọng
       x-fr: [FR-048a]
       x-br: [BR-M05-13]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /su-co/{id}/chuyen-vien:
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /incidents/{id}/transfer-out:
     post:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Chuyển viện từ sự cố (Điều dưỡng, Bác sĩ; sự cố Mới, Đang xử lý)
-      description: 'Cùng một lệnh: lệnh Chuyển viện của 001/004 với căn cứ là sự cố và bản tóm tắt chuyển viện. 001 từ chối thì không phần nào áp dụng; sự cố ghi diễn biến CHUYEN_VIEN_BI_TU_CHOI.'
+      description: 'Cùng một lệnh: lệnh Chuyển viện của 001/004 với căn cứ là sự cố và bản tóm tắt chuyển viện. 001 từ chối thì không phần nào áp dụng; sự cố ghi diễn biến TRANSFER_REFUSED.'
       x-fr: [FR-049, FR-050]
       x-br: [BR-M05-14]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChuyenVien' } } } }
-      responses: { '201': { description: Bản tóm tắt, content: { application/json: { schema: { $ref: '#/components/schemas/BanTomTat' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ban-tom-tat-chuyen-vien/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TransferOut' } } } }
+      responses: { '201': { description: Bản tóm tắt, content: { application/json: { schema: { $ref: '#/components/schemas/TransferSummary' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
+  /transfer-summaries/{id}:
     get:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Bản tóm tắt chuyển viện (in được; Bác sĩ, Điều dưỡng, Trưởng tầng trong phạm vi, Quản lý viện)
       x-fr: [FR-050]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BanTomTat' } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TransferSummary' } } } } }
 
   # ---------------- Nguy kịch ----------------
-  /nguoi-cao-tuoi/{nctId}/dau-nguy-kich:
+  /residents/{residentId}/critical-flags:
     post:
-      tags: [nguy-kich]
+      tags: [critical-condition]
       summary: Ghi dấu nguy kịch (Bác sĩ) hoặc dấu tạm (Điều dưỡng khi không có Bác sĩ trực)
-      description: 'Đã có dấu mở: 409 DA_CO_DAU_NGUY_KICH. Điều dưỡng khi có Bác sĩ trực: 409 DANG_CO_BAC_SI_TRUC. Cùng lệnh tạo cảnh báo Khẩn cấp không gộp và thông báo FR-050b.'
+      description: 'Đã có dấu mở: 409 CRITICAL_FLAG_EXISTS. Điều dưỡng khi có Bác sĩ trực: 409 ON_DUTY_DOCTOR_AVAILABLE. Cùng lệnh tạo cảnh báo Khẩn cấp không gộp và thông báo FR-050b.'
       x-fr: [FR-050a, FR-050b]
       x-br: [BR-M05-15, BR-M05-16]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [loai, nhanDinh], properties: { loai: { type: string, enum: [CHINH_THUC, TAM] }, nhanDinh: { type: string, minLength: 1 } } } } } }
-      responses: { '201': { description: Dấu và cảnh báo }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /dau-nguy-kich/{id}/xac-nhan:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [type, assessment], properties: { type: { type: string, enum: [OFFICIAL, PROVISIONAL] }, assessment: { type: string, minLength: 1 } } } } } }
+      responses: { '201': { description: Dấu và cảnh báo }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /critical-flags/{id}/confirm:
     post:
-      tags: [nguy-kich]
+      tags: [critical-condition]
       summary: Bác sĩ xác nhận dấu tạm
       x-fr: [FR-050a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /dau-nguy-kich/{id}/go:
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /critical-flags/{id}/remove:
     post:
-      tags: [nguy-kich]
+      tags: [critical-condition]
       summary: Gỡ dấu (Bác sĩ; lý do); cảnh báo nguy kịch vẫn phải đóng theo FR-050d
       x-fr: [FR-050a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK } }
-  /canh-bao/{id}/ket-qua-xac-nhan-lai:
+  /alerts/{id}/wish-reconfirmation:
     post:
-      tags: [nguy-kich]
+      tags: [critical-condition]
       summary: Ghi kết quả xác nhận lại nguyện vọng (Bác sĩ; Điều dưỡng trong phạm vi)
-      description: 'MOI: kèm nội dung nguyện vọng mới, 001 ghi phiên bản trong cùng lệnh (BR-M05-16).'
+      description: 'CHANGED: kèm nội dung nguyện vọng mới, 001 ghi phiên bản trong cùng lệnh (BR-M05-16).'
       x-fr: [FR-050c, FR-050g]
       x-br: [BR-M05-16]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaXacNhanLai' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /canh-bao/{id}/lua-chon-thuc-hien:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WishReconfirmation' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /alerts/{id}/execute-choice:
     post:
-      tags: [nguy-kich]
+      tags: [critical-condition]
       summary: Ghi lựa chọn thực hiện và thực hiện lệnh tương ứng
-      description: 'CHUYEN_BENH_VIEN: lệnh Chuyển viện kèm bản tóm tắt (cần chuyenVien). VE_NHA: báo Hành chính, Trưởng tầng thực hiện Cho tạm vắng. GIAM_NHE: báo điều dưỡng xem xét kế hoạch (005). Thiếu lý do khi không liên lạc được và chưa có nguyện vọng: 422.'
+      description: 'TRANSFER_TO_HOSPITAL: lệnh Chuyển viện kèm bản tóm tắt (cần transferOut). RETURN_HOME: báo Hành chính, Trưởng tầng thực hiện Cho tạm vắng. STAY_PALLIATIVE: báo điều dưỡng xem xét kế hoạch (005). Thiếu lý do khi không liên lạc được và chưa có nguyện vọng: 422.'
       x-fr: [FR-050c, FR-050d]
       x-br: [BR-M05-15]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [luaChon], properties: { luaChon: { type: string, enum: [CHUYEN_BENH_VIEN, VE_NHA, GIAM_NHE] }, lyDo: { $ref: '#/components/schemas/LyDo' }, chuyenVien: { $ref: '#/components/schemas/ChuyenVien' } } } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [choice], properties: { choice: { type: string, enum: [TRANSFER_TO_HOSPITAL, RETURN_HOME, STAY_PALLIATIVE] }, reason: { $ref: '#/components/schemas/Reason' }, transferOut: { $ref: '#/components/schemas/TransferOut' } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Lây nhiễm ----------------
-  /su-co/{id}/tra-cuu-tiep-xuc:
+  /incidents/{id}/contact-lookup:
     get:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Tra cứu dữ liệu tiếp xúc theo nhóm trong CFG-M05-07 trước thời điểm phát hiện (không lưu, không đề xuất)
       x-fr: [FR-060]
       x-br: [BR-M05-10]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { name: nhom, in: query, schema: { type: array, items: { type: string, enum: [CUNG_PHONG, HOAT_DONG, NHAN_VIEN_CHAM_SOC, NGUOI_THAN_THAM] } } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaTraCuuTiepXuc' } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /su-co/{id}/danh-sach-tiep-xuc:
+      parameters: [ { $ref: '#/components/parameters/Id' }, { name: group, in: query, schema: { type: array, items: { type: string, enum: [SAME_ROOM, ACTIVITY, CARE_STAFF, FAMILY_VISIT] } } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ContactLookupResult' } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}/contact-list:
     get:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Danh sách tiếp xúc (Bác sĩ, Điều dưỡng, Quản lý viện; Trưởng tầng trong phạm vi chỉ xem)
       x-fr: [FR-061]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DanhSachTiepXuc' } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ContactList' } } } } }
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Lập danh sách (Nháp)
       x-fr: [FR-061]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /danh-sach-tiep-xuc/{id}/nguoi:
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /contact-lists/{id}/contacts:
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Thêm người (Nháp) hoặc bổ sung người (Đã xác nhận, lý do bắt buộc)
       x-fr: [FR-061, FR-062]
       x-br: [BR-M05-11]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NguoiTiepXuc' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /danh-sach-tiep-xuc/{id}/nguoi/{nguoiId}/bo:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Contact' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /contact-lists/{id}/contacts/{contactId}/remove:
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Bỏ người khỏi danh sách Nháp
       x-fr: [FR-061]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { name: nguoiId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { name: contactId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK } }
-  /danh-sach-tiep-xuc/{id}/nguoi/{nguoiId}/loai:
+  /contact-lists/{id}/contacts/{contactId}/exclude:
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Loại người khỏi danh sách Đã xác nhận (lý do); gỡ dấu tiếp xúc, công việc đo nhiệt độ Chưa đến hạn bị 005 hủy
       x-fr: [FR-061]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { name: nguoiId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      parameters: [ { $ref: '#/components/parameters/Id' }, { name: contactId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK } }
-  /danh-sach-tiep-xuc/{id}/xac-nhan:
+  /contact-lists/{id}/confirm:
     post:
-      tags: [lay-nhiem]
-      summary: Xác nhận danh sách (≥ 1 người, hoặc khongCoNguoiTiepXuc kèm lý do)
+      tags: [infection]
+      summary: Xác nhận danh sách (≥ 1 người, hoặc noContacts kèm lý do)
       x-fr: [FR-061, FR-062]
       x-br: [BR-M05-11]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { khongCoNguoiTiepXuc: { type: boolean }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /su-co/{id}/nguoi-than-can-lien-he:
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { noContacts: { type: boolean }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /incidents/{id}/family-contacts-to-notify:
     get:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Người thân cần liên hệ trực tiếp (Hành chính; chỉ họ tên, quan hệ, số điện thoại, nội dung cần báo)
       x-fr: [FR-062]
       x-br: [BR-M05-24]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK } }
-  /khoanh-vung:
+  /isolations:
     get:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Vùng đang khoanh và lịch sử (Bác sĩ, Quản lý viện, Trưởng tầng, Điều dưỡng, Hành chính)
       x-fr: [FR-064, FR-080]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KhoanhVung' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Isolation' } } } } } }
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Khoanh vùng (Bác sĩ, Quản lý viện; tầng hoặc một khu vực; lý do; gắn ≥ 1 sự cố lây nhiễm chưa đóng)
       x-fr: [FR-063, FR-064, FR-065]
       x-br: [BR-M05-11]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KhoanhVungMoi' } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /khoanh-vung/{id}/gan-su-co:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewIsolation' } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /isolations/{id}/attach-incident:
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Gắn thêm sự cố lây nhiễm chưa đóng vào vùng
       x-fr: [FR-066]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [suCoId], properties: { suCoId: { type: integer, format: int64 } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /khoanh-vung/{id}/go:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [incidentId], properties: { incidentId: { type: integer, format: int64 } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /isolations/{id}/lift:
     post:
-      tags: [lay-nhiem]
+      tags: [infection]
       summary: Gỡ khoanh vùng (Bác sĩ, Quản lý viện; lý do)
       x-fr: [FR-064]
       x-br: [BR-M05-12]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Giấy phép cơ sở, khám ----------------
-  /giay-phep-co-so:
+  /facility-licenses:
     get:
-      tags: [giay-phep-kham]
+      tags: [licenses-examinations]
       summary: Giấy phép cơ sở và lịch sử (Quản lý viện, Bác sĩ)
       x-fr: [FR-070, FR-075]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiayPhepCoSo' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/FacilityLicense' } } } } } }
     post:
-      tags: [giay-phep-kham]
+      tags: [licenses-examinations]
       summary: Lưu giấy phép mới (gia hạn, đổi phạm vi, sửa sai thay thế bản cũ; Quản lý viện)
       x-fr: [FR-070, FR-071, FR-075]
       x-br: [BR-M06-05]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GiayPhepCoSo' } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /so-lien-he-vien:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/FacilityLicense' } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /facility-contact:
     get:
-      tags: [giay-phep-kham]
+      tags: [licenses-examinations]
       summary: Số liên hệ của viện
       x-fr: [FR-070]
       responses: { '200': { description: OK } }
     put:
-      tags: [giay-phep-kham]
+      tags: [licenses-examinations]
       summary: Đổi số liên hệ của viện (Quản lý viện; nhật ký)
       x-fr: [FR-070]
       x-br: [BR-M05-24]
       parameters: [ { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [soDienThoai], properties: { soDienThoai: { type: string }, ghiChu: { type: string } } } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
-  /nguoi-cao-tuoi/{nctId}/kham-dieu-tri:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [phoneNumber], properties: { phoneNumber: { type: string }, note: { type: string } } } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' } }
+  /residents/{residentId}/examinations:
     get:
-      tags: [giay-phep-kham]
+      tags: [licenses-examinations]
       summary: Bản ghi khám và điều trị
       x-fr: [FR-072, FR-080]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanGhiKham' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ExaminationRecord' } } } } } }
     post:
-      tags: [giay-phep-kham]
+      tags: [licenses-examinations]
       summary: Ghi khám, đánh giá, chẩn đoán, chỉ định, điều trị, kết quả
-      description: 'Chẩn đoán, chỉ định, điều trị tại viện: 403 DIEU_KIEN_PHAP_LY khi cơ sở hoặc bác sĩ thiếu giấy phép đúng phạm vi còn hiệu lực (FR-073). Điều dưỡng: cơ sở ngoài hoặc khám, kết quả tại viện với người thực hiện là Bác sĩ (CHK019).'
+      description: 'Chẩn đoán, chỉ định, điều trị tại viện: 403 LEGAL_CONDITION_NOT_MET khi cơ sở hoặc bác sĩ thiếu giấy phép đúng phạm vi còn hiệu lực (FR-073). Điều dưỡng: cơ sở ngoài hoặc khám, kết quả tại viện với người thực hiện là Bác sĩ (CHK019).'
       x-fr: [FR-072, FR-073]
       x-br: [BR-M06-05]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BanGhiKham' } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ExaminationRecord' } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Nút SOS (bổ sung 2026-10-18, Q-369) ----------------
   /sos:
     post:
-      tags: [canh-bao, khan-cap]
+      tags: [alerts, emergency]
       summary: Người cao tuổi bấm nút SOS; tạo hoặc gộp cảnh báo Khẩn cấp
       description: |
         Không cần phiên đăng nhập; xác định người cao tuổi bằng token thiết bị (research S-23).
-        Từ chối khi Tạm vắng, Điều trị tại bệnh viện, trạng thái cuối, hoặc người bán trú không Có mặt; lỗi kèm lienHe.
+        Từ chối khi Tạm vắng, Điều trị tại bệnh viện, trạng thái cuối, hoặc người bán trú không Có mặt; lỗi kèm contacts.
       x-fr: [FR-026, FR-047d, FR-047e]
       x-br: [BR-M05-27]
-      security: [ { tokenThietBi: [] } ]
+      security: [ { deviceToken: [] } ]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses:
-        '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
-        '401': { description: 'THIET_BI_KHONG_HOP_LE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiSos' } } } }
-        '409': { description: 'KHONG_O_VIEN, KHONG_CO_MAT', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiSos' } } } }
-  /sos/hien-tai:
+        '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/SosStatus' } } } }
+        '401': { description: 'INVALID_DEVICE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/SosProblem' } } } }
+        '409': { description: 'NOT_AT_FACILITY, NOT_PRESENT', content: { application/problem+json: { schema: { $ref: '#/components/schemas/SosProblem' } } } }
+  /sos/current:
     get:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Trạng thái cảnh báo SOS đang mở gần nhất của người cao tuổi
       x-fr: [FR-047f]
-      security: [ { tokenThietBi: [] } ]
+      security: [ { deviceToken: [] } ]
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SosStatus' } } } }
         '204': { description: Không có cảnh báo SOS đang mở }
-  /sos/{id}/noi-dang-o:
+  /sos/{id}/place:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Người cao tuổi chọn nhanh nơi đang ở sau khi bấm (một lần)
       x-fr: [FR-047f]
-      security: [ { tokenThietBi: [] } ]
+      security: [ { deviceToken: [] } ]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { type: object, required: [noi], properties: { noi: { type: string, enum: [PHONG, NHA_VE_SINH, HANH_LANG, PHONG_SINH_HOAT_CHUNG, SAN, KHAC], description: "HANH_LANG, PHONG_SINH_HOAT_CHUNG bổ sung 2026-10-22 (Q-373)" } } } } }
-      responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Loi' } }
-  /sos/{id}/vi-tri:
+        content: { application/json: { schema: { type: object, required: [place], properties: { place: { type: string, enum: [ROOM, RESTROOM, CORRIDOR, COMMON_ROOM, YARD, OTHER], description: "CORRIDOR, COMMON_ROOM bổ sung 2026-10-22 (Q-373)" } } } } }
+      responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Problem' } }
+  /sos/{id}/location:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: App người cao tuổi gửi vị trí GPS cho lần bấm SOS (bổ sung 2026-10-22, Q-373)
-      description: 'Nhận khi cảnh báo đang mở và chưa ghi đã tới nơi; ngược lại 409 DUNG_GUI_VI_TRI để app dừng. Gửi lại mỗi chuKyGuiViTriGiay (CFG-M05-09). Lệnh /sos không chờ vị trí (BR-M05-28).'
+      description: 'Nhận khi cảnh báo đang mở và chưa ghi đã tới nơi; ngược lại 409 STOP_SENDING_LOCATION để app dừng. Gửi lại mỗi locationIntervalSeconds (CFG-M05-09). Lệnh /sos không chờ vị trí (BR-M05-28).'
       x-fr: [FR-047h]
       x-br: [BR-M05-28]
-      security: [ { tokenThietBi: [] } ]
+      security: [ { deviceToken: [] } ]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ViTriGui' } } } }
-      responses: { '204': { description: Đã lưu }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LocationReport' } } } }
+      responses: { '204': { description: Đã lưu }, '409': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Nút hỗ trợ khẩn cấp của nhân viên (bổ sung 2026-10-22, Q-375) ----------------
-  /ho-tro-khan-cap:
+  /emergency-assist:
     post:
-      tags: [canh-bao, khan-cap]
-      summary: Nhân viên đang trong ca bấm nút hỗ trợ khẩn cấp; tạo hoặc gộp cảnh báo Khẩn cấp NV_YEU_CAU_HO_TRO
-      description: 'Quyền NUT_HO_TRO_KHAN_CAP (EMERGENCY_ASSIST_BUTTON); chỉ trực tuyến. Không trong ca: 409 KHONG_TRONG_CA kèm lienHe. Không tự tạo sự cố (Q-67); không báo người thân. Đếm ngược 3 giây và Hủy là việc của app.'
+      tags: [alerts, emergency]
+      summary: Nhân viên đang trong ca bấm nút hỗ trợ khẩn cấp; tạo hoặc gộp cảnh báo Khẩn cấp STAFF_ASSIST_REQUEST
+      description: 'Quyền EMERGENCY_ASSIST_BUTTON (EMERGENCY_ASSIST_BUTTON); chỉ trực tuyến. Không trong ca: 409 NOT_ON_SHIFT kèm contacts. Không tự tạo sự cố (Q-67); không báo người thân. Đếm ngược 3 giây và Hủy là việc của app.'
       x-fr: [FR-026, FR-047i]
       x-br: [BR-M05-29]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses:
-        '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { description: 'KHONG_TRONG_CA', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiSos' } } } }
-  /ho-tro-khan-cap/hien-tai:
+        '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/SosStatus' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'NOT_ON_SHIFT', content: { application/problem+json: { schema: { $ref: '#/components/schemas/SosProblem' } } } }
+  /emergency-assist/current:
     get:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Trạng thái cảnh báo nút hỗ trợ đang mở gần nhất của người bấm (đang tới, đã tới)
       x-fr: [FR-047j]
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SosStatus' } } } }
         '204': { description: Không có cảnh báo đang mở }
-  /ho-tro-khan-cap/{id}/chi-tiet:
+  /emergency-assist/{id}/details:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Người bấm chọn loại sự việc, tầng, nơi, người cao tuổi sau khi gửi (mỗi trường đặt một lần)
-      description: 'Có tầng mới thì báo thêm Người phụ trách ca, nhân viên trong ca của tầng; có nctId thì gắn cảnh báo với người cao tuổi và báo thêm người nhận FR-047a (research S-24).'
+      description: 'Có tầng mới thì báo thêm Người phụ trách ca, nhân viên trong ca của tầng; có residentId thì gắn cảnh báo với người cao tuổi và báo thêm người nhận FR-047a (research S-24).'
       x-fr: [FR-047i]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       requestBody:
@@ -720,209 +720,203 @@ paths:
             schema:
               type: object
               properties:
-                loaiSuViec: { type: string, enum: [NGUNG_TIM_NGAT, NGA, KICH_DONG_BAO_LUC, KHAC] }
-                tangKhuVucId: { type: integer, format: int64 }
-                noi: { type: string, enum: [PHONG, NHA_VE_SINH, HANH_LANG, PHONG_SINH_HOAT_CHUNG, SAN, KHAC] }
-                nctId: { type: integer, format: int64 }
-      responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Loi' } }
-  /ho-tro-khan-cap/{id}/vi-tri:
+                eventType: { type: string, enum: [CARDIAC_ARREST_OR_FAINTING, FALL, AGITATION_OR_VIOLENCE, OTHER] }
+                floorAreaId: { type: integer, format: int64 }
+                place: { type: string, enum: [ROOM, RESTROOM, CORRIDOR, COMMON_ROOM, YARD, OTHER] }
+                residentId: { type: integer, format: int64 }
+      responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Problem' } }
+  /emergency-assist/{id}/location:
     post:
-      tags: [canh-bao]
-      summary: App nhân viên gửi vị trí GPS cho lần bấm nút hỗ trợ (như /sos/{id}/vi-tri)
+      tags: [alerts]
+      summary: App nhân viên gửi vị trí GPS cho lần bấm nút hỗ trợ (như /sos/{id}/location)
       x-fr: [FR-047h]
       x-br: [BR-M05-28]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ViTriGui' } } } }
-      responses: { '204': { description: Đã lưu }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LocationReport' } } } }
+      responses: { '204': { description: Đã lưu }, '409': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Mốc tới nơi, gọi 115 (bổ sung 2026-10-22, Q-374, Q-376) ----------------
-  /canh-bao/{id}/da-toi-noi:
+  /alerts/{id}/mark-arrived:
     post:
-      tags: [canh-bao]
+      tags: [alerts]
       summary: Người phụ trách ghi "Đã tới nơi" (cảnh báo từ nút SOS hoặc nút hỗ trợ; một lần; không đổi trạng thái)
       x-fr: [FR-047j, FR-029]
       x-br: [BR-M05-30]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /canh-bao/{id}/thong-tin-goi-115:
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /alerts/{id}/call-115-info:
     get:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Thông tin đọc cho tổng đài 115 (cảnh báo Khẩn cấp)
-      description: 'Dị ứng, bệnh nền chỉ khi người xem có quyền xem sức khỏe; ngược lại liệt kê ở truongBiAn.'
+      description: 'Dị ứng, bệnh nền chỉ khi người xem có quyền xem sức khỏe; ngược lại liệt kê ở hiddenFields.'
       x-fr: [FR-047k]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongTinGoi115' } } } } }
-  /canh-bao/{id}/goi-115:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Call115Info' } } } } }
+  /alerts/{id}/call-115:
     post:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Ghi lượt bấm "Gọi 115" trước khi app mở trình quay số (cảnh báo Khẩn cấp)
       x-fr: [FR-047k]
       x-br: [BR-M05-31]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '201': { description: Lượt gọi, content: { application/json: { schema: { $ref: '#/components/schemas/LuotGoi115' } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /su-co/{id}/thong-tin-goi-115:
+      responses: { '201': { description: Lượt gọi, content: { application/json: { schema: { $ref: '#/components/schemas/Call115Attempt' } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /incidents/{id}/call-115-info:
     get:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Thông tin đọc cho tổng đài 115 (sự cố Khẩn cấp)
       x-fr: [FR-047k]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongTinGoi115' } } } } }
-  /su-co/{id}/goi-115:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Call115Info' } } } } }
+  /incidents/{id}/call-115:
     post:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Ghi lượt bấm "Gọi 115" (sự cố Khẩn cấp)
       x-fr: [FR-047k, FR-048b]
       x-br: [BR-M05-31]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '201': { description: Lượt gọi, content: { application/json: { schema: { $ref: '#/components/schemas/LuotGoi115' } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /luot-goi-115/{id}/ket-qua:
+      responses: { '201': { description: Lượt gọi, content: { application/json: { schema: { $ref: '#/components/schemas/Call115Attempt' } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /call-115-attempts/{id}/result:
     post:
-      tags: [khan-cap]
-      summary: Người bấm chọn kết quả gọi (một lần); Đã gọi được thì thêm diễn biến GOI_CAP_CUU vào sự cố liên kết
+      tags: [emergency]
+      summary: Người bấm chọn kết quả gọi (một lần); Đã gọi được thì thêm diễn biến CALL_EMERGENCY vào sự cố liên kết
       x-fr: [FR-047k, FR-048b]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua], properties: { ketQua: { type: string, enum: [DA_GOI_DUOC, KHONG_GOI_DUOC] } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [result], properties: { result: { type: string, enum: [CONNECTED, NOT_CONNECTED] } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Chuyển viện, phiếu tóm tắt (bổ sung 2026-10-22, Q-383, Q-384) ----------------
-  /su-co/{id}/chuyen-vien/thong-tin:
+  /incidents/{id}/transfer-out/info:
     get:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Thông tin hiện ở màn lệnh Chuyển viện (nguyện vọng khi điều trị, nguyện vọng cuối đời, người liên hệ chính); không gợi ý cơ sở
       x-fr: [FR-049]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongTinChuyenVien' } } } } }
-  /ban-tom-tat-chuyen-vien/{id}/phieu:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TransferOutInfo' } } } } }
+  /transfer-summaries/{id}/document:
     get:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: Tải phiếu tóm tắt chuyển viện PDF đã lưu (đúng file đã dựng trong lệnh)
       x-fr: [FR-050h]
       x-br: [BR-M05-32]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /ban-tom-tat-chuyen-vien/{id}/in-lai:
+      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /transfer-summaries/{id}/reprint:
     post:
-      tags: [khan-cap]
+      tags: [emergency]
       summary: In lại phiếu; trả file đã lưu có dấu "Bản in lại"; ghi lần in và nhật ký
       x-fr: [FR-050h]
       x-br: [BR-M05-32]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
+      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Problem' } }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
-    tokenThietBi: { type: apiKey, in: header, name: X-Token-Thiet-Bi, description: 'Token thiết bị của người cao tuổi (002 research A-15); chỉ dùng cho /sos' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    deviceToken: { type: apiKey, in: header, name: X-Device-Token, description: 'Token thiết bị của người cao tuổi (002 research A-15); chỉ dùng cho /sos' }
   parameters:
     ResidentId: { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
-    NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   requestBodies:
     Reason:
       required: true
       content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
-    LyDo:
-      required: true
-      content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
   responses:
-    Loi:
+    Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiChan:
-      description: 'DIEU_KIEN_CHUA_THOA, CHUYEN_KHONG_HOP_LE, CHUA_CO_KHOANG_HOP_LE, DA_XAC_NHAN_KHONG_DO_LAI, DA_CO_SU_CO_KHAN_CAP_MO, CHUA_DOI_CHIEU_NGUYEN_VONG, CON_VUNG_KHOANH_CHI_GAN_SU_CO, DA_CO_DAU_NGUY_KICH, DANG_CO_BAC_SI_TRUC, CHUA_XAC_NHAN_LAI, CHUA_CO_LUA_CHON, CHUA_DU_DIEN_BIEN, NGUOI_CAO_TUOI_TRANG_THAI_CUOI…'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiTiepNhan:
-      description: 'DA_CO_NGUOI_TIEP_NHAN: kèm người và thời điểm tiếp nhận'
-      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { tiepNhanBoi: { type: string }, tiepNhanLuc: { type: string, format: date-time } } } ] } } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Blocked:
+      description: 'CONDITION_NOT_MET, INVALID_TRANSITION, VALID_RANGE_MISSING, RECORD_NOT_AWAITING_REMEASUREMENT, OPEN_EMERGENCY_INCIDENT_EXISTS, WISH_NOT_CHECKED, ISOLATION_ONLY_FOR_THIS_INCIDENT, CRITICAL_FLAG_EXISTS, ON_DUTY_DOCTOR_AVAILABLE, WISH_NOT_RECONFIRMED, CHOICE_NOT_RECORDED, INSUFFICIENT_PROGRESSIONS, FINAL_STATE…'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    AlreadyReceived:
+      description: 'ALREADY_RECEIVED: kèm người và thời điểm tiếp nhận'
+      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { receivedBy: { type: string }, receivedAt: { type: string, format: date-time } } } ] } } }
   schemas:
-    TrangThaiSos:
+    SosStatus:
       type: object
       description: Bổ sung 2026-10-18 (FR-047f)
       properties:
-        lanBamId: { type: integer, format: int64 }
-        canhBaoId: { type: integer, format: int64 }
-        trangThai: { type: string, enum: [DA_GUI, DA_TIEP_NHAN, DA_TOI], description: 'DA_TIEP_NHAN hiện "[họ tên] đang tới"; DA_TOI bổ sung 2026-10-22 (FR-047j)' }
-        nguoiTiepNhan: { type: string, description: Họ tên người đã tiếp nhận }
-        daToiLuc: { type: string, format: date-time }
-        guiViTri: { type: boolean, description: 'Bổ sung 2026-10-22 (FR-047h): app gửi vị trí khi true' }
-        chuKyGuiViTriGiay: { type: integer, description: 'CFG-M05-09' }
-        lienHe: { $ref: '#/components/schemas/LienHeKhiKhongGuiDuoc' }
-    LienHeKhiKhongGuiDuoc:
+        pressId: { type: integer, format: int64 }
+        alertId: { type: integer, format: int64 }
+        status: { type: string, enum: [SENT, RECEIVED, ARRIVED], description: 'RECEIVED hiện "[họ tên] đang tới"; ARRIVED bổ sung 2026-10-22 (FR-047j)' }
+        receiverName: { type: string, description: Họ tên người đã tiếp nhận }
+        arrivedAt: { type: string, format: date-time }
+        sendLocation: { type: boolean, description: 'Bổ sung 2026-10-22 (FR-047h): app gửi vị trí khi true' }
+        locationIntervalSeconds: { type: integer, description: 'CFG-M05-09' }
+        contacts: { $ref: '#/components/schemas/FallbackContacts' }
+    FallbackContacts:
       type: object
       properties:
-        soLienHeVien: { type: string }
-        soCapCuu: { type: string, const: '115' }
-    LoiSos:
+        facilityPhone: { type: string }
+        emergencyNumber: { type: string, const: '115' }
+    SosProblem:
       type: object
       description: Lỗi RFC 9457 kèm số liên hệ để app hiện (012 FR-085)
       properties:
-        maLoi: { type: string }
+        errorCode: { type: string }
         detail: { type: string }
-        lienHe: { $ref: '#/components/schemas/LienHeKhiKhongGuiDuoc' }
-    ViTriGui:
+        contacts: { $ref: '#/components/schemas/FallbackContacts' }
+    LocationReport:
       type: object
       description: Bổ sung 2026-10-22 (FR-047h)
-      required: [viDo, kinhDo, saiSoMet, doLuc]
+      required: [latitude, longitude, accuracyMeters, measuredAt]
       properties:
-        viDo: { type: number, minimum: -90, maximum: 90 }
-        kinhDo: { type: number, minimum: -180, maximum: 180 }
-        saiSoMet: { type: number, minimum: 0 }
-        doLuc: { type: string, format: date-time }
-    ViTriHienThi:
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+        accuracyMeters: { type: number, minimum: 0 }
+        measuredAt: { type: string, format: date-time }
+    LocationView:
       type: object
       properties:
-        viDo: { type: number }
-        kinhDo: { type: number }
-        saiSoMet: { type: number }
-        doLuc: { type: string, format: date-time }
-        coTheDaCu: { type: boolean, description: 'Quá hai chu kỳ CFG-M05-09 không cập nhật' }
-        laViTriChinh: { type: boolean, description: 'Người cao tuổi đang ở Hoạt động bên ngoài; ngược lại là tham khảo' }
-    ThongTinGoi115:
+        latitude: { type: number }
+        longitude: { type: number }
+        accuracyMeters: { type: number }
+        measuredAt: { type: string, format: date-time }
+        possiblyStale: { type: boolean, description: 'Quá hai chu kỳ CFG-M05-09 không cập nhật' }
+        isPrimary: { type: boolean, description: 'Người cao tuổi đang ở Hoạt động bên ngoài; ngược lại là tham khảo' }
+    Call115Info:
       type: object
       description: Bổ sung 2026-10-22 (FR-047k)
       properties:
-        vien: { type: object, properties: { ten: { type: string }, diaChi: { type: string }, dienThoai: { type: string } } }
-        tang: { type: string }
-        phongHoacNoi: { type: string }
-        viTri: { $ref: '#/components/schemas/ViTriHienThi' }
-        nguoiCaoTuoi: { type: object, properties: { hoTen: { type: string }, tuoi: { type: integer }, gioiTinh: { type: string } } }
-        diUng: { type: array, items: { type: string } }
-        benhNen: { type: array, items: { type: string } }
-        truongBiAn: { type: array, items: { type: string } }
-    LuotGoi115:
+        facility: { type: object, properties: { name: { type: string }, address: { type: string }, phone: { type: string } } }
+        floor: { type: string }
+        roomOrPlace: { type: string }
+        location: { $ref: '#/components/schemas/LocationView' }
+        resident: { type: object, properties: { fullName: { type: string }, age: { type: integer }, gender: { type: string } } }
+        allergies: { type: array, items: { type: string } }
+        chronicConditions: { type: array, items: { type: string } }
+        hiddenFields: { type: array, items: { type: string } }
+    Call115Attempt:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        bamLuc: { type: string, format: date-time }
-        nguoiBam: { type: string }
-        ketQua: { type: [string, 'null'], enum: [DA_GOI_DUOC, KHONG_GOI_DUOC, null] }
-    ThongTinChuyenVien:
+        pressedAt: { type: string, format: date-time }
+        pressedBy: { type: string }
+        result: { type: [string, 'null'], enum: [CONNECTED, NOT_CONNECTED, null] }
+    TransferOutInfo:
       type: object
-      description: Bổ sung 2026-10-22 (FR-049); bản đọc từ 001 NguyenVongApi.dieuTriHieuLuc, hieuLuc
+      description: Bổ sung 2026-10-22 (FR-049); bản đọc từ 001 NguyenVongApi.dieuTriHieuLuc, active
       properties:
-        nguyenVongDieuTri: { type: [object, 'null'] }
-        nguyenVongCuoiDoi: { type: [object, 'null'] }
-        nguoiLienHeChinh: { type: [object, 'null'] }
-        canHoiTruoc: { type: boolean }
-        laCapCuu: { type: boolean, description: 'Sự cố mức Khẩn cấp: không bắt lyDoKhongHoiTruoc' }
-    LyDo: { type: string, minLength: 1, maxLength: 2000 }
-    Muc: { type: string, enum: [NHE, TRUNG_BINH, KHAN_CAP] }
-    TrangThaiCanhBao: { type: string, enum: [MOI, LEO_THANG, DA_TIEP_NHAN, DANG_XU_LY, DA_DONG, CHUYEN_SU_CO] }
-    TrangThaiSuCo: { type: string, enum: [MOI, DANG_XU_LY, DANG_THEO_DOI, DA_DONG, DA_HUY] }
-    Loi:
+        treatmentWish: { type: [object, 'null'] }
+        endOfLifeWish: { type: [object, 'null'] }
+        primaryContact: { type: [object, 'null'] }
+        mustAskFirst: { type: boolean }
+        isEmergency: { type: boolean, description: 'Sự cố mức Khẩn cấp: không bắt notAskedFirstReason' }
+    AlertStatus: { type: string, enum: [NEW, ESCALATED, RECEIVED, IN_PROGRESS, CLOSED, CONVERTED_TO_INCIDENT] }
+    IncidentStatus: { type: string, enum: [NEW, IN_PROGRESS, MONITORING, CLOSED, VOIDED] }
+    Problem:
       type: object
       properties:
         type: { type: string }
         title: { type: string }
         status: { type: integer }
         detail: { type: string }
-        maLoi: { type: string }
-        dieuKienChuaThoa: { type: array, items: { type: object, properties: { ma: { type: string }, moTa: { type: string }, canCu: { type: string } } } }
-        khoangHopLe: { type: object, description: 'NGOAI_KHOANG_VAT_LY: { maThanhPhan: { min, max } }' }
-        suCoDangMo: { type: integer, format: int64, description: 'DA_CO_SU_CO_KHAN_CAP_MO' }
-        nguyenVong: { type: object, description: 'CHUA_DOI_CHIEU_NGUYEN_VONG' }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string } } } }
+        validRange: { type: object, description: 'OUT_OF_PHYSICAL_RANGE: { componentCode: { min, max } }' }
+        openIncidentId: { type: integer, format: int64, description: 'OPEN_EMERGENCY_INCIDENT_EXISTS' }
+        endOfLifeWish: { type: object, description: 'WISH_NOT_CHECKED' }
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     IncidentLevel: { type: string, enum: [LOW, MEDIUM, CRITICAL] }
     VitalSignIndicator:
@@ -948,255 +942,255 @@ components:
     ProgressionType:
       type: object
       properties: { id: { type: integer, format: int64 }, code: { type: string }, name: { type: string }, group: { type: string, enum: [EVALUATION, ACTION, NOTIFICATION, MONITORING, SYSTEM] }, resuscitation: { type: boolean } }
-    LichDoMoi:
+    NewMeasurementSchedule:
       type: object
-      required: [chiSoIds, tanSuat, batDau]
+      required: [indicatorIds, frequency, startAt]
       properties:
-        chiSoIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
-        tanSuat:
+        indicatorIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
+        frequency:
           type: object
-          required: [kieu]
+          required: [type]
           properties:
-            kieu: { type: string, enum: [MOC_GIO, MOI_N_GIO, THEO_THU] }
-            cacMoc: { type: array, items: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
-            nGio: { type: integer, minimum: 1 }
-            mocGoc: { type: string, format: date-time }
-            thu: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
-        batDau: { type: string, format: date-time }
-        ketThuc: { type: string, format: date-time }
-        mucQuanTrong: { type: string, enum: [THUONG, QUAN_TRONG, BAT_BUOC], default: BAT_BUOC }
-        ghiChu: { type: string }
-    LichDo:
+            type: { type: string, enum: [CLOCK_TIMES, EVERY_N_HOURS, WEEKDAYS] }
+            times: { type: array, items: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
+            everyHours: { type: integer, minimum: 1 }
+            anchorAt: { type: string, format: date-time }
+            weekdays: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        priority: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY], default: MANDATORY }
+        notes: { type: string }
+    MeasurementSchedule:
       allOf:
-        - $ref: '#/components/schemas/LichDoMoi'
+        - $ref: '#/components/schemas/NewMeasurementSchedule'
         - type: object
-          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [CHO_HIEU_LUC, HIEU_LUC, DA_NGUNG, HET_HAN] }, thayTheCho: { type: integer, format: int64 }, ngungLuc: { type: string, format: date-time }, lyDoNgung: { type: string } }
-    GiaTriThanhPhan:
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING, EFFECTIVE, STOPPED, EXPIRED] }, replaces: { type: integer, format: int64 }, stoppedAt: { type: string, format: date-time }, stopReason: { type: string } }
+    ComponentValues:
       type: object
-      required: [giaTri]
+      required: [values]
       properties:
-        giaTri: { type: object, additionalProperties: { type: number }, description: '{ maThanhPhan: giá trị }' }
-        thoiDiemDo: { type: string, format: date-time }
-        ghiChu: { type: string }
-    GhiChiSo:
+        values: { type: object, additionalProperties: { type: number }, description: '{ componentCode: giá trị }' }
+        measuredAt: { type: string, format: date-time }
+        notes: { type: string }
+    RecordVitalSign:
       allOf:
-        - $ref: '#/components/schemas/GiaTriThanhPhan'
+        - $ref: '#/components/schemas/ComponentValues'
         - type: object
-          required: [chiSoId]
-          properties: { chiSoId: { type: integer, format: int64 }, xuLyNgay: { type: boolean, default: false } }
-    BanGhiChiSo:
+          required: [indicatorId]
+          properties: { indicatorId: { type: integer, format: int64 }, immediateAction: { type: boolean, default: false } }
+    VitalSignRecord:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        chiSoId: { type: integer, format: int64 }
-        giaTri: { type: object, additionalProperties: { type: number } }
-        giaTriGoc: { type: object, additionalProperties: { type: number }, description: 'Có khi đã đính chính' }
-        thoiDiemDo: { type: string, format: date-time }
-        nguoiDo: { type: string }
-        nguong: { type: object, properties: { phienBanId: { type: integer, format: int64 }, phamVi: { type: string, enum: [CO_SO, CA_NHAN] } } }
-        muc: { type: string, enum: [BINH_THUONG, CANH_BAO, NGUY_HIEM, CHUA_CO_NGUONG] }
-        trangThaiXacNhan: { type: string, enum: [CHO_DO_LAI, DA_XAC_NHAN, DA_DO_LAI] }
-        hanDoLai: { type: string, format: date-time }
-        nhan: { type: array, items: { type: string, enum: [XU_LY_NGAY, CHUA_DO_LAI, GHI_NHAN_MUON, GHI_NGOAI_TUYEN] } }
-        doLaiCho: { type: integer, format: int64 }
-        truongBiAn: { type: array, items: { type: string } }
-    PhienBanNguongMoi:
+        indicatorId: { type: integer, format: int64 }
+        values: { type: object, additionalProperties: { type: number } }
+        originalValues: { type: object, additionalProperties: { type: number }, description: 'Có khi đã đính chính' }
+        measuredAt: { type: string, format: date-time }
+        measuredBy: { type: string }
+        threshold: { type: object, properties: { versionId: { type: integer, format: int64 }, scope: { type: string, enum: [FACILITY, PERSONAL] } } }
+        level: { type: string, enum: [NORMAL, WARNING, DANGEROUS, NO_THRESHOLD] }
+        confirmationStatus: { type: string, enum: [AWAITING_REMEASUREMENT, CONFIRMED, REMEASURED] }
+        remeasurementDeadline: { type: string, format: date-time }
+        labels: { type: array, items: { type: string, enum: [IMMEDIATE_ACTION, NOT_REMEASURED, LATE_RECORDED, OFFLINE_RECORDED] } }
+        remeasurementFor: { type: integer, format: int64 }
+        hiddenFields: { type: array, items: { type: string } }
+    NewThresholdVersion:
       type: object
-      required: [phamVi, chiSoId, hieuLucTu, thanhPhan]
+      required: [scope, indicatorId, effectiveFrom, components]
       properties:
-        phamVi: { type: string, enum: [CO_SO, CA_NHAN] }
-        nctId: { type: integer, format: int64 }
-        chiSoId: { type: integer, format: int64 }
-        hieuLucTu: { type: string, format: date-time }
-        lyDo: { $ref: '#/components/schemas/LyDo' }
-        thanhPhan:
+        scope: { type: string, enum: [FACILITY, PERSONAL] }
+        residentId: { type: integer, format: int64 }
+        indicatorId: { type: integer, format: int64 }
+        effectiveFrom: { type: string, format: date-time }
+        reason: { $ref: '#/components/schemas/Reason' }
+        components:
           type: array
-          items: { type: object, required: [ma], properties: { ma: { type: string }, duoiNguyHiem: { type: number }, duoiCanhBao: { type: number }, trenCanhBao: { type: number }, trenNguyHiem: { type: number } } }
-    PhienBanNguong:
+          items: { type: object, required: [code], properties: { code: { type: string }, dangerBelow: { type: number }, warningBelow: { type: number }, warningAbove: { type: number }, dangerAbove: { type: number } } }
+    ThresholdVersion:
       allOf:
-        - $ref: '#/components/schemas/PhienBanNguongMoi'
+        - $ref: '#/components/schemas/NewThresholdVersion'
         - type: object
-          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [CHO_HIEU_LUC, HIEU_LUC, HET_HIEU_LUC, DA_HUY] }, hieuLucDen: { type: string, format: date-time }, nguoiThietLap: { type: string } }
-    CanhBao:
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING, EFFECTIVE, EXPIRED, CANCELLED] }, effectiveUntil: { type: string, format: date-time }, setBy: { type: string } }
+    Alert:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        nctId: { type: integer, format: int64 }
-        loai: { type: string }
-        khoaLoai: { type: string }
-        muc: { $ref: '#/components/schemas/Muc' }
-        soLan: { type: integer }
-        lanDauLuc: { type: string, format: date-time }
-        ganNhatLuc: { type: string, format: date-time }
-        trangThai: { $ref: '#/components/schemas/TrangThaiCanhBao' }
-        capLeoThang: { type: integer }
-        leoThangToiDa: { type: boolean }
-        hanTiepNhan: { type: string, format: date-time }
-        nguoiPhuTrach: { type: string }
-        tamNhanBanGiao: { type: boolean }
-        khongCoBacSiTruc: { type: boolean }
-        suCoId: { type: integer, format: int64 }
-        gop: { type: boolean, readOnly: true }
-        nguonTao: { type: string, enum: [HE_THONG, THU_CONG, SOS, NUT_HO_TRO], description: 'Bổ sung 2026-10-22' }
-        nguoiBam: { type: [string, 'null'], description: 'Nút hỗ trợ: họ tên người bấm' }
-        loaiSuViec: { type: [string, 'null'] }
-        noiChon: { type: [string, 'null'] }
-        viTriMoiNhat: { oneOf: [ { $ref: '#/components/schemas/ViTriHienThi' }, { type: 'null' } ] }
-        daToiNoiLuc: { type: [string, 'null'], format: date-time }
-        khongGhiMocToiNoi: { type: boolean }
-        nguon: { type: array, items: { type: object, properties: { loaiNguon: { type: string }, nguonId: { type: integer, format: int64 }, muc: { $ref: '#/components/schemas/Muc' }, thoiDiem: { type: string, format: date-time }, daXuLyLuc: { type: string, format: date-time } } } }
-        lenhDuocPhep: { type: array, items: { type: string } }
-    SuCoTuCanhBao:
+        residentId: { type: integer, format: int64 }
+        type: { type: string }
+        typeKey: { type: string }
+        level: { $ref: '#/components/schemas/IncidentLevel' }
+        occurrenceCount: { type: integer }
+        firstAt: { type: string, format: date-time }
+        latestAt: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/AlertStatus' }
+        escalationLevel: { type: integer }
+        maxEscalationReached: { type: boolean }
+        acknowledgementDeadline: { type: string, format: date-time }
+        assignee: { type: string }
+        handoverAcknowledged: { type: boolean }
+        noOnDutyDoctor: { type: boolean }
+        incidentId: { type: integer, format: int64 }
+        merged: { type: boolean, readOnly: true }
+        origin: { type: string, enum: [SYSTEM, MANUAL, SOS, ASSIST_BUTTON], description: 'Bổ sung 2026-10-22' }
+        pressedBy: { type: [string, 'null'], description: 'Nút hỗ trợ: họ tên người bấm' }
+        eventType: { type: [string, 'null'] }
+        chosenPlace: { type: [string, 'null'] }
+        latestLocation: { oneOf: [ { $ref: '#/components/schemas/LocationView' }, { type: 'null' } ] }
+        arrivedAt: { type: [string, 'null'], format: date-time }
+        skipArrivalTime: { type: boolean }
+        sources: { type: array, items: { type: object, properties: { sourceType: { type: string }, sourceId: { type: integer, format: int64 }, level: { $ref: '#/components/schemas/IncidentLevel' }, occurredAt: { type: string, format: date-time }, resolvedAt: { type: string, format: date-time } } } }
+        allowedCommands: { type: array, items: { type: string } }
+    IncidentFromAlert:
       type: object
-      properties: { loaiSuCoId: { type: integer, format: int64 }, moTa: { type: string }, xuLyBanDau: { type: string }, nctId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo NV_YEU_CAU_HO_TRO chưa gắn người cao tuổi (422 CAN_CHON_NGUOI_CAO_TUOI)" } }
-    GhiNhanSuCo:
+      properties: { incidentTypeId: { type: integer, format: int64 }, description: { type: string }, initialResponse: { type: string }, residentId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo STAFF_ASSIST_REQUEST chưa gắn người cao tuổi (422 RESIDENT_REQUIRED)" } }
+    RecordIncident:
       type: object
-      required: [loaiSuCoId, phatHienLuc, moTa, muc]
+      required: [incidentTypeId, discoveredAt, description, level]
       properties:
-        nctId: { type: integer, format: int64, description: 'Trống chỉ với loại CO_SO_VAT_CHAT' }
-        loaiSuCoId: { type: integer, format: int64 }
-        nguonPhatSinh: { type: string, enum: [CHAM_SOC, AN_UONG, THUOC, VAN_DONG, HOAT_DONG, DI_LAI, DIEU_TRI, HOAT_DONG_NGOAI_VIEN, PHUC_VU_SAI_SUAT_AN, DO_GUI] }
-        xayRaLuc: { type: string, format: date-time }
-        phatHienLuc: { type: string, format: date-time }
-        tangKhuVucId: { type: integer, format: int64 }
-        diaDiem: { type: string }
-        hoatDongDangDienRa: { type: string }
-        moTa: { type: string }
-        muc: { $ref: '#/components/schemas/Muc' }
-        lyDoMucThap: { type: string }
-        xuLyBanDau: { type: string }
-        taoMoiDuDaCo: { type: boolean, default: false }
-    SuCo:
+        residentId: { type: integer, format: int64, description: 'Trống chỉ với loại FACILITY' }
+        incidentTypeId: { type: integer, format: int64 }
+        context: { type: string, enum: [CARE, EATING, MEDICATION, MOBILITY, ACTIVITY, TRANSPORT, TREATMENT, OFFSITE_ACTIVITY, WRONG_MEAL_SERVED, BELONGINGS] }
+        occurredAt: { type: string, format: date-time }
+        discoveredAt: { type: string, format: date-time }
+        floorAreaId: { type: integer, format: int64 }
+        location: { type: string }
+        ongoingActivity: { type: string }
+        description: { type: string }
+        level: { $ref: '#/components/schemas/IncidentLevel' }
+        lowerLevelReason: { type: string }
+        initialResponse: { type: string }
+        createDespiteOpen: { type: boolean, default: false }
+    Incident:
       type: object
-      properties:
-        id: { type: integer, format: int64 }
-        noiDung: { $ref: '#/components/schemas/GhiNhanSuCo' }
-        loaiHienHanh: { type: integer, format: int64 }
-        trangThai: { $ref: '#/components/schemas/TrangThaiSuCo' }
-        muc: { $ref: '#/components/schemas/Muc' }
-        daTungKhanCap: { type: boolean }
-        capLeoThang: { type: integer }
-        nguoiPhuTrach: { type: string }
-        tiepNhanLuc: { type: string, format: date-time }
-        ngoaiPhamVi: { type: boolean }
-        khongCoBacSiTruc: { type: boolean }
-        dienBien: { type: array, items: { type: object } }
-        doiMuc: { type: array, items: { type: object } }
-        nguoiXuLy: { type: array, items: { type: string } }
-        nguoiDuocThongBao: { type: array, items: { type: object, properties: { nguoiNhan: { type: string }, kenh: { type: string }, guiLuc: { type: string, format: date-time }, daXemLuc: { type: string, format: date-time } } } }
-        ketQua: { type: string }
-        lenhDuocPhep: { type: array, items: { type: string } }
-        truongBiAn: { type: array, items: { type: string } }
-    KetQuaKichHoat:
-      type: object
-      properties:
-        suCo: { $ref: '#/components/schemas/SuCo' }
-        theKhanCap: { $ref: '#/components/schemas/TheKhanCap' }
-        chiNhanDang: { type: boolean, description: 'Người ghi ngoài phạm vi: chỉ nhận dạng và "đã thông báo người xử lý"' }
-    TheKhanCap:
-      type: object
-      properties:
-        nhanDang: { type: object, properties: { hoTen: { type: string }, anh: { type: string }, ngaySinh: { type: string, format: date }, phongGiuong: { type: string } } }
-        nguyenVong: { type: object, description: 'Phiên bản Hiệu lực (001 FR-023a) hoặc chuaGhiNhan = true' }
-        dauNguyKich: { type: boolean }
-        diUng: { type: array, items: { type: object } }
-        thuocDangDung: { type: array, items: { type: object } }
-        benhNen: { type: array, items: { type: object } }
-        luuYChamSoc: { type: string }
-        nguoiLienHeChinh: { type: object, properties: { hoTen: { type: string }, soDienThoai: { type: string } } }
-        khongLayDuoc: { type: array, items: { type: string } }
-        banChupLuc: { type: string, format: date-time }
-    ChuyenVien:
-      type: object
-      required: [donViDuaDi, thoiDiem, nguoiDiKem]
-      description: 'Bổ sung 2026-10-22 (FR-049, Q-383, Q-384): nguoiDiKem bắt buộc; daLienLacNguoiCanBao bắt buộc khi phiếu nguyện vọng khi điều trị có hoiGiaDinhTruoc; lyDoKhongHoiTruoc bắt buộc khi daLienLacNguoiCanBao = false và sự cố không ở mức Khẩn cấp (plan điểm báo lại 11); tepDinhKemIds chuyển cho lệnh CHUYEN_VIEN của 001.'
-      properties:
-        donViDuaDi: { type: string }
-        thoiDiem: { type: string, format: date-time }
-        duKienTroLai: { type: string, format: date-time }
-        nhanVienBanGiaoId: { type: integer, format: int64 }
-        nguoiDiKem: { type: string, minLength: 1, description: 'Họ tên và quan hệ hoặc chức danh' }
-        daLienLacNguoiCanBao: { type: boolean }
-        lyDoKhongHoiTruoc: { $ref: '#/components/schemas/LyDo' }
-        tepDinhKemIds: { type: array, maxItems: 10, items: { type: integer, format: int64 } }
-    BanTomTat:
-      type: object
-      properties: { id: { type: integer, format: int64 }, coSoTiepNhan: { type: string }, diUng: { type: array, items: { type: object } }, thuocDangDung: { type: array, items: { type: object } }, chiSoGanNhat: { type: array, items: { type: object } }, dienBien: { type: array, items: { type: object } }, nguyenVong: { type: object }, nguyenVongDieuTri: { type: object, description: 'Bổ sung 2026-10-22 (FR-050)' }, nguoiLienHeChinh: { type: object, description: 'Bổ sung 2026-10-22' }, nguoiDiKem: { type: string }, phieuTepId: { type: integer, format: int64, description: 'Phiếu PDF (FR-050h)' }, nguoiLap: { type: string }, thoiDiem: { type: string, format: date-time } }
-    KetQuaXacNhanLai:
-      type: object
-      required: [nguoiDuocLienHe, kenh, thoiDiem, ketQua]
-      properties:
-        nguoiDuocLienHe: { type: object, properties: { nguoiThanId: { type: integer, format: int64 }, hoTen: { type: string } } }
-        kenh: { type: string, enum: [GOI_DIEN, TRUC_TIEP] }
-        thoiDiem: { type: string, format: date-time }
-        ketQua: { type: string, enum: [GIU, MOI, KHONG_LIEN_LAC_DUOC] }
-        nguyenVongMoi: { type: object, description: 'Bắt buộc khi MOI; cùng thân lệnh POST /nguoi-cao-tuoi/{id}/nguyen-vong của api-001 sau cập nhật 2026-10-18 (nhanDinh, nguoiKyLoai, cachChonDaiDien, quyetDinhToaAn, yKienKhac); theo 001 FR-023b, FR-023c, FR-023g' }
-    KetQuaTraCuuTiepXuc:
-      type: object
-      properties:
-        truyVetTu: { type: string, format: date-time }
-        truyVetDen: { type: string, format: date-time }
-        khoangVangCuaNguoiNghiNhiem: { type: array, items: { type: object } }
-        nhom: { type: array, items: { type: object, properties: { nhom: { type: string }, nguoi: { type: array, items: { $ref: '#/components/schemas/NguoiTiepXuc' } }, chuaCoDuLieu: { type: boolean } } } }
-    NguoiTiepXuc:
-      type: object
-      required: [loai, nhom, nguon, tiepXucTu, tiepXucDen]
       properties:
         id: { type: integer, format: int64 }
-        loai: { type: string, enum: [NGUOI_CAO_TUOI, NHAN_VIEN, NGUOI_THAN, NGUOI_DI_CUNG] }
-        doiTuongId: { type: integer, format: int64 }
-        hoTen: { type: string }
-        quanHe: { type: string }
-        soDienThoai: { type: string }
-        nhom: { type: string, enum: [CUNG_PHONG, HOAT_DONG, NHAN_VIEN_CHAM_SOC, NGUOI_THAN_THAM, KHAC] }
-        nguon: { type: string }
-        tiepXucTu: { type: string, format: date-time }
-        tiepXucDen: { type: string, format: date-time }
-        lyDo: { type: string, description: 'Bắt buộc với nhóm KHAC và khi bổ sung sau xác nhận' }
-        theoDoiTu: { type: string, format: date-time, readOnly: true }
-        theoDoiDen: { type: string, format: date-time, readOnly: true }
-        biLoaiLuc: { type: string, format: date-time, readOnly: true }
-    DanhSachTiepXuc:
+        content: { $ref: '#/components/schemas/RecordIncident' }
+        currentTypeId: { type: integer, format: int64 }
+        status: { $ref: '#/components/schemas/IncidentStatus' }
+        level: { $ref: '#/components/schemas/IncidentLevel' }
+        wasEmergency: { type: boolean }
+        escalationLevel: { type: integer }
+        assignee: { type: string }
+        receivedAt: { type: string, format: date-time }
+        outOfScope: { type: boolean }
+        noOnDutyDoctor: { type: boolean }
+        progressions: { type: array, items: { type: object } }
+        levelChanges: { type: array, items: { type: object } }
+        handlers: { type: array, items: { type: string } }
+        notifiedRecipients: { type: array, items: { type: object, properties: { recipient: { type: string }, channel: { type: string }, sentAt: { type: string, format: date-time }, viewedAt: { type: string, format: date-time } } } }
+        resolution: { type: string }
+        allowedCommands: { type: array, items: { type: string } }
+        hiddenFields: { type: array, items: { type: string } }
+    ActivationResult:
       type: object
-      properties: { id: { type: integer, format: int64 }, suCoId: { type: integer, format: int64 }, trangThai: { type: string, enum: [NHAP, DA_XAC_NHAN, DA_KET_THUC] }, nguoi: { type: array, items: { $ref: '#/components/schemas/NguoiTiepXuc' } }, khongCoNguoiTiepXuc: { type: boolean } }
-    KhoanhVungMoi:
-      type: object
-      required: [phamVi, suCoIds, lyDo]
       properties:
-        phamVi: { type: object, properties: { tangIds: { type: array, items: { type: integer, format: int64 } }, khuVucId: { type: integer, format: int64 } }, description: 'Một hoặc nhiều tầng, hoặc đúng một khu vực (Q-69)' }
-        suCoIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
-        lyDo: { $ref: '#/components/schemas/LyDo' }
-    KhoanhVung:
+        incident: { $ref: '#/components/schemas/Incident' }
+        emergencyCard: { $ref: '#/components/schemas/EmergencyCard' }
+        identificationOnly: { type: boolean, description: 'Người ghi ngoài phạm vi: chỉ nhận dạng và "đã thông báo người xử lý"' }
+    EmergencyCard:
+      type: object
+      properties:
+        identification: { type: object, properties: { fullName: { type: string }, photo: { type: string }, dateOfBirth: { type: string, format: date }, roomBed: { type: string } } }
+        endOfLifeWish: { type: object, description: 'Phiên bản Hiệu lực (001 FR-023a) hoặc notRecorded = true' }
+        criticalFlag: { type: boolean }
+        allergies: { type: array, items: { type: object } }
+        currentMedications: { type: array, items: { type: object } }
+        chronicConditions: { type: array, items: { type: object } }
+        careNotes: { type: string }
+        primaryContact: { type: object, properties: { fullName: { type: string }, phoneNumber: { type: string } } }
+        unavailable: { type: array, items: { type: string } }
+        snapshotAt: { type: string, format: date-time }
+    TransferOut:
+      type: object
+      required: [transferUnit, transferAt, companion]
+      description: 'Bổ sung 2026-10-22 (FR-049, Q-383, Q-384): companion bắt buộc; requiredContactReached bắt buộc khi phiếu nguyện vọng khi điều trị có askFamilyFirst; notAskedFirstReason bắt buộc khi requiredContactReached = false và sự cố không ở mức Khẩn cấp (plan điểm báo lại 11); attachmentIds chuyển cho lệnh TRANSFER_OUT của 001.'
+      properties:
+        transferUnit: { type: string }
+        transferAt: { type: string, format: date-time }
+        expectedReturnAt: { type: string, format: date-time }
+        handoverStaffId: { type: integer, format: int64 }
+        companion: { type: string, minLength: 1, description: 'Họ tên và quan hệ hoặc chức danh' }
+        requiredContactReached: { type: boolean }
+        notAskedFirstReason: { $ref: '#/components/schemas/Reason' }
+        attachmentIds: { type: array, maxItems: 10, items: { type: integer, format: int64 } }
+    TransferSummary:
+      type: object
+      properties: { id: { type: integer, format: int64 }, receivingFacility: { type: string }, allergies: { type: array, items: { type: object } }, currentMedications: { type: array, items: { type: object } }, latestVitalSigns: { type: array, items: { type: object } }, progressions: { type: array, items: { type: object } }, endOfLifeWish: { type: object }, treatmentWish: { type: object, description: 'Bổ sung 2026-10-22 (FR-050)' }, primaryContact: { type: object, description: 'Bổ sung 2026-10-22' }, companion: { type: string }, documentFileId: { type: integer, format: int64, description: 'Phiếu PDF (FR-050h)' }, preparedBy: { type: string }, preparedAt: { type: string, format: date-time } }
+    WishReconfirmation:
+      type: object
+      required: [contactedPerson, channel, contactedAt, result]
+      properties:
+        contactedPerson: { type: object, properties: { familyMemberId: { type: integer, format: int64 }, fullName: { type: string } } }
+        channel: { type: string, enum: [PHONE_CALL, IN_PERSON] }
+        contactedAt: { type: string, format: date-time }
+        result: { type: string, enum: [KEPT, CHANGED, UNREACHABLE] }
+        newWish: { type: object, description: 'Bắt buộc khi CHANGED; cùng thân lệnh POST /residents/{id}/end-of-life-wishes của api-001 sau cập nhật 2026-10-18 (selfDeterminationAssessment, signerType, representativeSelection, courtDecision, otherOpinions); theo 001 FR-023b, FR-023c, FR-023g' }
+    ContactLookupResult:
+      type: object
+      properties:
+        traceFrom: { type: string, format: date-time }
+        traceTo: { type: string, format: date-time }
+        suspectedPersonAbsences: { type: array, items: { type: object } }
+        group: { type: array, items: { type: object, properties: { group: { type: string }, people: { type: array, items: { $ref: '#/components/schemas/Contact' } }, noData: { type: boolean } } } }
+    Contact:
+      type: object
+      required: [type, group, source, contactFrom, contactTo]
+      properties:
+        id: { type: integer, format: int64 }
+        type: { type: string, enum: [RESIDENT, STAFF, FAMILY_MEMBER, COMPANION] }
+        subjectId: { type: integer, format: int64 }
+        fullName: { type: string }
+        relationship: { type: string }
+        phoneNumber: { type: string }
+        group: { type: string, enum: [SAME_ROOM, ACTIVITY, CARE_STAFF, FAMILY_VISIT, OTHER] }
+        source: { type: string }
+        contactFrom: { type: string, format: date-time }
+        contactTo: { type: string, format: date-time }
+        reason: { type: string, description: 'Bắt buộc với nhóm OTHER và khi bổ sung sau xác nhận' }
+        monitoredFrom: { type: string, format: date-time, readOnly: true }
+        monitoredTo: { type: string, format: date-time, readOnly: true }
+        excludedAt: { type: string, format: date-time, readOnly: true }
+    ContactList:
+      type: object
+      properties: { id: { type: integer, format: int64 }, incidentId: { type: integer, format: int64 }, status: { type: string, enum: [DRAFT, CONFIRMED, ENDED] }, contacts: { type: array, items: { $ref: '#/components/schemas/Contact' } }, noContacts: { type: boolean } }
+    NewIsolation:
+      type: object
+      required: [scope, incidentIds, reason]
+      properties:
+        scope: { type: object, properties: { floorIds: { type: array, items: { type: integer, format: int64 } }, areaId: { type: integer, format: int64 } }, description: 'Một hoặc nhiều tầng, hoặc đúng một khu vực (Q-69)' }
+        incidentIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
+        reason: { $ref: '#/components/schemas/Reason' }
+    Isolation:
       allOf:
-        - $ref: '#/components/schemas/KhoanhVungMoi'
+        - $ref: '#/components/schemas/NewIsolation'
         - type: object
-          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [DANG_KHOANH_VUNG, DA_GO] }, batDau: { type: string, format: date-time }, ketThuc: { type: string, format: date-time } }
-    GiayPhepCoSo:
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [ACTIVE, LIFTED] }, startedAt: { type: string, format: date-time }, endedAt: { type: string, format: date-time } }
+    FacilityLicense:
       type: object
-      required: [so, coQuanCap, ngayCap, ngayHetHan, coKhamChuaBenh]
+      required: [number, issuer, issuedOn, expiresOn, coversMedicalPractice]
       properties:
         id: { type: integer, format: int64 }
-        so: { type: string }
-        coQuanCap: { type: string }
-        ngayCap: { type: string, format: date }
-        ngayHetHan: { type: string, format: date }
-        coKhamChuaBenh: { type: boolean }
-        phamVi: { type: array, items: { type: string } }
-        tepScanId: { type: integer, format: int64 }
-        thayTheCho: { type: integer, format: int64 }
-        thayTheDoSaiSot: { type: boolean }
-        lyDo: { type: string }
-        hieuLuc: { type: boolean, readOnly: true }
-    BanGhiKham:
+        number: { type: string }
+        issuer: { type: string }
+        issuedOn: { type: string, format: date }
+        expiresOn: { type: string, format: date }
+        coversMedicalPractice: { type: boolean }
+        scopes: { type: array, items: { type: string } }
+        scanFileId: { type: integer, format: int64 }
+        replaces: { type: integer, format: int64 }
+        replacesDueToError: { type: boolean }
+        reason: { type: string }
+        active: { type: boolean, readOnly: true }
+    ExaminationRecord:
       type: object
-      required: [loai, noiDung, taiVien, thucHienLuc]
+      required: [type, content, atFacility, performedAt]
       properties:
         id: { type: integer, format: int64 }
-        loai: { type: string, enum: [KHAM, DANH_GIA, CHAN_DOAN, CHI_DINH, DIEU_TRI, KET_QUA] }
-        noiDung: { type: string }
-        taiVien: { type: boolean }
-        tenCoSoNgoai: { type: string }
-        nguoiThucHienId: { type: integer, format: int64 }
-        tenNguoiThucHienNgoai: { type: string }
-        thucHienLuc: { type: string, format: date-time }
-        tepIds: { type: array, items: { type: integer, format: int64 } }
+        type: { type: string, enum: [EXAMINATION, ASSESSMENT, DIAGNOSIS, ORDER, TREATMENT, RESULT] }
+        content: { type: string }
+        atFacility: { type: boolean }
+        externalFacilityName: { type: string }
+        performerId: { type: integer, format: int64 }
+        externalPerformerName: { type: string }
+        performedAt: { type: string, format: date-time }
+        fileIds: { type: array, items: { type: integer, format: int64 } }
