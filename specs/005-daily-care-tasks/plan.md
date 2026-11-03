@@ -669,3 +669,31 @@ Lệnh xác minh đã thực thi (backend, JDK25 và biến .env được nạp 
 Đã gỡ đủ8khối conflict, cập nhật import/FQN31file Java (22main+9test) và4tài liệu; không tạo/xóa class, đổi hợp đồng, thêm thư viện hoặc migration. Progress.md giữ mọi dòng không rỗng từ cả hai phía trước merge. Git được đánh dấu resolve bằng add đúng35file của lượt này; incoming staged có sẵn vẫn giữ, hand-over-task-003.md có sẵn vẫn untracked. Không commit/push/đổi nhánh hoặc kết thúc merge: feature/005-daily-care-and-hand-over,HEAD=e35a46a2,MERGE_HEAD=698932cd.
 
 Chưa nghiệm thu toànkho/phase hoặc đánh thêm[x]. Các gate T050→T051 (quantity E010, VOID ngủ D007, generic correction A và nguồn/payload trước đó) giữ nguyên; task mới tiếp theo theo tasks.md vẫn T052→T053 sau khi đủ điều kiện. Ba dòng bàn giao quan sát sau merge đã thêm vào team-plan; dòng ParameterAsOfIT cũ được xóa vì A đã sửa trên develop25f492a8 và full hiện tại xanh1/1, kết quả giữ tại progress/history. File lịch sử này chỉ bổ sung, không xóa nội dung cũ.
+
+
+## Phase 10 — T052/T053 (03/11/2026)
+
+Thực hiện hai nguồn đã công bố trong checkout 25867278. T052 dùng ApplicationEvents và MySQL để kiểm đánh giá lại chỉ đổi nhu cầu, phụ lục có CARE_LEVEL và phụ lục chỉ đổi RESIDENCE_TYPE. Kiểm nhóm nhận, khóa sự kiện và số dòng care_plan, care_task, approval_request. Đây là kiểm consumer 005 bằng sự kiện công khai được phát trong transaction test. Việc phân giải tài khoản và chuyển thông báo thực tế thuộc 009.
+
+T053 đặt CarePlanReviewListener trong internal/careplan/service theo R-02. Listener nhận AssessmentChangedCareLevelOrNeeds (001) và AddendumApplied (004). Sự kiện 001 đã được nguồn lọc theo thay đổi mức hoặc tập nhu cầu. Với 004 chỉ xử lý changeTypes chứa CARE_LEVEL. Dùng BusinessTime và BedAllocationApi.openAt để lấy thời điểm và tầng. ApproverApi xét CARE_PLAN/APPROVE theo Target có residentId và tầng khi có. Không cần phiên bản kế hoạch cụ thể để báo xem xét.
+
+CarePlanReviewNeeded dùng hợp đồng sẵn có. Metadata giữ loại và ID nguồn, milestone riêng theo nhóm để khóa phát lại ổn định. Điều dưỡng đi qua RecipientGroup.AssignedNurse với Substitution.Default của 009. Mỗi event người duyệt mang một accountId để tránh payload outbox dài. Một người thuộc cả hai nhóm có thể nhận hai thông báo vì hai nhóm được phát bằng hai event. Kiểm nghiệm thu trực tiếp ShiftStaffPort.responsibleNurses vẫn chờ nguồn thật 008 và đối chiếu với cách phân giải AssignedNurse của 009.
+
+Chưa có sự kiện công khai của 007 cho ngã, lựa chọn ở lại chăm sóc giảm nhẹ và đổi lịch đo. Chờ D công bố hợp đồng và producer. Các nhánh 007 của CarePlanReviewNeeded và TaskSourceChanged chưa được cài. Không có thay đổi chữ ký API, schema hoặc thư viện. T052/T053 còn mở cùng các gate cũ của Phase 9.
+
+
+### Kết quả clean verify — 03/11/2026
+
+Lệnh .\mvnw.cmd -o clean verify kết thúc exit 1 sau 39:13. 956 test đơn vị và kiến trúc xanh. 2.507 IT có 6 failure, 26 error, 2 skipped. Cả 3 ca BR_M04_20_CarePlanReviewIT xanh trong lượt full. Spotless kiểm 2.961 file, không có file cần sửa.
+
+| Lớp | Failure | Error |
+| --- | ---: | ---: |
+| ApiContractIT | 1 | 0 |
+| AssignmentIT | 2 | 25 |
+| FR_003_CarePlanLifecycleIT | 0 | 1 |
+| ResidentContractIT | 1 | 0 |
+| SC_008_ReadOnlyIT | 2 | 0 |
+
+Đối chiếu XML với merge-resolution-final-summary.json. Cả 32 tên phương thức đỏ đều có trong mốc hòa merge. Bốn timeout NFR_03_DeliveryDispatcherIT không tái hiện. Việc theo dõi của A giữ mở vì lượt này chưa xác định nguyên nhân. Kết quả đầy đủ ở 005-p10-clean-verify.log và 005-p10-final-summary.json trong thư mục artifacts.
+
+T052/T053 giữ [ ] vì còn phụ thuộc nguồn 007/008 và clean verify toàn kho còn đỏ. Tiếp T052 bổ sung test nguồn 007 và nghiệm thu người nhận với 008, rồi T053 nối listener và kiểm lại. T054 là task mới tiếp theo. Gate T050/T051 giữ theo checkpoint Phase 9.
