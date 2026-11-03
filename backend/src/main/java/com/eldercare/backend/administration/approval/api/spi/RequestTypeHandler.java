@@ -1,5 +1,6 @@
 package com.eldercare.backend.administration.approval.api.spi;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
@@ -69,5 +70,14 @@ public interface RequestTypeHandler {
      */
     default Optional<Set<Role>> approverRoleRestriction(ApprovalRequestView request) {
         return Optional.empty();
+    }
+
+    /**
+     * Người được sửa nội dung và gửi duyệt yêu cầu còn Nháp (bổ sung theo plan 004 FR-039: Hành chính hoàn thiện yêu cầu
+     * người đại diện gửi qua cổng người thân): mặc định chỉ người yêu cầu. Người yêu cầu giữ nguyên; chỉ người yêu cầu
+     * được Hủy.
+     */
+    default boolean mayActOnDraft(CurrentUser user, ApprovalRequestView request) {
+        return request.requesterId() == user.accountId();
     }
 }
