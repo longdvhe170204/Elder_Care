@@ -350,6 +350,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | Tên logic | Mã |
 | --- | --- |
 | `/xac-thuc/dang-nhap`, `/xac-thuc/dang-nhap-qr`, `/xac-thuc/dang-xuat`, `/xac-thuc/doi-mat-khau` | `/auth/login`, `/auth/qr-login`, `/auth/logout`, `/auth/change-password` |
+| *(bổ sung 2026-11-03, Q-399)* tự đặt lại mật khẩu: có dùng được không, xin mã, đặt mật khẩu mới | `/auth/password-reset/availability`, `/auth/password-reset/request`, `/auth/password-reset/confirm` |
 | `/toi`, `/toi/quyen` | `/me`, `/me/permissions` |
 | `/tai-khoan`, `/tai-khoan/{id}`, `/tai-khoan-nguoi-than`, `/tai-khoan-nguoi-cao-tuoi` | `/accounts`, `/accounts/{id}`, `/family-accounts`, `/resident-accounts` |
 | `…/khoa`, `…/mo-khoa`, `…/mo-khoa-som`, `…/kich-hoat-lai`, `…/cap-lai-mat-khau` | `…/lock`, `…/unlock`, `…/early-unlock`, `…/reactivate`, `…/reset-password` |
@@ -417,6 +418,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `DANG_NHAP_KHONG_THANH` | `LOGIN_FAILED` |
 | `TAI_KHOAN_KHOA_TAM`, `TAI_KHOAN_CAN_LIEN_HE_VIEN`, `TAI_KHOAN_DA_KHOA` | `ACCOUNT_TEMPORARILY_LOCKED`, `ACCOUNT_CONTACT_FACILITY`, `ACCOUNT_LOCKED` |
 | `MAT_KHAU_KHONG_DAT` | `PASSWORD_POLICY_NOT_MET` |
+| *(bổ sung 2026-11-03, Q-399)* `MA_DAT_LAI_KHONG_HOP_LE` | `RESET_CODE_INVALID` |
 | `HO_SO_DA_CO_TAI_KHOAN`, `DA_CO_TAI_KHOAN` | `PROFILE_ALREADY_HAS_ACCOUNT`, `ALREADY_HAS_ACCOUNT` |
 | `NHAN_VIEN_NGHI_VIEC`, `CHUC_DANH_KHONG_DUNG_HE_THONG` | `STAFF_RESIGNED`, `POSITION_NOT_SYSTEM_USER` |
 | `KHONG_CON_QUAN_HE`, `XAC_MINH_KHONG_HOP_LE` | `RELATIONSHIP_ENDED`, `INVALID_VERIFICATION` |
