@@ -2,6 +2,7 @@ package com.eldercare.backend.administration.shared.api;
 
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Xóa dòng bảng dùng chung của bản ghi hết hạn lưu giữ, bằng tài khoản {@code eldercare_retention} trong transaction của
@@ -20,4 +21,11 @@ public interface SharedRowRetention {
 
     /** Dòng {@code simple_record}, {@code resident_module_state} của các người cao tuổi. */
     void deleteForResidents(Collection<Long> residentIds);
+
+    /**
+     * Dòng {@code record_event}, {@code simple_record} mà {@link #deleteFor} sẽ xóa cùng {@code record}, dạng (loại dòng,
+     * id dòng), để job xét phần đi kèm của chính các dòng đó (đính chính, tệp) trước khi xóa. Ví dụ lượt đến, về điểm danh
+     * {@code M04.ATTENDANCE_RECORD} gắn hồ sơ người cao tuổi (005 T028, FR-051a).
+     */
+    List<EntityRef> rowsFor(EntityRef record);
 }

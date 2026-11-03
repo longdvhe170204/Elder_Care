@@ -989,6 +989,29 @@ Sự cố ngã có mức mặc định là Khẩn cấp. Người ghi được c
 
 Cột "Xử lý" mô tả người làm việc chuyên môn. Người tiếp nhận ban đầu của cảnh báo ở mọi mức là Điều dưỡng phụ trách; chuỗi leo thang theo BR-M05-01.
 
+**Danh mục loại sự cố khởi tạo (Q-398):**
+
+Bên cạnh sự cố ngã (`NGA`, mức mặc định Khẩn cấp), đồ gửi thất lạc (`DO_GUI_THAT_LAC`), đồ gửi hư hỏng (`DO_GUI_HU_HONG`) và cơ sở vật chất (`CO_SO_VAT_CHAT`), hệ thống khởi tạo danh mục các loại sự cố lâm sàng & chăm sóc:
+
+| Mã sự cố | Tên loại sự cố | Ưu tiên xử lý mặc định (`defaultPriority`) | Ngoài sức khỏe (`nonHealth`) | Cho phép không gắn NCT (`allowsNoResident`) |
+|---|---|---|---|---|
+| `KHO_THO_MAT_Y_THUC` | Khó thở cấp hoặc mất ý thức | `CRITICAL` (Khẩn cấp) | `false` | `false` |
+| `THUOC` | Sự cố liên quan đến sử dụng thuốc | `MEDIUM` (Trung bình) | `false` | `false` |
+| `AN_UONG` | Sặc/nghẹn thức ăn, nghi tắc đường thở | `CRITICAL` (Khẩn cấp) | `false` | `false` |
+| `PHUC_VU_SAI_SUAT_AN` | Phục vụ sai suất ăn hoặc chế độ ăn | `MEDIUM` (Trung bình) | `false` | `false` |
+| `HANH_VI` | Kích động, gây gổ liên quan đến người cao tuổi | `MEDIUM` (Trung bình) | `false` | `false` |
+| `CHAN_THUONG_KHAC` | Chấn thương khác ở người cao tuổi | `MEDIUM` (Trung bình) | `false` | `false` |
+| `KHAC` | Sự cố sức khỏe/chăm sóc khác của người cao tuổi | `MEDIUM` (Trung bình) | `false` | `false` |
+
+*Quy tắc triển khai:*
+- Mức mặc định là **ưu tiên xử lý ban đầu**, không phải mức tổn thương thực tế.
+- Khi tạo sự cố, hệ thống điền mức mặc định; nhân viên có thẩm quyền được điều chỉnh, bắt buộc ghi lý do và lưu lịch sử.
+- Tình huống nguy kịch được xử lý ngay theo quy trình cấp cứu, không chờ hoàn tất biểu mẫu.
+- `nonHealth = false`: thuộc phạm vi sức khỏe, an toàn hoặc chăm sóc người cao tuổi.
+- `allowsNoResident = false`: bắt buộc gắn ít nhất một người cao tuổi liên quan.
+- `KHAC` bắt buộc nhập mô tả và xác nhận lại mức ưu tiên. Sự cố vận hành không liên quan người cao tuổi phải dùng loại riêng.
+- Các giá trị trên dùng làm chuẩn cấu hình khởi tạo; các quy tắc đánh giá y khoa hoặc tự động nâng/hạ mức chưa được xác định thì để cấu hình riêng, không tự đặt.
+
 ### 9.4. Quy trình
 
 Phát hiện → Ghi nhận → Đánh giá → Xử lý → Thông báo → Theo dõi → Đóng.
@@ -1156,9 +1179,26 @@ Các quy tắc chi tiết của mục này mang mã BR-M05-17 → BR-M05-26 (9.7
 
 ### 10.1. Theo dõi chỉ số
 
-Quản lý: huyết áp; nhịp tim; nhiệt độ; SpO2; đường huyết; chỉ số khác. Bác sĩ có thể thiết lập lịch đo riêng cho từng người; lịch đo là căn cứ lập công việc đo chỉ số (BR-M04-01).
+Quản lý: huyết áp; nhịp tim; nhiệt độ; SpO2; đường huyết; cân nặng; chỉ số khác. Bác sĩ có thể thiết lập lịch đo riêng cho từng người; lịch đo là căn cứ lập công việc đo chỉ số (BR-M04-01).
 
 Theo dõi chỉ số thuộc nhóm chức năng "Chăm sóc" (1.6). Công việc đo được ghi nhận trong checklist như công việc chăm sóc hằng ngày. Các quy tắc 10.3 và 10.5 áp khi kết quả được ghi.
+
+**Danh mục chỉ số sức khỏe khởi tạo (Q-398):**
+
+| Mã chỉ số | Tên chỉ số | Thành phần (`chi_so_thanh_phan`) | Đơn vị (`unit`) | Số chữ số thập phân (`decimalPlaces`) | Sinh hiệu (`vitalSign`) |
+|---|---|---|---|---:|---|
+| `HUYET_AP` | Huyết áp | `TAM_THU` — Tâm thu; `TAM_TRUONG` — Tâm trương | `mmHg` | 0 cho mỗi thành phần | `true` |
+| `NHIP_TIM` | Nhịp tim | `GIA_TRI` | `nhịp/phút` | 0 | `true` |
+| `NHIET_DO` | Nhiệt độ cơ thể | `GIA_TRI` | `°C` | 1 | `true` |
+| `SPO2` | Độ bão hòa oxy ngoại vi | `GIA_TRI` | `%` | 0 | `true` |
+| `DUONG_HUYET` | Đường huyết | `GIA_TRI` | `mmol/L` | 1 | `false` |
+| `CAN_NANG` | Cân nặng | `GIA_TRI` | `kg` | 1 | `false` |
+
+*Quy tắc triển khai:*
+- Huyết áp lưu hai giá trị riêng biệt (`TAM_THU` và `TAM_TRUONG`), không lưu chuỗi gộp như `"120/80"`.
+- `unit` và `decimalPlaces` áp dụng tại từng thành phần.
+- `vitalSign` dùng để phân nhóm sinh hiệu trong hệ thống; không tự động quyết định các phép đo bắt buộc sau sự cố ngã.
+- Giới hạn nhập hợp lệ và ngưỡng cảnh báo là cấu hình riêng. Hệ thống không tự suy diễn các ngưỡng y khoa từ bảng này.
 
 ### 10.2. Khám và điều trị
 
@@ -2098,7 +2138,9 @@ Số liệu thăm, phản hồi (Module 10), đồ gửi (Module 12), thống k�
 
 Quản lý: tài khoản; trạng thái; đăng nhập; liên kết nhân viên; liên kết người thân; liên kết người cao tuổi. Tài khoản nhân viên phải bị khóa khi nhân viên không còn được phép sử dụng hệ thống.
 
-Tài khoản nhân viên do Quản lý viện tạo. Tài khoản người thân do Hành chính (hoặc Quản lý viện) tạo, kích hoạt lại và cấp lại mật khẩu, sau khi xác minh danh tính trực tiếp tại viện bằng giấy tờ tùy thân hoặc gọi lại số điện thoại đã đăng ký; cách xác minh được ghi nhật ký. Giai đoạn đầu người thân chưa tự đặt lại mật khẩu (Q-06).
+Tài khoản nhân viên do Quản lý viện tạo. Tài khoản người thân do Hành chính (hoặc Quản lý viện) tạo, kích hoạt lại và cấp lại mật khẩu, sau khi xác minh danh tính trực tiếp tại viện bằng giấy tờ tùy thân hoặc gọi lại số điện thoại đã đăng ký; cách xác minh được ghi nhật ký. Khi cấp lại mật khẩu sau khi xác minh bằng cách gọi lại số đã đăng ký, mật khẩu tạm được đọc trong chính cuộc gọi đó (Q-399).
+
+**Tự đặt lại mật khẩu (Q-399).** Nhân viên (mọi vai trò) và người thân quên mật khẩu thì tự đặt lại được, không cần đến viện: nhập tên đăng nhập, nhận mã một lần qua tin nhắn tới số điện thoại đã đăng ký trong hồ sơ (hồ sơ người thân, hồ sơ nhân viên), nhập mã và mật khẩu mới. Mã hết hạn sau CFG-M15-12; nhập sai quá CFG-M15-13 lần thì mã bị hủy; số lần xin mã giới hạn theo CFG-M15-14. Hồ sơ không có số điện thoại hợp lệ thì không tự đặt lại được, vẫn cấp lại theo cách trên. Người cao tuổi không tự đặt lại mật khẩu: họ đăng nhập bằng mã QR, cần đăng nhập lại thì nhân viên tạo mã mới (Q-370). Chức năng có hiệu lực khi kênh tin nhắn đã cấu hình (Q-06); trước đó không hiện (BR-M15-25).
 
 Tài khoản người cao tuổi (Q-365, Q-368) do Hành chính (hoặc Quản lý viện) tạo khi chính người cao tuổi đang lưu trú yêu cầu hoặc đồng ý; nhật ký ghi người cao tuổi đã yêu cầu hay đồng ý trực tiếp với ai. Yêu cầu của người thân thay người cao tuổi không đủ. Mỗi người cao tuổi có tối đa một tài khoản, chỉ dùng ứng dụng di động. Hành chính kích hoạt lại, cấp lại mật khẩu khi người cao tuổi yêu cầu trực tiếp tại viện. Khóa tài khoản theo BR-M15-23.
 
@@ -2199,6 +2241,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M15-11 → BR-M15-13 (19.
 - **BR-M15-22:** Tài khoản Quản lý viện đầu tiên chỉ được tạo bằng công cụ khởi tạo khi cài đặt, khi hệ thống chưa có tài khoản nào có vai trò Quản lý viện; tài khoản buộc đổi mật khẩu ở lần đăng nhập đầu; nhật ký ghi người thực hiện là "khởi tạo hệ thống" (Q-310).
 - **BR-M15-23:** Tài khoản người cao tuổi chuyển Đã khóa khi người cao tuổi kết thúc lưu trú (ngay, không chờ CFG-M01-04), khi chính người cao tuổi yêu cầu, hoặc khi Hành chính, Quản lý viện khóa có lý do (ví dụ người khác dùng hộ). Người thân không khóa được và không xem được việc dùng tài khoản này; người thân đề nghị khóa thì Hành chính lập yêu cầu khóa tài khoản người cao tuổi theo vòng đời yêu cầu phê duyệt chung (6.6), ghi lý do của người thân; tài khoản chỉ khóa khi Quản lý viện duyệt. Tài khoản bị khóa vì lý do khác kết thúc lưu trú được kích hoạt lại khi chính người cao tuổi yêu cầu (Q-368).
 - **BR-M15-24:** Mỗi tài khoản người cao tuổi gắn tối đa một thiết bị; gắn máy mới thì máy cũ bị gỡ và phiên trên máy cũ kết thúc. Trên thiết bị đã gắn: nút SOS gửi được mà không cần phiên đăng nhập (BR-M05-27); phiên không tự kết thúc theo thời gian, chỉ kết thúc khi tài khoản Đã khóa, đổi mật khẩu, gỡ thiết bị hoặc người cao tuổi tự đăng xuất; không đăng nhập được tài khoản khác (ngoại lệ của BR-M15-15). Hành chính, Quản lý viện gỡ thiết bị khi người cao tuổi báo mất máy hoặc có lý do. Tài khoản người cao tuổi không chuyển Không hoạt động theo BR-M15-05 (Q-370).
+- **BR-M15-25:** Tự đặt lại mật khẩu (19.1, Q-399): chỉ cho tài khoản nhân viên, người thân đang Hoạt động hoặc Khóa tạm và hồ sơ có số điện thoại hợp lệ; mã một lần gửi tới số trong hồ sơ, không tới số người yêu cầu nhập. Hệ thống trả cùng một phản hồi dù tên đăng nhập có tồn tại, có số điện thoại hay không. Mật khẩu mới phải đạt CFG-M15-09. Đặt lại thành công thì kết thúc mọi phiên của tài khoản, đưa bộ đếm đăng nhập sai về 0 (tài khoản Khóa tạm trở về Hoạt động), ghi nhật ký và báo chủ tài khoản; tài khoản có vai trò Quản lý viện thì báo thêm các Quản lý viện khác. Tài khoản Đã khóa, Không hoạt động không mở được bằng cách này (BR-M15-05, BR-M15-23).
 
 ## 20. Luồng nghiệp vụ tổng thể
 
@@ -2301,7 +2344,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-03 | Căn cứ pháp lý và mẫu bản đồng ý chia sẻ dữ liệu (5.1) | Theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP, thay Nghị định 13/2023/NĐ-CP từ 01/01/2026; mẫu bản đồng ý do viện ban hành, hệ thống không phụ thuộc mẫu cụ thể. Không bổ sung nhật ký lần nhân viên xem dữ liệu sức khỏe ở giai đoạn này | 5.1, 19.4 | 001, 002, 012, 016 |
 | Q-04  | Thời hạn lưu trữ hồ sơ và nhật ký                                                                        | Hồ sơ \[10 năm\] sau kết thúc lưu trú (CFG-M15-03); nhật ký \[10 năm\] (CFG-M15-04), không bị loại bỏ trước hồ sơ liên quan                                                                                                                | NFR-07, 19.4                                               | 000      |
 | Q-05 | Định dạng xuất cho kế toán (23) | Excel/CSV theo cột ở mục 23, thêm các cột của spec 010 FR-039 | 23 | 010 |
-| Q-06 | Nhà cung cấp SMS | Chưa chọn; giai đoạn đầu chỉ thông báo trong ứng dụng; kênh tin nhắn là cấu hình bật sau | 17, 23 | 009, 002 |
+| Q-06 | Nhà cung cấp SMS | Dùng kênh tin nhắn cho tự đặt lại mật khẩu của nhân viên, người thân (Q-399) và cho thông báo ngoài ứng dụng; nhà cung cấp chốt sau (sửa 2026-11-03). Chưa cấu hình nhà cung cấp thì chỉ thông báo trong ứng dụng và chưa có tự đặt lại mật khẩu | 17, 19.1, 23 | 009, 002 |
 | Q-07 | Ai có quyền Duyệt kế hoạch chăm sóc (2.4) | Bác sĩ; cơ sở được gán thêm cho điều dưỡng (Q-15) | 2.4, 8.1 | 005 |
 | Q-08 | Bảng chính sách phí khi vắng (6.7) | *(Bỏ theo Q-395)* Bảng ví dụ 6.7 là giá trị khởi tạo; bảng là dữ liệu cấu hình của viện. Trường hợp chưa có dòng chính sách xử lý bằng dấu "không có dòng chính sách" và quyết định của Quản lý viện | 6.7 | 004, 010 |
 | Q-09 | Mẫu xoay ca thực tế (13.2) | *(Bỏ theo Q-397)* Cấu hình tham chiếu 2 ca ngày/đêm; mọi chu kỳ đều cấu hình được | 13.2 | 008, 015 |
@@ -2693,6 +2736,8 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-395 | Phí khi vắng có cần bảng hệ số theo loại vắng và số ngày vắng không | Không. Nội trú: ngày vắng tính như ngày lưu trú, giữ giường tới khi trở về; vắng tới CFG-M02-05 ngày thì báo Quản lý viện một lần, Quản lý viện có lệnh Giải phóng giường, từ đó ngày vắng không tính phí lưu trú; giảm phí bằng khoản điều chỉnh có duyệt. Bán trú: tỷ lệ Vắng có báo, Vắng không báo ở CFG-M02-05. Bỏ bảng hệ số, ghi đè theo hợp đồng, ngưỡng giữ giường, quyết định giữ giường và tính lại. Sửa BR-M02-06, 07, Q-08 | 6.7, 15.5, BR-M02-06, 07, BR-M03-19, Phụ lục 25 | 003, 004, 010 |
 | Q-396 | Có giữ bản tin định kỳ gửi người thân không | Không. Người thân xem trực tiếp trên cổng; sự cố đã có thông báo riêng. Bỏ bản tin, BR-M10-08, 09, BR-M05-26, CFG-M10-03, 12, UC-60, dòng "Bản tin định kỳ" của Phụ lục 27. Sửa Q-124, Q-129, Q-130 | 14.5, BR-M10-06, 08, 09, BR-M05-26, Phụ lục 25 → 27 | 007, 009, 012, 014 |
 | Q-397 | Có lập lịch ca từ mẫu xoay ca và tính phủ tối thiểu không | Không. Lịch ca lập bằng tay ở 008; ca thiếu người do Trưởng tầng tự bổ sung nhân viên vào ca. 015 chỉ còn đổi ca và nghỉ đột xuất. Bỏ mẫu xoay ca, nhóm xoay ca, lập lịch từ mẫu, phủ tối thiểu, cảnh báo thiếu phủ, lời mời nhận ca thay, CFG-M09-06, 07, 10. Nghỉ "theo ngày" mở cho mọi nhân viên, người lập chọn phạm vi để xác định người duyệt (chủ dự án xác nhận 2026-10-29). Sửa BR-M09-09 → 11, Q-77, Q-191 | 13.2, BR-M09-09 → 11, 19.3, Phụ lục 25, 26 | 008, 015 |
+| Q-398 | Danh mục chỉ số sức khỏe khởi tạo và danh mục loại sự cố lâm sàng & chăm sóc (feature 005, 007) | Chốt danh mục 6 chỉ số sức khỏe (`HUYET_AP` với 2 thành phần `TAM_THU`, `TAM_TRUONG`; `NHIP_TIM`; `NHIET_DO`; `SPO2`; `DUONG_HUYET`; `CAN_NANG`) và danh mục 7 loại sự cố lâm sàng & chăm sóc (`KHO_THO_MAT_Y_THUC`, `THUOC`, `AN_UONG`, `PHUC_VU_SAI_SUAT_AN`, `HANH_VI`, `CHAN_THUONG_KHAC`, `KHAC`) cùng mức ưu tiên mặc định và các cờ phân nhóm như bảng tại 9.3 và 10.1; không tự suy diễn các ngưỡng y khoa hay tự động nâng/hạ mức khi chưa có cấu hình riêng | 9.3, 10.1 | 005, 007 |
+| Q-399 | Người dùng quên mật khẩu có tự đặt lại được không, không cần đến viện | Có, cho nhân viên (mọi vai trò, kể cả Quản lý viện) và người thân: mã một lần qua tin nhắn tới số điện thoại đã đăng ký trong hồ sơ, hết hạn CFG-M15-12, sai quá CFG-M15-13 lần thì hủy, số lần xin theo CFG-M15-14; đặt lại xong kết thúc mọi phiên, báo chủ tài khoản (Quản lý viện thì báo thêm các Quản lý viện khác); tài khoản Đã khóa, Không hoạt động không mở bằng cách này. Người cao tuổi không áp dụng (đăng nhập bằng mã QR, Q-370). Cấp lại bởi Hành chính sau khi gọi lại số đã đăng ký thì đọc mật khẩu tạm trong cuộc gọi đó. Có hiệu lực khi đã cấu hình nhà cung cấp tin nhắn (Q-06) | 19.1, BR-M15-25, Phụ lục 25 | 002, 009 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -2869,6 +2914,9 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M15-09 | Độ mạnh tối thiểu của mật khẩu | Tối thiểu 8 ký tự, có cả chữ và số | BR-M15-21 |
 | CFG-M15-10 | Thời gian không thao tác thì tự đăng xuất, theo kênh | Web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày / ứng dụng người cao tuổi không tự đăng xuất (BR-M15-24) | BR-M15-21 |
 | CFG-M15-11 | Hiệu lực mã QR đăng nhập của người cao tuổi | 5 phút | 19.1, BR-M15-24 |
+| CFG-M15-12 | Hiệu lực mã đặt lại mật khẩu gửi qua tin nhắn | 5 phút | 19.1, BR-M15-25 |
+| CFG-M15-13 | Số lần nhập sai mã đặt lại mật khẩu trước khi mã bị hủy | 5 lần | BR-M15-25 |
+| CFG-M15-14 | Giới hạn xin mã đặt lại mật khẩu của một tài khoản | Tối đa 5 lần mỗi ngày, cách nhau ít nhất 60 giây | BR-M15-25 |
 
 ## 26. Phụ lục – Actor và use case
 

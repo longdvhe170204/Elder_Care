@@ -82,6 +82,11 @@ void dongDoTrangThaiCuoi(long yeuCauId, CanCu canCu);
     // bổ sung theo plan 004 (research T-06): Propagation.MANDATORY, kèm lệnh làm người cao tuổi sang trạng thái cuối
     // (004 FR-065, FR-070); Nháp, Chờ duyệt → Hủy; Đã duyệt (chờ hiệu lực) → Áp dụng không thành; trạng thái cuối thì không làm gì;
     // người thực hiện là hệ thống, căn cứ là lệnh; phát YeuCauDaHuy / YeuCauApDungKhongThanh
+YeuCauView suaNhap(long id, String ifMatch, JsonNode noiDung, LocalDate ngayHieuLucMongMuon, LyDo lyDo);
+    // bổ sung 2026-11-03 theo plan 004 T043 (PUT /residency-change-requests/{id}), chủ dự án duyệt; Java: editDraft.
+    // Propagation.MANDATORY, trong transaction lệnh của module sở hữu; cùng kiểm và nhật ký DRAFT_EDITED như
+    // edit-content của HTTP; người sửa theo choThaoTacNhap() của handler; thiếu lý do → ReasonRequiredException;
+    // ngày hiệu lực null thì giữ ngày cũ
 ```
 
 **SPI `LoaiYeuCauHandler`**: mỗi loại yêu cầu do module sở hữu cài một handler.
@@ -109,6 +114,10 @@ default Optional<Set<VaiTro>> gioiHanVaiTroDuyet(YeuCauView yc) { return Optiona
     // lệnh Duyệt và Từ chối (kể cả tự duyệt, FR-035), lenhDuocPhep, danh sách người duyệt cho nhắc và BR-M15-09,
     // danh sách người nhận khi gửi duyệt. Chỉ dùng cho loại có người duyệt theo vai trò; loại có người duyệt
     // theo nhiệm vụ (Phụ trách bộ phận, Người phụ trách ca) hoặc theo dòng 19.3 giữ Optional.empty()
+default boolean choThaoTacNhap(NguoiDungHienTai nd, YeuCauView yc) { return yc.nguoiYeuCauId() == nd.taiKhoanId(); }
+    // bổ sung 2026-11-03 theo plan 004 FR-039 (Java: mayActOnDraft), chủ dự án duyệt: ai được Sửa nội dung, Gửi duyệt
+    // khi yêu cầu còn Nháp, áp ở edit-content, submit, suaNhap và lenhDuocPhep. Mặc định chỉ người yêu cầu; 004 cho
+    // Hành chính hoàn thiện yêu cầu người đại diện gửi. Người yêu cầu giữ nguyên; Hủy vẫn chỉ người yêu cầu
 ```
 
 **`NhacQuaHan`**: dùng lại cho các vòng đời riêng (010, 012, 013, 017, 019). Module tự gọi nó từ job của mình, với mốc lấy từ CFG của module (FR-031a; đối chiếu Q-130).
@@ -150,6 +159,7 @@ default boolean choPhep(NguoiDung nd, CachTao cach, long id) { return true; } //
 default void sauKhiDinhChinh(DinhChinhView dc) {}  // tác động dây chuyền do module (ví dụ 010 lập khoản điều chỉnh)
 Object noiDungGoc(long id);                  // bổ sung khi cài 000 (2026-10-19): API GET /corrections trả originalContent
 default Optional<Long> nguoiCaoTuoi(long id) { return Optional.empty(); } // bổ sung 2026-10-27: dòng nhật ký đính chính mang resident_id (FR-049)
+default boolean hoTroKieu(KieuDinhChinh kieu) { return true; } // bổ sung 2026-11-03 (`supports`): kiểu không hỗ trợ trả 409 KHONG_HO_TRO_DINH_CHINH trước khi chọn cách, không lập yêu cầu cách C (005 T029)
 ```
 
 Sự kiện: `DaDinhChinh(loaiBanGhi, idGoc, kieu, dinhChinhId)`.
@@ -263,7 +273,7 @@ void lock(String lockKey);                                                      
 
 Lưu giữ và đọc bản ghi đã chuyển (phần 2 của T108, cài 2026-10-30):
 
-- `SharedRowRetention` (`administration.shared.api`; `administration.retention` gọi, và lớp cài `RetentionProvider` gọi cho dòng gắn bản ghi con của chuỗi, sửa 2026-10-30, 009 T043): `deleteFor(Collection<EntityRef>)` xóa dòng `status_history`, `record_event`, `simple_record`, `reminder_marker` có đối tượng là bản ghi (đối tượng `SharedRowRetention.RESIDENT` = `M01.RESIDENT` thì thêm `deleteForResidents`); `deleteForResidents(Collection<Long>)` xóa `simple_record`, `resident_module_state` theo `resident_id`; qua `RetentionDatabase`, trong transaction của chuỗi (R-11). Job loại bỏ gọi với mọi bản ghi của chuỗi: `entity_type` của dòng bảng chung trùng `RetentionProvider.dataType()` của bản ghi cha.
+- `SharedRowRetention` (`administration.shared.api`; `administration.retention` gọi, và lớp cài `RetentionProvider` gọi cho dòng gắn bản ghi con của chuỗi, sửa 2026-10-30, 009 T043): `deleteFor(Collection<EntityRef>)` xóa dòng `status_history`, `record_event`, `simple_record`, `reminder_marker` có đối tượng là bản ghi (đối tượng `SharedRowRetention.RESIDENT` = `M01.RESIDENT` thì thêm `deleteForResidents`); `deleteForResidents(Collection<Long>)` xóa `simple_record`, `resident_module_state` theo `resident_id`; qua `RetentionDatabase`, trong transaction của chuỗi (R-11). Job loại bỏ gọi với mọi bản ghi của chuỗi: `entity_type` của dòng bảng chung trùng `RetentionProvider.dataType()` của bản ghi cha. *(Bổ sung 2026-11-03, 005 T028)* `rowsFor(EntityRef)` trả các dòng `record_event`, `simple_record` mà `deleteFor` sẽ xóa cùng bản ghi, dạng (loại dòng, id dòng); job xét phần đi kèm (đính chính, nhật ký) của các dòng này theo hạn của bản ghi sở hữu trước khi xóa, còn hạn thì giữ cả chuỗi (FR-051a).
 - SPI `LegacyRecordTypeSource` (`administration.shared.api.spi`, module cài khi gộp bảng): `Map<String, String> legacyRecordTypes()` (loại bản ghi cũ → loại mới, R-15 mục 5); `administration.correction`, `administration.auditlog`, `administration.retention` đọc qua `RecordTypeAliases` (`administration.shared.api`: `withLegacy(type)` là loại cùng các loại cũ, `current(type)` là loại mới) khi đọc chuỗi đính chính, giá trị hiện hành, nhật ký và khi loại bỏ; bản đính chính mới của loại mới nối tiếp số thứ tự, Hủy ghi nhận của chuỗi loại cũ. Một loại cũ chỉ ánh xạ tới một loại mới (khởi động báo lỗi nếu trùng).
 
 `Basis.schedulerRunId` (`administration.auditlog.api.dto`) đổi `Long` → `String` (UUID của lần chạy, `SchedulerRuns.start` trả về; research R-15 mục 4; "Đổi api" 2026-10-30, chủ dự án duyệt). `common.data.DataGroup.Group.MULTIPLE` cho entity của bảng chứa nhiều nhóm, bắt buộc trường `lockedAt` (R-05).

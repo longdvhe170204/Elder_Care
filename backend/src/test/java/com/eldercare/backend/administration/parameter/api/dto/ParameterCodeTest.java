@@ -13,21 +13,24 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
-/** FR-011 (000 T030): enum ParameterCode có đúng các mã của Phụ lục 25 trong tài liệu nghiệp vụ. */
+/**
+ * FR-011 (000 T030): enum ParameterCode có đúng các mã còn hiệu lực của Phụ lục 25; dòng "*(Bỏ theo Q-…)*" (Q-392 →
+ * Q-397) không có trong enum.
+ */
 class ParameterCodeTest {
 
     private static final Path SOURCE = Path.of("..", "docs", "business", "nghiep-vu.md");
 
     @Test
     void FR_011_enum_matchesAppendix25() throws IOException {
-        Pattern row = Pattern.compile("^\\| (CFG-M\\d{2}-\\d{2}) ", Pattern.MULTILINE);
+        Pattern row = Pattern.compile("^\\| (CFG-M\\d{2}-\\d{2}) \\| (?!\\*\\(Bỏ theo)", Pattern.MULTILINE);
         Matcher m = row.matcher(Files.readString(SOURCE, StandardCharsets.UTF_8));
         Set<String> source = m.results().map(r -> r.group(1)).collect(Collectors.toSet());
 
         Set<String> codes =
                 Arrays.stream(ParameterCode.values()).map(ParameterCode::code).collect(Collectors.toSet());
 
-        assertThat(codes).hasSize(122).isEqualTo(source);
+        assertThat(codes).hasSize(115).isEqualTo(source);
     }
 
     @Test

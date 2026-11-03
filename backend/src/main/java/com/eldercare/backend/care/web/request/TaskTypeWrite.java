@@ -14,8 +14,11 @@ public record TaskTypeWrite(
         String group,
         boolean professional,
         String resultType,
-        Role defaultRole,
+        @Schema(implementation = String.class) Role defaultRole,
+
+        @Schema(allowableValues = {"NORMAL", "IMPORTANT", "MANDATORY"})
         String defaultImportance,
+
         Integer windowBeforeMinutes,
         Integer windowAfterMinutes,
         boolean billable,

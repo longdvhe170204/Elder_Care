@@ -4,10 +4,14 @@ import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.care.internal.attendance.service.*;
 import com.eldercare.backend.care.web.request.*;
+import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.care.web.response.DayCareAttendanceResponse;
 import com.eldercare.backend.care.web.response.DayCareCheckoutResponse;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.time.BusinessTime;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.time.*;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +49,13 @@ public class DayCareAttendanceController {
     }
 
     @PostMapping("/check-in")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public DayCareAttendanceResponse checkIn(
             @RequestHeader("Idempotency-Key") String key, @RequestBody DayCareCheckInWrite body) {
         if (body.residentId() == null || body.residentId() <= 0)
@@ -56,6 +67,13 @@ public class DayCareAttendanceController {
     }
 
     @PostMapping("/{id}/check-out")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public DayCareCheckoutResponse checkOut(
             @PathVariable long id,
             @RequestHeader("Idempotency-Key") String key,

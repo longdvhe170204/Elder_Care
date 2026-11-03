@@ -870,8 +870,8 @@ components:
         title: { type: string }
         status: { type: integer }
         detail: { type: string }
-        maLoi: { type: string }
-        dieuKienChuaThoa: { type: array, items: { type: object, properties: { ma: { type: string }, moTa: { type: string }, canCu: { type: string } } } }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string } } } }
     CarePlanItem:
       type: object
       required: [taskTypeId, content, frequencyType, performerRole, importance, billable]

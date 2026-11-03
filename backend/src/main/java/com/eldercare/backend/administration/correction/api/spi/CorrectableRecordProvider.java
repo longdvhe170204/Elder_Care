@@ -1,6 +1,7 @@
 package com.eldercare.backend.administration.correction.api.spi;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import java.util.Optional;
@@ -39,6 +40,14 @@ public interface CorrectableRecordProvider {
 
     /** Nội dung bản gốc để hiển thị chuỗi đính chính (contracts/api-000.yaml {@code originalContent}). */
     Object originalContent(long id);
+
+    /**
+     * Kiểu đính chính module hỗ trợ cho loại bản ghi này. Kiểu không hỗ trợ bị từ chối 409 {@code CORRECTION_NOT_SUPPORTED}
+     * trước khi chọn cách, nên không lập yêu cầu cách C không thể áp dụng (005 T029).
+     */
+    default boolean supports(CorrectionType type) {
+        return true;
+    }
 
     /** Module thu hẹp thêm người được đính chính (FR-026 "module MAY thu hẹp"). */
     default boolean allows(CurrentUser user, CreationMethod method, long id) {

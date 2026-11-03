@@ -88,6 +88,59 @@ paths:
       responses:
         '204': { description: Đã đổi; cờ buộc đổi mật khẩu được gỡ }
         '422': { description: 'PASSWORD_POLICY_NOT_MET (research A-03, A-13)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/password-reset/availability:
+    get:
+      tags: [auth]
+      summary: Màn đăng nhập có hiện "Quên mật khẩu" không (bổ sung 2026-11-03, Q-399)
+      description: 'available = false khi kênh tin nhắn chưa cấu hình (Q-06); client ẩn chức năng.'
+      x-fr: [FR-052a]
+      security: []
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, required: [available], properties: { available: { type: boolean } } } } } }
+  /auth/password-reset/request:
+    post:
+      tags: [auth]
+      summary: Xin mã đặt lại mật khẩu qua tin nhắn (bổ sung 2026-11-03, Q-399)
+      description: |
+        Luôn trả 202 với cùng thân rỗng, dù tên đăng nhập có tồn tại, tài khoản có số điện thoại, đúng trạng thái hay đã quá CFG-M15-14 (FR-052a); chỉ gửi mã khi tài khoản là nhân viên hoặc người thân, Hoạt động hoặc Khóa tạm, hồ sơ có số hợp lệ và chưa quá giới hạn. Mã gửi tới số trong hồ sơ, hết hạn sau CFG-M15-12. Kênh tin nhắn chưa cấu hình: 404.
+      x-fr: [FR-052a]
+      x-br: [BR-M15-25]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username: { type: string }
+      responses:
+        '202': { description: Đã nhận yêu cầu }
+        '404': { description: Kênh tin nhắn chưa cấu hình, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/password-reset/confirm:
+    post:
+      tags: [auth]
+      summary: Đặt mật khẩu mới bằng mã đã nhận (bổ sung 2026-11-03, Q-399)
+      description: |
+        Mã sai, hết hạn, đã hủy (sai quá CFG-M15-13 lần) hoặc tài khoản không hợp lệ đều trả cùng mã RESET_CODE_INVALID. Thành công: kết thúc mọi phiên, bộ đếm đăng nhập sai về 0 (Khóa tạm trở về Hoạt động), không gắn cờ buộc đổi, báo chủ tài khoản; Quản lý viện thì báo thêm các Quản lý viện khác (BR-M15-25).
+      x-fr: [FR-052a]
+      x-br: [BR-M15-25]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, code, newPassword]
+              properties:
+                username: { type: string }
+                code: { type: string }
+                newPassword: { type: string, format: password }
+      responses:
+        '204': { description: Đã đặt mật khẩu mới }
+        '422': { description: 'RESET_CODE_INVALID, PASSWORD_POLICY_NOT_MET', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /me:
     get:
       tags: [auth]

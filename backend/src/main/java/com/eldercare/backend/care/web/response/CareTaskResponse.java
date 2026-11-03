@@ -23,13 +23,18 @@ public record CareTaskResponse(
         Importance importance,
         String performer,
         boolean shared,
+
+        @Schema(allowableValues = {"FROM_PREVIOUS_SHIFT", "AWAITING_CONFIRMATION"})
         String carryover,
+
         TaskStatus status,
         boolean awaitingRemeasurementConfirmation,
         int reminderCount,
         Set<String> allowedCommands) {
+    @Schema(name = "CareTaskBasis")
     public record Basis(SourceType type, Long id) {}
 
+    @Schema(name = "CareResidentCard")
     public record ResidentCard(String fullName, String photo, String roomBed, String careNotes) {}
 
     public static CareTaskResponse of(
