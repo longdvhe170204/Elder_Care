@@ -12,6 +12,15 @@ export const postAuthLogout = (params) => request('POST', '/auth/logout', params
 /** Người dùng tự đổi mật khẩu (bắt buộc ở lần đầu, FR-006) (FR-006) */
 export const postAuthChangePassword = (params) => request('POST', '/auth/change-password', params)
 
+/** Màn đăng nhập có hiện "Quên mật khẩu" không (bổ sung 2026-11-03, Q-399) (FR-052a) */
+export const getAuthPasswordResetAvailability = (params) => request('GET', '/auth/password-reset/availability', params)
+
+/** Xin mã đặt lại mật khẩu qua tin nhắn (bổ sung 2026-11-03, Q-399) (FR-052a, BR-M15-25) */
+export const postAuthPasswordResetRequest = (params) => request('POST', '/auth/password-reset/request', params)
+
+/** Đặt mật khẩu mới bằng mã đã nhận (bổ sung 2026-11-03, Q-399) (FR-052a, BR-M15-25) */
+export const postAuthPasswordResetConfirm = (params) => request('POST', '/auth/password-reset/confirm', params)
+
 /** Thông tin người dùng hiện tại */
 export const getMe = (params) => request('GET', '/me', params)
 
