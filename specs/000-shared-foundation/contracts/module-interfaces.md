@@ -82,6 +82,11 @@ void dongDoTrangThaiCuoi(long yeuCauId, CanCu canCu);
     // bổ sung theo plan 004 (research T-06): Propagation.MANDATORY, kèm lệnh làm người cao tuổi sang trạng thái cuối
     // (004 FR-065, FR-070); Nháp, Chờ duyệt → Hủy; Đã duyệt (chờ hiệu lực) → Áp dụng không thành; trạng thái cuối thì không làm gì;
     // người thực hiện là hệ thống, căn cứ là lệnh; phát YeuCauDaHuy / YeuCauApDungKhongThanh
+YeuCauView suaNhap(long id, String ifMatch, JsonNode noiDung, LocalDate ngayHieuLucMongMuon, LyDo lyDo);
+    // bổ sung 2026-11-03 theo plan 004 T043 (PUT /residency-change-requests/{id}), chủ dự án duyệt; Java: editDraft.
+    // Propagation.MANDATORY, trong transaction lệnh của module sở hữu; cùng kiểm và nhật ký DRAFT_EDITED như
+    // edit-content của HTTP; người sửa theo choThaoTacNhap() của handler; thiếu lý do → ReasonRequiredException;
+    // ngày hiệu lực null thì giữ ngày cũ
 ```
 
 **SPI `LoaiYeuCauHandler`**: mỗi loại yêu cầu do module sở hữu cài một handler.
@@ -109,6 +114,10 @@ default Optional<Set<VaiTro>> gioiHanVaiTroDuyet(YeuCauView yc) { return Optiona
     // lệnh Duyệt và Từ chối (kể cả tự duyệt, FR-035), lenhDuocPhep, danh sách người duyệt cho nhắc và BR-M15-09,
     // danh sách người nhận khi gửi duyệt. Chỉ dùng cho loại có người duyệt theo vai trò; loại có người duyệt
     // theo nhiệm vụ (Phụ trách bộ phận, Người phụ trách ca) hoặc theo dòng 19.3 giữ Optional.empty()
+default boolean choThaoTacNhap(NguoiDungHienTai nd, YeuCauView yc) { return yc.nguoiYeuCauId() == nd.taiKhoanId(); }
+    // bổ sung 2026-11-03 theo plan 004 FR-039 (Java: mayActOnDraft), chủ dự án duyệt: ai được Sửa nội dung, Gửi duyệt
+    // khi yêu cầu còn Nháp, áp ở edit-content, submit, suaNhap và lenhDuocPhep. Mặc định chỉ người yêu cầu; 004 cho
+    // Hành chính hoàn thiện yêu cầu người đại diện gửi. Người yêu cầu giữ nguyên; Hủy vẫn chỉ người yêu cầu
 ```
 
 **`NhacQuaHan`**: dùng lại cho các vòng đời riêng (010, 012, 013, 017, 019). Module tự gọi nó từ job của mình, với mốc lấy từ CFG của module (FR-031a; đối chiếu Q-130).

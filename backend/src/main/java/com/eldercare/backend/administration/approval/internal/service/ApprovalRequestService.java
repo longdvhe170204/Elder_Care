@@ -214,10 +214,25 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     @Transactional
     public ApprovalRequestView editContent(
             long id, String ifMatch, JsonNode content, LocalDate requestedEffectiveDate, Reason reason) {
+        return edit(id, ifMatch, content, requestedEffectiveDate, reason);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public ApprovalRequestView editDraft(
+            long id, String ifMatch, JsonNode content, LocalDate requestedEffectiveDate, Reason reason) {
+        if (reason == null) {
+            throw new ReasonRequiredException();
+        }
+        return edit(id, ifMatch, content, requestedEffectiveDate, reason);
+    }
+
+    private ApprovalRequestView edit(
+            long id, String ifMatch, JsonNode content, LocalDate requestedEffectiveDate, Reason reason) {
         CurrentUser user = currentUser.getObject();
         ApprovalRequestView request = locked(id);
         RequestTypeHandler handler = directory.handler(request.type());
-        requireRequester(user, request);
+        requireDraftActor(user, request, handler);
         table.next(request.status(), Command.EDIT_CONTENT);
         requireVersion(request, ifMatch);
         handler.validateContent(content);
@@ -248,7 +263,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         CurrentUser user = currentUser.getObject();
         ApprovalRequestView request = locked(id);
         RequestTypeHandler handler = directory.handler(request.type());
-        requireRequester(user, request);
+        requireDraftActor(user, request, handler);
         table.next(request.status(), Command.SUBMIT);
         requireVersion(request, ifMatch);
         return submitLocked(user, request, handler);
@@ -443,9 +458,11 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         List<String> commands = new ArrayList<>();
         switch (request.status()) {
             case ApprovalStatus.DRAFT -> {
+                if (handler.mayActOnDraft(user, request)) {
+                    commands.addAll(List.of(ApprovalCommands.EDIT_CONTENT, ApprovalCommands.SUBMIT));
+                }
                 if (requester) {
-                    commands.addAll(
-                            List.of(ApprovalCommands.EDIT_CONTENT, ApprovalCommands.SUBMIT, ApprovalCommands.CANCEL));
+                    commands.add(ApprovalCommands.CANCEL);
                 }
             }
             case ApprovalStatus.PENDING_APPROVAL -> {
@@ -501,6 +518,13 @@ public class ApprovalRequestService implements ApprovalRequestApi {
 
     private static void requireRequester(CurrentUser user, ApprovalRequestView request) {
         if (request.requesterId() != user.accountId()) {
+            throw new PermissionDeniedException("Chỉ người yêu cầu được thực hiện lệnh này");
+        }
+    }
+
+    /** Sửa, gửi duyệt Nháp: người yêu cầu, hoặc người loại yêu cầu cho thêm (plan 004 FR-039). */
+    private static void requireDraftActor(CurrentUser user, ApprovalRequestView request, RequestTypeHandler handler) {
+        if (!handler.mayActOnDraft(user, request)) {
             throw new PermissionDeniedException("Chỉ người yêu cầu được thực hiện lệnh này");
         }
     }
