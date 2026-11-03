@@ -113,6 +113,12 @@ public class AttendanceCorrectionProvider implements CorrectableRecordProvider {
         at(value);
     }
 
+    /** Hủy ghi nhận điểm danh chờ chốt nghiệp vụ: khung chung từ chối VOID trước khi lập yêu cầu cách C (FR-015). */
+    @Override
+    public boolean supports(CorrectionType type) {
+        return type == CorrectionType.AMEND_CONTENT;
+    }
+
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void afterCorrection(CorrectionView correction) {

@@ -103,6 +103,7 @@ class CorrectionService implements CorrectionApi {
     public CorrectionResult create(
             String recordType, long originalRecordId, CorrectionType type, Object correctedContent, Reason reason) {
         CorrectableRecordProvider provider = provider(recordType);
+        requireSupported(provider, type);
         if (!provider.isConfirmed(originalRecordId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "RECORD_NOT_CONFIRMED", "Bản gốc không tồn tại hoặc chưa xác nhận");
@@ -176,11 +177,21 @@ class CorrectionService implements CorrectionApi {
 
     void validate(String recordType, CorrectionType type, Object correctedContent) {
         CorrectableRecordProvider provider = provider(recordType);
+        requireSupported(provider, type);
         if (type == CorrectionType.AMEND_CONTENT) {
             if (correctedContent == null) {
                 throw new InvalidValueException("Sửa nội dung cần nội dung đúng (FR-024)");
             }
             provider.validateContent(correctedContent);
+        }
+    }
+
+    private static void requireSupported(CorrectableRecordProvider provider, CorrectionType type) {
+        if (!provider.supports(type)) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "CORRECTION_NOT_SUPPORTED",
+                    "Loại bản ghi " + provider.recordType() + " không hỗ trợ kiểu đính chính " + type);
         }
     }
 
