@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * SC-008, FR-001, US7 #3 (016 T027, {@code SC_008_ChiDocIT}; quickstart Q29): mọi thao tác xem không
- * tạo, sửa, đổi trạng thái bản ghi nào, so bằng {@code CHECKSUM TABLE} toàn schema; chỉ lần xuất thành công thêm đúng một
+ * tạo, sửa, đổi trạng thái bản ghi nào, so bằng checksum từng bảng toàn schema; chỉ lần xuất thành công thêm đúng một
  * bản ghi "Xuất báo cáo" và một tệp. Bỏ {@code login_session}, {@code device} vì mỗi yêu cầu ghi lần hoạt động cuối (không phải
  * dữ liệu nghiệp vụ).
  */
@@ -87,7 +88,7 @@ class SC_008_ReadOnlyIT extends MySqlIntegrationTestBase {
         return TestUsers.bearer(users.session(user.accountId()));
     }
 
-    /** Bảng → checksum, mọi bảng của schema test. */
+    /** Bảng → checksum, mọi bảng của schema test ({@link #checksum}). */
     private Map<String, Long> snapshot() {
         Map<String, Long> result = new TreeMap<>();
         List<String> tables = jdbc.queryForList(
@@ -96,10 +97,30 @@ class SC_008_ReadOnlyIT extends MySqlIntegrationTestBase {
                 String.class);
         for (String table : tables) {
             if (!NOT_BUSINESS.contains(table)) {
-                result.put(table, jdbc.queryForObject("CHECKSUM TABLE `" + table + "`", (r, i) -> r.getLong(2)));
+                result.put(table, checksum(table));
             }
         }
         return result;
+    }
+
+    /**
+     * Số dòng và tổng CRC32 của mọi cột thường. Không dùng {@code CHECKSUM TABLE}: với bảng có chỉ mục đa giá trị trên
+     * JSON ({@code family_medication_batch} của 006, cột ảo ẩn) MySQL 8.0 trả giá trị khác nhau ở mỗi kết nối dù không có
+     * lệnh ghi nào (2026-11-03).
+     */
+    private long checksum(String table) {
+        String row = jdbc
+                .queryForList(
+                        "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE()"
+                                + " AND table_name = ? ORDER BY ordinal_position",
+                        String.class,
+                        table)
+                .stream()
+                .map(column -> "IFNULL(CAST(`" + column + "` AS CHAR), '~')")
+                .collect(Collectors.joining(", '|', "));
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) * 4294967296 + COALESCE(SUM(CRC32(CONCAT(" + row + "))), 0) FROM `" + table + "`",
+                Long.class);
     }
 
     private void viewEverything(String token) throws Exception {

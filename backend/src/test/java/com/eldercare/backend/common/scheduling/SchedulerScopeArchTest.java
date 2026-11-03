@@ -78,6 +78,15 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.staffing.scheduling.M09DailyJob",
                     "cảnh báo đào tạo và nhắc bộ phận thiếu phụ trách (008 N-13)"),
             Map.entry(
+                    "com.eldercare.backend.health.scheduling.M06MinuteJob",
+                    "xác nhận quá hạn đo lại, chuyển trạng thái lịch đo và ngưỡng; không tạo bản ghi đo (007 FR-017/022, S-21)"),
+            Map.entry(
+                    "com.eldercare.backend.health.scheduling.M06DailyJob",
+                    "nhắc thiếu ngưỡng cá nhân, không lập lịch hoặc công việc (007 FR-025, S-21)"),
+            Map.entry(
+                    "com.eldercare.backend.incident.scheduling.M05MinuteJob",
+                    "leo thang, nhắc, tạm nhận bàn giao, kết thúc theo dõi sau ngã; không lập sự cố/công việc (007 FR-033/034/037/051/084, S-21)"),
+            Map.entry(
                     "com.eldercare.backend.medication.scheduling.M07MinuteJob",
                     "việc theo phút m07: quét cửa sổ liều, trễ, bỏ lỡ (006 research D-19)"),
             Map.entry(
