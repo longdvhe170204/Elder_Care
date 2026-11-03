@@ -136,7 +136,7 @@ public class ExpiredDataPurge {
             if (deleted.contains(root)) {
                 return;
             }
-            chain(root, byType, candidates, attached, cutoffs).ifPresent(chain -> {
+            chain(root, byType, candidates, attached, cutoffs, sharedRows).ifPresent(chain -> {
                 database.transaction().executeWithoutResult(status -> chain.delete(byType, sharedRows));
                 deleted.addAll(chain.records());
                 tally.add(chain, candidates);
@@ -155,7 +155,8 @@ public class ExpiredDataPurge {
             Map<String, RetentionProvider> byType,
             Map<String, Map<Long, Instant>> candidates,
             List<AttachedRetention> attached,
-            Map<String, Instant> cutoffs) {
+            Map<String, Instant> cutoffs,
+            SharedRowRetention sharedRows) {
         List<DataRef> records = new ArrayList<>();
         Set<DataRef> seen = new HashSet<>();
         Deque<DataRef> queue = new ArrayDeque<>(List.of(root));
@@ -171,11 +172,20 @@ public class ExpiredDataPurge {
             records.add(record);
             queue.addAll(byType.get(record.dataType()).referencesTo(record.id()));
         }
-        Map<AttachedRetention, List<Attached>> parts = new LinkedHashMap<>();
+        // Bản ghi của chuỗi và dòng bảng chung sẽ xóa cùng (theo hạn của bản ghi sở hữu): phần đi kèm của cả hai phải
+        // hết hạn
+        Map<DataRef, RetentionKind> owners = new LinkedHashMap<>();
         for (DataRef record : records) {
+            RetentionKind kind = byType.get(record.dataType()).retentionKind();
+            owners.putIfAbsent(record, kind);
+            for (EntityRef row : sharedRows.rowsFor(new EntityRef(record.dataType(), record.id()))) {
+                owners.putIfAbsent(new DataRef(row.entityType(), row.entityId()), kind);
+            }
+        }
+        Map<AttachedRetention, List<Attached>> parts = new LinkedHashMap<>();
+        for (Map.Entry<DataRef, RetentionKind> owner : owners.entrySet()) {
             for (AttachedRetention part : attached) {
-                List<Attached> found = part.attachedTo(
-                        record, byType.get(record.dataType()).retentionKind(), cutoffs.get(part.dataType()));
+                List<Attached> found = part.attachedTo(owner.getKey(), owner.getValue(), cutoffs.get(part.dataType()));
                 if (found.stream().anyMatch(a -> !a.expired())) {
                     return Optional.empty();
                 }
