@@ -61,7 +61,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    Set.of(),
+                    // Q-399 (2026-11-03): tự đặt lại mật khẩu, cài khi chốt nhà cung cấp tin nhắn (Q-06, 002 T105)
+                    Set.of(
+                            "GET /api/v1/auth/password-reset/availability",
+                            "POST /api/v1/auth/password-reset/request",
+                            "POST /api/v1/auth/password-reset/confirm"),
                     Set.of(),
                     true),
             // 008 T006: kiểm ngay các controller nền; giảm PENDING khi cài từng story (phần T042 lấy sớm).
