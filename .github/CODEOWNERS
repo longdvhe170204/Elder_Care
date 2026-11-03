@@ -3,11 +3,15 @@
 
 *                                                   @longdvhe170204
 
-# A: nền tảng, tài khoản, thông báo, báo cáo
+# A: nền tảng, tài khoản, thông báo, báo cáo, người thân, dinh dưỡng (012, 011 nhận 2026-11-03)
 /backend/src/main/java/com/eldercare/backend/common/   @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/notification/      @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/reporting/      @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/administration/      @longdvhe170204
+/backend/src/main/java/com/eldercare/backend/family/      @longdvhe170204
+/backend/src/main/java/com/eldercare/backend/nutrition/      @longdvhe170204
+/specs/011-nutrition-management/                    @longdvhe170204
+/specs/012-family-portal/                           @longdvhe170204
 /backend/pom.xml                                    @longdvhe170204
 /frontend/package.json                              @longdvhe170204
 /CLAUDE.md                                          @longdvhe170204
@@ -33,18 +37,14 @@
 /backend/src/main/java/com/eldercare/backend/incident/      @03coc08
 /backend/src/main/java/com/eldercare/backend/health/      @03coc08
 /backend/src/main/java/com/eldercare/backend/medication/      @03coc08
-/backend/src/main/java/com/eldercare/backend/nutrition/      @03coc08
 /specs/006-medication-management/                   @03coc08
 /specs/007-health-alert-incident/                   @03coc08
-/specs/011-nutrition-management/                    @03coc08
 
-# E: nhân sự, ca, người thân, tài chính
+# E: nhân sự, ca, tài chính
 /backend/src/main/java/com/eldercare/backend/staffing/      @ptlog18
-/backend/src/main/java/com/eldercare/backend/family/      @ptlog18
 /backend/src/main/java/com/eldercare/backend/billing/      @ptlog18
 /specs/008-staff-shift-handover/                    @ptlog18
 /specs/010-incurred-costs/                          @ptlog18
-/specs/012-family-portal/                           @ptlog18
 /specs/015-shift-rotation-swap/                     @ptlog18
 /specs/017-resident-balance-ledger/                 @ptlog18
 

@@ -25,10 +25,12 @@ public class TechnicalLocks {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void lock(String lockKey) {
+        // Trùng khóa chính: ON DUPLICATE KEY UPDATE lấy ngay khóa X của dòng. INSERT IGNORE lấy khóa S, hai lệnh cùng
+        // giữ S rồi cùng nâng lên X ở FOR UPDATE thì bế tắc. Dòng mới: khóa X của dòng vừa chèn, lệnh sau chờ commit.
         jdbc.update(
-                "INSERT IGNORE INTO technical_lock (lock_key, version, updated_at) VALUES (?, 0, ?)",
+                "INSERT INTO technical_lock (lock_key, version, updated_at) VALUES (?, 0, ?)"
+                        + " ON DUPLICATE KEY UPDATE lock_key = lock_key",
                 lockKey,
                 LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
-        jdbc.queryForList("SELECT lock_key FROM technical_lock WHERE lock_key = ? FOR UPDATE", String.class, lockKey);
     }
 }

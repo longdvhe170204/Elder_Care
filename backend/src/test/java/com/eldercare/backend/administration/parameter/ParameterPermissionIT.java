@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class ParameterPermissionIT extends MySqlIntegrationTestBase {
 
     private static final String ALERT = "CFG-M05-01";
+    private static final String REMOVED = "CFG-M02-08";
 
     @Autowired
     MockMvc mvc;
@@ -71,5 +72,16 @@ class ParameterPermissionIT extends MySqlIntegrationTestBase {
     void FR_011_unknownCode_isNotFound() throws Exception {
         user.set(MANAGER);
         mvc.perform(get(ParameterClient.URL + "CFG-M99-99")).andExpect(status().isNotFound());
+    }
+
+    /** Mã bỏ theo Q-394 (CFG-M02-08): dòng còn trong cơ sở dữ liệu vì lịch sử chỉ thêm, nhưng không hiện, không đổi được. */
+    @Test
+    void FR_011_removedCode_isHidden() throws Exception {
+        user.set(MANAGER);
+        mvc.perform(get(ParameterClient.URL + REMOVED)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/parameters?module=M02"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.code == '" + REMOVED + "')]").isEmpty())
+                .andExpect(jsonPath("$[?(@.code == 'CFG-M02-05')]").isNotEmpty());
     }
 }
