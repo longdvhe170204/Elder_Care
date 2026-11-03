@@ -24,6 +24,7 @@ import { HandoverPage } from '@/features/handover/HandoverPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
+import { HealthCatalogPage } from '@/features/health-catalog/HealthCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
@@ -47,6 +48,7 @@ const PAGES = {
   incidents: IncidentDetailPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
+  'health-catalog': HealthCatalogPage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   relatives: RelativesPage,

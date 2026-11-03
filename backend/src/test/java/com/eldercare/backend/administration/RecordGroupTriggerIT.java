@@ -137,6 +137,9 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             if (byEntity == null && byComment == null && !PENDING_DATA_GROUP.contains(table)) {
                 problems.add(table + ": chưa khai nhóm (COMMENT DataGroup=… hoặc @Entity @DataGroup)");
             }
+            if (byComment != null && !COMMENT_GROUPS.contains(byComment)) {
+                problems.add(table + ": nhóm " + byComment + " không thuộc R-15");
+            }
             if (byEntity != null && byComment != null && !byEntity.equals(byComment)) {
                 problems.add(table + ": @DataGroup " + byEntity + " khác COMMENT " + byComment);
             }
@@ -198,6 +201,9 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             }
         }
     }
+
+    /** Nhóm được khai bằng COMMENT của bảng (research R-15; F-04). */
+    private static final Set<String> COMMENT_GROUPS = Set.of("CATALOG", "BUSINESS", "RECORD", "MULTIPLE", "TECHNICAL");
 
     /** Bảng có sẵn chưa khai nhóm (rà 2026-10-30); chủ module khai khi làm migration gộp bảng, xong thì xóa dòng. */
     private static final Set<String> PENDING_DATA_GROUP = Set.of(

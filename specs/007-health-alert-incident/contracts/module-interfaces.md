@@ -32,6 +32,8 @@ Plan làm sau (008, 009, 011, 012, 013, 014, 016) giữ đúng chữ ký hoặc 
 
 ### 1.2. `health.api.ChiSoApi` (đọc; 005, 007 nội bộ, 008, 012, 016)
 
+Tên Java đã triển khai cho nguồn chỉ số gần nhất: `VitalSignApi.latestPerType` (chi tiết mục 2.5). Giữ nguyên `aboveThresholdInRange` của phần bàn giao đã có.
+
 ```java
 Map<Long, ChiSoGanNhatView> ganNhatMoiLoai(long nctId);                   // giá trị hiện hành (sau đính chính), thời điểm đo; FR-050
 List<BanGhiChiSoView> trongKhoang(long nctId, long chiSoId, Instant tu, Instant den); // đã xác nhận, giá trị hiện hành; S-10
@@ -247,3 +249,100 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 | *(Bổ sung 2026-10-18)* `CoMatBanTruApi.theoNgay` | M04 (005) | FR-047d (S-23) | Có sẵn |
 | *(Bổ sung 2026-10-22)* `FileApi.upload`, `attach` (`common.tep`); `common.bieumau` (`PdfBieuMau`) | `common` (A) | FR-050h (S-25) | `common.bieumau` làm trong task T104 *(xong 2026-10-22, gói `common.document`)* |
 | *(Bổ sung 2026-10-22)* Nhóm người nhận `OnDutyDoctor`, `ShiftLead`, `OnShiftStaff` (`common.notification`) | 009 | FR-047i (S-24) | Có sẵn (009 Phase 2) |
+
+### 2.4. Tên Java của SPI và bản giả T002 (2026-10-31)
+
+"Đổi api" của D: bổ sung ba SPI đọc của mục 2.1, không sửa chữ ký SPI đã có `AlertStaffPort`. Gói `incident.api.spi`, DTO ở `incident.api.dto`; không thay hợp đồng HTTP. 012, 014, 009 cài SPI do 007 sở hữu để 007 không gọi ngược phần triển khai của các module đó.
+
+```java
+interface EmergencyFamilyPort { // NguoiThanKhanCapPort, 012 cài
+  Optional<EmergencyFamilyContactView> primaryContact(long residentId);
+  List<EmergencyFamilyContactView> representatives(long residentId);
+  List<VisitTraceView> visitsInRange(long residentId, Instant from, Instant to);
+}
+record EmergencyFamilyContactView(long familyMemberId, String fullName, Optional<String> phoneNumber) {}
+record VisitTraceView(long visitId, Instant enteredAt, Optional<Instant> exitedAt, List<VisitTracePersonView> people) {}
+record VisitTracePersonView(Optional<Long> familyMemberId, String fullName,
+    Optional<String> relationship, Optional<String> phoneNumber, boolean hasNotificationChannel) {}
+
+interface AttendanceTracePort { // DiemDanhTruyVetPort, 014 cài
+  List<ActivityAttendanceTraceView> coAttendance(long residentId, Instant from, Instant to);
+}
+record ActivityAttendanceTraceView(long sessionId, Instant from, Instant to, List<Long> residentIds) {}
+
+interface NotificationLogPort { // NhatKyThongBaoPort, 009 cài
+  List<IncidentNotificationView> bySource(String sourceRecordType, long sourceRecordId);
+}
+record IncidentNotificationView(String recipientType, long recipientId, String channel,
+    Optional<Instant> sentAt, Optional<Instant> viewedAt) {}
+```
+
+- Liên hệ: chỉ mã người thân, họ tên và điện thoại phục vụ FR-047/048; danh sách người đại diện giữ thứ tự gọi do 012 cung cấp (FR-050b). Lượt thăm gồm người thân và người đi cùng thực tế, không đưa lượt chưa vào vào nguồn truy vết (FR-060); `familyMemberId` có thể rỗng cho người đi cùng, `exitedAt` rỗng khi chưa ra.
+- Buổi hoạt động trả nguồn buổi, khoảng thời gian và mã những người cao tuổi cùng Có mặt với người được truy vấn, kể cả chuyến (FR-060, module-interfaces 014). Truy vấn khoảng dùng chồng thời gian `[from, to)`, không tính hai khoảng chỉ chạm biên; không cắt mất khoảng gốc của nguồn.
+- Nhật ký trả đúng cặp loại/mã nguồn, giữ mốc gửi/xem nếu có; một dòng cho một người nhận trên một kênh (FR-040, FR-048b). Loại người nhận và kênh giữ mã của 009; không phụ thuộc DTO của 009 để tránh chiều phụ thuộc ngược.
+- Bộ fake duy nhất ở `support/fake/incident/`: `FakeAlertStaff` có sẵn; bổ sung `FakeEmergencyFamily`, `FakeAttendanceTrace`, `FakeNotificationLog`, cùng nạp qua `FakeM05Config`. Các hàm đặt dữ liệu chỉ dành cho test; chưa đặt thì trả rỗng, không tự sinh bản ghi, không gửi thông báo. Đây không phải bản cài nghiệp vụ thật hay endpoint giả lập HTTP.
+
+### 2.5. API chỉ số gần nhất: phần T003 cho 001 (2026-10-31)
+
+"Đổi api" của D, chỉ thêm hàm vào `health.api.VitalSignApi`, không sửa chữ ký bàn giao cũ:
+
+```java
+Map<Long, LatestVitalSignView> latestPerType(long residentId);
+
+// health.api.dto
+record LatestVitalSignView(long recordId, long indicatorId, String indicatorCode,
+    String indicatorName, String unit, Map<String, BigDecimal> values, Instant measuredAt) {}
+```
+
+Đây là tên Java của `ganNhatMoiLoai` ở mục 1.2; tên logic `ChiSoApi.ganNhat` trong tài liệu 001 cùng trỏ nguồn này, không tạo một API hoặc bản giả thứ hai. Khóa map là mã danh mục chỉ số; mỗi loại tối đa một bản gần nhất, giá trị hiện hành sau đính chính và mốc đo gốc. Mã/tên/đơn vị lấy từ danh mục; giá trị từng thành phần giữ `BigDecimal`, không gắn cứng mã chỉ số, thành phần hoặc ngưỡng trong API.
+
+Bổ sung khả năng đặt kết quả `FakeVitalSigns.latest(residentId, map)` vào bản giả chung có sẵn `support/fake/health/FakeVitalSigns`, giữ `source` và `aboveThresholdInRange` cho 008. Bản giả chỉ trả kết quả đã được test đặt, mặc định map rỗng, không cài thuật toán chọn bản gần nhất hoặc đính chính. Bản cài đọc thật được kiểm riêng bằng `LatestVitalSignReadIT`; consumer 001 vẫn do B nối. Không coi các test hợp đồng bản giả là kiểm chứng truy vấn dữ liệu thật.
+
+### 2.6. T003 — tên Java đầy đủ cho API và sự kiện M06 (2026-10-31)
+
+```java
+List<VitalSignReadingView> VitalSignApi.withinRange(long residentId, long indicatorId, Instant from, Instant to);
+Set<Long> VitalSignApi.vitalSignIndicatorIds();
+List<MeasurementScheduleView> MeasurementScheduleApi.effectiveAt(long residentId, Instant at);
+List<Instant> MeasurementScheduleApi.occurrences(long scheduleId, Instant from, Instant to);
+FacilityContactView FacilityContactApi.current();
+Stream<VitalSignReportView> VitalSignStatisticsApi.readings(ScopeFilter scope, Instant from, Instant to);
+```
+
+- Khoảng thời gian `[from, to)`. `VitalSignReadingView(id, residentId, indicatorId, values, level, confirmationStatus, measuredAt, labels)` dùng giá trị hiện hành; `level` là mức lưu tại lúc đo. `LatestVitalSignView` chọn bản CONFIRMED, bỏ bản đang chờ, bản đầu đã REMEASURED và bản bị hủy; thứ tự mốc đo rồi ID. Nếu bản mới bị hủy thì tìm bản hợp lệ cũ hơn. Lịch sử vẫn giữ bản đầu đã được đo lại; thống kê nghiệp vụ phải dùng API thống kê theo FR-081, không đếm trực tiếp lịch sử.
+- `MeasurementScheduleView(id, residentId, indicatorIds, frequencyType, frequencyParameters, startsAt, endsAt, importance, note)`; `MeasurementFrequency`: `CLOCK_TIMES`, `EVERY_N_HOURS`, `WEEKDAYS`. Đọc lịch không sinh công việc. `FacilityContactView(phoneNumber, note, version)`; chưa có số cấu hình thì phone/note `null`, version 0 trong fake.
+- `VitalSignReportView(recordId, residentId, indicatorId, floorAreaId, measuredAt, level)`; `ScopeFilter` dùng bản công khai 002 hiện có. Chưa cài thuật toán thống kê trong T003.
+- `VitalSignLevel`: `NORMAL`, `WARNING`, `DANGEROUS`, `NO_THRESHOLD`; `VitalSignConfirmationStatus`: `AWAITING_REMEASUREMENT`, `CONFIRMED`, `REMEASURED`; `VitalSignLabel`: `IMMEDIATE_ACTION`, `NOT_REMEASURED`, `LATE_RECORDED`, `OFFLINE_RECORDED`.
+- Sự kiện ở `health.api.events`, công khai NamedInterface `events`: `VitalSignConfirmed(recordId, residentId, indicatorId, level, thresholdVersionId, taskId, measuredAt, labels, eventKey, occurredAt)`; `VitalSignCorrected(originalRecordId, residentId, indicatorId, originalLevel, currentLevel, eventKey, occurredAt)`; `MeasurementScheduleChanged(scheduleId, residentId, eventKey, occurredAt)`; `MissingPersonalThresholdReminder(residentId, eventKey, occurredAt)`. Hai trường cuối theo phong bì sự kiện của 000; chưa thêm publisher nghiệp vụ trước khi có lệnh ghi.
+- Nhắc thiếu ngưỡng dùng `HasNotificationRequests`, mức LOW, nhóm vai trò DOCTOR toàn viện theo FR-023; nội dung chỉ số xếp HEALTH, thông báo ngoài ứng dụng dùng câu trung tính. Không nhét danh sách người nhận vào outbox.
+- Bản giả chung: mở rộng `FakeVitalSigns.history`/`vitalSignIndicators`; `FakeMeasurementSchedules`, `FakeFacilityContact`, `FakeVitalSignStatistics`, `FakeHealthEvents`, lắp bằng `FakeHealthConfig` (import cấu hình FakeVitalSigns có sẵn). Không thêm bean giả vào ứng dụng thật. Bộ giả lịch chỉ trả dữ liệu test đặt theo truy vấn, không cài lịch sinh mốc; thống kê dùng đúng phạm vi đã đặt và lọc thời gian.
+
+### 2.7. T004 — phần giao diện M05 đã khai báo (rà 2026-11-01)
+
+Tên Java của mục 1.6–1.10: `IncidentCommandApi.record(RecordIncidentCommand, CurrentUser)`, `addProgression(long, String, String, CurrentUser)`, `acknowledge(long, CurrentUser)`; `AlertCommandApi.acknowledge(long, CurrentUser)`. Bản cài lệnh thật phải dùng `MANDATORY`, kiểm quyền và tác động như REST; bản giả chỉ ghi lại lời gọi của test, không xác nhận nghiệp vụ production.
+
+- `IncidentApi.view`, `byResident`, `hasOpenItem`, `monitoringFlag`; `AlertApi.view`, `byResident`, `hasOpenAlert`. Khoảng thời gian là `[from, to)`. Phần đọc sự cố giữ bản đã đóng trong lịch sử; cờ lọc bản hủy theo mục 1.7. Không dùng bản giả để suy ra quyền đọc thật.
+- `IsolationApi.activeByRoom`, `activeByFloorArea`, `activeByResident`, `activeZones`.
+- `FamilyPortalHealthApi.incidents`, `vitalSigns`: nguồn cho đúng cặp người cao tuổi/người thân. `FamilyIncidentView(incidentId, general, health)` tách `FamilyIncidentGeneralPart(typeName, occurredAt, level, processingStatus)` và `FamilyIncidentHealthPart` theo danh sách trường S-19a; `health` chỉ có khi bản đồng ý cho phép.
+- `IncidentStatisticsApi.alerts`, `incidents`, `underMonitoring`, `criticalResidentIds` dùng `ScopeFilter`. Fake chỉ trả nguồn đã được test đặt cho đúng phạm vi; không lấy nguồn toàn viện cho một phạm vi chưa cấu hình. Các hàm đặt không có tham số phạm vi là nguồn `ScopeFilter.FACILITY`.
+- Fake chung duy nhất: `FakeIncidents`, `FakeAlerts`, `FakeIncidentCommands`, `FakeIsolation`, `FakeFamilyPortalHealth`, `FakeIncidentStatistics`, nạp qua `FakeM05Config`. `AlertCommandApi` ủy quyền tới `FakeIncidentCommands.acknowledgeAlert`, tách đúng đích khỏi `IncidentCommandApi.acknowledge`.
+
+### 2.8. T004 — sự kiện công khai hoàn tất (2026-11-01)
+
+Gói `incident.api.events` công khai bằng `@NamedInterface`. Ngoài các sự kiện và yêu cầu đã có, T004 bổ sung `MaximumEscalationReminder`, `AlertRepeated`, `AlertSourceCorrected`, `AssigneeChanged`, `IncidentNotificationCreated`, `IncidentAssigned`, `EmergencyIncidentActivated`, `PostFallFollowUpRequested`, `ContactListRequested`, `ContactListReviewRequested`, `ContactTemperatureCheckRequested`, `ContactNotificationRequested`, `WishReconfirmationRequested`, `TemporaryCriticalFlagConfirmationRequested`, `TemporaryHomeLeaveRequested`, `PalliativeCareChoiceRecorded`, `WeightLossDetected`, `EffectiveImpactsRemain`.
+
+Mọi sự kiện gửi 009 cài `HasNotificationRequests` và mang `List<NotificationRequest>`; publisher nghiệp vụ tạo yêu cầu với mức, nhóm người nhận, loại thông tin, `InformationSubject.ABOUT_RESIDENT` và `Q354Case` theo S-19. Danh sách yêu cầu nằm trong sự kiện để mỗi nhóm người thân có đúng mã trường hợp; không đưa danh sách id người nhận dài vào outbox. `FakeIncidentEvents.publish` phát được mọi sự kiện công khai bằng một fake chung. T004 chỉ chốt hợp đồng; task nghiệp vụ tương ứng chịu trách nhiệm phát sự kiện trong transaction thật.
+
+**Bổ sung kiểm đủ danh sách, 2026-11-01:** `AlertCreated`, `AlertLevelRaised`, `AlertEscalated`, `CriticalFlagRecorded`, `IsolationCreated`, `IsolationLifted` cũng mang phong bì thông báo trên. `T004_IncidentEventCatalogTest` kiểm đủ các kiểu mục 1.12–1.13, không coi sự tồn tại kiểu là bằng chứng đã có publisher.
+
+Tên Java để 009 nối listener: `CallReminderStopRequested(String sourceRecordType, long sourceRecordId)` = `YeuCauDungNhacGoiDien`; `WishReconfirmationCompleted(long alertId)` = `DaCoKetQuaXacNhanLai`. Hai sự kiện này điều khiển lượt nhắc, không cài `HasNotificationRequests`. 003 dùng `ContactAdded(long residentId, Instant at)` và `IsolationLifted(long zoneId, List<Long> floorAreaIds, List<Long> areaIds, String eventKey, Instant occurredAt, List<NotificationRequest> notificationRequests)`. Phần phát thật vẫn ở task hạ mức, xác nhận lại, tiếp xúc và khoanh vùng.
+
+Yêu cầu module sau phát: `AlertRequested(residentId, type, level, sourceType, sourceId, Optional<String> objectKey, occurredAt, eventKey)`, `AlertSourceCloseRequested(sourceType, sourceId, reason, eventKey)`, `AlertProgressionRequested(sourceType, sourceId, progressionTypeCode, content, eventKey)`; không trực tiếp thực thi lệnh hoặc gửi tin khi khởi tạo record sự kiện.
+
+**DTO đọc T004:** `IncidentView(id, Long residentId, type, level, status, createdAt, Long floorAreaId)`; `AlertView(id, Long residentId, type, level, status, firstAt, Long floorAreaId)`; `MonitoringFlagView(suspectedInfection, contact, postFall, critical)`. Đây là nguồn giữa module, không thay schema phản hồi REST. `RecordIncidentCommand` dịch đủ trường của `GhiNhanSuCo` trong hợp đồng HTTP: `residentId`, `incidentTypeId`, `source`, `occurredAt`, `detectedAt`, `floorAreaId`, `location`, `ongoingActivity`, `description`, `level`, `lowerLevelReason`, `initialResponse`, `createDespiteExisting`.
+
+**Bổ sung rà T004 (2026-11-02):** `ContactAdded(residentId, at, eventKey, notificationRequests)` cũng cài `HasNotificationRequests` vì mục 1.12 có consumer 009. Giữ constructor hai tham số cho lời gọi nguồn đọc của 003; constructor này mang khóa theo người/thời điểm và danh sách yêu cầu rỗng. Publisher FR-062 phải dùng constructor đầy đủ với yêu cầu thông báo theo S-19, không coi constructor tương thích là đã gửi tin. `FakeIncidents` nhận `AlertApi` qua constructor; `FakeM05Config` nối đúng `FakeAlerts` dùng chung để `hasOpenItem` xét cả cảnh báo mở theo mục 1.7/S-17.
+
+### 2.9. Nguồn thống kê chỉ số thật cho 016 (2026-11-01)
+
+`DefaultVitalSignStatistics` cài `VitalSignStatisticsApi.readings`: chỉ dòng `CONFIRMED` trong `[from,to)`, kể cả nhãn `NOT_REMEASURED`; không đếm bản đầu `REMEASURED`, bản đang chờ hoặc bản đã hủy qua `CorrectionApi.current`. Giữ mức lúc đo theo FR-081. Phạm vi theo mã người cao tuổi hoặc tầng/phòng tại lúc đo từ `ResidentLocationApi.at`; phạm vi rỗng không trả dữ liệu. Không tự tạo bản ghi hoặc đọc SQL của module khác.
