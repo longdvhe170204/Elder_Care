@@ -19,12 +19,16 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** T015: truy vấn thật theo giờ, không dựa vào việc job đã kịp chuyển trạng thái hay chưa. */
 @Import(FakeM15Config.class)
 class ShiftQueriesIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    TransactionTemplate transaction;
 
     @Autowired
     BusinessTime time;
@@ -72,7 +76,12 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
         return user.staffId();
     }
 
+    /** Cùng một kết nối cho mọi câu: LAST_INSERT_ID() tính theo kết nối, ngoài transaction mỗi câu có thể lấy kết nối khác của pool. */
     private long fixture(long worker, String status) {
+        return transaction.execute(s -> insertFixture(worker, status));
+    }
+
+    private long insertFixture(long worker, String status) {
         jdbc.update(
                 "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Tra cứu ca]','07:00','15:00','FLOOR')");
         long template = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);

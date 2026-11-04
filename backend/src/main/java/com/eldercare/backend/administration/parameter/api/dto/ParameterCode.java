@@ -229,7 +229,13 @@ public enum ParameterCode {
     /** Thời gian không thao tác thì tự đăng xuất, theo kênh (mặc định: Web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày / ứng dụng người cao tuổi không tự đăng xuất (BR-M15-24)) */
     CFG_M15_10,
     /** Hiệu lực mã QR đăng nhập của người cao tuổi (mặc định: 5 phút) */
-    CFG_M15_11;
+    CFG_M15_11,
+    /** Hiệu lực mã đặt lại mật khẩu gửi qua tin nhắn (mặc định: 5 phút) */
+    CFG_M15_12,
+    /** Số lần nhập sai mã đặt lại mật khẩu trước khi mã bị hủy (mặc định: 5 lần) */
+    CFG_M15_13,
+    /** Giới hạn xin mã đặt lại mật khẩu của một tài khoản (mặc định: Tối đa 5 lần mỗi ngày, cách nhau ít nhất 60 giây) */
+    CFG_M15_14;
 
     /** Mã dạng {@code CFG-M15-05}. */
     public String code() {
