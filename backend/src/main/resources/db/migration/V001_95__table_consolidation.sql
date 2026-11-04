@@ -1139,4 +1139,81 @@ DROP TABLE resident_status_history;
 DROP TABLE care_level_history;
 DROP TABLE m01_history_id_map;
 
+-- Nhóm 2 (một phần): lần báo cần đánh giá lại (reassessment_notice, bảng kỹ thuật của M01) vào simple_record loại
+-- M01.REASSESSMENT_NOTICE (data-model 001 mục 0.1): người cao tuổi ở resident_id; nguồn là đối tượng cha (ASSESSMENT →
+-- M01.ASSESSMENT, INCIDENT → M05.INCIDENT, STATUS_HISTORY → M01.RESIDENT_STATUS_HISTORY trỏ id lịch sử mới đã đổi ở
+-- trên, CORRECTION → M15.CORRECTION); {basis, notifiedAt, deadlineFrom, overdueAlertedAt} ở content; created_at là lúc
+-- báo; khóa M01.RAN:<residentId>:<basis>:<sourceType>:<sourceId> thay uq_reassessment_notice_source. Dòng không khóa
+-- (hạn, dấu đã cảnh báo còn đổi). Id mới lớn hơn mọi id cũ (sự kiện ReassessmentDue của 009 trỏ id lần báo).
+SET @m01_notice_count = (SELECT COUNT(*) FROM reassessment_notice);
+SET @m01_notice_max_id = (SELECT COALESCE(MAX(id), 0) FROM reassessment_notice);
+
+CALL m01_raise_auto_increment('simple_record', @m01_notice_max_id);
+
+INSERT INTO simple_record (kind, module, resident_id, entity_type, entity_id, status, content, unique_key, created_at,
+                           created_by, version)
+SELECT 'M01.REASSESSMENT_NOTICE',
+       'M01',
+       resident_id,
+       CASE source_type
+           WHEN 'ASSESSMENT' THEN 'M01.ASSESSMENT'
+           WHEN 'INCIDENT' THEN 'M05.INCIDENT'
+           WHEN 'STATUS_HISTORY' THEN 'M01.RESIDENT_STATUS_HISTORY'
+           WHEN 'CORRECTION' THEN 'M15.CORRECTION'
+           END,
+       source_id,
+       'NOTIFIED',
+       JSON_OBJECT('basis', basis,
+                   'notifiedAt', DATE_FORMAT(notified_at, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                   'deadlineFrom', DATE_FORMAT(deadline_from, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                   'overdueAlertedAt', DATE_FORMAT(overdue_alerted_at, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                   'legacy', JSON_OBJECT('table', 'reassessment_notice', 'id', id)),
+       CONCAT('M01.RAN:', resident_id, ':', basis, ':', source_type, ':', source_id),
+       notified_at,
+       0,
+       0
+FROM reassessment_notice
+ORDER BY id;
+
+DELIMITER $$
+CREATE PROCEDURE m01_verify_reassessment_notices()
+BEGIN
+    IF (SELECT COUNT(*) FROM simple_record WHERE kind = 'M01.REASSESSMENT_NOTICE'
+          AND content ->> '$.legacy.table' = 'reassessment_notice') <> @m01_notice_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: reassessment notice row count differs';
+    END IF;
+    IF EXISTS (SELECT 1 FROM simple_record WHERE kind = 'M01.REASSESSMENT_NOTICE' AND entity_type IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a reassessment notice has an unknown source type';
+    END IF;
+    IF (SELECT MIN(id) FROM simple_record WHERE kind = 'M01.REASSESSMENT_NOTICE'
+          AND content ->> '$.legacy.table' = 'reassessment_notice') <= @m01_notice_max_id THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a new reassessment notice id is not above the old ids';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM reassessment_notice o
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM simple_record s
+                                 WHERE s.kind = 'M01.REASSESSMENT_NOTICE'
+                                   AND CAST(s.content ->> '$.legacy.id' AS UNSIGNED) = o.id
+                                   AND s.resident_id = o.resident_id AND s.entity_id = o.source_id
+                                   AND s.content ->> '$.basis' = o.basis AND s.created_at = o.notified_at
+                                   AND s.locked_at IS NULL
+                                   AND JSON_REMOVE(s.content, '$.legacy') = JSON_OBJECT(
+                                           'basis', o.basis,
+                                           'notifiedAt', DATE_FORMAT(o.notified_at, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                                           'deadlineFrom', DATE_FORMAT(o.deadline_from, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                                           'overdueAlertedAt',
+                                           DATE_FORMAT(o.overdue_alerted_at, '%Y-%m-%dT%H:%i:%s.%fZ'))
+                                   AND s.unique_key = CONCAT('M01.RAN:', o.resident_id, ':', o.basis, ':', o.source_type,
+                                                             ':', o.source_id))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a reassessment notice was not copied';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_reassessment_notices();
+DROP PROCEDURE m01_verify_reassessment_notices;
+
+DROP TABLE reassessment_notice;
+
 DROP PROCEDURE m01_raise_auto_increment;
