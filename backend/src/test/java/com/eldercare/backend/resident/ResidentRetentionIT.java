@@ -197,11 +197,7 @@ class ResidentRetentionIT extends StatusTestBase {
                         assessmentId))
                 .as("đính chính của hồ sơ")
                 .isZero();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM assessment_care_need n JOIN assessment a ON a.id = n.assessment_id"
-                                + " WHERE a.resident_id = ?",
-                        Integer.class,
-                        id))
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM assessment WHERE resident_id = ?", Integer.class, id))
                 .isZero();
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE entity_type = 'M15.PURGE_RUN'", Integer.class))

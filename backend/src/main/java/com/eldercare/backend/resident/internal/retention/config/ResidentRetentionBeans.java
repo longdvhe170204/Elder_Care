@@ -38,13 +38,7 @@ class ResidentRetentionBeans {
 
     @Bean
     ResidentChildRetention assessmentRetention(ResidentRecordStore records, RetentionDatabase database) {
-        return new ResidentChildRetention(
-                "M01.ASSESSMENT",
-                "assessment",
-                List.of(
-                        "DELETE FROM assessment_care_need WHERE assessment_id IN (SELECT id FROM assessment WHERE resident_id IN %s)"),
-                records,
-                database);
+        return new ResidentChildRetention("M01.ASSESSMENT", "assessment", List.of(), records, database);
     }
 
     @Bean
