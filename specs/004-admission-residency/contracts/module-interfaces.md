@@ -63,7 +63,7 @@ Không có phiên bản hiệu lực tại ngày thì trả rỗng; 010 ghi kho�
 ```java
 List<NgayLuuTruView> theoKhoang(long nctId, LocalDate tu, LocalDate den);
     // mỗi ngày trong thời gian tính phí: hopDongId, phienBanNoiDungId, coMat | VANG, luotVangId, daGiaiPhongGiuong
-    // (Q-395: không có hệ số; sau giải phóng giường không tính phí lưu trú), dau (CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
+    // (Q-395: không có hệ số; từ chính ngày giải phóng giường không tính phí lưu trú), dau (CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
 List<BuoiBanTruView> buoiBanTru(long nctId, LocalDate tu, LocalDate den);
     // mỗi buổi có lịch: trạng thái có mặt (005), tỷ lệ theo CFG-M02-05 (FR-060), ngày khu bán trú nghỉ (FR-060a); buổi chưa xác định không có tỷ lệ
 Optional<LocalDate> mocDungTinhPhi(long nctId);   // ngày kết thúc dự kiến (FR-066), ngày qua đời (FR-070), ngày Hủy tiếp nhận (FR-075a)
