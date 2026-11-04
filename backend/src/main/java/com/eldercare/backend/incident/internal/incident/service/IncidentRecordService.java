@@ -4,7 +4,6 @@ import static com.eldercare.backend.incident.internal.incident.domain.IncidentAc
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
@@ -106,7 +105,6 @@ public class IncidentRecordService {
         this.fallMonitoring = fallMonitoring;
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.CREATE)
     @Transactional
     public RecordedIncident record(RecordIncidentCommand command, CurrentUser user) {
         return record(command, user, null);
@@ -209,22 +207,27 @@ public class IncidentRecordService {
             startFallMonitoring(id, residentId, floorAreaId, command.occurredAt(), now, user.accountId());
         }
         if (residentId != null && SUSPECTED_INFECTION.equals(type.code())) {
-            events.publishEvent(new ContactListRequested(
-                    id,
-                    residentId,
-                    ENTITY + ":" + id + ":CONTACT_LIST_REQUESTED",
-                    now,
-                    IncidentNotices.contactListRequested(id, residentId, floorAreaId, user.accountId(), now)));
-            events.publishEvent(new InfectionSuspicionChanged(residentId, id, true, now));
+            startInfectionSuspicion(id, residentId, floorAreaId, now, user.accountId());
         }
         return new RecordedIncident(id, outOfScope, noOnDutyDoctor);
+    }
+
+    /** Mục I khi sự cố là lây nhiễm nghi ngờ (FR-060): báo lập danh sách tiếp xúc, đặt dấu nghi nhiễm. */
+    void startInfectionSuspicion(long id, long residentId, Long floorAreaId, Instant now, long actor) {
+        events.publishEvent(new ContactListRequested(
+                id,
+                residentId,
+                ENTITY + ":" + id + ":CONTACT_LIST_REQUESTED",
+                now,
+                IncidentNotices.contactListRequested(id, residentId, floorAreaId, actor, now)));
+        events.publishEvent(new InfectionSuspicionChanged(residentId, id, true, now));
     }
 
     /**
      * FR-051, FR-052 (research S-14): mở khoảng theo dõi sau ngã (thay khoảng đang có), báo 005 xem xét kế hoạch và báo
      * Người phụ trách ca lập công việc theo dõi. Không tạo lịch đo hay công việc (Q-306, Q-307).
      */
-    private void startFallMonitoring(
+    void startFallMonitoring(
             long incidentId, long residentId, Long floorAreaId, Instant occurredAt, Instant now, long actor) {
         var setting = parameters.read(ParameterCode.CFG_M05_06).asTable(FallMonitoringSetting.class);
         var interval = setting.interval().toDuration();

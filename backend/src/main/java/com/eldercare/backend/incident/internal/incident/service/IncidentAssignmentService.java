@@ -5,7 +5,6 @@ import static com.eldercare.backend.incident.internal.incident.domain.IncidentAc
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.ApproverApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
@@ -74,7 +73,6 @@ public class IncidentAssignmentService {
         this.time = time;
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
     public void assign(long incidentId, long assigneeId, String note, CurrentUser user) {
         if (note == null || note.isBlank()) throw new InvalidValueException("Giao người xử lý phải có ghi chú");

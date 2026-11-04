@@ -63,7 +63,7 @@ public class IncidentHandlingController {
             @PathVariable long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody IncidentReasonRequest request) {
-        handling.reopen(id, request.reason(), currentUser);
+        handling.reopen(handling.target(id), id, request.reason(), currentUser);
         return ResponseEntity.ok().build();
     }
 

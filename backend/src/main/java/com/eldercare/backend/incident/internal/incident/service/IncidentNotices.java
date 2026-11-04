@@ -120,6 +120,37 @@ final class IncidentNotices {
                 at));
     }
 
+    /** FR-046a: tác động còn hiệu lực sau Hủy ghi nhận, đổi loại; Điều dưỡng phụ trách và các Bác sĩ tự quyết. */
+    static List<NotificationRequest> effectiveImpacts(
+            long incidentId, Long residentId, Long floorAreaId, long correctionId, List<String> impacts, Instant at) {
+        var groups = new ArrayList<RecipientGroup>();
+        if (residentId != null) groups.add(new RecipientGroup.AssignedNurse(residentId, new Substitution.Default()));
+        groups.add(new RecipientGroup.FacilityRole(Role.DOCTOR));
+        return List.of(new NotificationRequest(
+                "M05",
+                "EFFECTIVE_IMPACTS_REMAIN",
+                SourceGroup.INCIDENT,
+                new SourceRecord(SOURCE_TYPE, Long.toString(incidentId)),
+                SOURCE_TYPE + ":" + incidentId + ":EFFECTIVE_IMPACTS_REMAIN:" + correctionId,
+                Optional.of(NotificationLevel.LOW),
+                Optional.ofNullable(residentId),
+                Optional.ofNullable(floorAreaId),
+                groups,
+                List.of(new ContentPart(
+                        InformationType.HEALTH,
+                        "Sự cố đã được đính chính; các tác động sau vẫn còn hiệu lực, cần xem xét: "
+                                + String.join(", ", impacts))),
+                Optional.of("Có việc cần xem xét"),
+                Optional.of("Sự cố"),
+                Optional.empty(),
+                true,
+                at,
+                Map.of("incidentId", incidentId, "impacts", impacts),
+                false,
+                Optional.empty(),
+                Optional.empty()));
+    }
+
     private static NotificationRequest task(
             long incidentId,
             String eventType,

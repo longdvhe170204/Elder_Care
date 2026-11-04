@@ -29,6 +29,6 @@ class BR_M05_22_IncidentLevelControllerTest {
                                 """))
                 .andExpect(status().isOk());
 
-        verify(incidents).changeLevel(41, IncidentLevel.MEDIUM, new Reason("Đã ổn định"), currentUser);
+        verify(incidents).changeLevel(null, 41, IncidentLevel.MEDIUM, new Reason("Đã ổn định"), currentUser);
     }
 }

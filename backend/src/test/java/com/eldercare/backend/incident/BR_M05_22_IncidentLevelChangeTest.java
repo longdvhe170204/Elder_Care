@@ -18,6 +18,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.CallReminderStopRequested;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
+import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.incident.service.IncidentService;
 import java.util.Optional;
@@ -32,8 +33,8 @@ class BR_M05_22_IncidentLevelChangeTest {
     private final AuditLogApi audit = mock(AuditLogApi.class);
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final CurrentUser user = mock(CurrentUser.class);
-    private final IncidentService service =
-            new IncidentService(incidents, permissions, audit, events, mock(BusinessTime.class));
+    private final IncidentService service = new IncidentService(
+            incidents, permissions, audit, events, mock(BusinessTime.class), mock(IncidentProgressionStore.class));
 
     @BeforeEach
     void allowedDoctor() {
@@ -50,7 +51,7 @@ class BR_M05_22_IncidentLevelChangeTest {
         var state = new IncidentState(41, 101L, 7L, "IN_PROGRESS", IncidentLevel.CRITICAL, true, 3);
         when(incidents.lock(41)).thenReturn(Optional.of(state));
 
-        service.changeLevel(41, IncidentLevel.MEDIUM, new Reason("Đã ổn định"), user);
+        service.changeLevel(null, 41, IncidentLevel.MEDIUM, new Reason("Đã ổn định"), user);
 
         verify(incidents).changeLevel(41, IncidentLevel.MEDIUM, true, 3);
         verify(events).publishEvent(new CallReminderStopRequested("M05.INCIDENT", 41));
@@ -69,7 +70,7 @@ class BR_M05_22_IncidentLevelChangeTest {
                 .thenReturn(
                         Optional.of(new IncidentState(41, 101L, 7L, "IN_PROGRESS", IncidentLevel.CRITICAL, true, 3)));
 
-        assertThatThrownBy(() -> service.changeLevel(41, IncidentLevel.MEDIUM, new Reason("Đã ổn định"), user))
+        assertThatThrownBy(() -> service.changeLevel(null, 41, IncidentLevel.MEDIUM, new Reason("Đã ổn định"), user))
                 .isInstanceOf(PermissionDeniedException.class);
 
         verify(incidents, never())
@@ -87,7 +88,7 @@ class BR_M05_22_IncidentLevelChangeTest {
                 .thenReturn(
                         Optional.of(new IncidentState(41, 101L, 7L, "IN_PROGRESS", IncidentLevel.MEDIUM, false, 3)));
 
-        service.changeLevel(41, IncidentLevel.CRITICAL, new Reason("Diễn biến nặng"), user);
+        service.changeLevel(null, 41, IncidentLevel.CRITICAL, new Reason("Diễn biến nặng"), user);
 
         verify(incidents).changeLevel(41, IncidentLevel.CRITICAL, true, 3);
         verify(events, never()).publishEvent(org.mockito.ArgumentMatchers.any(CallReminderStopRequested.class));

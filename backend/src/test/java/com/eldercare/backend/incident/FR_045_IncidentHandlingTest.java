@@ -94,11 +94,11 @@ class FR_045_IncidentHandlingTest {
     @Test
     void FR_045_reopenOnlyFromMonitoring() {
         incident("IN_PROGRESS", IncidentLevel.MEDIUM);
-        assertThatThrownBy(() -> service.reopen(41, new Reason("Diễn biến xấu"), user))
+        assertThatThrownBy(() -> service.reopen(null, 41, new Reason("Diễn biến xấu"), user))
                 .isInstanceOf(BusinessException.class);
 
         incident("MONITORING", IncidentLevel.MEDIUM);
-        service.reopen(41, new Reason("Diễn biến xấu"), user);
+        service.reopen(null, 41, new Reason("Diễn biến xấu"), user);
         verify(incidents).changeStatus(41, "MONITORING", "IN_PROGRESS", 3);
     }
 

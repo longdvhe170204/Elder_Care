@@ -3,7 +3,6 @@ package com.eldercare.backend.incident.internal.alert.service;
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
@@ -63,7 +62,6 @@ public class AlertQueryService {
     }
 
     /** Danh sách theo bộ lọc, đã giới hạn theo phạm vi; không kèm nguồn và lệnh (xem chi tiết). */
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<AlertDetails> list(
             Collection<AlertStatus> statuses,
@@ -87,7 +85,6 @@ public class AlertQueryService {
     }
 
     /** Chi tiết; ngoài phạm vi trả 404 như lệnh. */
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public AlertDetails detail(long alertId, CurrentUser user) {
         var alert = alerts.findById(alertId).orElseThrow(NotFoundException::new);

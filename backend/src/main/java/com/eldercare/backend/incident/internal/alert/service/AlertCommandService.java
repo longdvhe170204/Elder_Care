@@ -4,7 +4,6 @@ import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
@@ -51,7 +50,6 @@ public class AlertCommandService {
         this.time = time;
     }
 
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional
     public void receive(long alertId, CurrentUser user) {
         var alert = alerts.lockForReceive(alertId).orElseThrow(NotFoundException::new);

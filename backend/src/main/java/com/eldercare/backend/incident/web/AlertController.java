@@ -159,7 +159,7 @@ public class AlertController {
             @PathVariable long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ChangeAlertLevelRequest request) {
-        handling.changeLevel(id, request.newLevel(), request.reason(), currentUser);
+        handling.changeLevel(handling.target(id), id, request.newLevel(), request.reason(), currentUser);
         return ResponseEntity.ok().build();
     }
 

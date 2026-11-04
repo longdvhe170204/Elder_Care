@@ -25,6 +25,7 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.CallReminderStopRequested;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
+import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import java.util.List;
 import java.util.Map;
@@ -44,22 +45,24 @@ public class IncidentService {
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
+    private final IncidentProgressionStore progressions;
 
     public IncidentService(
             IncidentStore incidents,
             PermissionApi permissions,
             AuditLogApi audit,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            IncidentProgressionStore progressions) {
         this.incidents = incidents;
         this.permissions = permissions;
         this.audit = audit;
         this.events = events;
         this.time = time;
+        this.progressions = progressions;
     }
 
     /** Tiếp nhận xử lý: Mới → Đang xử lý, người tiếp nhận thành người xử lý, dừng leo thang (FR-044, FR-045). */
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
     public void receive(long incidentId, CurrentUser user) {
         var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
@@ -91,10 +94,17 @@ public class IncidentService {
                 .build());
     }
 
+    /** Đối tượng của sự cố cho lớp phạm vi của {@code @RequiresPermission} (lệnh {@code @BusinessCommand}). */
+    public Target target(long incidentId) {
+        var incident = incidents.view(incidentId).orElseThrow(NotFoundException::new);
+        return new Target("M05.INCIDENT", Long.toString(incidentId), incident.residentId(), incident.floorAreaId());
+    }
+
     @BusinessCommand
     @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
-    public void changeLevel(long incidentId, IncidentLevel newLevel, Reason reason, CurrentUser user) {
+    public void changeLevel(
+            Target scopeTarget, long incidentId, IncidentLevel newLevel, Reason reason, CurrentUser user) {
         var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
         var target =
                 new Target("M05.INCIDENT", Long.toString(incidentId), incident.residentId(), incident.floorAreaId());
@@ -119,6 +129,14 @@ public class IncidentService {
                 || incident.level() == IncidentLevel.CRITICAL
                 || newLevel == IncidentLevel.CRITICAL;
         incidents.changeLevel(incidentId, newLevel, wasEmergency, incident.version());
+        progressions.recordLevelChange(
+                incidentId,
+                incident.level().name(),
+                newLevel.name(),
+                reason == null ? null : reason.value(),
+                user.accountId(),
+                time.now(),
+                incident.floorAreaId());
         audit.write(AuditLogEntry.builder()
                 .action(LEVEL_CHANGED)
                 .entity("M05.INCIDENT", incidentId)

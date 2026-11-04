@@ -10,11 +10,13 @@ public record IncidentDetails(
         IncidentView incident,
         String assigneeName,
         List<Map<String, Object>> progressions,
+        List<Map<String, Object>> levelChanges,
         List<String> handlers,
         List<IncidentNotificationView> notified,
         Set<String> allowedCommands) {
     public IncidentDetails {
         progressions = List.copyOf(progressions);
+        levelChanges = List.copyOf(levelChanges);
         handlers = List.copyOf(handlers);
         notified = List.copyOf(notified);
         allowedCommands = Set.copyOf(allowedCommands);

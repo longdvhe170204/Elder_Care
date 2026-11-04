@@ -3,7 +3,6 @@ package com.eldercare.backend.incident.internal.incident.service;
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
@@ -66,7 +65,6 @@ public class IncidentQueryService {
         this.notifications = Optional.ofNullable(notifications);
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<IncidentDetails> list(
             Collection<String> statuses, Long residentId, Long floorAreaId, CurrentUser user) {
@@ -81,11 +79,10 @@ public class IncidentQueryService {
                         scope.residentIds())
                 .stream()
                 .map(incident -> new IncidentDetails(
-                        incident, assigneeName(incident), List.of(), List.of(), List.of(), Set.of()))
+                        incident, assigneeName(incident), List.of(), List.of(), List.of(), List.of(), Set.of()))
                 .toList();
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public IncidentDetails detail(long incidentId, CurrentUser user) {
         var incident = incidents.view(incidentId).orElseThrow(NotFoundException::new);
@@ -103,6 +100,7 @@ public class IncidentQueryService {
                 incident,
                 assigneeName(incident),
                 progressions.list(incidentId),
+                progressions.levelChanges(incidentId),
                 handlers,
                 notified,
                 allowedCommands(incident, user));

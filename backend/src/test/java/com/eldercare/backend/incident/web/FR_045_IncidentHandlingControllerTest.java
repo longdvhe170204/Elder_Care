@@ -28,7 +28,7 @@ class FR_045_IncidentHandlingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"reason\":\"Diễn biến xấu\"}"))
                 .andExpect(status().isOk());
-        verify(handling).reopen(41, new Reason("Diễn biến xấu"), currentUser);
+        verify(handling).reopen(null, 41, new Reason("Diễn biến xấu"), currentUser);
 
         mvc.perform(post("/api/v1/incidents/41/close")
                         .contentType(MediaType.APPLICATION_JSON)

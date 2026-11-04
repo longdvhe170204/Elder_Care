@@ -99,7 +99,7 @@ class FR_029_AlertLifecycleTest {
         when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
 
         assertThatThrownBy(() -> service.startHandling(ID, user)).isInstanceOf(PermissionDeniedException.class);
-        assertThatThrownBy(() -> service.changeLevel(ID, IncidentLevel.CRITICAL, REASON, user))
+        assertThatThrownBy(() -> service.changeLevel(null, ID, IncidentLevel.CRITICAL, REASON, user))
                 .isInstanceOf(PermissionDeniedException.class);
         lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "VUOT_NGUONG:5");
         assertThatThrownBy(() -> service.close(ID, "Đã xử lý", null, user))
@@ -117,7 +117,7 @@ class FR_029_AlertLifecycleTest {
     void FR_029_raisingNewAlertRecomputesDeadlineAndNotifies() {
         lock(AlertStatus.NEW, IncidentLevel.LOW, 800L, "VUOT_NGUONG:5");
 
-        service.changeLevel(ID, IncidentLevel.MEDIUM, REASON, user);
+        service.changeLevel(null, ID, IncidentLevel.MEDIUM, REASON, user);
 
         verify(alerts).changeLevel(ID, IncidentLevel.MEDIUM, NOW.plus(Duration.ofMinutes(15)), 3);
         assertThat(events).singleElement().isInstanceOf(AlertLevelRaised.class);
@@ -128,7 +128,7 @@ class FR_029_AlertLifecycleTest {
     void FR_029_changeLevelAfterReceiveKeepsDeadlineAndLoweringDoesNotNotify() {
         lock(AlertStatus.RECEIVED, IncidentLevel.MEDIUM, 800L, "VUOT_NGUONG:5");
 
-        service.changeLevel(ID, IncidentLevel.LOW, REASON, user);
+        service.changeLevel(null, ID, IncidentLevel.LOW, REASON, user);
 
         verify(alerts).changeLevel(ID, IncidentLevel.LOW, null, 3);
         assertThat(events).isEmpty();
@@ -138,17 +138,17 @@ class FR_029_AlertLifecycleTest {
     void FR_029_onlyDoctorLowersFromCritical() {
         lock(AlertStatus.RECEIVED, IncidentLevel.CRITICAL, 800L, "VUOT_NGUONG:5");
 
-        assertThatThrownBy(() -> service.changeLevel(ID, IncidentLevel.MEDIUM, REASON, user))
+        assertThatThrownBy(() -> service.changeLevel(null, ID, IncidentLevel.MEDIUM, REASON, user))
                 .isInstanceOf(PermissionDeniedException.class);
 
         when(user.roles()).thenReturn(Set.of(Role.DOCTOR));
-        service.changeLevel(ID, IncidentLevel.MEDIUM, REASON, user);
+        service.changeLevel(null, ID, IncidentLevel.MEDIUM, REASON, user);
         verify(alerts).changeLevel(ID, IncidentLevel.MEDIUM, null, 3);
     }
 
     @Test
     void FR_029_changeLevelNeedsDifferentLevel() {
-        assertThatThrownBy(() -> service.changeLevel(ID, IncidentLevel.MEDIUM, REASON, user))
+        assertThatThrownBy(() -> service.changeLevel(null, ID, IncidentLevel.MEDIUM, REASON, user))
                 .isInstanceOf(InvalidValueException.class);
     }
 
