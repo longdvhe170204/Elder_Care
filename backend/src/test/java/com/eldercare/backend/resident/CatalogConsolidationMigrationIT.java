@@ -36,7 +36,8 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "information_source",
             "care_need",
             "m01_catalog_id_map",
-            "consent_family_member");
+            "consent_family_member",
+            "assessment_care_need");
 
     /** Dữ liệu cũ đọc ra dạng tên, để so sau khi id đổi. */
     private record Snapshot(
@@ -319,13 +320,15 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         assertThat(severity).isEqualTo(before.severityNameByItem());
         assertThat(source).isEqualTo(before.sourceNameByItem());
 
-        // assessment_care_need: đủ dòng, đúng tập nhu cầu theo tên
-        assertThat(db.queryForObject("SELECT COUNT(*) FROM assessment_care_need", Integer.class))
+        // Nhu cầu chăm sóc của lần đánh giá vào cột JSON care_need_ids: đủ số, đúng tập nhu cầu theo tên
+        assertThat(db.queryForObject(
+                        "SELECT COALESCE(SUM(JSON_LENGTH(care_need_ids)), 0) FROM assessment", Integer.class))
                 .isEqualTo(before.assessmentCareNeeds());
         Map<Long, Set<String>> needs = new java.util.LinkedHashMap<>();
         db.query(
-                "SELECT a.assessment_id, n.name FROM assessment_care_need a JOIN catalog_item n"
-                        + " ON n.id = a.care_need_id AND n.catalog_type = 'M01.CARE_NEED'",
+                "SELECT a.id, n.name FROM assessment a JOIN JSON_TABLE(a.care_need_ids, '$[*]'"
+                        + " COLUMNS (need BIGINT PATH '$')) j JOIN catalog_item n"
+                        + " ON n.id = j.need AND n.catalog_type = 'M01.CARE_NEED'",
                 rs -> {
                     needs.computeIfAbsent(rs.getLong(1), k -> new java.util.TreeSet<>())
                             .add(rs.getString(2));

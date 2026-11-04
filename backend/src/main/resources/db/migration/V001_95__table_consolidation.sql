@@ -323,3 +323,52 @@ CALL m01_verify_consent_members();
 DROP PROCEDURE m01_verify_consent_members;
 
 DROP TABLE consent_family_member;
+
+-- Nhóm 3 (một phần): nhu cầu chăm sóc của lần đánh giá vào cột JSON assessment.care_need_ids (thay
+-- assessment_care_need). trg_assessment_no_update đã chặn sửa khi Đã xác nhận, Đã hủy nên chặn cả đổi nhu cầu; gỡ
+-- trigger đúng lúc chép (lần đánh giá đã xác nhận cũng nhận cột mới) rồi dựng lại nguyên văn.
+SET @m01_care_need_link_count = (SELECT COUNT(*) FROM assessment_care_need);
+
+ALTER TABLE assessment
+    ADD COLUMN care_need_ids JSON NULL COMMENT 'Nhu cầu chăm sóc được chọn (thay assessment_care_need)';
+
+DROP TRIGGER trg_assessment_no_update;
+
+UPDATE assessment a
+SET a.care_need_ids = COALESCE((SELECT JSON_ARRAYAGG(n.care_need_id)
+                                FROM assessment_care_need n
+                                WHERE n.assessment_id = a.id), JSON_ARRAY());
+
+ALTER TABLE assessment
+    MODIFY COLUMN care_need_ids JSON NOT NULL DEFAULT (JSON_ARRAY())
+        COMMENT 'Nhu cầu chăm sóc được chọn (thay assessment_care_need)';
+
+DELIMITER $$
+CREATE TRIGGER trg_assessment_no_update
+    BEFORE UPDATE
+    ON assessment
+    FOR EACH ROW
+BEGIN
+    IF OLD.status IN ('CONFIRMED', 'DISCARDED') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'a confirmed or discarded assessment is not edited, only corrected (FR-032)';
+    END IF;
+END$$
+
+CREATE PROCEDURE m01_verify_assessment_care_needs()
+BEGIN
+    IF (SELECT COALESCE(SUM(JSON_LENGTH(care_need_ids)), 0) FROM assessment) <> @m01_care_need_link_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: assessment care need count differs';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM assessment_care_need n
+                        JOIN assessment a ON a.id = n.assessment_id
+               WHERE NOT (n.care_need_id MEMBER OF (a.care_need_ids))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: an assessment care need was not copied';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_assessment_care_needs();
+DROP PROCEDURE m01_verify_assessment_care_needs;
+
+DROP TABLE assessment_care_need;
