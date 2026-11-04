@@ -52,11 +52,12 @@ public class EndOfLifeWishStore {
                 "SELECT w.resident_id, w.id, w.assessing_doctor_id FROM end_of_life_wish w JOIN resident s ON s.id = w.resident_id"
                         + " WHERE w.status = 'ACTIVE' AND w.review_date <= ?"
                         + " AND s.status NOT IN ('RESIDENCY_ENDED', 'DECEASED', 'ADMISSION_CANCELLED')"
-                        + " AND NOT EXISTS (SELECT 1 FROM periodic_reminder r WHERE r.type = ?"
-                        + " AND r.resident_id = w.resident_id AND r.milestone_id = w.id)",
+                        + " AND NOT EXISTS (SELECT 1 FROM reminder_marker r WHERE r.kind = ?"
+                        + " AND r.entity_type = 'M01.RESIDENT' AND r.entity_id = w.resident_id"
+                        + " AND r.marker = CONCAT('START:', w.id))",
                 (rs, i) -> new WishReviewDue(rs.getLong(1), rs.getLong(2), rs.getLong(3)),
                 today,
-                reminderType);
+                "M01.PERIODIC_REMINDER." + reminderType);
     }
 
     /** Thêm phiên bản Hiệu lực cùng các ý kiến khác; trả id. */

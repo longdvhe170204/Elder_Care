@@ -41,10 +41,9 @@ class CompleteAdmissionWishWarningsIT extends StatusTestBase {
 
     private int reminderRows(long residentId, String type) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM periodic_reminder WHERE type = ? AND resident_id = ?",
-                Integer.class,
-                type,
-                residentId);
+                "SELECT COUNT(*) FROM reminder_marker WHERE kind = ? AND entity_type = 'M01.RESIDENT'"
+                        + " AND entity_id = ? AND marker LIKE 'START:%'",
+                Integer.class, "M01.PERIODIC_REMINDER." + type, residentId);
     }
 
     @Test
@@ -66,7 +65,8 @@ class CompleteAdmissionWishWarningsIT extends StatusTestBase {
 
         assertThat(outcome.warnings()).extracting(w -> w.code()).contains("MISSING_TREATMENT_WISH");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM periodic_reminder WHERE resident_id = ? AND type LIKE '%TREATMENT%'",
+                        "SELECT COUNT(*) FROM reminder_marker WHERE entity_type = 'M01.RESIDENT' AND entity_id = ?"
+                                + " AND kind LIKE 'M01.PERIODIC_REMINDER.%TREATMENT%'",
                         Integer.class, id))
                 .isZero();
     }

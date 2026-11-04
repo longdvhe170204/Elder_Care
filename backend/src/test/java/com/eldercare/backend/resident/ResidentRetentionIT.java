@@ -132,8 +132,8 @@ class ResidentRetentionIT extends StatusTestBase {
                 "M01.ASSESSMENT", assessmentId, CorrectionType.AMEND_CONTENT, Map.of("careNote", "Lưu ý đúng"), REASON);
 
         jdbc.update(
-                "INSERT INTO periodic_reminder (type, resident_id, milestone_id, started_at) VALUES"
-                        + " ('MISSING_CONSENT', ?, 0, ?)",
+                "INSERT INTO reminder_marker (kind, entity_type, entity_id, marker, marked_at) VALUES"
+                        + " ('M01.PERIODIC_REMINDER.MISSING_CONSENT', 'M01.RESIDENT', ?, 'START:0', ?)",
                 id,
                 java.sql.Timestamp.from(time.now()));
         jdbc.update(
@@ -151,9 +151,10 @@ class ResidentRetentionIT extends StatusTestBase {
     }
 
     private int count(String table, long residentId) {
-        String column = table.equals("resident") ? "id" : "resident_id";
+        String column = table.equals("resident") ? "id" : table.equals("reminder_marker") ? "entity_id" : "resident_id";
+        String scope = table.equals("reminder_marker") ? " AND entity_type = 'M01.RESIDENT'" : "";
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM " + table + " WHERE " + column + " = ?", Integer.class, residentId);
+                "SELECT COUNT(*) FROM " + table + " WHERE " + column + " = ?" + scope, Integer.class, residentId);
     }
 
     private static final List<String> TABLES = List.of(
@@ -167,7 +168,7 @@ class ResidentRetentionIT extends StatusTestBase {
             "end_of_life_wish",
             "treatment_wish",
             "reassessment_notice",
-            "periodic_reminder");
+            "reminder_marker");
 
     private void runJobAfter(Duration sinceNow) {
         clock.setTo(Instant.now().plus(sinceNow));

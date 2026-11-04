@@ -37,7 +37,9 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "care_need",
             "m01_catalog_id_map",
             "consent_family_member",
-            "assessment_care_need");
+            "assessment_care_need",
+            "periodic_reminder",
+            "return_overdue_alert");
 
     /** Dữ liệu cũ đọc ra dạng tên, để so sau khi id đổi. */
     private record Snapshot(
@@ -47,7 +49,9 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             List<String> catalogRows,
             int healthItems,
             int assessmentCareNeeds,
-            Map<Long, List<Long>> consentMembers) {}
+            Map<Long, List<Long>> consentMembers,
+            List<String> reminders,
+            List<String> alerts) {}
 
     @AfterAll
     static void dropScratchSchemas() {
@@ -195,6 +199,22 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
                         + " recorded_at, recorded_by) VALUES (?, 'BASIC', '2026-01-01', 'ASSESSMENT', 1, NOW(6), 3)",
                 r1);
+        // nhắc định kỳ: lần nhắc 2 lần, 1 lần, và chưa nhắc lần nào; cảnh báo quá hạn của hai mốc cùng một lượt vắng
+        db.update(
+                "INSERT INTO periodic_reminder (type, resident_id, milestone_id, started_at, last_reminded_at,"
+                        + " reminder_count) VALUES"
+                        + " ('MISSING_CONSENT', ?, 0, '2026-02-01 08:00:00.123456', '2026-02-03 08:00:00.654321', 2),"
+                        + " ('REVIEW_SELF_DETERMINATION', ?, 77, '2026-02-02 09:00:00', '2026-02-02 09:00:00', 1),"
+                        + " ('CREATE_CARE_LEVEL_CHANGE_REQUEST', ?, 5, '2026-02-04 10:00:00', NULL, 0)",
+                r1,
+                r2,
+                r1);
+        db.update(
+                "INSERT INTO return_overdue_alert (absence_id, expected_return_at, resident_id, alerted_at) VALUES"
+                        + " (31, '2026-03-01 10:30:00.250000', ?, '2026-03-01 12:00:00.500000'),"
+                        + " (31, '2026-03-02 10:30:00', ?, '2026-03-02 12:00:00')",
+                r1,
+                r1);
     }
 
     private static void item(
@@ -252,7 +272,15 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 consentMembers(
                         db,
                         "SELECT c.id, m.family_member_id FROM consent c"
-                                + " LEFT JOIN consent_family_member m ON m.consent_id = c.id"));
+                                + " LEFT JOIN consent_family_member m ON m.consent_id = c.id"),
+                db.queryForList(
+                        "SELECT CONCAT(type, '|', resident_id, '|', milestone_id, '|', started_at, '|',"
+                                + " IFNULL(last_reminded_at, started_at), '|', reminder_count) FROM periodic_reminder",
+                        String.class),
+                db.queryForList(
+                        "SELECT CONCAT(absence_id, '|', DATE_FORMAT(expected_return_at, '%Y-%m-%dT%H:%i:%s.%f'),"
+                                + " '|', resident_id, '|', alerted_at) FROM return_overdue_alert",
+                        String.class));
     }
 
     /** Người thân của từng bản đồng ý, sắp tăng; bản không có người thân là danh sách rỗng. */
@@ -284,6 +312,26 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND ROUTINE_NAME = 'm01_verify_group1'",
                         Integer.class))
                 .isZero();
+
+        // Nhắc định kỳ: loại, người, mốc, lúc bắt đầu, lần nhắc cuối và số lần tính lại từ các dòng reminder_marker
+        assertThat(db.queryForList(
+                        "SELECT CONCAT(SUBSTRING(kind, 23), '|', entity_id, '|', ms, '|', started, '|', last, '|', cnt)"
+                                + " FROM (SELECT kind, entity_id,"
+                                + " CAST(SUBSTRING_INDEX(REPLACE(marker, 'START:', ''), ':', 1) AS UNSIGNED) AS ms,"
+                                + " MIN(IF(marker LIKE 'START:%', marked_at, NULL)) AS started, MAX(marked_at) AS last,"
+                                + " SUM(marker NOT LIKE 'START:%') AS cnt FROM reminder_marker"
+                                + " WHERE kind LIKE 'M01.PERIODIC_REMINDER.%' AND entity_type = 'M01.RESIDENT'"
+                                + " GROUP BY kind, entity_id, ms) t",
+                        String.class))
+                .as("nhắc định kỳ")
+                .containsExactlyInAnyOrderElementsOf(before.reminders());
+        assertThat(db.queryForList(
+                        "SELECT CONCAT(entity_id, '|', marker, '|', details ->> '$.residentId', '|', marked_at)"
+                                + " FROM reminder_marker WHERE kind = 'M01.RETURN_OVERDUE_ALERT'"
+                                + " AND entity_type = 'M02.ABSENCE'",
+                        String.class))
+                .as("cảnh báo Tạm vắng quá hạn")
+                .containsExactlyInAnyOrderElementsOf(before.alerts());
 
         // Số dòng, mã, tên, trạng thái, thứ tự của từng danh mục
         List<String> after = db.queryForList(

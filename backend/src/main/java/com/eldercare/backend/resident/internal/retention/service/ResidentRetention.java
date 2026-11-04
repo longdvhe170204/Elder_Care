@@ -88,7 +88,7 @@ class ResidentRetention implements RetentionProvider {
     public void delete(Collection<Long> ids) {
         String in = ids.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
         JdbcTemplate retention = database.jdbc();
-        for (String table : List.of("care_level_history", "reassessment_notice", "periodic_reminder")) {
+        for (String table : List.of("care_level_history", "reassessment_notice")) {
             retention.update("DELETE FROM " + table + " WHERE resident_id IN " + in);
         }
         children.forEach(child -> child.deleteOfResidents(in));

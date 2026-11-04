@@ -372,3 +372,108 @@ CALL m01_verify_assessment_care_needs();
 DROP PROCEDURE m01_verify_assessment_care_needs;
 
 DROP TABLE assessment_care_need;
+
+-- Nhóm 3 (một phần): nhắc định kỳ (periodic_reminder) và cảnh báo Tạm vắng quá hạn (return_overdue_alert) sang
+-- reminder_marker (data-model 001 mục 0.1). Nhắc định kỳ: kind = M01.PERIODIC_REMINDER.<type>, đối tượng
+-- M01.RESIDENT; marker START:<milestoneId> lúc bắt đầu (marked_at = started_at), <milestoneId>:<n> mỗi lần nhắc. Số lần,
+-- lần nhắc cuối tính từ các dòng. Bảng cũ chỉ giữ lần nhắc cuối nên các lần nhắc 1 → n đều nhận last_reminded_at.
+SET @m01_reminder_count = (SELECT COUNT(*) FROM periodic_reminder);
+SET @m01_reminded_total = (SELECT COALESCE(SUM(reminder_count), 0) FROM periodic_reminder);
+SET @m01_alert_count = (SELECT COUNT(*) FROM return_overdue_alert);
+
+INSERT INTO reminder_marker (kind, entity_type, entity_id, marker, marked_at, details)
+SELECT CONCAT('M01.PERIODIC_REMINDER.', type),
+       'M01.RESIDENT',
+       resident_id,
+       CONCAT('START:', milestone_id),
+       started_at,
+       JSON_OBJECT('legacy', JSON_OBJECT('table', 'periodic_reminder'))
+FROM periodic_reminder;
+
+SET SESSION cte_max_recursion_depth = 100000;
+
+INSERT INTO reminder_marker (kind, entity_type, entity_id, marker, marked_at, details)
+WITH RECURSIVE n (i) AS (SELECT 1
+                         UNION ALL
+                         SELECT i + 1
+                         FROM n
+                         WHERE i < (SELECT COALESCE(MAX(reminder_count), 0) FROM periodic_reminder))
+SELECT CONCAT('M01.PERIODIC_REMINDER.', r.type),
+       'M01.RESIDENT',
+       r.resident_id,
+       CONCAT(r.milestone_id, ':', n.i),
+       COALESCE(r.last_reminded_at, r.started_at),
+       JSON_OBJECT('legacy', JSON_OBJECT('table', 'periodic_reminder'))
+FROM periodic_reminder r
+         JOIN n ON n.i <= r.reminder_count;
+
+INSERT INTO reminder_marker (kind, entity_type, entity_id, marker, marked_at, details)
+SELECT 'M01.RETURN_OVERDUE_ALERT',
+       'M02.ABSENCE',
+       absence_id,
+       DATE_FORMAT(expected_return_at, '%Y-%m-%dT%H:%i:%s.%f'),
+       alerted_at,
+       JSON_OBJECT('residentId', resident_id, 'legacy', JSON_OBJECT('table', 'return_overdue_alert'))
+FROM return_overdue_alert;
+
+DELIMITER $$
+CREATE PROCEDURE m01_verify_reminders()
+BEGIN
+    IF (SELECT COUNT(*)
+        FROM reminder_marker
+        WHERE kind LIKE 'M01.PERIODIC_REMINDER.%' AND marker LIKE 'START:%'
+          AND details ->> '$.legacy.table' = 'periodic_reminder') <> @m01_reminder_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: periodic reminder start count differs';
+    END IF;
+    IF (SELECT COUNT(*)
+        FROM reminder_marker
+        WHERE kind LIKE 'M01.PERIODIC_REMINDER.%' AND marker NOT LIKE 'START:%'
+          AND details ->> '$.legacy.table' = 'periodic_reminder') <> @m01_reminded_total THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: periodic reminder count differs';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM periodic_reminder r
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM reminder_marker m
+                                 WHERE m.kind = CONCAT('M01.PERIODIC_REMINDER.', r.type)
+                                   AND m.entity_type = 'M01.RESIDENT'
+                                   AND m.entity_id = r.resident_id
+                                   AND m.marker = CONCAT('START:', r.milestone_id)
+                                   AND m.marked_at = r.started_at)
+                  OR (SELECT COUNT(*)
+                      FROM reminder_marker m
+                      WHERE m.kind = CONCAT('M01.PERIODIC_REMINDER.', r.type)
+                        AND m.entity_type = 'M01.RESIDENT'
+                        AND m.entity_id = r.resident_id
+                        AND m.marker LIKE CONCAT(r.milestone_id, ':%')) <> r.reminder_count
+                  OR (r.reminder_count > 0
+                   AND (SELECT MAX(m.marked_at)
+                        FROM reminder_marker m
+                        WHERE m.kind = CONCAT('M01.PERIODIC_REMINDER.', r.type)
+                          AND m.entity_type = 'M01.RESIDENT'
+                          AND m.entity_id = r.resident_id
+                          AND m.marker LIKE CONCAT(r.milestone_id, ':%')) <> COALESCE(r.last_reminded_at, r.started_at))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a periodic reminder was not copied';
+    END IF;
+    IF (SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M01.RETURN_OVERDUE_ALERT') <> @m01_alert_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: return overdue alert count differs';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM return_overdue_alert a
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM reminder_marker m
+                                 WHERE m.kind = 'M01.RETURN_OVERDUE_ALERT'
+                                   AND m.entity_type = 'M02.ABSENCE'
+                                   AND m.entity_id = a.absence_id
+                                   AND m.marker = DATE_FORMAT(a.expected_return_at, '%Y-%m-%dT%H:%i:%s.%f')
+                                   AND m.marked_at = a.alerted_at)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a return overdue alert was not copied';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_reminders();
+DROP PROCEDURE m01_verify_reminders;
+
+DROP TABLE periodic_reminder;
+DROP TABLE return_overdue_alert;
