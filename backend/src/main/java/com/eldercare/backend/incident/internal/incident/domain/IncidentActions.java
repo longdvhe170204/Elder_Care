@@ -6,6 +6,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 public final class IncidentActions {
     public static final AuditAction LEVEL_CHANGED = new AuditAction("INCIDENT_LEVEL_CHANGED", true);
     public static final AuditAction RECORDED = new AuditAction("INCIDENT_RECORDED", false);
+    public static final AuditAction PROGRESSION_ADDED = new AuditAction("INCIDENT_PROGRESSION_ADDED", false);
     public static final AuditAction RECEIVED = new AuditAction("INCIDENT_RECEIVED", false);
 
     private IncidentActions() {}

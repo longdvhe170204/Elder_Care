@@ -131,7 +131,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/incidents/{id}",
                             "POST /api/v1/incidents/{id}/assign-handler",
                             "POST /api/v1/incidents/{id}/join-handling",
-                            "POST /api/v1/incidents/{id}/progressions",
                             "POST /api/v1/incidents/{id}/move-to-monitoring",
                             "POST /api/v1/incidents/{id}/reopen",
                             "POST /api/v1/incidents/{id}/close",
