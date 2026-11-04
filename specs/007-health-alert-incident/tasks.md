@@ -130,16 +130,23 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 ### Tests cho User Story 3
 
-- [ ] T025 [P] [US3] Test đơn vị `BT/incident/AlertEscalationChainTest.java`, `RepeatWithin24HoursCounterTest.java`
-- [ ] T026 [P] [US3] Test `BT/incident/DBR_18_ConcurrentMergeIT.java` (SC-003), `BR_M05_01_EscalationIT.java`, `BR_M05_02_AlertMergeIT.java`, `BR_M05_03_RepeatNotificationIT.java`, `BR_M05_25_CatchUpIT.java`, `BR_M05_19_AbsentResidentIT.java`: hai luồng cùng khóa chỉ một cảnh báo mở; leo thang đúng mốc, chạy bù một cấp mỗi lần; nhắc tối đa không trùng; báo lặp lại; người vắng mặt dùng tầng của người, hạn không dừng
-- [ ] T027 [P] [US3] Test `BT/incident/BR_M05_05_HandoverIT.java`, `FR_037_HandoverAcknowledgementIT.java`: bàn giao được xác nhận đổi người phụ trách thuộc ca trước; tạm nhận khi bàn giao chưa xác nhận (Q-94)
+- [x] T025 [P] [US3] Test đơn vị `BT/incident/AlertEscalationChainTest.java`, `RepeatWithin24HoursCounterTest.java`
+  - *(2026-11-04, D)* `AlertEscalationChainTest` 6/6, `RepeatWithin24HoursCounterTest` 4/4 (khoảng trượt đọc từ CFG-M05-02).
+- [x] T026 [P] [US3] Test `BT/incident/DBR_18_ConcurrentMergeIT.java` (SC-003), `BR_M05_01_EscalationIT.java`, `BR_M05_02_AlertMergeIT.java`, `BR_M05_03_RepeatNotificationIT.java`, `BR_M05_25_CatchUpIT.java`, `BR_M05_19_AbsentResidentIT.java`: hai luồng cùng khóa chỉ một cảnh báo mở; leo thang đúng mốc, chạy bù một cấp mỗi lần; nhắc tối đa không trùng; báo lặp lại; người vắng mặt dùng tầng của người, hạn không dừng
+  - *(2026-11-04, D)* `BR_M05_01_EscalationIT` 6/6 (thêm Nhẹ hết ca), `BR_M05_25_CatchUpIT` 2/2, `BR_M05_02_AlertMergeIT` 4/4, `DBR_18_ConcurrentMergeIT` 1/1 (10 luồng → một cảnh báo, số lần 10), `BR_M05_03_RepeatNotificationIT` 2/2, `BR_M05_19_AbsentResidentIT` 3/3 trên MySQL. IT báo lặp lại, gộp, đồng thời đỏ lần đầu vì CFG-M05-02 là tham số bảng (đọc nhầm `asInt`), rồi xanh.
+- [x] T027 [P] [US3] Test `BT/incident/BR_M05_05_HandoverIT.java`, `FR_037_HandoverAcknowledgementIT.java`: bàn giao được xác nhận đổi người phụ trách thuộc ca trước; tạm nhận khi bàn giao chưa xác nhận (Q-94)
+  - *(2026-11-04, D)* `BR_M05_05_HandoverIT` 8/8, `FR_037_HandoverAcknowledgementIT` 5/5 trên MySQL (đỏ vì chưa có lớp rồi xanh).
 
 ### Implementation cho User Story 3
 
 - [ ] T028 [US3] Hoàn thiện `AlertService.java` với `BangChuyenCanhBao` (bảng FR-029): tiếp nhận, giao người phụ trách, bắt đầu xử lý, đổi mức (hạ từ Khẩn cấp chỉ Bác sĩ), đóng (lý do với quá hạn Bắt buộc), chuyển sự cố, tạo thủ công (mô tả bắt buộc); `DemLap24h`; trạng thái cuối đặt `dung_leo_thang`
-- [ ] T029 [US3] Đăng ký việc theo phút M05: quá hạn → leo thang một cấp (`NhanSuCanhBaoPort.truongTangDuocGiao`, Quản lý viện cấp 2), nhắc khi tối đa, ca đã bắt đầu chưa xác nhận bàn giao → tạm nhận (research S-08, S-18, S-21)
-- [ ] T030 [US3] Cài `CanhBaoBanGiaoApi` (008) và `CanhBaoDocPort` (005) trong `BE/incident/internal/alert/service/`
+  - *(2026-11-04, D)* Đã có: tiếp nhận, giao, bắt đầu xử lý, đổi mức, đóng, tạo thủ công, `DemLap24h`, trạng thái cuối dừng leo thang (`FR_029_AlertLifecycleTest` 13/13, `FR_026_ManualAlertTest` 6/6). Còn: lệnh Chuyển sự cố (`/convert-to-incident`, gắn với US4); đóng cảnh báo nguy kịch (FR-050d, US11); người nhận khi nâng mức chờ T016a.
+- [x] T029 [US3] Đăng ký việc theo phút M05: quá hạn → leo thang một cấp (`NhanSuCanhBaoPort.truongTangDuocGiao`, Quản lý viện cấp 2), nhắc khi tối đa, ca đã bắt đầu chưa xác nhận bàn giao → tạm nhận (research S-08, S-18, S-21)
+  - *(2026-11-04, D)* `AlertEscalationService`/`AlertEscalationTask` (một cấp mỗi lần, bỏ cấp không người, nhắc tối đa không dồn khi chạy bù), `AlertProvisionalTakeoverService`/`ProvisionalHandoverTask` (tạm nhận Q-94).
+- [x] T030 [US3] Cài `CanhBaoBanGiaoApi` (008) và `CanhBaoDocPort` (005) trong `BE/incident/internal/alert/service/`
+  - *(2026-11-04, D)* `DefaultAlertHandoverApi` (cảnh báo và sự cố), `DefaultAlertReadPort`; `T002_FakeM04Test` 8/8, `HandoverIT` (008) 27/27 vẫn xanh với bean thật.
 - [ ] T031 [US3] Tạo `BE/incident/web/AlertController.java`: `GET/POST /alerts`, `GET /alerts/{id}` (kèm `lenhDuocPhep`), `POST /alerts/{id}/receive`, `/alerts/{id}/assign`, `/alerts/{id}/start-handling`, `/alerts/{id}/change-level`, `/alerts/{id}/close`; màn web `frontend/src/features/alerts/`, app `mobile/lib/staff/alerts/`
+  - *(2026-11-04, D)* Backend xong: `AlertController` đủ 7 route của task, `FR_029_AlertControllerTest` 4/4, `ApiContractIT` 1/1 (bỏ 7 route khỏi danh sách chờ). Màn web, app chờ chủ dự án duyệt bố cục (DESIGN.md mục 13; dòng ở team-plan mục 8).
 
 **Checkpoint**: Vòng đời cảnh báo đầy đủ.
 
