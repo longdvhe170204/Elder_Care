@@ -2913,6 +2913,18 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | sự kiện `QuanHeDaDoi(nguoiThanId, nctId, quanHeId, loai)`, `QuyenNguoiThanDaDoi(quanHeId, quyen, giaTri, tuLuc)` | `family.api.events.RelationshipChanged` (`familyMemberId`, `residentId`, `relationshipId`, `change` `CREATED`, `PRIMARY_CONTACT_CHANGED`, `REPRESENTATIVE_CHANGED`, `CONTACT_ORDER_CHANGED`, `ENDED`, `at`), `FamilyRightChanged` (`relationshipId`, `familyMemberId`, `residentId`, `right`, `value`, `from`) |
 | `ViecTheoPhutM10`, `ViecHangGioM10`, `ViecNuaDemM10`; `lan_chay_m10` | `family.scheduling.M10MinuteJob`, `M10HourlyJob`, `M10MidnightJob` (`M10_MINUTE`, `M10_HOURLY`, `M10_MIDNIGHT`, `eldercare.jobs.m10-*`); `internal.scheduling.service.M10Jobs`, `M10TimedTask`; dấu `reminder_marker` loại `M10.JOB_RUN` (`M10JobRunStore`) |
 | `PhanLoaiTruongProvider` (người thân), `LuuTruProvider` (quan hệ) | `FamilyMemberFieldClassification` (`M10.FAMILY_MEMBER`), `FamilyRelationshipRetention` (`M10.FAMILY_RELATIONSHIP`) |
+### 18.7. Lớp, loại dòng và màn của US1 *(bổ sung 2026-11-04, Phase 3: T010 → T013)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `NguoiThanService` (hồ sơ, quan hệ, phiếu đăng ký) | `family.internal.relationship.service.FamilyMemberService`; REST `family.web.FamilyMemberController` |
+| `ThamGiaM10` (`ThamGiaChuyenTrangThai` của 012) | `family.internal.relationship.service.M10StatusParticipant` (bean `m10StatusParticipant`, `@Order(70)`; điều kiện `DBR_02`) |
+| `nguoi_than_nct` (khóa theo người cao tuổi) | `resident_module_state` loại `M10.FAMILY_RESIDENT_STATE` (`FamilyResidentState`), `FamilyResidentLock` |
+| `phieu_dang_ky_nguoi_than`, `phieu_dang_ky_dong` | `record_event` loại `M10.FAMILY_REGISTRATION_FORM` gắn `M01.RESIDENT` (`FamilyRegistrationForm`: `representativeId`, `scanFileId`, `lines` {`relationshipId`, `right`, `requestId`}) |
+| `yeu_cau_quyen` (US1 chỉ tạo yêu cầu Hiệu lực của phiếu) | `simple_record` loại `M10.RIGHT_CHANGE_REQUEST` (`RightChangeRequest`: `type`, `relationshipId`, `right`, `newValue`, `source`, `confirmationMethod`, `confirmedByFamilyMemberId`, `formId`, `reason`; trạng thái ở cột `status`) |
+| tệp `M10.BANG_CHUNG`, `M10.PHIEU_DANG_KY` (`QuyenTepProvider`) | chủ sở hữu `M10.REPRESENTATIVE_EVIDENCE` (quan hệ), `M10.FAMILY_REGISTRATION_FORM` (phiếu); `StaffOnlyFilePermission` |
+| thông báo Q-249 (người đại diện khác) | sự kiện `family.api.events.RightChangesTookEffect`, loại sự kiện `RIGHT_CHANGE_EFFECTIVE_OTHER_REPRESENTATIVES` |
+| màn `tinh-nang/nguoi-than/ho-so/` | `frontend/src/features/relatives/FamilyMembersPage.jsx` (mục menu `family-members`, "Người thân và quyền"), `RelationshipDetail`, `AddRelationshipSheet`, `RegistrationFormSheet`, `relationshipLabels.js` |
 
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
