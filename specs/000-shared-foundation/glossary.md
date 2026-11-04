@@ -3041,9 +3041,85 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 
 *Chủ feature điền khi dịch `contracts/api-017.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
-## 24. Feature 018 (`018-residence-registration`, B)
+## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
-*Chủ feature điền khi dịch `contracts/api-018.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+"Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).
+
+### 24.1. Đường dẫn API (tiền tố `/api/v1`)
+
+| Tên logic | Mã |
+| --- | --- |
+| `/khai-bao/can-lam` | `/residence-registrations/to-do` (cùng tên chỉ tiêu `REGISTRATION.TO_DO` của 016) |
+| `/nguoi-cao-tuoi/{nctId}/khai-bao` | `/residents/{residentId}/residence-registrations` |
+| `/khai-bao/{id}/{lenh}` | `/residence-registrations/{id}/{command}` |
+| lệnh `xac-nhan-thuong-tru-cung-xa`, `ghi-da-nop`, `ghi-chap-nhan`, `ghi-tu-choi`, `ghi-da-khai-bao-xoa` | `confirm-local-permanent-resident`, `record-submitted`, `record-accepted`, `record-rejected`, `record-deregistered` |
+| tag `khai-bao`; security `phien` | `residence-registrations`; `session` |
+
+### 24.2. Schema, tham số và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| tham số `NctId` (`nctId`) | `ResidentId` (`residentId`) |
+| thân lệnh lập `giaHan` | `renewal` |
+| `KhaiBao` (`nctId`, `loai`, `laGiaHan`, `hanKhaiBao`, `trangThai`, `ngayHetHan`, `thuongTruCungXa`) | `ResidenceRegistration` (`residentId`, `type`, `renewal`, `dueAt`, `status`, `expiryDate`, `localPermanentResident`) |
+| `ViecKhaiBao` (`nctId`, `hoTen`, `loaiViec`, `han`, `khaiBaoId`) | `RegistrationTask` (`residentId`, `fullName`, `taskType`, `dueAt`, `registrationId`) |
+| `LenhKhaiBao` (`ghiChuCanCu`, `ngayNop`, `kenh`, `coQuan`, `maHoSo`, `tepBangChungId`, `ngayHetHan`, `lyDo`) | `RegistrationCommand` (`basisNote`, `submittedDate`, `channel`, `receivingAuthority`, `dossierCode`, `evidenceFileId`, `expiryDate`, `reason`) |
+| `Loi`, phản hồi `Loi`, `LoiChan` | `Problem` (bản chung của api-000, BL-23), phản hồi `Problem`, `Conflict` |
+
+### 24.3. Enum
+
+| Tên logic | Mã |
+| --- | --- |
+| loại `DANG_KY_TAM_TRU`, `THONG_BAO_LUU_TRU` | `TEMPORARY_RESIDENCE_REGISTRATION`, `STAY_NOTIFICATION` |
+| trạng thái `CAN_KHAI_BAO`, `DA_NOP`, `DA_XAC_NHAN`, `HET_HAN`, `DA_XOA`, `DUOC_THAY_THE`, `DA_HUY` | `TO_SUBMIT`, `SUBMITTED`, `CONFIRMED`, `EXPIRED`, `DEREGISTERED`, `SUPERSEDED`, `CANCELLED` |
+| loại việc `CAN_LAP`, `QUA_HAN`, `SAP_HET_HAN`, `HET_HAN`, `CAN_KHAI_BAO_XOA` | `TO_CREATE`, `OVERDUE`, `EXPIRING_SOON`, `EXPIRED`, `TO_DEREGISTER` |
+| kênh nộp `CONG_DICH_VU_CONG`, `TRUC_TIEP` | `PUBLIC_SERVICE_PORTAL`, `IN_PERSON` |
+| loại đính chính `M02.KHAI_BAO`; loại tệp `M02.BANG_CHUNG_KHAI_BAO` | `M02.RESIDENCE_REGISTRATION`; `M02.REGISTRATION_EVIDENCE` |
+
+### 24.4. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI` | `STATE_CHANGED` (mục 5) |
+| `KHONG_PHAI_NOI_TRU`, `CHUA_PHAT_SINH_NGHIA_VU`, `DA_CO_KHAI_BAO_DANG_XU_LY` | `NOT_RESIDENTIAL_CARE`, `NO_REGISTRATION_OBLIGATION`, `REGISTRATION_IN_PROGRESS_EXISTS` |
+| `CHUA_CO_DANG_KY_TAM_TRU_DA_XAC_NHAN`, `CHUA_GHI_NOP` | `NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION`, `NOT_SUBMITTED` |
+| `THIEU_BANG_CHUNG`, `THIEU_NGAY_HET_HAN`, `CHUA_KET_THUC_LUU_TRU` | `EVIDENCE_REQUIRED`, `EXPIRY_DATE_REQUIRED`, `RESIDENCY_NOT_ENDED` |
+
+### 24.5. Gói và kiểu Java (T001)
+
+| Tên logic | Mã |
+| --- | --- |
+| gói `m02.khaibao` (`internal`, `web`, `lich`) | `m02.internal.registration`; `m02.web`, `m02.scheduling` (dùng chung với 004) |
+| test `KhaiBaoArchTest` | `ResidenceRegistrationArchTest` (chỉ cấm Bộ lập lịch lập khai báo) |
+| lệnh lập khai báo, lập khai báo gia hạn; lớp ghi bảng khai báo | tên bắt đầu `create` (chỉ dành cho lập khai báo trong `m02.internal.registration`); `ResidenceRegistrationStore` (`insert…`) |
+| bảng `khai_bao_nct` (`nct_id`, `thuong_tru_cung_xa`, `ghi_chu_can_cu`, `xac_nhan_boi_id`, `xac_nhan_luc`, `phien_ban`) *(T002)* | `registration_resident` (`resident_id`, `local_permanent_resident`, `basis_note`, `confirmed_by_id`, `confirmed_at`, `version`) |
+| bảng `khai_bao_tam_tru` (`loai`, `la_gia_han`, `nghia_vu_id`, `han_khai_bao`, `trang_thai`, `lan_nop_hien_hanh_id`, `ngay_het_han`, `tep_bang_chung_id`, `xoa_luc`, `xoa_boi_id`, `tep_bang_chung_xoa_id`, `thay_the_khai_bao_id`, `khoa_dang_xu_ly`, `khoa_xac_nhan`) | `residence_registration` (`type`, `renewal`, `obligation_id`, `due_at`, `status`, `current_submission_id`, `expiry_date`, `evidence_file_id`, `deregistered_at`, `deregistered_by_id`, `deregistration_evidence_file_id`, `replaced_registration_id`, `in_progress_key`, `confirmed_key`) |
+| bảng `khai_bao_lan_nop` (`khai_bao_id`, `ngay_nop`, `kenh`, `co_quan`, `ma_ho_so`, `ket_qua` `CHO`/`CHAP_NHAN`/`TU_CHOI`, `ly_do_tu_choi`, `boi_id`, `luc`) | `registration_submission` (`registration_id`, `submitted_date`, `channel`, `receiving_authority`, `dossier_code`, `result` `PENDING`/`ACCEPTED`/`REJECTED`, `rejection_reason`, `recorded_by`, `recorded_at`) |
+| bảng `nghia_vu_khai_bao` (`moc_loai` `HOAN_TAT_TIEP_NHAN`/`NOI_TRU_HIEU_LUC`/`PHU_LUC_GIA_HAN`/`HET_HAN`, `moc_luc`, `han`, `nguon_id`, `khai_bao_id`, `da_nop`, `da_bao_ql_luc`, `huy_luc`) | `registration_obligation` (`trigger_type` `ADMISSION_COMPLETED`/`RESIDENTIAL_EFFECTIVE`/`RENEWAL_ADDENDUM`/`EXPIRED`, `trigger_at`, `due_at`, `source_id`, `registration_id`, `submitted`, `manager_notified_at`, `cancelled_at`) |
+| bảng `nhac_khai_bao` (`loai` `LAP`/`QUA_HAN`/`GIA_HAN`/`XOA`, `nct_id`, `ngay`) | `registration_reminder` (`type` `CREATE`/`OVERDUE`/`RENEWAL`/`DEREGISTER`, `resident_id`, `date`); enum `ReminderType`, lớp `RegistrationReminderStore` |
+| hàm `TongThoiGianLuuTru`, `LoaiKhaiBao` *(T003)* | `ExpectedStayDuration` (`StayPeriod`), `RegistrationTypeRule` (trả `RegistrationType`) |
+| job `ViecHangNgayM02KhaiBao` (`ViecKhaiBao`), test `ChayBuM02KhaiBaoIT` *(T004)* | `ResidenceRegistrationJob` (tên `M02_REGISTRATION`), `RegistrationDailyRunner`, `RegistrationDailyTask`; `RegistrationCatchUpIT` |
+| `PhanLoaiTruongProvider`, `LuuTruProvider`, `QuyenTepProvider`, `GanPhamViProvider` của khai báo *(T005)* | `RegistrationFieldClassificationConfig`, `RegistrationRetention`, `RegistrationEvidenceFilePermission`, `RegistrationScopeAssignment` |
+| `NghiaVuService` (listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai`, ghi mốc) *(T007)* | `RegistrationObligationListeners`, `RegistrationObligations`; lớp ghi bảng `RegistrationObligationStore` (`record`, không phải `insert…`); enum mốc `ObligationTrigger`; kiểu `RegistrationObligation` |
+| nhắc quá hạn (Hành chính mỗi ngày, Quản lý viện một lần) *(T007)* | `RegistrationOverdueReminders.remind(day)` |
+| sự kiện nhắc khai báo (FR-010) | `m02.api.events.ResidenceRegistrationReminder` (`Kind`: `TO_CREATE`, `OVERDUE`, `OVERDUE_MANAGER`); loại sự kiện thông báo `M02_REGISTRATION_<Kind>`; nguồn `M02.REGISTRATION_REMINDER` |
+| `KhaiBaoService`, `KhaiBaoController` *(T008)* | `ResidenceRegistrationService` (lệnh `createRegistration`, `confirmLocalPermanentResident`; đọc `ofResident`, `toDo`), `ResidenceRegistrationController`; khóa `RegistrationResidentStore.lock`; kiểu `ResidenceRegistration`, `RegistrationStatus`, `SubmissionChannel`; thân `CreateRegistrationBody`, `RegistrationCommandBody`, `ResidenceRegistrationBody`, `RegistrationTaskBody` |
+| hành động nhật ký lập khai báo, xác nhận thường trú cùng xã/phường | `M02_REGISTRATION_CREATED`, `M02_REGISTRATION_LOCAL_CONFIRMED` |
+| test `BR_M02_11_KhaiBaoIT`, `DBR_33_MotKhaiBaoIT` *(T006)* | `BR_M02_11_ResidenceRegistrationIT`, `DBR_33_OneRegistrationIT` (nền `RegistrationTestBase`) |
+| lệnh ghi đã nộp, ghi được chấp nhận, ghi bị từ chối *(T010)* | `ResidenceRegistrationService.recordSubmitted` (`Submission`), `recordAccepted` (`Acceptance`), `recordRejected`; lần nộp `RegistrationSubmission`, `SubmissionResult` (`PENDING`, `ACCEPTED`, `REJECTED`), `RegistrationSubmissionStore` (`add`, `setResult`) |
+| hạn đang có hiệu lực của nghĩa vụ (khai báo bị từ chối: hạn mới của khai báo; còn lại: hạn nghĩa vụ) *(T010)* | `RegistrationObligation.effectiveDueAt` (cột tính `effective_due_at`) |
+| `DinhChinhDuocProvider` `M02.KHAI_BAO` *(T010)* | `RegistrationCorrectionProvider` (loại `M02.RESIDENCE_REGISTRATION`) |
+| hành động nhật ký ghi nộp, chấp nhận, từ chối | `M02_REGISTRATION_SUBMITTED`, `M02_REGISTRATION_ACCEPTED`, `M02_REGISTRATION_REJECTED` |
+| test `KhaiBaoNopKetQuaIT` *(T009)* | `RegistrationSubmissionResultIT` |
+| lệnh lập khai báo gia hạn *(T012)* | `ResidenceRegistrationService.createRenewalRegistration` |
+| nhắc gia hạn, chuyển Hết hạn *(T012)* | `RegistrationRenewalReminders.remind(day)` (`due`), `RegistrationExpiry.expire(day)`; ngày hết hạn hiện hành theo đính chính `RegistrationExpiryDates`; tên việc dự kiến `REG_RENEWAL`, `REG_EXPIRY` |
+| loại nhắc gia hạn, báo Hết hạn | `ResidenceRegistrationReminder.Kind.RENEWAL`, `EXPIRED_MANAGER`; hành động nhật ký `M02_REGISTRATION_EXPIRED` |
+| test `BR_M02_12_GiaHanIT`, `BR_M02_14_ChuyenLoaiIT` *(T011)* | `BR_M02_12_RenewalIT`, `BR_M02_14_TypeChangeIT` |
+| bean `ThamGiaKhaiBao` (`ThamGiaChuyenTrangThai`) *(T014)* | `RegistrationStatusParticipant` |
+| hủy khai báo đang xử lý, nghĩa vụ đang mở khi sang trạng thái cuối; "cần khai báo xóa"; nhắc khai báo xóa *(T014)* | `RegistrationDeregistration` (`finalStatusReached`, `due`, `remind(day)`); tên việc dự kiến `REG_DEREGISTER` |
+| lệnh ghi đã khai báo xóa *(T014)* | `ResidenceRegistrationService.recordDeregistered` |
+| loại nhắc khai báo xóa; hành động nhật ký hủy, khai báo xóa | `ResidenceRegistrationReminder.Kind.DEREGISTER`; `M02_REGISTRATION_CANCELLED`, `M02_REGISTRATION_DEREGISTERED` |
+| test `BR_M02_13_KhaiBaoXoaIT` *(T013)* | `BR_M02_13_DeregistrationIT` |
 
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
