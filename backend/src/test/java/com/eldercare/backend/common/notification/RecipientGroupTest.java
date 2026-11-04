@@ -62,7 +62,9 @@ class RecipientGroupTest {
                         FamilyRight.VIEW_HEALTH,
                         FamilyRight.VIEW_COSTS,
                         FamilyRight.REGISTER_VISITS,
-                        FamilyRight.RECEIVE_URGENT);
+                        FamilyRight.RECEIVE_URGENT,
+                        FamilyRight.PICKUP_ALLOWED,
+                        FamilyRight.REQUEST_SERVICES);
     }
 
     @Test

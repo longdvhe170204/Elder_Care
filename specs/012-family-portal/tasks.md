@@ -28,7 +28,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/family/...` với `package-info.java`; ArchUnit `BT/family/M10ArchTest.java`: gói `..lich..` không lập khoản (Q-306); DTO người thân không có trường nhật ký (research F-01)
+- [x] T001 Tạo khung gói `BE/family/...` với `package-info.java`; ArchUnit `BT/family/M10ArchTest.java`: gói `..lich..` không lập khoản (Q-306); DTO người thân không có trường nhật ký (research F-01)
 - [ ] T002 [P] *(Bỏ theo Q-396, 2026-10-29)* Không có bản giả `HoatDongBanTinPort`
 
 ---
@@ -40,8 +40,8 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
 - [ ] T003 [P] Tạo `BE/family/api/`: `QuyenNguoiThanApi`, `NguoiThanThongKeApi`, sự kiện mục 1.5 (cài `CoYeuCauThongBao`; mỗi yêu cầu tới người thân khai `doiTuongThongTin` theo bảng research F-15, bổ sung 2026-10-18) (contracts mục 1.2 → 1.5)
-- [ ] T004 Tạo `MIG/V012_01__nguoi_than.sql`: `nguoi_than_nct` (`nct_id` khóa chính), `nguoi_than` (số giấy tờ `CA_NHAN`; không xóa khi đã có quan hệ), `quan_he_nguoi_than` (`quan_he` `VO_CHONG|CON|CHAU|ANH_CHI_EM|KHAC`; sáu quyền; `trang_thai` `HIEU_LUC|DA_KET_THUC`; cột sinh `khoa_hieu_luc` với `UNIQUE (nguoi_than_id, nct_id, khoa_hieu_luc)`; cột sinh `khoa_lien_he_chinh` `UNIQUE`), `lich_su_quyen` (nhóm 3), `su_kien_m10_da_xu_ly`, `lan_chay_m10` (data-model mục 2, 10) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `nguoi_than_nct` → `trang_thai_nct`; `lich_su_quyen` → `lich_su_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T005 [P] Cài hàm thuần `BE/family/quyen/internal/QuyenCoTacDung.java` (quan hệ + bản đồng ý `BanDongYApi` tại thời điểm xem; DBR-03) và `BE/family/nguoithan/internal/KiemTraDbr02.java` (≥ 1 đại diện, đúng 1 liên hệ chính) với test `BT/family/QuyenCoTacDungTest.java`, `KiemTraDbr02Test.java` (research F-04, F-05)
+- [x] T004 Tạo `MIG/V012_01__nguoi_than.sql`: `nguoi_than_nct` (`nct_id` khóa chính), `nguoi_than` (số giấy tờ `CA_NHAN`; không xóa khi đã có quan hệ), `quan_he_nguoi_than` (`quan_he` `VO_CHONG|CON|CHAU|ANH_CHI_EM|KHAC`; sáu quyền; `trang_thai` `HIEU_LUC|DA_KET_THUC`; cột sinh `khoa_hieu_luc` với `UNIQUE (nguoi_than_id, nct_id, khoa_hieu_luc)`; cột sinh `khoa_lien_he_chinh` `UNIQUE`), `lich_su_quyen` (nhóm 3), `su_kien_m10_da_xu_ly`, `lan_chay_m10` (data-model mục 2, 10) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `nguoi_than_nct` → `trang_thai_nct`; `lich_su_quyen` → `lich_su_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [x] T005 [P] Cài hàm thuần `BE/family/quyen/internal/QuyenCoTacDung.java` (quan hệ + bản đồng ý `BanDongYApi` tại thời điểm xem; DBR-03) và `BE/family/nguoithan/internal/KiemTraDbr02.java` (≥ 1 đại diện, đúng 1 liên hệ chính) với test `BT/family/QuyenCoTacDungTest.java`, `KiemTraDbr02Test.java` (research F-04, F-05)
 - [ ] T006 Cài bản cài SPI trong `BE/family/nguoithan/internal/`: `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`, `quyenDangBat`), `DieuKienChuThich` ² (người đại diện), `NguoiDaiDienPort` (004), `NguoiThanNhanThongBaoPort` (009), `NguoiThanKhanCapPort` (`nguoiLienHeChinh`, `nguoiDaiDien`) (007), `QuyenNguoiThanApi` (contracts mục 1.1, 1.2)
 - [ ] T007 Cài khung job `BE/family/lich/ViecTheoPhutM10.java`, `ViecHangGioM10.java`, `ViecNuaDemM10.java` (ShedLock, chạy bù) và test `BT/family/ChayBuM10IT.java` (research F-17)
 - [ ] T008 [P] Cài provider: `PhanLoaiTruongProvider` (số giấy tờ → `CA_NHAN`), `LuuTruProvider` (`THEO_HO_SO`), `GanPhamViProvider` (`M10.*` theo người cao tuổi, gồm `M10.MONG_MUON` bổ sung 2026-10-18; `so_giay_to` của mong muốn → `CA_NHAN`), `QuyenTepProvider` (`M10.BANG_CHUNG`, `M10.PHIEU_DANG_KY`, `M10.PHAN_HOI`)
