@@ -1,0 +1,62 @@
+package com.eldercare.backend.incident.internal.incident.persistence;
+
+import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
+import com.eldercare.backend.administration.shared.api.dto.RecordChange;
+import com.eldercare.backend.administration.shared.api.dto.SharedKind;
+import com.eldercare.backend.incident.internal.incident.domain.FallMonitoringContent;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
+import org.springframework.stereotype.Repository;
+
+/**
+ * Khoảng theo dõi sau ngã trong hồ sơ chung: mỗi người tối đa một khoảng Đang theo dõi, giữ bằng khóa duy nhất
+ * (FR-052). Lần ngã mới thay khoảng cũ ({@code REPLACED}) và nhả khóa.
+ */
+@Repository
+public class FallMonitoringStore {
+    public static final String ACTIVE = "ACTIVE";
+    public static final String REPLACED = "REPLACED";
+    static final SharedKind<FallMonitoringContent> KIND =
+            SharedKind.of("M05.POST_FALL_MONITORING", FallMonitoringContent.class);
+
+    private final SimpleRecordApi records;
+
+    public FallMonitoringStore(SimpleRecordApi records) {
+        this.records = records;
+    }
+
+    /** Mở khoảng mới cho lần ngã; gọi sau khi khóa theo dõi người cao tuổi. */
+    public long start(long residentId, long incidentId, Instant anchor, Instant endsAt, Duration interval, long actor) {
+        active(residentId)
+                .ifPresent(current -> records.change(
+                        KIND,
+                        current.id(),
+                        current.version(),
+                        new RecordChange<>(REPLACED, current.content(), null, null, true)));
+        return records.create(
+                        KIND,
+                        new NewSimpleRecord<>(
+                                residentId,
+                                new EntityRef("M05.INCIDENT", incidentId),
+                                ACTIVE,
+                                new FallMonitoringContent(incidentId, anchor, endsAt, interval.toMinutes(), null, null),
+                                null,
+                                null,
+                                key(residentId),
+                                actor,
+                                false))
+                .id();
+    }
+
+    public Optional<com.eldercare.backend.administration.shared.api.dto.SimpleRecord<FallMonitoringContent>> active(
+            long residentId) {
+        return records.findByUniqueKey(KIND, key(residentId));
+    }
+
+    private static String key(long residentId) {
+        return "POST_FALL:" + residentId;
+    }
+}
