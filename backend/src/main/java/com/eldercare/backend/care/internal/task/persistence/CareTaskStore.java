@@ -111,6 +111,31 @@ public class CareTaskStore {
                 local(at));
     }
 
+    /** T059: công việc có thời điểm dự kiến trong [from, to) theo phạm vi dữ liệu của người xem 016. */
+    public List<CareTask> inRange(
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant from, Instant to) {
+        var args = new ArrayList<Object>(List.of(local(from), local(to)));
+        String sql = "SELECT * FROM care_task WHERE planned_at>=? AND planned_at<?";
+        if (!scope.facilityWide()) {
+            var terms = new ArrayList<String>();
+            if (!scope.floorAreaIds().isEmpty()) {
+                terms.add("floor_area_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.floorAreaIds().size(), "?")) + ")");
+                args.addAll(scope.floorAreaIds());
+            }
+            if (!scope.residentIds().isEmpty()) {
+                terms.add("resident_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.residentIds().size(), "?")) + ")");
+                args.addAll(scope.residentIds());
+            }
+            if (terms.isEmpty()) return List.of();
+            sql += " AND (" + String.join(" OR ", terms) + ")";
+        }
+        return jdbc.query(sql + " ORDER BY planned_at,id", this::row, args.toArray());
+    }
+
     public List<CareTask> forSource(SourceType type, long id) {
         return jdbc.query(
                 "SELECT * FROM care_task WHERE basis_type=? AND basis_id=? ORDER BY id", this::row, type.name(), id);

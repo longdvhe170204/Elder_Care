@@ -259,22 +259,24 @@ Checkbox xác nhận phạm vi task; chưa thay thế nghiệm thu toàn phase, 
 
 ### Tests cho User Story 9
 
-- [ ] T054 [P] [US9] Test `BT/care/BR_M04_13_CongViecChungIT.java`, `BR_M04_28_GanLaiIT.java`: `khiVangCa`, `khiNghiCoDuyet`, `khiNghiViec`, `khiDoiPhanCong`, `khiKetThucPhanCong` trong transaction của 008/015; ca không ai đủ điều kiện phát `CongViecChungKhongAiDuDieuKien`; `DaChuyenGiuong` gán lại theo khu mới (Q36, Q37)
-- [ ] T055 [P] [US9] Test `BT/care/BR_M04_04_HuyKhiVangIT.java`, `FR_010_TrangThaiCuoiIT.java`, `FR_022_NguonBiHuyIT.java`, `FR_020a_DinhChinhChuyenDiIT.java`: bean 001 hủy công việc khi vắng, đóng khi trạng thái cuối; nguồn bị hủy (007, 011, 014) hủy công việc; đính chính chuyến đi tính lại (Q11 → Q14)
+- [x] T054 [P] [US9] Test `BT/care/BR_M04_13_CongViecChungIT.java`, `BR_M04_28_GanLaiIT.java`: `khiVangCa`, `khiNghiCoDuyet`, `khiNghiViec`, `khiDoiPhanCong`, `khiKetThucPhanCong` trong transaction của 008/015; ca không ai đủ điều kiện phát `CongViecChungKhongAiDuDieuKien`; `DaChuyenGiuong` gán lại theo khu mới (Q36, Q37)
+- [x] T055 [P] [US9] Test `BT/care/BR_M04_04_HuyKhiVangIT.java`, `FR_010_TrangThaiCuoiIT.java`, `FR_022_NguonBiHuyIT.java`, `FR_020a_DinhChinhChuyenDiIT.java`: bean 001 hủy công việc khi vắng, đóng khi trạng thái cuối; nguồn bị hủy (007, 011, 014) hủy công việc; đính chính chuyến đi tính lại (Q11 → Q14)
 
 ### Implementation cho User Story 9
 
-- [ ] T056 [US9] Cài `CongViecCaApi` (`khiVangCa`, `khiNghiCoDuyet`, `khiNghiViec`, `khiDoiPhanCong`, `khiKetThucPhanCong`) và phân lại (Trưởng tầng; kiểm `NhanSuCaPort.duDieuKien`) trong `BE/care/checklist/internal/CongViecChungService.java`; endpoint `POST /cong-viec/{id}/phan-lai` trong `ChecklistController.java`; listener `DaChuyenGiuong` (research C-10)
-- [ ] T057 [US9] Cài bean `ThamGiaChuyenTrangThai` của 005 trong `BE/care/trangthai/internal/ThamGiaM04.java` (`@Order` sau 004, 003; tác động theo bảng contracts mục 1.1), `NguonCongViecApi.nguonBiHuy`, `CongViecVangMatApi.tinhLai` (research C-08)
-- [ ] T058 [US9] Cài `BE/care/thoikhoabieu/internal/ThoiKhoaBieuService.java` (gộp công việc và `ThoiKhoaBieuNguonPort` của 006, 012, 014; chỉ xem) và endpoint `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`; màn web `frontend/src/tinh-nang/thoi-khoa-bieu/` (FR-048)
+- [x] T056 [US9] Cài `CongViecCaApi` (`khiVangCa`, `khiNghiCoDuyet`, `khiNghiViec`, `khiDoiPhanCong`, `khiKetThucPhanCong`) và phân lại (Trưởng tầng; kiểm `NhanSuCaPort.duDieuKien`) trong `BE/care/checklist/internal/CongViecChungService.java`; endpoint `POST /cong-viec/{id}/phan-lai` trong `ChecklistController.java`; listener `DaChuyenGiuong` (research C-10)
+- [x] T057 [US9] Cài bean `ThamGiaChuyenTrangThai` của 005 trong `BE/care/trangthai/internal/ThamGiaM04.java` (`@Order` sau 004, 003; tác động theo bảng contracts mục 1.1), `NguonCongViecApi.nguonBiHuy`, `CongViecVangMatApi.tinhLai` (research C-08)
+- [x] T058 [US9] Cài `BE/care/thoikhoabieu/internal/ThoiKhoaBieuService.java` (gộp công việc và `ThoiKhoaBieuNguonPort` của 006, 012, 014; chỉ xem) và endpoint `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`; màn web `frontend/src/tinh-nang/thoi-khoa-bieu/` (FR-048)
 
 **Checkpoint**: Mọi user story của 005 chạy độc lập.
+
+**Checkpoint 05/11/2026** — T054 → T058 xong (chi tiết plan.md mục "Phase 11 — 05/11/2026"): 27 IT mới của 005 và 3 ca màn web xanh; clean verify 47 phút: 1047 unit/kiến trúc xanh, 2613 IT có 4 failure ở `BR_M02_04_ApplyAddendumIT` (3), `ChangeArrivalScheduleIT` (1), nguyên nhân ở phần 003 T033 (`BedAllocationCommands`, `ScheduledBedTransfers`), không ở care. Đường dẫn `phan-lai`, `thoi-khoa-bieu` đã dịch theo duyệt của chủ dự án.
 
 ---
 
 ## Phase 12: Polish & Cross-Cutting
 
-- [ ] T059 [P] Cài `CongViecThongKeApi` (016) trong `BE/care/congviec/internal/`
+- [x] T059 [P] Cài `CongViecThongKeApi` (016) trong `BE/care/congviec/internal/`
 - [x] T060 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/005-daily-care-tasks/contracts/api-005.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 005
   - *(2026-11-03, A)* `ApiContractIT` đăng ký `api-005`, bật so operation: 38/41 operation khớp; chờ `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`, `POST /cong-viec/{id}/phan-lai` (đường dẫn chưa dịch, chưa cài) và `PUT /testing/fakes/{module}`. Bảng nhóm 3 của 005 do `RecordGroupTriggerIT` (F-04, XII) kiểm chung, không thêm test riêng.
 - [ ] T061 Khi 006, 007, 008, 011, 012, 014 có bản thật, chạy lại test US2, US4, US5, US9 với bean thật thay T002

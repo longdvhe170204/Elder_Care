@@ -1612,6 +1612,7 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | nhật ký kế hoạch khi trạng thái cuối | `CARE_PLAN_ENDED_ON_FINAL_STATE`; `care_plan.end_reason` `FINAL_STATUS` |
 | dấu idempotent chuyển giường | `reminder_marker` loại `M04.BED_TRANSFER`, đối tượng `M03.ALLOCATION` (`nextAllocationId`) |
 | màn web | `frontend/src/features/care-tasks/TimetablePage.jsx`, `timetableView.js`; mục menu `care-timetable` |
+| bản cài `CongViecThongKeApi` (T059) | `CareTaskStatistics` (`internal/task/service`); nhãn đồng bộ `syncLabel` `SYNCED_AFTER_PERMISSION_LOST`, `NONE`; test `FR_050_TaskStatisticsIT` |
 | lớp test | `BR_M04_13_SharedTaskIT`, `BR_M04_28_ReassignIT`, `BR_M04_04_ResidentStatusTasksIT`, `FR_048_TimetableIT`, `TimetablePage.test.jsx` |
 
 ## 12. Feature 006 (`006-medication-management`, D)

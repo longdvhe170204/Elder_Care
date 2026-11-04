@@ -103,6 +103,21 @@ class FR_012_BedHoldsIT extends StructureTestSupport {
                 .isTrue();
     }
 
+    /** Q-395: giường đã Giải phóng khi vắng thì không còn phân bổ mở; phụ lục gia hạn của 004 không bị chặn. */
+    @Test
+    void FR_015_extendingWithoutAnActiveAllocationChangesNothing() {
+        long resident = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,end_at,checked_care_level,care_level_source) VALUES(?,?,'CLOSED','2026-01-01','2026-01-05','BASIC','CURRENT')",
+                resident,
+                bed);
+        tx.executeWithoutResult(s -> ReflectionTestUtils.invokeMethod(
+                holds(), "extendExpectedEnd", resident, Instant.parse("2099-01-01T00:00:00Z")));
+        assertThat(jdbc.queryForObject(
+                        "SELECT expected_end IS NULL FROM bed_allocation WHERE resident_id=?", Boolean.class, resident))
+                .isTrue();
+    }
+
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     com.eldercare.backend.roombedallocation.internal.bed.persistence.BedHoldStore holdStore;
 

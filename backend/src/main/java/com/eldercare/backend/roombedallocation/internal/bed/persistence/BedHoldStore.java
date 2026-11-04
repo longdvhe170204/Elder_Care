@@ -99,14 +99,17 @@ public class BedHoldStore {
     }
 
     public Active active(long residentId) {
+        return findActive(residentId).orElseThrow(com.eldercare.backend.common.error.NotFoundException::new);
+    }
+
+    public java.util.Optional<Active> findActive(long residentId) {
         return jdbc
                 .query(
                         "SELECT id,bed_id FROM bed_allocation WHERE resident_id=? AND status='ACTIVE'",
                         (r, i) -> new Active(r.getLong(1), r.getLong(2)),
                         residentId)
                 .stream()
-                .findFirst()
-                .orElseThrow(com.eldercare.backend.common.error.NotFoundException::new);
+                .findFirst();
     }
 
     public boolean heldAbsent(long bedId, long residentId) {
