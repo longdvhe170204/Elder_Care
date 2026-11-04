@@ -254,13 +254,18 @@ public class HealthItemService implements HealthItemApi {
                 .toList();
     }
 
-    /** 006, 011 gỡ cờ của mình; chạy lại cho mục đã gỡ cờ thì không đổi gì (idempotent). */
+    /**
+     * 006, 011 gỡ cờ của mình; chạy lại cho cờ đã gỡ thì không đổi gì và không ghi nhật ký (idempotent, BR-M01-12): chỉ lần
+     * đổi cờ từ chờ sang đã kiểm ghi {@code HEALTH_ITEM_CHECKED}.
+     */
     @Override
     @Transactional
     public void markChecked(long itemId, HealthItemCheckSource source) {
         HealthItem item = items.lockById(itemId).orElseThrow(NotFoundException::new);
         boolean pendingBefore = item.isPendingCheck();
-        item.markChecked(source);
+        if (!item.markChecked(source)) {
+            return;
+        }
         items.saveAndFlush(item);
         auditLog.write(AuditLogEntry.builder()
                 .action(CHECKED)
