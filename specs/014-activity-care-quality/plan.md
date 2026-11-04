@@ -195,3 +195,17 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Ánh xạ bảng ở data-model mục 0; task T034. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
 - Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
 - Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
+
+## Ghi chú triển khai
+
+### Phase 1 — 05/11/2026 (C)
+
+Nhánh `impl/014-activity-care-quality` từ develop 0c155c46. Tên gói chủ dự án duyệt 05/11 theo R-02 (module lớn: `internal/<chức năng>/{service, domain, persistence, config}`): `care.hoatdong` → `care.internal.activity`, `care.buoi` → `care.internal.session`, `care.chuyendi` → `care.internal.trip`, `care.tinhthan` → `care.internal.wellbeing`, `care.kiemtra` → `care.internal.qualitycheck`; `care.hoatdong.lich` dùng gói job chung `care.scheduling` có sẵn (không tạo gói lịch riêng). Mỗi gói có `package-info.java`; lớp tầng `service`, `domain`, `persistence`, `config` tạo khi có task cần.
+
+Luật T001 đặt trong `M04ArchitectureRules.NO_JOB_CREATES_ACTIVITY_RECORDS` (cùng chỗ luật job của 005): lớp ở `care.scheduling` hoặc bước `CareMinuteWork`/`CareDailyWork` không gọi hàm `create*`, `add*` của năm gói 014, không gọi `createRework`. Sự cố do 007 tạo, care không được phụ thuộc `incident` (luật `NO_DIRECT_HIGHER_MODULES` có sẵn), nên không thêm điều kiện riêng. Luật đặt theo tiền tố tên hàm vì lớp lệnh 014 chưa có; khi cài lệnh tạo buổi, danh sách, mục phải đặt tên bắt đầu bằng `create`/`add` hoặc bổ sung tên vào luật.
+
+Kiểm: `M04ActivityArchTest` đỏ (thiếu luật, rồi thiếu gói `activity`) rồi xanh 3/3; bytecode mẫu job gọi `createSession`, `createChecklist`, `addItem`, `createRework` bị bắt đủ 4 vi phạm. 55 test kiến trúc xanh (`*ArchTest`, `ModuleBoundaryTest`, `T009_ArchitectureRulesTest`). Không chạy `clean verify` (phase chỉ thêm package-info và luật test; theo quy ước 2026-11-04, `clean verify` chạy trước PR).
+
+### Dịch hợp đồng — 05/11/2026 (C)
+
+Chủ dự án duyệt bản dịch `contracts/api-014.yaml` (glossary mục 20.2 → 20.5): 24 đường dẫn, 29 operation giữ nguyên số lượng, không thêm bớt trường; quy ước như api-012 (`/{command}`, `Problem`/`Blocked`, tiền tố cổng `/family-portal`); "buổi" là `activity-session` để không trùng buổi bán trú (`DayCareSession`) của 004. `npm run gen:api` sinh `frontend/src/api/api014.js` (thêm `014` vào `TRANSLATED`); `ApiContractIT` đăng ký api-014 với 29 operation ở danh sách chờ, xóa dần khi cài controller. Kiểm: `ApiContractIT` xanh, web lint, build qua.

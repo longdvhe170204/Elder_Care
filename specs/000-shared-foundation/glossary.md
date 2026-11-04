@@ -2935,6 +2935,71 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 
 *Chủ feature điền khi dịch `contracts/api-014.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
+### 20.1. Gói (T001, chủ dự án duyệt 2026-11-05)
+
+| Tên logic | Mã |
+| --- | --- |
+| `care.hoatdong`, `care.buoi`, `care.chuyendi`, `care.tinhthan`, `care.kiemtra` | `care.internal.activity`, `care.internal.session`, `care.internal.trip`, `care.internal.wellbeing`, `care.internal.qualitycheck` |
+| `care.hoatdong.lich` (job) | `care.scheduling` (gói job chung của M04) |
+| `M04HoatDongArchTest`; luật job không tạo bản ghi 014 | `M04ActivityArchTest`; `M04ArchitectureRules.NO_JOB_CREATES_ACTIVITY_RECORDS` |
+
+### 20.2. Đường dẫn API (tiền tố `/api/v1`, chủ dự án duyệt 2026-11-05)
+
+| Tên logic | Mã |
+| --- | --- |
+| `/hoat-dong/loai`, `/hoat-dong`, `/hoat-dong/{id}` | `/activity-types`, `/activities`, `/activities/{id}` |
+| `/hoat-dong/{id}/{lenh}`: `ngung`, `doi-mau`, `tao-buoi-tu-mau`, `them-thuong-xuyen`, `bo-thuong-xuyen` | `/activities/{id}/{command}`: `deactivate`, `change-template`, `create-sessions-from-template`, `add-regular-participant`, `remove-regular-participant` |
+| `/buoi`, `/buoi/{id}`; `/buoi/{id}/{lenh}`: `doi`, `huy`, `hoan-tat-diem-danh` | `/activity-sessions`, `/activity-sessions/{id}`; `/activity-sessions/{id}/{command}`: `reschedule`, `cancel`, `complete-attendance` |
+| `/buoi/{id}/dang-ky`, `/dang-ky/{id}/huy`, `/buoi/{id}/diem-danh` | `/activity-sessions/{id}/registrations`, `/activity-registrations/{id}/cancel`, `/activity-sessions/{id}/attendance` |
+| `/dong-y-ve-muon`, `/dong-y-ve-muon/{id}/rut` | `/late-return-consents`, `/late-return-consents/{id}/withdraw` |
+| `/chuyen-di/{id}`, `…/phan-cong`, `…/danh-gia` | `/trips/{id}`, `/trips/{id}/assignment`, `/trips/{id}/eligibility-assessments` |
+| `/chuyen-di/{id}/{lenh}`: `roi-vien`, `ve`, `gia-han`, `chuyen-truong-doan`, `bao-thieu-nguoi`, `ghi-su-co-thieu-nguoi`, `ket-thuc-ve` | `/trips/{id}/{command}`: `depart`, `return`, `extend`, `transfer-leader`, `report-missing`, `record-missing-incident`, `finish-return` |
+| `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than` | `/residents/{residentId}/preferences`, `/preferences/{id}/remove`, `/residents/{residentId}/wellbeing-profile` |
+| `/kiem-tra-chat-luong/ca/{caId}`, `/muc-kiem-tra/{id}/ket-qua` | `/quality-checks/shifts/{shiftId}`, `/quality-check-items/{id}/result` |
+| `/cong/nguoi-cao-tuoi/{nctId}/hoat-dong`, `/cong/dong-y-ve-muon`, `…/{id}/rut` | `/family-portal/residents/{residentId}/activities`, `/family-portal/late-return-consents`, `/family-portal/late-return-consents/{id}/withdraw` |
+| tag `hoat-dong`, `buoi`, `chuyen-di`, `tinh-than`, `kiem-tra`, `cong` | `activities`, `activity-sessions`, `trips`, `wellbeing`, `quality-checks`, `family-portal` |
+| tham số `tu`, `den`, `tangKhuVucId`, `nctId`, `caId` | `from`, `to`, `floorAreaId`, `residentId`, `shiftId` |
+
+### 20.3. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| thân loại hoạt động (`ten`, `hoatDongNhom`, `ngoaiVien`, `nhomSoThichIds`, `trangThai`) | `name`, `groupActivity`, `offSite`, `interestGroupIds`, `status` |
+| `HoatDong` (`ten`, `loaiId`, `phamVi`, `tangKhuVucId`, `diaDiemMacDinh` {`phongId`, `khuVucId`, `diemDen`}, `nguoiPhuTrachMacDinhId`, `thoiLuongPhut`, `soLuongToiDa`, `doiTuong`, `coThuPhi`, `dichVuId`, `hoatDongNhom`, `lyDoDoiHoatDongNhom`, `dangKyCanHuy`, `lyDo`) | `Activity` (`name`, `typeId`, `scope`, `floorAreaId`, `defaultLocation` {`roomId`, `areaId`, `destination`}, `defaultResponsibleStaffId`, `durationMinutes`, `maxParticipants`, `targetGroup`, `charged`, `serviceId`, `groupActivity`, `groupActivityChangeReason`, `registrationsToCancel`, `reason`) |
+| `LenhHoatDong` (`lyDo`, `ngayApDung`, `mau` {`ngayTrongTuan`, `chuKyNgay`, `gioBatDau`, `gioKetThuc`, `ngayBatDau`, `ngayKetThuc`}, `tuNgay`, `denNgay`, `nctId`) | `ActivityCommand` (`reason`, `effectiveDate`, `template` {`daysOfWeek`, `intervalDays`, `startTime`, `endTime`, `startDate`, `endDate`}, `fromDate`, `toDate`, `residentId`) |
+| `TaoBuoi` (`hoatDongId`, `batDau`, `ketThuc`, `diaDiemId`, `nguoiPhuTrachId`, `chuyen` {`diemDen`, `roiDuKien`, `veDuKien`, `phuongTien`, `xeCuaVien`}) | `ActivitySessionCreate` (`activityId`, `startsAt`, `endsAt`, `locationId`, `responsibleStaffId`, `trip` {`destination`, `plannedDepartureAt`, `plannedReturnAt`, `transport`, `facilityVehicle`}) |
+| `Buoi` (`hoatDongId`, `batDau`, `ketThuc`, `trangThai`, `soDangKy`, `laChuyenDi`) | `ActivitySession` (`activityId`, `startsAt`, `endsAt`, `status`, `registrationCount`, `isTrip`) |
+| thân đăng ký (`nctId`, `xacNhanCanhBao`) | `residentId`, `acknowledgeWarnings` |
+| `DiemDanhBuoi` (`ketQua[]` {`nctId`, `themLucDiemDanh`, `ketQua`, `lyDoVang`, `mucThamGia`, `mucGiaoTiep`, `tinhTrangSau`, `ghiChu`}, `thoiDiemThietBi`) | `SessionAttendance` (`results[]` {`residentId`, `addedAtAttendance`, `result`, `absenceReason`, `participationLevel`, `communicationLevel`, `conditionAfter`, `note`}, `deviceAt`) |
+| `DongYVeMuon` (`nctId`, `buoiId`, `nguoiDaiDienId`, `tepBanKyId`) | `LateReturnConsent` (`residentId`, `sessionId`, `representativeId`, `signedFileId`) |
+| phân công chuyến (`truongDoanId`, `nguoiDiCungIds`); đánh giá (`nctId`, `ketQua`, `lyDo`) | `leaderId`, `companionIds`; `residentId`, `result`, `reason` |
+| `LenhChuyen` (`nctIds`, `lyDo`, `veDuKienMoi`, `truongDoanMoiId`, `noiThayLanCuoi`, `lucThayLanCuoi`, `moTa`, `thoiDiemThietBi`) | `TripCommand` (`residentIds`, `reason`, `newPlannedReturnAt`, `newLeaderId`, `lastSeenPlace`, `lastSeenAt`, `description`, `deviceAt`) |
+| thân sở thích (`nhomId`, `moTa`, `muc`, `nguon`, `xacNhanThay`) | `interestGroupId`, `description`, `level`, `source` (`OpinionSource` của api-001), `confirmReplacement` |
+| lập danh sách kiểm tra (`tangKhuVucId`, `congViecIds`) | `floorAreaId`, `careTaskIds` |
+| `KetQuaKiemTra` (`ketQua`, `ghiChu`, `tepAnhIds`, `congViecLamLai` {`thoiDiemDuKien`, `nguoiThucHienId`, `congViecChungCuaTang`}) | `QualityCheckResult` (`result`, `note`, `photoFileIds`, `reworkTask` {`plannedAt`, `performerId`, `sharedOnFloor`}) |
+| cổng: đồng ý về muộn (`nctId`, `buoiId`) | `residentId`, `sessionId` |
+| `Loi`, response `Loi`, `LoiChan`; `LyDo`; tham số `NctId`; security `phien` | `Problem`, response `Problem`, `Blocked`; `Reason`; `ResidentId`; `session` |
+
+### 20.4. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| phạm vi hoạt động `TANG`, `TOAN_VIEN` | `FLOOR`, `FACILITY` |
+| kết quả điểm danh `CO_MAT`, `VANG`; lý do vắng `TU_CHOI`, `SUC_KHOE`, `DANG_VANG_MAT`, `KHONG_DEN`, `KHAC` | `PRESENT`, `ABSENT`; `REFUSED`, `HEALTH`, `AWAY`, `NO_SHOW`, `OTHER` |
+| mức tham gia `TICH_CUC`, `BINH_THUONG`, `THU_DONG`, `BO_GIUA_CHUNG`; mức giao tiếp `CHU_DONG`, `KHI_DUOC_HOI`, `IT_GIAO_TIEP` | `ACTIVE`, `NORMAL`, `PASSIVE`, `LEFT_EARLY`; `PROACTIVE`, `WHEN_ASKED`, `MINIMAL` |
+| đánh giá khả năng `DAT`, `KHONG_DAT`; sở thích `THICH`, `KHONG_THICH` | `PASS`, `FAIL`; `LIKE`, `DISLIKE` |
+| kết quả kiểm tra `DAT`, `KHONG_DAT`, `KHONG_KIEM_TRA_DUOC` | `PASS`, `FAIL`, `NOT_CHECKABLE` |
+
+### 20.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI`, `DA_CO_BUOI`, `SAU_NGAY_KET_THUC_MAU`, `DU_SO_LUONG`, `KHOANH_VUNG`, `NCT_TRANG_THAI_KHONG_HOP_LE`, `BUOI_DA_BAT_DAU`, `CHONG_THOI_GIAN` | `STATE_CHANGED`, `SESSION_ALREADY_EXISTS`, `AFTER_TEMPLATE_END_DATE`, `CAPACITY_FULL`, `ISOLATION_ACTIVE`, `RESIDENT_STATUS_INVALID`, `SESSION_ALREADY_STARTED`, `TIME_OVERLAP` |
+| `NGOAI_LICH_BAN_TRU`, `CAN_DONG_Y_VE_MUON`, `NGHI_NHIEM`, `CAN_XAC_NHAN_CANH_BAO`, `CHUA_TOI_GIO_BAT_DAU`, `CON_DANG_KY_CHUA_CO_KET_QUA`, `DA_CO_DIEM_DANH` | `OUTSIDE_DAY_CARE_SCHEDULE`, `LATE_RETURN_CONSENT_REQUIRED`, `INFECTION_SUSPECTED`, `WARNING_ACKNOWLEDGEMENT_REQUIRED`, `NOT_YET_STARTED`, `REGISTRATIONS_WITHOUT_RESULT`, `ATTENDANCE_ALREADY_RECORDED` |
+| `CHUA_CO_TRUONG_DOAN`, `KHONG_DU_VAI_TRO`, `KHONG_CO_TEN_TRONG_CA`, `CHUA_DANH_GIA_DAT`, `CHUA_XU_LY_THUOC`, `CHUA_CO_LICH_XE`, `XE_DA_CO_LICH_KHAC`, `QUA_SOM_ROI_VIEN`, `DA_CO_SU_CO_THIEU_NGUOI`, `YEU_CAU_TRUC_TUYEN` | `TRIP_LEADER_REQUIRED`, `ROLE_NOT_ELIGIBLE`, `NOT_ON_SHIFT`, `ELIGIBILITY_NOT_PASSED`, `MEDICATION_NOT_HANDLED`, `VEHICLE_SCHEDULE_REQUIRED`, `VEHICLE_ALREADY_SCHEDULED`, `DEPARTURE_TOO_EARLY`, `MISSING_INCIDENT_ALREADY_RECORDED`, `REQUIRES_ONLINE` |
+| `CHUA_DU_TY_LE`, `DA_CO_DANH_SACH`, `CONG_VIEC_KHONG_DU_DIEU_KIEN`, `THIEU_CONG_VIEC_LAM_LAI`, `TU_KIEM_TRA_CONG_VIEC_CUA_MINH`, `NGOAI_THOI_GIAN_CA`, `CAN_XAC_NHAN_THAY_SO_THICH` | `SAMPLE_RATIO_NOT_MET`, `CHECKLIST_ALREADY_EXISTS`, `TASK_NOT_ELIGIBLE`, `REWORK_TASK_REQUIRED`, `SELF_CHECK_NOT_ALLOWED`, `OUTSIDE_SHIFT_TIME`, `PREFERENCE_REPLACEMENT_CONFIRMATION_REQUIRED` |
+| client web sinh từ hợp đồng | `frontend/src/api/api014.js` (thêm `014` vào `TRANSLATED` của `frontend/scripts/gen-api.mjs`) |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
