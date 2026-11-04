@@ -2817,6 +2817,21 @@ Không tạo các tên bảng legacy resident_cost_guard, cost_period, cost_stat
 
 Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ số phần trăm DECIMAL(5,2), thời điểm DATETIME(6), id BIGINT. JSON tiền vẫn integer/int64. Kind của dòng SQL không mở rộng statementType trong REST. JSON ở bảng chung theo data-model 010 mục 0.1; chưa tự khai báo chữ ký Java của A.
 
+### 16.9. Nền bảng chung, khóa và job 010 — 2026-11-04
+
+| Tên logic | Tên triển khai / cách lưu |
+| --- | --- |
+| Thời gian tính phí | BillingPeriod; startsOn/endsOn, admittedOn, deathAt, firstSessionAt, residential |
+| Trạng thái chi phí người cao tuổi | BillingResidentState; SharedKind M11.RESIDENT_COST_STATE; finalCostCompletedFrom (Instant nullable); dùng chung payload M11 với 017 khi mở rộng |
+| Lịch sử tính lại | CostRecalculation; HistoryTrack M11.COST_ITEM / RECALCULATION; before/after, cause, resetToDraft; snapshot quantity/unitPrice/factorPercent/amount |
+| Khóa chi phí | CostLock, CostRowLocks; khóa kỹ thuật M11.COST_RESIDENT:<residentId>, rồi trạng thái/bảng |
+| Sự kiện nguồn đã xử lý | ReminderMarkers: kind M11.SOURCE_PROCESSED, entityType M11.BILLING_SOURCE; residentId và khóa sự kiện |
+| Khung chạy định kỳ | M11DailyJob, M11HourlyJob, M11Jobs, CostTimedTask, CostJobCadence (DAILY/HOURLY) |
+| Mốc chạy bù | M11.JOB_ANCHOR / M11.JOB_DONE; M11.JOB.<tên tác vụ>; DAILY=1, HOURLY=2; mã lần chạy SchedulerRuns là UUID |
+| Metadata, phạm vi | M11GovernanceConfig, CostScopeAssignment, CostScopeStore; M11.COST_PERIOD/COST_STATEMENT/COST_ITEM; FINANCE/MEDICATION |
+
+Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịch sử lưu căn cứ/người/thời điểm trong HistoryEntry chung; JSON không thay đổi giới hạn DECIMAL của dữ liệu gốc. Retention và quyền tệp mua hộ còn T008.
+
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
