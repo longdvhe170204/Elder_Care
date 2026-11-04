@@ -76,13 +76,13 @@ void themDienBien(long suCoId, String maLoaiDienBien, String noiDung, NguoiDungH
     // người xử lý đóng hoặc đính chính sự cố bằng lệnh (FR-045, FR-046)
 void tiepNhan(long suCoId, NguoiDungHienTai nd);
     // bổ sung theo plan 009 (009 FR-026a "Xác nhận và tiếp nhận"): cùng kiểm tra quyền, trạng thái và tác động
-    // như POST /su-co/{id}/tiep-nhan; transaction riêng của 009; từ chối thì ném lỗi có maLoi (DA_CO_NGUOI_TIEP_NHAN…)
+    // như POST /incidents/{id}/receive; transaction riêng của 009; từ chối thì ném lỗi có maLoi (DA_CO_NGUOI_TIEP_NHAN…)
 ```
 
 `incident.api.CanhBaoLenhApi` (009; bổ sung theo plan 009):
 
 ```java
-void tiepNhan(long canhBaoId, NguoiDungHienTai nd);   // như POST /canh-bao/{id}/tiep-nhan (FR-029, FR-036)
+void tiepNhan(long canhBaoId, NguoiDungHienTai nd);   // như POST /alerts/{id}/receive (FR-029, FR-036)
 ```
 
 ### 1.7. `incident.api.SuCoApi`, `CanhBaoApi` (đọc; 012, 013, 016)
@@ -274,12 +274,17 @@ interface NotificationLogPort { // NhatKyThongBaoPort, 009 cài
   List<IncidentNotificationView> bySource(String sourceRecordType, long sourceRecordId);
 }
 record IncidentNotificationView(String recipientType, long recipientId, String channel,
-    Optional<Instant> sentAt, Optional<Instant> viewedAt) {}
+    Optional<Instant> sentAt, Optional<Instant> viewedAt, List<CallReminderSummary> callReminders) {}
+// Kiểu lồng trong IncidentNotificationView
+record CallReminderSummary(long callReminderId, String personToCallType, long personToCallId,
+    String status, List<CallOutcome> results) {}
+record CallOutcome(String result, Instant calledAt) {}
 ```
 
 - Liên hệ: chỉ mã người thân, họ tên và điện thoại phục vụ FR-047/048; danh sách người đại diện giữ thứ tự gọi do 012 cung cấp (FR-050b). Lượt thăm gồm người thân và người đi cùng thực tế, không đưa lượt chưa vào vào nguồn truy vết (FR-060); `familyMemberId` có thể rỗng cho người đi cùng, `exitedAt` rỗng khi chưa ra.
 - Buổi hoạt động trả nguồn buổi, khoảng thời gian và mã những người cao tuổi cùng Có mặt với người được truy vấn, kể cả chuyến (FR-060, module-interfaces 014). Truy vấn khoảng dùng chồng thời gian `[from, to)`, không tính hai khoảng chỉ chạm biên; không cắt mất khoảng gốc của nguồn.
 - Nhật ký trả đúng cặp loại/mã nguồn, giữ mốc gửi/xem nếu có; một dòng cho một người nhận trên một kênh (FR-040, FR-048b). Loại người nhận và kênh giữ mã của 009; không phụ thuộc DTO của 009 để tránh chiều phụ thuộc ngược.
+- Q-388: mỗi dòng mang đầy đủ các lượt của chuỗi nhắc gọi, kể cả lượt gọi người thân kế tiếp. Giữ mã người cần gọi, trạng thái và kết quả của 009. Kết quả gọi được người kế tiếp không xác nhận thông báo của người nhận ban đầu. A nối bản thật bằng `NotificationLookupApi.bySource`, đổi mã nguồn từ `long` sang `String`.
 - Bộ fake duy nhất ở `support/fake/incident/`: `FakeAlertStaff` có sẵn; bổ sung `FakeEmergencyFamily`, `FakeAttendanceTrace`, `FakeNotificationLog`, cùng nạp qua `FakeM05Config`. Các hàm đặt dữ liệu chỉ dành cho test; chưa đặt thì trả rỗng, không tự sinh bản ghi, không gửi thông báo. Đây không phải bản cài nghiệp vụ thật hay endpoint giả lập HTTP.
 
 ### 2.5. API chỉ số gần nhất: phần T003 cho 001 (2026-10-31)

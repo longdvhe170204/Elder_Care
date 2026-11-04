@@ -1728,7 +1728,13 @@ Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường
 | Loại sự cố nghi lây nhiễm, cơ sở vật chất, đồ gửi thất lạc/hư hỏng; bảo vệ mã đặc biệt | `SUSPECTED_INFECTION`, `FACILITY`, `BELONGINGS_LOST`, `BELONGINGS_DAMAGED`; `IncidentCatalogs.PROTECTED_TYPES`, `PROTECTED_CATALOG_CODE` (409) |
 | `NguoiThanKhanCapPort` (`nguoiLienHeChinh`, `nguoiDaiDien`, `luotThamTrongKhoang`) | `EmergencyFamilyPort` (`primaryContact`, `representatives`, `visitsInRange`); `EmergencyFamilyContactView`, `VisitTraceView`, `VisitTracePersonView` |
 | `DiemDanhTruyVetPort.cungThamGia`, `BuoiCungThamGiaView` | `AttendanceTracePort.coAttendance`, `ActivityAttendanceTraceView` |
-| `NhatKyThongBaoPort.theoNguon`, `DaThongBaoView` | `NotificationLogPort.bySource`, `IncidentNotificationView` (`recipientType`, `recipientId`, `channel`, `sentAt`, `viewedAt`) |
+| Dòng theo dõi người cao tuổi trong danh sách tiếp xúc | `ContactFollowUpStore`, `M05.CONTACT_PERSON` |
+| Sự cố sau gộp R-15; nguồn đọc dấu nghi nhiễm | bảng `incident`, `IncidentStore.suspectedAt`; `NEW`, `IN_PROGRESS`, `MONITORING`, `CLOSED`, `CANCELLED` |
+| Nguồn phân bổ, lệnh và dữ liệu khoanh vùng | `IncidentAllocationStatus`, `ContainmentService`, `ContainmentNotices`, `ContainmentContent`, `ContactListContent`, `ContactFollowUpContent` |
+| Lệnh đặt/gỡ vùng, gắn sự cố và nhật ký | `NewIsolationRequest`, `IsolationReasonRequest`, `AttachIsolationIncidentRequest`, `IsolationResponse`; `CONTAINMENT_CREATED`, `CONTAINMENT_LIFTED`, `CONTAINMENT_INCIDENT_ATTACHED` |
+| Lập danh sách tiếp xúc Nháp từ sự cố nghi nhiễm; nhật ký | `ContactListService`, `ContactListController`, `SuspectedIncident`; `ContactListActions.CONTACT_LIST_CREATED` |
+| Phạm vi và khoảng hiệu lực khoanh vùng (Q-69, BR-M05-11/12) | `incident.internal.infection.domain.ContainmentScope`, `ContainmentPeriod` |
+| `NhatKyThongBaoPort.theoNguon`, `DaThongBaoView` | `NotificationLogPort.bySource`, `IncidentNotificationView` (`recipientType`, `recipientId`, `channel`, `sentAt`, `viewedAt`, `callReminders`); lượt nhắc gọi `CallReminderSummary`, kết quả gọi `CallOutcome` (Q-388) |
 | gói chức năng M06: danh mục, lịch đo, chỉ số, ngưỡng, giấy phép, khám, tham gia trạng thái | `health.internal.catalog`, `schedule`, `measurement`, `threshold`, `license`, `examination`, `governance` (cùng dưới `health.internal`) |
 | Lệnh ghi chỉ số, đo lại, dịch vụ đo chỉ số, phân giải ngưỡng áp dụng | `RecordVitalSignCommand`, `RemeasureVitalSignCommand`, `VitalSignMeasurementService`, `ApplicableThresholdResolver`, `DefaultApplicableThresholdResolver` |
 | gói chức năng M05: cảnh báo, xu hướng, sự cố, khẩn cấp, nguy kịch, ngã, lây nhiễm, tham gia trạng thái | `incident.internal.alert`, `trend`, `incident`, `emergency`, `critical`, `fall`, `infection`, `governance` (cùng dưới `incident.internal`) |
