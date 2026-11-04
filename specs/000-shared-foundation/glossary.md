@@ -2902,6 +2902,18 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | --- | --- |
 | `family.nguoithan`, `quyen`, `don`, `tham`, `olai`, `cong`, `phanhoi`, `kenhnct` | `family.internal.relationship`, `right`, `pickup`, `visit`, `stay`, `portal`, `feedback`, `residentchannel` (mỗi chức năng có `service`, `domain`, `persistence`, `config`); `family.lich` → `family.scheduling` |
 
+### 18.6. API, SPI, sự kiện và job của `family` *(bổ sung 2026-11-04, Phase 2: T003, T006, T007, T008)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `QuyenNguoiThanApi` (`coQuanHeHieuLuc`, `quyenCoTacDung`, `laNguoiDaiDien`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`, `duocPhepDonTai`, `giayTo`) | `family.api.FamilyRightsApi` (`hasActiveRelationship`, `rightEffective`, `isRepresentative`, `canViewBelongings`, `representatives`, `primaryContact`, `allowedPickersAt`, `idDocument`); bản cài `internal.right.service.FamilyRightsLookup`; bản giả `support/fake/family/FakeFamilyRights` |
+| `NguoiThanView`, `GiayToView` | `FamilyMemberView` (`familyMemberId`, `fullName`, `phoneNumber`, `relationship`), `IdDocumentView` (`type`, `number`) |
+| `HoatDongKenhNctPort.sapToi`, `BuoiSapToiView` (`coTen`) | `family.api.spi.ResidentChannelActivityPort.upcoming`, `ResidentChannelSessionView` (`sessionId`, `name`, `startAt`, `endAt`, `facilityWide`, `registered`) |
+| `DoGuiKenhNctPort.dangGiu`, `DoGuiDangGiuView` (kênh người cao tuổi) | `family.api.spi.ResidentChannelBelongingPort.held`, `ResidentChannelBelongingView` (`belongingId`, `name`, `status`, `photoFileId`); khác `HeldBelongingView` của 008 |
+| sự kiện `QuanHeDaDoi(nguoiThanId, nctId, quanHeId, loai)`, `QuyenNguoiThanDaDoi(quanHeId, quyen, giaTri, tuLuc)` | `family.api.events.RelationshipChanged` (`familyMemberId`, `residentId`, `relationshipId`, `change` `CREATED`, `PRIMARY_CONTACT_CHANGED`, `REPRESENTATIVE_CHANGED`, `CONTACT_ORDER_CHANGED`, `ENDED`, `at`), `FamilyRightChanged` (`relationshipId`, `familyMemberId`, `residentId`, `right`, `value`, `from`) |
+| `ViecTheoPhutM10`, `ViecHangGioM10`, `ViecNuaDemM10`; `lan_chay_m10` | `family.scheduling.M10MinuteJob`, `M10HourlyJob`, `M10MidnightJob` (`M10_MINUTE`, `M10_HOURLY`, `M10_MIDNIGHT`, `eldercare.jobs.m10-*`); `internal.scheduling.service.M10Jobs`, `M10TimedTask`; dấu `reminder_marker` loại `M10.JOB_RUN` (`M10JobRunStore`) |
+| `PhanLoaiTruongProvider` (người thân), `LuuTruProvider` (quan hệ) | `FamilyMemberFieldClassification` (`M10.FAMILY_MEMBER`), `FamilyRelationshipRetention` (`M10.FAMILY_RELATIONSHIP`) |
+
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
 *Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

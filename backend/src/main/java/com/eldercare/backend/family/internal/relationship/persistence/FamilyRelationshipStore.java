@@ -64,6 +64,11 @@ public class FamilyRelationshipStore {
                 residentId);
     }
 
+    /** Mọi quan hệ của người cao tuổi, kể cả đã kết thúc, theo thứ tự liên hệ, để xét tại một thời điểm. */
+    public List<FamilyRelationship> ofResident(long residentId) {
+        return jdbc.query(SELECT + " WHERE resident_id = ? ORDER BY contact_order, id", this::map, residentId);
+    }
+
     /** Mọi quan hệ của một cặp, kể cả đã kết thúc, để xét tại một thời điểm. */
     public List<FamilyRelationship> ofPair(long familyMemberId, long residentId) {
         return jdbc.query(

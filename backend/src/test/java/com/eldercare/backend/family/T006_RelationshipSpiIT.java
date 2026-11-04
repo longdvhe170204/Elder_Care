@@ -19,12 +19,8 @@ import com.eldercare.backend.notification.api.spi.FamilyNotificationPort;
 import com.eldercare.backend.notification.api.spi.NotifiableRelationshipView;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -73,89 +68,23 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
 
     private TestUsers users;
     private Instant start;
+    private RelationshipFixtures fixtures;
 
     @BeforeEach
     void setUp() {
         users = new TestUsers(jdbc, time);
         // DATETIME(6) làm tròn phần dưới micro giây
         start = time.now().minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS);
-    }
-
-    private long familyMember(String name, String phone) {
-        GeneratedKeyHolder keys = new GeneratedKeyHolder();
-        jdbc.update(
-                c -> {
-                    PreparedStatement s = c.prepareStatement(
-                            "INSERT INTO family_member (full_name, phone_number, created_by, created_at)"
-                                    + " VALUES (?, ?, 1, ?)",
-                            Statement.RETURN_GENERATED_KEYS);
-                    s.setString(1, name);
-                    s.setString(2, phone);
-                    s.setObject(3, utc(start));
-                    return s;
-                },
-                keys);
-        return keys.getKey().longValue();
-    }
-
-    /** Quan hệ Hiệu lực từ {@code start}; vai trò, quyền ghi cả cột và lịch sử như lệnh của US1. */
-    private long relate(
-            long familyMemberId,
-            long residentId,
-            int order,
-            boolean representative,
-            boolean primaryContact,
-            FamilyRight... rights) {
-        GeneratedKeyHolder keys = new GeneratedKeyHolder();
-        List<FamilyRight> enabled = List.of(rights);
-        jdbc.update(
-                c -> {
-                    PreparedStatement s = c.prepareStatement(
-                            "INSERT INTO family_relationship (family_member_id, resident_id, relationship,"
-                                    + " representative, primary_contact, contact_order, view_health, view_costs,"
-                                    + " register_visits, receive_urgent, pickup_allowed, request_services, started_at,"
-                                    + " created_by, created_at) VALUES (?, ?, 'CHILD', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
-                            Statement.RETURN_GENERATED_KEYS);
-                    s.setLong(1, familyMemberId);
-                    s.setLong(2, residentId);
-                    s.setBoolean(3, representative);
-                    s.setBoolean(4, primaryContact);
-                    s.setInt(5, order);
-                    int i = 6;
-                    for (FamilyRight right : FamilyRight.values()) {
-                        s.setBoolean(i++, enabled.contains(right));
-                    }
-                    s.setObject(12, utc(start));
-                    s.setObject(13, utc(start));
-                    return s;
-                },
-                keys);
-        long id = keys.getKey().longValue();
-        tx.executeWithoutResult(s -> {
-            if (representative) {
-                history.record(id, RelationshipAttribute.REPRESENTATIVE, true, start, "CREATE", 1L, null);
-            }
-            for (FamilyRight right : enabled) {
-                history.record(id, RelationshipAttribute.of(right), true, start, "CREATE", 1L, null);
-            }
-        });
-        return id;
-    }
-
-    private void end(long relationshipId, Instant at) {
-        jdbc.update(
-                "UPDATE family_relationship SET status = 'ENDED', ended_at = ?, end_reason = 'test' WHERE id = ?",
-                utc(at),
-                relationshipId);
+        fixtures = new RelationshipFixtures(jdbc, tx, history, start);
     }
 
     @Test
     void F_14_familyRelationshipApi_readsActiveRelationshipsRolesAndRights() {
         long resident = TestUsers.nextId();
         long other = TestUsers.nextId();
-        long r = familyMember("Nguyễn Văn R", "0901000001");
-        long relR = relate(r, resident, 1, true, true, FamilyRight.VIEW_COSTS);
-        long relOther = relate(r, other, 1, false, false);
+        long r = fixtures.familyMember("Nguyễn Văn R", "0901000001");
+        long relR = fixtures.relate(r, resident, 1, true, true, FamilyRight.VIEW_COSTS);
+        long relOther = fixtures.relate(r, other, 1, false, false);
         Instant now = time.now();
 
         assertThat(relationships.active(r))
@@ -177,13 +106,12 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
     @Test
     void FR_068_rightsAndRepresentative_areEvaluatedAtTheGivenTime() {
         long resident = TestUsers.nextId();
-        long m = familyMember("Trần Thị M", "0901000002");
-        long rel = relate(m, resident, 1, true, false, FamilyRight.PICKUP_ALLOWED);
+        long m = fixtures.familyMember("Trần Thị M", "0901000002");
+        long rel = fixtures.relate(m, resident, 1, true, false, FamilyRight.PICKUP_ALLOWED);
         Instant turnedOff = start.plus(Duration.ofDays(3));
-        tx.executeWithoutResult(
-                s -> history.record(rel, RelationshipAttribute.PICKUP_ALLOWED, false, turnedOff, "REQUEST", 1L, null));
+        fixtures.record(rel, RelationshipAttribute.PICKUP_ALLOWED, false, turnedOff);
         Instant ended = start.plus(Duration.ofDays(5));
-        end(rel, ended);
+        fixtures.end(rel, ended);
 
         assertThat(relationships.rightEnabled(m, resident, FamilyRight.PICKUP_ALLOWED, start.minusSeconds(1)))
                 .as("trước khi lập quan hệ")
@@ -206,11 +134,11 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
     void FR_021_representativePort_forContractsAndResidencyChanges() {
         long resident = TestUsers.nextId();
         long noRepresentative = TestUsers.nextId();
-        long r = familyMember("Lê Văn R", "0901000003");
-        long n = familyMember("Lê Thị N", "0901000004");
-        relate(r, resident, 1, true, true);
-        relate(n, resident, 2, false, false);
-        relate(n, noRepresentative, 1, false, true);
+        long r = fixtures.familyMember("Lê Văn R", "0901000003");
+        long n = fixtures.familyMember("Lê Thị N", "0901000004");
+        fixtures.relate(r, resident, 1, true, true);
+        fixtures.relate(n, resident, 2, false, false);
+        fixtures.relate(n, noRepresentative, 1, false, true);
 
         assertThat(representatives.hasRepresentative(resident)).isTrue();
         assertThat(representatives.hasRepresentative(noRepresentative)).isFalse();
@@ -227,14 +155,14 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
     @Test
     void FR_012_notificationPort_rightsCallOrderAndContact() {
         long resident = TestUsers.nextId();
-        long primary = familyMember("Phạm Văn C", "0901000005");
-        long rep = familyMember("Phạm Thị D", "0901000006");
-        long urgent = familyMember("Phạm Văn E", "0901000007");
-        long none = familyMember("Phạm Thị F", "0901000008");
-        relate(primary, resident, 1, false, true);
-        relate(none, resident, 2, false, false, FamilyRight.VIEW_COSTS);
-        relate(urgent, resident, 3, false, false, FamilyRight.RECEIVE_URGENT);
-        relate(rep, resident, 4, true, false);
+        long primary = fixtures.familyMember("Phạm Văn C", "0901000005");
+        long rep = fixtures.familyMember("Phạm Thị D", "0901000006");
+        long urgent = fixtures.familyMember("Phạm Văn E", "0901000007");
+        long none = fixtures.familyMember("Phạm Thị F", "0901000008");
+        fixtures.relate(primary, resident, 1, false, true);
+        fixtures.relate(none, resident, 2, false, false, FamilyRight.VIEW_COSTS);
+        fixtures.relate(urgent, resident, 3, false, false, FamilyRight.RECEIVE_URGENT);
+        fixtures.relate(rep, resident, 4, true, false);
         long account = users.family(primary).accountId();
 
         Map<Long, NotifiableRelationshipView> byMember = notifications.activeRelationships(resident).stream()
@@ -258,7 +186,7 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
             assertThat(c.phoneNumber()).contains("0901000008");
             assertThat(c.portalAccountId()).isEmpty();
         });
-        long unrelated = familyMember("Không quan hệ", "0901000009");
+        long unrelated = fixtures.familyMember("Không quan hệ", "0901000009");
         assertThat(notifications.contact(unrelated))
                 .as("kể cả khi không có quan hệ")
                 .isPresent();
@@ -267,12 +195,12 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
     @Test
     void FR_047_emergencyPort_primaryContactAndRepresentativesInContactOrder() {
         long resident = TestUsers.nextId();
-        long a = familyMember("Võ Văn A", "0901000010");
-        long b = familyMember("Võ Thị B", "0901000011");
-        long c = familyMember("Võ Văn C", "0901000012");
-        relate(a, resident, 3, true, false);
-        relate(b, resident, 1, true, true);
-        relate(c, resident, 2, false, false);
+        long a = fixtures.familyMember("Võ Văn A", "0901000010");
+        long b = fixtures.familyMember("Võ Thị B", "0901000011");
+        long c = fixtures.familyMember("Võ Văn C", "0901000012");
+        fixtures.relate(a, resident, 3, true, false);
+        fixtures.relate(b, resident, 1, true, true);
+        fixtures.relate(c, resident, 2, false, false);
 
         assertThat(emergency.primaryContact(resident))
                 .map(EmergencyFamilyContactView::familyMemberId)
@@ -286,12 +214,12 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
     @Test
     void A_05_footnotes2And7_onlyActiveRepresentative() {
         long resident = TestUsers.nextId();
-        long rep = familyMember("Đỗ Văn R", "0901000013");
-        long other = familyMember("Đỗ Thị M", "0901000014");
-        long outsider = familyMember("Đỗ Văn X", "0901000015");
-        relate(rep, resident, 1, true, true);
-        relate(other, resident, 2, false, false);
-        relate(outsider, TestUsers.nextId(), 1, true, true);
+        long rep = fixtures.familyMember("Đỗ Văn R", "0901000013");
+        long other = fixtures.familyMember("Đỗ Thị M", "0901000014");
+        long outsider = fixtures.familyMember("Đỗ Văn X", "0901000015");
+        fixtures.relate(rep, resident, 1, true, true);
+        fixtures.relate(other, resident, 2, false, false);
+        fixtures.relate(outsider, TestUsers.nextId(), 1, true, true);
         CurrentUser repUser = users.family(rep).user();
         CurrentUser otherUser = users.family(other).user();
         CurrentUser outsiderUser = users.family(outsider).user();
@@ -310,9 +238,5 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
             assertThat(condition.isSatisfied(repUser, new Target("X", "1", null, null), time.now()))
                     .isFalse();
         }
-    }
-
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }
