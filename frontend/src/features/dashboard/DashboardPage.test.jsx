@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
-import { DashboardPage } from './DashboardPage'
+import { DashboardPage, REFRESH_MS } from './DashboardPage'
 
 // 016 T010: khối theo nhóm backend trả, "—" khi mẫu số 0, số mở danh sách bản ghi, 304 giữ số đang hiện,
 // không có phạm vi thì thông điệp (FR-020, FR-021, FR-009).
@@ -40,6 +40,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
@@ -131,6 +132,29 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Giấy phép cơ sở')).toBeInTheDocument()
     const [, init] = api.calls('GET', '/dashboard')[1]
     expect(init.headers['If-None-Match']).toBe('"a1"')
+  })
+
+  // DESIGN.md 9.3 (2.2.2) và 002 T047a: tự làm mới gửi X-Background-Refresh, tạm dừng được, tiếp tục thì tải ngay
+  it('tuLamMoi_yeuCauNen_tamDungThiNgung_tiepTucTaiNgay', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    api.on('GET', '/dashboard', () =>
+      dashboard([{ group: 'FACILITY_LICENSES', status: 'COMPLETE', values: [LICENSE] }]),
+    )
+    render(<DashboardPage role="NURSING_HOME_MANAGER" />)
+    await screen.findByText('Giấy phép cơ sở')
+
+    act(() => vi.advanceTimersByTime(REFRESH_MS))
+    await vi.waitFor(() => expect(api.calls('GET', '/dashboard')).toHaveLength(2))
+    expect(api.calls('GET', '/dashboard')[1][1].headers['X-Background-Refresh']).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tạm dừng tự làm mới' }))
+    expect(screen.getByText(/đã tạm dừng tự làm mới/)).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(REFRESH_MS * 3))
+    expect(api.calls('GET', '/dashboard')).toHaveLength(2)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục tự làm mới' }))
+    await vi.waitFor(() => expect(api.calls('GET', '/dashboard')).toHaveLength(3))
+    expect(api.calls('GET', '/dashboard')[2][1].headers['X-Background-Refresh']).toBeUndefined()
   })
 
   it('FR_020_khongCoPhamVi_thongDiep', async () => {

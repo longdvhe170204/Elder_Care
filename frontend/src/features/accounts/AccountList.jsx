@@ -19,6 +19,8 @@ import { STATUS_LABELS, TYPE_LABELS, profileLabel, roleNames } from './accountLa
 // Danh sách tài khoản (002 T035; US2; FR-001, FR-051; hợp đồng GET /accounts, phân trang theo con trỏ).
 // Quản lý viện thấy mọi tài khoản; Hành chính thấy tài khoản người thân, người cao tuổi (backend lọc). canCreate,
 // canCreateResident chỉ để hiện nút tạo tài khoản nhân viên, người cao tuổi (002 T095); backend vẫn kiểm (constitution XI).
+// Chi tiết mở trong DetailLayout của màn cha (DESIGN.md 5): onOpen nhận { key, label, render }, openedKey là mục đang mở.
+// Form tạo tài khoản là khung phụ, vẫn mở bằng Sheet.
 
 const EMPTY_FILTER = { type: '', status: '', q: '' }
 
@@ -26,11 +28,11 @@ function toQuery(filter, cursor) {
   return { type: filter.type || undefined, status: filter.status || undefined, q: filter.q.trim() || undefined, cursor }
 }
 
-export function AccountList({ canCreate, canCreateResident = false }) {
+export function AccountList({ canCreate, canCreateResident = false, openedKey, onOpen }) {
   const [draft, setDraft] = useState(EMPTY_FILTER)
   const [filter, setFilter] = useState(EMPTY_FILTER)
   const [state, setState] = useState({ status: 'loading', items: [], nextCursor: null })
-  const [opened, setOpened] = useState(null)
+  const [creating, setCreating] = useState(null)
 
   const load = useCallback(async (nextFilter, cursor) => {
     setState((s) => ({ ...s, status: cursor ? 'more' : 'loading', ...(cursor ? {} : { items: [] }) }))
@@ -55,6 +57,14 @@ export function AccountList({ canCreate, canCreateResident = false }) {
   }, [])
 
   if (state.status === 'denied') return <PermissionDeniedState label="tài khoản" />
+
+  function open(id) {
+    onOpen({
+      key: `account-${id}`,
+      label: 'Chi tiết tài khoản',
+      render: (titles) => <AccountDetail key={id} id={id} onChanged={replaceRow} {...titles} />,
+    })
+  }
 
   function search(event) {
     event.preventDefault()
@@ -112,12 +122,12 @@ export function AccountList({ canCreate, canCreateResident = false }) {
             Lọc
           </Button>
           {canCreate && (
-            <Button type="button" className="h-10" onClick={() => setOpened('new')}>
+            <Button type="button" className="h-10" onClick={() => setCreating('staff')}>
               Tạo tài khoản nhân viên
             </Button>
           )}
           {canCreateResident && (
-            <Button type="button" className="h-10" onClick={() => setOpened('new-resident')}>
+            <Button type="button" className="h-10" onClick={() => setCreating('resident')}>
               Tạo tài khoản người cao tuổi
             </Button>
           )}
@@ -165,9 +175,18 @@ export function AccountList({ canCreate, canCreateResident = false }) {
           </TableHeader>
           <TableBody>
             {state.items.map((a) => (
-              <TableRow key={a.id}>
+              <TableRow
+                key={a.id}
+                data-state={openedKey === `account-${a.id}` ? 'selected' : undefined}
+                className="data-[state=selected]:bg-accent"
+              >
                 <TableCell>
-                  <Button variant="link" className="h-auto p-0" onClick={() => setOpened(a.id)}>
+                  <Button
+                    variant="link"
+                    className="h-auto p-0"
+                    aria-pressed={openedKey === `account-${a.id}`}
+                    onClick={() => open(a.id)}
+                  >
                     {a.username}
                   </Button>
                 </TableCell>
@@ -209,13 +228,14 @@ export function AccountList({ canCreate, canCreateResident = false }) {
         </Button>
       )}
 
-      <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
+      <Sheet open={creating !== null} onOpenChange={(next) => !next && setCreating(null)}>
         <SheetContent className="sm:max-w-lg">
-          {opened === 'new' && <CreateStaffAccount onCreated={() => load(filter)} onClose={() => setOpened(null)} />}
-          {opened === 'new-resident' && (
-            <CreateResidentAccount onCreated={() => load(filter)} onClose={() => setOpened(null)} />
+          {creating === 'staff' && (
+            <CreateStaffAccount onCreated={() => load(filter)} onClose={() => setCreating(null)} />
           )}
-          {typeof opened === 'number' && <AccountDetail key={opened} id={opened} onChanged={replaceRow} />}
+          {creating === 'resident' && (
+            <CreateResidentAccount onCreated={() => load(filter)} onClose={() => setCreating(null)} />
+          )}
         </SheetContent>
       </Sheet>
     </section>

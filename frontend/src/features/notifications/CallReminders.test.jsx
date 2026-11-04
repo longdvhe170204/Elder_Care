@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { DetailHost } from '@/test/DetailHost'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { NotificationInbox } from './NotificationInbox'
 
@@ -67,7 +68,7 @@ afterEach(() => {
 const block = () => screen.findByRole('region', { name: 'Cần gọi điện' })
 
 async function openForm() {
-  render(<NotificationInbox />)
+  render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
   fireEvent.click(within(await block()).getByRole('button', { name: 'Ghi kết quả gọi' }))
   return screen.findByRole('dialog')
 }
@@ -79,7 +80,7 @@ function sentBody() {
 
 describe('Lượt nhắc gọi', () => {
   it('FR_027_khoiCanGoiDien_dungTrenBoLoc_coSoDienThoai', async () => {
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     const section = await block()
     expect(section).toHaveTextContent('Gọi Trần Thị Mai')
@@ -91,7 +92,7 @@ describe('Lượt nhắc gọi', () => {
 
   it('FR_027_khongCoLuot_khongCoKhoi', async () => {
     api.on('GET', '/me/call-reminders', json(200, []))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     await screen.findByText(/0 chưa xem/)
     expect(screen.queryByRole('region', { name: 'Cần gọi điện' })).toBeNull()
@@ -100,7 +101,7 @@ describe('Lượt nhắc gọi', () => {
   it('FR_027_khongCoSo_nutMoLuotNhac', async () => {
     const noPhone = reminder({ personToCall: { ...reminder().personToCall, phoneNumber: null } })
     api.on('GET', '/me/call-reminders', json(200, [noPhone]))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     const section = await block()
     expect(section).toHaveTextContent('Chưa có số điện thoại')
@@ -111,7 +112,7 @@ describe('Lượt nhắc gọi', () => {
     const readOnly = reminder({ canRecordResult: false })
     api.on('GET', '/me/call-reminders', json(200, [readOnly]))
     api.on('GET', '/call-reminders/8', json(200, readOnly))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     fireEvent.click(within(await block()).getByRole('button', { name: 'Mở lượt nhắc gọi' }))
 
@@ -121,14 +122,14 @@ describe('Lượt nhắc gọi', () => {
 
   it('FR_033_loiDanhSachLuotNhac_khongHongHop', async () => {
     api.on('GET', '/me/call-reminders', problem(500, 'INTERNAL'))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     expect(await screen.findByText(/0 chưa xem/)).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Cần gọi điện' })).toBeNull()
   })
 
   it('FR_027_FR_030a_chiTiet_dungHopDong', async () => {
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     fireEvent.click(within(await block()).getByRole('button', { name: 'Gọi Trần Thị Mai' }))
 
     const sheet = await screen.findByRole('dialog')
@@ -146,7 +147,7 @@ describe('Lượt nhắc gọi', () => {
       '/call-reminders/8',
       json(200, reminder({ status: 'STOPPED', canRecordResult: false, stopReason: 'Người nhận đã tự xác nhận' })),
     )
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     fireEvent.click(within(await block()).getByRole('button', { name: 'Gọi Trần Thị Mai' }))
 
     const sheet = await screen.findByRole('dialog')
@@ -166,7 +167,7 @@ describe('Lượt nhắc gọi', () => {
         }),
       ),
     )
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     fireEvent.click(within(await block()).getByRole('button', { name: 'Gọi Trần Thị Mai' }))
 
     const sheet = await screen.findByRole('dialog')
@@ -271,7 +272,7 @@ describe('Lượt nhắc gọi', () => {
   it('FR_026_thongBaoNhacGoi_coNutMoLuot_vanXacNhanRieng', async () => {
     api.on('GET', '/me/call-reminders', json(200, []))
     api.on('GET', '/me/notifications', json(200, { ...EMPTY, unacknowledgedUrgentCount: 1, items: [notification()] }))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     const urgent = await screen.findByRole('region', { name: 'Khẩn cấp chưa xác nhận' })
     expect(within(urgent).getByRole('button', { name: 'Xác nhận đã nhận' })).toBeInTheDocument()
@@ -287,7 +288,7 @@ describe('Lượt nhắc gọi', () => {
     api.on('GET', '/me/call-reminders', json(200, []))
     api.on('GET', '/me/notifications', json(200, { ...EMPTY, items: [viewed] }))
     api.on('GET', '/me/notifications/5', json(200, viewed))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Lượt nhắc gọi' }))
     const sheet = await screen.findByRole('dialog')
@@ -306,7 +307,7 @@ describe('Lượt nhắc gọi', () => {
     api.on('GET', '/me/call-reminders', json(200, []))
     api.on('GET', '/me/notifications', json(200, { ...EMPTY, items: [other] }))
     api.on('GET', '/me/notifications/5', json(200, other))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Yêu cầu mới' }))
     const sheet = await screen.findByRole('dialog')
@@ -324,7 +325,7 @@ describe('Lượt nhắc gọi', () => {
       close() {}
     }
     vi.stubGlobal('EventSource', FakeEventSource)
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     await block()
 
     api.on('GET', '/me/call-reminders', json(200, []))

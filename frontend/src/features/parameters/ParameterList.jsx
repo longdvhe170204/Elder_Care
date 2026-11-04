@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -19,6 +18,7 @@ import { formatValue } from './parameterValue'
 
 // Danh sách tham số vận hành (000 T081; US4 #1, #3, #6; FR-011, FR-013; hợp đồng GET /parameters).
 // Mọi nhân viên xem được; chỉ Quản lý viện đổi giá trị (BR-M15-04): canChange chỉ để ẩn form, backend vẫn kiểm.
+// Chi tiết mở trong DetailLayout của màn cha (DESIGN.md 5): onOpen nhận { key, label, render }, openedKey là mục đang mở.
 
 const MODULES = Array.from({ length: 15 }, (_, i) => `M${String(i + 1).padStart(2, '0')}`)
 
@@ -28,7 +28,7 @@ function matches(parameter, search) {
   return parameter.code.toLowerCase().includes(text) || parameter.description.toLowerCase().includes(text)
 }
 
-function ParameterDetail({ code, canChange, onChanged }) {
+function ParameterDetail({ code, canChange, onChanged, Title, Description }) {
   const [state, setState] = useState({ status: 'loading' })
   const [tab, setTab] = useState(canChange ? 'change' : 'history')
 
@@ -50,8 +50,8 @@ function ParameterDetail({ code, canChange, onChanged }) {
 
   if (state.status === 'loading') {
     return (
-      <div aria-busy="true" className="flex flex-col gap-2 px-4 pt-14">
-        <span className="sr-only">Đang tải tham số</span>
+      <div aria-busy="true" className="flex flex-col gap-2">
+        <Title className="sr-only">Đang tải tham số</Title>
         <Skeleton className="h-8" />
         <Skeleton className="h-24" />
       </div>
@@ -59,7 +59,8 @@ function ParameterDetail({ code, canChange, onChanged }) {
   }
   if (state.status === 'error') {
     return (
-      <div className="px-4 pt-14">
+      <div className="flex flex-col gap-2">
+        <Title className="sr-only">{code}</Title>
         <ProblemAlert problem={state.problem} />
       </div>
     )
@@ -72,50 +73,47 @@ function ParameterDetail({ code, canChange, onChanged }) {
   }
 
   return (
-    <>
-      <SheetHeader className="gap-1 pt-6">
-        <SheetTitle className="type-title">{parameter.code}</SheetTitle>
-        <SheetDescription>{parameter.description}</SheetDescription>
-      </SheetHeader>
-      <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-6 type-body-sm">
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-          <dt className="text-muted-foreground">Hiện hành</dt>
-          <dd className="font-medium">{formatValue(parameter.type, parameter.currentValue, parameter.unit)}</dd>
-          <dt className="text-muted-foreground">Mặc định</dt>
-          <dd>{formatValue(parameter.type, parameter.defaultValue, parameter.unit)}</dd>
-        </dl>
-        {parameter.usedIn && <p className="text-muted-foreground">Dùng tại: {parameter.usedIn}</p>}
-
-        {canChange && (
-          <ToggleGroup
-            variant="outline"
-            value={[tab]}
-            onValueChange={(next) => next[0] && setTab(next[0])}
-            className="grid w-full grid-cols-2"
-          >
-            <ToggleGroupItem value="change" className="h-10">
-              Đổi giá trị
-            </ToggleGroupItem>
-            <ToggleGroupItem value="history" className="h-10">
-              Lịch sử
-            </ToggleGroupItem>
-          </ToggleGroup>
-        )}
-        {canChange && tab === 'change' ? (
-          <ParameterForm parameter={parameter} etag={etag} onSaved={saved} onStale={load} />
-        ) : (
-          <ParameterHistory key={etag} parameter={parameter} />
-        )}
+    <div className="flex flex-col gap-5 type-body-sm">
+      <div className="flex flex-col gap-1">
+        <Title className="type-title">{parameter.code}</Title>
+        <Description className="type-body-sm text-muted-foreground">{parameter.description}</Description>
       </div>
-    </>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+        <dt className="text-muted-foreground">Hiện hành</dt>
+        <dd className="font-medium">{formatValue(parameter.type, parameter.currentValue, parameter.unit)}</dd>
+        <dt className="text-muted-foreground">Mặc định</dt>
+        <dd>{formatValue(parameter.type, parameter.defaultValue, parameter.unit)}</dd>
+      </dl>
+      {parameter.usedIn && <p className="text-muted-foreground">Dùng tại: {parameter.usedIn}</p>}
+
+      {canChange && (
+        <ToggleGroup
+          variant="outline"
+          value={[tab]}
+          onValueChange={(next) => next[0] && setTab(next[0])}
+          className="grid w-full grid-cols-2"
+        >
+          <ToggleGroupItem value="change" className="h-10">
+            Đổi giá trị
+          </ToggleGroupItem>
+          <ToggleGroupItem value="history" className="h-10">
+            Lịch sử
+          </ToggleGroupItem>
+        </ToggleGroup>
+      )}
+      {canChange && tab === 'change' ? (
+        <ParameterForm parameter={parameter} etag={etag} onSaved={saved} onStale={load} />
+      ) : (
+        <ParameterHistory key={etag} parameter={parameter} />
+      )}
+    </div>
   )
 }
 
-export function ParameterList({ canChange }) {
+export function ParameterList({ canChange, openedKey, onOpen }) {
   const [module, setModule] = useState('')
   const [search, setSearch] = useState('')
   const [state, setState] = useState({ status: 'loading', items: [] })
-  const [opened, setOpened] = useState(null)
 
   const load = useCallback(async (nextModule) => {
     setState({ status: 'loading', items: [] })
@@ -137,6 +135,16 @@ export function ParameterList({ canChange }) {
   }, [])
 
   if (state.status === 'denied') return <PermissionDeniedState label="tham số vận hành" />
+
+  function open(code) {
+    onOpen({
+      key: `parameter-${code}`,
+      label: 'Chi tiết tham số',
+      render: (titles) => (
+        <ParameterDetail key={code} code={code} canChange={canChange} onChanged={replaceRow} {...titles} />
+      ),
+    })
+  }
 
   const rows = state.items.filter((p) => matches(p, search))
 
@@ -207,9 +215,18 @@ export function ParameterList({ canChange }) {
           </TableHeader>
           <TableBody>
             {rows.map((p) => (
-              <TableRow key={p.code} className="align-top">
+              <TableRow
+                key={p.code}
+                data-state={openedKey === `parameter-${p.code}` ? 'selected' : undefined}
+                className="align-top data-[state=selected]:bg-accent"
+              >
                 <TableCell>
-                  <Button variant="link" className="h-auto p-0 tabular-nums" onClick={() => setOpened(p.code)}>
+                  <Button
+                    variant="link"
+                    className="h-auto p-0 tabular-nums"
+                    aria-pressed={openedKey === `parameter-${p.code}`}
+                    onClick={() => open(p.code)}
+                  >
                     {p.code}
                   </Button>
                 </TableCell>
@@ -228,12 +245,6 @@ export function ParameterList({ canChange }) {
           </TableBody>
         </Table>
       )}
-
-      <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {opened && <ParameterDetail key={opened} code={opened} canChange={canChange} onChanged={replaceRow} />}
-        </SheetContent>
-      </Sheet>
     </section>
   )
 }
