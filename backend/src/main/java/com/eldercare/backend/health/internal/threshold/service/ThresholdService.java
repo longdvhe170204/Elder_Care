@@ -20,6 +20,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.internal.governance.service.VitalSignLock;
 import com.eldercare.backend.health.internal.threshold.domain.NewThreshold;
 import com.eldercare.backend.health.internal.threshold.domain.ThresholdActions;
+import com.eldercare.backend.health.internal.threshold.domain.ThresholdListing;
 import com.eldercare.backend.health.internal.threshold.domain.ThresholdRules;
 import com.eldercare.backend.health.internal.threshold.domain.ThresholdVersion;
 import com.eldercare.backend.health.internal.threshold.persistence.ThresholdVersionStore;
@@ -165,6 +166,20 @@ public class ThresholdService {
         store.end(id, "EXPIRED", time.now(), reason.value(), user.accountId(), version.version());
         write(ThresholdActions.STOPPED, id, version.residentId(), Map.of("status", "EXPIRED"), reason);
         reminders.allowReminderAgain(version.residentId());
+    }
+
+    /** Lịch sử phiên bản ngưỡng (Bác sĩ, Điều dưỡng, Quản lý viện; Trưởng tầng trong phạm vi). */
+    @RequiresPermission(function = Function.ALERT_THRESHOLD, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<ThresholdListing> list(String scope, Long residentId, Long indicatorId) {
+        return store.list(scope, residentId, indicatorId);
+    }
+
+    /** Danh sách "chưa có ngưỡng cá nhân" cho Bác sĩ (FR-025). */
+    @RequiresPermission(function = Function.ALERT_THRESHOLD, operation = Operation.CREATE)
+    @Transactional(readOnly = true)
+    public List<Long> missingPersonal() {
+        return reminders.missing(time.now());
     }
 
     /** Việc theo phút: phiên bản Chờ hiệu lực tới hạn thành Hiệu lực, phiên bản Hiệu lực cũ hết hiệu lực tại thời điểm đó. */

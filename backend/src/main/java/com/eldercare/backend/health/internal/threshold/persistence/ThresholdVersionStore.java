@@ -1,6 +1,7 @@
 package com.eldercare.backend.health.internal.threshold.persistence;
 
 import com.eldercare.backend.health.internal.threshold.domain.ThresholdBand;
+import com.eldercare.backend.health.internal.threshold.domain.ThresholdListing;
 import com.eldercare.backend.health.internal.threshold.domain.ThresholdVersion;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -59,6 +60,30 @@ public class ThresholdVersionStore {
                         + " AND resident_id = ? AND status IN ('PENDING','EFFECTIVE'))",
                 Boolean.class,
                 residentId));
+    }
+
+    /** Lịch sử phiên bản theo bộ lọc (trống là không lọc), mới nhất trước. */
+    public List<ThresholdListing> list(String scope, Long residentId, Long indicatorId) {
+        var sql = new StringBuilder(
+                "SELECT " + COLUMNS + ", reason, created_by FROM monitoring_setting WHERE kind = 'THRESHOLD'");
+        var args = new java.util.ArrayList<Object>();
+        if (scope != null) {
+            sql.append(" AND scope = ?");
+            args.add(scope);
+        }
+        if (residentId != null) {
+            sql.append(" AND resident_id = ?");
+            args.add(residentId);
+        }
+        if (indicatorId != null) {
+            sql.append(" AND indicator_id = ?");
+            args.add(indicatorId);
+        }
+        sql.append(" ORDER BY effective_from DESC, id DESC");
+        return jdbc.query(
+                sql.toString(),
+                (rs, row) -> new ThresholdListing(map(rs, row), rs.getString("reason"), rs.getLong("created_by")),
+                args.toArray());
     }
 
     public long insert(ThresholdVersion version, String reason, long createdBy, Instant createdAt) {
