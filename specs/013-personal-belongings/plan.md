@@ -191,3 +191,52 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Ánh xạ bảng ở data-model mục 0; task T034. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
 - Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
 - Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
+
+## Kế hoạch triển khai R-15 *(bổ sung 2026-11-05, Phase 1; nhánh `impl/013-personal-belongings` từ `develop` 0c155c46)*
+
+Tên trong mục này là tên thật trên `develop` (đã tra bằng mã) hoặc tên dự kiến ở glossary mục 19; tasks, research giữ tên logic. Mỗi phiên làm một phase; phần web, app chờ chủ dự án duyệt hợp đồng api-013 và bố cục (DESIGN.md).
+
+### Tên thật của giao diện 013 dùng hoặc cài
+
+| Tên logic (tasks, contracts) | Tên thật | Trên develop |
+| --- | --- | --- |
+| `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`; sự kiện `NguoiCaoTuoiDaChuyenTrangThai` | `resident.api.ResidentApi`, `ResidentStatusApi`; `resident.api.events.ResidentStatusChanged` | thật |
+| `ThamGiaChuyenTrangThai` (013 cài, `KT_B_DO_GUI`) | `resident.api.spi.StatusTransitionParticipant`; mã `END_B_BELONGINGS` | SPI có, 013 cài |
+| `QuyenApi`, `PhamViApi`, `TaiKhoanApi`; `GanPhamViProvider` | `administration.account.api` (`PermissionApi`, `ScopeApi`, `AccountApi`, `@RequiresPermission`); `api.spi.ScopeAssignmentProvider` (013 cài); `DutyApi` (bản thật `staffing.duty.internal.service.DutyDirectory`) | thật |
+| `ViTriApi`; sự kiện `DaChuyenGiuong` | `roombedallocation.api.ResidentLocationApi` (bản thật `AllocationQueries`); `roombedallocation.api.events.BedTransferred` | thật |
+| `DanhSachViecSauQuaDoiApi.capNhat`; `MucViecSauQuaDoiPort` (013 cài); `NguoiDaiDienPort`; sự kiện `HoSoKetThucDaLap` | `admission.api.PostDeathTaskApi.refresh` (bản thật `PostDeathTaskService`); `admission.api.spi.PostDeathItemPort` (`PostDeathItemCode.BELONGINGS`); `admission.api.spi.RepresentativePort` (012 cài); `admission.api.events.ResidencyEndingCreated` | thật; `FakePostDeathItem` của 004 giữ cho test 004 |
+| `SuCoLenhApi.ghiNhan`, `themDienBien`; `SuCoApi.xem` | `incident.api.IncidentCommandApi.record`, `addProgression`; `incident.api.IncidentApi` | **chưa có bean thật** → bản giả có sẵn `support/fake/incident/FakeIncidentCommands`, `FakeIncidents` (không tạo bản giả thứ hai) |
+| `CaTrucApi.dangTrongCa`, `nguoiPhuTrachCa`; sự kiện `CaDaKetThuc`; `DoGuiBanGiaoPort` (013 cài) | `staffing.api.ShiftApi` (bản thật `ShiftQueries`); `staffing.api.events.ShiftEnded`; `staffing.api.spi.HeldBelongingsHandoverPort` (`heldBy`, `stillHeld`; `HeldBelongingView`) | thật; 008 tiêm port qua `ObjectProvider`, bản giả `FakeHeldBelongings` của 008 là `@Primary` trong `FakeM09Config` nên bean thật của 013 không làm trùng bean ở test 008 |
+| `ThongBaoTraCuuApi`; `CoYeuCauThongBao` | `notification.api.NotificationLookupApi`; `common.notification.HasNotificationRequests` | thật |
+| `QuyenNguoiThanApi` (`laNguoiDaiDien`, `duocPhepDonTai`, `giayTo`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`); `DoGuiKenhNctPort` (013 cài) | `family.api.FamilyRightsApi` (`isRepresentative`, `allowedPickersAt`, `idDocument`, `canViewBelongings`, `representatives`, `primaryContact`; bản thật `FamilyRightsLookup`, bản giả `support/fake/family/FakeFamilyRights`); `family.api.spi.ResidentChannelBelongingPort.held` | thật |
+| `ThamSoApi`, `NhatKyApi`, `DinhChinhApi`, `YeuCauPheDuyetApi`, `TepApi`; `DinhChinhDuocProvider`, `LoaiYeuCauHandler`, `PhanLoaiTruongProvider`, `LuuTruProvider`, `QuyenTepProvider` (013 cài) | `ParameterApi`, `AuditLogApi`, `CorrectionApi`, `ApprovalRequestApi`, `common.file.FileApi`; `CorrectableRecordProvider`, `RequestTypeHandler`, `FieldClassificationProvider`, `RetentionProvider`, `common.file.FilePermissionProvider` | thật |
+| bảng chung R-15 | `administration.shared.api` (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`); `common.data.ReminderMarkers`, `TechnicalLocks`; bản giả `support/fake/shared/` | thật |
+
+Không module nào trên develop import `belongings` (đã tra 2026-11-05), nên 013 gọi các module trên không tạo vòng; mỗi phase vẫn chạy `ModuleBoundaryTest` trước khi thêm import gói mới.
+
+### Phase → task → phụ thuộc
+
+| Phase | Task | Việc chính | Phụ thuộc thật/giả, việc chờ |
+| --- | --- | --- | --- |
+| 1 Setup | T001 | `M12ArchTest`; dịch api-013, glossary mục 19; mục này | — |
+| 2 Foundational | T002 | `belongings.api` (đọc, thống kê, sự kiện `BelongingStatusChanged`, thông báo) | thật |
+| | T003 | `V013_01__belongings.sql` chỉ hai bảng giữ (data-model mục 0): `belonging`, `belonging_handover` (nhóm `RECORD`, trigger `no_update` trừ đặt `incident_id` một lần, `no_delete`; ảnh, lần trả, lần chặn trả vào cột `kind` và `JSON`); phần còn lại vào bảng chung | thật |
+| | T004 | hàm thuần kiểm lệnh bàn giao, tách đồ | — |
+| | T005 | khóa theo người rồi theo đồ; danh mục loại đồ, mức tình trạng, vị trí trên `catalog_item` | thật; quyền cấu hình danh mục của Quản lý viện cần rà (điểm 3 dưới) |
+| | T006 | job theo phút, hằng ngày của M12 | **chờ A**: `belongings.scheduling` là job mới, cần dòng ở `SchedulerScopeArchTest.ALLOWED`, cấu hình `eldercare.jobs.m12-*` ở `application.yml` và profile test (file của A; team-plan mục 8) |
+| | T007 | provider phân loại trường, lưu giữ, phạm vi, quyền tệp | thật |
+| 3 US1 | T008–T011 | tiếp nhận, giao ngay, đồng ý cho tự giữ | thật (`ResidentStatusApi`, `RepresentativePort`, `FamilyRightsApi`, `FileApi`, CFG-M12-01); web, app chờ duyệt |
+| 4 US2 | T012–T015 | bàn giao, tách, đính chính, `HeldBelongingsHandoverPort`, nghe `ShiftEnded`, `BedTransferred` | thật; web chờ duyệt |
+| 5 US3 | T016–T019 | trả, xác nhận người nhận khác, duyệt thay | thật (`FamilyRightsApi`, CFG-M10-08, CFG-M12-05, 06); web, app chờ duyệt |
+| 6 US4 | T020–T021 | thất lạc, hư hỏng, sự cố | **giả**: `FakeIncidentCommands`, `FakeIncidents` (007 chưa có bean thật); cách xử lý khi production chưa có bean chốt cùng D lúc làm phase này |
+| 7 US5 | T022–T026 | điều kiện kết thúc, mục sau qua đời, đề nghị xử lý, kiểm kê | thật (`StatusTransitionParticipant`, `PostDeathItemPort`, `PostDeathTaskApi`, `ResidencyEndingCreated`, `ApprovalRequestApi`); web chờ duyệt |
+| 8 US6 | T027–T028 | cổng người thân | thật (`FamilyRightsApi.canViewBelongings`); web, app chờ duyệt |
+| 9 Polish | T029–T034 | entry api-013 ở `ApiContractIT` (A xem), `RecordGroupTriggerIT`, kênh người cao tuổi, rà truy vết, `clean verify` toàn kho | entry hợp đồng và `TRANSLATED` sau khi chủ dự án duyệt |
+
+### Lệch kỹ thuật và điểm cần rà (không đổi nghiệp vụ)
+
+1. **`dong_y_tu_giu`**: data-model mục 0 (sửa 2026-10-30) đặt vào `ho_so_chung` (`simple_record`, một bản Hiệu lực mỗi đồ qua `unique_key`); tasks T009 và research K-03 còn ghi "→ `do_gui` (cột)". Đề xuất theo data-model mục 0 (bản mới hơn, giữ được lịch sử Hiệu lực → Đã rút → Hết hiệu lực); chốt khi làm T009 (Phase 3), sửa tasks T009 cùng lúc.
+2. **`do_gui_nct` → `trang_thai_nct`** (`resident_module_state`, một dòng mỗi người mỗi module): M12 chỉ cần dòng này làm đích khóa theo người (K-03), không cần nhiều dòng; dữ liệu nhiều dòng theo người (đồng ý, xác nhận) dùng `simple_record` (bài học 018). `nhac_kiem_ke` (data-model mục 7) → `reminder_marker`.
+3. **Quyền** (K-14, FR-029): ma trận chỉ có một dòng `Function.BELONGINGS` (`VIEW`, `CREATE`, `UPDATE`, `CONFIRM`), Quản lý viện (AC-01) chỉ `VIEW`. Lệnh của Quản lý viện (cấu hình loại đồ, mức tình trạng; duyệt thay; duyệt đề nghị xử lý qua 000) và giới hạn "Điều dưỡng chỉ trả đồ không có giá trị" phải ánh xạ vào khóa sẵn có hoặc kiểm vai trò trong service. Rà khi làm T005 (Phase 2); nếu cần khóa hoặc ô ma trận mới thì dừng, ghi team-plan nhờ A, không tự thêm `Function`.
+4. **Gói** (glossary 19.5): `internal.catalog`, `belonging`, `returns`, `consent`, `incident`, `ending`, `inventorycheck`, `transition`; `scheduling`. Theo backend/README mục 2 không tạo gói rỗng: T001 chỉ thêm `M12ArchTest`, gói con tạo cùng lớp đầu tiên ở Phase 2. Luật của `M12ArchTest` áp cho `belongings..scheduling..` (gồm phần nội bộ `internal.scheduling` nếu có, như 012).
+5. **Hợp đồng**: api-013 đã dịch 2026-11-05 (glossary mục 19), chờ chủ dự án duyệt; `Problem` giữ cấu trúc gốc (`errorCode`, `unmetConditions`) như api-004, chưa đổi sang `Problem` chung của api-012. Chưa thêm `'013'` vào `TRANSLATED` của `frontend/scripts/gen-api.mjs`, chưa thêm entry ở `ApiContractIT`.

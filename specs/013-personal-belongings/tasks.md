@@ -26,7 +26,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/belongings/...` với `package-info.java`; ArchUnit `BT/belongings/M12ArchTest.java`: gói `..lich..` không tạo phiếu kiểm kê, không gọi `SuCoLenhApi` (Q-306, Q-307) (research K-01)
+- [x] T001 Tạo khung gói `BE/belongings/...` với `package-info.java`; ArchUnit `BT/belongings/M12ArchTest.java`: gói `..lich..` không tạo phiếu kiểm kê, không gọi `SuCoLenhApi` (Q-306, Q-307) (research K-01) *(2026-11-05: `belongings.M12ArchTest` 3 test (hai luật trên `belongings..scheduling..`, `SuCoLenhApi` = `IncidentCommandApi`; một test fixture chứng minh luật bắt được vi phạm); `belongings/package-info.java` có sẵn, gói con chưa tạo vì backend/README mục 2 cấm gói rỗng, tạo cùng lớp ở Phase 2 (plan mục "Kế hoạch triển khai R-15" điểm 4). Cùng phase: dịch api-013, glossary mục 19.)*
 
 ---
 
