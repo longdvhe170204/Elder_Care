@@ -2929,7 +2929,81 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
-*Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+*Bổ sung 2026-11-05, khi dịch `contracts/api-013.yaml` (chờ chủ dự án duyệt). Bảng, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
+
+Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `ResidentChannelBelongingView`); loại đồ = `belonging type`; mức tình trạng = `condition level`, tình trạng (của đồ) = `item condition`; vị trí lưu giữ = `storage location`; người giữ = `holder`; người giao = `giver`; người nhận = `recipient`; bàn giao (đồ) = `handover`; tiếp nhận (đồ) = `intake` (khác tiếp nhận người cao tuổi `admission` của 004); đồ có giá trị = `valuable`; đồ gốc (trước khi tách) = `original belonging`, tách = `split`; đồng ý cho tự giữ = `self-custody consent`; bản ký = `signed form` (như 012); xác nhận người nhận khác = `recipient confirmation`; duyệt thay = `approve on behalf`; bằng chứng liên hệ = `contact evidence`, một lần liên hệ = `contact attempt`; lần trả = `return`, lần chặn trả = `blocked return`; kiểm kê (đồ gửi) = `inventory check` (đường dẫn gốc `/belonging-inventory-checks` để không lẫn kho của 019), kỳ kiểm kê = `period`; đồ không rõ chủ = `unknown-owner item`; xử lý đồ không người nhận = `unclaimed belonging disposal`. `nct` = `resident`.
+
+### 19.1. Đường dẫn API (tiền tố `/api/v1`) và tag
+
+| Tên logic | Mã |
+| --- | --- |
+| `/do-gui/loai-do`, `/do-gui/loai-do/{id}`, `/do-gui/muc-tinh-trang`, `/do-gui/vi-tri` | `/belongings/types`, `/belongings/types/{id}`, `/belongings/condition-levels`, `/belongings/storage-locations` |
+| `/nguoi-cao-tuoi/{nctId}/do-gui`, `…/do-gui/dieu-kien-ket-thuc`; `/do-gui/{id}` | `/residents/{residentId}/belongings`, `…/belongings/ending-condition`; `/belongings/{id}` |
+| `/do-gui/ban-giao`, `/ban-giao-do-gui/{id}/lien-ket-su-co`, `/nhan-vien/{nhanVienId}/do-gui-dang-giu` | `/belongings/handovers`, `/belonging-handovers/{id}/link-incident`, `/staff/{staffId}/held-belongings` |
+| `/dong-y-tu-giu`, `/dong-y-tu-giu/{id}/rut` | `/self-custody-consents`, `/self-custody-consents/{id}/withdraw` |
+| `/do-gui/tra`; `/xac-nhan-nguoi-nhan`, `…/{id}/bang-chung-lien-he`, `…/{id}/{lenh}` (`duyet-thay`, `huy`) | `/belongings/returns`; `/recipient-confirmations`, `…/{id}/contact-evidence`, `…/{id}/{command}` (`approve-on-behalf`, `cancel`) |
+| `/kiem-ke`, `/kiem-ke/{id}`, `/kiem-ke/{id}/{lenh}` (`hoan-thanh`, `huy`) | `/belonging-inventory-checks`, `/belonging-inventory-checks/{id}`, `…/{id}/{command}` (`complete`, `cancel`) |
+| `/cong/nguoi-cao-tuoi/{nctId}/do-gui`, `/cong/xac-nhan-nguoi-nhan/{id}/{lenh}` (`xac-nhan`, `tu-choi`), `/cong/dong-y-tu-giu`, `…/{id}/rut` | `/family-portal/residents/{residentId}/belongings`, `/family-portal/recipient-confirmations/{id}/{command}` (`confirm`, `reject`), `/family-portal/self-custody-consents`, `…/{id}/withdraw` |
+| tag `danh-muc`, `do-gui`, `tra`, `ket-thuc`, `kiem-ke`, `cong` | `belonging-catalogs`, `belongings`, `belonging-returns`, `residency-ending`, `belonging-inventory-checks`, `family-portal` |
+| tham số `nctId` (đường dẫn, truy vấn), `nhanVienId`, `trangThai`, `maKy`, `lenh` | `residentId`, `staffId`, `status`, `periodCode`, `command` |
+
+### 19.2. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| `LoaiDo` (`ten`, `coSoTien`, `canDongYGiaoSuDung`, `laDoCoGiaTri`, `trangThai`, `lyDo`) | `BelongingType` (`name`, `hasCashAmount`, `requiresConsentForUse`, `valuable`, `status`, `reason`) |
+| thân mức tình trạng (`ten`, `thuTu`, `khongDungDuoc`, `trangThai`); thân vị trí (`id`, `ten`, `moTa`, `tangKhuVucId`, `trangThai`) | `name`, `order`, `unusable`, `status`; `id`, `name`, `description`, `floorAreaId`, `status` |
+| `TinhTrang` (`mucId`, `moTa`) | `ItemCondition` (`levelId`, `description`) |
+| `NguoiGiao` (`loai`, `id`, `hoTen`, `giayTo`) | `Giver` (`type`, `id`, `fullName`, `idDocument`) |
+| `TiepNhan` (`loaiDoId`, `moTa`, `soLuong`, `soTien`, `donVi`, `tinhTrang`, `nguoiGiao`, `thoiDiem`, `viTriId`, `tepAnhIds`, `ghiChu`, `giaoNgay`, `tepBanKyDongYId`) | `BelongingIntake` (`typeId`, `description`, `quantity`, `cashAmount`, `unit`, `condition`, `giver`, `at`, `storageLocationId`, `photoFileIds`, `note`, `giveForUseNow`, `consentSignedFormFileId`) |
+| `DoGui` (`nctId`, `loaiDoId`, `moTa`, `soLuong`, `soTien`, `trangThai`, `nguoiGiu`, `viTriId`, `doGocId`, `banGiaoGanNhatLuc`, `phienBan`) | `Belonging` (`residentId`, `typeId`, `description`, `quantity`, `cashAmount`, `status`, `holder`, `storageLocationId`, `originalBelongingId`, `lastHandoverAt`, `version`) |
+| `LenhBanGiao` (`loai`, `cacDo` {`doGuiId`, `phienBan`, `soLuong`, `soLuongDemDuoc`, `tinhTrang`, `tepAnhIds`, `suCo`}, `nguoiGiao`, `nguoiNhanNhanVienId`, `viTriId`, `thoiDiem`, `lyDo`, `nguoiGiuVangMat`, `xuLyTinhTrang`, `thoiDiemPhatHien`) | `HandoverCommand` (`type`, `items` {`belongingId`, `version`, `quantity`, `countedQuantity`, `condition`, `photoFileIds`, `incident`}, `giver`, `recipientStaffId`, `storageLocationId`, `at`, `reason`, `holderAbsent`, `conditionHandling`, `discoveredAt`) |
+| `SuCoKem` (`cach`, `suCoId`, `muc`, `moTa`, `diaDiem`); thân liên kết sự cố `suCoId` | `IncidentOption` (`method`, `incidentId`, `level`, `description`, `place`); `incidentId` |
+| `LenhTra` (`cacDo` {`doGuiId`, `phienBan`, `tinhTrang`, `tepAnhIds`}, `nguoiNhan` {`loai`, `nguoiThanId`, `hoTen`, `giayToXuatTrinh` {`loai`, `so`}}, `xacNhanNguoiNhanId`, `tepChuKyId`, `lyDoKhongKy`, `yKienTinhTrang`) | `ReturnCommand` (`items` {`belongingId`, `version`, `condition`, `photoFileIds`}, `recipient` {`type`, `familyMemberId`, `fullName`, `presentedIdDocument` {`type`, `number`}}, `recipientConfirmationId`, `signatureFileId`, `noSignatureReason`, `conditionOpinion`) |
+| `LapXacNhan` (`nctId`, `nguoiNhanTen`, `nguoiNhanGiayTo`, `laNguoiCaoTuoi`, `doGuiIds`, `banKy` {`nguoiDaiDienId`, `tepId`}); `XacNhanNguoiNhan` thêm `trangThai`, `cach`, `hetHanLuc` | `CreateRecipientConfirmation` (`residentId`, `recipientName`, `recipientIdDocument`, `recipientIsResident`, `belongingIds`, `signedForm` {`representativeId`, `fileId`}); `RecipientConfirmation` thêm `status`, `method`, `expiresAt` |
+| thân duyệt thay, hủy (`lyDo`, `canCu`) | `reason`, `basis` |
+| `LienHe` (`nguoiThanId`, `kenh`, `luc`, `ketQua`) | `ContactAttempt` (`familyMemberId`, `channel`, `at`, `result`) |
+| `GhiDongY` (`doGuiId`, `nguoiDaiDienId`, `tepBanKyId`); thân rút (`lyDo`, `nguoiDaiDienId`, `tepBanKyId`); thân cổng `doGuiId` | `RecordSelfCustodyConsent` (`belongingId`, `representativeId`, `signedFormFileId`); `reason`, `representativeId`, `signedFormFileId`; `belongingId` |
+| thân lập phiếu `viTriId`; `KetQuaKiemKe` (`dong` {`doGuiId`, `ketQua`, `tinhTrangMoi`, `ghiHuHong`, `tepAnhIds`, `suCo`}, `timThay`, `doKhongRoChu` {`moTa`, `tepAnhIds`}, `lyDo`) | `storageLocationId`; `InventoryCheckResult` (`lines` {`belongingId`, `result`, `newCondition`, `recordDamage`, `photoFileIds`, `incident`}, `found`, `unknownOwnerItems` {`description`, `photoFileIds`}, `reason`) |
+| `LyDo`, `Loi` (`maLoi`, `dieuKienChuaThoa`); response `Loi`, `LoiChan`; thân `LyDo`; tham số `NctId`; scheme `phien` | `Reason`, `Problem` (`errorCode`, `unmetConditions`; giữ nguyên cấu trúc gốc như api-004); `Problem`, `Blocked`; `ReasonBody`; `ResidentId`; `session` |
+
+### 19.3. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| trạng thái đồ `DANG_GIU`, `DANG_SU_DUNG`, `DA_TRA`, `THAT_LAC`, `HU_HONG`, `DA_XU_LY` | `BelongingStatus`: `HELD`, `IN_USE`, `RETURNED`, `LOST`, `DAMAGED`, `DISPOSED` |
+| loại bản ghi bàn giao `TIEP_NHAN`, `GIAO_SU_DUNG`, `THU_LAI`, `CHUYEN_GIU`, `TRA`, `BAO_THAT_LAC`, `GHI_HU_HONG`, `TIM_THAY`, `XU_LY`; lần chặn trả (R-15: dòng `loai` của bảng bàn giao) | `HandoverType`: `INTAKE`, `GIVE_FOR_USE`, `TAKE_BACK`, `TRANSFER_CUSTODY`, `RETURN`, `REPORT_LOST`, `RECORD_DAMAGE`, `FOUND`, `DISPOSAL`; `RETURN_BLOCKED` |
+| người giao `NGUOI_THAN`, `NGUOI_KHAC`, `NGUOI_CAO_TUOI`, `NHAN_VIEN`; người giữ `NHAN_VIEN`, `NGUOI_CAO_TUOI`; người nhận trả `NGUOI_THAN`, `NGUOI_CAO_TUOI`, `NGUOI_KHAC` | `FAMILY_MEMBER`, `OTHER_PERSON`, `RESIDENT`, `STAFF`; `STAFF`, `RESIDENT`; `FAMILY_MEMBER`, `RESIDENT`, `OTHER_PERSON` |
+| xử lý tình trạng `GHI_NHAN`, `GHI_HU_HONG` | `ACKNOWLEDGE`, `RECORD_DAMAGE` |
+| sự cố kèm: cách `MOI`, `LIEN_KET`, `KHONG`; mức `NHE`, `TRUNG_BINH`, `KHAN_CAP` | `NEW`, `LINK`, `NONE`; `LOW`, `MEDIUM`, `CRITICAL` (như `IncidentLevel` của 007) |
+| kết quả xác minh `KHOP`, `CHUA_CO_GIAY_TO_DA_DOI_CHIEU`; căn cứ trả `CO_QUYEN_NHAN`, `NCT_NGOAI_LE_Q253`, `XAC_NHAN_NGUOI_NHAN_KHAC` | `MATCHED`, `NO_DOCUMENT_ON_FILE_CROSS_CHECKED`; `ENTITLED_RECIPIENT`, `RESIDENT_Q253_EXCEPTION`, `RECIPIENT_CONFIRMATION` |
+| lý do chặn trả `GIAY_TO_KHONG_KHOP`, `KHONG_CO_QUYEN_NHAN`, `XAC_NHAN_KHONG_HOP_LE`, `DIEU_DUONG_DO_CO_GIA_TRI` | `ID_DOCUMENT_MISMATCH`, `NOT_ENTITLED_TO_RECEIVE`, `INVALID_RECIPIENT_CONFIRMATION`, `NURSING_STAFF_VALUABLE_ITEM` |
+| xác nhận người nhận khác: trạng thái `CHO_XAC_NHAN`, `HIEU_LUC`, `TU_CHOI`, `HUY`, `DA_DUNG`, `HET_HAN`; cách `CONG`, `BAN_KY`, `QL_DUYET_THAY`; căn cứ duyệt thay `A_KHONG_LIEN_HE_DUOC`, `B_KHONG_CO_DAI_DIEN` | `PENDING_CONFIRMATION`, `EFFECTIVE`, `REJECTED`, `CANCELLED`, `USED`, `EXPIRED` (như 012); `PORTAL`, `SIGNED_FORM`, `MANAGER_ON_BEHALF`; `A_REPRESENTATIVE_UNREACHABLE`, `B_NO_REPRESENTATIVE` |
+| kênh liên hệ `GOI_DIEN`, `TIN_NHAN`, `THONG_BAO_CONG`; đối tượng bằng chứng `XAC_NHAN`, `DE_NGHI_XU_LY` | `PHONE_CALL`, `TEXT_MESSAGE`, `PORTAL_NOTIFICATION`; `RECIPIENT_CONFIRMATION`, `DISPOSAL_REQUEST` |
+| đồng ý cho tự giữ: cách `CONG`, `BAN_KY`, `TRONG_LENH_TIEP_NHAN`; trạng thái `HIEU_LUC`, `DA_RUT`, `HET_HIEU_LUC` | `PORTAL`, `SIGNED_FORM`, `IN_INTAKE_COMMAND`; `EFFECTIVE`, `WITHDRAWN`, `EXPIRED` |
+| phiếu kiểm kê `CHO_KIEM_KE`, `HOAN_THANH`, `DA_HUY`; kết quả dòng `DUNG`, `LECH_TINH_TRANG`, `KHONG_TIM_THAY`, `BI_LOAI` | `PENDING_CHECK`, `COMPLETED`, `CANCELLED`; `MATCHED`, `CONDITION_MISMATCH`, `NOT_FOUND`, `EXCLUDED` |
+| hình thức xử lý đồ không người nhận `THANH_LY`, `TIEU_HUY`, `CHUYEN_CO_QUAN` | `LIQUIDATE`, `DESTROY`, `TRANSFER_TO_AUTHORITY` |
+| loại yêu cầu phê duyệt `M12.XU_LY_DO_KHONG_NGUOI_NHAN`; loại đính chính `M12.BAN_GIAO_DO_GUI`, `M12.PHIEU_KIEM_KE` | `M12.UNCLAIMED_BELONGING_DISPOSAL`; `M12.BELONGING_HANDOVER`, `M12.INVENTORY_CHECK` |
+| phạm vi, tệp: `M12.DO_GUI`, `M12.XAC_NHAN_NGUOI_NHAN`, `M12.DONG_Y_TU_GIU`, `M12.PHIEU_KIEM_KE`; `M12.ANH_DO_GUI`, `M12.BAN_KY`, `M12.BIEN_BAN` | `M12.BELONGING`, `M12.RECIPIENT_CONFIRMATION`, `M12.SELF_CUSTODY_CONSENT`, `M12.INVENTORY_CHECK`; `M12.BELONGING_PHOTO`, `M12.SIGNED_FORM`, `M12.DISPOSAL_MINUTES` |
+| khóa quyền (K-14) `DO_GUI` (`THUC_HIEN`, `TRA_DO_CO_GIA_TRI`, `XEM`), `XAC_NHAN_NGUOI_NHAN` (`LAP`, `XAC_NHAN`, `DUYET_THAY`), `DONG_Y_TU_GIU` (`GHI`), `KIEM_KE_DO_GUI` (`THUC_HIEN`), `DANH_MUC_DO_GUI` (`CAU_HINH`) | Phụ lục 27 có một dòng "Đồ gửi": `Function.BELONGINGS` với `Operation` `VIEW`, `CREATE`, `UPDATE`, `CONFIRM` (ma trận `V002_04`, `V002_08`); phân biệt thao tác K-14 ánh xạ vào khóa này khi cài lệnh (plan 013 mục "Kế hoạch triển khai R-15"), không thêm giá trị `Function` |
+| mã điều kiện kết thúc `KT_B_DO_GUI`; mục việc sau qua đời `DO_GUI` | `END_B_BELONGINGS`; `PostDeathItemCode.BELONGINGS` (đã có ở 10.3) |
+
+### 19.4. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI`, `NCT_TRANG_THAI_CUOI`, `VI_TRI_KHONG_HIEU_LUC` | `STATE_CHANGED` (như 012), `RESIDENT_FINAL_STATE`, `STORAGE_LOCATION_INACTIVE` |
+| `THIEU_ANH`, `THIEU_DONG_Y_TU_GIU`, `NGUOI_GIAO_KHONG_PHAI_DAI_DIEN`, `NGUOI_GIAO_KHONG_PHAI_NGUOI_GIU`, `NGUOI_GIU_KHONG_VANG_MAT` | `PHOTO_REQUIRED`, `SELF_CUSTODY_CONSENT_REQUIRED`, `GIVER_NOT_REPRESENTATIVE`, `GIVER_NOT_HOLDER`, `HOLDER_NOT_ABSENT` |
+| `CAN_CHON_XU_LY_TINH_TRANG`, `MUC_KHONG_DUNG_DUOC_CHI_QUA_GHI_HU_HONG`, `SU_CO_DA_LIEN_KET`, `SU_CO_KHONG_HOP_LE` | `CONDITION_HANDLING_REQUIRED`, `UNUSABLE_LEVEL_ONLY_VIA_RECORD_DAMAGE`, `INCIDENT_ALREADY_LINKED`, `INVALID_INCIDENT` |
+| `CHAN_TRA`, `XAC_NHAN_KHONG_HOP_LE`, `DIEU_DUONG_DO_CO_GIA_TRI`, `DA_TU_CHOI`, `CHUA_DU_DIEU_KIEN_DUYET_THAY`, `TU_DUYET` | `RETURN_BLOCKED`, `INVALID_RECIPIENT_CONFIRMATION`, `NURSING_STAFF_VALUABLE_ITEM`, `ALREADY_REJECTED`, `ON_BEHALF_APPROVAL_NOT_ELIGIBLE`, `SELF_APPROVAL_NOT_ALLOWED` (như mục 5) |
+| `CON_DO_TAI_VI_TRI`, `KHONG_CO_DO_CO_GIA_TRI`, `DA_CO_PHIEU_KY`, `THIEU_KET_QUA_KIEM_KE`, `CON_DO_TRONG_PHIEU` | `BELONGINGS_AT_LOCATION`, `NO_VALUABLE_BELONGINGS`, `INVENTORY_CHECK_EXISTS_FOR_PERIOD`, `INVENTORY_RESULT_REQUIRED`, `BELONGINGS_STILL_IN_CHECK` |
+
+### 19.5. Gói của `belongings` (R-02 mục "Cấu trúc trong module"; dự kiến, chốt cùng mã)
+
+| Tên logic (tasks, research K-01) | Mã |
+| --- | --- |
+| `belongings.danhmuc`, `dogui`, `tra`, `dongy`, `suco`, `ketthuc`, `kiemke`, `trangthai` | `belongings.internal.catalog`, `belonging`, `returns` (`return` là từ khóa Java), `consent`, `incident`, `ending`, `inventorycheck`, `transition` (mỗi chức năng có `service`, `domain`, `persistence`, `config` khi có lớp); `belongings.lich` → `belongings.scheduling` |
+| `M12ArchTest` (T001: job không tạo phiếu kiểm kê, không gọi `SuCoLenhApi`) | `belongings.M12ArchTest`; `SuCoLenhApi` = `incident.api.IncidentCommandApi` |
 
 ## 20. Feature 014 (`014-activity-care-quality`, C)
 
