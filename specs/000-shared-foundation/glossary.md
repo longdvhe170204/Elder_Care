@@ -3121,6 +3121,20 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | loại nhắc khai báo xóa; hành động nhật ký hủy, khai báo xóa | `ResidenceRegistrationReminder.Kind.DEREGISTER`; `M02_REGISTRATION_CANCELLED`, `M02_REGISTRATION_DEREGISTERED` |
 | test `BR_M02_13_KhaiBaoXoaIT` *(T013)* | `BR_M02_13_DeregistrationIT` |
 
+### 24.6. Sau gộp R-15 *(2026-11-04, port lên develop; thay các dòng bảng, job, gói ở 24.5)*
+
+| Tên ở 24.5 | Tên sau gộp |
+| --- | --- |
+| gói `m02.internal.registration`, `m02.web`, `m02.scheduling` | `admission.internal.registration`, `admission.web` (`ResidenceRegistrationController`), không có lớp `scheduling` riêng |
+| bảng `residence_registration` (`registration_id`, trigger chuyển trạng thái) | dòng `simple_record` loại `M02.RESIDENCE_REGISTRATION` (nội dung `RegistrationContent`; DBR-33 bằng `unique_key` `M02.REG_PROCESSING:<resident>`, `M02.REG_CONFIRMED:<resident>`; trạng thái cuối khóa dòng); lớp `ResidenceRegistrationStore`, `RegistrationLockedReads` |
+| bảng `registration_submission` | dòng `record_event` loại `M02.REGISTRATION_SUBMISSION` (`SubmissionContent`, cha `M01.RESIDENT`, trỏ khai báo bằng `registrationId`; kết quả đặt một lần rồi xác nhận); `RegistrationSubmissionStore` |
+| bảng `registration_obligation` | dòng `simple_record` loại `M02.REGISTRATION_OBLIGATION` (`ObligationContent`, trạng thái `OPEN`, `CANCELLED`; khóa `M02.REG_OBLIGATION:<resident>:<trigger>:<source>`); lệch data-model 0.1 (`trang_thai_nct`) vì dòng `resident_module_state` của M02 là trạng thái lưu trú của 004; `RegistrationObligationStore` |
+| bảng `registration_resident` (khóa theo người, cờ thường trú) | `technical_lock` `M02.REG_RESIDENT:<resident>` (khóa); dòng `simple_record` loại `M02.REGISTRATION_RESIDENT` (`ResidentRegistrationFlag`); `RegistrationResidentStore` |
+| bảng `registration_reminder` | dấu `reminder_marker` loại `M02.REMINDER`, `entity_type` `REGISTRATION_<ReminderType>` qua `M02RunStore`; `RegistrationReminderStore` |
+| job `ResidenceRegistrationJob` (`M02_REGISTRATION`), `RegistrationDailyRunner`, `RegistrationDailyTask`; tên việc `REG_*` dự kiến | bốn `M02DailyTask` của job `M02_DAILY`: `REG_EXPIRY` (`RegistrationExpiry`), `REG_RENEWAL` (`RegistrationRenewalReminders`), `REG_OVERDUE` (`RegistrationOverdueReminders`), `REG_DEREGISTER` (`RegistrationDeregistration`), đều `latestDayOnly` |
+| `KhaiBaoThongKeApi.tongHop()` (T015) | `admission.api.ResidenceRegistrationStatisticsApi.summary()` → `RegistrationSummaryView` (`toCreate`, `overdue`, `expired`, `toDeregister`); cài `RegistrationStatistics`; bản giả `FakeResidenceRegistrationStatistics`; test `RegistrationStatisticsIT` |
+| test `RegistrationSchemaIT`, `RegistrationCatchUpIT` | `RegistrationStoreIT` (ràng buộc ở bảng chung), `RegistrationCatchUpIT` (việc `REG_*` là `M02DailyTask`; khóa nhắc); dựng SQL dùng `RegistrationSql` |
+
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
 *Chủ feature điền khi dịch `contracts/api-019.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
