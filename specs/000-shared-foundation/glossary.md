@@ -362,6 +362,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `/nghiep-vu-chuyen-mon`, `…/ngung-hieu-luc` | `/professional-activities`, `…/deactivate` |
 | `/dong-bo`, `/ban-ghi-cho-xem-lai`, `…/chap-nhan`, `…/tu-choi` | `/sync`, `/pending-review-records`, `…/accept`, `…/reject` |
 | header `X-Thiet-Bi`, `X-Yeu-Cau-Tu`; cookie và security scheme `phien` | `X-Device-Id`, `X-Requested-From`; `session` |
+| *(Bổ sung 2026-10-29, 002 T047a)* header `X-Lam-Moi-Nen` (tham số `lamMoiNen` cho luồng SSE): yêu cầu tự làm mới không đếm giờ phiên; `UserInfo.thoiGianKhongThaoTacGiay` (CFG-M15-10 của kênh phiên) | `X-Background-Refresh` (`backgroundRefresh`); `sessionIdleTimeoutSeconds` |
 | tag `xac-thuc`, `tai-khoan`, `phan-quyen`, `nghiep-vu-chuyen-mon`, `ngoai-tuyen` | `auth`, `accounts`, `permissions`, `professional-activities`, `offline` |
 
 ### 7.2. Schema và trường JSON

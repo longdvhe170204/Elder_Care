@@ -4,6 +4,7 @@ import { AppShell } from '@/common/layout/AppShell'
 import { NAV_GROUPS, canSee, navForRole } from '@/common/layout/navigation'
 import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
 import { PermissionDeniedState } from '@/common/PageState'
+import { SessionGuard } from '@/common/SessionGuard'
 import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
@@ -177,10 +178,13 @@ function App() {
   }
 
   if (!session) return shell(null)
+  // Báo trước khi hết phiên, đăng nhập lại tại chỗ giữ phần đang nhập (002 T047b)
   return (
-    <PermissionsProvider>
-      <LivePermissions role={role} page={page} onNavigate={navigate} render={shell} />
-    </PermissionsProvider>
+    <SessionGuard accountId={session.accountId} timeoutSeconds={session.sessionIdleTimeoutSeconds} onLogout={logout}>
+      <PermissionsProvider>
+        <LivePermissions role={role} page={page} onNavigate={navigate} render={shell} />
+      </PermissionsProvider>
+    </SessionGuard>
   )
 }
 
