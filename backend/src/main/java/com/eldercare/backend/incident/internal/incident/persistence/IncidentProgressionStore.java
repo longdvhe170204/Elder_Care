@@ -26,6 +26,9 @@ public class IncidentProgressionStore {
     @SuppressWarnings("rawtypes")
     static final SharedKind<Map> HANDLER = SharedKind.of("M05.INCIDENT_HANDLER", Map.class);
 
+    @SuppressWarnings("rawtypes")
+    static final SharedKind<Map> ASSIGNMENT = SharedKind.of("M05.INCIDENT_ASSIGNMENT", Map.class);
+
     private final RecordEventApi records;
 
     public IncidentProgressionStore(RecordEventApi records) {
@@ -74,6 +77,38 @@ public class IncidentProgressionStore {
                 incident(incidentId),
                 new NewRecordEvent<>(
                         Map.of("role", "JOINED"), null, staffAccountId, false, at, at, at, floorAreaId, key));
+    }
+
+    /** Lịch sử phân công (data-model {@code phan_cong_su_co}, nhóm 3, R-15 → {@code su_kien_chung}; FR-045a). */
+    public void recordAssignment(
+            long incidentId,
+            long assignedBy,
+            long assignee,
+            String note,
+            String statusAtAssignment,
+            Instant at,
+            Long floorAreaId) {
+        records.add(
+                ASSIGNMENT,
+                incident(incidentId),
+                new NewRecordEvent<>(
+                        Map.of(
+                                "assignedBy",
+                                assignedBy,
+                                "assignee",
+                                assignee,
+                                "note",
+                                note,
+                                "statusAtAssignment",
+                                statusAtAssignment),
+                        null,
+                        assignedBy,
+                        false,
+                        at,
+                        at,
+                        at,
+                        floorAreaId,
+                        null));
     }
 
     public boolean isHandler(long incidentId, long staffAccountId) {

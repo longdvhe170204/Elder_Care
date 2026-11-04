@@ -167,6 +167,30 @@ public class IncidentStore {
         if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
     }
 
+    public Optional<Long> assignee(long id) {
+        return Optional.ofNullable(
+                jdbc.queryForObject("SELECT assignee_id FROM incident WHERE id = ?", Long.class, id));
+    }
+
+    /** Giao từ Mới: như Tiếp nhận xử lý, người tiếp nhận là người giao (research S-11, FR-045a). */
+    public void assignFromNew(long id, long assigneeId, long assignerId, Instant at, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET status = 'IN_PROGRESS', assignee_id = ?, received_at = ?, received_by = ?,
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status = 'NEW' AND version = ?
+                """, assigneeId, Timestamp.from(at), assignerId, id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
+    /** Giao lại khi Đang xử lý, Đang theo dõi: chỉ đổi người xử lý. */
+    public void reassign(long id, long assigneeId, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET assignee_id = ?, version = version + 1
+                WHERE id = ? AND status IN ('IN_PROGRESS', 'MONITORING') AND version = ?
+                """, assigneeId, id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
     public void receive(long id, long receiverId, Instant at, int expectedVersion) {
         int changed = jdbc.update("""
                 UPDATE incident SET status='IN_PROGRESS', received_at=?, received_by=?, assignee_id=?,

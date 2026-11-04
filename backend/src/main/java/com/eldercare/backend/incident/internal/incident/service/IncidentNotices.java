@@ -151,6 +151,29 @@ final class IncidentNotices {
                 Optional.empty());
     }
 
+    /** FR-045a: báo người được giao theo mức hiện hành của sự cố. */
+    static List<NotificationRequest> assigned(
+            long incidentId,
+            Long residentId,
+            Long floorAreaId,
+            IncidentLevel level,
+            long staffId,
+            long actorId,
+            Instant at) {
+        return List.of(request(
+                incidentId,
+                SOURCE_TYPE + ":" + incidentId + ":ASSIGNED:" + staffId + ":" + at.toEpochMilli(),
+                level,
+                residentId,
+                floorAreaId,
+                List.of(new RecipientGroup.Staff(staffId, "INCIDENT_ASSIGNED")),
+                "Bạn được giao xử lý một sự cố. Mở hồ sơ sự cố để xem ghi chú của người giao.",
+                actorId,
+                at,
+                Optional.empty(),
+                Optional.empty()));
+    }
+
     private static void shiftLead(LinkedHashSet<RecipientGroup> groups, Long floorAreaId) {
         if (floorAreaId != null) groups.add(new RecipientGroup.ShiftLead(floorAreaId, new Substitution.Default()));
     }

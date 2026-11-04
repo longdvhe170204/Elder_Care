@@ -145,6 +145,28 @@ class IncidentRecordIT extends MySqlIntegrationTestBase {
                 .isInstanceOf(DataAccessException.class);
     }
 
+    @Test
+    void FR_045a_assignFromNewActsAsReceiveThenReassignOnlyChangesHandler() {
+        long id = insert();
+        var start = incidents.lock(id).orElseThrow();
+        long assigner = TestUsers.nextId();
+        long nurse = TestUsers.nextId();
+        long doctor = TestUsers.nextId();
+        var at = Instant.parse("2026-11-04T05:00:00Z");
+
+        incidents.assignFromNew(id, nurse, assigner, at, start.version());
+        assertThat(incidents.assignee(id)).contains(nurse);
+        var row = jdbc.queryForMap("SELECT status, received_by, escalation_stopped FROM incident WHERE id = ?", id);
+        assertThat(row.get("status")).isEqualTo("IN_PROGRESS");
+        assertThat(((Number) row.get("received_by")).longValue()).isEqualTo(assigner);
+        assertThat(row.get("escalation_stopped")).isEqualTo(true);
+
+        incidents.reassign(id, doctor, start.version() + 1);
+        assertThat(incidents.assignee(id)).contains(doctor);
+        assertThat(jdbc.queryForObject("SELECT status FROM incident WHERE id = ?", String.class, id))
+                .isEqualTo("IN_PROGRESS");
+    }
+
     private long insert() {
         long id = TestUsers.nextId();
         var at = Timestamp.from(Instant.parse("2026-11-03T00:00:00Z"));
