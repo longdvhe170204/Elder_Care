@@ -186,8 +186,8 @@ class BR_M02_14_TypeChangeIT extends RegistrationTestBase {
     /** Phiên bản nội dung hợp đồng (004) dựng bằng SQL cho phụ lục đổi loại lưu trú. */
     private void version(long contractId, int sequence, LocalDate from, ResidenceType type, LocalDate end) {
         jdbc.update(
-                "INSERT INTO contract_content_version (contract_id, sequence_no, effective_from, content, residence_type,"
-                        + " care_level, end_date) VALUES (?, ?, ?, ?, ?, 'BASIC', ?)",
+                "INSERT INTO contract_version (kind, contract_id, sequence_no, effective_from, content, residence_type,"
+                        + " care_level, end_date, created_at) VALUES ('CONTENT', ?, ?, ?, ?, ?, 'BASIC', ?, UTC_TIMESTAMP(6))",
                 contractId,
                 sequence,
                 from,
