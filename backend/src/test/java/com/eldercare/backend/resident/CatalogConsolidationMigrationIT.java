@@ -48,7 +48,9 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "resident_status_history",
             "care_level_history",
             "m01_history_id_map",
-            "reassessment_notice");
+            "reassessment_notice",
+            "initial_health_record",
+            "m01_ihr_id_map");
 
     /** Nội dung một dòng lịch sử trạng thái cũ ({@code o}) và mới ({@code n}), để so tham chiếu theo nội dung khi id đổi. */
     private static final String OLD_STATUS_ROW =
@@ -83,7 +85,10 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             List<String> historyRefs,
             long maxStatusHistoryId,
             List<String> notices,
-            long maxNoticeId) {}
+            long maxNoticeId,
+            List<String> healthRecords,
+            List<String> healthRecordRefs,
+            long maxHealthRecordId) {}
 
     @AfterAll
     static void dropScratchSchemas() {
@@ -232,6 +237,7 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         + " recorded_at, recorded_by) VALUES (?, 'BASIC', '2026-01-01', 'ASSESSMENT', 1, NOW(6), 3)",
                 r1);
         seedHistories(db, r1, r2);
+        seedHealthRecords(db, r1, r2);
         // nhắc định kỳ: lần nhắc 2 lần, 1 lần, và chưa nhắc lần nào; cảnh báo quá hạn của hai mốc cùng một lượt vắng
         db.update(
                 "INSERT INTO periodic_reminder (type, resident_id, milestone_id, started_at, last_reminded_at,"
@@ -395,6 +401,89 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         + " '2026-01-11 08:00:00', '2026-01-11 08:00:00', NULL)",
                 r1,
                 r2);
+    }
+
+    /**
+     * Hồ sơ sức khỏe ban đầu: r1 đã xác nhận (có đính chính, chuỗi, yêu cầu đính chính chờ duyệt), r2 còn nháp (trường
+     * để trống, version 3).
+     */
+    private static void seedHealthRecords(JdbcTemplate db, long r1, long r2) {
+        db.update(
+                "INSERT INTO initial_health_record (resident_id, blood_type, mobility, self_care_ability, cognition,"
+                        + " initial_needs_note, nutrition_needs, current_medications, rehabilitation_needs, performed_by,"
+                        + " performed_at, confirmed_by, confirmed_at, version) VALUES (?, 'O+', 'Đi gậy', 'Tự ăn',"
+                        + " 'Tỉnh', 'Ghi chú', 'Ít muối', 'Metformin', 'Tập đi', 5, '2026-01-02 07:00:00.654321', 3,"
+                        + " '2026-01-02 09:15:00', 2), (?, NULL, 'Ngồi xe lăn', NULL, NULL, NULL, NULL, NULL, NULL, 5,"
+                        + " '2026-01-05 07:00:00', NULL, NULL, 3)",
+                r1,
+                r2);
+        long confirmed =
+                db.queryForObject("SELECT id FROM initial_health_record WHERE resident_id = ?", Long.class, r1);
+        db.update(
+                "INSERT INTO correction (record_type, original_record_id, type, corrected_content, reason, actor_id,"
+                        + " creation_method, recorded_at, sequence_no) VALUES ('M01.INITIAL_HEALTH_RECORD', ?,"
+                        + " 'AMEND_CONTENT', JSON_OBJECT('bloodType', 'A+'), 'Ghi nhầm nhóm máu', 3, 'A', NOW(6), 1)",
+                confirmed);
+        db.update(
+                "INSERT INTO correction_chain (record_type, original_record_id, correction_count)"
+                        + " VALUES ('M01.INITIAL_HEALTH_RECORD', ?, 1)",
+                confirmed);
+        db.update(
+                "INSERT INTO approval_request (type, status, content, requester_id, created_at, reason,"
+                        + " requested_effective_date) VALUES ('M15.CORRECTION', 'PENDING', JSON_OBJECT('recordType',"
+                        + " 'M01.INITIAL_HEALTH_RECORD', 'originalRecordId', ?, 'type', 'AMEND_CONTENT',"
+                        + " 'correctedContent', JSON_OBJECT('mobility', 'Đi được')), 3, NOW(6), 'Sửa', CURDATE())",
+                confirmed);
+    }
+
+    private static final String OLD_IHR_ROW = "CONCAT_WS('|', o.resident_id, IFNULL(o.blood_type, '-'),"
+            + " IFNULL(o.mobility, '-'), IFNULL(o.self_care_ability, '-'), IFNULL(o.cognition, '-'),"
+            + " IFNULL(o.initial_needs_note, '-'), IFNULL(o.nutrition_needs, '-'), IFNULL(o.current_medications, '-'),"
+            + " IFNULL(o.rehabilitation_needs, '-'), o.performed_by, o.performed_at, IFNULL(o.confirmed_by, '-'),"
+            + " IFNULL(o.confirmed_at, '-'), IF(o.confirmed_at IS NULL, 'DRAFT', 'CONFIRMED'), o.version)";
+
+    private static String newField(String field) {
+        return "IF(JSON_TYPE(s.content -> '$." + field + "') = 'NULL', '-', s.content ->> '$." + field + "')";
+    }
+
+    private static final String NEW_IHR_ROW = "CONCAT_WS('|', s.resident_id, " + newField("bloodType") + ", "
+            + newField("mobility") + ", " + newField("selfCareAbility") + ", " + newField("cognition") + ", "
+            + newField("initialNeedsNote") + ", " + newField("nutritionNeeds") + ", " + newField("currentMedications")
+            + ", " + newField("rehabilitationNeeds") + ", s.content ->> '$.performedBy', s.created_at, "
+            + newField("confirmedBy") + ", IFNULL(s.locked_at, '-'), s.status, s.version)";
+
+    /** Hồ sơ sức khỏe ban đầu và nơi trỏ tới nó (đính chính, chuỗi, yêu cầu chờ duyệt), ghi bằng nội dung hồ sơ. */
+    private static List<String> healthRecords(JdbcTemplate db, boolean migrated) {
+        return migrated
+                ? db.queryForList(
+                        "SELECT CONCAT(" + NEW_IHR_ROW + ", '|', s.unique_key) FROM simple_record s"
+                                + " WHERE s.kind = 'M01.INITIAL_HEALTH_RECORD'",
+                        String.class)
+                : db.queryForList(
+                        "SELECT CONCAT(" + OLD_IHR_ROW + ", '|M01.IHR:', o.resident_id) FROM initial_health_record o",
+                        String.class);
+    }
+
+    private static List<String> healthRecordRefs(JdbcTemplate db, boolean migrated) {
+        String row = migrated ? NEW_IHR_ROW : OLD_IHR_ROW;
+        String join = migrated
+                ? "simple_record s ON s.id = %s AND s.kind = 'M01.INITIAL_HEALTH_RECORD'"
+                : "initial_health_record o ON o.id = %s";
+        List<String> refs = new ArrayList<>();
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('C|', c.id, '|', " + row + ") FROM correction c JOIN "
+                        + join.formatted("c.original_record_id") + " WHERE c.record_type = 'M01.INITIAL_HEALTH_RECORD'",
+                String.class));
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('CH|', c.correction_count, '|', " + row + ") FROM correction_chain c JOIN "
+                        + join.formatted("c.original_record_id") + " WHERE c.record_type = 'M01.INITIAL_HEALTH_RECORD'",
+                String.class));
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('A|', a.id, '|', " + row + ") FROM approval_request a JOIN "
+                        + join.formatted("CAST(a.content ->> '$.originalRecordId' AS UNSIGNED)")
+                        + " WHERE a.type = 'M15.CORRECTION' AND a.content ->> '$.recordType' = 'M01.INITIAL_HEALTH_RECORD'",
+                String.class));
+        return refs;
     }
 
     /** Lần báo đánh giá lại dạng chữ; nguồn là lịch sử trạng thái thì không ghi id (đổi khi chuyển, so ở historyRefs). */
@@ -615,7 +704,10 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 historyRefs(db, false),
                 db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM resident_status_history", Long.class),
                 notices(db, false),
-                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM reassessment_notice", Long.class));
+                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM reassessment_notice", Long.class),
+                healthRecords(db, false),
+                healthRecordRefs(db, false),
+                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM initial_health_record", Long.class));
     }
 
     /** Phiếu cuối đời (giữ id), phiếu điều trị (không có id), ý kiến khác của phiếu cuối đời: dạng chữ để so sánh. */
@@ -728,6 +820,28 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND content ->> '$.legacy.table' = 'reassessment_notice'",
                         Long.class))
                 .isGreaterThan(before.maxNoticeId());
+
+        // Hồ sơ sức khỏe ban đầu vào simple_record M01.INITIAL_HEALTH_RECORD: nội dung, trạng thái, khóa lúc xác nhận,
+        // version, khóa M01.IHR; đính chính, chuỗi, yêu cầu chờ duyệt trỏ id mới (lớn hơn mọi id cũ)
+        assertThat(healthRecords(db, true))
+                .as("hồ sơ sức khỏe ban đầu")
+                .containsExactlyInAnyOrderElementsOf(before.healthRecords());
+        assertThat(healthRecordRefs(db, true))
+                .as("tham chiếu tới hồ sơ sức khỏe ban đầu")
+                .containsExactlyInAnyOrderElementsOf(before.healthRecordRefs());
+        assertThat(before.healthRecordRefs()).hasSizeGreaterThanOrEqualTo(3);
+        assertThat(db.queryForObject(
+                        "SELECT MIN(id) FROM simple_record WHERE kind = 'M01.INITIAL_HEALTH_RECORD'"
+                                + " AND content ->> '$.legacy.table' = 'initial_health_record'",
+                        Long.class))
+                .isGreaterThan(before.maxHealthRecordId());
+        long confirmedRecord = db.queryForObject(
+                "SELECT MIN(id) FROM simple_record WHERE kind = 'M01.INITIAL_HEALTH_RECORD' AND locked_at IS NOT NULL",
+                Long.class);
+        assertThatThrownBy(() -> db.update(
+                        "UPDATE simple_record SET content = JSON_SET(content, '$.bloodType', 'B') WHERE id = ?",
+                        confirmedRecord))
+                .hasMessageContaining("simple_record row is locked");
 
         // Nhắc định kỳ: loại, người, mốc, lúc bắt đầu, lần nhắc cuối và số lần tính lại từ các dòng reminder_marker
         assertThat(db.queryForList(

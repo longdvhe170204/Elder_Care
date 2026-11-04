@@ -189,7 +189,7 @@ class ResidentRetentionIT extends StatusTestBase {
             "resident",
             "status_history:STATUS",
             "status_history:CARE_LEVEL",
-            "initial_health_record",
+            "simple_record:M01.INITIAL_HEALTH_RECORD",
             "health_item",
             "assessment",
             "consent",

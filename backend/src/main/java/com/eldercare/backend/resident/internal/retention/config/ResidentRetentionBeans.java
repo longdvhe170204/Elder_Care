@@ -34,11 +34,8 @@ class ResidentRetentionBeans {
         return new ResidentChildRetention("M01.CONSENT", "consent", List.of(), records, database);
     }
 
-    @Bean
-    ResidentChildRetention initialHealthRecordRetention(ResidentRecordStore records, RetentionDatabase database) {
-        return new ResidentChildRetention(
-                "M01.INITIAL_HEALTH_RECORD", "initial_health_record", List.of(), records, database);
-    }
+    // Hồ sơ sức khỏe ban đầu ở simple_record (001 T084): SharedRowRetention xóa theo M01.RESIDENT, rowsFor đưa đính
+    // chính, nhật ký loại M01.INITIAL_HEALTH_RECORD vào chuỗi (A chốt 2026-11-03 điểm 3)
 
     @Bean
     ResidentChildRetention healthItemRetention(ResidentRecordStore records, RetentionDatabase database) {
