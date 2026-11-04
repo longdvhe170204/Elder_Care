@@ -4,10 +4,16 @@
 
 **Input**: Feature specification from `specs/005-daily-care-tasks/spec.md`
 
+## Trạng thái rà sau merge — 04/11/2026
+
+Checkbox hiện hành nằm trong tasks.md; các checkpoint ngày trước là lịch sử kiểm chứng, không còn là chỉ dẫn giữ trắng toàn bộ task. Task đủ phạm vi cài đặt và kiểm xanh được đánh hoàn tất riêng; task có nhánh còn thiếu giữ mở. Việc đó không thay thế nghiệm thu toàn phase, kiểm nguồn production hay T061/T062.
+
+Ba bản đề xuất hợp đồng Phase 4–6 đã hoàn thành vai trò xin duyệt. Các quyết định được gom tại [Quyết định Phase 4](#quyet-dinh-hop-dong-phase-4), [Phase 5](#quyet-dinh-hop-dong-phase-5), [Phase 6](#quyet-dinh-hop-dong-phase-6). Hợp đồng đang áp dụng là contracts/api-005.yaml và contracts/module-interfaces.md. Bản đầy đủ trước dọn vẫn tra được bằng git show e7d7a7c0:specs/005-daily-care-tasks/phaseN-contract-proposal.md (N = 4, 5, 6); không dùng đề xuất bị hoãn ngày01/11 để ghi đè quyết định mới ngày03/11.
+
 ### Ghi chú triển khai — tiếp nhận Phase 6 (2026-11-01)
 
 - Checkout đầu phiên `44a7c201`, nhánh hiện có; không đổi nhánh, commit/push/merge. Báo đủ 18 dòng chứa HungNX-nguyen tại mục 8. Giữ Working-history.md và hand-over-task-003.md chưa theo dõi có sẵn; không sửa tài liệu bàn giao 003.
-- Chủ dự án đã duyệt bản dịch sáu operation T039 bằng câu trả lời “1”; chi tiết tại phase6-contract-proposal.md. Chưa tự mở rộng API/SPI hoặc thư viện. Các gate nguồn B/D/E, retention, VOID và mobile common của Phase 5 giữ nguyên. Khi merge ưu tiên listener nguồn tương ứng B/E, tránh xử lý trùng.
+- Chủ dự án đã duyệt bản dịch sáu operation T039 bằng câu trả lời “1”; chi tiết tại plan.md#quyet-dinh-hop-dong-phase-6. Chưa tự mở rộng API/SPI hoặc thư viện. Các gate nguồn B/D/E, retention, VOID và mobile common của Phase 5 giữ nguyên. Khi merge ưu tiên listener nguồn tương ứng B/E, tránh xử lý trùng.
 - T032: hàm thuần CareResultTiming.completedStatus(windowFrom,windowTo,performedAt), đặt tại internal/result/domain. Hai biên bao gồm; sau cuối khung là COMPLETED_LATE, trước đầu khung hoặc khung đảo bị từ chối. Không đưa giờ đồng bộ vào hàm để thời điểm nhận muộn không làm sai trạng thái đã thực hiện đúng khung (FR-035). Kiểm quyền/trạng thái đang mở và giới hạn thời điểm ghi thuộc service T036, không đưa vào luật thuần.
 - TDD T032: RED 46 kiểm gồm 2 failure + 4 error do thiếu CareResultTiming; GREEN 46/46 (6 ca T032 + 40 ArchTest), exit0. Đã chạy spotless:apply giới hạn care. Log 005-p6-t032-{red,green}.log và 005-p6-spotless.log ở thư mục artifacts phiên. Chưa đánh task hoàn thành trước clean verify cuối phase.
 - R-15/T035: kết quả gộp vào care_task, id kết quả bằng id task; giữ bất biến nhóm 3 và chỉ mục resident/resultType/performedAt, không tạo bảng kết quả riêng. Rà FR-038 thấy snapshot CareTaskData hiện thiếu upperLimit/vitalSignType; phải xử lý trong T036 để không áp cấu hình danh mục mới vào task đã lập.
@@ -434,7 +440,7 @@ ModuleBoundaryTest kiểm riêng thêm1test xanh,exit0/18.429giây,log005-p3-ret
 
 Chủ C HungNX-nguyen yêu cầu T018–T026, giữ nhánh feature/005-daily-care-and-hand-over (HEAD đầu lượt df032811), không commit/push/đổi nhánh. Đã báo 7 dòng chứa tên GitHub trong mục8; các dòng C không ghi tên vẫn là phụ thuộc cần theo dõi. Giữ gate Phase3/outbox và A/B, không coi Phase3 đã nghiệm thu.
 
-Chủ dự án trả lời “1” duyệt mục1–3 của phase4-contract-proposal.md: dịch7operation T025/các schema, rowErrors từ1, TaskSourcePort.sources và ShiftStaffPort.members; giữ chữ ký cũ, sửa fake duy nhất hiện có. Mục5 (ongoingShifts cho T024) và mục6 (ApiClient mobile hỗ trợ mảng/Problem Details đầy đủ) đã gửi câu hỏi riêng, chưa có câu trả lời tính tới ghi chú này. Không suy elapsed time thành duyệt.
+Chủ dự án trả lời “1” duyệt mục1–3 của plan.md#quyet-dinh-hop-dong-phase-4: dịch7operation T025/các schema, rowErrors từ1, TaskSourcePort.sources và ShiftStaffPort.members; giữ chữ ký cũ, sửa fake duy nhất hiện có. Mục5 (ongoingShifts cho T024) và mục6 (ApiClient mobile hỗ trợ mảng/Problem Details đầy đủ) đã gửi câu hỏi riêng, chưa có câu trả lời tính tới ghi chú này. Không suy elapsed time thành duyệt.
 
 T018 dùng CareTaskTransitions thuần ở internal/task/domain. RED5failure/0error do thiếu class, GREEN46unit/Arch/Boundary. T019/20–23/25 triển khai lát cắt HTTP–transaction–SQL để kiểm nguyên tử xuyên tầng:10IT RED404 trước controller/migration; V005_97 mới vì số cũ đã dùng, care_task BUSINESS, UNIQUE sinh và trigger khóa trạng thái cuối; snapshot typed CareTaskData trong JSON, các cột ràng buộc/chỉ mục để riêng. Lịch sử qua StatusHistoryApi, không tạo care_task_history. Không thêm thư viện.
 
@@ -444,7 +450,7 @@ T026 web theo component hiện có, có RED3failure/1pass sau scaffold; lỗi im
 
 ## Quyết định và rà soát tiếp Phase 4 — 2026-11-01
 
-Chủ dự án chọn phương án 2 cho cả mục 5–6 của phase4-contract-proposal.md: giữ nguyên SPI hiện có, T024 chờ E cung cấp nguồn liệt kê đầy đủ ca; không cho C sửa ApiClient nền, T026 chờ A cung cấp transport hỗ trợ mảng JSON và Problem Details.rowErrors. Không thêm ongoingShifts, không sửa mobile/lib/common/api/api_client.dart. Chủ dự án chọn phương án 1 cho cảnh báo Bắt buộc gắn vị trí: chờ thống nhất với chủ 007; không tự gán residentId hoặc id giả. Các lựa chọn này là quyết định hoãn, không còn là câu hỏi duyệt đang chờ.
+Chủ dự án chọn phương án 2 cho cả mục 5–6 của plan.md#quyet-dinh-hop-dong-phase-4: giữ nguyên SPI hiện có, T024 chờ E cung cấp nguồn liệt kê đầy đủ ca; không cho C sửa ApiClient nền, T026 chờ A cung cấp transport hỗ trợ mảng JSON và Problem Details.rowErrors. Không thêm ongoingShifts, không sửa mobile/lib/common/api/api_client.dart. Chủ dự án chọn phương án 1 cho cảnh báo Bắt buộc gắn vị trí: chờ thống nhất với chủ 007; không tự gán residentId hoặc id giả. Các lựa chọn này là quyết định hoãn, không còn là câu hỏi duyệt đang chờ.
 
 Các quyết định kỹ thuật sau review: REWORK chỉ được lập qua lệnh đã kiểm QualityCheckPort.failed và có originalTaskId; lập lô không được dùng REWORK để bỏ kiểm căn cứ. Trước khi dùng floor của ca làm Target, kiểm BedAllocationApi.openAt tại plannedAt: phân bổ có sẵn phải đúng floor; không có phân bổ thì cần phân công xác thực trong ca. Nguồn ca qua nửa đêm hợp nhất mục kế hoạch hiệu lực của từng ngày nghiệp vụ giao với [startsAt,endsAt), không sinh công việc. Web lấy thành viên vị trí qua GET /shifts/{id} đã có của 008, lọc absent/approvedLeave; mobile nhận cùng dữ liệu qua gateway.shiftMembers và chờ adapter A. Không thêm trường vào HTTP005 hoặc thêm thư viện.
 
@@ -470,7 +476,7 @@ Giữ toàn bộ checkboxPhase4[ ]:T019 còn kiểm ca rỗng;T024 chờ nguồn
 
 Phạm vi T027–T031 theo yêu cầu mới, giữ checkout hiện tại HEADfe7891ea và các gate phase trước. Không đổi nhánh/commit/push,khôngthêmthưviện. T027 viết test bảngFR013 rồi IT luồngđiểmdanh/schema; T028 dùng SimpleRecordApi/RecordEventApi thay hai bảng logic, UNIQUE loại/người/ngày và chỉmục module trong migration mới; T029 service khóa resident→attendance, audit/history/correction và API đọc/checkout/giờvề; T030 đăng ký CareDailyWork/CareMinuteWork hiệncó; T031 chỉ dịch/cài HTTP sau duyệt,web/mobile dùng client sinh/phần nền hiện có. Sau mỗi lát cắt kiểm riêng task+Arch; cuối cleanverify nền trước checkbox. Working-history.md là ledger thực hiện, không tự chạy script tạo commit hoặc thay checkout từ skill vì user cấm git mutation chưa duyệt.
 
-Các interface dùng chung: T027/T028/T029 cùng model trạng thái/khóa unique; T029/T030 cùng calendar/schedule/clock và marker; T031 dùng service/correction và hợp đồng đã dịch. Không tự tạo attendance_record business bằng job: FR012/C06 xác định trạng thái đầu ngày từ lịch có sẵn, điểm danh chỉ từ lệnh người dùng. Thiếu nguồn holiday/absence và event004,đã trình phase5-contract-proposal.md,không default false hoặc khai hộ eventB. Phần thuầnT027 độc lập được làm trước khi chờAPI.
+Các interface dùng chung: T027/T028/T029 cùng model trạng thái/khóa unique; T029/T030 cùng calendar/schedule/clock và marker; T031 dùng service/correction và hợp đồng đã dịch. Không tự tạo attendance_record business bằng job: FR012/C06 xác định trạng thái đầu ngày từ lịch có sẵn, điểm danh chỉ từ lệnh người dùng. Thiếu nguồn holiday/absence và event004,đã trình plan.md#quyet-dinh-hop-dong-phase-5,không default false hoặc khai hộ eventB. Phần thuầnT027 độc lập được làm trước khi chờAPI.
 
 T027 phần bảngchuyển:RED2failure→GREEN43unit/Arch/Boundary (005-p5-transitions-{red,green}.log),chưahoànthànhITluồng. T028:FR_012_AttendanceSchemaIT RED3/4test trước migration V005_94;GREEN41Arch+4IT/01:01phút. Mởrộngsimple_record bằng cột/indextiềntốm04 vàUNIQUEngười/effective_from,cácloạikhácNULL;khôngtạobảngstoryriêng. ĐangkiểmthêmJSONnullchoexpectedArrivalcủabuổiphátsinh. Reviewđộclậpchưafindingbắtbuộc,đềxuấtAPIvẫnchờtrảlời;khôngđánh[x]/chưanghiệmthuPhase5.
 
@@ -718,7 +724,7 @@ T052/T053 giữ [ ] vì còn phụ thuộc nguồn 007/008 và clean verify toà
 
 1. **Retention điểm danh:** sửa khung chung. `SharedRowRetention.rowsFor` liệt kê dòng `record_event`, `simple_record` sẽ xóa cùng bản ghi; `ExpiredDataPurge` xét đính chính, nhật ký của các dòng đó trước khi xóa. Lượt đến, về `M04.ATTENDANCE_RECORD` gắn hồ sơ được xét theo chuỗi `M01.RESIDENT`. `CareRetentionType.DAY_CARE_ATTENDANCE`, `ATTENDANCE_RECORD` giữ khai báo (bảng cũ không còn, trả rỗng).
 2. **Đường đính chính chung với `M04.CARE_RESULT`:** giữ chặn 503 `CARE_SOURCE_UNAVAILABLE` khi transaction không phải `READ_COMMITTED`. Đính chính kết quả đi qua `/care-results/{id}/correct`; không đổi mức cách ly của `CorrectionService` cho các module khác.
-3. **`/sync` hai loại M04** (phase6-contract-proposal mục 4, đổi tên loại sang tiếng Anh):
+3. **`/sync` hai loại M04** (lịch sử Phase6 tại #quyet-dinh-hop-dong-phase-6, đổi tên loại sang tiếng Anh):
    - `M04.CARE_TASK_RESULT`: `{taskId, action: RECORD | NOT_PERFORM, recording?, reasonTypeId?, note?}`; `recording` là `CareResultWrite`, `NOT_PERFORM` bắt buộc `reasonTypeId`.
    - `M04.AD_HOC_RECORDING`: đúng thân `/ad-hoc-care-recordings`.
 
@@ -737,3 +743,85 @@ Giữ checkpoint Phase 10 và cập nhật theo hợp đồng 007 đã có FallI
 DefaultVitalSignPort tạo phụ thuộc health → care. Khi nối MeasurementScheduleChanged, cần thiết kế đường chuyển tiếp tránh phụ thuộc ngược care → health.
 
 Scoped verify trên nhánh gộp xanh trong 02:41. 48 kiểm tra kiến trúc và 27 IT gồm BR_M04_20_CarePlanReviewIT, FR_003_CarePlanLifecycleIT và ApiContractIT. Hai gate outbox và hợp đồng 005 qua trong phạm vi này.
+
+## Quyết định hợp đồng đã hợp nhất — 04/11/2026
+
+Mục này thay ba file đề xuất Phase4–6 đã xóa sau merge. Đây là nhật ký quyết định; schema và chữ ký đang áp dụng tra contracts/api-005.yaml, contracts/module-interfaces.md. Các quyết định ngày03/11 ở phần trên có ưu tiên so với đề xuất ngày01/11. Bản đầy đủ của ba file vẫn có trong Git tại e7d7a7c0; bản sao đối chiếu và SHA256 lưu ở artifact 005-contract-proposals-archive-20261104.json. Không đổi hợp đồng hoặc áp dụng một đề xuất bị hoãn trong lượt dọn này.
+
+<a id="quyet-dinh-hop-dong-phase-4"></a>
+### Quyết định hợp đồng Phase 4
+
+- Đã duyệt ngày01/11: dịch đúng bảy operation T025 sang /shifts/{shiftId}/source-data, /shifts/{shiftId}/care-tasks, /shifts/{shiftId}/care-tasks/plan, /care-tasks/ad-hoc, /care-tasks/{id}/rework, GET /care-tasks/{id}, /care-tasks/{id}/cancel. Giữ method/status/required/header, lập lô nhận/trả mảng, rowErrors đánh số từ1, không gợi ý/điền sẵn công việc.
+- Đã duyệt hai bổ sung TaskSourcePort.sources(...) và ShiftStaffPort.members(...)/ShiftMemberView; giữ chữ ký cũ, cập nhật fake do005 sở hữu, nguồn thật do chủ nguồn review. DTO/request/response và mã lỗi tiếng Anh được ghi trong hợp đồng hiện hành, không cần giữ bản đề xuất riêng để dùng client.
+- Chọn hoãn: không thêm ongoingShifts; nhắc cả ca chưa có công việc còn chờ nguồn đầy đủ của008. Không sửa ApiClient mobile của A để hỗ trợ mảng/rowErrors; giao diện/gateway độc lập không đồng nghĩa adapter production đã xong. Cảnh báo MANDATORY gắn vị trí chờ007, không gán residentId giả. Các nhánh này không được coi đã nghiệm thu chỉ vì merge.
+- Cập nhật sau merge: A đã cài requestJson/getList và ApiProblem.properties ngày03/11; không còn chờ A mở transport mảng/rowErrors. Phần còn lại của T026/T031/T040 là C dùng API này để nối adapter/form và shell, thay vì tiếp tục ghi chưa có transport.
+
+<a id="quyet-dinh-hop-dong-phase-5"></a>
+### Quyết định hợp đồng Phase 5
+
+- Đã duyệt ngày01/11: bốn operation /day-care-attendances, /day-care-attendances/check-in, /day-care-attendances/{id}/check-out, /day-care-attendance-records/{id}/correct; DayCareCalendarPort.onDate(...)/CalendarView và DayCareAttendanceApi.refreshCalendar(...) MANDATORY, giữ API cũ. Check-out dùng pickupRecordId thật; không thêm loại để client bỏ kiểm nguồn.
+- Giữ chiều care → admission; adapter/listener thuộc care đọc API/event nguồn. Khi merge có listener/kiểu nguồn tương đương của B/E thì ưu tiên bản B/E, hợp nhất tránh xử lý trùng, giữ chữ ký cũ và review phần chênh lệch. B không import care ngược chiều chỉ để cài SPI.
+- Chủ dự án chọn AMEND_CONTENT sửa giờ trước; VOID và ngày chuyển DAY_CARE sang nội trú còn cần quy tắc rõ, không tự dùng trạng thái ngày nghỉ để thay. Nguồn lịch/ngày nghỉ/báo vắng và mobile list vẫn cần tích hợp đúng hợp đồng.
+- Retention bảng chung từng là gate của bản đề xuất: quyết định03/11 đã sửa enumerate chuỗi shared trong khung chung; không tiếp tục báo đây là việc A chưa cài chỉ dựa vào văn bản cũ. Việc nghiệm thu nguồn/bất thường còn lại tra các dòng hiện hành mục8 team-plan.
+
+<a id="quyet-dinh-hop-dong-phase-6"></a>
+### Quyết định hợp đồng Phase 6
+
+- Đã duyệt ngày01/11: sáu operation claim/checklist/record/not-perform/ad-hoc-care-recordings/care-results với các trường tiếng Anh hiện có. CareTask.resultType readOnly lấy từ snapshot cũng được duyệt; không suy loại kết quả từ tên danh mục hiện tại, không thêm request hoặc đổi API/SPI Java vì trường này.
+- Payload offline mục4 của đề xuất ngày01/11 từng bị hoãn. Quyết định03/11 thay thế bằng hai mã tiếng Anh M04.CARE_TASK_RESULT (taskId/action/recording hoặc reasonTypeId/note) và M04.AD_HOC_RECORDING (body HTTP đã duyệt); giữ envelope/response /sync. Được duyệt không có nghĩa hai handler hoặc app đã được cài: T034/T037/T040 còn mở cho tới khi có mã và test.
+- Còn chờ: summary ăn/nước của012 (nay A giữ); quantity/newQuantity tính phí010; ghi nhận phát sinh đo và metadata đo lại007; nhận việc tồn ca sau với008. Không tự quy đổi lượng đo thành đơn vị dịch vụ, không chép giá trị đo đầu thành lần đo lại đã xác nhận, không tự áp luật ca hiện tại cho việc tồn.
+- Sau merge ưu tiên hợp đồng ghi đo007 đã có; cần giải quyết khác biệt indicatorId/map thành phần so với snapshot mã loại/giá trị đơn của005, bảo toàn deviceAt/recordId. Giữ chiều phụ thuộc không tạo vòng care ↔ health. Nguồn thật/adapter mobile và các nhánh chờ không được coi xong nhờ fake hoặc test chặn503.
+
+<a id="ra-checkbox-sau-merge-20261104"></a>
+## Rà checkbox sau merge — 04/11/2026
+
+Kiểm trên HEAD e7d7a7c0 và checkout hiện tại; không sửa mã Java/UI trong lượt này. Các thay đổi003 có sẵn được giữ nguyên. Không chạy lại clean verify toàn kho chỉ để sửa tài liệu: lượt full gần nhất ngày04/11 trong công việc003 đã chạy 1047unit/Arch và2585IT (4failure ở004,0error,2skip). Lượt rà này kiểm lại riêng toàn bộ005, kiến trúc, hợp đồng và bảo vệ nhóm dữ liệu; không tuyên bố toàn kho xanh.
+
+- Backend: mvnw.cmd -o -Dtest=com.eldercare.backend.care.*Test,*ArchTest,ModuleBoundaryTest -Dit.test=com.eldercare.backend.care.*IT,ApiContractIT,RecordGroupTriggerIT verify → BUILD SUCCESS/03:24;129unit/kiến trúc,268IT,0failure/error/skip;Spotless sạch3219file. Outbox reason và hợp đồng005 qua trong lượt này.
+- Web: npm test -- --run src/features/care-tasks →48test/14file xanh; npm run lint và npm run build exit0, chỉ cảnh báo chunk lớn. Không sửa UI và không chụp màn hình.
+- Log: artifacts 005-task-audit-20261104.log, 005-task-audit-web-{tests,lint,build}-20261104.log. Các checkbox đánh sau khi đã đọc kết quả; không dùng test guard503 để nghiệm thu nhánh còn thiếu.
+
+| Task đánh hoàn tất trong lượt rà | Căn cứ mã và test hiện hành |
+| --- | --- |
+| T001, T002, T003, T004 | Khung module, tám SPI/fake opt-in, API/DTO và event đã khai báo; T001_ModuleSetupTest, T003_PublicCareApiTest, NFR_04_CareEventsTest và các kiểm fake/kiến trúc. T003/T004 là khai báo hợp đồng, không thay nghiệm thu các provider story sau. |
+| T005, T006, T007, T007a, T008, T009 | Migration/R15, khóa/khung job, danh mục, provider phạm vi/phân loại/lưu giữ và kiến trúc; T005_*, NFR_04_CareSchedulingIT, FR_038_*, FR_028a_*, T008_CareGovernanceIT, M04ArchTest/T009_ArchitectureRulesTest. |
+| T010, T011, T012, T013, T014, T015, T016, T016a | Chuỗi/so sánh, schema/trigger, state machine, lệnh, controller, hiệu lực kế hoạch và thỏa thuận/nhắc; BR_M04_25_*, FR_008_*, FR_003_*, BR_M04_19_* và kiểm hợp đồng. Ca lưu reason tối đa đã xanh với V000_16. Nguồn thật vẫn cần nghiệm thu liên module riêng. |
+| T017 | Màn kế hoạch/danh mục/thỏa thuận, client và test web hiện có; các test feature, lint/build mới xanh. Không dùng checkbox này để tuyên bố đã kiểm trực quan toàn giao diện. |
+| T018, T020, T021, T022, T023, T025 | Luật kiểm/chuyển, schema/domain/JDBC/history, validator/lệnh lập lô-phát sinh-làm lại và bảy HTTP/callback nguồn; FR_026_*, FR_017_*, BR_M04_01_ShiftTaskPlanningIT, ApiContractIT. T019 vẫn mở vì ca nhắc mọi ca trống thuộc T024 còn thiếu. |
+| T027, T028 | Test bảng chuyển, hiện diện/đến/về/không báo/hết ngày và schema shared; FR_013_AttendanceTransitionsTest, BR_M04_02_DayCareAttendanceIT, FR_012_AttendanceSchemaIT. Không đánh thay listener/lịch/nguồn của T029–T031. |
+| T032, T035, T041 | Hàm thời điểm đóng, schema kết quả gộp care_task và web checklist; FR_035_CareResultTimingTest, FR_036_CareResultSchemaIT cùng các test web checklist/record theo loại. |
+| T043 | Bộ IT core danh sách/đóng/chuyển/tồn bàn giao; FR_047_TaskHandoverIT, FR_047_HandoverRegressionIT, FR_047a_PendingHandoverIT và review regressions. T045/T061 vẫn mở cho adapter/nguồn008 và task vị trí; không ghi test005 thành tích hợp thật008. |
+| T047, T048 | Test luật thuần nước/bữa/tâm trạng và integration với projection/correction/marker; BR_M04_08/09/11_*, FR_039_CareResultRulesIT, BR_M04_14_CareResultCorrectionIT. Test không đồng nghĩa toàn producer/nguồn/chuỗi dài của T049 đã hoàn tất. |
+
+T060 đã được A đánh[x] trước lượt này, giữ nguyên; ApiContractIT và RecordGroupTriggerIT lại xanh sau merge.
+
+| Task còn mở | Phần thực tế còn lại |
+| --- | --- |
+| T019, T024 | Nhắc toàn bộ ca trống kể cả tầng/khu chưa có task/giường; cảnh báo MANDATORY vị trí/metadata nguồn đầy đủ. |
+| T026, T031, T040 | A đã cung cấp transport mảng/Problem properties; C còn nối adapter vào requestJson/getList, đăng ký shell, danh mục/form kết quả và các luồng còn thiếu; không chỉ widget/gateway độc lập. |
+| T029, T030 | Nguồn lịch/ngày nghỉ/báo vắng và listener004, nghiệm thu job theo nguồn thật; hành vi ngày đổi khỏi DAY_CARE/VOID còn mở. |
+| T033, T036, T039 | Quantity/billable010, phát sinh đo/metadata đo lại007 và summary012; các guard503 không phải bản cài nhánh nghiệp vụ. |
+| T034, T037 | Hai offline handler và test đồng bộ theo payload03/11 mới duyệt; hiện chưa có bản cài đầy đủ. |
+| T038, T045 | Nhận việc tồn ca sau, nguồn/adapter008 cho nhiệm vụ bàn giao và task gắn vị trí. |
+| T042, T044, T049 | Bỏ giới hạn payload gộp cũ theo quyết định03/11; metadata đo bị bỏ, liên kết bữa phát sinh, payload ăn kém dài và consumer nguồn thật. |
+| T046 | Màn theo dõi quá hạn đủ web/mobile; nhánh mobile chưa đủ. |
+| T050, T051 | Quantity khi đính chính, tín hiệu VOID ngủ và nghiệm thu consumer; giữ quy tắc isolation generic đã chốt03/11, không đổi mặc định chung. |
+| T052, T053 | Nối và kiểm producer007 mới có, người nhận008 thật; hiện chỉ hai nguồn001/004 được cài/kiểm đầy đủ. |
+| T054–T059 | Test/logic đổi phân công-vắng-nguồn/chuyển giường-thời khóa biểu/thống kê theo đúng từng task; phần có trước chưa đủ phạm vi, chưa có bằng chứng đầy đủ để đánh[x]. |
+| T061–T064 | Tích hợp nguồn thật, benchmark/quickstart, truy vết đầy đủ và kiểm R15 toàn feature; không thay bằng scoped fake. |
+
+Các checkpoint cũ giữ lại để truy lịch sử; câu giữ[] toàn phase ở mốc cũ không phủ định bảng rà ngày04/11 này. Nghiệm thu phase/feature và quyền commit/push/merge vẫn độc lập với checkbox từng task.
+
+## Phase 10 — nối nguồn 007 (05/11/2026)
+
+Thử nối hai nguồn 007 còn lại vào `CarePlanReviewListener`: `FallIncidentRecorded(residentId, incidentId)` và `PalliativeCareChoiceRecorded(residentId, eventKey, occurredAt)` của `incident.api.events` (đã có trên develop; 007 nhánh `impl/007-health-alert-incident` 414d9d4e đã phát `FallIncidentRecorded` ở `IncidentRecordService.startFallMonitoring`, chưa có chỗ phát `PalliativeCareChoiceRecorded`).
+
+T052: thêm hai ca vào `BR_M04_20_CarePlanReviewIT` (ngã báo điều dưỡng phụ trách và người duyệt, không thêm dòng `care_plan`, `care_task`, `approval_request`; hai lựa chọn chăm sóc giảm nhẹ khác `eventKey` cho hai bộ thông báo khác khóa). Chạy thấy đỏ đúng hai ca mới (5 ca, 2 failure, 3 ca cũ xanh).
+
+T053: thêm `@EventListener` cho hai sự kiện thì `ModuleBoundaryTest` báo "Cycle detected: Slice care ->" (care → incident → health → care; health đã phụ thuộc care qua `DefaultVitalSignPort`, `TaskSourceApi`) và `M04ArchTest.C_02_sourcesOnlyThroughOwnedSpi` đỏ 7 chỗ. Đúng research C-02: 005 ↔ 007 chiều mã là 007 → 005, 005 không được nghe sự kiện của 007. Dòng 007 trong bảng "Sự kiện nhận" của contracts/module-interfaces.md (`SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi`) mâu thuẫn với C-02. Đã hoàn lại mã và test; T052, T053 giữ [ ].
+
+Muốn nối cần "Đổi api" trên `care.api` (một lệnh để 007 gọi trong transaction của lệnh ghi sự cố ngã, ghi lựa chọn chăm sóc giảm nhẹ, phát `CarePlanReviewNeeded`) và D sửa chỗ gọi: chờ chủ dự án duyệt, chưa cài.
+
+Đổi lịch đo (`LichDoDaDoi` → `NguonCongViecDaDoi`): không cần listener ở 005. 007 gọi `TaskSourceApi.sourceChanged(MEASUREMENT, scheduleId)` khi thay lịch đo (`MeasurementScheduleService` nhánh 007; plan 007 mục 244), `CareTaskSources.sourceChanged` đã phát `TaskSourceChanged` và có test `BR_M04_01_ShiftTaskPlanningIT.FR_022_sourceChangeOnlyNotifiesWithoutCancellingOrCreatingTasks`. Nghe thêm `MeasurementScheduleChanged` vừa tạo vòng care → health, vừa báo trùng hai lần. Khi duyệt "Đổi api" ở trên thì sửa T053 bỏ `LichDoDaDoi` khỏi danh sách listener.
+
+Môi trường: `JAVA_HOME` của máy trỏ JDK 24 (`release version 25 not supported`); chạy test bằng JDK 25 ở `E:JAVAJDK_GEINS_25`. Không chạy `clean verify` vì không còn thay đổi mã sau khi hoàn lại.

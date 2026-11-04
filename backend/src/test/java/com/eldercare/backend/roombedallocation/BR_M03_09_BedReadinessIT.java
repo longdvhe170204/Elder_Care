@@ -24,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 @org.springframework.test.context.event.RecordApplicationEvents
 class BR_M03_09_BedReadinessIT extends StructureTestSupport {
     @Autowired
+    org.springframework.context.ApplicationContext context;
+
+    @Autowired
     org.springframework.test.context.event.ApplicationEvents events;
 
     @Autowired
@@ -159,7 +162,18 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
                 bed,
                 Timestamp.from(time.now()),
                 TestUsers.nextId());
-        confirm("{}").andExpect(status().isServiceUnavailable());
+        // T033 đã có provider thật; cô lập đúng tình huống nguồn không được đăng ký.
+        var service = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(context.getBean(
+                com.eldercare.backend.roombedallocation.internal.bed.service.BedReadinessService.class));
+        var previous = org.springframework.test.util.ReflectionTestUtils.getField(service, "transfers");
+        var empty = new org.springframework.beans.factory.support.StaticListableBeanFactory()
+                .getBeanProvider(com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "transfers", empty);
+        try {
+            confirm("{}").andExpect(status().isServiceUnavailable());
+        } finally {
+            org.springframework.test.util.ReflectionTestUtils.setField(service, "transfers", previous);
+        }
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
                 .isEqualTo("AWAITING_READY");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Integer.class, bed))
