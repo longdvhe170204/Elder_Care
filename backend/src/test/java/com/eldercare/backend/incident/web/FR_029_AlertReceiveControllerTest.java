@@ -14,7 +14,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class FR_029_AlertReceiveControllerTest {
     private final AlertCommandService alerts = mock(AlertCommandService.class);
     private final CurrentUser currentUser = mock(CurrentUser.class);
-    private final MockMvc mvc = MockMvcBuilders.standaloneSetup(new AlertController(alerts, currentUser))
+    private final MockMvc mvc = MockMvcBuilders.standaloneSetup(new AlertController(
+                    alerts,
+                    mock(com.eldercare.backend.incident.internal.alert.service.AlertHandlingService.class),
+                    mock(com.eldercare.backend.incident.internal.alert.service.ManualAlertService.class),
+                    mock(com.eldercare.backend.incident.internal.alert.service.AlertQueryService.class),
+                    currentUser))
             .build();
 
     @Test
