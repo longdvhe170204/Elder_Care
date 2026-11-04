@@ -4,10 +4,10 @@ import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { DetailLayout } from '@/common/DetailLayout'
 import { PageHeader } from '@/common/PageHeader'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDate } from '@/common/dateTime'
@@ -68,7 +68,13 @@ export function ApprovalInbox() {
   }, [])
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
+    <DetailLayout
+      open={opened !== null}
+      detailKey={opened}
+      onClose={() => setOpened(null)}
+      label="Chi tiết yêu cầu phê duyệt"
+      renderDetail={(titles) => <ApprovalRequestDetail key={opened} id={opened} onChanged={replaceRow} {...titles} />}
+    >
       <PageHeader title="Yêu cầu phê duyệt" subtitle="Yêu cầu chờ bạn duyệt, yêu cầu bạn lập và yêu cầu trong phạm vi.">
         <ToggleGroup
           variant="outline"
@@ -163,9 +169,18 @@ export function ApprovalInbox() {
               </TableHeader>
               <TableBody>
                 {state.items.map((r) => (
-                  <TableRow key={r.id} className="align-top">
+                  <TableRow
+                    key={r.id}
+                    data-state={r.id === opened ? 'selected' : undefined}
+                    className="align-top data-[state=selected]:bg-accent"
+                  >
                     <TableCell>
-                      <Button variant="link" className="h-auto p-0 tabular-nums" onClick={() => setOpened(r.id)}>
+                      <Button
+                        variant="link"
+                        className="h-auto p-0 tabular-nums"
+                        aria-pressed={r.id === opened}
+                        onClick={() => setOpened(r.id)}
+                      >
                         {r.displayCode}
                       </Button>
                     </TableCell>
@@ -193,12 +208,6 @@ export function ApprovalInbox() {
           </>
         )}
       </section>
-
-      <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {opened !== null && <ApprovalRequestDetail key={opened} id={opened} onChanged={replaceRow} />}
-        </SheetContent>
-      </Sheet>
-    </div>
+    </DetailLayout>
   )
 }
