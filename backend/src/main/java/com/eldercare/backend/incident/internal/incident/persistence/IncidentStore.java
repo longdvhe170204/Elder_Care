@@ -2,13 +2,17 @@ package com.eldercare.backend.incident.internal.incident.persistence;
 
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
+import com.eldercare.backend.incident.internal.incident.domain.IncidentView;
 import com.eldercare.backend.incident.internal.incident.domain.NewIncident;
 import com.eldercare.backend.incident.internal.incident.domain.SuspectedIncident;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -90,8 +94,9 @@ public class IncidentStore {
                             INSERT INTO incident (resident_id, incident_type_id, current_type_id, type_code, context,
                               occurred_at, discovered_at, floor_area_id, location, ongoing_activity, description,
                               initial_response, initial_level, level, lower_level_reason, out_of_scope, recorded_by,
-                              created_at, confirmed_at, was_emergency, acknowledgement_deadline, no_on_duty_doctor)
-                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                              created_at, confirmed_at, was_emergency, acknowledgement_deadline, no_on_duty_doctor,
+                              source_alert_id)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                             """, Statement.RETURN_GENERATED_KEYS);
                     ps.setObject(1, incident.residentId());
                     ps.setLong(2, incident.typeId());
@@ -115,6 +120,7 @@ public class IncidentStore {
                     ps.setBoolean(20, incident.level() == IncidentLevel.CRITICAL);
                     ps.setTimestamp(21, timestamp(incident.acknowledgementDeadline()));
                     ps.setBoolean(22, incident.noOnDutyDoctor());
+                    ps.setObject(23, incident.sourceAlertId());
                     return ps;
                 },
                 keys);
@@ -206,5 +212,103 @@ public class IncidentStore {
                 WHERE id=? AND version=?
                 """, level.name(), wasEmergency, id, expectedVersion);
         if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
+    public Optional<IncidentView> view(long id) {
+        return jdbc.query("SELECT * FROM incident WHERE id = ?", (rs, i) -> viewRow(rs), id).stream()
+                .findFirst();
+    }
+
+    /** Danh sách theo phạm vi: toàn viện, hoặc tầng/người cao tuổi trong tập; mới nhất trước, tối đa 500 dòng. */
+    public List<IncidentView> search(
+            Collection<String> statuses,
+            Long residentId,
+            Long floorAreaId,
+            boolean facilityWide,
+            Set<Long> scopeFloors,
+            Set<Long> scopeResidents) {
+        var sql = new StringBuilder("SELECT * FROM incident WHERE 1 = 1");
+        var args = new ArrayList<Object>();
+        if (!facilityWide) {
+            sql.append(" AND (FALSE");
+            if (!scopeFloors.isEmpty()) {
+                sql.append(" OR floor_area_id IN (")
+                        .append(String.join(",", Collections.nCopies(scopeFloors.size(), "?")))
+                        .append(")");
+                args.addAll(scopeFloors);
+            }
+            if (!scopeResidents.isEmpty()) {
+                sql.append(" OR resident_id IN (")
+                        .append(String.join(",", Collections.nCopies(scopeResidents.size(), "?")))
+                        .append(")");
+                args.addAll(scopeResidents);
+            }
+            sql.append(")");
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            sql.append(" AND status IN (")
+                    .append(String.join(",", Collections.nCopies(statuses.size(), "?")))
+                    .append(")");
+            args.addAll(statuses);
+        }
+        if (residentId != null) {
+            sql.append(" AND resident_id = ?");
+            args.add(residentId);
+        }
+        if (floorAreaId != null) {
+            sql.append(" AND floor_area_id = ?");
+            args.add(floorAreaId);
+        }
+        sql.append(" ORDER BY created_at DESC, id DESC LIMIT 500");
+        return jdbc.query(sql.toString(), (rs, i) -> viewRow(rs), args.toArray());
+    }
+
+    private static IncidentView viewRow(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return new IncidentView(
+                rs.getLong("id"),
+                (Long) rs.getObject("resident_id"),
+                rs.getLong("incident_type_id"),
+                rs.getLong("current_type_id"),
+                rs.getString("context"),
+                instant(rs.getTimestamp("occurred_at")),
+                instant(rs.getTimestamp("discovered_at")),
+                (Long) rs.getObject("floor_area_id"),
+                rs.getString("location"),
+                rs.getString("ongoing_activity"),
+                rs.getString("description"),
+                rs.getString("initial_response"),
+                IncidentLevel.valueOf(rs.getString("initial_level")),
+                rs.getString("lower_level_reason"),
+                (Long) rs.getObject("source_alert_id"),
+                rs.getBoolean("out_of_scope"),
+                rs.getLong("recorded_by"),
+                rs.getString("status"),
+                IncidentLevel.valueOf(rs.getString("level")),
+                rs.getBoolean("was_emergency"),
+                rs.getInt("escalation_level"),
+                (Long) rs.getObject("assignee_id"),
+                instant(rs.getTimestamp("received_at")),
+                rs.getBoolean("no_on_duty_doctor"),
+                rs.getString("resolution"));
+    }
+
+    private static Instant instant(Timestamp value) {
+        return value == null ? null : value.toInstant();
+    }
+
+    /** Hủy ghi nhận bằng đính chính: Đã đóng/đang mở -> Đã hủy (BR-M05-21). */
+    public void cancel(long id) {
+        jdbc.update(
+                "UPDATE incident SET status = 'CANCELLED', escalation_stopped = TRUE, version = version + 1 WHERE id = ?",
+                id);
+    }
+
+    /** Đổi loại bằng đính chính; nội dung gốc giữ nguyên ({@code incident_type_id}). */
+    public void changeType(long id, long typeId, String typeCode) {
+        jdbc.update(
+                "UPDATE incident SET current_type_id = ?, type_code = ?, version = version + 1 WHERE id = ?",
+                typeId,
+                typeCode,
+                id);
     }
 }

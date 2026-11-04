@@ -109,6 +109,12 @@ public class IncidentRecordService {
     @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.CREATE)
     @Transactional
     public RecordedIncident record(RecordIncidentCommand command, CurrentUser user) {
+        return record(command, user, null);
+    }
+
+    /** Ghi nhận kèm cảnh báo nguồn (lệnh Chuyển sự cố, FR-029); kiểm quyền ghi vẫn theo đối tượng bên trong. */
+    @Transactional
+    public RecordedIncident record(RecordIncidentCommand command, CurrentUser user, Long sourceAlertId) {
         var type = activeType(command.incidentTypeId());
         boolean facility = FACILITY.equals(type.code());
         Long residentId = command.residentId();
@@ -174,7 +180,8 @@ public class IncidentRecordService {
                 user.accountId(),
                 now,
                 deadline,
-                noOnDutyDoctor));
+                noOnDutyDoctor,
+                sourceAlertId));
 
         var after = new HashMap<String, Object>();
         after.put("type", type.code());

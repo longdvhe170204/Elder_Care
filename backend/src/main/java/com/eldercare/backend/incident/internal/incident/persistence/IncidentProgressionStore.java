@@ -127,4 +127,35 @@ public class IncidentProgressionStore {
     private static EntityRef incident(long incidentId) {
         return new EntityRef("M05.INCIDENT", incidentId);
     }
+
+    /** Diễn biến theo thứ tự ghi (api-007 {@code Incident.progressions}). */
+    public List<Map<String, Object>> list(long incidentId) {
+        return records.list(PROGRESSION, incident(incidentId)).stream()
+                .map(event -> {
+                    var item = new java.util.LinkedHashMap<String, Object>();
+                    item.put("id", event.id());
+                    item.put("progressionTypeId", event.content().progressionTypeId());
+                    item.put("typeCode", event.content().typeCode());
+                    item.put("content", event.content().content());
+                    item.put("occurredAt", event.occurredAt());
+                    item.put("recordedBy", event.actorId());
+                    item.put("outOfScope", event.content().outOfScope());
+                    return (Map<String, Object>) item;
+                })
+                .toList();
+    }
+
+    /** Mã tài khoản người tham gia xử lý (lệnh tham gia). */
+    public List<Long> handlerAccountIds(long incidentId) {
+        return records.list(HANDLER, incident(incidentId)).stream()
+                .map(event -> event.actorId())
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+    }
+
+    /** Một diễn biến theo mã (cho đính chính); không có thì ném lỗi không tìm thấy của kho chung. */
+    public com.eldercare.backend.administration.shared.api.dto.RecordEvent<ProgressionContent> get(long id) {
+        return records.require(PROGRESSION, id);
+    }
 }
