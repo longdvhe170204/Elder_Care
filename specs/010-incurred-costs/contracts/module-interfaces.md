@@ -6,18 +6,18 @@ Giao diện Java công khai ở `billing.api`, port nội bộ M11 cho 017, 019,
 
 ---
 
-## 0. Trạng thái worktree nền develop 8573190 — cập nhật 2026-10-30
+## 0. Trạng thái nền develop 62fdb4f2 — cập nhật 2026-11-04
 
-Các chữ ký ở mục 1–3 dùng tên logic của thiết kế; không phải tuyên bố các interface đã có trong mã. Tên tiếng Anh ở glossary mục 16.6. T003/T004 đã khai báo API/DTO, tám sự kiện và hai port nội bộ tại nhánh E; năm fake chung ở support/fake/m11 qua FakeM11Config, không có fake production. Chữ ký thực tế ở mục 4 bên dưới. Hợp đồng HTTP đã được A/chủ dự án duyệt ngày 2026-10-29; không tự mở rộng API của B/C/D. T001 và ba hàm thuần T006 đã có mã; API mới chỉ có khai báo/fake, chưa có bản cài thật, producer, listener hoặc provider. Chưa commit/push/merge vào develop. Bảng chi tiết và nơi cần duyệt ở [preparation-review.md](../preparation-review.md).
+Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực tế ở mục 4 và glossary 16.6. T003/T004 và các fake chung ở support/fake/billing đã vào develop. Nhánh impl/010-foundation-next tiếp tục nền: BillingPeriod, khóa, lịch sử/marker, khung job và provider metadata/phạm vi; chưa có bản thật các API thống kê/chi phí hoặc listener nguồn. Không có fake production. Bản dịch HTTP được duyệt 2026-10-29, nhưng còn 17 phản hồi thành công thiếu schema phải chốt trước endpoint liên quan. Xem [checkpoint hiện tại](../foundation-checkpoint-2026-11-04.md); các báo cáo chuẩn bị cũ là lịch sử.
 
 | Nguồn | Đã có trong mã | Còn chờ / tác động |
 | --- | --- | --- |
-| A, 000 T108 | R-15/constitution 3.2.0 đã vào develop; chưa có V000_09, administration.shared hoặc hai helper common | Chờ CatalogApi, StatusHistoryApi, RecordEventApi, SimpleRecordApi, ResidentModuleStateApi, ReminderMarkers/TechnicalLocks và fake đúng chủ; không tạo lại bảng chung hoặc khai báo API/fake của A |
+| A, 000 T108 | API bảng chung, ReminderMarkers/TechnicalLocks và fake đúng chủ đã có | T005/T007 dùng API thật và kiểm MySQL; không còn chờ A khai báo. Không đổi api A; hai đăng ký job M11 trong test kiến trúc cần A review |
 | B, 001 | `resident.api.ResidentApi` (status/finalStatusAt), `resident.api.spi.StatusTransitionParticipant` | Có thể dùng phần hiện có; không sửa chữ ký |
-| B, 004 | `admission.api.ContractReadApi.attendanceOn`, DTO và FakeContractSchedules | Chưa có nội dung hợp đồng theo ngày, đơn giá, ngày lưu trú (gồm ngày Giải phóng giường để chặn ngay từ ngày đó theo Q-395), SPI kỳ cuối/việc sau qua đời/người đại diện hoặc sự kiện tương ứng (gồm kiểu đầu vào cho BillingPeriod của T006); B cần khai báo đúng contracts 004 và cung cấp fake chung, rồi bản thật |
-| C, 005 | Các API chăm sóc đã khai báo cho 008 | Chưa có các sự kiện tính phí/đính chính/trạng thái có mặt cần tại mục 3.1; chờ C khai báo, phát và kiểm nguồn thật |
-| D, 006 | `MedicationBilledEvent`, `MedicationBillAdjustedEvent`, `PurchaseAssistancePort.purchasedDetails` và FakePurchaseAssistancePort | Mới tìm thấy phát MedicationBilledEvent tại lệnh dùng liều; chưa có nơi phát MedicationBillAdjustedEvent hoặc nhánh nguồn PRN_ADMINISTRATION/DISPENSE_RECORD trên develop. Chờ D, không tự viết producer hoặc đổi record của D |
-| E, 012/017 | Chưa có bản thật người đại diện/số dư | Là phần E sẽ làm ở feature khác; không ghi thành việc phải chờ B/C. Port người đại diện vẫn phải do chủ khai báo ở 004 cung cấp trước |
+| B, 004 | ContractReadApi.contentAtDate/contract/ofResident, UnitPriceApi, ResidencyDayApi, ResidencyEndingReadApi, SPI kỳ cuối/việc sau qua đời/người đại diện và FakeContractSchedules/FakeRepresentatives đã có | T006 hàm thuần xong; adapter nguồn T011/T014 còn E. Cần B/E rà billingStopDate khi hồ sơ PREPARING quá ngày dự kiến so với FR-035; không sửa B hoặc suy mốc dừng |
+| C, 005 | BillableCareResultRecorded/BillableCareResultCorrected đã khai báo; mã nguồn vẫn giữ gate billable | Quantity/newQuantity theo loại kết quả còn chờ nội dung quyết định chủ dự án (người dùng sẽ gửi); không tự đổi ml/phút/giá trị đo thành đơn vị dịch vụ. Chờ C cài producer theo quyết định rồi nghiệm thu consumer E |
+| D, 006 | MedicationBilledEvent phát từ dùng liều và PRN; MedicationBillAdjustedEvent phát từ đính chính liều/PRN; PurchaseAssistancePort và fake đã có | Đã có thêm producer so với rà 30/10; chưa nghiệm thu toàn chuỗi consumer 010 hoặc khẳng định đủ nhánh DISPENSE_RECORD; không sửa record/producer của D |
+| A, 012 / E, 017 | RepresentativePort đã có bản thật của A/012; DepositStatusPort/PurchaseBalancePort còn bản thật của E/017 | T002 dùng fake B hiện có; 017 là việc E làm sau 010. Không còn giao việc 012 cho E, không dùng fake production |
 
 ## 1. 010 cung cấp
 
