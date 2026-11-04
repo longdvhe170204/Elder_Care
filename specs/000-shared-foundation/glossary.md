@@ -2927,6 +2927,20 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | thông báo Q-249 (người đại diện khác) | sự kiện `family.api.events.RightChangesTookEffect`, loại sự kiện `RIGHT_CHANGE_EFFECTIVE_OTHER_REPRESENTATIVES` |
 | màn `tinh-nang/nguoi-than/ho-so/` | `frontend/src/features/relatives/FamilyMembersPage.jsx` (mục menu `family-members`, "Người thân và quyền"), `RelationshipDetail`, `AddRelationshipSheet`, `RegistrationFormSheet`, `relationshipLabels.js` |
 
+### 18.8. Lớp, loại dòng và màn của US3 *(bổ sung 2026-11-05, Phase 4: T014 → T017)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `YeuCauQuyenService` | `family.internal.right.service.RightChangeRequestService` (`create`, `confirm`, `approve`, `reject`, `cancel`, `cancelForEndedRelationship`, `cancelOnFinalStatus`); REST `family.web.RightChangeRequestController` |
+| `KiemTraYeuCau` | `family.internal.right.domain.RightRequestCheck` (hàm thuần: tự bỏ mình FR-014, áp ngay FR-017, trái mong muốn FR-020b, người đại diện theo pháp luật FR-020c); FR-007, FR-010, FR-011 khi bật quyền: `RightGrantRules` |
+| `yeu_cau_quyen` (`khoa_cho`, `trai_mong_muon_id`, `trao_doi_voi_nct`, `ap_ngay_khi_lap`) | `simple_record` loại `M10.RIGHT_CHANGE_REQUEST`; `khoa_cho` là `unique_key` `M10.RCR:<residentId>:<relationshipId hoặc 0>:<right hoặc type>` chỉ khi Chờ xác nhận; `conflictingWishId`, `discussedWithResident`, `appliedOnCreation` trong `RightChangeRequest` |
+| `dau_tu_ve` | `simple_record` loại `M10.SELF_RETURN_FLAG` (`SelfReturnFlag`: `enabled`, `requestId`, `from`), khóa `unique_key` `M10.SELF_RETURN:<residentId>` |
+| `mong_muon_nct` (`khoa_hieu_luc`) | `simple_record` loại `M10.VISIT_PICKUP_WISH` (`VisitPickupWish`); `khoa_hieu_luc` là `unique_key` `M10.WISH:<residentId>:<type>:<relationshipId hoặc G+số giấy tờ>`; bản Được thay thế khóa dòng (bất biến); `MongMuonService` → `VisitPickupWishService` |
+| nhắc CFG-M10-11 trong `ViecHangGioM10` | `RightChangeReminders` (`M10TimedTask` theo giờ), dấu `reminder_marker` loại `M10.RIGHT_CHANGE_REMINDER` (`REMIND`, `NOTIFY_MANAGER`) |
+| thông báo "cần xác nhận", "có kết quả", nhắc (FR-019, FR-069) | sự kiện `family.api.events.RightChangeRequestNotice` (`RIGHT_CHANGE_NEEDS_CONFIRMATION`, `RIGHT_CHANGE_DECIDED`, `RIGHT_CHANGE_REMINDER`, `RIGHT_CHANGE_MANAGER_NOTICE`) |
+| màn `tinh-nang/nguoi-than/yeu-cau-quyen/` | `frontend/src/features/relatives/right-change-requests/` (`RightChangeRequestTable`, `RightChangeRequestDetail`, `CreateRightChangeRequestSheet`, `VisitPickupWishes`, `requestLabels.js`), gắn vào `FamilyMembersPage` |
+| app người thân xác nhận yêu cầu | `mobile/lib/family/right_change_requests/right_change_requests_screen.dart` (`RightChangeRequestsScreen`), tab "Yêu cầu" của `FamilyRoot` |
+
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
 *Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
