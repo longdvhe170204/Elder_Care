@@ -126,6 +126,7 @@ final class RegistrationSql {
                     row.put("dossier_code", text(c, "dossierCode"));
                     row.put("result", text(c, "result"));
                     row.put("rejection_reason", text(c, "rejectionReason"));
+                    row.put("recorded_by", c.get("recordedBy").asLong());
                     row.put("confirmed_at", rs.getObject("confirmed_at"));
                     rows.add(row);
                 },
