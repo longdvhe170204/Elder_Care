@@ -245,7 +245,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     true));
 
-
     @Autowired
     MockMvc mvc;
 
