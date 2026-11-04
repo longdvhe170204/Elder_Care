@@ -1,7 +1,6 @@
 -- 001 T084 (research R-15 bản 2 của 000; data-model 001 mục 0, 0.1): gộp bảng đã cài của M01 vào bảng chung.
--- Nhóm 1 (phần này): bốn danh mục sang `catalog_item` (care_level, allergy_severity, information_source, care_need).
--- Dị nguyên (allergen) chưa chuyển: id dị nguyên được 006 lưu (prescription.active_ingredient_ids, medication.data,
--- medication_active_ingredient.allergen_id), chờ A và D duyệt cách cập nhật tham chiếu 006.
+-- Nhóm 1: bốn danh mục sang `catalog_item` (care_level, allergy_severity, information_source, care_need) ngay dưới đây;
+-- dị nguyên (allergen, id được 006 lưu) chuyển ở mục cuối tệp, sau các nhóm 3 và nhóm 2 (A, D duyệt 2026-11-04).
 -- Mọi dòng chép sang bảng chung ghi `attributes.legacy` (bảng, id cũ). MySQL không hoàn tác DDL, nên bảng cũ chỉ bị
 -- xóa sau khi thủ tục kiểm tra phía dưới qua hết các điều kiện (số dòng, ánh xạ id, tên, khóa ngoại, tham chiếu chéo).
 -- Cú pháp dùng được ở MySQL 8.0 và 8.4.
@@ -1360,3 +1359,268 @@ DROP TABLE initial_health_record;
 DROP TABLE m01_ihr_id_map;
 
 DROP PROCEDURE m01_raise_auto_increment;
+
+-- Nhóm 1 (phần cuối): dị nguyên (allergen) vào catalog_item loại M01.ALLERGEN (data-model 001 mục 0.1; A, D duyệt
+-- 2026-11-04, bản nháp t084-drafts/V001_95_allergen_draft.sql): id mới cấp riêng, legacy {table, id} và allergenGroup ở
+-- attributes; sort_order = id cũ. Mọi nơi lưu id dị nguyên đổi theo bảng ánh xạ, kiểm SIGNAL trước khi xóa bảng cũ:
+--   001: health_item.allergen_id (gỡ khóa ngoại; gỡ, dựng lại nguyên văn trg_health_item_immutable).
+--   006 (flyway.out-of-order: true nên V001_95 có thể chạy trước, giữa hoặc sau 006; kiểm bảng, cột tồn tại rồi mới làm):
+--     (1) chưa có bảng 006: bỏ qua;
+--     (2) đã có V006_01, V006_02, chưa có V006_95: medication_active_ingredient.allergen_id (đổi hai pha qua giá trị
+--         âm vì khóa chính ghép), prescription_active_ingredient.allergen_id (trigger chỉ thêm chặn UPDATE, DELETE nên
+--         chép ra bảng tạm, TRUNCATE (không kích hoạt trigger), thêm lại; V006_95 chạy sau chép id mới vào JSON);
+--     (3) đã có V006_95: prescription.active_ingredient_ids (trg_prescription_lock chặn đổi cột này: ghi mảng mới vào
+--         cột tạm rồi đổi cột bằng ALTER TABLE, trigger giữ nguyên văn, không gỡ) và attributes.activeIngredientIds của
+--         catalog_item M07.MEDICATION (tăng version dòng đổi).
+--   Phần tử giữ dạng số; mảng rỗng giữ JSON_ARRAY(); id không có trong ánh xạ thì SIGNAL trước khi đổi; so số phần tử
+--   (JSON_LENGTH, số dòng bảng con) trước và sau.
+SET @m01_allergen_count = (SELECT COUNT(*) FROM allergen);
+SET @m01_allergy_item_count = (SELECT COUNT(*) FROM health_item WHERE allergen_id IS NOT NULL);
+
+INSERT INTO catalog_item (catalog_type, module, code, name, sort_order, status, attributes, version)
+SELECT 'M01.ALLERGEN',
+       'M01',
+       NULL,
+       name,
+       id,
+       status,
+       JSON_OBJECT('allergenGroup', allergen_group, 'legacy', JSON_OBJECT('table', 'allergen', 'id', id)),
+       version
+FROM allergen
+ORDER BY id;
+
+CREATE TABLE m01_allergen_id_map
+(
+    old_id BIGINT NOT NULL PRIMARY KEY,
+    new_id BIGINT NOT NULL,
+    UNIQUE (new_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+INSERT INTO m01_allergen_id_map (old_id, new_id)
+SELECT a.id, c.id
+FROM allergen a
+         JOIN catalog_item c ON c.catalog_type = 'M01.ALLERGEN'
+    AND CAST(c.attributes ->> '$.legacy.id' AS UNSIGNED) = a.id;
+
+-- 001: health_item.allergen_id
+ALTER TABLE health_item
+    DROP FOREIGN KEY fk_health_item_allergen;
+
+DROP TRIGGER trg_health_item_immutable;
+
+UPDATE health_item h
+    JOIN m01_allergen_id_map m ON m.old_id = h.allergen_id
+SET h.allergen_id = m.new_id;
+
+DELIMITER $$
+CREATE TRIGGER trg_health_item_immutable
+    BEFORE UPDATE
+    ON health_item
+    FOR EACH ROW
+BEGIN
+    IF NOT (OLD.resident_id <=> NEW.resident_id AND OLD.type <=> NEW.type AND OLD.allergen_id <=> NEW.allergen_id
+        AND OLD.free_text <=> NEW.free_text AND OLD.severity_id <=> NEW.severity_id
+        AND OLD.source_id <=> NEW.source_id AND OLD.recorded_by <=> NEW.recorded_by
+        AND OLD.recorded_at <=> NEW.recorded_at) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'health_item content is immutable (DBR-04)';
+    END IF;
+    IF OLD.status = 'EXCLUDED' AND NOT (NEW.status <=> 'EXCLUDED' AND OLD.excluded_at <=> NEW.excluded_at
+        AND OLD.excluded_by <=> NEW.excluded_by AND OLD.exclusion_reason <=> NEW.exclusion_reason) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'an excluded health_item cannot be reinstated (DBR-04)';
+    END IF;
+END$$
+
+-- 006: câu tĩnh trong thủ tục chỉ phân giải bảng, cột lúc chạy tới, nên nhánh của bảng chưa có không lỗi.
+CREATE PROCEDURE m01_remap_allergens_in_006()
+BEGIN
+    DECLARE has_medication_link INT;
+    DECLARE has_prescription_link INT;
+    DECLARE has_prescription_ids INT;
+    DECLARE has_medication_catalog INT;
+    DECLARE before_count BIGINT;
+    DECLARE ids_position BIGINT;
+
+    SELECT COUNT(*) INTO has_medication_link
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'medication_active_ingredient' AND COLUMN_NAME = 'allergen_id';
+    SELECT COUNT(*) INTO has_prescription_link
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription_active_ingredient' AND COLUMN_NAME = 'allergen_id';
+    SELECT COUNT(*) INTO has_prescription_ids
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription' AND COLUMN_NAME = 'active_ingredient_ids';
+    SELECT COUNT(*) INTO has_medication_catalog FROM catalog_item WHERE catalog_type = 'M07.MEDICATION';
+
+    -- Hai dạng của 006 không cùng có (V006_95 xóa bảng con khi thêm cột JSON); bảng có mà khác kỳ vọng thì dừng
+    IF has_prescription_ids = 1 AND (has_medication_link = 1 OR has_prescription_link = 1) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: 006 has both link tables and JSON ids';
+    END IF;
+    IF has_prescription_ids = 1 AND (SELECT DATA_TYPE FROM information_schema.COLUMNS
+                                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription'
+                                       AND COLUMN_NAME = 'active_ingredient_ids') <> 'json' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription.active_ingredient_ids is not JSON';
+    END IF;
+
+    -- (2) bảng con trước V006_95
+    IF has_medication_link = 1 THEN
+        IF EXISTS (SELECT 1 FROM medication_active_ingredient l
+                   WHERE NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.old_id = l.allergen_id)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: medication_active_ingredient has an unmapped allergen';
+        END IF;
+        SELECT COUNT(*) INTO before_count FROM medication_active_ingredient;
+        UPDATE medication_active_ingredient l
+            JOIN m01_allergen_id_map m ON m.old_id = l.allergen_id
+        SET l.allergen_id = -m.new_id;
+        UPDATE medication_active_ingredient SET allergen_id = -allergen_id WHERE allergen_id < 0;
+        IF (SELECT COUNT(*) FROM medication_active_ingredient) <> before_count
+            OR EXISTS (SELECT 1 FROM medication_active_ingredient l
+                       WHERE NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.new_id = l.allergen_id)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: medication_active_ingredient was not remapped';
+        END IF;
+    END IF;
+
+    IF has_prescription_link = 1 THEN
+        IF EXISTS (SELECT 1 FROM prescription_active_ingredient l
+                   WHERE NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.old_id = l.allergen_id)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription_active_ingredient has an unmapped allergen';
+        END IF;
+        SELECT COUNT(*) INTO before_count FROM prescription_active_ingredient;
+        CREATE TABLE m01_prescription_link_copy
+        (
+            prescription_id BIGINT NOT NULL,
+            allergen_id     BIGINT NOT NULL,
+            PRIMARY KEY (prescription_id, allergen_id)
+        ) ENGINE = InnoDB;
+        INSERT INTO m01_prescription_link_copy (prescription_id, allergen_id)
+        SELECT l.prescription_id, m.new_id
+        FROM prescription_active_ingredient l
+                 JOIN m01_allergen_id_map m ON m.old_id = l.allergen_id;
+        IF (SELECT COUNT(*) FROM m01_prescription_link_copy) <> before_count THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription_active_ingredient copy count differs';
+        END IF;
+        TRUNCATE TABLE prescription_active_ingredient;
+        INSERT INTO prescription_active_ingredient (prescription_id, allergen_id)
+        SELECT prescription_id, allergen_id FROM m01_prescription_link_copy;
+        IF (SELECT COUNT(*) FROM prescription_active_ingredient) <> before_count
+            OR EXISTS (SELECT 1 FROM prescription_active_ingredient l
+                       WHERE NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.new_id = l.allergen_id)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription_active_ingredient was not remapped';
+        END IF;
+        DROP TABLE m01_prescription_link_copy;
+    END IF;
+
+    -- (3) cột JSON sau V006_95
+    IF has_prescription_ids = 1 THEN
+        IF EXISTS (SELECT 1
+                   FROM prescription p,
+                        JSON_TABLE(p.active_ingredient_ids, '$[*]' COLUMNS (v BIGINT PATH '$')) j
+                   WHERE NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.old_id = j.v)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription.active_ingredient_ids has an unmapped allergen';
+        END IF;
+        SELECT COALESCE(SUM(JSON_LENGTH(active_ingredient_ids)), 0) INTO before_count FROM prescription;
+        SELECT ORDINAL_POSITION INTO ids_position
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription' AND COLUMN_NAME = 'active_ingredient_ids';
+        ALTER TABLE prescription
+            ADD COLUMN m01_active_ingredient_ids JSON NULL;
+        -- trg_prescription_lock không xét cột tạm; các cột cố định, trạng thái, started_at giữ nguyên
+        UPDATE prescription p
+        SET p.m01_active_ingredient_ids = COALESCE((SELECT JSON_ARRAYAGG(m.new_id)
+                                                    FROM JSON_TABLE(p.active_ingredient_ids, '$[*]'
+                                                                    COLUMNS (v BIGINT PATH '$')) j
+                                                             JOIN m01_allergen_id_map m ON m.old_id = j.v),
+                                                   JSON_ARRAY());
+        IF EXISTS (SELECT 1 FROM prescription
+                   WHERE JSON_LENGTH(m01_active_ingredient_ids) <> JSON_LENGTH(active_ingredient_ids)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription active ingredient count differs';
+        END IF;
+        ALTER TABLE prescription
+            DROP COLUMN active_ingredient_ids;
+        ALTER TABLE prescription
+            CHANGE COLUMN m01_active_ingredient_ids active_ingredient_ids JSON NOT NULL AFTER medication_id;
+        IF (SELECT COALESCE(SUM(JSON_LENGTH(active_ingredient_ids)), 0) FROM prescription) <> before_count
+            OR (SELECT ORDINAL_POSITION FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription'
+                  AND COLUMN_NAME = 'active_ingredient_ids') <> ids_position
+            OR EXISTS (SELECT 1
+                       FROM prescription p,
+                            JSON_TABLE(p.active_ingredient_ids, '$[*]' COLUMNS (v BIGINT PATH '$')) j
+                       WHERE NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.new_id = j.v)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: prescription.active_ingredient_ids was not remapped';
+        END IF;
+    END IF;
+
+    IF has_medication_catalog > 0 THEN
+        IF EXISTS (SELECT 1
+                   FROM catalog_item c,
+                        JSON_TABLE(c.attributes, '$.activeIngredientIds[*]' COLUMNS (v BIGINT PATH '$')) j
+                   WHERE c.catalog_type = 'M07.MEDICATION'
+                     AND NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.old_id = j.v)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: M07.MEDICATION activeIngredientIds has an unmapped allergen';
+        END IF;
+        SELECT COALESCE(SUM(JSON_LENGTH(attributes, '$.activeIngredientIds')), 0) INTO before_count
+        FROM catalog_item
+        WHERE catalog_type = 'M07.MEDICATION';
+        UPDATE catalog_item c
+        SET c.attributes = JSON_SET(c.attributes, '$.activeIngredientIds',
+                                    COALESCE((SELECT JSON_ARRAYAGG(m.new_id)
+                                              FROM JSON_TABLE(c.attributes, '$.activeIngredientIds[*]'
+                                                              COLUMNS (v BIGINT PATH '$')) j
+                                                       JOIN m01_allergen_id_map m ON m.old_id = j.v), JSON_ARRAY())),
+            c.version    = c.version + 1
+        WHERE c.catalog_type = 'M07.MEDICATION'
+          AND JSON_LENGTH(c.attributes, '$.activeIngredientIds') > 0;
+        IF (SELECT COALESCE(SUM(JSON_LENGTH(attributes, '$.activeIngredientIds')), 0)
+            FROM catalog_item
+            WHERE catalog_type = 'M07.MEDICATION') <> before_count
+            OR EXISTS (SELECT 1
+                       FROM catalog_item c,
+                            JSON_TABLE(c.attributes, '$.activeIngredientIds[*]' COLUMNS (v BIGINT PATH '$')) j
+                       WHERE c.catalog_type = 'M07.MEDICATION'
+                         AND NOT EXISTS (SELECT 1 FROM m01_allergen_id_map m WHERE m.new_id = j.v)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: M07.MEDICATION activeIngredientIds was not remapped';
+        END IF;
+    END IF;
+END$$
+
+CREATE PROCEDURE m01_verify_allergens()
+BEGIN
+    IF (SELECT COUNT(*) FROM m01_allergen_id_map) <> @m01_allergen_count
+        OR (SELECT COUNT(*) FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN') <> @m01_allergen_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: allergen row count or mapping differs';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM m01_allergen_id_map m
+                        JOIN allergen o ON o.id = m.old_id
+                        JOIN catalog_item c ON c.id = m.new_id
+               WHERE NOT (c.name = o.name AND c.status = o.status AND c.version = o.version AND c.sort_order = o.id
+                   AND c.attributes ->> '$.allergenGroup' = o.allergen_group AND c.code IS NULL)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: allergen content differs from the old row';
+    END IF;
+    IF (SELECT COUNT(*) FROM health_item WHERE allergen_id IS NOT NULL) <> @m01_allergy_item_count
+        OR EXISTS (SELECT 1
+                   FROM health_item h
+                   WHERE h.allergen_id IS NOT NULL
+                     AND NOT EXISTS (SELECT 1
+                                     FROM catalog_item c
+                                     WHERE c.id = h.allergen_id AND c.catalog_type = 'M01.ALLERGEN')) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: health_item references an unmapped allergen';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM information_schema.KEY_COLUMN_USAGE
+               WHERE TABLE_SCHEMA = DATABASE()
+                 AND REFERENCED_TABLE_NAME = 'allergen') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a foreign key still references allergen';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_remap_allergens_in_006();
+DROP PROCEDURE m01_remap_allergens_in_006;
+CALL m01_verify_allergens();
+DROP PROCEDURE m01_verify_allergens;
+
+DROP TABLE allergen;
+DROP TABLE m01_allergen_id_map;
