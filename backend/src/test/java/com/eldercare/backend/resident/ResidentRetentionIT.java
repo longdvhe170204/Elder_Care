@@ -136,12 +136,8 @@ class ResidentRetentionIT extends StatusTestBase {
                         + " ('M01.PERIODIC_REMINDER.MISSING_CONSENT', 'M01.RESIDENT', ?, 'START:0', ?)",
                 id,
                 java.sql.Timestamp.from(time.now()));
-        jdbc.update(
-                "INSERT INTO reassessment_notice (resident_id, basis, source_type, source_id, notified_at) VALUES"
-                        + " (?, 'PERIODIC', 'ASSESSMENT', ?, ?)",
-                id,
-                assessmentId,
-                java.sql.Timestamp.from(time.now()));
+        com.eldercare.backend.support.ResidentHistoryRows.insertNotice(
+                jdbc, id, "PERIODIC", "ASSESSMENT", assessmentId, time.now());
 
         user.set(office.user());
         statusService.grantTemporaryAbsence(target(id), REASON, noDetails());
@@ -158,6 +154,14 @@ class ResidentRetentionIT extends StatusTestBase {
     }
 
     private int count(String table, long residentId) {
+        if (table.startsWith("simple_record:")) {
+            // lần báo đánh giá lại ở simple_record từ 001 T084
+            return jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM simple_record WHERE kind = ? AND resident_id = ?",
+                    Integer.class,
+                    table.substring("simple_record:".length()),
+                    residentId);
+        }
         if (table.startsWith("status_history:")) {
             // lịch sử trạng thái, mức chăm sóc ở status_history từ 001 T084
             return jdbc.queryForObject(
@@ -190,7 +194,7 @@ class ResidentRetentionIT extends StatusTestBase {
             "assessment",
             "consent",
             "wish",
-            "reassessment_notice",
+            "simple_record:M01.REASSESSMENT_NOTICE",
             "reminder_marker");
 
     private void runJobAfter(Duration sinceNow) {

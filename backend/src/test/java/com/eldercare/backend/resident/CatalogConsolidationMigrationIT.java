@@ -47,7 +47,8 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "treatment_wish_opinion",
             "resident_status_history",
             "care_level_history",
-            "m01_history_id_map");
+            "m01_history_id_map",
+            "reassessment_notice");
 
     /** Nội dung một dòng lịch sử trạng thái cũ ({@code o}) và mới ({@code n}), để so tham chiếu theo nội dung khi id đổi. */
     private static final String OLD_STATUS_ROW =
@@ -80,7 +81,9 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             List<String> statusRows,
             List<String> careLevelRows,
             List<String> historyRefs,
-            long maxStatusHistoryId) {}
+            long maxStatusHistoryId,
+            List<String> notices,
+            long maxNoticeId) {}
 
     @AfterAll
     static void dropScratchSchemas() {
@@ -385,6 +388,38 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         + " VALUES (?, 'RETURN_FROM_HOSPITAL', 'STATUS_HISTORY', ?, '2026-01-04 08:00:00', NULL)",
                 r1,
                 back);
+        db.update(
+                "INSERT INTO reassessment_notice (resident_id, basis, source_type, source_id, notified_at, deadline_from,"
+                        + " overdue_alerted_at) VALUES (?, 'PERIODIC', 'ASSESSMENT', 41, '2026-01-10 08:00:00.123456',"
+                        + " '2026-01-10 08:00:00.123456', '2026-02-20 09:00:00'), (?, 'AFTER_INCIDENT', 'INCIDENT', 9,"
+                        + " '2026-01-11 08:00:00', '2026-01-11 08:00:00', NULL)",
+                r1,
+                r2);
+    }
+
+    /** Lần báo đánh giá lại dạng chữ; nguồn là lịch sử trạng thái thì không ghi id (đổi khi chuyển, so ở historyRefs). */
+    private static List<String> notices(JdbcTemplate db, boolean migrated) {
+        return migrated
+                ? db.queryForList(
+                        "SELECT CONCAT_WS('|', resident_id, content ->> '$.basis', entity_type,"
+                                + " IF(entity_type = 'M01.RESIDENT_STATUS_HISTORY', 'H', entity_id), created_at,"
+                                + " content ->> '$.notifiedAt', content ->> '$.deadlineFrom',"
+                                + " content ->> '$.overdueAlertedAt', status, IFNULL(locked_at, '-'),"
+                                + " IF(entity_type = 'M01.RESIDENT_STATUS_HISTORY', CONCAT(SUBSTRING_INDEX(unique_key, ':',"
+                                + " 4), ':H'), unique_key))"
+                                + " FROM simple_record WHERE kind = 'M01.REASSESSMENT_NOTICE'",
+                        String.class)
+                : db.queryForList(
+                        "SELECT CONCAT_WS('|', resident_id, basis, CASE source_type WHEN 'ASSESSMENT' THEN"
+                                + " 'M01.ASSESSMENT' WHEN 'INCIDENT' THEN 'M05.INCIDENT' WHEN 'STATUS_HISTORY' THEN"
+                                + " 'M01.RESIDENT_STATUS_HISTORY' ELSE 'M15.CORRECTION' END,"
+                                + " IF(source_type = 'STATUS_HISTORY', 'H', source_id), notified_at,"
+                                + " DATE_FORMAT(notified_at, '%Y-%m-%dT%H:%i:%s.%fZ'),"
+                                + " IFNULL(DATE_FORMAT(deadline_from, '%Y-%m-%dT%H:%i:%s.%fZ'), 'null'),"
+                                + " IFNULL(DATE_FORMAT(overdue_alerted_at, '%Y-%m-%dT%H:%i:%s.%fZ'), 'null'), 'NOTIFIED',"
+                                + " '-', CONCAT('M01.RAN:', resident_id, ':', basis, ':', source_type, ':',"
+                                + " IF(source_type = 'STATUS_HISTORY', 'H', source_id))) FROM reassessment_notice",
+                        String.class);
     }
 
     /** Dòng lịch sử trạng thái dạng chữ (không có id dòng). */
@@ -434,10 +469,19 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         + join.formatted("CAST(a.content ->> '$.originalRecordId' AS UNSIGNED)")
                         + " WHERE a.type = 'M15.CORRECTION' AND a.content ->> '$.recordType' = 'M01.RESIDENT_STATUS_HISTORY'",
                 String.class));
-        refs.addAll(db.queryForList(
-                "SELECT CONCAT('N|', r.basis, '|', " + row + ") FROM reassessment_notice r JOIN "
-                        + join.formatted("r.source_id") + " WHERE r.source_type = 'STATUS_HISTORY'",
-                String.class));
+        refs.addAll(
+                migrated
+                        ? db.queryForList(
+                                "SELECT CONCAT('N|', s.content ->> '$.basis', '|', " + row
+                                        + ") FROM simple_record s JOIN "
+                                        + join.formatted("s.entity_id")
+                                        + " WHERE s.kind = 'M01.REASSESSMENT_NOTICE'"
+                                        + " AND s.entity_type = 'M01.RESIDENT_STATUS_HISTORY'",
+                                String.class)
+                        : db.queryForList(
+                                "SELECT CONCAT('N|', r.basis, '|', " + row + ") FROM reassessment_notice r JOIN "
+                                        + join.formatted("r.source_id") + " WHERE r.source_type = 'STATUS_HISTORY'",
+                                String.class));
         return refs;
     }
 
@@ -569,7 +613,9 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 statusRows(db, false),
                 careLevelRows(db, false),
                 historyRefs(db, false),
-                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM resident_status_history", Long.class));
+                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM resident_status_history", Long.class),
+                notices(db, false),
+                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM reassessment_notice", Long.class));
     }
 
     /** Phiếu cuối đời (giữ id), phiếu điều trị (không có id), ý kiến khác của phiếu cuối đời: dạng chữ để so sánh. */
@@ -672,6 +718,16 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         Integer.class))
                 .as("khóa M01.CLH thay UNIQUE (resident_id, effective_from)")
                 .isZero();
+
+        // Lần báo đánh giá lại vào simple_record M01.REASSESSMENT_NOTICE: nguồn là đối tượng cha, lúc báo ở created_at,
+        // khóa M01.RAN, dòng không khóa, id mới lớn hơn mọi id cũ
+        assertThat(notices(db, true)).as("lần báo đánh giá lại").containsExactlyInAnyOrderElementsOf(before.notices());
+        assertThat(before.notices()).hasSizeGreaterThanOrEqualTo(3);
+        assertThat(db.queryForObject(
+                        "SELECT MIN(id) FROM simple_record WHERE kind = 'M01.REASSESSMENT_NOTICE'"
+                                + " AND content ->> '$.legacy.table' = 'reassessment_notice'",
+                        Long.class))
+                .isGreaterThan(before.maxNoticeId());
 
         // Nhắc định kỳ: loại, người, mốc, lúc bắt đầu, lần nhắc cuối và số lần tính lại từ các dòng reminder_marker
         assertThat(db.queryForList(
