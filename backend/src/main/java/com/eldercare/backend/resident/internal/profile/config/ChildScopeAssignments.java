@@ -27,7 +27,9 @@ class ChildScopeAssignments {
 
     @Bean
     ChildScopeAssignment initialHealthRecordScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.INITIAL_HEALTH_RECORD", "initial_health_record", records);
+        // Dòng simple_record M01.INITIAL_HEALTH_RECORD (001 T084)
+        return new ChildScopeAssignment(
+                "M01.INITIAL_HEALTH_RECORD", "simple_record", " AND kind = 'M01.INITIAL_HEALTH_RECORD'", records);
     }
 
     @Bean

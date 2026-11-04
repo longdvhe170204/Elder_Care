@@ -1216,4 +1216,147 @@ DROP PROCEDURE m01_verify_reassessment_notices;
 
 DROP TABLE reassessment_notice;
 
+-- Nhóm 2 (một phần): hồ sơ sức khỏe ban đầu (initial_health_record) vào simple_record loại M01.INITIAL_HEALTH_RECORD
+-- (data-model 001 mục 0.1; A chốt 2026-11-04): id mới, legacy {table, id} ở content; trạng thái DRAFT, CONFIRMED;
+-- locked_at là lúc xác nhận (khóa dòng thay trg_initial_health_record_no_update); khóa M01.IHR:<residentId> giữ một hồ sơ
+-- mỗi người; version giữ (ETag của bản nháp). Đính chính, chuỗi đính chính, yêu cầu đính chính chưa áp dụng loại
+-- M01.INITIAL_HEALTH_RECORD đổi theo bảng ánh xạ; nhật ký cũ không nối (id mới lớn hơn mọi id cũ nên không trỏ nhầm).
+SET @m01_ihr_count = (SELECT COUNT(*) FROM initial_health_record);
+SET @m01_ihr_max_id = (SELECT COALESCE(MAX(id), 0) FROM initial_health_record);
+SET @m01_ihr_correction_count =
+        (SELECT COUNT(*) FROM correction WHERE record_type = 'M01.INITIAL_HEALTH_RECORD');
+SET @m01_ihr_chain_count =
+        (SELECT COUNT(*) FROM correction_chain WHERE record_type = 'M01.INITIAL_HEALTH_RECORD');
+
+CALL m01_raise_auto_increment('simple_record', @m01_ihr_max_id);
+
+INSERT INTO simple_record (kind, module, resident_id, status, content, unique_key, locked_at, created_at, created_by,
+                           version)
+SELECT 'M01.INITIAL_HEALTH_RECORD',
+       'M01',
+       resident_id,
+       IF(confirmed_at IS NULL, 'DRAFT', 'CONFIRMED'),
+       JSON_OBJECT('bloodType', blood_type, 'mobility', mobility, 'selfCareAbility', self_care_ability,
+                   'cognition', cognition, 'initialNeedsNote', initial_needs_note, 'nutritionNeeds', nutrition_needs,
+                   'currentMedications', current_medications, 'rehabilitationNeeds', rehabilitation_needs,
+                   'performedBy', performed_by,
+                   'performedAt', DATE_FORMAT(performed_at, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                   'confirmedBy', confirmed_by,
+                   'legacy', JSON_OBJECT('table', 'initial_health_record', 'id', id)),
+       CONCAT('M01.IHR:', resident_id),
+       confirmed_at,
+       performed_at,
+       performed_by,
+       version
+FROM initial_health_record
+ORDER BY id;
+
+CREATE TABLE m01_ihr_id_map
+(
+    old_id BIGINT NOT NULL PRIMARY KEY,
+    new_id BIGINT NOT NULL,
+    UNIQUE (new_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+INSERT INTO m01_ihr_id_map (old_id, new_id)
+SELECT CAST(content ->> '$.legacy.id' AS UNSIGNED), id
+FROM simple_record
+WHERE kind = 'M01.INITIAL_HEALTH_RECORD'
+  AND content ->> '$.legacy.table' = 'initial_health_record';
+
+DROP TRIGGER trg_correction_no_update;
+
+UPDATE correction c
+    JOIN m01_ihr_id_map m ON m.old_id = c.original_record_id
+SET c.original_record_id = m.new_id
+WHERE c.record_type = 'M01.INITIAL_HEALTH_RECORD';
+
+CREATE TRIGGER trg_correction_no_update
+    BEFORE UPDATE
+    ON correction
+    FOR EACH ROW
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'correction is append-only (DBR-23)';
+
+UPDATE correction_chain c
+    JOIN m01_ihr_id_map m ON m.old_id = c.original_record_id
+SET c.original_record_id = m.new_id
+WHERE c.record_type = 'M01.INITIAL_HEALTH_RECORD';
+
+UPDATE approval_request r
+    JOIN m01_ihr_id_map m ON m.old_id = CAST(r.content ->> '$.originalRecordId' AS UNSIGNED)
+SET r.content = JSON_SET(r.content, '$.originalRecordId', m.new_id)
+WHERE r.type = 'M15.CORRECTION'
+  AND r.locked_at IS NULL
+  AND r.content ->> '$.recordType' = 'M01.INITIAL_HEALTH_RECORD';
+
+DELIMITER $$
+CREATE PROCEDURE m01_verify_initial_health_records()
+BEGIN
+    IF (SELECT COUNT(*) FROM m01_ihr_id_map) <> @m01_ihr_count
+        OR (SELECT COUNT(*) FROM simple_record WHERE kind = 'M01.INITIAL_HEALTH_RECORD') <> @m01_ihr_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: initial health record row count differs';
+    END IF;
+    IF (SELECT MIN(new_id) FROM m01_ihr_id_map) <= @m01_ihr_max_id THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a new initial health record id is not above the old ids';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM initial_health_record o
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM m01_ihr_id_map m
+                                          JOIN simple_record s ON s.id = m.new_id
+                                 WHERE m.old_id = o.id AND s.kind = 'M01.INITIAL_HEALTH_RECORD'
+                                   AND s.resident_id = o.resident_id
+                                   AND s.status = IF(o.confirmed_at IS NULL, 'DRAFT', 'CONFIRMED')
+                                   AND s.locked_at <=> o.confirmed_at AND s.created_at = o.performed_at
+                                   AND s.created_by = o.performed_by AND s.version = o.version
+                                   AND s.unique_key = CONCAT('M01.IHR:', o.resident_id)
+                                   AND JSON_REMOVE(s.content, '$.legacy') = JSON_OBJECT(
+                                           'bloodType', o.blood_type, 'mobility', o.mobility,
+                                           'selfCareAbility', o.self_care_ability, 'cognition', o.cognition,
+                                           'initialNeedsNote', o.initial_needs_note,
+                                           'nutritionNeeds', o.nutrition_needs,
+                                           'currentMedications', o.current_medications,
+                                           'rehabilitationNeeds', o.rehabilitation_needs,
+                                           'performedBy', o.performed_by,
+                                           'performedAt', DATE_FORMAT(o.performed_at, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                                           'confirmedBy', o.confirmed_by))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: an initial health record was not copied';
+    END IF;
+    IF (SELECT COUNT(*) FROM correction WHERE record_type = 'M01.INITIAL_HEALTH_RECORD') <> @m01_ihr_correction_count
+        OR (SELECT COUNT(*) FROM correction_chain WHERE record_type = 'M01.INITIAL_HEALTH_RECORD')
+        <> @m01_ihr_chain_count
+        OR EXISTS (SELECT 1
+                   FROM correction c
+                   WHERE c.record_type = 'M01.INITIAL_HEALTH_RECORD'
+                     AND NOT EXISTS (SELECT 1 FROM m01_ihr_id_map m WHERE m.new_id = c.original_record_id))
+        OR EXISTS (SELECT 1
+                   FROM correction_chain c
+                   WHERE c.record_type = 'M01.INITIAL_HEALTH_RECORD'
+                     AND NOT EXISTS (SELECT 1 FROM m01_ihr_id_map m WHERE m.new_id = c.original_record_id))
+        OR EXISTS (SELECT 1
+                   FROM approval_request r
+                   WHERE r.type = 'M15.CORRECTION' AND r.locked_at IS NULL
+                     AND r.content ->> '$.recordType' = 'M01.INITIAL_HEALTH_RECORD'
+                     AND NOT EXISTS (SELECT 1
+                                     FROM m01_ihr_id_map m
+                                     WHERE m.new_id = CAST(r.content ->> '$.originalRecordId' AS UNSIGNED))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: an initial health record correction was not remapped';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM information_schema.KEY_COLUMN_USAGE
+               WHERE TABLE_SCHEMA = DATABASE()
+                 AND REFERENCED_TABLE_NAME = 'initial_health_record') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a foreign key still references initial_health_record';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_initial_health_records();
+DROP PROCEDURE m01_verify_initial_health_records;
+
+DROP TABLE initial_health_record;
+DROP TABLE m01_ihr_id_map;
+
 DROP PROCEDURE m01_raise_auto_increment;

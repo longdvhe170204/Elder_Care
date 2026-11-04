@@ -132,16 +132,19 @@ class InitialHealthRecordIT extends HealthTestBase {
     }
 
     @Test
-    void FR_017_confirmedRecord_isBlockedByTriggerEvenAgainstDirectUpdate() {
+    void FR_017_confirmedRecord_isBlockedByRowLockEvenAgainstDirectUpdate() {
         long resident = newResident();
         RecordView draft = draftByNurse(resident, "Metformin 500mg");
         user.set(doctor.user());
         records.confirm(target(resident), etag(draft));
 
+        // Dòng simple_record M01.INITIAL_HEALTH_RECORD khóa khi xác nhận (trg_simple_record_row_lock, 001 T084)
         assertThatThrownBy(() -> jdbc.update(
-                        "UPDATE initial_health_record SET current_medications = 'Đổi lén' WHERE id = ?", draft.id()))
+                        "UPDATE simple_record SET content = JSON_SET(content, '$.currentMedications', 'Đổi lén')"
+                                + " WHERE id = ? AND kind = 'M01.INITIAL_HEALTH_RECORD'",
+                        draft.id()))
                 .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("confirmed initial_health_record");
+                .hasMessageContaining("simple_record row is locked");
     }
 
     @Test

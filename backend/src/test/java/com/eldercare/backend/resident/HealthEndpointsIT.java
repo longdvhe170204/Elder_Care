@@ -136,8 +136,10 @@ class HealthEndpointsIT extends HealthTestBase {
         user.set(doctor.user());
         mvc.perform(post(path + "/confirm").with(csrf()).header("If-Match", etag))
                 .andExpect(status().isOk());
-        long recordId =
-                jdbc.queryForObject("SELECT id FROM initial_health_record WHERE resident_id = ?", Long.class, resident);
+        long recordId = jdbc.queryForObject(
+                "SELECT id FROM simple_record WHERE kind = 'M01.INITIAL_HEALTH_RECORD' AND resident_id = ?",
+                Long.class,
+                resident);
 
         user.set(nurse.user());
         mvc.perform(post("/api/v1/initial-health-records/" + recordId + "/correct")
