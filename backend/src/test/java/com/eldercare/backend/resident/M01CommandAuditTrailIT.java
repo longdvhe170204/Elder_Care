@@ -402,8 +402,8 @@ class M01CommandAuditTrailIT extends StatusTestBase {
                 new RecordCommand(HealthItemType.ALLERGY, allergenId(), null, severityId(), sourceId(), false));
         long m = mark();
 
-        items.markChecked(
-                recorded.item().id(), com.eldercare.backend.resident.api.dto.HealthItemCheckSource.MEDICATION);
+        // 006 đã gỡ cờ thuốc ngay sau khi ghi mục; cờ dinh dưỡng còn chờ nên lần gọi này mới đổi cờ và ghi nhật ký
+        items.markChecked(recorded.item().id(), com.eldercare.backend.resident.api.dto.HealthItemCheckSource.NUTRITION);
 
         Entry e = exactlyOne(
                 since(m),

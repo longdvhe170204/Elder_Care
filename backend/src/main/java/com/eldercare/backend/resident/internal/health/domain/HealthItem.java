@@ -92,11 +92,14 @@ public class HealthItem {
         this.exclusionReason = reason;
     }
 
-    public void markChecked(HealthItemCheckSource source) {
+    /** Gỡ cờ chờ kiểm tra của nguồn; {@code true} khi cờ đổi từ chờ sang đã kiểm, {@code false} khi đã gỡ từ trước. */
+    public boolean markChecked(HealthItemCheckSource source) {
+        boolean pending = source == HealthItemCheckSource.MEDICATION ? pendingMedicationCheck : pendingNutritionCheck;
         switch (source) {
             case MEDICATION -> pendingMedicationCheck = false;
             case NUTRITION -> pendingNutritionCheck = false;
         }
+        return pending;
     }
 
     public boolean isNotAutoChecked() {
