@@ -236,7 +236,15 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/resident-channel/feedback",
                             "POST /api/v1/resident-channel/feedback"),
                     Set.of(),
+                    true),
+            // 018 (R-15, 2026-11-04; chờ A xem, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài enum trả 422
+            // INVALID_COMMAND (ngoài hợp đồng, BL-95)
+            new Contract(
+                    Path.of("..", "specs", "018-residence-registration", "contracts", "api-018.yaml"),
+                    Set.of(),
+                    Set.of(),
                     true));
+
 
     @Autowired
     MockMvc mvc;

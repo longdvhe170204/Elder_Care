@@ -1,0 +1,148 @@
+package com.eldercare.backend.admission.web;
+
+import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.admission.internal.registration.service.ResidenceRegistrationService;
+import com.eldercare.backend.admission.web.request.CreateRegistrationBody;
+import com.eldercare.backend.admission.web.request.RegistrationCommandBody;
+import com.eldercare.backend.admission.web.response.RegistrationTaskBody;
+import com.eldercare.backend.admission.web.response.ResidenceRegistrationBody;
+import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.web.ProblemBody;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Khai báo tạm trú, lưu trú (018; contracts/api-018.yaml, tag {@code residence-registrations}). Phase 3 (US1): danh sách
+ * cần làm, khai báo của người cao tuổi, lập khai báo, xác nhận thường trú cùng xã/phường; Phase 4 (US2): ghi nộp, ghi kết
+ * quả; Phase 5 (US3): lập khai báo gia hạn ({@code renewal: true}); Phase 6 (US4): ghi đã khai báo xóa. Mọi logic và kiểm
+ * quyền ở service.
+ */
+@RestController
+@RequestMapping("/api/v1")
+@Tag(name = "residence-registrations")
+class ResidenceRegistrationController {
+
+    private static final String PROBLEM = "application/problem+json";
+    private static final String CONFIRM_LOCAL = "confirm-local-permanent-resident";
+    private static final String RECORD_SUBMITTED = "record-submitted";
+    private static final String RECORD_ACCEPTED = "record-accepted";
+    private static final String RECORD_REJECTED = "record-rejected";
+    private static final String RECORD_DEREGISTERED = "record-deregistered";
+
+    private final ResidenceRegistrationService registrations;
+
+    ResidenceRegistrationController(ResidenceRegistrationService registrations) {
+        this.registrations = registrations;
+    }
+
+    @GetMapping("/residence-registrations/to-do")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "OK")})
+    List<RegistrationTaskBody> toDo() {
+        return registrations.toDo(Target.UNSPECIFIED).stream()
+                .map(RegistrationTaskBody::of)
+                .toList();
+    }
+
+    @GetMapping("/residents/{residentId}/residence-registrations")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "OK")})
+    List<ResidenceRegistrationBody> ofResident(@PathVariable long residentId) {
+        return registrations.ofResident(ResidenceRegistrationService.targetForResident(residentId), residentId).stream()
+                .map(ResidenceRegistrationBody::of)
+                .toList();
+    }
+
+    @PostMapping("/residents/{residentId}/residence-registrations")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "OK"),
+        @ApiResponse(
+                responseCode = "409",
+                description = "NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS,"
+                        + " NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResidenceRegistrationBody create(
+            @PathVariable long residentId,
+            @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
+            @RequestBody CreateRegistrationBody body) {
+        Target target = ResidenceRegistrationService.targetForResident(residentId);
+        return ResidenceRegistrationBody.of(
+                body.isRenewal()
+                        ? registrations.createRenewalRegistration(target, residentId)
+                        : registrations.createRegistration(target, residentId));
+    }
+
+    /**
+     * Lệnh theo bảng FR-005: {@code confirm-local-permanent-resident} (T008), {@code record-submitted}, {@code
+     * record-accepted}, {@code record-rejected} (T010), {@code record-deregistered} (T014). Lệnh khác trả 422 {@code
+     * INVALID_COMMAND} (đề xuất đưa vào hợp đồng chờ duyệt, BL-95).
+     */
+    @PostMapping("/residence-registrations/{id}/{command}")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description =
+                        "STATE_CHANGED, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    void command(
+            @PathVariable long id,
+            @PathVariable
+                    @Parameter(
+                            schema =
+                                    @Schema(
+                                            type = "string",
+                                            allowableValues = {
+                                                CONFIRM_LOCAL,
+                                                RECORD_SUBMITTED,
+                                                RECORD_ACCEPTED,
+                                                RECORD_REJECTED,
+                                                RECORD_DEREGISTERED
+                                            }))
+                    String command,
+            @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
+            @RequestBody RegistrationCommandBody body) {
+        Target target = registrations.targetOf(id);
+        switch (command) {
+            case CONFIRM_LOCAL -> registrations.confirmLocalPermanentResident(target, id, body.basisNote());
+            case RECORD_SUBMITTED ->
+                registrations.recordSubmitted(
+                        target,
+                        id,
+                        new ResidenceRegistrationService.Submission(
+                                body.submittedDate(), body.channel(), body.receivingAuthority(), body.dossierCode()));
+            case RECORD_ACCEPTED ->
+                registrations.recordAccepted(
+                        target,
+                        id,
+                        new ResidenceRegistrationService.Acceptance(body.evidenceFileId(), body.expiryDate()));
+            case RECORD_REJECTED -> registrations.recordRejected(target, id, body.reason());
+            case RECORD_DEREGISTERED -> registrations.recordDeregistered(target, id, body.evidenceFileId());
+            default ->
+                throw new BusinessException(
+                        HttpStatus.UNPROCESSABLE_CONTENT,
+                        "INVALID_COMMAND",
+                        "Lệnh chưa được cài hoặc không có: " + command);
+        }
+    }
+}

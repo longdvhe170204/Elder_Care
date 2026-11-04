@@ -1,0 +1,632 @@
+package com.eldercare.backend.admission.internal.registration.service;
+
+import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.dto.Function;
+import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.admission.api.ContractReadApi;
+import com.eldercare.backend.admission.api.dto.ContractStatus;
+import com.eldercare.backend.admission.api.dto.ContractView;
+import com.eldercare.backend.admission.internal.registration.domain.ObligationTrigger;
+import com.eldercare.backend.admission.internal.registration.domain.RegistrationObligation;
+import com.eldercare.backend.admission.internal.registration.domain.RegistrationStatus;
+import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
+import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
+import com.eldercare.backend.admission.internal.registration.domain.SubmissionChannel;
+import com.eldercare.backend.admission.internal.registration.domain.SubmissionResult;
+import com.eldercare.backend.admission.internal.registration.persistence.RegistrationObligationStore;
+import com.eldercare.backend.admission.internal.registration.persistence.RegistrationResidentStore;
+import com.eldercare.backend.admission.internal.registration.persistence.RegistrationSubmissionStore;
+import com.eldercare.backend.admission.internal.registration.persistence.ResidenceRegistrationStore;
+import com.eldercare.backend.admission.internal.registration.service.ExpectedStayDuration.StayPeriod;
+import com.eldercare.backend.common.data.BusinessCommand;
+import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.ConditionNotMetException;
+import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.file.FileApi;
+import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.ResidenceType;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Lệnh và tra cứu khai báo tạm trú, lưu trú (018 US1, T008; FR-001 → FR-004, FR-009; BR-M02-11, DBR-33, Q-215, Q-306;
+ * research Z-03, Z-04). Chỉ actor (Hành chính) lập khai báo, qua {@link #createRegistration}; Bộ lập lịch không tới được
+ * phương thức này ({@code ResidenceRegistrationArchTest}). Mọi lệnh khóa {@code registration_resident} của người cao tuổi
+ * trước rồi đọc khóa khai báo; chuyển trạng thái bằng câu lệnh có điều kiện trạng thái. Ghi nộp, kết quả (US2, T010) ở
+ * Phase 4; khai báo gia hạn (T012) ở Phase 5; ghi đã khai báo xóa (T014) ở Phase 6, phần kèm lệnh 001 ở {@link
+ * RegistrationDeregistration}.
+ */
+@Service
+public class ResidenceRegistrationService {
+
+    static final AuditAction CREATED = new AuditAction("M02_REGISTRATION_CREATED", false);
+    static final AuditAction LOCAL_CONFIRMED = new AuditAction("M02_REGISTRATION_LOCAL_CONFIRMED", false);
+    static final AuditAction SUBMITTED = new AuditAction("M02_REGISTRATION_SUBMITTED", false);
+    static final AuditAction ACCEPTED = new AuditAction("M02_REGISTRATION_ACCEPTED", false);
+    static final AuditAction REJECTED = new AuditAction("M02_REGISTRATION_REJECTED", false);
+    static final AuditAction DEREGISTERED = new AuditAction("M02_REGISTRATION_DEREGISTERED", false);
+
+    private static final Set<ContractStatus> SIGNED =
+            Set.of(ContractStatus.ACTIVE, ContractStatus.ENDED, ContractStatus.TERMINATED);
+
+    private final ResidenceRegistrationStore registrations;
+    private final RegistrationObligationStore obligations;
+    private final RegistrationResidentStore residentLock;
+    private final RegistrationSubmissionStore submissions;
+    private final FileApi files;
+    private final RegistrationRenewalReminders renewals;
+    private final RegistrationDeregistration deregistration;
+    private final ContractReadApi contracts;
+    private final ResidentApi residents;
+    private final ParameterApi parameters;
+    private final AuditLogApi auditLog;
+    private final BusinessTime time;
+    private final ObjectProvider<CurrentUser> currentUser;
+
+    ResidenceRegistrationService(
+            ResidenceRegistrationStore registrations,
+            RegistrationObligationStore obligations,
+            RegistrationResidentStore residentLock,
+            RegistrationSubmissionStore submissions,
+            FileApi files,
+            RegistrationRenewalReminders renewals,
+            RegistrationDeregistration deregistration,
+            ContractReadApi contracts,
+            ResidentApi residents,
+            ParameterApi parameters,
+            AuditLogApi auditLog,
+            BusinessTime time,
+            ObjectProvider<CurrentUser> currentUser) {
+        this.registrations = registrations;
+        this.obligations = obligations;
+        this.residentLock = residentLock;
+        this.submissions = submissions;
+        this.files = files;
+        this.renewals = renewals;
+        this.deregistration = deregistration;
+        this.contracts = contracts;
+        this.residents = residents;
+        this.parameters = parameters;
+        this.auditLog = auditLog;
+        this.time = time;
+        this.currentUser = currentUser;
+    }
+
+    /**
+     * Việc trong danh sách cần làm (api-018 {@code RegistrationTask}): {@code TO_CREATE}, {@code OVERDUE} (Phase 3),
+     * {@code EXPIRING_SOON}, {@code EXPIRED} (T012), {@code TO_DEREGISTER} (T014).
+     */
+    public enum TaskType {
+        TO_CREATE,
+        OVERDUE,
+        EXPIRING_SOON,
+        EXPIRED,
+        TO_DEREGISTER
+    }
+
+    public record Task(long residentId, String fullName, TaskType taskType, Instant dueAt, Long registrationId) {}
+
+    /** Nội dung ghi đã nộp (FR-003): ngày nộp, kênh, cơ quan bắt buộc; mã hồ sơ không bắt buộc. */
+    public record Submission(
+            LocalDate submittedDate, SubmissionChannel channel, String receivingAuthority, String dossierCode) {}
+
+    /** Nội dung ghi được chấp nhận (FR-003): bằng chứng; ngày hết hạn với Đăng ký tạm trú. */
+    public record Acceptance(Long evidenceFileId, LocalDate expiryDate) {}
+
+    public static Target targetForResident(long residentId) {
+        return new Target(RegistrationNames.ENTITY_TYPE, null, residentId, null);
+    }
+
+    /** Đối tượng kiểm quyền của một khai báo; không có thì 404. */
+    @Transactional(readOnly = true)
+    public Target targetOf(long id) {
+        ResidenceRegistration registration = registrations.find(id).orElseThrow(NotFoundException::new);
+        return RegistrationNames.target(id, registration.residentId());
+    }
+
+    // ---- Đọc ------------------------------------------------------------------------------------------------------
+
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<ResidenceRegistration> ofResident(Target target, long residentId) {
+        return registrations.ofResident(residentId);
+    }
+
+    /**
+     * Người cần khai báo, gồm người chưa được lập khai báo (FR-001, FR-002): nghĩa vụ chưa ghi nộp; quá hạn (hạn đang có
+     * hiệu lực trước hôm nay; khai báo bị từ chối thì hạn mới của khai báo) là {@code OVERDUE} dù đã lập hay chưa, còn hạn mà
+     * chưa lập là {@code TO_CREATE} ({@code EXPIRED} khi mốc là khai báo Hết hạn). Đăng ký tạm trú trong khoảng nhắc gia hạn
+     * (FR-006) là {@code EXPIRING_SOON}, hạn là hết ngày hết hạn. Khai báo cần khai báo xóa (FR-008) là {@code
+     * TO_DEREGISTER}, không có hạn.
+     */
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<Task> toDo(Target target) {
+        Instant todayStart = time.today().atStartOfDay(BusinessTime.ZONE).toInstant();
+        List<Task> tasks = new ArrayList<>();
+        for (RegistrationObligation obligation : obligations.pending()) {
+            TaskType type;
+            if (obligation.effectiveDueAt().isBefore(todayStart)) {
+                type = TaskType.OVERDUE;
+            } else if (obligation.registrationId() == null) {
+                type = obligation.trigger() == ObligationTrigger.EXPIRED ? TaskType.EXPIRED : TaskType.TO_CREATE;
+            } else {
+                continue;
+            }
+            tasks.add(new Task(
+                    obligation.residentId(),
+                    residents.identity(obligation.residentId()).fullName(),
+                    type,
+                    obligation.effectiveDueAt(),
+                    obligation.registrationId()));
+        }
+        List<ResidenceRegistration> expiring = renewals.due(time.today());
+        Map<Long, LocalDate> expiry = renewals.expiryOf(expiring);
+        for (ResidenceRegistration registration : expiring) {
+            tasks.add(new Task(
+                    registration.residentId(),
+                    residents.identity(registration.residentId()).fullName(),
+                    TaskType.EXPIRING_SOON,
+                    endOf(expiry.get(registration.id())),
+                    registration.id()));
+        }
+        for (ResidenceRegistration registration : deregistration.due()) {
+            tasks.add(new Task(
+                    registration.residentId(),
+                    residents.identity(registration.residentId()).fullName(),
+                    TaskType.TO_DEREGISTER,
+                    null,
+                    registration.id()));
+        }
+        return tasks;
+    }
+
+    // ---- Lệnh -----------------------------------------------------------------------------------------------------
+
+    /**
+     * Lập khai báo ở Cần khai báo (FR-001, FR-001a, FR-002, FR-004): người nội trú có nghĩa vụ chưa đáp ứng, chưa có khai
+     * báo đang xử lý. Loại theo tổng thời gian lưu trú dự kiến (từ ngày hiệu lực phần nội trú với mốc FR-001a) và CFG-M02-11
+     * đọc lúc lập; người đã xác nhận thường trú cùng xã/phường luôn Thông báo lưu trú. Hạn là hạn của nghĩa vụ sớm nhất;
+     * mọi nghĩa vụ đang mở của người đó được đáp ứng. Khai báo Đã xác nhận đang có (nếu có) ghi là khai báo được thay thế:
+     * cột đặt lúc lập (trigger V018_01 không cho đổi), khai báo cũ chỉ chuyển Được thay thế khi khai báo này được chấp nhận
+     * (T010). Lập khai báo gia hạn (FR-006) thêm ở T012.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.CREATE)
+    @Transactional
+    public ResidenceRegistration createRegistration(Target target, long residentId) {
+        boolean localPermanentResident = residentLock.lock(residentId);
+        if (registrations.hasInProgress(residentId)) {
+            throw inProgressExists();
+        }
+        List<RegistrationObligation> open = obligations.openOf(residentId);
+        List<ContractView> signed = contracts.ofResident(residentId).stream()
+                .filter(contract -> SIGNED.contains(contract.status()))
+                .toList();
+        if (open.isEmpty()) {
+            if (!residentialToday(signed)) {
+                throw new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "NOT_RESIDENTIAL_CARE",
+                        "Người bán trú không có khai báo tạm trú, lưu trú (FR-001)");
+            }
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "NO_REGISTRATION_OBLIGATION",
+                    "Chưa phát sinh nghĩa vụ khai báo hoặc nghĩa vụ đã có khai báo (FR-001)");
+        }
+        RegistrationObligation obligation = open.getFirst();
+        RegistrationType type = typeFor(obligation, signed, localPermanentResident);
+        Long replaced = registrations.confirmedOf(residentId).orElse(null);
+
+        long id;
+        try {
+            id = registrations.insertToSubmit(
+                    residentId,
+                    type,
+                    false,
+                    obligation.id(),
+                    obligation.dueAt(),
+                    localPermanentResident,
+                    null,
+                    replaced,
+                    currentUser.getObject().accountId());
+        } catch (ConditionNotMetException e) {
+            // Khóa registration_resident đã chặn; khóa DBR-33 của cơ sở dữ liệu là lớp chặn cuối
+            throw inProgressExists();
+        }
+        open.forEach(o -> obligations.markMet(o.id(), id));
+        auditLog.write(AuditLogEntry.builder()
+                .action(CREATED)
+                .entity(RegistrationNames.ENTITY_TYPE, id)
+                .resident(residentId)
+                .after(Map.of(
+                        "type", type.name(),
+                        "status", RegistrationStatus.TO_SUBMIT.name(),
+                        "dueAt", obligation.dueAt().toString(),
+                        "obligationId", obligation.id()))
+                .build());
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Lập khai báo gia hạn ở Cần khai báo (FR-005, FR-006, BR-M02-12): người có Đăng ký tạm trú Đã xác nhận, chưa ở trạng
+     * thái cuối (BR-M01-05, {@code STATE_CHANGED}), chưa có khai báo đang xử lý (FR-004). Loại Đăng ký tạm trú, hoặc Thông báo lưu trú khi hồ sơ đã xác nhận thường trú cùng xã/phường
+     * (FR-001). Hạn là hết ngày hết hạn hiện hành của khai báo đang Đã xác nhận (chủ dự án chốt 2026-10-27). Khai báo này
+     * thay khai báo đang Đã xác nhận khi được chấp nhận (T010). Không gắn nghĩa vụ.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.CREATE)
+    @Transactional
+    public ResidenceRegistration createRenewalRegistration(Target target, long residentId) {
+        boolean localPermanentResident = residentLock.lock(residentId);
+        if (RegistrationRenewalReminders.FINAL.contains(residents.status(residentId))) {
+            // BR-M01-05: hồ sơ trạng thái cuối chỉ xem; ngoại lệ không gồm lập khai báo (chủ dự án chốt BL-97,
+            // 2026-10-27)
+            throw stateChanged("Hồ sơ đã ở trạng thái cuối, không lập khai báo gia hạn (BR-M01-05)");
+        }
+        if (registrations.hasInProgress(residentId)) {
+            throw inProgressExists();
+        }
+        ResidenceRegistration confirmed = registrations
+                .confirmedOf(residentId)
+                .flatMap(registrations::find)
+                .filter(r -> r.type() == RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION)
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION",
+                        "Chỉ lập khai báo gia hạn khi có Đăng ký tạm trú Đã xác nhận (FR-005)"));
+        Instant dueAt = endOf(renewals.expiryOf(List.of(confirmed)).get(confirmed.id()));
+        RegistrationType type = localPermanentResident
+                ? RegistrationType.STAY_NOTIFICATION
+                : RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION;
+        long id;
+        try {
+            id = registrations.insertToSubmit(
+                    residentId,
+                    type,
+                    true,
+                    null,
+                    dueAt,
+                    localPermanentResident,
+                    null,
+                    confirmed.id(),
+                    currentUser.getObject().accountId());
+        } catch (ConditionNotMetException e) {
+            throw inProgressExists();
+        }
+        auditLog.write(AuditLogEntry.builder()
+                .action(CREATED)
+                .entity(RegistrationNames.ENTITY_TYPE, id)
+                .resident(residentId)
+                .after(Map.of(
+                        "type", type.name(),
+                        "status", RegistrationStatus.TO_SUBMIT.name(),
+                        "renewal", true,
+                        "dueAt", dueAt.toString(),
+                        "replacedRegistrationId", confirmed.id()))
+                .build());
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Xác nhận thường trú cùng xã/phường với viện (FR-001, Q-215): khi khai báo còn Cần khai báo, có ghi chú căn cứ; loại
+     * chuyển Thông báo lưu trú, hạn giữ nguyên; cờ của hồ sơ làm mọi khai báo sau dùng loại này. Gỡ bằng đính chính (T010).
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
+    @Transactional
+    public ResidenceRegistration confirmLocalPermanentResident(Target target, long id, String basisNote) {
+        if (basisNote == null || basisNote.isBlank()) {
+            throw new InvalidValueException("Cần ghi chú căn cứ khi xác nhận thường trú cùng xã/phường (FR-001)");
+        }
+        long residentId =
+                registrations.find(id).orElseThrow(NotFoundException::new).residentId();
+        residentLock.lock(residentId);
+        ResidenceRegistration before = registrations.find(id).orElseThrow(NotFoundException::new);
+        if (before.status() != RegistrationStatus.TO_SUBMIT
+                || !registrations.confirmLocalPermanentResident(id, basisNote.strip())) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "STATE_CHANGED",
+                    "Chỉ xác nhận thường trú cùng xã/phường khi khai báo còn Cần khai báo (FR-005)");
+        }
+        residentLock.confirmLocalPermanentResident(
+                residentId, basisNote.strip(), currentUser.getObject().accountId(), time.now());
+        auditLog.write(AuditLogEntry.builder()
+                .action(LOCAL_CONFIRMED)
+                .entity(RegistrationNames.ENTITY_TYPE, id)
+                .resident(residentId)
+                .before(Map.of("type", before.type().name(), "localPermanentResident", false))
+                .after(Map.of(
+                        "type", RegistrationType.STAY_NOTIFICATION.name(),
+                        "localPermanentResident", true,
+                        "basisNote", basisNote.strip()))
+                .build());
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Ghi đã nộp (FR-003, FR-005; US2 #1): Cần khai báo → Đã nộp; thêm lần nộp mới ({@code PENDING}), lần nộp cũ giữ
+     * nguyên; nghĩa vụ của khai báo thôi nhắc quá hạn.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
+    @Transactional
+    public ResidenceRegistration recordSubmitted(Target target, long id, Submission submission) {
+        if (submission.submittedDate() == null
+                || submission.channel() == null
+                || isBlank(submission.receivingAuthority())) {
+            throw new InvalidValueException("Cần ngày nộp, kênh nộp và cơ quan tiếp nhận (FR-005)");
+        }
+        ResidenceRegistration before = locked(id);
+        if (before.status() != RegistrationStatus.TO_SUBMIT) {
+            throw stateChanged("Chỉ ghi đã nộp khi khai báo ở Cần khai báo (FR-005)");
+        }
+        String dossierCode = isBlank(submission.dossierCode())
+                ? null
+                : submission.dossierCode().strip();
+        long submissionId = submissions.add(
+                before.residentId(),
+                id,
+                submission.submittedDate(),
+                submission.channel(),
+                submission.receivingAuthority().strip(),
+                dossierCode,
+                currentUser.getObject().accountId(),
+                time.now());
+        if (!registrations.markSubmitted(id, submissionId)) {
+            throw stateChanged("Chỉ ghi đã nộp khi khai báo ở Cần khai báo (FR-005)");
+        }
+        obligations.markSubmitted(before.residentId(), id, true);
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("status", RegistrationStatus.SUBMITTED.name());
+        after.put("submissionId", submissionId);
+        after.put("submittedDate", submission.submittedDate().toString());
+        after.put("channel", submission.channel().name());
+        after.put("receivingAuthority", submission.receivingAuthority().strip());
+        after.put("dossierCode", dossierCode);
+        audit(SUBMITTED, before, after);
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Ghi được chấp nhận (FR-003, FR-005; US2 #2, #5): Đã nộp → Đã xác nhận; bằng chứng bắt buộc, Đăng ký tạm trú có ngày
+     * hết hạn (Thông báo lưu trú không có). Khai báo Đã xác nhận cũ của người đó chuyển Được thay thế trước, cùng
+     * transaction (DBR-33).
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
+    @Transactional
+    public ResidenceRegistration recordAccepted(Target target, long id, Acceptance acceptance) {
+        ResidenceRegistration before = locked(id);
+        requireSubmitted(before);
+        if (acceptance.evidenceFileId() == null) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "EVIDENCE_REQUIRED", "Cần bằng chứng khi ghi được chấp nhận (FR-003)");
+        }
+        boolean temporaryResidence = before.type() == RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION;
+        if (temporaryResidence && acceptance.expiryDate() == null) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "EXPIRY_DATE_REQUIRED",
+                    "Đăng ký tạm trú được chấp nhận cần ngày hết hạn (FR-003)");
+        }
+        if (!temporaryResidence && acceptance.expiryDate() != null) {
+            throw new InvalidValueException("Chỉ Đăng ký tạm trú có ngày hết hạn (FR-003)");
+        }
+        Long superseded = registrations
+                .confirmedOf(before.residentId())
+                .filter(confirmed -> confirmed != id)
+                .orElse(null);
+        if (superseded != null) {
+            registrations.markSuperseded(superseded);
+        }
+        if (!submissions.setResult(before.currentSubmissionId(), SubmissionResult.ACCEPTED, null, time.now())
+                || !registrations.markConfirmed(id, acceptance.expiryDate(), acceptance.evidenceFileId())) {
+            throw stateChanged("Lần nộp đã có kết quả (FR-003)");
+        }
+        files.attach(acceptance.evidenceFileId(), RegistrationNames.EVIDENCE_OWNER_TYPE, id);
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("status", RegistrationStatus.CONFIRMED.name());
+        after.put("submissionId", before.currentSubmissionId());
+        after.put("evidenceFileId", acceptance.evidenceFileId());
+        after.put(
+                "expiryDate",
+                acceptance.expiryDate() == null ? null : acceptance.expiryDate().toString());
+        after.put("supersededRegistrationId", superseded);
+        audit(ACCEPTED, before, after);
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Ghi bị từ chối (FR-005; US2 #3): Đã nộp → Cần khai báo, cùng khai báo (không lập khai báo mới); hạn mới của khai báo
+     * = thời điểm ghi + CFG-M02-12. Nghĩa vụ giữ hạn gốc và mốc đã báo Quản lý viện, chỉ đặt lại cờ đã ghi nộp để nhắc quá
+     * hạn chạy lại theo hạn mới (plan 018 "Phase 4 hoàn thành").
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
+    @Transactional
+    public ResidenceRegistration recordRejected(Target target, long id, String reason) {
+        if (isBlank(reason)) {
+            throw new InvalidValueException("Cần lý do khi ghi bị từ chối (FR-005)");
+        }
+        ResidenceRegistration before = locked(id);
+        requireSubmitted(before);
+        Instant newDueAt =
+                time.now().plus(parameters.read(ParameterCode.CFG_M02_12).asDuration());
+        if (!submissions.setResult(before.currentSubmissionId(), SubmissionResult.REJECTED, reason.strip(), time.now())
+                || !registrations.markRejected(id, newDueAt)) {
+            throw stateChanged("Lần nộp đã có kết quả (FR-003)");
+        }
+        obligations.markSubmitted(before.residentId(), id, false);
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("status", RegistrationStatus.TO_SUBMIT.name());
+        after.put("submissionId", before.currentSubmissionId());
+        after.put("rejectionReason", reason.strip());
+        after.put("dueAt", newDueAt.toString());
+        audit(REJECTED, before, after);
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Ghi đã khai báo xóa (FR-005, FR-008; US4 #2, BR-M02-13): Đã xác nhận, Hết hạn → Đã xóa; người cao tuổi đã Kết thúc lưu
+     * trú hoặc Qua đời, bằng chứng bắt buộc. Được làm khi hồ sơ ở trạng thái cuối (ngoại lệ (3) của BR-M01-05) nên không
+     * gọi chặn hồ sơ đóng. Bằng chứng chấp nhận và các lần nộp giữ nguyên; nhắc khai báo xóa dừng vì khai báo hết là Đã xác
+     * nhận, Hết hạn.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
+    @Transactional
+    public ResidenceRegistration recordDeregistered(Target target, long id, Long evidenceFileId) {
+        ResidenceRegistration before = locked(id);
+        if (before.status() != RegistrationStatus.CONFIRMED && before.status() != RegistrationStatus.EXPIRED) {
+            throw stateChanged("Chỉ ghi đã khai báo xóa khi khai báo Đã xác nhận hoặc Hết hạn (FR-005)");
+        }
+        if (!RegistrationDeregistration.ENDED.contains(residents.status(before.residentId()))) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "RESIDENCY_NOT_ENDED",
+                    "Chỉ ghi đã khai báo xóa khi người cao tuổi đã Kết thúc lưu trú hoặc Qua đời (FR-008)");
+        }
+        if (evidenceFileId == null) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "EVIDENCE_REQUIRED", "Cần bằng chứng khi ghi đã khai báo xóa (FR-005)");
+        }
+        Instant now = time.now();
+        long accountId = currentUser.getObject().accountId();
+        if (!registrations.markDeregistered(id, now, accountId, evidenceFileId)) {
+            throw stateChanged("Chỉ ghi đã khai báo xóa khi khai báo Đã xác nhận hoặc Hết hạn (FR-005)");
+        }
+        files.attach(evidenceFileId, RegistrationNames.EVIDENCE_OWNER_TYPE, id);
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("status", RegistrationStatus.DEREGISTERED.name());
+        after.put("deregisteredAt", now.toString());
+        after.put("deregistrationEvidenceFileId", evidenceFileId);
+        audit(DEREGISTERED, before, after);
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Gỡ xác nhận thường trú cùng xã/phường nhầm (FR-001), tác động của đính chính {@code M02.RESIDENCE_REGISTRATION}
+     * (chạy trong transaction của lệnh đính chính): chỉ khi khai báo còn Cần khai báo; loại tính lại như lúc lập, hạn giữ;
+     * cờ của hồ sơ bỏ.
+     */
+    void removeLocalConfirmation(long id) {
+        ResidenceRegistration before = locked(id);
+        if (before.status() != RegistrationStatus.TO_SUBMIT || !before.localPermanentResident()) {
+            throw stateChanged("Chỉ gỡ xác nhận thường trú cùng xã/phường khi khai báo còn Cần khai báo (FR-001)");
+        }
+        RegistrationObligation obligation =
+                obligations.find(before.obligationId()).orElseThrow();
+        List<ContractView> signed = contracts.ofResident(before.residentId()).stream()
+                .filter(contract -> SIGNED.contains(contract.status()))
+                .toList();
+        if (!registrations.removeLocalPermanentResident(id, typeFor(obligation, signed, false))) {
+            throw stateChanged("Chỉ gỡ xác nhận thường trú cùng xã/phường khi khai báo còn Cần khai báo (FR-001)");
+        }
+        residentLock.removeLocalPermanentResident(before.residentId());
+    }
+
+    /** Khóa người cao tuổi của khai báo rồi đọc khóa khai báo; không có thì 404. */
+    private ResidenceRegistration locked(long id) {
+        long residentId = registrations.residentOf(id).orElseThrow(NotFoundException::new);
+        residentLock.lock(residentId);
+        return registrations.findForUpdate(id).orElseThrow(NotFoundException::new);
+    }
+
+    private static void requireSubmitted(ResidenceRegistration registration) {
+        if (registration.status() == RegistrationStatus.TO_SUBMIT) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "NOT_SUBMITTED", "Chưa ghi đã nộp nên chưa ghi được kết quả (US2 #4)");
+        }
+        if (registration.status() != RegistrationStatus.SUBMITTED) {
+            throw stateChanged("Chỉ ghi kết quả khi khai báo ở Đã nộp (FR-005)");
+        }
+    }
+
+    /** Loại khai báo theo FR-001, FR-001a: tổng thời gian lưu trú dự kiến, CFG-M02-11 đọc lúc gọi, cờ thường trú. */
+    private RegistrationType typeFor(
+            RegistrationObligation obligation, List<ContractView> signed, boolean localPermanentResident) {
+        LocalDate residentialFrom = obligation.trigger() == ObligationTrigger.RESIDENTIAL_EFFECTIVE
+                ? obligation.triggerAt().atZone(BusinessTime.ZONE).toLocalDate()
+                : null;
+        ExpectedStayDuration stay = ExpectedStayDuration.of(
+                signed.stream().map(ResidenceRegistrationService::period).toList(), residentialFrom);
+        int thresholdDays = Math.toIntExact(
+                parameters.read(ParameterCode.CFG_M02_11).asDuration().toDays());
+        return RegistrationTypeRule.determine(stay, thresholdDays, localPermanentResident);
+    }
+
+    private void audit(AuditAction action, ResidenceRegistration before, Map<String, Object> after) {
+        auditLog.write(AuditLogEntry.builder()
+                .action(action)
+                .entity(RegistrationNames.ENTITY_TYPE, before.id())
+                .resident(before.residentId())
+                .before(Map.of(
+                        "status",
+                        before.status().name(),
+                        "dueAt",
+                        before.dueAt().toString()))
+                .after(after)
+                .build());
+    }
+
+    /** Hết ngày {@code date}: 00:00 ngày sau theo Asia/Ho_Chi_Minh (DBR-25). */
+    private static Instant endOf(LocalDate date) {
+        return date.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static BusinessException stateChanged(String detail) {
+        return new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", detail);
+    }
+
+    private static BusinessException inProgressExists() {
+        return new BusinessException(
+                HttpStatus.CONFLICT,
+                "REGISTRATION_IN_PROGRESS_EXISTS",
+                "Người cao tuổi đã có khai báo Cần khai báo hoặc Đã nộp (FR-004, DBR-33)");
+    }
+
+    /** Hợp đồng: ngày kết thúc hiện hành (gồm phụ lục gia hạn), không có thì ngày kết thúc ghi trên hợp đồng. */
+    private static StayPeriod period(ContractView contract) {
+        LocalDate end = contract.currentEndDate() != null ? contract.currentEndDate() : contract.endDate();
+        return new StayPeriod(contract.startDate(), end);
+    }
+
+    /** Hợp đồng đã ký bao hôm nay (hoặc bắt đầu muộn nhất nếu không có) là nội trú. */
+    private boolean residentialToday(List<ContractView> signed) {
+        LocalDate today = time.today();
+        Comparator<ContractView> latest = Comparator.comparing(ContractView::startDate);
+        return signed.stream()
+                .filter(c -> !c.startDate().isAfter(today))
+                .filter(c -> period(c).end() == null || !period(c).end().isBefore(today))
+                .max(latest)
+                .or(() -> signed.stream().max(latest))
+                .map(c -> c.residenceType() != ResidenceType.DAY_CARE)
+                .orElse(false);
+    }
+}
