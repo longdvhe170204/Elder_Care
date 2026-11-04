@@ -136,6 +136,11 @@ public class IncidentStore {
         return at == null ? null : Timestamp.from(at);
     }
 
+    /** Người ghi nhận sự cố; được ghi diễn biến dù ngoài phạm vi (bảng FR-045). */
+    public long recordedBy(long id) {
+        return jdbc.queryForObject("SELECT recorded_by FROM incident WHERE id = ?", Long.class, id);
+    }
+
     public void receive(long id, long receiverId, Instant at, int expectedVersion) {
         int changed = jdbc.update("""
                 UPDATE incident SET status='IN_PROGRESS', received_at=?, received_by=?, assignee_id=?,
