@@ -22,13 +22,7 @@ class ResidentRetentionBeans {
 
     @Bean
     ResidentChildRetention consentRetention(ResidentRecordStore records, RetentionDatabase database) {
-        return new ResidentChildRetention(
-                "M01.CONSENT",
-                "consent",
-                List.of(
-                        "DELETE FROM consent_family_member WHERE consent_id IN (SELECT id FROM consent WHERE resident_id IN %s)"),
-                records,
-                database);
+        return new ResidentChildRetention("M01.CONSENT", "consent", List.of(), records, database);
     }
 
     @Bean

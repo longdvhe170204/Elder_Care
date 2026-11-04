@@ -249,3 +249,77 @@ DROP TABLE information_source;
 DROP TABLE allergy_severity;
 DROP TABLE care_level;
 DROP TABLE m01_catalog_id_map;
+
+-- Nhóm 3 (một phần): người thân trong phạm vi bản đồng ý vào cột JSON consent.family_member_ids (thay
+-- consent_family_member, ghi cùng INSERT). Không sửa được: eldercare_app không có quyền UPDATE cột này, trigger
+-- trg_consent_only_withdrawal chặn cả tài khoản quản trị (như trg_consent_family_member_no_update cũ).
+SET @m01_consent_member_count = (SELECT COUNT(*) FROM consent_family_member);
+
+ALTER TABLE consent
+    ADD COLUMN family_member_ids JSON NULL COMMENT 'Người thân được xem sức khỏe (thay consent_family_member)';
+
+UPDATE consent c
+SET c.family_member_ids = COALESCE((SELECT JSON_ARRAYAGG(m.family_member_id)
+                                    FROM consent_family_member m
+                                    WHERE m.consent_id = c.id), JSON_ARRAY());
+
+ALTER TABLE consent
+    MODIFY COLUMN family_member_ids JSON NOT NULL COMMENT 'Người thân được xem sức khỏe (thay consent_family_member)',
+    ADD INDEX ix_consent_family_member_ids ((CAST(family_member_ids AS UNSIGNED ARRAY)));
+
+DROP TRIGGER trg_consent_only_withdrawal;
+
+DELIMITER $$
+CREATE TRIGGER trg_consent_only_withdrawal
+    BEFORE UPDATE
+    ON consent
+    FOR EACH ROW
+BEGIN
+    IF NOT (NEW.resident_id <=> OLD.resident_id
+        AND NEW.consenter_type <=> OLD.consenter_type
+        AND NEW.consenter_family_member_id <=> OLD.consenter_family_member_id
+        AND NEW.court_decision_number <=> OLD.court_decision_number
+        AND NEW.court_decision_date <=> OLD.court_decision_date
+        AND NEW.court_decision_court <=> OLD.court_decision_court
+        AND NEW.court_decision_file_id <=> OLD.court_decision_file_id
+        AND NEW.photo_consent <=> OLD.photo_consent
+        AND NEW.notification_consent <=> OLD.notification_consent
+        AND NEW.consented_at <=> OLD.consented_at
+        AND NEW.evidence_file_id <=> OLD.evidence_file_id
+        AND NEW.family_member_ids <=> OLD.family_member_ids
+        AND NEW.created_at <=> OLD.created_at
+        AND NEW.created_by <=> OLD.created_by) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'consent content is immutable (FR-016)';
+    END IF;
+    IF OLD.status = 'WITHDRAWN' THEN
+        -- Bản được thay thế nhận tham chiếu tới bản mới sau khi bản mới được thêm (đúng một lần, từ NULL)
+        IF NOT (NEW.status <=> OLD.status
+            AND NEW.withdrawn_at <=> OLD.withdrawn_at
+            AND NEW.withdrawn_by <=> OLD.withdrawn_by
+            AND NEW.withdrawal_reason <=> OLD.withdrawal_reason
+            AND NEW.withdrawal_evidence_file_id <=> OLD.withdrawal_evidence_file_id
+            AND (NEW.superseded_by_id <=> OLD.superseded_by_id
+                OR (OLD.superseded_by_id IS NULL AND OLD.withdrawal_reason IS NULL))) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'consent is already withdrawn and cannot change (FR-014)';
+        END IF;
+    END IF;
+END$$
+
+CREATE PROCEDURE m01_verify_consent_members()
+BEGIN
+    IF (SELECT COALESCE(SUM(JSON_LENGTH(family_member_ids)), 0) FROM consent) <> @m01_consent_member_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: consent family member count differs';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM consent_family_member m
+                        JOIN consent c ON c.id = m.consent_id
+               WHERE NOT (m.family_member_id MEMBER OF (c.family_member_ids))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a consent family member was not copied';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_consent_members();
+DROP PROCEDURE m01_verify_consent_members;
+
+DROP TABLE consent_family_member;
