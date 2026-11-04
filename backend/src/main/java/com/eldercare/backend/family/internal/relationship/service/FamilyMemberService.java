@@ -44,6 +44,8 @@ import com.eldercare.backend.family.internal.relationship.persistence.FamilyResi
 import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.family.internal.right.domain.EffectiveRights;
 import com.eldercare.backend.family.internal.right.domain.RightChangeRequest;
+import com.eldercare.backend.family.internal.right.service.RightChangeRequestService;
+import com.eldercare.backend.family.internal.right.service.RightGrantRules;
 import com.eldercare.backend.resident.api.ConsentApi;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -127,6 +129,8 @@ public class FamilyMemberService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ApplicationEventPublisher events;
+    private final RightGrantRules grants;
+    private final RightChangeRequestService requests;
 
     FamilyMemberService(
             FamilyRelationshipStore store,
@@ -141,7 +145,11 @@ public class FamilyMemberService {
             SimpleRecordApi records,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            RightGrantRules grants,
+            RightChangeRequestService requests) {
+        this.grants = grants;
+        this.requests = requests;
         this.store = store;
         this.history = history;
         this.lock = lock;
@@ -485,7 +493,8 @@ public class FamilyMemberService {
 
     /**
      * Kết thúc quan hệ (FR-006): bỏ khỏi danh sách được phép đón, xét lại tài khoản người thân trong transaction của lệnh
-     * (002 FR-049); không kích hoạt lại. Hủy lượt thăm tương lai, yêu cầu chờ của người đó bổ sung cùng US4, US3.
+     * (002 FR-049), hủy yêu cầu Chờ xác nhận của người đó (US3); không kích hoạt lại. Hủy lượt thăm tương lai bổ sung
+     * cùng US4.
      */
     @BusinessCommand
     @RequiresPermission(function = Function.FAMILY_MEMBER_PERMISSION, operation = Operation.UPDATE)
@@ -506,6 +515,7 @@ public class FamilyMemberService {
                     relationshipId, RelationshipAttribute.PICKUP_ALLOWED, false, now, "END", user.accountId(), reason);
         }
         requireDbr02(residentId, status, active);
+        requests.cancelForEndedRelationship(residentId, relationshipId);
         accounts.recheckFamilyMember(relationship.familyMemberId(), new Basis("FR-006", null, relationshipId, null));
         auditLog.write(AuditLogEntry.builder()
                 .action(RELATIONSHIP_ENDED)
@@ -525,8 +535,9 @@ public class FamilyMemberService {
 
     /**
      * Phiếu đăng ký người thân do người đại diện ký (FR-008, Q-126): mỗi quyền trên phiếu thành một yêu cầu Hiệu lực ngay
-     * cách "bản ký" (FR-015 b) sau kiểm tra FR-007, FR-010, FR-011; báo các người đại diện khác (Q-249). Kiểm mong muốn
-     * của người cao tuổi (FR-020b) bổ sung cùng T016b.
+     * cách "bản ký" (FR-015 b) sau kiểm tra FR-007, FR-010, FR-011; báo các người đại diện khác (Q-249). Dòng trái mong
+     * muốn của người cao tuổi thành yêu cầu Chờ xác nhận chờ Quản lý viện duyệt, dòng khác vẫn Hiệu lực; lỗi khác chặn cả
+     * phiếu (FR-020b, research F-06a).
      */
     @BusinessCommand(requiresReason = false)
     @RequiresPermission(function = Function.FAMILY_MEMBER_PERMISSION, operation = Operation.CREATE)
@@ -555,7 +566,24 @@ public class FamilyMemberService {
             if (relationship == null) {
                 throw new NotFoundException();
             }
-            checkGrant(residentId, relationship, line.right());
+            grants.check(residentId, relationship, line.right());
+        }
+        Map<RegistrationFormLine, Long> conflicts = new LinkedHashMap<>();
+        for (RegistrationFormLine line : lines) {
+            requests.registrationFormConflict(
+                            residentId, byId.get(line.relationshipId()), line.right(), representativeId)
+                    .ifPresent(wishId -> conflicts.put(line, wishId));
+        }
+        for (RegistrationFormLine line : conflicts.keySet()) {
+            if (records.findByUniqueKey(
+                            RightChangeRequest.KIND,
+                            RightChangeRequestService.pendingKey(residentId, line.relationshipId(), line.right()))
+                    .isPresent()) {
+                throw new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "DUPLICATE_PENDING_REQUEST",
+                        "Đã có yêu cầu Chờ xác nhận cho quyền này (FR-018)");
+            }
         }
 
         Instant now = time.now();
@@ -576,32 +604,37 @@ public class FamilyMemberService {
                                 null))
                 .id();
         List<FamilyRegistrationForm.Line> recorded = new ArrayList<>();
+        List<FamilyRegistrationForm.Line> effective = new ArrayList<>();
         List<FamilyRightChanged> rightEvents = new ArrayList<>();
         for (RegistrationFormLine line : lines) {
             FamilyRelationship relationship = byId.get(line.relationshipId());
+            Long wishId = conflicts.get(line);
+            RightChangeRequest request = RightChangeRequest.ofRegistrationForm(
+                    relationship.id(), line.right(), representativeId, formId, wishId);
             long requestId = records.create(
                             RightChangeRequest.KIND,
                             new NewSimpleRecord<>(
                                     residentId,
                                     new EntityRef(FamilyRegistrationForm.KIND.code(), formId),
-                                    RightChangeRequest.Status.EFFECTIVE.name(),
-                                    new RightChangeRequest(
-                                            RightChangeRequest.Type.RIGHT,
-                                            relationship.id(),
-                                            line.right(),
-                                            true,
-                                            RightChangeRequest.Source.REGISTRATION_FORM,
-                                            RightChangeRequest.ConfirmationMethod.SIGNED_FORM,
-                                            representativeId,
-                                            formId,
-                                            null),
+                                    (wishId == null
+                                                    ? RightChangeRequest.Status.EFFECTIVE
+                                                    : RightChangeRequest.Status.PENDING_CONFIRMATION)
+                                            .name(),
+                                    request,
                                     null,
                                     null,
-                                    null,
+                                    wishId == null ? null : request.pendingKey(residentId),
                                     user.accountId(),
-                                    true))
+                                    wishId == null))
                     .id();
-            recorded.add(new FamilyRegistrationForm.Line(relationship.id(), line.right(), requestId));
+            FamilyRegistrationForm.Line recordedLine =
+                    new FamilyRegistrationForm.Line(relationship.id(), line.right(), requestId);
+            recorded.add(recordedLine);
+            if (wishId != null) {
+                requests.registrationLinePending(residentId, requestId, request, now);
+                continue;
+            }
+            effective.add(recordedLine);
             if (enableRight(relationship, line.right(), now, "REGISTRATION_FORM")) {
                 rightEvents.add(rightChanged(relationship, line.right(), true, now));
             }
@@ -624,6 +657,9 @@ public class FamilyMemberService {
                                         .toList()))
                 .build());
         rightEvents.forEach(events::publishEvent);
+        if (effective.isEmpty()) {
+            return formId;
+        }
         List<Long> others = store.activeOfResident(residentId).stream()
                 .filter(FamilyRelationship::representative)
                 .map(FamilyRelationship::familyMemberId)
@@ -633,37 +669,10 @@ public class FamilyMemberService {
         events.publishEvent(new RightChangesTookEffect(
                 residentId,
                 new SourceRecord(FamilyRegistrationForm.KIND.code(), String.valueOf(formId)),
-                formSummary(signer, recorded),
+                formSummary(signer, effective),
                 others,
                 now));
         return formId;
-    }
-
-    /** FR-007 (giấy tờ), FR-010 (chỉ người đại diện), FR-011 (bản đồng ý) khi bật một quyền. */
-    private void checkGrant(long residentId, FamilyRelationship relationship, FamilyRight right) {
-        switch (right) {
-            case PICKUP_ALLOWED -> {
-                FamilyMember member =
-                        store.familyMember(relationship.familyMemberId()).orElseThrow();
-                if (member.idDocumentType() == null || member.idDocumentNumber() == null) {
-                    throw idDocumentRequired();
-                }
-            }
-            case REQUEST_SERVICES -> {
-                if (!relationship.representative()) {
-                    throw requestNotAllowed("Quyền được yêu cầu thay đổi dịch vụ chỉ cho người đại diện (FR-010)");
-                }
-            }
-            case VIEW_HEALTH -> {
-                if (!consents.includes(residentId, relationship.familyMemberId())) {
-                    throw new BusinessException(
-                            HttpStatus.CONFLICT,
-                            "CONSENT_NOT_INCLUDED",
-                            "Bản đồng ý Hiệu lực của người cao tuổi không bao gồm người thân này (FR-011)");
-                }
-            }
-            default -> {}
-        }
     }
 
     /** Bật quyền (cột và lịch sử) khi đang tắt; trả {@code true} khi đã đổi. */
