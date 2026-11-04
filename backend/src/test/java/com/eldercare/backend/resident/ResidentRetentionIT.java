@@ -165,8 +165,7 @@ class ResidentRetentionIT extends StatusTestBase {
             "health_item",
             "assessment",
             "consent",
-            "end_of_life_wish",
-            "treatment_wish",
+            "wish",
             "reassessment_notice",
             "reminder_marker");
 

@@ -39,7 +39,12 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "consent_family_member",
             "assessment_care_need",
             "periodic_reminder",
-            "return_overdue_alert");
+            "return_overdue_alert",
+            "end_of_life_wish",
+            "end_of_life_wish_opinion",
+            "treatment_wish",
+            "treatment_wish_notify",
+            "treatment_wish_opinion");
 
     /** Dữ liệu cũ đọc ra dạng tên, để so sau khi id đổi. */
     private record Snapshot(
@@ -51,7 +56,9 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             int assessmentCareNeeds,
             Map<Long, List<Long>> consentMembers,
             List<String> reminders,
-            List<String> alerts) {}
+            List<String> alerts,
+            List<String> wishes,
+            int treatmentFiles) {}
 
     @AfterAll
     static void dropScratchSchemas() {
@@ -215,6 +222,66 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         + " (31, '2026-03-02 10:30:00', ?, '2026-03-02 12:00:00')",
                 r1,
                 r1);
+        seedWishes(db, r1, r2, file);
+    }
+
+    /** Hai phiếu cuối đời (cũ Được thay thế, mới Hiệu lực), ba phiếu điều trị có người cần báo, ý kiến, tệp đã gắn. */
+    private static void seedWishes(JdbcTemplate db, long r1, long r2, long file) {
+        String eol = "INSERT INTO end_of_life_wish (resident_id, choice, first_contact, respondent_type,"
+                + " assessing_doctor_id, can_self_determine, assessed_at, support_method, review_date, signer_type,"
+                + " signed_at, signed_copy_file_id, source, status, recorded_by, recorded_at) VALUES (?, ?, 'Con trai',"
+                + " 'RESIDENT', 3, TRUE, '2026-01-02 08:00:00', 'Giải thích', '2026-07-01', 'RESIDENT',"
+                + " '2026-01-02 09:00:00', ?, 'ADMISSION', ?, 3, ?)";
+        db.update(eol, r1, "RETURN_HOME", file, "SUPERSEDED", "2026-01-02 09:30:00.123456");
+        long firstEol = db.queryForObject("SELECT MAX(id) FROM end_of_life_wish", Long.class);
+        db.update(eol, r1, "STAY_PALLIATIVE", file, "ACTIVE", "2026-02-02 09:30:00");
+        long secondEol = db.queryForObject("SELECT MAX(id) FROM end_of_life_wish", Long.class);
+        db.update("UPDATE end_of_life_wish SET superseded_by_id = ? WHERE id = ?", secondEol, firstEol);
+        db.update(
+                "INSERT INTO end_of_life_wish_opinion (wish_id, source_type, source_family_member_id, content,"
+                        + " recorded_by, recorded_at) VALUES (?, 'FAMILY_MEMBER', 9001, 'Gia đình muốn về nhà', 3,"
+                        + " '2026-01-02 09:30:00.123456'), (?, 'OBSERVING_STAFF', NULL, 'Cụ hay nhắc nhà', 3,"
+                        + " '2026-01-02 09:30:00.123456')",
+                firstEol,
+                firstEol);
+
+        String treatment = "INSERT INTO treatment_wish (resident_id, hospital1_name, hospital1_address,"
+                + " ask_family_first, escort, respondent_type, status, recorded_by, recorded_at, signed_copy_file_id)"
+                + " VALUES (?, ?, 'Địa chỉ 1', ?, 'FAMILY', 'RESIDENT', ?, 3, ?, ?)";
+        long[] treatments = new long[3];
+        long[] files = new long[3];
+        String[] hospitals = {"Bệnh viện X", "Bệnh viện Y", "Bệnh viện Z"};
+        long[] residents = {r1, r1, r2};
+        String[] statuses = {"EXPIRED", "ACTIVE", "ACTIVE"};
+        for (int i = 0; i < 3; i++) {
+            db.update("INSERT INTO file (uuid, original_name, mime_type, size_bytes, sha256, uploaded_by, uploaded_at)"
+                    + " VALUES (UUID(), 'dieutri.pdf', 'application/pdf', 1, REPEAT('b', 64), 3, NOW(6))");
+            files[i] = db.queryForObject("SELECT MAX(id) FROM file", Long.class);
+            db.update(
+                    treatment,
+                    residents[i],
+                    hospitals[i],
+                    i == 1,
+                    statuses[i],
+                    "2026-03-0" + (i + 1) + " 10:00:00.5",
+                    files[i]);
+            treatments[i] = db.queryForObject("SELECT MAX(id) FROM treatment_wish", Long.class);
+            db.update(
+                    "UPDATE file SET owner_type = 'M01.TREATMENT_WISH', owner_id = ?, attached_at = NOW(6)"
+                            + " WHERE id = ?",
+                    treatments[i],
+                    files[i]);
+        }
+        db.update("UPDATE treatment_wish SET superseded_by_id = ? WHERE id = ?", treatments[1], treatments[0]);
+        db.update(
+                "INSERT INTO treatment_wish_notify (treatment_wish_id, family_member_id) VALUES (?, 9002), (?, 9001)",
+                treatments[1],
+                treatments[1]);
+        db.update(
+                "INSERT INTO treatment_wish_opinion (treatment_wish_id, source_type, source_family_member_id, content,"
+                        + " recorded_by, recorded_at) VALUES (?, 'OBSERVING_STAFF', NULL, 'Cụ ngại bệnh viện lớn', 3,"
+                        + " '2026-03-01 10:00:00.5')",
+                treatments[0]);
     }
 
     private static void item(
@@ -280,7 +347,55 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 db.queryForList(
                         "SELECT CONCAT(absence_id, '|', DATE_FORMAT(expected_return_at, '%Y-%m-%dT%H:%i:%s.%f'),"
                                 + " '|', resident_id, '|', alerted_at) FROM return_overdue_alert",
-                        String.class));
+                        String.class),
+                oldWishes(db),
+                db.queryForObject("SELECT COUNT(*) FROM file WHERE owner_type = 'M01.TREATMENT_WISH'", Integer.class));
+    }
+
+    /** Phiếu cuối đời (giữ id), phiếu điều trị (không có id), ý kiến khác của phiếu cuối đời: dạng chữ để so sánh. */
+    private static List<String> oldWishes(JdbcTemplate db) {
+        List<String> rows = new ArrayList<>();
+        rows.addAll(db.queryForList(
+                "SELECT CONCAT('E|', id, '|', resident_id, '|', choice, '|', status, '|', IFNULL(superseded_by_id, '-'),"
+                        + " '|', review_date, '|', recorded_at) FROM end_of_life_wish",
+                String.class));
+        rows.addAll(db.queryForList(
+                "SELECT CONCAT('T|', t.resident_id, '|', t.hospital1_name, '|', t.ask_family_first, '|', t.escort, '|',"
+                        + " t.status, '|', IF(t.superseded_by_id IS NULL, '-', 'S'), '|', t.recorded_at, '|',"
+                        + " (SELECT IFNULL(GROUP_CONCAT(n.family_member_id ORDER BY n.family_member_id), '')"
+                        + " FROM treatment_wish_notify n WHERE n.treatment_wish_id = t.id), '|',"
+                        + " (SELECT IFNULL(GROUP_CONCAT(o.content ORDER BY o.id SEPARATOR ';'), '')"
+                        + " FROM treatment_wish_opinion o WHERE o.treatment_wish_id = t.id)) FROM treatment_wish t",
+                String.class));
+        rows.addAll(db.queryForList(
+                "SELECT CONCAT('EO|', wish_id, '|', source_type, '|', IFNULL(source_family_member_id, '-'), '|', content,"
+                        + " '|', recorded_at) FROM end_of_life_wish_opinion",
+                String.class));
+        return rows;
+    }
+
+    private static List<String> newWishes(JdbcTemplate db) {
+        List<String> rows = new ArrayList<>();
+        rows.addAll(db.queryForList(
+                "SELECT CONCAT('E|', id, '|', resident_id, '|', choice, '|', status, '|', IFNULL(superseded_by_id, '-'),"
+                        + " '|', review_date, '|', recorded_at) FROM wish WHERE kind = 'END_OF_LIFE'",
+                String.class));
+        rows.addAll(db.queryForList(
+                "SELECT CONCAT('T|', t.resident_id, '|', t.hospital1_name, '|', t.ask_family_first, '|', t.escort, '|',"
+                        + " t.status, '|', IF(t.superseded_by_id IS NULL, '-', 'S'), '|', t.recorded_at, '|',"
+                        + " (SELECT IFNULL(GROUP_CONCAT(j.id ORDER BY j.id), '') FROM JSON_TABLE(t.notify_family_member_ids,"
+                        + " '$[*]' COLUMNS (id BIGINT PATH '$')) j), '|',"
+                        + " (SELECT IFNULL(GROUP_CONCAT(e.content ->> '$.content' ORDER BY e.id SEPARATOR ';'), '')"
+                        + " FROM record_event e WHERE e.kind = 'M01.WISH_OPINION' AND e.entity_type = 'M01.TREATMENT_WISH'"
+                        + " AND e.entity_id = t.id)) FROM wish t WHERE t.kind = 'TREATMENT'",
+                String.class));
+        rows.addAll(db.queryForList(
+                "SELECT CONCAT('EO|', entity_id, '|', content ->> '$.sourceType', '|',"
+                        + " IF(JSON_TYPE(JSON_EXTRACT(content, '$.sourceFamilyMemberId')) = 'NULL', '-',"
+                        + " content ->> '$.sourceFamilyMemberId'), '|', content ->> '$.content', '|', occurred_at)"
+                        + " FROM record_event WHERE kind = 'M01.WISH_OPINION' AND entity_type = 'M01.END_OF_LIFE_WISH'",
+                String.class));
+        return rows;
     }
 
     /** Người thân của từng bản đồng ý, sắp tăng; bản không có người thân là danh sách rỗng. */
@@ -332,6 +447,26 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         String.class))
                 .as("cảnh báo Tạm vắng quá hạn")
                 .containsExactlyInAnyOrderElementsOf(before.alerts());
+
+        // Hai bảng nguyện vọng: phiếu cuối đời giữ id, điều trị id mới (legacy_id), người cần báo, ý kiến, tệp
+        assertThat(newWishes(db)).as("nguyện vọng").containsExactlyInAnyOrderElementsOf(before.wishes());
+        assertThat(db.queryForObject(
+                        "SELECT COUNT(*) FROM wish WHERE (kind = 'TREATMENT') <> (legacy_id IS NOT NULL)",
+                        Integer.class))
+                .as("chỉ phiếu điều trị ghi legacy_id")
+                .isZero();
+        assertThat(db.queryForObject(
+                        "SELECT COUNT(*) FROM file f JOIN wish w ON w.id = f.owner_id AND w.kind = 'TREATMENT'"
+                                + " AND w.signed_copy_file_id = f.id WHERE f.owner_type = 'M01.TREATMENT_WISH'",
+                        Integer.class))
+                .as("tệp phiếu điều trị trỏ đúng id mới")
+                .isEqualTo(before.treatmentFiles());
+        assertThat(db.queryForObject(
+                        "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
+                                + " AND TABLE_NAME = 'wish' AND TABLE_COMMENT = 'DataGroup=BUSINESS'",
+                        Integer.class))
+                .as("wish khai nhóm dữ liệu")
+                .isEqualTo(1);
 
         // Số dòng, mã, tên, trạng thái, thứ tự của từng danh mục
         List<String> after = db.queryForList(

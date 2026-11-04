@@ -1,8 +1,6 @@
 package com.eldercare.backend.resident.internal.wish.persistence;
 
 import com.eldercare.backend.resident.api.dto.CourtDecisionRef;
-import com.eldercare.backend.resident.api.dto.OpinionSource;
-import com.eldercare.backend.resident.api.dto.OpinionSourceType;
 import com.eldercare.backend.resident.api.dto.RepresentativeSelection;
 import com.eldercare.backend.resident.api.dto.WishChoice;
 import com.eldercare.backend.resident.api.dto.WishOpinion;
@@ -10,7 +8,6 @@ import com.eldercare.backend.resident.api.dto.WishRecordSource;
 import com.eldercare.backend.resident.api.dto.WishSignerType;
 import com.eldercare.backend.resident.internal.wish.domain.EndOfLifeWish;
 import com.eldercare.backend.resident.internal.wish.domain.NewEndOfLifeWish;
-import com.eldercare.backend.resident.internal.wish.domain.RecordedOpinion;
 import com.eldercare.backend.resident.internal.wish.domain.WishReviewDue;
 import com.eldercare.backend.resident.internal.wish.domain.WishStatus;
 import java.sql.ResultSet;
@@ -27,9 +24,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 /**
- * Phiếu nguyện vọng cuối đời ở bảng {@code end_of_life_wish} và {@code end_of_life_wish_opinion} (data-model mục 6).
- * Cột sinh {@code active_resident_id} có {@code UNIQUE} nên tối đa một phiên bản Hiệu lực mỗi người cao tuổi (DBR-34);
- * trigger chỉ cho đổi theo chiều Hiệu lực → Được thay thế.
+ * Phiếu nguyện vọng cuối đời: dòng {@code kind = END_OF_LIFE} của bảng {@code wish}, ý kiến khác ở {@link WishOpinionStore}
+ * (data-model 001 mục 0.1). Cột sinh {@code active_key} có {@code UNIQUE} nên tối đa một phiên bản Hiệu lực mỗi người cao
+ * tuổi (DBR-34); trigger chỉ cho đổi theo chiều Hiệu lực → Được thay thế.
  */
 @Repository
 public class EndOfLifeWishStore {
@@ -38,19 +35,23 @@ public class EndOfLifeWishStore {
             + " respondent_family_member_id, relationship, assessing_doctor_id, can_self_determine, assessed_at,"
             + " support_method, review_date, signer_type, signer_family_member_id, representative_selection,"
             + " court_decision_number, court_decision_date, court_decision_court, court_decision_file_id, signed_at,"
-            + " signed_copy_file_id, source, status, recorded_by, recorded_at FROM end_of_life_wish";
+            + " signed_copy_file_id, source, status, recorded_by, recorded_at FROM wish WHERE kind = 'END_OF_LIFE'";
+
+    private static final String WISH_TYPE = "M01.END_OF_LIFE_WISH";
 
     private final JdbcTemplate jdbc;
+    private final WishOpinionStore opinions;
 
-    EndOfLifeWishStore(JdbcTemplate jdbc) {
+    EndOfLifeWishStore(JdbcTemplate jdbc, WishOpinionStore opinions) {
         this.jdbc = jdbc;
+        this.opinions = opinions;
     }
 
     /** Phiếu Hiệu lực tới ngày xem lại của hồ sơ chưa ở trạng thái cuối, chưa có dòng nhắc {@code reminderType}. */
     public List<WishReviewDue> dueReviews(LocalDate today, String reminderType) {
         return jdbc.query(
-                "SELECT w.resident_id, w.id, w.assessing_doctor_id FROM end_of_life_wish w JOIN resident s ON s.id = w.resident_id"
-                        + " WHERE w.status = 'ACTIVE' AND w.review_date <= ?"
+                "SELECT w.resident_id, w.id, w.assessing_doctor_id FROM wish w JOIN resident s ON s.id = w.resident_id"
+                        + " WHERE w.kind = 'END_OF_LIFE' AND w.status = 'ACTIVE' AND w.review_date <= ?"
                         + " AND s.status NOT IN ('RESIDENCY_ENDED', 'DECEASED', 'ADMISSION_CANCELLED')"
                         + " AND NOT EXISTS (SELECT 1 FROM reminder_marker r WHERE r.kind = ?"
                         + " AND r.entity_type = 'M01.RESIDENT' AND r.entity_id = w.resident_id"
@@ -66,13 +67,13 @@ public class EndOfLifeWishStore {
         jdbc.update(
                 connection -> {
                     var statement = connection.prepareStatement(
-                            "INSERT INTO end_of_life_wish (resident_id, choice, first_contact, note, respondent_type,"
+                            "INSERT INTO wish (kind, resident_id, choice, first_contact, note, respondent_type,"
                                     + " respondent_family_member_id, relationship, assessing_doctor_id,"
                                     + " can_self_determine, assessed_at, support_method, review_date, signer_type,"
                                     + " signer_family_member_id, representative_selection, court_decision_number,"
                                     + " court_decision_date, court_decision_court, court_decision_file_id, signed_at,"
                                     + " signed_copy_file_id, source, status, recorded_by, recorded_at)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+                                    + " VALUES ('END_OF_LIFE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
                                     + " 'ACTIVE', ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     CourtDecisionRef court = wish.courtDecision();
@@ -108,45 +109,36 @@ public class EndOfLifeWishStore {
                 },
                 keys);
         long id = keys.getKey().longValue();
-        for (WishOpinion opinion : opinions) {
-            OpinionSource source = opinion.source();
-            jdbc.update(
-                    "INSERT INTO end_of_life_wish_opinion (wish_id, source_type, source_family_member_id, content,"
-                            + " recorded_by, recorded_at) VALUES (?, ?, ?, ?, ?, ?)",
-                    id,
-                    source.type().name(),
-                    source.familyMemberId(),
-                    opinion.content(),
-                    wish.recordedBy(),
-                    utc(wish.recordedAt()));
-        }
+        this.opinions.add(WISH_TYPE, id, opinions, wish.recordedBy(), wish.recordedAt());
         return id;
     }
 
     public Optional<EndOfLifeWish> find(long id) {
-        return jdbc.query(SELECT + " WHERE id = ?", (rs, i) -> map(rs), id).stream()
+        return jdbc.query(SELECT + " AND id = ?", (rs, i) -> map(rs), id).stream()
                 .findFirst();
     }
 
     public Optional<EndOfLifeWish> findActive(long residentId) {
         return jdbc
-                .query(SELECT + " WHERE resident_id = ? AND status = 'ACTIVE'", (rs, i) -> map(rs), residentId)
+                .query(SELECT + " AND resident_id = ? AND status = 'ACTIVE'", (rs, i) -> map(rs), residentId)
                 .stream()
                 .findFirst();
     }
 
     /** Lịch sử phiếu của người cao tuổi, mới nhất trước (FR-023b). */
     public List<EndOfLifeWish> listByResident(long residentId) {
-        return jdbc.query(SELECT + " WHERE resident_id = ? ORDER BY id DESC", (rs, i) -> map(rs), residentId);
+        return jdbc.query(SELECT + " AND resident_id = ? ORDER BY id DESC", (rs, i) -> map(rs), residentId);
     }
 
     /** Chuyển phiên bản Hiệu lực sang Được thay thế; {@link #supersededBy} điền bản mới sau khi bản mới được thêm. */
     public int supersede(long id) {
-        return jdbc.update("UPDATE end_of_life_wish SET status = 'SUPERSEDED' WHERE id = ? AND status = 'ACTIVE'", id);
+        return jdbc.update(
+                "UPDATE wish SET status = 'SUPERSEDED' WHERE id = ? AND kind = 'END_OF_LIFE' AND status = 'ACTIVE'",
+                id);
     }
 
     public void supersededBy(long id, long newId) {
-        jdbc.update("UPDATE end_of_life_wish SET superseded_by_id = ? WHERE id = ?", newId, id);
+        jdbc.update("UPDATE wish SET superseded_by_id = ? WHERE id = ?", newId, id);
     }
 
     private EndOfLifeWish map(ResultSet rs) throws SQLException {
@@ -177,27 +169,13 @@ public class EndOfLifeWishStore {
                 rs.getObject("signer_family_member_id", Long.class),
                 selection == null ? null : RepresentativeSelection.valueOf(selection),
                 court,
-                opinions(id),
+                opinions.list(WISH_TYPE, id),
                 rs.getObject("signed_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
                 rs.getLong("signed_copy_file_id"),
                 WishRecordSource.valueOf(rs.getString("source")),
                 WishStatus.valueOf(rs.getString("status")),
                 rs.getLong("recorded_by"),
                 rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
-    }
-
-    private List<RecordedOpinion> opinions(long wishId) {
-        return jdbc.query(
-                "SELECT source_type, source_family_member_id, content, recorded_by, recorded_at"
-                        + " FROM end_of_life_wish_opinion WHERE wish_id = ? ORDER BY id",
-                (rs, i) -> new RecordedOpinion(
-                        new OpinionSource(
-                                OpinionSourceType.valueOf(rs.getString("source_type")),
-                                rs.getObject("source_family_member_id", Long.class)),
-                        rs.getString("content"),
-                        rs.getLong("recorded_by"),
-                        rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC)),
-                wishId);
     }
 
     private static LocalDateTime utc(Instant instant) {
