@@ -71,6 +71,11 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
                 "SELECT basis FROM reassessment_notice WHERE resident_id = ? ORDER BY id", String.class, residentId);
     }
 
+    /** Cột DATETIME(6) làm tròn tới micro giây nên nới mỗi đầu 1 micro giây. */
+    private static void assertBetween(Instant actual, Instant from, Instant to) {
+        assertThat(actual).isBetween(from.minus(1, ChronoUnit.MICROS), to.plus(1, ChronoUnit.MICROS));
+    }
+
     /** Đồng hồ giả lập vẫn chạy theo giờ thật nên so mốc thời gian với sai số vài giây. */
     private static void assertNear(java.util.Optional<Instant> actual, Instant expected) {
         assertThat(actual).isPresent();
@@ -232,6 +237,8 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
         user.set(office.user());
         long historyId =
                 statusService.recordReturn(target(id), reason(), noDetails()).historyId();
+        // Đồng hồ giả lập chạy theo giờ thật: mốc của lệnh nằm giữa lúc gọi và lúc trả về, dù máy chậm bao lâu
+        Instant afterCommand = clock.instant();
 
         assertThat(bases(id)).containsExactly("PERIODIC", "RETURN_FROM_HOSPITAL");
         assertThat(jdbc.queryForObject(
@@ -247,8 +254,9 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
                                 id)
                         .stream()
                         .map(java.sql.Timestamp::toInstant))
-                .allSatisfy(from -> assertThat(from).isCloseTo(returnedAt, within(5, ChronoUnit.SECONDS)));
-        assertNear(status(id).dueAt(), returnedAt.plus(DEADLINE));
+                .allSatisfy(from -> assertBetween(from, returnedAt, afterCommand));
+        assertThat(status(id).dueAt()).isPresent();
+        assertBetween(status(id).dueAt().get(), returnedAt.plus(DEADLINE), afterCommand.plus(DEADLINE));
         assertThat(dueCount(id)).isEqualTo(2);
     }
 
