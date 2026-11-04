@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
+import com.eldercare.backend.incident.internal.incident.domain.NewIncident;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
@@ -78,6 +79,46 @@ class IncidentRecordIT extends MySqlIntegrationTestBase {
         assertThatThrownBy(() -> incidents.receive(id, TestUsers.nextId(), at, before.version() + 1))
                 .isInstanceOf(DataAccessException.class)
                 .hasMessageContaining("đồng thời");
+    }
+
+    @Test
+    void FR_041_insertedCriticalIncidentIsOpenEmergencyUntilClosed() {
+        long resident = TestUsers.nextId();
+        var at = Instant.parse("2026-11-04T01:00:00Z");
+        long id = incidents.insert(new NewIncident(
+                resident,
+                TestUsers.nextId(),
+                "FALL",
+                "CARE",
+                null,
+                at,
+                7L,
+                "Phòng 101",
+                null,
+                "Ngã trong phòng",
+                null,
+                IncidentLevel.CRITICAL,
+                null,
+                true,
+                TestUsers.nextId(),
+                at,
+                null,
+                true));
+
+        assertThat(incidents.openEmergency(resident)).contains(id);
+        var row = jdbc.queryForMap(
+                "SELECT status, level, initial_level, was_emergency, out_of_scope, no_on_duty_doctor,"
+                        + " current_type_id = incident_type_id AS same_type FROM incident WHERE id = ?",
+                id);
+        assertThat(row.get("status")).isEqualTo("NEW");
+        assertThat(row.get("initial_level")).isEqualTo("CRITICAL");
+        assertThat(row.get("was_emergency")).isEqualTo(true);
+        assertThat(row.get("out_of_scope")).isEqualTo(true);
+        assertThat(row.get("no_on_duty_doctor")).isEqualTo(true);
+        assertThat(((Number) row.get("same_type")).intValue()).isEqualTo(1);
+
+        jdbc.update("UPDATE incident SET status = 'CLOSED', version = version + 1 WHERE id = ?", id);
+        assertThat(incidents.openEmergency(resident)).isEmpty();
     }
 
     private long insert() {

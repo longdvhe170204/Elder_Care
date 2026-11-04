@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 /** Mã nhật ký của lệnh xử lý sự cố. */
 public final class IncidentActions {
     public static final AuditAction LEVEL_CHANGED = new AuditAction("INCIDENT_LEVEL_CHANGED", true);
+    public static final AuditAction RECORDED = new AuditAction("INCIDENT_RECORDED", false);
     public static final AuditAction RECEIVED = new AuditAction("INCIDENT_RECEIVED", false);
 
     private IncidentActions() {}
