@@ -25,6 +25,7 @@ public class ResidentChildRetention implements RetentionProvider {
 
     private final String dataType;
     private final String table;
+    private final String condition;
     private final List<String> subTableDeletes;
     private final ResidentRecordStore records;
     private final RetentionDatabase database;
@@ -39,8 +40,20 @@ public class ResidentChildRetention implements RetentionProvider {
             List<String> subTableDeletes,
             ResidentRecordStore records,
             RetentionDatabase database) {
+        this(dataType, table, "", subTableDeletes, records, database);
+    }
+
+    /** {@code condition}: điều kiện thêm cho bảng gộp nhiều loại (ví dụ {@code " AND kind = 'TREATMENT'"}). */
+    public ResidentChildRetention(
+            String dataType,
+            String table,
+            String condition,
+            List<String> subTableDeletes,
+            ResidentRecordStore records,
+            RetentionDatabase database) {
         this.dataType = dataType;
         this.table = table;
+        this.condition = condition;
         this.subTableDeletes = subTableDeletes;
         this.records = records;
         this.database = database;
@@ -58,13 +71,13 @@ public class ResidentChildRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
-        return records.expiredCandidates(table, cutoff, batch).stream();
+        return records.expiredCandidates(table, condition, cutoff, batch).stream();
     }
 
     /** Hồ sơ chứa bản ghi: kéo cả hồ sơ và các bản ghi con khác vào chuỗi. */
     @Override
     public Set<DataRef> referencesTo(long id) {
-        return records.residentIdOf(table, id).stream()
+        return records.residentIdOf(table, condition, id).stream()
                 .map(residentId -> new DataRef(ResidentRetention.TYPE, residentId))
                 .collect(Collectors.toSet());
     }
@@ -75,7 +88,7 @@ public class ResidentChildRetention implements RetentionProvider {
 
     /** Mã các bản ghi của một hồ sơ. */
     List<Long> idsOfResident(long residentId) {
-        return records.idsOfResident(table, residentId);
+        return records.idsOfResident(table, condition, residentId);
     }
 
     /**
@@ -87,6 +100,7 @@ public class ResidentChildRetention implements RetentionProvider {
         for (String statement : subTableDeletes) {
             retention.update(statement.formatted(residentIdsIn));
         }
-        retention.update("DELETE FROM " + table + " WHERE resident_id IN " + residentIdsIn + " ORDER BY id");
+        retention.update(
+                "DELETE FROM " + table + " WHERE resident_id IN " + residentIdsIn + condition + " ORDER BY id");
     }
 }

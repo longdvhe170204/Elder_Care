@@ -36,11 +36,11 @@ class ChildScopeAssignments {
 
     @Bean
     ChildScopeAssignment endOfLifeWishScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.END_OF_LIFE_WISH", "end_of_life_wish", records);
+        return new ChildScopeAssignment("M01.END_OF_LIFE_WISH", "wish", " AND kind = 'END_OF_LIFE'", records);
     }
 
     @Bean
     ChildScopeAssignment treatmentWishScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.TREATMENT_WISH", "treatment_wish", records);
+        return new ChildScopeAssignment("M01.TREATMENT_WISH", "wish", " AND kind = 'TREATMENT'", records);
     }
 }

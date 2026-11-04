@@ -477,3 +477,420 @@ DROP PROCEDURE m01_verify_reminders;
 
 DROP TABLE periodic_reminder;
 DROP TABLE return_overdue_alert;
+
+-- Nhóm 3 (một phần): hai bảng nguyện vọng vào wish (data-model 001 mục 0.1). Phiếu cuối đời giữ id (nhật ký, tệp và nhắc
+-- xem lại trỏ theo id); phiếu điều trị nhận id mới, id cũ ghi ở legacy_id, tệp M01.TREATMENT_WISH đổi owner_id theo id
+-- mới. Người cần báo của phiếu điều trị vào notify_family_member_ids; ý kiến khác vào record_event loại
+-- M01.WISH_OPINION (đối tượng cha là M01.END_OF_LIFE_WISH hoặc M01.TREATMENT_WISH, đúng loại bản ghi của chuỗi lưu giữ),
+-- ghi đã xác nhận (chỉ thêm).
+SET @m01_eol_count = (SELECT COUNT(*) FROM end_of_life_wish);
+SET @m01_treatment_count = (SELECT COUNT(*) FROM treatment_wish);
+SET @m01_notify_count = (SELECT COUNT(*) FROM treatment_wish_notify);
+SET @m01_eol_opinion_count = (SELECT COUNT(*) FROM end_of_life_wish_opinion);
+SET @m01_treatment_opinion_count = (SELECT COUNT(*) FROM treatment_wish_opinion);
+SET @m01_treatment_file_count = (SELECT COUNT(*) FROM file WHERE owner_type = 'M01.TREATMENT_WISH');
+
+CREATE TABLE wish
+(
+    id                           BIGINT       NOT NULL AUTO_INCREMENT,
+    kind                         ENUM ('END_OF_LIFE','TREATMENT') NOT NULL,
+    legacy_id                    BIGINT       NULL COMMENT 'Id cũ trong treatment_wish (chỉ dòng chuyển); phiếu cuối đời giữ id',
+    resident_id                  BIGINT       NOT NULL,
+    note                         TEXT         NULL COMMENT 'Ý kiến khác ghi ở record_event M01.WISH_OPINION (FR-023g, BR-M01-14)',
+    respondent_type              ENUM ('RESIDENT','PATIENT_REPRESENTATIVE','LEGAL_REPRESENTATIVE','FAMILY_MEMBER','OBSERVING_STAFF') NOT NULL,
+    respondent_family_member_id  BIGINT       NULL COMMENT 'Hồ sơ người thân do 012 giữ nên không có khóa ngoại',
+    signed_copy_file_id          BIGINT       NULL COMMENT 'Bắt buộc với END_OF_LIFE (FR-023a), không bắt buộc với TREATMENT',
+    status                       ENUM ('ACTIVE','SUPERSEDED','EXPIRED') NOT NULL,
+    superseded_by_id             BIGINT       NULL,
+    recorded_by                  BIGINT       NOT NULL,
+    recorded_at                  DATETIME(6)  NOT NULL,
+    -- Riêng END_OF_LIFE (NULL với TREATMENT)
+    choice                       ENUM ('TRANSFER_TO_HOSPITAL','RETURN_HOME','STAY_PALLIATIVE') NULL,
+    first_contact                VARCHAR(500) NULL COMMENT 'Người cần liên hệ trước khi thực hiện',
+    relationship                 VARCHAR(100) NULL,
+    assessing_doctor_id          BIGINT       NULL COMMENT 'Mã tài khoản Bác sĩ (AC-03) lúc ghi',
+    can_self_determine           BOOLEAN      NULL COMMENT 'Nhận định cho chính phiếu này, không phải dấu của người cao tuổi (FR-023h)',
+    assessed_at                  DATETIME(6)  NULL,
+    support_method               TEXT         NULL COMMENT 'Cách đã hỗ trợ người cao tuổi hiểu thông tin',
+    review_date                  DATE         NULL COMMENT 'Ngày xem lại nhận định (FR-023i)',
+    signer_type                  ENUM ('RESIDENT','PATIENT_REPRESENTATIVE','LEGAL_REPRESENTATIVE') NULL,
+    signer_family_member_id      BIGINT       NULL,
+    representative_selection     ENUM ('CHOSEN_BY_RESIDENT','CHOSEN_BY_FAMILY') NULL,
+    court_decision_number        VARCHAR(100) NULL,
+    court_decision_date          DATE         NULL,
+    court_decision_court         VARCHAR(200) NULL,
+    court_decision_file_id       BIGINT       NULL,
+    signed_at                    DATETIME(6)  NULL,
+    source                       ENUM ('ADMISSION','FAMILY_REQUEST','CRITICAL_RECONFIRMATION') NULL,
+    -- Riêng TREATMENT (NULL với END_OF_LIFE)
+    hospital1_name               VARCHAR(255) NULL,
+    hospital1_address            VARCHAR(500) NULL,
+    hospital2_name               VARCHAR(255) NULL,
+    hospital2_address            VARCHAR(500) NULL,
+    insurance_registration_place VARCHAR(255) NULL,
+    insurance_card_number        VARCHAR(20)  NULL,
+    insurance_card_expiry        DATE         NULL,
+    ask_family_first             BOOLEAN      NULL COMMENT 'Hỏi gia đình trước khi chuyển viện không khẩn cấp',
+    escort                       ENUM ('FAMILY','FACILITY_STAFF','CASE_BY_CASE') NULL,
+    notify_family_member_ids     JSON         NULL COMMENT 'Người thân cần báo (thay treatment_wish_notify), ghi cùng INSERT',
+    active_key                   VARCHAR(40) GENERATED ALWAYS AS (IF(status = 'ACTIVE', CONCAT(kind, ':', resident_id), NULL)) STORED COMMENT 'UNIQUE: tối đa một phiên bản Hiệu lực mỗi loại mỗi người (DBR-34, DBR-39)',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_wish_active (active_key),
+    KEY ix_wish_resident (resident_id, kind, id),
+    KEY ix_wish_review (kind, status, review_date),
+    KEY ix_wish_notify ((CAST(notify_family_member_ids AS UNSIGNED ARRAY))),
+    CONSTRAINT fk_wish_resident FOREIGN KEY (resident_id) REFERENCES resident (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_wish_signed_copy FOREIGN KEY (signed_copy_file_id) REFERENCES file (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_wish_court_file FOREIGN KEY (court_decision_file_id) REFERENCES file (id) ON DELETE RESTRICT,
+    CONSTRAINT fk_wish_superseded_by FOREIGN KEY (superseded_by_id) REFERENCES wish (id) ON DELETE RESTRICT,
+    -- Cột bắt buộc và cột của loại kia là NULL
+    CONSTRAINT ck_wish_kind_columns CHECK (
+        (kind = 'END_OF_LIFE'
+            AND status IN ('ACTIVE', 'SUPERSEDED')
+            AND respondent_type IN ('RESIDENT', 'PATIENT_REPRESENTATIVE', 'LEGAL_REPRESENTATIVE')
+            AND choice IS NOT NULL AND first_contact IS NOT NULL AND assessing_doctor_id IS NOT NULL
+            AND can_self_determine IS NOT NULL AND assessed_at IS NOT NULL AND support_method IS NOT NULL
+            AND review_date IS NOT NULL AND signer_type IS NOT NULL AND signed_at IS NOT NULL
+            AND signed_copy_file_id IS NOT NULL AND source IS NOT NULL
+            AND hospital1_name IS NULL AND hospital1_address IS NULL AND hospital2_name IS NULL
+            AND hospital2_address IS NULL AND insurance_registration_place IS NULL AND insurance_card_number IS NULL
+            AND insurance_card_expiry IS NULL AND ask_family_first IS NULL AND escort IS NULL
+            AND notify_family_member_ids IS NULL)
+            OR (kind = 'TREATMENT'
+            AND status IN ('ACTIVE', 'EXPIRED')
+            AND respondent_type IN ('RESIDENT', 'FAMILY_MEMBER', 'OBSERVING_STAFF')
+            AND hospital1_name IS NOT NULL AND hospital1_address IS NOT NULL AND ask_family_first IS NOT NULL
+            AND escort IS NOT NULL
+            AND choice IS NULL AND first_contact IS NULL AND relationship IS NULL AND assessing_doctor_id IS NULL
+            AND can_self_determine IS NULL AND assessed_at IS NULL AND support_method IS NULL AND review_date IS NULL
+            AND signer_type IS NULL AND signer_family_member_id IS NULL AND representative_selection IS NULL
+            AND court_decision_number IS NULL AND court_decision_date IS NULL AND court_decision_court IS NULL
+            AND court_decision_file_id IS NULL AND signed_at IS NULL AND source IS NULL)),
+    -- FR-023c: người cao tuổi ký khi và chỉ khi Bác sĩ nhận định tự quyết được
+    CONSTRAINT ck_wish_signer CHECK (kind <> 'END_OF_LIFE' OR can_self_determine = (signer_type = 'RESIDENT')),
+    CONSTRAINT ck_wish_signer_member CHECK (
+        kind <> 'END_OF_LIFE' OR (signer_type = 'RESIDENT') = (signer_family_member_id IS NULL)),
+    CONSTRAINT ck_wish_eol_respondent CHECK (
+        kind <> 'END_OF_LIFE'
+            OR (respondent_type = 'RESIDENT' AND respondent_family_member_id IS NULL AND relationship IS NULL)
+            OR (respondent_type <> 'RESIDENT' AND respondent_family_member_id IS NOT NULL AND relationship IS NOT NULL)),
+    CONSTRAINT ck_wish_selection CHECK (
+        kind <> 'END_OF_LIFE' OR (signer_type = 'PATIENT_REPRESENTATIVE') = (representative_selection IS NOT NULL)),
+    -- FR-011: người đại diện theo pháp luật ký thì có đủ bốn thông tin quyết định của Tòa án; loại khác thì không có cột nào
+    CONSTRAINT ck_wish_court CHECK (
+        kind <> 'END_OF_LIFE'
+            OR (signer_type = 'LEGAL_REPRESENTATIVE'
+            AND court_decision_number IS NOT NULL AND court_decision_date IS NOT NULL
+            AND court_decision_court IS NOT NULL AND court_decision_file_id IS NOT NULL)
+            OR (signer_type <> 'LEGAL_REPRESENTATIVE'
+            AND court_decision_number IS NULL AND court_decision_date IS NULL
+            AND court_decision_court IS NULL AND court_decision_file_id IS NULL)),
+    CONSTRAINT ck_wish_assessment CHECK (
+        kind <> 'END_OF_LIFE'
+            OR (CHAR_LENGTH(TRIM(support_method)) > 0 AND review_date >= DATE(assessed_at))),
+    CONSTRAINT ck_wish_hospital1 CHECK (
+        kind <> 'TREATMENT'
+            OR (CHAR_LENGTH(TRIM(hospital1_name)) > 0 AND CHAR_LENGTH(TRIM(hospital1_address)) > 0)),
+    -- FR-023j: bệnh viện thứ hai đủ cả tên và địa chỉ hoặc không có cả hai
+    CONSTRAINT ck_wish_hospital2 CHECK (
+        kind <> 'TREATMENT'
+            OR (hospital2_name IS NULL AND hospital2_address IS NULL)
+            OR (CHAR_LENGTH(TRIM(hospital2_name)) > 0 AND CHAR_LENGTH(TRIM(hospital2_address)) > 0)),
+    CONSTRAINT ck_wish_treatment_respondent CHECK (
+        kind <> 'TREATMENT' OR (respondent_type = 'FAMILY_MEMBER') = (respondent_family_member_id IS NOT NULL)),
+    CONSTRAINT ck_wish_status CHECK (status IN ('SUPERSEDED', 'EXPIRED') OR superseded_by_id IS NULL)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci
+  COMMENT = 'DataGroup=BUSINESS';
+
+INSERT INTO wish (id, kind, resident_id, note, respondent_type, respondent_family_member_id, signed_copy_file_id, status,
+                  recorded_by, recorded_at, choice, first_contact, relationship, assessing_doctor_id, can_self_determine,
+                  assessed_at, support_method, review_date, signer_type, signer_family_member_id,
+                  representative_selection, court_decision_number, court_decision_date, court_decision_court,
+                  court_decision_file_id, signed_at, source)
+SELECT id, 'END_OF_LIFE', resident_id, note, respondent_type, respondent_family_member_id, signed_copy_file_id, status,
+       recorded_by, recorded_at, choice, first_contact, relationship, assessing_doctor_id, can_self_determine,
+       assessed_at, support_method, review_date, signer_type, signer_family_member_id, representative_selection,
+       court_decision_number, court_decision_date, court_decision_court, court_decision_file_id, signed_at, source
+FROM end_of_life_wish
+ORDER BY id;
+
+UPDATE wish w
+    JOIN end_of_life_wish o ON o.id = w.id
+SET w.superseded_by_id = o.superseded_by_id
+WHERE o.superseded_by_id IS NOT NULL;
+
+INSERT INTO wish (kind, legacy_id, resident_id, note, respondent_type, respondent_family_member_id, signed_copy_file_id,
+                  status, recorded_by, recorded_at, hospital1_name, hospital1_address, hospital2_name, hospital2_address,
+                  insurance_registration_place, insurance_card_number, insurance_card_expiry, ask_family_first, escort)
+SELECT 'TREATMENT', id, resident_id, note, respondent_type, respondent_family_member_id, signed_copy_file_id,
+       status, recorded_by, recorded_at, hospital1_name, hospital1_address, hospital2_name, hospital2_address,
+       insurance_registration_place, insurance_card_number, insurance_card_expiry, ask_family_first, escort
+FROM treatment_wish
+ORDER BY id;
+
+UPDATE wish w
+    JOIN treatment_wish t ON t.id = w.legacy_id
+    JOIN wish newer ON newer.kind = 'TREATMENT' AND newer.legacy_id = t.superseded_by_id
+SET w.superseded_by_id = newer.id
+WHERE w.kind = 'TREATMENT';
+
+UPDATE wish w
+SET w.notify_family_member_ids = COALESCE((SELECT JSON_ARRAYAGG(n.family_member_id)
+                                           FROM treatment_wish_notify n
+                                           WHERE n.treatment_wish_id = w.legacy_id), JSON_ARRAY())
+WHERE w.kind = 'TREATMENT';
+
+INSERT INTO record_event (entity_type, entity_id, module, kind, content, actor_id, by_system, occurred_at, confirmed_at)
+SELECT 'M01.END_OF_LIFE_WISH',
+       o.wish_id,
+       'M01',
+       'M01.WISH_OPINION',
+       JSON_OBJECT('sourceType', o.source_type, 'sourceFamilyMemberId', o.source_family_member_id,
+                   'content', o.content, 'legacy', JSON_OBJECT('table', 'end_of_life_wish_opinion', 'id', o.id)),
+       o.recorded_by,
+       FALSE,
+       o.recorded_at,
+       o.recorded_at
+FROM end_of_life_wish_opinion o
+ORDER BY o.id;
+
+INSERT INTO record_event (entity_type, entity_id, module, kind, content, actor_id, by_system, occurred_at, confirmed_at)
+SELECT 'M01.TREATMENT_WISH',
+       w.id,
+       'M01',
+       'M01.WISH_OPINION',
+       JSON_OBJECT('sourceType', o.source_type, 'sourceFamilyMemberId', o.source_family_member_id,
+                   'content', o.content, 'legacy', JSON_OBJECT('table', 'treatment_wish_opinion', 'id', o.id)),
+       o.recorded_by,
+       FALSE,
+       o.recorded_at,
+       o.recorded_at
+FROM treatment_wish_opinion o
+         JOIN wish w ON w.kind = 'TREATMENT' AND w.legacy_id = o.treatment_wish_id
+ORDER BY o.id;
+
+-- Tệp đã gắn không sửa được (trg_file_attached_immutable): gỡ đúng lúc đổi owner_id rồi dựng lại nguyên văn
+DROP TRIGGER trg_file_attached_immutable;
+
+UPDATE file f
+    JOIN wish w ON w.kind = 'TREATMENT' AND w.legacy_id = f.owner_id
+SET f.owner_id = w.id
+WHERE f.owner_type = 'M01.TREATMENT_WISH';
+
+DELIMITER $$
+CREATE TRIGGER trg_file_attached_immutable
+    BEFORE UPDATE
+    ON file
+    FOR EACH ROW
+BEGIN
+    IF OLD.attached_at IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'file rows are immutable once attached (research H-13)';
+    END IF;
+END$$
+
+CREATE PROCEDURE m01_verify_wishes()
+BEGIN
+    IF (SELECT COUNT(*) FROM wish WHERE kind = 'END_OF_LIFE') <> @m01_eol_count
+        OR (SELECT COUNT(*) FROM wish WHERE kind = 'TREATMENT') <> @m01_treatment_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: wish row count differs';
+    END IF;
+    -- Phiếu cuối đời giữ id và nguyên mọi cột
+    IF EXISTS (SELECT 1
+               FROM end_of_life_wish o
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM wish w
+                                 WHERE w.id = o.id AND w.kind = 'END_OF_LIFE'
+                                   AND w.resident_id = o.resident_id AND w.choice <=> o.choice
+                                   AND w.first_contact <=> o.first_contact AND w.note <=> o.note
+                                   AND w.respondent_type <=> o.respondent_type
+                                   AND w.respondent_family_member_id <=> o.respondent_family_member_id
+                                   AND w.relationship <=> o.relationship
+                                   AND w.assessing_doctor_id <=> o.assessing_doctor_id
+                                   AND w.can_self_determine <=> o.can_self_determine
+                                   AND w.assessed_at <=> o.assessed_at AND w.support_method <=> o.support_method
+                                   AND w.review_date <=> o.review_date AND w.signer_type <=> o.signer_type
+                                   AND w.signer_family_member_id <=> o.signer_family_member_id
+                                   AND w.representative_selection <=> o.representative_selection
+                                   AND w.court_decision_number <=> o.court_decision_number
+                                   AND w.court_decision_date <=> o.court_decision_date
+                                   AND w.court_decision_court <=> o.court_decision_court
+                                   AND w.court_decision_file_id <=> o.court_decision_file_id
+                                   AND w.signed_at <=> o.signed_at
+                                   AND w.signed_copy_file_id <=> o.signed_copy_file_id AND w.source <=> o.source
+                                   AND w.status <=> o.status AND w.superseded_by_id <=> o.superseded_by_id
+                                   AND w.recorded_by <=> o.recorded_by AND w.recorded_at <=> o.recorded_at)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: an end of life wish was not copied';
+    END IF;
+    -- Phiếu điều trị nhận id mới: nguyên mọi cột, phiếu thay thế trỏ đúng id mới
+    IF EXISTS (SELECT 1
+               FROM treatment_wish t
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM wish w
+                                 WHERE w.kind = 'TREATMENT' AND w.legacy_id = t.id
+                                   AND w.resident_id = t.resident_id AND w.hospital1_name <=> t.hospital1_name
+                                   AND w.hospital1_address <=> t.hospital1_address
+                                   AND w.hospital2_name <=> t.hospital2_name
+                                   AND w.hospital2_address <=> t.hospital2_address
+                                   AND w.insurance_registration_place <=> t.insurance_registration_place
+                                   AND w.insurance_card_number <=> t.insurance_card_number
+                                   AND w.insurance_card_expiry <=> t.insurance_card_expiry
+                                   AND w.ask_family_first <=> t.ask_family_first AND w.escort <=> t.escort
+                                   AND w.note <=> t.note AND w.respondent_type <=> t.respondent_type
+                                   AND w.respondent_family_member_id <=> t.respondent_family_member_id
+                                   AND w.signed_copy_file_id <=> t.signed_copy_file_id
+                                   AND w.status <=> t.status AND w.recorded_by <=> t.recorded_by
+                                   AND w.recorded_at <=> t.recorded_at
+                                   AND w.superseded_by_id <=> (SELECT n.id
+                                                               FROM wish n
+                                                               WHERE n.kind = 'TREATMENT'
+                                                                 AND n.legacy_id = t.superseded_by_id))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a treatment wish was not copied';
+    END IF;
+    -- Người cần báo
+    IF (SELECT COALESCE(SUM(JSON_LENGTH(notify_family_member_ids)), 0) FROM wish WHERE kind = 'TREATMENT')
+        <> @m01_notify_count
+        OR EXISTS (SELECT 1
+                   FROM treatment_wish_notify n
+                            JOIN wish w ON w.kind = 'TREATMENT' AND w.legacy_id = n.treatment_wish_id
+                   WHERE NOT (n.family_member_id MEMBER OF (w.notify_family_member_ids))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a treatment wish notify member was not copied';
+    END IF;
+    -- Ý kiến khác: đủ số dòng, đúng phiếu, đúng nội dung và nguồn
+    IF (SELECT COUNT(*)
+        FROM record_event
+        WHERE kind = 'M01.WISH_OPINION' AND entity_type = 'M01.END_OF_LIFE_WISH'
+          AND content ->> '$.legacy.table' = 'end_of_life_wish_opinion') <> @m01_eol_opinion_count
+        OR (SELECT COUNT(*)
+            FROM record_event
+            WHERE kind = 'M01.WISH_OPINION' AND entity_type = 'M01.TREATMENT_WISH'
+              AND content ->> '$.legacy.table' = 'treatment_wish_opinion') <> @m01_treatment_opinion_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: wish opinion count differs';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM end_of_life_wish_opinion o
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM record_event e
+                                 WHERE e.kind = 'M01.WISH_OPINION' AND e.entity_type = 'M01.END_OF_LIFE_WISH'
+                                   AND e.entity_id = o.wish_id
+                                   AND CAST(e.content ->> '$.legacy.id' AS UNSIGNED) = o.id
+                                   AND e.content ->> '$.legacy.table' = 'end_of_life_wish_opinion'
+                                   AND e.content ->> '$.sourceType' = o.source_type
+                                   AND e.content ->> '$.content' = o.content
+                                   AND e.actor_id = o.recorded_by AND e.occurred_at = o.recorded_at
+                                   AND e.confirmed_at IS NOT NULL)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: an end of life wish opinion was not copied';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM treatment_wish_opinion o
+                        JOIN wish w ON w.kind = 'TREATMENT' AND w.legacy_id = o.treatment_wish_id
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM record_event e
+                                 WHERE e.kind = 'M01.WISH_OPINION' AND e.entity_type = 'M01.TREATMENT_WISH'
+                                   AND e.entity_id = w.id
+                                   AND CAST(e.content ->> '$.legacy.id' AS UNSIGNED) = o.id
+                                   AND e.content ->> '$.legacy.table' = 'treatment_wish_opinion'
+                                   AND e.content ->> '$.sourceType' = o.source_type
+                                   AND e.content ->> '$.content' = o.content
+                                   AND e.actor_id = o.recorded_by AND e.occurred_at = o.recorded_at
+                                   AND e.confirmed_at IS NOT NULL)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a treatment wish opinion was not copied';
+    END IF;
+    -- Tệp của phiếu điều trị trỏ đúng id mới
+    IF (SELECT COUNT(*) FROM file WHERE owner_type = 'M01.TREATMENT_WISH') <> @m01_treatment_file_count
+        OR EXISTS (SELECT 1
+                   FROM file f
+                   WHERE f.owner_type = 'M01.TREATMENT_WISH'
+                     AND NOT EXISTS (SELECT 1 FROM wish w WHERE w.id = f.owner_id AND w.kind = 'TREATMENT'))
+        OR EXISTS (SELECT 1
+                   FROM treatment_wish t
+                            JOIN wish w ON w.kind = 'TREATMENT' AND w.legacy_id = t.id
+                            JOIN file f ON f.id = t.signed_copy_file_id
+                   WHERE f.owner_type = 'M01.TREATMENT_WISH' AND f.owner_id <> w.id) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a treatment wish file owner was not remapped';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_wishes();
+DROP PROCEDURE m01_verify_wishes;
+
+DROP TABLE treatment_wish_notify;
+DROP TABLE treatment_wish_opinion;
+DROP TABLE treatment_wish;
+DROP TABLE end_of_life_wish_opinion;
+DROP TABLE end_of_life_wish;
+
+-- Chỉ đổi theo chiều Hiệu lực → Được thay thế (cuối đời) hoặc Hiệu lực → Hết hiệu lực (điều trị), không xóa (FR-023b,
+-- FR-023k, DBR-34, DBR-39). Dùng USER() (tài khoản đang kết nối): trong trigger CURRENT_USER() là tài khoản tạo trigger.
+DELIMITER $$
+CREATE TRIGGER trg_wish_only_supersede
+    BEFORE UPDATE
+    ON wish
+    FOR EACH ROW
+BEGIN
+    IF NOT (NEW.kind <=> OLD.kind
+        AND NEW.legacy_id <=> OLD.legacy_id
+        AND NEW.resident_id <=> OLD.resident_id
+        AND NEW.note <=> OLD.note
+        AND NEW.respondent_type <=> OLD.respondent_type
+        AND NEW.respondent_family_member_id <=> OLD.respondent_family_member_id
+        AND NEW.signed_copy_file_id <=> OLD.signed_copy_file_id
+        AND NEW.recorded_by <=> OLD.recorded_by
+        AND NEW.recorded_at <=> OLD.recorded_at
+        AND NEW.choice <=> OLD.choice
+        AND NEW.first_contact <=> OLD.first_contact
+        AND NEW.relationship <=> OLD.relationship
+        AND NEW.assessing_doctor_id <=> OLD.assessing_doctor_id
+        AND NEW.can_self_determine <=> OLD.can_self_determine
+        AND NEW.assessed_at <=> OLD.assessed_at
+        AND NEW.support_method <=> OLD.support_method
+        AND NEW.review_date <=> OLD.review_date
+        AND NEW.signer_type <=> OLD.signer_type
+        AND NEW.signer_family_member_id <=> OLD.signer_family_member_id
+        AND NEW.representative_selection <=> OLD.representative_selection
+        AND NEW.court_decision_number <=> OLD.court_decision_number
+        AND NEW.court_decision_date <=> OLD.court_decision_date
+        AND NEW.court_decision_court <=> OLD.court_decision_court
+        AND NEW.court_decision_file_id <=> OLD.court_decision_file_id
+        AND NEW.signed_at <=> OLD.signed_at
+        AND NEW.source <=> OLD.source
+        AND NEW.hospital1_name <=> OLD.hospital1_name
+        AND NEW.hospital1_address <=> OLD.hospital1_address
+        AND NEW.hospital2_name <=> OLD.hospital2_name
+        AND NEW.hospital2_address <=> OLD.hospital2_address
+        AND NEW.insurance_registration_place <=> OLD.insurance_registration_place
+        AND NEW.insurance_card_number <=> OLD.insurance_card_number
+        AND NEW.insurance_card_expiry <=> OLD.insurance_card_expiry
+        AND NEW.ask_family_first <=> OLD.ask_family_first
+        AND NEW.escort <=> OLD.escort
+        AND NEW.notify_family_member_ids <=> OLD.notify_family_member_ids) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'wish content is immutable (FR-023b, FR-023k)';
+    END IF;
+    IF OLD.status = 'ACTIVE' AND NEW.status <> IF(OLD.kind = 'END_OF_LIFE', 'SUPERSEDED', 'EXPIRED') THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'an active wish can only be superseded or expire (DBR-34, DBR-39)';
+    END IF;
+    IF OLD.status <> 'ACTIVE' THEN
+        -- Bản đã hết hiệu lực nhận tham chiếu tới bản mới sau khi bản mới được thêm (đúng một lần, từ NULL)
+        IF NOT (NEW.status <=> OLD.status
+            AND (NEW.superseded_by_id <=> OLD.superseded_by_id OR OLD.superseded_by_id IS NULL)) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'a superseded or expired wish cannot change (DBR-34, DBR-39)';
+        END IF;
+    END IF;
+END$$
+
+CREATE TRIGGER trg_wish_no_delete
+    BEFORE DELETE
+    ON wish
+    FOR EACH ROW
+BEGIN
+    IF SUBSTRING_INDEX(USER(), '@', 1) <> 'eldercare_retention' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'wish rows are removed only by the retention job (FR-051)';
+    END IF;
+END$$
+DELIMITER ;
+
+GRANT INSERT ON wish TO 'eldercare_app'@'%';
+GRANT UPDATE (status, superseded_by_id) ON wish TO 'eldercare_app'@'%';
+GRANT DELETE ON wish TO 'eldercare_retention'@'%';

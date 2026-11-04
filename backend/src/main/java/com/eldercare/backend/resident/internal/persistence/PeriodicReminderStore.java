@@ -59,8 +59,8 @@ public class PeriodicReminderStore {
     }
 
     /**
-     * Như {@link #due} và hồ sơ chưa có bản ghi Hiệu lực trong {@code table}; tên bảng là hằng do service truyền vào, không
-     * lấy từ dữ liệu người dùng.
+     * Như {@link #due} và hồ sơ chưa có bản ghi Hiệu lực trong {@code table} (tên bảng hoặc bảng dẫn xuất có cột
+     * {@code resident_id}, {@code status}); là hằng do service truyền vào, không lấy từ dữ liệu người dùng.
      */
     public List<DueReminder> dueWithoutActive(String type, String table, Instant before) {
         return query(

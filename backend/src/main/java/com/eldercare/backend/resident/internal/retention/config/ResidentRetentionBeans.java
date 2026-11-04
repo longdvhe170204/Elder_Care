@@ -43,24 +43,14 @@ class ResidentRetentionBeans {
 
     @Bean
     ResidentChildRetention endOfLifeWishRetention(ResidentRecordStore records, RetentionDatabase database) {
+        // ý kiến khác (record_event) do SharedRowRetention xóa cùng phiếu; người cần báo ở cột JSON
         return new ResidentChildRetention(
-                "M01.END_OF_LIFE_WISH",
-                "end_of_life_wish",
-                List.of(
-                        "DELETE FROM end_of_life_wish_opinion WHERE wish_id IN (SELECT id FROM end_of_life_wish WHERE resident_id IN %s)"),
-                records,
-                database);
+                "M01.END_OF_LIFE_WISH", "wish", " AND kind = 'END_OF_LIFE'", List.of(), records, database);
     }
 
     @Bean
     ResidentChildRetention treatmentWishRetention(ResidentRecordStore records, RetentionDatabase database) {
         return new ResidentChildRetention(
-                "M01.TREATMENT_WISH",
-                "treatment_wish",
-                List.of(
-                        "DELETE FROM treatment_wish_notify WHERE treatment_wish_id IN (SELECT id FROM treatment_wish WHERE resident_id IN %s)",
-                        "DELETE FROM treatment_wish_opinion WHERE treatment_wish_id IN (SELECT id FROM treatment_wish WHERE resident_id IN %s)"),
-                records,
-                database);
+                "M01.TREATMENT_WISH", "wish", " AND kind = 'TREATMENT'", List.of(), records, database);
     }
 }

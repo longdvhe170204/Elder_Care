@@ -7,7 +7,6 @@ import com.eldercare.backend.resident.api.dto.PreferredHospital;
 import com.eldercare.backend.resident.api.dto.TreatmentEscort;
 import com.eldercare.backend.resident.api.dto.WishOpinion;
 import com.eldercare.backend.resident.internal.wish.domain.NewTreatmentWish;
-import com.eldercare.backend.resident.internal.wish.domain.RecordedOpinion;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWish;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWishStatus;
 import java.sql.ResultSet;
@@ -20,14 +19,16 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 /**
- * Phiếu nguyện vọng khi điều trị ở bảng {@code treatment_wish}, {@code treatment_wish_notify},
- * {@code treatment_wish_opinion} (data-model mục 6b). Cột sinh {@code active_resident_id} có {@code UNIQUE} nên tối đa
- * một phiên bản Hiệu lực mỗi người cao tuổi (DBR-39); trigger chỉ cho đổi theo chiều Hiệu lực → Hết hiệu lực.
+ * Phiếu nguyện vọng khi điều trị: dòng {@code kind = TREATMENT} của bảng {@code wish} (người cần báo ở cột JSON {@code
+ * notify_family_member_ids}, ý kiến khác ở {@link WishOpinionStore}; data-model 001 mục 0.1). Cột sinh {@code active_key}
+ * có {@code UNIQUE} nên tối đa một phiên bản Hiệu lực mỗi người cao tuổi (DBR-39); trigger chỉ cho đổi theo chiều Hiệu
+ * lực → Hết hiệu lực.
  */
 @Repository
 public class TreatmentWishStore {
@@ -35,12 +36,16 @@ public class TreatmentWishStore {
     private static final String SELECT = "SELECT id, resident_id, hospital1_name, hospital1_address, hospital2_name,"
             + " hospital2_address, insurance_registration_place, insurance_card_number, insurance_card_expiry,"
             + " ask_family_first, escort, note, respondent_type, respondent_family_member_id, signed_copy_file_id,"
-            + " status, recorded_by, recorded_at FROM treatment_wish";
+            + " status, recorded_by, recorded_at FROM wish WHERE kind = 'TREATMENT'";
+
+    private static final String WISH_TYPE = "M01.TREATMENT_WISH";
 
     private final JdbcTemplate jdbc;
+    private final WishOpinionStore opinions;
 
-    TreatmentWishStore(JdbcTemplate jdbc) {
+    TreatmentWishStore(JdbcTemplate jdbc, WishOpinionStore opinions) {
         this.jdbc = jdbc;
+        this.opinions = opinions;
     }
 
     /** Thêm phiên bản Hiệu lực cùng người cần báo và các ý kiến khác; trả id. */
@@ -49,12 +54,13 @@ public class TreatmentWishStore {
         jdbc.update(
                 connection -> {
                     var statement = connection.prepareStatement(
-                            "INSERT INTO treatment_wish (resident_id, hospital1_name, hospital1_address,"
+                            "INSERT INTO wish (kind, resident_id, hospital1_name, hospital1_address,"
                                     + " hospital2_name, hospital2_address, insurance_registration_place,"
                                     + " insurance_card_number, insurance_card_expiry, ask_family_first, escort, note,"
                                     + " respondent_type, respondent_family_member_id, signed_copy_file_id, status,"
-                                    + " recorded_by, recorded_at)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?)",
+                                    + " recorded_by, recorded_at, notify_family_member_ids)"
+                                    + " VALUES ('TREATMENT', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?,"
+                                    + " CAST(? AS JSON))",
                             Statement.RETURN_GENERATED_KEYS);
                     PreferredHospital first = wish.preferredHospitals().get(0);
                     PreferredHospital second = wish.preferredHospitals().size() > 1
@@ -77,50 +83,41 @@ public class TreatmentWishStore {
                     statement.setObject(14, wish.signedCopyFileId());
                     statement.setLong(15, wish.recordedBy());
                     statement.setObject(16, utc(wish.recordedAt()));
+                    statement.setString(
+                            17,
+                            wish.notifyFamilyMemberIds().stream()
+                                    .map(String::valueOf)
+                                    .collect(Collectors.joining(",", "[", "]")));
                     return statement;
                 },
                 keys);
         long id = keys.getKey().longValue();
-        for (long familyMemberId : wish.notifyFamilyMemberIds()) {
-            jdbc.update(
-                    "INSERT INTO treatment_wish_notify (treatment_wish_id, family_member_id) VALUES (?, ?)",
-                    id,
-                    familyMemberId);
-        }
-        for (WishOpinion opinion : opinions) {
-            jdbc.update(
-                    "INSERT INTO treatment_wish_opinion (treatment_wish_id, source_type, source_family_member_id,"
-                            + " content, recorded_by, recorded_at) VALUES (?, ?, ?, ?, ?, ?)",
-                    id,
-                    opinion.source().type().name(),
-                    opinion.source().familyMemberId(),
-                    opinion.content(),
-                    wish.recordedBy(),
-                    utc(wish.recordedAt()));
-        }
+        this.opinions.add(WISH_TYPE, id, opinions, wish.recordedBy(), wish.recordedAt());
         return id;
     }
 
     public Optional<TreatmentWish> findActive(long residentId) {
         return jdbc
-                .query(SELECT + " WHERE resident_id = ? AND status = 'ACTIVE'", (rs, i) -> map(rs), residentId)
+                .query(SELECT + " AND resident_id = ? AND status = 'ACTIVE'", (rs, i) -> map(rs), residentId)
                 .stream()
                 .findFirst();
     }
 
     /** Lịch sử phiếu của người cao tuổi, mới nhất trước (FR-023k). */
     public List<TreatmentWish> listByResident(long residentId) {
-        return jdbc.query(SELECT + " WHERE resident_id = ? ORDER BY id DESC", (rs, i) -> map(rs), residentId);
+        return jdbc.query(SELECT + " AND resident_id = ? ORDER BY id DESC", (rs, i) -> map(rs), residentId);
     }
 
     public Optional<Long> residentIdOf(long id) {
-        return jdbc.queryForList("SELECT resident_id FROM treatment_wish WHERE id = ?", Long.class, id).stream()
+        return jdbc
+                .queryForList("SELECT resident_id FROM wish WHERE id = ? AND kind = 'TREATMENT'", Long.class, id)
+                .stream()
                 .findFirst();
     }
 
     public boolean existsActive(long residentId) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM treatment_wish WHERE resident_id = ? AND status = 'ACTIVE'",
+                "SELECT COUNT(*) FROM wish WHERE kind = 'TREATMENT' AND resident_id = ? AND status = 'ACTIVE'",
                 Integer.class,
                 residentId);
         return count != null && count > 0;
@@ -128,11 +125,12 @@ public class TreatmentWishStore {
 
     /** Chuyển phiên bản Hiệu lực sang Hết hiệu lực; {@link #supersededBy} điền bản mới sau khi bản mới được thêm. */
     public int expire(long id) {
-        return jdbc.update("UPDATE treatment_wish SET status = 'EXPIRED' WHERE id = ? AND status = 'ACTIVE'", id);
+        return jdbc.update(
+                "UPDATE wish SET status = 'EXPIRED' WHERE id = ? AND kind = 'TREATMENT' AND status = 'ACTIVE'", id);
     }
 
     public void supersededBy(long id, long newId) {
-        jdbc.update("UPDATE treatment_wish SET superseded_by_id = ? WHERE id = ?", newId, id);
+        jdbc.update("UPDATE wish SET superseded_by_id = ? WHERE id = ?", newId, id);
     }
 
     private TreatmentWish map(ResultSet rs) throws SQLException {
@@ -158,8 +156,8 @@ public class TreatmentWishStore {
                 insurance,
                 rs.getBoolean("ask_family_first"),
                 jdbc.queryForList(
-                        "SELECT family_member_id FROM treatment_wish_notify WHERE treatment_wish_id = ?"
-                                + " ORDER BY family_member_id",
+                        "SELECT j.id FROM wish w, JSON_TABLE(w.notify_family_member_ids, '$[*]' COLUMNS (id BIGINT PATH '$')) j"
+                                + " WHERE w.id = ? ORDER BY j.id",
                         Long.class,
                         id),
                 TreatmentEscort.valueOf(rs.getString("escort")),
@@ -167,25 +165,11 @@ public class TreatmentWishStore {
                 new OpinionSource(
                         OpinionSourceType.valueOf(rs.getString("respondent_type")),
                         rs.getObject("respondent_family_member_id", Long.class)),
-                opinions(id),
+                opinions.list(WISH_TYPE, id),
                 rs.getObject("signed_copy_file_id", Long.class),
                 TreatmentWishStatus.valueOf(rs.getString("status")),
                 rs.getLong("recorded_by"),
                 rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
-    }
-
-    private List<RecordedOpinion> opinions(long wishId) {
-        return jdbc.query(
-                "SELECT source_type, source_family_member_id, content, recorded_by, recorded_at"
-                        + " FROM treatment_wish_opinion WHERE treatment_wish_id = ? ORDER BY id",
-                (rs, i) -> new RecordedOpinion(
-                        new OpinionSource(
-                                OpinionSourceType.valueOf(rs.getString("source_type")),
-                                rs.getObject("source_family_member_id", Long.class)),
-                        rs.getString("content"),
-                        rs.getLong("recorded_by"),
-                        rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC)),
-                wishId);
     }
 
     private static LocalDateTime utc(Instant instant) {
