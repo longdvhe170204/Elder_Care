@@ -68,6 +68,12 @@ public class ContainmentStore {
                 .toList();
     }
 
+    /** Còn vùng Đang khoanh vùng chỉ gắn với sự cố này (FR-066). */
+    public boolean activeOnlyFor(long incidentId) {
+        return records.listByStatus(KIND, Set.of(ACTIVE)).stream()
+                .anyMatch(row -> row.content().incidentIds().equals(Set.of(incidentId)));
+    }
+
     public List<SimpleRecord<ContainmentContent>> list() {
         return records.listByStatus(KIND, Set.of(ACTIVE, RELEASED));
     }

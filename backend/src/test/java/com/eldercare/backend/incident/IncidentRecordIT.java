@@ -121,6 +121,30 @@ class IncidentRecordIT extends MySqlIntegrationTestBase {
         assertThat(incidents.openEmergency(resident)).isEmpty();
     }
 
+    @Test
+    void BR_M05_09_closeStoresResultAndStopsEscalationThenIncidentIsFinal() {
+        long id = insert();
+        var start = incidents.lock(id).orElseThrow();
+        incidents.changeStatus(id, "NEW", "IN_PROGRESS", start.version());
+        incidents.changeStatus(id, "IN_PROGRESS", "MONITORING", start.version() + 1);
+        var at = Instant.parse("2026-11-04T04:00:00Z");
+        long closer = TestUsers.nextId();
+
+        incidents.close(id, "Đã ổn định", "RULED_OUT", closer, at, start.version() + 2);
+
+        var row = jdbc.queryForMap(
+                "SELECT status, resolution, infection_result, closed_by, escalation_stopped FROM incident WHERE id = ?",
+                id);
+        assertThat(row.get("status")).isEqualTo("CLOSED");
+        assertThat(row.get("resolution")).isEqualTo("Đã ổn định");
+        assertThat(row.get("infection_result")).isEqualTo("RULED_OUT");
+        assertThat(((Number) row.get("closed_by")).longValue()).isEqualTo(closer);
+        assertThat(row.get("escalation_stopped")).isEqualTo(true);
+        assertThat(incidents.currentTypeCode(id)).isEqualTo("SUSPECTED_INFECTION");
+        assertThatThrownBy(() -> incidents.changeStatus(id, "CLOSED", "IN_PROGRESS", start.version() + 3))
+                .isInstanceOf(DataAccessException.class);
+    }
+
     private long insert() {
         long id = TestUsers.nextId();
         var at = Timestamp.from(Instant.parse("2026-11-03T00:00:00Z"));

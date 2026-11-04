@@ -141,6 +141,32 @@ public class IncidentStore {
         return jdbc.queryForObject("SELECT recorded_by FROM incident WHERE id = ?", Long.class, id);
     }
 
+    public String currentTypeCode(long id) {
+        return jdbc.queryForObject("SELECT type_code FROM incident WHERE id = ?", String.class, id);
+    }
+
+    /** Chuyển trạng thái theo bảng FR-045 khi trạng thái và phiên bản còn như lúc khóa. */
+    public void changeStatus(long id, String from, String to, int expectedVersion) {
+        int changed = jdbc.update(
+                "UPDATE incident SET status = ?, version = version + 1 WHERE id = ? AND status = ? AND version = ?",
+                to,
+                id,
+                from,
+                expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
+    /** Đóng sự cố: kết quả bắt buộc, dừng leo thang và nhắc (bảng FR-045, BR-M05-09). */
+    public void close(
+            long id, String resolution, String infectionResult, long closedBy, Instant at, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET status = 'CLOSED', resolution = ?, infection_result = ?, closed_by = ?,
+                  closed_at = ?, escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('IN_PROGRESS', 'MONITORING') AND version = ?
+                """, resolution, infectionResult, closedBy, Timestamp.from(at), id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
     public void receive(long id, long receiverId, Instant at, int expectedVersion) {
         int changed = jdbc.update("""
                 UPDATE incident SET status='IN_PROGRESS', received_at=?, received_by=?, assignee_id=?,

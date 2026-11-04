@@ -36,5 +36,24 @@ class IncidentProgressionStoreIT extends MySqlIntegrationTestBase {
                         incident))
                 .isEqualTo(2);
         assertThat(progressions.wishChecked(incident)).isFalse();
+        assertThat(progressions.typeIds(incident)).containsExactly(5L, 5L);
+    }
+
+    @Test
+    void FR_041_joinIsRecordedOncePerPerson() {
+        long incident = TestUsers.nextId();
+        long staff = TestUsers.nextId();
+        var at = Instant.parse("2026-11-04T04:00:00Z");
+
+        progressions.join(incident, staff, at, 7L);
+        progressions.join(incident, staff, at, 7L);
+
+        assertThat(progressions.isHandler(incident, staff)).isTrue();
+        assertThat(progressions.isHandler(incident, TestUsers.nextId())).isFalse();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M05.INCIDENT_HANDLER' AND entity_id = ?",
+                        Integer.class,
+                        incident))
+                .isEqualTo(1);
     }
 }
