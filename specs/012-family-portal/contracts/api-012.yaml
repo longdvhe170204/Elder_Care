@@ -137,7 +137,7 @@ paths:
         - { $ref: '#/components/parameters/Id' }
         - { name: command, in: path, required: true, schema: { type: string, enum: [confirm, approve, reject, cancel] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' }, evidenceFileId: { type: integer, format: int64 }, signedByFamilyMemberId: { type: integer, format: int64 }, discussedWithResident: { type: string, maxLength: 2000 } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /residents/{residentId}/pickups:
@@ -519,15 +519,16 @@ components:
         relationshipId: { type: integer, format: int64 }
         right: { $ref: '#/components/schemas/FamilyRight' }
         newValue: { type: boolean }
-        newPicker: { type: object, properties: { fullName: { type: string }, idDocumentNumber: { type: string }, relationship: { type: string } } }
+        newPicker: { type: object, properties: { fullName: { type: string }, phoneNumber: { type: string }, idDocumentType: { type: string }, idDocumentNumber: { type: string }, relationship: { type: string } } }
         withSignedForm: { type: boolean }
+        signedByFamilyMemberId: { type: integer, format: int64 }
         evidenceFileId: { type: integer, format: int64 }
         reason: { $ref: '#/components/schemas/Reason' }
     RightChangeRequest:
       allOf:
         - { $ref: '#/components/schemas/CreateRightChangeRequest' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, REJECTED, CANCELLED] }, confirmationMethod: { type: string, enum: [PORTAL, SIGNED_FORM, MANAGER_APPROVAL] }, source: { type: string, enum: [COUNTER, PORTAL, REGISTRATION_FORM] }, appliedOnCreation: { type: boolean } }
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, REJECTED, CANCELLED] }, confirmationMethod: { type: string, enum: [PORTAL, SIGNED_FORM, MANAGER_APPROVAL] }, source: { type: string, enum: [COUNTER, PORTAL, REGISTRATION_FORM] }, appliedOnCreation: { type: boolean }, conflictingWishId: { type: [integer, 'null'], format: int64 } }
     RecordPickup:
       type: object
       required: [type, handoverStaffId]
