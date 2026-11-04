@@ -215,7 +215,8 @@ record CatalogItem<T>(long id, String code, String name, Long parentId, int sort
 `StatusHistoryApi` (`status_history`, nhóm 3, chỉ thêm; `ends_at` đặt một lần):
 
 ```java
-public record HistoryTrack<D>(String entityType, String attribute, Class<D> details) {} // module theo tiền tố entityType
+public record HistoryTrack<D>(String entityType, String attribute, Class<D> details, boolean reasonRequired) {} // module theo tiền tố entityType; hàm tạo 3 tham số = reasonRequired false
+// reasonRequired (FR-046 của 001, 2026-11-04): add ném ReasonRequiredException (422) khi reasonRequired && !bySystem && reason == null && valueBefore != null; dòng đầu (không có "từ") tự được miễn
 <D> long add(HistoryTrack<D> track, long entityId, HistoryEntry<D> entry);   // PERIOD: 409 khi đang có khoảng mở (open_key); unique_key trùng: 409
 <D> Optional<HistoryRow<D>> closeOpen(HistoryTrack<D> track, long entityId, Instant endsAt);
 <D> Optional<HistoryRow<D>> open(HistoryTrack<D> track, long entityId);
