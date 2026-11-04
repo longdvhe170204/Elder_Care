@@ -70,6 +70,14 @@ public class SessionService {
 
     /** Như {@link #resolve} kèm cờ buộc đổi mật khẩu cho bộ lọc phiên. */
     public Optional<Resolved> resolveRequest(String token) {
+        return resolveRequest(token, false);
+    }
+
+    /**
+     * {@code background}: yêu cầu tự làm mới không do người dùng thao tác ({@code X-Background-Refresh}, T047a) vẫn bị
+     * kiểm hết hạn nhưng không đếm lại thời gian không thao tác (FR-013a).
+     */
+    public Optional<Resolved> resolveRequest(String token, boolean background) {
         byte[] hash = SessionTokens.hash(token);
         Optional<SessionRow> row = sessions.open(hash);
         if (row.isEmpty()) {
@@ -81,7 +89,9 @@ public class SessionService {
             sessions.timeOut(hash, now);
             return Optional.empty();
         }
-        sessions.touch(hash, now);
+        if (!background) {
+            sessions.touch(hash, now);
+        }
         sessions.recordConnection(open.deviceId(), now, open.accountId());
         return Optional.of(new Resolved(session(open, now), open.mustChangePassword()));
     }
@@ -105,7 +115,7 @@ public class SessionService {
     }
 
     /** CFG-M15-10 theo kênh: {@code {"value", "unit"}} hoặc {@code {"noLimit": true}} (kênh người cao tuổi, BR-M15-24). */
-    private Optional<Duration> idleLimit(AccessChannel channel) {
+    public Optional<Duration> idleLimit(AccessChannel channel) {
         JsonNode v = parameters.read(ParameterCode.CFG_M15_10).raw().get(channel.name());
         if (v == null) {
             throw new IllegalStateException("CFG-M15-10 thiếu kênh " + channel);

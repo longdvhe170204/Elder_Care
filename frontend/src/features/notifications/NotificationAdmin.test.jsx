@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { DetailHost } from '@/test/DetailHost'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { NotificationsPage } from './NotificationsPage'
 import { NotificationHistory } from './NotificationHistory'
@@ -121,7 +122,7 @@ describe('NotificationHistory', () => {
         },
       ]),
     )
-    render(<NotificationHistory />)
+    render(<DetailHost>{(host) => <NotificationHistory {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: /23\/10\/2026/ }))
 
