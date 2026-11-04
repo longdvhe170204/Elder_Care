@@ -12,7 +12,6 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
-import com.eldercare.backend.common.data.CatalogBase;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
@@ -27,7 +26,6 @@ import com.eldercare.backend.resident.api.events.AllergyRecorded;
 import com.eldercare.backend.resident.api.events.OtherAllergyRecorded;
 import com.eldercare.backend.resident.internal.health.domain.HealthItem;
 import com.eldercare.backend.resident.internal.health.domain.HealthItemStatus;
-import com.eldercare.backend.resident.internal.health.persistence.AllergenRepository;
 import com.eldercare.backend.resident.internal.health.persistence.HealthItemRepository;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
@@ -43,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -105,7 +102,6 @@ public class HealthItemService implements HealthItemApi {
 
     private final HealthItemRepository items;
     private final ResidentRepository residents;
-    private final AllergenRepository allergens;
     private final M01Catalogs catalogs;
     private final ProfileOpenGuard guard;
     private final AuditLogApi auditLog;
@@ -117,7 +113,6 @@ public class HealthItemService implements HealthItemApi {
     HealthItemService(
             HealthItemRepository items,
             ResidentRepository residents,
-            AllergenRepository allergens,
             M01Catalogs catalogs,
             ProfileOpenGuard guard,
             AuditLogApi auditLog,
@@ -127,7 +122,6 @@ public class HealthItemService implements HealthItemApi {
             ObjectProvider<CurrentUser> currentUser) {
         this.items = items;
         this.residents = residents;
-        this.allergens = allergens;
         this.catalogs = catalogs;
         this.guard = guard;
         this.auditLog = auditLog;
@@ -299,7 +293,9 @@ public class HealthItemService implements HealthItemApi {
                 throw new InvalidValueException("Dị ứng chọn một dị nguyên trong danh mục, hoặc nhập tay loại khác");
             }
             if (c.allergenId() != null) {
-                requireActive(allergens.findById(c.allergenId()), "Dị nguyên không có hoặc đã ngừng hiệu lực");
+                if (!catalogs.isActive(M01Catalogs.ALLERGEN, c.allergenId())) {
+                    throw new InvalidValueException("Dị nguyên không có hoặc đã ngừng hiệu lực");
+                }
             }
         } else {
             if (c.allergenId() != null) {
@@ -310,12 +306,6 @@ public class HealthItemService implements HealthItemApi {
             }
         }
         return c.type();
-    }
-
-    private static void requireActive(Optional<? extends CatalogBase> catalog, String message) {
-        if (catalog.filter(CatalogBase::isActive).isEmpty()) {
-            throw new InvalidValueException(message);
-        }
     }
 
     /** Trùng theo dị nguyên, hoặc cùng loại và cùng nội dung (không phân biệt hoa thường, bỏ khoảng trắng thừa). */
@@ -340,10 +330,12 @@ public class HealthItemService implements HealthItemApi {
     }
 
     private List<ItemView> views(Collection<HealthItem> found) {
-        Map<Long, String> allergenNames = nameMap(allergens.findAllById(found.stream()
-                .map(HealthItem::getAllergenId)
-                .filter(Objects::nonNull)
-                .toList()));
+        Map<Long, String> allergenNames = catalogs.names(
+                M01Catalogs.ALLERGEN,
+                found.stream()
+                        .map(HealthItem::getAllergenId)
+                        .filter(Objects::nonNull)
+                        .toList());
         Map<Long, String> severityNames = catalogs.names(
                 M01Catalogs.ALLERGY_SEVERITY,
                 found.stream()
@@ -373,10 +365,6 @@ public class HealthItemService implements HealthItemApi {
                                 : new Exclusion(
                                         i.getExcludedAt(), names.of(i.getExcludedBy()), i.getExclusionReason())))
                 .toList();
-    }
-
-    private static Map<Long, String> nameMap(List<? extends CatalogBase> catalogs) {
-        return catalogs.stream().collect(Collectors.toMap(CatalogBase::getId, CatalogBase::getName));
     }
 
     private static Map<String, Object> snapshot(HealthItem i) {

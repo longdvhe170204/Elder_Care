@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.resident.internal.health.domain.AllergenAttributes;
 import com.eldercare.backend.resident.internal.health.domain.CatalogOrigin;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Bốn danh mục của M01 ở bảng chung {@code catalog_item} (001 T084; data-model 001 mục 0.1): mức chăm sóc, mức độ dị
- * ứng, nguồn thông tin, nhu cầu chăm sóc. Dị nguyên chưa chuyển (id được 006 lưu, chờ A và D duyệt).
+ * ứng, nguồn thông tin, nhu cầu chăm sóc, dị nguyên (nhóm ở {@code attributes}; id 006 lưu đổi theo ánh xạ ở
+ * {@code V001_95}, A và D duyệt 2026-11-04).
  */
 @Component
 public class M01Catalogs {
@@ -29,6 +31,8 @@ public class M01Catalogs {
             SharedKind.of("M01.INFORMATION_SOURCE", CatalogOrigin.class).notDeletable();
     public static final SharedKind<CatalogOrigin> CARE_NEED =
             SharedKind.of("M01.CARE_NEED", CatalogOrigin.class).notDeletable();
+    public static final SharedKind<AllergenAttributes> ALLERGEN =
+            SharedKind.of("M01.ALLERGEN", AllergenAttributes.class).notDeletable();
 
     private final CatalogApi catalog;
 
@@ -37,7 +41,7 @@ public class M01Catalogs {
     }
 
     /** Mục có trong loại và đang Hiệu lực (chọn cho nghiệp vụ mới, FR-003). */
-    public boolean isActive(SharedKind<CatalogOrigin> kind, long id) {
+    public <T> boolean isActive(SharedKind<T> kind, long id) {
         try {
             return catalog.require(kind, id).status() == CatalogStatus.ACTIVE;
         } catch (NotFoundException e) {
@@ -46,7 +50,7 @@ public class M01Catalogs {
     }
 
     /** Các mục của loại theo id; id không có trong loại thì không có trong kết quả. */
-    public List<CatalogItem<CatalogOrigin>> findAll(SharedKind<CatalogOrigin> kind, Collection<Long> ids) {
+    public <T> List<CatalogItem<T>> findAll(SharedKind<T> kind, Collection<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();
         }
@@ -56,7 +60,7 @@ public class M01Catalogs {
                 .toList();
     }
 
-    public Map<Long, String> names(SharedKind<CatalogOrigin> kind, Collection<Long> ids) {
+    public <T> Map<Long, String> names(SharedKind<T> kind, Collection<Long> ids) {
         return findAll(kind, ids).stream()
                 .collect(Collectors.toMap(CatalogItem::id, CatalogItem::name, (a, b) -> a, LinkedHashMap::new));
     }

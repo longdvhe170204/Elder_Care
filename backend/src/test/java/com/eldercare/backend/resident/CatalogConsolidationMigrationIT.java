@@ -29,6 +29,15 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
 
     private static final String SUFFIX_A = "m001_95a";
     private static final String SUFFIX_B = "m001_95b";
+    private static final String SUFFIX_C = "m001_95c";
+
+    /** Dạng dữ liệu của 006 lúc V001_95 chạy (flyway.out-of-order): chưa có, bảng con trước V006_95, cột JSON sau V006_95. */
+    private enum Stage006 {
+        NONE,
+        LINKS,
+        JSON
+    }
+
     private static final Path MIGRATIONS = Path.of("src", "main", "resources", "db", "migration");
     private static final List<String> OLD_TABLES = List.of(
             "care_level",
@@ -50,7 +59,10 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "m01_history_id_map",
             "reassessment_notice",
             "initial_health_record",
-            "m01_ihr_id_map");
+            "m01_ihr_id_map",
+            "allergen",
+            "m01_allergen_id_map",
+            "m01_prescription_link_copy");
 
     /** Nội dung một dòng lịch sử trạng thái cũ ({@code o}) và mới ({@code n}), để so tham chiếu theo nội dung khi id đổi. */
     private static final String OLD_STATUS_ROW =
@@ -88,12 +100,14 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             long maxNoticeId,
             List<String> healthRecords,
             List<String> healthRecordRefs,
-            long maxHealthRecordId) {}
+            long maxHealthRecordId,
+            Map<Long, String> allergenNameByItem) {}
 
     @AfterAll
     static void dropScratchSchemas() {
         dropScratchSchema(SUFFIX_A);
         dropScratchSchema(SUFFIX_B);
+        dropScratchSchema(SUFFIX_C);
     }
 
     @Test
@@ -104,7 +118,7 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 .load();
         upTo110.migrate();
         JdbcTemplate db = new JdbcTemplate(upTo110.getConfiguration().getDataSource());
-        seedOldData(db, false);
+        seedOldData(db, Stage006.NONE);
         Snapshot before = snapshot(db);
 
         Flyway.configure()
@@ -117,34 +131,23 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void databaseWith006Data_isMigratedWithoutTouchingAllergensAnd006References() throws IOException {
+    void databaseWith006Data_isMigratedOutOfOrder_andRemapsAllergenIdsKeptBy006() throws IOException {
         Flyway base = scratchFlyway(SUFFIX_B);
-        Path withoutGroup1 = Files.createTempDirectory("v001_95_b");
-        // Cả thư mục con demo: Flyway quét đệ quy, nên lượt chạy sau không còn migration nào khác chưa áp dụng
-        try (Stream<Path> files = Files.walk(MIGRATIONS)) {
-            for (Path file : files.filter(f -> f.toString().endsWith(".sql")).toList()) {
-                if (!file.getFileName().toString().startsWith("V001_95__")) {
-                    Path target =
-                            withoutGroup1.resolve(MIGRATIONS.relativize(file).toString());
-                    Files.createDirectories(target.getParent());
-                    Files.copy(file, target);
-                }
-            }
-        }
         Flyway applied = Flyway.configure()
                 .configuration(base.getConfiguration())
-                .locations("filesystem:" + withoutGroup1.toAbsolutePath())
+                .locations("filesystem:" + withoutV001_95("v001_95_b").toAbsolutePath())
                 .load();
         applied.migrate();
         JdbcTemplate db = new JdbcTemplate(applied.getConfiguration().getDataSource());
-        seedOldData(db, true);
+        seedOldData(db, Stage006.JSON);
         Snapshot before = snapshot(db);
-        long allergen = db.queryForObject("SELECT MIN(id) FROM allergen", Long.class);
-        String medicationBefore = medication006(db);
+        long allergen = penicillin(db);
         int catalogBefore = db.queryForObject("SELECT COUNT(*) FROM catalog_item", Integer.class);
-        assertThat(medicationBefore).contains("[" + allergen + "]");
+        String lockTrigger = prescriptionLockTrigger(db);
+        assertThat(medicationIngredients(db)).containsExactly(allergen);
+        assertThat(prescriptionIngredients(db)).containsExactly(allergen);
 
-        // Sau mọi migration khác: chạy riêng V001_95 theo thứ tự muộn (out-of-order)
+        // Sau mọi migration khác: chạy riêng V001_95 theo thứ tự muộn (out-of-order), trường hợp (3)
         Flyway.configure()
                 .configuration(base.getConfiguration())
                 .outOfOrder(true)
@@ -152,24 +155,115 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 .migrate();
 
         assertMigrated(db, before);
-        assertThat(medication006(db)).isEqualTo(medicationBefore);
-        assertThat(db.queryForObject("SELECT COUNT(*) FROM allergen WHERE id = ?", Integer.class, allergen))
-                .isEqualTo(1);
+        long mapped = mappedAllergen(db, allergen);
+        assertThat(mapped).isNotEqualTo(allergen);
+        assertThat(medicationIngredients(db))
+                .as("activeIngredientIds của M07.MEDICATION")
+                .containsExactly(mapped);
         assertThat(db.queryForObject(
-                        "SELECT COUNT(*) FROM health_item h JOIN allergen a ON a.id = h.allergen_id", Integer.class))
+                        "SELECT version FROM catalog_item WHERE catalog_type = 'M07.MEDICATION' AND code = 'M07-test'",
+                        Integer.class))
+                .as("đổi attributes thì tăng version")
                 .isEqualTo(1);
+        assertThat(prescriptionIngredients(db))
+                .as("prescription.active_ingredient_ids")
+                .containsExactly(mapped);
+        assertThat(db.queryForObject(
+                        "SELECT CONCAT(DATA_TYPE, '|', IS_NULLABLE) FROM information_schema.COLUMNS"
+                                + " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription'"
+                                + " AND COLUMN_NAME = 'active_ingredient_ids'",
+                        String.class))
+                .isEqualTo("json|NO");
+        assertThat(prescriptionLockTrigger(db))
+                .as("trg_prescription_lock nguyên văn")
+                .isEqualTo(lockTrigger);
+        assertThatThrownBy(() -> db.update("UPDATE prescription SET active_ingredient_ids = JSON_ARRAY()"))
+                .hasMessageContaining("Fixed fields of saved prescription cannot be modified");
         assertThat(db.queryForObject("SELECT COUNT(*) FROM catalog_item", Integer.class))
                 .isEqualTo(catalogBefore + before.catalogRows().size());
     }
 
-    private static String medication006(JdbcTemplate db) {
+    /** Trường hợp (2): cơ sở dữ liệu dừng ở 006 trước V006_95; V001_95 rồi V006_95 chạy cùng lượt sau. */
+    @Test
+    void databaseWithOld006LinkTables_remapsLinks_thenV006_95CopiesTheNewIds() throws IOException {
+        Flyway base = scratchFlyway(SUFFIX_C);
+        Flyway upTo615 = Flyway.configure()
+                .configuration(base.getConfiguration())
+                .locations("filesystem:" + withoutV001_95("v001_95_c").toAbsolutePath())
+                .target("6.15")
+                .load();
+        upTo615.migrate();
+        JdbcTemplate db = new JdbcTemplate(upTo615.getConfiguration().getDataSource());
+        seedOldData(db, Stage006.LINKS);
+        Snapshot before = snapshot(db);
+        long allergen = penicillin(db);
+
+        Flyway.configure()
+                .configuration(base.getConfiguration())
+                .outOfOrder(true)
+                .load()
+                .migrate();
+
+        assertMigrated(db, before);
+        long mapped = mappedAllergen(db, allergen);
+        assertThat(medicationIngredients(db))
+                .as("V006_95 chép id mới của bảng con thuốc")
+                .containsExactly(mapped);
+        assertThat(prescriptionIngredients(db))
+                .as("V006_95 chép id mới của bảng con đơn")
+                .containsExactly(mapped);
+    }
+
+    /** Thư mục tạm có mọi migration trừ V001_95, gồm cả thư mục con demo (Flyway quét đệ quy). */
+    private static Path withoutV001_95(String prefix) throws IOException {
+        Path copy = Files.createTempDirectory(prefix);
+        try (Stream<Path> files = Files.walk(MIGRATIONS)) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".sql")).toList()) {
+                if (!file.getFileName().toString().startsWith("V001_95__")) {
+                    Path target = copy.resolve(MIGRATIONS.relativize(file).toString());
+                    Files.createDirectories(target.getParent());
+                    Files.copy(file, target);
+                }
+            }
+        }
+        return copy;
+    }
+
+    private static long penicillin(JdbcTemplate db) {
+        return db.queryForObject("SELECT id FROM allergen WHERE name = 'Penicillin'", Long.class);
+    }
+
+    private static long mappedAllergen(JdbcTemplate db, long oldId) {
         return db.queryForObject(
-                "SELECT CAST(attributes AS CHAR) FROM catalog_item WHERE catalog_type = 'M07.MEDICATION'",
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN'"
+                        + " AND CAST(attributes ->> '$.legacy.id' AS UNSIGNED) = ?",
+                Long.class,
+                oldId);
+    }
+
+    private static List<Long> medicationIngredients(JdbcTemplate db) {
+        return db.queryForList(
+                "SELECT j.v FROM catalog_item c, JSON_TABLE(c.attributes, '$.activeIngredientIds[*]'"
+                        + " COLUMNS (v BIGINT PATH '$')) j WHERE c.catalog_type = 'M07.MEDICATION'",
+                Long.class);
+    }
+
+    private static List<Long> prescriptionIngredients(JdbcTemplate db) {
+        return db.queryForList(
+                "SELECT j.v FROM prescription p, JSON_TABLE(p.active_ingredient_ids, '$[*]'"
+                        + " COLUMNS (v BIGINT PATH '$')) j",
+                Long.class);
+    }
+
+    private static String prescriptionLockTrigger(JdbcTemplate db) {
+        return db.queryForObject(
+                "SELECT ACTION_STATEMENT FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE()"
+                        + " AND TRIGGER_NAME = 'trg_prescription_lock'",
                 String.class);
     }
 
     /** Dữ liệu cũ của 001: thêm mục ngừng hiệu lực để thử trạng thái; id cũ nhỏ nên dễ đụng id mới của catalog_item. */
-    private static void seedOldData(JdbcTemplate db, boolean with006) {
+    private static void seedOldData(JdbcTemplate db, Stage006 stage) {
         db.update("INSERT INTO allergy_severity (name, display_order, status) VALUES ('Rất nặng', 4, 'INACTIVE')");
         db.update("INSERT INTO information_source (name, status) VALUES ('Nguồn cũ', 'INACTIVE')");
         db.update("INSERT INTO care_need (name) VALUES ('Nhu cầu thử')");
@@ -194,17 +288,14 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         long r1 = residents.get(1);
         long r2 = residents.get(0);
 
-        Long allergen = null;
-        if (with006) {
-            db.update("INSERT INTO allergen (name, allergen_group) VALUES ('Penicillin', 'ACTIVE_INGREDIENT')");
-            allergen = db.queryForObject("SELECT MAX(id) FROM allergen", Long.class);
-            db.update(
-                    "INSERT INTO catalog_item (catalog_type, module, code, name, sort_order, status, attributes,"
-                            + " version) VALUES ('M07.MEDICATION', 'M07', 'M07-test', 'Thuốc thử | 1mg | VIÊN', 0,"
-                            + " 'ACTIVE', JSON_OBJECT('name', 'Thuốc thử', 'activeIngredientIds', JSON_ARRAY(?)), 0)",
-                    allergen);
-        }
-        item(db, r1, "ALLERGY", allergen, allergen == null ? "Hải sản" : null, severe, family);
+        // Dị nguyên: một mục Ngừng hiệu lực (giữ trạng thái, phiên bản); id 006 lưu là id cũ
+        db.update("INSERT INTO allergen (name, allergen_group, status, version) VALUES ('Đậu phộng', 'FOOD',"
+                + " 'INACTIVE', 2)");
+        db.update("INSERT INTO allergen (name, allergen_group) VALUES ('Penicillin', 'ACTIVE_INGREDIENT')");
+        long allergen = db.queryForObject("SELECT id FROM allergen WHERE name = 'Penicillin'", Long.class);
+        seed006(db, stage, r1, allergen);
+        item(db, r1, "ALLERGY", allergen, null, severe, family);
+        item(db, r1, "ALLERGY", null, "Hải sản", severe, family);
         item(db, r1, "CHRONIC_CONDITION", null, "Tăng huyết áp", null, doctor);
         item(db, r2, "ALLERGY", null, "Bụi", mild, family);
 
@@ -255,6 +346,43 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 r1,
                 r1);
         seedWishes(db, r1, r2, file);
+    }
+
+    /** Thuốc và đơn của 006 lưu id dị nguyên: bảng con (trước V006_95) hoặc cột JSON (sau V006_95). */
+    private static void seed006(JdbcTemplate db, Stage006 stage, long resident, long allergen) {
+        String prescription = "INSERT INTO prescription (resident_id, medication_id, dosage, dosage_unit, route,"
+                + " prescription_type, min_interval_minutes, max_doses_per_24h, started_at, medication_source,"
+                + " prescriber_type, created_at%s) VALUES (?, ?, 1, 'viên', 'Uống', 'PRN', 60, 4, NOW(6), 'FACILITY',"
+                + " 'INTERNAL', NOW(6)%s)";
+        if (stage == Stage006.JSON) {
+            db.update(
+                    "INSERT INTO catalog_item (catalog_type, module, code, name, sort_order, status, attributes,"
+                            + " version) VALUES ('M07.MEDICATION', 'M07', 'M07-test', 'Thuốc thử | 1mg | VIÊN', 0,"
+                            + " 'ACTIVE', JSON_OBJECT('name', 'Thuốc thử', 'activeIngredientIds', JSON_ARRAY(?)), 0)",
+                    allergen);
+            long medication = db.queryForObject(
+                    "SELECT id FROM catalog_item WHERE catalog_type = 'M07.MEDICATION' AND code = 'M07-test'",
+                    Long.class);
+            db.update(
+                    prescription.formatted(", active_ingredient_ids", ", JSON_ARRAY(?)"),
+                    resident,
+                    medication,
+                    allergen);
+        } else if (stage == Stage006.LINKS) {
+            db.update("INSERT INTO medication (name, concentration, dosage_form, default_route, usage_unit)"
+                    + " VALUES ('Thuốc thử', '1mg', 'VIÊN', 'Uống', 'viên')");
+            long medication = db.queryForObject("SELECT id FROM medication WHERE name = 'Thuốc thử'", Long.class);
+            db.update(
+                    "INSERT INTO medication_active_ingredient (medication_id, allergen_id) VALUES (?, ?)",
+                    medication,
+                    allergen);
+            db.update(prescription.formatted("", ""), resident, medication);
+            long rx = db.queryForObject("SELECT MAX(id) FROM prescription", Long.class);
+            db.update(
+                    "INSERT INTO prescription_active_ingredient (prescription_id, allergen_id) VALUES (?, ?)",
+                    rx,
+                    allergen);
+        }
     }
 
     /**
@@ -678,6 +806,7 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         rows.addAll(db.queryForList(
                 "SELECT CONCAT('INFORMATION_SOURCE|', name, '|', status) FROM information_source", String.class));
         rows.addAll(db.queryForList("SELECT CONCAT('CARE_NEED|', name, '|', status) FROM care_need", String.class));
+        rows.addAll(db.queryForList("SELECT CONCAT('ALLERGEN|', name, '|', status) FROM allergen", String.class));
         return new Snapshot(
                 severity,
                 source,
@@ -707,7 +836,8 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM reassessment_notice", Long.class),
                 healthRecords(db, false),
                 healthRecordRefs(db, false),
-                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM initial_health_record", Long.class));
+                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM initial_health_record", Long.class),
+                allergenNames(db, "allergen a ON a.id = h.allergen_id"));
     }
 
     /** Phiếu cuối đời (giữ id), phiếu điều trị (không có id), ý kiến khác của phiếu cuối đời: dạng chữ để so sánh. */
@@ -754,6 +884,15 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         + " FROM record_event WHERE kind = 'M01.WISH_OPINION' AND entity_type = 'M01.END_OF_LIFE_WISH'",
                 String.class));
         return rows;
+    }
+
+    /** Tên dị nguyên của từng mục sức khỏe chọn từ danh mục. */
+    private static Map<Long, String> allergenNames(JdbcTemplate db, String join) {
+        Map<Long, String> names = new java.util.TreeMap<>();
+        db.query("SELECT h.id, a.name FROM health_item h JOIN " + join, rs -> {
+            names.put(rs.getLong(1), rs.getString(2));
+        });
+        return names;
     }
 
     /** Người thân của từng bản đồng ý, sắp tăng; bản không có người thân là danh sách rỗng. */
@@ -842,6 +981,19 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                         "UPDATE simple_record SET content = JSON_SET(content, '$.bloodType', 'B') WHERE id = ?",
                         confirmedRecord))
                 .hasMessageContaining("simple_record row is locked");
+
+        // Dị nguyên vào catalog_item M01.ALLERGEN: nhóm ở attributes, id cũ ở legacy, phiên bản giữ; health_item trỏ
+        // đúng
+        // mục cùng tên
+        assertThat(allergenNames(db, "catalog_item a ON a.id = h.allergen_id AND a.catalog_type = 'M01.ALLERGEN'"))
+                .as("dị nguyên của mục sức khỏe")
+                .isEqualTo(before.allergenNameByItem())
+                .isNotEmpty();
+        assertThat(db.queryForList(
+                        "SELECT CONCAT(name, '|', status, '|', version, '|', attributes ->> '$.allergenGroup') FROM catalog_item"
+                                + " WHERE catalog_type = 'M01.ALLERGEN' AND attributes ->> '$.legacy.table' = 'allergen'",
+                        String.class))
+                .contains("Đậu phộng|INACTIVE|2|FOOD", "Penicillin|ACTIVE|0|ACTIVE_INGREDIENT");
 
         // Nhắc định kỳ: loại, người, mốc, lúc bắt đầu, lần nhắc cuối và số lần tính lại từ các dòng reminder_marker
         assertThat(db.queryForList(
@@ -948,7 +1100,7 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         assertThat(db.queryForObject(
                         "SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE()"
                                 + " AND REFERENCED_TABLE_NAME IN ('care_level', 'allergy_severity',"
-                                + " 'information_source', 'care_need')",
+                                + " 'information_source', 'care_need', 'allergen')",
                         Integer.class))
                 .isZero();
         // Bản đồng ý: người thân chuyển sang cột JSON family_member_ids, đủ từng cặp, bảng con đã xóa
