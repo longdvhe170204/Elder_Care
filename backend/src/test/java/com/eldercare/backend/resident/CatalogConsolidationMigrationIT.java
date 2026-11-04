@@ -30,8 +30,13 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
     private static final String SUFFIX_A = "m001_95a";
     private static final String SUFFIX_B = "m001_95b";
     private static final Path MIGRATIONS = Path.of("src", "main", "resources", "db", "migration");
-    private static final List<String> OLD_TABLES =
-            List.of("care_level", "allergy_severity", "information_source", "care_need", "m01_catalog_id_map");
+    private static final List<String> OLD_TABLES = List.of(
+            "care_level",
+            "allergy_severity",
+            "information_source",
+            "care_need",
+            "m01_catalog_id_map",
+            "consent_family_member");
 
     /** Dữ liệu cũ đọc ra dạng tên, để so sau khi id đổi. */
     private record Snapshot(
@@ -40,7 +45,8 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             Map<Long, Set<String>> careNeedNamesByAssessment,
             List<String> catalogRows,
             int healthItems,
-            int assessmentCareNeeds) {}
+            int assessmentCareNeeds,
+            Map<Long, List<Long>> consentMembers) {}
 
     @AfterAll
     static void dropScratchSchemas() {
@@ -168,6 +174,22 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         for (long need : new long[] {needA, needB, needC}) {
             db.update("INSERT INTO assessment_care_need (assessment_id, care_need_id) VALUES (?, ?)", assessment, need);
         }
+        db.update("INSERT INTO file (uuid, original_name, mime_type, size_bytes, sha256, uploaded_by, uploaded_at)"
+                + " VALUES (UUID(), 'ky.pdf', 'application/pdf', 1, REPEAT('a', 64), 3, NOW(6))");
+        long file = db.queryForObject("SELECT MAX(id) FROM file", Long.class);
+        for (long resident : new long[] {r1, r2}) {
+            db.update(
+                    "INSERT INTO consent (resident_id, consenter_type, photo_consent, notification_consent,"
+                            + " consented_at, evidence_file_id, status, created_at, created_by)"
+                            + " VALUES (?, 'RESIDENT', FALSE, TRUE, NOW(6), ?, 'ACTIVE', NOW(6), 3)",
+                    resident,
+                    file);
+        }
+        long consent = db.queryForObject("SELECT MIN(id) FROM consent WHERE resident_id = ?", Long.class, r1);
+        for (long member : new long[] {9002, 9001}) {
+            db.update(
+                    "INSERT INTO consent_family_member (consent_id, family_member_id) VALUES (?, ?)", consent, member);
+        }
         db.update(
                 "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
                         + " recorded_at, recorded_by) VALUES (?, 'BASIC', '2026-01-01', 'ASSESSMENT', 1, NOW(6), 3)",
@@ -225,7 +247,25 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 needs,
                 rows,
                 db.queryForObject("SELECT COUNT(*) FROM health_item", Integer.class),
-                db.queryForObject("SELECT COUNT(*) FROM assessment_care_need", Integer.class));
+                db.queryForObject("SELECT COUNT(*) FROM assessment_care_need", Integer.class),
+                consentMembers(
+                        db,
+                        "SELECT c.id, m.family_member_id FROM consent c"
+                                + " LEFT JOIN consent_family_member m ON m.consent_id = c.id"));
+    }
+
+    /** Người thân của từng bản đồng ý, sắp tăng; bản không có người thân là danh sách rỗng. */
+    private static Map<Long, List<Long>> consentMembers(JdbcTemplate db, String sql) {
+        Map<Long, List<Long>> result = new java.util.TreeMap<>();
+        db.query(sql, rs -> {
+            List<Long> members = result.computeIfAbsent(rs.getLong(1), k -> new ArrayList<>());
+            long member = rs.getLong(2);
+            if (!rs.wasNull()) {
+                members.add(member);
+            }
+        });
+        result.values().forEach(java.util.Collections::sort);
+        return result;
     }
 
     private static void assertMigrated(JdbcTemplate db, Snapshot before) {
@@ -309,6 +349,15 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                                 + " 'information_source', 'care_need')",
                         Integer.class))
                 .isZero();
+        // Bản đồng ý: người thân chuyển sang cột JSON family_member_ids, đủ từng cặp, bảng con đã xóa
+        assertThat(consentMembers(
+                        db,
+                        "SELECT c.id, j.member FROM consent c LEFT JOIN JSON_TABLE(c.family_member_ids,"
+                                + " '$[*]' COLUMNS (member BIGINT PATH '$')) j ON TRUE"))
+                .isEqualTo(before.consentMembers());
+        assertThat(before.consentMembers().values())
+                .anySatisfy(m -> assertThat(m).hasSize(2));
+
         long anyItem = severity.keySet().iterator().next();
         assertThatThrownBy(() -> db.update("UPDATE health_item SET source_id = source_id + 1 WHERE id = ?", anyItem))
                 .hasMessageContaining("health_item content is immutable");

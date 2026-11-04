@@ -166,12 +166,12 @@ class ConsentIT extends ConsentTestBase {
 
         try (var admin = adminConnection();
                 var update = admin.prepareStatement("UPDATE consent SET photo_consent = 0 WHERE id = ?");
-                var children = admin.prepareStatement(
-                        "UPDATE consent_family_member SET family_member_id = 1 WHERE consent_id = ?")) {
+                var children =
+                        admin.prepareStatement("UPDATE consent SET family_member_ids = JSON_ARRAY(1) WHERE id = ?")) {
             update.setLong(1, saved.id());
             assertThatThrownBy(update::executeUpdate).hasMessageContaining("consent");
             children.setLong(1, saved.id());
-            assertThatThrownBy(children::executeUpdate).hasMessageContaining("append-only");
+            assertThatThrownBy(children::executeUpdate).hasMessageContaining("consent content is immutable");
         }
         assertThatThrownBy(() -> jdbc.update("DELETE FROM consent WHERE id = ?", saved.id()))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
@@ -185,9 +185,9 @@ class ConsentIT extends ConsentTestBase {
         try (var admin = adminConnection();
                 var insert = admin.prepareStatement(
                         "INSERT INTO consent (resident_id, consenter_type, photo_consent, notification_consent,"
-                                + " consented_at, evidence_file_id, status, created_at, created_by)"
+                                + " consented_at, evidence_file_id, status, created_at, created_by, family_member_ids)"
                                 + " SELECT resident_id, consenter_type, photo_consent, notification_consent,"
-                                + " consented_at, evidence_file_id, status, created_at, created_by"
+                                + " consented_at, evidence_file_id, status, created_at, created_by, family_member_ids"
                                 + " FROM consent WHERE resident_id = ? AND status = 'ACTIVE'")) {
             insert.setLong(1, residentId);
             assertThatThrownBy(insert::executeUpdate).hasMessageContaining("Duplicate");
