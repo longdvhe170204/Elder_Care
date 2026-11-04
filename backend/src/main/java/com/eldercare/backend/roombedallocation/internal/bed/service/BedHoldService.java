@@ -169,6 +169,8 @@ public class BedHoldService {
 
     public void extendExpectedEnd(long residentId, Instant end) {
         locks.lock(residentId, List.of());
+        // Q-395: giường đã Giải phóng khi vắng thì không còn phân bổ mở để gia hạn; hạn mới nằm ở hợp đồng 004.
+        if (store.findActive(residentId).isEmpty()) return;
         var active = store.active(residentId);
         locks.lock(residentId, List.of(active.bedId()));
         active = store.active(residentId);
