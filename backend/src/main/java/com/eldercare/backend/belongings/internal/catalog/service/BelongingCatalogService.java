@@ -364,6 +364,6 @@ public class BelongingCatalogService {
     }
 
     private static BusinessException invalid(String message) {
-        return new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_VALUE", message);
+        return new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "INVALID_VALUE", message);
     }
 }
