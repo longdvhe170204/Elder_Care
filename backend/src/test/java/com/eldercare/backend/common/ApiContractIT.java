@@ -80,11 +80,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
                     true),
-            // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); còn sửa yêu cầu Nháp chờ API của
-            // 000 (T043, T047)
+            // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); sửa yêu cầu Nháp xong 2026-11-04
+            // (T043, T047)
             new Contract(
                     Path.of("..", "specs", "004-admission-residency", "contracts", "api-004.yaml"),
-                    Set.of("PUT /api/v1/residency-change-requests/{id}"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 005 T060 (2026-11-03): 38/41 operation đã cài khớp hợp đồng; còn hai đường dẫn tiếng Việt chưa dịch và
