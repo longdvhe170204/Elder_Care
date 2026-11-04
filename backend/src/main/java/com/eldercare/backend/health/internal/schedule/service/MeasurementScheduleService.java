@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
@@ -118,6 +119,21 @@ public class MeasurementScheduleService {
         taskSources.sourceCancelled(SourceType.MEASUREMENT, schedule.id(), reason);
         publishChanged(schedule, now);
         write(STOPPED, schedule.id(), schedule.residentId(), Map.of("status", "STOPPED"), reason);
+    }
+
+    /** Lịch đo của người cao tuổi; {@code target} mang người cao tuổi để kiểm phạm vi (Trưởng tầng "P"). */
+    @RequiresPermission(function = Function.ALERT_THRESHOLD, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<MeasurementSchedule> list(Target target) {
+        return store.byResident(target.residentId());
+    }
+
+    /** Chuỗi mốc đo dự kiến để hiển thị; không tạo công việc (Q-306). */
+    @RequiresPermission(function = Function.ALERT_THRESHOLD, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<Instant> occurrences(long scheduleId, Instant from, Instant to) {
+        var schedule = store.find(scheduleId).orElseThrow(NotFoundException::new);
+        return DefaultMeasurementScheduleApi.occurrencesOf(schedule, from, to);
     }
 
     /** Việc theo phút: Chờ hiệu lực tới thời điểm bắt đầu → Hiệu lực; Hiệu lực tới thời điểm kết thúc → Hết hạn. */
