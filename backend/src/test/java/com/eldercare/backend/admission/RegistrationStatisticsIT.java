@@ -56,10 +56,11 @@ class RegistrationStatisticsIT extends RegistrationTestBase {
 
         clock.setTo(time.now().plus(Duration.ofDays(30)));
         RegistrationSummaryView late = statistics.summary();
-        assertThat(late.overdue())
+        // Dịch đồng hồ làm cả nghĩa vụ sót của test khác quá hạn: kiểm bất biến, không kiểm số tuyệt đối
+        assertThat(late.overdue()).isGreaterThan(created.overdue());
+        assertThat(late.overdue() + late.toCreate())
                 .as("quá hạn thì chuyển nhóm, không đếm hai lần")
-                .isEqualTo(before.overdue() + 1);
-        assertThat(late.toCreate()).isEqualTo(before.toCreate());
+                .isEqualTo(created.overdue() + created.toCreate());
 
         clock.reset();
         ResidenceRegistration registration = createFor(residentId);
