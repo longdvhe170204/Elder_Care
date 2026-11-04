@@ -894,3 +894,6 @@ DELIMITER ;
 GRANT INSERT ON wish TO 'eldercare_app'@'%';
 GRANT UPDATE (status, superseded_by_id) ON wish TO 'eldercare_app'@'%';
 GRANT DELETE ON wish TO 'eldercare_retention'@'%';
+
+-- Khai nhóm dữ liệu (audit F-04): bản đồng ý là nhóm 2 (chỉ đổi qua lệnh rút lại, trigger trg_consent_only_withdrawal)
+ALTER TABLE consent COMMENT = 'DataGroup=BUSINESS';
