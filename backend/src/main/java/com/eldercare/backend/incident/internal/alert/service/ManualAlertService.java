@@ -4,7 +4,6 @@ import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -56,7 +55,6 @@ public class ManualAlertService {
     /** Kết quả tạo: cảnh báo sau lệnh và có phải gộp vào cảnh báo đang mở hay không. */
     public record Created(AlertRecord alert, boolean merged) {}
 
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.CREATE)
     @Transactional
     public Created create(long residentId, long incidentTypeId, String level, String description, CurrentUser user) {
         if (description == null || description.isBlank()) throw new InvalidValueException("Thiếu mô tả cảnh báo");

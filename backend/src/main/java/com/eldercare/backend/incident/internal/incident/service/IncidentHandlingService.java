@@ -87,7 +87,6 @@ public class IncidentHandlingService {
     }
 
     /** Đang xử lý → Đang theo dõi; cần ít nhất một diễn biến đánh giá và một diễn biến xử lý. */
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
     public void moveToMonitoring(long incidentId, CurrentUser user) {
         var incident = lockForHandling(incidentId, user, HANDLER_ROLES);
@@ -103,11 +102,17 @@ public class IncidentHandlingService {
         audit(MOVED_TO_MONITORING, incident, "MONITORING", null);
     }
 
+    /** Đối tượng của sự cố cho lớp phạm vi của {@code @RequiresPermission} (lệnh {@code @BusinessCommand}). */
+    public Target target(long incidentId) {
+        var incident = incidents.view(incidentId).orElseThrow(NotFoundException::new);
+        return new Target(ENTITY, Long.toString(incidentId), incident.residentId(), incident.floorAreaId());
+    }
+
     /** Đang theo dõi → Đang xử lý, bắt buộc lý do. */
     @BusinessCommand
     @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
-    public void reopen(long incidentId, Reason reason, CurrentUser user) {
+    public void reopen(Target target, long incidentId, Reason reason, CurrentUser user) {
         var incident = lockForHandling(incidentId, user, HANDLER_ROLES);
         requireStatus(incident, "MONITORING");
         incidents.changeStatus(incidentId, "MONITORING", "IN_PROGRESS", incident.version());
@@ -115,7 +120,6 @@ public class IncidentHandlingService {
     }
 
     /** Đang xử lý, Đang theo dõi → Đã đóng (BR-M05-09; sự cố lây nhiễm theo FR-066). */
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
     public void close(long incidentId, String resolution, String infectionOutcome, CurrentUser user) {
         var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
@@ -147,7 +151,6 @@ public class IncidentHandlingService {
     }
 
     /** Tham gia xử lý sự cố Khẩn cấp đang mở; không tạo sự cố mới (FR-041, FR-048b). */
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.CREATE)
     @Transactional
     public void join(long incidentId, CurrentUser user) {
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {

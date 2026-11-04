@@ -9,7 +9,6 @@ import com.eldercare.backend.incident.web.response.ActivationResultResponse.Acti
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.List;
-import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -82,7 +81,7 @@ public class IncidentQueryController {
                 incident.outOfScope(),
                 incident.noOnDutyDoctor(),
                 details.progressions(),
-                List.<Map<String, Object>>of(),
+                details.levelChanges(),
                 details.handlers(),
                 notified,
                 incident.resolution(),

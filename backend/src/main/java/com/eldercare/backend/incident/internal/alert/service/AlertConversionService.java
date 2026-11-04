@@ -3,9 +3,6 @@ package com.eldercare.backend.incident.internal.alert.service;
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.CONVERTED;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
-import com.eldercare.backend.administration.account.api.dto.Function;
-import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
@@ -58,7 +55,6 @@ public class AlertConversionService {
     }
 
     /** @return mã sự cố vừa tạo. */
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional
     public long convert(
             long alertId,

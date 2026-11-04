@@ -4,7 +4,6 @@ import static com.eldercare.backend.incident.internal.incident.domain.IncidentAc
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
@@ -67,7 +66,6 @@ public class IncidentProgressionService {
         this.wishes = wishes;
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.UPDATE)
     @Transactional
     public long add(long incidentId, long progressionTypeId, String content, Instant occurredAt, CurrentUser user) {
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {

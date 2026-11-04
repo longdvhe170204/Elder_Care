@@ -60,7 +60,7 @@ public class IncidentController {
             @PathVariable long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ChangeIncidentLevelRequest request) {
-        incidents.changeLevel(id, request.newLevel(), request.reason(), currentUser);
+        incidents.changeLevel(incidents.target(id), id, request.newLevel(), request.reason(), currentUser);
         return ResponseEntity.ok().build();
     }
 }

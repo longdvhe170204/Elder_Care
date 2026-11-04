@@ -37,11 +37,17 @@ public final class IncidentCorrectionProviders {
         private final IncidentStore incidents;
         private final IncidentCatalogService catalog;
         private final ContainmentStore containments;
+        private final IncidentCorrectionEffects effects;
 
-        IncidentProvider(IncidentStore incidents, IncidentCatalogService catalog, ContainmentStore containments) {
+        IncidentProvider(
+                IncidentStore incidents,
+                IncidentCatalogService catalog,
+                ContainmentStore containments,
+                IncidentCorrectionEffects effects) {
             this.incidents = incidents;
             this.catalog = catalog;
             this.containments = containments;
+            this.effects = effects;
         }
 
         @Override
@@ -105,16 +111,20 @@ public final class IncidentCorrectionProviders {
         @Override
         public void afterCorrection(CorrectionView correction) {
             long id = correction.originalRecordId();
+            var before = find(id);
             if (correction.type() == CorrectionType.VOID) {
                 incidents.cancel(id);
+                effects.voided(before, correction.id());
                 return;
             }
+            String oldType = incidents.currentTypeCode(id);
             long typeId = ((Number) ((Map<?, ?>) correction.correctedContent()).get("incidentTypeId")).longValue();
             var type = catalog.incidentTypes().stream()
                     .filter(candidate -> candidate.id() == typeId)
                     .findFirst()
                     .orElseThrow(() -> new InvalidValueException("Loại sự cố không tồn tại"));
             incidents.changeType(id, type.id(), type.code());
+            effects.typeChanged(before, oldType, type.code(), correction.actorId(), correction.id());
         }
 
         private IncidentView find(long id) {

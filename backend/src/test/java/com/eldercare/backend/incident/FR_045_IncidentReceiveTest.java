@@ -19,6 +19,7 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
+import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.incident.service.IncidentService;
 import java.time.Instant;
@@ -38,7 +39,8 @@ class FR_045_IncidentReceiveTest {
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final BusinessTime time = mock(BusinessTime.class);
     private final CurrentUser user = mock(CurrentUser.class);
-    private final IncidentService service = new IncidentService(incidents, permissions, audit, events, time);
+    private final IncidentService service =
+            new IncidentService(incidents, permissions, audit, events, time, mock(IncidentProgressionStore.class));
 
     @BeforeEach
     void allowedNurse() {

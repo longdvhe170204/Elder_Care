@@ -108,7 +108,7 @@ class FR_029_AlertControllerTest {
 
         verify(handling).startHandling(12, user);
         verify(handling).assign(12, 55, "Giao D2", user);
-        verify(handling).changeLevel(12, IncidentLevel.CRITICAL, new Reason("Lặp 3 lần"), user);
+        verify(handling).changeLevel(null, 12, IncidentLevel.CRITICAL, new Reason("Lặp 3 lần"), user);
         verify(handling).close(12, "Đã cho nghỉ", null, user);
     }
 

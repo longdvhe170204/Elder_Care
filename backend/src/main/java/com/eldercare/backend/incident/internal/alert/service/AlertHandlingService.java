@@ -98,7 +98,6 @@ public class AlertHandlingService {
     }
 
     /** Đã tiếp nhận → Đang xử lý; người ra lệnh nhận cảnh báo (FR-031 "nhận từ người khác bằng Bắt đầu xử lý"). */
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional
     public void startHandling(long alertId, CurrentUser user) {
         var alert = lockForHandler(alertId, user);
@@ -113,7 +112,7 @@ public class AlertHandlingService {
     @BusinessCommand
     @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional
-    public void changeLevel(long alertId, IncidentLevel newLevel, Reason reason, CurrentUser user) {
+    public void changeLevel(Target scopeTarget, long alertId, IncidentLevel newLevel, Reason reason, CurrentUser user) {
         if (reason == null) throw new ReasonRequiredException();
         if (newLevel == null) throw new InvalidValueException("Thiếu mức mới");
         var alert = lockForHandler(alertId, user);
@@ -142,7 +141,6 @@ public class AlertHandlingService {
     }
 
     /** Đang xử lý → Đã đóng: kết quả bắt buộc; cảnh báo công việc Bắt buộc quá hạn cần lý do (BR-M04-06). */
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional
     public void close(long alertId, String resolution, Reason reason, CurrentUser user) {
         var alert = lockForHandler(alertId, user);
@@ -161,7 +159,6 @@ public class AlertHandlingService {
      * Trưởng tầng hoặc Bác sĩ có quyền xử lý cảnh báo với người cao tuổi đó; ghi chú bắt buộc (bảng FR-029).
      * {@code staffId} là mã nhân viên theo api-007.
      */
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional
     public void assign(long alertId, long staffId, String note, CurrentUser user) {
         if (note == null || note.isBlank()) throw new InvalidValueException("Giao người phụ trách phải có ghi chú");
@@ -191,6 +188,11 @@ public class AlertHandlingService {
                 ENTITY + ":" + alertId + ":ASSIGNED:" + assignee.accountId() + ":" + now.toEpochMilli(),
                 now,
                 AlertNotices.assigned(alert, staffId, now)));
+    }
+
+    /** Đối tượng của cảnh báo cho lớp phạm vi của {@code @RequiresPermission} (lệnh {@code @BusinessCommand}). */
+    public Target target(long alertId) {
+        return target(alerts.findById(alertId).orElseThrow(NotFoundException::new));
     }
 
     AlertRecord lockForHandler(long alertId, CurrentUser user) {

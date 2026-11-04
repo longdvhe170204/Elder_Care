@@ -7,9 +7,10 @@ import java.time.temporal.ChronoUnit;
 /** Tham số CFG-M05-06 "Theo dõi sau ngã": khoảng đo và thời gian theo dõi (FR-051). */
 public record FallMonitoringSetting(Amount interval, Amount duration) {
 
-    public record Amount(long value, ChronoUnit unit) {
+    /** {@code unit} là tên hằng {@link ChronoUnit} như tham số lưu ({@code HOURS}); Jackson 3 đọc enum này theo tên hiển thị. */
+    public record Amount(long value, String unit) {
         public Duration toDuration() {
-            return Duration.of(value, unit);
+            return Duration.of(value, ChronoUnit.valueOf(unit));
         }
     }
 

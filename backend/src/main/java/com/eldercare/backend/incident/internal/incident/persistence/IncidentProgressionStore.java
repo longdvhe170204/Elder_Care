@@ -27,6 +27,9 @@ public class IncidentProgressionStore {
     static final SharedKind<Map> HANDLER = SharedKind.of("M05.INCIDENT_HANDLER", Map.class);
 
     @SuppressWarnings("rawtypes")
+    static final SharedKind<Map> LEVEL_CHANGE = SharedKind.of("M05.INCIDENT_LEVEL_CHANGE", Map.class);
+
+    @SuppressWarnings("rawtypes")
     static final SharedKind<Map> ASSIGNMENT = SharedKind.of("M05.INCIDENT_ASSIGNMENT", Map.class);
 
     private final RecordEventApi records;
@@ -157,5 +160,30 @@ public class IncidentProgressionStore {
     /** Một diễn biến theo mã (cho đính chính); không có thì ném lỗi không tìm thấy của kho chung. */
     public com.eldercare.backend.administration.shared.api.dto.RecordEvent<ProgressionContent> get(long id) {
         return records.require(PROGRESSION, id);
+    }
+
+    /** Đổi mức sự cố (data-model {@code doi_muc_su_co}, R-15 → {@code su_kien_chung}; FR-044). */
+    public void recordLevelChange(
+            long incidentId, String from, String to, String reason, long actorId, Instant at, Long floorAreaId) {
+        var content = new java.util.LinkedHashMap<String, Object>();
+        content.put("from", from);
+        content.put("to", to);
+        content.put("reason", reason);
+        records.add(
+                LEVEL_CHANGE,
+                incident(incidentId),
+                new NewRecordEvent<>(content, null, actorId, false, at, at, at, floorAreaId, null));
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> levelChanges(long incidentId) {
+        return records.list(LEVEL_CHANGE, incident(incidentId)).stream()
+                .map(event -> {
+                    var item = new java.util.LinkedHashMap<String, Object>((Map<String, Object>) event.content());
+                    item.put("changedBy", event.actorId());
+                    item.put("changedAt", event.occurredAt());
+                    return (Map<String, Object>) item;
+                })
+                .toList();
     }
 }

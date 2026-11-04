@@ -74,6 +74,12 @@ public class ContainmentStore {
                 .anyMatch(row -> row.content().incidentIds().equals(Set.of(incidentId)));
     }
 
+    /** Còn vùng Đang khoanh vùng có gắn sự cố này (FR-046a). */
+    public boolean activeFor(long incidentId) {
+        return records.listByStatus(KIND, Set.of(ACTIVE)).stream()
+                .anyMatch(row -> row.content().incidentIds().contains(incidentId));
+    }
+
     public List<SimpleRecord<ContainmentContent>> list() {
         return records.listByStatus(KIND, Set.of(ACTIVE, RELEASED));
     }
