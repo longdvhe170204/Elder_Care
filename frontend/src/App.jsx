@@ -26,6 +26,7 @@ import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { HealthCatalogPage } from '@/features/health-catalog/HealthCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
+import { FamilyMembersPage } from '@/features/relatives/FamilyMembersPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
@@ -52,6 +53,7 @@ const PAGES = {
   alerts: AlertsPage,
   handovers: HandoverPage,
   relatives: RelativesPage,
+  'family-members': FamilyMembersPage,
   'audit-log': AuditLogTable,
   admin: AdminPage,
   'approval-requests': ApprovalInbox,

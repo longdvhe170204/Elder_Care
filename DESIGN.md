@@ -1,9 +1,9 @@
 ---
 name: Elder_Care
-version: 6.8.0
+version: 6.8.1
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
-updated: 2026-10-28
+updated: 2026-11-04
 direction: Dòng thời gian ca (hướng 3): nền trơn, menu xanh đêm đậm, trạng thái là chữ màu
 colors:
   light:
@@ -335,10 +335,10 @@ Từ 6.0.0 `StatusBadge` hiện **chữ màu 12/500, không nền, không viền
 | --- | --- | --- |
 | `urgent` | Chữ đỏ | Thông báo mức Khẩn cấp; Công việc Quá hạn; người cao tuổi Quá hạn đánh giá lại (cột Đánh giá lại, dải đầu tab Đánh giá); sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ; viền đỏ của thẻ cảnh báo Khẩn cấp hoặc đã leo thang tối đa |
 | `attention` | Chữ hổ phách | Thông báo mức Trung bình, Gửi thất bại, Không liên lạc được; liên hệ trực tiếp Chờ liên hệ; lượt nhắc gọi Chờ kết quả; Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; bản ghi ngoại tuyến Chờ xem lại; kết quả đồng bộ Đã nhận kèm nhãn mất quyền, Bị từ chối; quyền Đã thu hẹp (lệch ma trận); dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
-| `settled` | Chữ xanh lá | Thông báo Đã xem, Đã xác nhận; liên hệ trực tiếp Đã liên hệ; lượt nhắc gọi Đã có kết quả; kênh thông báo Đang bật; Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động; kết quả đồng bộ Đã nhận |
+| `settled` | Chữ xanh lá | Thông báo Đã xem, Đã xác nhận; liên hệ trực tiếp Đã liên hệ; lượt nhắc gọi Đã có kết quả; kênh thông báo Đang bật; Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quan hệ người thân Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động; kết quả đồng bộ Đã nhận |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
-| `neutral` | Chữ phụ | Thông báo mức Nhẹ, Chờ hết giờ yên tĩnh, Đã gửi, Không gửi; liên hệ trực tiếp Không liên hệ được; kênh thông báo Đã tắt; lỗi gửi (trừ Gửi thất bại); Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy; tài khoản Không hoạt động; quyền Theo ma trận |
+| `neutral` | Chữ phụ | Thông báo mức Nhẹ, Chờ hết giờ yên tĩnh, Đã gửi, Không gửi; liên hệ trực tiếp Không liên hệ được; kênh thông báo Đã tắt; lỗi gửi (trừ Gửi thất bại); Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; quan hệ người thân Đã kết thúc; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy; tài khoản Không hoạt động; quyền Theo ma trận |
 | `neutral-outline` | Chữ phụ, viền màu viền điều khiển (`--input`, 3,38:1 trên trắng), nền trong | Tài khoản Đã khóa (tách khỏi Không hoạt động cùng tông trung tính, chủ dự án duyệt 2026-10-20) |
 
 ### 3.6 Ảnh đại diện
@@ -733,6 +733,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.8.1 | 2026-11-04 | Mục 3.5 thêm trạng thái quan hệ người thân (012 T013): Hiệu lực tông `settled`, Đã kết thúc tông `neutral`; không thêm màu |
 | 6.8.0 | 2026-11-01 | Chủ dự án duyệt lượt nhắc gọi trên web (009 T035a): khối "Cần gọi điện" trên bộ lọc của hộp thông báo, dòng có số và nút ghi kết quả; tông `attention` Chờ kết quả, `settled` Đã có kết quả |
 | 6.7.0 | 2026-10-28 | Theo yêu cầu chủ dự án: màn Người cao tuổi chỉ dùng trường của api-001 (mục 13 điều 6). Mục 5.1 bỏ cột Phòng (003), thêm Ngày sinh, Đánh giá lại; một ô tìm; thanh lọc trạng thái không số đếm. Mục 5 "Hồ sơ người cao tuổi trong khung" bỏ Hôm nay, phòng, lựa chọn, phụ trách chính, sở thích tới khi hợp đồng của feature sở hữu được nối; các phần Sức khỏe, Đánh giá, Trạng thái, Đồng ý, Nguyện vọng mở bằng `Sheet` 768px; form cập nhật thông tin mở bằng `Sheet`. Mục 7.2 `about-person`, mục 14 cập nhật. Không thêm màu |
 | 6.6.0 | 2026-10-28 | Theme mobile theo 6.x (mục 15.2 thêm tên lớp theme, `Tones`, `AppRadius`, cách ánh xạ thang chữ vào `TextTheme`; 15.7 hiện trạng). Sửa frontmatter `dark.control-line` từ `#6E80A0` thành `#7E8591` cho khớp bảng 3.1, độ tương phản 3.4 và `index.css`. Không thêm màu |

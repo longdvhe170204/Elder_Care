@@ -200,7 +200,15 @@ export const NAV_GROUPS = [
       },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
-      // Dòng "Mong muốn về khách thăm, người đón" (Q-364); người thân và quyền (dòng "Người thân và quyền") thêm khi thiết kế 012
+      // Dòng "Hồ sơ, quan hệ, vai trò người thân" (FR-067 của 012; Phụ lục 27 "Người thân và quyền"): Hành chính lập, Quản lý viện xem
+      {
+        key: 'family-members',
+        label: 'Người thân và quyền',
+        icon: 'Users',
+        functions: ['FAMILY_MEMBER_PERMISSION'],
+        roles: [QL, HC],
+      },
+      // Dòng "Mong muốn về khách thăm, người đón" (Q-364)
       {
         key: 'relatives',
         label: 'Người thân',

@@ -78,6 +78,15 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.staffing.scheduling.M09DailyJob",
                     "cảnh báo đào tạo và nhắc bộ phận thiếu phụ trách (008 N-13)"),
             Map.entry(
+                    "com.eldercare.backend.family.scheduling.M10MinuteJob",
+                    "chuyển trạng thái theo giờ (bản ghi đón, ngoại lệ hết hạn, lượt thăm Không đến), nhắc, phản hồi quá hạn; không lập bản ghi (012 F-17)"),
+            Map.entry(
+                    "com.eldercare.backend.family.scheduling.M10HourlyJob",
+                    "nhắc yêu cầu thay đổi quyền chờ xác nhận (012 F-17, CFG-M10-11)"),
+            Map.entry(
+                    "com.eldercare.backend.family.scheduling.M10MidnightJob",
+                    "đếm đêm ở lại để hiển thị và báo 010 qua sự kiện; không lập khoản (012 F-17, Q-306)"),
+            Map.entry(
                     "com.eldercare.backend.health.scheduling.M06MinuteJob",
                     "xác nhận quá hạn đo lại, chuyển trạng thái lịch đo và ngưỡng; không tạo bản ghi đo (007 FR-017/022, S-21)"),
             Map.entry(
