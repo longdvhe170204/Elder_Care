@@ -30,6 +30,22 @@ public class IncidentController {
         this.currentUser = currentUser;
     }
 
+    @PostMapping("/{id}/receive")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã tiếp nhận"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> receive(
+            @PathVariable long id, @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        incidents.receive(id, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{id}/change-level")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Đã đổi mức"),
