@@ -26,7 +26,8 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo năm gói con `BE/care/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; ArchUnit `BT/care/M04HoatDongArchTest.java`: gói `..lich..` không tạo buổi, danh sách, mục, công việc làm lại, sự cố (Q-306, Q-307) (research L-01)
+- [x] T001 Tạo năm gói con `BE/care/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; ArchUnit `BT/care/M04HoatDongArchTest.java`: gói `..lich..` không tạo buổi, danh sách, mục, công việc làm lại, sự cố (Q-306, Q-307) (research L-01)
+  - *(2026-11-05, C)* Gói `care/internal/{activity, session, trip, wellbeing, qualitycheck}` (package-info), job ở `care/scheduling` có sẵn; luật `M04ArchitectureRules.NO_JOB_CREATES_ACTIVITY_RECORDS`, test `M04ActivityArchTest` (3 ca, có bytecode cố ý vi phạm).
 
 ---
 
