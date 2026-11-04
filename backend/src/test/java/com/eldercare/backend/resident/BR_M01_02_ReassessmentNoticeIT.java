@@ -33,6 +33,9 @@ import org.springframework.dao.DuplicateKeyException;
  */
 class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
 
+    @Autowired
+    com.eldercare.backend.resident.api.ResidentStatisticsApi statistics;
+
     private static final Duration PERIOD = Duration.ofDays(90);
     private static final Duration DEADLINE = Duration.ofHours(48);
 
@@ -186,6 +189,13 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
         ReassessmentStatus status = status(id);
         assertThat(status.state()).isEqualTo(ReassessmentState.OVERDUE);
         assertNear(status.overdueSince(), notifiedAt.plus(DEADLINE));
+        // 016 FR-044: số liệu quá hạn đánh giá lại lấy đúng trạng thái 001 xác định
+        assertThat(statistics
+                        .overdueReassessments(com.eldercare.backend.administration.account.api.dto.ScopeFilter.FACILITY)
+                        .filter(o -> o.residentId() == id))
+                .singleElement()
+                .satisfies(o -> assertThat(o.overdueSince())
+                        .isEqualTo(status.overdueSince().orElseThrow()));
 
         confirmed(id, AssessmentType.REASSESSMENT, CareLevel.REGULAR, "Định kỳ", null);
         assertThat(status(id).state())
