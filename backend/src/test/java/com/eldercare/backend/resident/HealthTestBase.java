@@ -128,11 +128,14 @@ public abstract class HealthTestBase extends MySqlIntegrationTestBase {
     }
 
     protected long severityId() {
-        return jdbc.queryForObject("SELECT id FROM allergy_severity WHERE name = 'Nhẹ'", Long.class);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY' AND name = 'Nhẹ'", Long.class);
     }
 
     protected long sourceId() {
-        return jdbc.queryForObject("SELECT id FROM information_source WHERE name = 'Người thân'", Long.class);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE' AND name = 'Người thân'",
+                Long.class);
     }
 
     /** Dị nguyên chọn từ danh mục, tên riêng cho mỗi lần gọi. */
