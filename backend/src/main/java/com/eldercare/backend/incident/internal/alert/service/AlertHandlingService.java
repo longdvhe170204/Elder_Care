@@ -193,7 +193,7 @@ public class AlertHandlingService {
                 AlertNotices.assigned(alert, staffId, now)));
     }
 
-    private AlertRecord lockForHandler(long alertId, CurrentUser user) {
+    AlertRecord lockForHandler(long alertId, CurrentUser user) {
         var alert = alerts.lock(alertId).orElseThrow(NotFoundException::new);
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {
             throw new PermissionDeniedException("Quản lý viện không xử lý cảnh báo (Q-71)");

@@ -268,6 +268,15 @@ public class AlertStore {
                 """, resolution, reason, closedById, Timestamp.from(at), id, expectedVersion));
     }
 
+    /** Đang xử lý → Chuyển sự cố, gắn sự cố liên kết, dừng leo thang (bảng FR-029). */
+    public void convert(long id, long incidentId, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CONVERTED_TO_INCIDENT', incident_id = ?, escalation_stopped = TRUE,
+                  version = version + 1
+                WHERE id = ? AND status = 'IN_PROGRESS' AND version = ?
+                """, incidentId, id, expectedVersion));
+    }
+
     /** Giao người phụ trách: đổi người, giữ trạng thái, cấp, hạn và dấu tạm nhận (bảng FR-029). */
     public void reassign(long id, long assigneeId, int expectedVersion) {
         requireOne(jdbc.update("""
