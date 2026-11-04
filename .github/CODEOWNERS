@@ -3,14 +3,12 @@
 
 *                                                   @longdvhe170204
 
-# A: nền tảng, tài khoản, thông báo, báo cáo, người thân, dinh dưỡng (012, 011 nhận 2026-11-03)
+# A: nền tảng, tài khoản, thông báo, báo cáo, người thân (012 nhận 2026-11-03)
 /backend/src/main/java/com/eldercare/backend/common/   @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/notification/      @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/reporting/      @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/administration/      @longdvhe170204
 /backend/src/main/java/com/eldercare/backend/family/      @longdvhe170204
-/backend/src/main/java/com/eldercare/backend/nutrition/      @longdvhe170204
-/specs/011-nutrition-management/                    @longdvhe170204
 /specs/012-family-portal/                           @longdvhe170204
 /backend/pom.xml                                    @longdvhe170204
 /frontend/package.json                              @longdvhe170204
@@ -33,12 +31,14 @@
 /specs/014-activity-care-quality/                   @HungNX-nguyen
 /specs/019-inventory-assets/                        @HungNX-nguyen
 
-# D: y tế
+# D: y tế, dinh dưỡng (011 nhận lại 2026-11-04)
 /backend/src/main/java/com/eldercare/backend/incident/      @03coc08
 /backend/src/main/java/com/eldercare/backend/health/      @03coc08
 /backend/src/main/java/com/eldercare/backend/medication/      @03coc08
+/backend/src/main/java/com/eldercare/backend/nutrition/      @03coc08
 /specs/006-medication-management/                   @03coc08
 /specs/007-health-alert-incident/                   @03coc08
+/specs/011-nutrition-management/                    @03coc08
 
 # E: nhân sự, ca, tài chính
 /backend/src/main/java/com/eldercare/backend/staffing/      @ptlog18
