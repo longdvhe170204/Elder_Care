@@ -58,11 +58,16 @@ class BR_M01_11_CatalogIT extends MySqlIntegrationTestBase {
 
     @Test
     void BR_M01_11_seeds_severityAndSourceAndCareNeedFromSource() throws Exception {
-        assertThat(jdbc.queryForList("SELECT name FROM allergy_severity ORDER BY display_order", String.class))
+        assertThat(jdbc.queryForList(
+                        "SELECT name FROM catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY' ORDER BY sort_order",
+                        String.class))
                 .startsWith("Nhẹ", "Trung bình", "Nặng");
-        assertThat(jdbc.queryForList("SELECT name FROM information_source ORDER BY id", String.class))
+        assertThat(jdbc.queryForList(
+                        "SELECT name FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE' ORDER BY id",
+                        String.class))
                 .startsWith("Người cao tuổi", "Người thân", "Hồ sơ y tế kèm theo", "Bác sĩ khám");
-        assertThat(jdbc.queryForList("SELECT name FROM care_need ORDER BY id", String.class))
+        assertThat(jdbc.queryForList(
+                        "SELECT name FROM catalog_item WHERE catalog_type = 'M01.CARE_NEED' ORDER BY id", String.class))
                 .startsWith(
                         "Hỗ trợ vận động",
                         "Theo dõi sức khỏe thường xuyên",
@@ -206,7 +211,8 @@ class BR_M01_11_CatalogIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isForbidden());
         read("/api/v1/catalogs/care-needs", doctor).andExpect(status().isOk());
 
-        long id = jdbc.queryForObject("SELECT MIN(id) FROM care_need", Long.class);
+        long id = jdbc.queryForObject(
+                "SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.CARE_NEED'", Long.class);
         command(post("/api/v1/catalogs/care-needs/" + id + "/deactivate"), manager, null, "{}")
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));

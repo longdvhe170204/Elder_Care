@@ -28,9 +28,7 @@ import com.eldercare.backend.resident.api.events.OtherAllergyRecorded;
 import com.eldercare.backend.resident.internal.health.domain.HealthItem;
 import com.eldercare.backend.resident.internal.health.domain.HealthItemStatus;
 import com.eldercare.backend.resident.internal.health.persistence.AllergenRepository;
-import com.eldercare.backend.resident.internal.health.persistence.AllergySeverityRepository;
 import com.eldercare.backend.resident.internal.health.persistence.HealthItemRepository;
-import com.eldercare.backend.resident.internal.health.persistence.InformationSourceRepository;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
@@ -108,8 +106,7 @@ public class HealthItemService implements HealthItemApi {
     private final HealthItemRepository items;
     private final ResidentRepository residents;
     private final AllergenRepository allergens;
-    private final AllergySeverityRepository severities;
-    private final InformationSourceRepository sources;
+    private final M01Catalogs catalogs;
     private final ProfileOpenGuard guard;
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
@@ -121,8 +118,7 @@ public class HealthItemService implements HealthItemApi {
             HealthItemRepository items,
             ResidentRepository residents,
             AllergenRepository allergens,
-            AllergySeverityRepository severities,
-            InformationSourceRepository sources,
+            M01Catalogs catalogs,
             ProfileOpenGuard guard,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
@@ -132,8 +128,7 @@ public class HealthItemService implements HealthItemApi {
         this.items = items;
         this.residents = residents;
         this.allergens = allergens;
-        this.severities = severities;
-        this.sources = sources;
+        this.catalogs = catalogs;
         this.guard = guard;
         this.auditLog = auditLog;
         this.events = events;
@@ -285,12 +280,16 @@ public class HealthItemService implements HealthItemApi {
         if (text != null && text.length() > MAX_TEXT_LENGTH) {
             throw new InvalidValueException("Nội dung tối đa " + MAX_TEXT_LENGTH + " ký tự");
         }
-        requireActive(sources.findById(c.sourceId()), "Nguồn thông tin không có hoặc đã ngừng hiệu lực");
+        if (!catalogs.isActive(M01Catalogs.INFORMATION_SOURCE, c.sourceId())) {
+            throw new InvalidValueException("Nguồn thông tin không có hoặc đã ngừng hiệu lực");
+        }
         if (c.type() == HealthItemType.ALLERGY) {
             if (c.severityId() == null) {
                 throw new InvalidValueException("Mức độ là bắt buộc với dị ứng (BR-M01-11)");
             }
-            requireActive(severities.findById(c.severityId()), "Mức độ dị ứng không có hoặc đã ngừng hiệu lực");
+            if (!catalogs.isActive(M01Catalogs.ALLERGY_SEVERITY, c.severityId())) {
+                throw new InvalidValueException("Mức độ dị ứng không có hoặc đã ngừng hiệu lực");
+            }
             if ((c.allergenId() == null) == (text == null)) {
                 throw new InvalidValueException("Dị ứng chọn một dị nguyên trong danh mục, hoặc nhập tay loại khác");
             }
@@ -340,12 +339,15 @@ public class HealthItemService implements HealthItemApi {
                 .map(HealthItem::getAllergenId)
                 .filter(Objects::nonNull)
                 .toList()));
-        Map<Long, String> severityNames = nameMap(severities.findAllById(found.stream()
-                .map(HealthItem::getSeverityId)
-                .filter(Objects::nonNull)
-                .toList()));
-        Map<Long, String> sourceNames = nameMap(
-                sources.findAllById(found.stream().map(HealthItem::getSourceId).toList()));
+        Map<Long, String> severityNames = catalogs.names(
+                M01Catalogs.ALLERGY_SEVERITY,
+                found.stream()
+                        .map(HealthItem::getSeverityId)
+                        .filter(Objects::nonNull)
+                        .toList());
+        Map<Long, String> sourceNames = catalogs.names(
+                M01Catalogs.INFORMATION_SOURCE,
+                found.stream().map(HealthItem::getSourceId).toList());
         return found.stream()
                 .map(i -> new ItemView(
                         i.getId(),

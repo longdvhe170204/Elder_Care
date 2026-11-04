@@ -186,7 +186,9 @@ class ResidentSchemaIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_053_careLevel_fixedThreeLevelsAndOneEntryPerInstant() throws SQLException {
-        assertThat(jdbc.queryForList("SELECT code FROM care_level ORDER BY display_order", String.class))
+        assertThat(jdbc.queryForList(
+                        "SELECT code FROM catalog_item WHERE catalog_type = 'M01.CARE_LEVEL' ORDER BY sort_order",
+                        String.class))
                 .containsExactly("BASIC", "REGULAR", "SPECIAL");
         long id = resident("Người A", null, null, "IN_RESIDENCE");
         String insert = "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
@@ -204,11 +206,14 @@ class ResidentSchemaIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_052_currentCareLevel_mustBeOneOfTheThreeLevels() {
-        assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO resident (profile_code, full_name, date_of_birth, gender, status, status_since,"
-                                + " current_care_level, created_at, created_by) VALUES ('X2', 'A', '1940-01-01',"
-                                + " 'MALE', 'IN_RESIDENCE', NOW(6), 'PLATINUM', NOW(6), 1)"))
-                .isInstanceOf(DataIntegrityViolationException.class);
+    void FR_052_careLevelCatalog_isExactlyTheThreeLevelsTheBackendAccepts() {
+        // Từ 001 T084 (data-model 0.1) bỏ khóa ngoại current_care_level → care_level: mã được kiểm ở backend (enum
+        // CareLevel), nên danh mục chung phải khớp đúng ba mức đó.
+        assertThat(jdbc.queryForList(
+                        "SELECT code FROM catalog_item WHERE catalog_type = 'M01.CARE_LEVEL' ORDER BY sort_order",
+                        String.class))
+                .containsExactly(java.util.Arrays.stream(com.eldercare.backend.resident.api.dto.CareLevel.values())
+                        .map(Enum::name)
+                        .toArray(String[]::new));
     }
 }
