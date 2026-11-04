@@ -79,6 +79,15 @@ public class IncidentStore {
                 id);
     }
 
+    public void receive(long id, long receiverId, Instant at, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET status='IN_PROGRESS', received_at=?, received_by=?, assignee_id=?,
+                  escalation_stopped=TRUE, version=version+1
+                WHERE id=? AND status='NEW' AND version=?
+                """, Timestamp.from(at), receiverId, receiverId, id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
     public void changeLevel(long id, IncidentLevel level, boolean wasEmergency, int expectedVersion) {
         int changed = jdbc.update("""
                 UPDATE incident SET level=?, was_emergency=?, version=version+1

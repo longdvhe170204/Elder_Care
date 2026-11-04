@@ -59,6 +59,27 @@ class IncidentRecordIT extends MySqlIntegrationTestBase {
         assertThat(after.version()).isEqualTo(before.version() + 1);
     }
 
+    @Test
+    void FR_045_receiveSetsReceiverAssigneeAndStopsEscalationOnlyOnce() {
+        long id = insert();
+        var before = incidents.lock(id).orElseThrow();
+        long nurse = TestUsers.nextId();
+        var at = Instant.parse("2026-11-04T01:00:00Z");
+
+        incidents.receive(id, nurse, at, before.version());
+
+        var row = jdbc.queryForMap(
+                "SELECT status, received_by, assignee_id, escalation_stopped, version FROM incident WHERE id = ?", id);
+        assertThat(row.get("status")).isEqualTo("IN_PROGRESS");
+        assertThat(((Number) row.get("received_by")).longValue()).isEqualTo(nurse);
+        assertThat(((Number) row.get("assignee_id")).longValue()).isEqualTo(nurse);
+        assertThat(row.get("escalation_stopped")).isEqualTo(true);
+        assertThat(((Number) row.get("version")).intValue()).isEqualTo(before.version() + 1);
+        assertThatThrownBy(() -> incidents.receive(id, TestUsers.nextId(), at, before.version() + 1))
+                .isInstanceOf(DataAccessException.class)
+                .hasMessageContaining("đồng thời");
+    }
+
     private long insert() {
         long id = TestUsers.nextId();
         var at = Timestamp.from(Instant.parse("2026-11-03T00:00:00Z"));

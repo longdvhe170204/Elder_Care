@@ -14,6 +14,7 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.PermissionDeniedException;
+import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.CallReminderStopRequested;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
@@ -31,7 +32,8 @@ class BR_M05_22_IncidentLevelChangeTest {
     private final AuditLogApi audit = mock(AuditLogApi.class);
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final CurrentUser user = mock(CurrentUser.class);
-    private final IncidentService service = new IncidentService(incidents, permissions, audit, events);
+    private final IncidentService service =
+            new IncidentService(incidents, permissions, audit, events, mock(BusinessTime.class));
 
     @BeforeEach
     void allowedDoctor() {
