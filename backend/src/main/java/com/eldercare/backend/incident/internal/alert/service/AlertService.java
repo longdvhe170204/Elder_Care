@@ -250,28 +250,6 @@ public class AlertService {
     }
 
     private Instant calculateDeadline(IncidentLevel level, Instant now, Long floorAreaId) {
-        if (level == IncidentLevel.CRITICAL) {
-            return null; // Khẩn cấp không có hạn tiếp nhận, phát báo động ngay (FR-031)
-        }
-        if (level == IncidentLevel.MEDIUM) {
-            return now.plus(parameterApi
-                    .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M05_01)
-                    .asDuration());
-        }
-        if (floorAreaId == null || staffPort.isEmpty()) {
-            throw new IllegalStateException("Chưa có nguồn ca để tính hạn cảnh báo Nhẹ");
-        }
-        var shifts = staffPort.get();
-        var current = shifts.shiftAt(floorAreaId, now)
-                .orElseThrow(() -> new IllegalStateException("Chưa có ca hiện tại của tầng"));
-        var handoverLead = parameterApi
-                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M09_04)
-                .asDuration();
-        if (now.isAfter(current.endsAt().minus(handoverLead))) {
-            return shifts.nextShift(floorAreaId, now)
-                    .orElseThrow(() -> new IllegalStateException("Chưa có ca kế tiếp của tầng"))
-                    .endsAt();
-        }
-        return current.endsAt();
+        return AcknowledgementDeadlines.of(level, now, floorAreaId, parameterApi, staffPort);
     }
 }
