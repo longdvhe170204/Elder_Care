@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Hai việc nhắc của phiếu nguyện vọng cuối đời (001 T069; research H-12). Nhắc thiếu phiếu (FR-023d): mỗi CFG-M01-06 kể
  * từ lúc Hoàn tất tiếp nhận thiếu phiếu, cho tới khi có phiếu Hiệu lực hoặc hồ sơ sang trạng thái cuối (FR-023f). Nhắc xem
  * lại nhận định (FR-023i, Q-360): một lần khi tới ngày xem lại của phiếu Hiệu lực. Chỉ phát sự kiện và ghi bảng kỹ thuật
- * {@code periodic_reminder}, không tạo bản ghi nghiệp vụ và không đổi phiếu (000 FR-010a); người nhận và mức do 009 xếp.
+ * {@code reminder_marker}, không tạo bản ghi nghiệp vụ và không đổi phiếu (000 FR-010a); người nhận và mức do 009 xếp.
  * Phiếu nguyện vọng khi điều trị không có nhắc (FR-023l).
  */
 @Service
@@ -57,7 +57,7 @@ public class WishReminderService {
     /** Bắt đầu nhắc thiếu phiếu cho hồ sơ; gọi lại không thêm dòng (khóa chính chống lặp). */
     @Transactional
     public void startReminding(long residentId) {
-        reminders.start(MISSING, residentId, 0, time.now());
+        reminders.start(MISSING, residentId, 0);
     }
 
     /** Số lần nhắc thiếu phiếu phát trong lần chạy này. */
@@ -68,7 +68,7 @@ public class WishReminderService {
         List<DueReminder> due = reminders.dueWithoutActive(MISSING, "end_of_life_wish", now.minus(period));
         for (DueReminder row : due) {
             int number = row.reminderCount() + 1;
-            reminders.markReminded(MISSING, row.residentId(), 0, now, number);
+            reminders.markReminded(MISSING, row.residentId(), 0, number);
             events.publishEvent(new MissingEndOfLifeWishReminder(row.residentId(), number, now));
         }
         return due.size();
@@ -80,8 +80,8 @@ public class WishReminderService {
         Instant now = time.now();
         int sent = 0;
         for (WishReviewDue row : wishes.dueReviews(time.today(), REVIEW)) {
-            // khóa chính (type, resident_id, milestone_id) chặn nhắc trùng khi hai lần chạy chồng nhau
-            if (reminders.startReminded(REVIEW, row.residentId(), row.wishId(), now)) {
+            // khóa duy nhất của reminder_marker chặn nhắc trùng khi hai lần chạy chồng nhau
+            if (reminders.startReminded(REVIEW, row.residentId(), row.wishId())) {
                 events.publishEvent(new SelfDeterminationReviewReminder(
                         row.residentId(), row.wishId(), staffIdOf(row.assessingDoctorId()), now));
                 sent++;
