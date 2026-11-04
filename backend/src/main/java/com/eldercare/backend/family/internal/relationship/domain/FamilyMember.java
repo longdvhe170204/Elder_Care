@@ -8,4 +8,7 @@ public record FamilyMember(
         String idDocumentType,
         String idDocumentNumber,
         String address,
-        int version) {}
+        int version) {
+
+    public static final String ENTITY_TYPE = "M10.FAMILY_MEMBER";
+}

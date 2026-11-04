@@ -48,6 +48,14 @@ public class RelationshipQueries {
                 .findFirst();
     }
 
+    /** Quan hệ Hiệu lực tại thời điểm có quyền đang bật lúc đó, theo thứ tự liên hệ. */
+    public List<FamilyRelationship> withRightAt(long residentId, FamilyRight right, Instant at) {
+        return store.ofResident(residentId).stream()
+                .filter(r -> r.activeAt(at))
+                .filter(r -> history.valueAt(r.id(), RelationshipAttribute.of(right), at))
+                .toList();
+    }
+
     public boolean representativeAt(long familyMemberId, long residentId, Instant at) {
         return valueAt(familyMemberId, residentId, RelationshipAttribute.REPRESENTATIVE, at);
     }
