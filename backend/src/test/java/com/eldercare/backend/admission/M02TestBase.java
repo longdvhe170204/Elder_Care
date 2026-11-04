@@ -27,9 +27,13 @@ import org.springframework.context.annotation.Import;
  * Người dùng là Hành chính ({@code office}) trừ khi test đổi.
  */
 // Điều kiện giường của 003 (participant thật cần phân bổ thật) do bản giả otherModules đứng thay; ca có giường thật ở
-// AdmissionRealBedIT
+// AdmissionRealBedIT. Điều kiện DBR_02 của 012 (participant thật đọc quan hệ người thân thật) cũng do otherModules đứng
+// thay; ca thật ở DBR_02_PrimaryContactIT của 012
 @org.springframework.test.context.bean.override.mockito.MockitoBean(
         name = "allocationStatusParticipant",
+        types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
+@org.springframework.test.context.bean.override.mockito.MockitoBean(
+        name = "m10StatusParticipant",
         types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
 @Import({FakeM02PortsConfig.class, M02TestBase.Fakes.class})
 public abstract class M02TestBase extends AssessmentTestBase {

@@ -198,18 +198,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story
+            // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1 xong 2026-11-04)
             new Contract(
                     Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"),
                     Set.of(
-                            "GET /api/v1/family-members",
-                            "POST /api/v1/family-members",
-                            "GET /api/v1/family-members/{id}",
-                            "PUT /api/v1/family-members/{id}",
-                            "GET /api/v1/residents/{residentId}/relationships",
-                            "POST /api/v1/residents/{residentId}/relationships",
-                            "POST /api/v1/relationships/{id}/{command}",
-                            "POST /api/v1/residents/{residentId}/family-registration-forms",
                             "GET /api/v1/residents/{residentId}/pickup-list",
                             "GET /api/v1/right-change-requests",
                             "POST /api/v1/right-change-requests",
