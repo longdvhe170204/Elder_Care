@@ -144,6 +144,16 @@ class FR_045_IncidentProgressionTest {
         verifyNothingAdded();
     }
 
+    @Test
+    void FR_041_joinedHandlerOutsideScopeMayAddProgression() {
+        when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
+        when(progressions.isHandler(41, 900L)).thenReturn(true);
+
+        service.add(41, ACTION, "Hỗ trợ ép tim", null, user);
+
+        verify(progressions).add(41, ACTION, "ACTION_TAKEN", "Hỗ trợ ép tim", NOW, 900L, true, 7L, NOW);
+    }
+
     private void verifyNothingAdded() {
         verify(progressions, never())
                 .add(anyLong(), anyLong(), any(), any(), any(), anyLong(), anyBoolean(), any(), any());

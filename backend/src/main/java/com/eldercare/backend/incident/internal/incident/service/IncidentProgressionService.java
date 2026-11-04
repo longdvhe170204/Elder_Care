@@ -76,7 +76,8 @@ public class IncidentProgressionService {
         if (content == null || content.isBlank()) throw new InvalidValueException("Thiếu nội dung diễn biến");
         var type = type(progressionTypeId);
         var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
-        boolean recorder = incidents.recordedBy(incidentId) == user.accountId();
+        boolean recorder = incidents.recordedBy(incidentId) == user.accountId()
+                || progressions.isHandler(incidentId, user.accountId());
         var permission = permissions.hasPermission(
                 user,
                 new PermissionKey(Function.INCIDENT_EMERGENCY, Operation.UPDATE),
