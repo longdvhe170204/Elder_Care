@@ -116,10 +116,10 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `inci
 | SC | Cách đo |
 | --- | --- |
 | SC-001 | `SC_001_XepMucTest`: 300 giá trị, 6 chỉ số, so với bảng tính tay 100%; 0 giá trị phi vật lý được lưu; 100% Nguy hiểm có `CHO_DO_LAI` hoặc `XU_LY_NGAY` |
-| SC-002 | Đo p95 `POST …/chi-so` ≤ 2 giây với 60 người dùng đồng thời và 200 bản ghi đồng bộ cùng lúc; từ lưu tới cảnh báo hiện ở danh sách của người phụ trách ≤ 10 giây |
+| SC-002 | Đo p95 `POST /residents/{residentId}/vital-signs` ≤ 2 giây với 60 người dùng đồng thời và 200 bản ghi đồng bộ cùng lúc; từ lưu tới cảnh báo hiện ở danh sách của người phụ trách ≤ 10 giây |
 | SC-003 | Q15 và `DBR_18_GopDongThoiIT` |
 | SC-004 | Q12 với đồng hồ giả lập: chênh giữa hạn và leo thang ≤ 1 phút; mỗi lần leo thang có dòng lịch sử; 0 cảnh báo đã tiếp nhận bị leo thang |
-| SC-005 | Q27: `GET /su-co/{id}/the-khan-cap` ≤ 3 giây; sự kiện thông báo ghi cùng transaction (thời gian tới thiết bị đo ở 009) |
+| SC-005 | Q27: `GET /incidents/{id}/emergency-card` ≤ 3 giây; sự kiện thông báo ghi cùng transaction (thời gian tới thiết bị đo ở 009) |
 | SC-006 | Q28, trigger nhóm 3 |
 | SC-007 | Q35 → Q37 |
 | SC-008 | Q44 với bộ dữ liệu 10 ngày dựng sẵn; so với danh sách tính tay |
@@ -149,7 +149,7 @@ Test: `FR_047c_MaTruongHopIT` (K1, K2), `FR_082_PhanChungSucKhoeIT` (K3), mở r
 | --- | --- | --- | --- |
 | S1 | A (tài khoản người cao tuổi, thiết bị đã gắn) gọi `POST /sos` không có phiên lúc 14:00 | 201 `DA_GUI`; cảnh báo Khẩn cấp `NCT_YEU_CAU_TRO_GIUP` có phòng, giường; D, P, B, T nhận; người liên hệ chính và QLV không nhận | US12 #1, FR-047d, FR-047e |
 | S2 | Gọi `POST /sos` thêm hai lần (Idempotency-Key khác); gửi lại một yêu cầu với cùng Idempotency-Key | Một cảnh báo, số lần 3; yêu cầu lặp không tăng số lần | US12 #3 |
-| S3 | D tiếp nhận; A gọi `GET /sos/hien-tai`; A chọn nơi `NHA_VE_SINH` hai lần | `DA_TIEP_NHAN` kèm họ tên D; lần chọn thứ hai 409 | US12 #4, FR-047f |
+| S3 | D tiếp nhận; A gọi `GET /sos/current`; A chọn nơi `NHA_VE_SINH` hai lần | `DA_TIEP_NHAN` kèm họ tên D; lần chọn thứ hai 409 | US12 #4, FR-047f |
 | S4 | Bản giả 001 đặt A Tạm vắng; gọi `POST /sos`; B bán trú chưa đến gọi `POST /sos` | 409 `KHONG_O_VIEN` kèm `lienHe`; 409 `KHONG_CO_MAT` | US12 #5, FR-047d |
 | S5 | A ở Hoạt động bên ngoài, bản giả 014 trả trưởng đoàn L, người đi cùng M; gọi `POST /sos` | L, M nhận thêm | US12 #6, FR-047e |
 | S6 | D đóng cảnh báo kết quả "hỗ trợ uống nước"; lần khác D kích hoạt khẩn cấp từ cảnh báo SOS | Không sự cố, người thân không được báo; sự cố Khẩn cấp và người liên hệ chính được báo theo FR-047 | US12 #7, #8 |
@@ -164,22 +164,22 @@ Dữ liệu: Tầng 2 có Nhân viên chăm sóc C, Điều dưỡng D2 cùng ca
 
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |
-| S9 | A gọi `POST /sos`; 12 giây sau `POST /sos/{id}/vi-tri` (sai số 15 m); tua 30 giây, gửi lại | Cảnh báo tạo ngay, không chờ vị trí; hai dòng `vi_tri_canh_bao`; chi tiết cảnh báo có `viTriMoiNhat` nhãn tham khảo; `GET /sos/hien-tai` có `guiViTri = true`, `chuKyGuiViTriGiay = 30` | US12 #11, FR-047h *(R-15: `vi_tri_canh_bao` → `su_kien_chung`)* |
+| S9 | A gọi `POST /sos`; 12 giây sau `POST /sos/{id}/location` (sai số 15 m); tua 30 giây, gửi lại | Cảnh báo tạo ngay, không chờ vị trí; hai dòng `vi_tri_canh_bao`; chi tiết cảnh báo có `viTriMoiNhat` nhãn tham khảo; `GET /sos/current` có `guiViTri = true`, `chuKyGuiViTriGiay = 30` | US12 #11, FR-047h *(R-15: `vi_tri_canh_bao` → `su_kien_chung`)* |
 | S10 | Không gửi vị trí 61 giây; mở chi tiết cảnh báo | `coTheDaCu = true` | FR-047h, edge case |
 | S11 | A ở Hoạt động bên ngoài bấm SOS, gửi vị trí; R mở cổng (012) | Vị trí là vị trí chính; dữ liệu cho 012 không có trường vị trí | US12 #12, FR-047h |
-| S12 | D tiếp nhận lúc 14:01, ghi "Đã tới nơi" lúc 14:03; A gửi vị trí tiếp; D ghi lần hai | `/sos/hien-tai` `DA_TOI` kèm họ tên D, `guiViTri = false`; vị trí 409 `DUNG_GUI_VI_TRI`; lần hai 409; báo cáo thời gian tới nơi 2 phút | US12 #13, FR-047j, FR-081 |
-| H1 | C (trong ca Tầng 2) gọi `POST /ho-tro-khan-cap` | Cảnh báo Khẩn cấp `NV_YEU_CAU_HO_TRO`, `nct_id` rỗng, tầng 2; sự kiện gửi `OnDutyDoctor`, `ShiftLead(2)`, `OnShiftStaff(2)`; không có nhóm người thân | US13 #1, FR-047i |
+| S12 | D tiếp nhận lúc 14:01, ghi "Đã tới nơi" lúc 14:03; A gửi vị trí tiếp; D ghi lần hai | `/sos/current` `DA_TOI` kèm họ tên D, `guiViTri = false`; vị trí 409 `DUNG_GUI_VI_TRI`; lần hai 409; báo cáo thời gian tới nơi 2 phút | US12 #13, FR-047j, FR-081 |
+| H1 | C (trong ca Tầng 2) gọi `POST /emergency-assist` | Cảnh báo Khẩn cấp `NV_YEU_CAU_HO_TRO`, `nct_id` rỗng, tầng 2; sự kiện gửi `OnDutyDoctor`, `ShiftLead(2)`, `OnShiftStaff(2)`; không có nhóm người thân | US13 #1, FR-047i |
 | H2 | C gửi `chi-tiet` loại `NGA`, nơi `NHA_VE_SINH`, `nctId` A; gửi lại `nctId` khác | Cảnh báo gắn A; gửi thêm nhóm FR-047a của A; lần hai 409 | US13 #2 |
 | H3 | K (không tầng) bấm; rồi `chi-tiet` tầng 3 | `ShiftLead` của mọi tầng đang có ca và `OnDutyDoctor`; sau đó thêm `OnShiftStaff(3)`, `ShiftLead(3)` | US13 #3 |
 | H4 | C ngoài ca bấm; C bấm hai lần khi cảnh báo đang mở | 409 `KHONG_TRONG_CA` kèm `lienHe`; lần hai gộp (số lần 2) | US13 #4, FR-028 |
-| H5 | D2 tiếp nhận, ghi đã tới nơi; C gọi `/ho-tro-khan-cap/hien-tai` | `DA_TOI` kèm họ tên D2 | US13 #5, FR-047j |
+| H5 | D2 tiếp nhận, ghi đã tới nơi; C gọi `/emergency-assist/current` | `DA_TOI` kèm họ tên D2 | US13 #5, FR-047j |
 | H6 | Cảnh báo H1 chưa có người: D2 kích hoạt khẩn cấp không `nctId`; rồi có `nctId` A | 422 `CAN_CHON_NGUOI_CAO_TUOI`; sự cố Khẩn cấp của A, R được báo theo FR-047 | US13 #6, FR-029 |
 | H7 | Trên sự cố Khẩn cấp của A, D2 xem `thong-tin-goi-115`, gọi `goi-115`, chọn `DA_GOI_DUOC`; Nhân viên chăm sóc xem thông tin | Có địa chỉ viện, tầng, nơi, họ tên, tuổi, dị ứng; lượt gọi có diễn biến `GOI_CAP_CUU` ở sự cố; nhân viên chăm sóc không thấy dị ứng (`truongBiAn`) | US13 #7, FR-047k, FR-048b |
 | H8 | Trên cảnh báo Khẩn cấp chưa có sự cố: gọi 115 Đã gọi được, rồi kích hoạt khẩn cấp | Sự cố mới có diễn biến `GOI_CAP_CUU` với thời điểm bấm (plan điểm báo lại 12) | FR-047k |
 | H9 | Đóng cảnh báo H1 khi chưa ghi đã tới nơi | `khongGhiMocToiNoi = true` | FR-047j |
-| C1 | A có phiếu nguyện vọng khi điều trị (bệnh viện X, cần hỏi trước, người cần báo R); sự cố Trung bình; `GET …/chuyen-vien/thong-tin` | Trả phiếu, người liên hệ chính; không có gợi ý cơ sở | US5 #8, FR-049 |
+| C1 | A có phiếu nguyện vọng khi điều trị (bệnh viện X, cần hỏi trước, người cần báo R); sự cố Trung bình; `GET /incidents/{id}/transfer-out/info` | Trả phiếu, người liên hệ chính; không có gợi ý cơ sở | US5 #8, FR-049 |
 | C2 | Chuyển viện với `daLienLacNguoiCanBao = false` không lý do; rồi có lý do, `nguoiDiKem`, hai tệp giấy chuyển viện | 422; 201, bản tóm tắt có nguyện vọng khi điều trị, người đi kèm; 001 nhận `tepDinhKemIds`; `phieuTepId` có PDF chứa dòng "không thay giấy chuyển cơ sở khám bệnh, chữa bệnh" | US5 #8, FR-049, FR-050, FR-050h |
-| C3 | `GET …/phieu` hai lần; `POST …/in-lai` | Hai lần cùng byte; bản in lại có dấu "Bản in lại"; hai dòng `lan_in_phieu_chuyen_vien` và nhật ký | FR-050h *(R-15: `lan_in_phieu_chuyen_vien` → hành động `nhat_ky`)* |
+| C3 | `GET /transfer-summaries/{id}/document` hai lần; `POST /transfer-summaries/{id}/reprint` | Hai lần cùng byte; bản in lại có dấu "Bản in lại"; hai dòng `lan_in_phieu_chuyen_vien` và nhật ký | FR-050h *(R-15: `lan_in_phieu_chuyen_vien` → hành động `nhat_ky`)* |
 | C4 | Chuyển viện từ sự cố Khẩn cấp, `daLienLacNguoiCanBao = false`, không lý do | 201 (cấp cứu, plan điểm báo lại 11) | FR-049 |
 
 Test: `BR_M05_28_ViTriSosIT` (S9 → S11), `BR_M05_30_DaToiNoiIT` (S12, H5, H9), `BR_M05_29_NutHoTroIT` (H1, H2, H4, H6), `FR_047i_NguoiNhanHoTroIT` (H1 → H3), `BR_M05_31_Goi115IT` (H7, H8), `BR_M05_32_PhieuChuyenVienIT` (C1 → C4), `PdfBieuMauTest` (font tiếng Việt, đóng dấu không đổi trang gốc), `ViTriKhongLoNguoiThanArchTest` (DTO cho 012 không có trường vị trí). SC-018 → SC-021: đo trên các test trên với đồng hồ giả lập; SC-021 đo thời gian dựng phiếu ≤ 3 giây.
