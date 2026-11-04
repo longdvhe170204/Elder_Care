@@ -17,6 +17,9 @@ class IncidentCommandApiIT extends MySqlIntegrationTestBase {
     @Autowired
     IncidentCommandApi commands;
 
+    @Autowired
+    com.eldercare.backend.incident.api.AlertCommandApi alertCommands;
+
     @Test
     void FR_026a_realBeanRequiresCallerTransaction() {
         assertThat(org.springframework.aop.support.AopUtils.getTargetClass(commands))
@@ -27,5 +30,9 @@ class IncidentCommandApiIT extends MySqlIntegrationTestBase {
         assertThatThrownBy(() -> commands.addProgression(1L, "ACTION_TAKEN", "x", user))
                 .isInstanceOf(IllegalTransactionStateException.class);
         assertThatThrownBy(() -> commands.record(null, user)).isInstanceOf(IllegalTransactionStateException.class);
+        assertThat(org.springframework.aop.support.AopUtils.getTargetClass(alertCommands))
+                .isEqualTo(com.eldercare.backend.incident.internal.alert.service.DefaultAlertCommandApi.class);
+        assertThatThrownBy(() -> alertCommands.acknowledge(1L, user))
+                .isInstanceOf(IllegalTransactionStateException.class);
     }
 }

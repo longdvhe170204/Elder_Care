@@ -120,7 +120,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/alerts",
                             "POST /api/v1/alerts",
                             "GET /api/v1/alerts/{id}",
-                            "POST /api/v1/alerts/{id}/receive",
                             "POST /api/v1/alerts/{id}/assign",
                             "POST /api/v1/alerts/{id}/start-handling",
                             "POST /api/v1/alerts/{id}/change-level",

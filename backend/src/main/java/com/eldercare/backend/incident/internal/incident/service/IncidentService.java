@@ -9,6 +9,7 @@ import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
@@ -70,7 +71,11 @@ public class IncidentService {
             if (permission.failedLayer().orElse(null) == FailedLayer.SCOPE) throw new NotFoundException();
             throw new PermissionDeniedException("Không có quyền tiếp nhận sự cố");
         }
-        if (!RECEIVER_ROLES.stream().anyMatch(user.roles()::contains)) {
+        boolean byDuty = permission
+                .basis()
+                .map(b -> b.kind() == PermissionBasis.Kind.DUTY)
+                .orElse(false);
+        if (!byDuty && !RECEIVER_ROLES.stream().anyMatch(user.roles()::contains)) {
             throw new PermissionDeniedException("Chỉ Điều dưỡng, Trưởng tầng, Bác sĩ tiếp nhận sự cố");
         }
         if (!"NEW".equals(incident.status())) {

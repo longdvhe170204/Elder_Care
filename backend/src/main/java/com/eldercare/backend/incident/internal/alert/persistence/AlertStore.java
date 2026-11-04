@@ -1,5 +1,6 @@
 package com.eldercare.backend.incident.internal.alert.persistence;
 
+import com.eldercare.backend.incident.internal.alert.domain.AlertReceiveState;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
@@ -149,6 +150,44 @@ public class AlertStore {
                 deadline != null ? Timestamp.from(deadline) : null,
                 alertId,
                 expectedVersion);
+    }
+
+    public Optional<AlertReceiveState> lockForReceive(long id) {
+        return jdbc.query(
+                """
+                SELECT id, resident_id, floor_area_id, status, escalation_level, level, receiver_id, received_at, version
+                FROM alert WHERE id = ? FOR UPDATE
+                """,
+                rs -> rs.next()
+                        ? Optional.of(new AlertReceiveState(
+                                rs.getLong("id"),
+                                (Long) rs.getObject("resident_id"),
+                                (Long) rs.getObject("floor_area_id"),
+                                AlertStatus.valueOf(rs.getString("status")),
+                                rs.getInt("escalation_level"),
+                                rs.getString("level") == null ? null : IncidentLevel.valueOf(rs.getString("level")),
+                                (Long) rs.getObject("receiver_id"),
+                                toInstant(rs.getTimestamp("received_at")),
+                                rs.getInt("version")))
+                        : Optional.empty(),
+                id);
+    }
+
+    /** Tiếp nhận: người tiếp nhận thành người phụ trách, dừng leo thang, giữ mức lúc tiếp nhận (FR-029, FR-081). */
+    public void receive(long id, long receiverId, Instant at, IncidentLevel level, int expectedVersion) {
+        int changed = jdbc.update(
+                """
+                UPDATE alert SET status = 'RECEIVED', receiver_id = ?, received_at = ?, assignee_id = ?,
+                  level_at_received = ?, escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED') AND version = ?
+                """,
+                receiverId,
+                Timestamp.from(at),
+                receiverId,
+                level == null ? null : level.name(),
+                id,
+                expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Cảnh báo đã thay đổi đồng thời");
     }
 
     private static AlertRecord mapRow(ResultSet rs, int rowNum) throws SQLException {
