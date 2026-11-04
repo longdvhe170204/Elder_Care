@@ -112,4 +112,20 @@ class FR_045_IncidentReceiveTest {
 
         assertThatThrownBy(() -> service.receive(41, user)).isInstanceOf(NotFoundException.class);
     }
+
+    @Test
+    void FR_036_shiftLeadByDutyMayReceiveWhateverRole() {
+        when(incidents.lock(41)).thenReturn(Optional.of(state("NEW")));
+        when(user.roles()).thenReturn(Set.of(Role.CAREGIVER));
+        when(permissions.hasPermission(
+                        org.mockito.ArgumentMatchers.eq(user),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any()))
+                .thenReturn(PermissionResult.allowed(
+                        PermissionBasis.duty(com.eldercare.backend.administration.account.api.spi.Duty.SHIFT_LEAD)));
+
+        service.receive(41, user);
+
+        verify(incidents).receive(41, 900L, NOW, 3);
+    }
 }
