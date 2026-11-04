@@ -9,7 +9,7 @@
 
 ### Ghi chú triển khai Phase 6 (01/11/2026)
 
-- Sáu operation HTTP đã dịch tại phase6-contract-proposal.md mục1–3; mục5 CareTask.resultType chỉ đọc từ snapshot được chủ dự án duyệt bổ sung. CareTaskResponse/Checklist/CareTaskDetail cùng dùng trường này; không thêm chữ ký Java API/SPI.
+- Sáu operation HTTP đã dịch tại plan.md#quyet-dinh-hop-dong-phase-6 mục1–3; mục5 CareTask.resultType chỉ đọc từ snapshot được chủ dự án duyệt bổ sung. CareTaskResponse/Checklist/CareTaskDetail cùng dùng trường này; không thêm chữ ký Java API/SPI.
 - CareVitalSignTasks cài VitalSignTaskApi hiện có, callback MANDATORY. Pending giữ mở; callback cùng người/giờ gốc đóng bằng vitalSignRecordId, không chép giá trị đo đầu thành giá trị đã xác nhận. Callback khác người/giờ và phát sinh đo chỉ số chờ D/007 theo lựa chọn chủ dự án; không tự thêm metadata/hợp đồng.
 - PublicCareResults cài PublicCareResultApi.results: đọc theo lô, overlay CorrectionApi.current, bỏ VOID, chỉ chia sẻ numericValue/codeValue/jsonValue. 012 chịu trách nhiệm quyền/đồng ý/nhật ký xem. summary trả CARE_SOURCE_UNAVAILABLE khi chưa có công thức đã thống nhất E/012.
 - M04.KET_QUA_CONG_VIEC/M04.GHI_NHAN_PHAT_SINH chưa có handler vì payload mục4 chưa duyệt, chờ A. BillableCareResultRecorded.quantity chờ E/010; lệnh billable tạm chặn trước lưu, không phát số lượng tự suy đoán. Không coi các provider/consumer này đã tích hợp nguồn thật.
@@ -298,7 +298,7 @@ HTTP ba danh mục TaskType/ResultValue/NonPerformanceReasonType thêm version c
 
 ## Bổ sung đã duyệt Phase 4 — 2026-11-01
 
-Chủ dự án trả lời “1” duyệt `phase4-contract-proposal.md` mục 1–3. Bảy operation HTTP T025 và các schema đã dịch sang tiếng Anh trong api-005.yaml, giữ method/status/required/header; lỗi theo dòng từ 1.
+Chủ dự án trả lời “1” duyệt `plan.md#quyet-dinh-hop-dong-phase-4` mục 1–3. Bảy operation HTTP T025 và các schema đã dịch sang tiếng Anh trong api-005.yaml, giữ method/status/required/header; lỗi theo dòng từ 1.
 
 Bổ sung không đổi chữ ký cũ:
 
@@ -321,7 +321,7 @@ Ngoài phần đã duyệt, ongoingShifts (mục 5) và sửa ApiClient mobile c
 
 ## Cập nhật đã duyệt Phase 5 — 2026-11-01
 
-Chủ dự án chọn “1” cho toàn bộ phase5-contract-proposal.md mục1–3. Đã thêm `DayCareCalendarPort.onDate(residentId,date): CalendarView(holiday,timelyAbsenceId,lateAbsenceId)` và `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY; giữ chữ ký cũ. FakeDayCareCalendar trong support/fake/care là fixture duy nhất, chưa đặt ngày thì báo lỗi; FakeM04Config đăng ký opt-in, không production fake. HTTP bốn operation/schema/request riêng đã dịch và sinh client bằng npm run gen:api (34operation005 tổng cộng).
+Chủ dự án chọn “1” cho toàn bộ plan.md#quyet-dinh-hop-dong-phase-5 mục1–3. Đã thêm `DayCareCalendarPort.onDate(residentId,date): CalendarView(holiday,timelyAbsenceId,lateAbsenceId)` và `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY; giữ chữ ký cũ. FakeDayCareCalendar trong support/fake/care là fixture duy nhất, chưa đặt ngày thì báo lỗi; FakeM04Config đăng ký opt-in, không production fake. HTTP bốn operation/schema/request riêng đã dịch và sinh client bằng npm run gen:api (34operation005 tổng cộng).
 
 Provider thực hiện DayCareAttendanceApi là AttendanceQueries @Fallback; dữ liệu nhóm2 qua SimpleRecordApi, nhóm3 qua RecordEventApi; callback giờ về/checkout/calendar giữ transaction của caller. `inRange` gồm hai ngày biên theo khoảng LocalDate; `returnTimeOn` đọc giờ về hiện hành sau014 thay đổi/khôi phục theo đúng registrationId. Callback checkout012 kiểm bản ghi đón và loại đối chiếu với nguồn012, không nhận loại từ HTTPclient.
 

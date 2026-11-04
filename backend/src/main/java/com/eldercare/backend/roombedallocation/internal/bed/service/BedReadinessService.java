@@ -137,17 +137,20 @@ public class BedReadinessService {
                         false,
                         false,
                         note));
-        for (var waiting : pending)
-            if (source.applyScheduledTransfer(waiting.requestId(), waiting.plannedAt())
-                    != ScheduledTransferResult.TRANSFERRED)
+        boolean transferred = false;
+        for (var waiting : pending) {
+            var outcome = source.applyScheduledTransfer(waiting.requestId(), waiting.plannedAt());
+            if (outcome == ScheduledTransferResult.TRANSFERRED) transferred = true;
+            if (outcome == ScheduledTransferResult.AWAITING_READY)
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
                         "SCHEDULED_TRANSFER_NOT_COMPLETED",
                         "Chuyển theo lịch chưa thực hiện được");
+        }
         var result = beds.details(id).orElseThrow(NotFoundException::new);
-        if (!pending.isEmpty() && result.state() != BedStatus.OCCUPIED && result.state() != BedStatus.HELD)
+        if (transferred && result.state() != BedStatus.OCCUPIED && result.state() != BedStatus.HELD)
             throw new IllegalStateException("Nguồn chuyển chưa cập nhật giường");
-        if (pending.isEmpty()) holds.becameEmpty(id, "CONFIRM_READY");
+        if (!transferred) holds.becameEmpty(id, "CONFIRM_READY");
         return result;
     }
 

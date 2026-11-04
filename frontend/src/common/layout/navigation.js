@@ -89,6 +89,14 @@ export const NAV_GROUPS = [
         functions: ['OVERDUE_TASK_HANDLING'],
         roles: [QL, TT],
       },
+      // FR-048 (005 T058): Trưởng tầng, Điều dưỡng xem thời khóa biểu theo ngày.
+      {
+        key: 'care-timetable',
+        label: 'Thời khóa biểu',
+        icon: 'CalendarDays',
+        functions: ['CARE_PLAN'],
+        roles: [TT, DD],
+      },
       {
         key: 'care-task-planning',
         label: 'Lập công việc ca',

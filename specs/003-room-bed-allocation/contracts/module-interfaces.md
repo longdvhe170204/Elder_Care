@@ -51,11 +51,14 @@ void giaHanKetThucDuKien(long nctId, Instant ketThucDuKienMoi);                 
 List<DieuKien> kiemTraDatTruocChuyenTheoLich(long nctId, long giuongMoiId, LocalDate ngayHieuLuc);
 long datTruocChuyenTheoLich(long yeuCauId, long nctId, long giuongMoiId, LocalDate ngayHieuLuc); // trong khiDuyet của handler 004
 List<DieuKien> kiemTraChuyenTheoLich(long yeuCauId);                               // trong kiemTraDieuKienApDung; giường chưa Trống không phải vi phạm
-KetQuaChuyenTheoLich thucHienChuyenTheoLich(long yeuCauId, Instant thoiDiemDuKien); // DA_CHUYEN | CHO_GIUONG_SAN_SANG
+KetQuaChuyenTheoLich thucHienChuyenTheoLich(long yeuCauId, Instant thoiDiemDuKien); // DA_CHUYEN | CHO_GIUONG_SAN_SANG | DA_HUY (Q-322)
 void huyPhanBoTheoLich(long yeuCauId, LyDo lyDo);                                  // khi yêu cầu Áp dụng không thành; idempotent
 void daLapYeuCauSauChuyenGap(long phanBoId, long yeuCauId);                        // FR-030: gỡ dấu chờ lập yêu cầu
 void ketQuaYeuCauSauChuyenGap(long phanBoId, boolean duocDuyet);                   // FR-030: từ chối → dấu chờ chuyển về phòng cùng giá
 ```
+
+
+**Bổ sung đã duyệt 2026-11-04 (T033, HungNX-nguyen)**: `ScheduledTransferResult` có `TRANSFERRED`, `AWAITING_READY`, `CANCELLED`. `CANCELLED` biểu diễn phân bổ đã hủy, gồm nhánh Q-322 sau khi đã chờ giường nhưng điều kiện không còn thỏa. Lệnh xác nhận sẵn sàng của003 giữ giường Trống khi nhận kết quả này, giữ phân bổ nguồn và báo Hành chính/Trưởng tầng/Quản lý viện bằng AllocationNoLongerSuitable; yêu cầu004 đã áp dụng giữ nguyên. API không tự sinh yêu cầu mới. Các hàm vẫn MANDATORY, quyền thuộc lệnh nguồn. Caller truyền plannedAt là00:00 ngày hiệu lực cho lần áp dụng theo lịch; sau khi đã chờ, lệnh sẵn sàng thực hiện theo sự kiện, không đánh trễ thời gian chờ theo CFG-M03-08. Bốn hàm giữ chỗ ủy BedHoldService đã có.
 
 ### 1.5. `SucChuaBanTruApi`: kiểm tra sức chứa cho 004, 005 (FR-038 → FR-042)
 

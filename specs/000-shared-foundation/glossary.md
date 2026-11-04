@@ -892,6 +892,18 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | Nguồn phân bổ đang chờ bác sĩ theo tầng | `AllocationHandoverApi.atFloor`,bản cài `BedReportingService` |
 | Mốc đặt dấu chờ bác sĩ trên bản phân bổ | `bed_allocation.doctor_confirmation_requested_at`,`BedReportingSnapshot.Flags.doctorConfirmationRequestedAt`; `AllocationHandoverView.createdAt`,NULL với dữ liệu cũ chưa biết mốc |
 | Migration bổ sung mốc,không tạo bảng mới | `V003_07__doctor_confirmation_requested_at.sql` |
+### 9.22. Chuyển theo lịch T033 (2026-11-04)
+
+| Tên logic | Tên mã nguồn |
+| --- | --- |
+| Facade lệnh phân bổ từ004 | `BedAllocationCommands` cài `BedAllocationCommandApi` |
+| Chuyển theo lịch; dữ liệu căn cứ | `ScheduledBedTransfers`, `ScheduledTransferStore`, `ScheduledAllocation` |
+| Đã chuyển; chờ sẵn sàng; đã hủy sau chờ (Q-322) | `ScheduledTransferResult.TRANSFERRED`, `AWAITING_READY`, `CANCELLED` (bổ sung CANCELLED được duyệt trong phiên04/11) |
+| Căn cứ yêu cầu của phân bổ theo lịch | `basis_type=REQUEST`, `basis_id=requestId`, `planned_start_at` lưu mốc gốc; chỉ mục `idx_allocation_basis` trong `V003_08` |
+| Mã lỗi căn cứ không khớp, chưa tới ngày chuyển, chưa liên kết yêu cầu chuyển gấp | `SCHEDULED_ALLOCATION_MISMATCH`, `SCHEDULED_TRANSFER_NOT_DUE`, `URGENT_TRANSFER_REQUEST_REQUIRED` |
+| Nhật ký đặt trước, chờ, áp dụng, hủy | `M03_SCHEDULED_TRANSFER_RESERVED`, `M03_SCHEDULED_TRANSFER_WAITING`, `M03_SCHEDULED_TRANSFER_APPLIED`, `M03_SCHEDULED_TRANSFER_CANCELLED` |
+| Nhật ký liên kết/kết quả yêu cầu sau chuyển gấp | `M03_URGENT_TRANSFER_REQUEST_LINKED`, `M03_URGENT_TRANSFER_REQUEST_DECIDED` |
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
@@ -1581,6 +1593,26 @@ Giữ nguyên chữ ký `AlertRequested`, `ProlongedPoorEating`, `CorrectionMade
 | Mốc đính chính ngủ | `CORRECTION:<correctionId>` trên `SleepResultRecorded.context` |
 
 Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID ngủ còn gate đã ghi trong plan/team-plan.
+
+### 11.13. Công việc chung, trạng thái người cao tuổi, thời khóa biểu Phase 11 (005, 05/11/2026)
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Endpoint phân lại (dịch, chủ dự án duyệt 2026-11-05) | `POST /cong-viec/{id}/phan-lai` → `POST /care-tasks/{id}/reassign`, `reassignCareTask`; `nguoiNhanId` → `recipientId`, `lyDo` → `reason`; `CareTaskReassignWrite` (`web/request`) |
+| Endpoint thời khóa biểu (dịch, chủ dự án duyệt 2026-11-05) | `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu?ngay=` → `GET /residents/{residentId}/timetable?date=`, `getResidentTimetable`; `MucThoiKhoaBieu` (`thoiDiem`, `nguon`, `moTa`, `trangThai`) → `TimetableItem` (`at`, `source`, `description`, `status`); `TimetableItemResponse` (`web/response`) |
+| nguồn mục thời khóa biểu `CONG_VIEC`, `LIEU_THUOC`, `BUOI_HOAT_DONG`, `LICH_THAM`, `LICH_DEN_VE` | `CARE_TASK`, `MEDICATION_DOSE`, `ACTIVITY_SESSION`, `VISIT`, `DAY_CARE_ARRIVAL_DEPARTURE` |
+| CongViecChungService (thành chung, gán lại, phân lại, `DaChuyenGiuong`) | `SharedCareTasks` (`internal/task/service`) |
+| ThamGiaM04 | `CareStatusParticipant` (`internal/status/service`, `@Order(30)`) |
+| bản cài `CongViecVangMatApi` | `CareAbsenceTasks` (`internal/task/service`) |
+| ThoiKhoaBieuService | `CareTimetable` (`internal/timetable/service`) |
+| quy tắc đóng `HUY_VANG_MAT`, `FR_010_TRANG_THAI_CUOI` | `ABSENCE_CANCELLED`, `FR_010_FINAL_STATE` (cột `care_task.closure_rule`) |
+| lý do `CanLapCongViec` `TRO_VE`, `HOAN_TAT_TIEP_NHAN`, tính lại sau đính chính chuyến đi | `RETURN`, `ADMISSION_COMPLETED`, `ABSENCE_RECALCULATED` (`TaskPlanningNeeded.reason`) |
+| lý do `YeuCauDongCanhBao` `TRANG_THAI_CUOI` | `FINAL_STATE` (`AlertClosureRequested.reason`) |
+| lệnh lịch sử công việc | `SHARED_ON_ABSENCE`, `SHARED_ON_LEAVE`, `SHARED_ON_RESIGNATION`, `REASSIGNED_BY_ASSIGNMENT`, `REASSIGNED_AFTER_BED_TRANSFER`, `REASSIGNED`, `CANCELLED_ON_ABSENCE`, `CLOSED_ON_FINAL_STATE` (nhật ký `CARE_TASK_<lệnh>`) |
+| nhật ký kế hoạch khi trạng thái cuối | `CARE_PLAN_ENDED_ON_FINAL_STATE`; `care_plan.end_reason` `FINAL_STATUS` |
+| dấu idempotent chuyển giường | `reminder_marker` loại `M04.BED_TRANSFER`, đối tượng `M03.ALLOCATION` (`nextAllocationId`) |
+| màn web | `frontend/src/features/care-tasks/TimetablePage.jsx`, `timetableView.js`; mục menu `care-timetable` |
+| lớp test | `BR_M04_13_SharedTaskIT`, `BR_M04_28_ReassignIT`, `BR_M04_04_ResidentStatusTasksIT`, `FR_048_TimetableIT`, `TimetablePage.test.jsx` |
 
 ## 12. Feature 006 (`006-medication-management`, D)
 

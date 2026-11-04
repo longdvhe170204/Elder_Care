@@ -616,3 +616,31 @@ Test trước: nguồn thật và mapping id/người/phòng,mốc mới khác s
 
 Kết quả kiểm liên quan:39IT/3lớp xanh,0failure/error/skip;Spotless đúng10file đạt. Test HTTP008 dùng fixture đã commit để worker đọc song song nhìn thấy nguồn003,đóng phân bổ/gỡ dấu và hủy ca của test sau kiểm. Review độc lập không còn finding. Kết quả verify toàn kho ghi ở verification.md mục10 khi kết thúc;không đánh hoàn tất T061/T063 hoặc R-15. Team-plan còn LocationApi và A/E review consumer.
 Verify bản cuối exit1/27:02phút:715unit xanh,1542IT có17lỗi;16phương thức trùng log trước và1failure hiệu năngT064 mới. M03 có257/258IT qua,care35/staffing251 xanh;Spotless toàn kho sạch. T064 max1410ms trong verify và1355ms khi chạy riêng,cùng vượt1000ms;không gán là lỗi thoáng qua,không giảm ngưỡng. Thêm việcC theo dõi hiệu năng danh sách giường,tách khỏi implementation nguồn bàn giao;chi tiết ở verification mục10. Chưa nghiệm thu toàn phase/gate.
+### T033 — chuyển theo lịch và facade (2026-11-04)
+
+HungNX-nguyen xác nhận phạm vi và cho bắt đầu trong phiên này. Triển khai tại checkout `feature/005-daily-care-and-hand-over`. Kế hoạch và nhật ký kỹ thuật được ghi tại plan của feature.
+
+- [x] RED trước cài `FR_029_ScheduledTransferIT`. Tám ca đầu thất bại vì thiếu facade production.
+- [x] Cài `BedAllocationCommands` ủy bốn lệnh giữ chỗ cho `BedHoldService`, bảy lệnh chuyển theo lịch/callback cho `ScheduledBedTransfers`; mọi hàm giữ `Propagation.MANDATORY`. SQL ở `ScheduledTransferStore`, dữ liệu căn cứ ở `ScheduledAllocation`.
+- [x] Dùng lại `AllocationLocks`, `AllocationChecker`, `BedStateService`, nguồn/fake chung đã có. Kiểm lại điều kiện tại lúc thực hiện, giữ hạn người vắng, đóng/mở cùng thời điểm microsecond, cập nhật marker cùng transaction nguồn. Lặp lệnh giữ một phân bổ và một thông báo chờ.
+- [x] HungNX-nguyen duyệt bổ sung `ScheduledTransferResult.CANCELLED` cho Q-322. Hồi quy RED ở lệnh xác nhận sẵn sàng trước khi cài nhánh hủy. Consumer 003 giữ giường Trống, giữ phân bổ nguồn và báo Hành chính/Trưởng tầng/Quản lý viện bằng `AllocationNoLongerSuitable`; yêu cầu 004 đã áp dụng giữ nguyên.
+- [ ] Gate kết nối nguồn thật và toàn kho để đóng T033. Nhánh gỡ dấu tài sản còn chờ 019, 004 còn cần nối kiểm áp dụng/callback, nguồn 007/019 kiểm theo T063.
+
+**Các quyết định kỹ thuật và hồi quy**
+
+- Mốc `planned_start_at` từ ngày đã duyệt là nguồn giờ dự kiến chuẩn. Điều này bảo toàn dấu trễ ngay khi caller 004 truyền giờ chạy. Sau khi đã chờ sẵn sàng, chuyển theo sự kiện và giữ `executed_late=false` cho thời gian chờ theo FR-016a.
+- FR-030 giữ `AWAITING_SAME_PRICE` và mốc nhắc khi lập lại yêu cầu sau từ chối. Lệnh lập yêu cầu chỉ gỡ `AWAITING_REQUEST`; callback duyệt gỡ dấu chờ cùng giá. T032 có dấu giá vẫn chờ nguồn so giá hợp đồng theo lựa chọn trước.
+- Hạn lưu trú được đọc lại trong transaction nguồn. Hai hồi quy đã RED cho hạn nguồn mới và trường hợp lịch sử giường xen giữa. Hồi quy cuối ghi SQLSTATE 45000 `ALLOCATION_TIME_OVERLAP` tại câu cập nhật hạn trước kích hoạt. Đã sửa thành một `UPDATE` đặt `status=ACTIVE`, giờ bắt đầu thực tế, hạn mới, mức chăm sóc và metadata cùng lúc, sau khi đóng nguồn; trigger kiểm đúng khoảng cuối cùng.
+- `BedAssetCommandPort.residentTransferFlagRemoved` chưa có provider thật. Nhánh giường đích có dấu tài sản trả 503 `SOURCE_UNAVAILABLE` trước ghi, cần nối callback 019 để mở nhánh tiếp tục khi gỡ dấu. Đây là gate kỹ thuật, giữ T033 `[ ]`.
+- Thêm `V003_08` chỉ tạo `idx_allocation_basis`. Schema dev đã chạy phiên bản cao hơn cần xử lý migration đến sau theo mục 8 team-plan.
+
+**Bàn giao B**
+
+`ResidencyChangeHandler.applyConditions` cần dùng `checkScheduledTransfer(requestId)` thay kiểm đặt trước sau khi đã tạo FUTURE. Caller truyền 00:00 ngày hiệu lực vào `applyScheduledTransfer`; 003 giữ mốc đã lưu để bảo toàn giờ chuẩn. B nối `requestCreatedAfterUrgentTransfer`/`urgentTransferRequestResult` và thông báo kết quả sau chuyển gấp theo hợp đồng 1.4. Lượt toàn kho phát hiện fixture 004 gọi `extendExpectedEnd` mà thiếu phân bổ Hiệu lực; kiểm `ChangeArrivalScheduleIT` còn kỳ vọng chưa có provider 003. Các điểm này đã thêm ở mục 8 team-plan.
+
+**Kết quả kiểm chứng**
+
+- Bộ scoped trước hồi quy cuối có 48 kiểm kiến trúc và 41 IT xanh, gồm 17 IT T033. Test cũ về thiếu provider được cô lập bằng `ObjectProvider` rỗng rồi khôi phục trong `finally`, giữ assertion 503/rollback.
+- `003-t033-clean-verify.log` kết thúc 20:04, mất 41 phút 47 giây, exit 1. Có 1.047 unit/kiến trúc xanh; 2.585 IT với 4 failure, 0 error, 2 skip (`SC_001_UrgentConcurrencyIT`). Toàn bộ 275 IT M03 qua. Bốn failure ở `BR_M02_04_ApplyAddendumIT` (3) và `ChangeArrivalScheduleIT` (1); đây là các điểm nối/fixture 004 cần review, tách khỏi lỗi nền cũ.
+- Sau sửa nguyên tử, `003-t033-module-final2.log` kết thúc 20:18 với BUILD SUCCESS, exit 0. Có 48 kiểm kiến trúc và toàn bộ 276 IT M03 xanh, gồm 18 ca T033; Spotless kiểm 3.219 file qua. T064 đo 300 giường có max 228 ms. Ba ca chờ sẵn sàng từng đỏ lúc chạy sau 20 giờ vì fixture đặt hạn bây giờ + 4 giờ vượt mốc nửa đêm; fixture mới đặt clock vào 08:00 ngày kế tiếp sau khi lớp nền tạo người dùng, nên quyền đã có hiệu lực và hạn sẵn sàng trước ngày chuyển. Log tại `backend/logs/t033/003-t033-module-final2.log`.
+- Review độc lập đã kiểm thứ tự chín tham số SQL và phạm vi thay đổi sau sửa nguyên tử, chưa có P1/P2 còn lại trong phần C ngoài gate nguồn đã công bố.
