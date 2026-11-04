@@ -88,6 +88,9 @@ public abstract class AssessmentTestBase extends HealthTestBase {
 
     protected int historyRows(long residentId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM care_level_history WHERE resident_id = ?", Integer.class, residentId);
+                "SELECT COUNT(*) FROM " + com.eldercare.backend.support.ResidentHistoryRows.CARE_LEVEL
+                        + " WHERE resident_id = ?",
+                Integer.class,
+                residentId);
     }
 }

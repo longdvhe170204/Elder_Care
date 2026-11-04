@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class ResidentStatusPeriodsTest {
     @Test
     void FR_039_periodsRetainActualBoundariesAndRepeatedReturnsWithHalfOpenOverlap() {
-        var history = mock(ResidentStatusHistoryRepository.class);
+        var history = mock(ResidentStatusHistoryStore.class);
         var api = new ResidentStatusApiImpl(mock(ResidentStatusService.class), history);
         var t = Instant.parse("2035-04-01T00:00:00Z");
         when(history.findByResidentIdOrderByIdAsc(7))
@@ -35,8 +35,7 @@ class ResidentStatusPeriodsTest {
 
     @Test
     void FR_039_emptySelectionOrEmptyRangeDoesNotReadHistory() {
-        var api = new ResidentStatusApiImpl(
-                mock(ResidentStatusService.class), mock(ResidentStatusHistoryRepository.class));
+        var api = new ResidentStatusApiImpl(mock(ResidentStatusService.class), mock(ResidentStatusHistoryStore.class));
         assertThat(api.statusPeriods(7, Set.of(), Instant.EPOCH, Instant.EPOCH.plusSeconds(1)))
                 .isEmpty();
         assertThat(api.statusPeriods(7, Set.of(ResidentStatus.IN_RESIDENCE), Instant.EPOCH, Instant.EPOCH))

@@ -30,7 +30,8 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
 
     private long lastHistoryId(long residentId) {
         return jdbc.queryForObject(
-                "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 Long.class,
                 residentId);
     }
@@ -70,7 +71,10 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
         assertThat(currentStatus(id)).isEqualTo(ResidentStatus.TEMPORARILY_ABSENT);
         assertThat(historyCount(id)).isEqualTo(rows);
         assertThat(jdbc.queryForObject(
-                        "SELECT reason FROM resident_status_history WHERE id = ?", String.class, historyId))
+                        "SELECT reason FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE id = ?",
+                        String.class,
+                        historyId))
                 .as("bản gốc giữ nguyên")
                 .isEqualTo("Lý do cũ");
         assertThat(jdbc.queryForList(

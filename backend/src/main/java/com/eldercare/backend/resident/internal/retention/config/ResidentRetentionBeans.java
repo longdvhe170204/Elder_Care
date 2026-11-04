@@ -16,8 +16,17 @@ class ResidentRetentionBeans {
 
     @Bean
     ResidentChildRetention statusHistoryRetention(ResidentRecordStore records, RetentionDatabase database) {
+        // Dòng status_history (001 T084): SharedRowRetention xóa cùng hồ sơ (M01.RESIDENT); loại riêng giữ để đính
+        // chính
+        // của dòng lịch sử đi theo chuỗi (SharedRowRetention.rowsFor chỉ có record_event, simple_record)
         return new ResidentChildRetention(
-                "M01.RESIDENT_STATUS_HISTORY", "resident_status_history", List.of(), records, database);
+                "M01.RESIDENT_STATUS_HISTORY",
+                "status_history",
+                "entity_id",
+                " AND entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'",
+                List.of(),
+                records,
+                database);
     }
 
     @Bean

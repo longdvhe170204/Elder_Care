@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import com.eldercare.backend.support.ResidentHistoryRows;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -56,15 +57,23 @@ class ResidentSchemaIT extends MySqlIntegrationTestBase {
     }
 
     private void history(long residentId, String command, boolean bySystem, String reason) {
-        jdbc.update(
-                "INSERT INTO resident_status_history (resident_id, from_status, to_status, command, occurred_at,"
-                        + " performed_by, by_system, reason) VALUES (?, 'IN_RESIDENCE', 'HOSPITALIZED', ?, NOW(6), 1,"
-                        + " ?, ?)",
+        ResidentHistoryRows.insertStatus(
+                jdbc,
+                null,
                 residentId,
+                "IN_RESIDENCE",
+                "HOSPITALIZED",
                 command,
+                java.sql.Timestamp.from(java.time.Instant.now()),
+                1,
                 bySystem,
                 reason);
     }
+
+    private static final String STATUS_ROWS =
+            "status_history WHERE entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'";
+    private static final String CARE_LEVEL_ROWS =
+            "status_history WHERE entity_type = 'M01.RESIDENT' AND attribute = 'CARE_LEVEL'";
 
     @Test
     void DBR_01_profileCode_isUnique() {
@@ -158,31 +167,26 @@ class ResidentSchemaIT extends MySqlIntegrationTestBase {
         long id = resident("Người A", null, null, "IN_RESIDENCE");
         history(id, "TRANSFER_OUT", false, "Chuyển viện cấp cứu");
 
-        assertThatThrownBy(() ->
-                        jdbc.update("UPDATE resident_status_history SET reason = 'sửa' WHERE resident_id = ?", id))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE status_history SET reason = 'sửa' WHERE entity_type = 'M01.RESIDENT'"
+                                + " AND attribute = 'STATUS' AND entity_id = ?",
+                        id))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause()
                 .hasMessageContaining("UPDATE command denied");
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM resident_status_history WHERE resident_id = ?", id))
+        assertThatThrownBy(() -> jdbc.update("DELETE FROM " + STATUS_ROWS + " AND entity_id = ?", id))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause()
                 .hasMessageContaining("DELETE command denied");
-        assertThat(adminFails("UPDATE resident_status_history SET reason = 'sua' WHERE resident_id = " + id))
+        assertThat(adminFails("UPDATE status_history SET reason = 'sua' WHERE entity_type = 'M01.RESIDENT'"
+                        + " AND attribute = 'STATUS' AND entity_id = " + id))
                 .contains("append-only");
-        assertThat(adminFails("DELETE FROM resident_status_history WHERE resident_id = " + id))
+        assertThat(adminFails("DELETE FROM " + STATUS_ROWS + " AND entity_id = " + id))
                 .contains("removed only by the retention job");
     }
 
-    @Test
-    void FR_046_statusHistory_reasonRequiredUnlessSystemOrProfileCreation() {
-        long id = resident("Người A", null, null, "IN_RESIDENCE");
-
-        assertThatThrownBy(() -> history(id, "TRANSFER_OUT", false, null))
-                .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("chk_resident_status_history_reason");
-        history(id, "ROLL_CALL_DEPARTURE", true, null);
-        history(id, "CREATE_PROFILE", false, null);
-    }
+    // FR-046 (lý do bắt buộc trừ lệnh do hệ thống, Tạo hồ sơ): từ 001 T084 không còn CHECK ở bảng, kiểm ở
+    // StatusHistoryApi theo luật của thuộc tính STATUS (StatusHistoryIT.FR_046_…).
 
     @Test
     void FR_053_careLevel_fixedThreeLevelsAndOneEntryPerInstant() throws SQLException {
@@ -191,18 +195,24 @@ class ResidentSchemaIT extends MySqlIntegrationTestBase {
                         String.class))
                 .containsExactly("BASIC", "REGULAR", "SPECIAL");
         long id = resident("Người A", null, null, "IN_RESIDENCE");
-        String insert = "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
-                + " recorded_at, recorded_by) VALUES (?, ?, '2026-10-01 00:00:00', 'ASSESSMENT', 7, NOW(6), 1)";
-        jdbc.update(insert, id, "REGULAR");
+        java.time.Instant from = java.time.Instant.parse("2026-10-01T00:00:00Z");
+        ResidentHistoryRows.insertCareLevel(jdbc, id, "REGULAR", from, "ASSESSMENT", 7, 1);
 
-        assertThatThrownBy(() -> jdbc.update(insert, id, "SPECIAL")).isInstanceOf(DuplicateKeyException.class);
-        assertThatThrownBy(() ->
-                        jdbc.update("UPDATE care_level_history SET care_level = 'BASIC' WHERE resident_id = ?", id))
+        // M01.CLH:<residentId>:<từ> thay UNIQUE (resident_id, effective_from)
+        assertThatThrownBy(() -> ResidentHistoryRows.insertCareLevel(jdbc, id, "SPECIAL", from, "ASSESSMENT", 7, 1))
+                .isInstanceOf(DuplicateKeyException.class);
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE status_history SET value = 'BASIC' WHERE entity_type = 'M01.RESIDENT'"
+                                + " AND attribute = 'CARE_LEVEL' AND entity_id = ?",
+                        id))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause()
                 .hasMessageContaining("UPDATE command denied");
-        assertThat(adminFails("UPDATE care_level_history SET care_level = 'BASIC' WHERE resident_id = " + id))
+        assertThat(adminFails("UPDATE status_history SET value = 'BASIC' WHERE entity_type = 'M01.RESIDENT'"
+                        + " AND attribute = 'CARE_LEVEL' AND entity_id = " + id))
                 .contains("append-only");
+        assertThat(adminFails("DELETE FROM " + CARE_LEVEL_ROWS + " AND entity_id = " + id))
+                .contains("removed only by the retention job");
     }
 
     @Test

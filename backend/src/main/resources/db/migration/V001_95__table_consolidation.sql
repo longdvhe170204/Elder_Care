@@ -897,3 +897,246 @@ GRANT DELETE ON wish TO 'eldercare_retention'@'%';
 
 -- Khai nhóm dữ liệu (audit F-04): bản đồng ý là nhóm 2 (chỉ đổi qua lệnh rút lại, trigger trg_consent_only_withdrawal)
 ALTER TABLE consent COMMENT = 'DataGroup=BUSINESS';
+
+-- Nhóm 3 (một phần): lịch sử trạng thái (resident_status_history) và mức chăm sóc (care_level_history) vào
+-- status_history (data-model 001 mục 0.1). Đối tượng M01.RESIDENT; thuộc tính STATUS: giá trị trước, giá trị là trạng
+-- thái "từ", "đến", miễn điều kiện vào details.conditionWaiver; thuộc tính CARE_LEVEL: giá trị là mã mức, starts_at là
+-- thời điểm hiệu lực, lúc ghi vào details.recordedAt, khóa M01.CLH:<residentId>:<từ> thay UNIQUE (resident_id,
+-- effective_from). Lý do bắt buộc (FR-046) kiểm ở StatusHistoryApi (HistoryTrack.reasonRequired, A1 2026-11-04).
+-- Dòng lịch sử trạng thái nhận id mới (legacy {table, id}); id mới luôn lớn hơn mọi id cũ nên tham chiếu cũ còn sót
+-- (thông báo của 009, residency_ending.history_id của 004, phiếu đón của 012, nhật ký) không trỏ nhầm dòng mới. Nơi trỏ
+-- id dòng lịch sử đổi theo bảng ánh xạ: tệp M01.HOSPITAL_DOCUMENT, M01.DEATH_EVIDENCE; đính chính, chuỗi đính chính
+-- và yêu cầu đính chính chưa áp dụng loại M01.RESIDENT_STATUS_HISTORY; lần báo đánh giá lại nguồn STATUS_HISTORY.
+SET @m01_status_count = (SELECT COUNT(*) FROM resident_status_history);
+SET @m01_care_level_count = (SELECT COUNT(*) FROM care_level_history);
+SET @m01_status_max_id = (SELECT COALESCE(MAX(id), 0) FROM resident_status_history);
+SET @m01_history_file_count =
+        (SELECT COUNT(*) FROM file WHERE owner_type IN ('M01.HOSPITAL_DOCUMENT', 'M01.DEATH_EVIDENCE'));
+SET @m01_history_correction_count =
+        (SELECT COUNT(*) FROM correction WHERE record_type = 'M01.RESIDENT_STATUS_HISTORY');
+SET @m01_history_chain_count =
+        (SELECT COUNT(*) FROM correction_chain WHERE record_type = 'M01.RESIDENT_STATUS_HISTORY');
+SET @m01_history_notice_count = (SELECT COUNT(*) FROM reassessment_notice WHERE source_type = 'STATUS_HISTORY');
+
+-- AUTO_INCREMENT chỉ đặt được bằng câu động; giá trị nhỏ hơn id lớn nhất đang có thì InnoDB giữ id lớn nhất + 1.
+DELIMITER $$
+CREATE PROCEDURE m01_raise_auto_increment(IN table_name VARCHAR(64), IN above BIGINT)
+BEGIN
+    SET @m01_sql = CONCAT('ALTER TABLE ', table_name, ' AUTO_INCREMENT = ', above + 1);
+    PREPARE m01_statement FROM @m01_sql;
+    EXECUTE m01_statement;
+    DEALLOCATE PREPARE m01_statement;
+END$$
+DELIMITER ;
+
+CALL m01_raise_auto_increment('status_history', @m01_status_max_id);
+
+INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, value_before, value, starts_at, command,
+                            actor_id, by_system, reason, basis_type, basis_id, details)
+SELECT 'M01.RESIDENT',
+       resident_id,
+       'STATUS',
+       'M01',
+       'POINT',
+       from_status,
+       to_status,
+       occurred_at,
+       command,
+       performed_by,
+       by_system,
+       reason,
+       basis_type,
+       basis_id,
+       JSON_OBJECT('conditionWaiver', condition_waiver,
+                   'legacy', JSON_OBJECT('table', 'resident_status_history', 'id', id))
+FROM resident_status_history
+ORDER BY id;
+
+INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, value, starts_at, actor_id, by_system,
+                            basis_type, basis_id, details, unique_key)
+SELECT 'M01.RESIDENT',
+       resident_id,
+       'CARE_LEVEL',
+       'M01',
+       'POINT',
+       care_level,
+       effective_from,
+       recorded_by,
+       FALSE,
+       basis_type,
+       basis_id,
+       JSON_OBJECT('recordedAt', DATE_FORMAT(recorded_at, '%Y-%m-%dT%H:%i:%s.%fZ'),
+                   'legacy', JSON_OBJECT('table', 'care_level_history', 'id', id)),
+       CONCAT('M01.CLH:', resident_id, ':', DATE_FORMAT(effective_from, '%Y-%m-%dT%H:%i:%s.%f'))
+FROM care_level_history
+ORDER BY id;
+
+CREATE TABLE m01_history_id_map
+(
+    old_id BIGINT NOT NULL PRIMARY KEY,
+    new_id BIGINT NOT NULL,
+    UNIQUE (new_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+INSERT INTO m01_history_id_map (old_id, new_id)
+SELECT CAST(details ->> '$.legacy.id' AS UNSIGNED), id
+FROM status_history
+WHERE entity_type = 'M01.RESIDENT'
+  AND attribute = 'STATUS'
+  AND details ->> '$.legacy.table' = 'resident_status_history';
+
+-- Tệp đã gắn không sửa được (trg_file_attached_immutable): gỡ đúng lúc đổi owner_id rồi dựng lại nguyên văn
+DROP TRIGGER trg_file_attached_immutable;
+
+UPDATE file f
+    JOIN m01_history_id_map m ON m.old_id = f.owner_id
+SET f.owner_id = m.new_id
+WHERE f.owner_type IN ('M01.HOSPITAL_DOCUMENT', 'M01.DEATH_EVIDENCE');
+
+DELIMITER $$
+CREATE TRIGGER trg_file_attached_immutable
+    BEFORE UPDATE
+    ON file
+    FOR EACH ROW
+BEGIN
+    IF OLD.attached_at IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'file rows are immutable once attached (research H-13)';
+    END IF;
+END$$
+DELIMITER ;
+
+-- Đính chính chỉ thêm (trg_correction_no_update, V000_06): gỡ đúng lúc đổi bản gốc rồi dựng lại nguyên văn. Id mới lớn hơn
+-- mọi id cũ nên uq_correction_sequence không trùng giữa chừng.
+DROP TRIGGER trg_correction_no_update;
+
+UPDATE correction c
+    JOIN m01_history_id_map m ON m.old_id = c.original_record_id
+SET c.original_record_id = m.new_id
+WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY';
+
+CREATE TRIGGER trg_correction_no_update
+    BEFORE UPDATE
+    ON correction
+    FOR EACH ROW
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'correction is append-only (DBR-23)';
+
+UPDATE correction_chain c
+    JOIN m01_history_id_map m ON m.old_id = c.original_record_id
+SET c.original_record_id = m.new_id
+WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY';
+
+-- Yêu cầu đính chính cách C chưa áp dụng (dòng đã áp dụng bị khóa, bản đính chính của nó đã đổi ở trên)
+UPDATE approval_request r
+    JOIN m01_history_id_map m ON m.old_id = CAST(r.content ->> '$.originalRecordId' AS UNSIGNED)
+SET r.content = JSON_SET(r.content, '$.originalRecordId', m.new_id)
+WHERE r.type = 'M15.CORRECTION'
+  AND r.locked_at IS NULL
+  AND r.content ->> '$.recordType' = 'M01.RESIDENT_STATUS_HISTORY';
+
+UPDATE reassessment_notice n
+    JOIN m01_history_id_map m ON m.old_id = n.source_id
+SET n.source_id = m.new_id
+WHERE n.source_type = 'STATUS_HISTORY';
+
+DELIMITER $$
+CREATE PROCEDURE m01_verify_histories()
+BEGIN
+    IF (SELECT COUNT(*) FROM status_history WHERE entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'
+          AND details ->> '$.legacy.table' = 'resident_status_history') <> @m01_status_count
+        OR (SELECT COUNT(*) FROM m01_history_id_map) <> @m01_status_count
+        OR (SELECT COUNT(*) FROM status_history WHERE entity_type = 'M01.RESIDENT' AND attribute = 'CARE_LEVEL'
+              AND details ->> '$.legacy.table' = 'care_level_history') <> @m01_care_level_count THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: status or care level history row count differs';
+    END IF;
+    IF (SELECT MIN(new_id) FROM m01_history_id_map) <= @m01_status_max_id THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a new status history id is not above the old ids';
+    END IF;
+    -- Từng dòng nguyên nội dung theo ánh xạ id cũ → mới
+    IF EXISTS (SELECT 1
+               FROM resident_status_history o
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM m01_history_id_map m
+                                          JOIN status_history n ON n.id = m.new_id
+                                 WHERE m.old_id = o.id
+                                   AND n.entity_type = 'M01.RESIDENT' AND n.attribute = 'STATUS'
+                                   AND n.entity_id = o.resident_id AND n.kind = 'POINT'
+                                   AND n.value_before <=> o.from_status AND n.value = o.to_status
+                                   AND n.starts_at = o.occurred_at AND n.command = o.command
+                                   AND n.actor_id = o.performed_by AND n.by_system = o.by_system
+                                   AND n.reason <=> o.reason AND n.basis_type <=> o.basis_type
+                                   AND n.basis_id <=> o.basis_id
+                                   AND (n.details -> '$.conditionWaiver') <=> COALESCE(o.condition_waiver,
+                                                                                    CAST('null' AS JSON)))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a status history row was not copied';
+    END IF;
+    IF EXISTS (SELECT 1
+               FROM care_level_history o
+               WHERE NOT EXISTS (SELECT 1
+                                 FROM status_history n
+                                 WHERE n.entity_type = 'M01.RESIDENT' AND n.attribute = 'CARE_LEVEL'
+                                   AND CAST(n.details ->> '$.legacy.id' AS UNSIGNED) = o.id
+                                   AND n.entity_id = o.resident_id AND n.kind = 'POINT' AND n.value = o.care_level
+                                   AND n.starts_at = o.effective_from AND n.basis_type = o.basis_type
+                                   AND n.basis_id = o.basis_id AND n.actor_id = o.recorded_by
+                                   AND n.details ->> '$.recordedAt' = DATE_FORMAT(o.recorded_at, '%Y-%m-%dT%H:%i:%s.%fZ')
+                                   AND n.unique_key = CONCAT('M01.CLH:', o.resident_id, ':',
+                                                             DATE_FORMAT(o.effective_from, '%Y-%m-%dT%H:%i:%s.%f')))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a care level history row was not copied';
+    END IF;
+    -- Nơi trỏ dòng lịch sử: đủ số dòng, mỗi dòng trỏ dòng lịch sử trạng thái mới
+    IF (SELECT COUNT(*) FROM file WHERE owner_type IN ('M01.HOSPITAL_DOCUMENT', 'M01.DEATH_EVIDENCE'))
+        <> @m01_history_file_count
+        OR EXISTS (SELECT 1
+                   FROM file f
+                   WHERE f.owner_type IN ('M01.HOSPITAL_DOCUMENT', 'M01.DEATH_EVIDENCE')
+                     AND NOT EXISTS (SELECT 1 FROM m01_history_id_map m WHERE m.new_id = f.owner_id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a hospital document or death evidence file was not remapped';
+    END IF;
+    IF (SELECT COUNT(*) FROM correction WHERE record_type = 'M01.RESIDENT_STATUS_HISTORY')
+        <> @m01_history_correction_count
+        OR (SELECT COUNT(*) FROM correction_chain WHERE record_type = 'M01.RESIDENT_STATUS_HISTORY')
+        <> @m01_history_chain_count
+        OR EXISTS (SELECT 1
+                   FROM correction c
+                   WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY'
+                     AND NOT EXISTS (SELECT 1 FROM m01_history_id_map m WHERE m.new_id = c.original_record_id))
+        OR EXISTS (SELECT 1
+                   FROM correction_chain c
+                   WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY'
+                     AND NOT EXISTS (SELECT 1 FROM m01_history_id_map m WHERE m.new_id = c.original_record_id))
+        OR EXISTS (SELECT 1
+                   FROM approval_request r
+                   WHERE r.type = 'M15.CORRECTION' AND r.locked_at IS NULL
+                     AND r.content ->> '$.recordType' = 'M01.RESIDENT_STATUS_HISTORY'
+                     AND NOT EXISTS (SELECT 1
+                                     FROM m01_history_id_map m
+                                     WHERE m.new_id = CAST(r.content ->> '$.originalRecordId' AS UNSIGNED))) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a status history correction was not remapped';
+    END IF;
+    IF (SELECT COUNT(*) FROM reassessment_notice WHERE source_type = 'STATUS_HISTORY') <> @m01_history_notice_count
+        OR EXISTS (SELECT 1
+                   FROM reassessment_notice n
+                   WHERE n.source_type = 'STATUS_HISTORY'
+                     AND NOT EXISTS (SELECT 1 FROM m01_history_id_map m WHERE m.new_id = n.source_id)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a reassessment notice source was not remapped';
+    END IF;
+    -- Không còn khóa ngoại nào trỏ vào hai bảng sắp xóa
+    IF EXISTS (SELECT 1
+               FROM information_schema.KEY_COLUMN_USAGE
+               WHERE TABLE_SCHEMA = DATABASE()
+                 AND REFERENCED_TABLE_NAME IN ('resident_status_history', 'care_level_history')) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'V001_95: a foreign key still references a history table to be dropped';
+    END IF;
+END$$
+DELIMITER ;
+
+CALL m01_verify_histories();
+DROP PROCEDURE m01_verify_histories;
+
+DROP TABLE resident_status_history;
+DROP TABLE care_level_history;
+DROP TABLE m01_history_id_map;
+
+DROP PROCEDURE m01_raise_auto_increment;

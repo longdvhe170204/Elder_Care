@@ -40,14 +40,8 @@ class StatusPeriodsIT extends StatusTestBase {
     }
 
     private void row(long id, String from, String to, Instant at) {
-        jdbc.update(
-                "INSERT INTO resident_status_history (resident_id, from_status, to_status, command, occurred_at,"
-                        + " performed_by, by_system) VALUES (?, ?, ?, 'SEED', ?, ?, TRUE)",
-                id,
-                from,
-                to,
-                Timestamp.from(at),
-                office.accountId());
+        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
+                jdbc, null, id, from, to, "SEED", Timestamp.from(at), office.accountId(), true, null);
     }
 
     private List<StatusPeriod> periods(long id, Set<ResidentStatus> kinds, Instant from, Instant to) {

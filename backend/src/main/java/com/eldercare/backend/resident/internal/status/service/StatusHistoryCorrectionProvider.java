@@ -8,7 +8,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +30,10 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
     private static final Set<Role> RECORDERS =
             Set.of(Role.NURSING_HOME_MANAGER, Role.DOCTOR, Role.NURSING_STAFF, Role.OFFICE_STAFF);
 
-    private final ResidentStatusHistoryRepository histories;
+    private final ResidentStatusHistoryStore histories;
     private final ResidentApi residents;
 
-    StatusHistoryCorrectionProvider(ResidentStatusHistoryRepository histories, ResidentApi residents) {
+    StatusHistoryCorrectionProvider(ResidentStatusHistoryStore histories, ResidentApi residents) {
         this.histories = histories;
         this.residents = residents;
     }

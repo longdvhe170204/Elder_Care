@@ -6,6 +6,7 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ConditionWaiver;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.support.ResidentHistoryRows;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -29,8 +30,8 @@ class StatusHistoryIT extends StatusTestBase {
                 target(id), new com.eldercare.backend.common.Reason("Đi khám ngoài"), noDetails());
 
         Map<String, Object> row = jdbc.queryForMap(
-                "SELECT from_status, to_status, command, performed_by, by_system, reason"
-                        + " FROM resident_status_history WHERE id = ?",
+                "SELECT from_status, to_status, command, performed_by, by_system, reason" + " FROM "
+                        + ResidentHistoryRows.STATUS + " WHERE id = ?",
                 outcome.historyId());
         assertThat(row.get("from_status")).isEqualTo("IN_RESIDENCE");
         assertThat(row.get("to_status")).isEqualTo("TEMPORARILY_ABSENT");
@@ -58,15 +59,56 @@ class StatusHistoryIT extends StatusTestBase {
         assertThat(history.getLast().reason()).isEqualTo("Lý do thử");
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    com.eldercare.backend.administration.shared.api.StatusHistoryApi histories;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.transaction.support.TransactionTemplate tx;
+
+    /** Thay CHECK {@code chk_resident_status_history_reason} của bảng cũ (data-model 0.1, A1 2026-11-04). */
+    @Test
+    void FR_046_reasonRequiredUnlessBySystemOrProfileCreation_checkedByStatusHistoryApi() {
+        long id = residentIn(ResidentStatus.IN_RESIDENCE);
+        var track = com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory.TRACK;
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> tx.executeWithoutResult(s -> histories.add(track, id, entry("IN_RESIDENCE", false))))
+                .isInstanceOf(com.eldercare.backend.common.error.ReasonRequiredException.class);
+        tx.executeWithoutResult(s -> histories.add(track, id, entry("IN_RESIDENCE", true)));
+        tx.executeWithoutResult(s -> histories.add(track, id, entry(null, false)));
+    }
+
+    private static com.eldercare.backend.administration.shared.api.dto.HistoryEntry<
+                    com.eldercare.backend.resident.internal.status.domain.StatusChangeDetails>
+            entry(String from, boolean bySystem) {
+        return new com.eldercare.backend.administration.shared.api.dto.HistoryEntry<>(
+                com.eldercare.backend.administration.shared.api.dto.HistoryKind.POINT,
+                from,
+                "HOSPITALIZED",
+                null,
+                java.time.Instant.now(),
+                from == null ? "CREATE_PROFILE" : "TRANSFER_OUT",
+                1L,
+                bySystem,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+    }
+
     @Test
     void FR_009_historyIsAppendOnly_appUserCannotUpdateOrDelete() {
         long id = residentIn(ResidentStatus.IN_RESIDENCE);
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(
-                        () -> jdbc.update("UPDATE resident_status_history SET reason = 'x' WHERE resident_id = ?", id))
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE status_history SET reason = 'x' WHERE entity_type = 'M01.RESIDENT'"
+                                + " AND entity_id = ?",
+                        id))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
-        org.assertj.core.api.Assertions.assertThatThrownBy(
-                        () -> jdbc.update("DELETE FROM resident_status_history WHERE resident_id = ?", id))
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> jdbc.update(
+                        "DELETE FROM status_history WHERE entity_type = 'M01.RESIDENT' AND entity_id = ?", id))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
 
@@ -81,7 +123,9 @@ class StatusHistoryIT extends StatusTestBase {
 
         assertThat(outcome.status()).isEqualTo(ResidentStatus.RESIDENCY_ENDED);
         String waiver = jdbc.queryForObject(
-                "SELECT condition_waiver FROM resident_status_history WHERE id = ?", String.class, outcome.historyId());
+                "SELECT condition_waiver FROM " + ResidentHistoryRows.STATUS + " WHERE id = ?",
+                String.class,
+                outcome.historyId());
         assertThat(waiver).contains("501").contains("UNPAID_FEES");
         assertThat(one.applied()).hasSize(1);
     }
