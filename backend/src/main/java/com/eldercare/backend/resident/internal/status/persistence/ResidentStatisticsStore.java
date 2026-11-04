@@ -18,6 +18,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ResidentStatisticsStore {
 
+    /** Dòng lịch sử trạng thái, mức chăm sóc của M01 ở {@code status_history} (001 T084). */
+    private static final String STATUS = "entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'";
+
+    private static final String CARE_LEVEL = "entity_type = 'M01.RESIDENT' AND attribute = 'CARE_LEVEL'";
+
     private static final RowMapper<HistoryPoint> ROW = (rs, i) -> new HistoryPoint(
             rs.getLong("resident_id"),
             rs.getTimestamp("at").toInstant(),
@@ -34,9 +39,9 @@ public class ResidentStatisticsStore {
     /** Dòng trạng thái mới nhất trước {@code before} của mỗi người. */
     public List<HistoryPoint> latestStatusBefore(Instant before, Collection<Long> residentIds) {
         return latest(
-                "SELECT resident_id, occurred_at AS at, command, from_status AS value_before, to_status AS value,"
-                        + " ROW_NUMBER() OVER (PARTITION BY resident_id ORDER BY occurred_at DESC, id DESC) AS rn"
-                        + " FROM resident_status_history WHERE occurred_at < :before",
+                "SELECT entity_id AS resident_id, starts_at AS at, command, value_before, value,"
+                        + " ROW_NUMBER() OVER (PARTITION BY entity_id ORDER BY starts_at DESC, id DESC) AS rn"
+                        + " FROM status_history WHERE " + STATUS + " AND starts_at < :before",
                 before,
                 residentIds);
     }
@@ -44,9 +49,9 @@ public class ResidentStatisticsStore {
     /** Dòng mức chăm sóc hiệu lực mới nhất trước {@code before} của mỗi người. */
     public List<HistoryPoint> latestCareLevelBefore(Instant before, Collection<Long> residentIds) {
         return latest(
-                "SELECT resident_id, effective_from AS at, NULL AS command, NULL AS value_before, care_level AS value,"
-                        + " ROW_NUMBER() OVER (PARTITION BY resident_id ORDER BY effective_from DESC, id DESC) AS rn"
-                        + " FROM care_level_history WHERE effective_from < :before",
+                "SELECT entity_id AS resident_id, starts_at AS at, NULL AS command, NULL AS value_before, value,"
+                        + " ROW_NUMBER() OVER (PARTITION BY entity_id ORDER BY starts_at DESC, id DESC) AS rn"
+                        + " FROM status_history WHERE " + CARE_LEVEL + " AND starts_at < :before",
                 before,
                 residentIds);
     }
@@ -54,9 +59,8 @@ public class ResidentStatisticsStore {
     /** Lệnh trạng thái trong {@code [from, to)}. */
     public List<HistoryPoint> statusChanges(Instant from, Instant to, Collection<Long> residentIds) {
         return between(
-                "SELECT resident_id, occurred_at AS at, command, from_status AS value_before, to_status AS value"
-                        + " FROM resident_status_history WHERE occurred_at >= :from AND occurred_at < :to",
-                "occurred_at",
+                "SELECT entity_id AS resident_id, starts_at AS at, command, value_before, value FROM status_history"
+                        + " WHERE " + STATUS + " AND starts_at >= :from AND starts_at < :to",
                 from,
                 to,
                 residentIds);
@@ -65,9 +69,8 @@ public class ResidentStatisticsStore {
     /** Đổi mức chăm sóc theo thời điểm hiệu lực trong {@code [from, to)}. */
     public List<HistoryPoint> careLevelChanges(Instant from, Instant to, Collection<Long> residentIds) {
         return between(
-                "SELECT resident_id, effective_from AS at, NULL AS command, NULL AS value_before, care_level AS value"
-                        + " FROM care_level_history WHERE effective_from >= :from AND effective_from < :to",
-                "effective_from",
+                "SELECT entity_id AS resident_id, starts_at AS at, NULL AS command, NULL AS value_before, value"
+                        + " FROM status_history WHERE " + CARE_LEVEL + " AND starts_at >= :from AND starts_at < :to",
                 from,
                 to,
                 residentIds);
@@ -78,11 +81,10 @@ public class ResidentStatisticsStore {
         return jdbc.query("SELECT * FROM (" + inner + scope(residentIds, params) + ") x WHERE rn = 1", params, ROW);
     }
 
-    private List<HistoryPoint> between(
-            String sql, String orderColumn, Instant from, Instant to, Collection<Long> residentIds) {
+    private List<HistoryPoint> between(String sql, Instant from, Instant to, Collection<Long> residentIds) {
         MapSqlParameterSource params =
                 new MapSqlParameterSource(Map.of("from", Timestamp.from(from), "to", Timestamp.from(to)));
-        return jdbc.query(sql + scope(residentIds, params) + " ORDER BY " + orderColumn + ", id", params, ROW);
+        return jdbc.query(sql + scope(residentIds, params) + " ORDER BY starts_at, id", params, ROW);
     }
 
     private static String scope(Collection<Long> residentIds, MapSqlParameterSource params) {
@@ -90,6 +92,6 @@ public class ResidentStatisticsStore {
             return "";
         }
         params.addValue("ids", residentIds);
-        return " AND resident_id IN (:ids)";
+        return " AND entity_id IN (:ids)";
     }
 }

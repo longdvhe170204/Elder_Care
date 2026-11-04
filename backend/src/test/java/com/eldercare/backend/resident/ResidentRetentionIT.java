@@ -145,22 +145,46 @@ class ResidentRetentionIT extends StatusTestBase {
 
         user.set(office.user());
         statusService.grantTemporaryAbsence(target(id), REASON, noDetails());
+        // đính chính lý do của dòng lịch sử (cách A, người ghi gốc): job xóa cùng chuỗi hồ sơ
+        corrections.create(
+                "M01.RESIDENT_STATUS_HISTORY",
+                lastStatusHistoryId(id),
+                CorrectionType.AMEND_CONTENT,
+                Map.of("reason", "Lý do đúng"),
+                REASON);
         statusService.recordReturn(target(id), REASON, noDetails());
         statusService.endResidency(target(id), REASON, noDetails());
         return id;
     }
 
     private int count(String table, long residentId) {
+        if (table.startsWith("status_history:")) {
+            // lịch sử trạng thái, mức chăm sóc ở status_history từ 001 T084
+            return jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M01.RESIDENT' AND entity_id = ?"
+                            + " AND attribute = ?",
+                    Integer.class,
+                    residentId,
+                    table.substring("status_history:".length()));
+        }
         String column = table.equals("resident") ? "id" : table.equals("reminder_marker") ? "entity_id" : "resident_id";
         String scope = table.equals("reminder_marker") ? " AND entity_type = 'M01.RESIDENT'" : "";
         return jdbc.queryForObject(
                 "SELECT COUNT(*) FROM " + table + " WHERE " + column + " = ?" + scope, Integer.class, residentId);
     }
 
+    private long lastStatusHistoryId(long residentId) {
+        return jdbc.queryForObject(
+                "SELECT MAX(id) FROM status_history WHERE entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'"
+                        + " AND entity_id = ?",
+                Long.class,
+                residentId);
+    }
+
     private static final List<String> TABLES = List.of(
             "resident",
-            "resident_status_history",
-            "care_level_history",
+            "status_history:STATUS",
+            "status_history:CARE_LEVEL",
             "initial_health_record",
             "health_item",
             "assessment",
@@ -180,6 +204,13 @@ class ResidentRetentionIT extends StatusTestBase {
         long id = endedResidentWithEverything();
         long assessmentId =
                 jdbc.queryForObject("SELECT id FROM assessment WHERE resident_id = ? LIMIT 1", Long.class, id);
+        String historyCorrections =
+                "SELECT COUNT(*) FROM correction c JOIN status_history h ON h.id = c.original_record_id"
+                        + " WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY' AND h.entity_type = 'M01.RESIDENT'"
+                        + " AND h.entity_id = ?";
+        assertThat(jdbc.queryForObject(historyCorrections, Integer.class, id)).isEqualTo(1);
+        java.util.List<Long> historyIds = jdbc.queryForList(
+                "SELECT id FROM status_history WHERE entity_type = 'M01.RESIDENT' AND entity_id = ?", Long.class, id);
         for (String table : TABLES) {
             assertThat(count(table, id)).as("trước khi xóa: %s", table).isPositive();
         }
@@ -196,6 +227,16 @@ class ResidentRetentionIT extends StatusTestBase {
                         Integer.class,
                         assessmentId))
                 .as("đính chính của hồ sơ")
+                .isZero();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM correction WHERE record_type = 'M01.RESIDENT_STATUS_HISTORY'"
+                                + " AND original_record_id IN ("
+                                + historyIds.stream()
+                                        .map(String::valueOf)
+                                        .collect(java.util.stream.Collectors.joining(","))
+                                + ")",
+                        Integer.class))
+                .as("đính chính của dòng lịch sử trạng thái")
                 .isZero();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM assessment WHERE resident_id = ?", Integer.class, id))
                 .isZero();
@@ -223,7 +264,7 @@ class ResidentRetentionIT extends StatusTestBase {
 
         assertThat(count("resident", active)).isEqualTo(1);
         assertThat(count("resident", recentlyEnded)).isEqualTo(1);
-        assertThat(count("resident_status_history", recentlyEnded)).isPositive();
+        assertThat(count("status_history:STATUS", recentlyEnded)).isPositive();
     }
 
     @Test
@@ -233,12 +274,17 @@ class ResidentRetentionIT extends StatusTestBase {
         long earlier =
                 profiles.create(personal("Trần Văn Cũ", cccd), false).profile().id();
         setStatus(earlier, "RESIDENCY_ENDED");
-        jdbc.update(
-                "INSERT INTO resident_status_history (resident_id, from_status, to_status, command, occurred_at,"
-                        + " performed_by, by_system) VALUES (?, 'IN_RESIDENCE', 'RESIDENCY_ENDED', 'SEED', ?, ?, TRUE)",
+        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
+                jdbc,
+                null,
                 earlier,
+                "IN_RESIDENCE",
+                "RESIDENCY_ENDED",
+                "SEED",
                 java.sql.Timestamp.from(time.now()),
-                office.accountId());
+                office.accountId(),
+                true,
+                null);
         long later =
                 profiles.create(personal("Trần Văn Mới", cccd), false).profile().id();
         assertThat(jdbc.queryForObject("SELECT previous_profile_id FROM resident WHERE id = ?", Long.class, later))

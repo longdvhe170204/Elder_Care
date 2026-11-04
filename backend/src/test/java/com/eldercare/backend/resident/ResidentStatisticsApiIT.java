@@ -40,14 +40,8 @@ class ResidentStatisticsApiIT extends StatusTestBase {
     }
 
     private void careLevel(long residentId, CareLevel level, Instant from) {
-        jdbc.update(
-                "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
-                        + " recorded_at, recorded_by) VALUES (?, ?, ?, 'ASSESSMENT', 1, ?, ?)",
-                residentId,
-                level.name(),
-                java.sql.Timestamp.from(from),
-                java.sql.Timestamp.from(from),
-                office.accountId());
+        com.eldercare.backend.support.ResidentHistoryRows.insertCareLevel(
+                jdbc, residentId, level.name(), from, "ASSESSMENT", 1, office.accountId());
         jdbc.update("UPDATE resident SET current_care_level = ? WHERE id = ?", level.name(), residentId);
     }
 

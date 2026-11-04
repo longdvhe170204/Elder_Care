@@ -33,7 +33,7 @@ import com.eldercare.backend.resident.internal.profile.domain.ResidentMatch;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentLookup;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class ResidentProfileService {
     static final String PHOTO_OWNER = "M01.RESIDENT_PHOTO";
 
     private final ResidentRepository residents;
-    private final ResidentStatusHistoryRepository history;
+    private final ResidentStatusHistoryStore history;
     private final ResidentLookup lookup;
     private final ProfileOpenGuard guard;
     private final AuditLogApi auditLog;
@@ -103,7 +103,7 @@ public class ResidentProfileService {
 
     ResidentProfileService(
             ResidentRepository residents,
-            ResidentStatusHistoryRepository history,
+            ResidentStatusHistoryStore history,
             ResidentLookup lookup,
             ProfileOpenGuard guard,
             AuditLogApi auditLog,

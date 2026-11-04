@@ -11,7 +11,13 @@ class ChildScopeAssignments {
 
     @Bean
     ChildScopeAssignment statusHistoryScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.RESIDENT_STATUS_HISTORY", "resident_status_history", records);
+        // Dòng status_history của M01.RESIDENT, thuộc tính STATUS (001 T084)
+        return new ChildScopeAssignment(
+                "M01.RESIDENT_STATUS_HISTORY",
+                "status_history",
+                "entity_id",
+                " AND entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'",
+                records);
     }
 
     @Bean

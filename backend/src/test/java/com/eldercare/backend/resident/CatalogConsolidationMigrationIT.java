@@ -44,7 +44,25 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             "end_of_life_wish_opinion",
             "treatment_wish",
             "treatment_wish_notify",
-            "treatment_wish_opinion");
+            "treatment_wish_opinion",
+            "resident_status_history",
+            "care_level_history",
+            "m01_history_id_map");
+
+    /** Nội dung một dòng lịch sử trạng thái cũ ({@code o}) và mới ({@code n}), để so tham chiếu theo nội dung khi id đổi. */
+    private static final String OLD_STATUS_ROW =
+            "CONCAT_WS('|', o.resident_id, IFNULL(o.from_status, '-'), o.to_status,"
+                    + " o.command, o.occurred_at, o.performed_by, o.by_system, IFNULL(o.reason, '-'), IFNULL(o.basis_type, '-'),"
+                    + " IFNULL(o.basis_id, '-'), IFNULL(CAST(o.condition_waiver AS CHAR), '-'))";
+
+    private static final String NEW_STATUS_ROW = "CONCAT_WS('|', n.entity_id, IFNULL(n.value_before, '-'), n.value,"
+            + " n.command, n.starts_at, n.actor_id, n.by_system, IFNULL(n.reason, '-'), IFNULL(n.basis_type, '-'),"
+            + " IFNULL(n.basis_id, '-'), IF(JSON_TYPE(n.details -> '$.conditionWaiver') IS NULL"
+            + " OR JSON_TYPE(n.details -> '$.conditionWaiver') = 'NULL', '-', CAST(n.details -> '$.conditionWaiver' AS CHAR)))";
+
+    private static final String OLD_STATUS = "resident_status_history o";
+    private static final String NEW_STATUS = "status_history n";
+    private static final String NEW_STATUS_ON = " AND n.entity_type = 'M01.RESIDENT' AND n.attribute = 'STATUS'";
 
     /** Dữ liệu cũ đọc ra dạng tên, để so sau khi id đổi. */
     private record Snapshot(
@@ -58,7 +76,11 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
             List<String> reminders,
             List<String> alerts,
             List<String> wishes,
-            int treatmentFiles) {}
+            int treatmentFiles,
+            List<String> statusRows,
+            List<String> careLevelRows,
+            List<String> historyRefs,
+            long maxStatusHistoryId) {}
 
     @AfterAll
     static void dropScratchSchemas() {
@@ -206,6 +228,7 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
                         + " recorded_at, recorded_by) VALUES (?, 'BASIC', '2026-01-01', 'ASSESSMENT', 1, NOW(6), 3)",
                 r1);
+        seedHistories(db, r1, r2);
         // nhắc định kỳ: lần nhắc 2 lần, 1 lần, và chưa nhắc lần nào; cảnh báo quá hạn của hai mốc cùng một lượt vắng
         db.update(
                 "INSERT INTO periodic_reminder (type, resident_id, milestone_id, started_at, last_reminded_at,"
@@ -223,6 +246,199 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                 r1,
                 r1);
         seedWishes(db, r1, r2, file);
+    }
+
+    /**
+     * Lịch sử trạng thái (Tạo hồ sơ không lý do, lệnh do hệ thống, căn cứ, miễn điều kiện), mức chăm sóc thứ hai, và mọi
+     * nơi trỏ id dòng lịch sử: tệp giấy tờ bệnh viện, bằng chứng qua đời, đính chính, chuỗi đính chính, yêu cầu đính chính
+     * chờ duyệt, lần báo đánh giá lại nguồn {@code STATUS_HISTORY}.
+     */
+    private static void seedHistories(JdbcTemplate db, long r1, long r2) {
+        String insert =
+                "INSERT INTO resident_status_history (resident_id, from_status, to_status, command, occurred_at,"
+                        + " performed_by, by_system, reason, basis_type, basis_id, condition_waiver)"
+                        + " VALUES (?, ?, ?, ?, ?, 3, ?, ?, ?, ?, ?)";
+        db.update(
+                insert,
+                r1,
+                null,
+                "ADMISSION_IN_PROGRESS",
+                "CREATE_PROFILE",
+                "2026-01-01 08:00:00.111111",
+                false,
+                null,
+                null,
+                null,
+                null);
+        db.update(
+                insert,
+                r1,
+                "ADMISSION_IN_PROGRESS",
+                "IN_RESIDENCE",
+                "COMPLETE_ADMISSION",
+                "2026-01-02 08:00:00",
+                false,
+                "Đủ hồ sơ",
+                null,
+                null,
+                null);
+        db.update(
+                insert,
+                r1,
+                "IN_RESIDENCE",
+                "HOSPITALIZED",
+                "TRANSFER_OUT",
+                "2026-01-03 08:00:00.5",
+                false,
+                "Cấp cứu",
+                "INCIDENT",
+                77,
+                null);
+        long transfer = db.queryForObject("SELECT MAX(id) FROM resident_status_history", Long.class);
+        db.update(
+                insert,
+                r1,
+                "HOSPITALIZED",
+                "IN_RESIDENCE",
+                "RECORD_RETURN",
+                "2026-01-04 08:00:00",
+                false,
+                "Ra viện",
+                null,
+                null,
+                null);
+        long back = db.queryForObject("SELECT MAX(id) FROM resident_status_history", Long.class);
+        db.update(
+                insert,
+                r2,
+                "IN_RESIDENCE",
+                "OFF_SITE_ACTIVITY",
+                "ROLL_CALL_DEPARTURE",
+                "2026-01-05 08:00:00",
+                true,
+                null,
+                null,
+                null,
+                null);
+        db.update(
+                insert,
+                r2,
+                "OFF_SITE_ACTIVITY",
+                "RESIDENCY_ENDED",
+                "END_RESIDENCY",
+                "2026-01-06 08:00:00",
+                false,
+                "Về nhà",
+                "APPROVAL_REQUEST",
+                501,
+                "{\"approvalRequestId\": 501, \"conditionCodes\": [\"UNPAID_FEES\"]}");
+        long ended = db.queryForObject("SELECT MAX(id) FROM resident_status_history", Long.class);
+        db.update(
+                insert,
+                r2,
+                "RESIDENCY_ENDED",
+                "DECEASED",
+                "RECORD_DEATH",
+                "2026-01-07 08:00:00",
+                false,
+                "Qua đời",
+                "EVIDENCE_FILE",
+                1,
+                null);
+        long death = db.queryForObject("SELECT MAX(id) FROM resident_status_history", Long.class);
+        db.update(
+                "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
+                        + " recorded_at, recorded_by) VALUES (?, 'SPECIAL', '2026-02-01 00:00:00.000001',"
+                        + " 'RESIDENCY_CHANGE_REQUEST', 12, '2026-01-31 09:00:00.25', 4)",
+                r2);
+
+        Object[][] owners = {
+            {"M01.HOSPITAL_DOCUMENT", back}, {"M01.HOSPITAL_DOCUMENT", back}, {"M01.DEATH_EVIDENCE", death}
+        };
+        for (Object[] owner : owners) {
+            db.update("INSERT INTO file (uuid, original_name, mime_type, size_bytes, sha256, uploaded_by, uploaded_at)"
+                    + " VALUES (UUID(), 'giay.pdf', 'application/pdf', 1, REPEAT('c', 64), 3, NOW(6))");
+            long file = db.queryForObject("SELECT MAX(id) FROM file", Long.class);
+            db.update(
+                    "UPDATE file SET owner_type = ?, owner_id = ?, attached_at = NOW(6) WHERE id = ?",
+                    owner[0],
+                    owner[1],
+                    file);
+        }
+        db.update(
+                "INSERT INTO correction (record_type, original_record_id, type, corrected_content, reason, actor_id,"
+                        + " creation_method, recorded_at, sequence_no) VALUES ('M01.RESIDENT_STATUS_HISTORY', ?,"
+                        + " 'AMEND_CONTENT', JSON_OBJECT('reason', 'Cấp cứu do ngã'), 'Ghi thiếu', 3, 'A', NOW(6), 1)",
+                transfer);
+        db.update(
+                "INSERT INTO correction_chain (record_type, original_record_id, correction_count)"
+                        + " VALUES ('M01.RESIDENT_STATUS_HISTORY', ?, 1)",
+                transfer);
+        db.update(
+                "INSERT INTO approval_request (type, status, content, requester_id, created_at, reason,"
+                        + " requested_effective_date) VALUES ('M15.CORRECTION', 'PENDING', JSON_OBJECT('recordType',"
+                        + " 'M01.RESIDENT_STATUS_HISTORY', 'originalRecordId', ?, 'type', 'AMEND_CONTENT',"
+                        + " 'correctedContent', JSON_OBJECT('reason', 'Về quê')), 3, NOW(6), 'Sửa lý do', CURDATE())",
+                ended);
+        db.update(
+                "INSERT INTO reassessment_notice (resident_id, basis, source_type, source_id, notified_at, deadline_from)"
+                        + " VALUES (?, 'RETURN_FROM_HOSPITAL', 'STATUS_HISTORY', ?, '2026-01-04 08:00:00', NULL)",
+                r1,
+                back);
+    }
+
+    /** Dòng lịch sử trạng thái dạng chữ (không có id dòng). */
+    private static List<String> statusRows(JdbcTemplate db, boolean migrated) {
+        return migrated
+                ? db.queryForList(
+                        "SELECT " + NEW_STATUS_ROW + " FROM " + NEW_STATUS + " WHERE TRUE" + NEW_STATUS_ON,
+                        String.class)
+                : db.queryForList("SELECT " + OLD_STATUS_ROW + " FROM " + OLD_STATUS, String.class);
+    }
+
+    private static List<String> careLevelRows(JdbcTemplate db, boolean migrated) {
+        return migrated
+                ? db.queryForList(
+                        "SELECT CONCAT_WS('|', entity_id, value, starts_at, basis_type, basis_id, actor_id,"
+                                + " details ->> '$.recordedAt') FROM status_history WHERE entity_type = 'M01.RESIDENT'"
+                                + " AND attribute = 'CARE_LEVEL'",
+                        String.class)
+                : db.queryForList(
+                        "SELECT CONCAT_WS('|', resident_id, care_level, effective_from, basis_type, basis_id, recorded_by,"
+                                + " DATE_FORMAT(recorded_at, '%Y-%m-%dT%H:%i:%s.%fZ')) FROM care_level_history",
+                        String.class);
+    }
+
+    /** Nơi trỏ tới dòng lịch sử trạng thái, ghi bằng nội dung dòng được trỏ (id dòng đổi khi chuyển). */
+    private static List<String> historyRefs(JdbcTemplate db, boolean migrated) {
+        String row = migrated ? NEW_STATUS_ROW : OLD_STATUS_ROW;
+        String join = migrated ? NEW_STATUS + " ON n.id = %s" + NEW_STATUS_ON : OLD_STATUS + " ON o.id = %s";
+        List<String> refs = new ArrayList<>();
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('F|', f.id, '|', f.owner_type, '|', " + row + ") FROM file f JOIN "
+                        + join.formatted("f.owner_id")
+                        + " WHERE f.owner_type IN ('M01.HOSPITAL_DOCUMENT', 'M01.DEATH_EVIDENCE')",
+                String.class));
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('C|', c.id, '|', c.sequence_no, '|', " + row + ") FROM correction c JOIN "
+                        + join.formatted("c.original_record_id")
+                        + " WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY'",
+                String.class));
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('CH|', c.correction_count, '|', " + row + ") FROM correction_chain c JOIN "
+                        + join.formatted("c.original_record_id")
+                        + " WHERE c.record_type = 'M01.RESIDENT_STATUS_HISTORY'",
+                String.class));
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('A|', a.id, '|', " + row + ") FROM approval_request a JOIN "
+                        + join.formatted("CAST(a.content ->> '$.originalRecordId' AS UNSIGNED)")
+                        + " WHERE a.type = 'M15.CORRECTION' AND a.content ->> '$.recordType' = 'M01.RESIDENT_STATUS_HISTORY'",
+                String.class));
+        refs.addAll(db.queryForList(
+                "SELECT CONCAT('N|', r.basis, '|', " + row + ") FROM reassessment_notice r JOIN "
+                        + join.formatted("r.source_id") + " WHERE r.source_type = 'STATUS_HISTORY'",
+                String.class));
+        return refs;
     }
 
     /** Hai phiếu cuối đời (cũ Được thay thế, mới Hiệu lực), ba phiếu điều trị có người cần báo, ý kiến, tệp đã gắn. */
@@ -349,7 +565,11 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
                                 + " '|', resident_id, '|', alerted_at) FROM return_overdue_alert",
                         String.class),
                 oldWishes(db),
-                db.queryForObject("SELECT COUNT(*) FROM file WHERE owner_type = 'M01.TREATMENT_WISH'", Integer.class));
+                db.queryForObject("SELECT COUNT(*) FROM file WHERE owner_type = 'M01.TREATMENT_WISH'", Integer.class),
+                statusRows(db, false),
+                careLevelRows(db, false),
+                historyRefs(db, false),
+                db.queryForObject("SELECT COALESCE(MAX(id), 0) FROM resident_status_history", Long.class));
     }
 
     /** Phiếu cuối đời (giữ id), phiếu điều trị (không có id), ý kiến khác của phiếu cuối đời: dạng chữ để so sánh. */
@@ -424,8 +644,33 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         }
         assertThat(db.queryForObject(
                         "SELECT COUNT(*) FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE()"
-                                + " AND ROUTINE_NAME = 'm01_verify_group1'",
+                                + " AND ROUTINE_NAME LIKE 'm01\\_%'",
                         Integer.class))
+                .isZero();
+
+        // Lịch sử trạng thái, mức chăm sóc vào status_history: đủ dòng, nguyên nội dung, id mới lớn hơn mọi id cũ; nơi
+        // trỏ tới dòng lịch sử (tệp, đính chính, chuỗi, yêu cầu chờ duyệt, lần báo đánh giá lại) trỏ đúng dòng mới
+        assertThat(statusRows(db, true))
+                .as("lịch sử trạng thái")
+                .containsExactlyInAnyOrderElementsOf(before.statusRows());
+        assertThat(careLevelRows(db, true))
+                .as("lịch sử mức chăm sóc")
+                .containsExactlyInAnyOrderElementsOf(before.careLevelRows());
+        assertThat(historyRefs(db, true))
+                .as("tham chiếu tới dòng lịch sử")
+                .containsExactlyInAnyOrderElementsOf(before.historyRefs());
+        assertThat(before.historyRefs()).hasSizeGreaterThanOrEqualTo(7);
+        assertThat(db.queryForObject(
+                        "SELECT MIN(id) FROM status_history WHERE details ->> '$.legacy.table' = 'resident_status_history'",
+                        Long.class))
+                .as("id mới lớn hơn mọi id cũ")
+                .isGreaterThan(before.maxStatusHistoryId());
+        assertThat(db.queryForObject(
+                        "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M01.RESIDENT' AND attribute = 'CARE_LEVEL'"
+                                + " AND NOT (unique_key <=> CONCAT('M01.CLH:', entity_id, ':',"
+                                + " DATE_FORMAT(starts_at, '%Y-%m-%dT%H:%i:%s.%f')))",
+                        Integer.class))
+                .as("khóa M01.CLH thay UNIQUE (resident_id, effective_from)")
                 .isZero();
 
         // Nhắc định kỳ: loại, người, mốc, lúc bắt đầu, lần nhắc cuối và số lần tính lại từ các dòng reminder_marker
@@ -521,7 +766,8 @@ class CatalogConsolidationMigrationIT extends MySqlIntegrationTestBase {
         // Mã mức chăm sóc giữ nguyên ở resident, lịch sử, đánh giá và có trong danh mục
         assertThat(db.queryForObject(
                         "SELECT COUNT(*) FROM (SELECT current_care_level AS c FROM resident"
-                                + " UNION ALL SELECT care_level FROM care_level_history"
+                                + " UNION ALL SELECT value FROM status_history WHERE attribute = 'CARE_LEVEL'"
+                                + " AND entity_type = 'M01.RESIDENT'"
                                 + " UNION ALL SELECT care_level FROM assessment) x"
                                 + " WHERE c IS NOT NULL AND c NOT IN (SELECT code FROM catalog_item"
                                 + " WHERE catalog_type = 'M01.CARE_LEVEL')",
