@@ -4,18 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.account.api.spi.FootnoteCondition;
 import com.eldercare.backend.admission.api.events.RepresentativeRequestNeedsCompletion;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.TestUsers.TestUser;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -27,32 +20,7 @@ import tools.jackson.databind.node.ObjectNode;
  */
 @AutoConfigureMockMvc
 @WithMockUser
-@Import(RepresentativeRequestIT.Footnote2.class)
 class RepresentativeRequestIT extends ChangeTestBase {
-
-    /**
-     * Chú thích ² của Phụ lục 27 (người đại diện) do 012 cài, chưa có (team-plan mục 8, dòng E); không có thì 002 từ chối
-     * người thân. Bản thử này chỉ cho qua người thân có quan hệ trong phạm vi, để việc kiểm người đại diện hiệu lực là của
-     * chính loại yêu cầu của 004.
-     */
-    @TestConfiguration
-    static class Footnote2 {
-
-        @Bean
-        FootnoteCondition representativeFootnote() {
-            return new FootnoteCondition() {
-                @Override
-                public String footnoteCode() {
-                    return "2";
-                }
-
-                @Override
-                public boolean isSatisfied(CurrentUser user, Target target, Instant at) {
-                    return user.familyMemberId().isPresent();
-                }
-            };
-        }
-    }
 
     private static final String CARE_LEVEL = "[\"CARE_LEVEL\"]";
     private static final String REGULAR = "{\"careLevel\": \"REGULAR\"}";
@@ -62,7 +30,11 @@ class RepresentativeRequestIT extends ChangeTestBase {
         if (!representative) {
             familyMemberId += 1;
         }
-        families.relate(familyMemberId, residentId);
+        // Chú thích ² (người đại diện) là bản cài của 012, đọc người đại diện qua FamilyRelationshipApi (bản giả)
+        long relationshipId = families.relate(familyMemberId, residentId);
+        if (representative) {
+            families.representative(relationshipId);
+        }
         return users.family(familyMemberId);
     }
 

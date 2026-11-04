@@ -234,3 +234,16 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Ánh xạ bảng ở data-model mục 0; task T075. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
 - Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
 - Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
+
+## Ghi chú triển khai
+
+### Phase 1, 2 phần SPI (2026-11-03, A)
+
+- Gói theo glossary mục 18.5: `family.internal.relationship` (quan hệ, bản cài SPI), `family.internal.right` (quyền có tác dụng). T001 không cần `package-info` mới (gói gốc đã có `@ApplicationModule`); `M10ArchTest` kiểm M10 không dùng `billing` ngoài sự kiện (Q-306) và phần trả cho người thân không dùng `auditlog`.
+- T004: chỉ hai bảng riêng `family_member`, `family_relationship` (V012_01). `nguoi_than_nct` dùng `resident_module_state` (loại `M10.FAMILY_RESIDENT_STATE`, ghi khi cài lệnh US1); `lich_su_quyen` dùng `status_history` loại `M10.FAMILY_RELATIONSHIP`, thuộc tính là sáu quyền, `REPRESENTATIVE`, `PRIMARY_CONTACT`, mỗi lần đổi một dòng `POINT`; `su_kien_m10_da_xu_ly`, `lan_chay_m10` dùng `reminder_marker` khi có listener, job (T007). Lệch kỹ thuật: thêm cột `started_at` vào quan hệ để xét "Hiệu lực tại thời điểm T" (FR-068, `NguoiDaiDienPort` theo ngày); data-model mục 2 chưa có cột này.
+- Xét tại thời điểm: quan hệ Hiệu lực lúc đó (`started_at ≤ T < ended_at`) và giá trị ở lịch sử; không có dòng lịch sử trước T thì tắt (FR-008). Lệnh của US1, US3 phải ghi lịch sử cùng lúc với cột.
+- `common.notification.FamilyRight` mở rộng thành sáu quyền (thêm `PICKUP_ALLOWED`, `REQUEST_SERVICES`, FR-007); 009 vẫn chỉ dùng bốn quyền đầu.
+- T006 đã cài: `FamilyRelationshipApi` (gồm `familyMemberName`, `relationship`, `rightEnabled`), chú thích ², ⁷ (`FootnoteCondition`), `RepresentativePort`, `FamilyNotificationPort`, `EmergencyFamilyPort` (`visitsInRange` trả rỗng tới US4, T024). Chưa có: `QuyenNguoiThanApi` (T003), `ThamGiaChuyenTrangThai` (T012), `PickupRecordPort`, `DayCarePickupPort` (US2, T020), `TimetableSourcePort` (US4).
+- Chú thích ², ⁷ đọc qua `FamilyRelationshipApi` (test dùng bản giả chung). Lớp vai trò của 002 chạy trước lớp phạm vi, nên người thân không có quan hệ với người cao tuổi của đối tượng được cho qua ở điều kiện này để lớp phạm vi trả 404 (002 FR-042).
+- `RepresentativeRequestIT` (004, B) bỏ bản thử chú thích "2" tự đăng ký (trùng mã với bản cài thật), đánh dấu người đại diện trong `FakeFamilyRelationships`; không đổi assert. B review.
+- Điểm báo lại: FR-003 áp DBR-02 cho Đang lưu trú, Tạm vắng, Điều trị tại bệnh viện; trạng thái Hoạt động bên ngoài (`OFF_SITE_ACTIVITY`) không có trong danh sách, `Dbr02Check` làm theo đúng FR-003.
