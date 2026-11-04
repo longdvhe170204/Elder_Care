@@ -39,7 +39,11 @@ import tools.jackson.databind.node.ObjectNode;
  * 004 T010, T070 (003 contracts mục 2.1; 001 FR-047; hồi quy 001, 003, 004): hai SPI 004 cài cho 003 chạy thật với {@code
  * AllocationStatusParticipant}, không bản giả ở phần nguồn lưu trú. Hoàn tất tiếp nhận, Chuyển viện, Ghi nhận trở về của 001 không còn
  * báo {@code ALLOCATION_SOURCE_UNAVAILABLE}, giường thật đổi trạng thái theo lệnh. Đặt cọc vẫn là bản giả vì 017 chưa có.
+ * Điều kiện DBR_02 của 012 không thuộc phạm vi test này (bean của 012 thay bằng mock; ca thật ở DBR_02_PrimaryContactIT).
  */
+@org.springframework.test.context.bean.override.mockito.MockitoBean(
+        name = "m10StatusParticipant",
+        types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
 @Import({FakeM02PortsConfig.class, AdmissionRealBedIT.OtherModulePorts.class})
 class AdmissionRealBedIT extends AssessmentTestBase {
 
