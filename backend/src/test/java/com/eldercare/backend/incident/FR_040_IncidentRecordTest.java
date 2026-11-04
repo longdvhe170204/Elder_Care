@@ -3,6 +3,7 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -25,14 +26,20 @@ import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
+import com.eldercare.backend.incident.api.events.ContactListRequested;
+import com.eldercare.backend.incident.api.events.FallIncidentRecorded;
 import com.eldercare.backend.incident.api.events.IncidentNotificationCreated;
 import com.eldercare.backend.incident.api.events.IncidentRecorded;
+import com.eldercare.backend.incident.api.events.InfectionSuspicionChanged;
+import com.eldercare.backend.incident.api.events.PostFallFollowUpRequested;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeView;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
+import com.eldercare.backend.incident.internal.incident.domain.FallMonitoringSetting;
 import com.eldercare.backend.incident.internal.incident.domain.NewIncident;
+import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.incident.service.IncidentRecordService;
 import com.eldercare.backend.resident.api.ResidentApi;
@@ -65,6 +72,7 @@ class FR_040_IncidentRecordTest {
     private final AlertStaffPort staff = mock(AlertStaffPort.class);
     private final ResidentApi residents = mock(ResidentApi.class);
     private final ResidentLocationApi locations = mock(ResidentLocationApi.class);
+    private final FallMonitoringStore fallMonitoring = mock(FallMonitoringStore.class);
     private final CurrentUser user = mock(CurrentUser.class);
     private final IncidentRecordService service = new IncidentRecordService(
             incidents,
@@ -77,7 +85,8 @@ class FR_040_IncidentRecordTest {
             monitoringLock,
             staff,
             residents,
-            locations);
+            locations,
+            fallMonitoring);
 
     @BeforeEach
     void defaults() {
@@ -90,7 +99,8 @@ class FR_040_IncidentRecordTest {
                         type(1, "FALL", IncidentLevel.CRITICAL, false),
                         type(2, "OTHER", IncidentLevel.MEDIUM, false),
                         type(3, "BELONGINGS_LOST", IncidentLevel.MEDIUM, false),
-                        type(4, "FACILITY", IncidentLevel.LOW, true)));
+                        type(4, "FACILITY", IncidentLevel.LOW, true),
+                        type(5, "SUSPECTED_INFECTION", IncidentLevel.MEDIUM, false)));
         when(locations.current(RESIDENT))
                 .thenReturn(Optional.of(new LocationView(null, null, FLOOR, "Tầng 1", 3L, "P101", 9L, "G1")));
         when(staff.onDutyDoctors(NOW)).thenReturn(List.of(55L));
@@ -103,6 +113,12 @@ class FR_040_IncidentRecordTest {
         when(staff.shiftAt(FLOOR, NOW))
                 .thenReturn(Optional.of(new com.eldercare.backend.incident.api.dto.AlertShiftView(
                         1L, FLOOR, NOW.minusSeconds(3600), NOW.plusSeconds(7200))));
+        var fall = mock(ParameterValue.class);
+        when(fall.asTable(FallMonitoringSetting.class))
+                .thenReturn(new FallMonitoringSetting(
+                        new FallMonitoringSetting.Amount(4, java.time.temporal.ChronoUnit.HOURS),
+                        new FallMonitoringSetting.Amount(72, java.time.temporal.ChronoUnit.HOURS)));
+        when(parameters.read(ParameterCode.CFG_M05_06)).thenReturn(fall);
         when(incidents.insert(any())).thenReturn(41L);
         when(incidents.openEmergency(RESIDENT)).thenReturn(Optional.empty());
     }
@@ -238,6 +254,73 @@ class FR_040_IncidentRecordTest {
 
         assertThat(result.identificationOnly()).isTrue();
         assertThat(inserted().outOfScope()).isTrue();
+    }
+
+    @Test
+    void FR_051_fallOpensMonitoringWindowFromAnchorAndAsksFollowUp() {
+        // CHK013: ngã 02:00, ghi nhận 09:00, khoảng 4 giờ → mốc 05:00, kết thúc mốc + 72 giờ.
+        var recordedAt = Instant.parse("2026-11-04T09:00:00Z");
+        when(time.now()).thenReturn(recordedAt);
+        when(staff.onDutyDoctors(recordedAt)).thenReturn(List.of(55L));
+        var cmd = new RecordIncidentCommand(
+                RESIDENT,
+                1,
+                "CARE",
+                Instant.parse("2026-11-04T02:00:00Z"),
+                recordedAt,
+                null,
+                "Phòng 101",
+                null,
+                "Ngã cạnh giường",
+                "CRITICAL",
+                null,
+                null,
+                false);
+
+        service.record(cmd, user);
+
+        var anchor = Instant.parse("2026-11-04T05:00:00Z");
+        var end = anchor.plus(Duration.ofHours(72));
+        verify(fallMonitoring).start(RESIDENT, 41L, anchor, end, Duration.ofHours(4), 900L);
+        verify(events).publishEvent(new FallIncidentRecorded(RESIDENT, 41L));
+        var followUp = published(PostFallFollowUpRequested.class);
+        assertThat(followUp.startsAt()).isEqualTo(anchor);
+        assertThat(followUp.endsAt()).isEqualTo(end);
+        assertThat(followUp.measurementInterval()).isEqualTo(Duration.ofHours(4));
+        assertThat(followUp.notificationRequests().getFirst().recipientGroups())
+                .containsExactly(new RecipientGroup.ShiftLead(FLOOR, new Substitution.Default()));
+    }
+
+    @Test
+    void FR_051_fallWithoutOccurrenceTimeAnchorsAtRecordingTime() {
+        service.record(command(RESIDENT, 1, "CRITICAL", null, false), user);
+
+        verify(fallMonitoring).start(RESIDENT, 41L, NOW, NOW.plus(Duration.ofHours(72)), Duration.ofHours(4), 900L);
+    }
+
+    @Test
+    void FR_060_suspectedInfectionAsksNurseAndDoctorsForContactList() {
+        service.record(command(RESIDENT, 5, "MEDIUM", null, false), user);
+
+        var request = published(ContactListRequested.class);
+        assertThat(request.incidentId()).isEqualTo(41L);
+        assertThat(request.notificationRequests().getFirst().recipientGroups())
+                .containsExactlyInAnyOrder(
+                        new RecipientGroup.AssignedNurse(RESIDENT, new Substitution.Default()),
+                        new RecipientGroup.FacilityRole(Role.DOCTOR));
+        verify(events).publishEvent(new InfectionSuspicionChanged(RESIDENT, 41L, true, NOW));
+        verify(fallMonitoring, never()).start(anyLong(), anyLong(), any(), any(), any(), anyLong());
+    }
+
+    private <T> T published(Class<T> type) {
+        var captor = ArgumentCaptor.forClass(Object.class);
+        verify(events, org.mockito.Mockito.atLeastOnce()).publishEvent(captor.capture());
+        var found = captor.getAllValues().stream()
+                .filter(type::isInstance)
+                .map(type::cast)
+                .toList();
+        assertThat(found).hasSize(1);
+        return found.getFirst();
     }
 
     private void allow(PermissionBasis basis) {

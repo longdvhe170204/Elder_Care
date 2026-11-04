@@ -13,6 +13,7 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -21,19 +22,26 @@ import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
+import com.eldercare.backend.incident.api.events.ContactListRequested;
+import com.eldercare.backend.incident.api.events.FallIncidentRecorded;
 import com.eldercare.backend.incident.api.events.IncidentNotificationCreated;
 import com.eldercare.backend.incident.api.events.IncidentRecorded;
+import com.eldercare.backend.incident.api.events.InfectionSuspicionChanged;
+import com.eldercare.backend.incident.api.events.PostFallFollowUpRequested;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeView;
 import com.eldercare.backend.incident.internal.alert.service.AcknowledgementDeadlines;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
+import com.eldercare.backend.incident.internal.incident.domain.FallMonitoringSetting;
 import com.eldercare.backend.incident.internal.incident.domain.NewIncident;
 import com.eldercare.backend.incident.internal.incident.domain.RecordedIncident;
+import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +62,7 @@ public class IncidentRecordService {
     private static final String ENTITY = "M05.INCIDENT";
     private static final String FACILITY = "FACILITY";
     private static final String FALL = "FALL";
+    private static final String SUSPECTED_INFECTION = "SUSPECTED_INFECTION";
     /** FR-043 (b) sửa theo spec 013 FR-022: không báo đánh giá lại ở mọi mức. */
     private static final Set<String> NO_REASSESSMENT = Set.of("BELONGINGS_LOST", "BELONGINGS_DAMAGED");
 
@@ -68,6 +77,7 @@ public class IncidentRecordService {
     private final Optional<AlertStaffPort> staff;
     private final Optional<ResidentApi> residents;
     private final Optional<ResidentLocationApi> locations;
+    private final FallMonitoringStore fallMonitoring;
 
     public IncidentRecordService(
             IncidentStore incidents,
@@ -80,7 +90,8 @@ public class IncidentRecordService {
             MonitoringLock monitoringLock,
             @Autowired(required = false) AlertStaffPort staff,
             @Autowired(required = false) ResidentApi residents,
-            @Autowired(required = false) ResidentLocationApi locations) {
+            @Autowired(required = false) ResidentLocationApi locations,
+            FallMonitoringStore fallMonitoring) {
         this.incidents = incidents;
         this.catalog = catalog;
         this.permissions = permissions;
@@ -92,6 +103,7 @@ public class IncidentRecordService {
         this.staff = Optional.ofNullable(staff);
         this.residents = Optional.ofNullable(residents);
         this.locations = Optional.ofNullable(locations);
+        this.fallMonitoring = fallMonitoring;
     }
 
     @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.CREATE)
@@ -186,7 +198,42 @@ public class IncidentRecordService {
                 ENTITY + ":" + id + ":RECORDED",
                 now,
                 IncidentNotices.recorded(id, residentId, floorAreaId, level, noOnDutyDoctor, user.accountId(), now)));
+        if (residentId != null && FALL.equals(type.code())) {
+            startFallMonitoring(id, residentId, floorAreaId, command.occurredAt(), now, user.accountId());
+        }
+        if (residentId != null && SUSPECTED_INFECTION.equals(type.code())) {
+            events.publishEvent(new ContactListRequested(
+                    id,
+                    residentId,
+                    ENTITY + ":" + id + ":CONTACT_LIST_REQUESTED",
+                    now,
+                    IncidentNotices.contactListRequested(id, residentId, floorAreaId, user.accountId(), now)));
+            events.publishEvent(new InfectionSuspicionChanged(residentId, id, true, now));
+        }
         return new RecordedIncident(id, outOfScope, noOnDutyDoctor);
+    }
+
+    /**
+     * FR-051, FR-052 (research S-14): mở khoảng theo dõi sau ngã (thay khoảng đang có), báo 005 xem xét kế hoạch và báo
+     * Người phụ trách ca lập công việc theo dõi. Không tạo lịch đo hay công việc (Q-306, Q-307).
+     */
+    private void startFallMonitoring(
+            long incidentId, long residentId, Long floorAreaId, Instant occurredAt, Instant now, long actor) {
+        var setting = parameters.read(ParameterCode.CFG_M05_06).asTable(FallMonitoringSetting.class);
+        var interval = setting.interval().toDuration();
+        var anchor = setting.anchor(occurredAt, now);
+        var endsAt = anchor.plus(setting.duration().toDuration());
+        fallMonitoring.start(residentId, incidentId, anchor, endsAt, interval, actor);
+        events.publishEvent(new FallIncidentRecorded(residentId, incidentId));
+        events.publishEvent(new PostFallFollowUpRequested(
+                residentId,
+                incidentId,
+                anchor,
+                endsAt,
+                interval,
+                ENTITY + ":" + incidentId + ":POST_FALL_FOLLOW_UP",
+                now,
+                IncidentNotices.postFallFollowUp(incidentId, residentId, floorAreaId, actor, now)));
     }
 
     private IncidentTypeView activeType(long typeId) {

@@ -87,6 +87,70 @@ final class IncidentNotices {
         return requests;
     }
 
+    /** FR-051: Người phụ trách ca của tầng lập công việc theo dõi sau ngã (research S-19, mức Trung bình). */
+    static List<NotificationRequest> postFallFollowUp(
+            long incidentId, long residentId, Long floorAreaId, long actorId, Instant at) {
+        var groups = new LinkedHashSet<RecipientGroup>();
+        shiftLead(groups, floorAreaId);
+        if (groups.isEmpty()) return List.of();
+        return List.of(task(
+                incidentId,
+                "POST_FALL_FOLLOW_UP",
+                residentId,
+                floorAreaId,
+                List.copyOf(groups),
+                "Cần lập công việc theo dõi sau ngã trong khoảng theo dõi. Mở hồ sơ sự cố để xem mốc và khoảng đo.",
+                actorId,
+                at));
+    }
+
+    /** FR-060: Điều dưỡng phụ trách và các Bác sĩ lập danh sách tiếp xúc (research S-15, S-19, mức Trung bình). */
+    static List<NotificationRequest> contactListRequested(
+            long incidentId, long residentId, Long floorAreaId, long actorId, Instant at) {
+        return List.of(task(
+                incidentId,
+                "CONTACT_LIST_REQUESTED",
+                residentId,
+                floorAreaId,
+                List.of(
+                        new RecipientGroup.AssignedNurse(residentId, new Substitution.Default()),
+                        new RecipientGroup.FacilityRole(Role.DOCTOR)),
+                "Cần lập danh sách tiếp xúc cho sự cố. Mở hồ sơ sự cố để tra cứu dữ liệu.",
+                actorId,
+                at));
+    }
+
+    private static NotificationRequest task(
+            long incidentId,
+            String eventType,
+            long residentId,
+            Long floorAreaId,
+            List<RecipientGroup> groups,
+            String content,
+            long actorId,
+            Instant at) {
+        return new NotificationRequest(
+                "M05",
+                eventType,
+                SourceGroup.INCIDENT,
+                new SourceRecord(SOURCE_TYPE, Long.toString(incidentId)),
+                SOURCE_TYPE + ":" + incidentId + ":" + eventType,
+                Optional.of(NotificationLevel.MEDIUM),
+                Optional.of(residentId),
+                Optional.ofNullable(floorAreaId),
+                groups,
+                List.of(new ContentPart(InformationType.HEALTH, content)),
+                Optional.of("Có việc cần xử lý"),
+                Optional.of("Sự cố"),
+                Optional.of(actorId),
+                false,
+                at,
+                Map.of("incidentId", incidentId),
+                false,
+                Optional.empty(),
+                Optional.empty());
+    }
+
     private static void shiftLead(LinkedHashSet<RecipientGroup> groups, Long floorAreaId) {
         if (floorAreaId != null) groups.add(new RecipientGroup.ShiftLead(floorAreaId, new Substitution.Default()));
     }
