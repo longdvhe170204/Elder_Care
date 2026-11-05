@@ -73,6 +73,19 @@ public class FakeM04ApiConfig {
         return fixture.api(TimetableApi.class);
     }
 
+    // 014 T002: bản giả cho 015 (gỡ nhiệm vụ chuyến) và 016 (số liệu hoạt động).
+    @Bean
+    @Primary
+    TripDutyCommandApi fakeTripDutyCommandApi(FakeM04ApiFixture fixture) {
+        return fixture.api(TripDutyCommandApi.class);
+    }
+
+    @Bean
+    @Primary
+    ActivityStatisticsApi fakeActivityStatisticsApi(FakeM04ApiFixture fixture) {
+        return fixture.api(ActivityStatisticsApi.class);
+    }
+
     @Bean
     @Primary
     PublicCareResultApi fakePublicCareResultApi(FakeM04ApiFixture fixture) {

@@ -3000,6 +3000,21 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `CHUA_DU_TY_LE`, `DA_CO_DANH_SACH`, `CONG_VIEC_KHONG_DU_DIEU_KIEN`, `THIEU_CONG_VIEC_LAM_LAI`, `TU_KIEM_TRA_CONG_VIEC_CUA_MINH`, `NGOAI_THOI_GIAN_CA`, `CAN_XAC_NHAN_THAY_SO_THICH` | `SAMPLE_RATIO_NOT_MET`, `CHECKLIST_ALREADY_EXISTS`, `TASK_NOT_ELIGIBLE`, `REWORK_TASK_REQUIRED`, `SELF_CHECK_NOT_ALLOWED`, `OUTSIDE_SHIFT_TIME`, `PREFERENCE_REPLACEMENT_CONFIRMATION_REQUIRED` |
 | client web sinh từ hợp đồng | `frontend/src/api/api014.js` (thêm `014` vào `TRANSLATED` của `frontend/scripts/gen-api.mjs`) |
 
+### 20.6. Giao diện, sự kiện, loại bảng chung (Phase 2, 2026-11-05)
+
+| Tên logic | Mã |
+| --- | --- |
+| `ChuyenDiNhiemVuLenhApi.goNhiemVu(nhanVienId, caId, canCu)` | `care.api.TripDutyCommandApi.removeDuty(staffId, shiftId, basis)` |
+| `HoatDongThongKeApi` (`buoi`, `chuyen`, `kiemTra`, `coLap`); `BuoiThongKeView`, `ChuyenThongKeView`, `KetQuaKiemTraView`, `CoLapView` | `care.api.ActivityStatisticsApi` (`sessions`, `trips`, `qualityChecks`, `isolationRisks`); `SessionStatisticsView`, `TripStatisticsView`, `QualityCheckStatisticsView`, `IsolationRiskView` |
+| `ChuyenDiThayDoi` (`chuyenId`, `loai`, `xeCuaVien`, `roiDuKien`, `veDuKien`, `thoiDiemThucTe`, `khoaSuKien`); loại `LEN_LICH`, `DOI`, `HUY`, `ROI_VIEN_DAU`, `GIA_HAN`, `HUY_ROI_VIEN_CUOI`, `KET_THUC_VE`; `nutrition.api.ChuyenDiDaDoi` | `care.api.events.TripChanged` (`tripId`, `type`, `facilityVehicle`, `plannedDepartureAt`, `plannedReturnAt`, `actualAt`, `eventKey`); `SCHEDULED`, `CHANGED`, `CANCELLED`, `FIRST_DEPARTURE`, `EXTENDED`, `LAST_DEPARTURE_UNDONE`, `RETURN_FINISHED`; 011 nghe `TripChanged` (chủ dự án duyệt) |
+| `YeuCauGhiDienBienCanhBao` (`loaiNguon`, `nguonId`, `maDienBien`, `noiDung`, `khoaSuKien`) | `care.api.events.AlertProgressRequested` (`sourceType`, `sourceId`, `progressCode`, `content`, `eventKey`) |
+| `YeuCauTaoCanhBao` của 014 (`THIEU_NGUOI_KHI_VE`, `NGUY_CO_CO_LAP`) | `care.api.events.AlertRequested` loại `MISSING_ON_RETURN`, `ISOLATION_RISK` |
+| `SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (`DIEM_DANH_HOAT_DONG`) | `billing.api.events.CostSourceBilled`, `CostSourceChanged` (nguồn `ACTIVITY_ATTENDANCE` khi cài US3) |
+| `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc` | `care.api.events.ActivitySessionCancelled`, `ActivitySessionChanged`, `ActivitySessionEnded` (`sessionId`) |
+| loại bảng chung `M04.LOAI_HOAT_DONG`, `M04.NHOM_SO_THICH` (`catalog_item`); `M04.HOAT_DONG`, `M04.MAU_LAP_PHIEN_BAN`, `M04.NGUOI_THUONG_XUYEN` (`simple_record`) | `M04.ACTIVITY_TYPE` (`ActivityTypeAttributes`: `groupActivity`, `offSite`, `interestGroupIds`), `M04.INTEREST_GROUP`; `M04.ACTIVITY` (`Activity`), `M04.TEMPLATE_VERSION` (`TemplateVersion`), `M04.REGULAR_PARTICIPANT` (`RegularParticipant`); trạng thái `ACTIVE`, `INACTIVE`, `ENDED`; hằng ở `care.internal.activity.domain.ActivityKinds` |
+| HoatDongService; controller hoạt động; thân ghi, lệnh; phản hồi | `ActivityService` (`internal/activity/service`); `ActivityController`; `ActivityWrite`, `ActivityCommandWrite` (`ActivityTemplate`); `ActivityResponse` (schema `ActivityView`) |
+| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT` |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
