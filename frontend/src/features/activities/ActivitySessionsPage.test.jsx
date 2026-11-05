@@ -72,6 +72,7 @@ beforeEach(() => {
       items: [
         { id: 701, fullName: 'Nguyễn Thị Lan' },
         { id: 702, fullName: 'Trần Văn Bình' },
+        { id: 703, fullName: 'Lê Thị Hoa' },
       ],
     }),
   )
@@ -117,7 +118,7 @@ it('FR_013_huyBuoiCanLyDoVaGuiLenh', async () => {
   api.on('POST', '/activity-sessions/11/cancel', json(200, {}))
   renderPage()
   fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Thể dục buổi sáng 03\/11\/2026 08:00/ }))
-  expect(await screen.findByText('Nguyễn Thị Lan')).toBeInTheDocument()
+  expect((await screen.findAllByText('Nguyễn Thị Lan')).length).toBeGreaterThan(0)
   expect(screen.getByText('Thường xuyên')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Hủy buổi' }))
   const confirm = screen.getByRole('button', { name: 'Xác nhận hủy buổi' })
@@ -188,11 +189,21 @@ it('FR_011_403HienKhongCoQuyen', async () => {
 
 async function openDetail() {
   fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Thể dục buổi sáng 03\/11\/2026 08:00/ }))
-  await screen.findByText('Nguyễn Thị Lan')
+  await screen.findByText('Đăng ký (1)')
+}
+
+// Đăng ký chỉ trước giờ bắt đầu (FR-015 (e)); từ giờ bắt đầu khung chi tiết chuyển sang điểm danh.
+function futureDetail() {
+  api.on(
+    'GET',
+    '/activity-sessions/11',
+    json(200, { ...DETAIL, startsAt: '2099-01-01T01:00:00Z', endsAt: '2099-01-01T01:45:00Z' }),
+  )
 }
 
 it('FR_018_dangKyCoCanhBaoPhaiXacNhanRoiGuiLai', async () => {
   permissions(['VIEW', 'CREATE'])
+  futureDetail()
   api.on(
     'POST',
     '/activity-sessions/11/registrations',
@@ -218,6 +229,7 @@ it('FR_018_dangKyCoCanhBaoPhaiXacNhanRoiGuiLai', async () => {
 
 it('FR_015_dangKyBiChanHienDieuKienChuaThoa', async () => {
   permissions(['VIEW', 'CREATE'])
+  futureDetail()
   api.on(
     'POST',
     '/activity-sessions/11/registrations',
@@ -248,4 +260,70 @@ it('FR_017_huyDangKyCanLyDo', async () => {
   expect(JSON.parse(api.calls('POST', '/activity-registrations/91/cancel')[0][1].body)).toEqual({
     reason: 'Không muốn tham gia',
   })
+})
+
+const TWO = {
+  ...DETAIL,
+  registrations: [
+    { id: 91, residentId: 701, source: 'REGULAR', status: 'REGISTERED' },
+    { id: 92, residentId: 702, source: 'MANUAL', status: 'REGISTERED' },
+  ],
+}
+
+it('FR_028_diemDanhCoMatVangVaThemNguoiLucDiemDanh', async () => {
+  permissions(['VIEW', 'CREATE'])
+  api.on('GET', '/activity-sessions/11', json(200, TWO))
+  api.on('POST', '/activity-sessions/11/attendance', json(200, {}))
+  renderPage()
+  fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Thể dục buổi sáng 03\/11\/2026 08:00/ }))
+  const lan = await screen.findByRole('group', { name: 'Kết quả của Nguyễn Thị Lan' })
+  fireEvent.click(within(lan).getByRole('radio', { name: 'Có mặt' }))
+  const save = screen.getByRole('button', { name: 'Lưu điểm danh' })
+  expect(save).toBeDisabled()
+  fireEvent.click(
+    within(screen.getByRole('group', { name: 'Mức tham gia của Nguyễn Thị Lan' })).getByRole('radio', {
+      name: 'Tích cực',
+    }),
+  )
+  const binh = screen.getByRole('group', { name: 'Kết quả của Trần Văn Bình' })
+  fireEvent.click(within(binh).getByRole('radio', { name: 'Vắng' }))
+  fireEvent.click(
+    within(screen.getByRole('group', { name: 'Lý do vắng của Trần Văn Bình' })).getByRole('radio', { name: 'Từ chối' }),
+  )
+  fireEvent.change(screen.getByLabelText(/^Người thêm lúc điểm danh/), { target: { value: '703' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Thêm vào điểm danh' }))
+  const hoa = screen.getByRole('group', { name: 'Kết quả của Lê Thị Hoa' })
+  fireEvent.click(within(hoa).getByRole('radio', { name: 'Có mặt' }))
+  fireEvent.click(
+    within(screen.getByRole('group', { name: 'Mức tham gia của Lê Thị Hoa' })).getByRole('radio', {
+      name: 'Bỏ giữa chừng',
+    }),
+  )
+  expect(save).toBeEnabled()
+  fireEvent.click(save)
+  await screen.findByText('Đã lưu điểm danh')
+  const [, init] = api.calls('POST', '/activity-sessions/11/attendance')[0]
+  expect(JSON.parse(init.body)).toEqual({
+    results: [
+      { residentId: 701, result: 'PRESENT', participationLevel: 'ACTIVE' },
+      { residentId: 702, result: 'ABSENT', absenceReason: 'REFUSED' },
+      { residentId: 703, addedAtAttendance: true, result: 'PRESENT', participationLevel: 'LEFT_EARLY' },
+    ],
+  })
+  expect(init.headers['Idempotency-Key']).toBeTruthy()
+})
+
+it('FR_029_hoanTatDiemDanhKhiMoiDangKyDaCoKetQua', async () => {
+  permissions(['VIEW', 'CREATE', 'UPDATE'])
+  api.on(
+    'GET',
+    '/activity-sessions/11',
+    json(200, { ...DETAIL, registrations: [{ id: 91, residentId: 701, source: 'REGULAR', status: 'ATTENDED' }] }),
+  )
+  api.on('POST', '/activity-sessions/11/complete-attendance', json(200, {}))
+  renderPage()
+  fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Thể dục buổi sáng 03\/11\/2026 08:00/ }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tất điểm danh' }))
+  await screen.findByText('Đã hoàn tất điểm danh')
+  expect(api.calls('POST', '/activity-sessions/11/complete-attendance')).toHaveLength(1)
 })

@@ -3,10 +3,12 @@ package com.eldercare.backend.care.web;
 import com.eldercare.backend.care.internal.activity.service.ActivityService;
 import com.eldercare.backend.care.internal.session.service.ActivitySessionService;
 import com.eldercare.backend.care.internal.session.service.RegistrationService;
+import com.eldercare.backend.care.internal.session.service.SessionAttendanceService;
 import com.eldercare.backend.care.web.request.ActivityReasonWrite;
 import com.eldercare.backend.care.web.request.ActivityRegistrationWrite;
 import com.eldercare.backend.care.web.request.ActivitySessionCommandWrite;
 import com.eldercare.backend.care.web.request.ActivitySessionCreateWrite;
+import com.eldercare.backend.care.web.request.SessionAttendanceWrite;
 import com.eldercare.backend.care.web.response.ActivitySessionDetailResponse;
 import com.eldercare.backend.care.web.response.ActivitySessionResponse;
 import com.eldercare.backend.care.web.response.CareProblemBody;
@@ -30,12 +32,17 @@ public class ActivitySessionController {
     private final ActivitySessionService sessions;
     private final ActivityService activities;
     private final RegistrationService registrations;
+    private final SessionAttendanceService attendance;
 
     public ActivitySessionController(
-            ActivitySessionService sessions, ActivityService activities, RegistrationService registrations) {
+            ActivitySessionService sessions,
+            ActivityService activities,
+            RegistrationService registrations,
+            SessionAttendanceService attendance) {
         this.sessions = sessions;
         this.activities = activities;
         this.registrations = registrations;
+        this.attendance = attendance;
     }
 
     @GetMapping("/activity-sessions")
@@ -110,10 +117,7 @@ public class ActivitySessionController {
                         input.locationId(),
                         input.responsibleStaffId());
             case "cancel" -> sessions.cancel(target, id, reason);
-            // US3 (T013) cài cùng điểm danh; chưa làm thì báo rõ, không bỏ qua lệnh.
-            case "complete-attendance" ->
-                throw new BusinessException(
-                        HttpStatus.SERVICE_UNAVAILABLE, "CARE_SOURCE_UNAVAILABLE", "Hoàn tất điểm danh thuộc US3");
+            case "complete-attendance" -> attendance.complete(target, id);
             default -> throw new InvalidValueException("Lệnh không hợp lệ: " + command);
         }
     }
@@ -155,5 +159,21 @@ public class ActivitySessionController {
             @RequestHeader("Idempotency-Key") String key,
             @RequestBody ActivityReasonWrite body) {
         registrations.cancel(registrations.targetOfRegistration(id), id, body.reason());
+    }
+
+    /** 014 T014 (FR-027 → FR-032): một hoặc nhiều kết quả; thêm người lúc điểm danh. */
+    @PostMapping("/activity-sessions/{id}/attendance")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public void attendance(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody SessionAttendanceWrite body) {
+        attendance.record(sessions.target(id), id, body.toItems(), body.deviceAt());
     }
 }
