@@ -31,6 +31,7 @@ import com.eldercare.backend.belongings.internal.belonging.persistence.Belonging
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogs;
 import com.eldercare.backend.belongings.internal.consent.service.SelfCustodyConsentService;
+import com.eldercare.backend.belongings.internal.incident.service.BelongingIncidents;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.common.error.BusinessException;
@@ -65,7 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Lệnh bàn giao đồ gửi ({@code BanGiaoService}; 013 T013; FR-011 → FR-015a, BR-M12-01, research K-03, K-04): Giao sử
  * dụng, Thu lại, Chuyển giữ, Báo thất lạc, Ghi hư hỏng, Tìm thấy theo bảng chuyển data-model mục 3. Mỗi đồ trong lệnh
  * tạo đúng một bản ghi (đếm thiếu thêm bản ghi Báo thất lạc cho phần thiếu); cột suy ra, tách đồ, đồng ý Hết hiệu lực,
- * nhật ký, thông báo cùng transaction. Ghi, liên kết sự cố (FR-021) làm ở US4.
+ * nhật ký, thông báo cùng transaction. Báo thất lạc, Ghi hư hỏng ghi hoặc liên kết sự cố theo lựa chọn của người ghi
+ * (FR-021, {@link BelongingIncidents}); Tìm thấy ghi diễn biến vào sự cố của lần Báo thất lạc (FR-025).
  */
 @Service
 public class BelongingHandoverService {
@@ -106,6 +108,7 @@ public class BelongingHandoverService {
     private final AccountApi accounts;
     private final FileApi files;
     private final SelfCustodyConsentService consents;
+    private final BelongingIncidents incidents;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
@@ -123,6 +126,7 @@ public class BelongingHandoverService {
             AccountApi accounts,
             FileApi files,
             SelfCustodyConsentService consents,
+            BelongingIncidents incidents,
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
@@ -138,6 +142,7 @@ public class BelongingHandoverService {
         this.accounts = accounts;
         this.files = files;
         this.consents = consents;
+        this.incidents = incidents;
         this.audit = audit;
         this.events = events;
         this.time = time;
@@ -181,9 +186,6 @@ public class BelongingHandoverService {
         for (HandoverCommand.Item item : command.items()) {
             if (versions.put(item.belongingId(), item.version()) != null) {
                 throw invalid("INVALID_VALUE", "Một đồ chỉ xuất hiện một lần trong lệnh");
-            }
-            if (item.incidentMethod() != null && !"NONE".equals(item.incidentMethod())) {
-                throw invalid("INVALID_VALUE", "Ghi hoặc liên kết sự cố trong lệnh chưa có (013 US4, T021)");
             }
             if (item.countedAmount() != null && command.type() == HandoverType.REPORT_LOST) {
                 throw invalid("INVALID_VALUE", "Báo thất lạc không có số lượng đếm được");
@@ -314,6 +316,10 @@ public class BelongingHandoverService {
         } catch (IllegalArgumentException e) {
             throw invalid("INVALID_VALUE", e.getMessage());
         }
+        boolean carriesIncident = kind == HandoverType.REPORT_LOST || kind == HandoverType.RECORD_DAMAGE;
+        if (wantsIncident(item) && !carriesIncident && plan.missing().signum() == 0) {
+            throw invalid("INVALID_VALUE", "Chỉ Báo thất lạc, Ghi hư hỏng mới ghi hoặc liên kết sự cố (FR-021)");
+        }
         if (plan.missing().signum() > 0) {
             // FR-013: phần đếm thiếu Báo thất lạc trong cùng lệnh, theo điều kiện của Báo thất lạc
             HandoverCheckResult lost = HandoverCommandCheck.check(
@@ -406,6 +412,12 @@ public class BelongingHandoverService {
                     moveNote,
                     created,
                     touched);
+            if (carriesIncident) {
+                attachIncident(ctx, item, kind, record, occurredAt, command.reason());
+            }
+            if (kind == HandoverType.FOUND) {
+                reportFound(ctx, b, plan.moved(), currentAmount);
+            }
             notices(ctx, kind, target, record, type.name());
             if (command.holderAbsent()) {
                 events.publishEvent(BelongingNotices.notice(
@@ -447,12 +459,42 @@ public class BelongingHandoverService {
                     "Đếm thiếu khi bàn giao (FR-013)",
                     created,
                     touched);
+            if (!carriesIncident) {
+                // FR-024: phần thiếu của từng đồ liên kết sự cố riêng
+                attachIncident(ctx, item, HandoverType.REPORT_LOST, record, ctx.at(), command.reason());
+            }
             notices(ctx, HandoverType.REPORT_LOST, BelongingStatus.LOST, record, type.name());
         }
         if (originalAmount.compareTo(currentAmount) != 0) {
             belongings.setAmount(b.id(), cash ? null : originalAmount, cash ? originalAmount : null);
         }
         touched.add(b.id());
+    }
+
+    private static boolean wantsIncident(HandoverCommand.Item item) {
+        return item.incident() != null
+                && item.incident().method() != null
+                && !"NONE".equals(item.incident().method());
+    }
+
+    /** FR-021, FR-024: thực hiện lựa chọn sự cố của người ghi rồi lưu mã sự cố ở bản ghi (đặt một lần). */
+    private void attachIncident(
+            Context ctx, HandoverCommand.Item item, HandoverType kind, long record, Instant at, String reason) {
+        Long incidentId = incidents.choose(item.incident(), kind, ctx.residentId(), at, reason, ctx.user());
+        if (incidentId != null) {
+            handovers.linkIncident(record, incidentId);
+        }
+    }
+
+    /** FR-025: Tìm thấy thêm diễn biến "đã tìm thấy" vào sự cố của lần Báo thất lạc, không đóng sự cố. */
+    private void reportFound(Context ctx, LockedBelonging b, BigDecimal found, BigDecimal lostAmount) {
+        handovers
+                .lossIncidentOf(b.id())
+                .ifPresent(incident -> incidents.found(
+                        incident,
+                        "đã tìm thấy " + found.stripTrailingZeros().toPlainString() + "/"
+                                + lostAmount.stripTrailingZeros().toPlainString(),
+                        ctx.user()));
     }
 
     /** Đồ mới tách từ {@code b} mang phần bàn giao hoặc phần thiếu (FR-012, FR-013). */

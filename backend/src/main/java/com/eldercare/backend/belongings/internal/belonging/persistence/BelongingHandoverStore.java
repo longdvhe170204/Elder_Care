@@ -148,6 +148,30 @@ public class BelongingHandoverStore {
                 belongingIds.toArray());
     }
 
+    /**
+     * Đặt sự cố cho bản ghi một lần (FR-021, FR-024); trigger chỉ cho đặt từ {@code NULL}. {@code false} khi bản ghi đã
+     * có sự cố.
+     */
+    public boolean linkIncident(long handoverId, long incidentId) {
+        return jdbc.update(
+                        "UPDATE belonging_handover SET incident_id = ? WHERE id = ? AND incident_id IS NULL",
+                        incidentId,
+                        handoverId)
+                == 1;
+    }
+
+    /** Sự cố của lần Báo thất lạc gần nhất của đồ (để Tìm thấy ghi diễn biến, FR-025); trống nếu không có. */
+    public Optional<Long> lossIncidentOf(long belongingId) {
+        return jdbc
+                .query(
+                        "SELECT incident_id FROM belonging_handover WHERE belonging_id = ? AND kind = 'REPORT_LOST'"
+                                + " AND incident_id IS NOT NULL ORDER BY id DESC LIMIT 1",
+                        (rs, i) -> rs.getLong(1),
+                        belongingId)
+                .stream()
+                .findFirst();
+    }
+
     private static HandoverRow row(ResultSet rs, int row) throws SQLException {
         String recipientType = rs.getString("recipient_type");
         return new HandoverRow(

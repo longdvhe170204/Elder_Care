@@ -5,6 +5,7 @@ import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingHandoverService;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingQueries;
 import com.eldercare.backend.belongings.internal.belonging.service.IntakeService;
+import com.eldercare.backend.belongings.internal.incident.service.BelongingIncidentLinks;
 import com.eldercare.backend.belongings.web.request.BelongingIntakeRequest;
 import com.eldercare.backend.belongings.web.request.HandoverRequest;
 import com.eldercare.backend.belongings.web.response.BelongingResponse;
@@ -34,11 +35,17 @@ class BelongingController {
 
     private final IntakeService intake;
     private final BelongingHandoverService handovers;
+    private final BelongingIncidentLinks incidentLinks;
     private final BelongingQueries queries;
 
-    BelongingController(IntakeService intake, BelongingHandoverService handovers, BelongingQueries queries) {
+    BelongingController(
+            IntakeService intake,
+            BelongingHandoverService handovers,
+            BelongingIncidentLinks incidentLinks,
+            BelongingQueries queries) {
         this.intake = intake;
         this.handovers = handovers;
+        this.incidentLinks = incidentLinks;
         this.queries = queries;
     }
 
@@ -83,6 +90,20 @@ class BelongingController {
         long residentId = queries.residentOf(body.belongingIds());
         return HandoverResponse.of(handovers.handover(new Target(ENTITY, null, residentId, null), command));
     }
+
+    /** Liên kết sự cố ghi sau với bản ghi Báo thất lạc, Ghi hư hỏng; một lần (FR-021, FR-024). */
+    @PostMapping("/belonging-handovers/{id}/link-incident")
+    void linkIncident(
+            @PathVariable long id,
+            @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
+            @RequestBody LinkIncidentRequest body) {
+        if (body == null || body.incidentId() == null) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "INVALID_VALUE", "Thiếu mã sự cố");
+        }
+        incidentLinks.link(new Target(ENTITY, null, incidentLinks.residentOf(id), null), id, body.incidentId());
+    }
+
+    record LinkIncidentRequest(Long incidentId) {}
 
     @GetMapping("/staff/{staffId}/held-belongings")
     List<BelongingResponse> heldBelongings(@PathVariable long staffId) {

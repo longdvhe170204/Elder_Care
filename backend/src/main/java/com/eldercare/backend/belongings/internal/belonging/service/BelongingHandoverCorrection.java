@@ -193,6 +193,7 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
         recalculation.recalculate(residentId, intake);
         if (correction.type() == CorrectionType.VOID) {
             notifyVoided(original);
+            notifyIncidentHandler(original);
         }
     }
 
@@ -263,6 +264,33 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
                 original.residentId(),
                 List.copyOf(recipients),
                 typeName + ": bản ghi bàn giao đã được hủy ghi nhận (ghi nhầm)",
+                null,
+                time.now()));
+    }
+
+    /**
+     * FR-011a, Q-307: bản ghi có sự cố liên kết bị Hủy ghi nhận thì báo người xử lý sự cố (Nhẹ); KHÔNG hủy sự cố, người
+     * xử lý tự đóng hoặc đính chính bằng lệnh của 007. {@code IncidentView} chưa có người phụ trách nên tạm báo Quản lý
+     * viện (plan 013 điểm 14; chờ D thêm người phụ trách vào {@code IncidentView}).
+     */
+    private void notifyIncidentHandler(HandoverRow original) {
+        if (original.incidentId() == null) {
+            return;
+        }
+        String typeName = belongings
+                .find(original.belongingId())
+                .map(b -> catalogs.require(BelongingCatalogs.BELONGING_TYPE, b.typeId())
+                        .name())
+                .orElse("Đồ gửi");
+        events.publishEvent(BelongingNotices.notice(
+                "BELONGING_INCIDENT_LINK_VOIDED",
+                BelongingRecalculation.RECORD_TYPE,
+                original.id(),
+                NotificationLevel.LOW,
+                original.residentId(),
+                List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER)),
+                typeName + ": bản ghi đồ gửi liên kết sự cố " + original.incidentId()
+                        + " đã được hủy ghi nhận (ghi nhầm); sự cố cần được xem lại",
                 null,
                 time.now()));
     }
