@@ -362,6 +362,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `/nghiep-vu-chuyen-mon`, `…/ngung-hieu-luc` | `/professional-activities`, `…/deactivate` |
 | `/dong-bo`, `/ban-ghi-cho-xem-lai`, `…/chap-nhan`, `…/tu-choi` | `/sync`, `/pending-review-records`, `…/accept`, `…/reject` |
 | header `X-Thiet-Bi`, `X-Yeu-Cau-Tu`; cookie và security scheme `phien` | `X-Device-Id`, `X-Requested-From`; `session` |
+| *(Bổ sung 2026-10-29, 002 T047a)* header `X-Lam-Moi-Nen` (tham số `lamMoiNen` cho luồng SSE): yêu cầu tự làm mới không đếm giờ phiên; `UserInfo.thoiGianKhongThaoTacGiay` (CFG-M15-10 của kênh phiên) | `X-Background-Refresh` (`backgroundRefresh`); `sessionIdleTimeoutSeconds` |
 | tag `xac-thuc`, `tai-khoan`, `phan-quyen`, `nghiep-vu-chuyen-mon`, `ngoai-tuyen` | `auth`, `accounts`, `permissions`, `professional-activities`, `offline` |
 
 ### 7.2. Schema và trường JSON
@@ -2860,9 +2861,110 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
-## 18. Feature 012 (`012-family-portal`, E)
+## 18. Feature 012 (`012-family-portal`, A) *(bổ sung 2026-11-03, khi dịch `contracts/api-012.yaml`; chủ feature chuyển từ E sang A cùng ngày)*
 
-*Chủ feature điền khi dịch `contracts/api-012.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+Dùng lại bản dịch đã có: người thân `familyMember` (002), loại quan hệ `FamilyRelationshipType` (7.5), quyền riêng `FamilyRight` (`common.notification`), nguồn ý kiến `OpinionSource` (001, 8.2), loại vắng `FAMILY_OUTING` (004, 10.3), kiểu về `SELF_RETURN`, `INSTITUTE_RETURN` (005), khoanh vùng `isolation` (007), `STATE_CHANGED` (008). Tiền tố `/family-portal/…` và `/resident-channel/…` dùng chung cho cổng người thân và kênh người cao tuổi: 013, 014, 017 dịch `/cong/…`, `/kenh-nguoi-cao-tuoi/…` của mình theo cùng tiền tố.
+
+### 18.1. Đường dẫn API (tiền tố `/api/v1`) và tag
+
+| Tên logic | Mã |
+| --- | --- |
+| `/nguoi-than`, `/nguoi-than/{id}` | `/family-members`, `/family-members/{id}` |
+| `/nguoi-cao-tuoi/{nctId}/quan-he`; `/quan-he/{id}/{lenh}` (`doi-lien-he-chinh`, `dat-dai-dien-dau-tien`, `doi-thu-tu`, `ket-thuc`) | `/residents/{residentId}/relationships`; `/relationships/{id}/{command}` (`change-primary-contact`, `set-first-representative`, `change-contact-order`, `end`) |
+| `/nguoi-cao-tuoi/{nctId}/phieu-dang-ky`, `…/danh-sach-don` (tham số `t`), `…/mong-muon` | `/residents/{residentId}/family-registration-forms`, `…/pickup-list` (`at`), `…/visit-pickup-wishes` |
+| `/yeu-cau-quyen`, `/yeu-cau-quyen/{id}/{lenh}` (`xac-nhan`, `duyet`, `tu-choi`, `huy`) | `/right-change-requests`, `/right-change-requests/{id}/{command}` (`confirm`, `approve`, `reject`, `cancel`) |
+| `/nguoi-cao-tuoi/{nctId}/don`, `…/ban-ghi-don`, `…/ngoai-le-don`; `/ngoai-le-don/{id}/{lenh}` | `/residents/{residentId}/pickups`, `…/pickup-records`, `…/pickup-exceptions`; `/pickup-exceptions/{id}/{command}` |
+| `/khung-tham` (`ngay`), `/luot-tham`, `/luot-tham/{id}/{lenh}` (`huy`, `vao`, `ra`) | `/visit-slots` (`date`), `/visits`, `/visits/{id}/{command}` (`cancel`, `check-in`, `check-out`) |
+| `/luot-o-lai`, `/luot-o-lai/{id}/{lenh}` (`xac-nhan`, `tu-choi`, `bat-dau`, `huy`, `gia-han`, `ket-thuc`) | `/family-stays`, `/family-stays/{id}/{command}` (`confirm`, `reject`, `start`, `cancel`, `extend`, `end`) |
+| `/cong/nguoi-cao-tuoi`, `…/{nctId}/chung`, `…/{nctId}/suc-khoe/{phan}`, `…/{nctId}/hop-dong` | `/family-portal/residents`, `…/{residentId}/general`, `…/{residentId}/health/{section}`, `…/{residentId}/contract` |
+| phần sức khỏe `di-ung-benh-nen`, `chi-so`, `can-nang`, `thuoc`, `su-co`, `ket-qua-cham-soc`, `an-uong`, `che-do-an`, `lich-kham` | `allergies-conditions`, `vital-signs`, `weight`, `medications`, `incidents`, `care-results`, `eating`, `diet`, `medical-appointments` |
+| `/nhat-ky-xem-suc-khoe` | `/health-view-logs` |
+| `/phan-hoi`, `/phan-hoi/{id}`, `/phan-hoi/{id}/{lenh}` (`nhan-xu-ly`, `tra-loi`, `ghi-chu`, `giao-lai`, `doi-muc`, `dong-y-dong`, `mo-lai`, `doi-loai`, `gan-y-kien`) | `/feedback`, `/feedback/{id}`, `/feedback/{id}/{command}` (`start-handling`, `reply`, `add-note`, `reassign`, `change-priority`, `agree-to-close`, `reopen`, `change-type`, `link-opinion`) |
+| `/kenh-nguoi-cao-tuoi/hom-nay`, `…/thuc-don` (`tuan`), `…/hoat-dong`, `…/luot-tham`, `…/do-gui`, `…/phan-hoi` | `/resident-channel/today`, `…/menu` (`week`), `…/activities`, `…/visits`, `…/belongings`, `…/feedback` |
+| tag `nguoi-than`, `yeu-cau-quyen`, `don`, `tham`, `o-lai`, `cong`, `phan-hoi`, `kenh-nguoi-cao-tuoi` | `family-members`, `right-change-requests`, `pickups`, `visits`, `family-stays`, `family-portal`, `feedback`, `resident-channel` |
+| tham số `nctId`, `nguoiThanId`, `trangThai`, `quaHan`, `ngay`, `tu`, `den`; phần mở rộng `x-nguoi-than` | `residentId`, `familyMemberId`, `status`, `overdue`, `date`, `from`, `to`; `x-family-member` |
+
+### 18.2. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| `NguoiThan` (`hoTen`, `soDienThoai`, `loaiGiayTo`, `soGiayTo`, `diaChi`, `phienBan`) | `FamilyMember` (`fullName`, `phoneNumber`, `idDocumentType`, `idDocumentNumber`, `address`, `version`) |
+| `LapQuanHe` (`nguoiThanId`, `quanHe`, `laLienHeChinh`, `datDaiDienDauTien`, `tepBangChungId`, `lyDo`) | `CreateRelationship` (`familyMemberId`, `relationship`, `primaryContact`, `setFirstRepresentative`, `evidenceFileId`, `reason`) |
+| `QuanHe` (`nguoiThan`, `quanHe`, `laDaiDien`, `laLienHeChinh`, `thuTuLienHe`, `quyen` {`dangBat`, `coTacDung`}, `trangThai`); thân lệnh quan hệ `thuTu` | `Relationship` (`familyMember`, `relationship`, `representative`, `primaryContact`, `contactOrder`, `rights` {`enabled`, `effective`}, `status`); `contactOrder` |
+| `PhieuDangKy` (`nguoiDaiDienId`, `tepScanId`, `dong` {`quanHeId`, `quyen`}) | `FamilyRegistrationForm` (`representativeId`, `scanFileId`, `lines` {`relationshipId`, `right`}) |
+| `LapYeuCauQuyen` (`nctId`, `loai`, `quanHeId`, `quyen`, `giaTriMoi`, `nguoiDonMoi` {`hoTen`, `soGiayTo`, `quanHe`}, `kemBanKy`, `tepBangChungId`, `lyDo`) | `CreateRightChangeRequest` (`residentId`, `type`, `relationshipId`, `right`, `newValue`, `newPicker` {`fullName`, `idDocumentNumber`, `relationship`}, `withSignedForm`, `evidenceFileId`, `reason`) |
+| `YeuCauQuyen` thêm `trangThai`, `cachXacNhan`, `nguon`, `apNgayKhiLap` | `RightChangeRequest` thêm `status`, `confirmationMethod`, `source`, `appliedOnCreation` |
+| `GhiDon` (`loai`, `nguoiThanId`, `ngoaiLeId`, `giayToXuatTrinh` {`loai`, `so`}, `nhanVienBanGiaoId`) | `RecordPickup` (`type`, `familyMemberId`, `exceptionId`, `presentedIdDocument` {`type`, `number`}, `handoverStaffId`) |
+| `BanGhiDon` (`loai`, `nguoiThanId`, `canCu`, `thoiDiem`, `trangThai`, `hetHieuLucLuc`); `banGhiDonId` | `PickupRecord` (`type`, `familyMemberId`, `basis`, `at`, `status`, `expiresAt`); `pickupRecordId` |
+| thân ngoại lệ đón (`hoTen`, `soGiayTo`, `quanHe`, `lyDo`) | `fullName`, `idDocumentNumber`, `relationship`, `reason` |
+| `NguoiDiCung` (`hoTen`, `quanHe`, `soDienThoai`) | `Companion` (`fullName`, `relationship`, `phoneNumber`) |
+| `DangKyTham` (`nctId`, `nguoiThanId`, `ngay`, `gioBatDau`, `gioKetThuc`, `diCung`) | `VisitRegistration` (`residentId`, `familyMemberId`, `date`, `startTime`, `endTime`, `companions`) |
+| `LuotTham` thêm `soNguoi`, `trangThai`, `vaoLuc`, `raLuc`, `lyDoHuy`; thân lệnh `nguoiThucTe`, `gioRa` | `Visit` thêm `visitorCount`, `status`, `checkedInAt`, `checkedOutAt`, `cancellationReason`; `actualVisitors`, `checkOutAt` |
+| `DangKyOLai` (`nguoiThanId`, `nctId`, `batDauDuKien`, `ketThucDuKien`, `viTri`, `lyDo`, `dangKyAn`) | `FamilyStayRegistration` (`familyMemberId`, `residentId`, `expectedStartAt`, `expectedEndAt`, `location`, `reason`, `mealRegistered`) |
+| `LuotOLai` thêm `trangThai`, `batDauThucTe`, `ketThucThucTe`, `soDem`; thân lệnh `yKienCungPhong`, `ketThucDuKienMoi`, `thoiDiem` | `FamilyStay` thêm `status`, `actualStartAt`, `actualEndAt`, `nightCount`; `roommateOpinion`, `newExpectedEndAt`, `at` |
+| `GuiPhanHoi` (`nctId`, `nguoiGuiLoai`, `nguoiThanId`, `loai`, `nhom`, `chuDeMongMuon`, `noiDung`, `tepIds`) | `SubmitFeedback` (`residentId`, `senderType`, `familyMemberId`, `type`, `group`, `wishTopic`, `content`, `fileIds`) |
+| `PhanHoi` thêm `trangThai`, `muc`, `hanXuLy`, `quaHan`, `nguoiPhuTrach`; thân lệnh `huongXuLy`, `nguoiPhuTrachId`, `loaiMoi`, `yKien` {`loaiMuc`, `mucId`} | `Feedback` thêm `status`, `priority`, `dueAt`, `overdue`, `assignee`; `handlingDirection`, `assigneeId`, `newType`, `opinion` {`itemType`, `itemId`} |
+| `MongMuon` (`quanHeId`, `hoTen`, `loai`, `muon`, `nguon`, `nguoiGhi`, `thoiDiem`, `trangThai`, `thayTheBoiId`); đọc (`hieuLuc`, `lichSu`, `quyenTraiMongMuon` {`quanHeId`, `quyen`, `mongMuonId`}); thân ghi thêm `soGiayTo` | `VisitPickupWish` (`relationshipId`, `fullName`, `type`, `wanted`, `source`, `recordedBy`, `at`, `status`, `supersededById`); (`effective`, `history`, `conflictingRights` {`relationshipId`, `right`, `wishId`}); `idDocumentNumber` |
+| `Quyen`, `LyDo`, `Loi`; response `Loi`, `LoiChan`; thân `LyDo`; tham số `NctId`; security scheme `phien` | `FamilyRight`, `Reason`, `Problem` (như api-016); `Problem`, `Blocked`; `ReasonBody`; `ResidentId`; `session` |
+
+"Mong muốn của người cao tuổi về khách thăm, người đón" (`mong_muon_nct`) dịch là `VisitPickupWish` để không trùng nguyện vọng (`wish`) của 001; loại phản hồi Mong muốn vẫn là `WISH` (mục 4). "Người phụ trách" phản hồi là `assignee`, khác người phụ trách ca `shiftLead` của 002, 008.
+
+### 18.3. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| `Quyen` `XEM_SUC_KHOE`, `XEM_CHI_PHI`, `NHAN_KHAN`, `DANG_KY_THAM`, `DUOC_PHEP_DON`, `YEU_CAU_DICH_VU` | `FamilyRight` `VIEW_HEALTH`, `VIEW_COSTS`, `RECEIVE_URGENT`, `REGISTER_VISITS`, `PICKUP_ALLOWED`, `REQUEST_SERVICES` (bốn mã `VIEW_HEALTH`, `VIEW_COSTS`, `REGISTER_VISITS`, `RECEIVE_URGENT` đã có ở `common.notification.FamilyRight`) |
+| trạng thái quan hệ `HIEU_LUC`, `DA_KET_THUC` | `ACTIVE`, `ENDED` |
+| loại yêu cầu `QUYEN`, `TU_VE`, `DAT_DAI_DIEN`, `THOI_DAI_DIEN`; trạng thái `CHO_XAC_NHAN`, `HIEU_LUC`, `TU_CHOI`, `HUY`; cách xác nhận `CONG`, `BAN_KY`, `QL_DUYET`; nguồn `QUAY`, `CONG`, `PHIEU_DANG_KY` | `RIGHT`, `SELF_RETURN`, `SET_REPRESENTATIVE`, `REMOVE_REPRESENTATIVE`; `PENDING_CONFIRMATION`, `EFFECTIVE`, `REJECTED`, `CANCELLED`; `PORTAL`, `SIGNED_FORM`, `MANAGER_APPROVAL`; `COUNTER`, `PORTAL`, `REGISTRATION_FORM` |
+| loại đón `TAM_VANG`, `DI_CHOI_GIA_DINH`, `BAN_TRU_VE`, `TU_VE`, `VIEN_DUA_VE`, `KET_THUC_LUU_TRU` | `TEMPORARY_ABSENCE`, `FAMILY_OUTING`, `DAY_CARE_DEPARTURE`, `SELF_RETURN`, `INSTITUTE_RETURN`, `RESIDENCY_END` |
+| căn cứ đón `DANH_SACH`, `NGOAI_LE_DAI_DIEN`, `NGOAI_LE_QL`, `TU_VE`; trạng thái bản ghi đón `CHUA_DUNG`, `DA_DUNG`, `KHONG_DUNG` | `PICKUP_LIST`, `REPRESENTATIVE_EXCEPTION`, `MANAGER_EXCEPTION`, `SELF_RETURN`; `UNUSED`, `USED`, `NOT_USED` |
+| trạng thái lượt thăm `DA_DUYET`, `DA_VAO`, `DA_RA`, `KHONG_DEN`, `HUY` | `APPROVED`, `CHECKED_IN`, `CHECKED_OUT`, `NO_SHOW`, `CANCELLED` |
+| trạng thái lượt ở lại `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `TU_CHOI`, `DANG_O_LAI`, `DA_KET_THUC`, `HUY` | `PENDING_CONFIRMATION`, `CONFIRMED`, `REJECTED`, `STAYING`, `ENDED`, `CANCELLED` |
+| người gửi `NGUOI_THAN`, `NGUOI_CAO_TUOI`; loại `GOP_Y`, `KHIEU_NAI`, `HOI_DAP`, `MONG_MUON`; nhóm `CHAM_SOC`, `SUC_KHOE_THUOC`, `AN_UONG`, `CHI_PHI_HOP_DONG`, `KHAC`; chủ đề mong muốn `KHACH_THAM_NGUOI_DON`, `KHAC` | `FAMILY_MEMBER`, `RESIDENT`; `SUGGESTION`, `COMPLAINT`, `QUESTION`, `WISH`; `CARE`, `HEALTH_MEDICATION`, `EATING`, `COSTS_CONTRACT`, `OTHER`; `VISITORS_PICKERS`, `OTHER` |
+| trạng thái phản hồi `MOI`, `DANG_XU_LY`, `DA_PHAN_HOI`, `MO_LAI`, `DONG`; mức `CAO`, `THUONG`; loại mục ý kiến `MONG_MUON_NCT` | `NEW`, `IN_PROGRESS`, `REPLIED`, `REOPENED`, `CLOSED`; `HIGH`, `NORMAL`; `VISIT_PICKUP_WISH` |
+| mong muốn: loại `THAM`, `DON`; trạng thái `HIEU_LUC`, `DUOC_THAY_THE` | `VISIT`, `PICKUP`; `ACTIVE`, `SUPERSEDED` |
+
+### 18.4. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI`, `VI_PHAM_DBR_02`, `DA_CO_NGUOI_DAI_DIEN`, `LA_NGUOI_DONG_Y` | `STATE_CHANGED`, `DBR_02_VIOLATED`, `REPRESENTATIVE_ALREADY_EXISTS`, `IS_CONSENTER` |
+| `TRUNG_YEU_CAU_CHO`, `THIEU_GIAY_TO`, `KHONG_CO_BAN_DONG_Y`, `KHONG_DUOC_LAP`, `NGUOI_DUOC_DE_NGHI_KHONG_XAC_NHAN` | `DUPLICATE_PENDING_REQUEST`, `ID_DOCUMENT_REQUIRED`, `CONSENT_NOT_INCLUDED`, `REQUEST_NOT_ALLOWED`, `NOMINEE_NOT_CONFIRMED` |
+| `CHAN_DON`, `BAN_GHI_DON_DA_DUNG`, `NGOAI_LE_HET_HAN`, `KHONG_CO_QUYEN_LENH_NGUON` | `PICKUP_BLOCKED`, `PICKUP_RECORD_ALREADY_USED`, `PICKUP_EXCEPTION_EXPIRED`, `SOURCE_COMMAND_PERMISSION_DENIED` |
+| `NGOAI_KHUNG`, `HET_CHO`, `KHOANH_VUNG`, `NCT_KHONG_CO_MAT`, `QUA_SO_NGUOI`, `NGOAI_THOI_HAN_DANG_KY`, `DA_QUA_GIO_BAT_DAU` | `OUTSIDE_VISIT_SLOT`, `VISIT_SLOT_FULL`, `ISOLATION_ACTIVE`, `RESIDENT_NOT_PRESENT`, `TOO_MANY_VISITORS`, `OUTSIDE_REGISTRATION_WINDOW`, `START_TIME_PASSED` |
+| `CHONG_LUOT_O_LAI`, `THIEU_Y_KIEN_CUNG_PHONG` | `FAMILY_STAY_OVERLAP`, `ROOMMATE_OPINION_REQUIRED` |
+| `KHONG_CO_QUYEN_XEM_SUC_KHOE`, `QUYEN_KHONG_CO_TAC_DUNG` (403 phần sức khỏe); `NGUON_Y_KIEN_KHONG_HOP_LE` | `NO_HEALTH_VIEW_RIGHT`, `RIGHT_NOT_EFFECTIVE`; `INVALID_OPINION_SOURCE` (như 001) |
+| `DA_CO_BAN_TIN`, `CHUA_QUA_MOC`, `THIEU_GIAI_THICH_SU_CO`, `CHUA_TOI_MOC_DUYET_THAY` | bỏ theo Q-396 (bản tin), không dịch |
+
+### 18.5. Gói của `family` (R-02 mục "Cấu trúc trong module")
+
+| Tên logic (tasks) | Mã |
+| --- | --- |
+| `family.nguoithan`, `quyen`, `don`, `tham`, `olai`, `cong`, `phanhoi`, `kenhnct` | `family.internal.relationship`, `right`, `pickup`, `visit`, `stay`, `portal`, `feedback`, `residentchannel` (mỗi chức năng có `service`, `domain`, `persistence`, `config`); `family.lich` → `family.scheduling` |
+
+### 18.6. API, SPI, sự kiện và job của `family` *(bổ sung 2026-11-04, Phase 2: T003, T006, T007, T008)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `QuyenNguoiThanApi` (`coQuanHeHieuLuc`, `quyenCoTacDung`, `laNguoiDaiDien`, `xemDoGui`, `nguoiDaiDien`, `nguoiLienHeChinh`, `duocPhepDonTai`, `giayTo`) | `family.api.FamilyRightsApi` (`hasActiveRelationship`, `rightEffective`, `isRepresentative`, `canViewBelongings`, `representatives`, `primaryContact`, `allowedPickersAt`, `idDocument`); bản cài `internal.right.service.FamilyRightsLookup`; bản giả `support/fake/family/FakeFamilyRights` |
+| `NguoiThanView`, `GiayToView` | `FamilyMemberView` (`familyMemberId`, `fullName`, `phoneNumber`, `relationship`), `IdDocumentView` (`type`, `number`) |
+| `HoatDongKenhNctPort.sapToi`, `BuoiSapToiView` (`coTen`) | `family.api.spi.ResidentChannelActivityPort.upcoming`, `ResidentChannelSessionView` (`sessionId`, `name`, `startAt`, `endAt`, `facilityWide`, `registered`) |
+| `DoGuiKenhNctPort.dangGiu`, `DoGuiDangGiuView` (kênh người cao tuổi) | `family.api.spi.ResidentChannelBelongingPort.held`, `ResidentChannelBelongingView` (`belongingId`, `name`, `status`, `photoFileId`); khác `HeldBelongingView` của 008 |
+| sự kiện `QuanHeDaDoi(nguoiThanId, nctId, quanHeId, loai)`, `QuyenNguoiThanDaDoi(quanHeId, quyen, giaTri, tuLuc)` | `family.api.events.RelationshipChanged` (`familyMemberId`, `residentId`, `relationshipId`, `change` `CREATED`, `PRIMARY_CONTACT_CHANGED`, `REPRESENTATIVE_CHANGED`, `CONTACT_ORDER_CHANGED`, `ENDED`, `at`), `FamilyRightChanged` (`relationshipId`, `familyMemberId`, `residentId`, `right`, `value`, `from`) |
+| `ViecTheoPhutM10`, `ViecHangGioM10`, `ViecNuaDemM10`; `lan_chay_m10` | `family.scheduling.M10MinuteJob`, `M10HourlyJob`, `M10MidnightJob` (`M10_MINUTE`, `M10_HOURLY`, `M10_MIDNIGHT`, `eldercare.jobs.m10-*`); `internal.scheduling.service.M10Jobs`, `M10TimedTask`; dấu `reminder_marker` loại `M10.JOB_RUN` (`M10JobRunStore`) |
+| `PhanLoaiTruongProvider` (người thân), `LuuTruProvider` (quan hệ) | `FamilyMemberFieldClassification` (`M10.FAMILY_MEMBER`), `FamilyRelationshipRetention` (`M10.FAMILY_RELATIONSHIP`) |
+### 18.7. Lớp, loại dòng và màn của US1 *(bổ sung 2026-11-04, Phase 3: T010 → T013)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `NguoiThanService` (hồ sơ, quan hệ, phiếu đăng ký) | `family.internal.relationship.service.FamilyMemberService`; REST `family.web.FamilyMemberController` |
+| `ThamGiaM10` (`ThamGiaChuyenTrangThai` của 012) | `family.internal.relationship.service.M10StatusParticipant` (bean `m10StatusParticipant`, `@Order(70)`; điều kiện `DBR_02`) |
+| `nguoi_than_nct` (khóa theo người cao tuổi) | `resident_module_state` loại `M10.FAMILY_RESIDENT_STATE` (`FamilyResidentState`), `FamilyResidentLock` |
+| `phieu_dang_ky_nguoi_than`, `phieu_dang_ky_dong` | `record_event` loại `M10.FAMILY_REGISTRATION_FORM` gắn `M01.RESIDENT` (`FamilyRegistrationForm`: `representativeId`, `scanFileId`, `lines` {`relationshipId`, `right`, `requestId`}) |
+| `yeu_cau_quyen` (US1 chỉ tạo yêu cầu Hiệu lực của phiếu) | `simple_record` loại `M10.RIGHT_CHANGE_REQUEST` (`RightChangeRequest`: `type`, `relationshipId`, `right`, `newValue`, `source`, `confirmationMethod`, `confirmedByFamilyMemberId`, `formId`, `reason`; trạng thái ở cột `status`) |
+| tệp `M10.BANG_CHUNG`, `M10.PHIEU_DANG_KY` (`QuyenTepProvider`) | chủ sở hữu `M10.REPRESENTATIVE_EVIDENCE` (quan hệ), `M10.FAMILY_REGISTRATION_FORM` (phiếu); `StaffOnlyFilePermission` |
+| thông báo Q-249 (người đại diện khác) | sự kiện `family.api.events.RightChangesTookEffect`, loại sự kiện `RIGHT_CHANGE_EFFECTIVE_OTHER_REPRESENTATIVES` |
+| màn `tinh-nang/nguoi-than/ho-so/` | `frontend/src/features/relatives/FamilyMembersPage.jsx` (mục menu `family-members`, "Người thân và quyền"), `RelationshipDetail`, `AddRelationshipSheet`, `RegistrationFormSheet`, `relationshipLabels.js` |
 
 ## 19. Feature 013 (`013-personal-belongings`, B)
 

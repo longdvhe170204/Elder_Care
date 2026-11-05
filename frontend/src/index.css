@@ -296,16 +296,24 @@
 .dark {
     color-scheme: dark;
 }
-/* Menu vẫn cuộn được bằng chuột, bàn phím, cảm ứng nhưng không hiện thanh cuộn */
-[data-slot=sidebar] nav {
+/* Menu vẫn cuộn được bằng chuột, bàn phím, cảm ứng nhưng không hiện thanh cuộn (menu trái và ngăn kéo dưới 768px) */
+:is([data-slot=sidebar], [data-sidebar-surface]) nav {
     scrollbar-width: none;
 }
-[data-slot=sidebar] nav::-webkit-scrollbar {
+:is([data-slot=sidebar], [data-sidebar-surface]) nav::-webkit-scrollbar {
     display: none;
 }
 
-[data-slot=sidebar] :is(button, select, a[href]):focus-visible {
+/* Nền xanh đêm (menu trái, thanh trên và ngăn kéo dưới 768px): viền focus trắng (DESIGN.md 3.1, 9.1) */
+:is([data-slot=sidebar], [data-sidebar-surface]) :is(button, select, a[href]):focus-visible {
     outline-color: var(--sidebar-ring);
+}
+
+/* Thanh trên dính cao 56px dưới 768px: cuộn tới ô đang focus chừa chiều cao này (DESIGN.md 9.2 điểm 1, WCAG 2.4.11) */
+@media (max-width: 767px) {
+    html {
+        scroll-padding-top: 3.5rem;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
