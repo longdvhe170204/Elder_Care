@@ -21,6 +21,8 @@ Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực
 
 ## 1. 010 cung cấp
 
+**Cập nhật nền đơn giá 06/11:** `billing.internal.pricing.service.CostPricingService` dùng `ContractReadApi.contentAtDate(...).recordedUnitPrices` và `content.services[].serviceId/inPackage` theo hợp đồng 004 hiện có; ngoài hợp đồng gọi `UnitPriceApi.unitPriceAt(..., markReferenced=true)` trong transaction MANDATORY của caller. T006a đã kiểm xanh, không phải API công khai mới hoặc bản cài ba API chi phí ở mục dưới. Không tạo khoản/bảng; adapter lưu trú/bán trú và listener tính lại/thông báo vẫn thuộc T014. Xem [checkpoint 06/11](../pricing-checkpoint-2026-11-06.md).
+
 ### 1.1. SPI khai báo ở module thấp hơn, M11 cài
 
 | SPI (gói khai báo) | Bản cài của 010 | Dùng bởi |
