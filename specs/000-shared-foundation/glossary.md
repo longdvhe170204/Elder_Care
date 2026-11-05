@@ -3013,7 +3013,11 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc` | `care.api.events.ActivitySessionCancelled`, `ActivitySessionChanged`, `ActivitySessionEnded` (`sessionId`) |
 | loại bảng chung `M04.LOAI_HOAT_DONG`, `M04.NHOM_SO_THICH` (`catalog_item`); `M04.HOAT_DONG`, `M04.MAU_LAP_PHIEN_BAN`, `M04.NGUOI_THUONG_XUYEN` (`simple_record`) | `M04.ACTIVITY_TYPE` (`ActivityTypeAttributes`: `groupActivity`, `offSite`, `interestGroupIds`), `M04.INTEREST_GROUP`; `M04.ACTIVITY` (`Activity`), `M04.TEMPLATE_VERSION` (`TemplateVersion`), `M04.REGULAR_PARTICIPANT` (`RegularParticipant`); trạng thái `ACTIVE`, `INACTIVE`, `ENDED`; hằng ở `care.internal.activity.domain.ActivityKinds` |
 | HoatDongService; controller hoạt động; thân ghi, lệnh; phản hồi | `ActivityService` (`internal/activity/service`); `ActivityController`; `ActivityWrite`, `ActivityCommandWrite` (`ActivityTemplate`); `ActivityResponse` (schema `ActivityView`) |
-| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT` |
+| `ViecTheoPhutM04HoatDong`, `ViecHangNgayM04HoatDong` | bước `CareMinuteWork`, `CareDailyWork` tên tiền tố `M04HD_` trong `CareMinuteJob`, `CareDailyJob` (005); `ActivityScheduling`; `lan_chay_m04hd` → mốc `M04.DAILY_WORK` |
+| loại đối tượng phạm vi, lưu giữ `M04.BUOI`, `M04.DANG_KY`, `M04.CHUYEN_DI`, `M04.SO_THICH`, `M04.KIEM_TRA_CHAT_LUONG` | `M04.ACTIVITY_SESSION`, `M04.ACTIVITY_REGISTRATION`, `M04.TRIP`, `M04.PREFERENCE`, `M04.QUALITY_CHECK`; loại bảng chung `M04.SO_THICH` → `M04.PREFERENCE`, `M04.DANH_SACH_KIEM_TRA` → `M04.QUALITY_CHECKLIST` |
+| bảng `buoi_hoat_dong` (`hoat_dong_id`, `bat_dau`, `tang_khu_vuc_id`, `trang_thai`), `dang_ky_buoi` (`buoi_id`, `nct_id`, `trang_thai`, `canh_bao_da_xac_nhan`) | `activity_session` (`activity_id`, `starts_at`, `floor_area_id`, `status`), `activity_registration` (`session_id`, `resident_id`, `status`, `acknowledged_warnings`) |
+| `ThoiKhoaBieuNguonPort` của 014 | `care.internal.session.service.ActivityTimetableSource`, nguồn `ACTIVITY` |
+| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 

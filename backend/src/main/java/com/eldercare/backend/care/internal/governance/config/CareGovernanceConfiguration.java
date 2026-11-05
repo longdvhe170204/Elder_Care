@@ -212,4 +212,51 @@ public class CareGovernanceConfiguration {
             CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
         return new CareRetention(CareRetentionType.ATTENDANCE_RECORD, store, database, residents);
     }
+
+    // 014 T006: GanPhamViProvider (module-interfaces 1.1), PhanLoaiTruongProvider (FR-018), LuuTruProvider (L-15).
+    @Bean
+    CareScopeAssignment scopeACTIVITY_SESSION(
+            CareGovernanceStore store, ObjectProvider<ResidentLocationApi> locations) {
+        return new CareScopeAssignment("M04.ACTIVITY_SESSION", store, locations);
+    }
+
+    @Bean
+    CareScopeAssignment scopeACTIVITY_REGISTRATION(
+            CareGovernanceStore store, ObjectProvider<ResidentLocationApi> locations) {
+        return new CareScopeAssignment("M04.ACTIVITY_REGISTRATION", store, locations);
+    }
+
+    @Bean
+    CareScopeAssignment scopeTRIP(CareGovernanceStore store, ObjectProvider<ResidentLocationApi> locations) {
+        return new CareScopeAssignment("M04.TRIP", store, locations);
+    }
+
+    @Bean
+    CareScopeAssignment scopePREFERENCE(CareGovernanceStore store, ObjectProvider<ResidentLocationApi> locations) {
+        return new CareScopeAssignment("M04.PREFERENCE", store, locations);
+    }
+
+    @Bean
+    CareScopeAssignment scopeQUALITY_CHECK(CareGovernanceStore store, ObjectProvider<ResidentLocationApi> locations) {
+        return new CareScopeAssignment("M04.QUALITY_CHECK", store, locations);
+    }
+
+    @Bean
+    CareFieldClassification fieldsACTIVITY_REGISTRATION() {
+        // FR-018: cảnh báo đã hiển thị gồm lưu ý chăm sóc, dấu nghi nhiễm, sự cố đang mở.
+        return new CareFieldClassification(
+                "M04.ACTIVITY_REGISTRATION", Map.of("acknowledgedWarnings", InfoGroup.HEALTH));
+    }
+
+    @Bean
+    CareRetention retainACTIVITY_SESSION(
+            CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
+        return new CareRetention(CareRetentionType.ACTIVITY_SESSION, store, database, residents);
+    }
+
+    @Bean
+    CareRetention retainACTIVITY_REGISTRATION(
+            CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
+        return new CareRetention(CareRetentionType.ACTIVITY_REGISTRATION, store, database, residents);
+    }
 }
