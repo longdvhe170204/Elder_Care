@@ -190,6 +190,8 @@ Bean thiếu thì lệnh cần nó bị chặn (mặc định an toàn): không 
 
 ### 2.4. Yêu cầu A bổ sung ánh xạ tham chiếu sau gộp T069 (2026-10-31)
 
+**Đã đóng 2026-11-05: A chọn cách như `V001_95`, bỏ yêu cầu API ánh xạ.** Lần dùng PRN và tiếp nhận thuốc cung ứng cấp id mới, ghi `legacy = {table, id}`; nhật ký, đính chính, thông báo 009 cũ trỏ id cũ không nối sang id mới; không khai `LegacyRecordTypeSource` cho hai loại này vì id trùng sẽ gắn nhầm lịch sử. A chốt, không cần chủ dự án duyệt vì không đổi nghiệp vụ, API (plan 006 mục "T069: id mới sau gộp"). Nội dung yêu cầu cũ giữ dưới đây để truy vết.
+
 Đây là yêu cầu review, chưa phải hợp đồng API đã duyệt. Người dùng chọn đề nghị A bổ sung ánh xạ loại và id cũ sang mới, kèm test nhật ký, đính chính; D chưa sửa API của 000.
 
 - Data-model 006 mục 0.1 yêu cầu cấp id mới cho PRN và các loại giao nhận gộp; `LegacyRecordTypeSource` hiện chỉ có `Map<String, String> legacyRecordTypes()` và quy định giữ id. `RecordTypeAliases.withLegacy` chỉ mở rộng loại; truy vấn đính chính vẫn so cùng `original_record_id`, nên chưa xử lý được id đổi sau gộp.
