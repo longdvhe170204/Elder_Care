@@ -42,6 +42,7 @@ public class RegistrationService {
     private final BusinessTime time;
     private final JsonMapper json;
     private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
+    private final ResidentSessionReminders reminders;
 
     public RegistrationService(
             ActivitySessionStore store,
@@ -51,7 +52,8 @@ public class RegistrationService {
             AuditLogApi audit,
             BusinessTime time,
             JsonMapper json,
-            com.eldercare.backend.care.internal.trip.service.TripLifecycle trips) {
+            com.eldercare.backend.care.internal.trip.service.TripLifecycle trips,
+            ResidentSessionReminders reminders) {
         this.store = store;
         this.records = records;
         this.eligibility = eligibility;
@@ -60,6 +62,7 @@ public class RegistrationService {
         this.time = time;
         this.json = json;
         this.trips = trips;
+        this.reminders = reminders;
     }
 
     public Target target(long sessionId, Long residentId) {
@@ -110,6 +113,8 @@ public class RegistrationService {
         }
         log(id, "REGISTRATION_CREATED", Map.of("sessionId", sessionId, "residentId", residentId), null);
         trips.registrationChanged(sessionId, residentId, false);
+        // FR-071 (Q-366): đăng ký trong ngày thì nhắc chính người cao tuổi ngay.
+        reminders.registered(session, id, residentId);
         return id;
     }
 
