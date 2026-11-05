@@ -705,6 +705,13 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | loại bảng chung của 001 | `M01.CARE_LEVEL`, `M01.ALLERGEN`, `M01.ALLERGY_SEVERITY`, `M01.INFORMATION_SOURCE`, `M01.CARE_NEED` (danh mục); `M01.WISH_OPINION` (sự kiện); `M01.INITIAL_HEALTH_RECORD`, `M01.REASSESSMENT_NOTICE` (hồ sơ chung); `M01.PERIODIC_REMINDER.<type>`, `M01.RETURN_OVERDUE_ALERT` (mốc đã nhắc); thuộc tính `TRANG_THAI`, `MUC_CHAM_SOC` của `NGUOI_CAO_TUOI` (lịch sử chung) |
 
 
+### 8.8. Màn mobile *(bổ sung 2026-11-05, T023)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `mobile/lib/nhan-vien/tra-cuu-nguoi-cao-tuoi/`; test `tra_cuu_nguoi_cao_tuoi_test.dart` | `mobile/lib/staff/residents/` (`ResidentLookupScreen` tra cứu, `ResidentCardScreen` thẻ người cao tuổi, `ResidentAvatar`, `resident_labels.dart`); `mobile/test/staff/residents/resident_lookup_test.dart` |
+| `mobile/lib/nguoi-than/ho-so/`; test `ho_so_nguoi_than_test.dart` | `mobile/lib/family/profile/` (`FamilyProfileScreen` danh sách, `FamilyProfileDetailScreen` hồ sơ, `FamilyResidentAvatar`, `family_profile_labels.dart`); `mobile/test/family/profile/family_profile_test.dart` |
+
 ## 9. Feature 003 (`003-room-bed-allocation`, C)
 
 **Phase 1 (2026-10-22)**: bảng dưới chỉ chốt tên phần khung/SPI cần cho T001–T002. `contracts/api-003.yaml` chưa dịch; chưa chốt tên endpoint/schema HTTP trong lượt này.
