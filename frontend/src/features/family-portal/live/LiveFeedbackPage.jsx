@@ -75,7 +75,7 @@ function SubmitForm({ viewer, onSent }) {
   }
 
   return (
-    <PortalCard title="Gửi phản hồi">
+    <PortalCard title={`Gửi phản hồi về ${viewer.residentName ?? 'người cao tuổi'}`}>
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         <FieldGroup>
           <ChoiceField

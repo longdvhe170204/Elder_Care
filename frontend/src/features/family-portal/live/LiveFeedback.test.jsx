@@ -57,6 +57,8 @@ describe('Phản hồi trên cổng', () => {
     api.on('POST', '/feedback', json(201, { id: 92 }))
     render(<LiveFeedbackPage viewer={VIEWER} />)
     await screen.findByText('Vì sao đổi thuốc?')
+    // Cùng tiêu đề với app người thân (DESIGN.md 13 điều 7; bố cục duyệt 2026-11-05)
+    expect(screen.getByText('Gửi phản hồi về Nguyễn Thị Lan')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Gửi phản hồi' }))
     expect(await screen.findByText('Chọn loại phản hồi')).toBeInTheDocument()

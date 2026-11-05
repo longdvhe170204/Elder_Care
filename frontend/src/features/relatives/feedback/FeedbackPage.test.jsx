@@ -100,7 +100,7 @@ describe('Phản hồi của người thân', () => {
 
     const row = within(table).getByRole('row', { name: /Phòng P201/ })
     expect(row).toHaveTextContent('Khiếu nại')
-    expect(row).toHaveTextContent('Quá hạn')
+    expect(row).toHaveTextContent('Mới, quá hạn')
     expect(row).toHaveTextContent('Lê Thu Trang')
     expect(row).toHaveTextContent('Trần Văn Minh')
     expect(await within(row).findByText('Nguyễn Thị Lan')).toBeInTheDocument()
@@ -113,6 +113,20 @@ describe('Phản hồi của người thân', () => {
       const query = new URL(calls[calls.length - 1][0], 'http://x').searchParams
       expect(query.get('overdue')).toBe('true')
     })
+  })
+
+  it('BR_M10_05_quaHanLenDau_roiTheoHanGanNhat', async () => {
+    const LATER = { ...QUESTION, id: 93, content: 'Hỏi lịch thăm cuối tuần', dueAt: '2026-11-09T02:00:00Z' }
+    const SOONER = { ...QUESTION, id: 94, content: 'Hỏi giờ tắm', dueAt: '2026-11-07T02:00:00Z' }
+    api.on('GET', '/feedback', json(200, [LATER, SOONER, COMPLAINT]))
+    const table = await renderPage()
+
+    const rows = within(table).getAllByRole('row').slice(1)
+    expect(rows.map((r) => within(r).getAllByRole('button')[0].textContent)).toEqual([
+      'Phòng P201 không được dọn hai ngày',
+      'Hỏi giờ tắm',
+      'Hỏi lịch thăm cuối tuần',
+    ])
   })
 
   it('FR_066_nhanXuLy_goiLenh', async () => {
