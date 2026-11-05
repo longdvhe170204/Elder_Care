@@ -380,7 +380,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                         shift))
                 .isZero();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM event_publication WHERE serialized_event LIKE '%Lý do riêng tư kiểm thử%'",
+                        "SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE SERIALIZED_EVENT LIKE '%Lý do riêng tư kiểm thử%'",
                         Integer.class))
                 .isZero();
         assertThat(jdbc.queryForObject(
