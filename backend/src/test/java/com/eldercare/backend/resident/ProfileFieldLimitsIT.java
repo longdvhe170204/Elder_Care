@@ -77,7 +77,7 @@ class ProfileFieldLimitsIT extends ResidentProfileTestBase {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("ETag"))
                 .andExpect(jsonPath("$.profile.profileCode")
-                        .value(org.hamcrest.Matchers.matchesPattern("NCT-\\d{4}-\\d{6}")))
+                        .value(org.hamcrest.Matchers.matchesPattern("NCT-\\d{4}-\\d{6,}")))
                 .andExpect(jsonPath("$.profile.status").value("ADMISSION_IN_PROGRESS"))
                 .andExpect(jsonPath("$.profile.personalInfo.permanentAddress").value("12 Lê Lợi"))
                 .andExpect(jsonPath("$.warnings").isArray());

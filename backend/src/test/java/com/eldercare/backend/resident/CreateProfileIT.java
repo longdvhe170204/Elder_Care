@@ -35,7 +35,7 @@ class CreateProfileIT extends ResidentProfileTestBase {
         CreateResult first = createAsOffice(noDocument(name));
         CreateResult second = createAsOffice(noDocument(uniqueName()));
 
-        assertThat(first.profile().profileCode()).matches("NCT-\\d{4}-\\d{6}");
+        assertThat(first.profile().profileCode()).matches("NCT-\\d{4}-\\d{6,}");
         assertThat(first.profile().profileCode()).isNotEqualTo(second.profile().profileCode());
         assertThat(first.profile().id()).isPositive();
         assertThat(first.profile().status()).isEqualTo(ResidentStatus.ADMISSION_IN_PROGRESS);

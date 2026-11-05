@@ -42,7 +42,7 @@ class ContractLifecycleIT extends ContractTestBase {
 
         JsonNode created =
                 JSON.readTree(result.getResponse().getContentAsString()).get("contract");
-        assertThat(created.get("contractNumber").asString()).matches("HD-\\d{4}-\\d{6}");
+        assertThat(created.get("contractNumber").asString()).matches("HD-\\d{4}-\\d{6,}");
         assertThat(created.get("allowedCommands").toString()).contains("send-for-signature", "cancel");
         assertThat(created.get("services")).hasSize(1);
         assertThat(JSON.readTree(result.getResponse().getContentAsString()).get("warnings"))

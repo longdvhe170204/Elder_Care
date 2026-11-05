@@ -35,6 +35,8 @@ jobs:
           --health-timeout=5s
           --health-retries=30
     env:
+      # Giờ JVM như máy nhóm: test dùng LocalDate.now() (ngày sinh tương lai…) đỏ khi runner UTC đã qua 0 giờ giờ Việt Nam
+      TZ: Asia/Ho_Chi_Minh
       TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/eldercare_test
       TEST_DB_ADMIN_USER: root
       TEST_DB_ADMIN_PASSWORD: ci-root

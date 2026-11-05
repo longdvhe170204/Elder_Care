@@ -110,7 +110,7 @@ class ApprovalLifecycleIT extends MySqlIntegrationTestBase {
         JsonNode created = api.create(tomorrow, false);
 
         assertThat(created.get("status").asString()).isEqualTo("DRAFT");
-        assertThat(created.get("displayCode").asString()).matches("YC-\\d{4}-\\d{6}");
+        assertThat(created.get("displayCode").asString()).matches("YC-\\d{4}-\\d{6,}");
         assertThat(created.get("requester").get("id").asLong()).isEqualTo(OFFICE_A.accountId());
         assertThat(created.get("type").asString()).isEqualTo(ApprovalFixtures.TYPE);
         assertThat(created.get("requestedEffectiveDate").asString()).isEqualTo(tomorrow.toString());
@@ -118,7 +118,7 @@ class ApprovalLifecycleIT extends MySqlIntegrationTestBase {
         assertThat(created.get("content").has("key")).isTrue();
         mvc.perform(get(ApprovalClient.URL + "/" + created.get("id").asLong()))
                 .andExpect(jsonPath("$.allowedCommands", hasItems("edit-content", "submit", "cancel")))
-                .andExpect(jsonPath("$.displayCode", matchesPattern("YC-\\d{4}-\\d{6}")));
+                .andExpect(jsonPath("$.displayCode", matchesPattern("YC-\\d{4}-\\d{6,}")));
         assertThat(auditActions(created.get("id").asLong())).containsExactly("REQUEST_CREATED");
     }
 

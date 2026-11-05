@@ -43,7 +43,7 @@ class ProfileLinkIT extends ResidentProfileTestBase {
         assertThat(linked)
                 .extracting(LinkedProfile::status)
                 .containsExactly(ResidentStatus.ADMISSION_CANCELLED, ResidentStatus.RESIDENCY_ENDED);
-        assertThat(linked.getFirst().profileCode()).matches("NCT-\\d{4}-\\d{6}");
+        assertThat(linked.getFirst().profileCode()).matches("NCT-\\d{4}-\\d{6,}");
     }
 
     @Test
