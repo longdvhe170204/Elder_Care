@@ -14,5 +14,4 @@ public record DoseResultOfflineContent(
         String reason,
         String adverseReaction,
         String note,
-        Long leaveHandoverId,
-        Long recorderId) {}
+        Long leaveHandoverId) {}

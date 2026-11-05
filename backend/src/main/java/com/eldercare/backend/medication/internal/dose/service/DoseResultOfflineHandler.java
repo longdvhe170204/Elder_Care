@@ -1,5 +1,6 @@
 package com.eldercare.backend.medication.internal.dose.service;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -47,6 +48,7 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
     private final MedicationRepository medicationRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final BusinessTime businessTime;
+    private final CurrentUser user;
 
     public DoseResultOfflineHandler(
             DoseAdministrationService doseAdministrationService,
@@ -56,7 +58,8 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
             PrescriptionRepository prescriptionRepository,
             MedicationRepository medicationRepository,
             ApplicationEventPublisher eventPublisher,
-            BusinessTime businessTime) {
+            BusinessTime businessTime,
+            CurrentUser user) {
         this.doseAdministrationService = doseAdministrationService;
         this.doseRepository = doseRepository;
         this.doseResultRepository = doseResultRepository;
@@ -65,6 +68,7 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
         this.medicationRepository = medicationRepository;
         this.eventPublisher = eventPublisher;
         this.businessTime = businessTime;
+        this.user = user;
     }
 
     @Override
@@ -154,21 +158,21 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
                                 content.note(),
                                 true,
                                 content.leaveHandoverId()),
-                        content.recorderId(),
+                        user.accountId(),
                         null,
                         effectiveAt);
             case REFUSED ->
                 doseAdministrationService.refuseDose(
                         content.doseKey(),
                         new RefuseDoseRequest(content.reason(), content.note(), effectiveAt, true),
-                        content.recorderId(),
+                        user.accountId(),
                         null,
                         effectiveAt);
             case NOT_ADMINISTERED, MISSED ->
                 doseAdministrationService.skipDose(
                         content.doseKey(),
                         new SkipDoseRequest(content.reason(), content.note(), effectiveAt, true),
-                        content.recorderId(),
+                        user.accountId(),
                         null,
                         effectiveAt);
         };

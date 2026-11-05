@@ -1,5 +1,6 @@
 package com.eldercare.backend.medication.internal.dose.service;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -25,12 +26,17 @@ public class PrnOfflineHandler implements OfflineHandler<PrnOfflineContent> {
     private final PrnMedicationService service;
     private final PrescriptionRepository prescriptions;
     private final MedicationRepository medications;
+    private final CurrentUser user;
 
     public PrnOfflineHandler(
-            PrnMedicationService service, PrescriptionRepository prescriptions, MedicationRepository medications) {
+            PrnMedicationService service,
+            PrescriptionRepository prescriptions,
+            MedicationRepository medications,
+            CurrentUser user) {
         this.service = service;
         this.prescriptions = prescriptions;
         this.medications = medications;
+        this.user = user;
     }
 
     @Override
@@ -76,7 +82,7 @@ public class PrnOfflineHandler implements OfflineHandler<PrnOfflineContent> {
         body.setAdverseReaction(content.adverseReaction());
         body.setNote(content.note());
         body.setRecordedAfterDisconnect(true);
-        var saved = service.recordPrn(content.prescriptionId(), body, content.recorderId());
+        var saved = service.recordPrn(content.prescriptionId(), body, user.accountId());
         return "prn:" + saved.getId();
     }
 }
