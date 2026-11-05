@@ -83,7 +83,23 @@ class RequiresPermissionArchTest {
                             + " FR-015"),
             Map.entry(
                     "com.eldercare.backend.family.internal.right.service.RightChangeRequestService.cancel",
-                    "chỉ người lập yêu cầu (data-model 012 mục 3)"));
+                    "chỉ người lập yêu cầu (data-model 012 mục 3)"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.record",
+                    "PermissionApi.hasPermission Tạo của lệnh nguồn theo loại đón rồi (PICKUP, CREATE); 012 FR-022,"
+                            + " Phụ lục 27 ¹⁹"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.createException",
+                    "(PICKUP, CREATE) và Tạo của ít nhất một lệnh nguồn; 012 FR-022, FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.confirm",
+                    "người đại diện Hiệu lực qua cổng (PICKUP, UPDATE, chú thích ²); 012 FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.reject",
+                    "người đại diện (PICKUP, UPDATE) hoặc Quản lý viện (PICKUP, APPROVE); 012 FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.cancel",
+                    "Chờ xác nhận: người lập; Hiệu lực: người đại diện hoặc Quản lý viện kèm lý do; 012 FR-024"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho

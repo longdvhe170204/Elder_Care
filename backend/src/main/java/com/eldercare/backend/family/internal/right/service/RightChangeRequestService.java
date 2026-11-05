@@ -52,6 +52,7 @@ import com.eldercare.backend.family.internal.right.domain.RightChangeRequest.Typ
 import com.eldercare.backend.family.internal.right.domain.RightRequestCheck;
 import com.eldercare.backend.family.internal.right.domain.RightRequestCheck.ActiveWish;
 import com.eldercare.backend.family.internal.right.domain.SelfReturnFlag;
+import com.eldercare.backend.family.internal.right.domain.SelfReturnTurnedOff;
 import com.eldercare.backend.resident.api.ConsentApi;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ConsenterType;
@@ -735,6 +736,9 @@ public class RightChangeRequestService {
                             SelfReturnFlag.key(residentId),
                             actor == null ? 0 : actor,
                             false));
+        }
+        if (!value) {
+            events.publishEvent(new SelfReturnTurnedOff(residentId, at));
         }
     }
 
