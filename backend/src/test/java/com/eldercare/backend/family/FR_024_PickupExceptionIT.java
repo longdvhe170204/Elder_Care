@@ -4,11 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.account.api.dto.AccessChannel;
+import com.eldercare.backend.administration.account.api.dto.AccountType;
+import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
+import com.eldercare.backend.administration.account.internal.auth.service.SessionAuthentication;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.family.api.events.PickupExceptionNotice;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.resident.api.dto.StatusCommand;
+import com.eldercare.backend.resident.api.dto.TransitionResult;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -143,5 +153,43 @@ class FR_024_PickupExceptionIT extends PickupTestBase {
     void FR_022_onlySourceCommandHoldersCreateExceptions() throws Exception {
         createException(staffSession(Role.DOCTOR), "Ngô Hàng Xóm", OUTSIDER_DOC).andExpect(status().isForbidden());
         createException(family(rMember), "Ngô Hàng Xóm", OUTSIDER_DOC).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void FR_075_finalStatus_cancelsPendingExceptions_withTheReason() throws Exception {
+        long pending = id(createException(office, "Ngô Hàng Xóm", OUTSIDER_DOC).andExpect(status().isCreated()));
+        jdbc.update("UPDATE resident SET status = 'DECEASED' WHERE id = ?", a);
+
+        // Tác động chạy trong lệnh trạng thái của nhân viên (001), có phiên hiện tại như lệnh thật
+        var doctor = users.staff(Role.DOCTOR);
+        SecurityContextHolder.getContext()
+                .setAuthentication(new SessionAuthentication(new ActiveSession(
+                        doctor.accountId(),
+                        AccountType.STAFF,
+                        Optional.of(doctor.staffId()),
+                        Optional.empty(),
+                        Set.of(Role.DOCTOR),
+                        "m10-it",
+                        AccessChannel.WEB)));
+        try {
+            tx.executeWithoutResult(t -> familyParticipant()
+                    .applyEffects(new TransitionResult(
+                            a,
+                            ResidentStatus.IN_RESIDENCE,
+                            ResidentStatus.DECEASED,
+                            StatusCommand.RECORD_DEATH,
+                            0L,
+                            time.now(),
+                            null)));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+
+        assertThat(exceptionStatus(pending)).isEqualTo("CANCELLED");
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content, '$.decisionReason')) FROM simple_record WHERE id = ?",
+                        String.class,
+                        pending))
+                .contains("trạng thái cuối");
     }
 }

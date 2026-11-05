@@ -429,6 +429,20 @@ public class PickupService {
         return decide(target, exceptionId, Set.of(Status.PENDING_CONFIRMATION), Status.CANCELLED, user, reason);
     }
 
+    /** Trạng thái cuối hủy mọi yêu cầu ngoại lệ đón Chờ xác nhận, kèm lý do (FR-075); chạy trong lệnh trạng thái. */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void cancelOnFinalStatus(long residentId) {
+        lock.lock(residentId);
+        Reason reason = new Reason("Người cao tuổi chuyển trạng thái cuối (FR-075)");
+        for (SimpleRecord<PickupException> pending :
+                records.listByResident(PickupException.KIND, residentId, Set.of(Status.PENDING_CONFIRMATION.name()))) {
+            SimpleRecord<PickupException> current = records.lockForUpdate(PickupException.KIND, pending.id());
+            SimpleRecord<PickupException> after =
+                    close(current, Status.CANCELLED, current.content().decided(null, reason.value()));
+            audit(residentId, current, after, reason);
+        }
+    }
+
     /** Việc theo phút: ngoại lệ Hiệu lực quá CFG-M10-08 chuyển Hết hạn (FR-024). */
     @Transactional
     public int expireExceptions(Instant at) {
