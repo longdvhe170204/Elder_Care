@@ -38,7 +38,7 @@ import { describeRequest } from './right-change-requests/requestLabels'
 const FUNCTION = 'FAMILY_MEMBER_PERMISSION'
 const WISHES = 'VISITOR_PREFERENCE'
 
-function ResidentPicker({ onPick }) {
+export function ResidentPicker({ onPick }) {
   const [q, setQ] = useState('')
   const [items, setItems] = useState(null)
   const [failure, setFailure] = useState(null)

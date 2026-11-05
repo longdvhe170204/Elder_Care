@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ApiError, getMe, postAuthLogout } from '@/api'
 import { Bell, CalendarCheck, House, LogOut, Menu, Newspaper, UserRound } from 'lucide-react'
+import { SessionGuard } from '@/common/SessionGuard'
 import { LeafMark } from '@/common/layout/AppShell'
 import { DEMO_PORTAL_CONFIRMATIONS, DEMO_PORTAL_NOTIFICATIONS, DEMO_PORTAL_VIEWER } from '@/common/demoData'
 import { cn } from '@/lib/utils'
@@ -18,7 +20,9 @@ import { VisitsPage } from './VisitsPage'
 
 // Cổng người thân, bản web (DESIGN.md 2.3): đăng nhập xong vào Trang chủ, là trang giới thiệu viện; các màn khác
 // đi từ đầu trang (máy tính) hoặc thanh dưới (điện thoại). Đầu trang cùng kiểu với trang giới thiệu: dải nền trời,
-// logo, các mục, người đăng nhập. App mobile làm sau theo DESIGN.md 15.
+// logo, các mục, người đăng nhập. App mobile làm sau theo DESIGN.md 15. Có phiên người thân thật (GET /me) thì bọc
+// SessionGuard như khung nhân viên (002 T047b; DESIGN.md 9.1, 9.3) và Đăng xuất gọi API; chưa đăng nhập thì sang /login;
+// không gọi được backend thì giữ bản mẫu. Các màn bên trong vẫn là bản mẫu tới task web của từng phần (012).
 
 const NAV = [
   { key: 'home', label: 'Trang chủ', icon: House },
@@ -64,7 +68,7 @@ function Badge({ count }) {
   )
 }
 
-function Header({ viewer, page, badge, onNavigate }) {
+function Header({ viewer, page, badge, onNavigate, onLogout }) {
   return (
     <header className="sticky top-0 z-10 border-b border-foreground/10 bg-landing-sky px-4 sm:px-8">
       <div className="mx-auto flex h-16 max-w-[1120px] items-center gap-4">
@@ -105,9 +109,14 @@ function Header({ viewer, page, badge, onNavigate }) {
             <Badge count={badge} />
           </button>
           <span className="hidden type-caption sm:inline">{viewer.name}</span>
-          <a href="/login" aria-label="Đăng xuất" className="flex size-11 items-center justify-center rounded-full hover:bg-card/40">
+          <button
+            type="button"
+            onClick={onLogout}
+            aria-label="Đăng xuất"
+            className="flex size-11 items-center justify-center rounded-full hover:bg-card/40"
+          >
             <LogOut className="size-5" aria-hidden="true" />
-          </a>
+          </button>
         </div>
       </div>
     </header>
@@ -116,27 +125,66 @@ function Header({ viewer, page, badge, onNavigate }) {
 
 export function FamilyPortal({ onExit }) {
   const [page, setPage] = useState('home')
-  const viewer = DEMO_PORTAL_VIEWER
+  const [session, setSession] = useState(null)
+  const [checking, setChecking] = useState(true)
+  const viewer = session ? { ...DEMO_PORTAL_VIEWER, name: session.fullName } : DEMO_PORTAL_VIEWER
   const Page = PAGES[page]
   const badge = pendingCount(viewer)
   const activeBottom = BOTTOM_NAV.some((n) => n.key === page) ? page : page === 'notifications' ? null : 'more'
+
+  useEffect(() => {
+    let cancelled = false
+    getMe()
+      .then(({ data }) => {
+        if (cancelled) return
+        setSession(data)
+        setChecking(false)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        if (error instanceof ApiError && error.status === 401) window.location.assign('/login')
+        else setChecking(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function navigate(next) {
     setPage(next)
     window.scrollTo(0, 0)
   }
 
-  return (
-    <div className="min-h-screen pb-20 lg:pb-0">
-      <Header viewer={viewer} page={page} badge={badge} onNavigate={navigate} />
+  async function logout() {
+    try {
+      if (session) await postAuthLogout()
+    } finally {
+      window.location.assign('/login')
+    }
+  }
 
-      {page === 'home' ? (
-        <HomePage onNavigate={navigate} />
-      ) : (
-        <main className="mx-auto flex max-w-[960px] flex-col gap-4 px-4 py-6 sm:px-8 md:py-8">
-          <Page viewer={viewer} onNavigate={navigate} onExit={onExit} />
-        </main>
-      )}
+  if (checking) return null
+
+  const frame = (
+    <div className="min-h-screen pb-20 lg:pb-0">
+      {/* Bỏ qua menu (DESIGN.md 9.3, WCAG 2.4.1): ẩn, hiện khi focus bằng bàn phím */}
+      <a
+        href="#main-content"
+        className="sr-only z-50 rounded-full bg-primary px-4 py-2 type-label text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Bỏ qua menu
+      </a>
+      <Header viewer={viewer} page={page} badge={badge} onNavigate={navigate} onLogout={logout} />
+
+      <div id="main-content" tabIndex={-1} className="outline-none">
+        {page === 'home' ? (
+          <HomePage onNavigate={navigate} />
+        ) : (
+          <main className="mx-auto flex max-w-[960px] flex-col gap-4 px-4 py-6 sm:px-8 md:py-8">
+            <Page viewer={viewer} onNavigate={navigate} onExit={onExit} />
+          </main>
+        )}
+      </div>
 
       <nav aria-label="Cổng người thân" className="fixed inset-x-0 bottom-0 flex border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
         {BOTTOM_NAV.map((item) => {
@@ -159,5 +207,12 @@ export function FamilyPortal({ onExit }) {
         })}
       </nav>
     </div>
+  )
+
+  if (!session) return frame
+  return (
+    <SessionGuard accountId={session.accountId} timeoutSeconds={session.sessionIdleTimeoutSeconds} onLogout={logout}>
+      {frame}
+    </SessionGuard>
   )
 }
