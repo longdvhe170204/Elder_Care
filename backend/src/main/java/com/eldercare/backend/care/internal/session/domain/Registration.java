@@ -5,6 +5,7 @@ public record Registration(
         long id, long sessionId, long residentId, String source, Long registeredByStaffId, String status) {
     public static final String REGULAR = "REGULAR";
     public static final String MANUAL = "MANUAL";
+    public static final String ADDED_AT_ATTENDANCE = "ADDED_AT_ATTENDANCE";
 
     public static final String REGISTERED = "REGISTERED";
     public static final String CANCELLED = "CANCELLED";

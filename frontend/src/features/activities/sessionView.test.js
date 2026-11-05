@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SESSION_STATUS, addDays, countByStatus, toOffsetIso, weekOf } from './sessionView'
+import { SESSION_STATUS, addDays, attendanceBody, countByStatus, toOffsetIso, weekOf } from './sessionView'
 
 describe('sessionView', () => {
   it('FR_011_nhanTrangThaiBuoiTheoGlossary', () => {
@@ -25,5 +25,16 @@ describe('sessionView', () => {
   it('FR_011_guiGioVietNamCoMuiGio', () => {
     expect(toOffsetIso('2026-11-06T15:00')).toBe('2026-11-06T15:00:00+07:00')
     expect(toOffsetIso('')).toBeUndefined()
+  })
+})
+
+describe('attendanceBody', () => {
+  it('FR_029_thieuTruongBatBuocThiChuaGuiDuoc', () => {
+    const rows = [{ residentId: 1, addedAtAttendance: false }]
+    expect(attendanceBody(rows, {})).toBeNull()
+    expect(attendanceBody(rows, { 1: { result: 'PRESENT' } })).toBeNull()
+    expect(attendanceBody(rows, { 1: { result: 'ABSENT', absenceReason: 'HEALTH', note: ' ' } })).toEqual({
+      results: [{ residentId: 1, result: 'ABSENT', absenceReason: 'HEALTH' }],
+    })
   })
 })

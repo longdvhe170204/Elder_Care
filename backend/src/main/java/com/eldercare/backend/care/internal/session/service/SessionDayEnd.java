@@ -60,7 +60,17 @@ public class SessionDayEnd implements CareDailyWork {
                             new EntityRef("M01.RESIDENT", r.residentId()),
                             new NewRecordEvent<>(
                                     new SessionKinds.AttendanceResult(
-                                            r.id(), session.id(), SessionKinds.NOT_RECORDED, false),
+                                            r.id(),
+                                            session.id(),
+                                            r.residentId(),
+                                            SessionKinds.NOT_RECORDED,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            false,
+                                            null),
                                     null,
                                     null,
                                     true,

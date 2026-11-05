@@ -57,3 +57,45 @@ export function toOffsetIso(local) {
 export function todayInVietnam(now = new Date()) {
   return format(new Date(now.getTime() + 7 * 60 * 60 * 1000))
 }
+
+export const ATTENDANCE_RESULT = { PRESENT: 'Có mặt', ABSENT: 'Vắng' }
+
+export const PARTICIPATION_LEVEL = {
+  ACTIVE: 'Tích cực',
+  NORMAL: 'Bình thường',
+  PASSIVE: 'Thụ động',
+  LEFT_EARLY: 'Bỏ giữa chừng',
+}
+
+export const COMMUNICATION_LEVEL = { PROACTIVE: 'Chủ động', WHEN_ASKED: 'Khi được hỏi', MINIMAL: 'Ít giao tiếp' }
+
+export const ABSENCE_REASON = {
+  REFUSED: 'Từ chối',
+  HEALTH: 'Sức khỏe',
+  AWAY: 'Đang vắng mặt',
+  NO_SHOW: 'Không đến',
+  OTHER: 'Khác',
+}
+
+// Thân SessionAttendance (api-014) từ các dòng đã chọn kết quả; null khi chưa có dòng nào hoặc còn dòng thiếu trường
+// bắt buộc (Có mặt cần mức tham gia, Vắng cần lý do; FR-028, FR-029).
+export function attendanceBody(rows, entries) {
+  const results = []
+  for (const row of rows) {
+    const e = entries[row.residentId] ?? {}
+    if (!e.result) continue
+    if (e.result === 'PRESENT' && !e.participationLevel) return null
+    if (e.result === 'ABSENT' && !e.absenceReason) return null
+    const item = { residentId: row.residentId }
+    if (row.addedAtAttendance) item.addedAtAttendance = true
+    item.result = e.result
+    if (e.result === 'PRESENT') {
+      item.participationLevel = e.participationLevel
+      if (e.communicationLevel) item.communicationLevel = e.communicationLevel
+    } else item.absenceReason = e.absenceReason
+    if (e.conditionAfter?.trim()) item.conditionAfter = e.conditionAfter.trim()
+    if (e.note?.trim()) item.note = e.note.trim()
+    results.push(item)
+  }
+  return results.length ? { results } : null
+}

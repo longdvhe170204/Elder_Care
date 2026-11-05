@@ -256,6 +256,63 @@ public class ActivitySessionStore {
                 local(from));
     }
 
+    /** FR-030: buổi Đã lên lịch kết thúc không sau {@code cutoff}, chưa nhắc; khóa dòng. */
+    public List<Session> dueForAttendanceReminder(Instant cutoff) {
+        return jdbc.query(
+                "SELECT " + COLUMNS
+                        + " FROM activity_session WHERE status='SCHEDULED' AND attendance_reminded_at IS NULL"
+                        + " AND ends_at<=? ORDER BY id FOR UPDATE",
+                ActivitySessionStore::session,
+                local(cutoff));
+    }
+
+    public void markAttendanceReminded(long id, Instant at) {
+        jdbc.update("UPDATE activity_session SET attendance_reminded_at=? WHERE id=?", local(at), id);
+    }
+
+    public Optional<Registration> findRegistration(long id) {
+        return jdbc
+                .query("SELECT * FROM activity_registration WHERE id=?", ActivitySessionStore::registration, id)
+                .stream()
+                .findFirst();
+    }
+
+    /** 005 FR-017: đăng ký chưa hủy của người cao tuổi ở buổi Đã lên lịch giao với khoảng [from, to). */
+    public List<Registration> registrationsInWindow(long residentId, Instant from, Instant to) {
+        return jdbc.query(
+                "SELECT r.* FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
+                        + " WHERE r.resident_id=? AND r.status<>'CANCELLED' AND s.status='SCHEDULED'"
+                        + " AND s.starts_at<? AND s.ends_at>? ORDER BY s.starts_at, r.id",
+                ActivitySessionStore::registration,
+                residentId,
+                local(to),
+                local(from));
+    }
+
+    /** Đăng ký chưa hủy của người cao tuổi ở buổi, khóa dòng. */
+    public Optional<Registration> activeRegistration(long sessionId, long residentId) {
+        return jdbc
+                .query(
+                        "SELECT * FROM activity_registration WHERE session_id=? AND resident_id=? AND status<>'CANCELLED' FOR UPDATE",
+                        ActivitySessionStore::registration,
+                        sessionId,
+                        residentId)
+                .stream()
+                .findFirst();
+    }
+
+    /** FR-031, FR-032: nguồn tính phí đang hiệu lực của đăng ký; rỗng khi chưa có hoặc đã hủy. */
+    public Optional<String> billedSource(long registrationId) {
+        return Optional.ofNullable(jdbc.queryForObject(
+                "SELECT billed_source_id FROM activity_registration WHERE id=? FOR UPDATE",
+                String.class,
+                registrationId));
+    }
+
+    public void billedSource(long registrationId, String sourceId) {
+        jdbc.update("UPDATE activity_registration SET billed_source_id=? WHERE id=?", sourceId, registrationId);
+    }
+
     /** Đăng ký còn hiệu lực (chưa hủy) của buổi. */
     public List<Registration> activeRegistrations(long sessionId) {
         return jdbc.query(

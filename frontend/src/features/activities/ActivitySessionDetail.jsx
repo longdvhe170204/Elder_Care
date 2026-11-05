@@ -14,11 +14,12 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { ActivityField } from './ActivityField'
+import { SessionAttendanceForm } from './SessionAttendanceForm'
 import { REGISTRATION_SOURCE, REGISTRATION_STATUS, SESSION_STATUS, toOffsetIso } from './sessionView'
 
 const EMPTY = { reason: '', startsAt: '', endsAt: '', residentId: '', registrationReason: '' }
 
-// 014 T009, T012: khung chi tiết buổi (FR-012, FR-013, FR-015 → FR-019; bố cục duyệt 2026-11-05). Họ tên người cao
+// 014 T009, T012, T014: khung chi tiết buổi (FR-012, FR-013, FR-015 → FR-019, FR-027 → FR-029; bố cục duyệt 2026-11-05). Họ tên người cao
 // tuổi lấy từ danh sách GET /residents (001) như màn Điểm danh bán trú của 005; không có thì hiện mã. Nút lệnh theo quyền
 // ACTIVITY_OUTING (CREATE đăng ký, UPDATE dời, hủy); backend còn kiểm vai trò và điều kiện.
 export function ActivitySessionDetail({
@@ -49,7 +50,7 @@ export function ActivitySessionDetail({
     let active = true
     const requestKey = `${sessionId}:${revision}`
     getActivitySessionsById({ path: { id: sessionId } })
-      .then(({ data }) => active && setResult({ key: requestKey, data }))
+      .then(({ data }) => active && setResult({ key: requestKey, data, loadedAt: Date.now() }))
       .catch((error) => active && setResult({ key: requestKey, failure: problemOf(error) }))
     return () => {
       active = false
@@ -97,6 +98,9 @@ export function ActivitySessionDetail({
   if (current.failure) return <ProblemAlert problem={current.failure} />
   const s = current.data
   const open = s.status === 'SCHEDULED'
+  // Đăng ký trước giờ bắt đầu; từ giờ bắt đầu là điểm danh (FR-015 (e), FR-028).
+  const started = Date.parse(s.startsAt) <= current.loadedAt
+  const allRecorded = s.registrations.length > 0 && s.registrations.every((r) => r.status === 'ATTENDED')
   const registeredIds = new Set(s.registrations.map((r) => r.residentId))
   const candidates = residents.filter((r) => !registeredIds.has(r.id)).map((r) => [String(r.id), r.fullName])
   return (
@@ -191,7 +195,7 @@ export function ActivitySessionDetail({
         </form>
       )}
 
-      {canCreate && open && (
+      {canCreate && open && !started && (
         <section className="flex flex-col gap-3 border-t pt-4" aria-labelledby="session-register">
           <h3 id="session-register" className="type-card-title">
             Đăng ký người cao tuổi
@@ -230,6 +234,40 @@ export function ActivitySessionDetail({
             )}
           </div>
         </section>
+      )}
+
+      {canCreate && open && started && (
+        <SessionAttendanceForm
+          key={revision}
+          sessionId={sessionId}
+          registrations={s.registrations}
+          residents={residents}
+          nameOf={nameOf}
+          onDone={(message) => {
+            setRevision((v) => v + 1)
+            onChanged(message)
+          }}
+        />
+      )}
+
+      {canUpdate && open && started && allRecorded && (
+        <Button
+          size="lg"
+          disabled={busy}
+          onClick={() =>
+            run(
+              (headers) =>
+                postActivitySessionsByIdByCommand({
+                  path: { id: sessionId, command: 'complete-attendance' },
+                  body: {},
+                  headers,
+                }),
+              'Đã hoàn tất điểm danh',
+            )
+          }
+        >
+          Hoàn tất điểm danh
+        </Button>
       )}
 
       <ProblemAlert problem={problem} />

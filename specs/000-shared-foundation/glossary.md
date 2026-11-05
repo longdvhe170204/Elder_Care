@@ -3028,7 +3028,11 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `ThamGiaChuyenTrangThai` của 014 | `care.internal.session.service.ActivityStatusParticipant` (`@Order(31)`) |
 | thông báo buổi bị hủy, dời; đăng ký bị hủy tự động | `care.api.events.ActivityRegistrationsCancelled` (`sessionId`, `registrationIds`, `cause`) |
 | thân đăng ký; thân lý do | `ActivityRegistrationWrite` (`residentId`, `acknowledgeWarnings`); `ActivityReasonWrite` |
-| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT`, `BuoiTheoMauTest`, `BR_M04_21_TaoBuoiTuMauIT`, `FR_014a_HetNgayIT`, `DieuKienDangKyTest`, `BR_M04_15_DangKyIT`, `FR_021_KhoanhVungIT` |
+| `DiemDanhBuoiService`; kết quả `CO_MAT`, `VANG`; lý do vắng `TU_CHOI`, `SUC_KHOE`, `DANG_VANG_MAT`, `KHONG_DEN`, `KHAC`; mức tham gia `TICH_CUC`, `BINH_THUONG`, `THU_DONG`, `BO_GIUA_CHUNG`; mức giao tiếp `CHU_DONG`, `KHI_DUOC_HOI`, `IT_GIAO_TIEP`; `ghi_nhan_muon` | `SessionAttendanceService` (`Item`); `PRESENT`, `ABSENT`; `REFUSED`, `HEALTH`, `AWAY`, `NO_SHOW`, `OTHER`; `ACTIVE`, `NORMAL`, `PASSIVE`, `LEFT_EARLY`; `PROACTIVE`, `WHEN_ASKED`, `MINIMAL`; `lateRecorded` |
+| sự kiện tính phí `DIEM_DANH_HOAT_DONG`, đơn vị `LUOT` | `CostSourceBilled` `sourceType` `ACTIVITY_ATTENDANCE`, `unit` `OCCURRENCE` (chờ E xác nhận); cột `activity_registration.billed_source_id` (`V014_03__activity_registration_billing.sql`) |
+| `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; nhắc CFG-M04-06 | `SessionAttendanceCorrectionProvider`, `SessionAttendanceOfflineHandler` (`SessionAttendanceOfflineContent`) loại `M04.SESSION_ATTENDANCE`; `ActivityTaskSource` (`ACTIVITY_SESSION`); `SessionAttendanceReminder`, sự kiện `care.api.events.ActivityAttendanceReminder` |
+| thân điểm danh | `SessionAttendanceWrite` (`SessionAttendanceItem`) |
+| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT`, `BuoiTheoMauTest`, `BR_M04_21_TaoBuoiTuMauIT`, `FR_014a_HetNgayIT`, `DieuKienDangKyTest`, `BR_M04_15_DangKyIT`, `FR_021_KhoanhVungIT`, `BR_M04_18_SuKienTinhPhiIT`, `FR_031_DinhChinhIT`, `T014_SessionAttendanceSourcesIT` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 

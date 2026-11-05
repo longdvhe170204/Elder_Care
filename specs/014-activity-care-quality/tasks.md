@@ -106,10 +106,12 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Tests cho User Story 3
 
 - [ ] T013 [P] [US3] Test `BT/care/BR_M04_18_SuKienTinhPhiIT.java`, `FR_031_DinhChinhIT.java`; app `mobile/test/nhan-vien/diem_danh_buoi_test.dart` (20 người trong thời gian SC-009) (Q13 → Q17)
+  - *(2026-11-05, C, một phần)* `BR_M04_18_SuKienTinhPhiIT` (7 ca), `FR_031_DinhChinhIT` (3 ca), `T014_SessionAttendanceSourcesIT` (3 ca: nhắc CFG-M04-06, nguồn công việc cho 005, handler ngoại tuyến) đỏ rồi xanh; web Vitest 2 ca mới. Còn test app `mobile/test/staff/...` (task mobile).
 
 ### Implementation cho User Story 3
 
 - [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/care/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `mobile/lib/nhan-vien/hoat-dong/` (research L-06) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `diem_danh_buoi` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+  - *(2026-11-05, C, một phần)* Không có `V014_04`: điểm danh là `record_event` `M04.SESSION_ATTENDANCE` (R-15); thêm `V014_03__activity_registration_billing.sql` (`billed_source_id`). Đã có `SessionAttendanceService` (điểm danh, thêm người lúc điểm danh, Hoàn tất; phát `billing.api.events.CostSourceBilled`), `SessionAttendanceCorrectionProvider` (`CostSourceChanged` khi bỏ lượt Có mặt), `SessionAttendanceOfflineHandler`, `ActivityTaskSource` (`ACTIVITY_SESSION` cho 005), `SessionAttendanceReminder` (CFG-M04-06), `POST /activity-sessions/{id}/attendance`, `complete-attendance`; web khối "Điểm danh" và nút "Hoàn tất điểm danh" (bố cục duyệt 05/11). Còn: `DiemDanhTruyVetPort` cho 007 (`incident.api.spi.AttendanceTracePort` do D khai, care không cài được vì C-02; team-plan mục 8), hiện sẵn "Vắng – đang vắng mặt" (FR-028) chờ trường trạng thái trong hợp đồng, app nhân viên.
 
 **Checkpoint**: Điểm danh chạy độc lập.
 
