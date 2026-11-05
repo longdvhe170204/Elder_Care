@@ -258,7 +258,7 @@ public final class HandoverCommandCheck {
         return switch (type) {
             case INTAKE, TAKE_BACK, FOUND -> BelongingStatus.HELD;
             case GIVE_FOR_USE -> BelongingStatus.IN_USE;
-            case TRANSFER_CUSTODY -> from;
+            case TRANSFER_CUSTODY, RETURN_BLOCKED -> from;
             case RETURN -> BelongingStatus.RETURNED;
             case REPORT_LOST -> BelongingStatus.LOST;
             case RECORD_DAMAGE -> BelongingStatus.DAMAGED;

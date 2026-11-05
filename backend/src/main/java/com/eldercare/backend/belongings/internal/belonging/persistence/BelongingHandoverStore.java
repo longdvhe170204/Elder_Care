@@ -6,6 +6,7 @@ import com.eldercare.backend.belongings.internal.belonging.domain.HandoverRow;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverType;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverView;
 import com.eldercare.backend.belongings.internal.belonging.domain.NewHandover;
+import com.eldercare.backend.belongings.internal.belonging.domain.ReturnFacts;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -46,9 +47,12 @@ public class BelongingHandoverStore {
                                     + " giver_id, giver_name, giver_id_document, recipient_type, recipient_id,"
                                     + " recipient_name, occurred_at, quantity, cash_amount, condition_level_id,"
                                     + " condition_description, storage_location_id, reason, holder_absent, valuable,"
-                                    + " photo_file_ids, note, recorded_by, recorded_at)"
+                                    + " photo_file_ids, note, recorded_by, recorded_at, recipient_id_document_type,"
+                                    + " recipient_id_document_number, recipient_basis, verification_result,"
+                                    + " signature_file_id, no_signature_reason, condition_opinion,"
+                                    + " recipient_confirmation_id, block_reason)"
                                     + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON),"
-                                    + " ?, ?, ?)",
+                                    + " ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     int i = 1;
                     ps.setLong(i++, h.belongingId());
@@ -79,7 +83,29 @@ public class BelongingHandoverStore {
                             h.photoFileIds().stream().map(String::valueOf).collect(Collectors.joining(",", "[", "]")));
                     ps.setString(i++, h.note());
                     ps.setLong(i++, h.recordedBy());
-                    ps.setObject(i, utc(h.recordedAt()));
+                    ps.setObject(i++, utc(h.recordedAt()));
+                    ReturnFacts facts = h.returnFacts();
+                    ps.setString(i++, facts == null ? null : facts.documentType());
+                    ps.setString(i++, facts == null ? null : facts.documentNumber());
+                    ps.setString(
+                            i++,
+                            facts == null || facts.basis() == null
+                                    ? null
+                                    : facts.basis().name());
+                    ps.setString(
+                            i++,
+                            facts == null || facts.verification() == null
+                                    ? null
+                                    : facts.verification().name());
+                    ps.setObject(i++, facts == null ? null : facts.signatureFileId());
+                    ps.setString(i++, facts == null ? null : facts.noSignatureReason());
+                    ps.setString(i++, facts == null ? null : facts.conditionOpinion());
+                    ps.setObject(i++, facts == null ? null : facts.recipientConfirmationId());
+                    ps.setString(
+                            i,
+                            facts == null || facts.blockReason() == null
+                                    ? null
+                                    : facts.blockReason().name());
                     return ps;
                 },
                 keys);
@@ -89,7 +115,7 @@ public class BelongingHandoverStore {
     /** Lịch sử của mọi đồ cùng lần tiếp nhận (gồm đồ tách; FR-012), theo thứ tự ghi. */
     public List<HandoverView> ofIntake(long intakeHandoverId) {
         return jdbc.query(
-                "SELECT " + COLUMNS + " FROM belonging_handover WHERE belonging_id IN"
+                "SELECT " + COLUMNS + " FROM belonging_handover WHERE kind <> 'RETURN_BLOCKED' AND belonging_id IN"
                         + " (SELECT id FROM belonging WHERE intake_handover_id = ?) ORDER BY id",
                 BelongingHandoverStore::view,
                 intakeHandoverId);
@@ -116,7 +142,8 @@ public class BelongingHandoverStore {
         }
         String marks = String.join(", ", Collections.nCopies(belongingIds.size(), "?"));
         return jdbc.query(
-                "SELECT " + ROW_COLUMNS + " FROM belonging_handover WHERE belonging_id IN (" + marks + ") ORDER BY id",
+                "SELECT " + ROW_COLUMNS + " FROM belonging_handover WHERE kind <> 'RETURN_BLOCKED'"
+                        + " AND belonging_id IN (" + marks + ") ORDER BY id",
                 BelongingHandoverStore::row,
                 belongingIds.toArray());
     }

@@ -26,6 +26,7 @@ import com.eldercare.backend.belongings.internal.belonging.domain.HandoverType;
 import com.eldercare.backend.belongings.internal.belonging.domain.LockedBelonging;
 import com.eldercare.backend.belongings.internal.belonging.domain.NewBelonging;
 import com.eldercare.backend.belongings.internal.belonging.domain.NewHandover;
+import com.eldercare.backend.belongings.internal.belonging.domain.ReturnFacts;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingHandoverStore;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogs;
@@ -57,6 +58,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -146,11 +148,32 @@ public class BelongingHandoverService {
     @RequiresPermission(function = Function.BELONGINGS, operation = Operation.UPDATE)
     @Transactional
     public Result handover(Target resident, HandoverCommand command) {
-        CurrentUser user = users.getObject();
-        long staffId = user.staffId().orElseThrow(() -> new PermissionDeniedException("Chỉ nhân viên bàn giao đồ gửi"));
+        users.getObject().staffId().orElseThrow(() -> new PermissionDeniedException("Chỉ nhân viên bàn giao đồ gửi"));
         if (command.type() == null || !COMMANDS.contains(command.type())) {
             throw invalid("INVALID_VALUE", "Loại bàn giao không hợp lệ");
         }
+        return execute(resident, command, null);
+    }
+
+    /** Người nhận của lệnh Trả đã được {@code ReturnService} xác minh (FR-016): loại, mã, họ tên và dữ kiện của lần trả. */
+    public record ReturnInfo(GiverType recipientType, Long recipientId, String recipientName, ReturnFacts facts) {}
+
+    /**
+     * Lệnh Trả (FR-016 → FR-019): các đồ chuyển Đã trả, người nhận ghi ở bản ghi; gọi từ {@code ReturnService} trong
+     * transaction của nó sau khi xác minh người nhận. Khóa, kiểm điều kiện từng đồ, ảnh, đồng ý Hết hiệu lực giống các
+     * lệnh bàn giao khác.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Result returnItems(Target resident, HandoverCommand command, ReturnInfo info) {
+        if (command.type() != HandoverType.RETURN) {
+            throw invalid("INVALID_VALUE", "Loại bàn giao không hợp lệ");
+        }
+        return execute(resident, command, info);
+    }
+
+    private Result execute(Target resident, HandoverCommand command, ReturnInfo returnInfo) {
+        CurrentUser user = users.getObject();
+        long staffId = user.staffId().orElseThrow(() -> new PermissionDeniedException("Chỉ nhân viên bàn giao đồ gửi"));
         if (command.items().isEmpty()) {
             throw invalid("INVALID_VALUE", "Lệnh bàn giao cần ít nhất một đồ");
         }
@@ -190,7 +213,8 @@ public class BelongingHandoverService {
                 residentStatus,
                 user.roles().contains(Role.OFFICE_STAFF),
                 time.now(),
-                command.at() == null ? time.now() : command.at());
+                command.at() == null ? time.now() : command.at(),
+                returnInfo);
 
         List<Created> created = new ArrayList<>();
         Set<Long> intakes = new LinkedHashSet<>();
@@ -216,7 +240,8 @@ public class BelongingHandoverService {
             ResidentStatus residentStatus,
             boolean officeStaff,
             Instant now,
-            Instant at) {
+            Instant at,
+            ReturnInfo returnInfo) {
 
         boolean deceased() {
             return residentStatus == ResidentStatus.DECEASED;
@@ -310,6 +335,10 @@ public class BelongingHandoverService {
                 recipientId = ctx.residentId();
             }
             case REPORT_LOST -> {}
+            case RETURN -> {
+                recipientType = ctx.returnInfo().recipientType();
+                recipientId = ctx.returnInfo().recipientId();
+            }
             case TRANSFER_CUSTODY -> {
                 recipientType = GiverType.STAFF;
                 recipientId = command.recipientStaffId() != null
@@ -336,6 +365,13 @@ public class BelongingHandoverService {
         } else if (kind == HandoverType.FOUND) {
             recordedGiverType = null;
             recordedGiverId = null;
+        }
+        String moveNote = null;
+        if (kind == HandoverType.RETURN && b.status() == BelongingStatus.IN_USE) {
+            // FR-018: Trả từ Đang được người cao tuổi sử dụng ghi người bàn giao là nhân viên thực hiện
+            recordedGiverType = GiverType.STAFF;
+            recordedGiverId = ctx.staffId();
+            moveNote = "Thu từ người cao tuổi";
         }
         Instant occurredAt =
                 kind == HandoverType.REPORT_LOST && command.discoveredAt() != null ? command.discoveredAt() : ctx.at();
@@ -367,7 +403,7 @@ public class BelongingHandoverService {
                     command.holderAbsent(),
                     valuable,
                     item.photoFileIds(),
-                    null,
+                    moveNote,
                     created,
                     touched);
             notices(ctx, kind, target, record, type.name());
@@ -486,7 +522,7 @@ public class BelongingHandoverService {
                 null,
                 recipientType,
                 recipientId,
-                null,
+                kind == HandoverType.RETURN ? ctx.returnInfo().recipientName() : null,
                 occurredAt,
                 cash ? null : amount,
                 cash ? amount : null,
@@ -499,15 +535,20 @@ public class BelongingHandoverService {
                 photos,
                 note,
                 ctx.user().accountId(),
-                ctx.now()));
+                ctx.now(),
+                kind == HandoverType.RETURN ? ctx.returnInfo().facts() : null));
         HolderType holderType = recipientType == null
                 ? null
                 : recipientType == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
+        // Đã trả, Thất lạc, Đã xử lý: không còn người giữ (data-model mục 3)
+        boolean noHolder = target == BelongingStatus.LOST
+                || target == BelongingStatus.RETURNED
+                || target == BelongingStatus.DISPOSED;
         belongings.applyHandover(
                 belongingId,
                 target,
-                target == BelongingStatus.LOST ? null : holderType,
-                target == BelongingStatus.LOST ? null : recipientId,
+                noHolder ? null : holderType,
+                noHolder ? null : recipientId,
                 location,
                 levelId,
                 record,

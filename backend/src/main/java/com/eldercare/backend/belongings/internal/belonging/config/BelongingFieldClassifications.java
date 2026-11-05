@@ -22,7 +22,18 @@ class BelongingFieldClassifications {
     FieldClassificationProvider belongingHandoverFieldClassification() {
         return provider(
                 "M12.BELONGING_HANDOVER",
-                Map.of("giverIdDocument", InfoGroup.IDENTITY, "cashAmount", InfoGroup.FINANCE));
+                Map.of(
+                        "giverIdDocument",
+                        InfoGroup.IDENTITY,
+                        "recipientIdDocumentNumber",
+                        InfoGroup.IDENTITY,
+                        "cashAmount",
+                        InfoGroup.FINANCE));
+    }
+
+    @Bean
+    FieldClassificationProvider recipientConfirmationFieldClassification() {
+        return provider("M12.RECIPIENT_CONFIRMATION", Map.of("recipientIdDocument", InfoGroup.IDENTITY));
     }
 
     private static FieldClassificationProvider provider(String entityType, Map<String, InfoGroup> groups) {
