@@ -186,7 +186,8 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
 
     private TestUsers.TestUser user(Role... roles) {
         // Các test import/tạo hồ sơ trước đó có thể đã dùng AUTO_INCREMENT vượt bộ đếm TestUsers.
-        long used = jdbc.queryForObject("SELECT COALESCE(MAX(id),0) FROM staff_profile", Long.class);
+        long used = jdbc.queryForObject(
+                "SELECT COALESCE(MAX(id),0) FROM staff_profile WHERE id < " + AUTO_ID_START, Long.class);
         while (TestUsers.nextId() <= used) {
             /* Dành id chưa có hồ sơ, giữ đúng liên kết tài khoản. */
         }

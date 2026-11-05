@@ -85,7 +85,8 @@ class PostPublicationPortsIT extends MySqlIntegrationTestBase {
     }
 
     private long person(TestUsers users, Role role) {
-        long max = jdbc.queryForObject("SELECT COALESCE(MAX(id),0) FROM staff_profile", Long.class);
+        long max = jdbc.queryForObject(
+                "SELECT COALESCE(MAX(id),0) FROM staff_profile WHERE id < " + AUTO_ID_START, Long.class);
         while (TestUsers.nextId() <= max) {}
         var u = users.staff(role);
         jdbc.update(

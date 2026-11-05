@@ -67,7 +67,8 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
     String managerToken, headToken, leadToken, workerToken;
 
     private TestUsers.TestUser person(Role role) {
-        long used = jdbc.queryForObject("SELECT COALESCE(MAX(id),0) FROM staff_profile", Long.class);
+        long used = jdbc.queryForObject(
+                "SELECT COALESCE(MAX(id),0) FROM staff_profile WHERE id < " + AUTO_ID_START, Long.class);
         while (TestUsers.nextId() <= used) {
             /* Giữ id không trùng các hồ sơ import ở test trước. */
         }

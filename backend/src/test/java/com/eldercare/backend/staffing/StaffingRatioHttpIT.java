@@ -31,7 +31,8 @@ class StaffingRatioHttpIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setup() {
         var users = new TestUsers(jdbc, time);
-        long used = jdbc.queryForObject("SELECT COALESCE(MAX(id),0) FROM staff_profile", Long.class);
+        long used = jdbc.queryForObject(
+                "SELECT COALESCE(MAX(id),0) FROM staff_profile WHERE id < " + AUTO_ID_START, Long.class);
         while (TestUsers.nextId() <= used) {
             /* Tránh hồ sơ được AUTO_INCREMENT tạo từ test trước. */
         }

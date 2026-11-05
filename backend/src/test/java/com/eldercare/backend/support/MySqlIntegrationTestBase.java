@@ -30,6 +30,10 @@ import org.springframework.test.context.DynamicPropertySource;
  *
  * <p>Chạy song song ({@code -Dit.forkCount=N}, N > 1): JVM thứ k dùng schema {@code <schema test>_k}, cần đặt
  * {@code DB_PASSWORD}, {@code DB_RETENTION_PASSWORD}.
+ *
+ * <p>Flyway chạy ở đây, trước khi Spring khởi động (Flyway của Spring thấy đã đủ phiên bản, chỉ kiểm), rồi đặt
+ * {@code AUTO_INCREMENT} của mọi bảng khóa BIGINT lên {@link #AUTO_ID_START}: id do cơ sở dữ liệu cấp không trùng id
+ * tường minh của test ({@code TestUsers.nextId()} từ 5 triệu, fixture), dù lớp test chạy theo thứ tự nào.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -38,6 +42,8 @@ public abstract class MySqlIntegrationTestBase {
     public static final String APP_USER = "eldercare_app";
     public static final String RETENTION_USER = "eldercare_retention";
     private static final String DEFAULT_SCHEMA = "eldercare_test";
+    /** Id đầu tiên cơ sở dữ liệu cấp trong test; id tường minh của test nằm dưới số này. */
+    public static final long AUTO_ID_START = 1_000_000_000L;
 
     private static TestDatabase database;
 
@@ -96,6 +102,8 @@ public abstract class MySqlIntegrationTestBase {
         if (database == null) {
             database = TestDatabase.fromEnvironment();
             database.recreate();
+            database.migrate();
+            database.raiseAutoIncrement();
         }
         return database;
     }
@@ -167,6 +175,36 @@ public abstract class MySqlIntegrationTestBase {
                 prepareUser(s, RETENTION_USER, retentionPassword);
             } catch (SQLException e) {
                 throw new IllegalStateException("Không dựng được schema test " + schema + ": " + e.getMessage(), e);
+            }
+        }
+
+        /** Như Flyway của Spring ở profile test: cùng vị trí (thêm dữ liệu mẫu), placeholder, tài khoản quản trị. */
+        void migrate() {
+            Flyway.configure()
+                    .dataSource(schemaUrl(), adminUser, adminPassword)
+                    .locations("classpath:db/migration", "classpath:db/migration/demo")
+                    .placeholders(Map.of("appPassword", appPassword, "retentionPassword", retentionPassword))
+                    .load()
+                    .migrate();
+        }
+
+        void raiseAutoIncrement() {
+            try (Connection c = DriverManager.getConnection(schemaUrl(), adminUser, adminPassword);
+                    Statement s = c.createStatement()) {
+                List<String> tables = new ArrayList<>();
+                try (ResultSet rs =
+                        s.executeQuery("SELECT TABLE_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '"
+                                + schema + "' AND DATA_TYPE = 'bigint' AND EXTRA LIKE '%auto_increment%'")) {
+                    while (rs.next()) {
+                        tables.add(rs.getString(1));
+                    }
+                }
+                for (String table : tables) {
+                    s.execute("ALTER TABLE `" + table + "` AUTO_INCREMENT = " + AUTO_ID_START);
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException(
+                        "Không đặt được AUTO_INCREMENT trên " + schema + ": " + e.getMessage(), e);
             }
         }
 
