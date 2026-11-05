@@ -358,7 +358,7 @@ function ReassignForm({ id, onSubmit, onCancel }) {
           <option value="">{staff === null && !failure ? 'Đang tải…' : 'Chọn người'}</option>
           {staff?.map((s) => (
             <option key={s.accountId} value={s.accountId}>
-              {s.fullName}, {ASSIGNEE_ROLES[s.role] ?? s.role}
+              {s.fullName ?? `Tài khoản ${s.accountId}`}, {ASSIGNEE_ROLES[s.role] ?? s.role}
             </option>
           ))}
         </select>

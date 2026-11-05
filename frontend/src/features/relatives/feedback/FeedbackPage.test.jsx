@@ -199,6 +199,7 @@ describe('Phản hồi của người thân', () => {
       json(200, [
         { accountId: 41, fullName: 'Phạm Thu Hà', role: 'NURSING_STAFF' },
         { accountId: 42, fullName: 'Lê Thu Trang', role: 'FLOOR_MANAGER' },
+        { accountId: 43, fullName: null, role: 'OFFICE_STAFF' },
       ]),
     )
     api.on('POST', '/feedback/91/reassign', json(200, detail(COMPLAINT)))
@@ -208,6 +209,8 @@ describe('Phản hồi của người thân', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Giao lại' }))
     const select = await screen.findByLabelText('Người được giao')
     expect(await within(select).findByRole('option', { name: 'Phạm Thu Hà, Điều dưỡng' })).toBeInTheDocument()
+    // Tài khoản chưa có hồ sơ nhân viên: hiện mã như khung chung (AppShell)
+    expect(within(select).getByRole('option', { name: 'Tài khoản 43, Hành chính' })).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Nhờ Điều dưỡng hỗ trợ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Giao lại' }))
