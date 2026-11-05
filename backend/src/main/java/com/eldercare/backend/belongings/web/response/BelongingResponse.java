@@ -4,6 +4,7 @@ import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingDetail;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverView;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -15,7 +16,7 @@ public record BelongingResponse(
         long typeId,
         String description,
         BigDecimal quantity,
-        BigDecimal cashAmount,
+        @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
         BelongingStatus status,
         String holder,
         Long storageLocationId,

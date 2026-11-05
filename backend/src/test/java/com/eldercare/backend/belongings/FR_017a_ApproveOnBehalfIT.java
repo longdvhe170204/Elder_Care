@@ -158,7 +158,7 @@ class FR_017a_ApproveOnBehalfIT extends ReturnTestBase {
         postJson(
                         managerToken,
                         "/api/v1/recipient-confirmations/" + id + "/approve-on-behalf",
-                        "{\"reason\": \"Cần giao gấp\", \"basis\": \"B_NO_REPRESENTATIVE\"}")
+                        "{\"reason\": \"Cần giao gấp\", \"basis\": \"NO_REPRESENTATIVE\"}")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("ALREADY_REJECTED"));
         assertThat(confirmationStatus(id)).isEqualTo("REJECTED");
@@ -172,8 +172,7 @@ class FR_017a_ApproveOnBehalfIT extends ReturnTestBase {
         long representative = representative(resident, "012345");
         long id = confirmation(resident, "Trần Thị N", "999", phone);
         String approve = "/api/v1/recipient-confirmations/" + id + "/approve-on-behalf";
-        String body =
-                "{\"reason\": \"Không liên hệ được người đại diện\", \"basis\": \"A_REPRESENTATIVE_UNREACHABLE\"}";
+        String body = "{\"reason\": \"Không liên hệ được người đại diện\", \"basis\": \"REPRESENTATIVE_UNREACHABLE\"}";
 
         postJson(managerToken, approve, body)
                 .andExpect(status().isConflict())
@@ -245,16 +244,16 @@ class FR_017a_ApproveOnBehalfIT extends ReturnTestBase {
         postJson(
                         managerToken,
                         approve,
-                        "{\"reason\": \"Người đại diện duy nhất đã qua đời\", \"basis\": \"A_REPRESENTATIVE_UNREACHABLE\"}")
+                        "{\"reason\": \"Người đại diện duy nhất đã qua đời\", \"basis\": \"REPRESENTATIVE_UNREACHABLE\"}")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("ON_BEHALF_APPROVAL_NOT_ELIGIBLE"));
-        postJson(managerToken, approve, "{\"basis\": \"B_NO_REPRESENTATIVE\"}")
+        postJson(managerToken, approve, "{\"basis\": \"NO_REPRESENTATIVE\"}")
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
         postJson(
                         managerToken,
                         approve,
-                        "{\"reason\": \"Người đại diện duy nhất đã qua đời\", \"basis\": \"B_NO_REPRESENTATIVE\"}")
+                        "{\"reason\": \"Người đại diện duy nhất đã qua đời\", \"basis\": \"NO_REPRESENTATIVE\"}")
                 .andExpect(status().isOk());
 
         assertThat(confirmationStatus(id)).isEqualTo("EFFECTIVE");
@@ -279,7 +278,7 @@ class FR_017a_ApproveOnBehalfIT extends ReturnTestBase {
         postJson(
                         bothToken,
                         "/api/v1/recipient-confirmations/" + id + "/approve-on-behalf",
-                        "{\"reason\": \"Tự duyệt\", \"basis\": \"B_NO_REPRESENTATIVE\"}")
+                        "{\"reason\": \"Tự duyệt\", \"basis\": \"NO_REPRESENTATIVE\"}")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("SELF_APPROVAL_NOT_ALLOWED"));
         assertThat(confirmationStatus(id)).isEqualTo("PENDING_CONFIRMATION");

@@ -8,7 +8,15 @@ import java.util.List;
  * đồ Thất lạc tìm thấy tại vị trí, đồ không rõ chủ.
  */
 public record InventoryCompletion(
-        List<LineResult> lines, List<Long> found, List<InventoryCheck.UnknownOwnerItem> unknownOwnerItems) {
+        List<LineResult> lines, List<FoundItem> found, List<InventoryCheck.UnknownOwnerItem> unknownOwnerItems) {
+
+    /** Đồ Thất lạc tìm thấy tại vị trí kèm ảnh; đồ có giá trị cần ảnh như lệnh Tìm thấy (013-2 c, BR-M12-05). */
+    public record FoundItem(long belongingId, List<Long> photoFileIds) {
+
+        public FoundItem {
+            photoFileIds = photoFileIds == null ? List.of() : List.copyOf(photoFileIds);
+        }
+    }
 
     public InventoryCompletion {
         lines = lines == null ? List.of() : List.copyOf(lines);

@@ -198,14 +198,37 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 013 (B, 2026-11-05; chờ chủ dự án duyệt api-013, A xem như 018 BL-91): kiểm đường dẫn từ T005; so chi
-            // tiết
-            // operation bật ở T029 sau khi duyệt. Xóa dòng PENDING khi cài controller của từng story.
+            // 013 (B, 2026-11-05): đủ endpoint sau Phase 8; chủ dự án duyệt api-013 2026-11-05 (013-1), so chi tiết
+            // operation bật trong PR 013 (T029). Phản hồi lỗi 403, 409, 422 chưa khai trong mã: schema Problem rút gọn
+            // của api-013 khác ProblemBody chung (api-004, api-012); chờ A chọn đổi Problem của api-013 (team-plan
+            // mục 8, plan 013 điểm 20), xong thì khai @ApiResponse lỗi và xóa danh sách này.
             new Contract(
                     Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
                     Set.of(),
-                    Set.of(),
-                    false),
+                    Set.of(
+                            "PUT /api/v1/belongings/types/{id} 409",
+                            "POST /api/v1/belongings/storage-locations 409",
+                            "POST /api/v1/residents/{residentId}/belongings 409",
+                            "POST /api/v1/residents/{residentId}/belongings 422",
+                            "POST /api/v1/belongings/handovers 409",
+                            "POST /api/v1/belongings/handovers 422",
+                            "POST /api/v1/belongings/handovers/{id}/link-incident 409",
+                            "POST /api/v1/self-custody-consents 409",
+                            "POST /api/v1/self-custody-consents/{id}/withdraw 409",
+                            "POST /api/v1/belongings/returns 403",
+                            "POST /api/v1/belongings/returns 409",
+                            "POST /api/v1/recipient-confirmations 409",
+                            "POST /api/v1/recipient-confirmations/{id}/{command} 403",
+                            "POST /api/v1/recipient-confirmations/{id}/{command} 409",
+                            "POST /api/v1/belonging-inventory-checks 409",
+                            "POST /api/v1/belonging-inventory-checks/{id}/{command} 409",
+                            "GET /api/v1/family-portal/residents/{residentId}/belongings 403",
+                            "POST /api/v1/family-portal/recipient-confirmations/{id}/{command} 403",
+                            "POST /api/v1/family-portal/recipient-confirmations/{id}/{command} 409",
+                            "POST /api/v1/family-portal/self-custody-consents 403",
+                            "POST /api/v1/family-portal/self-custody-consents 409",
+                            "POST /api/v1/family-portal/self-custody-consents/{id}/withdraw 403"),
+                    true),
             // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1 xong 2026-11-04)
             new Contract(
                     Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"),

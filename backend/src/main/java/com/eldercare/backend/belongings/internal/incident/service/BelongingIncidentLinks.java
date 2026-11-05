@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Liên kết sự cố ghi sau với bản ghi Báo thất lạc, Ghi hư hỏng ({@code POST /belonging-handovers/{id}/link-incident};
+ * Liên kết sự cố ghi sau với bản ghi Báo thất lạc, Ghi hư hỏng ({@code POST /belongings/handovers/{id}/link-incident};
  * 013 T021; FR-021, FR-024, research K-07): đặt {@code incident_id} đúng một lần, sự cố phải có sẵn, cùng người cao tuổi,
  * chưa Đã hủy. Quyền như lệnh bàn giao (Hành chính; Điều dưỡng trong phạm vi).
  */

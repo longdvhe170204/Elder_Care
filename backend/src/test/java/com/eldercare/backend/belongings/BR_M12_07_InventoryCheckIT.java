@@ -183,7 +183,8 @@ class BR_M12_07_InventoryCheckIT extends HandoverTestBase {
         postJson(
                         tokenA,
                         URL + "/" + id + "/complete",
-                        "{\"lines\": [" + line(phone, "MATCHED", "") + "], \"found\": [" + clothes + "],"
+                        "{\"lines\": [" + line(phone, "MATCHED", "") + "], \"found\": [{\"belongingId\": " + clothes
+                                + "}],"
                                 + " \"unknownOwnerItems\": [{\"description\": \"Đồng hồ\", \"photoFileIds\": ["
                                 + photo() + "]}]}")
                 .andExpect(status().isOk())
@@ -195,5 +196,32 @@ class BR_M12_07_InventoryCheckIT extends HandoverTestBase {
                 .isEqualTo("FOUND");
         assertThat(notices().stream().anyMatch(n -> "INVENTORY_UNKNOWN_OWNER_ITEMS".equals(n.eventType())))
                 .isTrue();
+    }
+
+    /** 013-2 (c), BR-M12-05: đồ có giá trị Tìm thấy khi kiểm kê cần ảnh, ảnh gắn vào bản ghi Tìm thấy. */
+    @Test
+    void BR_M12_05_valuableFoundItem_needsPhoto_andThePhotoIsKeptOnTheFoundRecord() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long location = location();
+        long jewelry = intake(resident, "JEWELRY", "\"quantity\": 1", location);
+        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
+        handover(tokenA, command("REPORT_LOST", item(phone, ""), ", \"reason\": \"Mất\""))
+                .andExpect(status().isOk());
+        long id = create(location);
+        String lines = "{\"lines\": [" + line(jewelry, "MATCHED", "") + "], \"found\": [{\"belongingId\": " + phone;
+
+        postJson(tokenA, URL + "/" + id + "/complete", lines + "}]}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("PHOTO_REQUIRED"));
+        assertThat(statusOf(phone)).isEqualTo("LOST");
+        postJson(tokenA, URL + "/" + id + "/complete", lines + ", \"photoFileIds\": [" + photo() + "]}]}")
+                .andExpect(status().isOk());
+
+        assertThat(statusOf(phone)).isEqualTo("HELD");
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_LENGTH(photo_file_ids) FROM belonging_handover WHERE id = ?",
+                        Integer.class,
+                        latestHandover(phone)))
+                .isOne();
     }
 }

@@ -302,13 +302,13 @@ class BR_M12_02_LostDamageIncidentIT extends HandoverTestBase {
         long incident = TestUsers.nextId();
         existingIncident(incident, resident, "IN_PROGRESS");
 
-        postJson(tokenA, "/api/v1/belonging-handovers/" + record + "/link-incident", body(incident))
+        postJson(tokenA, "/api/v1/belongings/handovers/" + record + "/link-incident", body(incident))
                 .andExpect(status().isOk());
         assertThat(incidentOf(record)).isEqualTo(incident);
 
         long second = TestUsers.nextId();
         existingIncident(second, resident, "NEW");
-        postJson(tokenA, "/api/v1/belonging-handovers/" + record + "/link-incident", body(second))
+        postJson(tokenA, "/api/v1/belongings/handovers/" + record + "/link-incident", body(second))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("INCIDENT_ALREADY_LINKED"));
         assertThat(incidentOf(record)).isEqualTo(incident);
@@ -328,10 +328,10 @@ class BR_M12_02_LostDamageIncidentIT extends HandoverTestBase {
         long fine = TestUsers.nextId();
         existingIncident(fine, resident, "NEW");
 
-        postJson(tokenA, "/api/v1/belonging-handovers/" + record + "/link-incident", body(ofOther))
+        postJson(tokenA, "/api/v1/belongings/handovers/" + record + "/link-incident", body(ofOther))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("INVALID_INCIDENT"));
-        postJson(tokenA, "/api/v1/belonging-handovers/" + intakeRecord + "/link-incident", body(fine))
+        postJson(tokenA, "/api/v1/belongings/handovers/" + intakeRecord + "/link-incident", body(fine))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("HANDOVER_NOT_LINKABLE"));
         assertThat(incidentOf(record)).isNull();

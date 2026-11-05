@@ -167,11 +167,12 @@ public class ReturnTransaction {
                 command.conditionOpinion(),
                 verdict.basis() == ReturnBasis.RECIPIENT_CONFIRMATION ? command.recipientConfirmationId() : null,
                 null);
+        // 013-2 (a), FR-012: trả một phần (tiền mặt) đi qua phần tách của lệnh bàn giao, phần trả là đồ mới Đã trả
         List<HandoverCommand.Item> handoverItems = command.items().stream()
                 .map(i -> new HandoverCommand.Item(
                         i.belongingId(),
                         i.version(),
-                        null,
+                        i.amount(),
                         null,
                         i.conditionLevelId(),
                         i.conditionDescription(),

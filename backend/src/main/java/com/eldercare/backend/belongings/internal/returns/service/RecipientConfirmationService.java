@@ -80,10 +80,10 @@ public class RecipientConfirmationService {
     private static final Set<String> OPEN =
             Set.of(RecipientConfirmation.PENDING_CONFIRMATION, RecipientConfirmation.EFFECTIVE);
 
-    /** Căn cứ duyệt thay (api-013 {@code basis}). */
+    /** Căn cứ duyệt thay (api-013 {@code basis}): FR-017a (a) không liên hệ được, (b) không có người đại diện. */
     public enum Basis {
-        A_REPRESENTATIVE_UNREACHABLE,
-        B_NO_REPRESENTATIVE
+        REPRESENTATIVE_UNREACHABLE,
+        NO_REPRESENTATIVE
     }
 
     /** Lệnh lập yêu cầu; {@code signedRepresentativeId}, {@code signedFormFileId} cùng có hoặc cùng trống. */
@@ -422,7 +422,7 @@ public class RecipientConfirmationService {
         }
         Instant now = time.now();
         Ground ground = ground(confirmation, now);
-        boolean eligible = basis == Basis.A_REPRESENTATIVE_UNREACHABLE ? ground == Ground.A : ground == Ground.B;
+        boolean eligible = basis == Basis.REPRESENTATIVE_UNREACHABLE ? ground == Ground.A : ground == Ground.B;
         if (!eligible) {
             throw blocked(
                     "ON_BEHALF_APPROVAL_NOT_ELIGIBLE",

@@ -216,13 +216,52 @@ public class BelongingCatalogService {
     }
 
     /**
-     * Thêm mức tình trạng (FR-001a). Mức "không dùng được" mang mã {@code UNUSABLE} nên mức cuối thứ hai bị 409. Hợp đồng
-     * không có mã mức để ngừng nên trạng thái khác Hiệu lực bị 422 (plan "Kế hoạch triển khai R-15" điểm 7).
+     * Thêm mức tình trạng ({@code id} trống) hoặc sửa tên, thứ tự, ngừng, dùng lại mức {@code id} (FR-001a; 013-2 d, plan
+     * điểm 20). Mức "không dùng được" mang mã {@code UNUSABLE} nên mức cuối thứ hai bị 409; dấu "không dùng được" của mức
+     * đã có không đổi được (422). Mức đã ngừng giữ lại cho bản ghi cũ, không xóa.
      */
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.UPDATE)
     @Transactional
-    public long createConditionLevel(String name, int order, Boolean unusable, String status) {
+    public long saveConditionLevel(Long id, String name, int order, Boolean unusable, String status) {
         requireRole(Role.NURSING_HOME_MANAGER);
+        if (id == null) {
+            return createConditionLevel(name, order, unusable, status);
+        }
+        var before = catalogs.require(BelongingCatalogs.CONDITION_LEVEL, id);
+        if (unusable != null && unusable != before.attributes().unusable()) {
+            throw invalid("Không đổi dấu \"không dùng được\" của mức đã có (FR-001a)");
+        }
+        var changed = catalogs.update(
+                        BelongingCatalogs.CONDITION_LEVEL,
+                        id,
+                        before.version(),
+                        requireName(name),
+                        order,
+                        before.attributes())
+                .after();
+        changed = applyStatus(BelongingCatalogs.CONDITION_LEVEL, changed, status);
+        audit.write(AuditLogEntry.builder()
+                .action(CONDITION_LEVEL_UPDATED)
+                .entity(BelongingCatalogs.CONDITION_LEVEL.code(), id)
+                .before(Map.of(
+                        "name",
+                        before.name(),
+                        "order",
+                        before.sortOrder(),
+                        "status",
+                        before.status().name()))
+                .after(Map.of(
+                        "name",
+                        changed.name(),
+                        "order",
+                        changed.sortOrder(),
+                        "status",
+                        changed.status().name()))
+                .build());
+        return id;
+    }
+
+    private long createConditionLevel(String name, int order, Boolean unusable, String status) {
         if (status != null && !CatalogStatus.ACTIVE.name().equals(status)) {
             throw invalid("Chỉ thêm được mức Hiệu lực");
         }

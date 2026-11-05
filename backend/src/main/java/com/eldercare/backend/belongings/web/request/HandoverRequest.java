@@ -4,6 +4,7 @@ import com.eldercare.backend.belongings.internal.belonging.domain.ConditionHandl
 import com.eldercare.backend.belongings.internal.belonging.domain.GiverType;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverCommand;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -13,8 +14,19 @@ import java.util.List;
  * tiền mặt (FR-012).
  */
 public record HandoverRequest(
+        @Schema(
+                requiredMode = Schema.RequiredMode.REQUIRED,
+                allowableValues = {
+                    "GIVE_FOR_USE",
+                    "TAKE_BACK",
+                    "TRANSFER_CUSTODY",
+                    "REPORT_LOST",
+                    "RECORD_DAMAGE",
+                    "FOUND"
+                })
         HandoverType type,
-        List<ItemRequest> items,
+
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<ItemRequest> items,
         BelongingIntakeRequest.GiverRequest giver,
         Long recipientStaffId,
         Long storageLocationId,
