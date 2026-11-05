@@ -46,6 +46,17 @@ class BR_M10_05_FeedbackIT extends FeedbackTestBase {
                 .containsExactly(new RecipientGroup.Staff(floorManager.staffId(), "ASSIGNEE"));
     }
 
+    /** FR-075: người cao tuổi sang trạng thái cuối, phản hồi đang mở vẫn được xử lý tiếp. */
+    @Test
+    void FR_075_openFeedback_isStillHandled_afterFinalStatus() throws Exception {
+        long id = submitted(family(rMember), null, "QUESTION", "COSTS_CONTRACT");
+        jdbc.update("UPDATE resident SET status = 'DECEASED' WHERE id = ?", a);
+
+        feedbackCommand(office, id, "start-handling", "{}").andExpect(status().isOk());
+        feedbackCommand(office, id, "reply", reply()).andExpect(status().isOk());
+        assertThat(row(id).get("status")).isEqualTo("REPLIED");
+    }
+
     /** FR-062: Góp ý, Hỏi đáp mặc định Thường (72 giờ); FR-059: chi phí, hợp đồng giao Hành chính. */
     @Test
     void FR_059_062_normalPriorityAndOfficeGroup() throws Exception {

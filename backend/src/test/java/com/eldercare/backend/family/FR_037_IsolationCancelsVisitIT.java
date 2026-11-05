@@ -91,6 +91,17 @@ class FR_037_IsolationCancelsVisitIT extends VisitTestBase {
     }
 
     @Test
+    void FR_075_finalStatus_cancelsFutureVisits() throws Exception {
+        long visit =
+                id(register(family(mMember), null, MORNING_START, MORNING_END).andExpect(status().isCreated()));
+        jdbc.update("UPDATE resident SET status = 'DECEASED' WHERE id = ?", a);
+        tx.executeWithoutResult(s -> publisher.publishEvent(new ResidentStatusChanged(
+                a, ResidentStatus.IN_RESIDENCE, ResidentStatus.DECEASED, StatusCommand.RECORD_DEATH, 1, time.now())));
+
+        assertThat(visitStatus(visit)).isEqualTo("CANCELLED");
+    }
+
+    @Test
     void FR_006_endingRelationship_cancelsUpcomingVisitsOfThatPerson() throws Exception {
         long visit =
                 id(register(family(nMember), null, MORNING_START, MORNING_END).andExpect(status().isCreated()));

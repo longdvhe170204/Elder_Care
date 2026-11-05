@@ -1,5 +1,6 @@
 package com.eldercare.backend.family.internal.relationship.service;
 
+import com.eldercare.backend.family.internal.pickup.service.PickupService;
 import com.eldercare.backend.family.internal.relationship.domain.Dbr02Check;
 import com.eldercare.backend.family.internal.relationship.persistence.FamilyRelationshipStore;
 import com.eldercare.backend.family.internal.right.service.RightChangeRequestService;
@@ -16,8 +17,8 @@ import org.springframework.stereotype.Component;
 /**
  * Bean {@code ThamGiaChuyenTrangThai} của 012 (T012; contracts mục 1.1, FR-003): điều kiện {@code DBR_02} không miễn được
  * cho Hoàn tất tiếp nhận. Thứ tự sau 010, trước 013. Trạng thái cuối hủy yêu cầu thay đổi quyền Chờ xác nhận, quan hệ giữ
- * Hiệu lực (FR-075). Tác động của Cho tạm vắng, Điều trị tại bệnh viện (hủy lượt thăm, nhắc kết thúc lượt ở lại) và hủy
- * ngoại lệ đón, lượt thăm tương lai ở trạng thái cuối thêm cùng US4, US8, US2 khi có các bản ghi đó.
+ * Hiệu lực (FR-075); yêu cầu ngoại lệ đón Chờ xác nhận cũng Hủy. Hủy lượt thăm, nhắc kết thúc lượt ở lại theo sự kiện
+ * {@code ResidentStatusChanged} ({@code VisitAutomation}, {@code StayEndReminders}).
  */
 @Component
 @Order(70)
@@ -25,10 +26,12 @@ class M10StatusParticipant implements StatusTransitionParticipant {
 
     private final FamilyRelationshipStore store;
     private final RightChangeRequestService requests;
+    private final PickupService pickups;
 
-    M10StatusParticipant(FamilyRelationshipStore store, RightChangeRequestService requests) {
+    M10StatusParticipant(FamilyRelationshipStore store, RightChangeRequestService requests, PickupService pickups) {
         this.store = store;
         this.requests = requests;
+        this.pickups = pickups;
     }
 
     @Override
@@ -55,6 +58,7 @@ class M10StatusParticipant implements StatusTransitionParticipant {
     public void applyEffects(TransitionResult result) {
         if (RightChangeRequestService.isFinal(result.to())) {
             requests.cancelOnFinalStatus(result.residentId());
+            pickups.cancelOnFinalStatus(result.residentId());
         }
     }
 }
