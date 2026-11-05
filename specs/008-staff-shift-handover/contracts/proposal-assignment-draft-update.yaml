@@ -1,0 +1,204 @@
+openapi: 3.1.0
+info:
+  title: Elder Care – Đề xuất sửa phân công Nháp của 008
+  version: 1.0.0-approved
+  description: |
+    Bản riêng đã được chủ dự án duyệt ngày 2026-10-29 và nhập vào api-008.yaml.
+    Bổ sung ba thao tác; giữ nguyên mọi thao tác và schema Assignment đang dùng.
+    Căn cứ FR-025 (Q-82), FR-028/028a, FR-030/031, FR-055; constitution XI.
+    Bố cục T022b, hai file nền và HTTP bổ sung này đã được A/chủ dự án duyệt.
+x-status: approved
+x-owner: E
+x-review-notes: ../assignment-contract-review.md
+servers:
+  - url: /api/v1
+security:
+  - session: []
+tags:
+  - name: assignments
+    description: Phân công trong ca của 008
+paths:
+  /assignments/{id}:
+    get:
+      operationId: getAssignmentDetail
+      tags: [assignments]
+      summary: Đọc một phân công và phiên bản hiện hành
+      description: |
+        Cùng quyền/phạm vi đọc phân công hiện có (SHIFT_SCHEDULE/VIEW,
+        FR-033/054, BR-M15-01); không cấp quyền vì chỉ biết id.
+        Trả chi tiết ở các trạng thái để người đang sửa thấy dữ liệu mới khi 412.
+        Không thay phản hồi GET /shifts/{id}/assignments.
+      x-fr: [FR-025, FR-033, FR-054]
+      parameters:
+        - $ref: './api-008.yaml#/components/parameters/Id'
+      responses:
+        '200':
+          description: Phân công hiện hành; ETag là version trong dấu ngoặc kép
+          headers:
+            ETag:
+              $ref: './api-008.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentDetail'
+        '401':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '403':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '404':
+          $ref: './api-008.yaml#/components/responses/Problem'
+  /assignments/{id}/draft-update-preview:
+    post:
+      operationId: previewDraftAssignmentUpdate
+      tags: [assignments]
+      summary: Kiểm tra và cảnh báo trước khi sửa một phân công Nháp
+      description: |
+        Chỉ đọc, không UPDATE/DELETE/INSERT, không nhật ký hoặc sự kiện.
+        Cần SHIFT_SCHEDULE/UPDATE trong phạm vi ca; phân công và ca vẫn DRAFT.
+        So If-Match với phiên bản đang đọc; kiểm FR-025/028/028a/030/031
+        trên dữ liệu đề nghị, loại chính id đang sửa khỏi phép kiểm trùng.
+        Không gọi preview tạo mới vốn cần CREATE và không loại bản cũ.
+        Trả mọi cảnh báo; kết quả không bảo đảm lệnh lưu sau sẽ thành công.
+      x-fr: [FR-025, FR-028, FR-028a, FR-030, FR-031]
+      x-br: [BR-M09-01]
+      parameters:
+        - $ref: './api-008.yaml#/components/parameters/Id'
+        - $ref: './api-008.yaml#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './api-008.yaml#/components/schemas/NewAssignment'
+      responses:
+        '200':
+          description: Cảnh báo trước lưu; không có id mới
+          headers:
+            ETag:
+              $ref: './api-008.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftAssignmentPreview'
+        '400':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '401':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '403':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '404':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '409':
+          $ref: './api-008.yaml#/components/responses/BlockingProblem'
+        '412':
+          $ref: '#/components/responses/VersionMismatch'
+        '422':
+          $ref: './api-008.yaml#/components/responses/Problem'
+  /assignments/{id}/update-draft:
+    post:
+      operationId: updateDraftAssignment
+      tags: [assignments]
+      summary: Cập nhật nguyên tử nội dung của một phân công Nháp
+      description: |
+        Cần SHIFT_SCHEDULE/UPDATE trong phạm vi ca. Phân công và ca phải DRAFT;
+        khóa/đọc lại lịch, ca, phân công và dữ liệu kiểm trước khi ghi.
+        So If-Match; kiểm lại toàn bộ FR-025/028/028a/030/031, loại id đang sửa
+        khỏi phép kiểm trùng. Cập nhật đúng bản ghi, giữ id/shiftId/source/
+        createdAt/createdBy/status, tăng version; lỗi hoàn tác toàn bộ.
+        Không DELETE rồi POST tạo thay. Thiếu startsAt/endsAt dùng giờ ca;
+        thiếu taskTypeId bỏ giới hạn loại công việc, assignedNurse mặc định false,
+        cùng cách hiểu NewAssignment hiện có; đây là thay toàn bộ nội dung.
+        Body chỉ khai báo NewAssignment, không cho đổi status/source/shiftId/
+        version hoặc dùng confirmWarnings để bỏ qua kiểm nghiệp vụ.
+        Nháp không tạo phạm vi/công việc/liều, không ghi nhật ký từng lần
+        theo ngoại lệ FR-055; công bố sau vẫn kiểm và lưu bản gốc như hiện có.
+        Chủ dự án đã xác nhận ngày 2026-10-29: FR-025 cho đổi staffId khi
+        phân công và ca còn Nháp; sau công bố dùng quy trình FR-027.
+      x-fr: [FR-025, FR-028, FR-028a, FR-030, FR-031, FR-055]
+      x-br: [BR-M09-01, BR-M09-15]
+      x-owner-decision:
+        staffIdInDraft: approved-editable-while-assignment-and-shift-draft
+      parameters:
+        - $ref: './api-008.yaml#/components/parameters/Id'
+        - $ref: './api-008.yaml#/components/parameters/IfMatch'
+        - $ref: './api-008.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './api-008.yaml#/components/schemas/NewAssignment'
+      responses:
+        '200':
+          description: Nội dung sau sửa cùng cảnh báo; ETag là version mới
+          headers:
+            ETag:
+              $ref: './api-008.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftAssignmentUpdateResult'
+        '400':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '401':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '403':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '404':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '409':
+          $ref: './api-008.yaml#/components/responses/BlockingProblem'
+        '412':
+          $ref: '#/components/responses/VersionMismatch'
+        '422':
+          $ref: './api-008.yaml#/components/responses/Problem'
+components:
+  securitySchemes:
+    session:
+      type: http
+      scheme: bearer
+  responses:
+    VersionMismatch:
+      description: |
+        412 khi If-Match khác phiên bản hiện hành. currentValue là AssignmentDetail
+        hiện tại đã được kiểm quyền, gồm trạng thái mới nếu lịch đã công bố.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './api-008.yaml#/components/schemas/Problem'
+  schemas:
+    AssignmentDetail:
+      allOf:
+        - $ref: './api-008.yaml#/components/schemas/Assignment'
+        - type: object
+          required: [id, shiftId, status, version]
+          properties:
+            id: { type: integer, format: int64 }
+            status: { type: string, enum: [DRAFT, SCHEDULED, ACTIVE, ENDED, CANCELLED] }
+            shiftId:
+              type: integer
+              format: int64
+              readOnly: true
+            version:
+              type: integer
+              format: int64
+              minimum: 0
+              readOnly: true
+    DraftAssignmentPreview:
+      type: object
+      required: [warnings]
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: './api-008.yaml#/components/schemas/Warning'
+    DraftAssignmentUpdateResult:
+      type: object
+      required: [assignment, warnings]
+      properties:
+        assignment:
+          $ref: '#/components/schemas/AssignmentDetail'
+        warnings:
+          type: array
+          items:
+            $ref: './api-008.yaml#/components/schemas/Warning'

@@ -9,9 +9,9 @@ import com.eldercare.backend.care.api.dto.TaskHandoverView;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.time.*;
-import com.eldercare.backend.staffing.handover.internal.domain.*;
-import com.eldercare.backend.staffing.handover.internal.service.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.handover.domain.*;
+import com.eldercare.backend.staffing.internal.handover.service.*;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.incident.FakeAlertHandover;
@@ -43,6 +43,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @AutoConfigureMockMvc
 @org.springframework.test.context.event.RecordApplicationEvents
 class HandoverIT extends MySqlIntegrationTestBase {
+    @Autowired
+    com.eldercare.backend.staffing.internal.handover.persistence.HandoverStore embeddedStore;
+
     private static final java.util.concurrent.atomic.AtomicInteger sequence =
             new java.util.concurrent.atomic.AtomicInteger();
 
@@ -146,7 +149,9 @@ class HandoverIT extends MySqlIntegrationTestBase {
         giver = person(Role.NURSING_STAFF);
         receiver = person(Role.NURSING_STAFF);
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu bàn giao]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu bàn giao] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
         long schedule = insert(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2035-04','FLOOR',?,'PUBLISHED')",
                 floor);
@@ -203,7 +208,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
                 id,
                 lead.staffId().orElseThrow());
         jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,command,by_system) SELECT 'M09.SHIFT',src.shift_id,'LEAD_STAFF','M09','PERIOD',src.staff_id,src.starts_at,src.basis,FALSE FROM (SELECT ? AS shift_id,? AS staff_id,? AS starts_at,'SCHEDULED' AS basis) src",
                 id,
                 lead.staffId().orElseThrow(),
                 ShiftStore.sql(from));
@@ -212,6 +217,116 @@ class HandoverIT extends MySqlIntegrationTestBase {
 
     private long draft() {
         return service.createHandover(shift).id();
+    }
+
+    @Autowired
+    org.springframework.context.ApplicationContext context;
+
+    private com.eldercare.backend.care.api.spi.ShiftStaffPort careStaff() {
+        return context.getBean("careStaffLookup", com.eldercare.backend.care.api.spi.ShiftStaffPort.class);
+    }
+
+    @Test
+    void FR_029_handoverChecklistFollowsPreparationFeedbackResubmissionAndConfirmation() {
+        var port = careStaff();
+        long sender = giver.staffId().orElseThrow(),
+                recipient = receiver.staffId().orElseThrow();
+        clock.setTo(ends.minusSeconds(1801));
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
+        clock.setTo(ends.minusSeconds(1800));
+        current.set(receiver);
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
+        assertThat(embeddedStore.forShift(shift)).isEmpty();
+        current.set(giver);
+        long id = draft();
+        assessment(id);
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
+        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
+        service.complete(id);
+        clock.setTo(ends);
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
+        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isTrue();
+        current.set(receiver);
+        long comment = service.comment(id, "Bổ sung để tiếp nhận");
+        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
+        current.set(giver);
+        service.resubmit(id, Map.of(comment, "Đã bổ sung"), List.of());
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
+        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isTrue();
+        current.set(receiver);
+        service.confirm(id);
+        assertThat(port.handoverConfirmed(shift)).isTrue();
+        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
+    }
+
+    @Test
+    void FR_029_handoverChecklistRequiresResponsibilityAndScheduledReceivingMembership() {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        clock.setTo(ends);
+        var member = person(Role.NURSING_STAFF);
+        jdbc.update(
+                "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)",
+                next,
+                member.staffId().orElseThrow());
+        assertThat(careStaff()
+                        .handoverTasks(member.staffId().orElseThrow(), next)
+                        .receiveAtStart())
+                .isFalse();
+        var manager = receivingFloorManager();
+        assertThat(careStaff()
+                        .handoverTasks(manager.staffId().orElseThrow(), next)
+                        .receiveAtStart())
+                .isFalse();
+        jdbc.update(
+                "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)",
+                next,
+                manager.staffId().orElseThrow());
+        assertThat(careStaff()
+                        .handoverTasks(manager.staffId().orElseThrow(), next)
+                        .receiveAtStart())
+                .isTrue();
+        jdbc.update(
+                "UPDATE shift_staff SET absent_at=? WHERE shift_id=? AND staff_id=?",
+                ShiftStore.sql(ends),
+                next,
+                manager.staffId().orElseThrow());
+        assertThat(careStaff()
+                        .handoverTasks(manager.staffId().orElseThrow(), next)
+                        .receiveAtStart())
+                .isFalse();
+        current.set(receiver);
+        service.comment(id, "Chờ bổ sung cuối ca");
+        assertThat(careStaff()
+                        .handoverTasks(giver.staffId().orElseThrow(), shift)
+                        .prepareAtEnd())
+                .isTrue();
+        clock.setTo(ends.plusSeconds(3 * 3600));
+        assertThat(careStaff()
+                        .handoverTasks(giver.staffId().orElseThrow(), shift)
+                        .prepareAtEnd())
+                .isFalse();
+    }
+
+    @Test
+    void FR_029_handoverChecklistDoesNotOfferDraftCancelledUnknownOrNonHandoverShifts() {
+        var port = careStaff();
+        long sender = giver.staffId().orElseThrow();
+        for (String status : List.of("DRAFT")) {
+            jdbc.update("UPDATE work_shift SET status=? WHERE id=?", status, shift);
+            assertThat(port.handoverTasks(sender, shift))
+                    .isEqualTo(new com.eldercare.backend.care.api.spi.ShiftStaffPort.HandoverTasksView(false, false));
+        }
+        jdbc.update("UPDATE work_shift SET status='IN_PROGRESS',requires_handover=FALSE WHERE id=?", shift);
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
+        jdbc.update("UPDATE work_shift SET status='CANCELLED' WHERE id=?", shift);
+        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
+        assertThat(port.handoverTasks(TestUsers.nextId(), next).receiveAtStart())
+                .isFalse();
+        assertThat(port.handoverTasks(sender, TestUsers.nextId()).prepareAtEnd())
+                .isFalse();
     }
 
     private String etag(long id) {
@@ -298,7 +413,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
         tasks.onConfirm(() -> {
             assertThat(TransactionSynchronizationManager.isActualTransactionActive())
                     .isTrue();
-            jdbc.update("UPDATE handover_assessment SET content=content WHERE handover_id=-1");
+            jdbc.update("UPDATE shift_handover SET assessments=assessments WHERE id=-1");
             jdbc.update("UPDATE work_shift SET below_threshold=TRUE WHERE id=?", shift);
         });
         alerts.failOnConfirm(true);
@@ -494,7 +609,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
         clock.setTo(ends);
         service.complete(id);
         assertThat(jdbc.queryForObject(
-                                "SELECT ends_at FROM shift_lead_history WHERE shift_id=?",
+                                "SELECT ends_at FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(h.details->'$.legacy.id'),'null') AS UNSIGNED),h.id) AS id,h.entity_id AS shift_id,h.value_id AS staff_id,h.starts_at AS starts_at,h.ends_at AS ends_at,h.actor_id AS actor_id,h.reason AS reason,h.command AS basis FROM status_history h WHERE h.entity_type='M09.SHIFT' AND h.attribute='LEAD_STAFF' AND h.kind='PERIOD') shift_lead_history WHERE shift_id=?",
                                 java.sql.Timestamp.class,
                                 shift)
                         .toInstant())
@@ -560,22 +675,109 @@ class HandoverIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_038_floorManagerCanConfirmWhenThereIsNoNextShift() {
+    void FR_038_floorManagerCannotConfirmWhenThereIsNoNextShift() {
         jdbc.update("UPDATE work_shift SET status='CANCELLED' WHERE id=?", next);
         var manager = person(Role.FLOOR_MANAGER);
         current.set(manager);
         clock.setTo(ends.plusSeconds(3 * 3600));
         jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at) VALUES (?,?,?)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,1,'[Khởi tạo fixture]','ACTIVE' FROM (SELECT ? AS staff_id,? AS floor_area_id,? AS starts_at) src",
                 manager.staffId().orElseThrow(),
                 floor,
                 ShiftStore.sql(starts.minusSeconds(3600)));
         long id = draft();
         assessment(id);
         service.complete(id);
-        service.confirm(id);
+        assertThat(service.allowedCommands(id)).doesNotContain("confirm", "comment");
+        assertThatThrownBy(() -> service.confirm(id)).isInstanceOf(PermissionDeniedException.class);
+        assertThatThrownBy(() -> service.comment(id, "Ý kiến ngoài lịch ca"))
+                .isInstanceOf(PermissionDeniedException.class);
         assertThat(service.record(id).nextShiftId()).isNull();
+        assertThat(service.record(id).status()).isEqualTo("PREPARED");
+    }
+
+    private CurrentUser receivingFloorManager() {
+        var manager = person(Role.FLOOR_MANAGER);
+        jdbc.update(
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) VALUES ('FLOOR_MANAGER',?,?,?,1,'[Khởi tạo fixture]','ACTIVE')",
+                manager.staffId().orElseThrow(),
+                floor,
+                ShiftStore.sql(starts.minusSeconds(3600)));
+        return manager;
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"NOT_LISTED", "ABSENT", "WITHDRAWN", "LEAVE"})
+    void FR_038_floorManagerMustBePresentInTheScheduledNextShift(String condition) {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        var manager = receivingFloorManager();
+        long staffId = manager.staffId().orElseThrow();
+        if (!"NOT_LISTED".equals(condition)) {
+            jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", next, staffId);
+            switch (condition) {
+                case "ABSENT" ->
+                    jdbc.update(
+                            "UPDATE shift_staff SET absent_at=? WHERE shift_id=? AND staff_id=?",
+                            ShiftStore.sql(ends),
+                            next,
+                            staffId);
+                case "WITHDRAWN" ->
+                    jdbc.update(
+                            "UPDATE shift_staff SET withdrawn_on_resignation_at=? WHERE shift_id=? AND staff_id=?",
+                            ShiftStore.sql(ends),
+                            next,
+                            staffId);
+                case "LEAVE" ->
+                    jdbc.update(
+                            "UPDATE shift_staff SET approved_leave_request_id=? WHERE shift_id=? AND staff_id=?",
+                            TestUsers.nextId(),
+                            next,
+                            staffId);
+                default -> throw new IllegalArgumentException(condition);
+            }
+        }
+        current.set(manager);
+        clock.setTo(ends);
+        assertThat(service.allowedCommands(id)).doesNotContain("confirm", "comment");
+        assertThatThrownBy(() -> service.confirm(id)).isInstanceOf(PermissionDeniedException.class);
+        assertThatThrownBy(() -> service.comment(id, "Ý kiến khi không đủ điều kiện ca sau"))
+                .isInstanceOf(PermissionDeniedException.class);
+        assertThat(service.record(id).status()).isEqualTo("PREPARED");
+    }
+
+    @Test
+    void FR_038_floorManagerListedInTheScheduledNextShiftCanConfirm() {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        var manager = receivingFloorManager();
+        jdbc.update(
+                "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)",
+                next,
+                manager.staffId().orElseThrow());
+        current.set(manager);
+        clock.setTo(ends);
+        assertThat(service.allowedCommands(id)).contains("confirm", "comment");
+        service.confirm(id);
         assertThat(service.record(id).status()).isEqualTo("CONFIRMED");
+    }
+
+    @Test
+    void FR_038_nextShiftMembershipAloneDoesNotGrantConfirmation() {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        var member = person(Role.NURSING_STAFF);
+        jdbc.update(
+                "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)",
+                next,
+                member.staffId().orElseThrow());
+        current.set(member);
+        clock.setTo(ends);
+        assertThatThrownBy(() -> service.allowedCommands(id)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.confirm(id)).isInstanceOf(PermissionDeniedException.class);
     }
 
     @Test
@@ -655,7 +857,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
         var manager = person(Role.FLOOR_MANAGER);
         var lead = person(Role.NURSING_STAFF);
         jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at) VALUES (?,?,?)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,status) VALUES ('FLOOR_MANAGER',?,?,?,1,'ACTIVE')",
                 manager.staffId().orElseThrow(),
                 floor,
                 ShiftStore.sql(starts));
@@ -710,11 +912,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
                 Map.of("generalAssessment", "Nhận định đã đính chính"),
                 new com.eldercare.backend.common.Reason("Sửa nhận định sau kiểm tra"));
         assertThat(service.general(id)).isEqualTo("Nhận định đã đính chính");
-        assertThat(jdbc.queryForObject(
-                        "SELECT content FROM handover_assessment WHERE handover_id=? AND assessment_kind='GENERAL'",
-                        String.class,
-                        id))
-                .isEqualTo("Nhận định chung");
+        assertThat(embeddedStore.general(id)).isEqualTo("Nhận định chung");
         assertThat(calls.get()).isOne();
         assertThat(service.record(id).status()).isEqualTo("CONFIRMED");
     }
@@ -811,6 +1009,26 @@ class HandoverIT extends MySqlIntegrationTestBase {
         service.confirm(id);
         current.set(person(Role.OFFICE_STAFF));
         assertThatThrownBy(() -> corrections.chain("M09.HANDOVER", id)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void FR_039_bedWaitingFromPreviousShiftKeepsItsOriginalStart() {
+        long room = TestUsers.nextId(), bed = TestUsers.nextId();
+        locations.room(room, floor);
+        Instant awaitingSince = starts.minusSeconds(3600);
+        bedSources.beds(
+                floor,
+                List.of(new com.eldercare.backend.roombedallocation.api.dto.AwaitingReadyBedView(
+                        bed, room, "Giường chờ từ ca trước", awaitingSince)));
+
+        assertThat(service.sources(draft(), false))
+                .filteredOn(source -> "M03.BED".equals(source.sourceType())
+                        && Long.toString(bed).equals(source.sourceId()))
+                .singleElement()
+                .satisfies(source -> {
+                    assertThat(source.dataUnavailable()).isFalse();
+                    assertThat(source.at()).isEqualTo(awaitingSince);
+                });
     }
 
     @Test

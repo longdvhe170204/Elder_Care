@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
@@ -77,7 +77,9 @@ class AssignmentHttpIT extends MySqlIntegrationTestBase {
         from = time.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).plusSeconds(3600);
         to = from.plusSeconds(8 * 3600);
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu HTTP phân công]','07:00','15:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu HTTP phân công] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,FALSE AS requires_handover) src");
         schedule = insert(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES (?,'FLOOR',?)",
                 YearMonth.from(from.atZone(BusinessTime.ZONE)).toString(),

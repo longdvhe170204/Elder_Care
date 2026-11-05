@@ -1,6 +1,6 @@
 package com.eldercare.backend.staffing.scheduling;
 
-import com.eldercare.backend.staffing.shift.internal.service.port.ShiftCommandPortFixture;
+import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPortFixture;
 
 /** Hai trường hợp thử của Q-306: tạo bản ghi bị cấm, chuyển trạng thái được phép. */
 public final class M09SchedulingFixtures {

@@ -26,9 +26,13 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 **`credential`** (`chung_chi`) – giữ mọi cột, trigger `trg_credential_protected_fields`. Thêm `practice_scope_ids JSON NOT NULL` (thay `credential_practice_scope`, ghi khi tạo; trigger chặn đổi).
 
-**`staff_assignment`** (`phan_cong`, mở rộng) – nhóm 2. Gộp `floor_manager_assignment`: thêm `kind ENUM('CARE','FLOOR_MANAGER') NOT NULL DEFAULT 'CARE'`, `floor_area_id NULL`, `assigned_by NULL`, `reason NULL`; `shift_id`, `target_type`, `target_id`, `task_type_id`, `role`, `assignment_kind` `NULL` với `FLOOR_MANAGER`. `CHECK` theo `kind`: `FLOOR_MANAGER` có `floor_area_id`, `assigned_by`, `reason`; `CARE` có `shift_id`, `target_*`. Trigger `trg_staff_assignment_update` gộp luật của `trg_floor_manager_update` theo `kind`. Giữ id của `staff_assignment`; giao trưởng tầng cấp id mới.
+**`staff_assignment`** (`phan_cong`, mở rộng) – nhóm 2. Gộp `floor_manager_assignment`: thêm `kind ENUM('CARE','FLOOR_MANAGER') NOT NULL DEFAULT 'CARE'`, `floor_area_id NULL`, `assigned_by NULL`, `reason NULL`; `shift_id`, `target_type`, `target_id`, `task_type_id`, `role`, `assignment_kind` `NULL` với `FLOOR_MANAGER`. `CHECK` theo `kind`: `FLOOR_MANAGER` có `floor_area_id`, `assigned_by`; `reason` tùy chọn theo hợp đồng api-008 (schema FloorManagerAssignment, POST tạo không bắt buộc lý do); dòng legacy giữ actor NULL nếu nguồn cũ NULL; `CARE` có `shift_id`, `target_*`. Trigger `trg_staff_assignment_update` gộp luật của `trg_floor_manager_update` theo `kind`. Giữ id của `staff_assignment`; giao trưởng tầng cấp id mới.
 
-**`shift_handover`** (`ban_giao`, mở rộng) – nhóm 2 → 3 khi xác nhận (BR-M15-03). Thêm `items JSON NOT NULL` (thay `handover_item`: mảng `{id, itemGroup, sourceType, sourceId, residentId, roomId, description, note, noteAuthor, resolved, section, statusAtFinalization, createdAt}`, `id` cục bộ trong bàn giao) và `assessments JSON NOT NULL` (thay `handover_assessment`: `{assessmentKind, residentId, residentKey, content}`). Trigger `trg_handover_update` mở rộng: hai cột JSON chỉ đổi khi bàn giao còn nháp (thay các trigger thêm, sửa của hai bảng con); không trùng (`assessmentKind`, `residentKey`) kiểm ở domain (thay `uq_handover_assessment`). Đính chính mục bàn giao trỏ `M09.HANDOVER` + id cục bộ của mục.
+**`shift_handover`** (`ban_giao`, mở rộng) – MULTIPLE, nhóm 2 → 3 khi xác nhận (BR-M15-03), có `locked_at` và trigger theo dòng. Thêm `items JSON NOT NULL` (thay `handover_item`: mảng `{id, itemGroup, sourceType, sourceId, residentId, roomId, description, note, noteAuthor, resolved, section, statusAtFinalization, createdAt}`, `id` cục bộ trong bàn giao) và `assessments JSON NOT NULL` (thay `handover_assessment`: `{assessmentKind, residentId, residentKey, content}`). Trigger `trg_shift_handover_row_lock` giữ bất biến nội dung khi CONFIRMED. Khi PREPARED chỉ thêm mục AFTER_PREPARATION, không sửa/xóa phần đã chốt; nguồn VITAL_SIGN/RESIDENT_CHANGE không bỏ hoặc đổi định danh. Không trùng (`assessmentKind`, `residentKey`) kiểm ở domain (thay `uq_handover_assessment`). `next_item_id` cấp id cục bộ dưới khóa cha và không tái dùng id đã xóa. Đính chính trỏ `M09.HANDOVER` + id bàn giao gốc theo FR-046; id mục chỉ nhận diện nội dung trong bàn giao đó.
+
+**Giữ định danh đã duyệt (2026-10-31)**: metadata `legacy.table/id` giữ id logic công khai/audit, trong khi FK dùng id vật lý bảng chung. Migration đặt dãy cấp id mới vượt miền legacy; Store luôn kiểm đúng loại. `createdAt` trong attributes giữ mốc lưu giữ của danh mục; `legacyCode`, `originalName` giữ mã/tên cũ dài hơn giới hạn bảng chung. `LicenseValidity.practiceScopeIds` giữ id logic, không đổi dữ liệu chuyên môn M15 của A. Không đổi tên loại bản ghi nên không cần `LegacyRecordTypeSource`.
+
+**Quét lưu giữ sự kiện M09 (2026-11-05, người dùng duyệt):** M09Retention đọc ID có giới hạn bằng SQL trong persistence, chỉ module M09 và hai loại M09.STAFFING_RATIO_CALCULATION/M09.SHIFT_PUBLICATION. Lọc đúng entity_type, occurred_at < cutoff và không còn ca đang hoạt động trước LIMIT; không nối bắt buộc tới cha nên giữ được ứng viên mồ côi. Đọc nội dung qua RecordEventApi.require để giữ cùng ánh xạ ID logic legacy; xóa bằng kết nối retention như trước. Không thêm bảng, migration, endpoint hoặc API A; yêu cầu scanBefore cũ đã rút. Sau khi người dùng cho phép kiểm thử: 117 unit/arch +333 IT staffing và consumer/hợp đồng liên quan xanh, 0 failure/error/skip; T050 đã nghiệm thu, không gọi toàn bộ spec hoặc lifecycle verify toàn kho xanh.
 
 **Loại ở bảng chung**:
 
@@ -49,7 +53,7 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 **Chuyển dữ liệu (`V008_95`)**: `department`, `credential_type`, `practice_scope`, `shift_template` vào `danh_muc_chung`, đổi khóa ngoại theo id mới; `credential_practice_scope` vào JSON; `department_lead_history`, `shift_lead_history` vào `lich_su_chung`; `shift_publication`, `handover_comment`, `handover_reply` (đổi `comment_id` thành `tra_loi_cho_id` mới), `staffing_ratio_calculation` vào `su_kien_chung`; `handover_item`, `handover_assessment` vào JSON của `shift_handover`; `floor_manager_assignment` vào `staff_assignment`; `staff_import_batch` vào `ho_so_chung`; `floor_scope_lock` vào `khoa_ky_thuat`; `m09_job_run` vào `moc_da_nhac`. `ShiftCommandPort`, `AssignmentCommandPort`, `DutyApi`, `AssignmentApi` giữ chữ ký (team-plan mục 8 dòng E (015)).
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test staffing hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test staffing hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); `StaffImportTransportIT` từng có ghi chú lỗi môi trường; lượt clean verify của E ngày 2026-10-31 đã xanh, xem r15-implementation-review.md.
 
 **Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
 
@@ -59,9 +63,10 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 | DBR-23 | Bản công bố lịch không sửa: `su_kien_chung` loại `M09.SHIFT_PUBLICATION` | `PostPublicationShiftIT` |
 | BR-M09-15 | Cắt quyền đúng mốc người phụ trách: `lich_su_chung` thuộc tính `NGUOI_PHU_TRACH`, `khoa_mo` | `DepartmentDutyIT`, `PostPublicationPortsIT` |
 
-**Test phải đổi bảng đích** *(rà 2026-10-30; 33 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+**Test phải đổi bảng đích** *(rà 2026-10-30: 33 file; cập nhật trên develop 2026-11-04: 35 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Test của module: `AlertStaffPortIT`, `AssignmentGovernanceIT`, `AssignmentHttpIT`, `AssignmentIT`, `AssignmentSchemaIT`, `CredentialLifecycleIT`, `DepartmentCommandsIT`, `DepartmentDutyIT`, `HandoverIT`, `HandoverSchemaIT`, `M09GovernanceIT`, `M09JobCatchUpIT`, `M09RecordProtectionIT`, `PostPublicationPortsIT`, `PostPublicationShiftIT`, `ShiftGovernanceIT`, `ShiftHttpIT`, `ShiftLifecycleIT`, `ShiftQueriesIT`, `ShiftScheduleIT`, `ShiftSchemaIT`, `StaffCommandsHttpIT`, `StaffEmploymentIT`, `StaffModuleIntegrationIT`, `StaffProfileHttpIT`, `StaffSchemaIT`, `StaffSpiIT`, `StaffStatisticsIT`, `StaffStatisticsReportFieldsIT`, `StaffingRatioHttpIT`, `StaffingRatioSchemaIT`, `StaffingRatioWarningIT`.
-- Test của reporting (chủ module review): `FR_020_StaffingDashboardIT`.
+- Test/fixture của reporting (A review): `FR_020_StaffingDashboardIT`, `ReportScopeFixture` (dùng chung cho `FR_012_TimeScopeIT`, `FR_009_DetailMatchIT`, `SC_004_ScopeIT`).
+- Test của 003 (C review): `FR_024a_AllocationHandoverIT`, chỉ fixture mẫu ca cho consumer HTTP 008 đọc nguồn phân bổ giường thật.
 
 ---
 
@@ -248,7 +253,7 @@ Chỉ mục `(ca_id, trang_thai)`, `(nhan_vien_id, bat_dau)`, `(loai_doi_tuong, 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
 | `id`, `ca_id` `UNIQUE` | Một bàn giao mỗi ca | DBR-20 |
-| `ca_sau_id NULL` | `XacDinhCaSau`; rỗng thì người xác nhận là Trưởng tầng | FR-038 |
+| `ca_sau_id NULL` | `XacDinhCaSau`; rỗng thì chưa được xác nhận; người xác nhận bắt buộc thuộc ca sau đã công bố (chốt 2026-11-05) | FR-038 |
 | `nguoi_ban_giao_id` | Đổi khi chuyển người phụ trách ca ở Bản nháp, Có ý kiến | FR-019 |
 | `trang_thai` | `ENUM('BAN_NHAP','DA_LAP','CO_Y_KIEN','DA_XAC_NHAN')` | FR-042 |
 | `lap_luc`, `chot_luc`, `xac_nhan_luc`, `nguoi_xac_nhan_id`, `can_cu_xac_nhan` | | FR-041, FR-044 |
@@ -341,3 +346,15 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai = 'DA_XAC_NHAN'`; chặn đổi
 | BR-M05-05 (phần 008) | N-10 | `HandoverIT.FR_044_confirmationCallbacksShareTransactionAndFailureRollsBackAllEffects`; C/D còn kiểm nguồn thật tại T043b |
 
 Tên lớp trên là tên thật dưới `backend/src/test/java/com/eldercare/backend/staffing/`; ma trận FR-048 → FR-060, kịch bản Q và SC ở [validation.md](validation.md). Các bài kiểm fixture/fake nguồn xác minh phần điều phối của 008; không thay nghiệm thu nghiệp vụ module nguồn hoặc mobile.
+
+## T043c — dữ liệu checklist bàn giao dẫn xuất (quyết định 2026-11-05)
+
+HandoverTasksView không lưu thành bảng, cột hay bản ghi công việc. prepareAtEnd đọc ca, thời điểm CFG-M09-04, trạng thái shift_handover và quyền người lập; receiveAtStart đọc bản Đã lập của ca trước mà ca sau được chọn đúng là ca đang hỏi, cùng quyền/thành viên ca sau. Bản Có ý kiến không tạo việc nhận cho tới khi được gửi lại; không thay JSON nội dung, lịch sử hoặc các cột nhắc. Truy vấn chỉ đọc; không có migration hoặc tham số mới.
+
+CareStaffLookup dùng DTO riêng của ShiftStaffPort mới, giữ nguồn CareShiftPort cũ và ID nullable của ca toàn viện ở interface cũ. ShiftView mới dùng floorAreaId kiểu long, chỉ biểu diễn ca tầng/khu vực; không gán ID0 cho ca toàn viện không có tầng. Checklist005 theo FR049 dành cho Điều dưỡng/Nhân viên chăm sóc, không phải checklist Bác sĩ. Không thay DTO của C trong phiên008.
+
+## Bổ sung triển khai đọc/sửa phân công05/11
+
+T054/T055 phục hồi từ hợp đồng29/10 đã duyệt,không thêm bảng/migration. updateDraft sửa cùng dòng staff_assignment kindCARE theo version/statusNháp,giữ nguồn/metadata tạo. AssignmentDetail chỉ là projection thêm shiftId/version/ETag;danh sách Assignment cũ giữ nguyên. Resolution/unassigned lấy nguồn theo thời điểm và quyền,không tạo snapshot hoặc nhắc khi GET. Mã cảnh báo dùng TASK_TYPE_REQUIREMENTS_NOT_MET đã có trong hợp đồng.
+
+Mobile Phân công dùng dữ liệu danh mục thật được phép đọc; không tạo mẫu nghiệp vụ. HandoverScreen chưa lưu bền trên thiết bị vì chưa có hợp đồng hạn quyền theo FR060/002FR032;không thêm cột vào OfflineDatabase củaA hoặc tạo hàng đợi bàn giao.
