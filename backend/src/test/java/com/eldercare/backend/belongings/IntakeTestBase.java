@@ -66,7 +66,21 @@ abstract class IntakeTestBase extends BelongingsTestBase {
     }
 
     long photo() {
-        return files.upload("anh.jpg", "image/jpeg", new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00}, 1L);
+        // nội dung khác nhau mỗi lần để không dùng chung một tệp giữa các test (quyền tải theo chủ tệp)
+        long unique = TestUsers.nextId();
+        return files.upload(
+                "anh.jpg",
+                "image/jpeg",
+                new byte[] {
+                    (byte) 0xFF,
+                    (byte) 0xD8,
+                    (byte) 0xFF,
+                    0x00,
+                    (byte) unique,
+                    (byte) (unique >> 8),
+                    (byte) (unique >> 16)
+                },
+                1L);
     }
 
     long typeId(String code) {

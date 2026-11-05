@@ -59,6 +59,12 @@ class BelongingPhotoPermission implements FilePermissionProvider {
                             .map(member -> family.canViewBelongings(member, residentId, time.now())))
                     .orElse(false);
         }
+        if (user.type() == AccountType.RESIDENT) {
+            // FR-030a (AC-16): người cao tuổi chỉ mở ảnh đồ của chính mình
+            return reads.residentOfHandover(ownerId)
+                    .flatMap(residentId -> user.residentId().map(own -> own == residentId))
+                    .orElse(false);
+        }
         return reads.residentOfHandover(ownerId)
                 .map(residentId -> permissions
                         .hasPermission(
