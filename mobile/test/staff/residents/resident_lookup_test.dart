@@ -226,4 +226,56 @@ void main() {
 
     expect(backend.requests.every((r) => r.method == 'GET'), isTrue);
   });
+
+  testWidgets('FR_008_card_parts_showHealthAndStatusButtonsAndOpenStatus', (tester) async {
+    backend.on('GET', '/residents/7/status-history', 200, <Object>[]);
+    await pumpScreen(tester, backend);
+
+    await tester.tap(find.text('[Họ tên 1]'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.widgetWithText(OutlinedButton, 'Trạng thái'), 200);
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'Trạng thái'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(OutlinedButton, 'Sức khỏe'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Trạng thái'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Trạng thái hiện tại'), findsOneWidget);
+    expect(backend.calls('GET', '/residents/7/status-history'), hasLength(1));
+  });
+
+  testWidgets('FR_008_card_parts_healthHiddenByRole_hasNoHealthButton', (tester) async {
+    backend.on('GET', '/residents/7', 200, profile(hidden: ['activeHealthItems']));
+    await pumpScreen(tester, backend);
+
+    await tester.tap(find.text('[Họ tên 1]'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.widgetWithText(OutlinedButton, 'Trạng thái'), 200);
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'Trạng thái'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(OutlinedButton, 'Sức khỏe'), findsNothing);
+  });
+
+  testWidgets('FR_018_card_parts_openHealthWithAllowedCommands', (tester) async {
+    backend.on('GET', '/residents/7', 200, {
+      ...profile(),
+      'allowedCommands': ['RECORD_HEALTH_ITEM'],
+    });
+    backend.on('GET', '/residents/7/health-items', 200, <Object>[]);
+    await pumpScreen(tester, backend);
+
+    await tester.tap(find.text('[Họ tên 1]'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.widgetWithText(OutlinedButton, 'Sức khỏe'), 200);
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'Sức khỏe'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Sức khỏe'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dị ứng, bệnh nền, tiền sử bệnh'), findsOneWidget);
+    expect(find.text('Ghi nhận mục'), findsOneWidget);
+    expect(find.text('Loại trừ'), findsNothing);
+  });
 }

@@ -8,7 +8,9 @@ import '../../common/theme/app_theme.dart';
 import '../../common/widgets/header_app_bar.dart';
 import '../../common/widgets/status_pill.dart';
 import 'resident_avatar.dart';
+import 'resident_health_screen.dart';
 import 'resident_labels.dart';
+import 'resident_status_screen.dart';
 
 /// Thẻ người cao tuổi trên app nhân viên (001 T023; US1; FR-008, FR-009; DESIGN.md 15.3: hồ sơ là màn riêng): đầu màn xanh
 /// đêm có ảnh đại diện, họ tên, mã hồ sơ; rồi trạng thái, "An toàn" (dị ứng, lưu ý chăm sóc), thông tin cá nhân, nhu cầu
@@ -80,16 +82,20 @@ class _ResidentCardScreenState extends State<ResidentCardScreen> {
             )
           : profile == null
           ? const Center(child: CircularProgressIndicator())
-          : _CardBody(profile: profile, linked: _linked),
+          : _CardBody(api: widget.api, profile: profile, linked: _linked, onChanged: _load),
     );
   }
 }
 
 class _CardBody extends StatelessWidget {
-  const _CardBody({required this.profile, required this.linked});
+  const _CardBody({required this.api, required this.profile, required this.linked, required this.onChanged});
 
+  final ApiClient api;
   final Map<String, dynamic> profile;
   final List<Map<String, dynamic>> linked;
+
+  /// Tải lại thẻ sau khi quay về từ một phần của hồ sơ (trạng thái, mục sức khỏe có thể đã đổi).
+  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +117,7 @@ class _CardBody extends StatelessWidget {
     final contact = info['contact'] as Map<String, dynamic>?;
     final idType = info['idDocumentType'] as String?;
     final since = profile['statusSince'] as String?;
+    final allowedCommands = (profile['allowedCommands'] as List<dynamic>? ?? const []).cast<String>();
     return ListView(
       children: [
         ColoredBox(
@@ -233,10 +240,49 @@ class _CardBody extends StatelessWidget {
               ],
             ),
           ),
+        _Section(
+          title: 'Các phần của hồ sơ',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!healthHidden)
+                _PartButton(
+                  label: 'Sức khỏe',
+                  onPressed: () => _open(
+                    context,
+                    ResidentHealthScreen(api: api, residentId: profile['id'] as int, allowedCommands: allowedCommands),
+                  ),
+                ),
+              _PartButton(
+                label: 'Trạng thái',
+                onPressed: () => _open(context, ResidentStatusScreen(api: api, residentId: profile['id'] as int)),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
       ],
     );
   }
+
+  Future<void> _open(BuildContext context, Widget screen) async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+    onChanged();
+  }
+}
+
+/// Nút mở một phần của hồ sơ (DESIGN.md 15.3: phần dài là màn riêng).
+class _PartButton extends StatelessWidget {
+  const _PartButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: OutlinedButton(onPressed: onPressed, child: Text(label)),
+  );
 }
 
 /// Một phần của thẻ: nhãn nhỏ phía trên, nội dung trên nền trắng, các phần cách nhau 8.
