@@ -6,13 +6,14 @@ import '../common/notifications/notification_inbox.dart';
 import '../common/notifications/push_coordinator.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
+import 'feedback/feedback_screen.dart';
 import 'portal/portal_screen.dart';
 import 'right_change_requests/right_change_requests_screen.dart';
 
 /// Gốc phần người thân (000 T007; 002 T047; Q-346, Q-305: cùng chức năng với cổng người thân trên web). Màn của từng
 /// feature đặt ở `family/<feature>/` (mobile/README.md mục 2) và thêm vào [_tabs]; thanh điều hướng dưới (DESIGN.md 15.4)
 /// có từ màn thứ hai: Thông báo (009 T031), Yêu cầu chờ xác nhận (012 T017), Người cao tuổi (cổng, 012 T028; đăng ký thăm
-/// mở từ đây).
+/// mở từ đây), Phản hồi (012 T030).
 class FamilyRoot extends StatefulWidget {
   const FamilyRoot({super.key, required this.session, this.push});
 
@@ -35,6 +36,7 @@ class _FamilyRootState extends State<FamilyRoot> {
       LucideIcons.clipboardCheck,
       () => RightChangeRequestsScreen(api: widget.session.api),
     ),
+    ('Phản hồi', 'Phản hồi', LucideIcons.messageSquare, () => FeedbackScreen(api: widget.session.api)),
   ];
 
   @override

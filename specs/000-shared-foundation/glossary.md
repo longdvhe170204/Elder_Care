@@ -2944,6 +2944,17 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | màn `tinh-nang/nguoi-than/yeu-cau-quyen/` | `frontend/src/features/relatives/right-change-requests/` (`RightChangeRequestTable`, `RightChangeRequestDetail`, `CreateRightChangeRequestSheet`, `VisitPickupWishes`, `requestLabels.js`), gắn vào `FamilyMembersPage` |
 | app người thân xác nhận yêu cầu | `mobile/lib/family/right_change_requests/right_change_requests_screen.dart` (`RightChangeRequestsScreen`), tab "Yêu cầu" của `FamilyRoot` |
 
+### 18.9. Lớp, bảng và màn của US6 *(bổ sung 2026-11-05, Phase 8: T029, T030)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `phan_hoi` (`nct_id`, `nguoi_than_id`, `loai`, `nhom`, `nguon` `CONG`/`QUAY`, `gui_luc`, `muc`, `moc_tinh_han`, `han_xu_ly`, `phu_trach_vai_tro`, `phu_trach_id`, `trang_thai`, `qua_han`, `han_da_leo_thang`, `da_phan_hoi_luc`, `dong_luc`, `cach_dong` `NGUOI_GUI`/`TU_DONG`); `V012_07__phan_hoi.sql` | `feedback` (`resident_id`, `family_member_id`, `type`, `content_group`, `source` `PORTAL`/`COUNTER`, `submitted_at`, `priority`, `due_basis_at`, `due_at`, `assignee_role` `FLOOR_MANAGER`/`NURSING_STAFF`/`OFFICE_STAFF`/`NURSING_HOME_MANAGER`, `assignee_account_id`, `status`, `overdue`, `escalated_due_at`, `replied_at`, `closed_at`, `close_method` `SENDER`/`AUTO`); `V012_07__feedback.sql`; đối tượng `M10.FEEDBACK` |
+| `phan_hoi_muc` (`NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`, `MO_LAI`; `phan_loai_thong_tin`) | `record_event` loại `M10.FEEDBACK_ITEM` gắn `M10.FEEDBACK` (`FeedbackItem`: `CONTENT`, `REPLY`, `HANDLING_DIRECTION`, `NOTE`, `REASSIGNMENT`, `PRIORITY_CHANGE`, `REOPEN`; `healthInformation`, `fileIds`) |
+| `PhanHoiService`, `HanPhanHoi`; việc quá hạn, tự đóng | `family.internal.feedback.service.FeedbackService` (`submit`, `list`, `get`, `startHandling`, `reply`, `addNote`, `reassign`, `changePriority`, `agreeToClose`, `reopen`), `domain.FeedbackDeadline`, `persistence.FeedbackStore`, `service.FeedbackRules`, `FeedbackRetention`, `config.FeedbackConfig`; việc `FEEDBACK_ESCALATION`, `FEEDBACK_AUTO_CLOSE`; REST `family.web.FeedbackController` (`SubmitFeedbackRequest`, `FeedbackCommandRequest`, `FeedbackResponse`, `FeedbackDetailResponse`) |
+| thông báo phản hồi mới, giao lại, mở lại; đã trả lời; quá hạn | sự kiện `family.api.events.FeedbackNotice` (`ASSIGNED`, `REPLIED`, `ESCALATED`; loại sự kiện `FEEDBACK_ASSIGNED`, `FEEDBACK_REPLIED`, `FEEDBACK_ESCALATED`) |
+| chi tiết cho người xem: cảnh báo người gửi không có quyền sức khỏe; phần sức khỏe bị ẩn | `senderHealthRightEffective`, `healthReplyHidden` |
+| màn `tinh-nang/nguoi-than/phan-hoi/`; cổng P8; app người thân | `frontend/src/features/relatives/feedback/` (`FeedbackPage`, `feedbackLabels.js`; mục menu `feedback`), `features/family-portal/live/LiveFeedbackPage.jsx`; `mobile/lib/family/feedback/feedback_screen.dart` (`FeedbackScreen`, tab "Phản hồi" của `FamilyRoot`) |
+
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
 *Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
