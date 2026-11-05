@@ -2965,7 +2965,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | `LienHe` (`nguoiThanId`, `kenh`, `luc`, `ketQua`) | `ContactAttempt` (`familyMemberId`, `channel`, `at`, `result`) |
 | `GhiDongY` (`doGuiId`, `nguoiDaiDienId`, `tepBanKyId`); thân rút (`lyDo`, `nguoiDaiDienId`, `tepBanKyId`); thân cổng `doGuiId` | `RecordSelfCustodyConsent` (`belongingId`, `representativeId`, `signedFormFileId`); `reason`, `representativeId`, `signedFormFileId`; `belongingId` |
 | thân lập phiếu `viTriId`; `KetQuaKiemKe` (`dong` {`doGuiId`, `ketQua`, `tinhTrangMoi`, `ghiHuHong`, `tepAnhIds`, `suCo`}, `timThay` {`doGuiId`, `tepAnhIds`} (từ mã đồ thành đối tượng có ảnh 2026-11-05 theo 013-2 c), `doKhongRoChu` {`moTa`, `tepAnhIds`}, `lyDo`) | `storageLocationId`; `InventoryCheckResult` (`lines` {`belongingId`, `result`, `newCondition`, `recordDamage`, `photoFileIds`, `incident`}, `found` {`belongingId`, `photoFileIds`}, `unknownOwnerItems` {`description`, `photoFileIds`}, `reason`) |
-| `LyDo`, `Loi` (`maLoi`, `dieuKienChuaThoa`); response `Loi`, `LoiChan`; thân `LyDo`; tham số `NctId`; scheme `phien` | `Reason`, `Problem` (`errorCode`, `unmetConditions`; giữ nguyên cấu trúc gốc như api-004); `Problem`, `Blocked`; `ReasonBody`; `ResidentId`; `session` |
+| `LyDo`, `Loi` (`maLoi`, `dieuKienChuaThoa`); response `Loi`, `LoiChan`; thân `LyDo`; tham số `NctId`; scheme `phien` | `Reason`, `Problem` (`errorCode`, `unmetConditions`; theo schema chung như api-004, đổi 2026-11-06 từ bản rút gọn, chờ A review); `Problem`, `Blocked`; `ReasonBody`; `ResidentId`; `session` |
 
 ### 19.3. Giá trị enum
 
