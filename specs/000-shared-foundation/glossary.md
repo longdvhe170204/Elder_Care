@@ -711,6 +711,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | --- | --- |
 | `mobile/lib/nhan-vien/tra-cuu-nguoi-cao-tuoi/`; test `tra_cuu_nguoi_cao_tuoi_test.dart` | `mobile/lib/staff/residents/` (`ResidentLookupScreen` tra cứu, `ResidentCardScreen` thẻ người cao tuổi, `ResidentAvatar`, `resident_labels.dart`); `mobile/test/staff/residents/resident_lookup_test.dart` |
 | `mobile/lib/nguoi-than/ho-so/`; test `ho_so_nguoi_than_test.dart` | `mobile/lib/family/profile/` (`FamilyProfileScreen` danh sách, `FamilyProfileDetailScreen` hồ sơ, `FamilyResidentAvatar`, `family_profile_labels.dart`); `mobile/test/family/profile/family_profile_test.dart` |
+| *(bổ sung 2026-11-05, T033, T052)* `mobile/lib/nhan-vien/suc-khoe/`; `mobile/lib/nhan-vien/trang-thai/`; test `suc_khoe_test.dart`, `trang_thai_test.dart` | `mobile/lib/staff/residents/` (`ResidentHealthScreen`, `ResidentStatusScreen`); `mobile/test/staff/residents/resident_health_test.dart`, `resident_status_test.dart` |
 
 ## 9. Feature 003 (`003-room-bed-allocation`, C)
 
