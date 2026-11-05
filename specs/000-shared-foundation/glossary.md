@@ -3077,6 +3077,7 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Cảnh báo thiếu người khi về, diễn biến tìm thấy | AlertRequested type MISSING_ON_RETURN (URGENT), nguồn context M04.TRIP_PARTICIPANT / id đăng ký; AlertProgressRequested progressCode FOUND_RETURNED |
 | Nhật ký lệnh | TRIP_RETURNED, TRIP_RETURN_EXTENDED, TRIP_LEADER_TRANSFERRED, TRIP_RETURN_FINISHED |
 | Bản giả thuốc ghi khoảng tính lại (chỉ test) | FakeTripMedicationPreparation.interval |
+| Đính chính điểm danh chuyến (DinhChinhDuocProvider `M04.DIEM_DANH_CHUYEN`) | TripAttendanceCorrectionProvider, recordType `M04.TRIP_ATTENDANCE`; chỉ VOID bản ghi DEPARTURE; test FR_031a_DinhChinhChuyenIT |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 

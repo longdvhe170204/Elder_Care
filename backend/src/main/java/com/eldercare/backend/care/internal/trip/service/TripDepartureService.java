@@ -188,7 +188,9 @@ public class TripDepartureService {
                             deviceAt,
                             time.now(),
                             locked.floorAreaId(),
-                            "TRIP_DEPARTURE:" + p.registrationId()));
+                            // Lần rời viện sau khi Hủy ghi nhận (FR-031a) cần khóa riêng; chạy trùng vẫn bị chặn dưới
+                            // khóa chuyến.
+                            "TRIP_DEPARTURE:" + p.registrationId() + ":" + trips.departureCount(p.registrationId())));
             if (!trips.markDepartedIfEligible(p.registrationId()))
                 throw conflict("STATE_CHANGED", "Đăng ký vừa thay đổi, tải lại để điểm danh");
             var activity = simple.require(ActivityKinds.ACTIVITIES, locked.activityId())
