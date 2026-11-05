@@ -44,7 +44,7 @@ paths:
       summary: Hoạt động theo tầng hoặc toàn viện
       x-fr: [FR-002]
       parameters: [ { name: floorAreaId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ActivityView' } } } } } }
     post:
       tags: [activities]
       summary: Khai báo hoạt động (Trưởng tầng)
@@ -322,6 +322,26 @@ components:
         groupActivityChangeReason: { type: string }
         registrationsToCancel: { type: array, items: { type: integer, format: int64 } }
         reason: { type: string }
+    ActivityView:
+      type: object
+      description: 'Bổ sung 2026-11-05 (chủ dự án duyệt bổ sung schema phản hồi theo từng endpoint): trường của Activity kèm id, status, version (If-Match).'
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        typeId: { type: integer, format: int64 }
+        scope: { type: string }
+        floorAreaId: { type: integer, format: int64 }
+        defaultLocation: { type: object, properties: { roomId: { type: integer, format: int64 }, areaId: { type: integer, format: int64 }, destination: { type: string } } }
+        defaultResponsibleStaffId: { type: integer, format: int64 }
+        durationMinutes: { type: integer }
+        maxParticipants: { type: integer }
+        targetGroup: { type: object }
+        charged: { type: boolean }
+        serviceId: { type: integer, format: int64 }
+        groupActivity: { type: boolean }
+        groupActivityChangeReason: { type: string }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+        version: { type: integer }
     ActivityCommand:
       type: object
       properties:
