@@ -18,6 +18,7 @@ import { NotificationsPage } from './NotificationsPage'
 import { TodayPage } from './TodayPage'
 import { VisitsPage } from './VisitsPage'
 import { LiveContractPage, LiveHealthPage, LiveTodayPage } from './live/LivePages'
+import { LiveFeedbackPage } from './live/LiveFeedbackPage'
 
 // Cổng người thân, bản web (DESIGN.md 2.3): đăng nhập xong vào Trang chủ, là trang giới thiệu viện; các màn khác
 // đi từ đầu trang (máy tính) hoặc thanh dưới (điện thoại). Đầu trang cùng kiểu với trang giới thiệu: dải nền trời,
@@ -52,7 +53,12 @@ const PAGES = {
 }
 
 // Có phiên thật: ba màn đọc API của 012 (T028); các màn khác còn bản mẫu tới task web của phần đó
-const LIVE_PAGES = { today: LiveTodayPage, health: LiveHealthPage, contract: LiveContractPage }
+const LIVE_PAGES = {
+  today: LiveTodayPage,
+  health: LiveHealthPage,
+  contract: LiveContractPage,
+  feedback: LiveFeedbackPage,
+}
 
 // Người xem từ phiên và người cao tuổi đầu tiên có quan hệ Hiệu lực (chọn người khi có nhiều người: chưa thiết kế,
 // DESIGN.md 14); quyền là quyền có tác dụng backend trả

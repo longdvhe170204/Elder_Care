@@ -160,11 +160,11 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 6
 
-- [ ] T029 [P] [US6] Test đơn vị `BT/family/HanPhanHoiTest.java` và `BT/family/BR_M10_05_PhanHoiIT.java` (Q43 → Q46)
+- [x] T029 [P] [US6] Test đơn vị `BT/family/HanPhanHoiTest.java` và `BT/family/BR_M10_05_PhanHoiIT.java` (Q43 → Q46) *(2026-11-05: `FeedbackDeadlineTest` (5), `BR_M10_05_FeedbackIT` (12))*
 
 ### Implementation cho User Story 6
 
-- [ ] T030 [US6] Tạo bảng `phan_hoi` (`trang_thai` `MOI|DANG_XU_LY|DA_PHAN_HOI|MO_LAI|DONG`; `muc` `CAO|THUONG`), `phan_hoi_muc` (nhóm 3) trong `MIG/V012_07__phan_hoi.sql`; cài `BE/family/phanhoi/internal/PhanHoiService.java` (việc theo phút quá hạn, leo thang, tự đóng) và endpoint `/phan-hoi`, `/{id}`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/phan-hoi/`, app người thân gửi phản hồi (research F-13) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `phan_hoi_muc` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [x] T030 [US6] Tạo bảng `phan_hoi` (`trang_thai` `MOI|DANG_XU_LY|DA_PHAN_HOI|MO_LAI|DONG`; `muc` `CAO|THUONG`), `phan_hoi_muc` (nhóm 3) trong `MIG/V012_07__phan_hoi.sql`; cài `BE/family/phanhoi/internal/PhanHoiService.java` (việc theo phút quá hạn, leo thang, tự đóng) và endpoint `/phan-hoi`, `/{id}`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/phan-hoi/`, app người thân gửi phản hồi (research F-13) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `phan_hoi_muc` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.** *(2026-11-05: `V012_07__feedback.sql` chỉ có `feedback`; mục là `record_event` `M10.FEEDBACK_ITEM`; `FeedbackService`, `FeedbackController`; web `features/relatives/feedback/`, cổng `LiveFeedbackPage`; app `family/feedback/`; plan "Ghi chú triển khai" Phase 8)*
 
 **Checkpoint**: Phản hồi chạy độc lập.
 

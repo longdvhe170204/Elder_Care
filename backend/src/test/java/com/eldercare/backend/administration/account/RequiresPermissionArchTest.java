@@ -111,7 +111,31 @@ class RequiresPermissionArchTest {
                     "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-033, FR-067"),
             Map.entry(
                     "com.eldercare.backend.family.internal.visit.service.VisitService.checkOut",
-                    "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-034, FR-067"));
+                    "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-034, FR-067"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.submit",
+                    "(FEEDBACK, CREATE); người thân cho chính mình, Hành chính ghi thay; 012 FR-058"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.startHandling",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reply",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.addNote",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-065"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reassign",
+                    "Trưởng tầng, Hành chính (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-060"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.changePriority",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-062"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.agreeToClose",
+                    "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ); 012 FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reopen",
+                    "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ) kèm lý do; 012 FR-061, FR-066"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho

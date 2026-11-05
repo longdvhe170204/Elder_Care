@@ -232,6 +232,8 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Phản hồi" (012 T030): người phụ trách xử lý, Quản lý viện xem mọi phản hồi; người thân dùng cổng
+      { key: 'feedback', label: 'Phản hồi', icon: 'MessageSquare', functions: ['FEEDBACK'], roles: [QL, TT, DD, HC] },
     ],
   },
   {
