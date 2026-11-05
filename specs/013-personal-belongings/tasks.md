@@ -154,11 +154,11 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 6
 
-- [ ] T027 [P] [US6] Test `BT/belongings/BR_M12_09_CongDoGuiIT.java` (Q42, Q43)
+- [x] T027 [P] [US6] Test `BT/belongings/BR_M12_09_CongDoGuiIT.java` (Q42, Q43) *(2026-11-05: `BR_M12_09_PortalBelongingsIT` 3/3: đại diện và người được phép đón thấy, người thân khác 403, quyền kiểm mỗi lần, ảnh theo cùng quyền; thông báo SC-012 đã có ở `T002_BelongingNoticeTest`.)*
 
 ### Implementation cho User Story 6
 
-- [ ] T028 [US6] Tạo endpoint `GET /cong/nguoi-cao-tuoi/{nctId}/do-gui` trong `BE/belongings/dogui/web/CongDoGuiController.java`; màn web `frontend/src/tinh-nang/cong-nguoi-than/do-gui/`, app `mobile/lib/nguoi-than/do-gui/` (research K-12)
+- [ ] T028 [US6] Tạo endpoint `GET /cong/nguoi-cao-tuoi/{nctId}/do-gui` trong `BE/belongings/dogui/web/CongDoGuiController.java`; màn web `frontend/src/tinh-nang/cong-nguoi-than/do-gui/`, app `mobile/lib/nguoi-than/do-gui/` (research K-12) *(2026-11-05: backend xong (`BelongingPortalController`, plan điểm 16); web, app chờ duyệt, giữ [ ].)*
 
 **Checkpoint**: Mọi user story của 013 chạy độc lập.
 
