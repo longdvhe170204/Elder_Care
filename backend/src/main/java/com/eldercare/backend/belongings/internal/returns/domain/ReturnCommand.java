@@ -1,6 +1,7 @@
 package com.eldercare.backend.belongings.internal.returns.domain;
 
 import com.eldercare.backend.belongings.internal.belonging.domain.GiverType;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -18,10 +19,14 @@ public record ReturnCommand(
         items = items == null ? List.of() : List.copyOf(items);
     }
 
-    /** Một đồ: tình trạng lúc trả (bắt buộc), ảnh. */
+    /**
+     * Một đồ: số lượng trả (số tiền với tiền mặt; {@code null} là toàn bộ, nhỏ hơn hiện có thì phần trả tách thành đồ mới
+     * theo FR-012), tình trạng lúc trả (bắt buộc), ảnh.
+     */
     public record Item(
             long belongingId,
             int version,
+            BigDecimal amount,
             Long conditionLevelId,
             String conditionDescription,
             List<Long> photoFileIds) {

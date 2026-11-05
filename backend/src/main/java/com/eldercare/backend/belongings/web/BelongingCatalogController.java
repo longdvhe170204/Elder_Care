@@ -10,6 +10,8 @@ import com.eldercare.backend.belongings.web.request.ConditionLevelRequest;
 import com.eldercare.backend.belongings.web.request.StorageLocationRequest;
 import com.eldercare.backend.belongings.web.response.IdResponse;
 import com.eldercare.backend.common.Role;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
@@ -43,11 +45,13 @@ class BelongingCatalogController {
     }
 
     @GetMapping("/types")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     List<BelongingTypeView> types() {
         return service.types();
     }
 
     @PostMapping("/types")
+    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse createType(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -65,25 +69,30 @@ class BelongingCatalogController {
     }
 
     @GetMapping("/condition-levels")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     List<ConditionLevelView> conditionLevels() {
         return service.conditionLevels();
     }
 
     @PostMapping("/condition-levels")
+    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
-    IdResponse createConditionLevel(
+    IdResponse saveConditionLevel(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody ConditionLevelRequest body) {
-        return new IdResponse(service.createConditionLevel(body.name(), body.order(), body.unusable(), body.status()));
+        return new IdResponse(
+                service.saveConditionLevel(body.id(), body.name(), body.order(), body.unusable(), body.status()));
     }
 
     @GetMapping("/storage-locations")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     List<StorageLocationView> storageLocations() {
         return service.storageLocations();
     }
 
     /** Hành chính, Quản lý viện; mỗi vai trò đi qua khóa quyền của mình (plan "Kế hoạch triển khai R-15" điểm 3). */
     @PostMapping("/storage-locations")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     IdResponse saveStorageLocation(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody StorageLocationRequest body) {

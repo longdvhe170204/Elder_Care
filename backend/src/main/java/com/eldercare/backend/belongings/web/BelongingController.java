@@ -13,6 +13,9 @@ import com.eldercare.backend.belongings.web.response.BelongingResponse;
 import com.eldercare.backend.belongings.web.response.EndingConditionResponse;
 import com.eldercare.backend.belongings.web.response.HandoverResponse;
 import com.eldercare.backend.common.error.BusinessException;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
@@ -56,14 +59,21 @@ class BelongingController {
 
     /** Điều kiện (b) kết thúc lưu trú và mục "xử lý đồ gửi" kèm căn cứ (FR-025, FR-026). */
     @GetMapping("/residents/{residentId}/belongings/ending-condition")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     EndingConditionResponse endingCondition(@PathVariable long residentId) {
         return EndingConditionResponse.of(endings.ending(new Target(ENTITY, null, residentId, null)));
     }
 
     @GetMapping("/residents/{residentId}/belongings")
     List<BelongingResponse> ofResident(
-            @PathVariable long residentId, @RequestParam(name = "status", required = false) BelongingStatus status) {
-        return queries.ofResident(new Target(ENTITY, null, residentId, null), status).stream()
+            @PathVariable long residentId, @RequestParam(name = "status", required = false) String status) {
+        BelongingStatus wanted;
+        try {
+            wanted = status == null ? null : BelongingStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "INVALID_VALUE", "Trạng thái không hợp lệ");
+        }
+        return queries.ofResident(new Target(ENTITY, null, residentId, null), wanted).stream()
                 .map(BelongingResponse::of)
                 .toList();
     }
@@ -85,11 +95,13 @@ class BelongingController {
     }
 
     @GetMapping("/belongings/{id}")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     BelongingResponse.Detail detail(@PathVariable long id) {
         return BelongingResponse.Detail.of(queries.detail(id));
     }
 
     @PostMapping("/belongings/handovers")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     HandoverResponse handover(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody HandoverRequest body) {
@@ -103,7 +115,7 @@ class BelongingController {
     }
 
     /** Liên kết sự cố ghi sau với bản ghi Báo thất lạc, Ghi hư hỏng; một lần (FR-021, FR-024). */
-    @PostMapping("/belonging-handovers/{id}/link-incident")
+    @PostMapping("/belongings/handovers/{id}/link-incident")
     void linkIncident(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -114,9 +126,12 @@ class BelongingController {
         incidentLinks.link(new Target(ENTITY, null, incidentLinks.residentOf(id), null), id, body.incidentId());
     }
 
-    record LinkIncidentRequest(Long incidentId) {}
+    record LinkIncidentRequest(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            Long incidentId) {}
 
     @GetMapping("/staff/{staffId}/held-belongings")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     List<BelongingResponse> heldBelongings(@PathVariable long staffId) {
         return queries.heldValuableBy(staffId).stream()
                 .map(BelongingResponse::of)

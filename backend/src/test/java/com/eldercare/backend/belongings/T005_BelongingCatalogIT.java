@@ -114,6 +114,47 @@ class T005_BelongingCatalogIT extends BelongingsTestBase {
                         jsonPath("$[?(@.name == 'Không dùng được')].unusable").value(true));
     }
 
+    /** 013-2 (d), FR-001a: có mã mức là sửa; ngừng hiệu lực, không xóa; mức đã ngừng không dùng cho bản ghi mới. */
+    @Test
+    void FR_001a_managerRenamesAndStopsConditionLevel_byItsId() throws Exception {
+        String name = unique("Trầy nhẹ");
+        long level = id(
+                postJson(manager, "/api/v1/belongings/condition-levels", "{\"name\": \"" + name + "\", \"order\": 2}")
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString());
+
+        String renamed = unique("Trầy xước nhẹ");
+        postJson(
+                        manager,
+                        "/api/v1/belongings/condition-levels",
+                        "{\"id\": " + level + ", \"name\": \"" + renamed + "\", \"order\": 3}")
+                .andExpect(status().isCreated());
+        postJson(
+                        manager,
+                        "/api/v1/belongings/condition-levels",
+                        "{\"id\": " + level + ", \"name\": \"" + renamed + "\", \"order\": 3, \"unusable\": true}")
+                .andExpect(status().isUnprocessableContent());
+        postJson(
+                        office,
+                        "/api/v1/belongings/condition-levels",
+                        "{\"id\": " + level + ", \"name\": \"" + renamed
+                                + "\", \"order\": 3, \"status\": \"INACTIVE\"}")
+                .andExpect(status().isForbidden());
+        postJson(
+                        manager,
+                        "/api/v1/belongings/condition-levels",
+                        "{\"id\": " + level + ", \"name\": \"" + renamed
+                                + "\", \"order\": 3, \"status\": \"INACTIVE\"}")
+                .andExpect(status().isCreated());
+
+        getJson(manager, "/api/v1/belongings/condition-levels")
+                .andExpect(jsonPath("$[?(@.id == " + level + ")].name").value(renamed))
+                .andExpect(jsonPath("$[?(@.id == " + level + ")].order").value(3))
+                .andExpect(jsonPath("$[?(@.id == " + level + ")].status").value("INACTIVE"));
+    }
+
     @Test
     void FR_002_officeStaffAndManagerSaveLocations_nurseCannot() throws Exception {
         long byOffice = id(

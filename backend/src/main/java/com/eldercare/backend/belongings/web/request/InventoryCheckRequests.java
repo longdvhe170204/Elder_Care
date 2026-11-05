@@ -3,6 +3,7 @@ package com.eldercare.backend.belongings.web.request;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverCommand;
 import com.eldercare.backend.belongings.internal.inventorycheck.domain.InventoryCheck;
 import com.eldercare.backend.belongings.internal.inventorycheck.domain.InventoryCompletion;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /** Thân yêu cầu của phiếu kiểm kê (api-013 {@code InventoryCheckResult}). */
@@ -10,7 +11,9 @@ public final class InventoryCheckRequests {
 
     private InventoryCheckRequests() {}
 
-    public record Create(Long storageLocationId) {}
+    public record Create(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            Long storageLocationId) {}
 
     public record ItemCondition(Long levelId, String description) {}
 
@@ -24,7 +27,14 @@ public final class InventoryCheckRequests {
 
     public record UnknownOwnerItem(String description, List<Long> photoFileIds) {}
 
-    public record Result(List<Line> lines, List<Long> found, List<UnknownOwnerItem> unknownOwnerItems, String reason) {
+    /** Mục {@code found}: đồ Thất lạc tìm thấy tại vị trí và ảnh (013-2 c). */
+    public record Found(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            Long belongingId,
+
+            List<Long> photoFileIds) {}
+
+    public record Result(List<Line> lines, List<Found> found, List<UnknownOwnerItem> unknownOwnerItems, String reason) {
 
         public InventoryCompletion toCompletion() {
             List<InventoryCompletion.LineResult> mapped = new java.util.ArrayList<>();
@@ -49,7 +59,14 @@ public final class InventoryCheckRequests {
             for (UnknownOwnerItem u : unknownOwnerItems == null ? List.<UnknownOwnerItem>of() : unknownOwnerItems) {
                 unknown.add(new InventoryCheck.UnknownOwnerItem(u.description(), u.photoFileIds()));
             }
-            return new InventoryCompletion(mapped, found, unknown);
+            List<InventoryCompletion.FoundItem> foundItems = new java.util.ArrayList<>();
+            for (Found f : found == null ? List.<Found>of() : found) {
+                if (f == null || f.belongingId() == null) {
+                    throw new IllegalArgumentException("Thiếu mã đồ Tìm thấy");
+                }
+                foundItems.add(new InventoryCompletion.FoundItem(f.belongingId(), f.photoFileIds()));
+            }
+            return new InventoryCompletion(mapped, foundItems, unknown);
         }
     }
 }

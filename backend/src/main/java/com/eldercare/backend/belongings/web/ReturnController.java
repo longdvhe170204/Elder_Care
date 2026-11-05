@@ -11,6 +11,9 @@ import com.eldercare.backend.belongings.web.response.IdResponse;
 import com.eldercare.backend.belongings.web.response.RecipientConfirmationResponse;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Arrays;
 import java.util.List;
@@ -60,6 +63,7 @@ class ReturnController {
     }
 
     @PostMapping("/belongings/returns")
+    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     HandoverResponse giveBack(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -89,6 +93,7 @@ class ReturnController {
     }
 
     @PostMapping("/recipient-confirmations")
+    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse create(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -112,7 +117,7 @@ class ReturnController {
     @PostMapping("/recipient-confirmations/{id}/{command}")
     void command(
             @PathVariable long id,
-            @PathVariable String command,
+            @PathVariable @Schema(allowableValues = {"approve-on-behalf", "cancel"}) String command,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody ReturnRequests.Command body) {
         switch (command) {
@@ -125,7 +130,7 @@ class ReturnController {
     @PostMapping("/family-portal/recipient-confirmations/{id}/{command}")
     void portalCommand(
             @PathVariable long id,
-            @PathVariable String command,
+            @PathVariable @Schema(allowableValues = {"confirm", "reject"}) String command,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody(required = false) ReturnRequests.PortalCommand body) {
         switch (command) {

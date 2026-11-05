@@ -2,6 +2,8 @@ package com.eldercare.backend.belongings.web;
 
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingPortalQueries;
 import com.eldercare.backend.belongings.web.response.PortalBelongingResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,7 @@ class BelongingPortalController {
     }
 
     @GetMapping("/family-portal/residents/{residentId}/belongings")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     List<PortalBelongingResponse> belongings(@PathVariable long residentId) {
         return queries.view(residentId).stream()
                 .map(PortalBelongingResponse::of)

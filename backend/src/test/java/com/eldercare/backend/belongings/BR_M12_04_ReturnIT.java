@@ -373,6 +373,51 @@ class BR_M12_04_ReturnIT extends ReturnTestBase {
                 .containsEntry("no_signature_reason", "Người cao tuổi không còn khả năng ký");
     }
 
+    /** 013-2 (a), FR-012: trả một phần tiền mặt tách phần trả thành đồ mới Đã trả, phần còn lại giữ Đang giữ. */
+    @Test
+    void FR_012_partialCashReturn_splitsTheReturnedAmount_andTheRestStaysHeld() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long cash = intake(resident, "CASH", "\"cashAmount\": 2000000", location());
+        long picker = representative(resident, "012345");
+        String recipient = familyRecipient(picker, "Người thân " + picker, "CCCD", "012345");
+
+        giveBack(tokenA, returnBody(List.of(partialItem(cash, "3000000")), recipient, ""))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_VALUE"));
+        giveBack(tokenA, returnBody(List.of(partialItem(cash, "500000")), recipient, ""))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.handovers.length()").value(1))
+                .andExpect(jsonPath("$.handovers[0].kind").value("RETURN"));
+
+        long part = jdbc.queryForObject("SELECT id FROM belonging WHERE original_belonging_id = ?", Long.class, cash);
+        assertThat(jdbc.queryForMap("SELECT status, cash_amount, holder_type FROM belonging WHERE id = ?", part))
+                .containsEntry("status", "RETURNED")
+                .containsEntry("cash_amount", new java.math.BigDecimal("500000"))
+                .containsEntry("holder_type", null);
+        assertThat(jdbc.queryForMap("SELECT status, cash_amount FROM belonging WHERE id = ?", cash))
+                .containsEntry("status", "HELD")
+                .containsEntry("cash_amount", new java.math.BigDecimal("1500000"));
+        assertThat(jdbc.queryForMap(
+                        "SELECT cash_amount, recipient_id, target_status FROM belonging_handover WHERE belonging_id = ?"
+                                + " AND kind = 'RETURN'",
+                        part))
+                .containsEntry("cash_amount", new java.math.BigDecimal("500000"))
+                .containsEntry("recipient_id", picker)
+                .containsEntry("target_status", "RETURNED");
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM belonging_handover WHERE belonging_id = ? AND kind = 'RETURN'",
+                        Integer.class,
+                        cash))
+                .isZero();
+    }
+
+    /** Một đồ của lệnh Trả với số lượng (số tiền với tiền mặt) và ảnh (đồ có giá trị). */
+    private String partialItem(long belongingId, String quantity) {
+        return "{\"belongingId\": " + belongingId + ", \"version\": " + version(belongingId) + ", \"quantity\": "
+                + quantity + ", \"condition\": {\"levelId\": " + levelId("SIGNS_OF_USE") + "}, \"photoFileIds\": ["
+                + photo() + "]}";
+    }
+
     @Test
     void FR_019_returnedBelonging_cannotBeReturnedAgain_andRecordsCannotBeChanged() throws Exception {
         long resident = resident("IN_RESIDENCE");

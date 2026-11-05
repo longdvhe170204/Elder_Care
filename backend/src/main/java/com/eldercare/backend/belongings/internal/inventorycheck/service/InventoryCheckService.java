@@ -282,9 +282,11 @@ public class InventoryCheckService {
                         .computeIfAbsent(l.residentId(), k -> new LinkedHashSet<>())
                         .add(l.belongingId()));
         Map<Long, Long> residentOfFound = new HashMap<>();
-        for (long foundId : new LinkedHashSet<>(body.found())) {
-            if (inCheck.contains(foundId)) {
-                throw invalid("Đồ Tìm thấy không nằm trong phiếu: " + foundId);
+        Map<Long, List<Long>> foundPhotos = new HashMap<>();
+        for (InventoryCompletion.FoundItem found : body.found()) {
+            long foundId = found.belongingId();
+            if (inCheck.contains(foundId) || foundPhotos.put(foundId, found.photoFileIds()) != null) {
+                throw invalid("Đồ Tìm thấy không nằm trong phiếu và không lặp lại: " + foundId);
             }
             long owner = belongings.residentOf(foundId).orElseThrow(NotFoundException::new);
             residentOfFound.put(foundId, owner);
@@ -334,8 +336,8 @@ public class InventoryCheckService {
                 LockedBelonging b = locked.get(itemId);
                 if (residentOfFound.containsKey(itemId)) {
                     BigDecimal amount = b.cashAmount() != null ? b.cashAmount() : b.quantity();
-                    foundItems.add(
-                            new HandoverCommand.Item(itemId, b.version(), amount, null, null, null, List.of(), null));
+                    foundItems.add(new HandoverCommand.Item(
+                            itemId, b.version(), amount, null, null, null, foundPhotos.get(itemId), null));
                     continue;
                 }
                 if (done.containsKey(itemId)) {

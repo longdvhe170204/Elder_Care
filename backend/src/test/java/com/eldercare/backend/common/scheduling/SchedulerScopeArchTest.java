@@ -87,6 +87,12 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.family.scheduling.M10MidnightJob",
                     "đếm đêm ở lại để hiển thị và báo 010 qua sự kiện; không lập khoản (012 F-17, Q-306)"),
             Map.entry(
+                    "com.eldercare.backend.belongings.scheduling.M12MinuteJob",
+                    "chuyển trạng thái theo giờ (xác nhận người nhận khác Hết hạn) và báo Quản lý viện đủ điều kiện duyệt thay; không lập bản ghi (013 K-15)"),
+            Map.entry(
+                    "com.eldercare.backend.belongings.scheduling.M12DailyJob",
+                    "nhắc đồ chưa trả sau trạng thái cuối, đồ đủ hạn lập đề nghị xử lý, nhắc kiểm kê; không lập phiếu, không ghi sự cố (013 K-15)"),
+            Map.entry(
                     "com.eldercare.backend.health.scheduling.M06MinuteJob",
                     "xác nhận quá hạn đo lại, chuyển trạng thái lịch đo và ngưỡng; không tạo bản ghi đo (007 FR-017/022, S-21)"),
             Map.entry(
