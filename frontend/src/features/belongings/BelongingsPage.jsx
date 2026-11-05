@@ -19,6 +19,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { BelongingDetail } from './BelongingDetail'
 import { HeldBelongings } from './HeldBelongings'
 import { IntakeForm } from './IntakeForm'
+import { RecipientConfirmations } from './RecipientConfirmations'
+import { ReturnForm } from './ReturnForm'
 import { amountText, holderLabel, statusLabel } from './belongingLabels'
 import { useBelongingCatalogs } from './useBelongingCatalogs'
 
@@ -133,11 +135,15 @@ function BelongingTable({ items, catalogs, opened, onOpen }) {
   )
 }
 
-function ResidentBelongings({ resident, catalogs }) {
+// Đồ còn trả được (data-model 013 mục 3: Trả từ Đang giữ, Đang được sử dụng, Hư hỏng)
+const RETURNABLE = ['HELD', 'IN_USE', 'DAMAGED']
+
+function ResidentBelongings({ resident, catalogs, role }) {
   const { can } = usePermissions()
   const [state, setState] = useState({ status: 'loading', items: [] })
   const [opened, setOpened] = useState(null)
   const [intake, setIntake] = useState(false)
+  const [returning, setReturning] = useState(false)
   const [notice, setNotice] = useState('')
 
   const load = useCallback(async () => {
@@ -155,6 +161,7 @@ function ResidentBelongings({ resident, catalogs }) {
   }, [load])
 
   const name = resident.personalInfo.fullName
+  const returnable = state.items.filter((b) => RETURNABLE.includes(b.status))
   return (
     <DetailLayout
       open={opened != null}
@@ -176,11 +183,18 @@ function ResidentBelongings({ resident, catalogs }) {
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="type-title">Đồ gửi của {name}</h2>
-            {can('BELONGINGS', 'CREATE') && (
-              <Button className="h-11" onClick={() => setIntake(true)}>
-                Tiếp nhận đồ
-              </Button>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {can('BELONGINGS', 'UPDATE') && returnable.length > 0 && (
+                <Button variant="outline" className="h-11" onClick={() => setReturning(true)}>
+                  Trả đồ
+                </Button>
+              )}
+              {can('BELONGINGS', 'CREATE') && (
+                <Button className="h-11" onClick={() => setIntake(true)}>
+                  Tiếp nhận đồ
+                </Button>
+              )}
+            </div>
           </div>
           <div role="status" className="type-body-sm text-success-foreground">
             {notice}
@@ -198,8 +212,29 @@ function ResidentBelongings({ resident, catalogs }) {
           {state.status === 'ready' && state.items.length > 0 && (
             <BelongingTable items={state.items} catalogs={catalogs} opened={opened} onOpen={setOpened} />
           )}
+          {state.status === 'ready' && (
+            <RecipientConfirmations residentId={resident.id} belongings={returnable} role={role} />
+          )}
         </CardContent>
       </Card>
+      <Sheet open={returning} onOpenChange={setReturning}>
+        <SheetContent className="overflow-y-auto p-6 sm:max-w-lg [&_[data-slot=sheet-title]]:pr-8">
+          <SheetHeader className="p-0">
+            <SheetTitle className="type-title">Trả đồ gửi</SheetTitle>
+            <SheetDescription>Của {name}</SheetDescription>
+          </SheetHeader>
+          <ReturnForm
+            belongings={returnable}
+            levels={catalogs.levels}
+            onDone={(message) => {
+              load()
+              if (!message) return
+              setReturning(false)
+              setNotice(message)
+            }}
+          />
+        </SheetContent>
+      </Sheet>
       <Sheet open={intake} onOpenChange={setIntake}>
         <SheetContent className="overflow-y-auto p-6 sm:max-w-lg [&_[data-slot=sheet-title]]:pr-8">
           <SheetHeader className="p-0">
@@ -229,7 +264,7 @@ const TABS = [
   { value: 'held', label: 'Nhân viên đang giữ' },
 ]
 
-export function BelongingsPage() {
+export function BelongingsPage({ role }) {
   const catalogs = useBelongingCatalogs()
   const [resident, setResident] = useState(null)
   const [tab, setTab] = useState('resident')
@@ -263,7 +298,7 @@ export function BelongingsPage() {
         </Card>
       )}
       {tab === 'resident' && resident && (
-        <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} />
+        <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} role={role} />
       )}
       {tab === 'held' && <HeldBelongings catalogs={catalogs} />}
     </div>
