@@ -13,6 +13,7 @@ import com.eldercare.backend.belongings.web.response.BelongingResponse;
 import com.eldercare.backend.belongings.web.response.EndingConditionResponse;
 import com.eldercare.backend.belongings.web.response.HandoverResponse;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -79,6 +80,20 @@ class BelongingController {
     }
 
     @PostMapping("/residents/{residentId}/belongings")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ResponseStatus(HttpStatus.CREATED)
     BelongingResponse intake(
             @PathVariable long residentId,
@@ -101,6 +116,20 @@ class BelongingController {
     }
 
     @PostMapping("/belongings/handovers")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(
+            responseCode = "422",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     HandoverResponse handover(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -116,6 +145,14 @@ class BelongingController {
 
     /** Liên kết sự cố ghi sau với bản ghi Báo thất lạc, Ghi hư hỏng; một lần (FR-021, FR-024). */
     @PostMapping("/belongings/handovers/{id}/link-incident")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     void linkIncident(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

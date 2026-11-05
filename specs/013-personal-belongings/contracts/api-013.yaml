@@ -292,7 +292,20 @@ components:
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, errorCode: { type: string }, unmetConditions: { type: array, items: { type: object } } }
+      description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-004, api-012 (khớp ProblemBody chung; đổi 2026-11-06 từ bản rút gọn, chờ A review).
+      required: [type, title, status, errorCode]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string, description: "BR/FR, ví dụ BR-M12-03" }, module: { type: string, description: "Feature sở hữu điều kiện, ví dụ 013" }, waivable: { type: boolean, description: "Miễn được qua yêu cầu phê duyệt (004)" } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành' }
+        candidates: { type: array, description: "POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM (001)", items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (FR-014)' }
     BelongingType:
       type: object
       required: [name]

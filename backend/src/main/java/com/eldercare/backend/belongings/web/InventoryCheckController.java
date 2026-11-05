@@ -3,6 +3,7 @@ package com.eldercare.backend.belongings.web;
 import com.eldercare.backend.belongings.internal.inventorycheck.service.InventoryCheckService;
 import com.eldercare.backend.belongings.web.request.InventoryCheckRequests;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,6 +39,13 @@ class InventoryCheckController {
     }
 
     @PostMapping("/belonging-inventory-checks")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     InventoryCheckService.CheckView create(
@@ -56,6 +64,13 @@ class InventoryCheckController {
     }
 
     @PostMapping("/belonging-inventory-checks/{id}/{command}")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     InventoryCheckService.CheckView command(
             @PathVariable long id,

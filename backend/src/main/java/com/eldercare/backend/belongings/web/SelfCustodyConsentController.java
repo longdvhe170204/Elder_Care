@@ -4,7 +4,9 @@ import com.eldercare.backend.belongings.internal.consent.service.SelfCustodyCons
 import com.eldercare.backend.belongings.web.request.SelfCustodyConsentRequests;
 import com.eldercare.backend.belongings.web.response.IdResponse;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
@@ -33,6 +35,13 @@ class SelfCustodyConsentController {
     }
 
     @PostMapping("/self-custody-consents")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse record(
@@ -46,6 +55,14 @@ class SelfCustodyConsentController {
     }
 
     @PostMapping("/self-custody-consents/{id}/withdraw")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     void withdraw(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -57,6 +74,20 @@ class SelfCustodyConsentController {
     }
 
     @PostMapping("/family-portal/self-custody-consents")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse recordOnPortal(
@@ -69,6 +100,14 @@ class SelfCustodyConsentController {
     }
 
     @PostMapping("/family-portal/self-custody-consents/{id}/withdraw")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     void withdrawOnPortal(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
