@@ -1,6 +1,7 @@
 package com.eldercare.backend.incident.internal.incident.persistence;
 
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
+import com.eldercare.backend.incident.internal.incident.domain.IncidentEscalationState;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentView;
 import com.eldercare.backend.incident.internal.incident.domain.NewIncident;
@@ -162,6 +163,66 @@ public class IncidentStore {
         if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
     }
 
+    /** Sự cố Mới quá hạn tiếp nhận, chưa dừng leo thang (FR-044, research S-11, S-21). */
+    public List<Long> dueForEscalation(Instant now, int limit) {
+        return jdbc.queryForList("""
+                SELECT id FROM incident
+                WHERE status = 'NEW' AND escalation_stopped = FALSE
+                  AND acknowledgement_deadline IS NOT NULL AND acknowledgement_deadline <= ?
+                ORDER BY acknowledgement_deadline, id LIMIT ?
+                """, Long.class, Timestamp.from(now), limit);
+    }
+
+    public Optional<IncidentEscalationState> lockForEscalation(long id) {
+        return jdbc.query(
+                """
+                SELECT id, resident_id, floor_area_id, status, level, escalation_level, acknowledgement_deadline,
+                  max_escalation_at, max_reminder_count, escalation_stopped, version
+                FROM incident WHERE id = ? FOR UPDATE
+                """,
+                rs -> rs.next()
+                        ? Optional.of(new IncidentEscalationState(
+                                rs.getLong("id"),
+                                (Long) rs.getObject("resident_id"),
+                                (Long) rs.getObject("floor_area_id"),
+                                rs.getString("status"),
+                                IncidentLevel.valueOf(rs.getString("level")),
+                                rs.getInt("escalation_level"),
+                                instant(rs.getTimestamp("acknowledgement_deadline")),
+                                instant(rs.getTimestamp("max_escalation_at")),
+                                rs.getInt("max_reminder_count"),
+                                rs.getBoolean("escalation_stopped"),
+                                rs.getInt("version")))
+                        : Optional.empty(),
+                id);
+    }
+
+    /** Lên một cấp, trạng thái giữ Mới (FR-044). */
+    public void escalate(long id, int level, Instant deadline, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET escalation_level = ?, acknowledgement_deadline = ?, version = version + 1
+                WHERE id = ? AND status = 'NEW' AND version = ?
+                """, level, timestamp(deadline), id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
+    /** Cấp 2 vẫn quá hạn: dấu "đã leo thang tối đa", lần nhắc đầu tới hạn ở {@code nextDeadline} (FR-034). */
+    public void reachMaximum(long id, Instant maximumAt, Instant nextDeadline, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET max_escalation_at = ?, acknowledgement_deadline = ?, version = version + 1
+                WHERE id = ? AND status = 'NEW' AND version = ?
+                """, Timestamp.from(maximumAt), timestamp(nextDeadline), id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
+    public void reminded(long id, int count, Instant nextDeadline, int expectedVersion) {
+        int changed = jdbc.update("""
+                UPDATE incident SET max_reminder_count = ?, acknowledgement_deadline = ?, version = version + 1
+                WHERE id = ? AND status = 'NEW' AND version = ?
+                """, count, timestamp(nextDeadline), id, expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
     /** Đóng sự cố: kết quả bắt buộc, dừng leo thang và nhắc (bảng FR-045, BR-M05-09). */
     public void close(
             long id, String resolution, String infectionResult, long closedBy, Instant at, int expectedVersion) {
@@ -212,6 +273,11 @@ public class IncidentStore {
                 WHERE id=? AND version=?
                 """, level.name(), wasEmergency, id, expectedVersion);
         if (changed != 1) throw new IllegalStateException("Sự cố đã thay đổi đồng thời");
+    }
+
+    /** FR-047b: lúc kích hoạt khẩn cấp không có Bác sĩ trực; dòng đã khóa bởi lệnh đang chạy. */
+    public void markNoOnDutyDoctor(long id) {
+        jdbc.update("UPDATE incident SET no_on_duty_doctor = TRUE, version = version + 1 WHERE id = ?", id);
     }
 
     public Optional<IncidentView> view(long id) {

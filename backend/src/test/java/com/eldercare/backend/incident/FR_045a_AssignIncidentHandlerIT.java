@@ -28,7 +28,8 @@ class FR_045a_AssignIncidentHandlerIT extends IncidentHttpTestBase {
     void FR_045a_floorManagerAssignsNewIncidentToNurseInScope() throws Exception {
         long incident = incident("FALL", "MEDIUM", "NEW", null, TestUsers.nextId());
 
-        assignHandler(floorManager, incident, nurse.accountId(), "Theo dõi ngay").andExpect(status().isOk());
+        assignHandler(floorManager, incident, nurse.accountId(), "Theo dõi ngay")
+                .andExpect(status().isOk());
 
         var row = jdbc.queryForMap(
                 "SELECT status, assignee_id, received_by, escalation_stopped FROM incident WHERE id = ?", incident);
@@ -41,12 +42,10 @@ class FR_045a_AssignIncidentHandlerIT extends IncidentHttpTestBase {
                         Integer.class,
                         incident))
                 .isEqualTo(1);
-        assertThat(events.stream(IncidentAssigned.class))
-                .singleElement()
-                .satisfies(event -> {
-                    assertThat(event.incidentId()).isEqualTo(incident);
-                    assertThat(event.level()).isEqualTo("MEDIUM");
-                });
+        assertThat(events.stream(IncidentAssigned.class)).singleElement().satisfies(event -> {
+            assertThat(event.incidentId()).isEqualTo(incident);
+            assertThat(event.level()).isEqualTo("MEDIUM");
+        });
     }
 
     @Test
@@ -130,20 +129,11 @@ class FR_045a_AssignIncidentHandlerIT extends IncidentHttpTestBase {
         long id = TestUsers.nextId();
         long type = typeId("FACILITY");
         var at = Timestamp.from(time.now());
-        jdbc.update(
-                """
+        jdbc.update("""
                 INSERT INTO incident (id, incident_type_id, current_type_id, type_code, discovered_at, floor_area_id,
                   description, initial_level, level, recorded_by, created_at, confirmed_at)
                 VALUES (?, ?, ?, 'FACILITY', ?, ?, 'Vỡ ống nước', 'LOW', 'LOW', ?, ?, ?)
-                """,
-                id,
-                type,
-                type,
-                at,
-                floor,
-                TestUsers.nextId(),
-                at,
-                at);
+                """, id, type, type, at, floor, TestUsers.nextId(), at, at);
         return id;
     }
 }

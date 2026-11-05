@@ -1,6 +1,7 @@
 package com.eldercare.backend.incident.web.response;
 
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
+import com.eldercare.backend.incident.internal.emergency.domain.EmergencyCard;
 import com.eldercare.backend.incident.web.request.RecordIncidentRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
@@ -9,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Kết quả ghi nhận hoặc kích hoạt, schema {@code ActivationResult} của api-007. Thẻ khẩn cấp (mục G) chưa dựng ở lát
- * này nên {@code emergencyCard} trống.
+ * Kết quả ghi nhận hoặc kích hoạt, schema {@code ActivationResult} của api-007. {@code emergencyCard} có khi sự cố ở mức
+ * Khẩn cấp (FR-047 b), lọc theo quyền xem sức khỏe của người ghi (FR-048).
  */
 public record ActivationResultResponse(
         ActivationIncident incident,
@@ -56,7 +57,27 @@ public record ActivationResultResponse(
             String careNotes,
             EmergencyCardPrimaryContact primaryContact,
             List<String> unavailable,
-            Instant snapshotAt) {}
+            Instant snapshotAt) {
+
+        public static ActivationEmergencyCard of(EmergencyCard card) {
+            var id = card.identification();
+            var contact = card.primaryContact();
+            return new ActivationEmergencyCard(
+                    id == null
+                            ? null
+                            : new EmergencyCardIdentification(
+                                    id.fullName(), id.photo(), id.dateOfBirth(), id.roomBed()),
+                    card.endOfLifeWish(),
+                    card.criticalFlag(),
+                    card.allergies(),
+                    card.currentMedications(),
+                    card.chronicConditions(),
+                    card.careNotes(),
+                    contact == null ? null : new EmergencyCardPrimaryContact(contact.fullName(), contact.phoneNumber()),
+                    card.unavailable(),
+                    card.snapshotAt());
+        }
+    }
 
     public record EmergencyCardIdentification(String fullName, String photo, LocalDate dateOfBirth, String roomBed) {}
 

@@ -142,6 +142,7 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 | --- | --- | --- |
 | `CanhBaoDaTao`, `CanhBaoDaNangMuc` (mức, nhóm người nhận, `khongCoBacSiTruc`) | 009 | FR-035, FR-047a, FR-047b |
 | `CanhBaoDaLeoThang(canhBaoId, capMoi, nhom[] khongThay)`; `NhacLeoThangToiDa(canhBaoId, soThuTu)` | 009 (Trung bình) | FR-033, FR-034 |
+| *(bổ sung 2026-11-04, D, T035)* `IncidentEscalated(incidentId, escalationLevel, eventKey, occurredAt, notificationRequests)`; `IncidentMaximumEscalationReminder(incidentId, sequence, …)`: leo thang sự cố cùng chuỗi cảnh báo, sự cố giữ Mới | 009 (Trung bình; nhận qua `HasNotificationRequests`, không cần listener riêng) | FR-044 |
 | `CanhBaoLapLai(canhBaoId, soLan)` | 009 | FR-038a |
 | `NguonCanhBaoDaDinhChinh(canhBaoId)`; `NguoiPhuTrachDaDoi(loai, id, nguoiMoi)` | 009 (Nhẹ) | FR-019, FR-037 |
 | `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` so với hợp đồng 001; plan, mục Đồng bộ 1) | 001, 012, 016 | FR-043 (b) |

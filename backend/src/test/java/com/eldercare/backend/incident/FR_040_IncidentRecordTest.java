@@ -116,8 +116,7 @@ class FR_040_IncidentRecordTest {
         var fall = mock(ParameterValue.class);
         when(fall.asTable(FallMonitoringSetting.class))
                 .thenReturn(new FallMonitoringSetting(
-                        new FallMonitoringSetting.Amount(4, "HOURS"),
-                        new FallMonitoringSetting.Amount(72, "HOURS")));
+                        new FallMonitoringSetting.Amount(4, "HOURS"), new FallMonitoringSetting.Amount(72, "HOURS")));
         when(parameters.read(ParameterCode.CFG_M05_06)).thenReturn(fall);
         when(incidents.insert(any())).thenReturn(41L);
         when(incidents.openEmergency(RESIDENT)).thenReturn(Optional.empty());

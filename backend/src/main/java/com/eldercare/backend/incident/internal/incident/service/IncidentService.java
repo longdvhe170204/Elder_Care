@@ -25,6 +25,7 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.CallReminderStopRequested;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
+import com.eldercare.backend.incident.internal.incident.domain.EmergencyActivationRequested;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import java.util.List;
@@ -147,6 +148,10 @@ public class IncidentService {
                 .build());
         if (loweringCritical) {
             events.publishEvent(new CallReminderStopRequested("M05.INCIDENT", incidentId));
+        }
+        if (newLevel == IncidentLevel.CRITICAL && incident.residentId() != null) {
+            events.publishEvent(new EmergencyActivationRequested(
+                    incidentId, incident.residentId(), incident.floorAreaId(), null, user.accountId(), time.now()));
         }
     }
 }

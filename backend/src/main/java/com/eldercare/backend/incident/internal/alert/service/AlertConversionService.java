@@ -14,6 +14,7 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
+import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import com.eldercare.backend.incident.internal.incident.service.IncidentRecordService;
 import java.util.List;
@@ -31,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AlertConversionService {
     private static final Set<Role> ROLES = Set.of(Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.DOCTOR);
+    private static final Set<AlertStatus> ACTIVATABLE =
+            Set.of(AlertStatus.NEW, AlertStatus.ESCALATED, AlertStatus.RECEIVED);
 
     private final AlertHandlingService handling;
     private final AlertStore alerts;
@@ -102,6 +105,77 @@ public class AlertConversionService {
                 .resident(alert.residentId())
                 .before(Map.of("status", alert.status().name()))
                 .after(Map.of("status", AlertStatus.CONVERTED_TO_INCIDENT.name(), "incidentId", incidentId))
+                .build());
+        return incidentId;
+    }
+
+    /**
+     * Lệnh "Kích hoạt khẩn cấp từ cảnh báo" (bảng FR-029; FR-047, FR-047a): từ Mới, Leo thang, Đã tiếp nhận; cùng một
+     * lệnh ghi lần lượt Tiếp nhận, Bắt đầu xử lý, Chuyển sự cố với người thực hiện là người xử lý; sự cố tạo ở mức Khẩn
+     * cấp nên quy trình khẩn cấp chạy trong lệnh ghi nhận. Cảnh báo chưa gắn người cao tuổi bắt buộc chọn (FR-047i).
+     *
+     * @return mã sự cố vừa tạo.
+     */
+    @Transactional
+    public long activateEmergency(
+            long alertId,
+            Long incidentTypeId,
+            String description,
+            String initialResponse,
+            Long residentId,
+            CurrentUser user) {
+        var alert = handling.lockForHandler(alertId, user);
+        if (ROLES.stream().noneMatch(user.roles()::contains)) {
+            throw new PermissionDeniedException("Vai trò không được kích hoạt khẩn cấp từ cảnh báo");
+        }
+        if (!ACTIVATABLE.contains(alert.status())) {
+            throw blocked("FR-029", "Chỉ kích hoạt khẩn cấp từ cảnh báo Mới, Leo thang hoặc Đã tiếp nhận");
+        }
+        Long resident = alert.residentId() != null ? alert.residentId() : residentId;
+        if (resident == null) throw new InvalidValueException("RESIDENT_REQUIRED: cảnh báo chưa gắn người cao tuổi");
+        if (incidentTypeId == null) throw new InvalidValueException("Thiếu loại sự cố");
+        var now = time.now();
+        int version = alert.version();
+        if (alert.status() != AlertStatus.RECEIVED) {
+            alerts.receive(alertId, user.accountId(), now, alert.level(), version++);
+            history.add(alertId, "RECEIVED", Map.of("by", user.accountId()), now);
+        }
+        alerts.startHandling(alertId, user.accountId(), version++);
+        history.add(alertId, "HANDLING_STARTED", Map.of("by", user.accountId()), now);
+        String text = description != null && !description.isBlank() ? description : alert.description();
+        long incidentId = incidents
+                .record(
+                        new RecordIncidentCommand(
+                                resident,
+                                incidentTypeId,
+                                null,
+                                alert.firstAt(),
+                                alert.firstAt(),
+                                alert.floorAreaId(),
+                                null,
+                                null,
+                                text,
+                                IncidentLevel.CRITICAL.name(),
+                                null,
+                                initialResponse,
+                                false),
+                        user,
+                        alertId)
+                .incidentId();
+        alerts.convert(alertId, incidentId, version);
+        history.add(alertId, "CONVERTED_TO_INCIDENT", Map.of("by", user.accountId(), "incidentId", incidentId), now);
+        audit.write(AuditLogEntry.builder()
+                .action(CONVERTED)
+                .entity(AlertNotices.SOURCE_TYPE, alertId)
+                .resident(alert.residentId())
+                .before(Map.of("status", alert.status().name()))
+                .after(Map.of(
+                        "status",
+                        AlertStatus.CONVERTED_TO_INCIDENT.name(),
+                        "incidentId",
+                        incidentId,
+                        "emergency",
+                        true))
                 .build());
         return incidentId;
     }

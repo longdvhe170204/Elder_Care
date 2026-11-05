@@ -285,6 +285,14 @@ public class AlertStore {
                 """, assigneeId, id, expectedVersion));
     }
 
+    /** Gắn dấu nguy kịch vào cảnh báo vừa tạo cho dấu đó, cùng lệnh ghi dấu (FR-050b, DBR-34). */
+    public void linkCriticalFlag(long id, long criticalFlagId) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET critical_flag_id = ?, version = version + 1
+                WHERE id = ? AND critical_flag_id IS NULL
+                """, criticalFlagId, id));
+    }
+
     /** Cảnh báo đang mở của các người cao tuổi (đọc cho 005, 008). */
     public List<AlertRecord> openByResidents(java.util.Collection<Long> residentIds) {
         if (residentIds.isEmpty()) return List.of();
