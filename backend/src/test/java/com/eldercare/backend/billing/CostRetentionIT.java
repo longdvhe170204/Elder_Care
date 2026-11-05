@@ -240,6 +240,31 @@ class CostRetentionIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void FR_051_batchDeletionPreservesTheCallersChildBeforeOriginalOrder() {
+        long resident = person(ResidentStatus.RESIDENCY_ENDED, OLD);
+        long originalPeriod = period(OLD), adjustmentPeriod = period(OLD);
+        long originalStatement = statement(originalPeriod, resident);
+        long adjustmentStatement = statement(adjustmentPeriod, resident);
+        long original = item(originalPeriod, originalStatement, resident);
+        long correction = adjustment(adjustmentPeriod, adjustmentStatement, resident, original, originalPeriod);
+        long unrelated = item(adjustmentPeriod, adjustmentStatement, resident);
+        database.transaction()
+                .executeWithoutResult(
+                        status -> provider("M11.COST_ITEM").delete(List.of(correction, original, correction)));
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM cost_item WHERE id IN (?,?)", Integer.class, original, correction))
+                .isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_item WHERE id=?", Integer.class, unrelated))
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM cost_statement WHERE id IN (?,?)",
+                        Integer.class,
+                        originalStatement,
+                        adjustmentStatement))
+                .isEqualTo(2);
+    }
+
+    @Test
     void FR_051_periodAndStatementKindsAreNeverInterchangeable() {
         long resident = person(ResidentStatus.IN_RESIDENCE, null), p = period(OLD), s = statement(p, resident);
         database.transaction().executeWithoutResult(tx -> {
