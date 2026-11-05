@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 6.8.4
+version: 6.8.5
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-11-05
@@ -719,7 +719,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 - "Hoạt động": mỗi buổi một thẻ, giờ, nơi; nhãn "Đã có tên" (`settled`) hoặc "Chưa có tên" (`neutral`). Không có nút đăng ký (012 FR-084).
 - "Người đến thăm": ngày, giờ, họ tên người thăm.
 - "Đồ của tôi": ảnh lớn, tên đồ, trạng thái.
-- "Góp ý với viện": bước 1 chọn một trong bốn nút, tên theo loại của 14.7, dưới mỗi tên một dòng giải thích ("Góp ý": muốn viện làm tốt hơn; "Hỏi đáp": muốn hỏi một việc; "Khiếu nại": có việc không đúng; "Mong muốn": điều mình muốn); "Mong muốn" hỏi thêm "Về người đến thăm, người đón tôi" hay "Việc khác" (chủ đề, 012 FR-058b); bước 2 ô viết hoặc nói (nhập giọng nói của máy); nút "Gửi tới viện". Danh sách góp ý đã gửi hiện trạng thái và trả lời; trả lời về sức khỏe chỉ phần chung (012 FR-058a).
+- "Góp ý với viện": bước 1 chọn một trong bốn nút, tên theo loại của 14.7, dưới mỗi tên một dòng giải thích ("Góp ý": muốn viện làm tốt hơn; "Hỏi đáp": muốn hỏi một việc; "Khiếu nại": có việc không đúng; "Mong muốn": điều mình muốn); "Mong muốn" hỏi thêm "Về người đến thăm, người đón tôi" hay "Việc khác" (chủ đề, 012 FR-058b); ba loại còn lại hỏi thêm "Về việc gì?" với năm nút theo nhóm nội dung "Chăm sóc, sinh hoạt", "Sức khỏe, thuốc", "Ăn uống", "Chi phí, hợp đồng", "Việc khác" (012 FR-058 bắt buộc nhóm, FR-059 dựa vào nhóm để chọn người phụ trách); bước 2 ô viết hoặc nói (nhập giọng nói của máy); nút "Gửi tới viện". Danh sách góp ý đã gửi hiện trạng thái và trả lời; trả lời về sức khỏe chỉ phần chung (012 FR-058a).
 
 **Thông báo**: chỉ nhắc mức Nhẹ (lượt thăm, hoạt động trong ngày, góp ý đã được trả lời; 009 FR-022a); chữ thông báo nói rõ việc ("15:00 hôm nay [Họ tên người thân] đến thăm"), bấm vào mở đúng màn.
 
@@ -738,6 +738,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.8.5 | 2026-11-05 | Chủ dự án duyệt bước "Về việc gì?" (năm nhóm nội dung) ở màn "Góp ý với viện" của app người cao tuổi cho loại Góp ý, Hỏi đáp, Khiếu nại (mục 15.6; 012 T070, FR-058, FR-059). Không thêm màu |
 | 6.8.4 | 2026-11-05 | Chủ dự án duyệt bố cục phản hồi của người cao tuổi trên màn Phản hồi (012 T072; mục 14) và sáu nút "Đang ở đâu?" sau khi gửi SOS theo nơi của 007 (mục 15.6, Q-373). Không thêm màu |
 | 6.8.3 | 2026-11-05 | Chủ dự án duyệt bố cục màn Phản hồi (012 T030; mục 14): bảng và khung chi tiết của nhân viên, cổng và app người thân cùng thứ tự, cùng tiêu đề "Gửi phản hồi về <họ tên>"; quá hạn lên đầu, nhãn giữ trạng thái kèm "quá hạn". Hai điểm hoãn ghi ở mục 14. Không thêm màu, không thêm quy định |
 | 6.8.2 | 2026-11-05 | Mục 3.5 thêm trạng thái bản ghi đón (012 T021): Đã dùng tông `settled`, Chưa dùng và Không dùng tông `neutral`; khung cổng người thân có link "Bỏ qua menu" và bọc `SessionGuard` khi có phiên thật (mục 9.3, 14). Không thêm màu |

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../common/auth/session_controller.dart';
 import '../../common/widgets/page_body.dart';
+import '../sos/sos_button.dart';
 
 /// Hỏi một lần sau lần đăng nhập đầu (002 FR-074; DESIGN.md 15.6). Không có mã PIN.
 class BiometricOfferScreen extends StatelessWidget {
@@ -64,6 +65,8 @@ class LockedScreen extends StatelessWidget {
           ),
         ),
       ),
+      // Nút SOS hiện cả khi màn xem đang khóa, trên máy đã gắn (012 FR-085, 002 FR-074)
+      bottomNavigationBar: session.boundToResident ? SosButton(api: session.api, store: session.store) : null,
     );
   }
 }
