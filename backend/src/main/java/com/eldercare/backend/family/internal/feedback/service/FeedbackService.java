@@ -115,7 +115,10 @@ public class FeedbackService {
             String familyMemberName,
             List<String> allowedCommands) {}
 
-    /** Người nhận giao lại được (FR-060): tài khoản, họ tên, vai trò Trưởng tầng, Điều dưỡng hoặc Hành chính. */
+    /**
+     * Người nhận giao lại được (FR-060): tài khoản, họ tên ({@code null} khi chưa có hồ sơ nhân viên, như
+     * {@code AccountApi.fullName}), vai trò Trưởng tầng, Điều dưỡng hoặc Hành chính.
+     */
     public record AssignableView(long accountId, String fullName, Role role) {}
 
     private final FeedbackStore store;
@@ -525,9 +528,13 @@ public class FeedbackService {
                 allowedCommands(f, user));
     }
 
+    /** Họ tên người phụ trách; chưa ai nhận hoặc tài khoản chưa có hồ sơ nhân viên thì tên vai trò của nhóm. */
     private String assigneeName(Feedback f) {
         if (f.assigneeAccountId() != null) {
-            return accounts.fullName(f.assigneeAccountId()).orElse("");
+            Optional<String> name = accounts.fullName(f.assigneeAccountId());
+            if (name.isPresent()) {
+                return name.get();
+            }
         }
         return switch (f.assigneeRole()) {
             case FLOOR_MANAGER -> "Trưởng tầng";
@@ -649,7 +656,10 @@ public class FeedbackService {
         Feedback f = store.require(id);
         authorizeHandling(user, f);
         return assignable(f).stream()
-                .sorted(java.util.Comparator.comparing(AssignableView::role).thenComparing(AssignableView::fullName))
+                .sorted(java.util.Comparator.comparing(AssignableView::role)
+                        .thenComparing(
+                                AssignableView::fullName,
+                                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
                 .toList();
     }
 
@@ -660,7 +670,7 @@ public class FeedbackService {
                     .flatMap(
                             a -> ASSIGNABLE.stream().filter(a.roles()::contains).findFirst())
                     .ifPresent(role -> result.add(new AssignableView(
-                            accountId, accounts.fullName(accountId).orElse(""), role)));
+                            accountId, accounts.fullName(accountId).orElse(null), role)));
         }
         return result;
     }

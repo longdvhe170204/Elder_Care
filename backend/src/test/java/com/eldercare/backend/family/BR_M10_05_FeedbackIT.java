@@ -378,7 +378,10 @@ class BR_M10_05_FeedbackIT extends FeedbackTestBase {
         assertThat(commands(family(mMember), id)).isEmpty();
 
         String tt = staff(floorManager);
-        feedbackCommand(tt, id, "start-handling", "{}").andExpect(status().isOk());
+        // Tài khoản chưa có hồ sơ nhân viên (không có họ tên): người phụ trách hiện theo vai trò, không rỗng
+        feedbackCommand(tt, id, "start-handling", "{}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assignee").value("Trưởng tầng"));
         feedbackCommand(tt, id, "reply", reply())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("REPLIED"))
