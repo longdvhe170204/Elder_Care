@@ -141,7 +141,28 @@ class RequiresPermissionArchTest {
                     "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi) kèm lý do; 012 FR-058b, FR-066"),
             Map.entry(
                     "com.eldercare.backend.family.internal.feedback.service.FeedbackService.linkOpinion",
-                    "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi); 012 BR-M10-12"));
+                    "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi); 012 BR-M10-12"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.register",
+                    "(FAMILY_STAY, CREATE) theo người cao tuổi, chỉ Hành chính; 012 FR-040, Phụ lục 27 chú thích 20"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.confirm",
+                    "(FAMILY_STAY, VIEW) rồi Trưởng tầng được giao của tầng, tầng không có thì Quản lý viện; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.reject",
+                    "(FAMILY_STAY, VIEW) rồi Trưởng tầng được giao của tầng, tầng không có thì Quản lý viện, kèm lý do"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.start",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, Hành chính hoặc Trưởng tầng; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.cancel",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, chỉ Hành chính, kèm lý do; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.extend",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, chỉ Hành chính, kèm lý do; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.end",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, Hành chính hoặc Trưởng tầng; 012 FR-045"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho
