@@ -2,14 +2,19 @@ package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.medication.api.dto.AdministerDoseRequest;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.dose.domain.DoseDetailView;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResultType;
 import com.eldercare.backend.medication.internal.dose.domain.DoseReview;
@@ -57,6 +62,21 @@ class BR_M07_20_TwoOfflineCopiesTest {
         verifyNoInteractions(fixture.events);
     }
 
+    @Test
+    void FR_029_offlineDoseIsRecordedByTheSyncingAccountNotByContent() {
+        Fixture fixture = fixture(null);
+        DoseDetailView view = mock(DoseDetailView.class);
+        when(view.doseId()).thenReturn(101L);
+        when(fixture.administration.administerDose(any(), any(), any(), any(), any()))
+                .thenReturn(view);
+
+        String source = fixture.handler.apply(content(DoseResultType.ADMINISTERED), null, fixture.now);
+
+        assertThat(source).isEqualTo("dose:101");
+        verify(fixture.administration)
+                .administerDose(eq("10-202610280800"), any(AdministerDoseRequest.class), eq(88L), isNull(), any());
+    }
+
     private static Fixture fixture(DoseResultType existingType) {
         Instant now = Instant.parse("2026-10-28T01:15:00Z");
         DoseAdministrationService administration = mock(DoseAdministrationService.class);
@@ -72,7 +92,7 @@ class BR_M07_20_TwoOfflineCopiesTest {
         when(existing.getId()).thenReturn(501L);
         when(existing.getResultType()).thenReturn(existingType);
         DoseResultRepository results = mock(DoseResultRepository.class);
-        when(results.findByDoseId(101L)).thenReturn(Optional.of(existing));
+        when(results.findByDoseId(101L)).thenReturn(existingType == null ? Optional.empty() : Optional.of(existing));
         DoseReviewRepository reviews = mock(DoseReviewRepository.class);
         when(reviews.save(any(DoseReview.class))).thenAnswer(invocation -> {
             DoseReview review = invocation.getArgument(0);
@@ -82,6 +102,8 @@ class BR_M07_20_TwoOfflineCopiesTest {
         ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
         BusinessTime time = mock(BusinessTime.class);
         when(time.now()).thenReturn(now);
+        CurrentUser user = mock(CurrentUser.class);
+        when(user.accountId()).thenReturn(88L);
         DoseResultOfflineHandler handler = new DoseResultOfflineHandler(
                 administration,
                 doses,
@@ -90,21 +112,14 @@ class BR_M07_20_TwoOfflineCopiesTest {
                 mock(PrescriptionRepository.class),
                 mock(MedicationRepository.class),
                 events,
-                time);
-        return new Fixture(handler, reviews, events, now);
+                time,
+                user);
+        return new Fixture(handler, administration, reviews, events, now);
     }
 
     private static DoseResultOfflineContent content(DoseResultType resultType) {
         return new DoseResultOfflineContent(
-                "10-202610280800",
-                201L,
-                resultType,
-                Instant.parse("2026-10-28T01:05:00Z"),
-                null,
-                null,
-                null,
-                null,
-                77L);
+                "10-202610280800", 201L, resultType, Instant.parse("2026-10-28T01:05:00Z"), null, null, null, null);
     }
 
     private static void setId(Object entity, long id) {
@@ -119,6 +134,7 @@ class BR_M07_20_TwoOfflineCopiesTest {
 
     private record Fixture(
             DoseResultOfflineHandler handler,
+            DoseAdministrationService administration,
             DoseReviewRepository reviews,
             ApplicationEventPublisher events,
             Instant now) {}
