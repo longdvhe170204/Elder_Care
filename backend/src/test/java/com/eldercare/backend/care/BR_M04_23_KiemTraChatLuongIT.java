@@ -146,6 +146,16 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
         long item = item(task);
         result(item, "{\"result\":\"PASS\"}").andExpect(status().isOk());
         assertThat(itemStatus(item)).isEqualTo("PASS");
+        // FR-069, DBR-23: lệnh ghi nhật ký với người thực hiện, thời điểm, lý do.
+        assertThat(jdbc.queryForMap(
+                        "SELECT actor_id,reason,occurred_at FROM audit_log WHERE action=? AND entity_type=? AND entity_id=?"
+                                + " ORDER BY id DESC LIMIT 1",
+                        "QUALITY_CHECK_RESULT_RECORDED",
+                        "M04.QUALITY_CHECK_ITEM",
+                        Long.toString(item)))
+                .containsEntry("actor_id", baseManager.accountId())
+                .containsEntry("reason", null)
+                .containsKey("occurred_at");
         assertThat(jdbc.queryForObject(
                         "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.inspectorRole')) FROM record_event WHERE id=?",
                         String.class,

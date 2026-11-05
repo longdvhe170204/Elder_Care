@@ -161,6 +161,16 @@ class FR_051_SoThichIT extends StatusTestBase {
         mvc.perform(write(post("/api/v1/preferences/" + p + "/remove"), "{\"reason\":\"Ghi nhầm người\"}"))
                 .andExpect(status().isOk());
         assertThat(recordStatus(p)).isEqualTo("REMOVED");
+        // FR-069, DBR-23: lệnh ghi nhật ký với người thực hiện, thời điểm, lý do.
+        assertThat(jdbc.queryForMap(
+                        "SELECT actor_id,reason,occurred_at FROM audit_log WHERE action=? AND entity_type=? AND entity_id=?"
+                                + " ORDER BY id DESC LIMIT 1",
+                        "PREFERENCE_REMOVED",
+                        "M04.PREFERENCE",
+                        Long.toString(p)))
+                .containsEntry("actor_id", manager.accountId())
+                .containsEntry("reason", "Ghi nhầm người")
+                .containsKey("occurred_at");
         assertThat(jdbc.queryForObject(
                         "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.endReason')) FROM simple_record WHERE id=?",
                         String.class,
