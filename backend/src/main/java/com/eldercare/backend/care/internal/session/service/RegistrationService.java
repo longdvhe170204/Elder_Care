@@ -41,6 +41,7 @@ public class RegistrationService {
     private final AuditLogApi audit;
     private final BusinessTime time;
     private final JsonMapper json;
+    private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
 
     public RegistrationService(
             ActivitySessionStore store,
@@ -49,7 +50,8 @@ public class RegistrationService {
             CurrentUser user,
             AuditLogApi audit,
             BusinessTime time,
-            JsonMapper json) {
+            JsonMapper json,
+            com.eldercare.backend.care.internal.trip.service.TripLifecycle trips) {
         this.store = store;
         this.records = records;
         this.eligibility = eligibility;
@@ -57,6 +59,7 @@ public class RegistrationService {
         this.audit = audit;
         this.time = time;
         this.json = json;
+        this.trips = trips;
     }
 
     public Target target(long sessionId, Long residentId) {
@@ -106,6 +109,7 @@ public class RegistrationService {
             throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Người cao tuổi đã đăng ký buổi này");
         }
         log(id, "REGISTRATION_CREATED", Map.of("sessionId", sessionId, "residentId", residentId), null);
+        trips.registrationChanged(sessionId, residentId, false);
         return id;
     }
 
@@ -114,13 +118,20 @@ public class RegistrationService {
     @BusinessCommand
     @Transactional
     public void cancel(Target target, long registrationId, Reason reason) {
+        long sessionId = store.findRegistration(registrationId)
+                .orElseThrow(NotFoundException::new)
+                .sessionId();
+        // Cùng thứ tự khóa với đăng ký và rời viện (buổi rồi đăng ký) để hai lệnh không chờ vòng nhau.
+        var session = store.lock(sessionId);
         var r = store.lockRegistration(registrationId);
-        var session = store.lock(r.sessionId());
         if (!Registration.REGISTERED.equals(r.status()) || !Session.SCHEDULED.equals(session.status()))
             throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Đăng ký không còn ở Đã đăng ký");
-        if (!session.startsAt().isAfter(time.now()))
+        if (session.tripStatus() != null && !"SCHEDULED".equals(session.tripStatus()))
+            throw new BusinessException(HttpStatus.CONFLICT, "SESSION_ALREADY_STARTED", "Chuyến đã có người rời viện");
+        if (session.tripStatus() == null && !session.startsAt().isAfter(time.now()))
             throw new BusinessException(HttpStatus.CONFLICT, "SESSION_ALREADY_STARTED", "Buổi đã bắt đầu");
         store.cancelRegistration(registrationId, null, reason.value());
+        trips.registrationChanged(r.sessionId(), r.residentId(), true);
         log(registrationId, "REGISTRATION_CANCELLED", Map.of("status", Registration.CANCELLED), reason);
     }
 

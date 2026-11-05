@@ -13,11 +13,13 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { formatDate, formatDateTime } from '@/common/dateTime'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
+import { TripDetail } from './TripDetail'
 import { ActivitySessionDetail } from './ActivitySessionDetail'
 import { CreateFromTemplateSheet, CreateSingleSheet } from './ActivitySessionForms'
-import { SESSION_STATUS, addDays, countByStatus, todayInVietnam, weekOf } from './sessionView'
+import { SESSION_STATUS, TRIP_STATUS, addDays, todayInVietnam, weekOf } from './sessionView'
 
-const FILTERS = [['ALL', 'Tất cả'], ...Object.entries(SESSION_STATUS)]
+const ALL_STATUS = { ...SESSION_STATUS, ...TRIP_STATUS }
+const FILTERS = [['ALL', 'Tất cả'], ...Object.entries(ALL_STATUS)]
 
 // 014 T009 (FR-006 → FR-014a; bố cục duyệt 2026-11-05): buổi trong tuần của tầng, khung chi tiết có Dời buổi, Hủy
 // buổi; nút chính Tạo buổi từ mẫu, nút phụ Tạo buổi lẻ. Không tự tạo buổi (Q-306).
@@ -78,7 +80,9 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
   const names = new Map(activities.map((a) => [a.id, a.name]))
   const nameOf = (id) => names.get(id) ?? `Hoạt động ${id}`
   const rows = current?.rows ?? []
-  const counts = countByStatus(rows)
+  const counts = Object.fromEntries(
+    FILTERS.map(([code]) => [code, code === 'ALL' ? rows.length : rows.filter((row) => row.status === code).length]),
+  )
   const visible = filter === 'ALL' ? rows : rows.filter((s) => s.status === filter)
   const selected = rows.find((s) => s.id === selectedId)
   const activeOptions = activities.filter((a) => a.status === 'ACTIVE').map((a) => [String(a.id), a.name])
@@ -95,7 +99,19 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
       onClose={() => setSelectedId(null)}
       label="Chi tiết buổi hoạt động"
       renderDetail={({ Title, Description }) =>
-        selected && (
+        selected &&
+        (selected.isTrip ? (
+          <TripDetail
+            key={selected.id}
+            sessionId={selected.id}
+            residents={residents}
+            canCreate={canCreate}
+            canUpdate={canUpdate}
+            onChanged={done}
+            Title={Title}
+            Description={Description}
+          />
+        ) : (
           <ActivitySessionDetail
             key={selected.id}
             sessionId={selected.id}
@@ -107,7 +123,7 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
             Title={Title}
             Description={Description}
           />
-        )
+        ))
       }
     >
       <PageHeader
@@ -195,7 +211,7 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
                     <TableCell>{name}</TableCell>
                     <TableCell className="text-right tabular-nums">{s.registrationCount}</TableCell>
                     <TableCell>
-                      <StatusBadge status={SESSION_STATUS[s.status] ?? s.status} />
+                      <StatusBadge status={ALL_STATUS[s.status] ?? s.status} />
                     </TableCell>
                   </TableRow>
                 )

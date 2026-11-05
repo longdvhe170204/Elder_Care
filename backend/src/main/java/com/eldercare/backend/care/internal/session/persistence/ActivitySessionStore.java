@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 public class ActivitySessionStore {
     private static final String COLUMNS =
             "id,activity_id,starts_at,ends_at,source,location_room_id,location_area_id,floor_area_id,"
-                    + "responsible_staff_id,status,incomplete_attendance,cancel_reason,cancelled_by,version";
+                    + "responsible_staff_id,status,incomplete_attendance,cancel_reason,cancelled_by,version,trip_status";
 
     private final JdbcTemplate jdbc;
 
@@ -50,7 +50,8 @@ public class ActivitySessionStore {
                 rs.getBoolean("incomplete_attendance"),
                 rs.getString("cancel_reason"),
                 rs.getString("cancelled_by"),
-                rs.getInt("version"));
+                rs.getInt("version"),
+                rs.getString("trip_status"));
     }
 
     private static Registration registration(ResultSet rs, int i) throws SQLException {
@@ -137,7 +138,8 @@ public class ActivitySessionStore {
 
     public List<Session> scheduledOn(LocalDate day) {
         return jdbc.query(
-                "SELECT " + COLUMNS + " FROM activity_session WHERE status='SCHEDULED' AND starts_at>=? AND starts_at<?"
+                "SELECT " + COLUMNS + " FROM activity_session WHERE status='SCHEDULED' AND trip_status IS NULL"
+                        + " AND starts_at>=? AND starts_at<?"
                         + " ORDER BY id FOR UPDATE",
                 ActivitySessionStore::session,
                 day.atStartOfDay(),
@@ -146,7 +148,7 @@ public class ActivitySessionStore {
 
     public Optional<LocalDate> oldestScheduledBefore(LocalDate today) {
         var value = jdbc.queryForObject(
-                "SELECT MIN(starts_at) FROM activity_session WHERE status='SCHEDULED' AND starts_at<?",
+                "SELECT MIN(starts_at) FROM activity_session WHERE status='SCHEDULED' AND trip_status IS NULL AND starts_at<?",
                 LocalDateTime.class,
                 today.atStartOfDay());
         return Optional.ofNullable(value).map(LocalDateTime::toLocalDate);
@@ -211,7 +213,8 @@ public class ActivitySessionStore {
                 c -> {
                     var p = c.prepareStatement(
                             "INSERT INTO activity_registration(session_id,resident_id,source,registered_by_staff_id,"
-                                    + "registered_at,status,acknowledged_warnings) VALUES(?,?,?,?,?,'REGISTERED',?)",
+                                    + "registered_at,status,acknowledged_warnings,participant_status) VALUES(?,?,?,?,?,'REGISTERED',?,"
+                                    + "IF((SELECT trip_status FROM activity_session WHERE id=?) IS NULL,NULL,'REGISTERED'))",
                             new String[] {"id"});
                     p.setLong(1, sessionId);
                     p.setLong(2, residentId);
@@ -219,6 +222,7 @@ public class ActivitySessionStore {
                     p.setObject(4, staffId);
                     p.setObject(5, local(at));
                     p.setString(6, acknowledgedWarnings);
+                    p.setLong(7, sessionId);
                     return p;
                 },
                 keys);
@@ -240,16 +244,16 @@ public class ActivitySessionStore {
     public List<Session> scheduledAfter(Instant from) {
         return jdbc.query(
                 "SELECT " + COLUMNS
-                        + " FROM activity_session WHERE status='SCHEDULED' AND starts_at>? ORDER BY id FOR UPDATE",
+                        + " FROM activity_session WHERE status='SCHEDULED' AND (trip_status IS NULL OR trip_status='SCHEDULED') AND starts_at>? ORDER BY id FOR UPDATE",
                 ActivitySessionStore::session,
                 local(from));
     }
 
-    /** Đăng ký Đã đăng ký ở buổi Đã lên lịch bắt đầu sau {@code from}; theo người cao tuổi khi có. */
+    /** Buổi trong viện chưa bắt đầu hoặc người chưa rời viện của chuyến còn mở; theo người cao tuổi khi có. */
     public List<Registration> registeredAfter(Instant from, Long residentId) {
         return jdbc.query(
                 "SELECT r.* FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
-                        + " WHERE r.status='REGISTERED' AND s.status='SCHEDULED' AND s.starts_at>?"
+                        + " WHERE r.status='REGISTERED' AND s.status='SCHEDULED' AND ((s.trip_status IS NULL AND s.starts_at>?) OR (s.trip_status IN ('SCHEDULED','IN_PROGRESS') AND r.participant_status IN ('REGISTERED','ELIGIBLE')))"
                         + (residentId == null ? "" : " AND r.resident_id=" + residentId)
                         + " ORDER BY r.session_id, r.id FOR UPDATE",
                 ActivitySessionStore::registration,
@@ -260,7 +264,7 @@ public class ActivitySessionStore {
     public List<Session> dueForAttendanceReminder(Instant cutoff) {
         return jdbc.query(
                 "SELECT " + COLUMNS
-                        + " FROM activity_session WHERE status='SCHEDULED' AND attendance_reminded_at IS NULL"
+                        + " FROM activity_session WHERE status='SCHEDULED' AND trip_status IS NULL AND attendance_reminded_at IS NULL"
                         + " AND ends_at<=? ORDER BY id FOR UPDATE",
                 ActivitySessionStore::session,
                 local(cutoff));
@@ -344,9 +348,11 @@ public class ActivitySessionStore {
 
     public void cancelRegistration(long id, String autoCancel, String reason) {
         jdbc.update(
-                "UPDATE activity_registration SET status='CANCELLED', auto_cancel=?, cancel_reason=?, version=version+1"
+                "UPDATE activity_registration SET status='CANCELLED', auto_cancel=?, cancel_reason=?,"
+                        + " participant_status=IF(participant_status IS NULL,NULL,'NOT_GOING'),participant_reason=?,version=version+1"
                         + " WHERE id=? AND status='REGISTERED'",
                 autoCancel,
+                reason,
                 reason,
                 id);
     }

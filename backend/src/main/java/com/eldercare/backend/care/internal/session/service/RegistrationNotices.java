@@ -26,6 +26,8 @@ public class RegistrationNotices {
     public void cancelled(Session session, List<Registration> registrations, String cause, Instant at) {
         if (registrations.isEmpty()) return;
         var recipients = new LinkedHashSet<RecipientGroup>();
+        if (session.tripStatus() != null)
+            recipients.add(new RecipientGroup.TripLeader(session.id(), new Substitution.Default()));
         if (session.responsibleStaffId() != null)
             recipients.add(new RecipientGroup.Staff(session.responsibleStaffId(), "SESSION_RESPONSIBLE"));
         if (session.floorAreaId() != null)

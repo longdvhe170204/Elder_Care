@@ -30,6 +30,7 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
     private final RegistrationNotices notices;
     private final ObjectProvider<ActivityHealthGatePort> gates;
     private final BusinessTime time;
+    private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
 
     public RegistrationAutoCancels(
             ActivitySessionStore store,
@@ -37,13 +38,15 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
             SimpleRecordApi records,
             RegistrationNotices notices,
             ObjectProvider<ActivityHealthGatePort> gates,
-            BusinessTime time) {
+            BusinessTime time,
+            com.eldercare.backend.care.internal.trip.service.TripLifecycle trips) {
         this.store = store;
         this.sessions = sessions;
         this.records = records;
         this.notices = notices;
         this.gates = gates;
         this.time = time;
+        this.trips = trips;
     }
 
     @Override
@@ -68,6 +71,7 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void cancelForSuspectedInfection(long residentId, Instant at) {
+        trips.suspectedInfection(residentId, at);
         cancelEach(
                 store.registeredAfter(at, residentId).stream()
                         .filter(r -> groupActivity(r.sessionId()))
@@ -96,13 +100,15 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
 
     private boolean groupActivity(long sessionId) {
         var session = store.find(sessionId).orElseThrow();
-        return records.require(ACTIVITIES, session.activityId()).content().groupActivity();
+        return session.tripStatus() != null
+                || records.require(ACTIVITIES, session.activityId()).content().groupActivity();
     }
 
     private void cancelEach(List<Registration> registrations, String auto, String reason, Instant at) {
         var bySession = new LinkedHashMap<Long, List<Registration>>();
         for (var r : registrations) {
             store.cancelRegistration(r.id(), auto, reason);
+            trips.registrationChanged(r.sessionId(), r.residentId(), true);
             bySession.computeIfAbsent(r.sessionId(), k -> new ArrayList<>()).add(r);
         }
         bySession.forEach(
