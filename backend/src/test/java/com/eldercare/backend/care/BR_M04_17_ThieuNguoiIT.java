@@ -207,6 +207,8 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
         // Khoảng mang thuốc kết thúc ở giờ về thực tế, sớm hơn giờ về dự kiến.
         assertThat(tripMedication.interval(a, s)).hasValueSatisfying(i -> {
             assertThat(i.to()).isAfterOrEqualTo(i.from()).isBeforeOrEqualTo(time.now());
+            // Đầu khoảng là giờ rời thực tế (record_event lưu UTC), không lệch múi giờ.
+            assertThat(i.from()).isBetween(time.now().minusSeconds(60), time.now());
             assertThat(i.to()).isBefore(plannedReturn);
         });
         command(s, "return", "{\"residentIds\":[" + a + "]}")

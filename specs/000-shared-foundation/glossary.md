@@ -3104,6 +3104,12 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `ca_khong_danh_sach` (→ `moc_da_nhac`), dấu đã nhắc/đã báo | `reminder_marker` kind `M04.QUALITY_NO_CHECKLIST` (details floorAreaId, reason `NO_INSPECTOR` / `NOT_CREATED`, eligible), `M04.QUALITY_REMINDER`, `M04.QUALITY_OVERDUE`; danh sách đã đóng `CLOSED` |
 | Mục tự Không kiểm tra được khi kết quả bị Hủy ghi nhận (FR-062) | QualityCheckTaskVoids.resultVoided, gọi từ `CareResultCorrectionProvider` (005) |
 
+### 20.12. Số liệu cho 016 (T027, 06/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| `HoatDongThongKeApi` cài đặt | `care.internal.activity.service.ActivityStatistics` implements `care.api.ActivityStatisticsApi`; truy vấn `ActivityStatisticsStore` |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

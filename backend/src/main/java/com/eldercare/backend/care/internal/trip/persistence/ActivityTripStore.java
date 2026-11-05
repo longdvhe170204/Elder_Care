@@ -174,7 +174,7 @@ public class ActivityTripStore {
                                 + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",
                         LocalDateTime.class,
                         Long.toString(registrationId)))
-                .map(at -> at.atZone(BusinessTime.ZONE).toInstant());
+                .map(at -> at.toInstant(ZoneOffset.UTC)); // record_event lưu UTC (000 Rows)
     }
 
     /** Số lần đã ghi rời viện của đăng ký, kể cả lần đã Hủy ghi nhận (FR-031a), để khóa chống trùng của lần sau khác. */
@@ -267,6 +267,6 @@ public class ActivityTripStore {
                         "SELECT MIN(e.occurred_at) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE' AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.tripId'))=? AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",
                         LocalDateTime.class,
                         Long.toString(tripId)))
-                .map(at -> at.atZone(BusinessTime.ZONE).toInstant());
+                .map(at -> at.toInstant(ZoneOffset.UTC)); // record_event lưu UTC (000 Rows)
     }
 }

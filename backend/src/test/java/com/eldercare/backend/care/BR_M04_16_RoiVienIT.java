@@ -160,7 +160,8 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
         var views = dutyReads.getObject().inShift(floor, time.now().minusSeconds(3600), departure.plusSeconds(30000));
         assertThat(views).filteredOn(v -> v.tripId() == s).singleElement().satisfies(v -> {
             assertThat(v.residentIds()).containsExactly(r);
-            assertThat(v.departedAt()).isNotNull();
+            // record_event lưu UTC; giờ rời thực tế phải đúng lúc điểm danh, không lệch múi giờ.
+            assertThat(v.departedAt()).isBetween(time.now().minusSeconds(60), time.now());
         });
     }
 
