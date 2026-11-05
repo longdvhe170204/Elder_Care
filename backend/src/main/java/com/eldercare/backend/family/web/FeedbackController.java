@@ -3,12 +3,12 @@ package com.eldercare.backend.family.web;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.web.ProblemBody;
+import com.eldercare.backend.family.internal.feedback.domain.Feedback;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Status;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Type;
 import com.eldercare.backend.family.internal.feedback.service.FeedbackService;
 import com.eldercare.backend.family.web.request.FeedbackCommandRequest;
 import com.eldercare.backend.family.web.request.SubmitFeedbackRequest;
-import com.eldercare.backend.family.web.request.SubmitFeedbackRequest.FeedbackType;
 import com.eldercare.backend.family.web.request.SubmitFeedbackRequest.SenderType;
 import com.eldercare.backend.family.web.response.AssignableStaffResponse;
 import com.eldercare.backend.family.web.response.CreatedResponse;
@@ -68,17 +68,17 @@ class FeedbackController {
     ResponseEntity<CreatedResponse> submit(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody SubmitFeedbackRequest body) {
-        if (body.senderType() == SenderType.RESIDENT) {
-            throw new InvalidValueException("Ghi thay người cao tuổi chưa hỗ trợ (US9)");
-        }
-        if (body.type() == FeedbackType.WISH || body.wishTopic() != null) {
-            throw new InvalidValueException("Loại Mong muốn chỉ khi người gửi là người cao tuổi (FR-058b)");
-        }
         long id = feedback.submit(new FeedbackService.Submission(
                 body.residentId(),
+                body.senderType() == SenderType.RESIDENT
+                        ? Feedback.SenderType.RESIDENT
+                        : Feedback.SenderType.FAMILY_MEMBER,
                 body.familyMemberId(),
                 Type.valueOf(body.type().name()),
                 body.group(),
+                body.wishTopic() == null
+                        ? null
+                        : Feedback.WishTopic.valueOf(body.wishTopic().name()),
                 body.content(),
                 body.fileIds()));
         return ResponseEntity.status(HttpStatus.CREATED).body(new CreatedResponse(id));
@@ -135,7 +135,14 @@ class FeedbackController {
             @Valid @RequestBody(required = false) FeedbackCommandRequest body) {
         FeedbackCommandRequest b = body == null ? FeedbackCommandRequest.EMPTY : body;
         FeedbackService.CommandBody c = new FeedbackService.CommandBody(
-                b.reason(), b.handlingDirection(), b.content(), b.assigneeId(), b.priority(), b.fileIds());
+                b.reason(),
+                b.handlingDirection(),
+                b.content(),
+                b.assigneeId(),
+                b.priority(),
+                b.newType() == null ? null : Type.valueOf(b.newType().name()),
+                b.opinion() == null ? null : b.opinion().itemId(),
+                b.fileIds());
         var view = switch (command) {
             case "start-handling" -> feedback.startHandling(id);
             case "reply" -> feedback.reply(id, c);
@@ -144,9 +151,9 @@ class FeedbackController {
             case "change-priority" -> feedback.changePriority(id, c);
             case "agree-to-close" -> feedback.agreeToClose(id);
             case "reopen" -> feedback.reopen(id, c);
-            // Chỉ cho phản hồi loại Mong muốn của người cao tuổi (FR-058b, BR-M10-12), có từ US9
-            case "change-type", "link-opinion" ->
-                throw new InvalidValueException("Lệnh chỉ cho phản hồi loại Mong muốn");
+            // Chỉ cho phản hồi loại Mong muốn của người cao tuổi (FR-058b, BR-M10-12)
+            case "change-type" -> feedback.changeType(id, c);
+            case "link-opinion" -> feedback.linkOpinion(id, c);
             default -> throw new NotFoundException();
         };
         return FeedbackDetailResponse.of(view);

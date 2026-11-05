@@ -135,7 +135,13 @@ class RequiresPermissionArchTest {
                     "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ); 012 FR-066"),
             Map.entry(
                     "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reopen",
-                    "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ) kèm lý do; 012 FR-061, FR-066"));
+                    "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ) kèm lý do; 012 FR-061, FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.changeType",
+                    "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi) kèm lý do; 012 FR-058b, FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.linkOpinion",
+                    "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi); 012 BR-M10-12"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho

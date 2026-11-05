@@ -7,9 +7,11 @@ import com.eldercare.backend.family.internal.feedback.domain.Feedback.AssigneeRo
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.CloseMethod;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.ContentGroup;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Priority;
+import com.eldercare.backend.family.internal.feedback.domain.Feedback.SenderType;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Source;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Status;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Type;
+import com.eldercare.backend.family.internal.feedback.domain.Feedback.WishTopic;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,7 +27,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
-/** Đọc, ghi {@code feedback} (V012_07, nhóm 2); đổi trạng thái kiểm {@code version}. */
+/** Đọc, ghi {@code feedback} (V012_07, V012_10; nhóm 2); đổi trạng thái kiểm {@code version}. */
 @Repository
 public class FeedbackStore {
 
@@ -43,25 +45,28 @@ public class FeedbackStore {
         jdbc.update(
                 c -> {
                     PreparedStatement s = c.prepareStatement(
-                            "INSERT INTO feedback (resident_id, family_member_id, type, content_group, source,"
-                                    + " submitted_at, priority, due_basis_at, due_at, assignee_role,"
-                                    + " assignee_account_id, status, recorded_by, created_at) VALUES (?, ?, ?, ?, ?, ?,"
-                                    + " ?, ?, ?, ?, ?, ?, ?, ?)",
+                            "INSERT INTO feedback (resident_id, sender_type, family_member_id, recorded_on_behalf_by,"
+                                    + " type, content_group, wish_topic, source, submitted_at, priority, due_basis_at,"
+                                    + " due_at, assignee_role, assignee_account_id, status, recorded_by, created_at)"
+                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     s.setLong(1, f.residentId());
-                    s.setLong(2, f.familyMemberId());
-                    s.setString(3, f.type().name());
-                    s.setString(4, f.group().name());
-                    s.setString(5, f.source().name());
-                    s.setObject(6, utc(f.submittedAt()));
-                    s.setString(7, f.priority().name());
-                    s.setObject(8, utc(f.dueBasisAt()));
-                    s.setObject(9, utc(f.dueAt()));
-                    s.setString(10, f.assigneeRole().name());
-                    s.setObject(11, f.assigneeAccountId(), Types.BIGINT);
-                    s.setString(12, f.status().name());
-                    s.setLong(13, f.recordedBy());
-                    s.setObject(14, utc(createdAt));
+                    s.setString(2, f.senderType().name());
+                    s.setObject(3, f.familyMemberId(), Types.BIGINT);
+                    s.setObject(4, f.recordedOnBehalfBy(), Types.BIGINT);
+                    s.setString(5, f.type().name());
+                    s.setString(6, f.group().name());
+                    s.setString(7, f.wishTopic() == null ? null : f.wishTopic().name());
+                    s.setString(8, f.source().name());
+                    s.setObject(9, utc(f.submittedAt()));
+                    s.setString(10, f.priority().name());
+                    s.setObject(11, utc(f.dueBasisAt()));
+                    s.setObject(12, utc(f.dueAt()));
+                    s.setString(13, f.assigneeRole().name());
+                    s.setObject(14, f.assigneeAccountId(), Types.BIGINT);
+                    s.setString(15, f.status().name());
+                    s.setLong(16, f.recordedBy());
+                    s.setObject(17, utc(createdAt));
                     return s;
                 },
                 keys);
@@ -83,12 +88,15 @@ public class FeedbackStore {
                 .orElseThrow(NotFoundException::new);
     }
 
-    /** Ghi trạng thái, mức, hạn, người phụ trách; 409 {@code STATE_CHANGED} khi phiên bản đã đổi. */
+    /** Ghi loại, trạng thái, mức, hạn, người phụ trách; 409 {@code STATE_CHANGED} khi phiên bản đã đổi. */
     public Feedback update(Feedback f) {
         int rows = jdbc.update(
-                "UPDATE feedback SET priority = ?, due_basis_at = ?, due_at = ?, assignee_role = ?,"
+                "UPDATE feedback SET type = ?, wish_topic = ?, priority = ?, due_basis_at = ?, due_at = ?,"
+                        + " assignee_role = ?,"
                         + " assignee_account_id = ?, status = ?, overdue = ?, escalated_due_at = ?, replied_at = ?,"
                         + " closed_at = ?, close_method = ?, version = version + 1 WHERE id = ? AND version = ?",
+                f.type().name(),
+                f.wishTopic() == null ? null : f.wishTopic().name(),
                 f.priority().name(),
                 utc(f.dueBasisAt()),
                 utc(f.dueAt()),
@@ -113,11 +121,21 @@ public class FeedbackStore {
         return jdbc.query(SELECT + " ORDER BY submitted_at DESC, id DESC", FeedbackStore::row);
     }
 
+    /** Phản hồi người thân gửi (FR-086: không gồm phản hồi của người cao tuổi). */
     public List<Feedback> ofFamilyMember(long familyMemberId) {
         return jdbc.query(
-                SELECT + " WHERE family_member_id = ? ORDER BY submitted_at DESC, id DESC",
+                SELECT + " WHERE family_member_id = ? AND sender_type = 'FAMILY_MEMBER'"
+                        + " ORDER BY submitted_at DESC, id DESC",
                 FeedbackStore::row,
                 familyMemberId);
+    }
+
+    /** Phản hồi của chính người cao tuổi, kể cả được ghi thay (FR-058a, FR-086). */
+    public List<Feedback> fromResident(long residentId) {
+        return jdbc.query(
+                SELECT + " WHERE resident_id = ? AND sender_type = 'RESIDENT' ORDER BY submitted_at DESC, id DESC",
+                FeedbackStore::row,
+                residentId);
     }
 
     public List<Long> ofResident(long residentId) {
@@ -143,12 +161,16 @@ public class FeedbackStore {
 
     private static Feedback row(ResultSet rs, int n) throws SQLException {
         String closeMethod = rs.getString("close_method");
+        String wishTopic = rs.getString("wish_topic");
         return new Feedback(
                 rs.getLong("id"),
                 rs.getLong("resident_id"),
-                rs.getLong("family_member_id"),
+                SenderType.valueOf(rs.getString("sender_type")),
+                rs.getObject("family_member_id", Long.class),
+                rs.getObject("recorded_on_behalf_by", Long.class),
                 Type.valueOf(rs.getString("type")),
                 ContentGroup.valueOf(rs.getString("content_group")),
+                wishTopic == null ? null : WishTopic.valueOf(wishTopic),
                 Source.valueOf(rs.getString("source")),
                 instant(rs, "submitted_at"),
                 Priority.valueOf(rs.getString("priority")),

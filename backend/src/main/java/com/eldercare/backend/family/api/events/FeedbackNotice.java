@@ -58,7 +58,11 @@ public record FeedbackNotice(
                 title = "Phản hồi đã được trả lời";
                 level = NotificationLevel.LOW;
                 subject = Optional.of(InformationSubject.ABOUT_FAMILY_MATTER);
-                if (healthInformation) {
+                if (recipient instanceof RecipientGroup.Resident) {
+                    // Người cao tuổi: chỉ phần chung, xem trên ứng dụng (FR-058a (b), FR-069; 009 FR-022a)
+                    content.add(new ContentPart(
+                            InformationType.GENERAL, "Phản hồi của bạn đã được trả lời: xem trong ứng dụng"));
+                } else if (healthInformation) {
                     content.add(new ContentPart(
                             InformationType.HEALTH, title + ": xem nội dung trả lời trên cổng thông tin"));
                     content.add(new ContentPart(

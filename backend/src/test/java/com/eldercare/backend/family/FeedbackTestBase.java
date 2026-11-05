@@ -99,6 +99,7 @@ abstract class FeedbackTestBase extends FamilyCommandTestBase {
     TestUser officeStaff;
     TestUser manager;
     private final Map<Long, Long> accounts = new HashMap<>();
+    private final Map<Long, Long> residentAccounts = new HashMap<>();
 
     @BeforeEach
     void feedbackFamily() {
@@ -160,6 +161,49 @@ abstract class FeedbackTestBase extends FamilyCommandTestBase {
 
     String staff(TestUser user) {
         return bearer(users.session(user.accountId()));
+    }
+
+    /** Phiên của tài khoản người cao tuổi (AC-16); tài khoản tạo một lần mỗi test (US9). */
+    String residentSession(long residentId) {
+        long account = residentAccounts.computeIfAbsent(residentId, id -> users.resident(id));
+        return bearer(users.session(account));
+    }
+
+    /** Người cao tuổi gửi qua kênh của mình (FR-058a (a)); {@code wishTopic} chỉ khi loại Mong muốn. */
+    ResultActions channelSubmit(String authorization, String type, String group, String wishTopic, String content)
+            throws Exception {
+        String topic = wishTopic == null ? "" : ", \"wishTopic\": \"" + wishTopic + "\"";
+        return postAs(
+                authorization,
+                "/api/v1/resident-channel/feedback",
+                "{\"type\": \"" + type + "\", \"group\": \"" + group + "\"" + topic + ", \"content\": \"" + content
+                        + "\"}");
+    }
+
+    long channelSubmitted(String authorization, String type, String group, String wishTopic) throws Exception {
+        return id(channelSubmit(authorization, type, group, wishTopic, "Tôi muốn được tắm buổi tối")
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                        .isCreated()));
+    }
+
+    ResultActions getAs(String authorization, String path) throws Exception {
+        return mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(path)
+                .header("Authorization", authorization));
+    }
+
+    static List<Long> idsOf(tools.jackson.databind.JsonNode list) {
+        List<Long> result = new java.util.ArrayList<>();
+        list.forEach(item -> result.add(item.get("id").asLong()));
+        return result;
+    }
+
+    /** Nhân viên ghi thay người cao tuổi khi người đó nói trực tiếp (FR-058a (a)). */
+    ResultActions onBehalfSubmit(String authorization, long residentId, String type, String group) throws Exception {
+        return postAs(
+                authorization,
+                "/api/v1/feedback",
+                "{\"residentId\": " + residentId + ", \"senderType\": \"RESIDENT\", \"type\": \"" + type
+                        + "\", \"group\": \"" + group + "\", \"content\": \"Bà Lan nói nước tắm hơi lạnh\"}");
     }
 
     static String submission(long residentId, Long familyMemberId, String type, String group, String content) {

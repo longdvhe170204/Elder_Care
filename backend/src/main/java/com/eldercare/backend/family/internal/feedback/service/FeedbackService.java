@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.account.api.ApproverApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.ScopeApi;
+import com.eldercare.backend.administration.account.api.dto.AccountStatus;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
@@ -39,13 +40,19 @@ import com.eldercare.backend.family.internal.feedback.domain.Feedback.AssigneeRo
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.CloseMethod;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.ContentGroup;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Priority;
+import com.eldercare.backend.family.internal.feedback.domain.Feedback.SenderType;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Source;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Status;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Type;
+import com.eldercare.backend.family.internal.feedback.domain.Feedback.WishTopic;
 import com.eldercare.backend.family.internal.feedback.domain.FeedbackDeadline;
 import com.eldercare.backend.family.internal.feedback.domain.FeedbackItem;
+import com.eldercare.backend.family.internal.feedback.domain.FeedbackOpinion;
 import com.eldercare.backend.family.internal.feedback.persistence.FeedbackStore;
 import com.eldercare.backend.family.internal.relationship.service.RelationshipQueries;
+import com.eldercare.backend.family.internal.right.service.VisitPickupWishService;
+import com.eldercare.backend.resident.api.dto.OpinionSourceType;
+import com.eldercare.backend.resident.api.events.OpinionRecordedFromFeedback;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import java.time.Instant;
@@ -56,6 +63,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +72,9 @@ import org.springframework.transaction.annotation.Transactional;
  * Phản hồi, khiếu nại (012 T030; US6; FR-058 → FR-067, BR-M10-05; research F-13). Người thân gửi qua cổng cho chính
  * mình, Hành chính ghi thay tại quầy. Người phụ trách theo nhóm nội dung (FR-059): Trưởng tầng được giao của tầng người
  * cao tuổi lúc gửi, tầng không có thì Quản lý viện; chi phí, hợp đồng, khác là nhóm Hành chính tới khi một người Nhận xử
- * lý. Lệnh theo bảng FR-066; nội dung, trả lời là mục không sửa (FR-065).
+ * lý. Lệnh theo bảng FR-066; nội dung, trả lời là mục không sửa (FR-065). Từ US9 (T066): người cao tuổi gửi qua kênh của
+ * mình, Hành chính, Điều dưỡng ghi thay; loại Mong muốn có chủ đề, chỉ trả lời khi đã gắn mục ý kiến (BR-M10-12); người
+ * thân không thấy phản hồi của người cao tuổi (FR-086).
  */
 @Service
 public class FeedbackService {
@@ -76,6 +86,8 @@ public class FeedbackService {
             Set.of(Role.FLOOR_MANAGER, Role.OFFICE_STAFF, Role.NURSING_HOME_MANAGER);
     /** Người nhận giao lại: có quyền T ở dòng "Phản hồi" (FR-060), theo thứ tự ưu tiên vai trò. */
     private static final List<Role> ASSIGNABLE = List.of(Role.FLOOR_MANAGER, Role.NURSING_STAFF, Role.OFFICE_STAFF);
+    /** Ghi thay người cao tuổi: gửi, Đồng ý đóng, Mở lại (FR-058a, Q-371). */
+    private static final Set<Role> ON_BEHALF_OF_RESIDENT = Set.of(Role.OFFICE_STAFF, Role.NURSING_STAFF);
     /** Mục người gửi thấy (contracts: bản cho người gửi chỉ phần trả lời họ được thấy). */
     private static final Set<FeedbackItem.Type> SENDER_ITEMS = Set.of(
             FeedbackItem.Type.CONTENT,
@@ -83,17 +95,30 @@ public class FeedbackService {
             FeedbackItem.Type.HANDLING_DIRECTION,
             FeedbackItem.Type.REOPEN);
 
-    /** Thân gửi ({@code SubmitFeedback}, phần US6). */
+    /**
+     * Thân gửi ({@code SubmitFeedback}): người thân gửi cho mình, Hành chính ghi thay người thân ({@code familyMemberId});
+     * người cao tuổi gửi qua kênh của mình, Hành chính, Điều dưỡng ghi thay người cao tuổi ({@code senderType = RESIDENT};
+     * US9, FR-058a). {@code wishTopic} chỉ với loại Mong muốn (FR-058b).
+     */
     public record Submission(
-            long residentId, Long familyMemberId, Type type, ContentGroup group, String content, List<Long> fileIds) {}
+            long residentId,
+            SenderType senderType,
+            Long familyMemberId,
+            Type type,
+            ContentGroup group,
+            WishTopic wishTopic,
+            String content,
+            List<Long> fileIds) {}
 
-    /** Thân lệnh FR-066. */
+    /** Thân lệnh FR-066; {@code newType} của đổi loại, {@code opinionItemId} mục mong muốn của gắn ý kiến (US9). */
     public record CommandBody(
             Reason reason,
             String handlingDirection,
             String content,
             Long assigneeId,
             Priority priority,
+            Type newType,
+            Long opinionItemId,
             List<Long> fileIds) {}
 
     /** Một mục cho người xem: loại, nội dung, người ghi, thời điểm. */
@@ -136,6 +161,7 @@ public class FeedbackService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ApplicationEventPublisher events;
+    private final VisitPickupWishService wishes;
 
     FeedbackService(
             FeedbackStore store,
@@ -152,7 +178,8 @@ public class FeedbackService {
             FileApi files,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            VisitPickupWishService wishes) {
         this.store = store;
         this.recordEvents = recordEvents;
         this.rules = rules;
@@ -168,6 +195,7 @@ public class FeedbackService {
         this.time = time;
         this.currentUser = currentUser;
         this.events = events;
+        this.wishes = wishes;
     }
 
     /** Gửi (FR-058, FR-059, FR-061, FR-062): Mới, đặt người phụ trách, mức, hạn; báo người phụ trách. */
@@ -176,32 +204,61 @@ public class FeedbackService {
     public long submit(Submission submission) {
         CurrentUser user = currentUser.getObject();
         long residentId = submission.residentId();
+        boolean residentSender = submission.senderType() == SenderType.RESIDENT;
+        if (user.type() == AccountType.RESIDENT
+                && !user.residentId().map(r -> r == residentId).orElse(false)) {
+            throw denied();
+        }
         authorize(user, Operation.CREATE, residentTarget(residentId));
-        long familyMemberId;
-        Source source;
-        if (user.type() == AccountType.FAMILY_MEMBER) {
-            familyMemberId = user.familyMemberId().orElseThrow();
+        Feedback.Sender sender;
+        if (user.type() == AccountType.RESIDENT) {
+            sender = new Feedback.Sender(SenderType.RESIDENT, null, null, Source.RESIDENT_CHANNEL);
+        } else if (user.type() == AccountType.FAMILY_MEMBER && !residentSender) {
+            long familyMemberId = user.familyMemberId().orElseThrow();
             if (submission.familyMemberId() != null && submission.familyMemberId() != familyMemberId) {
                 throw denied();
             }
-            source = Source.PORTAL;
+            sender = new Feedback.Sender(SenderType.FAMILY_MEMBER, familyMemberId, null, Source.PORTAL);
+        } else if (user.type() == AccountType.STAFF && residentSender) {
+            // Ghi thay người cao tuổi nói trực tiếp, dù có tài khoản hay không (FR-058a (a), Q-371)
+            if (user.roles().stream().noneMatch(ON_BEHALF_OF_RESIDENT::contains)) {
+                throw denied();
+            }
+            sender = new Feedback.Sender(SenderType.RESIDENT, null, user.accountId(), Source.RECORDED_DIRECTLY);
         } else if (user.type() == AccountType.STAFF && user.roles().contains(Role.OFFICE_STAFF)) {
             if (submission.familyMemberId() == null) {
                 throw new InvalidValueException("Chọn người thân gửi phản hồi (familyMemberId)");
             }
-            familyMemberId = submission.familyMemberId();
-            source = Source.COUNTER;
+            sender = new Feedback.Sender(SenderType.FAMILY_MEMBER, submission.familyMemberId(), null, Source.COUNTER);
         } else {
             throw denied();
         }
-        if (relationships.active(familyMemberId, residentId).isEmpty()) {
-            throw new InvalidValueException("Người thân không có quan hệ Hiệu lực với người cao tuổi");
+        if (sender.type() == SenderType.FAMILY_MEMBER) {
+            if (relationships.active(sender.familyMemberId(), residentId).isEmpty()) {
+                throw new InvalidValueException("Người thân không có quan hệ Hiệu lực với người cao tuổi");
+            }
+        } else if (submission.familyMemberId() != null) {
+            throw new InvalidValueException("Người gửi là người cao tuổi: không chọn người thân");
         }
         if (submission.type() == null || submission.group() == null || blank(submission.content())) {
             throw new InvalidValueException("Chọn loại, nhóm nội dung và ghi nội dung phản hồi");
         }
+        ContentGroup group = submission.group();
+        WishTopic wishTopic = submission.wishTopic();
+        if (submission.type() == Type.WISH) {
+            // Mong muốn chỉ người cao tuổi gửi, có chủ đề; nhóm nội dung đặt theo chủ đề (FR-058b, FR-059, F-13)
+            if (sender.type() != SenderType.RESIDENT) {
+                throw new InvalidValueException("Loại Mong muốn chỉ khi người gửi là người cao tuổi (FR-058b)");
+            }
+            if (wishTopic == null) {
+                throw new InvalidValueException("Chọn chủ đề của mong muốn (wishTopic)");
+            }
+            group = wishTopic == WishTopic.VISITORS_PICKERS ? ContentGroup.OTHER : ContentGroup.CARE;
+        } else if (wishTopic != null) {
+            throw new InvalidValueException("Chủ đề chỉ dùng cho loại Mong muốn (FR-058b)");
+        }
         Instant now = time.now();
-        AssigneeRole role = FeedbackDeadline.defaultAssignee(submission.group());
+        AssigneeRole role = FeedbackDeadline.defaultAssignee(group);
         Long assigneeAccount = null;
         if (role == AssigneeRole.FLOOR_MANAGER) {
             assigneeAccount = locations
@@ -216,10 +273,10 @@ public class FeedbackService {
         Priority priority = FeedbackDeadline.defaultPriority(submission.type());
         Feedback draft = Feedback.submitted(
                 residentId,
-                familyMemberId,
+                sender,
                 submission.type(),
-                submission.group(),
-                source,
+                group,
+                wishTopic,
                 now,
                 priority,
                 FeedbackDeadline.dueAt(now, priority, rules.due()),
@@ -238,7 +295,13 @@ public class FeedbackService {
                 .action(SUBMITTED)
                 .entity(Feedback.ENTITY_TYPE, id)
                 .resident(residentId)
-                .after(Map.of("status", Status.NEW.name(), "priority", priority.name(), "source", source.name()))
+                .after(Map.of(
+                        "status",
+                        Status.NEW.name(),
+                        "priority",
+                        priority.name(),
+                        "source",
+                        sender.source().name()))
                 .build());
         Feedback saved = store.require(id);
         notifyAssignee(saved, String.valueOf(item.id()), now);
@@ -253,6 +316,9 @@ public class FeedbackService {
         if (user.type() == AccountType.FAMILY_MEMBER) {
             authorizeRole(user, Operation.VIEW);
             rows = store.ofFamilyMember(user.familyMemberId().orElseThrow());
+        } else if (user.type() == AccountType.RESIDENT) {
+            authorizeRole(user, Operation.VIEW);
+            rows = store.fromResident(user.residentId().orElseThrow());
         } else {
             // Lớp vai trò ở đây, phạm vi lọc từng phản hồi (Target.UNSPECIFIED chỉ phạm vi toàn viện đạt)
             authorizeRole(user, Operation.VIEW);
@@ -276,7 +342,7 @@ public class FeedbackService {
         CurrentUser user = currentUser.getObject();
         Feedback f = store.require(id);
         authorize(user, Operation.VIEW, target(f));
-        requireOwnIfFamily(user, f);
+        requireOwnIfSender(user, f);
         return view(f, user, true, time.now());
     }
 
@@ -304,6 +370,14 @@ public class FeedbackService {
         if (blank(body.handlingDirection()) || blank(body.content())) {
             throw new InvalidValueException("Ghi hướng xử lý và nội dung trả lời");
         }
+        if (current.type() == Type.WISH
+                && recordEvents.list(FeedbackOpinion.KIND, parent(id)).isEmpty()) {
+            // BR-M10-12: ghi mục ý kiến có nguồn người cao tuổi và gắn vào phản hồi trước khi trả lời
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "OPINION_NOT_LINKED",
+                    "Ghi mục ý kiến có nguồn người cao tuổi và gắn vào phản hồi trước khi trả lời");
+        }
         Instant now = time.now();
         boolean health = current.group() == ContentGroup.HEALTH_MEDICATION;
         List<Long> fileIds = body.fileIds() == null ? List.of() : body.fileIds();
@@ -321,15 +395,106 @@ public class FeedbackService {
         fileIds.forEach(f -> files.attach(f, Feedback.ENTITY_TYPE, id));
         Feedback after = store.update(current.replied(now));
         audit(current, after, null);
+        // Người cao tuổi chỉ nhận phần chung (FR-058a (b), FR-069; 009 FR-022a nhóm người cao tuổi không nhận sức khỏe)
         events.publishEvent(new FeedbackNotice(
                 id,
                 after.residentId(),
                 FeedbackNotice.Kind.REPLIED,
-                new RecipientGroup.FamilyMember(after.familyMemberId(), "FEEDBACK_SENDER"),
-                health,
+                after.fromResident()
+                        ? new RecipientGroup.Resident(after.residentId())
+                        : new RecipientGroup.FamilyMember(after.familyMemberId(), "FEEDBACK_SENDER"),
+                health && !after.fromResident(),
                 String.valueOf(replyItem.id()),
                 now));
         return view(after, user, true, now);
+    }
+
+    /**
+     * Đổi loại Mong muốn sang Góp ý, Hỏi đáp kèm lý do (FR-058b, FR-066, BR-M10-12): người phụ trách; mức, hạn không đổi.
+     */
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public FeedbackView changeType(long id, CommandBody body) {
+        CurrentUser user = currentUser.getObject();
+        Feedback current = lockAsAssignee(user, id);
+        requireStatus(current, Status.NEW, Status.IN_PROGRESS, Status.REOPENED);
+        requireWish(current);
+        if (body.reason() == null) {
+            throw new ReasonRequiredException();
+        }
+        if (body.newType() != Type.SUGGESTION && body.newType() != Type.QUESTION) {
+            throw new InvalidValueException("Chọn loại mới: Góp ý hoặc Hỏi đáp");
+        }
+        Instant now = time.now();
+        addItem(
+                id,
+                new FeedbackItem(FeedbackItem.Type.TYPE_CHANGE, body.reason().value(), false, List.of()),
+                user,
+                now);
+        Feedback after = store.update(current.withType(body.newType()));
+        audit(current, after, body.reason());
+        return view(after, user, true, now);
+    }
+
+    /**
+     * Gắn mục mong muốn về khách thăm, người đón (012) có nguồn người cao tuổi, cùng người, vào phản hồi Mong muốn
+     * (BR-M10-12, research F-13); gắn lại cùng mục không thêm dòng.
+     */
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public FeedbackView linkOpinion(long id, CommandBody body) {
+        CurrentUser user = currentUser.getObject();
+        Feedback current = lockAsAssignee(user, id);
+        requireStatus(current, Status.NEW, Status.IN_PROGRESS, Status.REOPENED);
+        requireWish(current);
+        if (body.opinionItemId() == null) {
+            throw new InvalidValueException("Chọn mục mong muốn cần gắn (opinion.itemId)");
+        }
+        boolean residentOpinion = wishes.active(current.residentId()).stream()
+                .anyMatch(w -> w.id() == body.opinionItemId() && w.fromResident());
+        if (!residentOpinion) {
+            throw new InvalidValueException("Mục mong muốn phải của người cao tuổi này và có nguồn người cao tuổi");
+        }
+        Instant now = time.now();
+        link(current, FeedbackOpinion.ItemType.VISIT_PICKUP_WISH, body.opinionItemId(), user.accountId(), now);
+        return view(current, user, true, now);
+    }
+
+    /**
+     * Mục sở thích 014 ghi từ phản hồi Mong muốn (FR-023g, research F-13, H-17): gắn khi phản hồi là Mong muốn của đúng
+     * người cao tuổi và nguồn là người cao tuổi; khác thì bỏ qua.
+     */
+    @EventListener
+    @Transactional
+    public void onOpinionRecorded(OpinionRecordedFromFeedback event) {
+        Optional<Feedback> f = store.find(event.feedbackId());
+        if (f.isEmpty()
+                || f.get().type() != Type.WISH
+                || f.get().residentId() != event.residentId()
+                || event.source().type() != OpinionSourceType.RESIDENT) {
+            return;
+        }
+        link(f.get(), FeedbackOpinion.ItemType.INTEREST, event.itemId(), null, time.now());
+    }
+
+    private void link(Feedback f, FeedbackOpinion.ItemType itemType, long itemId, Long by, Instant now) {
+        String key = "M10.FBO:" + f.id() + ":" + itemType + ":" + itemId;
+        boolean linked = recordEvents.list(FeedbackOpinion.KIND, parent(f.id())).stream()
+                .anyMatch(r -> r.content().itemType() == itemType && r.content().itemId() == itemId);
+        if (linked) {
+            return;
+        }
+        recordEvents.add(
+                FeedbackOpinion.KIND,
+                parent(f.id()),
+                new NewRecordEvent<>(
+                        new FeedbackOpinion(itemType, itemId), null, by, by == null, now, null, now, null, key));
+    }
+
+    private static void requireWish(Feedback f) {
+        if (f.type() != Type.WISH) {
+            throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Phản hồi không còn là loại Mong muốn");
+        }
     }
 
     /** Ghi chú bổ sung của người phụ trách (FR-065). */
@@ -424,7 +589,8 @@ public class FeedbackService {
         Feedback current = lockAsSender(user, id);
         requireStatus(current, Status.REPLIED);
         Instant now = time.now();
-        Feedback after = store.update(current.closed(CloseMethod.SENDER, now));
+        CloseMethod method = user.type() == AccountType.STAFF ? CloseMethod.RECORDED_ON_BEHALF : CloseMethod.SENDER;
+        Feedback after = store.update(current.closed(method, now));
         audit(current, after, null);
         return view(after, user, true, now);
     }
@@ -484,18 +650,19 @@ public class FeedbackService {
                         .allowed()) {
             return false;
         }
-        return user.type() != AccountType.FAMILY_MEMBER
-                || f.get().familyMemberId() == user.familyMemberId().orElseThrow();
+        return ownBySender(user, f.get());
     }
 
     private FeedbackView view(Feedback f, CurrentUser user, boolean withItems, Instant now) {
-        boolean family = user.type() == AccountType.FAMILY_MEMBER;
+        boolean family = user.type() == AccountType.FAMILY_MEMBER || user.type() == AccountType.RESIDENT;
         List<RecordEvent<FeedbackItem>> rows = recordEvents.list(FeedbackItem.KIND, parent(f.id()));
         RecordEvent<FeedbackItem> first = rows.stream()
                 .filter(r -> r.content().type() == FeedbackItem.Type.CONTENT)
                 .findFirst()
                 .orElseThrow();
-        boolean healthRight = rights.rightEffective(f.familyMemberId(), f.residentId(), FamilyRight.VIEW_HEALTH, now);
+        // Người cao tuổi không xem thông tin sức khỏe trên kênh (Q-367, FR-058a (b)): phần trả lời chỉ loại chung
+        boolean healthRight = !f.fromResident()
+                && rights.rightEffective(f.familyMemberId(), f.residentId(), FamilyRight.VIEW_HEALTH, now);
         List<ItemView> items = new ArrayList<>();
         boolean hidden = false;
         if (withItems) {
@@ -521,10 +688,12 @@ public class FeedbackService {
                 items,
                 family ? null : healthRight,
                 family ? hidden : null,
-                relationships
-                        .familyMember(f.familyMemberId())
-                        .map(m -> m.fullName())
-                        .orElse(null),
+                f.familyMemberId() == null
+                        ? null
+                        : relationships
+                                .familyMember(f.familyMemberId())
+                                .map(m -> m.fullName())
+                                .orElse(null),
                 allowedCommands(f, user));
     }
 
@@ -613,9 +782,8 @@ public class FeedbackService {
     /** Lệnh người xem gọi được lúc này theo bảng FR-066 (DESIGN.md 7.4); backend vẫn kiểm lại ở lệnh. */
     private List<String> allowedCommands(Feedback f, CurrentUser user) {
         List<String> commands = new ArrayList<>();
-        if (user.type() == AccountType.FAMILY_MEMBER) {
-            boolean own = f.familyMemberId() == user.familyMemberId().orElseThrow();
-            if (own
+        if (user.type() == AccountType.FAMILY_MEMBER || user.type() == AccountType.RESIDENT) {
+            if (ownBySender(user, f)
                     && f.status() == Status.REPLIED
                     && permissions
                             .hasPermission(user, key(Operation.UPDATE), target(f))
@@ -641,10 +809,18 @@ public class FeedbackService {
             if (f.open()) {
                 commands.add("change-priority");
             }
+            if (f.open() && f.type() == Type.WISH) {
+                commands.add("change-type");
+                commands.add("link-opinion");
+            }
             commands.add("add-note");
         }
         if (f.open() && user.roles().stream().anyMatch(REASSIGNERS::contains)) {
             commands.add("reassign");
+        }
+        if (f.status() == Status.REPLIED && mayActOnBehalf(user, f)) {
+            commands.add("agree-to-close");
+            commands.add("reopen");
         }
         return commands;
     }
@@ -685,17 +861,52 @@ public class FeedbackService {
 
     private Feedback lockAsSender(CurrentUser user, long id) {
         Feedback current = store.lockForUpdate(id);
-        if (user.type() != AccountType.FAMILY_MEMBER) {
+        if (user.type() == AccountType.STAFF) {
+            // Hành chính, Điều dưỡng có phạm vi ghi thay người cao tuổi không có tài khoản (FR-058a (c))
+            authorize(user, Operation.UPDATE, target(current));
+            if (!mayActOnBehalf(user, current)) {
+                throw denied();
+            }
+            return current;
+        }
+        if (user.type() != AccountType.FAMILY_MEMBER && user.type() != AccountType.RESIDENT) {
             throw denied();
         }
         authorize(user, Operation.UPDATE, target(current));
-        requireOwnIfFamily(user, current);
+        requireOwnIfSender(user, current);
         return current;
     }
 
-    private static void requireOwnIfFamily(CurrentUser user, Feedback f) {
-        if (user.type() == AccountType.FAMILY_MEMBER
-                && f.familyMemberId() != user.familyMemberId().orElseThrow()) {
+    /**
+     * Ghi thay Đồng ý đóng, Mở lại (FR-058a (c)): Hành chính, Điều dưỡng có quyền Sửa trong phạm vi; phản hồi của người
+     * cao tuổi chưa có tài khoản Hoạt động (người có tài khoản tự ra lệnh trên kênh của mình).
+     */
+    private boolean mayActOnBehalf(CurrentUser user, Feedback f) {
+        return user.type() == AccountType.STAFF
+                && f.fromResident()
+                && user.roles().stream().anyMatch(ON_BEHALF_OF_RESIDENT::contains)
+                && accounts.byResident(f.residentId())
+                        .filter(a -> a.status() == AccountStatus.ACTIVE)
+                        .isEmpty()
+                && permissions
+                        .hasPermission(user, key(Operation.UPDATE), target(f))
+                        .allowed();
+    }
+
+    /** Người gửi là chính người xem: người thân gửi, hoặc người cao tuổi của tài khoản (FR-086). */
+    private static boolean ownBySender(CurrentUser user, Feedback f) {
+        return switch (user.type()) {
+            case FAMILY_MEMBER ->
+                !f.fromResident()
+                        && f.familyMemberId().equals(user.familyMemberId().orElseThrow());
+            case RESIDENT ->
+                f.fromResident() && f.residentId() == user.residentId().orElseThrow();
+            default -> true;
+        };
+    }
+
+    private static void requireOwnIfSender(CurrentUser user, Feedback f) {
+        if (!ownBySender(user, f)) {
             throw new NotFoundException();
         }
     }
