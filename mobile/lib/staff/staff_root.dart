@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -9,8 +11,11 @@ import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'approval_requests/approval_inbox_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
+import 'handover/handover_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'pending_review/pending_review_screen.dart';
+import 'shifts/assignments_screen.dart';
+import 'shifts/my_shifts_screen.dart';
 import 'sync_results/sync_results_screen.dart';
 
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
@@ -33,16 +38,41 @@ class _StaffRootState extends State<StaffRoot> {
   static const _inboxIndex = 0;
 
   /// Tab đã áp đầu màn xanh đêm của DESIGN.md 15.4; tab khác giữ thanh của theme tới khi đổi (15.7).
-  static const _headerTabs = {'Thông báo', 'Phê duyệt'};
+  static const _headerTabs = {'Thông báo', 'Phê duyệt', 'Ca của tôi', 'Phân công', 'Bàn giao ca'};
 
   int _index = _inboxIndex;
   int _urgent = 0;
   bool _urgentBand = false;
+  bool _canViewShifts = false;
+  bool _canViewHandovers = false;
 
   @override
   void initState() {
     super.initState();
     widget.push?.addListener(_onPush);
+    unawaited(_loadShiftPermission());
+  }
+
+  Future<void> _loadShiftPermission() async {
+    var allowed = false;
+    var handovers = false;
+    try {
+      final grants = await widget.session.api.getList('/me/permissions');
+      allowed = grants.whereType<Map<String, dynamic>>().any(
+        (grant) => grant['function'] == 'SHIFT_SCHEDULE' && grant['operation'] == 'VIEW',
+      );
+      handovers = grants.whereType<Map<String, dynamic>>().any(
+        (grant) => grant['function'] == 'SHIFT_HANDOVER' && grant['operation'] == 'VIEW',
+      );
+    } on Object {
+      // Chưa xác nhận được quyền thì không mở mục lịch ca.
+    }
+    if (mounted) {
+      setState(() {
+        _canViewShifts = allowed;
+        _canViewHandovers = handovers;
+      });
+    }
   }
 
   @override
@@ -91,11 +121,38 @@ class _StaffRootState extends State<StaffRoot> {
     ('Chờ xem lại', LucideIcons.cloudOff, () => PendingReviewScreen(api: widget.session.api)),
     ('Mở khóa sớm', LucideIcons.lockOpen, () => EarlyUnlockScreen(api: widget.session.api)),
     ('Phê duyệt', LucideIcons.clipboardCheck, () => ApprovalInboxScreen(api: widget.session.api)),
+    if (_canViewShifts) ('Ca của tôi', LucideIcons.calendarDays, () => MyShiftsScreen(api: widget.session.api)),
+    if (_canViewShifts) ('Phân công', LucideIcons.users, () => AssignmentsScreen(api: widget.session.api)),
+    if (_canViewHandovers) ('Bàn giao ca', LucideIcons.arrowLeftRight, () => HandoverScreen(api: widget.session.api)),
   ];
+
+  Future<void> _openMore(List<(String, IconData, Widget Function())> tabs) => showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (sheetContext) => SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (index, (label, icon, _)) in tabs.indexed.skip(4))
+            ListTile(
+              leading: Icon(icon),
+              title: Text(label),
+              selected: index == _index,
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _select(index);
+              },
+            ),
+        ],
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     final tabs = _tabs;
+    final hasMore = tabs.length > 5;
     return Scaffold(
       appBar: _headerTabs.contains(tabs[_index].$1)
           ? headerAppBar(
@@ -130,16 +187,23 @@ class _StaffRootState extends State<StaffRoot> {
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _select,
+        selectedIndex: hasMore && _index >= 4 ? 4 : _index,
+        onDestinationSelected: (index) {
+          if (hasMore && index == 4) {
+            unawaited(_openMore(tabs));
+          } else {
+            _select(index);
+          }
+        },
         destinations: [
-          for (final (i, (label, icon, _)) in tabs.indexed)
+          for (final (i, (label, icon, _)) in tabs.indexed.take(hasMore ? 4 : tabs.length))
             NavigationDestination(
               icon: i == _inboxIndex
                   ? Badge.count(count: _urgent, isLabelVisible: _urgent > 0, child: Icon(icon))
                   : Icon(icon),
               label: label,
             ),
+          if (hasMore) const NavigationDestination(icon: Icon(LucideIcons.ellipsis), label: 'Thêm'),
         ],
       ),
     );

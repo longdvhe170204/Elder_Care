@@ -4,16 +4,15 @@ import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
-import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
-import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.staffing.credential.internal.persistence.CredentialStore;
+import com.eldercare.backend.staffing.internal.credential.persistence.CredentialStore;
+import com.eldercare.backend.staffing.internal.persistence.M09Retention;
+import com.eldercare.backend.staffing.internal.persistence.M09RetentionFactory;
 import com.eldercare.backend.staffing.internal.service.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
-import com.eldercare.backend.staffing.staff.internal.persistence.StaffStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.staff.persistence.StaffStore;
 import java.util.Map;
 import org.springframework.context.annotation.*;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /** T009: đăng ký provider dùng chung, không đọc bảng của module khác. */
 @Configuration(proxyBeanMethods = false)
@@ -104,195 +103,100 @@ class M09GovernanceConfig {
 
     @Bean
     ScopeAssignmentProvider assignmentScope(
-            com.eldercare.backend.staffing.assignment.internal.persistence.AssignmentStore assignments,
+            com.eldercare.backend.staffing.internal.assignment.persistence.AssignmentStore assignments,
             ShiftStore shifts) {
         return new AssignmentScopeAssignment("M09.ASSIGNMENT", assignments, shifts);
     }
 
     @Bean
     ScopeAssignmentProvider floorManagerAssignmentScope(
-            com.eldercare.backend.staffing.assignment.internal.persistence.AssignmentStore assignments,
+            com.eldercare.backend.staffing.internal.assignment.persistence.AssignmentStore assignments,
             ShiftStore shifts) {
         return new AssignmentScopeAssignment("M09.FLOOR_MANAGER_ASSIGNMENT", assignments, shifts);
     }
 
     @Bean
-    RetentionProvider shiftTemplateRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.SHIFT_TEMPLATE, jdbc, database, time, accounts, activities);
+    RetentionProvider shiftTemplateRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.SHIFT_TEMPLATE);
     }
 
     @Bean
-    RetentionProvider scheduleRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.SCHEDULE, jdbc, database, time, accounts, activities);
+    RetentionProvider scheduleRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.SCHEDULE);
     }
 
     @Bean
-    RetentionProvider shiftRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.SHIFT, jdbc, database, time, accounts, activities);
+    RetentionProvider shiftRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.SHIFT);
     }
 
     @Bean
-    RetentionProvider shiftStaffRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.SHIFT_STAFF, jdbc, database, time, accounts, activities);
+    RetentionProvider shiftStaffRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.SHIFT_STAFF);
     }
 
     @Bean
-    RetentionProvider shiftLeadRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.SHIFT_LEAD_HISTORY, jdbc, database, time, accounts, activities);
+    RetentionProvider shiftLeadRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.SHIFT_LEAD_HISTORY);
     }
 
     @Bean
-    RetentionProvider shiftPublicationRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.SHIFT_PUBLICATION, jdbc, database, time, accounts, activities);
-    }
-
-    private M09Retention retention(
-            M09Retention.Kind kind,
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return new M09Retention(kind, jdbc, database, time, accounts, activities);
+    RetentionProvider shiftPublicationRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.SHIFT_PUBLICATION);
     }
 
     @Bean
-    RetentionProvider assignmentRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.ASSIGNMENT, jdbc, database, time, accounts, activities);
+    RetentionProvider assignmentRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.ASSIGNMENT);
     }
 
     @Bean
-    RetentionProvider floorManagerAssignmentRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.FLOOR_MANAGER_ASSIGNMENT, jdbc, database, time, accounts, activities);
+    RetentionProvider floorManagerAssignmentRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.FLOOR_MANAGER_ASSIGNMENT);
     }
 
     @Bean
-    RetentionProvider staffRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.STAFF, jdbc, database, time, accounts, activities);
+    RetentionProvider staffRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.STAFF);
     }
 
     @Bean
-    RetentionProvider credentialRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.CREDENTIAL, jdbc, database, time, accounts, activities);
+    RetentionProvider credentialRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.CREDENTIAL);
     }
 
     @Bean
-    RetentionProvider departmentRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.DEPARTMENT, jdbc, database, time, accounts, activities);
+    RetentionProvider departmentRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.DEPARTMENT);
     }
 
     @Bean
-    RetentionProvider credentialTypeRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.CREDENTIAL_TYPE, jdbc, database, time, accounts, activities);
+    RetentionProvider credentialTypeRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.CREDENTIAL_TYPE);
     }
 
     @Bean
-    RetentionProvider practiceScopeRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.PRACTICE_SCOPE, jdbc, database, time, accounts, activities);
+    RetentionProvider practiceScopeRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.PRACTICE_SCOPE);
     }
 
     @Bean
-    RetentionProvider staffDepartmentRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.STAFF_DEPARTMENT, jdbc, database, time, accounts, activities);
+    RetentionProvider staffDepartmentRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.STAFF_DEPARTMENT);
     }
 
     @Bean
-    RetentionProvider departmentLeadHistoryRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.DEPARTMENT_LEAD_HISTORY, jdbc, database, time, accounts, activities);
+    RetentionProvider departmentLeadHistoryRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.DEPARTMENT_LEAD_HISTORY);
     }
 
     @Bean
-    RetentionProvider staffingRatioRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.STAFFING_RATIO_CALCULATION, jdbc, database, time, accounts, activities);
+    RetentionProvider staffingRatioRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.STAFFING_RATIO_CALCULATION);
     }
 
     @Bean
-    RetentionProvider staffImportRetention(
-            JdbcTemplate jdbc,
-            RetentionDatabase database,
-            BusinessTime time,
-            AccountApi accounts,
-            ProfessionalActivityApi activities) {
-        return retention(M09Retention.Kind.STAFF_IMPORT_BATCH, jdbc, database, time, accounts, activities);
+    RetentionProvider staffImportRetention(M09RetentionFactory retention) {
+        return retention.create(M09Retention.Kind.STAFF_IMPORT_BATCH);
     }
 }

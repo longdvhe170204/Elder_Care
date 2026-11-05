@@ -6,9 +6,9 @@ import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;
-import com.eldercare.backend.staffing.assignment.internal.domain.AssignmentInput;
-import com.eldercare.backend.staffing.assignment.internal.service.port.AssignmentCommandPort;
-import com.eldercare.backend.staffing.shift.internal.service.port.*;
+import com.eldercare.backend.staffing.internal.assignment.domain.AssignmentInput;
+import com.eldercare.backend.staffing.internal.assignment.service.AssignmentCommandPort;
+import com.eldercare.backend.staffing.internal.shift.service.*;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.FakeM04Config;
 import com.eldercare.backend.support.fake.roombedallocation.*;
@@ -68,7 +68,9 @@ class PostPublicationPortsIT extends MySqlIntegrationTestBase {
         locations.floor(floor, null);
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu port]','08:00','16:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu port] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'08:00' AS start_time,'16:00' AS end_time,'FLOOR' AS scope_type,FALSE AS requires_handover) src");
         long schedule = AssignmentFixtures.insert(
                 jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2026-10','FLOOR',?,'PUBLISHED')",
@@ -78,8 +80,8 @@ class PostPublicationPortsIT extends MySqlIntegrationTestBase {
                 "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) VALUES (?,?,?,?,'FLOOR',?,FALSE,'PUBLISHED')",
                 schedule,
                 template,
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(from),
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(to),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(from),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(to),
                 floor);
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, worker);
     }

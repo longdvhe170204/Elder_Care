@@ -84,4 +84,55 @@ DBR/BR ở [data-model mục 11](data-model.md#11-truy-vết-dbr-br-và-fr). B�
 
 Mẫu biên bản SC-002/010: `Mã SC | Lần | Vai trò/người thử đã hướng dẫn | Mã ca | Bắt đầu | Kết thúc | Số phút | Điều kiện dữ liệu | Lỗi gặp`. Ghi mười dòng thật; sắp thời gian tăng dần, trung vị của mười lần là trung bình phần tử 5 và 6. Thời gian chạy JUnit/CI không phải thời gian người dùng thao tác.
 
-SC-003 ghi tháng, tổng bàn giao thuộc mẫu, số xác nhận đúng hạn, số quá hạn, số quá hạn đã nhắc và cách kiểm từng mẫu. Không đưa ca không yêu cầu bàn giao vào mẫu; ghi riêng trường hợp Trưởng tầng xác nhận không có ca sau. Không có dữ liệu thì để **Chưa đo**, không điền số minh họa thành kết quả.
+SC-003 ghi tháng, tổng bàn giao thuộc mẫu, số xác nhận đúng hạn, số quá hạn, số quá hạn đã nhắc và cách kiểm từng mẫu. Không đưa ca không yêu cầu bàn giao vào mẫu; không dùng ngoại lệ Trưởng tầng xác nhận khi không có ca sau vì ngoại lệ này đã bị bỏ theo quyết định 2026-11-05 (FR-038); dữ liệu lịch sử trước thay đổi cần được nhận diện riêng, không dùng để nghiệm thu quyền mới. Không có dữ liệu thì để **Chưa đo**, không điền số minh họa thành kết quả.
+
+## Cập nhật 2026-11-05 — T050 và T016b
+
+- Người dùng đã cho phép kiểm thử sau yêu cầu clean ban đầu. T050: 117 unit/architecture +333 integration của staffing và consumer/hợp đồng liên quan xanh, 0 failure/error/skip; không chạy lifecycle verify toàn kho. Báo cáo XML giữ tại .worktrees/.snapshots/008-retention-20261105/reports-staffing-green.
+- T016b: mã Ca của tôi từ nhánh cũ đã ghép đúng client hiện tại và StaffRoot; toàn app 179 test xanh, analyze sạch, định dạng qua. Bộ 27 ca riêng kiểm tháng/giờ Việt Nam, ca qua ngày, phản hồi trả chậm, không lộ liên hệ, lỗi/mất quyền, menu Thêm và chữ 200% sáng/tối. Mã nguồn nhánh cũ giữ nguyên; pubspec/lock không đổi; không đổi Developer Mode của Windows.
+- Các câu chờ mở mobile/nền A trong ghi chú lịch sử không còn chặn T016b. T022b/T030/T041b và nghiệm thu nguồn thật T043b/T049b/T044b vẫn mở, không lấy widget test thay bằng chứng thiết bị hoặc nguồn thật.
+- Người dùng xác nhận chưa có biên bản đo 10 lần SC-002/SC-010 hoặc vận hành một tháng SC-003. Các mục đó vẫn Chưa đo, không dùng số liệu giả/timing CI thay thế.
+- Hai điểm 008 cần chủ dự án chốt vẫn chưa có quyết định: mốc kiểm người nhận việc tồn; đối tượng/thời điểm hiện/tắt hai cờ checklist bàn giao. Đã giải thích luồng/vai trò và ví dụ, không tự chọn hoặc đề xuất quy tắc mới.
+
+## Quyền nhận bàn giao theo lịch ca sau — chốt và kiểm ngày 2026-11-05
+
+Người dùng chốt người xác nhận bắt buộc thuộc đúng ca sau đã xếp, kể cả Trưởng tầng. Nguồn nghiệp vụ13.5/24.2, BF02/BF13 và spec008 đã đồng bộ; chưa đổi mốc kiểm việc tồn005 hoặc chốt thay vòng đời hai cờ checklist. Không có endpoint/schema/DTO/sự kiện/API module mới; không có migration hoặc phụ thuộc mới.
+
+- Trước sửa receiver: lượt FR038 chạy7 test, có5 failure bắt đúng ngoại lệ ngoài lịch/không ca sau; một error do test thành viên thường gọi allowedCommands ngoài quyền xem bản bàn giao ca trước. Test đó đã sửa để đòi NotFound ở truy vấn và PermissionDenied ở lệnh, không mở thêm quyền xem. XML đỏ giữ nguyên ở red-reports.
+- Sau sửa: 47 unit/arch thuộc8 lớp CriticalHandoverItemTest, NextHandoverShiftTest, HandoverNotificationsTest, HandoverCorrectionNotificationsTest, HandoverEventSerializationTest, LayerArchTest, ModuleBoundaryTest, TimeArchTest đều xanh.
+- 67 IT thuộc6 lớp HandoverIT, HandoverEmbeddedItemsIT, HandoverSchemaIT, PostPublicationShiftIT, StaffModuleIntegrationIT và ApiContractIT xanh; 0 failure/error/skip. HandoverIT có7 lượt FR038 cho không có ca sau, không có tên, vắng, rút do nghỉ việc, nghỉ được duyệt, Trưởng tầng có tên hợp lệ và thành viên thường không có nhiệm vụ xác nhận; các luồng xác nhận/ý kiến/rollback cũ được chạy lại.
+- Lệnh: Maven spotless:apply chỉ hai file HandoverService.java/HandoverIT.java; Maven test failsafe:integration-test với danh sách lớp ở trên, kiểm XML failsafe-summary để không bỏ sót failure của integration-test; không chạy lifecycle verify toàn kho. git diff --check qua. Không chạy lại Flutter/web vì không sửa mã giao diện hoặc hình dạng HTTP.
+
+Chứng cứ: .worktrees/.snapshots/008-handover-next-shift-20261105/{red-reports,green-reports,result.json,spotless.log,green.log}. Lượt đầu bị sandbox chặn Maven cache; lượt Maven được cấp quyền đã chạy test thật. Không cộng kết quả lượt này vào tổng117+333 của checkpoint trước như số ca duy nhất. T043c vẫn mở, checklist53/60; không dùng các test này thay số đo người dùng hoặc vận hành một tháng của T044b.
+
+### Bổ sung quyết định giờ nhận việc tồn (2026-11-05)
+
+Người dùng đã chốt kiểm người nhận việc tồn tại lúc máy chủ xử lý lệnh nhận (ví dụ14:10), giữ giờ dự kiến cũ (13:50), trạng thái và lịch sử. Đã cập nhật nghiệp vụ13.5/24.2 trước FR044a/tiêu chí chấp nhận008, ghi chú hợp đồng và bàn giao C trong carryover-claim-decision-2026-11-05.md. Team-plan chuyển chờ quyết định sang C cài lệnh/allowedCommands, E cài nguồn thật; không xóa phần chưa làm.
+
+Lượt này chỉ sửa tài liệu; kiểm git diff --check, chỉ số task vẫn53/60, không chạy lại test mã và không dùng kết quả47+67 của quyền xác nhận để nghiệm thu nhận việc tồn005. Source/spec/test005 giữ nguyên. Không thêm API/migration/thư viện; chưa chốt đủ vòng đời hai cờ checklist, không đánh xong T043c hoặc toàn008.
+
+## T043c đã kiểm xanh — nguồn ShiftStaffPort thật (2026-11-05)
+
+- TDD đỏ5lượt:3failure do test chọn fake005 trả mặc định thay nguồn thật,2error gồm thiếu bean production và fixture đổi ca đã Hủy. Test mới chọn rõ careStaffLookup; sửa thứ tự fixture để không sửa ca Hủy; không đổi fake hoặc test của C.
+- Nguồn thật đủ12 hàm: ca/published/range/containing/lead/members/onShift/qualified/hasQualifiedStaff, phân công PRIMARY/SUPPORT, Điều dưỡng phụ trách, trạng thái xác nhận và hai cờ. Checklist kiểm cửa sổ lập, không tự tạo bản nháp, chuỗi DRAFT→PREPARED→HAS_COMMENTS→PREPARED→CONFIRMED, đúng người/ca sau, vắng và hết cửa sổ xử lý. HandoverAccess dùng chung với lệnh, giữ hồi quy quyền/rollback/điều chỉnh ca.
+- 51unit/arch thuộc10lớp: CriticalHandoverItemTest,NextHandoverShiftTest,HandoverNotificationsTest,HandoverCorrectionNotificationsTest,HandoverEventSerializationTest,LayerArchTest,ModuleBoundaryTest,TimeArchTest,SolidArchTest,ApiNamedInterfaceArchTest; đều xanh.
+- 123IT thuộc10lớp: ApiContractIT(1),AssignmentIT(32),CredentialLifecycleIT(11),DutyDirectoryIT(7),HandoverEmbeddedItemsIT(2) đã xanh trước khi tiến trình bị ngắt; HandoverIT,HandoverSchemaIT,PostPublicationShiftIT,StaffModuleIntegrationIT,ShiftLifecycleIT chạy tiếp70IT xanh. Tổng0failure/error/skip, không đếm trùng.
+- Đính chính định dạng: các lệnh Spotless dùng đường dẫn tương đối trước đó không khớp bộ lọc regex đường dẫn tuyệt đối trên Windows. Đã chạy spotless:apply và spotless:check thực sự trên10file E:8file T043c vàM09Retention/StaffingRatioSchemaIT củaT050; log báo10file,9được định dạng,1đã sạch;check xanh. Không chạy verify toàn kho. Không cần chạy lại web/Flutter ở bước chỉ Java này; nguồn đã biên dịch từ cùng thay đổi logic trước lần chỉ định dạng cuối.
+
+Chứng cứ: .worktrees/.snapshots/008-handover-next-shift-20261105/staff-port-green-reports/{unit,integration},staff-port-result.json,staff-port-real-spotless.log,staff-port-resume-result.json,staff-port-resume.log; XML đỏ ở staff-port-red-reports. Đánh xT043c,54/60task. Còn ba task mobile/T043b/T049b/T044b. Các nguồn B/C/D dùng fake trong test vẫn là giới hạn; không dùng kết quả này để nghiệm thu năm callback005, mốc claim005 hoặc số đo vận hành.
+
+## T041b — app ghi vắng ca trực tuyến(2026-11-05)
+
+Test đỏ trước cài vì thiếu ShiftAbsenceSheet;7test nghiệp vụ gồm chọn người/lý do,người thay/header/payload,ngoài cửa sổ backend,lỗi mạng giữ nội dung+khóa,403 xóa nội dung,không có lệnh thì không form,chặn gửi hai lần. Bổ sung2test chữ200% sáng/tối và1test từ Ca của tôi tới lệnh rồi tải lại trạng thái backend. Full flutter test--no-pub:189pass;flutter analyze--no-pub:No issues;dart format4file. Không sửa common hoặc pubspec/lock; hai hash vẫn như checkpointT016b. Diff--check qua. Không chạy lại Maven vì bước này chỉ Dart/tài liệu.
+
+Người dùng chốt trực tuyến trước, không tạo hàng đợi ngoại tuyến hoặc mốc đồng bộ muộn. Chưa xác nhận kết quả máy chủ thì giữ nội dung/thử lại với cùng khóa,không báo thành công giả. TaskT041b được x,55/60; không đánh xT044b hoặc coi widgettest là thử trên thiết bị thật. Log mobile-absence-red.log,mobile-absence-green.log,mobile-absence-full-test.log,mobile-absence-analyze.log,mobile-absence-format.log tại snapshot008-handover-next-shift-20261105.
+
+## Kiểm ghép T054/T055, T022b và phần trực tuyến T030 —2026-11-05
+
+- Chứng cứ mới tại .worktrees/.snapshots/008-mobile-assignments-20261105; không cộng với checkpoint cũ như số test duy nhất. Red hợp lệ:28IT,26failure/0error vì endpoint chưa có; red-fixture.log chỉ là lỗi chuyển fixture, không lấy làm chứng cứ nghiệp vụ. mobile-red và mobile-navigation-red chứng minh thiếu mã/mục điều hướng; mobile-labels-red kiểm tên nguồn.
+- Maven: test chọn AssignmentDetailSerializationTest,AssignmentReadSourcesTest,LayerArchTest,ModuleBoundaryTest,TimeArchTest,SolidArchTest và failsafe:integration-test chọn AssignmentDraftUpdateIT,AssignmentDraftPermissionIT,AssignmentDraftAtomicityIT,AssignmentResolutionHttpIT,AssignmentFixtureIsolationIT,AssignmentIT,ApiContractIT. Fresh XML cuối:19unit/arch+64IT,0failure/error/skip, mavenExit0. Includes If-Match/khóa/lặp/UPDATEkhôngCREATE/rollback/công bố đồng thời, vị trí lịch sử/vắng/bán trú/nguồn thiếu/GET không ghi và hợp đồng. green-result.json cùng green-surefire/green-failsafe lưu XML.
+- Spotless apply/check dùng regex đường dẫn tuyệt đối theo16tên file E; log thực báo16file,8được định dạng/8sạch,check qua. Không dùng bộ lọc0file hoặc exit Maven đơn lẻ để kết luận IT.
+- npm run gen:api chuẩn đã chạy, chỉ api008.js có diff; dùng node_modules có sẵn qua junction bị ignore, không cài/thay dependency. npm test:472/81file;lint/build qua. Vite cần tiến trình con nên lượt sandbox EPERM không tính là test sản phẩm đỏ. Sau chỉnh mã cảnh báo trong fixture E,3test AssignmentPanel chạy lại xanh. Không sửa test của A/B/C/D.
+- Toàn app sau ghép phân công và bàn giao trực tuyến:227test xanh. Test riêng bàn giao10ca và4ca menu theo quyền; không giả lập nghiệm thu offline/xóa hết phạm vi. Test giữ lỗi nguồn,403 xóa, ý kiến/khóa thử lại, lệnh lập theo allowedCommands, hoàn tất bị409, xác nhận có người bấm và tải lại trạng thái, gửi lại đúng replies, chữ200% sáng/tối. Log final-mobile-test,final-mobile-analyze,handover-*; thứ tự import/ngoặc lint được sửa, kết quả analyzer cuối cần No issues found trước kết luận.
+
+T054/T055 được[x],57/62task. T022b/T030/T043b/T049b/T044b giữ mở; không nói toàn008 hoàn tất hoặc hệ thống chạy trơn tru từ test fake. Client ETag/hạn phạm vi cần A; callback005 cần C; US13 cần D; người dùng chưa có kết quả nghiệm thu thật.
