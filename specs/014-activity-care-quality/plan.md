@@ -393,3 +393,5 @@ Kiểm: `BR_M04_18_SuKienTinhPhiIT` 7/7, `FR_031_DinhChinhIT` 3/3, `T014_Session
 | FR-071 | `FR_071_NhacBuoiNguoiCaoTuoiIT`, các sự kiện thông báo trong `BR_M04_17`, `BR_M04_23` | Một phần theo các dòng đã cài |
 
 - T034 (R-15): migration của 014 chỉ có `V014_02` (`activity_session`, `activity_registration`), `V014_03` (cột `billed_source_id`), `V014_05` (cột chuyến, người tham gia); mọi bảng khác của data-model ghi vào bảng chung (`catalog_item`, `simple_record`, `record_event`, `status_history`, `reminder_marker`) theo data-model mục 0. Hai bảng có `COMMENT DataGroup=BUSINESS`; `T005_FoundationSchemaIT`, `T016_TripSchemaIT` kiểm cấu trúc.
+
+**Kiểm toàn bộ trên `f1c584aa` (06/11/2026).** `clean verify -Dit.forkCount=3`: 1092 đơn vị/kiến trúc xanh, IT 2728 có 1 thất bại là `StaffCommandsHttpIT.FR_001a_…` (lớp đỏ có sẵn của E), 2 bỏ qua; 17 phút 4 giây.
