@@ -1,0 +1,101 @@
+# Kiểm tra tự động cho PR vào develop và sau mỗi lần merge vào develop (thay dần cho clean verify trên máy).
+# MySQL chạy bằng container của GitHub Actions (ghim bản 8.0); máy nhóm vẫn không dùng Docker.
+# Mật khẩu dưới đây chỉ dùng cho MySQL tạm của từng lượt chạy, không phải mật khẩu thật.
+name: Verify
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+# PR: push mới hủy lượt cũ của cùng PR. develop: mọi commit đều được kiểm, không hủy.
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-root"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/eldercare_test
+      TEST_DB_ADMIN_USER: root
+      TEST_DB_ADMIN_PASSWORD: ci-root
+      DB_USERNAME: eldercare_app
+      DB_PASSWORD: ci-app-pass-1
+      DB_RETENTION_USERNAME: eldercare_retention
+      DB_RETENTION_PASSWORD: ci-retention-pass-1
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+      - name: MySQL version
+        run: mysql -h 127.0.0.1 -uroot -pci-root -e "SELECT VERSION(), @@lower_case_table_names, @@time_zone"
+      - name: Verify (IT trên 3 JVM)
+        run: sh mvnw -B clean verify -Dit.forkCount=3
+      - name: Lưu báo cáo test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            backend/target/surefire-reports
+            backend/target/failsafe-reports
+          retention-days: 14
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
