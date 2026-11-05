@@ -99,7 +99,19 @@ class RequiresPermissionArchTest {
                     "người đại diện (PICKUP, UPDATE) hoặc Quản lý viện (PICKUP, APPROVE); 012 FR-024"),
             Map.entry(
                     "com.eldercare.backend.family.internal.pickup.service.PickupService.cancel",
-                    "Chờ xác nhận: người lập; Hiệu lực: người đại diện hoặc Quản lý viện kèm lý do; 012 FR-024"));
+                    "Chờ xác nhận: người lập; Hiệu lực: người đại diện hoặc Quản lý viện kèm lý do; 012 FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.register",
+                    "(VISIT_REGISTRATION, CREATE); người thân cần quyền đăng ký thăm, Hành chính đăng ký thay; 012 FR-029"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.cancel",
+                    "(VISIT_REGISTRATION, UPDATE); người thân chỉ lượt của mình, Hành chính kèm lý do; 012 FR-035"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.checkIn",
+                    "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-033, FR-067"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.checkOut",
+                    "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-034, FR-067"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho
