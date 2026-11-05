@@ -76,3 +76,13 @@ const COMMANDS = {
 }
 
 export const commandsFor = (status) => COMMANDS[status] ?? []
+
+// Trạng thái xác nhận người nhận khác (FR-017, data-model 013 mục 5)
+export const CONFIRMATION_LABELS = {
+  PENDING_CONFIRMATION: 'Chờ xác nhận',
+  EFFECTIVE: 'Hiệu lực',
+  REJECTED: 'Từ chối',
+  CANCELLED: 'Đã hủy',
+  USED: 'Đã dùng',
+  EXPIRED: 'Hết hạn',
+}
