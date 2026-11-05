@@ -167,7 +167,8 @@ class AuthController {
                 success.type(),
                 accounts.fullName(success.accountId()).orElse(null),
                 success.roles().stream().map(Role::code).sorted().toList(),
-                success.mustChangePassword());
+                success.mustChangePassword(),
+                null);
     }
 
     /** Thông báo cho người dùng; không nói tên đăng nhập có tồn tại hay không (FR-014). */

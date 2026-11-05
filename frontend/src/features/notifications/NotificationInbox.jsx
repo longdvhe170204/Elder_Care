@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Pause, Play } from 'lucide-react'
 import { getMeCallReminders, getMeNotifications, getResidents, postNotificationsByIdAcknowledge } from '@/api'
 import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -18,11 +19,15 @@ import { LEVEL_LABELS, label, reminderIdOf } from './notificationLabels'
 // Hộp thông báo (009 T035; FR-033 → FR-036; DESIGN.md `notification-inbox`). Khẩn cấp chưa xác nhận lên đầu (backend
 // sắp), mỗi dòng có nút "Xác nhận đã nhận" (FR-026); thông báo mới qua SSE thì tải lại trang đầu, mất luồng thì hỏi lại
 // mỗi 60 giây. Lọc theo người cao tuổi: danh sách trang đầu của GET /residents (001, trong phạm vi); vai trò không xem được hồ
-// sơ (403) thì không có ô lọc. Khối "Cần gọi điện" (FR-027) đứng trên bộ lọc vì không chịu bộ lọc, tải riêng nên lỗi không
-// ảnh hưởng hộp; khác app ở chỗ dòng có sẵn số và nút ghi kết quả, vì người dùng web gọi bằng máy khác rồi quay lại ghi.
+// sơ (403) thì không có ô lọc. Chi tiết mở trong DetailLayout của màn Thông báo (DESIGN.md 5): onOpen nhận
+// { key, label, render }, openedKey là mục đang mở, onClose đóng khung. Lần tải lại do SSE hay hỏi định kỳ là yêu cầu
+// nền (X-Background-Refresh, luồng SSE dùng tham số backgroundRefresh; 002 T047a: không đếm lại giờ phiên); tạm dừng
+// được (DESIGN.md 9.3, tiêu chí 2.2.2): đóng luồng, ngừng hỏi, tiếp tục thì tải lại ngay. Khối "Cần gọi điện" (FR-027)
+// đứng trên bộ lọc vì không chịu bộ lọc, tải riêng nên lỗi không ảnh hưởng hộp; khác app ở chỗ dòng có sẵn số và nút ghi
+// kết quả, vì người dùng web gọi bằng máy khác rồi quay lại ghi. Lượt nhắc gọi mở trong Sheet riêng (khung phụ).
 
 const LEVELS = ['URGENT', 'MEDIUM', 'LOW']
-const STREAM_URL = '/api/v1/notifications/stream'
+const STREAM_URL = '/api/v1/notifications/stream?backgroundRefresh=true'
 const POLL_MS = 60_000
 const SELECT_CLASS = 'h-10 w-full rounded-md border border-input bg-transparent px-3'
 
@@ -38,22 +43,25 @@ function toQuery({ level, unread, eventType, residentId }, cursor) {
 
 const isOpenUrgent = (n) => n.level === 'URGENT' && !n.acknowledgedAt
 
-export function NotificationInbox() {
+export function NotificationInbox({ openedKey, onOpen, onClose }) {
   const [filter, setFilter] = useState({ level: '', unread: false, eventType: '', residentId: '' })
   const [state, setState] = useState({ status: 'loading', items: [], nextCursor: null })
   const [eventTypes, setEventTypes] = useState([])
   const [residents, setResidents] = useState(null)
-  const [opened, setOpened] = useState(null)
+  const [announcement, setAnnouncement] = useState('')
+  const [paused, setPaused] = useState(false)
   const [reminders, setReminders] = useState([])
   const [reminder, setReminder] = useState(null)
-  const [announcement, setAnnouncement] = useState('')
 
-  const load = useCallback(async (nextFilter, cursor) => {
+  const load = useCallback(async (nextFilter, cursor, background = false) => {
     setState((s) =>
       cursor ? { ...s, loadingMore: true } : { ...s, status: s.status === 'ready' ? 'ready' : 'loading' },
     )
     try {
-      const { data } = await getMeNotifications({ query: toQuery(nextFilter, cursor) })
+      const { data } = await getMeNotifications({
+        query: toQuery(nextFilter, cursor),
+        headers: background ? { 'X-Background-Refresh': 'true' } : {},
+      })
       setState((s) => ({
         status: 'ready',
         items: cursor ? [...s.items, ...data.items] : data.items,
@@ -67,9 +75,9 @@ export function NotificationInbox() {
     }
   }, [])
 
-  const loadReminders = useCallback(async () => {
+  const loadReminders = useCallback(async (background = false) => {
     try {
-      const { data } = await getMeCallReminders()
+      const { data } = await getMeCallReminders({ headers: background ? { 'X-Background-Refresh': 'true' } : {} })
       setReminders(data)
     } catch {
       // hộp thông báo báo lỗi tải riêng; khối này giữ danh sách trước đó
@@ -88,23 +96,24 @@ export function NotificationInbox() {
   }, [load, filter])
 
   useEffect(() => {
-    const reload = () => {
-      load(filter)
-      loadReminders()
+    if (paused) return
+    const poll = () => {
+      load(filter, undefined, true)
+      loadReminders(true)
     }
     const refresh = () => {
       setAnnouncement('Có thông báo mới')
-      reload()
+      poll()
     }
     if (typeof EventSource === 'undefined') {
-      const timer = setInterval(reload, POLL_MS)
+      const timer = setInterval(poll, POLL_MS)
       return () => clearInterval(timer)
     }
     const source = new EventSource(STREAM_URL, { withCredentials: true })
     let timer = null
     source.addEventListener('notification', refresh)
     source.onerror = () => {
-      if (!timer) timer = setInterval(reload, POLL_MS)
+      if (!timer) timer = setInterval(poll, POLL_MS)
     }
     source.onopen = () => {
       clearInterval(timer)
@@ -114,7 +123,15 @@ export function NotificationInbox() {
       source.close()
       clearInterval(timer)
     }
-  }, [load, loadReminders, filter])
+  }, [load, loadReminders, filter, paused])
+
+  function togglePaused() {
+    if (paused) {
+      load(filter)
+      loadReminders()
+    }
+    setPaused(!paused)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -130,16 +147,40 @@ export function NotificationInbox() {
     setState((s) => ({ ...s, items: s.items.map((n) => (n.id === data.id ? data : n)) }))
   }, [])
 
-  const hide = useCallback((id) => {
-    setState((s) => ({ ...s, items: s.items.filter((n) => n.id !== id) }))
-    setOpened(null)
-    setAnnouncement('Đã ẩn thông báo khỏi danh sách')
-  }, [])
+  const hide = useCallback(
+    (id) => {
+      setState((s) => ({ ...s, items: s.items.filter((n) => n.id !== id) }))
+      onClose()
+      setAnnouncement('Đã ẩn thông báo khỏi danh sách')
+    },
+    [onClose],
+  )
 
-  const openReminder = useCallback((id, startRecording = false) => {
-    setOpened(null)
-    setReminder({ id, startRecording })
-  }, [])
+  const openReminder = useCallback(
+    (id, startRecording = false) => {
+      onClose()
+      setReminder({ id, startRecording })
+    },
+    [onClose],
+  )
+
+  function open(id) {
+    onOpen({
+      key: `notification-${id}`,
+      label: 'Chi tiết thông báo',
+      render: (titles) => (
+        <NotificationDetail
+          key={id}
+          id={id}
+          onOpened={replace}
+          onHidden={hide}
+          onOpenReminder={openReminder}
+          {...titles}
+        />
+      ),
+    })
+  }
+  const isOpen = (id) => openedKey === `notification-${id}`
 
   const urgent = state.items.filter(isOpenUrgent)
   const rest = state.items.filter((n) => !isOpenUrgent(n))
@@ -161,9 +202,18 @@ export function NotificationInbox() {
 
       <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 md:p-5">
         {state.status === 'ready' && (
-          <p className="type-body">
-            {`${state.unreadCount ?? 0} chưa xem, ${state.urgentCount ?? 0} khẩn cấp chưa xác nhận. Thông báo mới hiện ngay khi đến.`}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="type-body">
+              {`${state.unreadCount ?? 0} chưa xem, ${state.urgentCount ?? 0} khẩn cấp chưa xác nhận. `}
+              {paused
+                ? 'Đã tạm dừng tự làm mới: thông báo mới chưa hiện cho tới khi bạn tiếp tục.'
+                : 'Thông báo mới hiện ngay khi đến.'}
+            </p>
+            <Button variant="outline" className="h-11" onClick={togglePaused}>
+              {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+              {paused ? 'Tiếp tục tự làm mới' : 'Tạm dừng tự làm mới'}
+            </Button>
+          </div>
         )}
         <div className="flex flex-wrap items-end gap-3">
           <ToggleGroup
@@ -263,7 +313,8 @@ export function NotificationInbox() {
               <li key={n.id} className="rounded-xl border-[1.5px] border-destructive p-3">
                 <UrgentItem
                   notification={n}
-                  onOpen={() => setOpened(n.id)}
+                  selected={isOpen(n.id)}
+                  onOpen={() => open(n.id)}
                   onOpenReminder={openReminder}
                   onAcknowledged={() => {
                     setAnnouncement('Đã xác nhận thông báo khẩn cấp')
@@ -289,10 +340,15 @@ export function NotificationInbox() {
           ) : (
             <ul aria-label="Thông báo" className="flex flex-col">
               {rest.map((n) => (
-                <li key={n.id} className="border-b py-3 last:border-b-0">
+                <li
+                  key={n.id}
+                  data-state={isOpen(n.id) ? 'selected' : undefined}
+                  className="-mx-2 border-b px-2 py-3 last:border-b-0 data-[state=selected]:bg-accent"
+                >
                   <NotificationRow
                     notification={n}
-                    onOpen={() => setOpened(n.id)}
+                    selected={isOpen(n.id)}
+                    onOpen={() => open(n.id)}
                     status={n.viewedAt ? 'Đã xem' : 'Chưa xem'}
                   />
                 </li>
@@ -311,20 +367,6 @@ export function NotificationInbox() {
           )}
         </section>
       )}
-
-      <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {opened !== null && (
-            <NotificationDetail
-              key={opened}
-              id={opened}
-              onOpened={replace}
-              onHidden={hide}
-              onOpenReminder={openReminder}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
 
       <Sheet open={reminder !== null} onOpenChange={(open) => !open && setReminder(null)}>
         <SheetContent className="sm:max-w-lg">
@@ -380,7 +422,7 @@ function ReminderItem({ reminder: r, onOpen }) {
 }
 
 // Một thông báo Khẩn cấp chưa xác nhận: nút chính "Xác nhận đã nhận"; mở thông báo không phải xác nhận (FR-026)
-function UrgentItem({ notification, onOpen, onOpenReminder, onAcknowledged }) {
+function UrgentItem({ notification, selected, onOpen, onOpenReminder, onAcknowledged }) {
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState(null)
   // Một khóa cho mỗi thông báo: bấm lại khi mạng chập chờn không ghi hai lần
@@ -404,7 +446,7 @@ function UrgentItem({ notification, onOpen, onOpenReminder, onAcknowledged }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <NotificationRow notification={notification} onOpen={onOpen} status="Chưa xác nhận" />
+      <NotificationRow notification={notification} selected={selected} onOpen={onOpen} status="Chưa xác nhận" />
       <ProblemAlert problem={failure} />
       <div className="flex flex-wrap gap-2">
         {reminderIdOf(notification) !== null && (
@@ -420,13 +462,13 @@ function UrgentItem({ notification, onOpen, onOpenReminder, onAcknowledged }) {
   )
 }
 
-function NotificationRow({ notification: n, onOpen, status }) {
+function NotificationRow({ notification: n, selected, onOpen, status }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={label(LEVEL_LABELS, n.level)} />
-          <Button variant="link" className="h-auto p-0 type-label" onClick={onOpen}>
+          <Button variant="link" className="h-auto p-0 type-label" aria-pressed={selected} onClick={onOpen}>
             {n.title}
           </Button>
         </div>

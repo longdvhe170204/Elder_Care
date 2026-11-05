@@ -24,16 +24,16 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 7. **Hệ thống không tự sinh bản ghi** (Q-306, Q-307): mọi bản ghi do người dùng lập bằng lệnh. Job chỉ được chuyển trạng thái theo giờ, nhắc, cảnh báo, áp dụng yêu cầu đã duyệt, loại bỏ dữ liệu hết hạn (`SchedulerScopeArchTest` kiểm).
 8. **Không cố định giá trị nghiệp vụ**: mốc thời gian, ngưỡng đọc từ tham số CFG qua `ParameterApi`; thời gian lấy từ `BusinessTime`/`Clock`, không gọi `Instant.now()` (`TimeArchTest` kiểm).
 9. **Không viết mã thừa**: chỉ đủ cho task đang làm; không thêm tính năng, lớp trừu tượng, cấu hình mà tasks/plan không yêu cầu; không sửa định dạng, mã kế bên. Lệch kỹ thuật thì sửa plan, tasks cùng lúc và ghi lý do ở plan.
-10. **Git**: AI không tự commit, push, merge, rebase, đổi nhánh khi người dùng chưa đồng ý. Mỗi feature một nhánh `impl/NNN-ten` từ `develop`; mỗi phase một PR vào `develop`; không push thẳng `develop`.
+10. **Git**: AI không tự commit, push, merge, rebase, đổi nhánh khi người dùng chưa đồng ý. Mỗi feature một nhánh `impl/NNN-ten` từ `develop`; hết phase thì commit trên nhánh đó, xong feature mới mở PR vào `develop` (CLAUDE.md "Khi vào triển khai" điều 6, 7; sửa 2026-11-04); PR riêng sớm hơn chỉ cho hợp đồng đã dịch và `api` cần công bố (docs/team-plan.md mục 4); không push thẳng `develop`.
 
 ## 3. Định nghĩa "xong" một phase
 
 - [ ] Test của phase đã viết trước, đã thấy lỗi, giờ xanh
-- [ ] `backend`: `./mvnw verify` qua (Windows: `.\mvnw.cmd verify`); có sửa Java thì `./mvnw spotless:apply`
+- [ ] `backend`: test của feature, test kiến trúc (`*ArchTest`, `ModuleBoundaryTest`, `ApiContractIT`) và IT của module mà phase sửa hoặc có thể bị ảnh hưởng đều xanh; `./mvnw clean verify` toàn bộ (Windows: `.\mvnw.cmd clean verify`) chỉ bắt buộc trước khi mở PR vào `develop`, hoặc khi phase đụng `common`, 000, thêm bean ảnh hưởng nhiều module (sửa 2026-11-04, chủ dự án duyệt; lệnh chạy nhóm IT ở CLAUDE.md mục "Lệnh"); có sửa Java thì `./mvnw spotless:apply`
 - [ ] `frontend`: `npm test`, `npm run lint`, `npm run build` qua
 - [ ] Đánh `[x]` task trong `tasks.md`; ghi chú triển khai, lệch kỹ thuật ở `plan.md`
 - [ ] Glossary của feature cập nhật
-- [ ] PR mô tả: phase, task, có đổi `api` không ("Đổi api" + đã báo ai), kết quả lệnh kiểm
+- [ ] Commit trên nhánh feature (khi người dùng đồng ý) ghi phase, task, có đổi `api` không ("Đổi api" + đã báo ai); PR cuối feature mô tả các phase, kết quả `clean verify`
 - [ ] `docs/team-plan.md` mục 8: xóa dòng mình vừa làm xong (kết quả ghi ở `docs/progress.md`); sửa dòng xong một phần cho chỉ còn phần dở; thêm dòng cho việc cần người khác làm
 - [ ] `docs/progress.md`: thêm một dòng tiến độ (nhánh, PR, việc xong, kết quả test, việc còn lại); nhật ký chỉ thêm, không sửa, xóa dòng cũ; không ghi tiến độ vào AGENTS.md, CLAUDE.md
 
