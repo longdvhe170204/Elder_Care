@@ -5,10 +5,12 @@ import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingHandoverService;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingQueries;
 import com.eldercare.backend.belongings.internal.belonging.service.IntakeService;
+import com.eldercare.backend.belongings.internal.ending.service.BelongingEndingService;
 import com.eldercare.backend.belongings.internal.incident.service.BelongingIncidentLinks;
 import com.eldercare.backend.belongings.web.request.BelongingIntakeRequest;
 import com.eldercare.backend.belongings.web.request.HandoverRequest;
 import com.eldercare.backend.belongings.web.response.BelongingResponse;
+import com.eldercare.backend.belongings.web.response.EndingConditionResponse;
 import com.eldercare.backend.belongings.web.response.HandoverResponse;
 import com.eldercare.backend.common.error.BusinessException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,16 +39,25 @@ class BelongingController {
     private final BelongingHandoverService handovers;
     private final BelongingIncidentLinks incidentLinks;
     private final BelongingQueries queries;
+    private final BelongingEndingService endings;
 
     BelongingController(
             IntakeService intake,
             BelongingHandoverService handovers,
             BelongingIncidentLinks incidentLinks,
-            BelongingQueries queries) {
+            BelongingQueries queries,
+            BelongingEndingService endings) {
         this.intake = intake;
         this.handovers = handovers;
         this.incidentLinks = incidentLinks;
         this.queries = queries;
+        this.endings = endings;
+    }
+
+    /** Điều kiện (b) kết thúc lưu trú và mục "xử lý đồ gửi" kèm căn cứ (FR-025, FR-026). */
+    @GetMapping("/residents/{residentId}/belongings/ending-condition")
+    EndingConditionResponse endingCondition(@PathVariable long residentId) {
+        return EndingConditionResponse.of(endings.ending(new Target(ENTITY, null, residentId, null)));
     }
 
     @GetMapping("/residents/{residentId}/belongings")

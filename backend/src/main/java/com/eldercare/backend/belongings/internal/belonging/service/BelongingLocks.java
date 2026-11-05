@@ -29,6 +29,16 @@ public class BelongingLocks {
         this.belongings = belongings;
     }
 
+    /**
+     * Khóa như {@link #lock} nhưng không so phiên bản: cho việc do hệ thống thực hiện trên đồ đọc ngay trong transaction
+     * (áp dụng đề nghị xử lý, hoàn thành phiếu kiểm kê). Đồ không thuộc người cao tuổi không có trong kết quả.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<LockedBelonging> lockCurrent(long residentId, java.util.Collection<Long> ids) {
+        residents.lock(residentId);
+        return belongings.lockForUpdate(residentId, new TreeSet<>(ids));
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public List<LockedBelonging> lock(long residentId, Map<Long, Integer> versions) {
         residents.lock(residentId);

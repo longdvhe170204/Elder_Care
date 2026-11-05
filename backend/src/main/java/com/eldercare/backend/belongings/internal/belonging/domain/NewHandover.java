@@ -31,10 +31,71 @@ public record NewHandover(
         String note,
         long recordedBy,
         Instant recordedAt,
-        ReturnFacts returnFacts) {
+        ReturnFacts returnFacts,
+        Long inventoryCheckId,
+        Long approvalRequestId,
+        String receivingUnit) {
 
     public NewHandover {
         photoFileIds = photoFileIds == null ? List.of() : List.copyOf(photoFileIds);
+    }
+
+    /** Bản ghi có dữ kiện lần trả nhưng không do kiểm kê hay đề nghị xử lý sinh ra. */
+    public NewHandover(
+            long belongingId,
+            long residentId,
+            HandoverType kind,
+            BelongingStatus targetStatus,
+            GiverType giverType,
+            Long giverId,
+            String giverName,
+            String giverIdDocument,
+            GiverType recipientType,
+            Long recipientId,
+            String recipientName,
+            Instant occurredAt,
+            BigDecimal quantity,
+            BigDecimal cashAmount,
+            Long conditionLevelId,
+            String conditionDescription,
+            Long storageLocationId,
+            String reason,
+            boolean holderAbsent,
+            boolean valuable,
+            List<Long> photoFileIds,
+            String note,
+            long recordedBy,
+            Instant recordedAt,
+            ReturnFacts returnFacts) {
+        this(
+                belongingId,
+                residentId,
+                kind,
+                targetStatus,
+                giverType,
+                giverId,
+                giverName,
+                giverIdDocument,
+                recipientType,
+                recipientId,
+                recipientName,
+                occurredAt,
+                quantity,
+                cashAmount,
+                conditionLevelId,
+                conditionDescription,
+                storageLocationId,
+                reason,
+                holderAbsent,
+                valuable,
+                photoFileIds,
+                note,
+                recordedBy,
+                recordedAt,
+                returnFacts,
+                null,
+                null,
+                null);
     }
 
     /** Bản ghi không phải lần trả hoặc lần chặn trả. */
