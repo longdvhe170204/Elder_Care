@@ -7,6 +7,7 @@ import {
   postFeedbackByIdByCommand,
 } from '@/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -38,8 +39,16 @@ const FILTERS = [
   ['overdue', 'Quá hạn'],
 ]
 
-function statusOf(f) {
-  return f.overdue ? 'Quá hạn' : (FEEDBACK_STATUS[f.status] ?? f.status)
+// Quá hạn vẫn giữ trạng thái để biết đã có người nhận xử lý chưa (bố cục duyệt 2026-11-05)
+function FeedbackStatus({ f }) {
+  const status = FEEDBACK_STATUS[f.status] ?? f.status
+  return f.overdue ? <Badge variant="urgent">{status}, quá hạn</Badge> : <StatusBadge status={status} />
+}
+
+// Quá hạn lên đầu, rồi theo hạn xử lý gần nhất (DESIGN.md 11: việc gấp nổi lên bằng thứ tự)
+function byUrgency(a, b) {
+  if (a.overdue !== b.overdue) return a.overdue ? -1 : 1
+  return new Date(a.dueAt) - new Date(b.dueAt)
 }
 
 async function command(id, name, body) {
@@ -185,7 +194,9 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-1">
-        <StatusBadge status={statusOf(f)} />
+        <span>
+          <FeedbackStatus f={f} />
+        </span>
         <Title className="type-title">
           {typeLabel(f.type)}, {groupLabel(f.group).toLowerCase()}
         </Title>
@@ -418,7 +429,7 @@ export function FeedbackPage() {
     (next) =>
       getFeedback({ query: next === 'overdue' ? { overdue: true } : next === 'all' ? {} : { status: next } })
         .then(({ data }) => {
-          setRows(data)
+          setRows([...data].sort(byUrgency))
           setFailure(null)
           loadNames(data)
         })
@@ -522,7 +533,7 @@ export function FeedbackPage() {
                   </TableCell>
                   <TableCell>{f.assignee}</TableCell>
                   <TableCell className="pr-4">
-                    <StatusBadge status={statusOf(f)} />
+                    <FeedbackStatus f={f} />
                   </TableCell>
                 </TableRow>
               ))}

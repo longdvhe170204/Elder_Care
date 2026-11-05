@@ -1,9 +1,9 @@
 ---
 name: Elder_Care
-version: 6.8.2
+version: 6.8.3
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
-updated: 2026-11-04
+updated: 2026-11-05
 direction: Dòng thời gian ca (hướng 3): nền trơn, menu xanh đêm đậm, trạng thái là chữ màu
 colors:
   light:
@@ -619,6 +619,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có tab Đánh giá trong khung chi tiết hồ sơ người cao tuổi (001 T042, bố cục duyệt 2026-10-23; `src/features/assessments/`): từ 6.7.0 là nút "Đánh giá" mở `Sheet` 768px chồng lên khung hồ sơ (trước đó khung rộng `sm:max-w-5xl`). Từ trên xuống: thẻ "Mức chăm sóc hiện hành" (mức, từ ngày, căn cứ, lưu ý chăm sóc, Lịch sử mức), phiếu đang soạn hai cột (trái phiếu: căn cứ, nhận xét, lưu ý ≤1000 ký tự có bộ đếm, mức chọn bằng ba nút không chọn sẵn, nhu cầu chăm sóc dạng ô chọn, loại hình lưu trú đề xuất chỉ với đầu vào; phải khối tham khảo: hồ sơ sức khỏe ban đầu, mục Hiệu lực, chỉ số đo gần nhất ghi "Chưa có dữ liệu chỉ số đo" tới khi tính năng đo kết nối), lịch sử đánh giá (mở xem nội dung, nút Đính chính dùng `correction-sheet`). Mức trong phiếu tách khỏi mức hiện hành bằng nhãn "chưa áp dụng cho tới khi Bác sĩ xác nhận"; hộp Xác nhận nêu tác động theo loại; thiếu nhận xét hoặc mức báo tại ô. Không có ô điểm, không có mức đề xuất, không nhãn năng lực (mục 2.2).
 - Đã có báo đánh giá lại (001 T066, bố cục duyệt 2026-10-23; `src/features/assessments/ReassessmentNotice.jsx`, `src/features/residents/ResidentListPage.jsx`): đầu tab Đánh giá có `Alert` khi người cao tuổi cần hoặc quá hạn đánh giá lại (`attention` kèm hạn, hoặc `urgent` "Quá hạn đánh giá lại từ …"; danh sách căn cứ đã báo kèm thời điểm báo; đang Điều trị tại bệnh viện ghi hạn tính từ lúc Ghi nhận trở về). Không có nút: hệ thống chỉ báo, Bác sĩ hoặc Điều dưỡng tự lập đánh giá lại (Q-307). Bảng hồ sơ thêm cột Đánh giá lại và mục lọc "Cần đánh giá lại n" ở thanh lọc (6.7.0; trước đó hai nút riêng), ẩn khi vai trò không xem được đánh giá (403); chọn mục này thì bảng chỉ có những người đó, quá hạn trước. Gọi API thật.
 - Đã có màn Chờ xem lại (002 T059, FR-041c; bố cục duyệt 2026-10-27; `src/features/pending-review/`): mục menu "Chờ xem lại" nhóm đầu, dưới "Thông báo"; bảng loại bản ghi, người ghi, tầng, giờ trên thiết bị, đồng bộ lúc, lý do chờ; bấm loại bản ghi mở `Sheet`: nhãn "Chờ xem lại" (`attention`), ba mốc giờ, lý do chờ, "Nội dung gốc từ thiết bị", nút chính "Chấp nhận bản ghi", nút phụ "Từ chối" mở ô lý do bắt buộc ngay dưới. Quyết định xong thì dòng rời bảng và báo qua vùng `aria-live`. Gọi API thật.
+- Đã có màn Phản hồi (012 T030, bố cục duyệt 2026-11-05): mục menu "Phản hồi" (`src/features/relatives/feedback/`) là bảng (Nội dung, Người cao tuổi, Người gửi kèm thời điểm gửi, Loại, Hạn xử lý, Người phụ trách, Trạng thái) trong `DetailLayout`, thanh lọc trạng thái và "Quá hạn" không số đếm; phản hồi quá hạn lên đầu rồi theo hạn xử lý gần nhất, nhãn giữ trạng thái kèm "quá hạn" tông `urgent` ("Đang xử lý, quá hạn"). Khung chi tiết: trạng thái, loại và nhóm, câu "<người cao tuổi>. <người gửi> gửi <thời điểm>, qua cổng"; mức, hạn, người phụ trách; các mục; nút theo `allowedCommands` (Nhận xử lý, form trả lời có cảnh báo quyền sức khỏe, Đổi mức, Giao lại chọn người từ `assignable-staff`, Ghi chú; form mở ngay dưới, lý do bắt buộc). Cổng (P8) và app người thân cùng thứ tự: khung "Gửi phản hồi về <họ tên>", rồi "Phản hồi của bạn" (Xem trả lời, dòng khóa phần sức khỏe, Đồng ý đóng, Mở lại theo `allowedCommands`). Hoãn: danh sách trên app đổi sang dòng liền (mục 15.4) làm cùng đợt áp 6.0.0 cho app người thân; ẩn cột Loại khi khung mở làm khi chỉnh từng màn (6.7.3). Gọi API thật.
 
 ## 15. Ứng dụng di động (Flutter)
 
@@ -736,6 +737,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.8.3 | 2026-11-05 | Chủ dự án duyệt bố cục màn Phản hồi (012 T030; mục 14): bảng và khung chi tiết của nhân viên, cổng và app người thân cùng thứ tự, cùng tiêu đề "Gửi phản hồi về <họ tên>"; quá hạn lên đầu, nhãn giữ trạng thái kèm "quá hạn". Hai điểm hoãn ghi ở mục 14. Không thêm màu, không thêm quy định |
 | 6.8.2 | 2026-11-05 | Mục 3.5 thêm trạng thái bản ghi đón (012 T021): Đã dùng tông `settled`, Chưa dùng và Không dùng tông `neutral`; khung cổng người thân có link "Bỏ qua menu" và bọc `SessionGuard` khi có phiên thật (mục 9.3, 14). Không thêm màu |
 | 6.8.1 | 2026-11-04 | Mục 3.5 thêm trạng thái quan hệ người thân (012 T013): Hiệu lực tông `settled`, Đã kết thúc tông `neutral`; không thêm màu |
 | 6.8.0 | 2026-11-01 | Chủ dự án duyệt lượt nhắc gọi trên web (009 T035a): khối "Cần gọi điện" trên bộ lọc của hộp thông báo, dòng có số và nút ghi kết quả; tông `attention` Chờ kết quả, `settled` Đã có kết quả |
