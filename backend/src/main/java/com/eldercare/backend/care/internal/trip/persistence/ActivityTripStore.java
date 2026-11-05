@@ -177,6 +177,42 @@ public class ActivityTripStore {
                 .map(at -> at.atZone(BusinessTime.ZONE).toInstant());
     }
 
+    /** Số lần đã ghi rời viện của đăng ký, kể cả lần đã Hủy ghi nhận (FR-031a), để khóa chống trùng của lần sau khác. */
+    public int departureCount(long registrationId) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE'"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.registrationId'))=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",
+                Integer.class,
+                Long.toString(registrationId));
+    }
+
+    /** FR-031a (b): người bị ghi đi nhầm trở về Được đi; chỉ khi chưa có bản ghi về. */
+    public boolean undoDeparture(long registrationId) {
+        return jdbc.update(
+                        "UPDATE activity_registration SET participant_status='ELIGIBLE',participant_reason=NULL,"
+                                + "missing_alert_requested=FALSE,version=version+1"
+                                + " WHERE id=? AND participant_status IN ('DEPARTED','MISSING_ON_RETURN')",
+                        registrationId)
+                == 1;
+    }
+
+    /** Q-240: không còn ai đã rời viện thì chuyến quay về Đã lên lịch. */
+    public boolean anyoneDeparted(long id) {
+        return jdbc.queryForObject(
+                "SELECT EXISTS(SELECT 1 FROM activity_registration WHERE session_id=?"
+                        + " AND participant_status IN ('DEPARTED','MISSING_ON_RETURN','RETURNED','LEFT_GROUP'))",
+                Boolean.class,
+                id);
+    }
+
+    public void unstart(long id) {
+        jdbc.update(
+                "UPDATE activity_session SET trip_status='SCHEDULED',trip_overdue_return=FALSE,version=version+1"
+                        + " WHERE id=? AND trip_status='IN_PROGRESS'",
+                id);
+    }
+
     /** FR-043: mốc mới nên bỏ dấu quá giờ; mốc đã báo so theo giờ về dự kiến nên mốc mới được báo lại. */
     public void extend(long id, Instant plannedReturnAt) {
         jdbc.update(
