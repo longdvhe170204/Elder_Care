@@ -84,7 +84,7 @@ class ElderCareApp extends StatelessWidget {
     SessionStatus.signedIn => switch (session.user!.type) {
       AccountType.staff => StaffRoot(session: session, queue: queue, push: push),
       AccountType.familyMember => FamilyRoot(session: session, push: push),
-      AccountType.resident => ResidentRoot(api: session.api, push: push),
+      AccountType.resident => ResidentRoot(api: session.api, push: push, store: session.store),
     },
   };
 }
