@@ -115,11 +115,11 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 4
 
-- [ ] T020 [P] [US4] Test `BT/belongings/BR_M12_02_ThatLacHuHongIT.java`, `SC_012_ThongBaoTest.java`: ghi sự cố trong cùng transaction khi chọn; liên kết sau một lần (`su_co_id` từ `NULL`); tìm thấy thêm diễn biến vào sự cố; không tự hủy sự cố khi hủy ghi nhận (Q23 → Q26)
+- [x] T020 [P] [US4] Test `BT/belongings/BR_M12_02_ThatLacHuHongIT.java`, `SC_012_ThongBaoTest.java`: ghi sự cố trong cùng transaction khi chọn; liên kết sau một lần (`su_co_id` từ `NULL`); tìm thấy thêm diễn biến vào sự cố; không tự hủy sự cố khi hủy ghi nhận (Q23 → Q26) *(2026-11-05: viết trước, đỏ 11/15; nay xanh 15/15. Một lớp `BR_M12_02_LostDamageIncidentIT` gồm cả các ca thông báo FR-032 thay cho `SC_012_ThongBaoTest`: Q23 (ghi sự cố mới, liên kết, không ghi), Q24 (lỗi 007 thì lệnh không lưu), Q25 (liên kết sau một lần), Q26 (Tìm thấy ghi diễn biến "đã tìm thấy 3/5", sự cố vẫn mở), Hủy ghi nhận bản ghi có sự cố chỉ báo, không hủy sự cố, phần đếm thiếu liên kết riêng (FR-024). Dùng `FakeM05Config` chung, không tạo bản giả thứ hai)*
 
 ### Implementation cho User Story 4
 
-- [ ] T021 [US4] Cài `BE/belongings/suco/internal/SuCoDoGuiService.java` (lựa chọn của người ghi; `SuCoLenhApi.ghiNhan`, `themDienBien` MANDATORY; thông báo) và endpoint `POST /ban-giao-do-gui/{id}/lien-ket-su-co` (research K-07)
+- [x] T021 [US4] Cài `BE/belongings/suco/internal/SuCoDoGuiService.java` (lựa chọn của người ghi; `SuCoLenhApi.ghiNhan`, `themDienBien` MANDATORY; thông báo) và endpoint `POST /ban-giao-do-gui/{id}/lien-ket-su-co` (research K-07) *(2026-11-05: `internal.incident.service.BelongingIncidents` (cổng sang 007: `record`, `view`, `addProgression`), `BelongingIncidentLinks` (`POST /belonging-handovers/{id}/link-incident`), `IncidentTypeLookup` + `UnavailableIncidentTypes` (mặc định 503); `BelongingHandoverService` bỏ 422 của `NEW`/`LINK`; `BelongingHandoverStore.linkIncident`, `lossIncidentOf`; thông báo khi Hủy ghi nhận bản ghi có sự cố ở `BelongingHandoverCorrection`. Production chưa có bean `IncidentCommandApi`, `IncidentApi` và cách tra `incidentTypeId` nên NEW/LINK trả 503 `SOURCE_UNAVAILABLE` tới khi D cài (plan điểm 14, team-plan mục 8). Không có phần web/app trong task)*
 
 **Checkpoint**: P1 hoàn tất.
 
