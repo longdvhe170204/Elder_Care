@@ -3,6 +3,7 @@ package com.eldercare.backend.belongings.internal.transition.service;
 import com.eldercare.backend.belongings.api.dto.BelongingEndingConditionView;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
+import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingResidentLock;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.belongings.internal.ending.service.BelongingEndingService;
 import com.eldercare.backend.resident.api.dto.CommandContext;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Bean {@code ThamGiaChuyenTrangThai} của 013 (T024; contracts mục 1.1, FR-025, BR-M12-03): điều kiện {@code
@@ -30,10 +32,13 @@ class BelongingTransitionParticipant implements StatusTransitionParticipant {
 
     private final BelongingEndingService ending;
     private final BelongingStore belongings;
+    private final BelongingResidentLock residentLock;
 
-    BelongingTransitionParticipant(BelongingEndingService ending, BelongingStore belongings) {
+    BelongingTransitionParticipant(
+            BelongingEndingService ending, BelongingStore belongings, BelongingResidentLock residentLock) {
         this.ending = ending;
         this.belongings = belongings;
+        this.residentLock = residentLock;
     }
 
     @Override
@@ -45,6 +50,11 @@ class BelongingTransitionParticipant implements StatusTransitionParticipant {
     public List<Condition> checkConditions(CommandContext context) {
         if (context.command() != StatusCommand.END_RESIDENCY) {
             return List.of();
+        }
+        if (!TransactionSynchronizationManager.isCurrentTransactionReadOnly()) {
+            // K-03: lệnh Kết thúc lưu trú đọc dưới khóa do_gui_nct (sau khóa hồ sơ của 001) để không lệch với lệnh đang
+            // ghi trên đồ; bản xem trước chạy transaction chỉ đọc nên không khóa
+            residentLock.lock(context.residentId());
         }
         BelongingEndingConditionView view = ending.endingCondition(context.residentId());
         if (view.met()) {
