@@ -40,6 +40,8 @@ public class CareGovernanceStore {
     }
 
     public Target scope(String type, long id) {
+        var activity = activityScope(type, id);
+        if (activity.isPresent()) return activity.get();
         if (type.equals("M04.DAY_CARE_ATTENDANCE")) {
             try {
                 var row = attendance.require(id);
@@ -69,6 +71,37 @@ public class CareGovernanceStore {
                 .findFirst()
                 .filter(t -> t.residentId() != null || t.floorAreaId() != null)
                 .orElseThrow(() -> missing(id));
+    }
+
+    /**
+     * 014 T006 (module-interfaces 1.1): buổi, chuyến (chung bảng {@code activity_session}, data-model mục 0) theo tầng;
+     * đăng ký, sở thích theo người cao tuổi (tầng lấy từ vị trí hiện tại); danh sách kiểm tra theo tầng của danh sách.
+     * Hai bảng riêng tạo ở US1, trước đó mọi id là thiếu bản ghi.
+     */
+    private Optional<Target> activityScope(String type, long id) {
+        String sql = switch (type) {
+            case "M04.ACTIVITY_SESSION", "M04.TRIP" ->
+                exists("activity_session") ? "SELECT NULL, floor_area_id FROM activity_session WHERE id=?" : "";
+            case "M04.ACTIVITY_REGISTRATION" ->
+                exists("activity_registration") ? "SELECT resident_id, NULL FROM activity_registration WHERE id=?" : "";
+            case "M04.PREFERENCE" -> "SELECT resident_id, NULL FROM simple_record WHERE kind='M04.PREFERENCE' AND id=?";
+            case "M04.QUALITY_CHECK" ->
+                "SELECT NULL, CAST(JSON_UNQUOTE(JSON_EXTRACT(content,'$.floorAreaId')) AS UNSIGNED) FROM simple_record"
+                        + " WHERE kind='M04.QUALITY_CHECKLIST' AND id=?";
+            default -> null;
+        };
+        if (sql == null) return Optional.empty();
+        if (sql.isEmpty()) throw missing(id);
+        return Optional.of(jdbc
+                .query(
+                        sql,
+                        (rs, i) -> new Target(
+                                type, Long.toString(id), rs.getObject(1, Long.class), rs.getObject(2, Long.class)),
+                        id)
+                .stream()
+                .findFirst()
+                .filter(t -> t.residentId() != null || t.floorAreaId() != null)
+                .orElseThrow(() -> missing(id)));
     }
 
     private InvalidPermissionDataException missing(long id) {
@@ -106,6 +139,8 @@ public class CareGovernanceStore {
                 exists("care_day_attendance")
                         ? "SELECT c.id,p.resident_id,NULL planned_at FROM care_attendance_record c JOIN care_day_attendance p ON p.id=c.attendance_id"
                         : null;
+            case ACTIVITY_SESSION -> "SELECT id,NULL resident_id,starts_at planned_at FROM activity_session";
+            case ACTIVITY_REGISTRATION -> "SELECT id,resident_id,NULL planned_at FROM activity_registration";
         };
         if (sql == null) return List.of();
         return jdbc.query(sql + " ORDER BY id", (rs, i) -> {
@@ -160,6 +195,8 @@ public class CareGovernanceStore {
             }
             case DAY_CARE_ATTENDANCE ->
                 refs(result, "care_attendance_record", "attendance_id", id, "M04.ATTENDANCE_RECORD");
+            case ACTIVITY_SESSION ->
+                refs(result, "activity_registration", "session_id", id, "M04.ACTIVITY_REGISTRATION");
             case CARE_RESULT, LOCATION_CARE_RESULT ->
                 result.add(new DataRef(type.profile() ? "M04.TASK" : "M04.LOCATION_TASK", id));
             default -> {}
