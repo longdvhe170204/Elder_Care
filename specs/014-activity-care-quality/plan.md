@@ -369,3 +369,27 @@ Kiểm: `BR_M04_18_SuKienTinhPhiIT` 7/7, `FR_031_DinhChinhIT` 3/3, `T014_Session
 - Kiểm: scoped 64 đơn vị/kiến trúc + 86 IT xanh (sau khi gỡ bản cài H1). Chưa chạy `clean verify` sau lượt này.
 
 **T028 một phần (06/11/2026).** `FakeM04Config` không còn bean `FakeQualityChecks` (`@Primary`); test có cấu hình này dùng `QualityCheckResultSource` của 014. `T002_FakeM04Test` đổi kỳ vọng thành không có bean `QualityCheckPort` trong cấu hình giả; lớp `FakeQualityChecks` giữ cho test đơn vị của chính nó. Kiểm: 61 đơn vị/kiến trúc + 88 IT xanh (`BR_M04_01_ShiftTaskPlanningIT`, `BR_M04_23`, `BR_M04_14`, `FR_034`, `ApiContractIT`).
+
+**T030, T034 (06/11/2026): truy vết và R-15.**
+
+| Mã | Test | Trạng thái |
+| --- | --- | --- |
+| BR-M04-15 | `BR_M04_15_DangKyIT`, `DieuKienDangKyTest` | Có test |
+| BR-M04-16 | `BR_M04_16_RoiVienIT` | Có test |
+| BR-M04-17 | `BR_M04_17_ThieuNguoiIT` | Có test; hai lệnh ghi sự cố chờ port 007 |
+| BR-M04-18 | `BR_M04_18_SuKienTinhPhiIT`, `FR_031_DinhChinhIT`, `FR_031a_DinhChinhChuyenIT` | Có test |
+| BR-M04-21 | `BR_M04_21_TaoBuoiTuMauIT`, `BuoiTheoMauTest`, `FR_002_ActivityDeclarationIT` | Có test |
+| BR-M04-22 | — | Chờ hàm nghi nhiễm theo khoảng (team-plan mục 8) |
+| BR-M04-23 | `BR_M04_23_KiemTraChatLuongIT` | Có test |
+| DBR-12 (tương tự) | `BR_M04_21_TaoBuoiTuMauIT` (tạo lại không trùng, `UNIQUE (activity_id, starts_at)`) | Có test |
+| DBR-15 | `BR_M04_18_SuKienTinhPhiIT` (nguồn tính phí theo bản ghi điểm danh) | Có test |
+| DBR-18 | — | Gộp cảnh báo cô lập ở 007; 014 chưa phát `ISOLATION_RISK` (chờ chuỗi cô lập) |
+| DBR-23, FR-069 | `BR_M04_17` (gia hạn), `FR_051` (bỏ sở thích), `BR_M04_23` (kết quả kiểm tra): người thực hiện, thời điểm, lý do ở `audit_log` | Có test (thêm 06/11, xanh ngay vì mã đã ghi nhật ký) |
+| DBR-25 | `T014_SessionAttendanceSourcesIT` (ngoại tuyến điểm danh buổi), `FR_046a_*` (chuyến chặn `deviceAt`) | Một phần; chuyến chờ 001 nhận thời điểm thiết bị |
+| FR-021a | `BR_M04_16_RoiVienIT`, `FR_021_KhoanhVungIT` | Có test |
+| FR-067 | Các ca 403 trong `BR_M04_16`, `BR_M04_17`, `BR_M04_23` (FR-066), `FR_051` | Một phần; Hành chính và người thân chờ quyền (đồng ý về muộn) |
+| FR-068 | — | Cổng người thân chờ schema phản hồi (team-plan mục 8) |
+| FR-070 | `T027_ActivityStatisticsIT` | Có test |
+| FR-071 | `FR_071_NhacBuoiNguoiCaoTuoiIT`, các sự kiện thông báo trong `BR_M04_17`, `BR_M04_23` | Một phần theo các dòng đã cài |
+
+- T034 (R-15): migration của 014 chỉ có `V014_02` (`activity_session`, `activity_registration`), `V014_03` (cột `billed_source_id`), `V014_05` (cột chuyến, người tham gia); mọi bảng khác của data-model ghi vào bảng chung (`catalog_item`, `simple_record`, `record_event`, `status_history`, `reminder_marker`) theo data-model mục 0. Hai bảng có `COMMENT DataGroup=BUSINESS`; `T005_FoundationSchemaIT`, `T016_TripSchemaIT` kiểm cấu trúc.

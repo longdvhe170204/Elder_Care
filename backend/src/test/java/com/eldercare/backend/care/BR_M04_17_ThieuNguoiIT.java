@@ -240,6 +240,16 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
                 .andExpect(status().isUnprocessableEntity());
         command(s, "extend", "{\"newPlannedReturnAt\":\"" + later + "\",\"reason\":\"Kẹt xe\"}")
                 .andExpect(status().isOk());
+        // FR-069, DBR-23: lệnh ghi nhật ký với người thực hiện, thời điểm, lý do.
+        assertThat(jdbc.queryForMap(
+                        "SELECT actor_id,reason,occurred_at FROM audit_log WHERE action=? AND entity_type=? AND entity_id=?"
+                                + " ORDER BY id DESC LIMIT 1",
+                        "TRIP_RETURN_EXTENDED",
+                        "M04.TRIP",
+                        Long.toString(s)))
+                .containsEntry("actor_id", manager.accountId())
+                .containsEntry("reason", "Kẹt xe")
+                .containsKey("occurred_at");
         assertThat(jdbc.queryForObject(
                         "SELECT trip_planned_return_at FROM activity_session WHERE id=?", LocalDateTime.class, s))
                 .isEqualTo(LocalDateTime.ofInstant(later, BusinessTime.ZONE));
