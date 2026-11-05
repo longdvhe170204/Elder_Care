@@ -3110,6 +3110,13 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | --- | --- |
 | `HoatDongThongKeApi` cài đặt | `care.internal.activity.service.ActivityStatistics` implements `care.api.ActivityStatisticsApi`; truy vấn `ActivityStatisticsStore` |
 
+### 20.13. Nhắc người cao tuổi (T033, 06/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| Nhắc buổi trong ngày cho người cao tuổi (FR-071, Q-366) | `ResidentSessionReminders` (bước `CARE_DAILY` `M04HD_RESIDENT_SESSION_REMINDER`, và khi đăng ký trong ngày); sự kiện `care.api.events.ActivityResidentReminder` (LOW, người nhận `RecipientGroup.Resident`) |
+| Khóa `(dang_ky_id, NHAC_NCT)` | `reminder_marker` kind `M04.RESIDENT_SESSION_REMINDER`, entity `M04.ACTIVITY_REGISTRATION`, marker `NHAC_NCT` |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

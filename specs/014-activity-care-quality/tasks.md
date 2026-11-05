@@ -206,8 +206,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ## Phase 10: Polish & Cross-Cutting
 
 - [ ] T031 [P] *(Bổ sung 2026-10-18, Q-366, Q-369)* Test `BT/care/FR_068a_KenhNguoiCaoTuoiIT.java`, `FR_071_NhacBuoiNguoiCaoTuoiIT.java`, `SoThichTuPhanHoiIT.java` (quickstart H1 → H4)
+  - Một phần 06/11/2026: `FR_071_NhacBuoiNguoiCaoTuoiIT` (H3) 2/2. Còn: H1, H2 chờ đổi hướng giao diện (vòng module, C-02), H4 chờ hợp đồng `phanHoiId` (team-plan mục 8).
 - [ ] T032 *(Bổ sung 2026-10-18)* Cài `HoatDongKenhNctPortImpl`, `ChuyenDiSosPortImpl` trong `BE/care/hoatdong/internal/` (research L-16)
+  - 06/11/2026: chưa cài được; `ResidentChannelActivityPort` (family) và `ChuyenDiSosPort` (incident) tạo vòng phụ thuộc khi care cài, chờ duyệt đổi hướng (plan T031 → T033).
 - [ ] T033 *(Bổ sung 2026-10-18)* Job nhắc buổi trong ngày cho nhóm `NguoiCaoTuoi` (00:05 và khi đăng ký trong ngày); thêm `so_thich.phan_hoi_id` (`MIG/V014_08__nguoi_cao_tuoi.sql`) và phát `YKienDaGhiTuPhanHoi` **Theo R-15 (data-model mục 0; bổ sung 2026-10-30): `so_thich` là loại `M04.SO_THICH` của `ho_so_chung`, nên `phan_hoi_id` là trường trong `noi_dung` (record của loại), không thêm cột; `V014_08` không còn sửa bảng `so_thich`.**
+  - Một phần 06/11/2026: nhắc buổi trong ngày cho người cao tuổi (`ResidentSessionReminders`). Còn: `phanHoiId` của sở thích chờ hợp đồng.
 
 - [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/care/FR_068_CongHoatDongIT.java`; app `mobile/lib/nguoi-than/hoat-dong/` (research L-12)
 - [ ] T027 [P] Cài `HoatDongThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/014-activity-care-quality/contracts/api-014.yaml`
