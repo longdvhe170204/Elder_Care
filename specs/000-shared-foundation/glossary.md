@@ -2843,6 +2843,16 @@ Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịc
 
 Chỉ T008b được nghiệm thu trên dữ liệu hiện có; T008 còn chuỗi hồ sơ liên module, chỉ mục theo nguồn và dữ liệu/quyền tệp mua hộ. Không thêm trường API hoặc tham số nghiệp vụ.
 
+### 16.11. Nền chọn đơn giá T006a — 2026-11-06
+
+| Tên logic | Tên triển khai / ý nghĩa |
+| --- | --- |
+| Chọn giá và tính tiền sự kiện | CostPricingService.event(residentId, serviceId, incurredOn, quantity); transaction của caller |
+| Kết quả đơn giá | PriceQuote: unitPrice, amount, inPackage, basis; missingUnitPrice không đồng nghĩa đơn giá 0 |
+| Căn cứ giá nội bộ | PriceBasis; BasisKind CONTRACT hoặc PRICE_VERSION; contractId/contentVersion/addendumId hoặc priceVersionId |
+
+Các kiểu trên lồng trong service nội bộ M11, chưa là schema HTTP hoặc API cho module khác. Giá hợp đồng từ recordedUnitPrices tại đúng ngày; khoản trong gói có amount=0, giữ unitPrice thật nếu có. Nguồn không có giá và ngoài gói giữ amount/unitPrice rỗng.
+
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
