@@ -5,7 +5,7 @@ info:
   description: |
     Hợp đồng REST của feature 013 (module M12). Quy ước chung theo research R-03 của 000:
     tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], Idempotency-Key cho mọi lệnh ghi.
-    Tên định danh tiếng Anh theo glossary.md của 000, mục 19 (dịch 2026-11-05, chờ chủ dự án duyệt; bản tên logic tiếng Việt ở lịch sử git).
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 19 (dịch 2026-11-05; chủ dự án duyệt 2026-11-05 kèm sửa 013-1, 013-2 của plan 013 điểm 19; bản tên logic tiếng Việt ở lịch sử git).
     Mọi lệnh chỉ trực tuyến (FR-031). Lệnh bàn giao gửi kèm phiên bản của từng đồ (FR-011b; research K-03);
     phiên bản cũ → 409 STATE_CHANGED kèm trạng thái mới.
     Đính chính bản ghi bàn giao dùng endpoint đính chính chung của 000 với loại M12.BELONGING_HANDOVER;
@@ -54,10 +54,10 @@ paths:
       responses: { '200': { description: OK } }
     post:
       tags: [belonging-catalogs]
-      summary: Thêm, ngừng mức tình trạng (Quản lý viện)
+      summary: Thêm, sửa, ngừng mức tình trạng (Quản lý viện); có id là sửa mức đó, status INACTIVE là ngừng (như vị trí lưu giữ)
       x-fr: [FR-001a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name, order], properties: { name: { type: string }, order: { type: integer }, unusable: { type: boolean }, status: { type: string } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name, order], properties: { id: { type: integer, format: int64 }, name: { type: string }, order: { type: integer }, unusable: { type: boolean }, status: { type: string } } } } } }
       responses: { '201': { description: OK } }
   /belongings/storage-locations:
     get:
@@ -109,7 +109,7 @@ paths:
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/HandoverCommand' } } } }
       responses: { '200': { description: Các bản ghi bàn giao đã tạo }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
-  /belonging-handovers/{id}/link-incident:
+  /belongings/handovers/{id}/link-incident:
     post:
       tags: [belongings]
       summary: Liên kết sự cố ghi sau với bản ghi Báo thất lạc / Ghi hư hỏng (một lần)
@@ -187,7 +187,7 @@ paths:
         - { $ref: '#/components/parameters/Id' }
         - { name: command, in: path, required: true, schema: { type: string, enum: [approve-on-behalf, cancel] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' }, basis: { type: string, enum: [A_REPRESENTATIVE_UNREACHABLE, B_NO_REPRESENTATIVE] } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' }, basis: { type: string, enum: [REPRESENTATIVE_UNREACHABLE, NO_REPRESENTATIVE] } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /residents/{residentId}/belongings/ending-condition:
@@ -345,13 +345,13 @@ components:
       properties: { method: { type: string, enum: [NEW, LINK, NONE] }, incidentId: { type: integer, format: int64 }, level: { type: string, enum: [LOW, MEDIUM, CRITICAL] }, description: { type: string }, place: { type: string } }
     ReturnCommand:
       type: object
-      required: [items, recipient, signatureFileId]
+      required: [items, recipient]
       properties:
-        items: { type: array, minItems: 1, items: { type: object, required: [belongingId, version, condition], properties: { belongingId: { type: integer, format: int64 }, version: { type: integer }, condition: { $ref: '#/components/schemas/ItemCondition' }, photoFileIds: { type: array, items: { type: integer, format: int64 } } } } }
+        items: { type: array, minItems: 1, items: { type: object, required: [belongingId, version, condition], properties: { belongingId: { type: integer, format: int64 }, version: { type: integer }, quantity: { type: number, description: 'Số lượng trả (số tiền với tiền mặt); trống là toàn bộ; nhỏ hơn hiện có thì phần trả tách thành đồ mới (FR-012)' }, condition: { $ref: '#/components/schemas/ItemCondition' }, photoFileIds: { type: array, items: { type: integer, format: int64 } } } } }
         recipient: { type: object, required: [type], properties: { type: { type: string, enum: [FAMILY_MEMBER, RESIDENT, OTHER_PERSON] }, familyMemberId: { type: integer, format: int64 }, fullName: { type: string }, presentedIdDocument: { type: object, properties: { type: { type: string }, number: { type: string } } } } }
         recipientConfirmationId: { type: integer, format: int64 }
-        signatureFileId: { type: integer, format: int64 }
-        noSignatureReason: { type: string }
+        signatureFileId: { type: integer, format: int64, description: 'Bản ký của người nhận; chỉ được trống khi người nhận là người cao tuổi không ký và có noSignatureReason (FR-019)' }
+        noSignatureReason: { type: string, description: 'Bắt buộc khi người nhận là người cao tuổi không ký (FR-019)' }
         conditionOpinion: { type: string }
     CreateRecipientConfirmation:
       type: object
@@ -374,6 +374,6 @@ components:
       type: object
       properties:
         lines: { type: array, items: { type: object, required: [belongingId, result], properties: { belongingId: { type: integer, format: int64 }, result: { type: string, enum: [MATCHED, CONDITION_MISMATCH, NOT_FOUND] }, newCondition: { $ref: '#/components/schemas/ItemCondition' }, recordDamage: { type: boolean }, photoFileIds: { type: array, items: { type: integer, format: int64 } }, incident: { $ref: '#/components/schemas/IncidentOption' } } } }
-        found: { type: array, items: { type: integer, format: int64 }, description: 'Đồ Thất lạc tìm thấy tại vị trí' }
+        found: { type: array, items: { type: object, required: [belongingId], properties: { belongingId: { type: integer, format: int64 }, photoFileIds: { type: array, items: { type: integer, format: int64 } } } }, description: 'Đồ Thất lạc tìm thấy tại vị trí; đồ có giá trị cần ảnh (BR-M12-05)' }
         unknownOwnerItems: { type: array, items: { type: object, properties: { description: { type: string }, photoFileIds: { type: array, items: { type: integer, format: int64 } } } } }
         reason: { type: string, description: 'Khi hủy phiếu' }
