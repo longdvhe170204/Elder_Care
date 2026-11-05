@@ -53,6 +53,16 @@ public class VisitQueries implements TimetableSourcePort {
                 .toList();
     }
 
+    /** Lượt của một người thân với người cao tuổi từ ngày {@code from} (cổng, FR-046 "lượt thăm của mình"). */
+    @Transactional(readOnly = true)
+    public List<SimpleRecord<Visit>> ofFamilyMember(long residentId, long familyMemberId, LocalDate from) {
+        return records.listByResident(Visit.KIND, residentId, Set.of()).stream()
+                .filter(v -> v.content().familyMemberId() == familyMemberId
+                        && !v.content().date().isBefore(from))
+                .sorted(Comparator.comparing(v -> v.content().slotStart()))
+                .toList();
+    }
+
     /** Lượt Đã vào hoặc Đã ra có thời gian chồng {@code [from, to)}. */
     @Transactional(readOnly = true)
     public List<VisitTraceView> inRange(long residentId, Instant from, Instant to) {

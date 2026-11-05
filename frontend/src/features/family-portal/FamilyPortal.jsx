@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ApiError, getMe, postAuthLogout } from '@/api'
+import { ApiError, getFamilyPortalResidents, getMe, postAuthLogout } from '@/api'
 import { Bell, CalendarCheck, House, LogOut, Menu, Newspaper, UserRound } from 'lucide-react'
 import { SessionGuard } from '@/common/SessionGuard'
 import { LeafMark } from '@/common/layout/AppShell'
@@ -17,6 +17,7 @@ import { MorePage } from './MorePage'
 import { NotificationsPage } from './NotificationsPage'
 import { TodayPage } from './TodayPage'
 import { VisitsPage } from './VisitsPage'
+import { LiveContractPage, LiveHealthPage, LiveTodayPage } from './live/LivePages'
 
 // Cổng người thân, bản web (DESIGN.md 2.3): đăng nhập xong vào Trang chủ, là trang giới thiệu viện; các màn khác
 // đi từ đầu trang (máy tính) hoặc thanh dưới (điện thoại). Đầu trang cùng kiểu với trang giới thiệu: dải nền trời,
@@ -50,10 +51,37 @@ const PAGES = {
   account: AccountPage,
 }
 
+// Có phiên thật: ba màn đọc API của 012 (T028); các màn khác còn bản mẫu tới task web của phần đó
+const LIVE_PAGES = { today: LiveTodayPage, health: LiveHealthPage, contract: LiveContractPage }
+
+// Người xem từ phiên và người cao tuổi đầu tiên có quan hệ Hiệu lực (chọn người khi có nhiều người: chưa thiết kế,
+// DESIGN.md 14); quyền là quyền có tác dụng backend trả
+function liveViewer(session, resident) {
+  const r = resident?.rights ?? {}
+  return {
+    name: session.fullName,
+    representative: !!resident?.representative,
+    primaryContact: !!resident?.primaryContact,
+    residentId: resident?.residentId,
+    residentName: resident?.fullName,
+    perms: {
+      health: !!r.VIEW_HEALTH,
+      costs: !!r.VIEW_COSTS,
+      visits: !!r.REGISTER_VISITS,
+      pickup: !!r.PICKUP_ALLOWED || !!resident?.canViewBelongings,
+      serviceChange: !!r.REQUEST_SERVICES,
+    },
+  }
+}
+
 // Số việc chờ người xem: thông báo cần xác nhận đã nhận, việc chờ người đại diện quyết định
 function pendingCount(viewer) {
   const acks = DEMO_PORTAL_NOTIFICATIONS.filter((n) => n.needsAck).length
   return acks + (viewer.representative ? DEMO_PORTAL_CONFIRMATIONS.length : 0)
+}
+
+function NoResident() {
+  return <p className="type-body-sm text-muted-foreground">Chưa có người cao tuổi nào có quan hệ Hiệu lực với tài khoản này.</p>
 }
 
 function Badge({ count }) {
@@ -127,9 +155,12 @@ export function FamilyPortal({ onExit }) {
   const [page, setPage] = useState('home')
   const [session, setSession] = useState(null)
   const [checking, setChecking] = useState(true)
-  const viewer = session ? { ...DEMO_PORTAL_VIEWER, name: session.fullName } : DEMO_PORTAL_VIEWER
-  const Page = PAGES[page]
-  const badge = pendingCount(viewer)
+  const [residents, setResidents] = useState(null)
+  const viewer = session ? liveViewer(session, residents?.[0]) : DEMO_PORTAL_VIEWER
+  const live = session && LIVE_PAGES[page]
+  const Page = live && viewer.residentId ? live : live ? NoResident : PAGES[page]
+  // Thông báo, việc chờ của phiên thật thuộc 009, 012 US3; bản mẫu mới đếm
+  const badge = session ? 0 : pendingCount(viewer)
   const activeBottom = BOTTOM_NAV.some((n) => n.key === page) ? page : page === 'notifications' ? null : 'more'
 
   useEffect(() => {
@@ -139,6 +170,9 @@ export function FamilyPortal({ onExit }) {
         if (cancelled) return
         setSession(data)
         setChecking(false)
+        getFamilyPortalResidents()
+          .then(({ data: list }) => !cancelled && setResidents(list))
+          .catch(() => !cancelled && setResidents([]))
       })
       .catch((error) => {
         if (cancelled) return
