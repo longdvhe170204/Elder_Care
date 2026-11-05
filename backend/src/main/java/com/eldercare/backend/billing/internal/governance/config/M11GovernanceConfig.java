@@ -3,6 +3,8 @@ package com.eldercare.backend.billing.internal.governance.config;
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
+import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.billing.internal.governance.persistence.CostRetention;
 import com.eldercare.backend.billing.internal.governance.persistence.CostScopeStore;
 import com.eldercare.backend.billing.internal.governance.service.CostScopeAssignment;
 import java.util.Map;
@@ -11,6 +13,21 @@ import org.springframework.context.annotation.*;
 /** T008: đăng ký metadata cho các bảng 010 hiện có; không mở quyền hoặc tạo provider giả cho dữ liệu tương lai. */
 @Configuration(proxyBeanMethods = false)
 class M11GovernanceConfig {
+    @Bean
+    RetentionProvider costPeriodRetention(CostRetention store) {
+        return store.provider(CostRetention.Kind.PERIOD);
+    }
+
+    @Bean
+    RetentionProvider costStatementRetention(CostRetention store) {
+        return store.provider(CostRetention.Kind.STATEMENT);
+    }
+
+    @Bean
+    RetentionProvider costItemRetention(CostRetention store) {
+        return store.provider(CostRetention.Kind.ITEM);
+    }
+
     private static FieldClassificationProvider financialFields(String type) {
         return new FieldClassificationProvider() {
             public String entityType() {

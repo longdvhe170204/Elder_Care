@@ -12,6 +12,8 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 **Cập nhật 2026-11-04 (nền develop `62fdb4f2`)**: API bảng chung của A và API/fake tài chính của B đã có; ghi chú chờ khai báo ngày 29/10 ở trên là lịch sử. T002, T005–T007 đã kiểm xanh theo [foundation-checkpoint-2026-11-04.md](foundation-checkpoint-2026-11-04.md). T008 mới xong metadata/phạm vi, còn retention và quyền tệp; chưa đóng Phase 2. Quantity/newQuantity của 005 chờ nội dung quyết định chủ dự án; chưa tự quy đổi đơn vị. HTTP còn 17 response thành công thiếu schema, phải chốt trước task endpoint liên quan.
 
+**Cập nhật 2026-11-05**: T008b kiểm xanh ba provider retention kỳ/bảng/khoản (106 unit/arch + 62 IT, gồm 9 ca mới). T008/Phase 2 vẫn mở: chuỗi hồ sơ 001 → 010 cần A/B/E review, chỉ mục theo nguồn chưa nối, metadata/quyền tệp mua hộ làm cùng T025. Quantity/newQuantity đã nhận đủ quyết định, còn producer C và consumer E; xem [checkpoint 05/11](retention-checkpoint-2026-11-05.md) và [quyết định lượng](care-quantity-decision-2026-11-05.md).
+
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
@@ -51,10 +53,12 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 - [x] T005a Migration ba bảng riêng V010_01__costs.sql (cost_statement gồm kỳ, cost_item, cost_source_index) và V010_02__cost_data_groups.sql đã vào develop; CostSchemaIT 15/15 xanh trên MySQL. Test viết trước từng thấy thiếu bảng. Kiểm CHECK/UNIQUE, khóa theo dòng/cha, DECIMAL(15,0), tám dấu Q-395, cổng tính lại và quyền SQL retention theo data-model 0.2. Quyền SQL không thay RetentionProvider ở T008; chưa đóng Phase 2.
 - [x] T006 [P] Đủ bốn hàm thuần: DongRounding, ResidencyDayFee, DayCareSessionFee, BillingPeriod ở billing.internal.pricing.domain. BillingPeriodTest 15 ca xanh: mốc hợp đồng dù nhập viện muộn/chưa nhập viện, buổi đầu bán trú, ngày hủy/kết thúc, thời điểm qua đời và ngày qua đời; không thêm DTO/API nguồn. Adapter 004 và kiểm bedReleased từ chính ngày giải phóng thuộc T011/T014, chưa nghiệm thu bằng test hàm thuần.
 - [x] T007 CostLock khóa người trước bảng, transaction MANDATORY, bảo vệ cả hai lệnh đầu khi chưa có trạng thái. Khung M11DailyJob (00:20 Việt Nam)/M11HourlyJob có ShedLock, công tắc startup chung, SchedulerRuns và marker chạy bù nguyên tử. CostLockIT 6, CostJobCatchUpIT 8, SchedulingSwitchIT 2 xanh; test trước. Chỉ là khung; tác vụ chuyển kỳ/nhắc thật thuộc T016–T018/T027. Chưa mở rộng API runJobs của A.
-- [ ] T008 [P] Phần còn lại: RetentionProvider theo data-model mục 10 (đủ chuỗi bảng riêng/bảng chung và chỉ mục nguồn), metadata đề nghị mua hộ khi T025 tạo record, FilePermissionProvider M11.PURCHASE_ASSISTANCE_RECEIPT khi có tệp thật. Không đăng ký CorrectableRecordProvider; không dùng provider rỗng để đánh xong.
+- [ ] T008 [P] Phần còn lại sau T008b: nối/kiểm chuỗi hồ sơ thật 001 → 010 với A/B; retention chỉ mục theo nguồn và toàn chuỗi bảng riêng/bảng chung theo data-model mục 10, metadata đề nghị mua hộ khi T025 tạo record, FilePermissionProvider M11.PURCHASE_ASSISTANCE_RECEIPT khi có tệp thật. Không đăng ký CorrectableRecordProvider; không dùng provider rỗng để đánh xong.
 - [x] T008a [P] Tách phần metadata/phạm vi hiện có từ T008: FieldClassificationProvider cho M11.COST_PERIOD/COST_STATEMENT/COST_ITEM (tài chính, thuốc), ScopeAssignmentProvider tra đúng người của bảng/khoản, không tin residentId caller. CostGovernanceIT 4 ca xanh sau đỏ thiếu provider; không có cơ chế đính chính chung cho M11.
 
-**Checkpoint**: Nền 010 sẵn sàng.
+- [x] T008b [P] Tách từ T008: CostRetention đăng ký M11.COST_PERIOD (mốc ngày tạo, CFG-M15-04), M11.COST_STATEMENT/M11.COST_ITEM (ResidentApi.finalStatusAt, CFG-M15-03). CostRetentionIT 9 ca đỏ trước, xanh sau; 106 unit/arch + 62 IT xanh, Spotless sạch. Có tham chiếu chưa hết hạn/khoản điều chỉnh khác kỳ, phân biệt kind và xóa/rollback bằng tài khoản retention. Chưa nghiệm thu toàn chuỗi hồ sơ thật hoặc chỉ mục nguồn; parent T008 vẫn mở.
+
+**Checkpoint**: Nền 010 chưa đóng Phase 2; T008 còn các phần nêu trên.
 
 ---
 
