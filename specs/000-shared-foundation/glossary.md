@@ -2999,8 +2999,8 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | `CON_DO_TAI_VI_TRI`, `KHONG_CO_DO_CO_GIA_TRI`, `DA_CO_PHIEU_KY`, `THIEU_KET_QUA_KIEM_KE`, `CON_DO_TRONG_PHIEU` | `BELONGINGS_AT_LOCATION`, `NO_VALUABLE_BELONGINGS`, `INVENTORY_CHECK_EXISTS_FOR_PERIOD`, `INVENTORY_RESULT_REQUIRED`, `BELONGINGS_STILL_IN_CHECK` |
 | *(mã thêm khi cài US2, 2026-11-05; plan 013 điểm 12)* Hủy ghi nhận không phải bản ghi gần nhất; đính chính số lượng ở bản ghi sau; số lượng không còn dương sau đính chính | `NOT_LATEST_HANDOVER`, `QUANTITY_CORRECTION_NOT_ALLOWED`, `INVALID_QUANTITY` |
 | *(mã thêm khi cài US4, 2026-11-05; plan 013 điểm 14)* bản ghi không phải Báo thất lạc, Ghi hư hỏng nên không liên kết sự cố; nguồn sự cố của 007 chưa có | `HANDOVER_NOT_LINKABLE` (409); `SOURCE_UNAVAILABLE` (503, dùng chung với các module khác khi thiếu nguồn của module thấp hơn) |
-
 | *(mã và tên thêm khi cài US5, 2026-11-05; plan 013 điểm 15)* đề nghị xử lý chưa đủ điều kiện; kiểm kê | `DISPOSAL_TOO_EARLY`, `BELONGING_NOT_DISPOSABLE`, `CASH_ONLY_TRANSFER_TO_AUTHORITY`, `MINUTES_REQUIRED`, `CONTACT_EVIDENCE_INSUFFICIENT`, `NO_BELONGINGS`, `NO_DISPOSABLE_BELONGING`; `INVENTORY_CHECK_ALREADY_EXISTS`, `INVENTORY_CHECK_NOT_PENDING`, `INVENTORY_CHECK_HAS_BELONGINGS` (thay các mã kiểm kê dự kiến ở dòng trên); hình thức xử lý `SELL`, `DESTROY`, `TRANSFER_TO_AUTHORITY`; kết quả dòng phiếu thêm `DROPPED`; trạng thái phiếu `WAITING_CHECK`, `COMPLETED`, `CANCELLED`; điều kiện `END_B_BELONGINGS`; loại tệp `M12.INVENTORY_PHOTO` |
+| *(tên thêm khi cài US6 và T033, 2026-11-05; plan 013 điểm 16, 17)* cổng người thân; kênh người cao tuổi | `BelongingPortalController`, `BelongingPortalQueries`, `PortalBelongingResponse`; `ResidentChannelBelongingPortImpl` (`DoGuiKenhNctPortImpl`) |
 
 ### 19.5. Gói của `belongings` (R-02 mục "Cấu trúc trong module"; dự kiến, chốt cùng mã)
 
