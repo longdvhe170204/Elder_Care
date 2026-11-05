@@ -638,7 +638,7 @@ public class BelongingHandoverService {
         BelongingView source = belongings.find(b.id()).orElseThrow(NotFoundException::new);
         HolderType holderType =
                 holder == null ? null : holder == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
-        return belongings.insertSplit(
+        long part = belongings.insertSplit(
                 new NewBelonging(
                         ctx.residentId(),
                         b.typeId(),
@@ -655,6 +655,11 @@ public class BelongingHandoverService {
                         ctx.now()),
                 b.id(),
                 belongings.intakeHandoverOf(b.id()).orElseThrow(NotFoundException::new));
+        // 013-3: phần tách kế thừa đồng ý cho tự giữ của đồ bị tách; phần sang trạng thái kết thúc không cần đồng ý
+        if (!CONSENT_ENDS.contains(status)) {
+            consents.inherit(b.id(), part);
+        }
+        return part;
     }
 
     private long record(

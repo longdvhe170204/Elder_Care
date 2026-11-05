@@ -19,7 +19,8 @@ public record SelfCustodyConsent(
         Long withdrawalSignedFormFileId,
         String withdrawalReason,
         Long withdrawnBy,
-        Instant withdrawnAt) {
+        Instant withdrawnAt,
+        Long rootConsentId) {
 
     public static final SharedKind<SelfCustodyConsent> KIND =
             SharedKind.of("M12.SELF_CUSTODY_CONSENT", SelfCustodyConsent.class);
@@ -33,6 +34,17 @@ public record SelfCustodyConsent(
 
     public static final String SIGNED_FORM = "SIGNED_FORM";
     public static final String IN_INTAKE_COMMAND = "IN_INTAKE_COMMAND";
+
+    /**
+     * Phần tách kế thừa đồng ý của đồ bị tách (013-3, FR-012): bản riêng của phần đó, {@code rootConsentId} trỏ bản gốc
+     * để rút đồng ý thì hết cho mọi phần; mỗi phần hết hiệu lực riêng khi sang trạng thái kết thúc.
+     */
+    public static final String INHERITED = "INHERITED";
+
+    /** Mã bản gốc của nhóm đồng ý mà bản này thuộc về. */
+    public long rootOf(long ownId) {
+        return rootConsentId == null ? ownId : rootConsentId;
+    }
 
     /** Khóa duy nhất của bản Hiệu lực cho một đồ. */
     public static String effectiveKey(long belongingId) {
@@ -52,6 +64,7 @@ public record SelfCustodyConsent(
                 signedFormFileId,
                 reason,
                 by,
-                at);
+                at,
+                rootConsentId);
     }
 }
