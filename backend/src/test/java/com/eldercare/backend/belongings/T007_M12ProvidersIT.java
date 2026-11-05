@@ -109,6 +109,12 @@ class T007_M12ProvidersIT extends BelongingsTestBase {
     }
 
     @Test
+    void FR_029_scope_isRegisteredForSimpleRecordsOfM12() {
+        assertThat(scopes.stream().map(ScopeAssignmentProvider::entityType))
+                .contains("M12.RECIPIENT_CONFIRMATION", "M12.SELF_CUSTODY_CONSENT", "M12.INVENTORY_CHECK");
+    }
+
+    @Test
     void NFR_08_photoProvider_isRegisteredForHandoverPhotos() {
         assertThat(files).anyMatch(p -> p.ownerType().equals("M12.BELONGING_PHOTO"));
     }
