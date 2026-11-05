@@ -28,8 +28,6 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.resident.api.ResidentApi;
-import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.*;
 import java.util.*;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,8 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 014 T009 (FR-004, FR-006 → FR-013; research L-04): buổi do Trưởng tầng tạo bằng lệnh; hệ thống không tự tạo buổi
- * (Q-306). Điều kiện đăng ký sẵn ở US1: số lượng, trạng thái người cao tuổi, trùng giờ (FR-015 (a), (d), FR-016); khoanh
- * vùng, nghi nhiễm, lịch bán trú thêm ở US2.
+ * (Q-306). Điều kiện đăng ký sẵn theo {@code RegistrationEligibility} (FR-015, FR-016; US2).
  */
 @Service
 public class ActivitySessionService {
@@ -49,7 +46,8 @@ public class ActivitySessionService {
 
     private final ActivitySessionStore store;
     private final SimpleRecordApi records;
-    private final ResidentApi residents;
+    private final RegistrationEligibility eligibility;
+    private final RegistrationNotices notices;
     private final CurrentUser user;
     private final AuditLogApi audit;
     private final BusinessTime time;
@@ -58,14 +56,16 @@ public class ActivitySessionService {
     public ActivitySessionService(
             ActivitySessionStore store,
             SimpleRecordApi records,
-            ResidentApi residents,
+            RegistrationEligibility eligibility,
+            RegistrationNotices notices,
             CurrentUser user,
             AuditLogApi audit,
             BusinessTime time,
             ApplicationEventPublisher events) {
         this.store = store;
         this.records = records;
-        this.residents = residents;
+        this.eligibility = eligibility;
+        this.notices = notices;
         this.user = user;
         this.audit = audit;
         this.time = time;
@@ -137,7 +137,7 @@ public class ActivitySessionService {
             created.add(id);
             var session = store.lock(id);
             for (long resident : regulars) {
-                if (blocker(session, resident, activity.content()).isPresent()) skipped.add(resident);
+                if (!eligible(session, activity.content(), resident, now)) skipped.add(resident);
                 else store.register(id, resident, Registration.REGULAR, null, now);
             }
         }
@@ -202,10 +202,19 @@ public class ActivitySessionService {
         store.reschedule(id, start, end, roomId, responsibleStaffId);
         var after = store.lock(id);
         var activity = records.require(ACTIVITIES, before.activityId()).content();
+        var now = time.now();
+        var cancelled = new ArrayList<Registration>();
         for (var r : store.activeRegistrations(id))
-            blocker(after, r.residentId(), activity)
-                    .filter(code -> !code.equals("CAPACITY_FULL"))
-                    .ifPresent(code -> store.cancelRegistration(r.id(), Registration.AUTO_SESSION_CHANGED, code));
+            eligibility
+                    .tryCheck(after, activity, r.residentId(), now, false)
+                    .ifPresent(result -> result.blockers().stream()
+                            .filter(c -> !c.code().equals("CAPACITY_FULL"))
+                            .findFirst()
+                            .ifPresent(c -> {
+                                store.cancelRegistration(r.id(), Registration.AUTO_SESSION_CHANGED, c.description());
+                                cancelled.add(r);
+                            }));
+        notices.cancelled(after, cancelled, Registration.AUTO_SESSION_CHANGED, now);
         events.publishEvent(new ActivitySessionChanged(id));
         log(ENTITY, id, "SESSION_RESCHEDULED", Map.of("startsAt", start.toString(), "endsAt", end.toString()), reason);
     }
@@ -267,8 +276,7 @@ public class ActivitySessionService {
         var now = time.now();
         var activity = records.require(ACTIVITIES, activityId).content();
         for (var s : store.scheduledFrom(activityId, now))
-            if (!store.registered(s.id(), residentId)
-                    && blocker(s, residentId, activity).isEmpty())
+            if (!store.registered(s.id(), residentId) && eligible(s, activity, residentId, now))
                 store.register(s.id(), residentId, Registration.REGULAR, null, now);
     }
 
@@ -281,31 +289,32 @@ public class ActivitySessionService {
                     store.cancelRegistration(r.id(), null, reason);
     }
 
-    private void cancelSession(Session session, String by, String reason, Long staffId) {
+    /** FR-004, FR-009, FR-013, FR-021: hủy buổi chưa có điểm danh kèm mọi đăng ký, báo người đã đăng ký. */
+    void cancelSession(Session session, String by, String reason, Long staffId) {
         if (hasAttendance(session.id()))
             throw new BusinessException(HttpStatus.CONFLICT, "ATTENDANCE_ALREADY_RECORDED", "Buổi đã có điểm danh");
         store.cancel(session.id(), by, reason, staffId);
-        String auto = Session.BY_TEMPLATE_CHANGE.equals(by)
-                ? Registration.AUTO_TEMPLATE_CHANGED
-                : Registration.AUTO_SESSION_CANCELLED;
-        for (var r : store.activeRegistrations(session.id())) store.cancelRegistration(r.id(), auto, reason);
+        String auto = switch (by) {
+            case Session.BY_TEMPLATE_CHANGE -> Registration.AUTO_TEMPLATE_CHANGED;
+            case Session.BY_ISOLATION -> Registration.AUTO_ISOLATION;
+            default -> Registration.AUTO_SESSION_CANCELLED;
+        };
+        var registrations = store.activeRegistrations(session.id());
+        for (var r : registrations) store.cancelRegistration(r.id(), auto, reason);
+        notices.cancelled(session, registrations, auto, time.now());
         events.publishEvent(new ActivitySessionCancelled(session.id()));
+    }
+
+    /** Điều kiện đăng ký sẵn (FR-008, FR-010): có điều kiện chặn hoặc nguồn 007 chưa có thì không đăng ký. */
+    private boolean eligible(Session session, Activity activity, long residentId, Instant now) {
+        return eligibility
+                .tryCheck(session, activity, residentId, now, false)
+                .map(result -> result.blockers().isEmpty())
+                .orElse(false);
     }
 
     private boolean hasAttendance(long sessionId) {
         return store.activeRegistrations(sessionId).stream().anyMatch(r -> Registration.ATTENDED.equals(r.status()));
-    }
-
-    /** FR-015 (a), (d), FR-016 (trùng giờ); phần còn lại ở US2. */
-    private Optional<String> blocker(Session session, long residentId, Activity activity) {
-        if (store.activeRegistrations(session.id()).size() >= activity.maxParticipants())
-            return Optional.of("CAPACITY_FULL");
-        var status = residents.status(residentId);
-        if (status == ResidentStatus.ADMISSION_IN_PROGRESS || residents.isFinalStatus(residentId))
-            return Optional.of("RESIDENT_STATUS_INVALID");
-        if (store.overlaps(residentId, session.id(), session.startsAt(), session.endsAt()))
-            return Optional.of("TIME_OVERLAP");
-        return Optional.empty();
     }
 
     private void requireNotStarted(Session s) {

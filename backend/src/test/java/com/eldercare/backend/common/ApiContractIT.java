@@ -243,8 +243,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(
                             "GET /api/v1/activity-types",
                             "POST /api/v1/activity-types",
-                            "POST /api/v1/activity-sessions/{id}/registrations",
-                            "POST /api/v1/activity-registrations/{id}/cancel",
                             "POST /api/v1/activity-sessions/{id}/attendance",
                             "POST /api/v1/late-return-consents",
                             "POST /api/v1/late-return-consents/{id}/withdraw",

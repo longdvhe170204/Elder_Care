@@ -200,22 +200,60 @@ public class ActivitySessionStore {
     // Đăng ký
 
     public long register(long sessionId, long residentId, String source, Long staffId, Instant at) {
+        return register(sessionId, residentId, source, staffId, at, null);
+    }
+
+    /** {@code acknowledgedWarnings}: JSON danh sách cảnh báo đã hiển thị và được xác nhận (FR-018), có thể rỗng. */
+    public long register(
+            long sessionId, long residentId, String source, Long staffId, Instant at, String acknowledgedWarnings) {
         var keys = new GeneratedKeyHolder();
         jdbc.update(
                 c -> {
                     var p = c.prepareStatement(
                             "INSERT INTO activity_registration(session_id,resident_id,source,registered_by_staff_id,"
-                                    + "registered_at,status) VALUES(?,?,?,?,?,'REGISTERED')",
+                                    + "registered_at,status,acknowledged_warnings) VALUES(?,?,?,?,?,'REGISTERED',?)",
                             new String[] {"id"});
                     p.setLong(1, sessionId);
                     p.setLong(2, residentId);
                     p.setString(3, source);
                     p.setObject(4, staffId);
                     p.setObject(5, local(at));
+                    p.setString(6, acknowledgedWarnings);
                     return p;
                 },
                 keys);
         return keys.getKey().longValue();
+    }
+
+    public Registration lockRegistration(long id) {
+        return jdbc
+                .query(
+                        "SELECT * FROM activity_registration WHERE id=? FOR UPDATE",
+                        ActivitySessionStore::registration,
+                        id)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException());
+    }
+
+    /** Buổi Đã lên lịch bắt đầu sau {@code from} của mọi hoạt động, khóa dòng (FR-021). */
+    public List<Session> scheduledAfter(Instant from) {
+        return jdbc.query(
+                "SELECT " + COLUMNS
+                        + " FROM activity_session WHERE status='SCHEDULED' AND starts_at>? ORDER BY id FOR UPDATE",
+                ActivitySessionStore::session,
+                local(from));
+    }
+
+    /** Đăng ký Đã đăng ký ở buổi Đã lên lịch bắt đầu sau {@code from}; theo người cao tuổi khi có. */
+    public List<Registration> registeredAfter(Instant from, Long residentId) {
+        return jdbc.query(
+                "SELECT r.* FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
+                        + " WHERE r.status='REGISTERED' AND s.status='SCHEDULED' AND s.starts_at>?"
+                        + (residentId == null ? "" : " AND r.resident_id=" + residentId)
+                        + " ORDER BY r.session_id, r.id FOR UPDATE",
+                ActivitySessionStore::registration,
+                local(from));
     }
 
     /** Đăng ký còn hiệu lực (chưa hủy) của buổi. */

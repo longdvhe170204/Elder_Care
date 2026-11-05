@@ -3023,7 +3023,12 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `BuoiTheoMau`; `BuoiService`, kho buổi; việc hết ngày; controller `/buoi` | `care.internal.session.domain.SessionTemplate`; `ActivitySessionService`, `ActivitySessionStore`; `SessionDayEnd` (`M04HD_SESSION_DAY_END`); `ActivitySessionController`, `ActivitySessionCreateWrite` (`ActivitySessionTrip`), `ActivitySessionCommandWrite`, `ActivitySessionResponse`, `ActivitySessionDetailResponse` (schema `ActivitySessionDetail`) |
 | thông báo người thường xuyên không được đăng ký, buổi hủy do đổi mẫu, hết ngày | `care.api.events.RegularParticipantsNotRegistered`, `ActivitySessionsCancelledByTemplateChange`, `ActivitySessionDayEnded` |
 | `V014_02__buoi.sql` | `V014_02__activity_session.sql` |
-| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT`, `BuoiTheoMauTest`, `BR_M04_21_TaoBuoiTuMauIT`, `FR_014a_HetNgayIT` |
+| `DieuKienDangKy`; `DangKyService`; mã cảnh báo lưu ý chăm sóc, mục Trung bình trở lên đang mở | `care.internal.session.domain.RegistrationConditions` (`Facts`, `DayCare`, `Result`); `RegistrationEligibility`, `RegistrationService`, `RegistrationAutoCancels`, `RegistrationNotices`; `CARE_NOTE`, `OPEN_ALERT_OR_INCIDENT` |
+| nguồn 007 cho đăng ký (`KhoanhVungApi`, `SuCoApi.dau`, sự kiện `KhoanhVungDaTao`, `DauNghiNhiemDaDoi`) | SPI `care.api.spi.ActivityHealthGatePort` (`residentIsolated`, `locationIsolated`, `suspectedInfection`, `hasOpenMediumOrHigher`); API lệnh `care.api.ActivityRegistrationAutoCancelApi` (`cancelForIsolation`, `cancelForSuspectedInfection`) |
+| `ThamGiaChuyenTrangThai` của 014 | `care.internal.session.service.ActivityStatusParticipant` (`@Order(31)`) |
+| thông báo buổi bị hủy, dời; đăng ký bị hủy tự động | `care.api.events.ActivityRegistrationsCancelled` (`sessionId`, `registrationIds`, `cause`) |
+| thân đăng ký; thân lý do | `ActivityRegistrationWrite` (`residentId`, `acknowledgeWarnings`); `ActivityReasonWrite` |
+| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT`, `BuoiTheoMauTest`, `BR_M04_21_TaoBuoiTuMauIT`, `FR_014a_HetNgayIT`, `DieuKienDangKyTest`, `BR_M04_15_DangKyIT`, `FR_021_KhoanhVungIT` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 

@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getActivitySessionsById, postActivitySessionsByIdByCommand } from '@/api'
+import {
+  getActivitySessionsById,
+  postActivityRegistrationsByIdCancel,
+  postActivitySessionsByIdByCommand,
+  postActivitySessionsByIdRegistrations,
+} from '@/api'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -10,17 +16,34 @@ import { problemOf } from '@/common/problem'
 import { ActivityField } from './ActivityField'
 import { REGISTRATION_SOURCE, REGISTRATION_STATUS, SESSION_STATUS, toOffsetIso } from './sessionView'
 
-// 014 T009: khung chi tiết buổi (FR-012, FR-013, FR-019). Đăng ký chỉ có mã người cao tuổi vì api-014 không có họ tên
-// (DESIGN.md mục 13 điều 6). Nút lệnh theo quyền ACTIVITY_OUTING UPDATE; backend còn kiểm vai trò Trưởng tầng.
-export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onChanged, Title, Description }) {
+const EMPTY = { reason: '', startsAt: '', endsAt: '', residentId: '', registrationReason: '' }
+
+// 014 T009, T012: khung chi tiết buổi (FR-012, FR-013, FR-015 → FR-019; bố cục duyệt 2026-11-05). Họ tên người cao
+// tuổi lấy từ danh sách GET /residents (001) như màn Điểm danh bán trú của 005; không có thì hiện mã. Nút lệnh theo quyền
+// ACTIVITY_OUTING (CREATE đăng ký, UPDATE dời, hủy); backend còn kiểm vai trò và điều kiện.
+export function ActivitySessionDetail({
+  sessionId,
+  activityName,
+  residents = [],
+  canCreate,
+  canUpdate,
+  onChanged,
+  Title,
+  Description,
+}) {
   const [result, setResult] = useState(null)
   const [mode, setMode] = useState(null)
-  const [form, setForm] = useState({ reason: '', startsAt: '', endsAt: '' })
+  const [cancelling, setCancelling] = useState(null)
+  const [warnings, setWarnings] = useState([])
+  const [form, setForm] = useState(EMPTY)
   const [problem, setProblem] = useState(null)
   const [busy, setBusy] = useState(false)
   const [key, setKey] = useState(() => crypto.randomUUID())
   const [revision, setRevision] = useState(0)
   const current = result?.key === `${sessionId}:${revision}` ? result : null
+  const names = new Map(residents.map((r) => [r.id, r.fullName]))
+  const nameOf = (id) => names.get(id) ?? `Mã ${id}`
+  const set = (field) => (value) => setForm((f) => ({ ...f, [field]: value }))
 
   useEffect(() => {
     let active = true
@@ -33,31 +56,49 @@ export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onCh
     }
   }, [sessionId, revision])
 
-  async function send(command, body, done) {
+  // Mỗi lệnh một Idempotency-Key; giữ khóa khi lỗi để gửi lại an toàn, đổi khóa sau khi thành công.
+  async function run(call, done, onProblem) {
     setBusy(true)
     setProblem(null)
     try {
-      await postActivitySessionsByIdByCommand({
-        path: { id: sessionId, command },
-        body,
-        headers: { 'Idempotency-Key': key },
-      })
+      await call({ 'Idempotency-Key': key })
       setKey(crypto.randomUUID())
       setMode(null)
-      setForm({ reason: '', startsAt: '', endsAt: '' })
+      setCancelling(null)
+      setWarnings([])
+      setForm(EMPTY)
       setRevision((v) => v + 1)
       onChanged(done)
     } catch (error) {
-      setProblem(problemOf(error))
+      const p = problemOf(error)
+      if (!onProblem?.(p)) setProblem(p)
     } finally {
       setBusy(false)
     }
+  }
+
+  function register(acknowledgeWarnings) {
+    const body = { residentId: Number(form.residentId) }
+    if (acknowledgeWarnings) body.acknowledgeWarnings = true
+    // Lần gửi lại sau cảnh báo có thân khác lần đầu nên dùng khóa riêng cho mỗi thân.
+    const attempt = { 'Idempotency-Key': `${key}:${body.residentId}:${acknowledgeWarnings ? 'ack' : 'new'}` }
+    run(
+      () => postActivitySessionsByIdRegistrations({ path: { id: sessionId }, body, headers: attempt }),
+      'Đã đăng ký người cao tuổi',
+      (p) => {
+        if (p.errorCode !== 'WARNING_ACKNOWLEDGEMENT_REQUIRED') return false
+        setWarnings(p.unmetConditions)
+        return true
+      },
+    )
   }
 
   if (!current) return <Skeleton className="h-40" />
   if (current.failure) return <ProblemAlert problem={current.failure} />
   const s = current.data
   const open = s.status === 'SCHEDULED'
+  const registeredIds = new Set(s.registrations.map((r) => r.residentId))
+  const candidates = residents.filter((r) => !registeredIds.has(r.id)).map((r) => [String(r.id), r.fullName])
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
@@ -80,25 +121,116 @@ export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onCh
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mã người cao tuổi</TableHead>
+                <TableHead>Người cao tuổi</TableHead>
                 <TableHead>Nguồn</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                {canUpdate && open && <TableHead>Thao tác</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {s.registrations.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="tabular-nums">{r.residentId}</TableCell>
+                  <TableCell>{nameOf(r.residentId)}</TableCell>
                   <TableCell>{REGISTRATION_SOURCE[r.source] ?? r.source}</TableCell>
                   <TableCell>
                     <StatusBadge status={REGISTRATION_STATUS[r.status] ?? r.status} />
                   </TableCell>
+                  {canUpdate && open && (
+                    <TableCell>
+                      {r.status === 'REGISTERED' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label={`Hủy đăng ký của ${nameOf(r.residentId)}`}
+                          onClick={() => setCancelling(r.id)}
+                        >
+                          Hủy đăng ký
+                        </Button>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </section>
+
+      {cancelling !== null && (
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            run(
+              (headers) =>
+                postActivityRegistrationsByIdCancel({
+                  path: { id: cancelling },
+                  body: { reason: form.registrationReason },
+                  headers,
+                }),
+              'Đã hủy đăng ký',
+            )
+          }}
+        >
+          <ActivityField
+            label="Lý do hủy đăng ký"
+            type="textarea"
+            maxLength={2000}
+            value={form.registrationReason}
+            onChange={set('registrationReason')}
+            required
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" variant="destructive" size="lg" disabled={busy || !form.registrationReason.trim()}>
+              Xác nhận hủy đăng ký
+            </Button>
+            <Button type="button" variant="ghost" size="lg" onClick={() => setCancelling(null)}>
+              Thôi
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {canCreate && open && (
+        <section className="flex flex-col gap-3 border-t pt-4" aria-labelledby="session-register">
+          <h3 id="session-register" className="type-card-title">
+            Đăng ký người cao tuổi
+          </h3>
+          <ActivityField
+            label="Người cao tuổi"
+            options={candidates}
+            value={form.residentId}
+            onChange={(v) => {
+              setWarnings([])
+              set('residentId')(v)
+            }}
+            required
+          />
+          {warnings.length > 0 && (
+            <Alert variant="attention">
+              <AlertTitle>Cần xác nhận cảnh báo</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-5">
+                  {warnings.map((w) => (
+                    <li key={w.code}>{w.description}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {warnings.length > 0 ? (
+              <Button size="lg" disabled={busy} onClick={() => register(true)}>
+                Xác nhận cảnh báo và đăng ký
+              </Button>
+            ) : (
+              <Button size="lg" disabled={busy || !form.residentId} onClick={() => register(false)}>
+                Đăng ký
+              </Button>
+            )}
+          </div>
+        </section>
+      )}
 
       <ProblemAlert problem={problem} />
 
@@ -107,9 +239,13 @@ export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onCh
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault()
-            send(
-              'reschedule',
-              { reason: form.reason, startsAt: toOffsetIso(form.startsAt), endsAt: toOffsetIso(form.endsAt) },
+            run(
+              (headers) =>
+                postActivitySessionsByIdByCommand({
+                  path: { id: sessionId, command: 'reschedule' },
+                  body: { reason: form.reason, startsAt: toOffsetIso(form.startsAt), endsAt: toOffsetIso(form.endsAt) },
+                  headers,
+                }),
               'Đã dời buổi',
             )
           }}
@@ -118,14 +254,14 @@ export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onCh
             label="Bắt đầu mới"
             type="datetime-local"
             value={form.startsAt}
-            onChange={(v) => setForm((f) => ({ ...f, startsAt: v }))}
+            onChange={set('startsAt')}
             required
           />
           <ActivityField
             label="Kết thúc mới"
             type="datetime-local"
             value={form.endsAt}
-            onChange={(v) => setForm((f) => ({ ...f, endsAt: v }))}
+            onChange={set('endsAt')}
             required
           />
           <ActivityField
@@ -133,7 +269,7 @@ export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onCh
             type="textarea"
             maxLength={2000}
             value={form.reason}
-            onChange={(v) => setForm((f) => ({ ...f, reason: v }))}
+            onChange={set('reason')}
             required
           />
           <div className="flex flex-wrap gap-2">
@@ -152,16 +288,24 @@ export function ActivitySessionDetail({ sessionId, activityName, canUpdate, onCh
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault()
-            send('cancel', { reason: form.reason }, 'Đã hủy buổi')
+            run(
+              (headers) =>
+                postActivitySessionsByIdByCommand({
+                  path: { id: sessionId, command: 'cancel' },
+                  body: { reason: form.reason },
+                  headers,
+                }),
+              'Đã hủy buổi',
+            )
           }}
         >
           <p className="type-body-sm">Hủy buổi sẽ hủy mọi đăng ký của buổi. Buổi đã hủy không được tạo lại từ mẫu.</p>
           <ActivityField
-            label="Lý do hủy"
+            label="Lý do hủy buổi"
             type="textarea"
             maxLength={2000}
             value={form.reason}
-            onChange={(v) => setForm((f) => ({ ...f, reason: v }))}
+            onChange={set('reason')}
             required
           />
           <div className="flex flex-wrap gap-2">

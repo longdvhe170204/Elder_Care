@@ -2,6 +2,9 @@ package com.eldercare.backend.care.web;
 
 import com.eldercare.backend.care.internal.activity.service.ActivityService;
 import com.eldercare.backend.care.internal.session.service.ActivitySessionService;
+import com.eldercare.backend.care.internal.session.service.RegistrationService;
+import com.eldercare.backend.care.web.request.ActivityReasonWrite;
+import com.eldercare.backend.care.web.request.ActivityRegistrationWrite;
 import com.eldercare.backend.care.web.request.ActivitySessionCommandWrite;
 import com.eldercare.backend.care.web.request.ActivitySessionCreateWrite;
 import com.eldercare.backend.care.web.response.ActivitySessionDetailResponse;
@@ -26,10 +29,13 @@ import org.springframework.web.bind.annotation.*;
 public class ActivitySessionController {
     private final ActivitySessionService sessions;
     private final ActivityService activities;
+    private final RegistrationService registrations;
 
-    public ActivitySessionController(ActivitySessionService sessions, ActivityService activities) {
+    public ActivitySessionController(
+            ActivitySessionService sessions, ActivityService activities, RegistrationService registrations) {
         this.sessions = sessions;
         this.activities = activities;
+        this.registrations = registrations;
     }
 
     @GetMapping("/activity-sessions")
@@ -110,5 +116,44 @@ public class ActivitySessionController {
                         HttpStatus.SERVICE_UNAVAILABLE, "CARE_SOURCE_UNAVAILABLE", "Hoàn tất điểm danh thuộc US3");
             default -> throw new InvalidValueException("Lệnh không hợp lệ: " + command);
         }
+    }
+
+    /** 014 T012 (FR-015 → FR-018): 409 kèm điều kiện chưa thỏa hoặc cảnh báo cần xác nhận. */
+    @PostMapping("/activity-sessions/{id}/registrations")
+    @ApiResponse(responseCode = "201", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public ResponseEntity<Void> register(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody ActivityRegistrationWrite body) {
+        if (body.residentId() == null) throw new InvalidValueException("Thiếu người cao tuổi");
+        long registration = registrations.register(
+                registrations.target(id, body.residentId()),
+                id,
+                body.residentId(),
+                Boolean.TRUE.equals(body.acknowledgeWarnings()));
+        return ResponseEntity.created(URI.create("/api/v1/activity-registrations/" + registration))
+                .build();
+    }
+
+    /** 014 T012 (FR-017): hủy trước giờ bắt đầu, lý do bắt buộc. */
+    @PostMapping("/activity-registrations/{id}/cancel")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public void cancelRegistration(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody ActivityReasonWrite body) {
+        registrations.cancel(registrations.targetOfRegistration(id), id, body.reason());
     }
 }

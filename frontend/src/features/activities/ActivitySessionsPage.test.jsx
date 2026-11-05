@@ -65,6 +65,16 @@ beforeEach(() => {
   api.on('GET', '/activities', json(200, [{ id: 3, name: 'Thể dục buổi sáng', status: 'ACTIVE' }]))
   api.on('GET', '/activity-sessions', json(200, SESSIONS))
   api.on('GET', '/activity-sessions/11', json(200, DETAIL))
+  api.on(
+    'GET',
+    '/residents',
+    json(200, {
+      items: [
+        { id: 701, fullName: 'Nguyễn Thị Lan' },
+        { id: 702, fullName: 'Trần Văn Bình' },
+      ],
+    }),
+  )
 })
 afterEach(() => vi.unstubAllGlobals())
 
@@ -107,7 +117,7 @@ it('FR_013_huyBuoiCanLyDoVaGuiLenh', async () => {
   api.on('POST', '/activity-sessions/11/cancel', json(200, {}))
   renderPage()
   fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Thể dục buổi sáng 03\/11\/2026 08:00/ }))
-  expect(await screen.findByText('701')).toBeInTheDocument()
+  expect(await screen.findByText('Nguyễn Thị Lan')).toBeInTheDocument()
   expect(screen.getByText('Thường xuyên')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Hủy buổi' }))
   const confirm = screen.getByRole('button', { name: 'Xác nhận hủy buổi' })
@@ -174,4 +184,68 @@ it('FR_011_403HienKhongCoQuyen', async () => {
   api.on('GET', '/activity-sessions', problem(403, 'PERMISSION_DENIED'))
   renderPage()
   expect(await screen.findByText(/không có quyền/i)).toBeInTheDocument()
+})
+
+async function openDetail() {
+  fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Thể dục buổi sáng 03\/11\/2026 08:00/ }))
+  await screen.findByText('Nguyễn Thị Lan')
+}
+
+it('FR_018_dangKyCoCanhBaoPhaiXacNhanRoiGuiLai', async () => {
+  permissions(['VIEW', 'CREATE'])
+  api.on(
+    'POST',
+    '/activity-sessions/11/registrations',
+    problem(409, 'WARNING_ACKNOWLEDGEMENT_REQUIRED', {
+      detail: 'Cần xác nhận cảnh báo trước khi đăng ký',
+      unmetConditions: [
+        { code: 'OPEN_ALERT_OR_INCIDENT', description: 'Có cảnh báo hoặc sự cố mức Trung bình trở lên đang mở' },
+      ],
+    }),
+  )
+  renderPage()
+  await openDetail()
+  fireEvent.change(screen.getByLabelText(/^Người cao tuổi/), { target: { value: '702' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Đăng ký' }))
+  expect(await screen.findByText('Có cảnh báo hoặc sự cố mức Trung bình trở lên đang mở')).toBeInTheDocument()
+  api.on('POST', '/activity-sessions/11/registrations', json(201, {}))
+  fireEvent.click(screen.getByRole('button', { name: 'Xác nhận cảnh báo và đăng ký' }))
+  await screen.findByText('Đã đăng ký người cao tuổi')
+  const calls = api.calls('POST', '/activity-sessions/11/registrations')
+  expect(JSON.parse(calls[0][1].body)).toEqual({ residentId: 702 })
+  expect(JSON.parse(calls[1][1].body)).toEqual({ residentId: 702, acknowledgeWarnings: true })
+})
+
+it('FR_015_dangKyBiChanHienDieuKienChuaThoa', async () => {
+  permissions(['VIEW', 'CREATE'])
+  api.on(
+    'POST',
+    '/activity-sessions/11/registrations',
+    problem(409, 'CAPACITY_FULL', {
+      detail: 'Buổi đã đủ số lượng tối đa',
+      unmetConditions: [{ code: 'CAPACITY_FULL', description: 'Buổi đã đủ số lượng tối đa' }],
+    }),
+  )
+  renderPage()
+  await openDetail()
+  fireEvent.change(screen.getByLabelText(/^Người cao tuổi/), { target: { value: '702' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Đăng ký' }))
+  expect((await screen.findAllByText('Buổi đã đủ số lượng tối đa')).length).toBeGreaterThan(0)
+  expect(screen.queryByRole('button', { name: 'Xác nhận cảnh báo và đăng ký' })).not.toBeInTheDocument()
+})
+
+it('FR_017_huyDangKyCanLyDo', async () => {
+  permissions(['VIEW', 'UPDATE'])
+  api.on('POST', '/activity-registrations/91/cancel', json(200, {}))
+  renderPage()
+  await openDetail()
+  fireEvent.click(screen.getByRole('button', { name: 'Hủy đăng ký của Nguyễn Thị Lan' }))
+  const confirm = screen.getByRole('button', { name: 'Xác nhận hủy đăng ký' })
+  expect(confirm).toBeDisabled()
+  fireEvent.change(screen.getByLabelText(/Lý do hủy đăng ký/), { target: { value: 'Không muốn tham gia' } })
+  fireEvent.click(confirm)
+  await screen.findByText('Đã hủy đăng ký')
+  expect(JSON.parse(api.calls('POST', '/activity-registrations/91/cancel')[0][1].body)).toEqual({
+    reason: 'Không muốn tham gia',
+  })
 })
