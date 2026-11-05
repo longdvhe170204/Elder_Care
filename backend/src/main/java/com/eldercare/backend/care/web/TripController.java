@@ -6,16 +6,19 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.InvalidValueException;
 import org.springframework.web.bind.annotation.*;
 
-/** T018: phần chuẩn bị và rời viện của Phase 6; các command trở về thuộc Phase 7. */
+/** T018 (Phase 6), T020 (Phase 7): chuẩn bị, rời viện, trở về; hai lệnh ghi sự cố chờ port 007. */
 @RestController
 @RequestMapping("/api/v1/trips")
 public class TripController {
     private final TripPreparationService preparation;
     private final TripDepartureService departure;
+    private final TripReturnService returns;
 
-    public TripController(TripPreparationService preparation, TripDepartureService departure) {
+    public TripController(
+            TripPreparationService preparation, TripDepartureService departure, TripReturnService returns) {
         this.preparation = preparation;
         this.departure = departure;
+        this.returns = returns;
     }
 
     @GetMapping("/{id}")
@@ -114,12 +117,20 @@ public class TripController {
                         "record-missing-incident",
                         "finish-return")
                 .contains(command)) throw new InvalidValueException("Lệnh chuyến không hợp lệ");
-        if (!"depart".equals(command))
-            throw new com.eldercare.backend.common.error.BusinessException(
-                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                    "CARE_SOURCE_UNAVAILABLE",
-                    "Lệnh theo dõi, trở về thuộc Phase 7 chưa cài");
         var reason = body.reason() == null || body.reason().isBlank() ? null : new Reason(body.reason());
-        departure.depart(preparation.target(id), id, body.residentIds(), reason, body.deviceAt());
+        var target = preparation.target(id);
+        switch (command) {
+            case "depart" -> departure.depart(target, id, body.residentIds(), reason, body.deviceAt());
+            case "return" -> returns.returnResidents(target, id, body.residentIds(), body.deviceAt());
+            case "extend" -> returns.extend(target, id, body.newPlannedReturnAt(), reason);
+            case "transfer-leader" -> returns.transferLeader(target, id, body.newLeaderId(), reason);
+            case "finish-return" -> returns.finishReturn(target, id, body.deviceAt());
+            default ->
+                // FR-046, FR-047: lệnh ghi sự cố cần port do 007 cài (team-plan mục 8); không ghi tạm như thành công.
+                throw new com.eldercare.backend.common.error.BusinessException(
+                        org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                        "CARE_SOURCE_UNAVAILABLE",
+                        "Chưa có nguồn ghi sự cố thiếu người của 007");
+        }
     }
 }

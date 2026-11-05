@@ -13,6 +13,11 @@ public final class TripKinds {
     public static final SharedKind<Assessment> ASSESSMENTS = SharedKind.of("M04.TRIP_ELIGIBILITY", Assessment.class);
     public static final SharedKind<Attendance> ATTENDANCE = SharedKind.of("M04.TRIP_ATTENDANCE", Attendance.class);
 
+    /** FR-043, data-model chuyen_di_gia_han. */
+    public static final SharedKind<Extension> EXTENSIONS = SharedKind.of("M04.TRIP_EXTENSION", Extension.class);
+
+    public record Extension(long tripId, Instant previousReturnAt, Instant newReturnAt, String reason) {}
+
     public record Assessment(long tripId, long registrationId, long residentId, String result, String reason) {}
 
     public record Attendance(

@@ -156,6 +156,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Implementation cho User Story 5
 
 - [ ] T020 [US5] Hoàn thiện `ChuyenDiService.java`: điểm danh về (001 `DIEM_DANH_VE`), gia hạn, chuyển trưởng đoàn, báo thiếu người (`SuCoLenhApi.ghiNhan` MANDATORY), kết thúc về (`YeuCauTaoCanhBao` Khẩn cấp), về muộn, hủy ghi nhận; việc theo phút quá giờ về (một lần mỗi mốc, báo Quản lý viện); `NgoaiTuyenHandler` `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE` (lệnh thiếu người bắt buộc trực tuyến); `DinhChinhDuocProvider` `M04.DIEM_DANH_CHUYEN` (research L-08)
+  - Một phần 05/11/2026: `return`, `extend`, `transfer-leader`, `finish-return`, bước quá giờ về, Rời đoàn đã cài với test `BR_M04_17_ThieuNguoiIT` 8/8 (plan Phase 7). Còn: hai lệnh ghi sự cố (chờ port 007), ghi khi mất mạng, đính chính FR-031a; T019, T020 chưa đánh [x].
 
 **Checkpoint**: P1 hoàn tất.
 
