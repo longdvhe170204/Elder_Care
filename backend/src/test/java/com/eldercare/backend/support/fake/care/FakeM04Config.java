@@ -70,11 +70,7 @@ public class FakeM04Config {
         return new FakeDayCarePickups(switches);
     }
 
-    @Bean
-    @Primary
-    FakeQualityChecks fakeQualityChecks(FakeM04Switches switches) {
-        return new FakeQualityChecks(switches);
-    }
+    // 014 T028: QualityCheckPort dùng nguồn thật QualityCheckResultSource của 014, không còn bean giả trong cấu hình.
 
     @Bean
     FakeTaskSource fakeHealthTaskSource(FakeM04Switches switches) {

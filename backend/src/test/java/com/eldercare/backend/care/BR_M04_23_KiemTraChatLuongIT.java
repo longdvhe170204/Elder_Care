@@ -24,9 +24,6 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
     Instant shiftEndsAt;
 
     @org.springframework.beans.factory.annotation.Autowired
-    com.eldercare.backend.support.fake.care.FakeQualityChecks qualityChecks;
-
-    @org.springframework.beans.factory.annotation.Autowired
     com.eldercare.backend.support.fake.administration.FakeDuties duties;
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -173,9 +170,6 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("REWORK_TASK_REQUIRED"));
         assertThat(itemStatus(item)).isEqualTo("PENDING");
-        // 005 đọc nguồn qua bản giả @Primary của FakeM04Config; nguồn thật của 014 kiểm riêng bên dưới.
-        qualityChecks.failed(
-                item, task, new com.eldercare.backend.care.api.spi.QualityCheckPort.FailedCheckView(item, shift));
         assertThat(realQualityChecks.failed(item, task)).isEmpty();
         result(
                         item,

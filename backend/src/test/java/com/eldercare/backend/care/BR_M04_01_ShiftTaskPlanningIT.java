@@ -463,12 +463,10 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_026a_reworkUsesTheFailedCheckShiftAndPreservesTheOriginal() throws Exception {
-        long original = create(), checkId = TestUsers.nextId();
-        context.getBean(FakeQualityChecks.class)
-                .failed(
-                        checkId,
-                        original,
-                        new com.eldercare.backend.care.api.spi.QualityCheckPort.FailedCheckView(checkId, shiftId));
+        long original = create();
+        // 014 T028: căn cứ làm lại là mục kiểm tra Không đạt thật của 014 (QualityCheckResultSource), không qua bản
+        // giả.
+        long checkId = failedCheck(original);
         Instant next = planned.plusSeconds(60);
         shifts.onShift(caregiver.staffId(), next, true);
         mvc.perform(post("/api/v1/care-tasks/" + original + "/rework")
@@ -484,6 +482,38 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 .isEqualTo(original);
         assertThat(jdbc.queryForObject("SELECT status FROM care_task WHERE id=?", String.class, original))
                 .isEqualTo("NOT_YET_DUE");
+    }
+
+    private long failedCheck(long task) {
+        long checklist = TestUsers.nextId();
+        return context.getBean(com.eldercare.backend.administration.shared.api.RecordEventApi.class)
+                .add(
+                        com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.ITEMS,
+                        new com.eldercare.backend.administration.shared.api.dto.EntityRef(
+                                "M04.QUALITY_CHECKLIST", checklist),
+                        new com.eldercare.backend.administration.shared.api.dto.NewRecordEvent<>(
+                                new com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.Item(
+                                        checklist,
+                                        shiftId,
+                                        floor,
+                                        task,
+                                        null,
+                                        null,
+                                        com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.FAIL,
+                                        "Chưa đạt",
+                                        List.of(),
+                                        user.accountId(),
+                                        "FLOOR_MANAGER",
+                                        time.now()),
+                                null,
+                                user.accountId(),
+                                false,
+                                time.now(),
+                                null,
+                                time.now(),
+                                floor,
+                                "QC_TASK:" + task))
+                .id();
     }
 
     private long effectiveItem() {
