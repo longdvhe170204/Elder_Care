@@ -15,7 +15,9 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { BelongingDetail } from './BelongingDetail'
+import { HeldBelongings } from './HeldBelongings'
 import { IntakeForm } from './IntakeForm'
 import { amountText, holderLabel, statusLabel } from './belongingLabels'
 import { useBelongingCatalogs } from './useBelongingCatalogs'
@@ -221,14 +223,28 @@ function ResidentBelongings({ resident, catalogs }) {
   )
 }
 
+// Tab của màn (thanh lọc DESIGN.md 7.2 filter-bar); tab sau thêm theo task 013
+const TABS = [
+  { value: 'resident', label: 'Theo người cao tuổi' },
+  { value: 'held', label: 'Nhân viên đang giữ' },
+]
+
 export function BelongingsPage() {
   const catalogs = useBelongingCatalogs()
   const [resident, setResident] = useState(null)
+  const [tab, setTab] = useState('resident')
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Đồ gửi" subtitle="Tiếp nhận, bàn giao và trả đồ gia đình gửi viện giữ hộ.">
-        <ResidentPicker onPick={setResident} />
+        <ToggleGroup variant="filter" value={[tab]} onValueChange={(next) => next[0] && setTab(next[0])}>
+          {TABS.map((t) => (
+            <ToggleGroupItem key={t.value} value={t.value}>
+              {t.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        {tab === 'resident' && <ResidentPicker onPick={setResident} />}
       </PageHeader>
       {catalogs.status === 'error' && (
         <ProblemAlert
@@ -239,14 +255,17 @@ export function BelongingsPage() {
           }}
         />
       )}
-      {!resident && (
+      {tab === 'resident' && !resident && (
         <Card>
           <CardContent>
             <p className="text-muted-foreground">Tìm và chọn một người cao tuổi để xem đồ gửi.</p>
           </CardContent>
         </Card>
       )}
-      {resident && <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} />}
+      {tab === 'resident' && resident && (
+        <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} />
+      )}
+      {tab === 'held' && <HeldBelongings catalogs={catalogs} />}
     </div>
   )
 }

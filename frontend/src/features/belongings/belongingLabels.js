@@ -66,3 +66,13 @@ export function nowLocal() {
 // Mục danh mục còn dùng (không Ngừng) thành ô chọn
 export const activeOptions = (items) =>
   items.filter((i) => i.status !== 'INACTIVE').map((i) => ({ value: String(i.id), label: i.name }))
+
+// Lệnh bàn giao theo trạng thái đồ (data-model 013 mục 3; HandoverCommandCheck của backend)
+const COMMANDS = {
+  HELD: ['GIVE_FOR_USE', 'TRANSFER_CUSTODY', 'REPORT_LOST', 'RECORD_DAMAGE'],
+  IN_USE: ['TAKE_BACK', 'REPORT_LOST', 'RECORD_DAMAGE'],
+  DAMAGED: ['TRANSFER_CUSTODY', 'REPORT_LOST'],
+  LOST: ['FOUND'],
+}
+
+export const commandsFor = (status) => COMMANDS[status] ?? []

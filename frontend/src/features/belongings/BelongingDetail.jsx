@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getBelongingsById } from '@/api'
+import { getBelongingsById, postBelongingsHandoversByIdLinkIncident } from '@/api'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -9,15 +10,60 @@ import { openFile } from '@/common/files'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { ConsentForm } from './ConsentForm'
-import { amountText, holderLabel, kindLabel, statusLabel } from './belongingLabels'
+import { HandoverForm } from './HandoverForm'
+import { amountText, commandsFor, holderLabel, kindLabel, statusLabel } from './belongingLabels'
 
 // Khung chi tiết một đồ gửi (013 T011; FR-011, FR-012; api-013 GET /belongings/{id}): thông tin đồ, lịch sử bàn giao
 // (cả lần chặn trả) và các lệnh. Hợp đồng không trả danh sách lệnh được phép nên nút hiện theo khóa quyền "Đồ gửi" của
 // /me/permissions và trạng thái đồ; backend kiểm lại mọi lệnh.
 
-const OPEN_STATUSES = ['HELD', 'IN_USE']
+// Bản ghi liên kết được sự cố ghi sau, một lần (FR-021, FR-024)
+const LINKABLE = ['REPORT_LOST', 'RECORD_DAMAGE']
 
-function HistoryEntry({ entry, onFailure }) {
+function IncidentLink({ entry, onLinked }) {
+  const [incidentId, setIncidentId] = useState('')
+  const [failure, setFailure] = useState(null)
+  const [busy, setBusy] = useState(false)
+  async function link() {
+    setFailure(null)
+    if (!/^[1-9]\d*$/.test(incidentId)) {
+      setFailure({ title: 'Nhập mã sự cố', detail: 'Mã sự cố là số đã ghi ở màn Sự cố.', unmetConditions: [] })
+      return
+    }
+    setBusy(true)
+    try {
+      await postBelongingsHandoversByIdLinkIncident({
+        path: { id: entry.id },
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+        body: { incidentId: Number(incidentId) },
+      })
+      onLinked('Đã liên kết sự cố.')
+    } catch (error) {
+      setFailure(problemOf(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          aria-label={'Mã sự cố cho ' + kindLabel(entry.kind).toLowerCase()}
+          inputMode="numeric"
+          className="h-10 w-32"
+          value={incidentId}
+          onChange={(e) => setIncidentId(e.target.value)}
+        />
+        <Button type="button" variant="outline" size="sm" className="h-10" disabled={busy} onClick={link}>
+          Liên kết sự cố
+        </Button>
+      </div>
+      <ProblemAlert problem={failure} />
+    </div>
+  )
+}
+
+function HistoryEntry({ entry, onFailure, canLink, onLinked }) {
   const parties = [entry.giverName, entry.recipientName].filter(Boolean).join(' → ')
   return (
     <li className="flex flex-col gap-1 border-t py-3 first:border-t-0 first:pt-0">
@@ -32,6 +78,10 @@ function HistoryEntry({ entry, onFailure }) {
           .join(', ')}
       </span>
       {entry.reason && <span className="type-body-sm">Lý do: {entry.reason}</span>}
+      {entry.incidentId != null && <span className="type-body-sm">Sự cố #{entry.incidentId}</span>}
+      {entry.incidentId == null && canLink && LINKABLE.includes(entry.kind) && (
+        <IncidentLink entry={entry} onLinked={onLinked} />
+      )}
       {entry.photoFileIds?.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {entry.photoFileIds.map((id, index) => (
@@ -89,7 +139,13 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
 
   const b = state.belonging
   const type = catalogs.typeOf(b.typeId)
-  const open = OPEN_STATUSES.includes(b.status)
+  const canUpdate = can('BELONGINGS', 'UPDATE')
+  const actions = [
+    canUpdate && commandsFor(b.status).length > 0 && ['handover', 'Bàn giao'],
+    canUpdate &&
+      ['HELD', 'IN_USE'].includes(b.status) &&
+      type?.requiresConsentForUse && ['consent', 'Ghi đồng ý cho tự giữ'],
+  ].filter(Boolean)
 
   return (
     <div className="flex flex-col gap-5 type-body-sm">
@@ -121,17 +177,25 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
       </div>
       <ProblemAlert problem={failure} />
 
-      {open && can('BELONGINGS', 'UPDATE') && type?.requiresConsentForUse && (
+      {actions.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            className="h-11"
-            aria-pressed={action === 'consent'}
-            onClick={() => setAction(action === 'consent' ? null : 'consent')}
-          >
-            Ghi đồng ý cho tự giữ
-          </Button>
+          {actions.map(([name, label]) => (
+            <Button
+              key={name}
+              variant="outline"
+              className="h-11"
+              aria-pressed={action === name}
+              onClick={() => setAction(action === name ? null : name)}
+            >
+              {label}
+            </Button>
+          ))}
         </div>
+      )}
+      {action === 'handover' && (
+        <section className="flex flex-col gap-3 rounded-xl border p-3" aria-label="Bàn giao">
+          <HandoverForm belonging={b} levels={catalogs.levels} locations={catalogs.locations} onDone={done} />
+        </section>
       )}
       {action === 'consent' && (
         <section className="flex flex-col gap-3 rounded-xl border p-3" aria-label="Ghi đồng ý cho tự giữ">
@@ -143,7 +207,7 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
         <h3 className="type-card-title">Lịch sử bàn giao</h3>
         <ul className="flex flex-col">
           {state.handovers.map((h) => (
-            <HistoryEntry key={h.id} entry={h} onFailure={setFailure} />
+            <HistoryEntry key={h.id} entry={h} onFailure={setFailure} canLink={canUpdate} onLinked={done} />
           ))}
         </ul>
       </section>

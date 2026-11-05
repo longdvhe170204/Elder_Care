@@ -130,4 +130,52 @@ describe('BelongingsPage (013 T011, US1)', () => {
     expect(JSON.parse(init.body)).toEqual({ belongingId: 90, representativeId: 33, signedFormFileId: 640 })
     expect(await screen.findByText('Đã ghi đồng ý cho tự giữ.')).toBeInTheDocument()
   })
+
+  it('FR_024_lienKetSuCoGhiSau_motLan', async () => {
+    const api = setup()
+    api.on(
+      'GET',
+      '/belongings/91',
+      json(200, {
+        belonging: { ...PHONE, id: 91, status: 'LOST', holder: null },
+        handovers: [
+          {
+            id: 301,
+            belongingId: 91,
+            kind: 'REPORT_LOST',
+            targetStatus: 'LOST',
+            occurredAt: '2026-11-06T03:00:00Z',
+            reason: 'Không thấy',
+            incidentId: null,
+          },
+        ],
+      }),
+    )
+    api.on(
+      'GET',
+      '/residents/7/belongings',
+      json(200, [{ ...PHONE, id: 91, description: 'Kính lão', status: 'LOST', holder: null }]),
+    )
+    api.on('POST', '/belongings/handovers/301/link-incident', json(200, {}))
+    await openResident()
+    fireEvent.click(await screen.findByRole('button', { name: 'Chi tiết Kính lão' }))
+    fireEvent.change(await screen.findByLabelText('Mã sự cố cho báo thất lạc'), { target: { value: '44' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Liên kết sự cố' }))
+
+    await waitFor(() => expect(api.calls('POST', '/belongings/handovers/301/link-incident')).toHaveLength(1))
+    expect(JSON.parse(api.calls('POST', '/belongings/handovers/301/link-incident')[0][1].body)).toEqual({
+      incidentId: 44,
+    })
+    expect(await screen.findByText('Đã liên kết sự cố.')).toBeInTheDocument()
+  })
+
+  it('FR_011_tabNhanVienDangGiu', async () => {
+    setup()
+    fireEvent.click(
+      await screen
+        .findByRole('radio', { name: 'Nhân viên đang giữ' })
+        .catch(() => screen.getByText('Nhân viên đang giữ')),
+    )
+    expect(await screen.findByLabelText('Mã nhân viên')).toBeInTheDocument()
+  })
 })
