@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.ResultActions;
  */
 class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
     TestUsers.TestUser caregiver;
+    Instant shiftEndsAt;
 
     @org.springframework.beans.factory.annotation.Autowired
     com.eldercare.backend.support.fake.care.FakeQualityChecks qualityChecks;
@@ -29,11 +30,15 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
     com.eldercare.backend.support.fake.administration.FakeDuties duties;
 
     @org.springframework.beans.factory.annotation.Autowired
+    com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckClockStep clock;
+
+    @org.springframework.beans.factory.annotation.Autowired
     com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckResultSource realQualityChecks;
 
     @BeforeEach
     void qualityFixture() {
         caregiver = new TestUsers(jdbc, time).staff(Role.CAREGIVER);
+        shiftEndsAt = shifts.shift(shift).orElseThrow().endsAt();
         duties.floorManager(floor, baseManager.staffId());
         user.set(baseManager.user());
         jdbc.update(
@@ -239,5 +244,87 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
                         String.class,
                         item))
                 .isEqualTo("SHIFT_LEAD");
+    }
+
+    java.util.List<com.eldercare.backend.care.api.events.QualityCheckManagerNotice> managerNotices(String cause) {
+        return events.stream(com.eldercare.backend.care.api.events.QualityCheckManagerNotice.class)
+                .filter(n -> n.shiftId() == shift && n.cause().equals(cause))
+                .toList();
+    }
+
+    @Test
+    void FR_059a_beforeTheShiftEndsTheInspectorIsRemindedOnceWhenThereIsNoListOrTooFewItems() throws Exception {
+        completed(caregiver.accountId(), caregiver.staffId());
+        clock.run(shiftEndsAt.minusSeconds(2400));
+        assertThat(events.stream(com.eldercare.backend.care.api.events.QualityCheckReminder.class)
+                        .filter(n -> n.shiftId() == shift))
+                .isEmpty();
+        clock.run(shiftEndsAt.minusSeconds(600));
+        clock.run(shiftEndsAt.minusSeconds(540));
+        assertThat(events.stream(com.eldercare.backend.care.api.events.QualityCheckReminder.class)
+                        .filter(n -> n.shiftId() == shift))
+                .singleElement()
+                .satisfies(n -> assertThat(n.context().recipients())
+                        .contains(new com.eldercare.backend.common.notification.RecipientGroup.Staff(
+                                baseManager.staffId(), "QUALITY_INSPECTOR")));
+        // Không có danh sách hay mục nào do hệ thống tạo.
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM simple_record WHERE kind='M04.QUALITY_CHECKLIST' AND unique_key=?",
+                        Integer.class,
+                        shift + ":" + floor))
+                .isZero();
+    }
+
+    @Test
+    void FR_063_atTheShiftEndPendingItemsBecomeOverdueAndTheManagerIsNotifiedOncePerList() throws Exception {
+        long task = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(task)).andExpect(status().isCreated());
+        long item = item(task);
+        clock.run(shiftEndsAt.plusSeconds(60));
+        clock.run(shiftEndsAt.plusSeconds(120));
+        assertThat(itemStatus(item)).isEqualTo("OVERDUE");
+        assertThat(jdbc.queryForObject("SELECT confirmed_at FROM record_event WHERE id=?", Object.class, item))
+                .isNotNull();
+        assertThat(managerNotices("OVERDUE_ITEMS"))
+                .singleElement()
+                .satisfies(n -> assertThat(n.context().recipients())
+                        .contains(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                Role.NURSING_HOME_MANAGER)));
+        assertThat(managerNotices("NO_CHECKLIST")).isEmpty();
+    }
+
+    @Test
+    void FR_063_aShiftWithEligibleTasksEndingWithoutAListIsRecordedAndReportedOnce() throws Exception {
+        completed(caregiver.accountId(), caregiver.staffId());
+        clock.run(shiftEndsAt.plusSeconds(60));
+        clock.run(shiftEndsAt.plusSeconds(120));
+        assertThat(managerNotices("NO_CHECKLIST")).hasSize(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(details,'$.reason')) FROM reminder_marker"
+                                + " WHERE kind='M04.QUALITY_NO_CHECKLIST' AND entity_id=?",
+                        String.class,
+                        shift))
+                .isEqualTo("NOT_CREATED");
+    }
+
+    @Test
+    // Đính chính kết quả của 005 cần transaction READ_COMMITTED, như BR_M04_14_CareResultCorrectionIT.
+    @org.springframework.transaction.annotation.Transactional(
+            isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
+    void FR_062_aSelectedTaskWhoseResultIsVoidedBecomesNotCheckable() throws Exception {
+        long task = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(task)).andExpect(status().isCreated());
+        long item = item(task);
+        mvc.perform(post("/api/v1/care-results/" + task + "/correct")
+                        .header("Idempotency-Key", "correct-" + TestUsers.nextId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"VOID\",\"reason\":\"Ghi nhầm người\"}"))
+                .andExpect(status().isCreated());
+        assertThat(itemStatus(item)).isEqualTo("NOT_CHECKABLE");
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.note')) FROM record_event WHERE id=?",
+                        String.class,
+                        item))
+                .contains("hủy ghi nhận");
     }
 }

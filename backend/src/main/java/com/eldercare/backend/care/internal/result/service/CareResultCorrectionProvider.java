@@ -39,6 +39,7 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
     private final CareResultQueries queries;
     private final CurrentUser user;
     private final FieldVisibilityApi visibility;
+    private final com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids qualityVoids;
 
     public CareResultCorrectionProvider(
             CareResultStore results,
@@ -49,7 +50,8 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
             ApplicationEventPublisher events,
             CareResultQueries queries,
             CurrentUser user,
-            FieldVisibilityApi visibility) {
+            FieldVisibilityApi visibility,
+            com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckTaskVoids qualityVoids) {
         this.results = results;
         this.tasks = tasks;
         this.locks = locks;
@@ -59,6 +61,7 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
         this.queries = queries;
         this.user = user;
         this.visibility = visibility;
+        this.qualityVoids = qualityVoids;
     }
 
     @Override
@@ -183,6 +186,8 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
         if (correction.type() == CorrectionType.VOID) {
             if (task.data().resultType().equals("SLEEP"))
                 throw unavailable("Hủy ghi nhận ngủ đang chờ tín hiệu sự kiện của 007");
+            // 014 FR-062: mục kiểm tra chất lượng đang chờ của công việc này thành Không kiểm tra được.
+            qualityVoids.resultVoided(task.id());
             return;
         }
         var input = input(correction.correctedContent());
