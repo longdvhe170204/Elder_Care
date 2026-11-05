@@ -588,7 +588,7 @@ components:
       allOf:
         - { $ref: '#/components/schemas/Feedback' }
         - type: object
-          properties: { source: { type: string, enum: [PORTAL, COUNTER] }, assigneeId: { type: integer, format: int64 }, repliedAt: { type: string, format: date-time }, closedAt: { type: string, format: date-time }, closeMethod: { type: string, enum: [SENDER, AUTO] }, items: { type: array, items: { $ref: '#/components/schemas/FeedbackItem' } }, senderHealthRightEffective: { type: boolean }, healthReplyHidden: { type: boolean }, allowedCommands: { type: array, items: { type: string } } }
+          properties: { source: { type: string, enum: [PORTAL, COUNTER, RESIDENT_CHANNEL, RECORDED_DIRECTLY] }, assigneeId: { type: integer, format: int64 }, repliedAt: { type: string, format: date-time }, closedAt: { type: string, format: date-time }, closeMethod: { type: string, enum: [SENDER, AUTO, RECORDED_ON_BEHALF] }, items: { type: array, items: { $ref: '#/components/schemas/FeedbackItem' } }, senderHealthRightEffective: { type: boolean }, healthReplyHidden: { type: boolean }, allowedCommands: { type: array, items: { type: string } } }
     AssignableStaff:
       type: object
       description: Bổ sung 2026-11-05 (FR-060)

@@ -55,11 +55,11 @@ public record FeedbackResponse(
         Feedback f = view.feedback();
         return new FeedbackResponse(
                 f.residentId(),
-                SenderType.FAMILY_MEMBER,
+                SenderType.valueOf(f.senderType().name()),
                 f.familyMemberId(),
                 FeedbackType.valueOf(f.type().name()),
                 f.group(),
-                null,
+                f.wishTopic() == null ? null : WishTopic.valueOf(f.wishTopic().name()),
                 view.content(),
                 view.fileIds(),
                 f.id(),

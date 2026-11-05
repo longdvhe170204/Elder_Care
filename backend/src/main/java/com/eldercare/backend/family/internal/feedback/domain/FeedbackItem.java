@@ -13,7 +13,7 @@ public record FeedbackItem(Type type, String content, boolean healthInformation,
 
     public static final SharedKind<FeedbackItem> KIND = SharedKind.of("M10.FEEDBACK_ITEM", FeedbackItem.class);
 
-    /** Glossary: NOI_DUNG, TRA_LOI, HUONG_XU_LY, GHI_CHU, GIAO_LAI, DOI_MUC, MO_LAI. */
+    /** Glossary: NOI_DUNG, TRA_LOI, HUONG_XU_LY, GHI_CHU, GIAO_LAI, DOI_MUC, MO_LAI, DOI_LOAI (US9). */
     public enum Type {
         CONTENT,
         REPLY,
@@ -21,7 +21,8 @@ public record FeedbackItem(Type type, String content, boolean healthInformation,
         NOTE,
         REASSIGNMENT,
         PRIORITY_CHANGE,
-        REOPEN
+        REOPEN,
+        TYPE_CHANGE
     }
 
     public FeedbackItem {

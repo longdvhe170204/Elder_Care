@@ -2956,6 +2956,18 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | đổi api 2026-11-05 (chủ dự án duyệt): tên người gửi, thời điểm gửi; mục phản hồi; chi tiết phản hồi; lệnh được phép; người nhận giao lại được | `Feedback` thêm `familyMemberName`, `submittedAt`; schema `FeedbackItem` (`id`, `type`, `content`, `fileIds`, `byAccountId`, `at`), `FeedbackDetail` (`allOf` `Feedback` và `source`, `assigneeId`, `repliedAt`, `closedAt`, `closeMethod`, `items`, `senderHealthRightEffective`, `healthReplyHidden`, `allowedCommands`); `GET /feedback/{id}/assignable-staff` → `AssignableStaff` (`accountId`, `fullName`, `role` `FLOOR_MANAGER`/`NURSING_STAFF`/`OFFICE_STAFF`); `FeedbackService.assignableStaff`, `AssignableView`; `AssignableStaffResponse` |
 | màn `tinh-nang/nguoi-than/phan-hoi/`; cổng P8; app người thân | `frontend/src/features/relatives/feedback/` (`FeedbackPage`, `feedbackLabels.js`; mục menu `feedback`), `features/family-portal/live/LiveFeedbackPage.jsx`; `mobile/lib/family/feedback/feedback_screen.dart` (`FeedbackScreen`, tab "Phản hồi" của `FamilyRoot`) |
 
+### 18.10. Lớp, cột và việc của US9 *(bổ sung 2026-11-05, Phase 10a: T062 → T069)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `phan_hoi.nguoi_gui_loai` (`NGUOI_THAN`, `NGUOI_CAO_TUOI`), `ghi_thay_boi_id`, `chu_de_mong_muon` (`KHACH_THAM_NGUOI_DON`, `KHAC`); nguồn `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`; cách đóng `GHI_THAY`; `V012_10__kenh_nguoi_cao_tuoi.sql` | `feedback.sender_type` (`FAMILY_MEMBER`, `RESIDENT`), `recorded_on_behalf_by`, `wish_topic` (`VISITORS_PICKERS`, `OTHER`); `source` `RESIDENT_CHANNEL`, `RECORDED_DIRECTLY`; `close_method` `RECORDED_ON_BEHALF`; `V012_10__resident_channel.sql`; `Feedback.SenderType`, `Feedback.WishTopic`, `Feedback.Sender` |
+| mục `DOI_LOAI` | `FeedbackItem.Type.TYPE_CHANGE` |
+| `phan_hoi_y_kien` (`loai_muc` `MONG_MUON_NCT`, `SO_THICH`) | `record_event` loại `M10.FEEDBACK_OPINION` gắn `M10.FEEDBACK` (`FeedbackOpinion`: `VISIT_PICKUP_WISH`, `INTEREST`; khóa `unique_key` `M10.FBO:<feedbackId>:<itemType>:<itemId>`) |
+| lệnh `doi-loai`, `gan-y-kien`; nghe `YKienDaGhiTuPhanHoi`; mã lỗi `CHUA_GAN_Y_KIEN` | `FeedbackService.changeType`, `linkOpinion`, `onOpinionRecorded` (`resident.api.events.OpinionRecordedFromFeedback`); `OPINION_NOT_LINKED` (409) |
+| `KenhNguoiCaoTuoiService`, `KenhNguoiCaoTuoiController` | `family.internal.residentchannel.service.ResidentChannelService` (`self`, `today`, `menu`, `upcomingActivities`, `upcomingVisits`, `heldBelongings`; `ChannelVisit`, `ChannelActivity`, `ChannelBelonging`, `ChannelDayCare`, `Today`, `Section`), `family.web.ResidentChannelController` (`ResidentChannelFeedbackRequest`); `VisitQueries.approvedFrom` |
+| bản giả `HoatDongKenhNctPort`, `DoGuiKenhNctPort` | `support/fake/family/FakeResidentChannelActivities`, `FakeResidentChannelBelongings` |
+| job `NhacLuotThamNct` (FR-069) | việc nửa đêm `VISIT_RESIDENT_REMINDER`, `internal.visit.service.ResidentVisitReminders`; sự kiện `family.api.events.ResidentVisitReminder` (loại sự kiện `VISIT_RESIDENT_REMINDER`, nhóm `RecipientGroup.Resident`) |
+
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
 *Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

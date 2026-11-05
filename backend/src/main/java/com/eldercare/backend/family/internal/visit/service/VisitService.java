@@ -90,6 +90,7 @@ public class VisitService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final TransactionTemplate tx;
+    private final ResidentVisitReminders residentReminders;
 
     VisitService(
             SimpleRecordApi records,
@@ -101,7 +102,8 @@ public class VisitService {
             AuditLogApi auditLog,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
-            PlatformTransactionManager transactions) {
+            PlatformTransactionManager transactions,
+            ResidentVisitReminders residentReminders) {
         this.records = records;
         this.locks = locks;
         this.rules = rules;
@@ -112,6 +114,7 @@ public class VisitService {
         this.time = time;
         this.currentUser = currentUser;
         this.tx = new TransactionTemplate(transactions);
+        this.residentReminders = residentReminders;
     }
 
     /** Khung thăm của ngày và số chỗ còn; sức chứa đọc từ CFG-M10-04 hiện hành. */
@@ -242,6 +245,7 @@ public class VisitService {
                 .resident(residentId)
                 .after(Map.of("status", created.status(), "visitorCount", visitorCount))
                 .build());
+        residentReminders.onRegistered(created);
         return created;
     }
 
