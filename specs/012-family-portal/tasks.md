@@ -228,7 +228,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 11: Polish & Cross-Cutting
 
-- [ ] T036 [P] Cài `NguoiThanThongKeApi` (016)
+- [ ] T036 [P] Cài `NguoiThanThongKeApi` (016) *(2026-11-06: không làm ở giai đoạn này theo Q-194, 016 chưa dùng; chủ dự án duyệt)*
 - [x] T037 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/012-family-portal/contracts/api-012.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 012 *(2026-11-06: `ApiContractIT` so đủ api-012; nhóm 3 sau R-15 kiểm ở `RecordGroupTriggerIT` và `M10RecordGroupTriggerIT`, ghi ở plan)*
 - [ ] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó
 - [ ] T039 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5

@@ -15,27 +15,28 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Dữ liệu người thân, quan hệ lập thẳng bằng SQL và lịch sử như lệnh của US1 sẽ ghi (T011), cho test các bản cài đọc của
- * 012 trước khi có lệnh.
+ * 012 trước khi có lệnh. Công khai cho test của module dùng bản cài thật thay bản giả (012 T038).
  */
-final class RelationshipFixtures {
+public final class RelationshipFixtures {
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate tx;
     private final RelationshipHistoryStore history;
     private final Instant start;
 
-    RelationshipFixtures(JdbcTemplate jdbc, TransactionTemplate tx, RelationshipHistoryStore history, Instant start) {
+    public RelationshipFixtures(
+            JdbcTemplate jdbc, TransactionTemplate tx, RelationshipHistoryStore history, Instant start) {
         this.jdbc = jdbc;
         this.tx = tx;
         this.history = history;
         this.start = start;
     }
 
-    long familyMember(String name, String phone) {
+    public long familyMember(String name, String phone) {
         return familyMember(name, phone, null, null);
     }
 
-    long familyMember(String name, String phone, String idDocumentType, String idDocumentNumber) {
+    public long familyMember(String name, String phone, String idDocumentType, String idDocumentNumber) {
         GeneratedKeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(
                 c -> {
@@ -55,7 +56,7 @@ final class RelationshipFixtures {
     }
 
     /** Quan hệ Hiệu lực từ {@code start}; vai trò, quyền ghi cả cột và lịch sử như lệnh của US1. */
-    long relate(
+    public long relate(
             long familyMemberId,
             long residentId,
             int order,
@@ -99,11 +100,11 @@ final class RelationshipFixtures {
     }
 
     /** Đổi giá trị từ {@code at} trong lịch sử, như lệnh yêu cầu thay đổi quyền (US3). */
-    void record(long relationshipId, RelationshipAttribute attribute, boolean value, Instant at) {
+    public void record(long relationshipId, RelationshipAttribute attribute, boolean value, Instant at) {
         tx.executeWithoutResult(s -> history.record(relationshipId, attribute, value, at, "REQUEST", 1L, null));
     }
 
-    void end(long relationshipId, Instant at) {
+    public void end(long relationshipId, Instant at) {
         jdbc.update(
                 "UPDATE family_relationship SET status = 'ENDED', ended_at = ?, end_reason = 'test' WHERE id = ?",
                 utc(at),
