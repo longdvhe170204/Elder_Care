@@ -11,13 +11,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import java.util.List;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 
 /**
- * Carried medication handover entity (FR-048a).
+ * Carried medication handover entity (FR-048a). Dòng {@code kind = HANDOVER} của {@code medication_handover}; dòng
+ * thuốc giao, liều mang theo trong {@code lines} (006 T069, {@code V006_97}).
  */
 @Entity
 @DataGroup(DataGroup.Group.MULTIPLE)
 @Table(name = "medication_handover")
+@SQLRestriction("kind = 'HANDOVER'")
 public class MedicationHandover {
 
     @Id
@@ -66,6 +72,10 @@ public class MedicationHandover {
     @Column(name = "locked_at")
     private Instant lockedAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "`lines`", columnDefinition = "json")
+    private HandoverLines lines = new HandoverLines();
+
     protected MedicationHandover() {}
 
     public MedicationHandover(
@@ -90,6 +100,19 @@ public class MedicationHandover {
         this.handoverTime = handoverTime != null ? handoverTime : now;
         this.status = HandoverStatus.HANDED_OVER;
         this.createdAt = now;
+    }
+
+    public List<MedicationHandoverItem> getItems() {
+        return lines == null ? List.of() : lines.getItems();
+    }
+
+    public List<MedicationHandoverDose> getDoses() {
+        return lines == null ? List.of() : lines.getDoses();
+    }
+
+    /** Thay toàn bộ dòng; lần giao đã nhận lại bị khóa ở cơ sở dữ liệu. */
+    public void replaceLines(List<MedicationHandoverItem> items, List<MedicationHandoverDose> doses) {
+        this.lines = new HandoverLines(items, doses);
     }
 
     public void markWaitingReturn() {
