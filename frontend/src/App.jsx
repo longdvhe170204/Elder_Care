@@ -31,6 +31,7 @@ import { FamilyMembersPage } from '@/features/relatives/FamilyMembersPage'
 import { PickupPage } from '@/features/relatives/pickups/PickupPage'
 import { VisitsPage } from '@/features/relatives/visits/VisitsPage'
 import { FeedbackPage } from '@/features/relatives/feedback/FeedbackPage'
+import { FamilyStaysPage } from '@/features/relatives/stays/FamilyStaysPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
@@ -61,6 +62,7 @@ const PAGES = {
   pickups: PickupPage,
   visits: VisitsPage,
   feedback: FeedbackPage,
+  'family-stays': FamilyStaysPage,
   'audit-log': AuditLogTable,
   admin: AdminPage,
   'approval-requests': ApprovalInbox,

@@ -103,6 +103,15 @@ class FR_040_StayLimitIT extends StayTestBase {
         assertThat(stayStatus(id)).isEqualTo("PENDING_CONFIRMATION");
     }
 
+    /** Màn web đọc danh sách không kèm người cao tuổi: Trưởng tầng (phạm vi được giao) thấy lượt của tầng mình. */
+    @Test
+    void FR_045_floorManagerListsStaysInScope_withoutResidentFilter() throws Exception {
+        long id = registered(rMember, at(day, 18, 0), at(day.plusDays(1), 8, 0));
+
+        assertThat(getJsonAs(staff(floorManager), "/api/v1/family-stays").findValues("id"))
+                .anySatisfy(v -> assertThat(v.asLong()).isEqualTo(id));
+    }
+
     @Test
     void FR_045_floorWithoutFloorManager_managerConfirms() throws Exception {
         long other = resident(ResidentStatus.IN_RESIDENCE);
