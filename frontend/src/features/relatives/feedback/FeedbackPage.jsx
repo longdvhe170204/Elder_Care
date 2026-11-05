@@ -21,13 +21,24 @@ import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
+import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
-import { ASSIGNEE_ROLES, FEEDBACK_STATUS, ITEM_LABELS, PRIORITY, groupLabel, typeLabel } from './feedbackLabels'
+import {
+  ASSIGNEE_ROLES,
+  FEEDBACK_STATUS,
+  ITEM_LABELS,
+  PRIORITY,
+  WISH_TOPICS,
+  groupLabel,
+  typeLabel,
+} from './feedbackLabels'
+import { OnBehalfSheet, WishOpinions } from './ResidentFeedbackParts'
 
 // Phản hồi của người thân (012 T030; US6, FR-058 → FR-066, BR-M10-05; Phụ lục 27 dòng "Phản hồi": Trưởng tầng, Điều
 // dưỡng, Hành chính trong phạm vi, Quản lý viện xem mọi phản hồi và danh sách quá hạn). Bảng, bấm dòng mở khung chi tiết
 // (DESIGN.md 5, 7.2). Nút lệnh theo allowedCommands của chi tiết (đổi api 2026-11-05); backend vẫn kiểm lại ở lệnh (403
-// hiện trong khung).
+// hiện trong khung). Từ US9 (T072, bố cục duyệt 2026-11-05) có cả phản hồi của người cao tuổi: ghi lời người cao tuổi,
+// gắn mục ý kiến của Mong muốn, đổi loại, ghi thay Đồng ý đóng, Mở lại.
 
 const FILTERS = [
   ['all', 'Tất cả'],
@@ -49,6 +60,28 @@ function FeedbackStatus({ f }) {
 function byUrgency(a, b) {
   if (a.overdue !== b.overdue) return a.overdue ? -1 : 1
   return new Date(a.dueAt) - new Date(b.dueAt)
+}
+
+const TOPIC_MAP = Object.fromEntries(WISH_TOPICS)
+
+// Mong muốn ghi theo chủ đề, loại khác theo nhóm nội dung
+function subjectOf(f) {
+  return f.type === 'WISH'
+    ? `${typeLabel(f.type)}, về ${(TOPIC_MAP[f.wishTopic] ?? '').toLowerCase()}`
+    : `${typeLabel(f.type)}, ${groupLabel(f.group).toLowerCase()}`
+}
+
+// Câu người gửi trong khung chi tiết (FR-058a): người thân qua cổng hoặc tại quầy; người cao tuổi qua ứng dụng hoặc ghi thay
+function senderSentence(f, residentName) {
+  const resident = residentName ?? `Người cao tuổi mã ${f.residentId}`
+  const at = formatDateTime(f.submittedAt)
+  if (f.senderType === 'RESIDENT') {
+    return f.source === 'RECORDED_DIRECTLY'
+      ? `${resident}. Nhân viên ghi thay theo lời người cao tuổi ${at}.`
+      : `${resident} tự gửi qua ứng dụng ${at}.`
+  }
+  const where = f.source === 'COUNTER' ? ', Hành chính ghi tại quầy' : ', qua cổng'
+  return `${resident}. ${f.familyMemberName ?? 'Người thân'} gửi ${at}${where}.`
 }
 
 async function command(id, name, body) {
@@ -191,20 +224,15 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
 
   const can = (name) => f.allowedCommands?.includes(name)
   const healthWarning = f.group === 'HEALTH_MEDICATION' && f.senderHealthRightEffective === false
+  const fromResident = f.senderType === 'RESIDENT'
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-1">
         <span>
           <FeedbackStatus f={f} />
         </span>
-        <Title className="type-title">
-          {typeLabel(f.type)}, {groupLabel(f.group).toLowerCase()}
-        </Title>
-        <Description className="type-body-sm text-muted-foreground">
-          {residentName ?? `Người cao tuổi mã ${f.residentId}`}. {f.familyMemberName ?? 'Người thân'} gửi{' '}
-          {formatDateTime(f.submittedAt)}
-          {f.source === 'COUNTER' ? ', Hành chính ghi tại quầy' : ', qua cổng'}.
-        </Description>
+        <Title className="type-title">{subjectOf(f)}</Title>
+        <Description className="type-body-sm text-muted-foreground">{senderSentence(f, residentName)}</Description>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 type-body-sm">
         <dt className="text-muted-foreground">Mức</dt>
@@ -239,15 +267,50 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
           {healthWarning && (
             <Alert variant="attention">
               <AlertDescription>
-                Người gửi không có quyền xem sức khỏe: trả lời chỉ ghi thông tin chung, ví dụ mời liên hệ trực tiếp hoặc
-                đề nghị người đại diện cấp quyền.
+                {fromResident
+                  ? 'Người cao tuổi chỉ thấy phần chung của câu trả lời. Trả lời trực tiếp với người cao tuổi; ở đây ghi thông tin chung.'
+                  : 'Người gửi không có quyền xem sức khỏe: trả lời chỉ ghi thông tin chung, ví dụ mời liên hệ trực tiếp hoặc đề nghị người đại diện cấp quyền.'}
               </AlertDescription>
             </Alert>
           )}
-          <ReplyForm onSubmit={(body) => run('reply', body, 'Đã gửi trả lời cho người thân')} />
+          <ReplyForm
+            onSubmit={(body) =>
+              run('reply', body, fromResident ? 'Đã gửi trả lời cho người cao tuổi' : 'Đã gửi trả lời cho người thân')
+            }
+          />
         </>
       )}
-      {mode === null && (can('change-priority') || can('reassign') || can('add-note')) && (
+      {mode === null && f.type === 'WISH' && can('link-opinion') && (
+        <WishOpinions
+          feedback={f}
+          residentName={residentName}
+          onLink={(itemId) =>
+            run('link-opinion', { opinion: { itemType: 'VISIT_PICKUP_WISH', itemId } }, 'Đã gắn mong muốn vào phản hồi')
+          }
+        />
+      )}
+      {mode === null && (can('agree-to-close') || can('reopen')) && (
+        <div className="flex flex-col gap-2">
+          <span className="type-caption text-muted-foreground">Theo lời người cao tuổi</span>
+          <span className="flex flex-wrap gap-2">
+            {can('agree-to-close') && (
+              <Button
+                variant="outline"
+                className="h-11"
+                onClick={() => run('agree-to-close', {}, 'Đã ghi đồng ý đóng theo lời người cao tuổi')}
+              >
+                Ghi đồng ý đóng
+              </Button>
+            )}
+            {can('reopen') && (
+              <Button variant="ghost" className="h-11" onClick={() => setMode('reopen')}>
+                Ghi mở lại
+              </Button>
+            )}
+          </span>
+        </div>
+      )}
+      {mode === null && (can('change-priority') || can('reassign') || can('add-note') || can('change-type')) && (
         <span className="flex flex-wrap gap-2">
           {can('change-priority') && (
             <Button variant="outline" className="h-11" onClick={() => setMode('priority')}>
@@ -257,6 +320,11 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
           {can('reassign') && (
             <Button variant="outline" className="h-11" onClick={() => setMode('reassign')}>
               Giao lại
+            </Button>
+          )}
+          {can('change-type') && (
+            <Button variant="outline" className="h-11" onClick={() => setMode('type')}>
+              Đổi loại
             </Button>
           )}
           {can('add-note') && (
@@ -280,10 +348,56 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
           onSubmit={(body) => run('reassign', body, 'Đã giao lại phản hồi')}
         />
       )}
+      {mode === 'type' && (
+        <ChangeTypeForm
+          onCancel={() => setMode(null)}
+          onSubmit={(body) => run('change-type', body, 'Đã đổi loại phản hồi')}
+        />
+      )}
+      {mode === 'reopen' && (
+        <ReasonForm
+          label="Ghi mở lại theo lời người cao tuổi"
+          submitLabel="Lưu mở lại"
+          onCancel={() => setMode(null)}
+          onSubmit={(reason) => run('reopen', { reason }, 'Đã ghi mở lại theo lời người cao tuổi')}
+        />
+      )}
       {mode === 'note' && (
         <NoteForm onCancel={() => setMode(null)} onSubmit={(content) => run('add-note', { content }, 'Đã ghi chú')} />
       )}
     </div>
+  )
+}
+
+// Đổi loại Mong muốn sang Hỏi đáp, Góp ý kèm lý do (FR-058b, FR-066)
+function ChangeTypeForm({ onSubmit, onCancel }) {
+  const [newType, setNewType] = useState('QUESTION')
+  return (
+    <ReasonForm
+      label="Đổi loại phản hồi"
+      submitLabel="Lưu loại mới"
+      onCancel={onCancel}
+      onSubmit={(reason) => onSubmit({ newType, reason })}
+    >
+      <Field>
+        <FieldLabel>Loại mới</FieldLabel>
+        <ToggleGroup
+          variant="outline"
+          value={[newType]}
+          onValueChange={(n) => n[0] && setNewType(n[0])}
+          aria-label="Loại mới"
+        >
+          {[
+            ['QUESTION', 'Hỏi đáp'],
+            ['SUGGESTION', 'Góp ý'],
+          ].map(([v, label]) => (
+            <ToggleGroupItem key={v} value={v} className="h-11 px-4">
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </Field>
+    </ReasonForm>
   )
 }
 
@@ -411,6 +525,8 @@ export function FeedbackPage() {
   const [opened, setOpened] = useState(null)
   const [names, setNames] = useState({})
   const [announcement, setAnnouncement] = useState('')
+  const [recording, setRecording] = useState(false)
+  const { can } = usePermissions()
 
   const requested = useRef(new Set())
 
@@ -467,9 +583,26 @@ export function FeedbackPage() {
       )}
     >
       <PageHeader
-        title="Phản hồi của người thân"
-        subtitle="Góp ý, khiếu nại, hỏi đáp trong phạm vi của bạn; trả lời trước hạn xử lý."
+        title="Phản hồi"
+        subtitle="Của người thân và người cao tuổi trong phạm vi của bạn; trả lời trước hạn xử lý."
+        aside={
+          can('FEEDBACK', 'CREATE') && (
+            <Button className="h-11" onClick={() => setRecording(true)}>
+              Ghi lời người cao tuổi
+            </Button>
+          )
+        }
       />
+      {recording && (
+        <OnBehalfSheet
+          onClose={() => setRecording(false)}
+          onDone={(message) => {
+            setRecording(false)
+            setAnnouncement(message)
+            load(filter)
+          }}
+        />
+      )}
       <ToggleGroup
         variant="filter"
         size="lg"
@@ -520,14 +653,12 @@ export function FeedbackPage() {
                   </TableCell>
                   <TableCell>{names[f.residentId] ?? `Mã ${f.residentId}`}</TableCell>
                   <TableCell className="whitespace-normal">
-                    {f.familyMemberName}
+                    {f.senderType === 'RESIDENT' ? 'Chính người cao tuổi' : f.familyMemberName}
                     <span className="block type-caption text-muted-foreground tabular-nums">
                       {formatDateTime(f.submittedAt)}
                     </span>
                   </TableCell>
-                  <TableCell className="whitespace-normal">
-                    {typeLabel(f.type)}, {groupLabel(f.group).toLowerCase()}
-                  </TableCell>
+                  <TableCell className="whitespace-normal">{subjectOf(f)}</TableCell>
                   <TableCell className={f.overdue ? 'text-destructive tabular-nums' : 'tabular-nums'}>
                     {formatDateTime(f.dueAt)}
                   </TableCell>
