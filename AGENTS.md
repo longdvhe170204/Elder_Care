@@ -29,7 +29,7 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 ## 3. Định nghĩa "xong" một phase
 
 - [ ] Test của phase đã viết trước, đã thấy lỗi, giờ xanh
-- [ ] `backend`: test của feature, test kiến trúc (`*ArchTest`, `ModuleBoundaryTest`, `ApiContractIT`) và IT của module mà phase sửa hoặc có thể bị ảnh hưởng đều xanh; `./mvnw clean verify` toàn bộ (Windows: `.\mvnw.cmd clean verify`) chỉ bắt buộc trước khi mở PR vào `develop`, hoặc khi phase đụng `common`, 000, thêm bean ảnh hưởng nhiều module (sửa 2026-11-04, chủ dự án duyệt; lệnh chạy nhóm IT ở CLAUDE.md mục "Lệnh"); có sửa Java thì `./mvnw spotless:apply`
+- [ ] `backend`: test của feature, test kiến trúc (`*ArchTest`, `ModuleBoundaryTest`, `ApiContractIT`) và IT của module mà phase sửa hoặc có thể bị ảnh hưởng đều xanh; `./mvnw clean verify -Dit.forkCount=3` toàn bộ (Windows: `.\mvnw.cmd clean verify "-Dit.forkCount=3"`; IT chạy trên 3 JVM, cần `DB_PASSWORD`, `DB_RETENTION_PASSWORD`) chỉ bắt buộc trước khi mở PR vào `develop`, hoặc khi phase đụng `common`, 000, thêm bean ảnh hưởng nhiều module (sửa 2026-11-04, chủ dự án duyệt; lệnh chạy nhóm IT ở CLAUDE.md mục "Lệnh"); có sửa Java thì `./mvnw spotless:apply`
 - [ ] `frontend`: `npm test`, `npm run lint`, `npm run build` qua
 - [ ] Đánh `[x]` task trong `tasks.md`; ghi chú triển khai, lệch kỹ thuật ở `plan.md`
 - [ ] Glossary của feature cập nhật

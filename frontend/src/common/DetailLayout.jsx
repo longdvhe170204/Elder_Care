@@ -55,7 +55,8 @@ export function DetailLayout({ open, detailKey, onClose, label, renderDetail, ch
       )}
 
       <Sheet open={!wide && open} onOpenChange={(next) => !next && onClose()}>
-        <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
+        {/* Nút đóng của Sheet nằm đè góc phải: tiêu đề chừa lề để không chạy xuống dưới nút */}
+        <SheetContent className="overflow-y-auto p-6 sm:max-w-lg [&_[data-slot=sheet-title]]:pr-8">
           {!wide && open && renderDetail({ Title: SheetTitle, Description: SheetDescription })}
         </SheetContent>
       </Sheet>

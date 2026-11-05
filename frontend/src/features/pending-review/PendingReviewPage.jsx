@@ -9,10 +9,10 @@ import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
+import { DetailLayout } from '@/common/DetailLayout'
 import { PageHeader } from '@/common/PageHeader'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -46,7 +46,7 @@ function valueText(value) {
   return String(value)
 }
 
-function RecordDetail({ record, onDecided, onGone }) {
+function RecordDetail({ record, onDecided, onGone, Title, Description }) {
   const [rejecting, setRejecting] = useState(false)
   const [reason, setReason] = useState('')
   const [error, setError] = useState(null)
@@ -89,89 +89,87 @@ function RecordDetail({ record, onDecided, onGone }) {
   const content = Object.entries(record.content ?? {})
 
   return (
-    <>
-      <SheetHeader className="gap-1 pt-6">
-        <SheetTitle className="type-title">{typeLabel(record.recordType)}</SheetTitle>
-        <SheetDescription>
+    <div className="flex flex-col gap-5 type-body-sm">
+      <div className="flex flex-col gap-1">
+        <Title className="type-title">{typeLabel(record.recordType)}</Title>
+        <Description className="type-body-sm text-muted-foreground">
           {recorderLabel(record)}, {floorLabel(record)}
-        </SheetDescription>
-      </SheetHeader>
-      <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-6 type-body-sm">
-        <StatusBadge status="Chờ xem lại" className="self-start" />
+        </Description>
+      </div>
+      <StatusBadge status="Chờ xem lại" className="self-start" />
 
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-          <dt className="text-muted-foreground">Giờ trên thiết bị</dt>
-          <dd className="tabular-nums">{formatDateTime(record.deviceTime)}</dd>
-          <dt className="text-muted-foreground">Kết nối cuối</dt>
-          <dd className="tabular-nums">{formatDateTime(record.lastConnectedAt)}</dd>
-          <dt className="text-muted-foreground">Đồng bộ lúc</dt>
-          <dd className="tabular-nums">{formatDateTime(record.syncedAt)}</dd>
-          <dt className="text-muted-foreground">Lý do chờ</dt>
-          <dd>{REASON_LABELS[record.pendingReason] ?? record.pendingReason}</dd>
-        </dl>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+        <dt className="text-muted-foreground">Giờ trên thiết bị</dt>
+        <dd className="tabular-nums">{formatDateTime(record.deviceTime)}</dd>
+        <dt className="text-muted-foreground">Kết nối cuối</dt>
+        <dd className="tabular-nums">{formatDateTime(record.lastConnectedAt)}</dd>
+        <dt className="text-muted-foreground">Đồng bộ lúc</dt>
+        <dd className="tabular-nums">{formatDateTime(record.syncedAt)}</dd>
+        <dt className="text-muted-foreground">Lý do chờ</dt>
+        <dd>{REASON_LABELS[record.pendingReason] ?? record.pendingReason}</dd>
+      </dl>
 
-        {content.length > 0 && (
-          <section className="flex flex-col gap-2">
-            <h3 className="type-caption text-muted-foreground">Nội dung gốc từ thiết bị</h3>
-            <ul className="flex flex-col gap-1">
-              {content.map(([field, value]) => (
-                <li key={field} className="break-words">
-                  <span className="text-muted-foreground">{field}:</span> <span>{valueText(value)}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+      {content.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h3 className="type-caption text-muted-foreground">Nội dung gốc từ thiết bị</h3>
+          <ul className="flex flex-col gap-1">
+            {content.map(([field, value]) => (
+              <li key={field} className="break-words">
+                <span className="text-muted-foreground">{field}:</span> <span>{valueText(value)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-        <ProblemAlert problem={failure} />
+      <ProblemAlert problem={failure} />
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            className="h-11"
-            disabled={busy}
-            onClick={() =>
-              run(
-                postPendingReviewRecordsByIdAccept,
-                undefined,
-                'Đã chấp nhận bản ghi. Bản ghi có hiệu lực từ lúc chấp nhận.',
-              )
-            }
-          >
-            Chấp nhận bản ghi
+      <div className="flex flex-wrap gap-2">
+        <Button
+          className="h-11"
+          disabled={busy}
+          onClick={() =>
+            run(
+              postPendingReviewRecordsByIdAccept,
+              undefined,
+              'Đã chấp nhận bản ghi. Bản ghi có hiệu lực từ lúc chấp nhận.',
+            )
+          }
+        >
+          Chấp nhận bản ghi
+        </Button>
+        {!rejecting && (
+          <Button variant="outline" className="h-11" disabled={busy} onClick={() => setRejecting(true)}>
+            Từ chối
           </Button>
-          {!rejecting && (
-            <Button variant="outline" className="h-11" disabled={busy} onClick={() => setRejecting(true)}>
-              Từ chối
-            </Button>
-          )}
-        </div>
-
-        {rejecting && (
-          <section className="flex flex-col gap-3 rounded-xl border p-3">
-            <Field data-invalid={!!error || undefined}>
-              <FieldLabel htmlFor="pending-review-reason">Lý do từ chối</FieldLabel>
-              <Textarea
-                id="pending-review-reason"
-                rows={3}
-                maxLength={TEXT_MAX}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                aria-invalid={!!error || undefined}
-              />
-              {error && <FieldError>{error}</FieldError>}
-            </Field>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" className="h-11" disabled={busy} onClick={reject}>
-                Xác nhận từ chối
-              </Button>
-              <Button variant="ghost" className="h-11" onClick={() => setRejecting(false)}>
-                Không từ chối
-              </Button>
-            </div>
-          </section>
         )}
       </div>
-    </>
+
+      {rejecting && (
+        <section className="flex flex-col gap-3 rounded-xl border p-3">
+          <Field data-invalid={!!error || undefined}>
+            <FieldLabel htmlFor="pending-review-reason">Lý do từ chối</FieldLabel>
+            <Textarea
+              id="pending-review-reason"
+              rows={3}
+              maxLength={TEXT_MAX}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              aria-invalid={!!error || undefined}
+            />
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" className="h-11" disabled={busy} onClick={reject}>
+              Xác nhận từ chối
+            </Button>
+            <Button variant="ghost" className="h-11" onClick={() => setRejecting(false)}>
+              Không từ chối
+            </Button>
+          </div>
+        </section>
+      )}
+    </div>
   )
 }
 
@@ -209,7 +207,15 @@ export function PendingReviewPage() {
   const record = state.items.find((r) => r.id === opened)
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
+    <DetailLayout
+      open={!!record}
+      detailKey={opened}
+      onClose={() => setOpened(null)}
+      label="Chi tiết bản ghi chờ xem lại"
+      renderDetail={(titles) => (
+        <RecordDetail key={record.id} record={record} onDecided={remove} onGone={remove} {...titles} />
+      )}
+    >
       <PageHeader
         title="Bản ghi chờ xem lại"
         subtitle="Bản ghi ghi khi mất mạng có thời điểm trên thiết bị không hợp lý. Bạn chấp nhận hoặc từ chối có lý do."
@@ -262,9 +268,18 @@ export function PendingReviewPage() {
               </TableHeader>
               <TableBody>
                 {state.items.map((r) => (
-                  <TableRow key={r.id} className="align-top">
+                  <TableRow
+                    key={r.id}
+                    data-state={r.id === opened ? 'selected' : undefined}
+                    className="align-top data-[state=selected]:bg-accent"
+                  >
                     <TableCell>
-                      <Button variant="link" className="h-auto p-0" onClick={() => setOpened(r.id)}>
+                      <Button
+                        variant="link"
+                        className="h-auto p-0"
+                        aria-pressed={r.id === opened}
+                        onClick={() => setOpened(r.id)}
+                      >
                         {typeLabel(r.recordType)}
                       </Button>
                     </TableCell>
@@ -292,12 +307,6 @@ export function PendingReviewPage() {
           </>
         )}
       </section>
-
-      <Sheet open={!!record} onOpenChange={(open) => !open && setOpened(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {record && <RecordDetail key={record.id} record={record} onDecided={remove} onGone={remove} />}
-        </SheetContent>
-      </Sheet>
-    </div>
+    </DetailLayout>
   )
 }
