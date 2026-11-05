@@ -12,11 +12,13 @@ import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.scheduling.ScheduledJob;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.administration.FakeResidencyEnds;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +63,9 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
     BusinessTime time;
 
     @Autowired
-    FakeFamilyRelationships relationships;
+    RelationshipHistoryStore history;
+
+    RelationshipFixtures family;
 
     @Autowired
     FakeResidencyEnds residencyEnds;
@@ -73,17 +77,19 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
-        familyMember = AccountFixtures.nextId();
+        family = new RelationshipFixtures(
+                jdbc, tx, history, time.now().minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS));
+        familyMember = family.familyMember("Người thân thử", "0909000000");
         account = fixtures.familyAccount(familyMember);
     }
 
     @Test
     void BR_M15_14_lastRelationshipEnded_locked_sessionsEnded_auditedAsScheduler() throws Exception {
-        long relationship = relationships.relate(familyMember, AccountFixtures.nextId());
+        long relationship = family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
         String token = fixtures.session(account);
 
         tx.executeWithoutResult(s -> {
-            relationships.end(relationship);
+            family.end(relationship, time.now());
             accounts.recheckFamilyMember(familyMember, RELATIONSHIP_ENDED);
         });
 
@@ -100,11 +106,11 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_049_otherRelationshipRemains_staysActive() {
-        long ending = relationships.relate(familyMember, AccountFixtures.nextId());
-        relationships.relate(familyMember, AccountFixtures.nextId());
+        long ending = family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
+        family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
 
         tx.executeWithoutResult(s -> {
-            relationships.end(ending);
+            family.end(ending, time.now());
             accounts.recheckFamilyMember(familyMember, RELATIONSHIP_ENDED);
         });
 
@@ -121,8 +127,8 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
     void US6_5_allResidentsEndedPastGraceFromLatest_jobLocks() {
         long first = AccountFixtures.nextId();
         long second = AccountFixtures.nextId();
-        relationships.relate(familyMember, first);
-        relationships.relate(familyMember, second);
+        family.relate(familyMember, first, 1, false, false);
+        family.relate(familyMember, second, 1, false, false);
         residencyEnds.ended(first, time.now().minus(Duration.ofDays(40)));
         residencyEnds.ended(second, time.now().minus(Duration.ofDays(29)));
 
@@ -145,8 +151,8 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
     @Test
     void US6_6_oneResidentStillStaying_jobKeepsActive() {
         long ended = AccountFixtures.nextId();
-        relationships.relate(familyMember, ended);
-        relationships.relate(familyMember, AccountFixtures.nextId());
+        family.relate(familyMember, ended, 1, false, false);
+        family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
         residencyEnds.ended(ended, time.now().minus(Duration.ofDays(31)));
 
         job().runNow();
@@ -156,9 +162,9 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_011_unlockRefusedWhileCauseRemains() throws Exception {
-        long relationship = relationships.relate(familyMember, AccountFixtures.nextId());
+        long relationship = family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
         tx.executeWithoutResult(s -> {
-            relationships.end(relationship);
+            family.end(relationship, time.now());
             accounts.recheckFamilyMember(familyMember, RELATIONSHIP_ENDED);
         });
         String manager = fixtures.session(fixtures.staffAccount("AC-01"));
@@ -167,7 +173,7 @@ class RelationshipEndLockIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("LOCK_CAUSE_STILL_EXISTS"));
 
-        relationships.relate(familyMember, AccountFixtures.nextId());
+        family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
         unlock(manager).andExpect(status().isOk());
     }
 
