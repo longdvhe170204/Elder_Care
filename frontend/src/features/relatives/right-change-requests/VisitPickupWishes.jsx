@@ -49,7 +49,8 @@ function WishLine({ wish, relationships }) {
   )
 }
 
-function RecordWishSheet({ residentId, residentName, relationships, onClose, onDone }) {
+// Dùng lại ở màn Phản hồi khi gắn mong muốn vào phản hồi Mong muốn (012 T072): nguồn đặt sẵn "Người cao tuổi nói"
+export function RecordWishSheet({ residentId, residentName, relationships, defaultSource = '', onClose, onDone }) {
   const active = relationships.filter((r) => r.status === 'ACTIVE')
   const [key] = useState(() => crypto.randomUUID())
   const [person, setPerson] = useState('')
@@ -57,7 +58,7 @@ function RecordWishSheet({ residentId, residentName, relationships, onClose, onD
   const [idDocument, setIdDocument] = useState('')
   const [type, setType] = useState('')
   const [wanted, setWanted] = useState('')
-  const [source, setSource] = useState('')
+  const [source, setSource] = useState(defaultSource)
   const [familySource, setFamilySource] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)

@@ -35,9 +35,18 @@ export const ITEM_LABELS = {
   REASSIGNMENT: 'Giao lại',
   PRIORITY_CHANGE: 'Đổi mức',
   REOPEN: 'Mở lại',
+  TYPE_CHANGE: 'Đổi loại',
 }
 
-const TYPE_MAP = Object.fromEntries(FEEDBACK_TYPES)
+// Mong muốn chỉ người cao tuổi gửi (FR-058b): không có trong form của người thân, chỉ có ở nhãn và form ghi thay
+export const WISH = ['WISH', 'Mong muốn']
+
+export const WISH_TOPICS = [
+  ['VISITORS_PICKERS', 'Người đến thăm, người đón'],
+  ['OTHER', 'Việc khác'],
+]
+
+const TYPE_MAP = Object.fromEntries([...FEEDBACK_TYPES, WISH])
 const GROUP_MAP = Object.fromEntries(FEEDBACK_GROUPS)
 
 export function typeLabel(code) {
