@@ -78,6 +78,62 @@ class AutoLogoutIT extends MySqlIntegrationTestBase {
                 .isEqualTo("ACTIVE");
     }
 
+    // Bổ sung 2026-10-29 (api-002 UserInfo.sessionIdleTimeoutSeconds): web biết CFG-M15-10 của kênh để báo trước khi
+    // hết
+    @Test
+    void me_returnsIdleTimeoutOfSessionChannel() throws Exception {
+        AccountFixtures fixtures = new AccountFixtures(jdbc, time);
+        long account = fixtures.staffAccount("AC-09");
+        String username = fixtures.password(account, PASSWORD, encoder);
+        Cookie cookie = webLogin(username);
+
+        mvc.perform(get("/api/v1/me").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessionIdleTimeoutSeconds").value(1800));
+    }
+
+    // Bổ sung 2026-10-29 (FR-013a "không có thao tác"): yêu cầu tự làm mới không đếm lại giờ nhưng vẫn bị kiểm hết hạn
+    @Test
+    void backgroundRefresh_doesNotResetIdleTimer() throws Exception {
+        AccountFixtures fixtures = new AccountFixtures(jdbc, time);
+        long account = fixtures.staffAccount("AC-09");
+        String username = fixtures.password(account, PASSWORD, encoder);
+        Cookie cookie = webLogin(username);
+
+        clock.advanceBy(Duration.ofMinutes(20));
+        mvc.perform(get("/api/v1/me").cookie(cookie).header("X-Background-Refresh", "true"))
+                .andExpect(status().isOk());
+        clock.advanceBy(Duration.ofMinutes(15));
+
+        mvc.perform(get("/api/v1/me").cookie(cookie).header("X-Background-Refresh", "true"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SESSION_EXPIRED"));
+    }
+
+    // Luồng SSE không gửi được header: tham số backgroundRefresh cùng nghĩa
+    @Test
+    void backgroundRefreshParam_doesNotResetIdleTimer() throws Exception {
+        AccountFixtures fixtures = new AccountFixtures(jdbc, time);
+        long account = fixtures.staffAccount("AC-09");
+        String username = fixtures.password(account, PASSWORD, encoder);
+        Cookie cookie = webLogin(username);
+
+        clock.advanceBy(Duration.ofMinutes(20));
+        mvc.perform(get("/api/v1/me").cookie(cookie).param("backgroundRefresh", "true"))
+                .andExpect(status().isOk());
+        clock.advanceBy(Duration.ofMinutes(15));
+
+        mvc.perform(get("/api/v1/me").cookie(cookie)).andExpect(status().isUnauthorized());
+    }
+
+    private Cookie webLogin(String username) throws Exception {
+        return mvc.perform(login(username, PASSWORD, "WEB", UUID.randomUUID().toString()))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getCookie("session");
+    }
+
     @Test
     void US3_11_staffApp150MinutesIdle_stillUsable() throws Exception {
         AccountFixtures fixtures = new AccountFixtures(jdbc, time);

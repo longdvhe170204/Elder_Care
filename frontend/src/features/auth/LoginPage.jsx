@@ -16,7 +16,8 @@ import { PortalCard } from '@/features/family-portal/PortalParts'
 
 const goTo = (url) => window.location.assign(url)
 
-export function LoginPage({ onNavigate = goTo }) {
+// Form đăng nhập dùng chung cho màn đăng nhập và khung đăng nhập lại khi hết phiên (SessionGuard, 002 T047b)
+export function LoginForm({ onLoggedIn, submitLabel = 'Đăng nhập' }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
@@ -38,7 +39,7 @@ export function LoginPage({ onNavigate = goTo }) {
         headers: { 'X-Device-Id': deviceId() },
         body: { username: username.trim(), password, channel: 'WEB' },
       })
-      onNavigate(homeOf({ ...data.user, mustChangePassword: data.mustChangePassword }))
+      onLoggedIn(data)
     } catch (error) {
       setPassword('')
       setFailure({ ...problemOf(error), unlocksAt: error?.problem?.unlocksAt })
@@ -48,6 +49,46 @@ export function LoginPage({ onNavigate = goTo }) {
   }
 
   return (
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <FieldGroup>
+        <Field data-invalid={!!errors.username || undefined}>
+          <FieldLabel htmlFor="login-user">Tên đăng nhập</FieldLabel>
+          <Input
+            id="login-user"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            aria-invalid={!!errors.username || undefined}
+            className="h-11"
+          />
+          {errors.username && <FieldError>{errors.username}</FieldError>}
+        </Field>
+        <Field data-invalid={!!errors.password || undefined}>
+          <FieldLabel htmlFor="login-password">Mật khẩu</FieldLabel>
+          <Input
+            id="login-password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={!!errors.password || undefined}
+            className="h-11"
+          />
+          {errors.password && <FieldError>{errors.password}</FieldError>}
+        </Field>
+      </FieldGroup>
+      <ProblemAlert problem={failure} title={failure?.status === 401 ? 'Chưa đăng nhập được' : undefined}>
+        {failure?.unlocksAt && <p className="tabular-nums">Mở lại lúc {formatDateTime(failure.unlocksAt)}.</p>}
+      </ProblemAlert>
+      <Button type="submit" className="h-11" disabled={saving}>
+        {submitLabel}
+      </Button>
+    </form>
+  )
+}
+
+export function LoginPage({ onNavigate = goTo }) {
+  return (
     <div className="flex min-h-screen flex-col items-center gap-6 px-4 py-10">
       <div className="flex items-center gap-2.5">
         <LeafMark />
@@ -55,41 +96,9 @@ export function LoginPage({ onNavigate = goTo }) {
       </div>
       <div className="flex w-full max-w-sm flex-col gap-4">
         <PortalCard title="Đăng nhập">
-          <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-            <FieldGroup>
-              <Field data-invalid={!!errors.username || undefined}>
-                <FieldLabel htmlFor="login-user">Tên đăng nhập</FieldLabel>
-                <Input
-                  id="login-user"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  aria-invalid={!!errors.username || undefined}
-                  className="h-11"
-                />
-                {errors.username && <FieldError>{errors.username}</FieldError>}
-              </Field>
-              <Field data-invalid={!!errors.password || undefined}>
-                <FieldLabel htmlFor="login-password">Mật khẩu</FieldLabel>
-                <Input
-                  id="login-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  aria-invalid={!!errors.password || undefined}
-                  className="h-11"
-                />
-                {errors.password && <FieldError>{errors.password}</FieldError>}
-              </Field>
-            </FieldGroup>
-            <ProblemAlert problem={failure} title={failure?.status === 401 ? 'Chưa đăng nhập được' : undefined}>
-              {failure?.unlocksAt && <p className="tabular-nums">Mở lại lúc {formatDateTime(failure.unlocksAt)}.</p>}
-            </ProblemAlert>
-            <Button type="submit" className="h-11" disabled={saving}>
-              Đăng nhập
-            </Button>
-          </form>
+          <LoginForm
+            onLoggedIn={(data) => onNavigate(homeOf({ ...data.user, mustChangePassword: data.mustChangePassword }))}
+          />
         </PortalCard>
         <PortalCard>
           <p>
