@@ -32,6 +32,36 @@ public final class BelongingNotices {
             String text,
             Long causedBy,
             Instant at) {
+        return notice(
+                eventType,
+                sourceType,
+                sourceId,
+                eventType + ":" + sourceId,
+                level,
+                residentId,
+                recipients,
+                text,
+                causedBy,
+                at,
+                false);
+    }
+
+    /**
+     * Như trên, với khóa sự kiện riêng (một nguồn có nhiều lần nhắc, ví dụ mỗi người giữ của một ca), người cao tuổi có thể
+     * trống, dấu "sau qua đời" (009 FR-015).
+     */
+    public static BelongingNotice notice(
+            String eventType,
+            String sourceType,
+            long sourceId,
+            String eventKey,
+            NotificationLevel level,
+            Long residentId,
+            List<RecipientGroup> recipients,
+            String text,
+            Long causedBy,
+            Instant at,
+            boolean afterDeath) {
         boolean toFamily = recipients.stream()
                 .anyMatch(g -> g instanceof RecipientGroup.Representative
                         || g instanceof RecipientGroup.PrimaryContact
@@ -42,9 +72,9 @@ public final class BelongingNotices {
                 eventType,
                 SourceGroup.OTHER,
                 new SourceRecord(sourceType, Long.toString(sourceId)),
-                eventType + ":" + sourceId,
+                eventKey,
                 Optional.of(level),
-                Optional.of(residentId),
+                Optional.ofNullable(residentId),
                 Optional.empty(),
                 recipients,
                 List.of(new ContentPart(InformationType.GENERAL, text)),
@@ -54,7 +84,7 @@ public final class BelongingNotices {
                 false,
                 at,
                 Map.of(),
-                false,
+                afterDeath,
                 toFamily ? Optional.of(InformationSubject.ABOUT_FAMILY_MATTER) : Optional.empty(),
                 Optional.empty())));
     }

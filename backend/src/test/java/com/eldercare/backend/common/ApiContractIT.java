@@ -204,9 +204,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
                     Set.of(
-                            "POST /api/v1/belongings/handovers",
                             "POST /api/v1/belonging-handovers/{id}/link-incident",
-                            "GET /api/v1/staff/{staffId}/held-belongings",
                             "POST /api/v1/belongings/returns",
                             "GET /api/v1/recipient-confirmations",
                             "POST /api/v1/recipient-confirmations",

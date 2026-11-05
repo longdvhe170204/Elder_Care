@@ -1,5 +1,6 @@
 package com.eldercare.backend.belongings.internal.consent.service;
 
+import static com.eldercare.backend.belongings.internal.belonging.domain.BelongingActions.SELF_CUSTODY_CONSENT_EXPIRED;
 import static com.eldercare.backend.belongings.internal.belonging.domain.BelongingActions.SELF_CUSTODY_CONSENT_RECORDED;
 import static com.eldercare.backend.belongings.internal.belonging.domain.BelongingActions.SELF_CUSTODY_CONSENT_WITHDRAWN;
 
@@ -95,6 +96,38 @@ public class SelfCustodyConsentService {
     public long recordInIntake(long residentId, long belongingId, long representativeId, long signedFormFileId) {
         return create(
                 residentId, belongingId, representativeId, SelfCustodyConsent.IN_INTAKE_COMMAND, signedFormFileId);
+    }
+
+    /** Đồ có đồng ý cho tự giữ Hiệu lực (FR-015a, BR-M12-06). */
+    public boolean hasEffective(long belongingId) {
+        return records.findByUniqueKey(SelfCustodyConsent.KIND, SelfCustodyConsent.effectiveKey(belongingId))
+                .isPresent();
+    }
+
+    /**
+     * Đồ chuyển Đã trả, Thất lạc, Hư hỏng hoặc Đã xử lý: đồng ý Hiệu lực chuyển Hết hiệu lực trong cùng lệnh (FR-015a);
+     * lệnh gọi đã khóa người cao tuổi.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void expire(long belongingId) {
+        var effective = records.findByUniqueKey(SelfCustodyConsent.KIND, SelfCustodyConsent.effectiveKey(belongingId));
+        if (effective.isEmpty()) {
+            return;
+        }
+        SimpleRecord<SelfCustodyConsent> consent =
+                records.lockForUpdate(SelfCustodyConsent.KIND, effective.get().id());
+        records.change(
+                SelfCustodyConsent.KIND,
+                consent.id(),
+                consent.version(),
+                new RecordChange<>(SelfCustodyConsent.EXPIRED, consent.content(), null, null, true));
+        audit.write(AuditLogEntry.builder()
+                .action(SELF_CUSTODY_CONSENT_EXPIRED)
+                .entity(SelfCustodyConsent.KIND.code(), consent.id())
+                .resident(consent.residentId())
+                .before(Map.of("status", SelfCustodyConsent.EFFECTIVE))
+                .after(Map.of("status", SelfCustodyConsent.EXPIRED))
+                .build());
     }
 
     /** Hành chính ghi đồng ý theo bản ký scan của người đại diện (FR-015a). */
