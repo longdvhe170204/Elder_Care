@@ -96,7 +96,7 @@ paths:
       summary: Chi tiết buổi, đăng ký, điểm danh
       x-fr: [FR-019, FR-028]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ActivitySessionDetail' } } } } }
   /activity-sessions/{id}/{command}:
     post:
       tags: [activity-sessions]
@@ -364,6 +364,21 @@ components:
     ActivitySession:
       type: object
       properties: { id: { type: integer, format: int64 }, activityId: { type: integer, format: int64 }, startsAt: { type: string, format: date-time }, endsAt: { type: string, format: date-time }, status: { type: string }, registrationCount: { type: integer }, isTrip: { type: boolean } }
+    ActivitySessionDetail:
+      type: object
+      description: 'Bổ sung 2026-11-05 (chủ dự án duyệt bổ sung schema phản hồi theo từng endpoint): buổi kèm đăng ký còn hiệu lực; kết quả điểm danh thêm ở US3.'
+      properties:
+        id: { type: integer, format: int64 }
+        activityId: { type: integer, format: int64 }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        status: { type: string }
+        incompleteAttendance: { type: boolean }
+        floorAreaId: { type: integer, format: int64 }
+        responsibleStaffId: { type: integer, format: int64 }
+        cancelReason: { type: string }
+        version: { type: integer }
+        registrations: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, source: { type: string }, status: { type: string } } } }
     SessionAttendance:
       type: object
       required: [results]

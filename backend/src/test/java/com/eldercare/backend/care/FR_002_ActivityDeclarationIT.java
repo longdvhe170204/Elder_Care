@@ -242,13 +242,14 @@ class FR_002_ActivityDeclarationIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_006_createSessionsFromTemplateWaitsForUserStory1() throws Exception {
+    void FR_006_createSessionsFromTemplateNeedsATemplate() throws Exception {
+        // US1 đã cài lệnh (BR_M04_21_TaoBuoiTuMauIT); hoạt động chưa có mẫu lặp thì không có buổi để tạo.
         long id = declare();
         command(
                         id,
                         "create-sessions-from-template",
                         "{\"fromDate\":\"" + time.today() + "\",\"toDate\":\""
                                 + time.today().plusDays(6) + "\"}")
-                .andExpect(status().isServiceUnavailable());
+                .andExpect(status().isUnprocessableContent());
     }
 }
