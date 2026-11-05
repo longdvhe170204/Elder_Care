@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Implementation cho User Story 6
 
-- [ ] T028 [US6] Tạo endpoint `GET /cong/nguoi-cao-tuoi/{nctId}/do-gui` trong `BE/belongings/dogui/web/CongDoGuiController.java`; màn web `frontend/src/tinh-nang/cong-nguoi-than/do-gui/`, app `mobile/lib/nguoi-than/do-gui/` (research K-12) *(2026-11-05: backend xong (`BelongingPortalController`, plan điểm 16); web, app chờ duyệt, giữ [ ].)*
+- [x] T028 [US6] Tạo endpoint `GET /cong/nguoi-cao-tuoi/{nctId}/do-gui` trong `BE/belongings/dogui/web/CongDoGuiController.java`; màn web `frontend/src/tinh-nang/cong-nguoi-than/do-gui/`, app `mobile/lib/nguoi-than/do-gui/` (research K-12) *(2026-11-05: backend xong (`BelongingPortalController`, plan điểm 16); web, app chờ duyệt, giữ [ ].)* *(2026-11-06, nhóm E: web `PortalBelongings` (đồ, trạng thái, lịch sử, ảnh; không vị trí, không tên nhân viên; 403 nói rõ chỉ người đại diện, người được phép đón) Vitest 2/2; app `family/belongings/FamilyBelongingsScreen` flutter 2/2. Còn gắn vào màn P9 của cổng (thư mục `family-portal` của E) và thanh dưới phần người thân (G4): team-plan mục 8.)*
 
 **Checkpoint**: Mọi user story của 013 chạy độc lập.
 
