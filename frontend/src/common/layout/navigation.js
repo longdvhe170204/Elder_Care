@@ -232,6 +232,14 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Người thân ở lại" (012 T035; chú thích 20: Hành chính đăng ký, Trưởng tầng xác nhận, Quản lý viện xác nhận thay)
+      {
+        key: 'family-stays',
+        label: 'Người thân ở lại',
+        icon: 'BedDouble',
+        functions: ['FAMILY_STAY'],
+        roles: [QL, TT, HC],
+      },
       // Dòng "Phản hồi" (012 T030): người phụ trách xử lý, Quản lý viện xem mọi phản hồi; người thân dùng cổng
       { key: 'feedback', label: 'Phản hồi', icon: 'MessageSquare', functions: ['FEEDBACK'], roles: [QL, TT, DD, HC] },
     ],

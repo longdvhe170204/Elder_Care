@@ -198,16 +198,26 @@ public class FamilyStayService {
     @Transactional(readOnly = true)
     public List<SimpleRecord<FamilyStay>> list(Long residentId) {
         CurrentUser user = currentUser.getObject();
-        authorize(user, Operation.VIEW, residentId == null ? Target.UNSPECIFIED : residentTarget(residentId));
         List<SimpleRecord<FamilyStay>> rows;
         if (residentId != null) {
+            authorize(user, Operation.VIEW, residentTarget(residentId));
             rows = records.listByResident(FamilyStay.KIND, residentId, Set.of());
         } else if (user.type() == AccountType.FAMILY_MEMBER) {
+            authorizeRole(user, Operation.VIEW);
             rows = relationships.activeOfFamilyMember(user.familyMemberId().orElseThrow()).stream()
                     .flatMap(r -> records.listByResident(FamilyStay.KIND, r.residentId(), Set.of()).stream())
                     .toList();
         } else {
-            rows = records.listByStatus(FamilyStay.KIND, Set.of(enumNames()));
+            // Lớp vai trò ở đây, phạm vi lọc từng lượt (Target.UNSPECIFIED chỉ phạm vi toàn viện đạt)
+            authorizeRole(user, Operation.VIEW);
+            rows = records.listByStatus(FamilyStay.KIND, Set.of(enumNames())).stream()
+                    .filter(s -> permissions
+                            .hasPermission(
+                                    user,
+                                    new PermissionKey(Function.FAMILY_STAY, Operation.VIEW),
+                                    residentTarget(s.residentId()))
+                            .allowed())
+                    .toList();
         }
         Long self =
                 user.type() == AccountType.FAMILY_MEMBER ? user.familyMemberId().orElseThrow() : null;
@@ -541,6 +551,12 @@ public class FamilyStayService {
             }
         }
         throw denied();
+    }
+
+    private void authorizeRole(CurrentUser user, Operation operation) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.FAMILY_STAY, operation))) {
+            throw denied();
+        }
     }
 
     private void authorize(CurrentUser user, Operation operation, Target target) {
