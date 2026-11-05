@@ -81,7 +81,7 @@ Mục này thay tên bảng và cách lưu của các mục 2 → 8 khi cài m�
 
 Khung T007 lưu mốc kỹ thuật qua ReminderMarkers: M11.JOB_ANCHOR/M11.JOB_DONE, entityType M11.JOB.<tên tác vụ>, entityId DAILY=1/HOURLY=2. Mốc đầu được lưu riêng trước khi chạy để lượt đầu thất bại vẫn chạy lại đúng giờ cũ. Mỗi slot có transaction REQUIRES_NEW chứa marker thành công và tác động; lỗi rollback cả hai, dừng các slot sau của cùng tác vụ. Tác vụ latestOnly đánh dấu slot bỏ qua và chỉ chạy slot mới nhất; không có tác vụ giả trong production. M11Jobs chỉ đọc marker M11 qua CostJobMarkers. Chi tiết kiểm đồng thời/chạy bù ở CostJobCatchUpIT; nghiệp vụ chuyển kỳ/nhắc thuộc các story sau.
 
-Tên loại/nội dung ở trên là hợp đồng dữ liệu của E theo R-15; chưa khai báo thêm chữ ký API của A hoặc tạo fake của A. JSON Schema/đăng ký loại và kiểm tích hợp bảng chung chỉ cài sau T108. Bản thật hiện chưa có administration.shared, ReminderMarkers, TechnicalLocks/V000_09. T005 chỉ đóng khi cả phần cần bảng chung có thể kiểm; ba bảng riêng được tách thành T005a.
+Tên loại/nội dung ở trên là hợp đồng dữ liệu của E theo R-15; không thêm chữ ký API hoặc fake của A. Cập nhật 05/11: administration.shared, ReminderMarkers, TechnicalLocks đã có sau T108; T005/T005a được kiểm trên API/MySQL thật theo checkpoint 04/11. Các handler nghiệp vụ còn theo task tương ứng, không còn chờ A khai báo nền.
 
 | Bất biến sau gộp | Nơi bảo đảm | Test dự kiến của phần độc lập |
 | --- | --- | --- |
@@ -330,6 +330,8 @@ DBR-30 (mỗi bảng Đã chốt có đúng một giao dịch thanh toán) do 01
 | Chỉ mục sự kiện tính phí | Theo nguồn; xóa khi nguồn bị loại bỏ | — |
 
 ---
+
+**Triển khai T008b — 05/11:** CostRetention cung cấp M11.COST_PERIOD theo created_at/CFG-M15-04 và M11.COST_STATEMENT/M11.COST_ITEM theo ResidentApi.finalStatusAt/CFG-M15-03. Tham chiếu ngược gồm bảng của kỳ, khoản theo statement_id/period_id/original_period_id và điều chỉnh theo original_item_id; không lọc bỏ tham chiếu chưa hết hạn. Xóa bằng RetentionDatabase; phần đi kèm qua job/bảng chung A. Chưa nghiệm thu chuỗi hồ sơ thật 001 → 010, chỉ mục nguồn hoặc liên kết 017; xem [giới hạn T008](retention-checkpoint-2026-11-05.md).
 
 ## 11. Truy vết DBR, BR và FR
 

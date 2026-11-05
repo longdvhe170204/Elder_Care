@@ -2832,6 +2832,17 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 
 Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịch sử lưu căn cứ/người/thời điểm trong HistoryEntry chung; JSON không thay đổi giới hạn DECIMAL của dữ liệu gốc. Retention và quyền tệp mua hộ còn T008.
 
+### 16.10. Lưu giữ ba loại chi phí hiện có — 2026-11-05
+
+| Tên logic | Tên triển khai / mốc |
+| --- | --- |
+| Provider lưu giữ chi phí | CostRetention, Kind PERIOD/STATEMENT/ITEM, M11GovernanceConfig |
+| Kỳ của viện | M11.COST_PERIOD; cost_statement kind PERIOD, created_at; CFG-M15-04 |
+| Bảng chi phí | M11.COST_STATEMENT; cost_statement kind STATEMENT, ResidentApi.finalStatusAt; CFG-M15-03 |
+| Khoản chi phí | M11.COST_ITEM; cost_item, ResidentApi.finalStatusAt; CFG-M15-03 |
+
+Chỉ T008b được nghiệm thu trên dữ liệu hiện có; T008 còn chuỗi hồ sơ liên module, chỉ mục theo nguồn và dữ liệu/quyền tệp mua hộ. Không thêm trường API hoặc tham số nghiệp vụ.
+
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
