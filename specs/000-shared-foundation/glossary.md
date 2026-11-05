@@ -3017,7 +3017,13 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | loại đối tượng phạm vi, lưu giữ `M04.BUOI`, `M04.DANG_KY`, `M04.CHUYEN_DI`, `M04.SO_THICH`, `M04.KIEM_TRA_CHAT_LUONG` | `M04.ACTIVITY_SESSION`, `M04.ACTIVITY_REGISTRATION`, `M04.TRIP`, `M04.PREFERENCE`, `M04.QUALITY_CHECK`; loại bảng chung `M04.SO_THICH` → `M04.PREFERENCE`, `M04.DANH_SACH_KIEM_TRA` → `M04.QUALITY_CHECKLIST` |
 | bảng `buoi_hoat_dong` (`hoat_dong_id`, `bat_dau`, `tang_khu_vuc_id`, `trang_thai`), `dang_ky_buoi` (`buoi_id`, `nct_id`, `trang_thai`, `canh_bao_da_xac_nhan`) | `activity_session` (`activity_id`, `starts_at`, `floor_area_id`, `status`), `activity_registration` (`session_id`, `resident_id`, `status`, `acknowledged_warnings`) |
 | `ThoiKhoaBieuNguonPort` của 014 | `care.internal.session.service.ActivityTimetableSource`, nguồn `ACTIVITY` |
-| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT` |
+| trạng thái buổi `DA_LEN_LICH`, `DA_DIEM_DANH`, `KHONG_DIEM_DANH`, `DA_HUY`; nguồn buổi `MAU`, `LE`; người hủy `DOI_MAU`, `NGUNG`, `KHOANH_VUNG` (người: `STAFF`); `diem_danh_khong_du` | `SCHEDULED`, `ATTENDANCE_TAKEN`, `NO_ATTENDANCE`, `CANCELLED`; `TEMPLATE`, `SINGLE`; `TEMPLATE_CHANGED`, `DEACTIVATED`, `ISOLATION`; `incomplete_attendance` |
+| nguồn đăng ký `THUONG_XUYEN`, `THEM_TAY`, `THEM_LUC_DIEM_DANH`; trạng thái `DA_DANG_KY`, `DA_HUY`, `DA_DIEM_DANH`; hủy tự động `DOI_MAU`, `DOI_BUOI`, `KHOANH_VUNG`, `NGHI_NHIEM`, `TRANG_THAI_CUOI`, `RUT_DONG_Y` | `REGULAR`, `MANUAL`, `ADDED_AT_ATTENDANCE`; `REGISTERED`, `CANCELLED`, `ATTENDED`; `TEMPLATE_CHANGED`, `SESSION_CHANGED`, `ISOLATION`, `INFECTION_SUSPECTED`, `FINAL_STATUS`, `CONSENT_WITHDRAWN` (thêm `SESSION_CANCELLED` khi buổi bị hủy) |
+| `diem_danh_buoi` (`su_kien_chung`), kết quả `KHONG_GHI_NHAN` | loại `record_event` `M04.SESSION_ATTENDANCE` (`SessionKinds`, nội dung `AttendanceResult`), `NOT_RECORDED` |
+| `BuoiTheoMau`; `BuoiService`, kho buổi; việc hết ngày; controller `/buoi` | `care.internal.session.domain.SessionTemplate`; `ActivitySessionService`, `ActivitySessionStore`; `SessionDayEnd` (`M04HD_SESSION_DAY_END`); `ActivitySessionController`, `ActivitySessionCreateWrite` (`ActivitySessionTrip`), `ActivitySessionCommandWrite`, `ActivitySessionResponse`, `ActivitySessionDetailResponse` (schema `ActivitySessionDetail`) |
+| thông báo người thường xuyên không được đăng ký, buổi hủy do đổi mẫu, hết ngày | `care.api.events.RegularParticipantsNotRegistered`, `ActivitySessionsCancelledByTemplateChange`, `ActivitySessionDayEnded` |
+| `V014_02__buoi.sql` | `V014_02__activity_session.sql` |
+| test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT`, `BuoiTheoMauTest`, `BR_M04_21_TaoBuoiTuMauIT`, `FR_014a_HetNgayIT` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 

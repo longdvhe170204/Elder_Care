@@ -2,19 +2,18 @@ package com.eldercare.backend.care.web;
 
 import com.eldercare.backend.care.internal.activity.domain.TemplateVersion;
 import com.eldercare.backend.care.internal.activity.service.ActivityService;
+import com.eldercare.backend.care.internal.session.service.ActivitySessionService;
 import com.eldercare.backend.care.web.request.ActivityCommandWrite;
 import com.eldercare.backend.care.web.request.ActivityWrite;
 import com.eldercare.backend.care.web.response.ActivityResponse;
 import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.net.URI;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +22,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1")
 public class ActivityController {
     private final ActivityService activities;
+    private final ActivitySessionService sessions;
 
-    public ActivityController(ActivityService activities) {
+    public ActivityController(ActivityService activities, ActivitySessionService sessions) {
         this.activities = activities;
+        this.sessions = sessions;
     }
 
     @GetMapping("/activities")
@@ -120,10 +121,8 @@ public class ActivityController {
             case "add-regular-participant" -> activities.addRegularParticipant(target, id, body.residentId());
             case "remove-regular-participant" ->
                 activities.removeRegularParticipant(target, id, body.residentId(), reason);
-            // US1 (T009) cài sau khi có bảng buổi; chưa làm thì báo rõ, không bỏ qua lệnh.
             case "create-sessions-from-template" ->
-                throw new BusinessException(
-                        HttpStatus.SERVICE_UNAVAILABLE, "CARE_SOURCE_UNAVAILABLE", "Tạo buổi từ mẫu thuộc US1 (T009)");
+                sessions.createFromTemplate(target, id, body.fromDate(), body.toDate());
             default -> throw new InvalidValueException("Lệnh không hợp lệ: " + command);
         }
     }

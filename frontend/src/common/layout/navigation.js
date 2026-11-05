@@ -103,6 +103,14 @@ export const NAV_GROUPS = [
         functions: ['DAY_CARE_ATTENDANCE'],
         roles: [QL, TT, DD, CS, HC],
       },
+      // Dòng "Hoạt động, ngoài viện", Phụ lục 27 (014 T009).
+      {
+        key: 'activity-sessions',
+        label: 'Buổi hoạt động',
+        icon: 'CalendarDays',
+        functions: ['ACTIVITY_OUTING'],
+        roles: [QL, TT, DD, CS],
+      },
       // Dòng "Kế hoạch chăm sóc" và "Danh mục loại công việc chăm sóc" (005 T017, Phụ lục 27).
       {
         key: 'care-plans',
