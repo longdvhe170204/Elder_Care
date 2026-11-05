@@ -3100,6 +3100,9 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Dịch vụ, HTTP | QualityCheckService (select, record), QualityCheckStore, CompletedTask; QualityCheckController; QualityCheckSelectionWrite, QualityCheckResultWrite |
 | Báo người thực hiện công việc gốc khi Không đạt | `care.api.events.QualityCheckFailedNotice` (MEDIUM, người nhận `RecipientGroup.Staff` vai `TASK_PERFORMER`) |
 | Nhật ký lệnh | QUALITY_CHECKLIST_CREATED, QUALITY_CHECK_ITEMS_ADDED, QUALITY_CHECK_RESULT_RECORDED |
+| Việc theo phút nhắc, quá hạn, ca không có danh sách (FR-059a, FR-063) | QualityCheckClockStep (bước `CARE_MINUTE`); sự kiện `QualityCheckReminder` (người nhận `Staff` vai `QUALITY_INSPECTOR`), `QualityCheckManagerNotice` cause `OVERDUE_ITEMS`, `NO_CHECKLIST` |
+| `ca_khong_danh_sach` (→ `moc_da_nhac`), dấu đã nhắc/đã báo | `reminder_marker` kind `M04.QUALITY_NO_CHECKLIST` (details floorAreaId, reason `NO_INSPECTOR` / `NOT_CREATED`, eligible), `M04.QUALITY_REMINDER`, `M04.QUALITY_OVERDUE`; danh sách đã đóng `CLOSED` |
+| Mục tự Không kiểm tra được khi kết quả bị Hủy ghi nhận (FR-062) | QualityCheckTaskVoids.resultVoided, gọi từ `CareResultCorrectionProvider` (005) |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 

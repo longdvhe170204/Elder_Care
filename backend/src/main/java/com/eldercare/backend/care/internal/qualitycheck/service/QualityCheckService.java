@@ -247,6 +247,25 @@ public class QualityCheckService {
     /** Id nhân viên của Trưởng tầng được giao; {@code noFloorManager} là ngoại lệ FR-066 của ca (DutyApi, Q-262). */
     private record Inspection(String role, Long floorManager, boolean noFloorManager) {}
 
+    /**
+     * Số công việc đủ điều kiện của ca và người kiểm tra để nhắc (FR-059a, FR-063); không theo người dùng hiện tại.
+     * {@code noInspector}: ca không có Trưởng tầng được giao trong ca mà cũng không có Người phụ trách ca.
+     */
+    public record ShiftStatus(int eligible, List<Long> inspectorStaffIds, boolean noInspector) {}
+
+    @Transactional(readOnly = true)
+    public ShiftStatus status(ShiftStaffPort.ShiftView shift, Instant at) {
+        var duty = duties();
+        Long manager = duty.assignedFloorManager(shift.floorAreaId(), at).orElse(null);
+        boolean noManager = duty.shiftHasNoFloorManager(shift.id());
+        var inspectors = new ArrayList<Long>();
+        if (manager != null) inspectors.add(manager);
+        Long lead = noManager ? duty.shiftLead(shift.floorAreaId(), at).orElse(null) : null;
+        if (lead != null && !lead.equals(manager)) inspectors.add(lead);
+        int eligible = eligible(shift, new Inspection(null, manager, noManager)).size();
+        return new ShiftStatus(eligible, List.copyOf(inspectors), noManager && lead == null);
+    }
+
     /** FR-066: Trưởng tầng được giao; hoặc Người phụ trách ca hiện hành khi ca thuộc ngoại lệ không có Trưởng tầng. */
     private Inspection inspection(ShiftStaffPort.ShiftView shift, Instant now) {
         var duty = duties();

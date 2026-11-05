@@ -36,4 +36,13 @@ public class QualityCheckStore {
                 LocalDateTime.ofInstant(from, BusinessTime.ZONE),
                 LocalDateTime.ofInstant(to, BusinessTime.ZONE));
     }
+
+    /** Cặp (ca, tầng) có công việc hoàn thành từ {@code since}: ca có thể cần nhắc hoặc ghi không có danh sách. */
+    public List<long[]> recentShifts(Instant since) {
+        return jdbc.query(
+                "SELECT DISTINCT shift_id,floor_area_id FROM care_task WHERE status IN ('COMPLETED','COMPLETED_LATE')"
+                        + " AND result_performed_at>=? ORDER BY shift_id,floor_area_id",
+                (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2)},
+                LocalDateTime.ofInstant(since, BusinessTime.ZONE));
+    }
 }

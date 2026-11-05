@@ -54,7 +54,7 @@ public final class QualityCheckKinds {
         }
 
         public Item result(
-                String result, String resultNote, List<Long> photos, long inspector, String role, Instant at) {
+                String result, String resultNote, List<Long> photos, Long inspector, String role, Instant at) {
             return new Item(
                     checklistId,
                     shiftId,
