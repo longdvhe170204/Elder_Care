@@ -67,6 +67,35 @@ class ApiClient {
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(body);
     }
+    return _send(request);
+  }
+
+  /// Tải một tệp lên `POST /files` (multipart, phần `file`; api-001 tag files) và trả mã tệp để gửi kèm lệnh, ví dụ ảnh
+  /// đồ gửi (013 T011; G2 (b), A duyệt 2026-11-05). Kiểu tệp theo đuôi tên (JPEG, PNG, PDF); backend kiểm lại nội dung.
+  /// Thân multipart dựng tay để không thêm gói (`http_parser`) vào pubspec.
+  Future<int> uploadFile(List<int> bytes, String filename) async {
+    final boundary = 'eldercare-${DateTime.now().microsecondsSinceEpoch}';
+    final request = http.Request('POST', Uri.parse('$baseUrl/api/v1/files'));
+    request.headers['Accept'] = 'application/json, application/problem+json';
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+    if (deviceId != null) request.headers['X-Device-Id'] = deviceId!;
+    request.headers['Content-Type'] = 'multipart/form-data; boundary=$boundary';
+    final head =
+        '--$boundary\r\ncontent-disposition: form-data; name="file"; filename="$filename"\r\n'
+        'content-type: ${_mimeOf(filename)}\r\n\r\n';
+    request.bodyBytes = [...utf8.encode(head), ...bytes, ...utf8.encode('\r\n--$boundary--\r\n')];
+    final decoded = await _send(request);
+    return (decoded as Map<String, dynamic>)['fileId'] as int;
+  }
+
+  static String _mimeOf(String filename) {
+    final name = filename.toLowerCase();
+    if (name.endsWith('.png')) return 'image/png';
+    if (name.endsWith('.pdf')) return 'application/pdf';
+    return 'image/jpeg';
+  }
+
+  Future<Object?> _send(http.Request request) async {
     final http.Response response;
     try {
       response = await http.Response.fromStream(await _http.send(request));
