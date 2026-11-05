@@ -11,11 +11,12 @@ import 'approval_requests/approval_inbox_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'pending_review/pending_review_screen.dart';
+import 'residents/resident_lookup_screen.dart';
 import 'sync_results/sync_results_screen.dart';
 
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
 /// chung tại tầng, FR-014a), thanh điều hướng dưới. Màn của từng feature thêm vào [_tabs] (tối đa 5 mục, mục thứ 6 trở
-/// đi gom vào "Thêm"); hiện có Thông báo, Đồng bộ, Chờ xem lại, Mở khóa sớm, Phê duyệt. Biểu tượng lucide cùng tên với web.
+/// đi gom vào "Thêm"); hiện có Thông báo, Người cao tuổi (001 T023), Đồng bộ, Chờ xem lại, Mở khóa sớm, Phê duyệt. Biểu tượng lucide cùng tên với web.
 /// Tab Thông báo đứng đầu, có huy hiệu số Khẩn cấp chưa xác nhận; đang ở tab khác mà có Khẩn cấp thì hiện dải báo, vì khi app
 /// đang mở máy không hiện thông báo hệ thống (009 T022).
 class StaffRoot extends StatefulWidget {
@@ -33,7 +34,7 @@ class _StaffRootState extends State<StaffRoot> {
   static const _inboxIndex = 0;
 
   /// Tab đã áp đầu màn xanh đêm của DESIGN.md 15.4; tab khác giữ thanh của theme tới khi đổi (15.7).
-  static const _headerTabs = {'Thông báo', 'Phê duyệt'};
+  static const _headerTabs = {'Thông báo', 'Người cao tuổi', 'Phê duyệt'};
 
   int _index = _inboxIndex;
   int _urgent = 0;
@@ -87,6 +88,7 @@ class _StaffRootState extends State<StaffRoot> {
       LucideIcons.bell,
       () => StaffInboxScreen(api: widget.session.api, push: widget.push, onUrgentCount: _setUrgent),
     ),
+    ('Người cao tuổi', LucideIcons.users, () => ResidentLookupScreen(api: widget.session.api)),
     ('Đồng bộ', LucideIcons.refreshCw, () => SyncResultsScreen(queue: widget.queue, session: widget.session)),
     ('Chờ xem lại', LucideIcons.cloudOff, () => PendingReviewScreen(api: widget.session.api)),
     ('Mở khóa sớm', LucideIcons.lockOpen, () => EarlyUnlockScreen(api: widget.session.api)),

@@ -39,7 +39,8 @@ void main() {
   testWidgets('T006_taiKhoanNguoiThan_vaoPhanNguoiThan', (tester) async {
     await pumpSignedIn(tester, backend, store, 'FAMILY_MEMBER');
 
-    expect(find.text('Thông báo'), findsOneWidget);
+    // Tiêu đề thanh trên; nhãn thanh điều hướng dưới cùng tên (001 T023 thêm tab Hồ sơ)
+    expect(find.descendant(of: find.byType(AppBar), matching: find.text('Thông báo')), findsOneWidget);
   });
 
   testWidgets('T006_taiKhoanNguoiCaoTuoi_vaoHomNay', (tester) async {
