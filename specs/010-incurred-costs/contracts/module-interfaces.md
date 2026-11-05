@@ -21,6 +21,8 @@ Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực
 
 ## 1. 010 cung cấp
 
+**T008 — đề xuất 06/11 chưa áp dụng:** [proposal-retention-cross-module-2026-11-06.md](proposal-retention-cross-module-2026-11-06.md) mô tả overload referencesTo(DataRef) ở SPI 000 và điểm gọi job để nối M01.RESIDENT → bảng → khoản của 010. Đây chưa phải API đã công bố hoặc bằng chứng toàn chuỗi đã xanh; người dùng đã chốt giữ E, bàn giao để A review/cài. Phần E đã sửa giữ thứ tự khi delete(Collection), không đổi chữ ký API.
+
 **Cập nhật nền đơn giá 06/11:** `billing.internal.pricing.service.CostPricingService` dùng `ContractReadApi.contentAtDate(...).recordedUnitPrices` và `content.services[].serviceId/inPackage` theo hợp đồng 004 hiện có; ngoài hợp đồng gọi `UnitPriceApi.unitPriceAt(..., markReferenced=true)` trong transaction MANDATORY của caller. T006a đã kiểm xanh, không phải API công khai mới hoặc bản cài ba API chi phí ở mục dưới. Không tạo khoản/bảng; adapter lưu trú/bán trú và listener tính lại/thông báo vẫn thuộc T014. Xem [checkpoint 06/11](../pricing-checkpoint-2026-11-06.md).
 
 ### 1.1. SPI khai báo ở module thấp hơn, M11 cài

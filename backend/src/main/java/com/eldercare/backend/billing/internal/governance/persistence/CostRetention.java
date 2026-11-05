@@ -130,7 +130,8 @@ public class CostRetention {
             String query = kind == Kind.ITEM
                     ? "DELETE FROM cost_item WHERE id=?"
                     : "DELETE FROM cost_statement WHERE id=? AND kind=?";
-            for (long id : ids.stream().distinct().sorted().toList()) {
+            // Job đã xếp bản trỏ tới trước bản gốc; không sắp lại ID làm đảo thứ tự khóa ngoại.
+            for (long id : ids.stream().distinct().toList()) {
                 if (kind == Kind.ITEM) retention.jdbc().update(query, id);
                 else retention.jdbc().update(query, id, kind.name());
             }
