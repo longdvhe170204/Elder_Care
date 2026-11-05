@@ -11,6 +11,7 @@ import com.eldercare.backend.belongings.web.response.IdResponse;
 import com.eldercare.backend.belongings.web.response.RecipientConfirmationResponse;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -63,6 +64,20 @@ class ReturnController {
     }
 
     @PostMapping("/belongings/returns")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     HandoverResponse giveBack(
@@ -93,6 +108,13 @@ class ReturnController {
     }
 
     @PostMapping("/recipient-confirmations")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "201", description = "OK", content = @Content)
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse create(
@@ -115,6 +137,21 @@ class ReturnController {
     }
 
     @PostMapping("/recipient-confirmations/{id}/{command}")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     void command(
             @PathVariable long id,
             @PathVariable @Schema(allowableValues = {"approve-on-behalf", "cancel"}) String command,
@@ -128,6 +165,21 @@ class ReturnController {
     }
 
     @PostMapping("/family-portal/recipient-confirmations/{id}/{command}")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     void portalCommand(
             @PathVariable long id,
             @PathVariable @Schema(allowableValues = {"confirm", "reject"}) String command,

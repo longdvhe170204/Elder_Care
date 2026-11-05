@@ -10,7 +10,9 @@ import com.eldercare.backend.belongings.web.request.ConditionLevelRequest;
 import com.eldercare.backend.belongings.web.request.StorageLocationRequest;
 import com.eldercare.backend.belongings.web.response.IdResponse;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -60,6 +62,14 @@ class BelongingCatalogController {
     }
 
     @PutMapping("/types/{id}")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     void updateType(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -92,6 +102,13 @@ class BelongingCatalogController {
 
     /** Hành chính, Quản lý viện; mỗi vai trò đi qua khóa quyền của mình (plan "Kế hoạch triển khai R-15" điểm 3). */
     @PostMapping("/storage-locations")
+    @ApiResponse(
+            responseCode = "409",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     IdResponse saveStorageLocation(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

@@ -2,7 +2,9 @@ package com.eldercare.backend.belongings.web;
 
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingPortalQueries;
 import com.eldercare.backend.belongings.web.response.PortalBelongingResponse;
+import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -24,6 +26,13 @@ class BelongingPortalController {
     }
 
     @GetMapping("/family-portal/residents/{residentId}/belongings")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     List<PortalBelongingResponse> belongings(@PathVariable long residentId) {
         return queries.view(residentId).stream()
