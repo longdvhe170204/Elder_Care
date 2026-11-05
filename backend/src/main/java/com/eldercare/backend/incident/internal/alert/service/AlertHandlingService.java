@@ -20,9 +20,12 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
@@ -37,6 +40,7 @@ import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
+import com.eldercare.backend.incident.internal.critical.persistence.CriticalCareStore;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,6 +78,7 @@ public class AlertHandlingService {
     private final BusinessTime time;
     private final Optional<AlertStaffPort> staff;
     private final AlertHistory history;
+    private final Optional<RecordEventApi> records;
 
     public AlertHandlingService(
             AlertStore alerts,
@@ -95,6 +101,7 @@ public class AlertHandlingService {
         this.time = time;
         this.staff = Optional.ofNullable(staff);
         this.history = new AlertHistory(records);
+        this.records = Optional.ofNullable(records);
     }
 
     /** Đã tiếp nhận → Đang xử lý; người ra lệnh nhận cảnh báo (FR-031 "nhận từ người khác bằng Bắt đầu xử lý"). */
@@ -140,18 +147,38 @@ public class AlertHandlingService {
         }
     }
 
-    /** Đang xử lý → Đã đóng: kết quả bắt buộc; cảnh báo công việc Bắt buộc quá hạn cần lý do (BR-M04-06). */
+    /**
+     * Đang xử lý → Đã đóng: kết quả bắt buộc; cảnh báo công việc Bắt buộc quá hạn cần lý do (BR-M04-06); cảnh báo nguy
+     * kịch cần kết quả xác nhận lại và lựa chọn đã ghi (FR-050d).
+     */
     @Transactional
     public void close(long alertId, String resolution, Reason reason, CurrentUser user) {
         var alert = lockForHandler(alertId, user);
         requireStatus(alert, AlertStatus.IN_PROGRESS);
         if (resolution == null || resolution.isBlank()) throw new InvalidValueException("Thiếu kết quả xử lý");
         if (reason == null && alert.typeLock().startsWith(OVERDUE_TASK_PREFIX)) throw new ReasonRequiredException();
+        if (alert.criticalFlagId() != null) requireCriticalOutcome(alertId);
         var now = time.now();
         alerts.close(
                 alertId, resolution, reason == null ? null : reason.value(), user.accountId(), now, alert.version());
         history.add(alertId, "CLOSED", Map.of("by", user.accountId()), now);
         write(CLOSED, alert, Map.of("status", AlertStatus.CLOSED.name()), reason);
+    }
+
+    private void requireCriticalOutcome(long alertId) {
+        if (none(CriticalCareStore.RECONFIRMATION_TYPE, alertId)) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "WISH_NOT_RECONFIRMED", "Chưa có kết quả xác nhận lại nguyện vọng");
+        }
+        if (none(CriticalCareStore.CHOICE_TYPE, alertId)) {
+            throw new BusinessException(HttpStatus.CONFLICT, "CHOICE_NOT_RECORDED", "Chưa ghi lựa chọn thực hiện");
+        }
+    }
+
+    private boolean none(String kind, long alertId) {
+        return records.map(api -> api.list(SharedKind.of(kind, Map.class), new EntityRef(ENTITY, alertId))
+                        .isEmpty())
+                .orElse(true);
     }
 
     /**

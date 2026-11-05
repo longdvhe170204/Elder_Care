@@ -24,7 +24,7 @@ import java.util.Optional;
  * công hiện tại; sự cố cơ sở vật chất dùng Người phụ trách ca và Trưởng tầng của địa điểm thay Điều dưỡng phụ trách
  * (FR-040).
  */
-final class IncidentNotices {
+public final class IncidentNotices {
     private static final String SOURCE_TYPE = "M05.INCIDENT";
 
     private IncidentNotices() {}
@@ -35,6 +35,46 @@ final class IncidentNotices {
             Long floorAreaId,
             IncidentLevel level,
             boolean noOnDutyDoctor,
+            long actorId,
+            Instant at) {
+        return notices(
+                incidentId,
+                SOURCE_TYPE + ":" + incidentId + ":RECORDED",
+                residentId,
+                floorAreaId,
+                level,
+                noOnDutyDoctor,
+                "Có sự cố mới cần tiếp nhận. Mở hồ sơ sự cố để xem chi tiết.",
+                actorId,
+                at);
+    }
+
+    /**
+     * FR-047 (a), FR-047b: sự cố được nâng lên Khẩn cấp chạy quy trình khẩn cấp với cùng nhóm người nhận như lúc ghi nhận
+     * ở mức Khẩn cấp (T041).
+     */
+    public static List<NotificationRequest> emergencyActivated(
+            long incidentId, long residentId, Long floorAreaId, boolean noOnDutyDoctor, long actorId, Instant at) {
+        return notices(
+                incidentId,
+                SOURCE_TYPE + ":" + incidentId + ":EMERGENCY_ACTIVATED:" + at.toEpochMilli(),
+                residentId,
+                floorAreaId,
+                IncidentLevel.CRITICAL,
+                noOnDutyDoctor,
+                "Sự cố được nâng lên mức Khẩn cấp. Mở hồ sơ sự cố để xem thẻ thông tin khẩn cấp.",
+                actorId,
+                at);
+    }
+
+    private static List<NotificationRequest> notices(
+            long incidentId,
+            String key,
+            Long residentId,
+            Long floorAreaId,
+            IncidentLevel level,
+            boolean noOnDutyDoctor,
+            String staffContent,
             long actorId,
             Instant at) {
         var groups = new LinkedHashSet<RecipientGroup>();
@@ -55,7 +95,6 @@ final class IncidentNotices {
         }
         if (level != IncidentLevel.LOW) shiftLead(groups, floorAreaId);
 
-        String key = SOURCE_TYPE + ":" + incidentId + ":RECORDED";
         var requests = new ArrayList<NotificationRequest>();
         requests.add(request(
                 incidentId,
@@ -64,7 +103,7 @@ final class IncidentNotices {
                 residentId,
                 floorAreaId,
                 List.copyOf(groups),
-                "Có sự cố mới cần tiếp nhận. Mở hồ sơ sự cố để xem chi tiết.",
+                staffContent,
                 actorId,
                 at,
                 Optional.empty(),
@@ -203,6 +242,80 @@ final class IncidentNotices {
                 at,
                 Optional.empty(),
                 Optional.empty()));
+    }
+
+    /**
+     * FR-044: sự cố quá hạn tiếp nhận lên cấp theo chuỗi của cảnh báo (FR-033): cấp 1 Trưởng tầng, Bác sĩ trực; cấp 2
+     * Quản lý viện; "không thay" để 009 bỏ qua cấp không có người (Q-110). Mức Trung bình như cảnh báo leo thang.
+     */
+    static List<NotificationRequest> escalated(
+            long incidentId, Long residentId, Long floorAreaId, int level, Instant at) {
+        var groups = new ArrayList<RecipientGroup>();
+        if (level == 1) {
+            if (floorAreaId != null) {
+                groups.add(new RecipientGroup.FloorManager(floorAreaId, new Substitution.NoSubstitute()));
+            }
+            groups.add(new RecipientGroup.OnDutyDoctor(new Substitution.NoSubstitute()));
+        } else {
+            groups.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
+        }
+        return List.of(escalation(
+                incidentId,
+                "INCIDENT_ESCALATED",
+                SOURCE_TYPE + ":" + incidentId + ":ESCALATED:" + level,
+                residentId,
+                floorAreaId,
+                groups,
+                "Sự cố quá hạn tiếp nhận và đã leo thang lên cấp bạn phụ trách. Mở danh sách sự cố để tiếp nhận.",
+                at));
+    }
+
+    /** FR-044 theo FR-034: nhắc sự cố đã leo thang tối đa tới Quản lý viện và Trưởng tầng (Q-248, Q-266). */
+    static List<NotificationRequest> maximumReminder(
+            long incidentId, Long residentId, Long floorAreaId, int sequence, Instant at) {
+        var groups = new LinkedHashSet<RecipientGroup>();
+        groups.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
+        floorManager(groups, floorAreaId);
+        return List.of(escalation(
+                incidentId,
+                "INCIDENT_MAXIMUM_ESCALATION_REMINDER",
+                SOURCE_TYPE + ":" + incidentId + ":MAX_REMINDER:" + sequence,
+                residentId,
+                floorAreaId,
+                List.copyOf(groups),
+                "Sự cố đã leo thang tối đa mà vẫn chưa có người tiếp nhận. Mở danh sách sự cố để xử lý.",
+                at));
+    }
+
+    private static NotificationRequest escalation(
+            long incidentId,
+            String eventType,
+            String key,
+            Long residentId,
+            Long floorAreaId,
+            List<RecipientGroup> groups,
+            String content,
+            Instant at) {
+        return new NotificationRequest(
+                "M05",
+                eventType,
+                SourceGroup.INCIDENT,
+                new SourceRecord(SOURCE_TYPE, Long.toString(incidentId)),
+                key,
+                Optional.of(NotificationLevel.MEDIUM),
+                Optional.ofNullable(residentId),
+                Optional.ofNullable(floorAreaId),
+                groups,
+                List.of(new ContentPart(InformationType.HEALTH, content)),
+                Optional.of("Sự cố cần tiếp nhận"),
+                Optional.of("Sự cố"),
+                Optional.empty(),
+                false,
+                at,
+                Map.of("incidentId", incidentId),
+                false,
+                Optional.empty(),
+                Optional.empty());
     }
 
     private static void shiftLead(LinkedHashSet<RecipientGroup> groups, Long floorAreaId) {

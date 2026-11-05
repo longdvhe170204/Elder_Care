@@ -2,6 +2,7 @@ package com.eldercare.backend.incident.web;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
+import com.eldercare.backend.incident.internal.emergency.service.EmergencyCardService;
 import com.eldercare.backend.incident.internal.incident.service.IncidentRecordService;
 import com.eldercare.backend.incident.web.request.RecordIncidentRequest;
 import com.eldercare.backend.incident.web.response.ActivationResultResponse;
@@ -26,10 +27,13 @@ public class IncidentRecordController {
     private static final String PROBLEM = "application/problem+json";
 
     private final IncidentRecordService incidents;
+    private final EmergencyCardService cards;
     private final CurrentUser currentUser;
 
-    public IncidentRecordController(IncidentRecordService incidents, CurrentUser currentUser) {
+    public IncidentRecordController(
+            IncidentRecordService incidents, EmergencyCardService cards, CurrentUser currentUser) {
         this.incidents = incidents;
+        this.cards = cards;
         this.currentUser = currentUser;
     }
 
@@ -105,7 +109,11 @@ public class IncidentRecordController {
                         null,
                         null,
                         null);
+        var card = cards.forViewer(result.incidentId(), currentUser)
+                .map(c -> result.identificationOnly() ? c.identificationOnly() : c)
+                .map(ActivationResultResponse.ActivationEmergencyCard::of)
+                .orElse(null);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ActivationResultResponse(incident, null, result.identificationOnly()));
+                .body(new ActivationResultResponse(incident, card, result.identificationOnly()));
     }
 }

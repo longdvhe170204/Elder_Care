@@ -33,6 +33,7 @@ import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeView;
 import com.eldercare.backend.incident.internal.alert.service.AcknowledgementDeadlines;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
+import com.eldercare.backend.incident.internal.incident.domain.EmergencyActivationRequested;
 import com.eldercare.backend.incident.internal.incident.domain.FallMonitoringSetting;
 import com.eldercare.backend.incident.internal.incident.domain.NewIncident;
 import com.eldercare.backend.incident.internal.incident.domain.RecordedIncident;
@@ -203,6 +204,10 @@ public class IncidentRecordService {
                 ENTITY + ":" + id + ":RECORDED",
                 now,
                 IncidentNotices.recorded(id, residentId, floorAreaId, level, noOnDutyDoctor, user.accountId(), now)));
+        if (residentId != null && level == IncidentLevel.CRITICAL) {
+            events.publishEvent(new EmergencyActivationRequested(
+                    id, residentId, floorAreaId, noOnDutyDoctor, user.accountId(), now));
+        }
         if (residentId != null && FALL.equals(type.code())) {
             startFallMonitoring(id, residentId, floorAreaId, command.occurredAt(), now, user.accountId());
         }

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
+import com.eldercare.backend.incident.internal.emergency.service.EmergencyCardService;
 import com.eldercare.backend.incident.internal.incident.domain.RecordedIncident;
 import com.eldercare.backend.incident.internal.incident.service.IncidentRecordService;
 import java.time.Instant;
@@ -21,8 +22,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class FR_040_IncidentRecordControllerTest {
     private final IncidentRecordService incidents = mock(IncidentRecordService.class);
+    private final EmergencyCardService cards = mock(EmergencyCardService.class);
     private final CurrentUser currentUser = mock(CurrentUser.class);
-    private final MockMvc mvc = MockMvcBuilders.standaloneSetup(new IncidentRecordController(incidents, currentUser))
+    private final MockMvc mvc = MockMvcBuilders.standaloneSetup(
+                    new IncidentRecordController(incidents, cards, currentUser))
             .build();
 
     @Test

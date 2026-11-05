@@ -68,8 +68,10 @@ class T005_IncidentCatalogMigrationIT extends MySqlIntegrationTestBase {
         assertThat(groups).containsExactly("SOURCE_RESOLVED", "TRANSFER_REFUSED", "FOUND", "CANCELLATION_REQUESTED");
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM catalog_item WHERE catalog_type='M05.PROGRESSION_TYPE'
-                  AND module='M05' AND status='ACTIVE'
-                """, Integer.class)).isEqualTo(12);
+                  AND module='M05' AND status='ACTIVE' AND code NOT LIKE 'TEST_%'
+                """, Integer.class))
+                .as("loại do migration nạp; bỏ loại TEST_ của fixture đã commit")
+                .isEqualTo(12);
     }
 
     @Test

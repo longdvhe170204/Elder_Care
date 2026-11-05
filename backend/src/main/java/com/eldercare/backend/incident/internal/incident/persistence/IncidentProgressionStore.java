@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 public class IncidentProgressionStore {
     static final SharedKind<ProgressionContent> PROGRESSION =
             SharedKind.of("M05.INCIDENT_PROGRESSION", ProgressionContent.class);
-    /** Xác nhận "đã đối chiếu nguyện vọng" (FR-048a); lệnh xác nhận ghi ở US5 (T041). */
+    /** Xác nhận "đã đối chiếu nguyện vọng" (FR-048a, DBR-19): khóa duy nhất {@code WISH_CHECK:<incidentId>}. */
     @SuppressWarnings("rawtypes")
     static final SharedKind<Map> WISH_CHECK = SharedKind.of("M05.WISH_CHECK", Map.class);
 
@@ -124,7 +124,28 @@ public class IncidentProgressionStore {
     }
 
     public boolean wishChecked(long incidentId) {
-        return !records.list(WISH_CHECK, incident(incidentId)).isEmpty();
+        return records.findByUniqueKey(WISH_CHECK, wishCheckKey(incidentId)).isPresent();
+    }
+
+    /** Lệnh xác nhận đối chiếu nguyện vọng (US5, T041); mỗi sự cố một dòng. */
+    public void addWishCheck(long incidentId, long wishVersionId, long actorId, Instant at, Long floorAreaId) {
+        records.add(
+                WISH_CHECK,
+                incident(incidentId),
+                new NewRecordEvent<>(
+                        Map.of("wishVersionId", wishVersionId),
+                        null,
+                        actorId,
+                        false,
+                        at,
+                        null,
+                        at,
+                        floorAreaId,
+                        wishCheckKey(incidentId)));
+    }
+
+    private static String wishCheckKey(long incidentId) {
+        return "WISH_CHECK:" + incidentId;
     }
 
     private static EntityRef incident(long incidentId) {
