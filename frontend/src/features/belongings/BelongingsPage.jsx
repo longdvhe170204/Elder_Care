@@ -17,7 +17,9 @@ import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { BelongingDetail } from './BelongingDetail'
+import { EndingCondition } from './EndingCondition'
 import { HeldBelongings } from './HeldBelongings'
+import { InventoryChecks } from './InventoryChecks'
 import { IntakeForm } from './IntakeForm'
 import { RecipientConfirmations } from './RecipientConfirmations'
 import { ReturnForm } from './ReturnForm'
@@ -144,6 +146,7 @@ function ResidentBelongings({ resident, catalogs, role }) {
   const [opened, setOpened] = useState(null)
   const [intake, setIntake] = useState(false)
   const [returning, setReturning] = useState(false)
+  const [ending, setEnding] = useState(false)
   const [notice, setNotice] = useState('')
 
   const load = useCallback(async () => {
@@ -215,6 +218,17 @@ function ResidentBelongings({ resident, catalogs, role }) {
           {state.status === 'ready' && (
             <RecipientConfirmations residentId={resident.id} belongings={returnable} role={role} />
           )}
+          {state.status === 'ready' && (
+            <Button
+              variant="outline"
+              className="h-11 self-start"
+              aria-pressed={ending}
+              onClick={() => setEnding(!ending)}
+            >
+              Xem điều kiện kết thúc lưu trú
+            </Button>
+          )}
+          {ending && <EndingCondition residentId={resident.id} catalogs={catalogs} />}
         </CardContent>
       </Card>
       <Sheet open={returning} onOpenChange={setReturning}>
@@ -262,6 +276,8 @@ function ResidentBelongings({ resident, catalogs, role }) {
 const TABS = [
   { value: 'resident', label: 'Theo người cao tuổi' },
   { value: 'held', label: 'Nhân viên đang giữ' },
+  // Phiếu kiểm kê: Hành chính lập, Quản lý viện xem (InventoryCheckService.READERS); hợp đồng không trả lệnh được phép
+  { value: 'inventory', label: 'Kiểm kê', roles: ['OFFICE_STAFF', 'NURSING_HOME_MANAGER'] },
 ]
 
 export function BelongingsPage({ role }) {
@@ -273,7 +289,7 @@ export function BelongingsPage({ role }) {
     <div className="flex flex-col gap-5">
       <PageHeader title="Đồ gửi" subtitle="Tiếp nhận, bàn giao và trả đồ gia đình gửi viện giữ hộ.">
         <ToggleGroup variant="filter" value={[tab]} onValueChange={(next) => next[0] && setTab(next[0])}>
-          {TABS.map((t) => (
+          {TABS.filter((t) => !t.roles || t.roles.includes(role)).map((t) => (
             <ToggleGroupItem key={t.value} value={t.value}>
               {t.label}
             </ToggleGroupItem>
@@ -301,6 +317,7 @@ export function BelongingsPage({ role }) {
         <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} role={role} />
       )}
       {tab === 'held' && <HeldBelongings catalogs={catalogs} />}
+      {tab === 'inventory' && <InventoryChecks catalogs={catalogs} />}
     </div>
   )
 }

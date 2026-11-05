@@ -86,3 +86,10 @@ export const CONFIRMATION_LABELS = {
   USED: 'Đã dùng',
   EXPIRED: 'Hết hạn',
 }
+
+// Kênh liên hệ người thân (api-013 ContactAttempt.channel)
+export const CHANNEL_OPTIONS = [
+  { value: 'PHONE_CALL', label: 'Gọi điện' },
+  { value: 'TEXT_MESSAGE', label: 'Tin nhắn' },
+  { value: 'PORTAL_NOTIFICATION', label: 'Thông báo trên cổng' },
+]
