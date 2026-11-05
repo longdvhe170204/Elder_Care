@@ -2968,6 +2968,17 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | bản giả `HoatDongKenhNctPort`, `DoGuiKenhNctPort` | `support/fake/family/FakeResidentChannelActivities`, `FakeResidentChannelBelongings` |
 | job `NhacLuotThamNct` (FR-069) | việc nửa đêm `VISIT_RESIDENT_REMINDER`, `internal.visit.service.ResidentVisitReminders`; sự kiện `family.api.events.ResidentVisitReminder` (loại sự kiện `VISIT_RESIDENT_REMINDER`, nhóm `RecipientGroup.Resident`) |
 
+### 18.11. Lượt ở lại *(bổ sung 2026-11-05, Phase 10 US8: T034, T035)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `luot_o_lai`, `OLaiService`, `OLaiController` | `simple_record` loại `M10.FAMILY_STAY` (`family.internal.stay.domain.FamilyStay`, `Status` `PENDING_CONFIRMATION`, `CONFIRMED`, `REJECTED`, `STAYING`, `ENDED`, `CANCELLED`); `internal.stay.service.FamilyStayService` (`register`, `list`, `confirm`, `reject`, `start`, `cancel`, `extend`, `end`); `web.FamilyStayController` |
+| `luot_o_lai_gia_han` | `record_event` loại `M10.FAMILY_STAY_EXTENSION` gắn `M10.FAMILY_STAY` (`FamilyStay.Extension`: `previousExpectedEndAt`, `newExpectedEndAt`, `reason`) |
+| `dem_o_lai`, `SoDem`, job đêm ở lại | `reminder_marker` loại `M10.STAY_NIGHT` (hủy: `M10.STAY_NIGHT_CANCELLED`), `entity_type` `M10.FAMILY_STAY`, `marker` là ngày bắt đầu của đêm; `internal.stay.domain.NightCount`; việc nửa đêm `FAMILY_STAY_NIGHTS` (`internal.stay.service.StayNights`) |
+| `SuKienTinhPhiNguon(DEM_O_LAI)` | `CostSourceBilled` (`sourceType` `OVERNIGHT_STAY`, `sourceId` `<stayId>:<ngày>`, `unit` `NIGHT`, `serviceId` trống, `quantity` 1); hủy đêm: `CostSourceChanged` (`cancelled` true) |
+| thông báo lượt ở lại (cần xác nhận, xác nhận/từ chối, nhắc kết thúc) | `family.api.events.FamilyStayNotice` (`Kind` `REGISTERED`, `CONFIRMED`, `REJECTED`, `END_REMINDER`); nhắc kết thúc: `internal.stay.service.StayEndReminders` |
+| `SoDemTest`, `BR_M10_04_DemOLaiIT`, `FR_040_GioiHanOLaiIT` | `NightCountTest`, `BR_M10_04_OvernightStayIT`, `FR_040_StayLimitIT` (nền `StayTestBase`) |
+
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
 *Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
