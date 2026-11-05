@@ -7,6 +7,13 @@ export const SESSION_STATUS = {
   CANCELLED: 'Đã hủy',
 }
 
+export const TRIP_STATUS = {
+  SCHEDULED: 'Đã lên lịch',
+  IN_PROGRESS: 'Đang đi',
+  RETURNED: 'Đã trở về',
+  CANCELLED: 'Đã hủy',
+}
+
 export const REGISTRATION_SOURCE = {
   REGULAR: 'Thường xuyên',
   MANUAL: 'Thêm tay',

@@ -158,7 +158,7 @@ paths:
       summary: Danh sách chuyến cho trưởng đoàn, người đi cùng, trưởng tầng (trạng thái từng người, liên hệ chính, thuốc mang theo theo quyền)
       x-fr: [FR-039]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TripDetail' } } } } }
   /trips/{id}/assignment:
     post:
       tags: [trips]
@@ -292,6 +292,28 @@ components:
       description: 'STATE_CHANGED, SESSION_ALREADY_EXISTS, AFTER_TEMPLATE_END_DATE, CAPACITY_FULL, ISOLATION_ACTIVE, RESIDENT_STATUS_INVALID, SESSION_ALREADY_STARTED, TIME_OVERLAP, OUTSIDE_DAY_CARE_SCHEDULE, LATE_RETURN_CONSENT_REQUIRED, INFECTION_SUSPECTED, WARNING_ACKNOWLEDGEMENT_REQUIRED, NOT_YET_STARTED, REGISTRATIONS_WITHOUT_RESULT, ATTENDANCE_ALREADY_RECORDED, TRIP_LEADER_REQUIRED, ROLE_NOT_ELIGIBLE, NOT_ON_SHIFT, ELIGIBILITY_NOT_PASSED, MEDICATION_NOT_HANDLED, VEHICLE_SCHEDULE_REQUIRED, VEHICLE_ALREADY_SCHEDULED, DEPARTURE_TOO_EARLY, MISSING_INCIDENT_ALREADY_RECORDED, REQUIRES_ONLINE, SAMPLE_RATIO_NOT_MET, CHECKLIST_ALREADY_EXISTS, TASK_NOT_ELIGIBLE, REWORK_TASK_REQUIRED, SELF_CHECK_NOT_ALLOWED, OUTSIDE_SHIFT_TIME, PREFERENCE_REPLACEMENT_CONFIRMATION_REQUIRED'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
+    TripDetail:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        status: { type: string, enum: [SCHEDULED, IN_PROGRESS, RETURNED, CANCELLED] }
+        version: { type: integer }
+        destination: { type: string }
+        plannedDepartureAt: { type: string, format: date-time }
+        plannedReturnAt: { type: string, format: date-time }
+        transport: { type: string }
+        facilityVehicle: { type: boolean }
+        leaderId: { type: [integer, 'null'], format: int64 }
+        companionIds: { type: array, items: { type: integer, format: int64 } }
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer, format: int64 }
+              residentId: { type: integer, format: int64 }
+              status: { type: string, enum: [REGISTERED, ELIGIBLE, NOT_GOING, DEPARTED, RETURNED, LEFT_GROUP, MISSING_ON_RETURN] }
+              reason: { type: [string, 'null'] }
     OpinionSource:
       type: object
       description: Như api-001.yaml OpinionSource (001 FR-023g); bổ sung 2026-10-18, Q-363

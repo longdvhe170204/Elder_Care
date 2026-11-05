@@ -80,3 +80,11 @@ Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng t
 | `NhatKyApi`, `ThamSoApi` (CFG-M03-02, 09, CFG-M11-07 → 09), kho tệp | 000 | Chung |
 
 Sự kiện 019 phát: thông báo (cài `CoYeuCauThongBao`) theo FR-021, gồm Khẩn cấp cho báo hỏng giường có người mức "mất an toàn"; `TaiSanDaDoiTrangThai`, `YeuCauMuaSamDaDoi` cho 016.
+
+### Bản dịch API lịch xe cho 014 (05/11/2026, chủ dự án duyệt hướng API)
+
+`LichXeApi` → `roombedallocation.api.VehicleScheduleApi`: `boolean hasBookedSchedule(long tripId, Instant plannedDepartureAt)`, `VehicleScheduleChangeCheck checkChange(long tripId, Instant newDepartureAt, Instant newReturnAt)`.
+
+`LichXeLenhApi` → `VehicleScheduleCommandApi.followTrip(long tripId, TripVehicleChangeType type, Instant plannedDepartureAt, Instant plannedReturnAt, Optional<Instant> actualAt)` (MANDATORY, chỉ trên phương thức lệnh).
+
+DTO tại `roombedallocation.api.dto`: `VehicleScheduleChangeCheck(boolean allowed, List<String> unmetConditions)`; `TripVehicleChangeType` = `CHANGED`, `CANCELLED`, `FIRST_DEPARTURE`, `EXTENDED`, `LAST_DEPARTURE_UNDONE`, `RETURN_FINISHED` (đúng sáu loại ở mục 2.2). Chưa có provider production của 019. Fake duy nhất `support/fake/roombedallocation/FakeVehicleSchedules` và `FakeVehicleSchedules.Config`; mặc định chưa có lịch. Lệnh không tự lập lịch xe (Q-306).

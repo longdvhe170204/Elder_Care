@@ -15,6 +15,12 @@ public record ActivitySessionResponse(
     public static ActivitySessionResponse of(ListedSession row) {
         var s = row.session();
         return new ActivitySessionResponse(
-                s.id(), s.activityId(), s.startsAt(), s.endsAt(), s.status(), row.registrationCount(), false);
+                s.id(),
+                s.activityId(),
+                s.startsAt(),
+                s.endsAt(),
+                s.tripStatus() == null ? s.status() : s.tripStatus(),
+                row.registrationCount(),
+                s.tripStatus() != null);
     }
 }

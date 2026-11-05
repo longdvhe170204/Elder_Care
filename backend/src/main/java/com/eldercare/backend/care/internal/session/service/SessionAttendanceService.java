@@ -103,6 +103,7 @@ public class SessionAttendanceService {
         if (items == null || items.isEmpty()) throw new InvalidValueException("Cần ít nhất một kết quả");
         items.forEach(SessionAttendanceService::validate);
         var session = store.lock(sessionId);
+        requireInstituteSession(session);
         if (!Session.SCHEDULED.equals(session.status()))
             throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Buổi không ở Đã lên lịch");
         var now = time.now();
@@ -199,6 +200,7 @@ public class SessionAttendanceService {
     @Transactional
     public void complete(Target target, long sessionId) {
         var session = store.lock(sessionId);
+        requireInstituteSession(session);
         if (!Session.SCHEDULED.equals(session.status()))
             throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Buổi không ở Đã lên lịch");
         if (session.startsAt().isAfter(time.now()))
@@ -208,6 +210,14 @@ public class SessionAttendanceService {
                     HttpStatus.CONFLICT, "REGISTRATIONS_WITHOUT_RESULT", "Còn đăng ký chưa có kết quả điểm danh");
         store.close(sessionId, Session.ATTENDANCE_TAKEN, false);
         events.publishEvent(new ActivitySessionEnded(sessionId));
+    }
+
+    private static void requireInstituteSession(Session session) {
+        if (session.tripStatus() != null)
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "STATE_CHANGED",
+                    "Chuyến đi phải điểm danh rời viện, không dùng điểm danh buổi trong viện");
     }
 
     static void validate(Item item) {

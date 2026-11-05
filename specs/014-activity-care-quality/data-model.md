@@ -132,6 +132,8 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 ## 6. Chuyến đi (mục G, H)
 
+**Ánh xạ vật lý T016 (05/11/2026, triển khai một phần).** `V014_05__activity_trip.sql` thêm các cột `trip_*` vào `activity_session`, cột `participant_status`, `participant_reason`, `missing_incident_id`, `missing_alert_requested` vào `activity_registration` (tên đầy đủ ở glossary 20.7). `trip_status IS NULL` là buổi trong viện; với chuyến, CHECK buộc điểm đến, phương tiện, cờ xe viện và khoảng rời/về có đủ, giờ về sau giờ rời. Cột người tham gia cho phép NULL để giữ đăng ký buổi trong viện. UNIQUE đăng ký còn hiệu lực và FK buổi của V014_02 giữ nguyên. Nhiệm vụ ghi snapshot theo kỳ tại status_history (entity_type M04.ACTIVITY_SESSION, attribute TRIP_DUTIES; chi tiết leaderId, companionIds), đóng kỳ trước khi ghi kỳ mới. Đánh giá và điểm danh là record_event M04.TRIP_ELIGIBILITY, M04.TRIP_ATTENDANCE, cha M01.RESIDENT; dữ liệu chi tiết theo TripKinds. Điểm danh rời viện có unique_key TRIP_DEPARTURE:<registrationId>, xác nhận ngay; actor_id là mã tài khoản, các mã trưởng đoàn/người đi cùng là mã nhân viên. Gia hạn thuộc Phase 7, chưa cài.
+
 ### `chuyen_di` – nhóm 2 → gộp theo R-15: `chuyen_di` → `buoi_hoat_dong`
 
 | Cột | Ghi chú | Nguồn |

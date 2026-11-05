@@ -126,12 +126,18 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Tests cho User Story 4
 
 - [ ] T015 [P] [US4] Test `BT/care/BR_M04_16_RoiVienIT.java`, `FR_035_NhiemVuIT.java`: rời viện từ hai thiết bị đồng thời; điều kiện (Đạt, thuốc `MangThuocChuyenDiApi.daChuanBi`, lịch xe); 001 chuyển `HOAT_DONG_BEN_NGOAI` cùng transaction, lỗi thì rollback; nghi nhiễm → `KHONG_DI` và báo trưởng đoàn (Q18 → Q25)
+  - Kiểm 05/11/2026: `BR_M04_16_RoiVienIT` 34/34 và nhóm scoped 74 IT xanh; race phân công/rời viện và hủy đăng ký/rời viện đều đỏ trước khi cài rồi xanh. `FR_035_NhiemVuIT` vẫn chưa tách thành lớp riêng vì dùng chung fixture/phạm vi với BR_M04_16.
+  - Sửa sau review 05/11/2026: thêm ca đăng ký lại sau Không đi và thứ tự khóa hủy đăng ký (đỏ rồi xanh); `BR_M04_16_RoiVienIT` 36/36, scoped 76 IT xanh, `clean verify` 1092 unit + 2696 IT 0 lỗi. Còn mở: tầng đánh giá người bán trú, phạm vi trưởng đoàn ngoài tầng (plan Phase 6).
 
 ### Implementation cho User Story 4
 
 - [ ] T016 [US4] Tạo `MIG/V014_05__chuyen_di.sql`: `chuyen_di` (`buoi_id` khóa chính; `trang_thai` `DA_LEN_LICH|DANG_DI|DA_VE|DA_HUY`), `chuyen_di_gia_han` (nhóm 3), `nhiem_vu_chuyen` (`vai` `TRUONG_DOAN|DI_CUNG`), `nguoi_tham_gia` (`trang_thai` 7 giá trị), `danh_gia_kha_nang` (nhóm 3; `ket_qua` `DAT|KHONG_DAT`), `diem_danh_chuyen` (nhóm 3; `loai` `ROI_VIEN|VE`; `thoi_diem_thiet_bi`) (data-model mục 6) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `chuyen_di` → `buoi_hoat_dong`; `nguoi_tham_gia` → `dang_ky_buoi`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+  - Triển khai 05/11/2026: migration vật lý `V014_05__activity_trip.sql`, `T016_TripSchemaIT`; mới có cột chuyến/người tham gia và ràng buộc trên hai bảng 014. Nhiệm vụ/đánh giá/điểm danh đã khai qua TripKinds và cài cùng T017; gia hạn, trở về thuộc Phase 7 chưa cài, giữ T016 mở tới khi kiểm đủ.
 - [ ] T017 [US4] Cài `BE/care/chuyendi/internal/ChuyenDiService.java` (phân công, đánh giá, rời viện; phát `ChuyenDiDaDoi`, `ChuyenDiThayDoi`; `ChuyenDiNhiemVuLenhApi` cho 015; `ChuyenDiThuocPort` (006), `ChuyenDiNhiemVuPort` (008), `ChuyenDiBuaAnPort` (011)) (research L-07, L-08)
+  - Tiến độ 05/11/2026: đã có phân công/đánh giá/rời viện, nguồn đọc thuốc/nhiệm vụ, gỡ nhiệm vụ và TripChanged; còn nguồn chuyên môn/adapter thật, ngoại tuyến và metadata chuyến theo mẫu (plan Phase 6). Không đánh hoàn tất chỉ từ fake/test.
 - [ ] T018 [US4] Tạo endpoint `/chuyen-di/{id}`, `/{id}/phan-cong`, `/{id}/danh-gia`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/chuyen-di/`; app phần chuyến đi
+
+  - Tiến độ 05/11/2026: GET TripDetail tối thiểu và bố cục web/app đã duyệt; web/app phần dữ liệu hiện có đã cài. Còn Sheet đánh giá đầy đủ, thông tin thuốc/sức khỏe/liên hệ/thẻ khẩn cấp, tích hợp StaffRoot, kiểm trực quan và nguồn thời điểm ngoại tuyến.
 
 **Checkpoint**: Chuẩn bị chuyến đi chạy độc lập.
 

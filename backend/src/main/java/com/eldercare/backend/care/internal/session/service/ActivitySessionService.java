@@ -52,6 +52,8 @@ public class ActivitySessionService {
     private final AuditLogApi audit;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
+    private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
+    private final com.eldercare.backend.administration.shared.api.CatalogApi catalogs;
 
     public ActivitySessionService(
             ActivitySessionStore store,
@@ -61,7 +63,9 @@ public class ActivitySessionService {
             CurrentUser user,
             AuditLogApi audit,
             BusinessTime time,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            com.eldercare.backend.care.internal.trip.service.TripLifecycle trips,
+            com.eldercare.backend.administration.shared.api.CatalogApi catalogs) {
         this.store = store;
         this.records = records;
         this.eligibility = eligibility;
@@ -70,6 +74,8 @@ public class ActivitySessionService {
         this.audit = audit;
         this.time = time;
         this.events = events;
+        this.trips = trips;
+        this.catalogs = catalogs;
     }
 
     public static Target target(Long floorAreaId) {
@@ -110,6 +116,13 @@ public class ActivitySessionService {
         if (to.isBefore(from)) throw new InvalidValueException("Ngày cuối không trước ngày đầu");
         var activity = records.lockForUpdate(ACTIVITIES, activityId);
         requireActive(activity, from);
+        if (catalogs.require(ACTIVITY_TYPES, activity.content().typeId())
+                .attributes()
+                .offSite())
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "CARE_SOURCE_UNAVAILABLE",
+                    "Mẫu ngoài viện chưa có thông tin chuyến trong hợp đồng; tạo buổi lẻ có thông tin chuyến");
         var versions = versions(activityId);
         if (versions.isEmpty()) throw new InvalidValueException("Hoạt động chưa có mẫu lặp");
         var slots = SessionTemplate.slots(versions, from, to);
@@ -201,6 +214,7 @@ public class ActivitySessionService {
             throw new BusinessException(HttpStatus.CONFLICT, "SESSION_ALREADY_EXISTS", "Đã có buổi cùng giờ bắt đầu");
         store.reschedule(id, start, end, roomId, responsibleStaffId);
         var after = store.lock(id);
+        trips.reschedule(before, after);
         var activity = records.require(ACTIVITIES, before.activityId()).content();
         var now = time.now();
         var cancelled = new ArrayList<Registration>();
@@ -291,6 +305,7 @@ public class ActivitySessionService {
 
     /** FR-004, FR-009, FR-013, FR-021: hủy buổi chưa có điểm danh kèm mọi đăng ký, báo người đã đăng ký. */
     void cancelSession(Session session, String by, String reason, Long staffId) {
+        trips.cancel(session);
         if (hasAttendance(session.id()))
             throw new BusinessException(HttpStatus.CONFLICT, "ATTENDANCE_ALREADY_RECORDED", "Buổi đã có điểm danh");
         store.cancel(session.id(), by, reason, staffId);
@@ -320,7 +335,9 @@ public class ActivitySessionService {
     private void requireNotStarted(Session s) {
         if (!Session.SCHEDULED.equals(s.status()))
             throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Buổi không ở Đã lên lịch");
-        if (!s.startsAt().isAfter(time.now()))
+        if (s.tripStatus() != null && !"SCHEDULED".equals(s.tripStatus()))
+            throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Chuyến đã rời viện hoặc kết thúc");
+        if (s.tripStatus() == null && !s.startsAt().isAfter(time.now()))
             throw new BusinessException(HttpStatus.CONFLICT, "SESSION_ALREADY_STARTED", "Buổi đã bắt đầu");
     }
 

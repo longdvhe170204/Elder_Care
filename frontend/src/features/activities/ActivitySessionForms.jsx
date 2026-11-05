@@ -85,7 +85,18 @@ export function CreateFromTemplateSheet({ open, onOpenChange, activities, onDone
 }
 
 export function CreateSingleSheet({ open, onOpenChange, activities, onDone }) {
-  const [form, setForm] = useState({ activityId: '', startsAt: '', endsAt: '' })
+  const empty = {
+    activityId: '',
+    startsAt: '',
+    endsAt: '',
+    isTrip: false,
+    destination: '',
+    plannedDepartureAt: '',
+    plannedReturnAt: '',
+    transport: '',
+    facilityVehicle: false,
+  }
+  const [form, setForm] = useState(empty)
   const set = (field) => (value) => setForm((f) => ({ ...f, [field]: value }))
   return (
     <CommandSheet
@@ -94,17 +105,33 @@ export function CreateSingleSheet({ open, onOpenChange, activities, onDone }) {
       title="Tạo buổi lẻ"
       description="Buổi không theo mẫu lặp, cho hoạt động đang hiệu lực, ở thời điểm sau bây giờ."
       submitLabel="Tạo buổi lẻ"
-      ready={form.activityId && form.startsAt && form.endsAt}
+      ready={
+        form.activityId &&
+        form.startsAt &&
+        form.endsAt &&
+        (!form.isTrip || (form.destination && form.plannedDepartureAt && form.plannedReturnAt && form.transport))
+      }
       onSubmit={async (headers) => {
         await postActivitySessions({
           body: {
             activityId: Number(form.activityId),
             startsAt: toOffsetIso(form.startsAt),
             endsAt: toOffsetIso(form.endsAt),
+            ...(form.isTrip
+              ? {
+                  trip: {
+                    destination: form.destination,
+                    plannedDepartureAt: toOffsetIso(form.plannedDepartureAt),
+                    plannedReturnAt: toOffsetIso(form.plannedReturnAt),
+                    transport: form.transport,
+                    facilityVehicle: form.facilityVehicle,
+                  },
+                }
+              : {}),
           },
           headers,
         })
-        setForm({ activityId: '', startsAt: '', endsAt: '' })
+        setForm(empty)
         onDone('Đã tạo buổi lẻ')
       }}
     >
@@ -117,6 +144,38 @@ export function CreateSingleSheet({ open, onOpenChange, activities, onDone }) {
       />
       <ActivityField label="Bắt đầu" type="datetime-local" value={form.startsAt} onChange={set('startsAt')} required />
       <ActivityField label="Kết thúc" type="datetime-local" value={form.endsAt} onChange={set('endsAt')} required />
+      <label className="flex min-h-11 items-center gap-3 type-label">
+        <input type="checkbox" checked={form.isTrip} onChange={(e) => set('isTrip')(e.target.checked)} />
+        Chuyến đi ngoài viện
+      </label>
+      {form.isTrip && (
+        <>
+          <ActivityField label="Điểm đến" value={form.destination} onChange={set('destination')} required />
+          <ActivityField
+            label="Giờ rời dự kiến"
+            type="datetime-local"
+            value={form.plannedDepartureAt}
+            onChange={set('plannedDepartureAt')}
+            required
+          />
+          <ActivityField
+            label="Giờ về dự kiến"
+            type="datetime-local"
+            value={form.plannedReturnAt}
+            onChange={set('plannedReturnAt')}
+            required
+          />
+          <ActivityField label="Phương tiện" value={form.transport} onChange={set('transport')} required />
+          <label className="flex min-h-11 items-center gap-3 type-label">
+            <input
+              type="checkbox"
+              checked={form.facilityVehicle}
+              onChange={(e) => set('facilityVehicle')(e.target.checked)}
+            />
+            Xe của viện
+          </label>
+        </>
+      )}
     </CommandSheet>
   )
 }

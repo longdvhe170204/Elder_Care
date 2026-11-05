@@ -63,9 +63,9 @@ public class RegistrationEligibility {
         if (gate == null) return Optional.empty();
         var status = residents.status(residentId);
         var facts = new Facts(
-                session.status(),
-                !session.startsAt().isAfter(now),
-                activity.groupActivity(),
+                session.tripStatus() == null ? session.status() : session.tripStatus(),
+                session.tripStatus() == null && !session.startsAt().isAfter(now),
+                activity.groupActivity() || session.tripStatus() != null,
                 store.activeRegistrations(session.id()).size(),
                 activity.maxParticipants(),
                 status == ResidentStatus.ADMISSION_IN_PROGRESS || residents.isFinalStatus(residentId),

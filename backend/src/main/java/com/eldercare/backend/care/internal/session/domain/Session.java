@@ -17,7 +17,41 @@ public record Session(
         boolean incompleteAttendance,
         String cancelReason,
         String cancelledBy,
-        int version) {
+        int version,
+        String tripStatus) {
+    public Session(
+            long id,
+            long activityId,
+            Instant startsAt,
+            Instant endsAt,
+            String source,
+            Long locationRoomId,
+            Long locationAreaId,
+            Long floorAreaId,
+            Long responsibleStaffId,
+            String status,
+            boolean incompleteAttendance,
+            String cancelReason,
+            String cancelledBy,
+            int version) {
+        this(
+                id,
+                activityId,
+                startsAt,
+                endsAt,
+                source,
+                locationRoomId,
+                locationAreaId,
+                floorAreaId,
+                responsibleStaffId,
+                status,
+                incompleteAttendance,
+                cancelReason,
+                cancelledBy,
+                version,
+                null);
+    }
+
     public static final String TEMPLATE = "TEMPLATE";
     public static final String SINGLE = "SINGLE";
 

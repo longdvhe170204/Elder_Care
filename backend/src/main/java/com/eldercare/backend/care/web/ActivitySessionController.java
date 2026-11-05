@@ -13,7 +13,6 @@ import com.eldercare.backend.care.web.response.ActivitySessionDetailResponse;
 import com.eldercare.backend.care.web.response.ActivitySessionResponse;
 import com.eldercare.backend.care.web.response.CareProblemBody;
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,7 +20,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,16 +31,19 @@ public class ActivitySessionController {
     private final ActivityService activities;
     private final RegistrationService registrations;
     private final SessionAttendanceService attendance;
+    private final com.eldercare.backend.care.internal.trip.service.TripCreationService trips;
 
     public ActivitySessionController(
             ActivitySessionService sessions,
             ActivityService activities,
             RegistrationService registrations,
-            SessionAttendanceService attendance) {
+            SessionAttendanceService attendance,
+            com.eldercare.backend.care.internal.trip.service.TripCreationService trips) {
         this.sessions = sessions;
         this.activities = activities;
         this.registrations = registrations;
         this.attendance = attendance;
+        this.trips = trips;
     }
 
     @GetMapping("/activity-sessions")
@@ -67,16 +68,31 @@ public class ActivitySessionController {
     public ResponseEntity<Void> create(
             @RequestHeader("Idempotency-Key") String key, @RequestBody ActivitySessionCreateWrite body) {
         if (body.activityId() == null) throw new InvalidValueException("Thiếu hoạt động");
-        if (body.trip() != null)
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE, "CARE_SOURCE_UNAVAILABLE", "Chuyến đi thuộc US4 (T016)");
-        long id = sessions.createSingle(
-                activities.target(body.activityId().longValue()),
-                body.activityId(),
-                body.startsAt(),
-                body.endsAt(),
-                body.locationId(),
-                body.responsibleStaffId());
+        long id;
+        if (body.trip() != null) {
+            var p = body.trip();
+            id = trips.create(
+                    activities.target(body.activityId().longValue()),
+                    body.activityId(),
+                    body.startsAt(),
+                    body.endsAt(),
+                    body.locationId(),
+                    body.responsibleStaffId(),
+                    new com.eldercare.backend.care.internal.trip.domain.TripPlan(
+                            p.destination(),
+                            p.plannedDepartureAt(),
+                            p.plannedReturnAt(),
+                            p.transport(),
+                            Boolean.TRUE.equals(p.facilityVehicle())));
+        } else
+            id = trips.create(
+                    activities.target(body.activityId().longValue()),
+                    body.activityId(),
+                    body.startsAt(),
+                    body.endsAt(),
+                    body.locationId(),
+                    body.responsibleStaffId(),
+                    null);
         return ResponseEntity.created(URI.create("/api/v1/activity-sessions/" + id))
                 .build();
     }

@@ -9,6 +9,18 @@ import org.springframework.context.annotation.*;
 @Profile({"test", "demo"})
 public class FakeM04ApiConfig {
     @Bean
+    @Primary
+    TripMedicationReadApi fakeTripMedicationReadApi(FakeM04ApiFixture fixture) {
+        return fixture.api(TripMedicationReadApi.class);
+    }
+
+    @Bean
+    @Primary
+    TripDutyReadApi fakeTripDutyReadApi(FakeM04ApiFixture fixture) {
+        return fixture.api(TripDutyReadApi.class);
+    }
+
+    @Bean
     FakeM04ApiFixture fakeM04ApiFixture() {
         return new FakeM04ApiFixture();
     }

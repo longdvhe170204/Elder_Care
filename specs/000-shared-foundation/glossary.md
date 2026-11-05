@@ -3034,6 +3034,37 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | thân điểm danh | `SessionAttendanceWrite` (`SessionAttendanceItem`) |
 | test | `T002_ActivityApiContractTest`, `FR_002_ActivityDeclarationIT`, `ChayBuM04HoatDongIT`, `T006_ActivityGovernanceIT`, `BuoiTheoMauTest`, `BR_M04_21_TaoBuoiTuMauIT`, `FR_014a_HetNgayIT`, `DieuKienDangKyTest`, `BR_M04_15_DangKyIT`, `FR_021_KhoanhVungIT`, `BR_M04_18_SuKienTinhPhiIT`, `FR_031_DinhChinhIT`, `T014_SessionAttendanceSourcesIT` |
 
+### 20.7. Dữ liệu chuyến đi Phase 6 (T016, 2026-11-05)
+
+| Tên logic | Tên mã |
+| --- | --- |
+| `V014_05__chuyen_di.sql`; test dữ liệu sau gộp | `V014_05__activity_trip.sql`; `T016_TripSchemaIT` |
+| Chuyến gộp vào buổi | `activity_session.trip_destination`, `trip_planned_departure_at`, `trip_planned_return_at`, `trip_transport`, `trip_facility_vehicle`, `trip_status` |
+| Trạng thái chuyến `DA_LEN_LICH`, `DANG_DI`, `DA_VE`, `DA_HUY` | `SCHEDULED`, `IN_PROGRESS`, `RETURNED`, `CANCELLED` |
+| Dấu quá giờ, các mốc đã báo; trưởng đoàn tạm từ xa; kết thúc về | `trip_overdue_return`, `trip_overdue_notified_for`, `trip_manager_notified_for`, `trip_remote_leader`, `trip_return_finished_at`, `trip_return_finished_by_staff_id` |
+| Người tham gia gộp vào đăng ký | `activity_registration.participant_status`, `participant_reason`, `missing_incident_id`, `missing_alert_requested` |
+| Trạng thái người tham gia `DA_DANG_KY`, `DUOC_DI`, `KHONG_DI`, `DA_ROI_VIEN`, `DA_VE`, `THIEU_KHI_VE`, `ROI_DOAN` | `REGISTERED`, `ELIGIBLE`, `NOT_GOING`, `DEPARTED`, `RETURNED`, `MISSING_ON_RETURN`, `LEFT_GROUP` |
+
+### 20.8. Chuẩn bị và rời viện (Phase 6, 05/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| Nguồn khoảng chuyến cho thuốc | care.api.TripMedicationReadApi; TripInterval(from, to) |
+| Nguồn kiểm thuốc đã chuẩn bị và cập nhật khoảng | care.api.spi.TripMedicationPreparationPort; TripMedicationChangeType: CANCEL_TRIP, NOT_ATTENDING, RESCHEDULE |
+| Nguồn nhiệm vụ chuyến cho ca | care.api.TripDutyReadApi; TripInShiftView(tripId, staffIds, expectedReturnAt, residentIds, departedAt) |
+| Kiểm nhân viên có ca đã công bố chồng chuyến | care.api.spi.TripStaffSchedulePort.hasOverlappingPublishedShift |
+| Gỡ nhiệm vụ trong lệnh đổi ca | TripDutyRemovalService (TripDutyCommandApi đã khai ở 20.6); TripSafetyNotice |
+| Dữ liệu miền chuyến | Trip, TripPlan, TripParticipant, TripDuties, TripKinds |
+| Tạo, chuẩn bị, rời viện, vòng đời và nguồn đọc | TripCreationService, TripPreparationService, TripDepartureService, TripLifecycle, TripReadSources; ActivityTripStore |
+| HTTP chuyến và phản hồi đọc đã duyệt | TripController; TripAssignmentWrite, TripAssessmentWrite, TripCommandWrite; TripDetailResponse, Participant; schema TripDetail |
+| Loại lịch sử phân công, đánh giá và điểm danh | M04.ACTIVITY_SESSION / TRIP_DUTIES; M04.TRIP_ELIGIBILITY; M04.TRIP_ATTENDANCE (type DEPARTURE) |
+| Nội dung đánh giá | tripId, registrationId, residentId, result (PASS, FAIL), reason |
+| Nội dung điểm danh chuyến | tripId, registrationId, residentId, type, at, substituteReason |
+| Màn web, app | TripDetail; TripListScreen, TripDetailScreen; activities/trip_list_screen.dart, trip_detail_screen.dart |
+| Bản giả do C sở hữu (chỉ test) | FakeTripMedicationPreparation, FakeTripStaffSchedule; Fixture đọc dùng FakeM04ApiConfig |
+| Điều kiện chặn chuyến | Giữ mã hợp đồng 20.5: TRIP_LEADER_REQUIRED, ROLE_NOT_ELIGIBLE, NOT_ON_SHIFT, ELIGIBILITY_NOT_PASSED, MEDICATION_NOT_HANDLED, DEPARTURE_TOO_EARLY, VEHICLE_SCHEDULE_REQUIRED, VEHICLE_ALREADY_SCHEDULED, SESSION_ALREADY_STARTED, STATE_CHANGED, INFECTION_SUSPECTED, ISOLATION_ACTIVE, RESIDENT_STATUS_INVALID |
+| Nhật ký lệnh chuyến | TRIP_CREATED, TRIP_ASSIGNED, TRIP_ELIGIBILITY_ASSESSED, TRIP_DEPARTED, TRIP_DUTY_REMOVED |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
@@ -3146,6 +3177,13 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 *Chủ feature điền khi dịch `contracts/api-018.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
 ## 25. Feature 019 (`019-inventory-assets`, C)
+
+| Tên logic | Tên mã (API phục vụ 014, chủ dự án duyệt 05/11/2026) |
+| --- | --- |
+| LichXeApi, LichXeLenhApi | roombedallocation.api.VehicleScheduleApi, VehicleScheduleCommandApi |
+| coLichDaDat, kiemTraDoi, theoChuyen | hasBookedSchedule, checkChange, followTrip (MANDATORY) |
+| Kết quả kiểm đổi, loại thay đổi | VehicleScheduleChangeCheck(allowed, unmetConditions); TripVehicleChangeType: CHANGED, CANCELLED, FIRST_DEPARTURE, EXTENDED, LAST_DEPARTURE_UNDONE, RETURN_FINISHED |
+| Bản giả lịch xe duy nhất | FakeVehicleSchedules, FakeVehicleSchedules.Config; mặc định chưa có lịch |
 
 *Chủ feature điền khi dịch `contracts/api-019.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
