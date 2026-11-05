@@ -105,3 +105,7 @@ Chưa stage/commit/push/merge/đổi nhánh. Root vẫn develop; mã mới chỉ
 Đối chiếu read-only cho thấy14commit chưa sửa mã staffing/spec008/StaffRoot/mobilecommon soHEAD. Thay đổi cảnh báo hết phiên/tạm dừng tự làm mới củaA thuộc web;nền kiểm IT mới ởpom/commontestcho baJVM/mỗiJVMmột schema.011 đã chuyển vềD trêndevelop mới,E vẫn staffing/billing. Không tự chép AGENTS/CLAUDE/pom hoặc bảng chủ module từremote vào dirtyworktree.
 
 Các phụ thuộc đã đối chiếu trực tiếp origin/develop:clientmobile vẫn chỉ trảJSON,khôngETag;CareTaskHandover vẫn5throwpending503;chưa có bộEmergencySupport/US13 trong testincident. Chưa thấy phần008 đã được người dùng chốt bị sửa trong14commit này;không gọi đây là kiểm kết quả merge vì chưa thực hiện merge. Kết quả test ởmục11 thuộc nhánh008 trước đồng bộ;phải kiểm lại phần bị ảnh hưởng sau khi người dùng tự đồng bộ.
+
+## 13. Chuẩn bị đồng bộ develop theo yêu cầu người dùng
+
+Checkpointca179af1 đã do người dùng commit/push. Đã ghép origin/develop2fd4cd8c vào index/worktree bằng --no-commit, gỡ2conflict tài liệu và giữ ảnh/tài liệu người dùng nguyên hash. Test cuối53unit/arch+126IT,485web,227Flutter xanh; lint/build/analyzer qua. Chỉ sửa thêm fixture thời gian E để giữ kiểm biên ổn định, không đổi nghiệp vụ. HEAD vẫnca179af1 cho tới khi người dùng tự tạo merge commit; chưa push hoặc mởPR. Báo cáo đầy đủ:develop-sync-2026-11-05.md. 008 vẫn57/62,không coi chuẩn bị merge là nghiệm thu toàn feature.

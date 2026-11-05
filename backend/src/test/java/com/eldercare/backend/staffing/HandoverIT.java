@@ -58,7 +58,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
 
-    @Autowired
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     BusinessTime time;
 
     @Autowired
@@ -226,14 +226,19 @@ class HandoverIT extends MySqlIntegrationTestBase {
         return context.getBean("careStaffLookup", com.eldercare.backend.care.api.spi.ShiftStaffPort.class);
     }
 
+    private void freezeAt(Instant at) {
+        clock.setTo(at);
+        org.mockito.Mockito.doReturn(at).when(time).now();
+    }
+
     @Test
     void FR_029_handoverChecklistFollowsPreparationFeedbackResubmissionAndConfirmation() {
         var port = careStaff();
         long sender = giver.staffId().orElseThrow(),
                 recipient = receiver.staffId().orElseThrow();
-        clock.setTo(ends.minusSeconds(1801));
+        freezeAt(ends.minusSeconds(1801));
         assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
-        clock.setTo(ends.minusSeconds(1800));
+        freezeAt(ends.minusSeconds(1800));
         current.set(receiver);
         assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
         assertThat(embeddedStore.forShift(shift)).isEmpty();
@@ -243,7 +248,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
         assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
         assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
         service.complete(id);
-        clock.setTo(ends);
+        freezeAt(ends);
         assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
         assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isTrue();
         current.set(receiver);
