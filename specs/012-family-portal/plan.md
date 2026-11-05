@@ -338,3 +338,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - T071, T074: `lib/resident/sos/sos_button.dart` `SosButton` (đếm ngược 3 giây, Hủy, Gọi ngay; trạng thái đang đến, đã tới, hỏi lại 5 giây; sáu nút nơi đang ở; gửi vị trí theo chu kỳ khi được cấp quyền lúc đang dùng, dừng theo `guiViTri` hoặc 409; không gửi được thì hiện số của viện đã lưu và 115, không xếp hàng gửi sau), `SosIntroGate` giới thiệu một lần. Nút hiện ở Hôm nay, ở màn khóa sinh trắc và ở màn quét mã khi máy đã gắn người cao tuổi nhưng chưa có phiên (FR-085).
 - Điểm báo lại: (1) ảnh đồ gửi chưa hiện vì chưa có đường tải tệp cho tài khoản người cao tuổi; (2) `/sos` của 007 chưa cài, app chỉ kiểm bằng backend giả trong test widget; (3) nhắc lượt thăm, thực đơn chờ 011 (xem phần backend).
 - Ghi chú quy trình: test mới `today_screen_test.dart` (2), `resident_feedback_screen_test.dart` (3), `sos_button_test.dart` (9); hai ca FR-085 của màn quét mã trong `qr_login_test.dart` viết trước, đỏ rồi xanh. Tám test cũ (`app_test.dart`, `qr_login_test.dart`, `biometric_unlock_test.dart`) ghi sẵn khóa đã xem giới thiệu SOS, không đổi hành vi. `flutter analyze` sạch, `flutter test` 187 xanh. Chưa chạy trên máy thật.
+
+### Bỏ Bản tin khỏi cổng web theo Q-396 (2026-11-05, A)
+
+- Chủ dự án duyệt (DESIGN.md 6.8.6): bỏ mục Bản tin ở đầu trang và thanh dưới (còn 5 và 4 mục), màn `BulletinPage.jsx`, khối "Bản tin mới nhất" ở Hôm nay, lối vào Bản tin và câu "bản tin tuần" ở trang chủ, dữ liệu mẫu `DEMO_PORTAL_BULLETINS` và thông báo mẫu bản tin. App người thân không có Bản tin.
+- Ghi chú quy trình: `FamilyPortal.test.jsx` thêm `Q396_khongConBanTin` viết trước, đỏ rồi xanh; npm run lint, npm run build qua, npm test 531/91 file; xem `/family` bản mẫu trên trình duyệt.

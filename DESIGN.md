@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 6.8.5
+version: 6.8.6
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-11-05
@@ -180,12 +180,12 @@ Mười điều phải giữ ở mọi màn hình:
 
 Trang chủ của cổng người thân (`src/features/family-portal/HomePage.jsx`), mở ra ngay khi người thân đăng nhập (mục 2.3). Trang giới thiệu viện trước, giá trị chăm sóc tiếp theo, rồi mới tới cách Elder_Care giúp gia đình đồng hành. Không còn trang giới thiệu công khai riêng. Phong cách Modern Healthcare Editorial: nhiều khoảng trắng, căn trái, ít thẻ; không gradient, không bóng đổ, không hiệu ứng tự chạy. Ý tưởng "Một nơi để sống, một nơi để an tâm"; ba giá trị Tôn trọng, An tâm, Đồng hành.
 
-- **Thứ tự section:** đầu trang của cổng (mục 2.3); mở đầu (thông điệp, nút "Xem thông tin của <họ tên>" và "Tìm hiểu về viện", ảnh toàn cảnh); 01 Không gian sống và môi trường chăm sóc (phòng ở, sinh hoạt chung, sân vườn, khu vận động, thiết bị hỗ trợ, giường sẵn sàng, khi có dịch); 02 Con người và đội ngũ chăm sóc (vai trò từng vị trí, bảng "Gia đình liên hệ với ai" theo spec 012 FR-059); 03 Đời sống hằng ngày; 04 Quy trình chăm sóc và bảo đảm an toàn (đánh giá, kế hoạch, theo dõi sức khỏe, thuốc, bàn giao ca, sự cố); 05 Viện và gia đình cùng chăm sóc; Elder_Care giúp gia đình đồng hành (lối vào Hôm nay, Bản tin, Thăm, Phản hồi; quyền riêng tư); Cần trao đổi với viện. Tiêu đề 01 → 05 có số thứ tự màu xanh đêm.
+- **Thứ tự section:** đầu trang của cổng (mục 2.3); mở đầu (thông điệp, nút "Xem thông tin của <họ tên>" và "Tìm hiểu về viện", ảnh toàn cảnh); 01 Không gian sống và môi trường chăm sóc (phòng ở, sinh hoạt chung, sân vườn, khu vận động, thiết bị hỗ trợ, giường sẵn sàng, khi có dịch); 02 Con người và đội ngũ chăm sóc (vai trò từng vị trí, bảng "Gia đình liên hệ với ai" theo spec 012 FR-059); 03 Đời sống hằng ngày; 04 Quy trình chăm sóc và bảo đảm an toàn (đánh giá, kế hoạch, theo dõi sức khỏe, thuốc, bàn giao ca, sự cố); 05 Viện và gia đình cùng chăm sóc; Elder_Care giúp gia đình đồng hành (lối vào Hôm nay, Thăm, Phản hồi; quyền riêng tư); Cần trao đổi với viện. Tiêu đề 01 → 05 có số thứ tự màu xanh đêm.
 - **Nền section** (token `--landing-*` trong `index.css`): trời `#9ABFDA` cho đầu trang, mở đầu và Elder_Care; trắng ngà `#FBF9F4` cho 01; trắng cho 02 và 04; be ấm `#F2EADF` cho 03 và 05; xanh đêm `#24496F` cho Cần trao đổi với viện. Ô ảnh giữ chỗ `#E4D8C6`.
 - **Độ tương phản đã kiểm:** chữ chính trên trời 8,33:1, trên be 13,54:1, trên trắng ngà 15,35:1; chữ phụ trên be 5,23:1, trên trắng ngà 5,92:1; chữ trắng trên xanh đêm 9,30:1. Trên nền trời chỉ dùng chữ chính (chữ phụ chỉ 3,22:1).
 - **Giá trị nói bằng việc làm:** mô tả công việc bằng hành động, quy trình, người chịu trách nhiệm; không hứa an toàn tuyệt đối; không số liệu, chứng nhận, thông tin đội ngũ chưa xác minh; không lời làm gia đình áy náy.
 - **Tiếng nói có chủ là dấu nhận diện:** mỗi điều ghi về người cao tuổi mang nhãn người nói (`SourceTag`, mục 2.2): "Theo lời bà" (xanh trời), "Theo con gái" (xanh chàm), "Nhân viên ghi nhận" (nền phụ); việc đã xong mang nhãn xanh lá ("Viện đã xử lý", "Đã đặt").
-- **Không có bản tin minh họa:** người thân đã đăng nhập xem bản tin thật ở màn Bản tin, nên trang chủ bỏ phần "Một tuần mẫu".
+- **Không có "Một tuần mẫu":** người thân đã đăng nhập xem trực tiếp ở các màn của cổng (Q-396 bỏ bản tin tuần).
 - **Ảnh:** chỉ ảnh thực tế được phép sử dụng. Khi chưa có, dùng ô giữ chỗ ghi "Chờ ảnh thực tế được phép sử dụng" kèm chú thích; không ảnh kho, không ảnh thương hại hay vui vẻ giả tạo.
 - **Không giả lập:** điều chưa có trong nghiệp vụ (sân vườn, khu vận động) ghi "chờ viện xác nhận"; kênh liên hệ ghi "chờ viện xác nhận"; quy trình, vai trò nêu trên trang phải có trong nghiệp vụ (2.3, 2.4, 5.3, 7.1, 7.5, 8.1 → 8.10, 9.x, 10.x, 11.x, 12.x, 13.1a, 13.5, 14.1 → 14.7).
 - Chữ lớn dùng thang riêng của trang (mục 4); một họ font Be Vietnam Pro.
@@ -219,7 +219,7 @@ Ba nguyên tắc đã chốt ở `nghiep-vu.md` (1.3; Q-347 → Q-364) hiện ra
 
 **Riêng tư và phạm vi thông báo (Q-351 → Q-354, Q-357, Q-358, Q-362, Q-364)**
 
-- Thông báo sự cố, bản tin chia hai khối có tiêu đề: "Phần chung" (có sự cố, loại, mức, thời điểm, viện đã xử lý) và "Phần sức khỏe" (biểu tượng khóa). Thông báo sự cố cho người thân do hệ thống tự gửi theo phạm vi đồng ý (009, 007 FR-082), nhân viên không soạn: chi tiết sự cố hiện người thân nhận từng phần và bản ghi gửi. Bản tin do Điều dưỡng soạn (14.5): mục sự cố cũng chia hai khối và ghi người thân nào thấy phần sức khỏe. Người thân chưa được đồng ý chỉ thấy dòng khóa "Phần sức khỏe chỉ hiện với người thân được người cao tuổi đồng ý chia sẻ", không lộ tiêu đề hay độ dài của nội dung bị ẩn.
+- Thông báo sự cố chia hai khối có tiêu đề: "Phần chung" (có sự cố, loại, mức, thời điểm, viện đã xử lý) và "Phần sức khỏe" (biểu tượng khóa). Thông báo sự cố cho người thân do hệ thống tự gửi theo phạm vi đồng ý (009, 007 FR-082), nhân viên không soạn: chi tiết sự cố hiện người thân nhận từng phần và bản ghi gửi. Người thân chưa được đồng ý chỉ thấy dòng khóa "Phần sức khỏe chỉ hiện với người thân được người cao tuổi đồng ý chia sẻ", không lộ tiêu đề hay độ dài của nội dung bị ẩn.
 - Gửi ngoài phạm vi đồng ý (Q-354): bản ghi gửi hiện tên trường hợp áp dụng (ví dụ "Khẩn cấp, người liên hệ chính, nội dung tối thiểu").
 - Mong muốn về khách thăm, người đón: màn lượt thăm, lượt đón và danh sách người được phép đón hiện mong muốn đang hiệu lực của người cao tuổi cạnh tên người thân, kèm nhãn người nói. Yêu cầu trái mong muốn hiện `Alert` tông `attention` "Trái mong muốn của người cao tuổi" và trạng thái chờ Quản lý viện duyệt; khung duyệt bắt buộc lý do và ô xác nhận "Đã trao đổi với người cao tuổi". Yêu cầu bỏ người được phép đón không có cảnh báo này.
 - Giao diện không tự đổi quyền hay tự ẩn người theo mong muốn (Q-307); chỉ hiện và để người có quyền ra lệnh.
@@ -235,10 +235,10 @@ Ba nguyên tắc đã chốt ở `nghiep-vu.md` (1.3; Q-347 → Q-364) hiện ra
 Cổng người thân là bản web (`src/features/family-portal/`, đường dẫn `/family`; đăng nhập ở `/login`, màn chung với nhân viên từ 002 T045), khung riêng, không dùng `AppShell` và menu trái của nhân viên. Đăng nhập xong vào Trang chủ (mục 2.1). Trong bản mẫu nhân viên, chọn vai trò Người thân cũng mở cổng này. App người thân trên mobile làm theo mục 15. Các màn P1 → P11 ở `docs/thiet-ke/man-hinh-theo-actor.md` (M37).
 
 - **Đầu trang:** cùng kiểu đầu trang của trang chủ: dải nền trời dính đầu, logo (về Trang chủ), các mục, tên người đăng nhập, nút Đăng xuất.
-- **Máy tính (từ 1024px):** 6 mục trên đầu trang dạng viên thuốc (Trang chủ, Hôm nay, Bản tin, Thăm, Thông báo, Thêm). Trang chủ rộng toàn màn như mục 2.1; các màn khác rộng tối đa 960px; Hôm nay chia hai cột, thẻ người cao tuổi chiếm cả hàng.
-- **Điện thoại:** thanh dưới 5 mục (Trang chủ, Hôm nay, Bản tin, Thăm, Thêm), cao 56px, mục đang chọn có nền xanh trời quanh biểu tượng; Thông báo là nút chuông ở đầu trang. Một cột.
+- **Máy tính (từ 1024px):** 5 mục trên đầu trang dạng viên thuốc (Trang chủ, Hôm nay, Thăm, Thông báo, Thêm; Q-396 bỏ Bản tin). Trang chủ rộng toàn màn như mục 2.1; các màn khác rộng tối đa 960px; Hôm nay chia hai cột, thẻ người cao tuổi chiếm cả hàng.
+- **Điện thoại:** thanh dưới 4 mục (Trang chủ, Hôm nay, Thăm, Thêm), cao 56px, mục đang chọn có nền xanh trời quanh biểu tượng; Thông báo là nút chuông ở đầu trang. Một cột.
 - Số việc chờ người xem (thông báo cần xác nhận đã nhận, việc chờ người đại diện quyết định) hiện trên Thông báo bằng viên xanh đêm, không dùng đỏ.
-- **Hiện theo quyền:** mục người thân không có quyền thì không hiện (spec 012 User Story 5): không có quyền xem sức khỏe thì không có mục Sức khỏe, lịch không có giờ thuốc, công việc chăm sóc; trong bản tin và sự cố, phần sức khỏe thay bằng dòng khóa của mục 2.2. Chi phí cho người có quyền xem chi phí; hợp đồng, việc chờ quyết định cho người đại diện; đồ gửi cho người đại diện và người được phép đón. Khoản thuốc chỉ hiện mã vật phẩm khi người xem không có quyền xem sức khỏe.
+- **Hiện theo quyền:** mục người thân không có quyền thì không hiện (spec 012 User Story 5): không có quyền xem sức khỏe thì không có mục Sức khỏe, lịch không có giờ thuốc, công việc chăm sóc; trong sự cố, phần sức khỏe thay bằng dòng khóa của mục 2.2. Chi phí cho người có quyền xem chi phí; hợp đồng, việc chờ quyết định cho người đại diện; đồ gửi cho người đại diện và người được phép đón. Khoản thuốc chỉ hiện mã vật phẩm khi người xem không có quyền xem sức khỏe.
 - **Trang Tài khoản** liệt kê quyền của người xem (Có, Không) để người thân biết mình được xem gì; không sửa quyền ở đây.
 - **Lệnh của người thân** theo cùng quy tắc form (mục 7.2): từ chối, mở lại bắt buộc lý do; đăng ký thăm từ chối ngay kèm lý do cụ thể, không tạo lượt.
 - **Bản mẫu:** hiện theo một người thân có đủ quyền (người đại diện, người liên hệ chính, có tên trong bản đồng ý) để thấy mọi phần; quy tắc ẩn theo quyền vẫn có trong mã.
@@ -606,7 +606,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có màn mẫu Phát thuốc (M14): liều theo lịch nhóm theo giờ, khung xác nhận liều, thuốc khi cần.
 - Đã có màn mẫu Bàn giao ca (M17) và Cảnh báo (M15). Bản mẫu: Điều dưỡng là người bàn giao, Trưởng tầng là người xác nhận; trạng thái bàn giao giữ khi đổi vai trò để thử cả luồng.
 - Chưa thiết kế: Phòng, giường dạng thẻ phòng; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
-- Mục 2.2 (4.4.0) đã duyệt 2026-10-18; bố cục màn mẫu A–D duyệt cùng ngày. Còn chưa có màn mẫu: phiếu nguyện vọng cuối đời, mục sự cố trong bản tin Điều dưỡng soạn, form ghi ý kiến và ghi mong muốn, danh sách người thân và quyền (012).
+- Mục 2.2 (4.4.0) đã duyệt 2026-10-18; bố cục màn mẫu A–D duyệt cùng ngày. Còn chưa có màn mẫu: phiếu nguyện vọng cuối đời, form ghi ý kiến và ghi mong muốn, danh sách người thân và quyền (012).
 - Chưa có `toast`: màn Checklist ca báo đã lưu bằng vùng `aria-live` và thẻ chuyển sang nhóm Đã xong.
 - Chưa có trang trình bày design system (bảng màu, mẫu chữ, ma trận trạng thái).
 - Đã có component đính chính dùng chung `correction-sheet` (000 T106), chưa gắn vào màn nào: chờ màn của module sở hữu bản ghi và profile `demo` có người dùng (002).
@@ -738,6 +738,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.8.6 | 2026-11-05 | Chủ dự án duyệt bỏ Bản tin khỏi cổng người thân theo Q-396 (mục 2.1, 2.2, 2.3): đầu trang còn 5 mục, thanh dưới điện thoại 4 mục (Trang chủ, Hôm nay, Thăm, Thêm), Thông báo vẫn là chuông ở đầu trang; bỏ màn Bản tin, khối "Bản tin mới nhất" ở Hôm nay và lối vào Bản tin ở trang chủ. Không thêm màu |
 | 6.8.5 | 2026-11-05 | Chủ dự án duyệt bước "Về việc gì?" (năm nhóm nội dung) ở màn "Góp ý với viện" của app người cao tuổi cho loại Góp ý, Hỏi đáp, Khiếu nại (mục 15.6; 012 T070, FR-058, FR-059). Không thêm màu |
 | 6.8.4 | 2026-11-05 | Chủ dự án duyệt bố cục phản hồi của người cao tuổi trên màn Phản hồi (012 T072; mục 14) và sáu nút "Đang ở đâu?" sau khi gửi SOS theo nơi của 007 (mục 15.6, Q-373). Không thêm màu |
 | 6.8.3 | 2026-11-05 | Chủ dự án duyệt bố cục màn Phản hồi (012 T030; mục 14): bảng và khung chi tiết của nhân viên, cổng và app người thân cùng thứ tự, cùng tiêu đề "Gửi phản hồi về <họ tên>"; quá hạn lên đầu, nhãn giữ trạng thái kèm "quá hạn". Hai điểm hoãn ghi ở mục 14. Không thêm màu, không thêm quy định |

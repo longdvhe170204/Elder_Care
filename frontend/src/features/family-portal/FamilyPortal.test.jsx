@@ -52,6 +52,16 @@ describe('Khung cổng người thân', () => {
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/login'))
   })
 
+  // Q-396 bỏ bản tin tuần: không còn mục Bản tin ở đầu trang, thanh dưới và trang chủ
+  it('Q396_khongConBanTin', async () => {
+    api.on('GET', '/me', json(200, { accountId: 41, type: 'FAMILY_MEMBER', fullName: 'Trần Văn Minh', roles: [] }))
+    render(<FamilyPortal />)
+
+    expect(await screen.findByText('Trần Văn Minh')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Thăm' }).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/bản tin/i)).toBeNull()
+  })
+
   it('chuaDangNhap_sangDangNhap', async () => {
     api.on('GET', '/me', json(401, { status: 401, errorCode: 'UNAUTHORIZED' }))
     render(<FamilyPortal />)

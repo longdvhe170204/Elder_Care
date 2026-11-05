@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { ApiError, getFamilyPortalResidents, getMe, postAuthLogout } from '@/api'
-import { Bell, CalendarCheck, House, LogOut, Menu, Newspaper, UserRound } from 'lucide-react'
+import { Bell, CalendarCheck, House, LogOut, Menu, UserRound } from 'lucide-react'
 import { SessionGuard } from '@/common/SessionGuard'
 import { LeafMark } from '@/common/layout/AppShell'
 import { DEMO_PORTAL_CONFIRMATIONS, DEMO_PORTAL_NOTIFICATIONS, DEMO_PORTAL_VIEWER } from '@/common/demoData'
 import { cn } from '@/lib/utils'
 import { AccountPage } from './AccountPage'
-import { BulletinPage } from './BulletinPage'
 import { ContractPage } from './ContractPage'
 import { CostsPage } from './CostsPage'
 import { DepositsPage } from './DepositsPage'
@@ -29,7 +28,6 @@ import { LiveFeedbackPage } from './live/LiveFeedbackPage'
 const NAV = [
   { key: 'home', label: 'Trang chủ', icon: House },
   { key: 'today', label: 'Hôm nay', icon: UserRound },
-  { key: 'bulletins', label: 'Bản tin', icon: Newspaper },
   { key: 'visits', label: 'Thăm', icon: CalendarCheck },
   { key: 'notifications', label: 'Thông báo', icon: Bell },
   { key: 'more', label: 'Thêm', icon: Menu },
@@ -40,7 +38,6 @@ const BOTTOM_NAV = NAV.filter((n) => n.key !== 'notifications')
 const PAGES = {
   home: HomePage,
   today: TodayPage,
-  bulletins: BulletinPage,
   visits: VisitsPage,
   notifications: NotificationsPage,
   more: MorePage,
