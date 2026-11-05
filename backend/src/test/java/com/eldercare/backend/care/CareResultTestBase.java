@@ -65,6 +65,9 @@ abstract class CareResultTestBase extends MySqlIntegrationTestBase {
 
     long resident, floor, shift, type, task, performer;
 
+    /** Trưởng tầng được giao của tầng, cũng là người thực hiện mặc định; test đổi người dùng rồi đặt lại. */
+    TestUsers.TestUser baseManager;
+
     @BeforeEach
     void fixture() {
         resident = TestUsers.nextId();
@@ -73,6 +76,7 @@ abstract class CareResultTestBase extends MySqlIntegrationTestBase {
         type = TestUsers.nextId();
         task = TestUsers.nextId();
         var manager = new TestUsers(jdbc, time).staff(Role.FLOOR_MANAGER);
+        baseManager = manager;
         performer = manager.staffId();
         user.set(manager.user());
         assignments.assign(

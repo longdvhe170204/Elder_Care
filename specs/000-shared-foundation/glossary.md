@@ -3089,6 +3089,18 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Cảnh báo đăng ký "không thích" (FR-052) | mã điều kiện `DISLIKED_INTEREST` trong `unmetConditions` (cảnh báo, cần xác nhận như cảnh báo khác) |
 | Nhật ký lệnh | PREFERENCE_RECORDED, PREFERENCE_REMOVED |
 
+### 20.11. Kiểm tra chất lượng (Phase 9, 06/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| Danh sách kiểm tra (`danh_sach_kiem_tra` → `simple_record`) | kind `M04.QUALITY_CHECKLIST`, nội dung `Checklist` (shiftId, floorAreaId, createdBy, inspectorRole, createdAt, eligibleAtCreation), `unique_key` = shiftId:floorAreaId |
+| Mục kiểm tra (`muc_kiem_tra` → `record_event`) | kind `M04.QUALITY_CHECK_ITEM`, nội dung `Item`, nháp tới khi có kết quả rồi xác nhận (nhóm 3); `unique_key` = `QC_TASK:<công việc>` |
+| Trạng thái mục `CHO_KIEM_TRA`, `DAT`, `KHONG_DAT`, `KHONG_KIEM_TRA_DUOC`, `QUA_HAN_KIEM_TRA`; vai trò kiểm tra `TRUONG_TANG`, `NGUOI_PHU_TRACH_CA` | `PENDING`, `PASS`, `FAIL`, `NOT_CHECKABLE`, `OVERDUE`; `FLOOR_MANAGER`, `SHIFT_LEAD` |
+| Hàm thuần `SoMucToiThieu`; `KetQuaKiemTraPort` (014 cài cho 005) | `QualityCheckKinds.minimumItems`; `QualityCheckResultSource` implements `care.api.spi.QualityCheckPort` |
+| Dịch vụ, HTTP | QualityCheckService (select, record), QualityCheckStore, CompletedTask; QualityCheckController; QualityCheckSelectionWrite, QualityCheckResultWrite |
+| Báo người thực hiện công việc gốc khi Không đạt | `care.api.events.QualityCheckFailedNotice` (MEDIUM, người nhận `RecipientGroup.Staff` vai `TASK_PERFORMER`) |
+| Nhật ký lệnh | QUALITY_CHECKLIST_CREATED, QUALITY_CHECK_ITEMS_ADDED, QUALITY_CHECK_RESULT_RECORDED |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
