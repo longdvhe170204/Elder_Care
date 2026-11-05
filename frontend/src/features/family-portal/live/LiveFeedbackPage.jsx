@@ -121,15 +121,7 @@ function SubmitForm({ viewer, onSent }) {
   )
 }
 
-function Replies({ id }) {
-  const [detail, setDetail] = useState(null)
-  const [failure, setFailure] = useState(null)
-  useEffect(() => {
-    getFeedbackById({ path: { id } })
-      .then(({ data }) => setDetail(data))
-      .catch((e) => setFailure(problemOf(e)))
-  }, [id])
-  if (failure) return <ProblemAlert problem={failure} />
+function Replies({ detail }) {
   if (!detail) return <Skeleton className="h-12 w-full" />
   const replies = detail.items.filter((i) => i.type !== 'CONTENT')
   return (
@@ -153,6 +145,22 @@ function FeedbackRow({ item, onChanged }) {
   const [reason, setReason] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [failure, setFailure] = useState(null)
+  const [detail, setDetail] = useState(null)
+  const [detailFailure, setDetailFailure] = useState(null)
+
+  // Chi tiết có các mục trả lời và lệnh được phép (allowedCommands, đổi api 2026-11-05); đọc khi Đã phản hồi hoặc mở xem
+  const needDetail = item.status === 'REPLIED' || showReplies
+  useEffect(() => {
+    if (!needDetail) return
+    let cancelled = false
+    getFeedbackById({ path: { id: item.id } })
+      .then(({ data }) => !cancelled && setDetail(data))
+      .catch((e) => !cancelled && setDetailFailure(problemOf(e)))
+    return () => {
+      cancelled = true
+    }
+  }, [item.id, item.status, needDetail])
+  const can = (name) => detail?.allowedCommands?.includes(name)
 
   async function run(command, body, message) {
     setFailure(null)
@@ -195,16 +203,21 @@ function FeedbackRow({ item, onChanged }) {
           {showReplies ? 'Ẩn trả lời' : 'Xem trả lời'}
         </Button>
       )}
-      {showReplies && <Replies id={item.id} />}
+      {showReplies && !detailFailure && <Replies detail={detail} />}
+      <ProblemAlert problem={detailFailure} />
       <ProblemAlert problem={failure} />
-      {item.status === 'REPLIED' && !reopening && (
+      {!reopening && (can('agree-to-close') || can('reopen')) && (
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => run('agree-to-close', {}, 'Đã đóng phản hồi.')}>
-            Đồng ý đóng
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setReopening(true)}>
-            Mở lại
-          </Button>
+          {can('agree-to-close') && (
+            <Button variant="outline" size="sm" onClick={() => run('agree-to-close', {}, 'Đã đóng phản hồi.')}>
+              Đồng ý đóng
+            </Button>
+          )}
+          {can('reopen') && (
+            <Button variant="ghost" size="sm" onClick={() => setReopening(true)}>
+              Mở lại
+            </Button>
+          )}
         </div>
       )}
       {reopening && (

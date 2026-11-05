@@ -6,7 +6,7 @@ import { FeedbackPage } from './FeedbackPage'
 
 // 012 T030 (US6; FR-058 → FR-066, BR-M10-05): màn "Phản hồi" của nhân viên. Bảng phản hồi trong phạm vi, lọc theo
 // trạng thái và "Quá hạn"; khung chi tiết có nội dung, các mục, lệnh theo trạng thái (Nhận xử lý, Trả lời có hướng xử lý
-// và nội dung, Đổi mức, Giao lại kèm lý do); người gửi không có quyền xem sức khỏe thì cảnh báo lúc soạn trả lời.
+// và nội dung, Đổi mức, Giao lại chọn người trong phạm vi kèm lý do; nút theo allowedCommands); người gửi không có quyền xem sức khỏe thì cảnh báo lúc soạn trả lời.
 
 let api
 
@@ -24,6 +24,8 @@ const COMPLAINT = {
   dueAt: '2026-11-06T02:00:00Z',
   overdue: true,
   assignee: 'Lê Thu Trang',
+  familyMemberName: 'Trần Văn Minh',
+  submittedAt: '2026-11-05T02:00:00Z',
 }
 
 const QUESTION = {
@@ -37,11 +39,18 @@ const QUESTION = {
   overdue: false,
 }
 
+// Lệnh được phép của người phụ trách theo trạng thái (FR-066); backend tính, màn chỉ đọc allowedCommands
+const COMMANDS_OF = {
+  NEW: ['start-handling', 'change-priority', 'add-note', 'reassign'],
+  IN_PROGRESS: ['reply', 'change-priority', 'add-note', 'reassign'],
+  REPLIED: ['add-note'],
+}
+
 function detail(f, extra = {}) {
   return {
     ...f,
     source: 'PORTAL',
-    submittedAt: '2026-11-05T02:00:00Z',
+    allowedCommands: COMMANDS_OF[f.status] ?? [],
     items: [{ id: 1, type: 'CONTENT', content: f.content, fileIds: [], byAccountId: 7, at: '2026-11-05T02:00:00Z' }],
     senderHealthRightEffective: true,
     ...extra,
@@ -93,6 +102,7 @@ describe('Phản hồi của người thân', () => {
     expect(row).toHaveTextContent('Khiếu nại')
     expect(row).toHaveTextContent('Quá hạn')
     expect(row).toHaveTextContent('Lê Thu Trang')
+    expect(row).toHaveTextContent('Trần Văn Minh')
     expect(await within(row).findByText('Nguyễn Thị Lan')).toBeInTheDocument()
 
     fireEvent.click(
@@ -153,6 +163,49 @@ describe('Phản hồi của người thân', () => {
     expect(bodyOf(api.calls('POST', '/feedback/92/change-priority')[0])).toEqual({
       priority: 'HIGH',
       reason: 'Ảnh hưởng sức khỏe',
+    })
+  })
+
+  it('FR_066_nutLenhTheoAllowedCommands_hienNguoiGui', async () => {
+    api.on('GET', '/feedback/91', json(200, detail(COMPLAINT, { allowedCommands: ['add-note'] })))
+    const table = await renderPage()
+
+    fireEvent.click(within(table).getByRole('button', { name: /Phòng P201/ }))
+    expect(await screen.findByRole('button', { name: 'Ghi chú' })).toBeInTheDocument()
+    expect(screen.getByText(/Trần Văn Minh/, { selector: 'p' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nhận xử lý' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Đổi mức' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Giao lại' })).not.toBeInTheDocument()
+  })
+
+  it('FR_060_giaoLai_chonNguoiTrongPhamVi', async () => {
+    api.on(
+      'GET',
+      '/feedback/91/assignable-staff',
+      json(200, [
+        { accountId: 41, fullName: 'Phạm Thu Hà', role: 'NURSING_STAFF' },
+        { accountId: 42, fullName: 'Lê Thu Trang', role: 'FLOOR_MANAGER' },
+      ]),
+    )
+    api.on('POST', '/feedback/91/reassign', json(200, detail(COMPLAINT)))
+    const table = await renderPage()
+
+    fireEvent.click(within(table).getByRole('button', { name: /Phòng P201/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Giao lại' }))
+    const select = await screen.findByLabelText('Người được giao')
+    expect(await within(select).findByRole('option', { name: 'Phạm Thu Hà, Điều dưỡng' })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Nhờ Điều dưỡng hỗ trợ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Giao lại' }))
+    expect(await screen.findByText('Chọn người được giao')).toBeInTheDocument()
+    expect(api.calls('POST', '/feedback/91/reassign')).toHaveLength(0)
+
+    fireEvent.change(select, { target: { value: '41' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Giao lại' }))
+    await waitFor(() => expect(api.calls('POST', '/feedback/91/reassign')).toHaveLength(1))
+    expect(bodyOf(api.calls('POST', '/feedback/91/reassign')[0])).toEqual({
+      assigneeId: 41,
+      reason: 'Nhờ Điều dưỡng hỗ trợ',
     })
   })
 

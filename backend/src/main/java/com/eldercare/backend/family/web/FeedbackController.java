@@ -10,6 +10,7 @@ import com.eldercare.backend.family.web.request.FeedbackCommandRequest;
 import com.eldercare.backend.family.web.request.SubmitFeedbackRequest;
 import com.eldercare.backend.family.web.request.SubmitFeedbackRequest.FeedbackType;
 import com.eldercare.backend.family.web.request.SubmitFeedbackRequest.SenderType;
+import com.eldercare.backend.family.web.response.AssignableStaffResponse;
 import com.eldercare.backend.family.web.response.CreatedResponse;
 import com.eldercare.backend.family.web.response.FeedbackDetailResponse;
 import com.eldercare.backend.family.web.response.FeedbackResponse;
@@ -84,14 +85,27 @@ class FeedbackController {
     }
 
     @GetMapping("/feedback/{id}")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "OK", content = @Content)})
     FeedbackDetailResponse get(@PathVariable long id) {
         return FeedbackDetailResponse.of(feedback.get(id));
     }
 
+    @GetMapping("/feedback/{id}/assignable-staff")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "PERMISSION_DENIED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    List<AssignableStaffResponse> assignableStaff(@PathVariable long id) {
+        return feedback.assignableStaff(id).stream()
+                .map(AssignableStaffResponse::of)
+                .toList();
+    }
+
     @PostMapping("/feedback/{id}/{command}")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(
                 responseCode = "403",
                 description = "PERMISSION_DENIED",

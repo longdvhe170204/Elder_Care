@@ -96,6 +96,9 @@ export const postFeedback = (params) => request('POST', '/feedback', params)
 /** Chi tiết phản hồi; bản cho người gửi chỉ có phần trả lời mà họ được thấy (FR-058) (FR-058, FR-065) */
 export const getFeedbackById = (params) => request('GET', '/feedback/{id}', params)
 
+/** Người nhận giao lại được (bổ sung 2026-11-05, chủ dự án duyệt) - tài khoản nhân viên Hoạt động có quyền Tạo, Sửa ở dòng "Phản hồi" trong phạm vi của người cao tuổi (Trưởng tầng, Điều dưỡng, Hành chính) (FR-060) */
+export const getFeedbackByIdAssignableStaff = (params) => request('GET', '/feedback/{id}/assignable-staff', params)
+
 /** Lệnh trên phản hồi theo bảng FR-066 (FR-059, FR-060, FR-061, FR-062, FR-064, FR-065, FR-066, BR-M10-05) */
 export const postFeedbackByIdByCommand = (params) => request('POST', '/feedback/{id}/{command}', params)
 

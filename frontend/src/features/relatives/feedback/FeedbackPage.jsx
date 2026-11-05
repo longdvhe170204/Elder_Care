@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getFeedback, getFeedbackById, getResidentsById, postFeedbackByIdByCommand } from '@/api'
+import {
+  getFeedback,
+  getFeedbackById,
+  getFeedbackByIdAssignableStaff,
+  getResidentsById,
+  postFeedbackByIdByCommand,
+} from '@/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,11 +21,12 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
-import { FEEDBACK_STATUS, ITEM_LABELS, OPEN_STATUSES, PRIORITY, groupLabel, typeLabel } from './feedbackLabels'
+import { ASSIGNEE_ROLES, FEEDBACK_STATUS, ITEM_LABELS, PRIORITY, groupLabel, typeLabel } from './feedbackLabels'
 
 // Phản hồi của người thân (012 T030; US6, FR-058 → FR-066, BR-M10-05; Phụ lục 27 dòng "Phản hồi": Trưởng tầng, Điều
 // dưỡng, Hành chính trong phạm vi, Quản lý viện xem mọi phản hồi và danh sách quá hạn). Bảng, bấm dòng mở khung chi tiết
-// (DESIGN.md 5, 7.2). Nút lệnh theo trạng thái; người phụ trách, phạm vi do backend kiểm (403 hiện trong khung).
+// (DESIGN.md 5, 7.2). Nút lệnh theo allowedCommands của chi tiết (đổi api 2026-11-05); backend vẫn kiểm lại ở lệnh (403
+// hiện trong khung).
 
 const FILTERS = [
   ['all', 'Tất cả'],
@@ -174,7 +180,7 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
     )
   }
 
-  const open = OPEN_STATUSES.includes(f.status)
+  const can = (name) => f.allowedCommands?.includes(name)
   const healthWarning = f.group === 'HEALTH_MEDICATION' && f.senderHealthRightEffective === false
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -184,7 +190,8 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
           {typeLabel(f.type)}, {groupLabel(f.group).toLowerCase()}
         </Title>
         <Description className="type-body-sm text-muted-foreground">
-          {residentName ?? `Người cao tuổi mã ${f.residentId}`}. Gửi {formatDateTime(f.submittedAt)}
+          {residentName ?? `Người cao tuổi mã ${f.residentId}`}. {f.familyMemberName ?? 'Người thân'} gửi{' '}
+          {formatDateTime(f.submittedAt)}
           {f.source === 'COUNTER' ? ', Hành chính ghi tại quầy' : ', qua cổng'}.
         </Description>
       </div>
@@ -211,12 +218,12 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
         {done}
       </p>
       <ProblemAlert problem={failure} />
-      {(f.status === 'NEW' || f.status === 'REOPENED') && (
+      {can('start-handling') && (
         <Button className="h-11" onClick={() => run('start-handling', {}, 'Đã nhận xử lý phản hồi')}>
           Nhận xử lý
         </Button>
       )}
-      {f.status === 'IN_PROGRESS' && (
+      {can('reply') && (
         <>
           {healthWarning && (
             <Alert variant="attention">
@@ -229,17 +236,23 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
           <ReplyForm onSubmit={(body) => run('reply', body, 'Đã gửi trả lời cho người thân')} />
         </>
       )}
-      {open && mode === null && (
+      {mode === null && (can('change-priority') || can('reassign') || can('add-note')) && (
         <span className="flex flex-wrap gap-2">
-          <Button variant="outline" className="h-11" onClick={() => setMode('priority')}>
-            Đổi mức
-          </Button>
-          <Button variant="outline" className="h-11" onClick={() => setMode('reassign')}>
-            Giao lại
-          </Button>
-          <Button variant="ghost" className="h-11" onClick={() => setMode('note')}>
-            Ghi chú
-          </Button>
+          {can('change-priority') && (
+            <Button variant="outline" className="h-11" onClick={() => setMode('priority')}>
+              Đổi mức
+            </Button>
+          )}
+          {can('reassign') && (
+            <Button variant="outline" className="h-11" onClick={() => setMode('reassign')}>
+              Giao lại
+            </Button>
+          )}
+          {can('add-note') && (
+            <Button variant="ghost" className="h-11" onClick={() => setMode('note')}>
+              Ghi chú
+            </Button>
+          )}
         </span>
       )}
       {mode === 'priority' && (
@@ -251,6 +264,7 @@ function FeedbackDetail({ id, residentName, onChanged, Title, Description }) {
       )}
       {mode === 'reassign' && (
         <ReassignForm
+          id={id}
           onCancel={() => setMode(null)}
           onSubmit={(body) => run('reassign', body, 'Đã giao lại phản hồi')}
         />
@@ -290,25 +304,54 @@ function PriorityForm({ current, onSubmit, onCancel }) {
   )
 }
 
-// api-012 không có danh sách người nhận giao lại: nhập mã tài khoản (plan "Ghi chú triển khai" Phase 8)
-function ReassignForm({ onSubmit, onCancel }) {
+// Người nhận giao lại: Trưởng tầng, Điều dưỡng, Hành chính có phạm vi của người cao tuổi (FR-060; đổi api 2026-11-05)
+function ReassignForm({ id, onSubmit, onCancel }) {
+  const [staff, setStaff] = useState(null)
+  const [failure, setFailure] = useState(null)
   const [assignee, setAssignee] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    getFeedbackByIdAssignableStaff({ path: { id } })
+      .then(({ data }) => !cancelled && setStaff(data))
+      .catch((e) => !cancelled && setFailure(problemOf(e)))
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
   return (
     <ReasonForm
       label="Giao lại phản hồi"
       submitLabel="Giao lại"
       onCancel={onCancel}
-      onSubmit={(reason) => onSubmit({ assigneeId: Number(assignee), reason })}
+      onSubmit={(reason) => {
+        if (!assignee) setError('Chọn người được giao')
+        else onSubmit({ assigneeId: Number(assignee), reason })
+      }}
     >
-      <Field>
-        <FieldLabel htmlFor="feedback-assignee">Mã tài khoản người được giao</FieldLabel>
-        <Input
+      <ProblemAlert problem={failure} />
+      <Field data-invalid={!!error || undefined}>
+        <FieldLabel htmlFor="feedback-assignee">Người được giao</FieldLabel>
+        <select
           id="feedback-assignee"
-          inputMode="numeric"
-          className="h-11"
           value={assignee}
-          onChange={(e) => setAssignee(e.target.value)}
-        />
+          onChange={(e) => {
+            setAssignee(e.target.value)
+            setError('')
+          }}
+          aria-invalid={!!error || undefined}
+          className="h-11 w-full rounded-md border border-input bg-transparent px-3"
+        >
+          <option value="">{staff === null && !failure ? 'Đang tải…' : 'Chọn người'}</option>
+          {staff?.map((s) => (
+            <option key={s.accountId} value={s.accountId}>
+              {s.fullName}, {ASSIGNEE_ROLES[s.role] ?? s.role}
+            </option>
+          ))}
+        </select>
+        {error && <FieldError>{error}</FieldError>}
       </Field>
     </ReasonForm>
   )
@@ -444,6 +487,7 @@ export function FeedbackPage() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="pl-4">Nội dung</TableHead>
                 <TableHead>Người cao tuổi</TableHead>
+                <TableHead>Người gửi</TableHead>
                 <TableHead>Loại</TableHead>
                 <TableHead>Hạn xử lý</TableHead>
                 <TableHead>Người phụ trách</TableHead>
@@ -464,6 +508,12 @@ export function FeedbackPage() {
                     </button>
                   </TableCell>
                   <TableCell>{names[f.residentId] ?? `Mã ${f.residentId}`}</TableCell>
+                  <TableCell className="whitespace-normal">
+                    {f.familyMemberName}
+                    <span className="block type-caption text-muted-foreground tabular-nums">
+                      {formatDateTime(f.submittedAt)}
+                    </span>
+                  </TableCell>
                   <TableCell className="whitespace-normal">
                     {typeLabel(f.type)}, {groupLabel(f.group).toLowerCase()}
                   </TableCell>

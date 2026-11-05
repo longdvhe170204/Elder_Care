@@ -1,10 +1,10 @@
 package com.eldercare.backend.family.internal.feedback.service;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
+import com.eldercare.backend.administration.account.api.ApproverApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.ScopeApi;
-import com.eldercare.backend.administration.account.api.dto.AccountStatus;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
@@ -111,7 +111,12 @@ public class FeedbackService {
             boolean overdue,
             List<ItemView> items,
             Boolean senderHealthRightEffective,
-            Boolean healthReplyHidden) {}
+            Boolean healthReplyHidden,
+            String familyMemberName,
+            List<String> allowedCommands) {}
+
+    /** Người nhận giao lại được (FR-060): tài khoản, họ tên, vai trò Trưởng tầng, Điều dưỡng hoặc Hành chính. */
+    public record AssignableView(long accountId, String fullName, Role role) {}
 
     private final FeedbackStore store;
     private final RecordEventApi recordEvents;
@@ -121,6 +126,7 @@ public class FeedbackService {
     private final ResidentLocationApi locations;
     private final ScopeApi scopes;
     private final AccountApi accounts;
+    private final ApproverApi approvers;
     private final PermissionApi permissions;
     private final AuditLogApi auditLog;
     private final FileApi files;
@@ -137,6 +143,7 @@ public class FeedbackService {
             ResidentLocationApi locations,
             ScopeApi scopes,
             AccountApi accounts,
+            ApproverApi approvers,
             PermissionApi permissions,
             AuditLogApi auditLog,
             FileApi files,
@@ -151,6 +158,7 @@ public class FeedbackService {
         this.locations = locations;
         this.scopes = scopes;
         this.accounts = accounts;
+        this.approvers = approvers;
         this.permissions = permissions;
         this.auditLog = auditLog;
         this.files = files;
@@ -243,7 +251,8 @@ public class FeedbackService {
             authorizeRole(user, Operation.VIEW);
             rows = store.ofFamilyMember(user.familyMemberId().orElseThrow());
         } else {
-            authorize(user, Operation.VIEW, Target.UNSPECIFIED);
+            // Lớp vai trò ở đây, phạm vi lọc từng phản hồi (Target.UNSPECIFIED chỉ phạm vi toàn viện đạt)
+            authorizeRole(user, Operation.VIEW);
             rows = store.all().stream()
                     .filter(f -> permissions
                             .hasPermission(user, key(Operation.VIEW), target(f))
@@ -351,20 +360,20 @@ public class FeedbackService {
         if (body.assigneeId() == null) {
             throw new InvalidValueException("Chọn người được giao (assigneeId)");
         }
-        AccountView assignee = accounts.byId(body.assigneeId())
-                .filter(a -> a.type() == AccountType.STAFF && a.status() == AccountStatus.ACTIVE)
-                .orElseThrow(() -> new InvalidValueException("Người được giao không có quyền xử lý phản hồi"));
-        Role role = ASSIGNABLE.stream()
-                .filter(assignee.roles()::contains)
+        // Người có (FEEDBACK, UPDATE) trong phạm vi của người cao tuổi, vai trò Trưởng tầng, Điều dưỡng, Hành chính
+        Role role = assignable(current).stream()
+                .filter(a -> a.accountId() == body.assigneeId())
+                .map(AssignableView::role)
                 .findFirst()
-                .orElseThrow(() -> new InvalidValueException("Người được giao không có quyền xử lý phản hồi"));
+                .orElseThrow(() -> new InvalidValueException("Người được giao không có quyền xử lý phản hồi này"));
+        long assigneeAccount = body.assigneeId();
         Instant now = time.now();
         RecordEvent<FeedbackItem> item = addItem(
                 id,
                 new FeedbackItem(FeedbackItem.Type.REASSIGNMENT, body.reason().value(), false, List.of()),
                 user,
                 now);
-        Feedback after = store.update(current.withAssignee(AssigneeRole.valueOf(role.name()), assignee.accountId()));
+        Feedback after = store.update(current.withAssignee(AssigneeRole.valueOf(role.name()), assigneeAccount));
         audit(current, after, body.reason());
         notifyAssignee(after, String.valueOf(item.id()), now);
         return view(after, user, true, now);
@@ -508,7 +517,12 @@ public class FeedbackService {
                 overdue(f),
                 items,
                 family ? null : healthRight,
-                family ? hidden : null);
+                family ? hidden : null,
+                relationships
+                        .familyMember(f.familyMemberId())
+                        .map(m -> m.fullName())
+                        .orElse(null),
+                allowedCommands(f, user));
     }
 
     private String assigneeName(Feedback f) {
@@ -571,14 +585,84 @@ public class FeedbackService {
     private Feedback lockAsAssignee(CurrentUser user, long id) {
         Feedback current = store.lockForUpdate(id);
         authorizeHandling(user, current);
-        boolean assignee = current.assigneeAccountId() == null
-                ? user.roles().contains(Role.valueOf(current.assigneeRole().name()))
-                : current.assigneeAccountId() == user.accountId();
-        if (!assignee) {
+        if (!isAssignee(user, current)) {
             throw new PermissionDeniedException(
                     "PERMISSION_DENIED", "Chỉ người phụ trách xử lý phản hồi", Map.of("failedLayer", "ROLE"));
         }
         return current;
+    }
+
+    /** Người phụ trách: đúng tài khoản, hoặc người có vai trò của nhóm khi chưa ai Nhận xử lý (FR-059). */
+    private static boolean isAssignee(CurrentUser user, Feedback f) {
+        return f.assigneeAccountId() == null
+                ? user.roles().contains(Role.valueOf(f.assigneeRole().name()))
+                : f.assigneeAccountId() == user.accountId();
+    }
+
+    private static Operation handlingOperation(CurrentUser user) {
+        return user.roles().contains(Role.NURSING_HOME_MANAGER) ? Operation.APPROVE : Operation.UPDATE;
+    }
+
+    /** Lệnh người xem gọi được lúc này theo bảng FR-066 (DESIGN.md 7.4); backend vẫn kiểm lại ở lệnh. */
+    private List<String> allowedCommands(Feedback f, CurrentUser user) {
+        List<String> commands = new ArrayList<>();
+        if (user.type() == AccountType.FAMILY_MEMBER) {
+            boolean own = f.familyMemberId() == user.familyMemberId().orElseThrow();
+            if (own
+                    && f.status() == Status.REPLIED
+                    && permissions
+                            .hasPermission(user, key(Operation.UPDATE), target(f))
+                            .allowed()) {
+                commands.add("agree-to-close");
+                commands.add("reopen");
+            }
+            return commands;
+        }
+        if (user.type() != AccountType.STAFF
+                || !permissions
+                        .hasPermission(user, key(handlingOperation(user)), target(f))
+                        .allowed()) {
+            return commands;
+        }
+        if (isAssignee(user, f)) {
+            if (f.status() == Status.NEW || f.status() == Status.REOPENED) {
+                commands.add("start-handling");
+            }
+            if (f.status() == Status.IN_PROGRESS) {
+                commands.add("reply");
+            }
+            if (f.open()) {
+                commands.add("change-priority");
+            }
+            commands.add("add-note");
+        }
+        if (f.open() && user.roles().stream().anyMatch(REASSIGNERS::contains)) {
+            commands.add("reassign");
+        }
+        return commands;
+    }
+
+    /** Người nhận giao lại được (FR-060): người có (FEEDBACK, UPDATE) trên phản hồi, theo vai trò được giao. */
+    @Transactional(readOnly = true)
+    public List<AssignableView> assignableStaff(long id) {
+        CurrentUser user = currentUser.getObject();
+        Feedback f = store.require(id);
+        authorizeHandling(user, f);
+        return assignable(f).stream()
+                .sorted(java.util.Comparator.comparing(AssignableView::role).thenComparing(AssignableView::fullName))
+                .toList();
+    }
+
+    private List<AssignableView> assignable(Feedback f) {
+        List<AssignableView> result = new ArrayList<>();
+        for (long accountId : approvers.approvers(key(Operation.UPDATE), target(f))) {
+            accounts.byId(accountId)
+                    .flatMap(
+                            a -> ASSIGNABLE.stream().filter(a.roles()::contains).findFirst())
+                    .ifPresent(role -> result.add(new AssignableView(
+                            accountId, accounts.fullName(accountId).orElse(""), role)));
+        }
+        return result;
     }
 
     /** Nhân viên: Tạo, Sửa trong phạm vi; Quản lý viện qua quyền Duyệt (Phụ lục 27 dòng "Phản hồi" ô D). */
@@ -586,8 +670,7 @@ public class FeedbackService {
         if (user.type() != AccountType.STAFF) {
             throw denied();
         }
-        Operation operation = user.roles().contains(Role.NURSING_HOME_MANAGER) ? Operation.APPROVE : Operation.UPDATE;
-        authorize(user, operation, target(f));
+        authorize(user, handlingOperation(user), target(f));
     }
 
     private Feedback lockAsSender(CurrentUser user, long id) {
