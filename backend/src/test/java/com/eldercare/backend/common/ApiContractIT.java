@@ -246,8 +246,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "POST /api/v1/late-return-consents",
                             "POST /api/v1/late-return-consents/{id}/withdraw",
                             "GET /api/v1/residents/{residentId}/preferences",
-                            "POST /api/v1/residents/{residentId}/preferences",
-                            "POST /api/v1/preferences/{id}/remove",
                             "GET /api/v1/residents/{residentId}/wellbeing-profile",
                             "GET /api/v1/quality-checks/shifts/{shiftId}",
                             "POST /api/v1/quality-checks/shifts/{shiftId}",

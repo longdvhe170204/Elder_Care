@@ -48,10 +48,17 @@ final class SessionAttendanceFixture {
 
     long activity(boolean charged) {
         long id = TestUsers.nextId();
+        // Loại hoạt động có thật: đăng ký đọc nhóm sở thích của loại (FR-052).
+        long type = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.ACTIVITY_TYPE','M04',?,'ACTIVE',?)",
+                type,
+                "Nhóm " + type,
+                "{\"groupActivity\":true,\"offSite\":false,\"interestGroupIds\":[]}");
         jdbc.update(
                 "INSERT INTO simple_record(id,kind,module,status,content,created_at,created_by) VALUES(?,'M04.ACTIVITY','M04','ACTIVE',?,NOW(6),1)",
                 id,
-                "{\"name\":\"Tập đàn\",\"typeId\":1,\"scope\":\"FLOOR\",\"floorAreaId\":" + floor
+                "{\"name\":\"Tập đàn\",\"typeId\":" + type + ",\"scope\":\"FLOOR\",\"floorAreaId\":" + floor
                         + ",\"maxParticipants\":20,\"charged\":" + charged + ",\"serviceId\":"
                         + (charged ? serviceId : "null") + ",\"groupActivity\":true,\"createdByStaffId\":"
                         + manager.staffId() + "}");

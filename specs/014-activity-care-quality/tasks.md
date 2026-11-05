@@ -176,6 +176,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Implementation cho User Story 6
 
 - [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon_loai ENUM('NGUOI_CAO_TUOI','NGUOI_THAN','NHAN_VIEN_QUAN_SAT')`, `nguon_nguoi_than_id BIGINT NULL` với `CHECK ((nguon_loai = 'NGUOI_THAN') = (nguon_nguoi_than_id IS NOT NULL))` theo mẫu 001; cột sinh `khoa_hien_hanh` theo (nhóm, nguồn) `UNIQUE`; `trang_thai`; sửa 2026-10-18, Q-363), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/care/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `so_thich` → `ho_so_chung`; `chuoi_co_lap` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+  - Một phần 06/11/2026: ghi, bỏ sở thích và cảnh báo "không thích" khi đăng ký (`FR_051_SoThichIT` 4/4, plan Phase 8). Còn: hai GET chờ schema, chuỗi cô lập chờ hàm nghi nhiễm theo khoảng của 007, `BR_M04_22_CoLapIT` và các test đơn vị ngày tính, web; T021, T022 chưa đánh [x].
 
 **Checkpoint**: Tinh thần chạy độc lập.
 
