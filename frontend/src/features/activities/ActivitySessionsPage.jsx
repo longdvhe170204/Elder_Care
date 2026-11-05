@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getActivities, getActivitySessions } from '@/api'
+import { getActivities, getActivitySessions, getResidents } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -32,6 +32,7 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
   const [revision, setRevision] = useState(0)
   const [result, setResult] = useState(null)
   const [activities, setActivities] = useState([])
+  const [residents, setResidents] = useState([])
   const [sheet, setSheet] = useState(null)
   const [message, setMessage] = useState('')
   const requestKey = `${week.from}:${floorAreaId ?? 'all'}:${revision}:${status}:${permitted}`
@@ -58,6 +59,18 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
       active = false
     }
   }, [status, permitted, floorAreaId])
+
+  // Họ tên người cao tuổi cho bảng đăng ký và ô chọn (001, như màn Điểm danh bán trú của 005); lỗi thì chỉ hiện mã.
+  useEffect(() => {
+    if (status !== 'ready' || !permitted) return
+    let active = true
+    getResidents()
+      .then(({ data }) => active && setResidents(data.items ?? []))
+      .catch(() => active && setResidents([]))
+    return () => {
+      active = false
+    }
+  }, [status, permitted])
 
   if (status === 'loading') return <Skeleton className="h-24" />
   if (!permitted || current?.failure?.status === 403) return <PermissionDeniedState label="Buổi hoạt động" />
@@ -87,6 +100,8 @@ export function ActivitySessionsPage({ floorAreaId, initialDate }) {
             key={selected.id}
             sessionId={selected.id}
             activityName={nameOf(selected.activityId)}
+            residents={residents}
+            canCreate={canCreate}
             canUpdate={canUpdate}
             onChanged={done}
             Title={Title}

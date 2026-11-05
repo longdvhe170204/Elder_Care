@@ -13,4 +13,7 @@ public record Registration(
     public static final String AUTO_TEMPLATE_CHANGED = "TEMPLATE_CHANGED";
     public static final String AUTO_SESSION_CHANGED = "SESSION_CHANGED";
     public static final String AUTO_SESSION_CANCELLED = "SESSION_CANCELLED";
+    public static final String AUTO_ISOLATION = "ISOLATION";
+    public static final String AUTO_INFECTION = "INFECTION_SUSPECTED";
+    public static final String AUTO_FINAL_STATUS = "FINAL_STATUS";
 }

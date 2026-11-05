@@ -22,6 +22,7 @@ import com.eldercare.backend.support.SwitchableUser;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
+import com.eldercare.backend.support.fake.care.FakeM04Config;
 import com.eldercare.backend.support.fake.resident.FakeM01Config;
 import com.eldercare.backend.support.fake.resident.FakeResidents;
 import java.time.*;
@@ -50,7 +51,7 @@ import tools.jackson.databind.json.JsonMapper;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class})
+@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 class BR_M04_21_TaoBuoiTuMauIT extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;
@@ -176,7 +177,8 @@ class BR_M04_21_TaoBuoiTuMauIT extends MySqlIntegrationTestBase {
 
     @Test
     void BR_M04_21_createFromTemplateMakesMissingSessionsWithRegularsRegistered() throws Exception {
-        createFromTemplate(today, today.plusDays(6)).andExpect(status().isOk());
+        // Từ ngày mai: buổi hôm nay có thể đã bắt đầu, khi đó người thường xuyên không được đăng ký sẵn (FR-015 (e)).
+        createFromTemplate(today.plusDays(1), today.plusDays(7)).andExpect(status().isOk());
         var rows = sessions();
         assertThat(rows).hasSize(7);
         assertThat(rows).allSatisfy(r -> assertThat(r.get("status")).isEqualTo("SCHEDULED"));
@@ -184,8 +186,8 @@ class BR_M04_21_TaoBuoiTuMauIT extends MySqlIntegrationTestBase {
             assertThat(registrations(((Number) r.get("id")).longValue(), "REGULAR", "REGISTERED"))
                     .isEqualTo(3);
         var list = json.readTree(mvc.perform(get("/api/v1/activity-sessions")
-                        .param("from", today.toString())
-                        .param("to", today.plusDays(6).toString())
+                        .param("from", today.plusDays(1).toString())
+                        .param("to", today.plusDays(7).toString())
                         .param("floorAreaId", Long.toString(floor)))
                 .andExpect(status().isOk())
                 .andReturn()

@@ -29,4 +29,5 @@ public record Session(
     public static final String BY_STAFF = "STAFF";
     public static final String BY_TEMPLATE_CHANGE = "TEMPLATE_CHANGED";
     public static final String BY_DEACTIVATION = "DEACTIVATED";
+    public static final String BY_ISOLATION = "ISOLATION";
 }

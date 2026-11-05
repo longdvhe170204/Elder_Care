@@ -42,6 +42,12 @@ public class FakeM04Config {
 
     @Bean
     @Primary
+    public FakeActivityHealthGate fakeActivityHealthGate(FakeM04Switches switches) {
+        return new FakeActivityHealthGate(switches);
+    }
+
+    @Bean
+    @Primary
     FakeAlertReader fakeAlertReader(FakeM04Switches switches) {
         return new FakeAlertReader(switches);
     }

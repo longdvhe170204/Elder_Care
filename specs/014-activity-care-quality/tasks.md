@@ -84,11 +84,14 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Tests cho User Story 2
 
 - [ ] T010 [P] [US2] Test đơn vị `BT/care/DieuKienDangKyTest.java` và `BT/care/BR_M04_15_DangKyIT.java` (hai đăng ký chỗ cuối đồng thời), `FR_016a_DongYVeMuonIT.java`, `FR_021_KhoanhVungIT.java` (Q6 → Q12)
+  - *(2026-11-05, C, một phần)* `DieuKienDangKyTest` (9 ca, hàm thuần `RegistrationConditions`; viết trước nhưng chạy lần đầu khi hàm đã có, nên không thấy đỏ), `BR_M04_15_DangKyIT` (6 ca: chỗ cuối, hai đăng ký đồng thời, nghi nhiễm, cảnh báo cần xác nhận, hủy cần lý do, trạng thái cuối), `FR_021_KhoanhVungIT` (3 ca: khoanh vùng, nghi nhiễm, trạng thái cuối) đỏ 9/9 rồi xanh. Còn `FR_016a_DongYVeMuonIT`: đồng ý về muộn chờ quyền (team-plan mục 8).
 
 ### Implementation cho User Story 2
 
 - [ ] T011 [US2] Tạo bảng `dong_y_ve_muon` (`cach` `CONG|BAN_KY`; `trang_thai` `HIEU_LUC|DA_RUT|...`) trong `MIG/V014_03__dong_y_ve_muon.sql`; cài `BE/care/buoi/internal/DangKyService.java` (đăng ký, hủy, hủy tự động; listener `KhoanhVungDaTao`, `DauNghiNhiemDaDoi`) và `DongYVeMuonService.java` (người đại diện qua `QuyenNguoiThanApi`; dời `gio_ve_du_kien_hien_hanh` của 005); bean `ThamGiaChuyenTrangThai` (`@Order` sau 005; trạng thái cuối hủy đăng ký, gỡ thường xuyên) (research L-05) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `dong_y_ve_muon` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+  - *(2026-11-05, C, một phần)* Đã có: `RegistrationConditions`, `RegistrationEligibility`, `RegistrationService` (đăng ký dưới khóa dòng buổi, hủy), `RegistrationAutoCancels` (cài `care.api.ActivityRegistrationAutoCancelApi` cho 007 gọi), `ActivityStatusParticipant` (`@Order(31)`; Kết thúc lưu trú, Ghi nhận qua đời, Hủy tiếp nhận). Nguồn 007 qua SPI `care.api.spi.ActivityHealthGatePort` thay listener `KhoanhVungDaTao`, `DauNghiNhiemDaDoi` (chủ dự án duyệt 05/11; C-02). Còn: đồng ý về muộn (`M04.LATE_RETURN_CONSENT` ở `simple_record`, `DongYVeMuonService`, dời giờ về qua `DayCareAttendanceApi.changeReturnTime`, chuyển Đã dùng lúc bắt đầu) chờ quyền của Hành chính và Người thân (Phụ lục 27 không có dòng; team-plan mục 8).
 - [ ] T012 [US2] Tạo endpoint `/buoi/{id}/dang-ky`, `/dang-ky/{id}/huy`, `/dong-y-ve-muon`, `/{id}/rut`, `/cong/dong-y-ve-muon`, `/{id}/rut`; màn web đăng ký (cảnh báo cần xác nhận) với test Vitest; app người thân đồng ý về muộn
+  - *(2026-11-05, C, một phần)* Đã có `POST /activity-sessions/{id}/registrations`, `POST /activity-registrations/{id}/cancel`; web: khối "Đăng ký người cao tuổi" trong khung chi tiết buổi (cảnh báo cần xác nhận, điều kiện chưa thỏa), nút "Hủy đăng ký" mỗi dòng (bố cục duyệt 05/11); test Vitest 3 ca mới đỏ rồi xanh. Còn: `/late-return-consents`, `/{id}/withdraw`, `/family-portal/late-return-consents` (chờ quyền), app người thân (task mobile).
 
 **Checkpoint**: Đăng ký chạy độc lập.
 
