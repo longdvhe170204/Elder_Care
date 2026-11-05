@@ -31,11 +31,25 @@ public record FeedbackResponse(
         Priority priority,
         Instant dueAt,
         boolean overdue,
-        String assignee) {
+        String assignee,
+        String familyMemberName,
+        Instant submittedAt) {
 
-    /** Phần trạng thái của phản hồi (data-model mục 9). */
+    /** Phần trạng thái của phản hồi (data-model mục 9); tên người gửi, thời điểm gửi bổ sung 2026-11-05. */
     @Schema(name = "FeedbackState")
-    public record State(long id, Status status, Priority priority, Instant dueAt, boolean overdue, String assignee) {}
+    public record State(
+            long id,
+            Status status,
+            Priority priority,
+            Instant dueAt,
+            boolean overdue,
+            String assignee,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+            String familyMemberName,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+            Instant submittedAt) {}
 
     public static FeedbackResponse of(FeedbackView view) {
         Feedback f = view.feedback();
@@ -53,6 +67,8 @@ public record FeedbackResponse(
                 f.priority(),
                 f.dueAt(),
                 view.overdue(),
-                view.assignee());
+                view.assignee(),
+                view.familyMemberName(),
+                f.submittedAt());
     }
 }

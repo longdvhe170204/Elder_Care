@@ -24,6 +24,9 @@ export const FEEDBACK_STATUS = {
 
 export const PRIORITY = { HIGH: 'Cao', NORMAL: 'Thường' }
 
+// Vai trò người nhận giao lại (FR-060; api-012 AssignableStaff)
+export const ASSIGNEE_ROLES = { FLOOR_MANAGER: 'Trưởng tầng', NURSING_STAFF: 'Điều dưỡng', OFFICE_STAFF: 'Hành chính' }
+
 export const ITEM_LABELS = {
   CONTENT: 'Nội dung',
   REPLY: 'Viện trả lời',
@@ -44,5 +47,3 @@ export function typeLabel(code) {
 export function groupLabel(code) {
   return GROUP_MAP[code] ?? code
 }
-
-export const OPEN_STATUSES = ['NEW', 'IN_PROGRESS', 'REOPENED']

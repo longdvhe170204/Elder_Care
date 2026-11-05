@@ -10,7 +10,8 @@ import '../../support/fake_backend.dart';
 
 // 012 T030 (US6; FR-058, FR-061, FR-066): người thân gửi phản hồi trên app cho người cao tuổi đầu tiên có quan hệ (như
 // cổng web); loại, nhóm nội dung, nội dung bắt buộc; phản hồi Đã phản hồi thì Đồng ý đóng hoặc Mở lại có lý do. Chỉ trực
-// tuyến; trả lời là thông tin sức khỏe mà người xem không có quyền thì hiện dòng khóa.
+// tuyến; trả lời là thông tin sức khỏe mà người xem không có quyền thì hiện dòng khóa. Nút lệnh theo allowedCommands của
+// chi tiết (đổi api 2026-11-05).
 
 Map<String, dynamic> feedback({int id = 91, String status = 'REPLIED', String group = 'CARE'}) => {
   'id': id,
@@ -81,6 +82,11 @@ void main() {
 
   testWidgets('FR_066_moLai_batBuocLyDo', (tester) async {
     final backend = backendWith([feedback()])
+      ..on('GET', '/feedback/91', 200, {
+        ...feedback(),
+        'items': <dynamic>[],
+        'allowedCommands': ['agree-to-close', 'reopen'],
+      })
       ..on('POST', '/feedback/91/reopen', 200, {...feedback(status: 'REOPENED'), 'items': <dynamic>[]});
     await pumpScreen(tester, backend.client());
 
@@ -94,6 +100,17 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'Lý do mở lại'), 'Chưa ổn');
     await tapText(tester, 'Gửi mở lại');
     expect(jsonDecode(backend.calls('POST', '/feedback/91/reopen').single.body), {'reason': 'Chưa ổn'});
+  });
+
+  testWidgets('FR_066_khongCoLenhDuocPhep_khongHienNut', (tester) async {
+    final backend = backendWith([feedback()])
+      ..on('GET', '/feedback/91', 200, {...feedback(), 'items': <dynamic>[], 'allowedCommands': <String>[]});
+    await pumpScreen(tester, backend.client());
+
+    expect(find.text('Phòng chưa được dọn'), findsOneWidget);
+    expect(backend.calls('GET', '/feedback/91'), hasLength(1));
+    expect(find.text('Mở lại'), findsNothing);
+    expect(find.text('Đồng ý đóng'), findsNothing);
   });
 
   testWidgets('FR_058_traLoiSucKhoe_khongCoQuyen_hienDongKhoa', (tester) async {

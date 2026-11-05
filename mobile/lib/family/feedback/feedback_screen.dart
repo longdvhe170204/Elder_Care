@@ -284,6 +284,14 @@ class _FeedbackCardState extends State<_FeedbackCard> {
   bool _busy = false;
   String? _error;
   Map<String, dynamic>? _detail;
+  bool _showingReplies = false;
+
+  // Đã phản hồi: đọc chi tiết để biết lệnh được phép (allowedCommands, đổi api 2026-11-05)
+  @override
+  void initState() {
+    super.initState();
+    if (widget.item['status'] == 'REPLIED') _loadDetail();
+  }
 
   @override
   void dispose() {
@@ -306,7 +314,7 @@ class _FeedbackCardState extends State<_FeedbackCard> {
     }
   }
 
-  Future<void> _showReplies() async {
+  Future<void> _loadDetail() async {
     try {
       final detail = await widget.api.get('/feedback/${widget.item['id']}');
       if (mounted) setState(() => _detail = detail);
@@ -314,6 +322,13 @@ class _FeedbackCardState extends State<_FeedbackCard> {
       if (mounted) setState(() => _error = backendMessage(e));
     }
   }
+
+  void _showReplies() {
+    setState(() => _showingReplies = true);
+    if (_detail == null) _loadDetail();
+  }
+
+  bool _can(String command) => (_detail?['allowedCommands'] as List<dynamic>? ?? const []).contains(command);
 
   void _reopen() {
     setState(() => _submitted = true);
@@ -328,7 +343,7 @@ class _FeedbackCardState extends State<_FeedbackCard> {
     final f = widget.item;
     final status = f['status'];
     final replied = status == 'REPLIED';
-    final detail = _detail;
+    final detail = _showingReplies ? _detail : null;
     final replies = (detail?['items'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>()
         .where((i) => i['type'] != 'CONTENT')
@@ -348,7 +363,7 @@ class _FeedbackCardState extends State<_FeedbackCard> {
             Text(_status[status] ?? '$status', style: theme.textTheme.labelMedium),
             const SizedBox(height: 8),
             Text('${f['content']}', style: theme.textTheme.bodyMedium),
-            if ((replied || status == 'CLOSED') && detail == null)
+            if ((replied || status == 'CLOSED') && !_showingReplies)
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(onPressed: _showReplies, child: const Text('Xem trả lời')),
@@ -370,17 +385,19 @@ class _FeedbackCardState extends State<_FeedbackCard> {
                 liveRegion: true,
                 child: Text(_error!, style: theme.textTheme.bodySmall?.copyWith(color: tones.attentionInk)),
               ),
-            if (replied && !_reopening) ...[
+            if (!_reopening && (_can('agree-to-close') || _can('reopen'))) ...[
               const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
                 runSpacing: 8,
                 children: [
-                  OutlinedButton(
-                    onPressed: _busy ? null : () => _send('agree-to-close', const {}, 'Đã đóng phản hồi.'),
-                    child: const Text('Đồng ý đóng'),
-                  ),
-                  TextButton(onPressed: () => setState(() => _reopening = true), child: const Text('Mở lại')),
+                  if (_can('agree-to-close'))
+                    OutlinedButton(
+                      onPressed: _busy ? null : () => _send('agree-to-close', const {}, 'Đã đóng phản hồi.'),
+                      child: const Text('Đồng ý đóng'),
+                    ),
+                  if (_can('reopen'))
+                    TextButton(onPressed: () => setState(() => _reopening = true), child: const Text('Mở lại')),
                 ],
               ),
             ],

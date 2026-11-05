@@ -5,7 +5,7 @@ import { LiveFeedbackPage } from './LiveFeedbackPage'
 
 // 012 T030 (US6; FR-058, FR-061, FR-064, FR-066): màn Phản hồi của cổng với phiên thật. Gửi cho người cao tuổi đang
 // xem (loại, nhóm nội dung, nội dung bắt buộc); danh sách phản hồi của mình; Đã phản hồi thì Đồng ý đóng hoặc Mở lại
-// có lý do; trả lời là thông tin sức khỏe mà người xem không có quyền thì hiện dòng khóa.
+// có lý do (nút theo allowedCommands của chi tiết); trả lời là thông tin sức khỏe mà người xem không có quyền thì hiện dòng khóa.
 
 let api
 
@@ -39,6 +39,7 @@ beforeEach(() => {
       submittedAt: '2026-11-05T02:00:00Z',
       items: [{ id: 1, type: 'CONTENT', content: 'Vì sao đổi thuốc?', fileIds: [], at: '2026-11-05T02:00:00Z' }],
       healthReplyHidden: true,
+      allowedCommands: ['agree-to-close', 'reopen'],
     }),
   )
 })
@@ -88,12 +89,26 @@ describe('Phản hồi trên cổng', () => {
     render(<LiveFeedbackPage viewer={VIEWER} />)
     const item = (await screen.findByText('Vì sao đổi thuốc?')).closest('li')
 
-    fireEvent.click(within(item).getByRole('button', { name: 'Mở lại' }))
+    fireEvent.click(await within(item).findByRole('button', { name: 'Mở lại' }))
     fireEvent.click(within(item).getByRole('button', { name: 'Gửi mở lại' }))
     expect(await within(item).findByText('Nhập lý do mở lại')).toBeInTheDocument()
     fireEvent.change(within(item).getByLabelText('Lý do mở lại'), { target: { value: 'Chưa rõ' } })
     fireEvent.click(within(item).getByRole('button', { name: 'Gửi mở lại' }))
     await waitFor(() => expect(api.calls('POST', '/feedback/91/reopen')).toHaveLength(1))
     expect(bodyOf(api.calls('POST', '/feedback/91/reopen')[0])).toEqual({ reason: 'Chưa rõ' })
+  })
+
+  it('FR_066_khongCoLenhDuocPhep_khongHienNut', async () => {
+    api.on(
+      'GET',
+      '/feedback/91',
+      json(200, { ...REPLIED, source: 'PORTAL', items: [], healthReplyHidden: false, allowedCommands: [] }),
+    )
+    render(<LiveFeedbackPage viewer={VIEWER} />)
+    const item = (await screen.findByText('Vì sao đổi thuốc?')).closest('li')
+
+    await waitFor(() => expect(api.calls('GET', '/feedback/91')).toHaveLength(1))
+    expect(within(item).queryByRole('button', { name: 'Mở lại' })).not.toBeInTheDocument()
+    expect(within(item).queryByRole('button', { name: 'Đồng ý đóng' })).not.toBeInTheDocument()
   })
 })
