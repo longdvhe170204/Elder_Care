@@ -34,8 +34,9 @@ public record HandoverRequest(
             List<Long> photoFileIds,
             IncidentOptionRequest incident) {}
 
-    /** {@code IncidentOption}; Phase 4 chỉ nhận {@code NONE} (US4 cài {@code NEW}, {@code LINK}). */
-    public record IncidentOptionRequest(String method, Long incidentId) {}
+    /** {@code IncidentOption} (FR-021): {@code NEW}, {@code LINK}, {@code NONE}. */
+    public record IncidentOptionRequest(
+            String method, Long incidentId, String level, String description, String place) {}
 
     /** Thiếu trường bắt buộc của hợp đồng thì {@code null} (controller trả 422). */
     public HandoverCommand toCommand() {
@@ -55,7 +56,14 @@ public record HandoverRequest(
                     item.condition() == null ? null : item.condition().levelId(),
                     item.condition() == null ? null : item.condition().description(),
                     item.photoFileIds(),
-                    item.incident() == null ? null : item.incident().method()));
+                    item.incident() == null
+                            ? null
+                            : new HandoverCommand.IncidentChoice(
+                                    item.incident().method(),
+                                    item.incident().incidentId(),
+                                    item.incident().level(),
+                                    item.incident().description(),
+                                    item.incident().place())));
         }
         GiverType giverType = giver == null ? null : giver.type();
         return new HandoverCommand(

@@ -7,6 +7,7 @@ public final class BelongingActions {
 
     public static final AuditAction BELONGING_INTAKE = new AuditAction("M12_BELONGING_INTAKE", false);
     public static final AuditAction BELONGING_HANDOVER = new AuditAction("M12_BELONGING_HANDOVER", false);
+    public static final AuditAction BELONGING_INCIDENT_LINKED = new AuditAction("M12_BELONGING_INCIDENT_LINKED", false);
     public static final AuditAction SELF_CUSTODY_CONSENT_EXPIRED =
             new AuditAction("M12_SELF_CUSTODY_CONSENT_EXPIRED", false);
     public static final AuditAction SELF_CUSTODY_CONSENT_RECORDED =
