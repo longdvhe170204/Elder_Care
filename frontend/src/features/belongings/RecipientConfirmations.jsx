@@ -17,7 +17,7 @@ import { uploadFile } from '@/common/files'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { FilesField, SelectField } from './BelongingFields'
-import { CONFIRMATION_LABELS, nowLocal, toOffsetIso } from './belongingLabels'
+import { CHANNEL_OPTIONS, CONFIRMATION_LABELS, nowLocal, toOffsetIso } from './belongingLabels'
 
 // Xác nhận người nhận khác của một người cao tuổi (013 T019; FR-017 → FR-017b, BR-M12-04; api-013 /recipient-
 // confirmations). Hành chính lập (kèm bản ký của người đại diện thì Hiệu lực ngay), ghi các lần liên hệ người đại diện,
@@ -25,11 +25,6 @@ import { CONFIRMATION_LABELS, nowLocal, toOffsetIso } from './belongingLabels'
 // Người đại diện xác nhận, từ chối trên cổng và app người thân. Hợp đồng không trả lệnh được phép: nút Duyệt thay hiện
 // theo vai trò đang xem, nút khác theo khóa quyền; backend kiểm lại.
 
-const CHANNELS = [
-  { value: 'PHONE_CALL', label: 'Gọi điện' },
-  { value: 'TEXT_MESSAGE', label: 'Tin nhắn' },
-  { value: 'PORTAL_NOTIFICATION', label: 'Thông báo trên cổng' },
-]
 const BASES = [
   { value: 'REPRESENTATIVE_UNREACHABLE', label: 'Không liên hệ được người đại diện' },
   { value: 'NO_REPRESENTATIVE', label: 'Không có người đại diện' },
@@ -189,7 +184,7 @@ function ContactForm({ confirmation, onDone }) {
         label="Kênh liên hệ"
         value={v.channel}
         onChange={(channel) => setV((s) => ({ ...s, channel }))}
-        options={CHANNELS}
+        options={CHANNEL_OPTIONS}
         error={errors.channel}
       />
       <Field>
