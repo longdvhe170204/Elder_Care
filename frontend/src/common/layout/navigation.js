@@ -216,6 +216,14 @@ export const NAV_GROUPS = [
         functions: ['VISITOR_PREFERENCE'],
         roles: [QL, TT, DD, HC],
       },
+      // Dòng "Quy trình đón, ngoại lệ đón" (012 T021): người có quyền lệnh nguồn ghi đón, Quản lý viện duyệt ngoại lệ
+      {
+        key: 'pickups',
+        label: 'Quy trình đón',
+        icon: 'DoorOpen',
+        functions: ['PICKUP'],
+        roles: [QL, TT, DD, CS, HC],
+      },
       // Dòng "Đăng ký thăm"
       {
         key: 'visits',
