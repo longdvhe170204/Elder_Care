@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -130,6 +131,61 @@ public class SelfCustodyConsentService {
                 .build());
     }
 
+    /**
+     * 013-3 (FR-015a, FR-012): phần {@code partBelongingId} vừa tách từ {@code sourceBelongingId} kế thừa đồng ý Hiệu
+     * lực của đồ bị tách bằng một bản {@link SelfCustodyConsent#INHERITED} riêng (cùng người đại diện, bản ký, trỏ bản
+     * gốc). Không có đồng ý thì không làm gì. Lệnh gọi đã khóa người cao tuổi; phần sang trạng thái kết thúc không gọi.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void inherit(long sourceBelongingId, long partBelongingId) {
+        var source =
+                records.findByUniqueKey(SelfCustodyConsent.KIND, SelfCustodyConsent.effectiveKey(sourceBelongingId));
+        if (source.isEmpty()) {
+            return;
+        }
+        SelfCustodyConsent from = source.get().content();
+        long root = from.rootOf(source.get().id());
+        CurrentUser user = users.getObject();
+        var created = records.create(
+                SelfCustodyConsent.KIND,
+                new NewSimpleRecord<>(
+                        source.get().residentId(),
+                        new EntityRef(BELONGING_ENTITY, partBelongingId),
+                        SelfCustodyConsent.EFFECTIVE,
+                        new SelfCustodyConsent(
+                                partBelongingId,
+                                from.representativeId(),
+                                SelfCustodyConsent.INHERITED,
+                                from.signedFormFileId(),
+                                user.accountId(),
+                                time.now(),
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                root),
+                        null,
+                        null,
+                        SelfCustodyConsent.effectiveKey(partBelongingId),
+                        user.accountId(),
+                        false));
+        audit.write(AuditLogEntry.builder()
+                .action(SELF_CUSTODY_CONSENT_RECORDED)
+                .entity(SelfCustodyConsent.KIND.code(), created.id())
+                .resident(source.get().residentId())
+                .after(Map.of(
+                        "belongingId",
+                        partBelongingId,
+                        "method",
+                        SelfCustodyConsent.INHERITED,
+                        "rootConsentId",
+                        root,
+                        "sourceBelongingId",
+                        sourceBelongingId))
+                .build());
+    }
+
     /** Hành chính ghi đồng ý theo bản ký scan của người đại diện (FR-015a). */
     @RequiresPermission(function = Function.BELONGINGS, operation = Operation.UPDATE)
     @Transactional
@@ -211,6 +267,7 @@ public class SelfCustodyConsentService {
                                 null,
                                 null,
                                 null,
+                                null,
                                 null),
                         null,
                         null,
@@ -248,32 +305,65 @@ public class SelfCustodyConsentService {
         }
         CurrentUser user = users.getObject();
         Instant now = time.now();
-        records.change(
-                SelfCustodyConsent.KIND,
-                consent.id(),
-                consent.version(),
-                new RecordChange<>(
-                        SelfCustodyConsent.WITHDRAWN,
-                        consent.content()
-                                .withdrawn(representativeId, signedFormFileId, reason.value(), user.accountId(), now),
-                        null,
-                        null,
-                        true));
+        long residentId = consent.residentId();
+        // 013-3: rút đồng ý thì hết cho mọi phần cùng bản gốc (bản gốc và các bản kế thừa còn Hiệu lực)
+        long root = consent.content().rootOf(consent.id());
+        List<SimpleRecord<SelfCustodyConsent>> group = new java.util.ArrayList<>();
+        group.add(consent);
+        for (SimpleRecord<SelfCustodyConsent> other :
+                records.listByResident(SelfCustodyConsent.KIND, residentId, Set.of(SelfCustodyConsent.EFFECTIVE))) {
+            if (other.id() != consent.id() && other.content().rootOf(other.id()) == root) {
+                group.add(records.lockForUpdate(SelfCustodyConsent.KIND, other.id()));
+            }
+        }
         if (signedFormFileId != null) {
             files.attach(signedFormFileId, SIGNED_FORM_OWNER, consent.id());
         }
-        long residentId = consent.residentId();
-        BelongingView belonging =
-                belongings.find(consent.content().belongingId()).orElseThrow(NotFoundException::new);
-        audit.write(AuditLogEntry.builder()
-                .action(SELF_CUSTODY_CONSENT_WITHDRAWN)
-                .entity(SelfCustodyConsent.KIND.code(), consent.id())
-                .resident(residentId)
-                .before(Map.of("status", SelfCustodyConsent.EFFECTIVE))
-                .after(Map.of("status", SelfCustodyConsent.WITHDRAWN))
-                .reason(reason)
-                .build());
-        String type = typeName(belonging);
+        String type = null;
+        for (SimpleRecord<SelfCustodyConsent> part : group) {
+            if (!SelfCustodyConsent.EFFECTIVE.equals(part.status())) {
+                continue;
+            }
+            records.change(
+                    SelfCustodyConsent.KIND,
+                    part.id(),
+                    part.version(),
+                    new RecordChange<>(
+                            SelfCustodyConsent.WITHDRAWN,
+                            part.content()
+                                    .withdrawn(
+                                            representativeId, signedFormFileId, reason.value(), user.accountId(), now),
+                            null,
+                            null,
+                            true));
+            audit.write(AuditLogEntry.builder()
+                    .action(SELF_CUSTODY_CONSENT_WITHDRAWN)
+                    .entity(SelfCustodyConsent.KIND.code(), part.id())
+                    .resident(residentId)
+                    .before(Map.of("status", SelfCustodyConsent.EFFECTIVE))
+                    .after(Map.of("status", SelfCustodyConsent.WITHDRAWN))
+                    .reason(reason)
+                    .build());
+            BelongingView belonging =
+                    belongings.find(part.content().belongingId()).orElseThrow(NotFoundException::new);
+            if (type == null) {
+                type = typeName(belonging);
+            }
+            if (belonging.status() == BelongingStatus.IN_USE) {
+                events.publishEvent(BelongingNotices.notice(
+                        "SELF_CUSTODY_CONSENT_WITHDRAWN_IN_USE",
+                        SelfCustodyConsent.KIND.code(),
+                        part.id(),
+                        NotificationLevel.MEDIUM,
+                        residentId,
+                        List.of(
+                                new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
+                                new RecipientGroup.AssignedNurse(residentId, new Substitution.Default())),
+                        type + ": đồng ý đã rút khi đồ đang được sử dụng, cần thu lại",
+                        user.accountId(),
+                        now));
+            }
+        }
         events.publishEvent(BelongingNotices.notice(
                 "SELF_CUSTODY_CONSENT_WITHDRAWN",
                 SelfCustodyConsent.KIND.code(),
@@ -286,20 +376,6 @@ public class SelfCustodyConsentService {
                 type + ": đồng ý cho tự giữ đã bị rút",
                 user.accountId(),
                 now));
-        if (belonging.status() == BelongingStatus.IN_USE) {
-            events.publishEvent(BelongingNotices.notice(
-                    "SELF_CUSTODY_CONSENT_WITHDRAWN_IN_USE",
-                    SelfCustodyConsent.KIND.code(),
-                    consent.id(),
-                    NotificationLevel.MEDIUM,
-                    residentId,
-                    List.of(
-                            new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
-                            new RecipientGroup.AssignedNurse(residentId, new Substitution.Default())),
-                    type + ": đồng ý đã rút khi đồ đang được sử dụng, cần thu lại",
-                    user.accountId(),
-                    now));
-        }
     }
 
     private BelongingView lockedBelonging(long belongingId) {
