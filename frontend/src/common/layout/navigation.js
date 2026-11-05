@@ -224,6 +224,8 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Đồ gửi" (013): Hành chính, Điều dưỡng thực hiện; Quản lý viện, Trưởng tầng xem; người thân xem ở cổng
+      { key: 'belongings', label: 'Đồ gửi', icon: 'ClipboardCheck', functions: ['BELONGINGS'], roles: [QL, TT, DD, HC] },
     ],
   },
   {
