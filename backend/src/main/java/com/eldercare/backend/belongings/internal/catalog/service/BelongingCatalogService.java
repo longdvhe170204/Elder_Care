@@ -16,6 +16,8 @@ import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.administration.shared.api.dto.HistoryEntry;
 import com.eldercare.backend.administration.shared.api.dto.HistoryKind;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
+import com.eldercare.backend.belongings.api.dto.BelongingView;
+import com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogViews.BelongingTypeView;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogViews.ConditionLevelView;
@@ -25,18 +27,23 @@ import com.eldercare.backend.belongings.internal.catalog.domain.BelongingTypeAtt
 import com.eldercare.backend.belongings.internal.catalog.domain.ConditionLevelAttributes;
 import com.eldercare.backend.belongings.internal.catalog.domain.StorageLocationAttributes;
 import com.eldercare.backend.belongings.internal.catalog.domain.ValuableCategories;
+import com.eldercare.backend.belongings.internal.consent.service.SelfCustodyConsentService;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
+import com.eldercare.backend.common.notification.NotificationLevel;
+import com.eldercare.backend.common.notification.RecipientGroup;
+import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +64,8 @@ public class BelongingCatalogService {
     private final ParameterApi parameters;
     private final AuditLogApi audit;
     private final BelongingStore belongings;
+    private final SelfCustodyConsentService consents;
+    private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
 
@@ -66,6 +75,8 @@ public class BelongingCatalogService {
             ParameterApi parameters,
             AuditLogApi audit,
             BelongingStore belongings,
+            SelfCustodyConsentService consents,
+            ApplicationEventPublisher events,
             BusinessTime time,
             ObjectProvider<CurrentUser> users) {
         this.catalogs = catalogs;
@@ -73,6 +84,8 @@ public class BelongingCatalogService {
         this.parameters = parameters;
         this.audit = audit;
         this.belongings = belongings;
+        this.consents = consents;
+        this.events = events;
         this.time = time;
         this.users = users;
     }
@@ -160,6 +173,33 @@ public class BelongingCatalogService {
                 .after(typeSnapshot(changed))
                 .reason(why)
                 .build());
+        if (consentChanged && consent) {
+            notifyInUseWithoutConsent(id, changed.name(), user.accountId());
+        }
+    }
+
+    /**
+     * FR-015a: bật dấu "cần đồng ý" thì đồ loại đó Đang được sử dụng mà chưa có đồng ý được báo Hành chính và điều dưỡng
+     * phụ trách để Thu lại (Trung bình); trạng thái không tự đổi.
+     */
+    private void notifyInUseWithoutConsent(long typeId, String typeName, long accountId) {
+        for (BelongingView b : belongings.inUseOfType(typeId)) {
+            if (consents.hasEffective(b.belongingId())) {
+                continue;
+            }
+            events.publishEvent(BelongingNotices.notice(
+                    "SELF_CUSTODY_CONSENT_REQUIRED_IN_USE",
+                    "M12.BELONGING",
+                    b.belongingId(),
+                    NotificationLevel.MEDIUM,
+                    b.residentId(),
+                    List.of(
+                            new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
+                            new RecipientGroup.AssignedNurse(b.residentId(), new Substitution.Default())),
+                    typeName + ": loại đồ nay cần đồng ý cho tự giữ, đồ đang được sử dụng chưa có đồng ý, cần thu lại",
+                    accountId,
+                    time.now()));
+        }
     }
 
     @Transactional(readOnly = true)

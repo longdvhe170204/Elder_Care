@@ -3,8 +3,10 @@ package com.eldercare.backend.belongings.internal.belonging.persistence;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.api.dto.HolderType;
+import com.eldercare.backend.belongings.internal.belonging.domain.IntakeGroupMember;
 import com.eldercare.backend.belongings.internal.belonging.domain.LockedBelonging;
 import com.eldercare.backend.belongings.internal.belonging.domain.NewBelonging;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -58,6 +60,105 @@ public class BelongingStore {
                 },
                 keys);
         return keys.getKey().longValue();
+    }
+
+    /**
+     * Đồ tách khi bàn giao một phần (FR-012, FR-013): trỏ đồ nó được tách ra và bản ghi Tiếp nhận gốc của đồ đó (DBR-22).
+     */
+    public long insertSplit(NewBelonging b, long originalBelongingId, long intakeHandoverId) {
+        long id = insert(b);
+        jdbc.update(
+                "UPDATE belonging SET original_belonging_id = ?, intake_handover_id = ? WHERE id = ?",
+                originalBelongingId,
+                intakeHandoverId,
+                id);
+        return id;
+    }
+
+    /** Số lượng (hoặc số tiền) còn lại của đồ sau khi tách, đính chính; tăng phiên bản (FR-011b). */
+    public void setAmount(long belongingId, BigDecimal quantity, BigDecimal cashAmount) {
+        jdbc.update(
+                "UPDATE belonging SET quantity = ?, cash_amount = ?, version = version + 1 WHERE id = ?",
+                quantity,
+                cashAmount,
+                belongingId);
+    }
+
+    /** Hủy ghi nhận bản ghi đầu tiên của đồ: đồ bị loại khỏi mọi danh sách, bản ghi giữ nguyên (FR-011a). */
+    public void exclude(long belongingId) {
+        jdbc.update("UPDATE belonging SET excluded = TRUE, version = version + 1 WHERE id = ?", belongingId);
+    }
+
+    /** Khóa mọi đồ của một lần tiếp nhận (gồm đồ tách, đồ bị loại) theo {@code id} tăng. */
+    public List<IntakeGroupMember> lockIntakeGroup(long residentId, long intakeHandoverId) {
+        return jdbc.query(
+                "SELECT id, original_belonging_id, quantity, cash_amount, excluded, status, holder_type, holder_id,"
+                        + " storage_location_id, condition_level_id, current_handover_id FROM belonging"
+                        + " WHERE resident_id = ? AND intake_handover_id = ? ORDER BY id FOR UPDATE",
+                (rs, row) -> {
+                    String holderType = rs.getString("holder_type");
+                    return new IntakeGroupMember(
+                            rs.getLong("id"),
+                            rs.getObject("original_belonging_id", Long.class),
+                            rs.getBigDecimal("quantity"),
+                            rs.getBigDecimal("cash_amount"),
+                            rs.getBoolean("excluded"),
+                            BelongingStatus.valueOf(rs.getString("status")),
+                            holderType == null ? null : HolderType.valueOf(holderType),
+                            rs.getObject("holder_id", Long.class),
+                            rs.getObject("storage_location_id", Long.class),
+                            rs.getLong("condition_level_id"),
+                            rs.getObject("current_handover_id", Long.class));
+                },
+                residentId,
+                intakeHandoverId);
+    }
+
+    /**
+     * Đồ Đang giữ do nhân viên giữ thuộc các loại {@code typeIds} (đồ có giá trị, FR-014a); {@code staffIds} rỗng là mọi
+     * nhân viên giữ.
+     */
+    public List<BelongingView> heldByStaff(Collection<Long> typeIds, Collection<Long> staffIds) {
+        if (typeIds.isEmpty() || (staffIds != null && staffIds.isEmpty())) {
+            return List.of();
+        }
+        List<Object> args = new java.util.ArrayList<>(typeIds);
+        String sql = "SELECT " + VIEW_COLUMNS + " FROM belonging WHERE status = 'HELD' AND holder_type = 'STAFF'"
+                + " AND excluded = FALSE AND type_id IN (" + marks(typeIds.size()) + ")";
+        if (staffIds != null) {
+            sql += " AND holder_id IN (" + marks(staffIds.size()) + ")";
+            args.addAll(staffIds);
+        }
+        return jdbc.query(sql + " ORDER BY id", BelongingStore::view, args.toArray());
+    }
+
+    /** Đồ Đang giữ của người cao tuổi tại các vị trí (FR-028). */
+    public List<BelongingView> heldAt(long residentId, Collection<Long> storageLocationIds) {
+        if (storageLocationIds.isEmpty()) {
+            return List.of();
+        }
+        List<Object> args = new java.util.ArrayList<>();
+        args.add(residentId);
+        args.addAll(storageLocationIds);
+        return jdbc.query(
+                "SELECT " + VIEW_COLUMNS + " FROM belonging WHERE resident_id = ? AND status = 'HELD'"
+                        + " AND excluded = FALSE AND storage_location_id IN (" + marks(storageLocationIds.size())
+                        + ") ORDER BY id",
+                BelongingStore::view,
+                args.toArray());
+    }
+
+    /** Đồ Đang được sử dụng của một loại (FR-015a: bật dấu "cần đồng ý"). */
+    public List<BelongingView> inUseOfType(long typeId) {
+        return jdbc.query(
+                "SELECT " + VIEW_COLUMNS + " FROM belonging WHERE type_id = ? AND status = 'IN_USE'"
+                        + " AND excluded = FALSE ORDER BY id",
+                BelongingStore::view,
+                typeId);
+    }
+
+    private static String marks(int n) {
+        return String.join(", ", java.util.Collections.nCopies(n, "?"));
     }
 
     /** Đặt bản ghi Tiếp nhận gốc (DBR-22) trong cùng lệnh tạo đồ. */
