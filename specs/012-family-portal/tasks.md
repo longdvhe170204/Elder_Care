@@ -187,11 +187,11 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 8
 
-- [ ] T034 [P] [US8] Test đơn vị `BT/family/SoDemTest.java` và `BT/family/BR_M10_04_DemOLaiIT.java`, `FR_040_GioiHanOLaiIT.java` (Q29 → Q33)
+- [x] T034 [P] [US8] Test đơn vị `BT/family/SoDemTest.java` và `BT/family/BR_M10_04_DemOLaiIT.java`, `FR_040_GioiHanOLaiIT.java` (Q29 → Q33)
 
 ### Implementation cho User Story 8
 
-- [ ] T035 [US8] Tạo bảng `luot_o_lai` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TU_CHOI|DANG_O_LAI|DA_KET_THUC|HUY`), `luot_o_lai_gia_han` (nhóm 3), `dem_o_lai` (`UNIQUE (luot_id, ngay)`) trong `MIG/V012_09__o_lai.sql`; cài `BE/family/olai/internal/OLaiService.java` (`ViecNuaDemM10` phát đêm; phát `LuotOLaiDaDoi`; `LuotOLaiAnPort` cho 011) và endpoint `/luot-o-lai`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/o-lai/` (research F-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `luot_o_lai` → `ho_so_chung`; `dem_o_lai` → `khoa_ky_thuat`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T035 [US8] Tạo bảng `luot_o_lai` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TU_CHOI|DANG_O_LAI|DA_KET_THUC|HUY`), `luot_o_lai_gia_han` (nhóm 3), `dem_o_lai` (`UNIQUE (luot_id, ngay)`) trong `MIG/V012_09__o_lai.sql`; cài `BE/family/olai/internal/OLaiService.java` (`ViecNuaDemM10` phát đêm; phát `LuotOLaiDaDoi`; `LuotOLaiAnPort` cho 011) và endpoint `/luot-o-lai`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/o-lai/` (research F-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `luot_o_lai` → `ho_so_chung`; `dem_o_lai` → `khoa_ky_thuat`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.** *(2026-11-05: phần backend xong, plan mục "Phase 10, US8 – phần backend"; còn phần 011 và màn web)*
 
 **Checkpoint**: Mọi user story của 012 chạy độc lập.
 
