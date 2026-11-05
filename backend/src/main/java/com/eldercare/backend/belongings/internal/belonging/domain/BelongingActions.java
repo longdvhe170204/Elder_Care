@@ -14,5 +14,19 @@ public final class BelongingActions {
     public static final AuditAction SELF_CUSTODY_CONSENT_WITHDRAWN =
             new AuditAction("M12_SELF_CUSTODY_CONSENT_WITHDRAWN", true);
 
+    public static final AuditAction RETURN_BLOCKED = new AuditAction("M12_RETURN_BLOCKED", false);
+    public static final AuditAction RECIPIENT_CONFIRMATION_CREATED =
+            new AuditAction("M12_RECIPIENT_CONF_CREATED", false);
+    public static final AuditAction RECIPIENT_CONFIRMATION_CONFIRMED =
+            new AuditAction("M12_RECIPIENT_CONF_CONFIRMED", false);
+    public static final AuditAction RECIPIENT_CONFIRMATION_REJECTED =
+            new AuditAction("M12_RECIPIENT_CONF_REJECTED", true);
+    public static final AuditAction RECIPIENT_CONFIRMATION_ON_BEHALF =
+            new AuditAction("M12_RECIPIENT_CONF_ON_BEHALF", true);
+    public static final AuditAction RECIPIENT_CONFIRMATION_CANCELLED =
+            new AuditAction("M12_RECIPIENT_CONF_CANCELLED", true);
+    public static final AuditAction RECIPIENT_CONFIRMATION_USED = new AuditAction("M12_RECIPIENT_CONF_USED", false);
+    public static final AuditAction CONTACT_ATTEMPT_RECORDED = new AuditAction("M12_CONTACT_ATTEMPT", false);
+
     private BelongingActions() {}
 }

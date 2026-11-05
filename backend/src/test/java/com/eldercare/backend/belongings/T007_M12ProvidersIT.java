@@ -57,8 +57,19 @@ class T007_M12ProvidersIT extends BelongingsTestBase {
                 .orElseThrow();
         assertThat(handover.fieldGroups())
                 .containsEntry("giverIdDocument", InfoGroup.IDENTITY)
+                .containsEntry("recipientIdDocumentNumber", InfoGroup.IDENTITY)
                 .containsEntry("cashAmount", InfoGroup.FINANCE);
         assertThat(classifications).anyMatch(p -> p.entityType().equals("M12.BELONGING"));
+    }
+
+    @Test
+    void FR_031a_fieldClassification_hidesRecipientIdDocumentOfConfirmation() {
+        var confirmation = classifications.stream()
+                .filter(p -> p.entityType().equals("M12.RECIPIENT_CONFIRMATION"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(confirmation.fieldGroups()).containsEntry("recipientIdDocument", InfoGroup.IDENTITY);
     }
 
     @Test
@@ -100,5 +111,15 @@ class T007_M12ProvidersIT extends BelongingsTestBase {
     @Test
     void NFR_08_photoProvider_isRegisteredForHandoverPhotos() {
         assertThat(files).anyMatch(p -> p.ownerType().equals("M12.BELONGING_PHOTO"));
+    }
+
+    @Test
+    void NFR_08_returnSignatureProvider_isRegistered_andUnknownRecordIsDenied() {
+        var signature = files.stream()
+                .filter(p -> p.ownerType().equals("M12.RETURN_SIGNATURE"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(signature.canDownload(Long.MAX_VALUE)).isFalse();
     }
 }

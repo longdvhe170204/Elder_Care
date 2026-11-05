@@ -30,9 +30,64 @@ public record NewHandover(
         List<Long> photoFileIds,
         String note,
         long recordedBy,
-        Instant recordedAt) {
+        Instant recordedAt,
+        ReturnFacts returnFacts) {
 
     public NewHandover {
         photoFileIds = photoFileIds == null ? List.of() : List.copyOf(photoFileIds);
+    }
+
+    /** Bản ghi không phải lần trả hoặc lần chặn trả. */
+    public NewHandover(
+            long belongingId,
+            long residentId,
+            HandoverType kind,
+            BelongingStatus targetStatus,
+            GiverType giverType,
+            Long giverId,
+            String giverName,
+            String giverIdDocument,
+            GiverType recipientType,
+            Long recipientId,
+            String recipientName,
+            Instant occurredAt,
+            BigDecimal quantity,
+            BigDecimal cashAmount,
+            Long conditionLevelId,
+            String conditionDescription,
+            Long storageLocationId,
+            String reason,
+            boolean holderAbsent,
+            boolean valuable,
+            List<Long> photoFileIds,
+            String note,
+            long recordedBy,
+            Instant recordedAt) {
+        this(
+                belongingId,
+                residentId,
+                kind,
+                targetStatus,
+                giverType,
+                giverId,
+                giverName,
+                giverIdDocument,
+                recipientType,
+                recipientId,
+                recipientName,
+                occurredAt,
+                quantity,
+                cashAmount,
+                conditionLevelId,
+                conditionDescription,
+                storageLocationId,
+                reason,
+                holderAbsent,
+                valuable,
+                photoFileIds,
+                note,
+                recordedBy,
+                recordedAt,
+                null);
     }
 }

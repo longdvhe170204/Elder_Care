@@ -10,5 +10,7 @@ public enum HandoverType {
     REPORT_LOST,
     RECORD_DAMAGE,
     FOUND,
-    DISPOSAL
+    DISPOSAL,
+    /** Lần chặn trả (FR-016, SC-004): ghi lại nhưng không đổi đồ gửi; không phải lệnh bàn giao. */
+    RETURN_BLOCKED
 }

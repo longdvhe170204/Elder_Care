@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /** Dấu "đồ có giá trị" theo CFG-M12-01 tại thời điểm gọi (FR-009), đọc theo tên loại đồ. */
 @Component
-class ValuableTypes {
+public class ValuableTypes {
 
     private final ParameterApi parameters;
     private final CatalogApi catalogs;
@@ -21,7 +21,7 @@ class ValuableTypes {
         this.catalogs = catalogs;
     }
 
-    boolean isValuable(String typeName) {
+    public boolean isValuable(String typeName) {
         var value = parameters.read(ParameterCode.CFG_M12_01);
         return value.isSet() && value.asTable(ValuableCategories.class).contains(typeName);
     }
