@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { Pause, Play, RefreshCw } from 'lucide-react'
 import { ApiError, getDashboard, getMetrics } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,7 +13,8 @@ import { METRIC_GROUP_LABELS, formatValue, labelNotes } from '@/features/reports
 
 // Tổng quan là dashboard của 016 (T010; FR-020, FR-021; bố cục duyệt 2026-10-24, DESIGN.md 5.21.0 `dashboard-block`).
 // Khối theo nhóm chỉ tiêu backend trả cho vai trò và phạm vi hiện hành; làm mới mỗi 30 giây với ETag (research O-06).
-// Bấm một số mở danh sách bản ghi tạo nên số đó.
+// Bấm một số mở danh sách bản ghi tạo nên số đó. Lần tự làm mới là yêu cầu nền (X-Background-Refresh, 002 T047a: không
+// đếm lại giờ phiên) và tạm dừng được (DESIGN.md 9.3, tiêu chí 2.2.2).
 
 export const REFRESH_MS = 30_000
 
@@ -80,12 +81,16 @@ export function DashboardPage({ role }) {
   const [state, setState] = useState({ status: 'loading' })
   const [metrics, setMetrics] = useState({})
   const [opened, setOpened] = useState(null)
+  const [paused, setPaused] = useState(false)
   const etag = useRef(null)
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (background = false) => {
     try {
       const { data, etag: next } = await getDashboard({
-        headers: etag.current ? { 'If-None-Match': etag.current } : {},
+        headers: {
+          ...(etag.current && { 'If-None-Match': etag.current }),
+          ...(background && { 'X-Background-Refresh': 'true' }),
+        },
       })
       etag.current = next
       setState({ status: 'ready', dashboard: data })
@@ -97,14 +102,24 @@ export function DashboardPage({ role }) {
   }, [])
 
   useEffect(() => {
-    // tải khi mở màn, rồi làm mới định kỳ (FR-021)
+    // tải khi mở màn
     load()
     getMetrics()
       .then(({ data }) => setMetrics(Object.fromEntries(data.map((m) => [m.code, m]))))
       .catch(() => {})
-    const timer = setInterval(load, REFRESH_MS)
-    return () => clearInterval(timer)
   }, [load])
+
+  useEffect(() => {
+    // làm mới định kỳ (FR-021) trừ khi người dùng tạm dừng
+    if (paused) return
+    const timer = setInterval(() => load(true), REFRESH_MS)
+    return () => clearInterval(timer)
+  }, [load, paused])
+
+  function togglePaused() {
+    if (paused) load()
+    setPaused(!paused)
+  }
 
   const facilityWide = FACILITY_WIDE.includes(role)
   const dashboard = state.dashboard
@@ -114,14 +129,22 @@ export function DashboardPage({ role }) {
         title={facilityWide ? 'Tổng quan toàn viện hôm nay' : 'Tổng quan trong phạm vi của bạn hôm nay'}
         subtitle={
           dashboard
-            ? `Cập nhật lúc ${TIME.format(new Date(dashboard.asOf))}, tự làm mới mỗi 30 giây.`
-            : 'Tự làm mới mỗi 30 giây.'
+            ? `Cập nhật lúc ${TIME.format(new Date(dashboard.asOf))}, ${paused ? 'đã tạm dừng tự làm mới.' : 'tự làm mới mỗi 30 giây.'}`
+            : paused
+              ? 'Đã tạm dừng tự làm mới.'
+              : 'Tự làm mới mỗi 30 giây.'
         }
         aside={
-          <Button variant="outline" onClick={() => load()}>
-            <RefreshCw aria-hidden="true" />
-            Làm mới
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" className="h-11" onClick={togglePaused}>
+              {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+              {paused ? 'Tiếp tục tự làm mới' : 'Tạm dừng tự làm mới'}
+            </Button>
+            <Button variant="outline" className="h-11" onClick={() => load()}>
+              <RefreshCw aria-hidden="true" />
+              Làm mới
+            </Button>
+          </div>
         }
       />
       {state.status === 'loading' && (
