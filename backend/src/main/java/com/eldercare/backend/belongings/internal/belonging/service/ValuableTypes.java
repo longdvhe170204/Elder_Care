@@ -26,8 +26,13 @@ public class ValuableTypes {
         return value.isSet() && value.asTable(ValuableCategories.class).contains(typeName);
     }
 
+    /** Loại đồ mang mã {@code typeId} có phải đồ có giá trị (theo tên loại lúc gọi) không. */
+    public boolean isValuableType(long typeId) {
+        return typeIds().contains(typeId);
+    }
+
     /** Mã các loại đồ có giá trị (kể cả loại đã ngừng, vì đồ cũ vẫn mang loại đó). */
-    List<Long> typeIds() {
+    public List<Long> typeIds() {
         var value = parameters.read(ParameterCode.CFG_M12_01);
         if (!value.isSet()) {
             return List.of();

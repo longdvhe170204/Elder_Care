@@ -12,6 +12,8 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
+import com.eldercare.backend.admission.api.PostDeathTaskApi;
+import com.eldercare.backend.admission.api.dto.PostDeathItemStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.api.dto.HolderType;
@@ -31,6 +33,8 @@ import com.eldercare.backend.belongings.internal.belonging.persistence.Belonging
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogs;
 import com.eldercare.backend.belongings.internal.consent.service.SelfCustodyConsentService;
+import com.eldercare.backend.belongings.internal.ending.persistence.BelongingEndingStore;
+import com.eldercare.backend.belongings.internal.ending.service.BelongingPostDeathItem;
 import com.eldercare.backend.belongings.internal.incident.service.BelongingIncidents;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.CatalogStatus;
@@ -54,6 +58,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -109,6 +114,9 @@ public class BelongingHandoverService {
     private final FileApi files;
     private final SelfCustodyConsentService consents;
     private final BelongingIncidents incidents;
+    private final PostDeathTaskApi postDeathTasks;
+    private final BelongingPostDeathItem postDeathItem;
+    private final BelongingEndingStore endingStore;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
@@ -127,6 +135,9 @@ public class BelongingHandoverService {
             FileApi files,
             SelfCustodyConsentService consents,
             BelongingIncidents incidents,
+            PostDeathTaskApi postDeathTasks,
+            BelongingPostDeathItem postDeathItem,
+            BelongingEndingStore endingStore,
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
@@ -143,6 +154,9 @@ public class BelongingHandoverService {
         this.files = files;
         this.consents = consents;
         this.incidents = incidents;
+        this.postDeathTasks = postDeathTasks;
+        this.postDeathItem = postDeathItem;
+        this.endingStore = endingStore;
         this.audit = audit;
         this.events = events;
         this.time = time;
@@ -157,7 +171,101 @@ public class BelongingHandoverService {
         if (command.type() == null || !COMMANDS.contains(command.type())) {
             throw invalid("INVALID_VALUE", "Loại bàn giao không hợp lệ");
         }
-        return execute(resident, command, null);
+        return execute(resident, command, null, null);
+    }
+
+    /**
+     * Bản ghi sinh ra khi hoàn thành phiếu kiểm kê (FR-028b): Báo thất lạc cho đồ Không tìm thấy, Ghi hư hỏng cho đồ
+     * Lệch tình trạng, Tìm thấy cho đồ Thất lạc thấy ở vị trí; cùng điều kiện và hiệu lực như lệnh bàn giao thường, bản ghi
+     * mang mã phiếu. Chạy trong transaction của lệnh hoàn thành phiếu.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Result inventoryHandover(Target resident, HandoverCommand command, long inventoryCheckId) {
+        if (command.type() != HandoverType.REPORT_LOST
+                && command.type() != HandoverType.RECORD_DAMAGE
+                && command.type() != HandoverType.FOUND) {
+            throw invalid("INVALID_VALUE", "Phiếu kiểm kê chỉ sinh Báo thất lạc, Ghi hư hỏng, Tìm thấy");
+        }
+        return execute(resident, command, null, inventoryCheckId);
+    }
+
+    /** Đề nghị xử lý đã duyệt áp dụng cho một đồ (FR-027a): hình thức, đơn vị tiếp nhận, lý do của đề nghị. */
+    public record Disposal(long approvalRequestId, String method, String receivingUnit, String reason) {}
+
+    /**
+     * Áp dụng đề nghị "Xử lý đồ không người nhận" đã duyệt cho một đồ: bản ghi loại Xử lý, đồ chuyển Đã xử lý, đồng ý tự
+     * giữ Hết hiệu lực, báo người đại diện. Đồ không còn Đang giữ hoặc Hư hỏng thì bị loại khỏi phần áp dụng (trả trống,
+     * FR-027a, 000 FR-038). Chạy trong transaction áp dụng của yêu cầu phê duyệt.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Optional<Created> dispose(long residentId, long belongingId, Disposal disposal) {
+        CurrentUser user = users.getObject();
+        List<LockedBelonging> found = locks.lockCurrent(residentId, List.of(belongingId));
+        if (found.isEmpty()) {
+            throw new NotFoundException();
+        }
+        LockedBelonging b = found.getFirst();
+        if (b.status() != BelongingStatus.HELD && b.status() != BelongingStatus.DAMAGED) {
+            return Optional.empty();
+        }
+        Instant now = time.now();
+        Context ctx = new Context(
+                user,
+                user.staffId().orElse(0L),
+                residentId,
+                residents.status(residentId),
+                false,
+                now,
+                now,
+                null,
+                null,
+                disposal.approvalRequestId(),
+                disposal.receivingUnit());
+        boolean cash = b.cashAmount() != null;
+        BigDecimal amount = cash ? b.cashAmount() : b.quantity();
+        String typeName =
+                catalogs.require(BelongingCatalogs.BELONGING_TYPE, b.typeId()).name();
+        GiverType holder = b.holderType() == HolderType.RESIDENT ? GiverType.RESIDENT : GiverType.STAFF;
+        List<Created> created = new ArrayList<>();
+        Set<Long> touched = new LinkedHashSet<>();
+        long record = record(
+                ctx,
+                b,
+                b.id(),
+                HandoverType.DISPOSAL,
+                BelongingStatus.DISPOSED,
+                holder,
+                b.holderId(),
+                null,
+                null,
+                now,
+                amount,
+                cash,
+                b.conditionLevelId(),
+                null,
+                null,
+                disposal.reason(),
+                false,
+                valuableTypes.isValuable(typeName),
+                List.of(),
+                "Xử lý đồ không người nhận: " + disposal.method(),
+                created,
+                touched);
+        events.publishEvent(BelongingNotices.notice(
+                "BELONGING_DISPOSED",
+                RECORD_TYPE,
+                record,
+                NotificationLevel.LOW,
+                residentId,
+                List.of(new RecipientGroup.Representative(residentId)),
+                typeName + ": đồ gửi đã được xử lý theo đề nghị đã duyệt",
+                user.accountId(),
+                now));
+        recalculation.verify(residentId, belongings.intakeHandoverOf(b.id()).orElseThrow(NotFoundException::new));
+        if (ctx.deceased()) {
+            postDeathTasks.refresh(residentId);
+        }
+        return Optional.of(created.getFirst());
     }
 
     /** Người nhận của lệnh Trả đã được {@code ReturnService} xác minh (FR-016): loại, mã, họ tên và dữ kiện của lần trả. */
@@ -173,10 +281,10 @@ public class BelongingHandoverService {
         if (command.type() != HandoverType.RETURN) {
             throw invalid("INVALID_VALUE", "Loại bàn giao không hợp lệ");
         }
-        return execute(resident, command, info);
+        return execute(resident, command, info, null);
     }
 
-    private Result execute(Target resident, HandoverCommand command, ReturnInfo returnInfo) {
+    private Result execute(Target resident, HandoverCommand command, ReturnInfo returnInfo, Long inventoryCheckId) {
         CurrentUser user = users.getObject();
         long staffId = user.staffId().orElseThrow(() -> new PermissionDeniedException("Chỉ nhân viên bàn giao đồ gửi"));
         if (command.items().isEmpty()) {
@@ -216,7 +324,15 @@ public class BelongingHandoverService {
                 user.roles().contains(Role.OFFICE_STAFF),
                 time.now(),
                 command.at() == null ? time.now() : command.at(),
-                returnInfo);
+                returnInfo,
+                inventoryCheckId,
+                null,
+                null);
+        // FR-026a: Tìm thấy sau khi mục sau qua đời đã Hoàn thành thì mục không mở lại, đồ theo dõi riêng từ lúc Tìm
+        // thấy
+        boolean foundAfterCompletion = command.type() == HandoverType.FOUND
+                && context.deceased()
+                && postDeathItem.status(residentId).status() == PostDeathItemStatus.COMPLETED;
 
         List<Created> created = new ArrayList<>();
         Set<Long> intakes = new LinkedHashSet<>();
@@ -228,6 +344,14 @@ public class BelongingHandoverService {
         }
         for (long intake : intakes) {
             recalculation.verify(residentId, intake);
+        }
+        if (foundAfterCompletion) {
+            created.stream()
+                    .filter(c -> c.kind() == HandoverType.FOUND)
+                    .forEach(c -> endingStore.startDisposalClock(c.belongingId(), context.now()));
+        }
+        if (context.deceased()) {
+            postDeathTasks.refresh(residentId);
         }
         List<BelongingView> after = touched.stream()
                 .map(id -> belongings.find(id).orElseThrow(NotFoundException::new))
@@ -243,7 +367,10 @@ public class BelongingHandoverService {
             boolean officeStaff,
             Instant now,
             Instant at,
-            ReturnInfo returnInfo) {
+            ReturnInfo returnInfo,
+            Long inventoryCheckId,
+            Long approvalRequestId,
+            String receivingUnit) {
 
         boolean deceased() {
             return residentStatus == ResidentStatus.DECEASED;
@@ -578,7 +705,10 @@ public class BelongingHandoverService {
                 note,
                 ctx.user().accountId(),
                 ctx.now(),
-                kind == HandoverType.RETURN ? ctx.returnInfo().facts() : null));
+                kind == HandoverType.RETURN ? ctx.returnInfo().facts() : null,
+                ctx.inventoryCheckId(),
+                ctx.approvalRequestId(),
+                ctx.receivingUnit()));
         HolderType holderType = recipientType == null
                 ? null
                 : recipientType == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;

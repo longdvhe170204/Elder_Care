@@ -203,13 +203,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // operation bật ở T029 sau khi duyệt. Xóa dòng PENDING khi cài controller của từng story.
             new Contract(
                     Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
-                    Set.of(
-                            "GET /api/v1/residents/{residentId}/belongings/ending-condition",
-                            "GET /api/v1/belonging-inventory-checks",
-                            "POST /api/v1/belonging-inventory-checks",
-                            "GET /api/v1/belonging-inventory-checks/{id}",
-                            "POST /api/v1/belonging-inventory-checks/{id}/{command}",
-                            "GET /api/v1/family-portal/residents/{residentId}/belongings"),
+                    Set.of("GET /api/v1/family-portal/residents/{residentId}/belongings"),
                     Set.of(),
                     false),
             // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1 xong 2026-11-04)

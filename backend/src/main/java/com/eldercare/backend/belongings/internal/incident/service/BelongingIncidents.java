@@ -90,6 +90,18 @@ public class BelongingIncidents {
         }
     }
 
+    /**
+     * Sự cố còn mở (Mới, Đang xử lý, Đang theo dõi) cho điều kiện (b) kết thúc lưu trú (FR-025); chưa có bản thật của 007
+     * hoặc không tìm thấy sự cố thì coi như không mở (điều kiện (d) do 007 xét).
+     */
+    public boolean isOpen(long incidentId) {
+        IncidentApi source = incidents.getIfAvailable();
+        return source != null
+                && source.view(incidentId)
+                        .map(v -> Set.of("NEW", "IN_PROGRESS", "MONITORING").contains(v.status()))
+                        .orElse(false);
+    }
+
     /** Tìm thấy: thêm diễn biến vào sự cố liên kết, không đóng sự cố (FR-025). */
     public void found(long incidentId, String content, CurrentUser user) {
         IncidentCommandApi source = commands.getIfAvailable();

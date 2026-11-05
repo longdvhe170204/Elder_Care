@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
  * loại; số lượng theo {@link BelongingAmounts}.
  */
 @Component
-class BelongingRecalculation {
+public class BelongingRecalculation {
 
     static final String RECORD_TYPE = "M12.BELONGING_HANDOVER";
 
@@ -57,7 +57,7 @@ class BelongingRecalculation {
     }
 
     /** Bản ghi hiện hành của các đồ theo thứ tự ghi. */
-    List<HandoverRow> effective(Collection<Long> belongingIds) {
+    public List<HandoverRow> effective(Collection<Long> belongingIds) {
         List<HandoverRow> raw = handovers.ofBelongings(belongingIds);
         if (raw.isEmpty()) {
             return List.of();

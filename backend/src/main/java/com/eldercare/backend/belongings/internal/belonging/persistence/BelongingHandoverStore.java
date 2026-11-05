@@ -50,9 +50,10 @@ public class BelongingHandoverStore {
                                     + " photo_file_ids, note, recorded_by, recorded_at, recipient_id_document_type,"
                                     + " recipient_id_document_number, recipient_basis, verification_result,"
                                     + " signature_file_id, no_signature_reason, condition_opinion,"
-                                    + " recipient_confirmation_id, block_reason)"
+                                    + " recipient_confirmation_id, block_reason, inventory_check_id, approval_request_id,"
+                                    + " receiving_unit)"
                                     + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON),"
-                                    + " ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                    + " ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     int i = 1;
                     ps.setLong(i++, h.belongingId());
@@ -102,10 +103,13 @@ public class BelongingHandoverStore {
                     ps.setString(i++, facts == null ? null : facts.conditionOpinion());
                     ps.setObject(i++, facts == null ? null : facts.recipientConfirmationId());
                     ps.setString(
-                            i,
+                            i++,
                             facts == null || facts.blockReason() == null
                                     ? null
                                     : facts.blockReason().name());
+                    ps.setObject(i++, h.inventoryCheckId());
+                    ps.setObject(i++, h.approvalRequestId());
+                    ps.setString(i, h.receivingUnit());
                     return ps;
                 },
                 keys);

@@ -29,5 +29,11 @@ public final class BelongingActions {
     public static final AuditAction RECIPIENT_CONFIRMATION_USED = new AuditAction("M12_RECIPIENT_CONF_USED", false);
     public static final AuditAction CONTACT_ATTEMPT_RECORDED = new AuditAction("M12_CONTACT_ATTEMPT", false);
 
+    public static final AuditAction UNCLAIMED_DISPOSAL_APPLIED =
+            new AuditAction("M12_UNCLAIMED_DISPOSAL_APPLIED", false);
+    public static final AuditAction INVENTORY_CHECK_CREATED = new AuditAction("M12_INVENTORY_CHECK_CREATED", false);
+    public static final AuditAction INVENTORY_CHECK_COMPLETED = new AuditAction("M12_INVENTORY_CHECK_COMPLETED", false);
+    public static final AuditAction INVENTORY_CHECK_CANCELLED = new AuditAction("M12_INVENTORY_CHECK_CANCELLED", false);
+
     private BelongingActions() {}
 }
