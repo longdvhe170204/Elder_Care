@@ -3079,6 +3079,16 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Bản giả thuốc ghi khoảng tính lại (chỉ test) | FakeTripMedicationPreparation.interval |
 | Đính chính điểm danh chuyến (DinhChinhDuocProvider `M04.DIEM_DANH_CHUYEN`) | TripAttendanceCorrectionProvider, recordType `M04.TRIP_ATTENDANCE`; chỉ VOID bản ghi DEPARTURE; test FR_031a_DinhChinhChuyenIT |
 
+### 20.10. Sở thích (Phase 8, 06/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| Sở thích (`so_thich` → `simple_record`) | `Preference` (`care.internal.wellbeing.domain`), kind `M04.PREFERENCE`; nội dung interestGroupId, description, level, source (OpinionSource 001), recordedAt, endedAt, endedBy, endReason; người ghi `created_by` |
+| Trạng thái sở thích `HIEN_HANH`, `DA_THAY`, `DA_BO` | `CURRENT`, `REPLACED`, `REMOVED`; khóa mục hiện hành `unique_key` = residentId:interestGroupId:sourceType:familyMemberId (0 khi không có) |
+| Dịch vụ, HTTP | PreferenceService (record, remove, dislikeWarnings); PreferenceController; PreferenceWrite |
+| Cảnh báo đăng ký "không thích" (FR-052) | mã điều kiện `DISLIKED_INTEREST` trong `unmetConditions` (cảnh báo, cần xác nhận như cảnh báo khác) |
+| Nhật ký lệnh | PREFERENCE_RECORDED, PREFERENCE_REMOVED |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
