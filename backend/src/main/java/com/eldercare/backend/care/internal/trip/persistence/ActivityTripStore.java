@@ -132,6 +132,94 @@ public class ActivityTripStore {
         jdbc.update("UPDATE activity_session SET trip_remote_leader=TRUE,version=version+1 WHERE id=?", id);
     }
 
+    /** FR-044, FR-050: chỉ người đang ở ngoài (Đã rời viện hoặc Thiếu khi về) được điểm danh về. */
+    public boolean markReturnedIfOut(long registrationId) {
+        return jdbc.update(
+                        "UPDATE activity_registration SET participant_status='RETURNED',participant_reason=NULL,version=version+1"
+                                + " WHERE id=? AND participant_status IN ('DEPARTED','MISSING_ON_RETURN')",
+                        registrationId)
+                == 1;
+    }
+
+    public boolean markMissingIfDeparted(long registrationId) {
+        return jdbc.update(
+                        "UPDATE activity_registration SET participant_status='MISSING_ON_RETURN',missing_alert_requested=TRUE,"
+                                + "version=version+1 WHERE id=? AND participant_status='DEPARTED'",
+                        registrationId)
+                == 1;
+    }
+
+    /** FR-045: đăng ký đang ở ngoài của người cao tuổi trong chuyến chưa kết thúc hẳn. */
+    public List<Long> outsideRegistrations(long residentId) {
+        return jdbc.queryForList(
+                "SELECT r.id FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
+                        + " WHERE r.resident_id=? AND r.participant_status IN ('DEPARTED','MISSING_ON_RETURN')"
+                        + " AND s.trip_status IN ('IN_PROGRESS','RETURNED') FOR UPDATE",
+                Long.class,
+                residentId);
+    }
+
+    public void leftGroup(long registrationId, String reason) {
+        jdbc.update(
+                "UPDATE activity_registration SET participant_status='LEFT_GROUP',participant_reason=?,version=version+1"
+                        + " WHERE id=? AND participant_status IN ('DEPARTED','MISSING_ON_RETURN')",
+                reason,
+                registrationId);
+    }
+
+    public Optional<Instant> departedAt(long registrationId) {
+        return Optional.ofNullable(jdbc.queryForObject(
+                        "SELECT MAX(e.occurred_at) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE'"
+                                + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.registrationId'))=?"
+                                + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",
+                        LocalDateTime.class,
+                        Long.toString(registrationId)))
+                .map(at -> at.atZone(BusinessTime.ZONE).toInstant());
+    }
+
+    /** FR-043: mốc mới nên bỏ dấu quá giờ; mốc đã báo so theo giờ về dự kiến nên mốc mới được báo lại. */
+    public void extend(long id, Instant plannedReturnAt) {
+        jdbc.update(
+                "UPDATE activity_session SET trip_planned_return_at=?,trip_overdue_return=FALSE,version=version+1 WHERE id=?",
+                local(plannedReturnAt),
+                id);
+    }
+
+    public void finishReturn(long id, Instant at, Long staffId) {
+        jdbc.update(
+                "UPDATE activity_session SET trip_status='RETURNED',trip_return_finished_at=?,"
+                        + "trip_return_finished_by_staff_id=?,version=version+1 WHERE id=? AND trip_status='IN_PROGRESS'",
+                local(at),
+                staffId,
+                id);
+    }
+
+    private static String notifiedColumn(boolean manager) {
+        return manager ? "trip_manager_notified_for" : "trip_overdue_notified_for";
+    }
+
+    /** FR-049 (manager=false), FR-049a (manager=true): chuyến Đang đi đã qua mốc mà mốc này chưa báo. */
+    public List<Trip> overdue(Instant returnBefore, boolean manager) {
+        return jdbc.query(
+                "SELECT * FROM activity_session WHERE trip_status='IN_PROGRESS' AND trip_planned_return_at<=?"
+                        + " AND NOT (" + notifiedColumn(manager) + " <=> trip_planned_return_at) ORDER BY id",
+                ActivityTripStore::row,
+                local(returnBefore));
+    }
+
+    /** Đánh dấu mốc đã báo; trả false nếu lượt khác vừa báo hoặc giờ về vừa được gia hạn. */
+    public boolean claimOverdue(long id, Instant plannedReturnAt, boolean manager) {
+        String column = notifiedColumn(manager);
+        return jdbc.update(
+                        "UPDATE activity_session SET " + column + "=trip_planned_return_at"
+                                + (manager ? "" : ",trip_overdue_return=TRUE")
+                                + " WHERE id=? AND trip_status='IN_PROGRESS' AND trip_planned_return_at=?"
+                                + " AND NOT (" + column + " <=> trip_planned_return_at)",
+                        id,
+                        local(plannedReturnAt))
+                == 1;
+    }
+
     public List<Trip> active() {
         return jdbc.query(
                 "SELECT * FROM activity_session WHERE trip_status IN ('SCHEDULED','IN_PROGRESS') ORDER BY id",

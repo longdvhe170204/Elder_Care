@@ -3065,6 +3065,19 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Điều kiện chặn chuyến | Giữ mã hợp đồng 20.5: TRIP_LEADER_REQUIRED, ROLE_NOT_ELIGIBLE, NOT_ON_SHIFT, ELIGIBILITY_NOT_PASSED, MEDICATION_NOT_HANDLED, DEPARTURE_TOO_EARLY, VEHICLE_SCHEDULE_REQUIRED, VEHICLE_ALREADY_SCHEDULED, SESSION_ALREADY_STARTED, STATE_CHANGED, INFECTION_SUSPECTED, ISOLATION_ACTIVE, RESIDENT_STATUS_INVALID |
 | Nhật ký lệnh chuyến | TRIP_CREATED, TRIP_ASSIGNED, TRIP_ELIGIBILITY_ASSESSED, TRIP_DEPARTED, TRIP_DUTY_REMOVED |
 
+### 20.9. Theo dõi và trở về (Phase 7, 05/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| Điểm danh về, gia hạn, chuyển trưởng đoàn, kết thúc điểm danh về | TripReturnService: returnResidents, extend, transferLeader, finishReturn |
+| Việc theo phút quá giờ về (FR-049, FR-049a) | TripReturnOverdueStep; TripSafetyNotice cause RETURN_OVERDUE (trưởng đoàn, Trưởng tầng), RETURN_OVERDUE_MANAGER (Quản lý viện) |
+| Rời đoàn khi chuyển viện, qua đời (FR-045) | TripLeftGroupListener (ResidentStatusChanged); participant_reason HOSPITALIZED, DECEASED |
+| Gia hạn giờ về (chuyen_di_gia_han) | M04.TRIP_EXTENSION; nội dung tripId, previousReturnAt, newReturnAt, reason |
+| Điểm danh về | M04.TRIP_ATTENDANCE type RETURN |
+| Cảnh báo thiếu người khi về, diễn biến tìm thấy | AlertRequested type MISSING_ON_RETURN (URGENT), nguồn context M04.TRIP_PARTICIPANT / id đăng ký; AlertProgressRequested progressCode FOUND_RETURNED |
+| Nhật ký lệnh | TRIP_RETURNED, TRIP_RETURN_EXTENDED, TRIP_LEADER_TRANSFERRED, TRIP_RETURN_FINISHED |
+| Bản giả thuốc ghi khoảng tính lại (chỉ test) | FakeTripMedicationPreparation.interval |
+
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

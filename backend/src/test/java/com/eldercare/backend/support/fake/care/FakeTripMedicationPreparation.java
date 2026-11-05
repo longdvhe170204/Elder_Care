@@ -28,6 +28,15 @@ public class FakeTripMedicationPreparation implements TripMedicationPreparationP
     @Override
     public void onTripChanged(long trip, long resident, TripMedicationChangeType type) {}
 
+    private final Map<String, TripInterval> intervals = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Khoảng mới nhất 014 gửi khi gia hạn hoặc điểm danh về (FR-043, FR-044). */
+    public Optional<TripInterval> interval(long resident, long trip) {
+        return Optional.ofNullable(intervals.get(resident + ":" + trip));
+    }
+
     @Override
-    public void recalculateInterval(long trip, long resident, TripInterval interval) {}
+    public void recalculateInterval(long trip, long resident, TripInterval interval) {
+        intervals.put(resident + ":" + trip, interval);
+    }
 }
