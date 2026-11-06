@@ -45,7 +45,7 @@ describe('RecipientConfirmations (013 T019, FR-017 → FR-017b)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Lập xác nhận người nhận khác' }))
     fireEvent.change(screen.getByLabelText('Họ tên người nhận khác'), { target: { value: 'Phạm Thị Hồng' } })
     fireEvent.change(screen.getByLabelText('Giấy tờ của người nhận'), { target: { value: 'CCCD 003' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Xác nhận cho Điện thoại Nokia' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Xác nhận cho Điện thoại Nokia, mã 90' }))
     fireEvent.click(screen.getByRole('button', { name: 'Lưu yêu cầu xác nhận' }))
 
     await waitFor(() => expect(api.calls('POST', '/recipient-confirmations')).toHaveLength(1))

@@ -22,6 +22,28 @@ import org.junit.jupiter.api.Test;
  */
 class ReturnRecipientTest {
 
+    @Test
+    void FR_017_confirmationStoresOneDocumentString_matchesNumberAloneOrTypeAndNumber() {
+        // Hành chính nhập giấy tờ ở xác nhận một ô ("CCCD 999"); lúc trả khai tách loại và số
+        var oneBox = new Confirmation(true, false, "Trần Thị N", "  cccd   999 ", List.of(1L));
+        var bareNumber = new Confirmation(true, false, "Trần Thị N", "999", List.of(1L));
+        var otherNumber = new Confirmation(true, false, "Trần Thị N", "CCCD 998", List.of(1L));
+        var otherType = new Confirmation(true, false, "Trần Thị N", "CMND 999", List.of(1L));
+
+        assertThat(ReturnRecipient.check(other(), List.of(PHONE), FamilyFacts.none(), Optional.of(oneBox), true)
+                        .allowed())
+                .isTrue();
+        assertThat(ReturnRecipient.check(other(), List.of(PHONE), FamilyFacts.none(), Optional.of(bareNumber), true)
+                        .allowed())
+                .isTrue();
+        assertThat(ReturnRecipient.check(other(), List.of(PHONE), FamilyFacts.none(), Optional.of(otherNumber), true)
+                        .blockReason())
+                .isEqualTo(ReturnBlockReason.INVALID_RECIPIENT_CONFIRMATION);
+        assertThat(ReturnRecipient.check(other(), List.of(PHONE), FamilyFacts.none(), Optional.of(otherType), true)
+                        .blockReason())
+                .isEqualTo(ReturnBlockReason.INVALID_RECIPIENT_CONFIRMATION);
+    }
+
     private static final Item PHONE = new Item(1, true, false);
     private static final Item CLOTHES = new Item(2, false, false);
     private static final Item CASH = new Item(3, true, true);

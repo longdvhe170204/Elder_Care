@@ -17,7 +17,7 @@ import { uploadFile } from '@/common/files'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { FilesField, SelectField } from './BelongingFields'
-import { CHANNEL_OPTIONS, CONFIRMATION_LABELS, nowLocal, toOffsetIso } from './belongingLabels'
+import { CHANNEL_OPTIONS, CONFIRMATION_LABELS, nowLocal, pickLabel, toOffsetIso } from './belongingLabels'
 
 // Xác nhận người nhận khác của một người cao tuổi (013 T019; FR-017 → FR-017b, BR-M12-04; api-013 /recipient-
 // confirmations). Hành chính lập (kèm bản ký của người đại diện thì Hiệu lực ngay), ghi các lần liên hệ người đại diện,
@@ -31,7 +31,7 @@ const BASES = [
 ]
 const OPEN = ['PENDING_CONFIRMATION', 'EFFECTIVE']
 
-function CreateForm({ residentId, belongings, onDone }) {
+function CreateForm({ residentId, belongings, locationName, onDone }) {
   const [v, setV] = useState({ name: '', document: '', representativeId: '' })
   const [isResident, setIsResident] = useState(false)
   const [ids, setIds] = useState([])
@@ -98,9 +98,9 @@ function CreateForm({ residentId, belongings, onDone }) {
               <Checkbox
                 checked={ids.includes(b.id)}
                 onCheckedChange={(on) => setIds((c) => (on ? [...c, b.id] : c.filter((x) => x !== b.id)))}
-                aria-label={`Xác nhận cho ${b.description}`}
+                aria-label={`Xác nhận cho ${b.description}, mã ${b.id}`}
               />
-              <span className="type-body-sm">{b.description}</span>
+              <span className="type-body-sm">{pickLabel(b, locationName)}</span>
             </label>
           ))}
           {errors.ids && <FieldError>{errors.ids}</FieldError>}
@@ -275,7 +275,7 @@ function CommandForm({ confirmation, command, onDone }) {
   )
 }
 
-export function RecipientConfirmations({ residentId, belongings, role }) {
+export function RecipientConfirmations({ residentId, belongings, locationName, role }) {
   const { can } = usePermissions()
   const [state, setState] = useState({ status: 'loading', items: [] })
   const [creating, setCreating] = useState(false)
@@ -320,7 +320,7 @@ export function RecipientConfirmations({ residentId, belongings, role }) {
       <div role="status" className="type-body-sm text-success-foreground">
         {notice}
       </div>
-      {creating && <CreateForm residentId={residentId} belongings={belongings} onDone={done} />}
+      {creating && <CreateForm residentId={residentId} belongings={belongings} locationName={locationName} onDone={done} />}
       {state.status === 'error' && <ProblemAlert problem={state.problem} />}
       {state.status === 'ready' && state.items.length === 0 && (
         <p className="type-body-sm text-muted-foreground">Chưa có yêu cầu xác nhận người nhận khác.</p>

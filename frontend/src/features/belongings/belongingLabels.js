@@ -48,6 +48,14 @@ export function amountText(item, unit) {
   return unit ? `${number.format(item.quantity)} ${unit}` : number.format(item.quantity)
 }
 
+// Dòng mô tả đồ trong danh sách chọn (form trả, form xác nhận người nhận khác): có mã đồ, số lượng và vị trí để phân biệt
+// hai đồ cùng tên
+export function pickLabel(item, locationName) {
+  const parts = [item.description, amountText(item), `mã ${item.id}`]
+  if (locationName) parts.push(locationName(item.storageLocationId))
+  return parts.filter(Boolean).join(', ')
+}
+
 // Giá trị của ô datetime-local (giờ Việt Nam) thành ISO-8601 có +07:00 (frontend/README luật 6)
 export function toOffsetIso(local) {
   return `${local.length === 16 ? `${local}:00` : local}+07:00`
