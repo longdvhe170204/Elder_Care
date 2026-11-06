@@ -275,7 +275,8 @@ function CommandForm({ confirmation, command, onDone }) {
   )
 }
 
-export function RecipientConfirmations({ residentId, belongings, locationName, role }) {
+// refreshKey: màn cha tăng sau khi lệnh trả thành công (xác nhận đã dùng chuyển Đã dùng), để tải lại danh sách
+export function RecipientConfirmations({ residentId, belongings, locationName, role, refreshKey = 0 }) {
   const { can } = usePermissions()
   const [state, setState] = useState({ status: 'loading', items: [] })
   const [creating, setCreating] = useState(false)
@@ -292,9 +293,9 @@ export function RecipientConfirmations({ residentId, belongings, locationName, r
   }, [residentId])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- tải danh sách khi mở
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- tải danh sách khi mở và sau khi trả đồ thành công
     load()
-  }, [load])
+  }, [load, refreshKey])
 
   function done(message) {
     setCreating(false)

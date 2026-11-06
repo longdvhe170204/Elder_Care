@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { PermissionsProvider } from '@/common/permissions/permissions'
-import { json, mockRoutes } from '@/test/fetchRoutes'
+import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { BelongingsPage } from './BelongingsPage'
 
 const TYPES = [
@@ -231,5 +231,85 @@ describe('BelongingsPage (013 T011, US1)', () => {
     setup()
     fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007' }))
     expect(await screen.findByText('Điện thoại Nokia')).toBeInTheDocument()
+  })
+})
+
+// Ca 4 kiểm lại (D6): trả bằng mã xác nhận người nhận khác thì mục xác nhận trên cùng hồ sơ đổi ngay, không cần F5
+describe('BelongingsPage: trả đồ bằng xác nhận người nhận khác (013 FR-017)', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  const SWEATER = {
+    id: 18,
+    residentId: 7,
+    typeId: 1,
+    description: 'Áo len A',
+    quantity: 3,
+    status: 'HELD',
+    holder: 'STAFF',
+    storageLocationId: 21,
+    lastHandoverAt: '2026-11-06T02:00:00Z',
+    version: 1,
+  }
+  const confirmation = (status) => ({
+    id: 7,
+    recipientName: 'Lê Văn Nam',
+    recipientIdDocument: 'CCCD 079000000102',
+    belongingIds: [18],
+    status,
+  })
+
+  function setupReturn(returnResponse) {
+    const api = setup()
+    let belongingCalls = 0
+    api.on('GET', '/residents/7/belongings', () =>
+      json(200, [belongingCalls++ === 0 ? SWEATER : { ...SWEATER, status: 'RETURNED', version: 2 }]),
+    )
+    let confirmationCalls = 0
+    api.on('GET', '/recipient-confirmations', () =>
+      json(200, [confirmation(confirmationCalls++ === 0 ? 'EFFECTIVE' : 'USED')]),
+    )
+    api.on('POST', '/files', json(201, { fileId: 700 }))
+    api.on('POST', '/belongings/returns', returnResponse)
+    return api
+  }
+
+  async function returnWithConfirmation() {
+    fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007' }))
+    const section = await screen.findByRole('region', { name: 'Xác nhận người nhận khác' })
+    expect(await within(section).findByText('Hiệu lực')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Trả đồ' }))
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Trả Áo len A, mã 18' }))
+    fireEvent.change(screen.getByLabelText('Mức tình trạng lúc trả của Áo len A'), { target: { value: '11' } })
+    fireEvent.change(screen.getByLabelText('Người nhận'), { target: { value: 'OTHER_PERSON' } })
+    fireEvent.change(screen.getByLabelText('Họ tên người nhận'), { target: { value: 'Lê Văn Nam' } })
+    fireEvent.change(screen.getByLabelText('Loại giấy tờ'), { target: { value: 'CCCD' } })
+    fireEvent.change(screen.getByLabelText('Số giấy tờ'), { target: { value: '079000000102' } })
+    fireEvent.change(screen.getByLabelText('Mã xác nhận người nhận khác'), { target: { value: '7' } })
+    fireEvent.change(screen.getByLabelText('Bản ký của người nhận'), {
+      target: { files: [new File(['k'], 'chu-ky.pdf', { type: 'application/pdf' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu trả đồ' }))
+    return section
+  }
+
+  it('FR_017_traThanhCong_xacNhanChuyenDaDungNgayTrenHoSoDangMo', async () => {
+    const api = setupReturn(json(201, { handovers: [], belongings: [] }))
+    const section = await returnWithConfirmation()
+
+    expect(await screen.findByText('Đã trả đồ.')).toBeInTheDocument()
+    expect(await within(section).findByText('Đã dùng')).toBeInTheDocument()
+    expect(within(section).queryByText('Hiệu lực')).not.toBeInTheDocument()
+    const row = screen.getByText('Áo len A').closest('tr')
+    expect(within(row).getByText('Đã trả')).toBeInTheDocument()
+    expect(api.calls('GET', '/recipient-confirmations')).toHaveLength(2)
+  })
+
+  it('FR_017_traBiChan_khongTaiLaiXacNhan_vanHieuLuc', async () => {
+    const api = setupReturn(problem(409, 'INVALID_RECIPIENT_CONFIRMATION', { detail: 'Xác nhận người nhận khác không hợp lệ (FR-017)' }))
+    const section = await returnWithConfirmation()
+
+    await waitFor(() => expect(api.calls('GET', '/residents/7/belongings')).toHaveLength(2))
+    expect(api.calls('GET', '/recipient-confirmations')).toHaveLength(1)
+    expect(within(section).getByText('Hiệu lực')).toBeInTheDocument()
   })
 })
