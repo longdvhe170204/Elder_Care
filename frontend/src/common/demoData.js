@@ -224,52 +224,6 @@ export const DEMO_PORTAL_HEALTH = {
   updatedAt: '08:30 hôm nay',
 }
 
-// Bản tin (012 FR-051 → FR-057): Điều dưỡng lập, duyệt rồi gửi; nội dung chia phần theo quyền.
-export const DEMO_PORTAL_BULLETINS = [
-  {
-    id: 'b2',
-    period: '06/10 → 12/10/2026',
-    approvedBy: '[Điều dưỡng 1]',
-    sentAt: '13/10/2026, 09:00',
-    general: {
-      activities: 4,
-      absentDays: 0,
-      incidents: ['Ngã, mức Trung bình, 12/10'],
-      comment: '[Nhận xét phần chung minh họa]',
-    },
-    health: {
-      meals: '[Phần lớn ở 17 trên 21 bữa]',
-      water: '[1.200] ml mỗi ngày',
-      weight: '[52,0] kg, [giảm 0,1] kg so với tuần trước',
-      indicators: '[Các chỉ số chính minh họa]',
-      explanation: '[Giải thích của người duyệt về sự cố mức Trung bình, minh họa]',
-    },
-    costs: [
-      { type: 'Phí lưu trú định kỳ', amount: '[7.000.000] đ' },
-      { type: 'Vật phẩm tiêu hao', amount: '[350.000] đ' },
-      { type: 'Thuốc', amount: '[210.000] đ' },
-    ],
-  },
-  {
-    id: 'b1',
-    period: '29/09 → 05/10/2026',
-    approvedBy: '[Điều dưỡng 1]',
-    sentAt: '06/10/2026, 09:00',
-    corrected: true,
-    general: { activities: 3, absentDays: 0, incidents: [], comment: '[Nhận xét phần chung minh họa]' },
-    health: {
-      meals: '[Phần lớn ở 18 trên 21 bữa]',
-      water: '[1.250] ml mỗi ngày',
-      weight: '[52,1] kg',
-      indicators: '[Các chỉ số chính minh họa]',
-    },
-    costs: [
-      { type: 'Phí lưu trú định kỳ', amount: '[7.000.000] đ' },
-      { type: 'Vật phẩm tiêu hao', amount: '[300.000] đ' },
-    ],
-  },
-]
-
 // Thăm (14.2, 012 FR-029 → FR-039): khung giờ CFG-M10-04, tối đa người mỗi lượt CFG-M10-06.
 export const DEMO_PORTAL_VISIT_SLOTS = [
   { label: '09:00 → 11:00', left: 12 },
@@ -291,7 +245,6 @@ export const DEMO_PORTAL_NOTIFICATIONS = [
     at: '14:05, 12/10/2026',
     needsAck: true,
   },
-  { id: 'n2', text: 'Bản tin tuần 06/10 → 12/10/2026', at: '09:00, 13/10/2026' },
   { id: 'n3', text: 'Lượt thăm 18/10/2026 đã được duyệt', at: '10:12, 10/10/2026' },
   { id: 'n4', text: 'Lượt thăm 05/10/2026 bị hủy: khu đang khoanh vùng', at: '07:40, 05/10/2026' },
 ]
