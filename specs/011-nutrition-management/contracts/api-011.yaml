@@ -240,7 +240,7 @@ paths:
   /menus/{id}/dish-swaps:
     post:
       tags: [menu]
-      summary: Đổi món trên thực đơn Công bố hoặc Đã áp dụng (Nhân viên bếp; lý do); sau chốt tạo phát sinh
+      summary: Đổi món (thay, thêm, bớt món; đổi món thay thế) trên thực đơn Công bố hoặc Đã áp dụng (Nhân viên bếp; lý do); sau chốt tạo phát sinh
       x-fr: [FR-031, FR-032, FR-039]
       x-br: [BR-M08-08, BR-M08-13]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -534,8 +534,12 @@ components:
       properties: { id: { type: integer, format: int64 }, weekStart: { type: string, format: date }, status: { type: string, enum: [DRAFT, PENDING_PUBLICATION, PUBLISHED, APPLIED, CANCELLED] }, version: { type: integer } }
     DishSwap:
       type: object
-      required: [date, mealId, dietId, oldDishId, newDishId, reason]
-      properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, oldDishId: { type: integer, format: int64 }, newDishId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' }, confirmedWarnings: { type: array, items: { type: string } } }
+      description: |
+        Sửa 2026-11-06 (chủ dự án chọn, FR-031, FR-032): oldDishId và newDishId là thay món; chỉ newDishId là thêm món (bổ sung bữa
+        trống); chỉ oldDishId là bớt món; oldDishId = newDishId kèm substituteDishIds là chỉ đổi món thay thế. Cần ít nhất một
+        trong hai. substituteDishIds là danh sách món thay thế mới của món sau (vắng thì giữ danh sách cũ, thêm món thì rỗng).
+      required: [date, mealId, dietId, reason]
+      properties: { date: { type: string, format: date }, mealId: { type: integer, format: int64 }, dietId: { type: integer, format: int64 }, oldDishId: { type: integer, format: int64 }, newDishId: { type: integer, format: int64 }, substituteDishIds: { type: array, items: { type: integer, format: int64 } }, reason: { $ref: '#/components/schemas/Reason' }, confirmedWarnings: { type: array, items: { type: string } } }
     ClosingResult:
       type: object
       properties:

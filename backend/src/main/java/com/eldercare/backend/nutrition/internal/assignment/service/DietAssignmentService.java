@@ -30,6 +30,7 @@ import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssig
 import com.eldercare.backend.nutrition.internal.assignment.persistence.ResidentNutritionLock;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
+import com.eldercare.backend.nutrition.internal.menu.service.ResidentMenuConflicts;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -51,8 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Bản gán chế độ ăn (FR-010 → FR-017, BR-M08-03, Q-283; research M-03, M-05): Bác sĩ lập đề xuất, Áp dụng (Hiệu lực
  * ngay hoặc Chờ hiệu lực, bản cũ Ngừng cùng lệnh), Hủy; Bộ lập lịch chuyển Chờ hiệu lực → Hiệu lực; trạng thái cuối của
  * người cao tuổi Ngừng, Hủy bản gán (FR-015). Mọi lệnh khóa {@code M08.RESIDENT_NUTRITION} của người đó trước khi đọc lại.
- * Đối chiếu thực đơn FR-016 có ở phase thực đơn (chưa có bảng {@code menu}, danh sách cảnh báo rỗng); phát sinh cho bữa đã
- * chốt (FR-017) có ở phase chốt suất.
+ * Lập và Áp dụng đối chiếu thực đơn của chế độ ăn mới (FR-016, {@link ResidentMenuConflicts}); phát sinh cho bữa đã chốt
+ * (FR-017) có ở phase chốt suất.
  */
 @Service
 public class DietAssignmentService {
@@ -77,6 +78,7 @@ public class DietAssignmentService {
     private final CurrentUser user;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
+    private final ResidentMenuConflicts menuConflicts;
 
     public DietAssignmentService(
             DietAssignmentStore store,
@@ -87,7 +89,8 @@ public class DietAssignmentService {
             AuditLogApi audit,
             CurrentUser user,
             BusinessTime time,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            ResidentMenuConflicts menuConflicts) {
         this.store = store;
         this.lock = lock;
         this.catalog = catalog;
@@ -97,16 +100,48 @@ public class DietAssignmentService {
         this.user = user;
         this.time = time;
         this.events = events;
+        this.menuConflicts = menuConflicts;
     }
 
     /** Đề xuất vừa lập và có cần lý do chuyên môn khi Áp dụng (api-011 {@code MenuCheckResult}). */
-    public record Proposal(long id, boolean professionalReasonRequired, List<String> warningCodes) {}
+    public record Proposal(long id, boolean professionalReasonRequired, ResidentMenuConflicts.Result menuCheck) {
+
+        public List<String> warningCodes() {
+            return menuCheck.warningCodes();
+        }
+    }
 
     /** Một dòng của danh sách: bản gán, hoặc chế độ ăn mặc định khi chưa có bản Hiệu lực ({@code assignment} rỗng). */
     public record AssignmentRow(Optional<DietAssignment> assignment, long dietId) {}
 
     public static Target target(long residentId, long id) {
         return new Target(ENTITY, Long.toString(id), residentId, null);
+    }
+
+    /** Hồ sơ người cao tuổi làm đối tượng kiểm quyền xem dị ứng (FR-022). */
+    public static Target residentTarget(long residentId) {
+        return new Target("M01.RESIDENT", Long.toString(residentId), residentId, null);
+    }
+
+    /**
+     * Kết quả đối chiếu của một người với thực đơn chưa hết tuần theo chế độ ăn hiện hành (bản Hiệu lực, hoặc chế độ mặc
+     * định không hạn chế riêng; FR-020, FR-022): nêu bữa, món, thành phần, nên chỉ người xem được dị ứng của người đó.
+     */
+    @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<ResidentMenuConflicts.Conflict> dishConflictCheck(Target target, long residentId) {
+        Optional<DietAssignment> active = store.active(residentId);
+        if (active.isPresent()) {
+            return menuConflicts
+                    .check(
+                            residentId,
+                            active.get().dietId(),
+                            new HashSet<>(active.get().personalRestrictions()))
+                    .conflicts();
+        }
+        return defaultDiet()
+                .map(d -> menuConflicts.check(residentId, d.id(), Set.of()).conflicts())
+                .orElseGet(List::of);
     }
 
     /** Đối tượng kiểm quyền của bản gán {@code id}, mang người cao tuổi của bản gán (mẫu {@code CarePlanService}). */
@@ -169,7 +204,10 @@ public class DietAssignmentService {
                 .after(snapshot(input))
                 .build());
         boolean required = ProfessionalReasonRule.required(currentSide(residentId), side(diet, input));
-        return new Proposal(id, required, menuWarnings());
+        return new Proposal(
+                id,
+                required,
+                menuConflicts.check(residentId, input.dietId(), new HashSet<>(input.personalRestrictions())));
     }
 
     /** Áp dụng (FR-011, FR-013, FR-016, FR-017): lý do chuyên môn khi cần; Hiệu lực ngay hoặc Chờ hiệu lực. */
@@ -193,7 +231,9 @@ public class DietAssignmentService {
         if (reason != null && reason.length() > 2000) {
             throw new InvalidValueException("Lý do chuyên môn tối đa 2000 ký tự");
         }
-        List<String> warnings = menuWarnings();
+        List<String> warnings = menuConflicts
+                .check(current.residentId(), current.dietId(), new HashSet<>(current.personalRestrictions()))
+                .warningCodes();
         if (confirmedWarnings == null || !confirmedWarnings.containsAll(warnings)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "WARNINGS_NOT_CONFIRMED", "Chưa xác nhận đã xem các cảnh báo (FR-016)");
@@ -335,11 +375,6 @@ public class DietAssignmentService {
         return catalog.diets().stream()
                 .filter(d -> d.active() && d.attributes().isDefault())
                 .findFirst();
-    }
-
-    /** Cảnh báo FR-016 từ thực đơn tuần hiện tại và đã công bố: phase thực đơn cài; trước đó chưa có thực đơn nào. */
-    private static List<String> menuWarnings() {
-        return List.of();
     }
 
     private static Side side(Diet diet, DietAssignment assignment) {

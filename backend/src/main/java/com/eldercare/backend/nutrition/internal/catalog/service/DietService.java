@@ -12,6 +12,7 @@ import com.eldercare.backend.common.data.TechnicalLocks;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
+import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssignmentStore;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
@@ -21,6 +22,7 @@ import com.eldercare.backend.nutrition.internal.catalog.domain.DishStatus;
 import com.eldercare.backend.nutrition.internal.catalog.domain.SafeDishRule;
 import com.eldercare.backend.nutrition.internal.catalog.domain.SafeDishRule.SafeDish;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
+import com.eldercare.backend.nutrition.internal.menu.persistence.MenuStore;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.dto.AllergenGroup;
 import com.eldercare.backend.resident.api.dto.CreateAllergen;
@@ -53,18 +55,24 @@ public class DietService {
     private final AuditLogApi audit;
     private final TechnicalLocks locks;
     private final DietAssignmentStore assignments;
+    private final MenuStore menus;
+    private final BusinessTime time;
 
     public DietService(
             NutritionCatalogStore store,
             AllergenApi allergens,
             AuditLogApi audit,
             TechnicalLocks locks,
-            DietAssignmentStore assignments) {
+            DietAssignmentStore assignments,
+            MenuStore menus,
+            BusinessTime time) {
         this.store = store;
         this.allergens = allergens;
         this.audit = audit;
         this.locks = locks;
         this.assignments = assignments;
+        this.menus = menus;
+        this.time = time;
     }
 
     /** Thân lệnh tạo, sửa chế độ ăn (api-011 {@code DietCommand}). */
@@ -144,6 +152,13 @@ public class DietService {
                     org.springframework.http.HttpStatus.CONFLICT,
                     "STILL_ASSIGNED",
                     "Chế độ ăn còn bản gán Hiệu lực hoặc Chờ hiệu lực (FR-002)");
+        }
+        if (menus.notEnded(time.today()).stream()
+                .anyMatch(m -> m.content().dishes().stream().anyMatch(d -> d.dietId() == id))) {
+            throw new com.eldercare.backend.common.error.BusinessException(
+                    org.springframework.http.HttpStatus.CONFLICT,
+                    "STILL_IN_MENU",
+                    "Chế độ ăn còn món trong thực đơn chưa hết tuần (FR-002)");
         }
         Diet after = store.deactivateDiet(current);
         audit.write(AuditLogEntry.builder()

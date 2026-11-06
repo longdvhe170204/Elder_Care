@@ -6,6 +6,7 @@ import com.eldercare.backend.nutrition.internal.assignment.service.DietAssignmen
 import com.eldercare.backend.nutrition.web.request.ApplyDietAssignmentRequest;
 import com.eldercare.backend.nutrition.web.request.DietAssignmentRequest;
 import com.eldercare.backend.nutrition.web.request.NutritionReason;
+import com.eldercare.backend.nutrition.web.response.ConflictResponse;
 import com.eldercare.backend.nutrition.web.response.DietAssignmentResponse;
 import com.eldercare.backend.nutrition.web.response.MenuCheckResultResponse;
 import com.eldercare.backend.nutrition.web.response.NutritionProblem;
@@ -53,6 +54,14 @@ public class DietAssignmentController {
                 .toList();
     }
 
+    @GetMapping("/residents/{residentId}/dish-conflict-check")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<ConflictResponse> dishConflictCheck(@PathVariable long residentId) {
+        return assignments.dishConflictCheck(DietAssignmentService.residentTarget(residentId), residentId).stream()
+                .map(ConflictResponse::of)
+                .toList();
+    }
+
     @PostMapping("/residents/{residentId}/diet-assignments")
     @ApiResponse(responseCode = "201", description = "OK")
     @ApiResponse(
@@ -77,9 +86,13 @@ public class DietAssignmentController {
                         body.effectiveFrom()));
         return ResponseEntity.created(URI.create("/api/v1/diet-assignments/" + proposal.id()))
                 .body(new MenuCheckResultResponse(
+                        proposal.menuCheck().missingMeals().stream()
+                                .map(g -> new MenuCheckResultResponse.CoverageGap(g.dietId(), g.date(), g.mealId()))
+                                .toList(),
                         List.of(),
-                        List.of(),
-                        List.of(),
+                        proposal.menuCheck().conflicts().stream()
+                                .<Object>map(ConflictResponse::of)
+                                .toList(),
                         proposal.professionalReasonRequired(),
                         proposal.warningCodes()));
     }
