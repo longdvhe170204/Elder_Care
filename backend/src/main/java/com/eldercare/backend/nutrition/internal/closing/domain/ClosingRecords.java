@@ -16,14 +16,130 @@ public final class ClosingRecords {
 
     private ClosingRecords() {}
 
-    /** Phiếu bữa ăn mỗi (bữa ngày, tầng/khu) (DBR-27); trạng thái ở cột {@code status}: {@code CLOSED} → … (Phase 7). */
-    public record MealSlip(long dailyMealId, long floorAreaId, String source, Set<String> flags) {
+    /**
+     * Phiếu bữa ăn mỗi (bữa ngày, tầng/khu) (DBR-27); trạng thái ở cột {@code status}: {@code CLOSED}, {@code PREPARED},
+     * {@code DELIVERED}, {@code HAS_DISCREPANCY}, {@code RECEIVED} (bảng phiếu của spec). Người, thời điểm giao, nhận đặt
+     * một lần (FR-047, FR-048).
+     */
+    public record MealSlip(
+            long dailyMealId,
+            long floorAreaId,
+            String source,
+            Set<String> flags,
+            Long deliveredBy,
+            Instant deliveredAt,
+            Long receivedBy,
+            Instant receivedAt) {
 
         public static final SharedKind<MealSlip> KIND = SharedKind.of("M08.MEAL_SLIP", MealSlip.class);
+
+        public static MealSlip of(long dailyMealId, long floorAreaId, String source, Set<String> flags) {
+            return new MealSlip(dailyMealId, floorAreaId, source, flags, null, null, null, null);
+        }
 
         public static String key(long dailyMealId, long floorAreaId) {
             return "M08.MEAL_SLIP:" + dailyMealId + ":" + floorAreaId;
         }
+
+        public MealSlip delivered(long by, Instant at) {
+            return new MealSlip(dailyMealId, floorAreaId, source, flags, by, at, receivedBy, receivedAt);
+        }
+
+        public MealSlip received(long by, Instant at) {
+            return new MealSlip(dailyMealId, floorAreaId, source, flags, deliveredBy, deliveredAt, by, at);
+        }
+    }
+
+    /**
+     * Phần bổ sung của phiếu (FR-048b; thay {@code phan_bo_sung}, nhóm 3, cha là phiếu): phát sinh cần giao hoặc yêu cầu suất
+     * bổ sung bếp đã xác nhận sau khi phiếu Đã giao; đúng một nguồn khác {@code null}. Giao là sửa bản nháp (đặt một lần),
+     * nhận là xác nhận dòng (khóa).
+     */
+    public record SupplementaryPortion(
+            long dailyMealId,
+            long slipId,
+            long floorAreaId,
+            Long dietId,
+            int portionCount,
+            Long adjustmentId,
+            Long extraRequestId,
+            Long deliveredBy,
+            Instant deliveredAt,
+            Long receivedBy,
+            Instant receivedAt) {
+
+        public static final SharedKind<SupplementaryPortion> KIND =
+                SharedKind.of("M08.SUPPLEMENTARY_PORTION", SupplementaryPortion.class);
+
+        public SupplementaryPortion {
+            if ((adjustmentId == null) == (extraRequestId == null)) {
+                throw new IllegalArgumentException(
+                        "Phần bổ sung có đúng một nguồn (phát sinh hoặc yêu cầu suất bổ sung)");
+            }
+        }
+
+        public SupplementaryPortion delivered(long by, Instant at) {
+            return new SupplementaryPortion(
+                    dailyMealId,
+                    slipId,
+                    floorAreaId,
+                    dietId,
+                    portionCount,
+                    adjustmentId,
+                    extraRequestId,
+                    by,
+                    at,
+                    receivedBy,
+                    receivedAt);
+        }
+
+        public SupplementaryPortion received(long by, Instant at) {
+            return new SupplementaryPortion(
+                    dailyMealId,
+                    slipId,
+                    floorAreaId,
+                    dietId,
+                    portionCount,
+                    adjustmentId,
+                    extraRequestId,
+                    deliveredBy,
+                    deliveredAt,
+                    by,
+                    at);
+        }
+    }
+
+    /**
+     * Sai lệch của phiếu hoặc phần bổ sung (FR-048, FR-048b; thay {@code sai_lech_phieu}, nhóm 3, cha là phiếu): bản nháp tới
+     * khi bếp ghi xử lý (đặt một lần, rồi khóa). {@code supplementId} khác {@code null} là sai lệch trên phần bổ sung.
+     */
+    public record SlipDiscrepancy(
+            long slipId,
+            Long supplementId,
+            String content,
+            long reportedBy,
+            Long reporterStaffId,
+            String resolution,
+            String description,
+            Long resolvedBy) {
+
+        public static final SharedKind<SlipDiscrepancy> KIND =
+                SharedKind.of("M08.SLIP_DISCREPANCY", SlipDiscrepancy.class);
+
+        public SlipDiscrepancy resolved(String resolution, String description, long by) {
+            return new SlipDiscrepancy(
+                    slipId, supplementId, content, reportedBy, reporterStaffId, resolution, description, by);
+        }
+    }
+
+    /**
+     * Bản ghi lưu mẫu của bữa ngày (FR-060, FR-061; {@code M08.RETAINED_SAMPLE}, cha là bữa ngày): Phase 11 (T039) cài nội
+     * dung và lệnh; giao phiếu chỉ cần biết bữa đã có bản ghi (FR-047).
+     */
+    public record RetainedSampleMarker(long dailyMealId) {
+
+        public static final SharedKind<RetainedSampleMarker> KIND =
+                SharedKind.of("M08.RETAINED_SAMPLE", RetainedSampleMarker.class);
     }
 
     /**

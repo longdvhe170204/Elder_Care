@@ -17,6 +17,7 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.events.AdjustmentsPending;
 import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssignmentStore;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
@@ -27,6 +28,7 @@ import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.Ad
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.ExtraPortionRequest;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.MealSlip;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SpecialPortion;
+import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SupplementaryPortion;
 import com.eldercare.backend.nutrition.internal.closing.domain.CountedPerson;
 import com.eldercare.backend.nutrition.internal.closing.domain.DailyMeal;
 import com.eldercare.backend.nutrition.internal.closing.domain.PortionClosing;
@@ -68,6 +70,10 @@ public class AdjustmentService {
     private static final AuditAction HELD_SERVED = new AuditAction("HELD_PORTION_SERVED", false);
     private static final AuditAction HELD_DISCARDED = new AuditAction("HELD_PORTION_DISCARDED", false);
     private static final AuditAction DISH_ASSIGNED = new AuditAction("SPECIAL_PORTION_DISH_ASSIGNED", false);
+
+    /** Phiếu đã giao: phát sinh cần giao thêm thành phần bổ sung, phiếu không quay lại (FR-048b). */
+    private static final Set<String> AFTER_DELIVERY = Set.of(
+            MealSlipStatus.DELIVERED.name(), MealSlipStatus.HAS_DISCREPANCY.name(), MealSlipStatus.RECEIVED.name());
 
     private final PortionClosingService closingService;
     private final PortionClosingStore closings;
@@ -139,8 +145,21 @@ public class AdjustmentService {
             if (extra.get().confirmedAt() != null) {
                 throw alreadyConfirmed();
             }
+            ExtraPortionRequest r = extra.get().content();
+            locks.lock(ClosingRecordStore.DAILY_MEAL + ":" + r.dailyMealId());
             records.confirmExtra(extra.get(), user.accountId(), now);
-            audit(id, extra.get().content().dailyMealId());
+            long slip = records.slip(r.dailyMealId(), r.floorAreaId())
+                    .map(SimpleRecord::id)
+                    .orElseGet(() -> records.createSlip(
+                                    MealSlip.of(r.dailyMealId(), r.floorAreaId(), "EXTRA_PORTION_REQUEST", Set.of()),
+                                    user.accountId())
+                            .id());
+            records.addSupplement(
+                    new SupplementaryPortion(
+                            r.dailyMealId(), slip, r.floorAreaId(), null, 1, null, id, null, null, null, null),
+                    user.accountId(),
+                    now);
+            audit(id, r.dailyMealId());
             return;
         }
         RecordEvent<Adjustment> row = records.adjustment(id);
@@ -150,10 +169,29 @@ public class AdjustmentService {
             throw alreadyConfirmed();
         }
         records.confirmAdjustment(row, user.accountId(), now);
+        Optional<SimpleRecord<MealSlip>> delivered =
+                records.slip(a.dailyMealId(), a.floorAreaId()).filter(s -> AFTER_DELIVERY.contains(s.status()));
+        if (delivered.isPresent() && a.portionCount() >= 0) {
+            records.addSupplement(
+                    new SupplementaryPortion(
+                            a.dailyMealId(),
+                            delivered.get().id(),
+                            a.floorAreaId(),
+                            a.dietId(),
+                            a.portionCount(),
+                            id,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null),
+                    user.accountId(),
+                    now);
+        }
         if (a.portionCount() > 0
                 && records.slip(a.dailyMealId(), a.floorAreaId()).isEmpty()) {
             long slip = records.createSlip(
-                            new MealSlip(a.dailyMealId(), a.floorAreaId(), "ADJUSTMENT", Set.of()), user.accountId())
+                            MealSlip.of(a.dailyMealId(), a.floorAreaId(), "ADJUSTMENT", Set.of()), user.accountId())
                     .id();
             PortionClosing closing = closings.ofDailyMeal(a.dailyMealId()).orElseThrow();
             for (CountedPerson person : closingService.current(closing).values()) {

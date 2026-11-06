@@ -17,6 +17,7 @@ import com.eldercare.backend.common.data.TechnicalLocks;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.events.AdjustmentsPending;
 import com.eldercare.backend.nutrition.api.events.PortionsClosed;
 import com.eldercare.backend.nutrition.api.events.SafeDishApplied;
@@ -209,8 +210,7 @@ public class PortionClosingService {
         for (FloorDietCount p : portions) {
             slips.computeIfAbsent(
                     p.floorAreaId(),
-                    floor -> records.createSlip(
-                                    new MealSlip(dailyMealId, floor, "CLOSING", slipFlags), user.accountId())
+                    floor -> records.createSlip(MealSlip.of(dailyMealId, floor, "CLOSING", slipFlags), user.accountId())
                             .id());
         }
         int specials = 0;
@@ -339,6 +339,7 @@ public class PortionClosingService {
                 continue;
             }
             created++;
+            reopenPrepared(closing.dailyMealId(), delta.floorAreaId());
             if (delta.change() != Change.MOVED_OUT) {
                 updateSpecial(closing.dailyMealId(), delta.after());
             }
@@ -393,6 +394,7 @@ public class PortionClosingService {
                     new Adjustment(dailyMealId, floor, dietId, 0, "DISH_SWAP", source, true, null, null, null, null);
             if (records.addAdjustment(swap, null, now, source + ":" + floor).isPresent()) {
                 created++;
+                reopenPrepared(dailyMealId, floor);
             }
         }
         recompute(closing.get(), Optional.empty(), source, "DISH_SWAP", false, now);
@@ -405,6 +407,14 @@ public class PortionClosingService {
                     "M08.ADJUSTMENT_CREATED:" + dailyMealId + ":" + source,
                     now));
         }
+    }
+
+    /** Phát sinh cần giao mới của tầng/khu: phiếu Đã chuẩn bị quay về Đã chốt (data-model mục 7, bảng phiếu). */
+    void reopenPrepared(long dailyMealId, long floorAreaId) {
+        records.slip(dailyMealId, floorAreaId)
+                .filter(s -> MealSlipStatus.PREPARED.name().equals(s.status()))
+                .ifPresent(
+                        s -> records.changeSlip(records.lockSlip(s.id()), MealSlipStatus.CLOSED.name(), s.content()));
     }
 
     /** Trạng thái suất hiện hành theo người: lần chốt, rồi lần lượt trạng thái sau mỗi phát sinh. */
