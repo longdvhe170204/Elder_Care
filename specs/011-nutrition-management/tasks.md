@@ -259,11 +259,11 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Tests cho User Story 8
 
-- [ ] T036 [P] [US8] Test `BT/nutrition/BR_M08_05_XemLaiIT.java` (Q45)
+- [x] T036 [P] [US8] Test `BT/nutrition/BR_M08_05_XemLaiIT.java` (Q45) *(2026-11-07, Phase 10: xong và xanh — `BR_M08_05_ReviewIT` 4 test: ăn kém kéo dài rồi sụt cân mỗi sự kiện một thông báo Nhẹ, không yêu cầu, không nhắc lại sau 30 ngày; chế độ mặc định; bản gán tham chiếu thông báo (FR-059, Q46); bếp 403)*
 
 ### Implementation cho User Story 8
 
-- [ ] T037 [US8] Tạo bảng kỹ thuật `thong_bao_xem_lai` (không trạng thái) trong `MIG/V011_09__xem_lai.sql`; cài listener `BE/nutrition/xemlai/internal/XemLaiListener.java` và endpoint `GET /dinh-duong/thong-bao-xem-lai`; bản gán tham chiếu `thong_bao_xem_lai_id` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `thong_bao_xem_lai` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [x] T037 [US8] Tạo bảng kỹ thuật `thong_bao_xem_lai` (không trạng thái) trong `MIG/V011_09__xem_lai.sql`; cài listener `BE/nutrition/xemlai/internal/XemLaiListener.java` và endpoint `GET /dinh-duong/thong-bao-xem-lai`; bản gán tham chiếu `thong_bao_xem_lai_id` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `thong_bao_xem_lai` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.** *(2026-11-07, Phase 10: xong — không có bảng riêng theo R-15, mốc `M08.REVIEW_NOTICE` ở `reminder_marker` (không `V011_09`); `ReviewNoticeService`, `ReviewNoticeStore`, `ReviewEventListener` (`ProlongedPoorEating` của 005, `WeightLossDetected` của 007), `GET /nutrition/review-notices`; bản gán chỉ nhận `reviewNoticeId` của chính người đó; 007 chưa có nơi phát `WeightLossDetected` — team-plan mục 8)*
 
 **Checkpoint**: Xem lại chạy.
 
