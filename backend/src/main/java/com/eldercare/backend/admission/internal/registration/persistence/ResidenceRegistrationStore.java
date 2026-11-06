@@ -375,6 +375,13 @@ public class ResidenceRegistrationStore {
                         evidenceFileId));
     }
 
+    /** Khai báo gia hạn Cần khai báo (không gắn nghĩa vụ): vào danh sách cần làm, nhắc quá hạn theo hạn của khai báo. */
+    public List<ResidenceRegistration> renewalsToSubmit() {
+        return toSubmit().stream()
+                .filter(registration -> registration.renewal() && registration.obligationId() == null)
+                .toList();
+    }
+
     /** Khai báo Cần khai báo mà lần nộp hiện hành đã bị từ chối, theo mã người (cho hạn hiệu lực của nghĩa vụ). */
     List<ResidenceRegistration> toSubmit() {
         return byStatus(Set.of(RegistrationStatus.TO_SUBMIT));

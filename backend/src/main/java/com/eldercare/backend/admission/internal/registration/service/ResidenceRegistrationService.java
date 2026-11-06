@@ -195,6 +195,17 @@ public class ResidenceRegistrationService {
                     obligation.registrationId(),
                     allowedCommandsOf(obligation.registrationId())));
         }
+        // Khai báo gia hạn đã lập mà chưa nộp không có nghĩa vụ: vẫn là việc cần làm, quá hạn theo hạn của khai báo
+        // (FR-002)
+        for (ResidenceRegistration renewal : registrations.renewalsToSubmit()) {
+            tasks.add(new Task(
+                    renewal.residentId(),
+                    residents.identity(renewal.residentId()).fullName(),
+                    renewal.dueAt().isBefore(todayStart) ? TaskType.OVERDUE : TaskType.EXPIRING_SOON,
+                    renewal.dueAt(),
+                    renewal.id(),
+                    allowedCommands(renewal)));
+        }
         List<ResidenceRegistration> expiring = renewals.due(time.today());
         Map<Long, LocalDate> expiry = renewals.expiryOf(expiring);
         for (ResidenceRegistration registration : expiring) {
@@ -636,8 +647,7 @@ public class ResidenceRegistrationService {
         LocalDate residentialFrom = obligation.trigger() == ObligationTrigger.RESIDENTIAL_EFFECTIVE
                 ? obligation.triggerAt().atZone(BusinessTime.ZONE).toLocalDate()
                 : null;
-        ExpectedStayDuration stay = ExpectedStayDuration.of(
-                signed.stream().map(ResidenceRegistrationService::period).toList(), residentialFrom);
+        ExpectedStayDuration stay = ExpectedStayDuration.of(periods(signed), residentialFrom);
         int thresholdDays = Math.toIntExact(
                 parameters.read(ParameterCode.CFG_M02_11).asDuration().toDays());
         return RegistrationTypeRule.determine(stay, thresholdDays, localPermanentResident);
@@ -675,6 +685,33 @@ public class ResidenceRegistrationService {
                 HttpStatus.CONFLICT,
                 "REGISTRATION_IN_PROGRESS_EXISTS",
                 "Người cao tuổi đã có khai báo Cần khai báo hoặc Đã nộp (FR-004, DBR-33)");
+    }
+
+    /**
+     * Các khoảng lưu trú của hợp đồng đã ký. Hợp đồng Chấm dứt trước hạn mà hợp đồng sau bắt đầu trong khoảng đã ghi thì
+     * chỉ tính tới ngày liền trước hợp đồng sau (ngày chấm dứt không có trong {@code ContractView}); hợp đồng bị thay hoàn
+     * toàn thì bỏ (Q-241).
+     */
+    private static List<StayPeriod> periods(List<ContractView> signed) {
+        List<ContractView> sorted = signed.stream()
+                .sorted(Comparator.comparing(ContractView::startDate))
+                .toList();
+        List<StayPeriod> periods = new ArrayList<>();
+        for (int i = 0; i < sorted.size(); i++) {
+            ContractView contract = sorted.get(i);
+            StayPeriod stay = period(contract);
+            if (contract.status() == ContractStatus.TERMINATED && i + 1 < sorted.size()) {
+                LocalDate beforeNext = sorted.get(i + 1).startDate().minusDays(1);
+                if (stay.end() == null || stay.end().isAfter(beforeNext)) {
+                    if (beforeNext.isBefore(contract.startDate())) {
+                        continue;
+                    }
+                    stay = new StayPeriod(contract.startDate(), beforeNext);
+                }
+            }
+            periods.add(stay);
+        }
+        return periods;
     }
 
     /** Hợp đồng: ngày kết thúc hiện hành (gồm phụ lục gia hạn), không có thì ngày kết thúc ghi trên hợp đồng. */

@@ -161,8 +161,9 @@ export function RegistrationDetail({ residentId, fullName, task, Title, Descript
   const current = state.items.filter((r) => CURRENT_STATUSES.includes(r.status))
   const old = state.items.filter((r) => !CURRENT_STATUSES.includes(r.status))
   const hasInProgress = state.items.some((r) => IN_PROGRESS_STATUSES.includes(r.status))
+  // Khai báo gia hạn chỉ lập được khi còn Đăng ký tạm trú Đã xác nhận (FR-005); Hết hạn thì lập khai báo thường
   const hasTemporaryConfirmed = state.items.some(
-    (r) => r.type === 'TEMPORARY_RESIDENCE_REGISTRATION' && ['CONFIRMED', 'EXPIRED'].includes(r.status),
+    (r) => r.type === 'TEMPORARY_RESIDENCE_REGISTRATION' && r.status === 'CONFIRMED',
   )
 
   async function create(renewal) {

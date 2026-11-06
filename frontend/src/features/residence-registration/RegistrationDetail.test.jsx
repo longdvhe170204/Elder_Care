@@ -128,6 +128,13 @@ describe('RegistrationDetail (018)', () => {
     expect(JSON.parse(api.calls('POST', '/residents/5/residence-registrations')[0][1].body)).toEqual({ renewal: true })
   })
 
+  it('FR_005_chiCoHetHan_chiHienLapKhaiBao_khongCoNutGiaHan', async () => {
+    const expired = { ...toSubmit, id: 9, status: 'EXPIRED', allowedCommands: [], expiryDate: '2026-10-01' }
+    setup(PERMS, [expired])
+    expect(await screen.findByRole('button', { name: 'Lập khai báo' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Lập khai báo gia hạn' })).not.toBeInTheDocument()
+  })
+
   it('FR_001_409_khongCoNghiaVu_hienAlertTrongKhung', async () => {
     const api = setup(PERMS, [])
     api.on(

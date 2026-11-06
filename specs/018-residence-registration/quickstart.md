@@ -42,6 +42,10 @@ frontend/ npm ci && npm test && npm run dev
 | Q18 | A Kết thúc lưu trú khi có khai báo Đã xác nhận | A "cần khai báo xóa", HC nhắc mỗi ngày; ghi đã khai báo xóa (hồ sơ trạng thái cuối) → Đã xóa | US4 #1, #2, #4 |
 | Q19 | B qua đời khi khai báo Đã nộp | Khai báo Đã hủy; không nhắc khai báo xóa | US4 #3 |
 | Q20 | Hai hợp đồng có khoảng trống 1 ngày | Tổng thời gian tính lại từ hợp đồng sau | Q-241 |
+| Q21 | Lập khai báo gia hạn cho A rồi không nộp; qua hết ngày hết hạn một ngày nữa | Khai báo gia hạn có trong bảng việc ("Sắp hết hạn", rồi "Quá hạn"); HC nhắc mỗi ngày; QL báo một lần; tính vào số liệu 016 | US3, FR-002, FR-011 |
+| Q22 | Người chỉ có Thông báo lưu trú ký hợp đồng nội trú mới bắt đầu ngay ngày sau hợp đồng cũ | HC nhắc lập khai báo như khi gia hạn; có khoảng trống thì không nhắc | BR-M02-14, Q-241 |
+| Q23 | Hợp đồng cũ Chấm dứt sớm, hợp đồng mới bắt đầu trong khoảng đã ghi của hợp đồng cũ; lập khai báo | Lập được; tổng thời gian tính liền chuỗi, không báo lỗi | Q-241 |
+| Q24 | Đăng ký tạm trú của người đã Kết thúc lưu trú qua ngày hết hạn | Chuyển Hết hạn; Quản lý viện không nhận báo; vẫn cần khai báo xóa | BR-M02-12, BR-M02-13 |
 
 ## 4. Nhóm test tự động
 
@@ -62,26 +66,30 @@ frontend/ npm ci && npm test && npm run dev
 | SC-004 | Q5 |
 | SC-005 | Đo thao tác ghi nộp, ghi kết quả |
 
-## 6. Trạng thái kiểm chứng (2026-10-27, Phase 7 một phần)
+## 6. Trạng thái kiểm chứng (cập nhật 2026-11-06, đủ 18/18 task)
 
 - Mã lỗi ở mục 3 là tên logic; mã trả về theo api-018 (glossary 24.4): `KHONG_PHAI_NOI_TRU` → `NOT_RESIDENTIAL_CARE`, `THIEU_NGAY_HET_HAN` → `EXPIRY_DATE_REQUIRED`, `CHUA_GHI_NOP` → `NOT_SUBMITTED`, `DA_CO_KHAI_BAO_DANG_XU_LY` → `REGISTRATION_IN_PROGRESS_EXISTS`.
-- Chưa chạy kịch bản mục 3 trên profile `demo`: chưa có màn web (BL-96), chưa có dữ liệu mẫu A, B, C, E, F; các việc hằng ngày (nhắc quá hạn, gia hạn, khai báo xóa, chuyển Hết hạn) chưa gắn vào `ResidenceRegistrationJob` (BL-90) nên Q4, Q11, Q13, nhắc mỗi ngày của Q18 không tự xảy ra trên `demo`. Bằng chứng hiện có là test tự động (MySQL test `localhost:3307`), gọi lệnh qua HTTP hoặc gọi thẳng hàm nhắc với ngày giả lập:
+- Chưa chạy kịch bản mục 3 trên profile `demo` bằng người thật: màn web đã có (BL-96) nhưng chưa có dữ liệu mẫu A, B, C, E, F; bốn việc hằng ngày là `M02DailyTask` của job `M02_DAILY` (không còn BL-90) nên chạy theo đồng hồ giả lập của `demo`. Kịch bản thủ công theo bước BF ở `test-018.md` (thư mục ElderCare_ThanhVienB). Bằng chứng hiện có là test tự động (MySQL test `localhost:3307`), gọi lệnh qua HTTP hoặc gọi thẳng hàm nhắc với ngày giả lập:
 
 | # | Test | Ghi chú |
 | --- | --- | --- |
 | Q1, Q2 | `BR_M02_11_ResidenceRegistrationIT` `Q1_*` | |
 | Q3 | `BR_M02_11_*` `Q2_*`, `Q3_*`, `BR_M02_11_thirtyDays*`; `RegistrationTypeRuleTest` | |
-| Q4 | `BR_M02_11_*` `Q4_*`; `RegistrationSubmissionResultIT` `Q9_afterARejection_*`, `Q9_aManagerAlreadyTold*` | gọi `RegistrationOverdueReminders.remind(day)`, chưa qua job (BL-90) |
+| Q4 | `BR_M02_11_*` `Q4_*`; `RegistrationSubmissionResultIT` `Q9_afterARejection_*`, `Q9_aManagerAlreadyTold*` | gọi `RegistrationOverdueReminders.remind(day)`; job `M02_DAILY` chạy bốn việc |
 | Q5 | `BR_M02_11_*` `Q5_*`; `BR_M02_13_DeregistrationIT` `SC_004_*`, `US4_1_*` | |
 | Q6 | `BR_M02_11_*` `Q6_*`; `RegistrationSubmissionResultIT` `FR_001_*Local*` | |
 | Q7 → Q10 | `RegistrationSubmissionResultIT` `Q7_*` → `Q10_*` | |
-| Q11 | `BR_M02_12_RenewalIT` `Q11_*` | gọi `RegistrationRenewalReminders.remind(day)` (BL-90) |
+| Q11 | `BR_M02_12_RenewalIT` `Q11_*` | gọi `RegistrationRenewalReminders.remind(day)` |
 | Q12 | `BR_M02_12_*` `Q12_*`; `RegistrationStoreIT` `DBR_33_*` | |
-| Q13 | `BR_M02_12_*` `Q13_*`, `Z_04_*` | gọi `RegistrationExpiry.expire(day)` (BL-90) |
+| Q13 | `BR_M02_12_*` `Q13_*`, `Z_04_*` | gọi `RegistrationExpiry.expire(day)` |
 | Q14, Q16, Q17 | `BR_M02_14_TypeChangeIT`; `BR_M02_11_*` `FR_001a_*` | |
 | Q15 | `BR_M02_12_*` `Q15_*`; `DBR_33_OneRegistrationIT` | |
-| Q18 | `BR_M02_13_*` `US4_1_*`, `US4_2_*`, `US4_4_*`, `FR_008_*` | nhắc mỗi ngày gọi `RegistrationDeregistration.remind(day)` (BL-90) |
+| Q18 | `BR_M02_13_*` `US4_1_*`, `US4_2_*`, `US4_4_*`, `FR_008_*` | nhắc mỗi ngày gọi `RegistrationDeregistration.remind(day)` |
 | Q19 | `BR_M02_13_*` `US4_3_*` | |
 | Q20 | `ExpectedStayDurationTest` `oneDayGap_*` | |
+| Q21 | `RegistrationReviewIT` `FR_011_aRenewalInProgress_*`, `FR_002_aSubmittedRenewal_isNotOverdue` | gọi `RegistrationOverdueReminders.remind(day)` |
+| Q22 | `RegistrationReviewIT` `BR_M02_14_aConsecutiveResidentialContract_*`, `BR_M02_14_aNonConsecutiveResidentialContract_*` | |
+| Q23 | `RegistrationReviewIT` `Q_241_aTerminatedContractOverlappedByTheNextOne_*` | |
+| Q24 | `RegistrationReviewIT` `BR_M02_12_expiryOfSomeoneWhoEndedResidency_*` | |
 
-- SC-005 (thời gian thao tác) chưa đo: cần màn web (BL-96) và người thật.
+- SC-005 (thời gian thao tác) chưa đo: cần người thật trên màn web.

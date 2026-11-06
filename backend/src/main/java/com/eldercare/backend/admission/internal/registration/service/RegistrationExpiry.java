@@ -97,9 +97,13 @@ public class RegistrationExpiry implements M02DailyTask {
                     .before(Map.of("status", RegistrationStatus.CONFIRMED.name()))
                     .after(Map.of("status", RegistrationStatus.EXPIRED.name(), "expiryDate", expiryDate.toString()))
                     .build());
-            events.publishEvent(new ResidenceRegistrationReminder(Kind.EXPIRED_MANAGER, residentId, day, time.now()));
-            if (!inProgress.contains(residentId)
-                    && !RegistrationRenewalReminders.FINAL.contains(residents.status(residentId))) {
+            // Người đã Kết thúc lưu trú, Qua đời chỉ còn khai báo xóa: không báo Hết hạn, không nhắc lập khai báo
+            boolean finalStatus = RegistrationRenewalReminders.FINAL.contains(residents.status(residentId));
+            if (!finalStatus) {
+                events.publishEvent(
+                        new ResidenceRegistrationReminder(Kind.EXPIRED_MANAGER, residentId, day, time.now()));
+            }
+            if (!inProgress.contains(residentId) && !finalStatus) {
                 obligations.record(residentId, ObligationTrigger.EXPIRED, trigger, registration.id());
             }
             expired++;
