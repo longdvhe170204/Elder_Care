@@ -244,3 +244,11 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 
 - 016 chỉ đọc; không tạo, sửa dữ liệu nghiệp vụ, không gửi thông báo (FR-001, Q-306)
 - Mọi mốc đọc `ThamSoApi` (CFG-M14-*)
+
+## Phase 13: Convergence
+
+*(/speckit-converge 2026-11-06. Các nguồn dưới đây đã có bản cài thật nhưng `reporting` chưa dùng; phần khác của T008, T014, T016, T018, T020, T022, T024, T031, T032 vẫn chờ nguồn như ghi ở từng task.)*
+
+- [x] T106 [US3] *(2026-11-06: `WaitingListMetric` `RES.WAITING_LIST`, thêm `RES.WAITING_TIME`, `RES.WAITING_TIME_MAX` (chi-tieu.md, glossary); test `MetricResWaitingListTest` 3; còn số hồ sơ rời danh sách theo lý do chờ 004 trả `leftOn`, ghi ở plan)* Cài `NCT.DANH_SACH_CHO` qua `ResidencyStatisticsApi.waitingList` (004, bản thật `ResidencyStatisticsService`); test `ChiTieu_NCT_*Test` viết trước; một phần của T013, T014 per FR-025 (partial)
+- [x] T107 [US5] *(2026-11-06: `MissedDoseRateMetric`, `RefusedDoseRateMetric`, `OverdueReconciliationsMetric`; test `MetricMedicationTest` 2)* Cài `THUOC.TY_LE_BO_LO`, `THUOC.TY_LE_TU_CHOI` (`MedicationStatisticsApi.dosesInPeriod`) và `THUOC.DOI_CHIEU_QUA_HAN` (`reconciliationsInPeriod`) của 006 (bản thật `DefaultMedicationStatisticsService`); test `ChiTieu_THUOC_*Test` viết trước; một phần của T017, T018 per FR-043, FR-044 (partial)
+- [x] T108 [US5] *(2026-11-06: `VitalSignsMetric`; test `MetricHealthVitalSignsTest` 1; còn chuỗi giá trị theo thời gian của một người, chờ 007 thêm giá trị đo vào `VitalSignReportView`, ghi ở plan)* Cài `SK.CHI_SO` qua `VitalSignStatisticsApi.readings` (007, bản thật `DefaultVitalSignStatistics`); test `ChiTieu_SK_*Test` viết trước; một phần của T017, T018 per FR-040 (partial)
