@@ -216,6 +216,14 @@ export const NAV_GROUPS = [
         functions: ['VISITOR_PREFERENCE'],
         roles: [QL, TT, DD, HC],
       },
+      // Dòng "Quy trình đón, ngoại lệ đón" (012 T021): người có quyền lệnh nguồn ghi đón, Quản lý viện duyệt ngoại lệ
+      {
+        key: 'pickups',
+        label: 'Quy trình đón',
+        icon: 'DoorOpen',
+        functions: ['PICKUP'],
+        roles: [QL, TT, DD, CS, HC],
+      },
       // Dòng "Đăng ký thăm"
       {
         key: 'visits',
@@ -224,6 +232,16 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Người thân ở lại" (012 T035; chú thích 20: Hành chính đăng ký, Trưởng tầng xác nhận, Quản lý viện xác nhận thay)
+      {
+        key: 'family-stays',
+        label: 'Người thân ở lại',
+        icon: 'BedDouble',
+        functions: ['FAMILY_STAY'],
+        roles: [QL, TT, HC],
+      },
+      // Dòng "Phản hồi" (012 T030): người phụ trách xử lý, Quản lý viện xem mọi phản hồi; người thân dùng cổng
+      { key: 'feedback', label: 'Phản hồi', icon: 'MessageSquare', functions: ['FEEDBACK'], roles: [QL, TT, DD, HC] },
     ],
   },
   {

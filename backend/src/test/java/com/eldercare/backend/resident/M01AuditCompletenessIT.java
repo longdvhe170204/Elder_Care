@@ -132,13 +132,13 @@ class M01AuditCompletenessIT extends MySqlIntegrationTestBase {
         assertOneAuditInsertWith(
                 statementsOf(() -> id[0] = catalogs.create("allergens", new CatalogService.Input(name, "FOOD", null))
                         .id()),
-                "allergen");
+                "catalog_item");
         assertOneAuditInsertWith(
                 statementsOf(() -> catalogs.update(
                         "allergens", id[0], "\"0\"", new CatalogService.Input(name + " 2", "FOOD", null))),
-                "allergen");
-        assertOneAuditInsertWith(statementsOf(() -> catalogs.deactivate("allergens", id[0], REASON)), "allergen");
-        assertOneAuditInsertWith(statementsOf(() -> catalogs.reactivate("allergens", id[0], REASON)), "allergen");
+                "catalog_item");
+        assertOneAuditInsertWith(statementsOf(() -> catalogs.deactivate("allergens", id[0], REASON)), "catalog_item");
+        assertOneAuditInsertWith(statementsOf(() -> catalogs.reactivate("allergens", id[0], REASON)), "catalog_item");
     }
 
     @Test

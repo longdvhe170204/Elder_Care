@@ -61,7 +61,8 @@ class FR_002_DeclineCancelAdmissionIT extends WaitingListTestBase {
         assertThat(applicationStatus(w.applicationId())).isEqualTo("CANCELLED");
         assertThat(currentStatus(w.residentId())).isEqualTo(ResidentStatus.ADMISSION_CANCELLED);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM resident_status_history WHERE resident_id = ? AND command ="
+                        "SELECT COUNT(*) FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE resident_id = ? AND command ="
                                 + " 'CANCEL_ADMISSION' AND reason = 'Gia đình không tiếp tục chờ'",
                         Integer.class,
                         w.residentId()))
@@ -97,8 +98,8 @@ class FR_002_DeclineCancelAdmissionIT extends WaitingListTestBase {
         assertThat(entry(w.entryId()).get("status").asString()).isEqualTo("WAITING_CANCELLED");
         assertThat(applicationStatus(w.applicationId())).isEqualTo("CANCELLED");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM resident_status_history WHERE resident_id = ? AND command ="
-                                + " 'CANCEL_ADMISSION'",
+                        "SELECT COUNT(*) FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE resident_id = ? AND command =" + " 'CANCEL_ADMISSION'",
                         Integer.class,
                         w.residentId()))
                 .isEqualTo(1);

@@ -56,6 +56,14 @@ class SessionTokenFilter extends OncePerRequestFilter {
             PathPatternRequestMatcher.withDefaults().matcher(org.springframework.http.HttpMethod.POST, "/api/v1/sync");
 
     static final String REQUESTED_FROM = "X-Requested-From";
+    /**
+     * Yêu cầu tự làm mới không đếm lại thời gian không thao tác (api-002, T047a); luồng SSE ({@code EventSource} không
+     * gửi được header) dùng tham số cùng nghĩa.
+     */
+    static final String BACKGROUND_REFRESH = "X-Background-Refresh";
+
+    static final String BACKGROUND_REFRESH_PARAM = "backgroundRefresh";
+
     private static final String BEARER = "Bearer ";
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
 
@@ -102,7 +110,9 @@ class SessionTokenFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-        Optional<SessionService.Resolved> session = sessions.resolveRequest(token);
+        boolean background = "true".equals(request.getHeader(BACKGROUND_REFRESH))
+                || "true".equals(request.getParameter(BACKGROUND_REFRESH_PARAM));
+        Optional<SessionService.Resolved> session = sessions.resolveRequest(token, background);
         if (session.isEmpty()) {
             writeProblem(response, HttpStatus.UNAUTHORIZED, "SESSION_EXPIRED", "Phiên đã kết thúc, cần đăng nhập lại");
             return;

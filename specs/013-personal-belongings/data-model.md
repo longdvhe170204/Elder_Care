@@ -78,7 +78,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
 | `id`, `nct_id`, `loai_do_id`, `mo_ta` | | FR-003 |
-| `so_luong DECIMAL NULL`, `so_tien BIGINT NULL`, `don_vi` | Đúng một trong hai theo `co_so_tien` | FR-003 |
+| `so_luong DECIMAL NULL`, `so_tien DECIMAL(15,0) NULL`, `don_vi` | Đúng một trong hai theo `co_so_tien`. *(Sửa 2026-10-29: `so_tien` từ `BIGINT` sang `DECIMAL(15,0)` theo quy ước tiền ở 000 data-model.)* | FR-003 |
 | `do_goc_id NULL`, `tiep_nhan_goc_id` | Đồ tách trỏ đồ gốc và bản ghi Tiếp nhận gốc | FR-004, FR-012 |
 | `trang_thai` (`DANG_GIU`, `DANG_SU_DUNG`, `DA_TRA`, `THAT_LAC`, `HU_HONG`, `DA_XU_LY`) | Suy ra từ `ban_giao_hien_hanh_id` | FR-011 |
 | `nguoi_giu_loai` (`NHAN_VIEN`, `NGUOI_CAO_TUOI`, `NULL` khi Thất lạc/cuối), `nguoi_giu_id` | Suy ra | FR-011 |

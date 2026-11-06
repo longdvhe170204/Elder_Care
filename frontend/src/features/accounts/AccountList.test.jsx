@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
+import { DetailHost } from '@/test/DetailHost'
 import { AccountList } from './AccountList'
 
 // 002 T035: màn quản trị tài khoản nhân viên (US2; FR-002 → FR-006, FR-011, FR-012, FR-042; hợp đồng /accounts).
@@ -51,7 +52,7 @@ describe('AccountList', () => {
         nextCursor: null,
       }),
     )
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const rows = (await screen.findAllByRole('row')).slice(1)
     expect(rows).toHaveLength(4)
@@ -67,7 +68,7 @@ describe('AccountList', () => {
 
   it('locTheoLoai_trangThai_tuKhoa_goiQuery', async () => {
     api.on('GET', '/accounts', json(200, { items: [], nextCursor: null }))
-    render(<AccountList canCreate={false} />)
+    render(<DetailHost>{(host) => <AccountList canCreate={false} {...host} />}</DetailHost>)
     await screen.findByText('Không có tài khoản khớp')
 
     fireEvent.change(screen.getByLabelText('Loại'), { target: { value: 'STAFF' } })
@@ -90,7 +91,7 @@ describe('AccountList', () => {
       allowedCommands: ['unlock', 'reset-password'],
     })
     api.on('GET', '/accounts', json(200, { items: [locked], nextCursor: null }))
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const sheet = await openDetail(locked)
     await within(sheet).findByRole('button', { name: 'Mở khóa' })
@@ -104,7 +105,7 @@ describe('AccountList', () => {
     const item = account(6)
     api.on('GET', '/accounts', json(200, { items: [item], nextCursor: null }))
     api.on('POST', '/accounts/6/lock', json(200, { ...item, status: 'LOCKED' }, { ETag: '"5"' }))
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const sheet = await openDetail(item)
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Khóa tài khoản' }))
@@ -129,7 +130,7 @@ describe('AccountList', () => {
         ? problem(409, 'REPLACEMENT_LEAD_REQUIRED', { detail: 'Người này đang là Phụ trách bộ phận' })
         : json(200, { ...item, status: 'LOCKED' }, { ETag: '"5"' }),
     )
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const sheet = await openDetail(item)
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Khóa tài khoản' }))
@@ -152,7 +153,7 @@ describe('AccountList', () => {
     api.on('GET', '/accounts', json(200, { items: [item], nextCursor: null }))
     api.on('GET', '/accounts/8/permissions', json(200, { roles: ['AC-05'] }, { ETag: '"2"' }))
     api.on('POST', '/accounts/8/assign-role', json(200, { roles: ['AC-04', 'AC-05'] }, { ETag: '"3"' }))
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const sheet = await openDetail(item)
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Gán vai trò' }))
@@ -174,7 +175,7 @@ describe('AccountList', () => {
     const item = account(9)
     api.on('GET', '/accounts', json(200, { items: [item], nextCursor: null }))
     api.on('POST', '/accounts/9/reset-password', json(200, { temporaryPassword: 'Tam12345abcd' }))
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const sheet = await openDetail(item)
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Cấp lại mật khẩu' }))
@@ -188,7 +189,7 @@ describe('AccountList', () => {
   it('US2_1_taoTaiKhoan_itNhatMotVaiTro_hienMatKhauTam', async () => {
     api.on('GET', '/accounts', json(200, { items: [], nextCursor: null }))
     api.on('POST', '/accounts', json(201, { ...account(10), temporaryPassword: 'Moi98765wxyz' }))
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Tạo tài khoản nhân viên' }))
     const sheet = await screen.findByRole('dialog')
@@ -216,7 +217,7 @@ describe('AccountList', () => {
         unmetConditions: [{ code: 'FR-012', description: 'Viện phải còn ít nhất một Quản lý viện Hoạt động' }],
       }),
     )
-    render(<AccountList canCreate />)
+    render(<DetailHost>{(host) => <AccountList canCreate {...host} />}</DetailHost>)
 
     const sheet = await openDetail(item)
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Khóa tài khoản' }))
