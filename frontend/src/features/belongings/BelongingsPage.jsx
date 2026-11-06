@@ -32,17 +32,27 @@ import { useBelongingCatalogs } from './useBelongingCatalogs'
 
 function ResidentPicker({ onPick }) {
   const [q, setQ] = useState('')
-  const [state, setState] = useState({ status: 'idle', items: [] })
+  const [state, setState] = useState({ status: 'loading', items: [] })
 
-  async function search(event) {
-    event.preventDefault()
+  const load = useCallback(async (text) => {
     setState({ status: 'loading', items: [] })
     try {
-      const { data } = await getResidents({ query: { q: q.trim() || undefined } })
+      const { data } = await getResidents({ query: { q: text || undefined } })
       setState({ status: 'ready', items: data.items })
     } catch (error) {
       setState({ status: 'error', items: [], problem: problemOf(error) })
     }
+  }, [])
+
+  // Mở màn là hiện trang đầu danh sách người cao tuổi trong phạm vi để chọn, ô tìm để lọc thêm
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- tải danh sách khi mở màn
+    load('')
+  }, [load])
+
+  function search(event) {
+    event.preventDefault()
+    load(q.trim())
   }
 
   return (
