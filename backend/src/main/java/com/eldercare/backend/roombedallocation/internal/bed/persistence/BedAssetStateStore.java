@@ -73,6 +73,11 @@ public class BedAssetStateStore {
                 excludedBedId);
     }
 
+    public com.eldercare.backend.roombedallocation.api.dto.BedStatus state(long bedId) {
+        return com.eldercare.backend.roombedallocation.api.dto.BedStatus.valueOf(
+                jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bedId));
+    }
+
     public void cancel(long id, long actorId) {
         jdbc.update(
                 "UPDATE bed_allocation SET status='CANCELLED',cancellation_reason='Giường hỏng',closed_by_id=? WHERE id=? AND status='FUTURE'",

@@ -2,13 +2,19 @@ package com.eldercare.backend.roombedallocation.internal.asset.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.roombedallocation.api.BedStatusApi;
+import com.eldercare.backend.roombedallocation.api.dto.BedStatus;
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds;
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetReminder;
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetRow;
 import com.eldercare.backend.roombedallocation.internal.asset.persistence.AssetStore;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommandPort;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,13 +39,25 @@ public class AssetReminders {
     private final ParameterApi parameters;
     private final ReminderMarkers markers;
     private final ApplicationEventPublisher events;
+    private final RecordEventApi records;
+    private final BedAssetCommandPort beds;
+    private final BedStatusApi bedStatus;
 
     public AssetReminders(
-            AssetStore store, ParameterApi parameters, ReminderMarkers markers, ApplicationEventPublisher events) {
+            AssetStore store,
+            ParameterApi parameters,
+            ReminderMarkers markers,
+            ApplicationEventPublisher events,
+            RecordEventApi records,
+            BedAssetCommandPort beds,
+            BedStatusApi bedStatus) {
         this.store = store;
         this.parameters = parameters;
         this.markers = markers;
         this.events = events;
+        this.records = records;
+        this.beds = beds;
+        this.bedStatus = bedStatus;
     }
 
     @Transactional
@@ -66,6 +84,49 @@ public class AssetReminders {
                             "Tài sản " + row.code() + " tới hạn " + label(due.name()) + " ngày " + due.on(),
                             now);
             }
+        return count + remindTransfers(now);
+    }
+
+    /**
+     * FR-015, Q-232, Q-235 (CFG-M03-02): giường mang dấu "chờ chuyển người" còn người (Đang sử dụng, Đang giữ chỗ) thì nhắc
+     * Trưởng tầng chuyển người mỗi chu kỳ kể từ lúc gắn dấu (lần báo hỏng đã báo ngay); giường mang dấu về Trống thì nhắc
+     * báo hỏng lại từ lúc về Trống, rồi mỗi chu kỳ. Trạng thái khác (Chờ sẵn sàng…) không nhắc. Một lần mỗi chu kỳ.
+     */
+    private int remindTransfers(Instant now) {
+        var period = parameters.read(ParameterCode.CFG_M03_02).asDuration();
+        int count = 0;
+        for (var row : store.awaitingTransfer()) {
+            var flag = records.list(AssetKinds.DAMAGE, new EntityRef(AssetKinds.ENTITY, row.id())).stream()
+                    .filter(e -> e.confirmedAt() == null
+                            && Boolean.TRUE.equals(e.content().awaitingTransfer()))
+                    .findFirst();
+            if (flag.isEmpty() || row.floorAreaId() == null) continue;
+            Instant flaggedAt = flag.get().occurredAt();
+            var state = beds.bedState(row.bedId());
+            if (state == BedStatus.OCCUPIED || state == BedStatus.HELD) {
+                long cycle = Duration.between(flaggedAt, now).dividedBy(period);
+                if (cycle < 1) continue;
+                count += notify(
+                        row,
+                        "MOVE:" + flag.get().id() + ":" + cycle,
+                        "BED_TRANSFER_REMINDER",
+                        "Giường " + row.code() + " hỏng, còn người nằm: cần chuyển người sang giường khác",
+                        now,
+                        new RecipientGroup.FloorManager(row.floorAreaId(), new Substitution.Default()));
+            } else if (state == BedStatus.EMPTY) {
+                var since = bedStatus.emptyPeriodStarted(row.bedId()).orElse(flaggedAt);
+                if (since.isBefore(flaggedAt)) since = flaggedAt;
+                if (now.isBefore(since)) continue;
+                long cycle = Duration.between(since, now).dividedBy(period);
+                count += notify(
+                        row,
+                        "REREPORT:" + flag.get().id() + ":" + since + ":" + cycle,
+                        "BED_REREPORT_REMINDER",
+                        "Giường " + row.code() + " mang dấu chờ chuyển người đã Trống: cần báo hỏng lại hoặc gỡ dấu",
+                        now,
+                        new RecipientGroup.FloorManager(row.floorAreaId(), new Substitution.Default()));
+            }
+        }
         return count;
     }
 
@@ -85,6 +146,16 @@ public class AssetReminders {
     }
 
     private int notify(AssetRow row, String marker, String event, String title, Instant now) {
+        return notify(
+                row,
+                marker,
+                event,
+                title,
+                now,
+                new RecipientGroup.DepartmentLead(row.departmentId(), new Substitution.Default()));
+    }
+
+    private int notify(AssetRow row, String marker, String event, String title, Instant now, RecipientGroup to) {
         if (!markers.mark(KIND, AssetKinds.ENTITY, row.id(), marker, Map.of("event", event))) return 0;
         events.publishEvent(new AssetReminder(
                 row.id(),
@@ -97,7 +168,7 @@ public class AssetReminders {
                         Optional.of(NotificationLevel.LOW),
                         Optional.empty(),
                         Optional.empty(),
-                        List.of(new RecipientGroup.DepartmentLead(row.departmentId(), new Substitution.Default())),
+                        List.of(to),
                         List.of(new ContentPart(InformationType.GENERAL, title)),
                         Optional.of(title),
                         Optional.of(title),

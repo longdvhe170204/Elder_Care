@@ -111,6 +111,98 @@ class BR_M03_15_BedAssetIT extends AssetTestBase {
                 resident,
                 bed);
         jdbc.update("UPDATE bed SET state='EMPTY' WHERE id=?", bed);
+        history("OCCUPIED", "EMPTY", "TRANSFER_OUT", time.now().minus(java.time.Duration.ofHours(1)));
+    }
+
+    void history(String from, String to, String event, java.time.Instant at) {
+        jdbc.update(
+                "INSERT INTO bed_state_history(bed_id,from_state,to_state,event,occurred_at,basis_type,basis_id,"
+                        + "floor_area_id) VALUES(?,?,?,?,?,'TEST',1,?)",
+                bed,
+                from,
+                to,
+                event,
+                java.sql.Timestamp.from(at),
+                floor);
+    }
+
+    long reminders(String event) {
+        return events.stream(com.eldercare.backend.roombedallocation.internal.asset.domain.AssetReminder.class)
+                .flatMap(e -> e.notificationRequests().stream())
+                .filter(n -> n.eventType().equals(event)
+                        && n.recipientGroups()
+                                .contains(new RecipientGroup.FloorManager(floor, new Substitution.Default())))
+                .filter(n -> n.sourceRecord().id().equals(Long.toString(asset)))
+                .count();
+    }
+
+    @Autowired
+    com.eldercare.backend.roombedallocation.internal.asset.service.AssetReminders assetReminders;
+
+    @Autowired
+    com.eldercare.backend.roombedallocation.api.BedStatusApi bedStatus;
+
+    @Test
+    void FR_015_occupiedFlaggedBedRemindsTheFloorManagerToMoveTheResidentEachCfgM0302() throws Exception {
+        occupy();
+        command(asset, "report-damage", "{\"description\":\"Lỏng khung\",\"impactLevel\":\"STILL_SAFE\"}")
+                .andExpect(status().isOk());
+        var t = time.now();
+        assetReminders.remind(t.plus(java.time.Duration.ofHours(1)));
+        assertThat(reminders("BED_TRANSFER_REMINDER")).as("chưa hết chu kỳ đầu").isZero();
+        assetReminders.remind(t.plus(java.time.Duration.ofHours(25)));
+        assetReminders.remind(t.plus(java.time.Duration.ofHours(26)));
+        assertThat(reminders("BED_TRANSFER_REMINDER")).as("một lần mỗi chu kỳ").isEqualTo(1);
+        assetReminders.remind(t.plus(java.time.Duration.ofHours(49)));
+        assertThat(reminders("BED_TRANSFER_REMINDER")).isEqualTo(2);
+        assertThat(reminders("BED_REREPORT_REMINDER")).isZero();
+    }
+
+    @Test
+    void FR_015_flaggedBedBackToEmptyRemindsToReReportEachCfgM0302() throws Exception {
+        long resident = occupy();
+        command(asset, "report-damage", "{\"description\":\"Lỏng khung\",\"impactLevel\":\"STILL_SAFE\"}")
+                .andExpect(status().isOk());
+        release(resident);
+        var t = time.now();
+        assetReminders.remind(t);
+        assetReminders.remind(t.plus(java.time.Duration.ofMinutes(5)));
+        assertThat(reminders("BED_REREPORT_REMINDER"))
+                .as("nhắc khi về Trống, không trùng")
+                .isEqualTo(1);
+        assetReminders.remind(t.plus(java.time.Duration.ofHours(24)));
+        assertThat(reminders("BED_REREPORT_REMINDER")).isEqualTo(2);
+        assertThat(reminders("BED_TRANSFER_REMINDER")).isZero();
+        command(asset, "report-damage", "{\"description\":\"Báo hỏng lại\"}").andExpect(status().isOk());
+        assetReminders.remind(t.plus(java.time.Duration.ofHours(72)));
+        assertThat(reminders("BED_REREPORT_REMINDER"))
+                .as("dấu đã gỡ thì không nhắc")
+                .isEqualTo(2);
+    }
+
+    @Test
+    void FR_020_016_emptyFlaggedBedsAreCountedByScopeAtATime() throws Exception {
+        var scope = new com.eldercare.backend.administration.account.api.dto.ScopeFilter(
+                false, Set.of(floor), Set.of(), Set.of());
+        long resident = occupy();
+        history(null, "OCCUPIED", "ALLOCATE", time.now().minus(java.time.Duration.ofDays(2)));
+        var before = time.now().minus(java.time.Duration.ofMinutes(30));
+        command(asset, "report-damage", "{\"description\":\"Lỏng khung\",\"impactLevel\":\"STILL_SAFE\"}")
+                .andExpect(status().isOk());
+        release(resident);
+        var after = time.now().plus(java.time.Duration.ofSeconds(1));
+        assertThat(bedStatus.countEmptyAwaitingTransfer(scope, after)).isEqualTo(1);
+        assertThat(bedStatus.countEmptyAwaitingTransfer(scope, before))
+                .as("chưa mang dấu")
+                .isZero();
+        assertThat(port.flaggedBedsAt(List.of(bed), after)).containsExactly(bed);
+        assertThat(port.flaggedBedsAt(List.of(bed), before)).isEmpty();
+        as(manager);
+        command(asset, "remove-transfer-flag", "{\"reason\":\"Đã sửa tại chỗ\"}")
+                .andExpect(status().isOk());
+        var removed = time.now().plus(java.time.Duration.ofHours(1));
+        assertThat(bedStatus.countEmptyAwaitingTransfer(scope, removed)).isZero();
+        assertThat(port.flaggedBedsAt(List.of(bed), removed)).isEmpty();
     }
 
     long future() {

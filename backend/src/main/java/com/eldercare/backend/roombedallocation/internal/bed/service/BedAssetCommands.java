@@ -114,6 +114,11 @@ public class BedAssetCommands implements BedAssetCommandPort {
         if (beds.lock(bedId).state() == BedStatus.EMPTY) holds.becameEmpty(bedId, "ASSET_FLAG_REMOVED");
     }
 
+    @Override
+    public BedStatus bedState(long bedId) {
+        return allocations.state(bedId);
+    }
+
     /** Q-256: giường Trống đạt FR-018 cho người đang nằm (hoặc được giữ chỗ), theo tầng. */
     @Override
     public List<LocationView> suitableEmptyBedsForOccupant(long bedId) {

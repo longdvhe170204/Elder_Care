@@ -15,4 +15,8 @@ public interface BedAssetPort {
 
     @Transactional(propagation = Propagation.MANDATORY)
     Set<Long> flaggedBeds(Collection<Long> bedIds);
+
+    /** 016 (019 FR-015): giường mà tài sản mang dấu "chờ chuyển người" tại {@code at}. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    Set<Long> flaggedBedsAt(Collection<Long> bedIds, java.time.Instant at);
 }
