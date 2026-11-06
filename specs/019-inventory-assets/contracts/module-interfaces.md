@@ -54,6 +54,20 @@ Stream<LichXeView> lichXe(LocalDate tu, LocalDate den);
 Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng thái, số được duyệt, thực tế (016 FR-055a)
 ```
 
+*(Sửa 2026-11-06, chủ dự án duyệt: theo yêu cầu chung của 016 module-interfaces mục 2 — nhận phạm vi và khoảng, có hàm đếm cho dashboard. Chữ ký đã cài, tên theo glossary 25.6:)*
+
+```java
+// roombedallocation.api.AssetStatisticsApi
+Stream<OverdueAssetView> overdue(ScopeFilter scope, LocalDate on);   // phạm vi theo tầng của vị trí
+Map<AssetFlag, Long> countOverdue(ScopeFilter scope, LocalDate on);
+Stream<VehicleScheduleView> vehicleSchedules(LocalDate from, LocalDate to);   // toàn viện
+// billing.api.ProcurementStatisticsApi (ScopeFilter không có bộ phận: lọc departmentIds, rỗng là toàn viện)
+Stream<ProcurementRequestView> byDepartment(Set<Long> departmentIds, LocalDate from, LocalDate to);
+List<ProcurementTotalView> totals(Set<Long> departmentIds, LocalDate from, LocalDate to);   // theo bộ phận, trạng thái
+```
+
+Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu, chờ A (016) xác nhận (team-plan mục 8). Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
+
 ---
 
 ## 3. SPI, provider 019 cài
