@@ -241,11 +241,11 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Tests cho User Story 7
 
-- [ ] T034 [P] [US7] Test đơn vị `BT/nutrition/DoiChieuDoAnTest.java` và `BT/nutrition/BR_M08_04_DoAnGiaDinhIT.java` (không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`) (Q42 → Q44)
+- [x] T034 [P] [US7] Test đơn vị `BT/nutrition/DoiChieuDoAnTest.java` và `BT/nutrition/BR_M08_04_DoAnGiaDinhIT.java` (không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`) (Q42 → Q44) *(2026-11-07, Phase 9: xong và xanh — hàm thuần là `FamilyFoodCheck` nên test `FamilyFoodCheckTest` 10 test, `BR_M08_04_FamilyFoodIT` 12 test; app `mobile/test/staff/nutrition/family_food_screen_test.dart` 6 test)*
 
 ### Implementation cho User Story 7
 
-- [ ] T035 [US7] Tạo bảng `do_an_gia_dinh` (`trang_thai` `KHONG_SU_DUNG|CAN_XAC_NHAN|DUOC_SU_DUNG|DA_KET_THUC`) và bảng con thành phần trong `MIG/V011_08__do_an_gia_dinh.sql`; cài `BE/nutrition/doangiadinh/internal/DoAnGiaDinhService.java` (khóa `dinh_duong_nct`; việc theo phút hạn dùng; listener dị ứng mới) và endpoint `/nguoi-cao-tuoi/{nctId}/do-an-gia-dinh`, `/do-an-gia-dinh/{id}/{lenh}`; màn web `frontend/src/tinh-nang/dinh-duong/do-an-gia-dinh/`, app phần đồ ăn gia đình (research M-11) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `do_an_gia_dinh` → `ho_so_chung`; `dinh_duong_nct` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T035 *(2026-11-07, Phase 9: đã cài backend và app — không có bảng riêng theo R-15, `M08.FAMILY_FOOD` ở `simple_record`, loại đồ ăn cấm `M08.FORBIDDEN_FOOD_TYPE` ở `catalog_item`; `FamilyFoodService`, `FamilyFoodCheck`, `ForbiddenFoodTypeService`, `FamilyFoodExpiryTask`, `FamilyFoodListener`, `FamilyFoodRetention`; màn app `mobile/lib/staff/nutrition/family_food_screen.dart`, mục "Đồ ăn gia đình" trong "Thêm"; còn màn web `frontend/src/features/nutrition/family-food/`, chờ duyệt bố cục — team-plan mục 8; chưa đánh [x])* [US7] Tạo bảng `do_an_gia_dinh` (`trang_thai` `KHONG_SU_DUNG|CAN_XAC_NHAN|DUOC_SU_DUNG|DA_KET_THUC`) và bảng con thành phần trong `MIG/V011_08__do_an_gia_dinh.sql`; cài `BE/nutrition/doangiadinh/internal/DoAnGiaDinhService.java` (khóa `dinh_duong_nct`; việc theo phút hạn dùng; listener dị ứng mới) và endpoint `/nguoi-cao-tuoi/{nctId}/do-an-gia-dinh`, `/do-an-gia-dinh/{id}/{lenh}`; màn web `frontend/src/tinh-nang/dinh-duong/do-an-gia-dinh/`, app phần đồ ăn gia đình (research M-11) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `do_an_gia_dinh` → `ho_so_chung`; `dinh_duong_nct` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Đồ ăn gia đình chạy độc lập.
 
