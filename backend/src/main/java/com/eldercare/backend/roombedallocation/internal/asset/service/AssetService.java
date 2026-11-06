@@ -219,6 +219,10 @@ public class AssetService {
     /** BR-M03-18: Sẵn sàng, Đang sử dụng → Hỏng; báo Phụ trách bộ phận quản lý tài sản. */
     @RequiresPermission(function = Function.ASSET_VEHICLE, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
+    @org.springframework.resilience.annotation.Retryable(
+            includes = org.springframework.dao.PessimisticLockingFailureException.class,
+            maxRetries = 2,
+            delay = 50)
     @Transactional
     public void reportDamage(Target target, long id, AssetCommandInput in) {
         var row = locked(id);
