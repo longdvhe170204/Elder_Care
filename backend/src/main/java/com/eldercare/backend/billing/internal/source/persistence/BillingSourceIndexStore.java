@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -40,7 +41,24 @@ public class BillingSourceIndexStore {
     }
 
     public Map<BillingSourceKey, Long> effectiveItems(long residentId, String sourceType, List<String> sourceIds) {
-        throw new UnsupportedOperationException("T011: chưa cài tra khoản của nguồn tính khi đọc");
+        if (sourceIds.isEmpty()) {
+            return Map.of();
+        }
+        var parameters = new ArrayList<Object>();
+        parameters.add(residentId);
+        parameters.add(sourceType);
+        parameters.addAll(sourceIds);
+        String placeholders = String.join(",", Collections.nCopies(sourceIds.size(), "?"));
+        var items = new HashMap<BillingSourceKey, Long>();
+        jdbc.query(
+                "SELECT source_id,billing_unit,id FROM cost_item"
+                        + " WHERE resident_id=? AND source_type=? AND origin='EVENT_BASED' AND status<>'CANCELLED'"
+                        + " AND source_id IN (" + placeholders + ")",
+                (org.springframework.jdbc.core.RowCallbackHandler) row -> items.put(
+                        new BillingSourceKey(row.getString("source_id"), row.getString("billing_unit")),
+                        row.getLong("id")),
+                parameters.toArray());
+        return Map.copyOf(items);
     }
 
     private List<IndexedSourceMatch> findMatching(String condition, Object... parameters) {

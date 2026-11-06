@@ -10,3 +10,7 @@ Trạng thái: yêu cầu chủ module đối chiếu/công bố hợp đồng; 
 | A/000 web | `frontend/scripts/gen-api.mjs` có danh sách TRANSLATED, hiện chưa có 010 | Đăng ký hợp đồng 010 đã được duyệt vào bộ sinh client. Thay đổi ngày 06/11 được chủ dự án duyệt: BillingSource.billingUnit, CreateCostsFromEvents.sourceUnits. Chạy `npm run gen:api`; E không sửa tay frontend/src/api hoặc sửa script chung | Có client GET billing-sources và POST items/from-events để E làm màn T012 theo frontend/README.md |
 
 Đây là các phần mở rộng/đối chiếu mới khi nối luồng 010, không kết luận các task khai báo API cũ của chủ nguồn chưa hoàn thành. Chủ module khai báo và giữ một fake dùng chung sau khi thống nhất hợp đồng. T011 còn cả adapter ngày lưu trú/buổi bán trú 004/005 và lệnh lập khoản; truy vấn chỉ mục đơn thuần chưa đủ đánh xong T011. T012 chưa hoàn tất bằng việc duyệt hợp đồng.
+
+## Đối chiếu sau checkpoint chung d9a62fc5
+
+Buổi bán trú của B dùng sessionId = 1..n theo thứ tự giờ đến trong từng ngày. B/C cần đối chiếu khóa nhận diện một buổi khi lịch thay đổi để E không gộp buổi khác ngày hoặc nối nhầm buổi sau khi thêm/đổi lịch. E chưa tự đổi API/id nguồn. Đã cài phần đọc ngày lưu trú và query khoản, nhưng giữ adapter buổi bán trú mở. Bộ sinh client đã có 004, vẫn chưa có 010.

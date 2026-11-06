@@ -2,6 +2,9 @@ package com.eldercare.backend.billing;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.eldercare.backend.billing.internal.source.domain.BillingSourceKey;
+import com.eldercare.backend.billing.internal.source.persistence.BillingSourceIndexStore;
+import com.eldercare.backend.billing.internal.period.service.CostDraftStatements;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
@@ -21,6 +24,12 @@ class CostSchemaIT extends MySqlIntegrationTestBase {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    BillingSourceIndexStore sourceIndex;
+
+    @Autowired
+    CostDraftStatements draftStatements;
 
     record Fixture(long period, long statement, long resident, YearMonth month) {}
 
@@ -113,6 +122,90 @@ class CostSchemaIT extends MySqlIntegrationTestBase {
                   totals_by_type=JSON_ARRAY(JSON_OBJECT('type','OTHER','total',300)),
                   finalized_at=?,locked_at=? WHERE id=?
                 """, AT, AT, id);
+    }
+
+    @Test
+    void FR_005a_calendarSourcesFindExistingCostsWithoutAnySourceIndexRow() {
+        var f = fixture();
+        String sourceId = f.resident() + ":" + f.month().atDay(1);
+        long item = eventItem(f, sourceId, "", 300L, 300L);
+
+        assertThat(sourceIndex.effectiveItems(f.resident(), "RESIDENCY_DAY", List.of(sourceId)))
+                .containsExactlyEntriesOf(Map.of(new BillingSourceKey(sourceId, "DAY"), item));
+        assertThat(sourceIndex.effectiveItems(f.resident() + 1, "RESIDENCY_DAY", List.of(sourceId)))
+                .isEmpty();
+        assertThat(sourceIndex.effectiveItems(f.resident(), "DAY_CARE_SESSION", List.of(sourceId)))
+                .isEmpty();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM cost_source_index WHERE resident_id=?", Integer.class, f.resident()))
+                .isZero();
+    }
+
+    @Test
+    void FR_006_calendarSourceReferenceUsesTheReplacementCostInsteadOfTheCancelledCost() {
+        var f = fixture();
+        String sourceId = f.resident() + ":" + f.month().atDay(1);
+        long cancelled = eventItem(f, sourceId, "", 300L, 300L);
+        jdbc.update("""
+                UPDATE cost_item SET status='CANCELLED',unique_key=NULL,locked_at=?,
+                    cancelled_by=?,cancellation_reason='Kiểm nguồn hiện hành' WHERE id=?
+                """, AT, f.resident(), cancelled);
+        long active = eventItem(f, sourceId, "", 300L, 300L);
+
+        assertThat(sourceIndex.effectiveItems(f.resident(), "RESIDENCY_DAY", List.of(sourceId)))
+                .containsExactlyEntriesOf(Map.of(new BillingSourceKey(sourceId, "DAY"), active));
+    }
+
+    @Test
+    void FR_005_emptyCalendarSourceSelectionDoesNotReadAllExistingCosts() {
+        var f = fixture();
+        eventItem(f, f.resident() + ":" + f.month().atDay(1), "", 300L, 300L);
+
+        assertThat(sourceIndex.effectiveItems(f.resident(), "RESIDENCY_DAY", List.of())).isEmpty();
+    }
+
+    @Test
+    void FR_002_draftStatementPreparationReusesTheSameRegularStatement() {
+        var f = fixture();
+        long otherResident = TestUsers.nextId();
+
+        var first = draftStatements.receiveNewDraft(otherResident, f.period(), otherResident);
+        var second = draftStatements.receiveNewDraft(otherResident, f.period(), otherResident);
+
+        assertThat(first.created()).isTrue();
+        assertThat(second.created()).isFalse();
+        assertThat(second.statement().id()).isEqualTo(first.statement().id());
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM cost_statement WHERE kind='STATEMENT' AND resident_id=?
+                    AND period_id=? AND statement_type='REGULAR'
+                """, Integer.class, otherResident, f.period())).isEqualTo(1);
+    }
+
+    @Test
+    void FR_004_draftStatementPreparationReopensTheAwaitingStatement() {
+        var f = fixture();
+        jdbc.update("UPDATE cost_statement SET status='AWAITING_FINALIZATION' WHERE id=?", f.statement());
+
+        var target = draftStatements.receiveNewDraft(f.resident(), f.period(), f.resident());
+
+        assertThat(target.reopened()).isTrue();
+        assertThat(target.statement().id()).isEqualTo(f.statement());
+        assertThat(target.statement().status()).isEqualTo("OPEN");
+        assertThat(target.statement().version()).isEqualTo(1);
+    }
+
+    @Test
+    void FR_003_draftStatementPreparationDoesNotTouchTheFinalizedStatement() {
+        var f = fixture();
+        finalizeStatement(f.statement());
+
+        var target = draftStatements.receiveNewDraft(f.resident(), f.period(), f.resident());
+
+        assertThat(target.requiresAdjustment()).isTrue();
+        assertThat(target.statement().status()).isEqualTo("FINALIZED");
+        assertThat(target.statement().version()).isZero();
+        assertThat(jdbc.queryForObject("SELECT total FROM cost_statement WHERE id=?", Long.class, f.statement()))
+                .isEqualTo(300L);
     }
 
     private void blocked(ThrowingCallable operation, String cause) {
