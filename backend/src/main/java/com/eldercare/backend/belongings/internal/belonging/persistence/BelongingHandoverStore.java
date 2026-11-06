@@ -125,6 +125,15 @@ public class BelongingHandoverStore {
                 intakeHandoverId);
     }
 
+    /** Như {@link #ofIntake} nhưng có cả lần chặn trả, cho màn nhân viên xem lịch sử đồ (FR-016). */
+    public List<HandoverView> ofIntakeWithBlocks(long intakeHandoverId) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM belonging_handover WHERE belonging_id IN"
+                        + " (SELECT id FROM belonging WHERE intake_handover_id = ?) ORDER BY id",
+                BelongingHandoverStore::view,
+                intakeHandoverId);
+    }
+
     private static final String ROW_COLUMNS =
             "id, belonging_id, resident_id, kind, target_status, recipient_type, recipient_id, quantity, cash_amount,"
                     + " condition_level_id, storage_location_id, incident_id, recorded_by, occurred_at, recorded_at";
