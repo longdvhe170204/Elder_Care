@@ -22,8 +22,7 @@ public class ServingOfflineHandler implements OfflineHandler<ServingOfflineHandl
     public static final String RECORD_TYPE = "M08.SERVING_CONFIRMATION";
 
     /** Nội dung bản ghi ngoại tuyến: như lệnh {@code confirm-serving}. */
-    public record Content(
-            long specialPortionId, long floorAreaId, long residentId, Boolean hasEaten, IncidentData incident) {}
+    public record Content(long specialPortionId, long residentId, Boolean hasEaten, IncidentData incident) {}
 
     private final ServingService serving;
 
@@ -43,11 +42,7 @@ public class ServingOfflineHandler implements OfflineHandler<ServingOfflineHandl
 
     @Override
     public Target target(Content content) {
-        return new Target(
-                ServingService.ENTITY,
-                Long.toString(content.specialPortionId()),
-                content.residentId(),
-                content.floorAreaId());
+        return serving.targetOf(content.specialPortionId());
     }
 
     @Override
