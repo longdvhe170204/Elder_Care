@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 
@@ -53,8 +54,11 @@ public class ExpiredDataPurge {
     static final String JOB = "PURGE_EXPIRED_DATA";
     static final String RUN_ENTITY = "M15.PURGE_RUN";
 
-    /** Số ứng viên tối đa mỗi loại mỗi đợt (thông số kỹ thuật); phần còn lại thuộc đợt sau. */
+    /** Số ứng viên mặc định mỗi trang (thông số kỹ thuật, {@code eldercare.retention.batch-size}). */
     static final int BATCH = 1000;
+
+    /** Số trang tối đa mỗi loại mỗi đợt (thông số kỹ thuật); phần còn lại thuộc đợt sau. */
+    static final int MAX_PAGES = 100;
 
     private static final Logger LOG = LoggerFactory.getLogger(ExpiredDataPurge.class);
 
@@ -65,6 +69,7 @@ public class ExpiredDataPurge {
     private final SchedulerRuns runs;
     private final AuditLogApi auditLog;
     private final SharedRowRetention sharedRows;
+    private final int batch;
 
     ExpiredDataPurge(
             ObjectProvider<RetentionProvider> providers,
@@ -73,7 +78,8 @@ public class ExpiredDataPurge {
             BusinessTime time,
             SchedulerRuns runs,
             AuditLogApi auditLog,
-            SharedRowRetention sharedRows) {
+            SharedRowRetention sharedRows,
+            @Value("${eldercare.retention.batch-size:1000}") int batch) {
         this.providers = providers;
         this.database = database;
         this.parameters = parameters;
@@ -81,6 +87,7 @@ public class ExpiredDataPurge {
         this.runs = runs;
         this.auditLog = auditLog;
         this.sharedRows = sharedRows;
+        this.batch = batch;
     }
 
     /** Chạy một đợt, trả mã lần chạy (UUID). */
@@ -120,14 +127,7 @@ public class ExpiredDataPurge {
         Map<String, Map<Long, Instant>> candidates = new LinkedHashMap<>();
         for (RetentionProvider provider : all) {
             if (!(provider instanceof AttachedRetention)) {
-                candidates.put(
-                        provider.dataType(),
-                        provider.expiredCandidates(cutoffs.get(provider.dataType()), BATCH)
-                                .collect(Collectors.toMap(
-                                        RetentionProvider.Candidate::id,
-                                        RetentionProvider.Candidate::at,
-                                        (a, b) -> a,
-                                        LinkedHashMap::new)));
+                candidates.put(provider.dataType(), expired(provider, cutoffs.get(provider.dataType())));
             }
         }
         Set<DataRef> deleted = new HashSet<>();
@@ -142,6 +142,25 @@ public class ExpiredDataPurge {
                 tally.add(chain, candidates);
             });
         }));
+    }
+
+    /**
+     * Ứng viên của một loại, lấy theo trang sau mốc {@code (at, id)} tới khi hết hoặc tới {@link #MAX_PAGES}: ứng viên
+     * đầu danh sách bị giữ (FR-051a) không chặn ứng viên sau (FR-051; 000 T112).
+     */
+    private Map<Long, Instant> expired(RetentionProvider provider, Instant cutoff) {
+        Map<Long, Instant> found = new LinkedHashMap<>();
+        RetentionProvider.Candidate after = null;
+        for (int page = 0; page < MAX_PAGES; page++) {
+            List<RetentionProvider.Candidate> rows =
+                    provider.expiredCandidates(cutoff, after, batch).toList();
+            rows.forEach(c -> found.putIfAbsent(c.id(), c.at()));
+            if (rows.size() < batch) {
+                break;
+            }
+            after = rows.getLast();
+        }
+        return found;
     }
 
     private Instant cutoff(RetentionKind kind, Map<ParameterCode, JsonNode> applied) {
@@ -171,6 +190,10 @@ public class ExpiredDataPurge {
             }
             records.add(record);
             queue.addAll(byType.get(record.dataType()).referencesTo(record.id()));
+            // Bản ghi của module khác trỏ tới bản ghi này: chỉ provider của chúng biết (000 T112)
+            for (RetentionProvider provider : byType.values()) {
+                queue.addAll(provider.referencing(record));
+            }
         }
         // Bản ghi của chuỗi và dòng bảng chung sẽ xóa cùng (theo hạn của bản ghi sở hữu): phần đi kèm của cả hai phải
         // hết hạn
@@ -198,13 +221,12 @@ public class ExpiredDataPurge {
     /** Một chuỗi đã hết hạn toàn bộ: bản ghi (gốc trước, bản trỏ tới sau) và phần đi kèm. */
     private record Chain(List<DataRef> records, Map<AttachedRetention, List<Attached>> parts) {
 
-        /** Xóa phần đi kèm trước, rồi bản ghi theo thứ tự ngược (bản trỏ tới trước bản bị trỏ). */
+        /**
+         * Xóa phần đi kèm trước, rồi bản ghi theo thứ tự ngược (bản trỏ tới trước bản bị trỏ), cuối cùng phần đi kèm mà
+         * bản ghi trỏ tới ({@link AttachedRetention#deletedAfterRecords}, tệp đính kèm).
+         */
         void delete(Map<String, RetentionProvider> byType, SharedRowRetention sharedRows) {
-            parts.forEach((part, found) -> {
-                if (!found.isEmpty()) {
-                    part.delete(found.stream().map(Attached::id).toList());
-                }
-            });
+            deleteParts(false);
             // Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2
             sharedRows.deleteFor(records.stream()
                     .map(r -> new EntityRef(r.dataType(), r.id()))
@@ -212,6 +234,15 @@ public class ExpiredDataPurge {
             for (DataRef record : records.reversed()) {
                 byType.get(record.dataType()).delete(List.of(record.id()));
             }
+            deleteParts(true);
+        }
+
+        private void deleteParts(boolean afterRecords) {
+            parts.forEach((part, found) -> {
+                if (part.deletedAfterRecords() == afterRecords && !found.isEmpty()) {
+                    part.delete(found.stream().map(Attached::id).toList());
+                }
+            });
         }
     }
 

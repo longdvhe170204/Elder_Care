@@ -15,6 +15,7 @@ import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
+import com.eldercare.backend.support.fake.administration.FakeFamilyRelationshipsConfig;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -34,7 +35,7 @@ import org.springframework.test.context.event.RecordApplicationEvents;
  * {@link FakeM15Config}; {@link #assignNurse} đặt phân công cho điều dưỡng. Mỗi test tạo hồ sơ người cao tuổi riêng vì cơ
  * sở dữ liệu không dọn giữa các test.
  */
-@Import({FakeM15Config.class, HealthTestBase.Fixtures.class})
+@Import({FakeM15Config.class, FakeFamilyRelationshipsConfig.class, HealthTestBase.Fixtures.class})
 @RecordApplicationEvents
 public abstract class HealthTestBase extends MySqlIntegrationTestBase {
 
