@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.staffing.assignment.internal.domain.PrimaryAssigneeResolver;
-import com.eldercare.backend.staffing.assignment.internal.domain.PrimaryAssigneeResolver.TargetRef;
-import com.eldercare.backend.staffing.assignment.internal.domain.StaffAssignment;
+import com.eldercare.backend.staffing.internal.assignment.domain.PrimaryAssigneeResolver;
+import com.eldercare.backend.staffing.internal.assignment.domain.PrimaryAssigneeResolver.TargetRef;
+import com.eldercare.backend.staffing.internal.assignment.domain.StaffAssignment;
 import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;

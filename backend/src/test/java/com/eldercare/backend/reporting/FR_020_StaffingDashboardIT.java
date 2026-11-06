@@ -82,7 +82,9 @@ class FR_020_StaffingDashboardIT extends MySqlIntegrationTestBase {
 
     private long shift(long floor, Instant start, String status) {
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu dashboard]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu dashboard] #"
+                        + TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
         // Một lịch tháng cho tầng của test (uq_shift_schedule_month); thống kê đọc theo giờ ca, không theo tháng lịch.
         if (schedule == null) {
             schedule = insert(
@@ -102,10 +104,8 @@ class FR_020_StaffingDashboardIT extends MySqlIntegrationTestBase {
 
     private void calculation(long shift, Instant at, boolean passed) {
         jdbc.update(
-                "INSERT INTO staffing_ratio_calculation(shift_id,calculated_at,event,total_weight,staff_count,ratio,threshold,meets_threshold) VALUES (?,?,'CARE_LEVEL_CHANGED',35.00,4,8.75,8.00,?)",
-                shift,
-                utc(at),
-                passed);
+                "INSERT INTO record_event(entity_type,entity_id,module,kind,by_system,occurred_at,confirmed_at,content) SELECT 'M09.SHIFT',src.shift_id,'M09','M09.STAFFING_RATIO_CALCULATION',FALSE,src.calculated_at,src.calculated_at,JSON_OBJECT('calculatedAt',DATE_FORMAT(src.calculated_at,'%Y-%m-%dT%H:%i:%s.%fZ'),'event',src.event,'totalWeight',src.total_weight,'staffCount',src.staff_count,'ratio',src.ratio,'threshold',src.threshold,'meetsThreshold',IF(src.meets_threshold,CAST('true' AS JSON),CAST('false' AS JSON))) FROM (SELECT ? AS shift_id,? AS calculated_at,'CARE_LEVEL_CHANGED' AS event,35.00 AS total_weight,4 AS staff_count,8.75 AS ratio,8.00 AS threshold,? AS meets_threshold) src",
+                shift, utc(at), passed);
     }
 
     @Test

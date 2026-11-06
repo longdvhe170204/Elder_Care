@@ -70,8 +70,8 @@ class CreateProfileIT extends ResidentProfileTestBase {
         CreateResult created = createAsOffice(noDocument(uniqueName()));
 
         List<Map<String, Object>> history = jdbc.queryForList(
-                "SELECT from_status, to_status, command, performed_by, by_system, reason, occurred_at"
-                        + " FROM resident_status_history WHERE resident_id = ?",
+                "SELECT from_status, to_status, command, performed_by, by_system, reason, occurred_at" + " FROM "
+                        + com.eldercare.backend.support.ResidentHistoryRows.STATUS + " WHERE resident_id = ?",
                 created.profile().id());
 
         assertThat(history).hasSize(1);

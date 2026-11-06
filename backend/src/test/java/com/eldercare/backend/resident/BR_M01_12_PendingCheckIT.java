@@ -113,9 +113,9 @@ class BR_M01_12_PendingCheckIT extends HealthTestBase {
                                 + " AND action = 'HEALTH_ITEM_CHECKED'",
                         Integer.class,
                         String.valueOf(item.id())))
-                // 1 lần của listener 006 và 3 lần gọi ở trên: hiện mỗi lần gọi, kể cả lặp, ghi một dòng (A quyết có giữ
-                // không, docs/team-plan.md mục 8)
-                .isEqualTo(4);
+                // chỉ lần đổi cờ từ chờ sang đã kiểm mới ghi (A chốt 2026-11-03): listener 006 một lần, 011 một lần;
+                // gọi lặp cho cờ đã gỡ không ghi
+                .isEqualTo(2);
     }
 
     private List<Boolean> flags(long itemId) {

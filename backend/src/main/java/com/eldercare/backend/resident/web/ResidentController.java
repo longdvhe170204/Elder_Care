@@ -17,6 +17,7 @@ import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.internal.health.service.HealthItemService;
 import com.eldercare.backend.resident.internal.health.service.HealthItemService.StatusFilter;
+import com.eldercare.backend.resident.internal.health.service.SelfReportedHealth;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.CreateResult;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.LinkedProfile;
@@ -69,11 +70,13 @@ class ResidentController {
     // Lệnh sức khỏe (US2): ghi mục và hồ sơ ban đầu cho Bác sĩ, Điều dưỡng; xác nhận hồ sơ ban đầu chỉ Bác sĩ (lọc
     // thêm)
     private static final String CONFIRM_INITIAL_HEALTH_RECORD = "CONFIRM_INITIAL_HEALTH_RECORD";
+    private static final String VERIFY_HEALTH_ITEM = "VERIFY_HEALTH_ITEM";
     private static final PermissionKey WRITE_HEALTH = new PermissionKey(Function.ALLERGY_CONDITION, Operation.UPDATE);
     private static final Map<String, PermissionKey> PROFILE_COMMANDS = Map.ofEntries(
             Map.entry(UPDATE_PERSONAL_INFO, new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE)),
             Map.entry("RECORD_HEALTH_ITEM", new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE)),
             Map.entry("EXCLUDE_HEALTH_ITEM", WRITE_HEALTH),
+            Map.entry(VERIFY_HEALTH_ITEM, WRITE_HEALTH),
             Map.entry("WRITE_INITIAL_HEALTH_RECORD", WRITE_HEALTH),
             Map.entry(CONFIRM_INITIAL_HEALTH_RECORD, WRITE_HEALTH),
             // Đánh giá (US3): Bác sĩ, Điều dưỡng lập và sửa nháp; xác nhận chỉ Bác sĩ (quyền APPROVE, Phụ lục 27)
@@ -215,6 +218,13 @@ class ResidentController {
                 permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
         if (!currentUser.roles().contains(Role.DOCTOR)) {
             commands.remove(CONFIRM_INITIAL_HEALTH_RECORD);
+        }
+        // Hành chính chỉ ghi tự khai về sức khỏe (Q-400, BR-M01-17): không loại trừ, không kiểm chứng, không ghi phiếu
+        if (SelfReportedHealth.isOfficeOnly(currentUser)) {
+            commands.removeAll(Set.of("EXCLUDE_HEALTH_ITEM", VERIFY_HEALTH_ITEM, "RECORD_TREATMENT_WISH"));
+            if (view.status() != ResidentStatus.ADMISSION_IN_PROGRESS) {
+                commands.removeAll(Set.of("RECORD_HEALTH_ITEM", "WRITE_INITIAL_HEALTH_RECORD"));
+            }
         }
         // Trạng thái cuối: backend chặn 409 PROFILE_CLOSED nên không cho hiện nút (BUG-06). Lệnh ghi khác giữ nguyên vì
         // màn

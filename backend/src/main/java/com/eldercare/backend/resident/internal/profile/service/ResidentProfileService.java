@@ -33,7 +33,7 @@ import com.eldercare.backend.resident.internal.profile.domain.ResidentMatch;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentLookup;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class ResidentProfileService {
     static final String PHOTO_OWNER = "M01.RESIDENT_PHOTO";
 
     private final ResidentRepository residents;
-    private final ResidentStatusHistoryRepository history;
+    private final ResidentStatusHistoryStore history;
     private final ResidentLookup lookup;
     private final ProfileOpenGuard guard;
     private final AuditLogApi auditLog;
@@ -103,7 +103,7 @@ public class ResidentProfileService {
 
     ResidentProfileService(
             ResidentRepository residents,
-            ResidentStatusHistoryRepository history,
+            ResidentStatusHistoryStore history,
             ResidentLookup lookup,
             ProfileOpenGuard guard,
             AuditLogApi auditLog,
@@ -341,6 +341,22 @@ public class ResidentProfileService {
     }
 
     /** Kiểm trường bắt buộc và đồng bộ loại với số giấy tờ; chuỗi rỗng coi như không có (FR-001). */
+    /** BUG-08, A duyệt 2026-11-05: kiểm tối thiểu, thư điện tử có một "@" giữa hai phần không khoảng trắng; số điện thoại 8 → 15 chữ số. */
+    private static void requireWellFormed(Contact contact) {
+        String email = contact.email();
+        if (email != null && !email.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) {
+            throw new InvalidValueException("Thư điện tử không đúng định dạng");
+        }
+        String phone = contact.phoneNumber();
+        if (phone != null) {
+            boolean charsOk = phone.matches("\\+?[0-9 .()\\-]+");
+            long digits = phone.chars().filter(Character::isDigit).count();
+            if (!charsOk || digits < 8 || digits > 15) {
+                throw new InvalidValueException("Số điện thoại không đúng định dạng");
+            }
+        }
+    }
+
     private PersonalInfo normalized(PersonalInfo in) {
         if (in == null || blankToNull(in.fullName()) == null) {
             throw new InvalidValueException("Họ tên là bắt buộc");
@@ -366,6 +382,9 @@ public class ResidentProfileService {
                         blankToNull(in.contact().email()));
         if (contact != null && contact.phoneNumber() == null && contact.email() == null) {
             contact = null;
+        }
+        if (contact != null) {
+            requireWellFormed(contact);
         }
         return new PersonalInfo(
                 fullName,

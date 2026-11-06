@@ -44,7 +44,12 @@ public class FakeM02PortsConfig {
         return new FakeDayCareAttendance();
     }
 
+    /**
+     * Bản thật của 013 ({@code BelongingPostDeathItem}) cùng mã {@code BELONGINGS}: test 004 đặt trạng thái qua bản giả nên
+     * bản giả đứng trước ({@code orderedStream}, mục đầu thắng) — 013 T030.
+     */
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakePostDeathItem fakeBelongingsItem() {
         return new FakePostDeathItem(PostDeathItemCode.BELONGINGS);
     }

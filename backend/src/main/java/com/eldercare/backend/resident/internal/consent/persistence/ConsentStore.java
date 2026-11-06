@@ -21,7 +21,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 /**
- * Bản đồng ý ở bảng {@code consent} và {@code consent_family_member} (data-model mục 4). Cột sinh
+ * Bản đồng ý ở bảng {@code consent}; người thân trong phạm vi ở cột JSON {@code family_member_ids} (data-model mục 0.1,
+ * thay {@code consent_family_member} từ 001 T084). Cột sinh
  * {@code active_resident_id} có {@code UNIQUE} nên tối đa một bản Hiệu lực mỗi người cao tuổi (FR-013); trigger chỉ cho
  * đổi theo chiều Hiệu lực → Đã rút lại (FR-014, FR-016).
  */
@@ -31,7 +32,8 @@ public class ConsentStore {
     private static final String SELECT = "SELECT id, resident_id, consenter_type, consenter_family_member_id,"
             + " court_decision_number, court_decision_date, court_decision_court, court_decision_file_id,"
             + " photo_consent, notification_consent, consented_at, evidence_file_id, status, withdrawn_at,"
-            + " withdrawn_by, withdrawal_reason, withdrawal_evidence_file_id, superseded_by_id FROM consent";
+            + " withdrawn_by, withdrawal_reason, withdrawal_evidence_file_id, superseded_by_id,"
+            + " CAST(family_member_ids AS CHAR) AS family_member_ids FROM consent";
 
     private final JdbcTemplate jdbc;
 
@@ -59,8 +61,8 @@ public class ConsentStore {
                             "INSERT INTO consent (resident_id, consenter_type, consenter_family_member_id,"
                                     + " court_decision_number, court_decision_date, court_decision_court,"
                                     + " court_decision_file_id, photo_consent, notification_consent, consented_at,"
-                                    + " evidence_file_id, status, created_at, created_by)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?)",
+                                    + " evidence_file_id, status, created_at, created_by, family_member_ids)"
+                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, CAST(? AS JSON))",
                             Statement.RETURN_GENERATED_KEYS);
                     statement.setLong(1, residentId);
                     statement.setString(2, consenterType.name());
@@ -75,17 +77,11 @@ public class ConsentStore {
                     statement.setLong(11, evidenceFileId);
                     statement.setObject(12, utc(createdAt));
                     statement.setLong(13, createdBy);
+                    statement.setString(14, jsonArray(familyMemberIds));
                     return statement;
                 },
                 keys);
-        long id = keys.getKey().longValue();
-        for (long familyMemberId : familyMemberIds) {
-            jdbc.update(
-                    "INSERT INTO consent_family_member (consent_id, family_member_id) VALUES (?, ?)",
-                    id,
-                    familyMemberId);
-        }
-        return id;
+        return keys.getKey().longValue();
     }
 
     public Optional<Consent> find(long id) {
@@ -108,8 +104,8 @@ public class ConsentStore {
     /** Bản Hiệu lực của người cao tuổi có người thân trong phạm vi xem sức khỏe không. */
     public boolean activeIncludes(long residentId, long familyMemberId) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM consent c JOIN consent_family_member m ON m.consent_id = c.id"
-                        + " WHERE c.resident_id = ? AND c.status = 'ACTIVE' AND m.family_member_id = ?",
+                "SELECT COUNT(*) FROM consent c WHERE c.resident_id = ? AND c.status = 'ACTIVE'"
+                        + " AND ? MEMBER OF (c.family_member_ids)",
                 Integer.class,
                 residentId,
                 familyMemberId);
@@ -119,8 +115,8 @@ public class ConsentStore {
     /** Như {@link #activeIncludes} nhưng tại thời điểm {@code at}: bản có hiệu lực từ lúc ghi tới lúc rút lại hoặc thay thế. */
     public boolean activeIncludesAt(long residentId, long familyMemberId, Instant at) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM consent c JOIN consent_family_member m ON m.consent_id = c.id"
-                        + " WHERE c.resident_id = ? AND m.family_member_id = ? AND c.created_at <= ?"
+                "SELECT COUNT(*) FROM consent c WHERE c.resident_id = ? AND ? MEMBER OF (c.family_member_ids)"
+                        + " AND c.created_at <= ?"
                         + " AND (c.withdrawn_at IS NULL OR c.withdrawn_at > ?)",
                 Integer.class,
                 residentId,
@@ -183,8 +179,7 @@ public class ConsentStore {
                 ConsenterType.valueOf(rs.getString("consenter_type")),
                 rs.getObject("consenter_family_member_id", Long.class),
                 court,
-                new TreeSet<>(jdbc.queryForList(
-                        "SELECT family_member_id FROM consent_family_member WHERE consent_id = ?", Long.class, id)),
+                parseIds(rs.getString("family_member_ids")),
                 rs.getBoolean("photo_consent"),
                 rs.getBoolean("notification_consent"),
                 rs.getObject("consented_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
@@ -195,5 +190,22 @@ public class ConsentStore {
 
     private static LocalDateTime utc(Instant instant) {
         return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    }
+
+    /** Mảng JSON số, ví dụ {@code [3,7]}. */
+    private static String jsonArray(java.util.Collection<Long> ids) {
+        return ids.stream().sorted().map(String::valueOf).collect(java.util.stream.Collectors.joining(",", "[", "]"));
+    }
+
+    /** Đọc cột JSON mảng số do {@link #jsonArray} hoặc migration ghi. */
+    private static TreeSet<Long> parseIds(String json) {
+        TreeSet<Long> ids = new TreeSet<>();
+        String body = json == null ? "" : json.replace("[", "").replace("]", "").strip();
+        if (!body.isEmpty()) {
+            for (String part : body.split(",")) {
+                ids.add(Long.parseLong(part.strip()));
+            }
+        }
+        return ids;
     }
 }

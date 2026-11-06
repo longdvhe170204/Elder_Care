@@ -23,8 +23,8 @@ import org.springframework.stereotype.Component;
  *
  * <p>Bản ghi trỏ tới hồ sơ ({@link #referencesTo}) là các bản ghi con có loại riêng ({@link ResidentChildRetention}, để
  * nhật ký và đính chính của chúng đi theo chuỗi) và hồ sơ sau liên kết tới (FR-004, FR-051a): hồ sơ cũ chỉ bị xóa khi
- * hồ sơ sau cũng hết hạn. Các bảng không có nhật ký riêng (lịch sử mức chăm sóc, lần báo đánh giá lại, nhắc định kỳ)
- * xóa cùng hồ sơ. Không xóa tệp đính kèm: nội dung ở kho tệp, việc loại bỏ thuộc {@code common.file} (chưa có), nên
+ * hồ sơ sau cũng hết hạn. Dòng bảng dùng chung không có nhật ký riêng (lịch sử mức chăm sóc, lần báo đánh giá lại, nhắc
+ * định kỳ) do {@code SharedRowRetention} xóa theo {@code M01.RESIDENT}. Không xóa tệp đính kèm: nội dung ở kho tệp, việc loại bỏ thuộc {@code common.file} (chưa có), nên
  * tệp được giữ lại lâu hơn hạn thay vì bị xóa nhầm.
  */
 @Component
@@ -88,9 +88,8 @@ class ResidentRetention implements RetentionProvider {
     public void delete(Collection<Long> ids) {
         String in = ids.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
         JdbcTemplate retention = database.jdbc();
-        for (String table : List.of("care_level_history", "reassessment_notice", "periodic_reminder")) {
-            retention.update("DELETE FROM " + table + " WHERE resident_id IN " + in);
-        }
+        // Lịch sử trạng thái, mức chăm sóc (status_history), lần báo đánh giá lại (simple_record) do SharedRowRetention
+        // xóa theo M01.RESIDENT (001 T084)
         children.forEach(child -> child.deleteOfResidents(in));
         retention.update("DELETE FROM resident WHERE id IN " + in);
     }

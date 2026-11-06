@@ -50,12 +50,6 @@ public class FakeM15Config {
 
     @Bean
     @Primary
-    FakeFamilyRelationships fakeFamilyRelationships() {
-        return new FakeFamilyRelationships();
-    }
-
-    @Bean
-    @Primary
     FakeResidencyEnds fakeResidencyEnds() {
         return new FakeResidencyEnds();
     }

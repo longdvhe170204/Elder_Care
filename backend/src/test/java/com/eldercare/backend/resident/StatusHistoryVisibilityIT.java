@@ -66,10 +66,11 @@ class StatusHistoryVisibilityIT extends StatusTestBase {
     private long residentWithSensitiveRow() {
         long id = residentIn(ResidentStatus.IN_RESIDENCE);
         jdbc.update(
-                "INSERT INTO resident_status_history (resident_id, from_status, to_status, command, occurred_at,"
-                        + " performed_by, by_system, reason, basis_type, basis_id, condition_waiver)"
-                        + " VALUES (?, 'IN_RESIDENCE', 'HOSPITALIZED', 'TRANSFER_OUT', ?, ?, FALSE, ?, 'INCIDENT', 77,"
-                        + " '{\"approvalRequestId\": 5, \"conditionCodes\": [\"MEDICINE_NOT_RETURNED\"]}')",
+                "INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, value_before, value,"
+                        + " command, starts_at, actor_id, by_system, reason, basis_type, basis_id, details)"
+                        + " VALUES ('M01.RESIDENT', ?, 'STATUS', 'M01', 'POINT', 'IN_RESIDENCE', 'HOSPITALIZED',"
+                        + " 'TRANSFER_OUT', ?, ?, FALSE, ?, 'INCIDENT', 77, '{\"conditionWaiver\": {\"approvalRequestId\":"
+                        + " 5, \"conditionCodes\": [\"MEDICINE_NOT_RETURNED\"]}}')",
                 id,
                 Timestamp.from(time.now().plusSeconds(1)),
                 office.accountId(),
@@ -177,7 +178,8 @@ class StatusHistoryVisibilityIT extends StatusTestBase {
         user.set(office.user());
         statusService.grantTemporaryAbsence(target(id), new Reason("Lý do cũ"), noDetails());
         long historyId = jdbc.queryForObject(
-                "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 Long.class,
                 id);
         corrections.create(
