@@ -3,6 +3,7 @@ package com.eldercare.backend.family.internal.pickup.service;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.family.internal.pickup.domain.PickupRecord;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -48,24 +49,35 @@ class PickupRecordRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         List<Candidate> candidates = new ArrayList<>();
         for (long residentId : residents.byStatus(FINAL_STATUSES)) {
-            if (candidates.size() >= batch) {
-                break;
-            }
             residents
                     .finalStatusAt(residentId)
                     .filter(at -> at.isBefore(cutoff))
                     .ifPresent(at -> jdbc.query(
                             "SELECT id FROM pickup_record WHERE resident_id = ? ORDER BY id",
                             rs -> {
-                                if (candidates.size() < batch) {
-                                    candidates.add(new Candidate(rs.getLong(1), at));
-                                }
+                                candidates.add(new Candidate(rs.getLong(1), at));
                             },
                             residentId));
         }
-        return candidates.stream();
+        return RetentionProvider.page(candidates.stream(), after, batch);
+    }
+
+    /** Bản ghi gắn hồ sơ người cao tuổi {@code target} (000 T112, FR-051a). */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!SharedRowRetention.RESIDENT.equals(target.dataType())) {
+            return Set.of();
+        }
+        return jdbc.queryForList("SELECT id FROM pickup_record WHERE resident_id = ?", Long.class, target.id()).stream()
+                .map(id -> new DataRef(dataType(), id))
+                .collect(Collectors.toSet());
     }
 
     @Override
