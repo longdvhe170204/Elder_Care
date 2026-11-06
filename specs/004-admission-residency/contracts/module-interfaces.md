@@ -102,6 +102,24 @@ void capNhat(long nctId);   // module sở hữu gọi sau lệnh của mình (0
 DanhSachViecView xem(long nctId);
 ```
 
+### 1.6a. `DayCareCalendarApi` (005; A duyệt 2026-11-05, ý 004-3)
+
+```java
+package com.eldercare.backend.admission.api;
+
+public interface DayCareCalendarApi {
+    /** Ngày khu bán trú nghỉ Hiệu lực và mọi báo vắng đã ghi của người cao tuổi ngày D, theo thời điểm ghi. */
+    DayCareCalendarView onDate(long residentId, LocalDate date);
+}
+// admission.api.dto
+record DayCareCalendarView(LocalDate date, boolean closureDay, List<DayCareAbsenceNoticeView> notices) {}
+record DayCareAbsenceNoticeView(long noticeId, Long sessionId, Instant familyNotifiedAt, boolean withinNoticePeriod) {}
+```
+
+- Chỉ đọc bảng `absence` (dòng `CLOSURE_DAY` Hiệu lực, `DAY_CARE_NOTICE`); không thêm bảng, không đổi sự kiện đã công bố. Bản cài `DayCareCalendarService` (`internal/absence/service`), test `DayCareCalendarApiIT`.
+- Bản giả `support/fake/admission/FakeDayCareCalendarApi` (ngày chưa đặt thì báo lỗi). Tên khác `FakeDayCareCalendar` của care vì hai lớp cùng được import theo gói trong test của 005.
+- Adapter `DayCareCalendarPort` của 005 thuộc `care`, gọi API này (chiều 005 → 004; admission không import care). Cách chọn một báo vắng trong số nhiều báo vắng của ngày, nghe sự kiện đồng bộ là việc của 005 (C).
+
 ### 1.7. SPI 004 cài cho 000, 002
 
 | SPI | Loại / đối tượng | Ghi chú |
