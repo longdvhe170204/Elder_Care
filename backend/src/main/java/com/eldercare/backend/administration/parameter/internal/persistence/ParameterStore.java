@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -114,14 +115,25 @@ public class ParameterStore {
                 == 1;
     }
 
+    /**
+     * Thêm một dòng lịch sử. Mốc hiệu lực luôn sau dòng mới nhất của tham số ít nhất 1 micro giây (độ chính xác của cột):
+     * đồng hồ lùi (đồng hồ giả lập, NTP) không làm dòng mới đứng trước hay trùng dòng cũ, nên dòng mới nhất vẫn là giá trị
+     * hiện hành (DBR-24; 000 T113). Lệnh đổi đã khóa dòng {@code parameter} bằng phiên bản nên không có hai lệnh song song.
+     */
     public void addHistory(
             String code, JsonNode value, Instant at, long actorId, String reason, boolean defaultRestore) {
+        LocalDateTime effectiveFrom = utc(at).truncatedTo(ChronoUnit.MICROS);
+        LocalDateTime latest = jdbc.queryForObject(
+                "SELECT MAX(effective_from) FROM parameter_history WHERE code = ?", LocalDateTime.class, code);
+        if (latest != null && !effectiveFrom.isAfter(latest)) {
+            effectiveFrom = latest.plus(1, ChronoUnit.MICROS);
+        }
         jdbc.update(
                 "INSERT INTO parameter_history (code, value, effective_from, actor_id, reason, is_default_restore)"
                         + " VALUES (?, ?, ?, ?, ?, ?)",
                 code,
                 json.writeValueAsString(value),
-                utc(at),
+                effectiveFrom,
                 actorId,
                 reason,
                 defaultRestore);

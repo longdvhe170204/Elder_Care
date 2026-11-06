@@ -9,10 +9,10 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;
 import com.eldercare.backend.staffing.api.events.*;
-import com.eldercare.backend.staffing.credential.internal.domain.*;
-import com.eldercare.backend.staffing.credential.internal.persistence.CredentialStore;
-import com.eldercare.backend.staffing.credential.internal.service.CredentialService;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.credential.domain.*;
+import com.eldercare.backend.staffing.internal.credential.persistence.CredentialStore;
+import com.eldercare.backend.staffing.internal.credential.service.CredentialService;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.*;
 import java.time.*;
@@ -109,11 +109,6 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
         // Chỉ dọn chứng chỉ/danh mục/ca của test này qua tài khoản lưu giữ, giữ nguyên danh mục khởi tạo.
         try (var c = retentionConnection()) {
             c.setAutoCommit(false);
-            try (var p = c.prepareStatement(
-                    "DELETE s FROM credential_practice_scope s JOIN credential g ON g.id=s.credential_id WHERE g.staff_id=?")) {
-                p.setLong(1, person);
-                p.executeUpdate();
-            }
             var ids = jdbc.queryForList(
                     "SELECT id FROM credential WHERE staff_id=? ORDER BY id DESC", Long.class, person);
             for (long id : ids) remove(c, "credential", id);
@@ -123,11 +118,14 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
                 p.executeUpdate();
             }
             for (long shift : fixtureShifts) {
-                for (String table : List.of("shift_lead_history", "shift_staff"))
-                    try (var p = c.prepareStatement("DELETE FROM " + table + " WHERE shift_id=?")) {
-                        p.setLong(1, shift);
-                        p.executeUpdate();
+                for (String statement : List.of(
+                        "DELETE FROM status_history WHERE entity_type='M09.SHIFT' AND attribute='LEAD_STAFF' AND entity_id=?",
+                        "DELETE FROM shift_staff WHERE shift_id=?")) {
+                    try (var prepared = c.prepareStatement(statement)) {
+                        prepared.setLong(1, shift);
+                        prepared.executeUpdate();
                     }
+                }
                 remove(c, "work_shift", shift);
             }
             for (long id : fixtureSchedules) remove(c, "shift_schedule", id);
@@ -137,7 +135,12 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
     }
 
     private void remove(java.sql.Connection c, String table, long id) throws Exception {
-        try (var p = c.prepareStatement("DELETE FROM " + table + " WHERE id=?")) {
+        String statement = switch (table) {
+            case "credential_type" -> "DELETE FROM catalog_item WHERE catalog_type='M09.CREDENTIAL_TYPE' AND id=?";
+            case "shift_template" -> "DELETE FROM catalog_item WHERE catalog_type='M09.SHIFT_TEMPLATE' AND id=?";
+            default -> "DELETE FROM " + table + " WHERE id=?";
+        };
+        try (var p = c.prepareStatement(statement)) {
             p.setLong(1, id);
             p.executeUpdate();
         }
@@ -164,7 +167,9 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
                 .stay(TestUsers.nextId(), room, from.minusSeconds(60), null);
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu ca chứng chỉ]','23:00','07:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu ca chứng chỉ] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'23:00' AS start_time,'07:00' AS end_time,'FLOOR' AS scope_type,FALSE AS requires_handover) src");
         fixtureTemplates.add(template);
         long schedule = AssignmentFixtures.insert(
                 jdbc,
@@ -216,7 +221,9 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_008_professionalLicenseAndNonRequiredTrainingDoNotRaiseM09TrainingWarning() {
-        long license = jdbc.queryForObject("SELECT id FROM credential_type WHERE code='NURSING_LICENSE'", Long.class);
+        long license = jdbc.queryForObject(
+                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='NURSING_LICENSE'",
+                Long.class);
         long id = service.add(
                         person,
                         new CredentialInput(
@@ -332,8 +339,9 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_008_optionalTrainingDoesNotWarn() {
-        long optional =
-                jdbc.queryForObject("SELECT id FROM credential_type WHERE code='FIRST_AID_TRAINING'", Long.class);
+        long optional = jdbc.queryForObject(
+                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
+                Long.class);
         long id = service.add(
                         person,
                         new CredentialInput(
@@ -355,7 +363,9 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
     @Test
     void FR_009_changingTypeStillSchedulesFutureInvalidityForCorrectedType() {
         long id = add(time.today().plusDays(10));
-        long target = jdbc.queryForObject("SELECT id FROM credential_type WHERE code='FIRST_AID_TRAINING'", Long.class);
+        long target = jdbc.queryForObject(
+                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
+                Long.class);
         var code = store.type(target).orElseThrow().code();
         tasks.require(task, new TaskRequirements(Role.NURSING_STAFF, Set.of(code)));
         var expiry = time.today().plusDays(1);
@@ -381,7 +391,9 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
         var from = time.startOfDay(expiry.plusDays(1));
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Ca khu chứng chỉ]','07:00','15:00','AREA',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Ca khu chứng chỉ] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'AREA' AS scope_type,FALSE AS requires_handover) src");
         fixtureTemplates.add(template);
         long schedule = AssignmentFixtures.insert(
                 jdbc,

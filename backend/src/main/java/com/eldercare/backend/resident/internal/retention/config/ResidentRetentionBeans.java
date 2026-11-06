@@ -16,26 +16,26 @@ class ResidentRetentionBeans {
 
     @Bean
     ResidentChildRetention statusHistoryRetention(ResidentRecordStore records, RetentionDatabase database) {
+        // Dòng status_history (001 T084): SharedRowRetention xóa cùng hồ sơ (M01.RESIDENT); loại riêng giữ để đính
+        // chính
+        // của dòng lịch sử đi theo chuỗi (SharedRowRetention.rowsFor chỉ có record_event, simple_record)
         return new ResidentChildRetention(
-                "M01.RESIDENT_STATUS_HISTORY", "resident_status_history", List.of(), records, database);
-    }
-
-    @Bean
-    ResidentChildRetention consentRetention(ResidentRecordStore records, RetentionDatabase database) {
-        return new ResidentChildRetention(
-                "M01.CONSENT",
-                "consent",
-                List.of(
-                        "DELETE FROM consent_family_member WHERE consent_id IN (SELECT id FROM consent WHERE resident_id IN %s)"),
+                "M01.RESIDENT_STATUS_HISTORY",
+                "status_history",
+                "entity_id",
+                " AND entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'",
+                List.of(),
                 records,
                 database);
     }
 
     @Bean
-    ResidentChildRetention initialHealthRecordRetention(ResidentRecordStore records, RetentionDatabase database) {
-        return new ResidentChildRetention(
-                "M01.INITIAL_HEALTH_RECORD", "initial_health_record", List.of(), records, database);
+    ResidentChildRetention consentRetention(ResidentRecordStore records, RetentionDatabase database) {
+        return new ResidentChildRetention("M01.CONSENT", "consent", List.of(), records, database);
     }
+
+    // Hồ sơ sức khỏe ban đầu ở simple_record (001 T084): SharedRowRetention xóa theo M01.RESIDENT, rowsFor đưa đính
+    // chính, nhật ký loại M01.INITIAL_HEALTH_RECORD vào chuỗi (A chốt 2026-11-03 điểm 3)
 
     @Bean
     ResidentChildRetention healthItemRetention(ResidentRecordStore records, RetentionDatabase database) {
@@ -44,35 +44,19 @@ class ResidentRetentionBeans {
 
     @Bean
     ResidentChildRetention assessmentRetention(ResidentRecordStore records, RetentionDatabase database) {
-        return new ResidentChildRetention(
-                "M01.ASSESSMENT",
-                "assessment",
-                List.of(
-                        "DELETE FROM assessment_care_need WHERE assessment_id IN (SELECT id FROM assessment WHERE resident_id IN %s)"),
-                records,
-                database);
+        return new ResidentChildRetention("M01.ASSESSMENT", "assessment", List.of(), records, database);
     }
 
     @Bean
     ResidentChildRetention endOfLifeWishRetention(ResidentRecordStore records, RetentionDatabase database) {
+        // ý kiến khác (record_event) do SharedRowRetention xóa cùng phiếu; người cần báo ở cột JSON
         return new ResidentChildRetention(
-                "M01.END_OF_LIFE_WISH",
-                "end_of_life_wish",
-                List.of(
-                        "DELETE FROM end_of_life_wish_opinion WHERE wish_id IN (SELECT id FROM end_of_life_wish WHERE resident_id IN %s)"),
-                records,
-                database);
+                "M01.END_OF_LIFE_WISH", "wish", " AND kind = 'END_OF_LIFE'", List.of(), records, database);
     }
 
     @Bean
     ResidentChildRetention treatmentWishRetention(ResidentRecordStore records, RetentionDatabase database) {
         return new ResidentChildRetention(
-                "M01.TREATMENT_WISH",
-                "treatment_wish",
-                List.of(
-                        "DELETE FROM treatment_wish_notify WHERE treatment_wish_id IN (SELECT id FROM treatment_wish WHERE resident_id IN %s)",
-                        "DELETE FROM treatment_wish_opinion WHERE treatment_wish_id IN (SELECT id FROM treatment_wish WHERE resident_id IN %s)"),
-                records,
-                database);
+                "M01.TREATMENT_WISH", "wish", " AND kind = 'TREATMENT'", List.of(), records, database);
     }
 }

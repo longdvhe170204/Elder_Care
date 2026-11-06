@@ -1,7 +1,7 @@
 package com.eldercare.backend.staffing.internal.persistence;
 
 import com.eldercare.backend.staffing.internal.domain.StaffStatisticsRows;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import java.sql.*;
 import java.time.*;
 import java.util.*;
@@ -11,9 +11,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class StaffStatisticsStore {
     private final JdbcTemplate jdbc;
+    private final ShiftStore shifts;
+    private final StaffingHistoryStore histories;
 
-    public StaffStatisticsStore(JdbcTemplate jdbc) {
+    public StaffStatisticsStore(JdbcTemplate jdbc, ShiftStore shifts, StaffingHistoryStore histories) {
         this.jdbc = jdbc;
+        this.shifts = shifts;
+        this.histories = histories;
     }
 
     private Instant instant(ResultSet r, String column) throws SQLException {
@@ -63,9 +67,9 @@ public class StaffStatisticsStore {
 
     public List<StaffStatisticsRows.Assignment> floorManagers(Instant from, Instant to) {
         return jdbc.query(
-                "SELECT * FROM floor_manager_assignment WHERE starts_at<? AND (ends_at IS NULL OR ends_at>?) AND (ends_at IS NULL OR ends_at>starts_at) ORDER BY starts_at,id",
+                "SELECT *,COALESCE(legacy_floor_manager_id,id) logical_id FROM staff_assignment WHERE kind='FLOOR_MANAGER' AND starts_at<? AND (ends_at IS NULL OR ends_at>?) AND (ends_at IS NULL OR ends_at>starts_at) ORDER BY starts_at,id",
                 (r, i) -> new StaffStatisticsRows.Assignment(
-                        r.getLong("id"),
+                        r.getLong("logical_id"),
                         r.getLong("staff_id"),
                         null,
                         "FLOOR_OR_AREA",
@@ -82,14 +86,9 @@ public class StaffStatisticsStore {
                 + " GREATEST(s.starts_at,COALESCE(m.added_at,s.starts_at)) AS effective_from,"
                 + " LEAST(s.ends_at,COALESCE(m.absent_at,s.ends_at),COALESCE(m.left_at,s.ends_at),COALESCE(m.withdrawn_on_resignation_at,s.ends_at)) AS effective_to"
                 + " FROM shift_staff m JOIN work_shift s ON s.id=m.shift_id WHERE s.status NOT IN ('DRAFT','CANCELLED') AND m.approved_leave_request_id IS NULL";
-        String leads = "SELECT h.id,h.staff_id,h.shift_id,s.scope_type,s.scope_id,'SHIFT_LEAD' AS duty,"
-                + " GREATEST(s.starts_at,h.starts_at) AS effective_from,"
-                + " LEAST(s.ends_at,COALESCE(h.ends_at,s.ends_at),COALESCE(m.absent_at,s.ends_at),COALESCE(m.left_at,s.ends_at),COALESCE(m.withdrawn_on_resignation_at,s.ends_at)) AS effective_to"
-                + " FROM shift_lead_history h JOIN work_shift s ON s.id=h.shift_id LEFT JOIN shift_staff m ON m.shift_id=h.shift_id AND m.staff_id=h.staff_id"
-                + " WHERE s.status NOT IN ('DRAFT','CANCELLED') AND m.approved_leave_request_id IS NULL";
-        return jdbc.query(
-                "SELECT * FROM (" + members + " UNION ALL " + leads
-                        + ") duties WHERE effective_from<? AND effective_to>? AND effective_to>effective_from ORDER BY effective_from,duty,id",
+        var result = new ArrayList<>(jdbc.query(
+                "SELECT * FROM (" + members
+                        + ") duties WHERE effective_from<? AND effective_to>? AND effective_to>effective_from",
                 (r, i) -> new StaffStatisticsRows.Assignment(
                         r.getLong("id"),
                         r.getLong("staff_id"),
@@ -100,16 +99,63 @@ public class StaffStatisticsStore {
                         instant(r, "effective_to"),
                         r.getString("duty")),
                 ShiftStore.sql(to),
-                ShiftStore.sql(from));
+                ShiftStore.sql(from)));
+        for (var shift : shifts.reportShifts(from, to)) {
+            var membership = shifts.members(shift.id()).stream()
+                    .collect(java.util.stream.Collectors.toMap(m -> m.staffId(), m -> m));
+            for (var lead : histories.shiftLeads(shift.id())) {
+                if (lead.valueId() == null) continue;
+                var member = membership.get(lead.valueId());
+                if (member != null && member.approvedLeaveRequestId() != null) continue;
+                Instant start = shift.startsAt().isAfter(lead.startsAt()) ? shift.startsAt() : lead.startsAt();
+                Instant end = java.util.stream.Stream.of(
+                                shift.endsAt(),
+                                lead.endsAt(),
+                                member == null ? null : member.absentAt(),
+                                member == null ? null : member.leftAt(),
+                                member == null ? null : member.withdrawnAt())
+                        .filter(Objects::nonNull)
+                        .min(Comparator.naturalOrder())
+                        .orElseThrow();
+                if (start.isBefore(to) && end.isAfter(from) && end.isAfter(start))
+                    result.add(new StaffStatisticsRows.Assignment(
+                            leadLogicalId(lead),
+                            lead.valueId(),
+                            shift.id(),
+                            shift.scopeType(),
+                            shift.scopeId() == null ? 0 : shift.scopeId(),
+                            start,
+                            end,
+                            "SHIFT_LEAD"));
+            }
+        }
+        return result.stream()
+                .sorted(Comparator.comparing(StaffStatisticsRows.Assignment::from)
+                        .thenComparing(StaffStatisticsRows.Assignment::role)
+                        .thenComparingLong(StaffStatisticsRows.Assignment::id))
+                .toList();
+    }
+
+    private static long leadLogicalId(
+            com.eldercare.backend.administration.shared.api.dto.HistoryRow<
+                            com.eldercare.backend.staffing.internal.domain.StaffingHistoryData.LeadDetails>
+                    row) {
+        return com.eldercare.backend.staffing.internal.domain.StaffingCatalogData.Legacy.logicalId(
+                row.id(), row.details() == null ? null : row.details().legacy(), "shift_lead_history");
     }
 
     /** Chỉ bảng M09; nhật ký phải đọc qua AuditLogApi của A. */
     public Optional<Long> shiftForAudit(String type, long id) {
+        if ("M09.SHIFT_LEAD_HISTORY".equals(type)) {
+            for (long shift : jdbc.queryForList("SELECT id FROM work_shift ORDER BY id", Long.class))
+                if (histories.shiftLeads(shift).stream().anyMatch(h -> leadLogicalId(h) == id))
+                    return Optional.of(shift);
+            return Optional.empty();
+        }
         String table = switch (type) {
             case "M09.HANDOVER" -> "shift_handover";
             case "M09.ASSIGNMENT" -> "staff_assignment";
             case "M09.SHIFT_STAFF", "M09.STAFF_ABSENCE" -> "shift_staff";
-            case "M09.SHIFT_LEAD_HISTORY" -> "shift_lead_history";
             default -> null;
         };
         if (table == null) return Optional.empty();

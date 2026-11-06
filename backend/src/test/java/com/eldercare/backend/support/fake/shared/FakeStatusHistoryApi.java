@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.shared.api.dto.HistoryEntry;
 import com.eldercare.backend.administration.shared.api.dto.HistoryKind;
 import com.eldercare.backend.administration.shared.api.dto.HistoryRow;
 import com.eldercare.backend.administration.shared.api.dto.HistoryTrack;
+import com.eldercare.backend.common.error.ReasonRequiredException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,6 +27,9 @@ public class FakeStatusHistoryApi implements StatusHistoryApi {
 
     @Override
     public synchronized <D> long add(HistoryTrack<D> track, long entityId, HistoryEntry<D> e) {
+        if (track.reasonRequired() && !e.bySystem() && e.reason() == null && e.valueBefore() != null) {
+            throw new ReasonRequiredException();
+        }
         if (e.kind() == HistoryKind.PERIOD && open(track, entityId).isPresent()) {
             throw condition("OPEN_PERIOD", "Đang có khoảng chưa kết thúc");
         }

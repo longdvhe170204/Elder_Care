@@ -66,7 +66,8 @@ class HospitalDocumentsIT extends StatusTestBase {
 
     private long lastHistoryId(long residentId) {
         return jdbc.queryForObject(
-                "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 Long.class,
                 residentId);
     }

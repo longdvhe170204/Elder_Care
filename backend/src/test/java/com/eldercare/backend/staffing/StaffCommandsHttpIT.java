@@ -80,11 +80,13 @@ class StaffCommandsHttpIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/departments").header("Authorization", manager))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").exists());
-        long dept = jdbc.queryForObject("SELECT id FROM department WHERE name='Chăm sóc'", Long.class);
+        long dept = jdbc.queryForObject(
+                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.leadStaffId'),'null') AS UNSIGNED) AS lead_staff_id FROM catalog_item c WHERE c.catalog_type='M09.DEPARTMENT') department WHERE name='Chăm sóc'",
+                Long.class);
         command("/staff/" + staff + "/change-department", Map.of("departmentId", dept, "reason", "Điều chuyển bộ phận"))
                 .andExpect(status().isOk());
         assertThat(jdbc.queryForObject(
-                        "SELECT department_id FROM staff_department WHERE staff_id=? AND ends_at IS NULL",
+                        "SELECT COALESCE(c.m09_legacy_id,c.id) FROM staff_department d JOIN catalog_item c ON c.id=d.department_id AND c.catalog_type='M09.DEPARTMENT' WHERE d.staff_id=? AND d.ends_at IS NULL",
                         Long.class,
                         staff))
                 .isEqualTo(dept);
@@ -94,7 +96,9 @@ class StaffCommandsHttpIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_006_renewRevokeCorrectAreDistinctCommands() throws Exception {
-        long type = jdbc.queryForObject("SELECT id FROM credential_type WHERE code='FIRST_AID_TRAINING'", Long.class);
+        long type = jdbc.queryForObject(
+                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
+                Long.class);
         var body = new LinkedHashMap<String, Object>();
         body.put("credentialTypeId", type);
         body.put("issueDate", time.today().minusDays(10));
@@ -143,7 +147,10 @@ class StaffCommandsHttpIT extends MySqlIntegrationTestBase {
     void FR_006_practiceScopeCatalogueExposesCodeUsedByCredentialCommand() throws Exception {
         String code = "SCOPE-HTTP-" + TestUsers.nextId();
         long id = AssignmentFixtures.insert(
-                jdbc, "INSERT INTO practice_scope(code,name) VALUES (?,?)", code, "[Phạm vi HTTP " + code + "]");
+                jdbc,
+                "INSERT INTO catalog_item(catalog_type,module,code,name,status,attributes) SELECT 'M09.PRACTICE_SCOPE','M09',src.code,src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'legacyCode',src.code) FROM (SELECT ? AS code,? AS name) src",
+                code,
+                "[Phạm vi HTTP " + code + "]");
         try {
             var response = mvc.perform(get("/api/v1/practice-scopes").header("Authorization", manager))
                     .andExpect(status().isOk())
@@ -159,7 +166,8 @@ class StaffCommandsHttpIT extends MySqlIntegrationTestBase {
             assertThat(found).isTrue();
         } finally {
             try (var c = retentionConnection();
-                    var p = c.prepareStatement("DELETE FROM practice_scope WHERE id=?")) {
+                    var p = c.prepareStatement(
+                            "DELETE FROM catalog_item c WHERE c.catalog_type='M09.PRACTICE_SCOPE' AND (COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id)=?)")) {
                 p.setLong(1, id);
                 p.executeUpdate();
             }

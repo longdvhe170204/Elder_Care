@@ -11,6 +11,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
+import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -35,9 +36,8 @@ import com.eldercare.backend.resident.internal.assessment.domain.AssessmentType;
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelHistoryStore;
 import com.eldercare.backend.resident.internal.assessment.service.AssessmentContents.Effective;
-import com.eldercare.backend.resident.internal.health.domain.CareNeed;
-import com.eldercare.backend.resident.internal.health.persistence.CareNeedRepository;
 import com.eldercare.backend.resident.internal.health.service.ActorNames;
+import com.eldercare.backend.resident.internal.health.service.M01Catalogs;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusStore;
@@ -118,7 +118,7 @@ public class AssessmentService {
     private final AssessmentRepository assessments;
     private final ResidentRepository residents;
     private final ResidentStatusStore statuses;
-    private final CareNeedRepository careNeeds;
+    private final M01Catalogs catalogs;
     private final CareLevelHistoryStore history;
     private final AssessmentContents contents;
     private final ProfileOpenGuard guard;
@@ -134,7 +134,7 @@ public class AssessmentService {
             AssessmentRepository assessments,
             ResidentRepository residents,
             ResidentStatusStore statuses,
-            CareNeedRepository careNeeds,
+            M01Catalogs catalogs,
             CareLevelHistoryStore history,
             AssessmentContents contents,
             ProfileOpenGuard guard,
@@ -148,7 +148,7 @@ public class AssessmentService {
         this.assessments = assessments;
         this.residents = residents;
         this.statuses = statuses;
-        this.careNeeds = careNeeds;
+        this.catalogs = catalogs;
         this.history = history;
         this.contents = contents;
         this.guard = guard;
@@ -421,8 +421,8 @@ public class AssessmentService {
             throw new InvalidValueException("Loại hình lưu trú đề xuất chỉ có ở đánh giá đầu vào");
         }
         Set<Long> needIds = in.careNeedIds() == null ? Set.of() : in.careNeedIds();
-        List<CareNeed> found = careNeeds.findAllById(needIds);
-        if (found.size() != needIds.size() || !found.stream().allMatch(CareNeed::isActive)) {
+        var found = catalogs.findAll(M01Catalogs.CARE_NEED, needIds);
+        if (found.size() != needIds.size() || !found.stream().allMatch(n -> n.status() == CatalogStatus.ACTIVE)) {
             throw new InvalidValueException("Nhu cầu chăm sóc không có trong danh mục hoặc đã ngừng hiệu lực");
         }
         return new DraftContent(
@@ -450,8 +450,7 @@ public class AssessmentService {
         Map<Long, Effective> effective = contents.of(list);
         Set<Long> needIds =
                 list.stream().flatMap(a -> a.getCareNeedIds().stream()).collect(Collectors.toSet());
-        Map<Long, String> needNames =
-                careNeeds.findAllById(needIds).stream().collect(Collectors.toMap(CareNeed::getId, CareNeed::getName));
+        Map<Long, String> needNames = catalogs.names(M01Catalogs.CARE_NEED, needIds);
         return list.stream()
                 .map(a -> {
                     Effective e = effective.get(a.getId());

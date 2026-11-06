@@ -135,6 +135,9 @@ export const postShiftsByIdAssignments = (params) => request('POST', '/shifts/{i
 /** Kiểm tra phân công và cảnh báo chứng chỉ trước khi lưu (FR-025, FR-028, FR-028a, FR-030, FR-031) */
 export const postShiftsByIdAssignmentsPreview = (params) => request('POST', '/shifts/{id}/assignments/preview', params)
 
+/** Đọc một phân công và phiên bản hiện hành (FR-025, FR-033, FR-054) */
+export const getAssignmentsById = (params) => request('GET', '/assignments/{id}', params)
+
 /** Xóa phân công Nháp (chỉ khi lịch Nháp) (FR-025) */
 export const deleteAssignmentsById = (params) => request('DELETE', '/assignments/{id}', params)
 
@@ -177,10 +180,10 @@ export const putHandoversByIdAssessments = (params) => request('PUT', '/handover
 /** Hoàn tất bàn giao (chốt nội dung); thiếu ghi chú mục nghiêm trọng 409 CRITICAL_ITEM_NOTE_REQUIRED; bắt buộc trực tuyến (FR-041, FR-042, FR-022, FR-060, BR-M09-06, BR-M09-07) */
 export const postHandoversByIdComplete = (params) => request('POST', '/handovers/{id}/complete', params)
 
-/** Xác nhận bàn giao (người phụ trách ca sau trong phạm vi ca sau; Trưởng tầng) (FR-042, FR-044, FR-060, BR-M09-08, BR-M05-05) */
+/** Xác nhận bàn giao (người phụ trách ca sau hoặc Trưởng tầng; bắt buộc thuộc đúng ca sau đã xếp) (FR-042, FR-044, FR-060, BR-M09-08, BR-M05-05) */
 export const postHandoversByIdConfirm = (params) => request('POST', '/handovers/{id}/confirm', params)
 
-/** Gửi ý kiến (nội dung bắt buộc) (FR-042) */
+/** Gửi ý kiến (nội dung bắt buộc; người gửi đủ quyền và thuộc đúng ca sau đã xếp) (FR-042) */
 export const postHandoversByIdComments = (params) => request('POST', '/handovers/{id}/comments', params)
 
 /** Bổ sung và gửi lại (người bàn giao trong phạm vi ca; Trưởng tầng); phản hồi cho từng ý kiến (FR-041, FR-042) */
@@ -188,3 +191,15 @@ export const postHandoversByIdSupplementAndResubmit = (params) => request('POST'
 
 /** Các lần dùng quyền theo nhiệm vụ hoặc thay thế (căn cứ khác "vai trò"), theo tầng và thời gian (Quản lý viện) (FR-056) */
 export const getDutyBasisAuditLogs = (params) => request('GET', '/duty-basis-audit-logs', params)
+
+/** Kiểm tra và cảnh báo trước khi sửa một phân công Nháp (FR-025, FR-028, FR-028a, FR-030, FR-031, BR-M09-01) */
+export const postAssignmentsByIdDraftUpdatePreview = (params) => request('POST', '/assignments/{id}/draft-update-preview', params)
+
+/** Cập nhật nguyên tử nội dung của một phân công Nháp (FR-025, FR-028, FR-028a, FR-030, FR-031, FR-055, BR-M09-01, BR-M09-15) */
+export const postAssignmentsByIdUpdateDraft = (params) => request('POST', '/assignments/{id}/update-draft', params)
+
+/** Người chính và Điều dưỡng phụ trách của một người cao tuổi tại thời điểm (FR-025, FR-026, FR-028, FR-028a, FR-030, FR-033, FR-054, BR-M09-01, BR-M09-15, BR-M15-01) */
+export const getShiftsByIdAssignmentResolution = (params) => request('GET', '/shifts/{id}/assignment-resolution', params)
+
+/** Người cao tuổi chưa đủ nhân viên phụ trách tại giờ bắt đầu ca (FR-025, FR-026, FR-028, FR-029, FR-033, FR-054, BR-M04-13, BR-M09-15, BR-M15-01) */
+export const getShiftsByIdUnassignedResidents = (params) => request('GET', '/shifts/{id}/unassigned-residents', params)

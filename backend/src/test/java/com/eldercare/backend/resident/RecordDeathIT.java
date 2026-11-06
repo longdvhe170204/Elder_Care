@@ -56,14 +56,16 @@ class RecordDeathIT extends StatusTestBase {
 
     private long lastHistoryId(long residentId) {
         return jdbc.queryForObject(
-                "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 Long.class,
                 residentId);
     }
 
     private Map<String, Object> lastHistory(long residentId) {
         return jdbc.queryForMap(
-                "SELECT command, reason, basis_type, basis_id FROM resident_status_history"
+                "SELECT command, reason, basis_type, basis_id FROM "
+                        + com.eldercare.backend.support.ResidentHistoryRows.STATUS
                         + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 residentId);
     }
