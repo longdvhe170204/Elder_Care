@@ -1,4 +1,4 @@
-# Tích hợp phần đang dở của 008 — 04/11/2026
+![alt text](image.png)# Tích hợp phần đang dở của 008 — 04/11/2026
 
 Nhánh `impl/008-integration`, worktree `.worktrees/008-integration`, nền `origin/develop` tại `62fdb4f2517aab104d073c309688c5dd2075a3da` (PR #106). Người dùng yêu cầu tiếp tục từ bản Q-262/R-15 đã có; không tạo lại các phần đã viết, không sửa API của A đang chờ.
 
