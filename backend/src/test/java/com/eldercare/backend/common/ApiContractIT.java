@@ -256,11 +256,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story
             new Contract(
                     Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
-                    Set.of(
-                            "GET /api/v1/assets/{id}",
-                            "GET /api/v1/vehicle-schedules",
-                            "POST /api/v1/vehicle-schedules",
-                            "POST /api/v1/vehicle-schedules/{id}/{command}"),
+                    Set.of("GET /api/v1/assets/{id}"),
                     Set.of(),
                     true));
 

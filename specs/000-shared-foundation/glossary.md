@@ -3378,6 +3378,11 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | loại yêu cầu thanh lý; lớp | `M03.ASSET_DISPOSAL`; `service.AssetDisposalHandler` (nội dung `{assetId}`), `AssetService.requestDisposal`, `dispose` |
 | job hằng ngày M03 tài sản (`ViecHangNgayM03TaiSan`); bước nhắc | `roombedallocation.scheduling.AssetReminderJob` (`REMIND_ASSET_DUE_DATES`, `eldercare.jobs.asset-reminder.cron`, `.on-startup`); `service.AssetReminders`; sự kiện nội bộ `domain.AssetReminder` |
 | nhắc FR-014; dấu | `ASSET_DUE_SOON`, `ASSET_OVERDUE`; `reminder_marker` loại `M03.ASSET_REMINDER`, mốc `BEFORE:<loại>:<hạn>`, `OVERDUE:<loại>:<hạn>:<ngày>` |
+| job theo phút M03 lịch xe (`ViecTheoPhutM03LichXe`); bước nhắc | `roombedallocation.scheduling.VehicleScheduleReminderJob` (`REMIND_VEHICLE_SCHEDULES`, `eldercare.jobs.vehicle-schedule-reminder.cron`, `.on-startup`); `internal.vehicle.service.VehicleScheduleReminders`; sự kiện nội bộ `internal.vehicle.domain.VehicleScheduleNotice` |
+| thông báo lịch xe; dấu | `VEHICLE_SCHEDULE_CHANGED`, `VEHICLE_SCHEDULE_CANCELLED`, `VEHICLE_SCHEDULE_EXTENDED_OVERLAP`, `VEHICLE_RETURN_OVERDUE`, `VEHICLE_RETURN_OVERDUE_CONFLICT`; `reminder_marker` loại `M03.VEHICLE_SCHEDULE_REMINDER`, mốc `OVERDUE:<giờ về dự kiến>` |
+| `lich_xe` (các cột) | nội dung `internal.vehicle.domain.VehicleSchedule` (`vehicleId`, `plannedDepartureAt`, `plannedReturnAt`, `purpose`, `tripId`, `residentId`, `driverStaffId`, `bookedByStaffId`, `note`, `departedAt`, `returnedAt`, `cancellationReason`); đối tượng cha `M03.ASSET` (xe); khóa duy nhất `TRIP:<tripId>` |
+| `LichXe` (phản hồi `GET /vehicle-schedules`, bổ sung 2026-11-06) | `VehicleSchedule` (`id`, `vehicleId`, `plannedDepartureAt`, `plannedReturnAt`, `purpose`, `tripId`, `residentId`, `driverStaffId`, `bookedByStaffId`, `status`, `departedAt`, `returnedAt`, `cancellationReason`); web `web.response.VehicleScheduleResponse` |
+| provider `M03.VEHICLE_SCHEDULE` | `internal.vehicle.config.VehicleScheduleGovernance` (phạm vi toàn viện; lưu giữ không gắn hồ sơ từ `locked_at`) |
 | provider `M03.ASSET` | `service.AssetGovernance` (phạm vi theo `floor_area_id`; lưu giữ không gắn hồ sơ từ `disposed_at`; `acquisitionCost`, `M03.ASSET_MAINTENANCE.cost` là `FINANCE`) |
 | test | `AssetTestBase`, `FR_013_AssetDisposalIT`, `BR_M03_17_MaintenanceDueIT`, `T004_AssetGovernanceIT` |
 
