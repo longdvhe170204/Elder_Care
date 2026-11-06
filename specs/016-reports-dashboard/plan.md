@@ -228,3 +228,15 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - `HEALTH.VITAL_SIGNS` (FR-040): số lần đo đã xác nhận trong khoảng, chia theo mức lúc đo (vượt ngưỡng là ô `WARNING`, `DANGEROUS`); loại chỉ số ở dòng chi tiết, tầng qua bộ lọc chung (một khóa chia nhóm mỗi chỉ tiêu). Lệch còn lại: chuỗi giá trị theo thời gian cho một người cao tuổi chưa có vì `VitalSignReportView` không có giá trị đo; báo D.
 - Ô chia nhóm trên web hiện khóa thô (`WAITING`, mã ca) như các chỉ tiêu có sẵn; nhãn ô để task web của nhóm.
 - Test: ba lớp test mới viết trước (lỗi biên dịch vì chưa có lớp) rồi xanh. `FR_062_ExportAuditIT` đếm dòng xuất nhóm Sức khỏe, thuốc: thêm `@MockitoBean` hai nguồn để số dòng không phụ thuộc dữ liệu sót, số dòng 7 → 11 (thêm một dòng tổng mỗi chỉ tiêu thật).
+
+## Rà T030 (2026-11-06, A)
+
+- SC-001: 15 mã của chi-tieu.md và `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS` đã cài đều có test; 43 mã chưa cài vì chờ nguồn (team-plan mục 8), test viết khi cài.
+- DBR-25, FR-005: mốc ngày qua `BusinessTime` (giờ Việt Nam), không có lời gọi giờ hệ thống trong `reporting`; web hiện ngày qua `common/dateTime` (dd/MM/yyyy); `FR_060_ReportPeriodTest`. Tiền VND chưa có chỉ tiêu chi phí.
+- FR-002: `M14ArchTest.FR_001_noDirectDataAccessOrEvents`, `FR_001_noCommandApisOfOtherModules` (chỉ đọc API của module nguồn); trạng thái lấy từ view của nguồn (ví dụ `DoseReportView.finalStatus` đã tính đính chính).
+- FR-004: `ReportGroup` sáu nhóm; thêm `M14ArchTest.FR_004_noSourcesOutsideThisPhase` chặn `reporting` dùng `family`, `belongings`, `notification`.
+- FR-006: `MetricRecord.referenceTime` (liều theo thời điểm dự kiến, chỉ số theo lúc đo), chia theo ca theo ca của nguồn; `FR_012_TimeScopeIT`.
+- FR-007: Hủy ghi nhận, chờ xem lại (`MetricTest`), "ngày chưa kết thúc" (`ReportApiIT`), "tính đến" (`asOf`) có; nhãn loại bỏ theo lưu trữ thiếu (T109).
+- FR-008: `NO_DATA`, tử số và mẫu số (`MetricTest`, `ReportsPage.test.jsx`), `NOT_CONFIGURED` (`MetricShiftStaffingRatioTest`).
+- FR-055, FR-055a: chờ `CostStatisticsApi` thật (010) và nguồn mua sắm (019), thuộc T020.
+- T109 hoãn (chủ dự án chọn 2026-11-06): nhãn chỉ hiện khi khoảng báo cáo phủ dữ liệu đã quá thời hạn lưu giữ (mặc định 10 năm), chưa có tác dụng trong giai đoạn này; làm khi đủ chỉ tiêu thật để khai loại dữ liệu cho mọi chỉ tiêu một lần. Cách đã đề xuất: trường `purgedDataTypes` (mảng mã loại dữ liệu) trong `MetricValue` của api-016.
