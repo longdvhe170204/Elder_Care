@@ -11,6 +11,11 @@ public record AssetCommandWrite(
         String description,
         @Schema(allowableValues = {"UNSAFE", "STILL_SAFE"}) String impactLevel,
         @Schema(allowableValues = {"PASS", "FAIL"}) String result,
+
+        @Schema(allowableValues = {"MAINTENANCE", "INSPECTION", "VEHICLE_INSPECTION", "INSURANCE"})
+        String maintenanceKind,
+
+        LocalDate nextDueOn,
         LocalDate date,
         String content,
         String performedBy,
