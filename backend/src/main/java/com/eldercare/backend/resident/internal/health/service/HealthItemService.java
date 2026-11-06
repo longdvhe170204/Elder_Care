@@ -12,7 +12,6 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
-import com.eldercare.backend.common.data.CatalogBase;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
@@ -27,10 +26,7 @@ import com.eldercare.backend.resident.api.events.AllergyRecorded;
 import com.eldercare.backend.resident.api.events.OtherAllergyRecorded;
 import com.eldercare.backend.resident.internal.health.domain.HealthItem;
 import com.eldercare.backend.resident.internal.health.domain.HealthItemStatus;
-import com.eldercare.backend.resident.internal.health.persistence.AllergenRepository;
-import com.eldercare.backend.resident.internal.health.persistence.AllergySeverityRepository;
 import com.eldercare.backend.resident.internal.health.persistence.HealthItemRepository;
-import com.eldercare.backend.resident.internal.health.persistence.InformationSourceRepository;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
@@ -45,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -65,6 +60,7 @@ public class HealthItemService implements HealthItemApi {
     static final AuditAction RECORDED = new AuditAction("HEALTH_ITEM_RECORDED", false);
     static final AuditAction EXCLUDED = new AuditAction("HEALTH_ITEM_EXCLUDED", true);
     static final AuditAction CHECKED = new AuditAction("HEALTH_ITEM_CHECKED", false);
+    static final AuditAction VERIFIED = new AuditAction("HEALTH_ITEM_VERIFIED", false);
     static final String ENTITY_TYPE = "M01.HEALTH_ITEM";
     private static final String CHECK_RULE = "BR-M01-12";
     private static final int MAX_TEXT_LENGTH = 1000;
@@ -101,15 +97,16 @@ public class HealthItemService implements HealthItemApi {
             String recordedBy,
             Instant at,
             HealthItemStatus status,
-            Exclusion exclusion) {}
+            Exclusion exclusion,
+            boolean unverified,
+            String verifiedBy,
+            Instant verifiedAt) {}
 
     public record RecordResult(ItemView item, List<Warning> warnings) {}
 
     private final HealthItemRepository items;
     private final ResidentRepository residents;
-    private final AllergenRepository allergens;
-    private final AllergySeverityRepository severities;
-    private final InformationSourceRepository sources;
+    private final M01Catalogs catalogs;
     private final ProfileOpenGuard guard;
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
@@ -120,9 +117,7 @@ public class HealthItemService implements HealthItemApi {
     HealthItemService(
             HealthItemRepository items,
             ResidentRepository residents,
-            AllergenRepository allergens,
-            AllergySeverityRepository severities,
-            InformationSourceRepository sources,
+            M01Catalogs catalogs,
             ProfileOpenGuard guard,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
@@ -131,9 +126,7 @@ public class HealthItemService implements HealthItemApi {
             ObjectProvider<CurrentUser> currentUser) {
         this.items = items;
         this.residents = residents;
-        this.allergens = allergens;
-        this.severities = severities;
-        this.sources = sources;
+        this.catalogs = catalogs;
         this.guard = guard;
         this.auditLog = auditLog;
         this.events = events;
@@ -156,6 +149,9 @@ public class HealthItemService implements HealthItemApi {
         StatusFilter effective =
                 currentUser.getObject().type() == AccountType.FAMILY_MEMBER ? StatusFilter.ACTIVE : filter;
         long residentId = target.residentId();
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            return ownUnverified(residentId);
+        }
         List<HealthItem> found = switch (effective) {
             case ACTIVE -> items.findByResidentIdAndStatusOrderByIdDesc(residentId, HealthItemStatus.ACTIVE);
             case EXCLUDED -> items.findByResidentIdAndStatusOrderByIdDesc(residentId, HealthItemStatus.EXCLUDED);
@@ -171,6 +167,11 @@ public class HealthItemService implements HealthItemApi {
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
+        boolean selfReported = SelfReportedHealth.isOfficeOnly(currentUser.getObject());
+        if (selfReported && !guard.isAdmitting(residentId)) {
+            throw SelfReportedHealth.deniedForOffice(
+                    "Hành chính chỉ ghi tự khai về sức khỏe khi người cao tuổi còn Đang tiếp nhận (Q-400)");
+        }
         HealthItemType type = validated(command);
         String text = blankToNull(command.freeText());
         if (!command.confirmDuplicate()) {
@@ -178,7 +179,7 @@ public class HealthItemService implements HealthItemApi {
                 throw duplicate(existing);
             });
         }
-        HealthItem item = items.saveAndFlush(new HealthItem(
+        HealthItem entity = new HealthItem(
                 residentId,
                 type,
                 command.allergenId(),
@@ -186,7 +187,8 @@ public class HealthItemService implements HealthItemApi {
                 type == HealthItemType.ALLERGY ? command.severityId() : null,
                 command.sourceId(),
                 currentUser.getObject().accountId(),
-                time.now()));
+                time.now());
+        HealthItem item = items.saveAndFlush(selfReported ? entity.markUnverified() : entity);
         auditLog.write(AuditLogEntry.builder()
                 .action(RECORDED)
                 .entity(ENTITY_TYPE, item.getId())
@@ -212,6 +214,9 @@ public class HealthItemService implements HealthItemApi {
     @Transactional
     public ItemView exclude(Target target, long itemId, Reason reason) {
         long residentId = target.residentId();
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice("Chỉ Bác sĩ, Điều dưỡng được loại trừ mục sức khỏe (BR-M01-07)");
+        }
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
         HealthItem item = items.lockById(itemId)
@@ -259,13 +264,18 @@ public class HealthItemService implements HealthItemApi {
                 .toList();
     }
 
-    /** 006, 011 gỡ cờ của mình; chạy lại cho mục đã gỡ cờ thì không đổi gì (idempotent). */
+    /**
+     * 006, 011 gỡ cờ của mình; chạy lại cho cờ đã gỡ thì không đổi gì và không ghi nhật ký (idempotent, BR-M01-12): chỉ lần
+     * đổi cờ từ chờ sang đã kiểm ghi {@code HEALTH_ITEM_CHECKED}.
+     */
     @Override
     @Transactional
     public void markChecked(long itemId, HealthItemCheckSource source) {
         HealthItem item = items.lockById(itemId).orElseThrow(NotFoundException::new);
         boolean pendingBefore = item.isPendingCheck();
-        item.markChecked(source);
+        if (!item.markChecked(source)) {
+            return;
+        }
         items.saveAndFlush(item);
         auditLog.write(AuditLogEntry.builder()
                 .action(CHECKED)
@@ -277,6 +287,50 @@ public class HealthItemService implements HealthItemApi {
                 .build());
     }
 
+    /**
+     * Bác sĩ hoặc Điều dưỡng kiểm chứng mục tự khai (Q-400, BR-M01-17); một chiều, ghi người và thời điểm. Hành chính không
+     * kiểm chứng. Mục đã kiểm chứng thì 409 {@code ALREADY_VERIFIED}.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.UPDATE)
+    @Transactional
+    public ItemView verify(Target target, long itemId) {
+        long residentId = target.residentId();
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice("Chỉ Bác sĩ, Điều dưỡng được kiểm chứng mục sức khỏe (BR-M01-17)");
+        }
+        residents.lockById(residentId).orElseThrow(NotFoundException::new);
+        guard.requireOpen(residentId);
+        HealthItem item = items.lockById(itemId)
+                .filter(i -> i.getResidentId() == residentId)
+                .orElseThrow(NotFoundException::new);
+        if (!item.isUnverified()) {
+            throw new BusinessException(HttpStatus.CONFLICT, "ALREADY_VERIFIED", "Mục đã được kiểm chứng");
+        }
+        Map<String, Object> before = snapshot(item);
+        item.verify(currentUser.getObject().accountId(), time.now());
+        items.saveAndFlush(item);
+        auditLog.write(AuditLogEntry.builder()
+                .action(VERIFIED)
+                .entity(ENTITY_TYPE, itemId)
+                .resident(residentId)
+                .before(before)
+                .after(snapshot(item))
+                .build());
+        return views(List.of(item)).getFirst();
+    }
+
+    /** Hành chính chỉ thấy mục chưa kiểm chứng do chính mình ghi, khi người cao tuổi còn Đang tiếp nhận (Q-400). */
+    private List<ItemView> ownUnverified(long residentId) {
+        if (!guard.isAdmitting(residentId)) {
+            return List.of();
+        }
+        long account = currentUser.getObject().accountId();
+        return views(items.findByResidentIdAndStatusOrderByIdDesc(residentId, HealthItemStatus.ACTIVE).stream()
+                .filter(i -> i.isUnverified() && i.getRecordedBy() == account)
+                .toList());
+    }
+
     private HealthItemType validated(RecordCommand c) {
         if (c == null || c.type() == null) {
             throw new InvalidValueException("Loại mục sức khỏe là bắt buộc");
@@ -285,17 +339,23 @@ public class HealthItemService implements HealthItemApi {
         if (text != null && text.length() > MAX_TEXT_LENGTH) {
             throw new InvalidValueException("Nội dung tối đa " + MAX_TEXT_LENGTH + " ký tự");
         }
-        requireActive(sources.findById(c.sourceId()), "Nguồn thông tin không có hoặc đã ngừng hiệu lực");
+        if (!catalogs.isActive(M01Catalogs.INFORMATION_SOURCE, c.sourceId())) {
+            throw new InvalidValueException("Nguồn thông tin không có hoặc đã ngừng hiệu lực");
+        }
         if (c.type() == HealthItemType.ALLERGY) {
             if (c.severityId() == null) {
                 throw new InvalidValueException("Mức độ là bắt buộc với dị ứng (BR-M01-11)");
             }
-            requireActive(severities.findById(c.severityId()), "Mức độ dị ứng không có hoặc đã ngừng hiệu lực");
+            if (!catalogs.isActive(M01Catalogs.ALLERGY_SEVERITY, c.severityId())) {
+                throw new InvalidValueException("Mức độ dị ứng không có hoặc đã ngừng hiệu lực");
+            }
             if ((c.allergenId() == null) == (text == null)) {
                 throw new InvalidValueException("Dị ứng chọn một dị nguyên trong danh mục, hoặc nhập tay loại khác");
             }
             if (c.allergenId() != null) {
-                requireActive(allergens.findById(c.allergenId()), "Dị nguyên không có hoặc đã ngừng hiệu lực");
+                if (!catalogs.isActive(M01Catalogs.ALLERGEN, c.allergenId())) {
+                    throw new InvalidValueException("Dị nguyên không có hoặc đã ngừng hiệu lực");
+                }
             }
         } else {
             if (c.allergenId() != null) {
@@ -306,12 +366,6 @@ public class HealthItemService implements HealthItemApi {
             }
         }
         return c.type();
-    }
-
-    private static void requireActive(Optional<? extends CatalogBase> catalog, String message) {
-        if (catalog.filter(CatalogBase::isActive).isEmpty()) {
-            throw new InvalidValueException(message);
-        }
     }
 
     /** Trùng theo dị nguyên, hoặc cùng loại và cùng nội dung (không phân biệt hoa thường, bỏ khoảng trắng thừa). */
@@ -336,16 +390,21 @@ public class HealthItemService implements HealthItemApi {
     }
 
     private List<ItemView> views(Collection<HealthItem> found) {
-        Map<Long, String> allergenNames = nameMap(allergens.findAllById(found.stream()
-                .map(HealthItem::getAllergenId)
-                .filter(Objects::nonNull)
-                .toList()));
-        Map<Long, String> severityNames = nameMap(severities.findAllById(found.stream()
-                .map(HealthItem::getSeverityId)
-                .filter(Objects::nonNull)
-                .toList()));
-        Map<Long, String> sourceNames = nameMap(
-                sources.findAllById(found.stream().map(HealthItem::getSourceId).toList()));
+        Map<Long, String> allergenNames = catalogs.names(
+                M01Catalogs.ALLERGEN,
+                found.stream()
+                        .map(HealthItem::getAllergenId)
+                        .filter(Objects::nonNull)
+                        .toList());
+        Map<Long, String> severityNames = catalogs.names(
+                M01Catalogs.ALLERGY_SEVERITY,
+                found.stream()
+                        .map(HealthItem::getSeverityId)
+                        .filter(Objects::nonNull)
+                        .toList());
+        Map<Long, String> sourceNames = catalogs.names(
+                M01Catalogs.INFORMATION_SOURCE,
+                found.stream().map(HealthItem::getSourceId).toList());
         return found.stream()
                 .map(i -> new ItemView(
                         i.getId(),
@@ -363,13 +422,11 @@ public class HealthItemService implements HealthItemApi {
                         i.getStatus(),
                         i.isActive()
                                 ? null
-                                : new Exclusion(
-                                        i.getExcludedAt(), names.of(i.getExcludedBy()), i.getExclusionReason())))
+                                : new Exclusion(i.getExcludedAt(), names.of(i.getExcludedBy()), i.getExclusionReason()),
+                        i.isUnverified(),
+                        i.getVerifiedBy() == null ? null : names.of(i.getVerifiedBy()),
+                        i.getVerifiedAt()))
                 .toList();
-    }
-
-    private static Map<Long, String> nameMap(List<? extends CatalogBase> catalogs) {
-        return catalogs.stream().collect(Collectors.toMap(CatalogBase::getId, CatalogBase::getName));
     }
 
     private static Map<String, Object> snapshot(HealthItem i) {
@@ -386,6 +443,7 @@ public class HealthItemService implements HealthItemApi {
         }
         values.put("sourceId", i.getSourceId());
         values.put("status", i.getStatus().name());
+        values.put("unverified", i.isUnverified());
         return values;
     }
 

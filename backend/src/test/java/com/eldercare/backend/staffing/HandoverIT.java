@@ -787,11 +787,18 @@ class HandoverIT extends MySqlIntegrationTestBase {
                 ShiftStore.sql(starts),
                 ShiftStore.sql(starts),
                 giver.accountId());
-        jdbc.update(
-                "INSERT INTO resident_status_history(resident_id,from_status,to_status,command,occurred_at,performed_by,by_system,reason) VALUES (?,'TEMPORARILY_ABSENT','IN_RESIDENCE','RECORD_RETURN',?,?,FALSE,'Ghi nhận đã trở về')",
+        // Lịch sử trạng thái của 001 ở status_history từ 001 T084 (data-model 001 mục 0.1)
+        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
+                jdbc,
+                null,
                 resident,
+                "TEMPORARILY_ABSENT",
+                "IN_RESIDENCE",
+                "RECORD_RETURN",
                 ShiftStore.sql(starts.plusSeconds(1)),
-                giver.accountId());
+                giver.accountId(),
+                false,
+                "Ghi nhận đã trở về");
         long id = draft();
         assertThat(service.sources(id, false))
                 .anyMatch(s -> "M01.STATUS".equals(s.sourceType())

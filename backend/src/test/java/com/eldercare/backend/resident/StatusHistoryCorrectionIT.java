@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.correction.api.CorrectionResult;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.util.List;
@@ -30,7 +31,8 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
 
     private long lastHistoryId(long residentId) {
         return jdbc.queryForObject(
-                "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 Long.class,
                 residentId);
     }
@@ -70,7 +72,10 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
         assertThat(currentStatus(id)).isEqualTo(ResidentStatus.TEMPORARILY_ABSENT);
         assertThat(historyCount(id)).isEqualTo(rows);
         assertThat(jdbc.queryForObject(
-                        "SELECT reason FROM resident_status_history WHERE id = ?", String.class, historyId))
+                        "SELECT reason FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE id = ?",
+                        String.class,
+                        historyId))
                 .as("bản gốc giữ nguyên")
                 .isEqualTo("Lý do cũ");
         assertThat(jdbc.queryForList(
@@ -96,6 +101,17 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
                 Map.of())) {
             assertThatThrownBy(() -> correct(historyId, bad)).isInstanceOf(InvalidValueException.class);
         }
+        assertThat(shownReason(id)).isEqualTo("Lý do cũ");
+    }
+
+    @Test
+    void FR_049a_voidIsNotSupported_historyIsAppendOnly() {
+        long id = absentResident();
+        long historyId = lastHistoryId(id);
+
+        assertThatThrownBy(() -> corrections.create(TYPE, historyId, CorrectionType.VOID, null, new Reason("Ghi nhầm")))
+                .isInstanceOfSatisfying(
+                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("CORRECTION_NOT_SUPPORTED"));
         assertThat(shownReason(id)).isEqualTo("Lý do cũ");
     }
 

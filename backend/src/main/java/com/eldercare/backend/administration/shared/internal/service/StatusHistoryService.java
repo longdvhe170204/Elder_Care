@@ -9,6 +9,7 @@ import com.eldercare.backend.administration.shared.api.dto.HistoryRow;
 import com.eldercare.backend.administration.shared.api.dto.HistoryTrack;
 import com.eldercare.backend.administration.shared.internal.domain.HistoryRecord;
 import com.eldercare.backend.administration.shared.internal.persistence.StatusHistoryStore;
+import com.eldercare.backend.common.error.ReasonRequiredException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,9 @@ class StatusHistoryService implements StatusHistoryApi {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public <D> long add(HistoryTrack<D> track, long entityId, HistoryEntry<D> e) {
+        if (track.reasonRequired() && !e.bySystem() && e.reason() == null && e.valueBefore() != null) {
+            throw new ReasonRequiredException();
+        }
         String details = content.write(e.details());
         if (e.kind() == HistoryKind.PERIOD
                 && store.lockOpen(track.entityType(), entityId, track.attribute())

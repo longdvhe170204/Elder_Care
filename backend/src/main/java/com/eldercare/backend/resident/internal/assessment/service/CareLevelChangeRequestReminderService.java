@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Nhắc Hành chính lập yêu cầu đổi mức chăm sóc (001 T064; FR-036, Q-318, research H-12): sau khi đánh giá lại ra mức
  * khác mức hiện hành, mỗi CFG-M03-02 nhắc một lần cho tới khi 004 có yêu cầu đổi mức chưa kết thúc, có lần đánh giá lại
  * mới (nhắc theo lần mới), mức hiện hành đã bằng mức mới, hoặc hồ sơ sang trạng thái cuối. Yêu cầu bị Từ chối không dừng
- * nhắc. Chỉ phát sự kiện và ghi bảng kỹ thuật {@code periodic_reminder}, không tạo yêu cầu (Q-306). Chưa có bản 004 thì coi
+ * nhắc. Chỉ phát sự kiện và ghi bảng kỹ thuật {@code reminder_marker}, không tạo yêu cầu (Q-306). Chưa có bản 004 thì coi
  * như không có yêu cầu nào.
  */
 @Service
@@ -62,7 +62,7 @@ public class CareLevelChangeRequestReminderService {
     /** Bắt đầu nhắc cho lần đánh giá lại vừa xác nhận ra mức khác; gọi lại không thêm dòng. */
     @Transactional
     public void startReminding(long residentId, long assessmentId) {
-        reminders.start(TYPE, residentId, assessmentId, time.now());
+        reminders.start(TYPE, residentId, assessmentId);
     }
 
     /** Số lần nhắc phát trong lần chạy này. */
@@ -86,7 +86,7 @@ public class CareLevelChangeRequestReminderService {
                 continue;
             }
             int number = row.reminderCount() + 1;
-            reminders.markReminded(TYPE, residentId, assessmentId, now, number);
+            reminders.markReminded(TYPE, residentId, assessmentId, number);
             events.publishEvent(new CareLevelChangeRequestReminder(residentId, assessmentId, newLevel, number, now));
             reminded++;
         }

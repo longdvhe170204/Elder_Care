@@ -40,9 +40,9 @@ class CompleteAdmissionConsentIT extends StatusTestBase {
 
     private int reminderRows(long residentId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM periodic_reminder WHERE type = 'MISSING_CONSENT' AND resident_id = ?",
-                Integer.class,
-                residentId);
+                "SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M01.PERIODIC_REMINDER.MISSING_CONSENT'"
+                        + " AND entity_type = 'M01.RESIDENT' AND entity_id = ? AND marker LIKE 'START:%'",
+                Integer.class, residentId);
     }
 
     @Test

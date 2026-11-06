@@ -551,7 +551,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `…/muc-cham-soc`, `…/lich-su-muc-cham-soc` | `…/care-level`, `…/care-level-history` |
 | `…/ban-dong-y`, `/ban-dong-y/{id}/rut-lai` | `…/consents`, `/consents/{id}/withdraw` |
 | `…/ho-so-suc-khoe-ban-dau`, `…/xac-nhan`, `/ho-so-suc-khoe-ban-dau/{id}/dinh-chinh` | `…/initial-health-record`, `…/confirm`, `/initial-health-records/{id}/correct` |
-| `…/muc-suc-khoe`, `/muc-suc-khoe/{id}/loai-tru` | `…/health-items`, `/health-items/{id}/exclude` |
+| `…/muc-suc-khoe`, `/muc-suc-khoe/{id}/loai-tru`, `/muc-suc-khoe/{id}/kiem-chung` | `…/health-items`, `/health-items/{id}/exclude`, `/health-items/{id}/verify` (Q-400) |
 | `…/nguyen-vong` | `…/end-of-life-wishes` |
 | `…/danh-gia`, `/danh-gia/{id}`, `…/xac-nhan`, `…/huy-nhap`, `…/dinh-chinh` | `…/assessments`, `/assessments/{id}`, `…/confirm`, `…/discard-draft`, `…/correct` |
 | `…/danh-gia-lai`, `/danh-gia-lai/can-thuc-hien` | `…/reassessment`, `/reassessments/due` |
@@ -693,7 +693,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | thông báo M01 → M13 (`HasNotificationRequests`); sự kiện Chuyển viện, Ghi nhận qua đời | các sự kiện M01 cài `HasNotificationRequests` (lớp `Notices`); `ResidentStatusNotice` |
 | nhật ký `CHUYEN_MUC` của lệnh áp dụng đổi mức; nhật ký đính chính gắn người cao tuổi | `CARE_LEVEL_CHANGED` (loại `M01.RESIDENT`); `RECORD_CORRECTED` |
 | tên logic test: `NhatKyDayDuM01IT`, `FR_023h_KhongDauNangLucArchTest`, `GiayToBenhVienIT`, `LuuTruM01IT`, `DinhChinhLichSuTrangThaiIT`, `KhoangTrangThaiIT`, `GanPhamViBanGhiConIT` | `M01AuditCompletenessIT` và `M01CommandAuditTrailIT`, `FR_023h_NoCapacityFlagIT`, `HospitalDocumentsIT`, `ResidentRetentionIT`, `StatusHistoryCorrectionIT`, `StatusPeriodsIT`, `ChildScopeAssignmentIT` |
-| `ho_so_suc_khoe_ban_dau`; `muc_suc_khoe` | `V001_04__health.sql`; `initial_health_record` (`resident_id`, `blood_type`, `mobility`, `self_care_ability`, `cognition`, `initial_needs_note`, `nutrition_needs`, `current_medications`, `rehabilitation_needs`, `performed_by`, `performed_at`, `confirmed_by`, `confirmed_at`, `version`); `health_item` (`resident_id`, `type`, `allergen_id`, `free_text`, `not_auto_checked`, `severity_id`, `source_id`, `recorded_by`, `recorded_at`, `status`, `excluded_at`, `excluded_by`, `exclusion_reason`, `pending_medication_check`, `pending_nutrition_check`, `version`) |
+| `ho_so_suc_khoe_ban_dau`; `muc_suc_khoe` | `V001_04__health.sql`; `initial_health_record` (`resident_id`, `blood_type`, `mobility`, `self_care_ability`, `cognition`, `initial_needs_note`, `nutrition_needs`, `current_medications`, `rehabilitation_needs`, `performed_by`, `performed_at`, `confirmed_by`, `confirmed_at`, `version`); `health_item` (`resident_id`, `type`, `allergen_id`, `free_text`, `not_auto_checked`, `severity_id`, `source_id`, `recorded_by`, `recorded_at`, `status`, `excluded_at`, `excluded_by`, `exclusion_reason`, `pending_medication_check`, `pending_nutrition_check`, `unverified`, `verified_by`, `verified_at` (V001_96, Q-400), `version`) |
 | `canh_bao_tro_lai` | `V001_06__return_overdue_alert.sql`; `return_overdue_alert` (`absence_id`, `expected_return_at`, `resident_id`, `alerted_at`) |
 | lớp truy cập bảng nhắc, lần báo; bản ghi đọc từ các lớp đó | `PeriodicReminderStore` (`resident.internal.persistence`), `ReassessmentNoticeStore`, `ResidentStatusStore.recordOverdueAlert`, `EndOfLifeWishStore.dueReviews`; `DueReminder`, `ReassessmentNotice`, `PeriodicReassessmentDue`, `WishReviewDue`, `NewEndOfLifeWish`, `NewTreatmentWish`, `ResidentMatch` (gói `domain`) |
 
@@ -705,6 +705,14 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | cột người thân của `ban_dong_y`; nhu cầu của `danh_gia` | `consent.family_member_ids`; `assessment.care_need_ids` |
 | loại bảng chung của 001 | `M01.CARE_LEVEL`, `M01.ALLERGEN`, `M01.ALLERGY_SEVERITY`, `M01.INFORMATION_SOURCE`, `M01.CARE_NEED` (danh mục); `M01.WISH_OPINION` (sự kiện); `M01.INITIAL_HEALTH_RECORD`, `M01.REASSESSMENT_NOTICE` (hồ sơ chung); `M01.PERIODIC_REMINDER.<type>`, `M01.RETURN_OVERDUE_ALERT` (mốc đã nhắc); thuộc tính `TRANG_THAI`, `MUC_CHAM_SOC` của `NGUOI_CAO_TUOI` (lịch sử chung) |
 
+
+### 8.8. Màn mobile *(bổ sung 2026-11-05, T023)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `mobile/lib/nhan-vien/tra-cuu-nguoi-cao-tuoi/`; test `tra_cuu_nguoi_cao_tuoi_test.dart` | `mobile/lib/staff/residents/` (`ResidentLookupScreen` tra cứu, `ResidentCardScreen` thẻ người cao tuổi, `ResidentAvatar`, `resident_labels.dart`); `mobile/test/staff/residents/resident_lookup_test.dart` |
+| `mobile/lib/nguoi-than/ho-so/`; test `ho_so_nguoi_than_test.dart` | `mobile/lib/family/profile/` (`FamilyProfileScreen` danh sách, `FamilyProfileDetailScreen` hồ sơ, `FamilyResidentAvatar`, `family_profile_labels.dart`); `mobile/test/family/profile/family_profile_test.dart` |
+| *(bổ sung 2026-11-05, T033, T052)* `mobile/lib/nhan-vien/suc-khoe/`; `mobile/lib/nhan-vien/trang-thai/`; test `suc_khoe_test.dart`, `trang_thai_test.dart` | `mobile/lib/staff/residents/` (`ResidentHealthScreen`, `ResidentStatusScreen`); `mobile/test/staff/residents/resident_health_test.dart`, `resident_status_test.dart` |
 
 ## 9. Feature 003 (`003-room-bed-allocation`, C)
 

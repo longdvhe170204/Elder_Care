@@ -69,12 +69,7 @@ void main() {
   });
 
   testWidgets('T022_badge_countsUnacknowledgedUrgent', (tester) async {
-    backend.on(
-      'GET',
-      '/me/notifications',
-      200,
-      page([notification(level: 'URGENT', title: 'Sự cố')], urgent: 1),
-    );
+    backend.on('GET', '/me/notifications', 200, page([notification(level: 'URGENT', title: 'Sự cố')], urgent: 1));
     await pumpRoot(tester);
 
     expect(find.descendant(of: find.byType(Badge), matching: find.text('1')), findsOneWidget);

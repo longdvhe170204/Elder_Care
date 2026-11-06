@@ -5,8 +5,14 @@ import java.util.Objects;
 /**
  * Một dòng lịch sử của {@code status_history}: thuộc tính {@code attribute} của loại đối tượng {@code entityType} (có tiền
  * tố module, ví dụ {@code M01.RESIDENT}); {@code details} là record của cột {@code details} ({@code Void} khi không có).
+ * {@code reasonRequired} bật thì {@code StatusHistoryApi.add} từ chối dòng đổi giá trị (có {@code valueBefore}) không do
+ * hệ thống mà thiếu lý do (FR-046 của 001); mặc định tắt.
  */
-public record HistoryTrack<D>(String entityType, String attribute, Class<D> details) {
+public record HistoryTrack<D>(String entityType, String attribute, Class<D> details, boolean reasonRequired) {
+
+    public HistoryTrack(String entityType, String attribute, Class<D> details) {
+        this(entityType, attribute, details, false);
+    }
 
     public HistoryTrack {
         Objects.requireNonNull(details, "details");
