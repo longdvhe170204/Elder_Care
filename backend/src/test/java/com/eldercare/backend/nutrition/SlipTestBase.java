@@ -61,18 +61,23 @@ abstract class SlipTestBase extends ClosingTestBase {
 
     /** Nhân viên chăm sóc có phân công ở {@code floor} trong ca: mọi thao tác "Nhận phiếu, báo sai lệch" ở tầng đó. */
     TestUser receiverOf(long floor) {
+        return staffOf(floor, Function.MEAL_RECEIPT);
+    }
+
+    /** Nhân viên có quyền {@code function} chỉ ở tầng/khu {@code floor} (spy {@code PermissionApi}). */
+    TestUser staffOf(long floor, Function function) {
         TestUser u = new TestUsers(jdbc, time).staff(Role.CAREGIVER);
         doReturn(PermissionResult.allowed(new PermissionBasis(PermissionBasis.Kind.ROLE, Optional.empty())))
                 .when(permissionApi)
                 .hasPermission(
                         argThat(c -> c != null && c.accountId() == u.accountId()),
-                        argThat(k -> k != null && k.function() == Function.MEAL_RECEIPT),
+                        argThat(k -> k != null && k.function() == function),
                         argThat(t -> t != null && Long.valueOf(floor).equals(t.floorAreaId())));
         doReturn(PermissionResult.denied(FailedLayer.SCOPE))
                 .when(permissionApi)
                 .hasPermission(
                         argThat(c -> c != null && c.accountId() == u.accountId()),
-                        argThat(k -> k != null && k.function() == Function.MEAL_RECEIPT),
+                        argThat(k -> k != null && k.function() == function),
                         argThat(t -> t != null && !Long.valueOf(floor).equals(t.floorAreaId())));
         return u;
     }

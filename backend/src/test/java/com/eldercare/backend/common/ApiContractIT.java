@@ -213,7 +213,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "PUT /api/v1/nutrition/meals/{id}",
                             "GET /api/v1/nutrition/forbidden-food-types",
                             "POST /api/v1/nutrition/forbidden-food-types",
-                            "POST /api/v1/special-portions/{id}/confirm-serving",
                             "GET /api/v1/residents/{residentId}/family-foods",
                             "POST /api/v1/residents/{residentId}/family-foods",
                             "POST /api/v1/family-foods/{id}/{command}",
