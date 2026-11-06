@@ -92,6 +92,37 @@ describe('HandoverForm (013 T015, US2)', () => {
     expect(body.items[0].condition).toEqual({ levelId: 12 })
   })
 
+  it('FR_008_ghiHuHong_dienSanViTriHienTai_batBuocAnh_noiDungGuiDuViTri', async () => {
+    const api = mockRoutes()
+    api.on('POST', '/files', json(201, { fileId: 720 }))
+    api.on('POST', '/belongings/handovers', json(200, { handovers: [], belongings: [] }))
+    const onDone = renderForm({ ...CLOTHES, storageLocationId: 21 })
+    fireEvent.change(screen.getByLabelText('Lệnh bàn giao'), { target: { value: 'RECORD_DAMAGE' } })
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Bị mốc' } })
+    expect(screen.getByLabelText('Vị trí lưu giữ mới')).toHaveValue('21')
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu bàn giao' }))
+    expect(await screen.findByText('Chọn ít nhất một ảnh.')).toBeInTheDocument()
+    expect(api.calls('POST', '/belongings/handovers')).toHaveLength(0)
+
+    const png = new File(['x'], 'hu-hong.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Ảnh lúc bàn giao'), { target: { files: [png] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu bàn giao' }))
+    await waitFor(() => expect(onDone).toHaveBeenCalled())
+    const { body } = sent(api)
+    expect(body).toMatchObject({ type: 'RECORD_DAMAGE', storageLocationId: 21 })
+    expect(body.items[0].photoFileIds).toEqual([720])
+    expect(body.items[0].incident).toBeUndefined()
+  })
+
+  it('FR_008_ghiHuHong_doChuaCoViTri_phaiChonViTri', async () => {
+    mockRoutes()
+    renderForm({ ...CLOTHES, storageLocationId: undefined })
+    fireEvent.change(screen.getByLabelText('Lệnh bàn giao'), { target: { value: 'RECORD_DAMAGE' } })
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Bị mốc' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu bàn giao' }))
+    expect(await screen.findByText('Chọn vị trí lưu giữ.')).toBeInTheDocument()
+  })
+
   it('FR_011b_409_hienLyDo', async () => {
     const api = mockRoutes()
     api.on('POST', '/belongings/handovers', problem(409, 'STATE_CHANGED', { detail: 'Đồ đã thay đổi, tải lại.' }))

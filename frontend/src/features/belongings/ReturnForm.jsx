@@ -24,7 +24,7 @@ const RECIPIENTS = [
 ]
 const BLOCK_CODES = ['RETURN_BLOCKED', 'INVALID_RECIPIENT_CONFIRMATION', 'NURSING_STAFF_VALUABLE_ITEM']
 
-export function ReturnForm({ belongings, levels, onDone }) {
+export function ReturnForm({ belongings, levels, isValuable = () => false, onDone }) {
   const [chosen, setChosen] = useState({})
   const [v, setV] = useState({
     type: '',
@@ -50,7 +50,11 @@ export function ReturnForm({ belongings, levels, onDone }) {
   function validate() {
     const e = {}
     if (selected.length === 0) e.items = 'Chọn ít nhất một đồ để trả.'
-    for (const b of selected) if (!chosen[b.id].levelId) e[`level-${b.id}`] = 'Chọn mức tình trạng.'
+    for (const b of selected) {
+      if (!chosen[b.id].levelId) e[`level-${b.id}`] = 'Chọn mức tình trạng.'
+      // FR-008: trả đồ có giá trị bắt buộc có ảnh tình trạng
+      if (isValuable(b) && !chosen[b.id].photos?.length) e[`photo-${b.id}`] = 'Chọn ảnh tình trạng của đồ có giá trị.'
+    }
     if (!v.type) e.type = 'Chọn người nhận.'
     if (v.type === 'FAMILY_MEMBER' && !/^[1-9]\d*$/.test(v.familyMemberId)) e.familyMemberId = 'Nhập mã người thân.'
     if (['FAMILY_MEMBER', 'OTHER_PERSON'].includes(v.type) && !v.fullName.trim()) e.fullName = 'Nhập họ tên người nhận.'
@@ -71,6 +75,11 @@ export function ReturnForm({ belongings, levels, onDone }) {
     setBusy(true)
     try {
       const signatureFileId = signature.length > 0 ? await uploadFile(signature[0]) : undefined
+      const photoIds = {}
+      for (const b of selected) {
+        photoIds[b.id] = []
+        for (const file of chosen[b.id].photos ?? []) photoIds[b.id].push(await uploadFile(file))
+      }
       const recipient = { type: v.type }
       if (v.type === 'FAMILY_MEMBER') recipient.familyMemberId = Number(v.familyMemberId)
       if (v.type !== 'RESIDENT' && v.fullName.trim()) recipient.fullName = v.fullName.trim()
@@ -84,6 +93,7 @@ export function ReturnForm({ belongings, levels, onDone }) {
             version: b.version,
             ...(chosen[b.id].quantity && { quantity: Number(chosen[b.id].quantity) }),
             condition: { levelId: Number(chosen[b.id].levelId) },
+            ...(photoIds[b.id].length > 0 && { photoFileIds: photoIds[b.id] }),
           })),
           recipient,
           ...(v.type === 'OTHER_PERSON' && v.confirmationId && { recipientConfirmationId: Number(v.confirmationId) }),
@@ -147,6 +157,19 @@ export function ReturnForm({ belongings, levels, onDone }) {
                     onChange={(levelId) => setItem(b.id, { levelId })}
                     options={levelOptions}
                     error={errors[`level-${b.id}`]}
+                  />
+                  <FilesField
+                    id={`return-photos-${b.id}`}
+                    label={`Ảnh tình trạng của ${b.description}`}
+                    files={chosen[b.id].photos ?? []}
+                    onChange={(photos) => setItem(b.id, { photos })}
+                    multiple
+                    error={errors[`photo-${b.id}`]}
+                    hint={
+                      isValuable(b)
+                        ? 'Bắt buộc với đồ có giá trị. JPEG hoặc PNG, tối đa 10 MB mỗi ảnh.'
+                        : 'Không bắt buộc. JPEG hoặc PNG, tối đa 10 MB mỗi ảnh.'
+                    }
                   />
                 </div>
               )}

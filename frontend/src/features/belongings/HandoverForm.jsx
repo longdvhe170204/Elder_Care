@@ -35,7 +35,26 @@ const HANDLING_OPTIONS = [
   { value: 'RECORD_DAMAGE', label: 'Ghi hư hỏng' },
 ]
 
-export function HandoverForm({ belonging, levels, locations, onDone }) {
+// Lệnh đưa đồ về Đang giữ hoặc Hư hỏng bắt buộc có vị trí lưu giữ (HandoverCommandCheck); Ghi hư hỏng bắt buộc ảnh với mọi
+// đồ, Tìm thấy bắt buộc ảnh với đồ có giá trị (FR-008). Chọn xử lý chênh lệch "Ghi hư hỏng" thì lệnh là Ghi hư hỏng (FR-015).
+function effectiveType(type, handling) {
+  return handling === 'RECORD_DAMAGE' ? 'RECORD_DAMAGE' : type
+}
+
+function needsLocation(type, handling, status) {
+  const t = effectiveType(type, handling)
+  return (
+    ['TAKE_BACK', 'FOUND', 'RECORD_DAMAGE'].includes(t) ||
+    (t === 'TRANSFER_CUSTODY' && ['HELD', 'DAMAGED'].includes(status))
+  )
+}
+
+function needsPhoto(type, handling, valuable) {
+  const t = effectiveType(type, handling)
+  return t === 'RECORD_DAMAGE' || (valuable && t === 'FOUND')
+}
+
+export function HandoverForm({ belonging, levels, locations, valuable = false, onDone }) {
   const [v, setV] = useState({
     type: '',
     quantity: '',
@@ -60,6 +79,13 @@ export function HandoverForm({ belonging, levels, locations, onDone }) {
   const key = useRef(crypto.randomUUID())
   const set = (name) => (value) => setV((s) => ({ ...s, [name]: value }))
 
+  // Vị trí gửi đi: ô đã chọn, không thì vị trí hiện tại của đồ khi lệnh đưa đồ về Đang giữ hoặc Hư hỏng
+  const locationId = () =>
+    v.storageLocationId ||
+    (needsLocation(v.type, v.handling, belonging.status) && belonging.storageLocationId != null
+      ? String(belonging.storageLocationId)
+      : '')
+
   function validate() {
     const e = {}
     if (!v.type) e.type = 'Chọn lệnh bàn giao.'
@@ -68,6 +94,9 @@ export function HandoverForm({ belonging, levels, locations, onDone }) {
     if (v.counted && !(Number(v.counted) >= 0)) e.counted = 'Số đếm được không âm.'
     if (v.incident === 'NEW' && !v.incidentLevel) e.incidentLevel = 'Chọn mức sự cố.'
     if (v.incident === 'LINK' && !/^[1-9]\d*$/.test(v.incidentId)) e.incidentId = 'Nhập mã sự cố.'
+    if (needsLocation(v.type, v.handling, belonging.status) && !locationId())
+      e.storageLocationId = 'Chọn vị trí lưu giữ.'
+    if (needsPhoto(v.type, v.handling, valuable) && photos.length === 0) e.photos = 'Chọn ít nhất một ảnh.'
     return e
   }
 
@@ -107,7 +136,7 @@ export function HandoverForm({ belonging, levels, locations, onDone }) {
           at: toOffsetIso(v.at),
           ...(v.reason.trim() && { reason: v.reason.trim() }),
           ...(v.recipientStaffId && { recipientStaffId: Number(v.recipientStaffId) }),
-          ...(v.storageLocationId && { storageLocationId: Number(v.storageLocationId) }),
+          ...(locationId() && { storageLocationId: Number(locationId()) }),
           ...(v.handling && { conditionHandling: v.handling }),
           ...(holderAbsent && HOLDER_ABSENT_COMMANDS.includes(v.type) && { holderAbsent: true }),
         },
@@ -210,10 +239,16 @@ export function HandoverForm({ belonging, levels, locations, onDone }) {
             <SelectField
               id="handover-location"
               label="Vị trí lưu giữ mới"
-              value={v.storageLocationId}
+              value={locationId()}
               onChange={set('storageLocationId')}
               options={activeOptions(locations)}
               placeholder="Giữ vị trí hiện tại"
+              error={errors.storageLocationId}
+              hint={
+                needsLocation(v.type, v.handling, belonging.status)
+                  ? 'Bắt buộc với lệnh này; để trống thì dùng vị trí hiện tại của đồ.'
+                  : undefined
+              }
             />
           </div>
         )}
@@ -245,7 +280,12 @@ export function HandoverForm({ belonging, levels, locations, onDone }) {
           files={photos}
           onChange={setPhotos}
           multiple
-          hint="Bắt buộc với đồ có giá trị. JPEG hoặc PNG, tối đa 10 MB mỗi ảnh."
+          error={errors.photos}
+          hint={
+            effectiveType(v.type, v.handling) === 'RECORD_DAMAGE'
+              ? 'Bắt buộc khi ghi hư hỏng. JPEG hoặc PNG, tối đa 10 MB mỗi ảnh.'
+              : 'Bắt buộc khi ghi hư hỏng hoặc tìm thấy đồ có giá trị. JPEG hoặc PNG, tối đa 10 MB mỗi ảnh.'
+          }
         />
         {HOLDER_ABSENT_COMMANDS.includes(v.type) && (
           <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3">

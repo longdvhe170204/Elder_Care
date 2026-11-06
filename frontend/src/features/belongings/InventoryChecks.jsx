@@ -83,6 +83,10 @@ function CheckDetail({ checkId, catalogs, onChanged }) {
   async function complete() {
     const e = {}
     for (const l of check.content.lines) if (!lines[l.belongingId]?.result) e[l.belongingId] = 'Chọn kết quả.'
+    // FR-028b: đồ không rõ chủ ghi kèm mô tả và ảnh
+    unknown.forEach((u, i) => {
+      if (u.description.trim() && u.photos.length === 0) e[`unknown-${i}`] = 'Chọn ảnh của đồ không rõ chủ.'
+    })
     setErrors(e)
     if (Object.keys(e).length > 0) return
     const upload = async (files = []) => {
@@ -233,6 +237,8 @@ function CheckDetail({ checkId, catalogs, onChanged }) {
                   files={u.photos}
                   onChange={(photos) => setUnknown((l) => l.map((x, j) => (j === i ? { ...x, photos } : x)))}
                   multiple
+                  error={errors[`unknown-${i}`]}
+                  hint="Bắt buộc khi có mô tả. JPEG hoặc PNG, tối đa 10 MB mỗi ảnh."
                 />
               </div>
             ))}

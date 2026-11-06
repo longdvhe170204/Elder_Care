@@ -64,6 +64,7 @@ describe('InventoryChecks (013 T026, BR-M12-07)', () => {
 
   it('FR_028b_hoanThanh_ketQuaTungDo_doKhongRoChu', async () => {
     const api = setup()
+    api.on('POST', '/files', json(201, { fileId: 730 }))
     api.on('POST', '/belonging-inventory-checks/40/complete', json(200, { ...CHECK, status: 'COMPLETED' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Mở phiếu Kho tầng 2' }))
     fireEvent.change(await screen.findByLabelText('Kết quả đồ #90'), { target: { value: 'MATCHED' } })
@@ -73,6 +74,11 @@ describe('InventoryChecks (013 T026, BR-M12-07)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Thêm đồ không rõ chủ' }))
     fireEvent.change(screen.getByLabelText('Mô tả đồ không rõ chủ 1'), { target: { value: 'Ví da màu nâu' } })
     fireEvent.click(screen.getByRole('button', { name: 'Hoàn thành kiểm kê' }))
+    expect(await screen.findByText('Chọn ảnh của đồ không rõ chủ.')).toBeInTheDocument()
+    expect(api.calls('POST', '/belonging-inventory-checks/40/complete')).toHaveLength(0)
+    const png = new File(['x'], 'vi.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Ảnh đồ không rõ chủ 1'), { target: { files: [png] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Hoàn thành kiểm kê' }))
 
     await waitFor(() => expect(api.calls('POST', '/belonging-inventory-checks/40/complete')).toHaveLength(1))
     expect(JSON.parse(api.calls('POST', '/belonging-inventory-checks/40/complete')[0][1].body)).toEqual({
@@ -81,7 +87,7 @@ describe('InventoryChecks (013 T026, BR-M12-07)', () => {
         { belongingId: 91, result: 'CONDITION_MISMATCH', newCondition: { levelId: 12 }, recordDamage: true },
       ],
       found: [],
-      unknownOwnerItems: [{ description: 'Ví da màu nâu' }],
+      unknownOwnerItems: [{ description: 'Ví da màu nâu', photoFileIds: [730] }],
     })
   })
 
