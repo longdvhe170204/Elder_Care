@@ -28,6 +28,26 @@ class RequiresPermissionArchTest {
     /** Lệnh tự kiểm quyền: {@code Lớp.phươngThức} → cách kiểm. Thêm dòng thì người xem lại kiểm lệnh có tự kiểm thật. */
     static final Map<String, String> SELF_CHECKED = Map.ofEntries(
             Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.book",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.reschedule",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.cancel",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.recordDeparture",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.recordReturn",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
                     "com.eldercare.backend.billing.internal.procurement.service.ProcurementRequestService.create",
                     "PermissionApi.hasPermission (PURCHASE_REQUEST, CREATE) không gắn đối tượng, hoặc với loại thuốc trên từng"
                             + " người cao tuổi của dòng (Phụ lục 27 ⁴⁴); 019 FR-008d"),

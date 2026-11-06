@@ -120,7 +120,7 @@ paths:
       summary: Lịch xe theo xe, khoảng
       x-fr: [FR-017]
       parameters: [ { name: vehicleId, in: query, schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/VehicleSchedule' } } } } } }
     post:
       tags: [vehicle-schedules]
       summary: Đặt lịch xe (Trưởng tầng, Hành chính, Quản lý viện)
@@ -211,3 +211,7 @@ components:
     VehicleScheduleCommand:
       type: object
       properties: { reason: { type: string }, plannedDepartureAt: { type: string, format: date-time }, plannedReturnAt: { type: string, format: date-time }, occurredAt: { type: string, format: date-time } }
+    VehicleSchedule:
+      type: object
+      description: 'Lịch xe (FR-017, FR-018); bổ sung 2026-11-06, chủ dự án duyệt (GET /vehicle-schedules trước đây chưa có schema)'
+      properties: { id: { type: integer, format: int64 }, vehicleId: { type: integer, format: int64 }, plannedDepartureAt: { type: string, format: date-time }, plannedReturnAt: { type: string, format: date-time }, purpose: { type: string, enum: [TRIP, MEDICAL_VISIT, NON_EMERGENCY_TRANSFER, OTHER] }, tripId: { type: [integer, 'null'], format: int64 }, residentId: { type: [integer, 'null'], format: int64 }, driverStaffId: { type: integer, format: int64 }, bookedByStaffId: { type: integer, format: int64 }, status: { type: string, enum: [BOOKED, IN_USE, COMPLETED, CANCELLED] }, departedAt: { type: [string, 'null'], format: date-time }, returnedAt: { type: [string, 'null'], format: date-time }, cancellationReason: { type: [string, 'null'] } }
