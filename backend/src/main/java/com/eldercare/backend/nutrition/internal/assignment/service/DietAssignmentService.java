@@ -31,6 +31,7 @@ import com.eldercare.backend.nutrition.internal.assignment.persistence.ResidentN
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
 import com.eldercare.backend.nutrition.internal.menu.service.ResidentMenuConflicts;
+import com.eldercare.backend.nutrition.internal.review.service.ReviewNoticeService;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -79,6 +80,7 @@ public class DietAssignmentService {
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
     private final ResidentMenuConflicts menuConflicts;
+    private final ReviewNoticeService reviewNotices;
 
     public DietAssignmentService(
             DietAssignmentStore store,
@@ -90,7 +92,8 @@ public class DietAssignmentService {
             CurrentUser user,
             BusinessTime time,
             ApplicationEventPublisher events,
-            ResidentMenuConflicts menuConflicts) {
+            ResidentMenuConflicts menuConflicts,
+            ReviewNoticeService reviewNotices) {
         this.store = store;
         this.lock = lock;
         this.catalog = catalog;
@@ -101,6 +104,7 @@ public class DietAssignmentService {
         this.time = time;
         this.events = events;
         this.menuConflicts = menuConflicts;
+        this.reviewNotices = reviewNotices;
     }
 
     /** Đề xuất vừa lập và có cần lý do chuyên môn khi Áp dụng (api-011 {@code MenuCheckResult}). */
@@ -174,6 +178,9 @@ public class DietAssignmentService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public Proposal propose(Target target, long residentId, NewDietAssignment content) {
         NewDietAssignment input = validated(content);
+        if (input.reviewNoticeId() != null) {
+            reviewNotices.requireOfResident(input.reviewNoticeId(), residentId);
+        }
         lock.lock(residentId);
         List<UnmetCondition> unmet = new ArrayList<>();
         if (residents.isFinalStatus(residentId)) {
