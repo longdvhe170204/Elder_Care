@@ -42,7 +42,16 @@ class _StaffRootState extends State<StaffRoot> {
   static const _inboxIndex = 0;
 
   /// Tab đã áp đầu màn xanh đêm của DESIGN.md 15.4; tab khác giữ thanh của theme tới khi đổi (15.7).
-  static const _headerTabs = {'Thông báo', 'Thêm', 'Người cao tuổi', 'Phê duyệt', 'Mã đăng nhập cho người cao tuổi', 'Ca của tôi', 'Phân công', 'Bàn giao ca'};
+  static const _headerTabs = {
+    'Thông báo',
+    'Thêm',
+    'Người cao tuổi',
+    'Phê duyệt',
+    'Mã đăng nhập cho người cao tuổi',
+    'Ca của tôi',
+    'Phân công',
+    'Bàn giao ca',
+  };
 
   int _index = _inboxIndex;
 

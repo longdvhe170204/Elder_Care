@@ -51,7 +51,11 @@ void main() {
       final backend = FakeBackend()..on('GET', '/me/permissions', 200, grants);
       await pumpStaff(tester, backend);
       expect(find.text('Bàn giao ca'), findsNothing);
-      expect(find.text('Thêm'), findsNothing);
+      expect(find.text('Thêm'), findsOneWidget);
+      await tester.tap(find.text('Thêm'));
+      await tester.pumpAndSettle();
+      expect(find.text('Phê duyệt'), findsOneWidget);
+      expect(find.text('Bàn giao ca'), findsNothing);
       expect(find.byType(NavigationDestination), findsNWidgets(5));
       expect(backend.calls('GET', '/me/shifts'), isEmpty);
     });
