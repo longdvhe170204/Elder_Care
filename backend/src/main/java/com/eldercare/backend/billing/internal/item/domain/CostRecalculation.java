@@ -13,7 +13,7 @@ public record CostRecalculation(
 
     /** Giữ số thập phân nguồn; đơn giá/số tiền có thể rỗng khi khoản còn thiếu đơn giá. */
     public record Calculation(
-            @Digits(integer = 8, fraction = 2) BigDecimal quantity,
+            @Digits(integer = 9, fraction = 3) BigDecimal quantity,
             @Digits(integer = 15, fraction = 0) BigDecimal unitPrice,
             @Digits(integer = 3, fraction = 2) BigDecimal factorPercent,
             @Digits(integer = 15, fraction = 0) BigDecimal amount) {}

@@ -2830,7 +2830,7 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 | Mốc chạy bù | M11.JOB_ANCHOR / M11.JOB_DONE; M11.JOB.<tên tác vụ>; DAILY=1, HOURLY=2; mã lần chạy SchedulerRuns là UUID |
 | Metadata, phạm vi | M11GovernanceConfig, CostScopeAssignment, CostScopeStore; M11.COST_PERIOD/COST_STATEMENT/COST_ITEM; FINANCE/MEDICATION |
 
-Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịch sử lưu căn cứ/người/thời điểm trong HistoryEntry chung; JSON không thay đổi giới hạn DECIMAL của dữ liệu gốc. Retention và quyền tệp mua hộ còn T008.
+Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịch sử lưu căn cứ/người/thời điểm trong HistoryEntry chung; JSON không thay đổi giới hạn DECIMAL của dữ liệu gốc. Provider kỳ/bảng/khoản theo T008a/T008b; quyền tệp mua hộ làm cùng T027 khi có chứng từ thật.
 
 ### 16.10. Lưu giữ ba loại chi phí hiện có — 2026-11-05
 
@@ -2841,7 +2841,7 @@ Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịc
 | Bảng chi phí | M11.COST_STATEMENT; cost_statement kind STATEMENT, ResidentApi.finalStatusAt; CFG-M15-03 |
 | Khoản chi phí | M11.COST_ITEM; cost_item, ResidentApi.finalStatusAt; CFG-M15-03 |
 
-Chỉ T008b được nghiệm thu trên dữ liệu hiện có; T008 còn chuỗi hồ sơ liên module, chỉ mục theo nguồn và dữ liệu/quyền tệp mua hộ. Không thêm trường API hoặc tham số nghiệp vụ.
+Phạm vi T008 nền chỉ gồm dữ liệu hiện có (T008a/T008b). Phân rã lại 06/11: metadata/phạm vi/retention mua hộ đi cùng T026, quyền tệp đi cùng T027; chuỗi hồ sơ liên module, bảng chung và dọn chỉ mục theo nguồn là gate T033 trước hoàn tất feature/merge/vận hành. Không thêm trường API hoặc tham số nghiệp vụ; chưa nghiệm thu chuỗi hồ sơ thật.
 
 ### 16.11. Nền chọn đơn giá T006a — 2026-11-06
 
@@ -2853,6 +2853,24 @@ Chỉ T008b được nghiệm thu trên dữ liệu hiện có; T008 còn chuỗ
 
 Các kiểu trên lồng trong service nội bộ M11, chưa là schema HTTP hoặc API cho module khác. Giá hợp đồng từ recordedUnitPrices tại đúng ngày; khoản trong gói có amount=0, giữ unitPrice thật nếu có. Nguồn không có giá và ngoài gói giữ amount/unitPrice rỗng.
 
+### 16.12. Chỉ mục nguồn T010 — 2026-11-06
+
+| Tên logic | Tên triển khai / cách lưu |
+| --- | --- |
+| Chỉ mục nguồn | IndexedBillingSource, BillingSourceIndexStore, BillingSourceIndex, BillingSourceEvents; billing.internal.source |
+| Khóa đơn vị tính phí kỹ thuật | billing_unit; generic giữ unit, care dùng UNIT, thuốc dùng medicationId; không phải đơn vị dùng hiển thị |
+| Dấu nhận nguồn | M11.SOURCE_PROCESSED / M11.BILLING_SOURCE / residentId; BILLED: + SHA-256 bộ loại/id/đơn vị/eventKey |
+| Độ chính xác lượng nguồn/khoản/lịch sử | DECIMAL(12,3), @Digits(9,3); V010_03__source_quantity_precision.sql; tiền giữ DECIMAL(15,0) |
+
+Khóa nguồn được giữ nguyên; digest chỉ dùng cho dấu chống lặp. Ngày care/thuốc lấy thời điểm thực hiện theo múi giờ Việt Nam; generic giữ ngày nguồn. Không tạo khoản khi nhận sự kiện, không đổi API công khai hoặc producer chủ nguồn.
+
+### 16.13. Chọn đơn vị nguồn và truy vấn chỉ mục — 2026-11-06
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| Khóa đơn vị tính phí gửi khi chọn nguồn | billingUnit; khác unit là đơn vị sử dụng/hiển thị. Chủ dự án duyệt 06/11 |
+| Danh sách đơn vị nguồn được chọn | sourceUnits: [{sourceId, billingUnit}]; loại trừ sourceIds/dateRange trong cùng lệnh |
+| Kết quả tra chỉ mục và khoản hiệu lực | IndexedSourceMatch; billing.internal.source.domain; nguồn hiện hành, cancelled, version, existingItemId |
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

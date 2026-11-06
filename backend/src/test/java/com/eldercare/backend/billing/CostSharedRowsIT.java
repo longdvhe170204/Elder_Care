@@ -102,12 +102,12 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
 
     @ParameterizedTest
     @CsvSource({
-        "1.255,1200,100.00,1500",
+        "1.2555,1200,100.00,1500",
         "1.25,1200.5,100.00,1500",
         "1.25,1200,100.001,1500",
         "1.25,1200,100.00,1500.5",
         "1.25,1200,100.00,1000000000000000",
-        "100000000,1200,100.00,1500",
+        "1000000000,1200,100.00,1500",
         "1.25,1200,1000.00,1500"
     })
     void FR_013_sharedHistoryRejectsMoneyOrQuantityOutsideStoragePrecision(
@@ -124,6 +124,23 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
                 true);
         assertThatThrownBy(() -> add(item, TestUsers.nextId(), invalid)).isInstanceOf(InvalidValueException.class);
         assertThat(history.list(CostRecalculation.TRACK, item)).isEmpty();
+    }
+
+    @Test
+    void FR_013_medicationQuantityKeepsThreeDecimalsInHistory() {
+        long item = TestUsers.nextId();
+        var details = new CostRecalculation(
+                new CostRecalculation.Calculation(new BigDecimal("0.125"), null, new BigDecimal("100.00"), null),
+                new CostRecalculation.Calculation(
+                        new BigDecimal("0.125"), new BigDecimal("256"), new BigDecimal("100.00"), new BigDecimal("32")),
+                "UNIT_PRICE_AVAILABLE",
+                true);
+
+        add(item, TestUsers.nextId(), details);
+
+        assertThat(history.list(CostRecalculation.TRACK, item))
+                .singleElement()
+                .satisfies(row -> assertThat(row.details().after().quantity()).isEqualByComparingTo("0.125"));
     }
 
     @Test

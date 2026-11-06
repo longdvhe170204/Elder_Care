@@ -1,6 +1,6 @@
 # Đề xuất nối chuỗi lưu giữ 001 → 010
 
-**Trạng thái:** người dùng chốt 06/11 giữ phạm vi E, bàn giao để A review/cài. Chữ ký dưới đây vẫn là đề xuất, chưa thành API được công bố; chưa sửa API/job/test của A hoặc mã B. Phạm vi E đang làm: 010 T008. Phạm vi nền cần mở rộng: 000 T070 (SPI), T071 (job), hồi quy T066; các task gốc của A đã được đánh xong, đây là nhu cầu nối liên module mới.
+**Trạng thái:** người dùng chốt 06/11 giữ phạm vi E, bàn giao để A review/cài. Chữ ký dưới đây vẫn là đề xuất, chưa thành API được công bố; chưa sửa API/job/test của A hoặc mã B. Phạm vi E: T008 là nền provider hiện có; tích hợp chuỗi liên module giữ mở ở 010 T033 (phân rã kỹ thuật 06/11, plan/tasks). Phạm vi nền cần mở rộng: 000 T070 (SPI), T071 (job), hồi quy T066; các task gốc của A đã được đánh xong, đây là nhu cầu nối liên module mới.
 
 ## Vấn đề có trong mã hiện tại
 
@@ -57,7 +57,7 @@ Không cần sửa `ResidentRetention` hoặc API của B. B review ca hồ sơ 
 
 - Chỉ mục `cost_source_index` xóa theo bản ghi nguồn: khóa bộ ba không phải DataRef long. Cần A và chủ nguồn thống nhất cơ chế dọn liên kết kỹ thuật trong transaction nguồn bị loại bỏ và ánh xạ loại/ID nguồn; chưa thêm ID giả, băm khóa hoặc sửa event nguồn. Không tự coi nguồn đã hủy là nguồn đã bị loại bỏ.
 - Metadata/phạm vi/retention/quyền tệp mua hộ làm cùng record/tệp thật ở T025–T027. Không tạo provider rỗng trước khi có dữ liệu.
-- Do đó, duyệt và cài mở rộng trên chưa tự đóng toàn T008 hoặc toàn feature 010.
+- Do đó, duyệt và cài mở rộng trên chưa tự đóng T033 hoặc toàn feature 010: còn kiểm chuỗi thật/bảng chung, dọn chỉ mục theo nguồn và phần mua hộ. T008 chỉ nghiệm thu nền provider hiện có; T033 là gate trước hoàn tất feature/merge/vận hành.
 
 ## Quyền thực hiện
 
