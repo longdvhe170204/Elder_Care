@@ -37,7 +37,7 @@ paths:
       x-br: [BR-M02-11, BR-M02-12, BR-M02-14, DBR-33]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { renewal: { type: boolean, default: false } } } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResidenceRegistration' } } } }, '409': { $ref: '#/components/responses/Conflict' } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResidenceRegistration' } } } }, '409': { $ref: '#/components/responses/Conflict' }, '422': { $ref: '#/components/responses/Problem' } }
   /residence-registrations/{id}/{command}:
     post:
       tags: [residence-registrations]
@@ -46,6 +46,9 @@ paths:
         confirm-local-permanent-resident (basisNote; khi Cần khai báo), record-submitted (ngày, kênh, cơ quan, mã hồ sơ),
         record-accepted (bằng chứng; ngày hết hạn với Đăng ký tạm trú), record-rejected (lý do),
         record-deregistered (bằng chứng; người đã Kết thúc lưu trú hoặc Qua đời; được khi hồ sơ ở trạng thái cuối).
+        Một thủ tục khai báo xóa theo người (A duyệt 2026-11-05): ghi trên một khai báo thì mọi khai báo Đã xác nhận, Hết hạn
+        của người đó cùng chuyển Đã xóa với một bằng chứng.
+        Phản hồi 422: INVALID_VALUE (thiếu hoặc sai giá trị), INVALID_COMMAND (lệnh ngoài enum).
       x-fr: [FR-001, FR-003, FR-005, FR-008]
       x-br: [BR-M02-11, BR-M02-13]
       parameters:
@@ -53,7 +56,7 @@ paths:
         - { name: command, in: path, required: true, schema: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RegistrationCommand' } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Conflict' } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Conflict' }, '422': { $ref: '#/components/responses/Problem' } }
 
 components:
   securitySchemes:
@@ -97,9 +100,23 @@ components:
         status: { type: string, enum: [TO_SUBMIT, SUBMITTED, CONFIRMED, EXPIRED, DEREGISTERED, SUPERSEDED, CANCELLED] }
         expiryDate: { type: string, format: date }
         localPermanentResident: { type: boolean }
+        basisNote: { type: string, description: 'Căn cứ xác nhận thường trú cùng xã/phường' }
+        allowedCommands: { type: array, description: 'Lệnh còn làm được theo trạng thái (chưa xét quyền)', items: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } }
+        submissions: { type: array, items: { $ref: '#/components/schemas/RegistrationSubmission' } }
+    RegistrationSubmission:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        submittedDate: { type: string, format: date }
+        channel: { type: string, enum: [PUBLIC_SERVICE_PORTAL, IN_PERSON] }
+        receivingAuthority: { type: string }
+        dossierCode: { type: string }
+        result: { type: string, enum: [PENDING, ACCEPTED, REJECTED] }
+        rejectionReason: { type: string }
+        recordedAt: { type: string, format: date-time }
     RegistrationTask:
       type: object
-      properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, taskType: { type: string, enum: [TO_CREATE, OVERDUE, EXPIRING_SOON, EXPIRED, TO_DEREGISTER] }, dueAt: { type: string, format: date-time }, registrationId: { type: integer, format: int64 } }
+      properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, taskType: { type: string, enum: [TO_CREATE, OVERDUE, EXPIRING_SOON, EXPIRED, TO_DEREGISTER] }, dueAt: { type: string, format: date-time }, registrationId: { type: integer, format: int64 }, allowedCommands: { type: array, items: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } } }
     RegistrationCommand:
       type: object
       properties:
