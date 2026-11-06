@@ -16,6 +16,9 @@ import { GIVER_LABELS, activeOptions, nowLocal, toOffsetIso } from './belongingL
 // giao ngay đồ thuộc loại cần đồng ý phải kèm bản ký của người đại diện (BR-M12-06). Ảnh, bản ký tải lên qua POST /files
 // rồi gửi mã tệp. Idempotency-Key giữ suốt form để bấm lại sau lỗi mạng không tạo hai đồ. Backend kiểm lại mọi điều kiện.
 
+// Người giao khi tiếp nhận (FR-003): người thân có quan hệ Hiệu lực, người khác (họ tên và giấy tờ), chính người cao tuổi
+const INTAKE_GIVERS = ['FAMILY_MEMBER', 'OTHER_PERSON', 'RESIDENT']
+
 const EMPTY = {
   typeId: '',
   description: '',
@@ -42,8 +45,10 @@ function validate(values, type, photos, giveNow, signedForm) {
   if (!values.levelId) errors.levelId = 'Chọn mức tình trạng.'
   if (!values.giverType) errors.giverType = 'Chọn người giao.'
   if (values.giverType === 'FAMILY_MEMBER' && !/^[1-9]\d*$/.test(values.giverId)) errors.giverId = 'Nhập mã người thân.'
-  if (['OTHER_PERSON', 'FAMILY_MEMBER'].includes(values.giverType) && !values.giverName.trim())
-    errors.giverName = 'Nhập họ tên người giao.'
+  if (values.giverType === 'OTHER_PERSON' && !values.giverName.trim()) errors.giverName = 'Nhập họ tên người giao.'
+  if (values.giverType === 'OTHER_PERSON' && !values.giverIdDocument.trim())
+    errors.giverIdDocument = 'Nhập giấy tờ của người giao.'
+  if (!giveNow && !values.storageLocationId) errors.storageLocationId = 'Chọn vị trí lưu giữ.'
   if (!values.at) errors.at = 'Nhập thời điểm tiếp nhận.'
   if (type?.valuable && photos.length === 0) errors.photos = 'Đồ có giá trị bắt buộc có ít nhất một ảnh.'
   if (giveNow && type?.requiresConsentForUse && signedForm.length === 0)
@@ -186,7 +191,7 @@ export function IntakeForm({ residentId, types, levels, locations, onDone }) {
           label="Người giao"
           value={values.giverType}
           onChange={set('giverType')}
-          options={Object.entries(GIVER_LABELS).map(([value, label]) => ({ value, label }))}
+          options={INTAKE_GIVERS.map((value) => ({ value, label: GIVER_LABELS[value] }))}
           error={errors.giverType}
         />
         {values.giverType === 'FAMILY_MEMBER' && (
@@ -217,14 +222,16 @@ export function IntakeForm({ residentId, types, levels, locations, onDone }) {
               />
               {errors.giverName && <FieldError>{errors.giverName}</FieldError>}
             </Field>
-            <Field>
-              <FieldLabel htmlFor="intake-giver-doc">Giấy tờ người giao (không bắt buộc)</FieldLabel>
+            <Field data-invalid={!!errors.giverIdDocument || undefined}>
+              <FieldLabel htmlFor="intake-giver-doc">Giấy tờ người giao</FieldLabel>
               <Input
                 id="intake-giver-doc"
                 className="h-11"
                 value={values.giverIdDocument}
                 onChange={(e) => set('giverIdDocument')(e.target.value)}
+                aria-invalid={!!errors.giverIdDocument || undefined}
               />
+              {errors.giverIdDocument && <FieldError>{errors.giverIdDocument}</FieldError>}
             </Field>
           </div>
         )}
@@ -246,7 +253,8 @@ export function IntakeForm({ residentId, types, levels, locations, onDone }) {
           value={values.storageLocationId}
           onChange={set('storageLocationId')}
           options={activeOptions(locations)}
-          placeholder="Không ghi vị trí"
+          error={errors.storageLocationId}
+          placeholder={giveNow ? 'Không ghi vị trí' : 'Chọn…'}
         />
         <FilesField
           id="intake-photos"

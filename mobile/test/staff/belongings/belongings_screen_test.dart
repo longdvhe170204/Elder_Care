@@ -99,6 +99,12 @@ Future<void> fillIntake(WidgetTester tester, {required String type}) async {
   await tester.tap(find.text('Người khác').last);
   await tester.pumpAndSettle();
   await tester.enterText(find.byKey(const Key('intake-giver-name')), 'Trần Văn Bình');
+  await tester.enterText(find.byKey(const Key('intake-giver-doc')), 'CCCD 001');
+  await tester.ensureVisible(find.byKey(const Key('intake-location')));
+  await tester.tap(find.byKey(const Key('intake-location')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Kho tầng 2').last);
+  await tester.pumpAndSettle();
 }
 
 Future<void> save(WidgetTester tester) async {
@@ -145,7 +151,8 @@ void main() {
     expect(body['typeId'], 2);
     expect(body['quantity'], 1);
     expect(body['photoFileIds'], [501]);
-    expect(body['giver'], {'type': 'OTHER_PERSON', 'fullName': 'Trần Văn Bình'});
+    expect(body['giver'], {'type': 'OTHER_PERSON', 'fullName': 'Trần Văn Bình', 'idDocument': 'CCCD 001'});
+    expect(body['storageLocationId'], 21);
     expect(body['at'] as String, endsWith('+07:00'));
     expect(find.text('Đã tiếp nhận đồ gửi.'), findsOneWidget);
   });
@@ -159,5 +166,31 @@ void main() {
 
     expect(find.text('Lệnh đồ gửi chỉ thực hiện được khi có mạng. Kiểm tra kết nối rồi lưu lại.'), findsOneWidget);
     expect(find.byKey(const Key('intake-description')), findsOneWidget);
+  });
+
+  testWidgets('FR_003_nguoiKhacThieuGiayTo_khongCoViTri_baoTaiO_khongCoNhanVien', (tester) async {
+    final b = backend();
+    await pump(tester, b.client());
+    await fillIntake(tester, type: 'Quần áo');
+    await tester.enterText(find.byKey(const Key('intake-giver-doc')), '');
+    await tester.ensureVisible(find.byKey(const Key('intake-giver')));
+    await tester.tap(find.byKey(const Key('intake-giver')));
+    await tester.pumpAndSettle();
+    expect(find.text('Nhân viên'), findsNothing);
+    await tester.tap(find.text('Người khác').last);
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(find.text('Nhập giấy tờ của người giao.'), findsOneWidget);
+    expect(b.calls('POST', '/residents/7/belongings'), isEmpty);
+  });
+
+  testWidgets('FR_003_dangGiuPhaiCoViTri', (tester) async {
+    final b = backend();
+    await pump(tester, b.client());
+    await tester.tap(find.text('Tiếp nhận đồ'));
+    await tester.pumpAndSettle();
+    await save(tester);
+    expect(find.text('Chọn vị trí lưu giữ.'), findsOneWidget);
   });
 }
