@@ -17,7 +17,7 @@ public interface BedAssetCommandPort {
     void applyAssetCommand(long bedId, BedAssetCommand command, Basis basis);
 
     @Transactional(propagation = Propagation.MANDATORY)
-    void residentTransferFlagAdded(long bedId, List<Long> affectedResidentIds);
+    void residentTransferFlagAdded(long bedId);
 
     @Transactional(propagation = Propagation.MANDATORY)
     void residentTransferFlagRemoved(long bedId);

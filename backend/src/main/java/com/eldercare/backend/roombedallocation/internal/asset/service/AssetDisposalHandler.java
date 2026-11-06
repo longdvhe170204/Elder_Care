@@ -53,7 +53,6 @@ class AssetDisposalHandler implements RequestTypeHandler {
     public void validateContent(JsonNode content) {
         var asset = store.find(read(content).assetId())
                 .orElseThrow(() -> new InvalidValueException("assetId không phải tài sản"));
-        if (asset.bedId() != null) throw new InvalidValueException("Thanh lý tài sản giường chưa cài (Phase 8)");
     }
 
     @Override

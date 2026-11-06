@@ -30,8 +30,22 @@ public final class AssetKinds {
             Long cost,
             Long procurementRequestId) {}
 
-    /** Hư hỏng (tai_san_hu_hong); mức ảnh hưởng, dấu chờ chuyển người, gỡ dấu thuộc tài sản giường (Phase 8). */
-    public record Damage(String description, String source, String impactLevel, Boolean awaitingTransfer) {}
+    /**
+     * Hư hỏng (tai_san_hu_hong): nguồn DAMAGE_REPORT, BED_PREPARATION; với giường có người: mức ảnh hưởng, dấu chờ chuyển
+     * người (bản nháp tới khi gỡ dấu), lần gỡ dấu kèm lý do, nội dung đã sửa, người sửa đặt một lần (Q-245, Q-265).
+     */
+    public record Damage(
+            String description,
+            String source,
+            String impactLevel,
+            Boolean awaitingTransfer,
+            String removalReason,
+            String repairDescription,
+            String repairedBy) {
+        public Damage(String description, String source, String impactLevel, Boolean awaitingTransfer) {
+            this(description, source, impactLevel, awaitingTransfer, null, null, null);
+        }
+    }
 
     public static final SharedKind<TypeAttributes> ASSET_TYPE =
             SharedKind.of("M03.ASSET_TYPE", TypeAttributes.class).notDeletable();
