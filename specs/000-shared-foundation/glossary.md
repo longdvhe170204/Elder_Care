@@ -2867,6 +2867,8 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 | thân phiếu `noiDung`, `cachXuLy`, `moTa` | `content`, `resolution`, `description` |
 | `DoAnGiaDinhLenh` (`nguoiGuiTen`, `nguoiThanId`, `loai`, `moTa`, `thanhPhan`, `thanhPhanKhongRo`, `hanDung`, `cachBaoQuan`); `DoAnGiaDinh` (`trangThai`, `lyDoHeThong`) | `FamilyFoodCommand` (`senderName`, `familyMemberId`, `type`, `description`, `ingredients`, `ingredientsUnknown`, `expiresAt`, `storageMethod`); `FamilyFood` (`status`, `systemReasons`) |
 | thân lệnh đồ ăn gia đình `ghiChu`, `lyDo`, `cach`, `nguoiNhanLai` | `note`, `reason`, `method`, `returnedTo` |
+| thân tạo thực đơn `ngayDauTuan`, `saoChepTuId`; thân lệnh thực đơn `xacNhanKiemTraCheBien`, `ghiChuCheBien`, `canhBaoDaXacNhan`; thân lệnh món `noiDung` | `weekStart`, `copyFromId`; `processingCheckConfirmed`, `processingNote`, `confirmedWarnings`; `content` |
+| `CanhBaoThucDonChoBep`; response `Loi`, `LoiChan`; request body `LyDo` | `KitchenMenuWarning`; `Problem`, `Blocked`; `Reason` |
 | `LuuMauLenh` (`viTriLuu`, `mon` {`monAnId`, `daLuu`, `lyDoKhongLuu`}) | `RetainedSampleCommand` (`storageLocation`, `dishes` {`dishId`, `retained`, `notRetainedReason`}) |
 | `Loi` (`maLoi`, `dieuKienChuaThoa`); `LyDo`; security scheme `phien`; tham số `IfMatch`, `IdempotencyKey`, `NctId` | `Problem` (`errorCode`, `unmetConditions`); `Reason`; `session`; `IfMatch`, `IdempotencyKey`, `ResidentId` |
 
