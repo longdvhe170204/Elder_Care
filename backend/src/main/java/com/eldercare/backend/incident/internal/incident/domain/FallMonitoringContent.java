@@ -7,4 +7,10 @@ import java.time.Instant;
  * (FR-051, FR-052).
  */
 public record FallMonitoringContent(
-        long incidentId, Instant anchor, Instant endsAt, long intervalMinutes, String reason, Long endedBy) {}
+        long incidentId, Instant anchor, Instant endsAt, long intervalMinutes, String reason, Long endedBy) {
+
+    /** Kết thúc sớm (Bác sĩ, có lý do) hoặc hết thời gian ({@code endedBy} rỗng). */
+    public FallMonitoringContent ended(String reason, Long endedBy) {
+        return new FallMonitoringContent(incidentId, anchor, endsAt, intervalMinutes, reason, endedBy);
+    }
+}

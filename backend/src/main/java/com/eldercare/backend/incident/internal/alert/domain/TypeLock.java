@@ -40,6 +40,16 @@ public final class TypeLock {
         return "THU_CONG:" + incidentTypeId;
     }
 
+    /** Nút SOS của người cao tuổi: {@code SOS}, gộp mọi lần bấm của một người khi còn mở (FR-028, S-23). */
+    public static String forSos() {
+        return "SOS";
+    }
+
+    /** Nút hỗ trợ khẩn cấp: {@code STAFF_ASSIST_REQUEST:<tài khoản người bấm>} (FR-047i, S-24). */
+    public static String forStaffAssist(long accountId) {
+        return "STAFF_ASSIST_REQUEST:" + accountId;
+    }
+
     /** Dấu hiệu nguy kịch: {@code NGUY_KICH:<dauNguyKichId>}. */
     public static String forCritical(long criticalSignId) {
         return "NGUY_KICH:" + criticalSignId;

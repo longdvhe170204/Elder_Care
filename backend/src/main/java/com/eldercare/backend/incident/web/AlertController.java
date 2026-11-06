@@ -126,6 +126,23 @@ public class AlertController {
         return ResponseEntity.ok().build();
     }
 
+    /** Mốc Đã tới nơi của cảnh báo nút SOS, nút hỗ trợ (FR-047j, BR-M05-30). */
+    @PostMapping("/{id}/mark-arrived")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> markArrived(
+            @PathVariable long id, @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        handling.markArrived(id, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{id}/start-handling")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK"),

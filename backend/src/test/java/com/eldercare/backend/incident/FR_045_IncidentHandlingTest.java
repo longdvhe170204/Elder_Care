@@ -31,6 +31,7 @@ import com.eldercare.backend.incident.internal.incident.persistence.IncidentProg
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.incident.service.IncidentHandlingService;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
+import com.eldercare.backend.incident.internal.infection.service.ContactListService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -49,13 +50,14 @@ class FR_045_IncidentHandlingTest {
     private final IncidentProgressionStore progressions = mock(IncidentProgressionStore.class);
     private final IncidentCatalogService catalog = mock(IncidentCatalogService.class);
     private final ContainmentStore containments = mock(ContainmentStore.class);
+    private final ContactListService contactLists = mock(ContactListService.class);
     private final PermissionApi permissions = mock(PermissionApi.class);
     private final AuditLogApi audit = mock(AuditLogApi.class);
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final BusinessTime time = mock(BusinessTime.class);
     private final CurrentUser user = mock(CurrentUser.class);
     private final IncidentHandlingService service = new IncidentHandlingService(
-            incidents, progressions, catalog, containments, permissions, audit, events, time);
+            incidents, progressions, catalog, containments, contactLists, permissions, audit, events, time);
 
     @BeforeEach
     void defaults() {

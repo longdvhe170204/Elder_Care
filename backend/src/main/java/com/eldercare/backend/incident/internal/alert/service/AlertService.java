@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -69,6 +70,17 @@ public class AlertService {
 
     @Transactional
     public Optional<AlertRecord> requestAlert(CreateAlertCommand cmd) {
+        return requestAlert(cmd, created -> List.of());
+    }
+
+    /**
+     * Như {@link #requestAlert(CreateAlertCommand)}; {@code createdNotices} dựng yêu cầu thông báo gắn vào
+     * {@link AlertCreated} khi tạo mới (cảnh báo SOS, FR-047e). Gộp thì theo quy tắc gộp hiện có (S-19).
+     */
+    @Transactional
+    public Optional<AlertRecord> requestAlert(
+            CreateAlertCommand cmd,
+            Function<AlertRecord, List<com.eldercare.backend.common.notification.NotificationRequest>> createdNotices) {
         if (cmd.residentId() != null) {
             // Bỏ qua khi người cao tuổi ở trạng thái cuối (research S-08, S-09, FR-029)
             if (residentApi.isPresent() && residentApi.get().isFinalStatus(cmd.residentId())) {
@@ -86,9 +98,15 @@ public class AlertService {
             if (openAlert.isPresent()) {
                 return Optional.of(mergeAlert(openAlert.get(), cmd, now));
             }
+        } else if (cmd.requesterId() != null) {
+            // Nút hỗ trợ khẩn cấp: gộp theo người bấm (open_assist_lock, FR-028, S-24)
+            var openAlert = alertStore.findOpenAssist(cmd.requesterId());
+            if (openAlert.isPresent()) {
+                return Optional.of(mergeAlert(openAlert.get(), cmd, now));
+            }
         }
 
-        return Optional.of(createNewAlert(cmd, now));
+        return Optional.of(createNewAlert(cmd, now, createdNotices));
     }
 
     private AlertRecord mergeAlert(AlertRecord existing, CreateAlertCommand cmd, Instant now) {
@@ -161,7 +179,10 @@ public class AlertService {
         return updated;
     }
 
-    private AlertRecord createNewAlert(CreateAlertCommand cmd, Instant now) {
+    private AlertRecord createNewAlert(
+            CreateAlertCommand cmd,
+            Instant now,
+            Function<AlertRecord, List<com.eldercare.backend.common.notification.NotificationRequest>> createdNotices) {
         // Tầng của người cao tuổi kể cả khi vắng mặt; người phụ trách ban đầu theo FR-031 (BR-M05-19)
         Long floorAreaId = cmd.floorAreaId();
         if (floorAreaId == null && cmd.residentId() != null) {
@@ -203,7 +224,7 @@ public class AlertService {
                 false,
                 cmd.createdById(),
                 cmd.description(),
-                null,
+                cmd.requesterId(),
                 null,
                 null,
                 false,
@@ -220,7 +241,7 @@ public class AlertService {
                 created.noOnDutyDoctor(),
                 created.typeLock(),
                 now,
-                List.of()));
+                createdNotices.apply(created)));
 
         return created;
     }

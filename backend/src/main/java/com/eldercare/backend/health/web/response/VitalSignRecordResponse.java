@@ -34,6 +34,24 @@ public record VitalSignRecordResponse(
             @Schema(allowableValues = {"FACILITY", "PERSONAL"})
             String scope) {}
 
+    /** Bản đã đính chính: giá trị và mức hiện hành, giữ giá trị gốc ở {@code originalValues} (FR-019). */
+    public VitalSignRecordResponse corrected(Map<String, BigDecimal> currentValues, VitalSignLevel currentLevel) {
+        return new VitalSignRecordResponse(
+                id,
+                indicatorId,
+                currentValues,
+                values,
+                measuredAt,
+                measuredBy,
+                threshold,
+                currentLevel,
+                confirmationStatus,
+                remeasurementDeadline,
+                labels,
+                remeasurementFor,
+                hiddenFields);
+    }
+
     public static VitalSignRecordResponse from(VitalSignRecord record, String measuredByName) {
         ThresholdSummary threshold = record.thresholdVersionId() != null
                 ? new ThresholdSummary(record.thresholdVersionId(), "FACILITY")

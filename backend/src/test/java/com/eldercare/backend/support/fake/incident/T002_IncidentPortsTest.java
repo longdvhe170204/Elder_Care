@@ -138,6 +138,8 @@ class T002_IncidentPortsTest {
             assertThat(context.getBean(EmergencyFamilyPort.class)).isSameAs(context.getBean(FakeEmergencyFamily.class));
             assertThat(context.getBean(AttendanceTracePort.class)).isSameAs(context.getBean(FakeAttendanceTrace.class));
             assertThat(context.getBean(NotificationLogPort.class)).isSameAs(context.getBean(FakeNotificationLog.class));
+            assertThat(context.getBean(com.eldercare.backend.incident.api.spi.SosTripPort.class))
+                    .isSameAs(context.getBean(FakeSosTrip.class));
         }
     }
 }

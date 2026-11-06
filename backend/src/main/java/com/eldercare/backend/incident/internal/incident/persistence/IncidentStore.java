@@ -53,17 +53,27 @@ public class IncidentStore {
     }
 
     public Optional<SuspectedIncident> lockSuspected(long id) {
+        return suspected(id, " FOR UPDATE");
+    }
+
+    /** Đọc không khóa cho tra cứu truy vết và xem danh sách tiếp xúc (FR-060, FR-061). */
+    public Optional<SuspectedIncident> findSuspected(long id) {
+        return suspected(id, "");
+    }
+
+    private Optional<SuspectedIncident> suspected(long id, String lock) {
         return jdbc.query(
                 """
-                SELECT id,resident_id,discovered_at,status FROM incident
-                WHERE id=? AND type_code='SUSPECTED_INFECTION' FOR UPDATE
-                """,
+                SELECT id,resident_id,discovered_at,status,floor_area_id FROM incident
+                WHERE id=? AND type_code='SUSPECTED_INFECTION'
+                """ + lock,
                 rs -> rs.next()
                         ? Optional.of(new SuspectedIncident(
                                 rs.getLong("id"),
                                 rs.getLong("resident_id"),
                                 rs.getTimestamp("discovered_at").toInstant(),
-                                rs.getString("status")))
+                                rs.getString("status"),
+                                rs.getObject("floor_area_id", Long.class)))
                         : Optional.empty(),
                 id);
     }

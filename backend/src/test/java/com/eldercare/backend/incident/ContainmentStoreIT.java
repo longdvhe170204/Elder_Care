@@ -4,9 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.ConditionNotMetException;
+import com.eldercare.backend.incident.internal.infection.domain.ContactGroup;
+import com.eldercare.backend.incident.internal.infection.domain.ContactPersonContent;
+import com.eldercare.backend.incident.internal.infection.domain.ContactType;
 import com.eldercare.backend.incident.internal.infection.domain.ContainmentScope;
-import com.eldercare.backend.incident.internal.infection.persistence.ContactFollowUpStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContactListStore;
+import com.eldercare.backend.incident.internal.infection.persistence.ContactPersonStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
@@ -22,7 +25,7 @@ class ContainmentStoreIT extends MySqlIntegrationTestBase {
     ContainmentStore store;
 
     @Autowired
-    ContactFollowUpStore followUps;
+    ContactPersonStore followUps;
 
     @Autowired
     ContactListStore contactLists;
@@ -61,12 +64,32 @@ class ContainmentStoreIT extends MySqlIntegrationTestBase {
         var end = start.plusSeconds(120);
         transaction.executeWithoutResult(tx -> {
             tx.setRollbackOnly();
-            var row = followUps.add(list, resident, start, end, actor);
+            var row = followUps.add(
+                    list,
+                    new ContactPersonContent(
+                                    ContactType.RESIDENT,
+                                    resident,
+                                    null,
+                                    null,
+                                    null,
+                                    ContactGroup.SAME_ROOM,
+                                    "Cùng phòng",
+                                    start,
+                                    end,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    false)
+                            .monitored(start, end),
+                    ContactPersonStore.ACTIVE,
+                    actor);
             assertThat(followUps.listedAt(resident, start.minusSeconds(1))).isFalse();
             assertThat(followUps.listedAt(resident, start)).isTrue();
             assertThat(followUps.listedAt(resident, end)).isFalse();
 
-            followUps.remove(row.id(), row.version(), removed, "Loại khỏi danh sách");
+            followUps.change(row, ContactPersonStore.EXCLUDED, row.content().excluded(removed, "Loại khỏi danh sách"));
             assertThat(followUps.listedAt(resident, start)).isTrue();
             assertThat(followUps.listedAt(resident, removed)).isFalse();
         });

@@ -9,7 +9,9 @@ import com.eldercare.backend.incident.internal.critical.service.CriticalCareServ
 import com.eldercare.backend.incident.web.request.ExecuteChoiceRequest;
 import com.eldercare.backend.incident.web.request.IncidentReasonRequest;
 import com.eldercare.backend.incident.web.request.RecordCriticalFlagRequest;
+import com.eldercare.backend.incident.web.request.TransferOutBody;
 import com.eldercare.backend.incident.web.request.WishReconfirmationRequest;
+import com.eldercare.backend.incident.web.response.CriticalFlagRecordedResponse;
 import com.eldercare.backend.incident.web.response.M05ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -51,12 +53,13 @@ public class CriticalCareController {
                 responseCode = "409",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
     })
-    public ResponseEntity<Void> record(
+    public ResponseEntity<CriticalFlagRecordedResponse> record(
             @PathVariable long residentId,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody RecordCriticalFlagRequest request) {
-        critical.record(residentId, request.type(), request.assessment(), currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        var recorded = critical.record(residentId, request.type(), request.assessment(), currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CriticalFlagRecordedResponse(recorded.flagId(), recorded.alertId()));
     }
 
     @PostMapping("/critical-flags/{id}/confirm")
@@ -125,7 +128,8 @@ public class CriticalCareController {
             @PathVariable long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ExecuteChoiceRequest request) {
-        critical.executeChoice(id, request.choice(), request.reason(), currentUser);
+        critical.executeChoice(
+                id, request.choice(), request.reason(), TransferOutBody.toCommand(request.transferOut()), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

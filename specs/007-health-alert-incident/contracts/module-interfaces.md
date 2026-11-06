@@ -271,6 +271,11 @@ interface AttendanceTracePort { // DiemDanhTruyVetPort, 014 cài
 }
 record ActivityAttendanceTraceView(long sessionId, Instant from, Instant to, List<Long> residentIds) {}
 
+interface SosTripPort { // ChuyenDiSosPort, 014 cài (bổ sung 2026-11-06, T073)
+  Optional<SosTripView> ongoing(long residentId);
+}
+record SosTripView(long tripId, List<Long> companionStaffIds) {} // trưởng đoàn nhận qua RecipientGroup.TripLeader(tripId)
+
 interface NotificationLogPort { // NhatKyThongBaoPort, 009 cài
   List<IncidentNotificationView> bySource(String sourceRecordType, long sourceRecordId);
 }
@@ -319,7 +324,7 @@ Stream<VitalSignReportView> VitalSignStatisticsApi.readings(ScopeFilter scope, I
 - `MeasurementScheduleView(id, residentId, indicatorIds, frequencyType, frequencyParameters, startsAt, endsAt, importance, note)`; `MeasurementFrequency`: `CLOCK_TIMES`, `EVERY_N_HOURS`, `WEEKDAYS`. Đọc lịch không sinh công việc. `FacilityContactView(phoneNumber, note, version)`; chưa có số cấu hình thì phone/note `null`, version 0 trong fake.
 - `VitalSignReportView(recordId, residentId, indicatorId, floorAreaId, measuredAt, level)`; `ScopeFilter` dùng bản công khai 002 hiện có. Chưa cài thuật toán thống kê trong T003.
 - `VitalSignLevel`: `NORMAL`, `WARNING`, `DANGEROUS`, `NO_THRESHOLD`; `VitalSignConfirmationStatus`: `AWAITING_REMEASUREMENT`, `CONFIRMED`, `REMEASURED`; `VitalSignLabel`: `IMMEDIATE_ACTION`, `NOT_REMEASURED`, `LATE_RECORDED`, `OFFLINE_RECORDED`.
-- Sự kiện ở `health.api.events`, công khai NamedInterface `events`: `VitalSignConfirmed(recordId, residentId, indicatorId, level, thresholdVersionId, taskId, measuredAt, labels, eventKey, occurredAt)`; `VitalSignCorrected(originalRecordId, residentId, indicatorId, originalLevel, currentLevel, eventKey, occurredAt)`; `MeasurementScheduleChanged(scheduleId, residentId, eventKey, occurredAt)`; `MissingPersonalThresholdReminder(residentId, eventKey, occurredAt)`. Hai trường cuối theo phong bì sự kiện của 000; chưa thêm publisher nghiệp vụ trước khi có lệnh ghi.
+- Sự kiện ở `health.api.events`, công khai NamedInterface `events`: `VitalSignConfirmed(recordId, residentId, indicatorId, level, thresholdVersionId, taskId, measuredAt, labels, eventKey, occurredAt)`; `VitalSignCorrected(originalRecordId, residentId, indicatorId, originalLevel, currentLevel, measuredAt, eventKey, occurredAt)` (`measuredAt` thêm 2026-11-06 cho sụt cân khi đính chính, FR-039a); `MeasurementScheduleChanged(scheduleId, residentId, eventKey, occurredAt)`; `MissingPersonalThresholdReminder(residentId, eventKey, occurredAt)`. Hai trường cuối theo phong bì sự kiện của 000; chưa thêm publisher nghiệp vụ trước khi có lệnh ghi.
 - Nhắc thiếu ngưỡng dùng `HasNotificationRequests`, mức LOW, nhóm vai trò DOCTOR toàn viện theo FR-023; nội dung chỉ số xếp HEALTH, thông báo ngoài ứng dụng dùng câu trung tính. Không nhét danh sách người nhận vào outbox.
 - Bản giả chung: mở rộng `FakeVitalSigns.history`/`vitalSignIndicators`; `FakeMeasurementSchedules`, `FakeFacilityContact`, `FakeVitalSignStatistics`, `FakeHealthEvents`, lắp bằng `FakeHealthConfig` (import cấu hình FakeVitalSigns có sẵn). Không thêm bean giả vào ứng dụng thật. Bộ giả lịch chỉ trả dữ liệu test đặt theo truy vấn, không cài lịch sinh mốc; thống kê dùng đúng phạm vi đã đặt và lọc thời gian.
 

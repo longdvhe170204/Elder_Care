@@ -2,8 +2,11 @@ package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eldercare.backend.incident.internal.infection.domain.ContactGroup;
+import com.eldercare.backend.incident.internal.infection.domain.ContactPersonContent;
+import com.eldercare.backend.incident.internal.infection.domain.ContactType;
 import com.eldercare.backend.incident.internal.infection.domain.ContainmentScope;
-import com.eldercare.backend.incident.internal.infection.persistence.ContactFollowUpStore;
+import com.eldercare.backend.incident.internal.infection.persistence.ContactPersonStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
 import com.eldercare.backend.roombedallocation.api.spi.AllocationInfectionStatus;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -28,7 +31,7 @@ class IncidentAllocationStatusIT extends MySqlIntegrationTestBase {
     ContainmentStore containments;
 
     @Autowired
-    ContactFollowUpStore contacts;
+    ContactPersonStore contacts;
 
     @Autowired
     JdbcTemplate jdbc;
@@ -65,7 +68,27 @@ class IncidentAllocationStatusIT extends MySqlIntegrationTestBase {
                   recorded_by, created_at, confirmed_at)
                 VALUES (?, ?, ?, ?, 'SUSPECTED_INFECTION', ?, 'Nghi nhiễm', 'MEDIUM', 'MEDIUM', ?, ?, ?)
                 """, incident, suspected, TestUsers.nextId(), TestUsers.nextId(), at, TestUsers.nextId(), at, at);
-        contacts.add(TestUsers.nextId(), exposed, START, end, TestUsers.nextId());
+        contacts.add(
+                TestUsers.nextId(),
+                new ContactPersonContent(
+                                ContactType.RESIDENT,
+                                exposed,
+                                null,
+                                null,
+                                null,
+                                ContactGroup.SAME_ROOM,
+                                "Cùng phòng",
+                                START,
+                                end,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                false)
+                        .monitored(START, end),
+                ContactPersonStore.ACTIVE,
+                TestUsers.nextId());
 
         assertThat(infections.listedAt(suspected, START)).isTrue();
         assertThat(infections.listedAt(exposed, START)).isTrue();

@@ -29,6 +29,7 @@ public record AlertResponse(
         Boolean handoverAcknowledged,
         Boolean noOnDutyDoctor,
         Long incidentId,
+        Long criticalFlagId,
 
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) Boolean merged,
 
@@ -54,6 +55,7 @@ public record AlertResponse(
         List<String> allowedCommands) {
 
     private static final String STAFF_ASSIST = "STAFF_ASSIST_REQUEST";
+    private static final String RESIDENT_HELP = "RESIDENT_HELP_REQUEST";
 
     public record AlertSource(
             String sourceType, Long sourceId, IncidentLevel level, Instant occurredAt, Instant resolvedAt) {}
@@ -77,11 +79,12 @@ public record AlertResponse(
                 alert.handoverAcknowledged(),
                 alert.noOnDutyDoctor(),
                 alert.incidentId(),
+                alert.criticalFlagId(),
                 merged,
                 origin(alert),
-                null,
-                null,
-                null,
+                details.press().pressedBy(),
+                details.press().eventType(),
+                details.press().chosenPlace(),
                 null,
                 alert.arrivedAt(),
                 alert.skipArrivalTime(),
@@ -96,8 +99,9 @@ public record AlertResponse(
                 details.allowedCommands().stream().sorted().toList());
     }
 
-    /** Nguồn tạo (FR-026): nút SOS nối ở US12 (T067 trở đi). */
+    /** Nguồn tạo (FR-026): (d) nút SOS, (e) nút hỗ trợ khẩn cấp, còn lại thủ công hoặc hệ thống. */
     private static String origin(AlertRecord alert) {
+        if (RESIDENT_HELP.equals(alert.type())) return "SOS";
         if (STAFF_ASSIST.equals(alert.type())) return "ASSIST_BUTTON";
         return alert.createdById() != null ? "MANUAL" : "SYSTEM";
     }

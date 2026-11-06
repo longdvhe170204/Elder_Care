@@ -35,6 +35,7 @@ import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
+import com.eldercare.backend.incident.internal.infection.service.ContactListService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class IncidentHandlingService {
     private final IncidentProgressionStore progressions;
     private final IncidentCatalogService catalog;
     private final ContainmentStore containments;
+    private final ContactListService contactLists;
     private final PermissionApi permissions;
     private final AuditLogApi audit;
     private final org.springframework.context.ApplicationEventPublisher events;
@@ -72,6 +74,7 @@ public class IncidentHandlingService {
             IncidentProgressionStore progressions,
             IncidentCatalogService catalog,
             ContainmentStore containments,
+            ContactListService contactLists,
             PermissionApi permissions,
             AuditLogApi audit,
             org.springframework.context.ApplicationEventPublisher events,
@@ -80,6 +83,7 @@ public class IncidentHandlingService {
         this.progressions = progressions;
         this.catalog = catalog;
         this.containments = containments;
+        this.contactLists = contactLists;
         this.permissions = permissions;
         this.audit = audit;
         this.events = events;
@@ -145,6 +149,7 @@ public class IncidentHandlingService {
         var now = time.now();
         incidents.close(incidentId, resolution, outcome, user.accountId(), now, incident.version());
         audit(CLOSED, incident, "CLOSED", null);
+        if (infection) contactLists.endForIncident(incidentId);
         if (infection && incident.residentId() != null) {
             events.publishEvent(new InfectionSuspicionChanged(incident.residentId(), incidentId, false, now));
         }

@@ -1,5 +1,6 @@
 package com.eldercare.backend.incident.internal.alert.service;
 
+import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.ARRIVED;
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.ASSIGNED;
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.CLOSED;
 import static com.eldercare.backend.incident.internal.alert.domain.AlertActions.HANDLING_STARTED;
@@ -25,6 +26,7 @@ import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
+import com.eldercare.backend.common.error.AlreadyProcessedException;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -113,6 +115,30 @@ public class AlertHandlingService {
         var now = time.now();
         history.add(alertId, "HANDLING_STARTED", Map.of("by", user.accountId()), now);
         write(HANDLING_STARTED, alert, Map.of("status", AlertStatus.IN_PROGRESS.name()), null);
+    }
+
+    /**
+     * "Đã tới nơi" (FR-047j, BR-M05-30): cảnh báo từ nút SOS hoặc nút hỗ trợ, Đã tiếp nhận hoặc Đang xử lý, chỉ người
+     * phụ trách hoặc người đã tiếp nhận; một lần, không đổi trạng thái.
+     */
+    @Transactional
+    public void markArrived(long alertId, CurrentUser user) {
+        var alert = lockForHandler(alertId, user);
+        if (!Set.of("RESIDENT_HELP_REQUEST", "STAFF_ASSIST_REQUEST").contains(alert.type())) {
+            throw blocked("FR-047j", "Chỉ cảnh báo từ nút SOS hoặc nút hỗ trợ khẩn cấp có mốc tới nơi");
+        }
+        if (alert.status() != AlertStatus.RECEIVED && alert.status() != AlertStatus.IN_PROGRESS) {
+            throw blocked("FR-047j", "Chỉ ghi tới nơi khi cảnh báo Đã tiếp nhận hoặc Đang xử lý");
+        }
+        long me = user.accountId();
+        if (!Long.valueOf(me).equals(alert.assigneeId()) && !Long.valueOf(me).equals(alert.receiverId())) {
+            throw new PermissionDeniedException("Chỉ người phụ trách cảnh báo ghi đã tới nơi");
+        }
+        if (alert.arrivedAt() != null) throw new AlreadyProcessedException("Đã ghi tới nơi");
+        var now = time.now();
+        alerts.markArrived(alertId, me, now);
+        history.add(alertId, "ARRIVED", Map.of("by", me), now);
+        write(ARRIVED, alert, Map.of("arrivedAt", now.toString()), null);
     }
 
     /** Nâng/Hạ mức khi đang mở; hạ từ Khẩn cấp chỉ Bác sĩ; Mới, Leo thang tính lại hạn từ lúc đổi (bảng FR-029). */

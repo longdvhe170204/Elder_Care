@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * BR-M05-15, FR-050b, FR-050d, FR-050e (US11 #1 → #3, #5): ghi dấu tạo cảnh báo Khẩn cấp không gộp kèm thông báo đội
@@ -32,6 +33,24 @@ class BR_M05_15_CriticalConditionIT extends CriticalCareTestBase {
 
     @Autowired
     ApplicationEvents events;
+
+    @Test
+    void FR_050a_flagResponseAndAlertExposeFlagId() throws Exception {
+        var response = postNew(
+                        doctor,
+                        "/api/v1/residents/" + resident + "/critical-flags",
+                        "{\"type\":\"OFFICIAL\",\"assessment\":\"Suy hô hấp nặng\"}")
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        var created = latestFlag();
+        assertThat(response).contains("\"flagId\":" + created.id()).contains("\"alertId\":" + created.alertId());
+
+        mvc.perform(as(doctor, MockMvcRequestBuilders.get("/api/v1/alerts/{id}", created.alertId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.criticalFlagId").value(created.id()));
+    }
 
     @Test
     void FR_050b_flagNotifiesTeamFamilyAndRequestsReconfirmation() throws Exception {
