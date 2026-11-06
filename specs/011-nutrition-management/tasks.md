@@ -63,12 +63,38 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 ### Tests cho User Story 2
 
 - [ ] T008 [P] [US2] Test `BT/nutrition/FR_004a_XacNhanMonIT.java`, `FR_014_CheDoMacDinhIT.java`: bảng chuyển món; bản sửa là phiên bản mới; ngừng món an toàn của chế độ Hiệu lực bị chặn; một chế độ mặc định (`UNIQUE khoa_mac_dinh`); đổi hạn chế chạy lại FR-005 với thực đơn chưa hết tuần
+  - *Ghi chú 2026-11-06 (chưa đánh [x]):* `FR_004a_DishConfirmationIT` (7) và `FR_014_DefaultDietIT` (6, có cả FR-003 thêm thành phần thực phẩm) xanh trên `eldercare_test_d`, cùng hai test đơn vị `DishTransitionsTest` (33) và `SafeDishRuleTest` (5). Phần còn thiếu là "đổi hạn chế chạy lại FR-005 với thực đơn chưa hết tuần": phần này cần bảng `menu`, nên viết ở Phase 5.
 
 ### Implementation cho User Story 2
 
-- [ ] T009 [US2] Tạo `MIG/V011_02__danh_muc_mon.sql`: `che_do_an` (`lien_quan_dieu_tri`; cột sinh `khoa_mac_dinh` `UNIQUE`; `mon_an_toan_id`), `che_do_an_han_che`, `mon_an` (`trang_thai` `NHAP|CHO_XAC_NHAN|HIEU_LUC|NGUNG_HIEU_LUC|DA_HUY`; `phien_ban_hieu_luc_id`; `tung_hieu_luc`), `mon_an_phien_ban` (nhóm 3 có bản chờ; `ket_cau` `THUONG|MEM|XAY_NHUYEN`), `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` (data-model mục 3) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `che_do_an`, `mon_an` → `danh_muc_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [x] T009 [US2] Tạo `MIG/V011_02__danh_muc_mon.sql`: `che_do_an` (`lien_quan_dieu_tri`; cột sinh `khoa_mac_dinh` `UNIQUE`; `mon_an_toan_id`), `che_do_an_han_che`, `mon_an` (`trang_thai` `NHAP|CHO_XAC_NHAN|HIEU_LUC|NGUNG_HIEU_LUC|DA_HUY`; `phien_ban_hieu_luc_id`; `tung_hieu_luc`), `mon_an_phien_ban` (nhóm 3 có bản chờ; `ket_cau` `THUONG|MEM|XAY_NHUYEN`), `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` (data-model mục 3) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `che_do_an`, `mon_an` → `danh_muc_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+  - *Ghi chú 2026-11-06:* không tạo `V011_02`. Chế độ ăn (`M08.DIET`) và món (`M08.DISH`) nằm trong `catalog_item`. Hạn chế, món an toàn, cờ mặc định và trạng thái món nằm trong `attributes`. Phiên bản món (`M08.DISH_VERSION`, gồm thành phần, chế độ phù hợp, kết cấu) nằm trong `simple_record`, cha là món. Khóa `uniqueKey` `M08.DISH_VERSION.OPEN:<dishId>` bảo đảm mỗi món chỉ có một bản Nháp hoặc Chờ; bản đã đóng thì bị khóa. Ràng buộc "một chế độ mặc định" là cột sinh `m08_default_diet` có `UNIQUE`, đặt trong `V011_94__shared_m08_default_diet.sql`.
 - [ ] T010 [US2] Cài `BE/nutrition/danhmuc/internal/CheDoAnService.java`, `MonAnService.java` (tạo, gửi xác nhận, xác nhận/trả lại/rút, bản sửa, ngừng, hủy; Bác sĩ xác nhận, Nhân viên bếp lập; Q-283, Q-308), `BuaAnService.java`, `LoaiDoAnCamService.java` (research M-04)
+  - *Ghi chú 2026-11-06 (chưa đánh [x]):* đã có `nutrition.internal.catalog.service.DietService` và `DishService`, cùng các phần sau:
+    - miền `DishTransitions`, `SafeDishRule`;
+    - lưu trữ qua `NutritionCatalogStore`, dùng CatalogApi và SimpleRecordApi;
+    - sự kiện `DishConfirmationRequested` (gửi Bác sĩ) và `DishConfirmationResult` (gửi người gửi món).
+    
+    Chủ dự án quyết ngày 2026-11-06:
+    - lúc lưu chế độ ăn không xét điều kiện món an toàn "phù hợp";
+    - khi chưa có món Hiệu lực nào thì chế độ ăn đầu tiên được để trống món an toàn;
+    - đặt một chế độ làm mặc định thì chuyển mặc định ngay trong cùng lệnh.
+    
+    Còn lại:
+    - `MealService`, `ForbiddenFoodTypeService`: chờ A thêm Function quyền danh mục dinh dưỡng (team-plan mục 8);
+    - kiểm ngừng chế độ ăn còn bản gán hoặc thực đơn dùng, và kiểm lại thực đơn khi đổi hạn chế: làm ở Phase 4 và Phase 5.
 - [ ] T011 [US2] Tạo `BE/nutrition/danhmuc/web/DanhMucController.java`: `/dinh-duong/che-do-an`, `/{id}`, `/{id}/ngung-hieu-luc`, `/thanh-phan-thuc-pham`, `/mon-an`, `/{id}`, `/{id}/{lenh}`, `/bua-an`, `/{id}`, `/loai-do-an-cam`, `GET /nguoi-cao-tuoi/{nctId}/doi-chieu-mon`; màn web `frontend/src/tinh-nang/dinh-duong/danh-muc/`
+  - *Ghi chú 2026-11-06 (chưa đánh [x]):* `nutrition.web.NutritionCatalogController` đã có 9 thao tác:
+    - `GET`, `POST /nutrition/diets`;
+    - `PUT /diets/{id}`, `POST /diets/{id}/deactivate`;
+    - `POST /food-ingredients`;
+    - `GET`, `POST /dishes`;
+    - `PUT /dishes/{id}`, `POST /dishes/{id}/{command}`.
+    
+    `ApiContractIT` so khớp với `api-011.yaml` đã dịch. Các thao tác chưa cài nằm trong tập `pending`. Còn lại:
+    - meals, forbidden-food-types: chờ A;
+    - `GET /residents/{residentId}/dish-conflict-check`: Phase 5;
+    - màn web: chờ chủ dự án duyệt bố cục (DESIGN.md mục 13, team-plan mục 8).
 
 **Checkpoint**: Món và chế độ ăn chạy độc lập.
 

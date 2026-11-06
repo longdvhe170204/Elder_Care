@@ -201,8 +201,52 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1, US3 xong 2026-11-04;
             // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(
-                    Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"),
-                    Set.of(),
+                    Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"), Set.of(), Set.of(), true),
+            // 011 (2026-11-06, D): hợp đồng đã dịch; xóa dòng khi cài controller của từng story. Bữa ăn, loại đồ ăn bị
+            // cấm
+            // chờ chức năng quyền của Quản lý viện (A, team-plan mục 8)
+            new Contract(
+                    Path.of("..", "specs", "011-nutrition-management", "contracts", "api-011.yaml"),
+                    Set.of(
+                            "GET /api/v1/nutrition/meals",
+                            "POST /api/v1/nutrition/meals",
+                            "PUT /api/v1/nutrition/meals/{id}",
+                            "GET /api/v1/nutrition/forbidden-food-types",
+                            "POST /api/v1/nutrition/forbidden-food-types",
+                            "GET /api/v1/residents/{residentId}/diet-assignments",
+                            "POST /api/v1/residents/{residentId}/diet-assignments",
+                            "POST /api/v1/diet-assignments/{id}/apply",
+                            "POST /api/v1/diet-assignments/{id}/cancel",
+                            "GET /api/v1/residents/{residentId}/dish-conflict-check",
+                            "GET /api/v1/menus",
+                            "POST /api/v1/menus",
+                            "GET /api/v1/menus/{id}",
+                            "PUT /api/v1/menus/{id}",
+                            "GET /api/v1/menus/{id}/pre-submit-info",
+                            "POST /api/v1/menus/{id}/check",
+                            "POST /api/v1/menus/{id}/{command}",
+                            "POST /api/v1/menus/{id}/dish-swaps",
+                            "GET /api/v1/daily-meals",
+                            "GET /api/v1/daily-meals/{id}/precomputed",
+                            "POST /api/v1/daily-meals/{id}/close-portions",
+                            "GET /api/v1/daily-meals/{id}/adjustments",
+                            "POST /api/v1/adjustments/{id}/confirm",
+                            "POST /api/v1/daily-meals/{id}/extra-portions",
+                            "POST /api/v1/special-portions/{id}/serve-held-portion",
+                            "POST /api/v1/special-portions/{id}/discard-held-portion",
+                            "POST /api/v1/special-portions/{id}/assign-dish",
+                            "GET /api/v1/meal-slips",
+                            "POST /api/v1/special-portions/{id}/mark-prepared",
+                            "POST /api/v1/meal-slips/{id}/{command}",
+                            "POST /api/v1/supplementary-portions/{id}/{command}",
+                            "POST /api/v1/special-portions/{id}/confirm-serving",
+                            "GET /api/v1/residents/{residentId}/family-foods",
+                            "POST /api/v1/residents/{residentId}/family-foods",
+                            "POST /api/v1/family-foods/{id}/{command}",
+                            "GET /api/v1/nutrition/review-notices",
+                            "GET /api/v1/daily-meals/{id}/retained-samples",
+                            "POST /api/v1/daily-meals/{id}/retained-samples",
+                            "POST /api/v1/retained-samples/{id}/discard"),
                     Set.of(),
                     true));
 

@@ -207,3 +207,20 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Sau R-15, Phase 2 không có DDL: `V011_01__nen_m08.sql` không tạo vì cả 5 bảng của T004 đã gộp vào bảng chung. Ba bảng riêng tạo ở phase của user story; hằng `SharedKind` `M08.*` khai cùng chỗ dùng đầu tiên.
 - Khung job: việc đăng ký bằng bean `M08MinuteTask`, `M08DailyTask` (thay cho mã bảng `lan_chay_m08`); chống lặp và chạy bù bằng dấu `M08.JOB.<khóa>` trên `reminder_marker`; listener dùng `M08EventListener.once(eventKey, work)` (dấu `M08.PROCESSED_EVENT`, khóa dài hơn 80 ký tự dùng SHA-256 hex).
 - `RetentionProvider`, `ScopeAssignmentProvider` (T007) chuyển sang phase tạo thực thể tương ứng vì cần dữ liệu thật; chỉ `FieldClassificationProvider` làm ở Phase 2. Sự kiện thông báo FR-065 (T003) cũng làm cùng lệnh kích hoạt.
+
+## Ghi chú triển khai *(2026-11-06, Phase 3)*
+
+- `contracts/api-011.yaml` đã dịch tại chỗ sang tên Anh. Kết quả có 39 path, 48 thao tác, đúng số của bản tiếng Việt. Glossary mục 17 thêm các tên `weekStart`, `copyFromId`, `processingCheckConfirmed`, `processingNote`, `confirmedWarnings`, `content`, `KitchenMenuWarning`.
+- Không tạo `V011_02`. Chế độ ăn và món nằm trong `catalog_item`; phiên bản món là `simple_record` kind `M08.DISH_VERSION`, cha là món. Mỗi món chỉ có một bản mở nhờ `uniqueKey` `M08.DISH_VERSION.OPEN:<dishId>`. Ràng buộc một chế độ mặc định là cột sinh `m08_default_diet` có `UNIQUE`, đặt trong `V011_94__shared_m08_default_diet.sql` vì đây là bảng chung.
+- Lớp: `nutrition.internal.catalog.{domain, persistence, service}` và `nutrition.web.NutritionCatalogController`. Thao tác cài thay cho `CheDoAnService`, `MonAnService`, `DanhMucController`.
+- `POST /dishes/{id}/{command}`: một lệnh do bếp hoặc Bác sĩ thực hiện tùy loại lệnh (Q-308), nên `DishService.command` tự kiểm quyền: bếp cần `DISH_MENU UPDATE`, Bác sĩ cần `APPROVE`. Phương thức này được thêm vào `RequiresPermissionArchTest.SELF_CHECKED`.
+- Trả lại hoặc rút một bản thì bản đó bị đóng và khóa, rồi một bản Nháp mới được mở, chép nội dung cũ. Như vậy lịch sử phiên bản không bị ghi đè (FR-004a).
+- Quyết định nghiệp vụ của chủ dự án ngày 2026-11-06, ghi theo lúc hỏi:
+  - lúc lưu chế độ ăn không xét điều kiện món an toàn "phù hợp";
+  - chưa có món Hiệu lực nào thì chế độ ăn đầu tiên được để trống món an toàn;
+  - đặt mặc định mới thì bỏ mặc định cũ trong cùng lệnh (khóa `M08.DIET.DEFAULT`).
+- Chưa làm ở phase này:
+  - bữa ăn và loại đồ ăn bị cấm: chờ A thêm Function quyền danh mục dinh dưỡng;
+  - `dish-conflict-check`: Phase 5;
+  - kiểm ngừng chế độ ăn khi còn bản gán hoặc thực đơn, và kiểm lại thực đơn khi đổi hạn chế: Phase 4 và Phase 5;
+  - màn web: chờ duyệt bố cục.
