@@ -22,6 +22,9 @@ public interface HealthItemRepository extends JpaRepository<HealthItem, Long> {
     List<HealthItem> findByResidentIdAndStatusAndTypeInOrderByIdAsc(
             long residentId, HealthItemStatus status, Collection<HealthItemType> types);
 
+    /** Còn mục tự khai Hiệu lực chưa được kiểm chứng (Q-400, BR-M01-17). */
+    boolean existsByResidentIdAndStatusAndUnverifiedTrue(long residentId, HealthItemStatus status);
+
     /** Mục Hiệu lực cùng loại, để so trùng (FR-021). */
     List<HealthItem> findByResidentIdAndTypeAndStatus(long residentId, HealthItemType type, HealthItemStatus status);
 

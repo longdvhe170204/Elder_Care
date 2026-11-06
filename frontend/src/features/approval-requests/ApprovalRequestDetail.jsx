@@ -10,7 +10,6 @@ import {
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
-import { SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { ProblemAlert } from '@/common/ProblemAlert'
@@ -80,7 +79,7 @@ function Timeline({ request }) {
   )
 }
 
-export function ApprovalRequestDetail({ id, onChanged }) {
+export function ApprovalRequestDetail({ id, onChanged, Title = 'h2', Description = 'p' }) {
   const [state, setState] = useState({ status: 'loading' })
   const [comment, setComment] = useState('')
   const [cancelling, setCancelling] = useState(false)
@@ -111,8 +110,8 @@ export function ApprovalRequestDetail({ id, onChanged }) {
 
   if (state.status === 'loading') {
     return (
-      <div aria-busy="true" className="flex flex-col gap-2 px-4 pt-14">
-        <span className="sr-only">Đang tải yêu cầu</span>
+      <div aria-busy="true" className="flex flex-col gap-2">
+        <Title className="sr-only">Đang tải yêu cầu</Title>
         <Skeleton className="h-8" />
         <Skeleton className="h-24" />
       </div>
@@ -120,7 +119,8 @@ export function ApprovalRequestDetail({ id, onChanged }) {
   }
   if (state.status === 'error') {
     return (
-      <div className="px-4 pt-14">
+      <div className="flex flex-col gap-2">
+        <Title className="sr-only">Yêu cầu phê duyệt</Title>
         <ProblemAlert problem={state.problem} />
       </div>
     )
@@ -178,134 +178,132 @@ export function ApprovalRequestDetail({ id, onChanged }) {
   const content = Object.entries(request.content ?? {})
 
   return (
-    <>
-      <SheetHeader className="gap-1 pt-6">
-        <SheetTitle className="type-title tabular-nums">{request.displayCode}</SheetTitle>
-        <SheetDescription>{typeLabel(request.type)}</SheetDescription>
-      </SheetHeader>
-      <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-6 type-body-sm">
-        <div className="flex flex-col gap-2">
-          <StatusBadge status={statusLabel(request.status)} className="self-start" />
-          <EffectiveLine request={request} />
-          {request.closingReason && <p>{`Lý do đóng: ${request.closingReason}`}</p>}
-        </div>
+    <div className="flex flex-col gap-5 type-body-sm">
+      <div className="flex flex-col gap-1">
+        <Title className="type-title tabular-nums">{request.displayCode}</Title>
+        <Description className="type-body-sm text-muted-foreground">{typeLabel(request.type)}</Description>
+      </div>
+      <div className="flex flex-col gap-2">
+        <StatusBadge status={statusLabel(request.status)} className="self-start" />
+        <EffectiveLine request={request} />
+        {request.closingReason && <p>{`Lý do đóng: ${request.closingReason}`}</p>}
+      </div>
 
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-          <dt className="text-muted-foreground">Người yêu cầu</dt>
-          <dd>{actorLabel(request.requester)}</dd>
-          <dt className="text-muted-foreground">Lập lúc</dt>
-          <dd className="tabular-nums">{formatDateTime(request.createdAt)}</dd>
-          <dt className="text-muted-foreground">Hiệu lực đề nghị</dt>
-          <dd className="tabular-nums">{formatDate(request.requestedEffectiveDate)}</dd>
-          <dt className="text-muted-foreground">Lý do</dt>
-          <dd>{request.reason}</dd>
-          {request.decidedAt && (
-            <>
-              <dt className="text-muted-foreground">Quyết định</dt>
-              <dd>
-                {actorLabel(request.decidedBy)}, {formatDateTime(request.decidedAt)}
-                {request.selfApproved && ' (tự duyệt)'}
-              </dd>
-            </>
-          )}
-          {request.decisionComment && (
-            <>
-              <dt className="text-muted-foreground">Ý kiến</dt>
-              <dd>{request.decisionComment}</dd>
-            </>
-          )}
-        </dl>
-
-        {content.length > 0 && (
-          <section className="flex flex-col gap-2">
-            <h3 className="type-caption text-muted-foreground">Nội dung</h3>
-            <ul className="flex flex-col gap-1">
-              {content.map(([field, value]) => (
-                <li key={field} className="break-words">
-                  <span className="text-muted-foreground">{field}:</span> <span>{valueText(value)}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+        <dt className="text-muted-foreground">Người yêu cầu</dt>
+        <dd>{actorLabel(request.requester)}</dd>
+        <dt className="text-muted-foreground">Lập lúc</dt>
+        <dd className="tabular-nums">{formatDateTime(request.createdAt)}</dd>
+        <dt className="text-muted-foreground">Hiệu lực đề nghị</dt>
+        <dd className="tabular-nums">{formatDate(request.requestedEffectiveDate)}</dd>
+        <dt className="text-muted-foreground">Lý do</dt>
+        <dd>{request.reason}</dd>
+        {request.decidedAt && (
+          <>
+            <dt className="text-muted-foreground">Quyết định</dt>
+            <dd>
+              {actorLabel(request.decidedBy)}, {formatDateTime(request.decidedAt)}
+              {request.selfApproved && ' (tự duyệt)'}
+            </dd>
+          </>
         )}
-
-        <ProblemAlert problem={failure} />
-
-        {canDecide && (
-          <section className="flex flex-col gap-3">
-            <Field data-invalid={!!errors.comment || undefined}>
-              <FieldLabel htmlFor="approval-comment">Ý kiến</FieldLabel>
-              <Textarea
-                id="approval-comment"
-                rows={3}
-                maxLength={TEXT_MAX}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                aria-invalid={!!errors.comment || undefined}
-              />
-              {errors.comment ? (
-                <FieldError>{errors.comment}</FieldError>
-              ) : (
-                <FieldDescription>Bắt buộc khi từ chối, hoặc khi duyệt yêu cầu do chính mình lập.</FieldDescription>
-              )}
-            </Field>
-            <div className="flex flex-wrap gap-2">
-              {allowed.includes('approve') && (
-                <Button className="h-11" disabled={busy} onClick={approve}>
-                  Duyệt
-                </Button>
-              )}
-              {allowed.includes('reject') && (
-                <Button variant="outline" className="h-11" disabled={busy} onClick={reject}>
-                  Từ chối
-                </Button>
-              )}
-            </div>
-          </section>
+        {request.decisionComment && (
+          <>
+            <dt className="text-muted-foreground">Ý kiến</dt>
+            <dd>{request.decisionComment}</dd>
+          </>
         )}
+      </dl>
 
-        {(allowed.includes('submit') || allowed.includes('cancel')) && (
+      {content.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h3 className="type-caption text-muted-foreground">Nội dung</h3>
+          <ul className="flex flex-col gap-1">
+            {content.map(([field, value]) => (
+              <li key={field} className="break-words">
+                <span className="text-muted-foreground">{field}:</span> <span>{valueText(value)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <ProblemAlert problem={failure} />
+
+      {canDecide && (
+        <section className="flex flex-col gap-3">
+          <Field data-invalid={!!errors.comment || undefined}>
+            <FieldLabel htmlFor="approval-comment">Ý kiến</FieldLabel>
+            <Textarea
+              id="approval-comment"
+              rows={3}
+              maxLength={TEXT_MAX}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              aria-invalid={!!errors.comment || undefined}
+            />
+            {errors.comment ? (
+              <FieldError>{errors.comment}</FieldError>
+            ) : (
+              <FieldDescription>Bắt buộc khi từ chối, hoặc khi duyệt yêu cầu do chính mình lập.</FieldDescription>
+            )}
+          </Field>
           <div className="flex flex-wrap gap-2">
-            {allowed.includes('submit') && (
-              <Button className="h-11" disabled={busy} onClick={() => run(postApprovalRequestsByIdSubmit)}>
-                Gửi duyệt
+            {allowed.includes('approve') && (
+              <Button className="h-11" disabled={busy} onClick={approve}>
+                Duyệt
               </Button>
             )}
-            {allowed.includes('cancel') && !cancelling && (
-              <Button variant="outline" className="h-11" disabled={busy} onClick={() => setCancelling(true)}>
-                Hủy yêu cầu
+            {allowed.includes('reject') && (
+              <Button variant="outline" className="h-11" disabled={busy} onClick={reject}>
+                Từ chối
               </Button>
             )}
           </div>
-        )}
+        </section>
+      )}
 
-        {cancelling && (
-          <section className="flex flex-col gap-3 rounded-xl border p-3">
-            <Field data-invalid={!!errors.cancelReason || undefined}>
-              <FieldLabel htmlFor="approval-cancel-reason">Lý do hủy</FieldLabel>
-              <Textarea
-                id="approval-cancel-reason"
-                rows={3}
-                maxLength={TEXT_MAX}
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                aria-invalid={!!errors.cancelReason || undefined}
-              />
-              {errors.cancelReason && <FieldError>{errors.cancelReason}</FieldError>}
-            </Field>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="destructive" className="h-11" disabled={busy} onClick={cancel}>
-                Xác nhận hủy
-              </Button>
-              <Button variant="ghost" className="h-11" onClick={() => setCancelling(false)}>
-                Không hủy
-              </Button>
-            </div>
-          </section>
-        )}
+      {(allowed.includes('submit') || allowed.includes('cancel')) && (
+        <div className="flex flex-wrap gap-2">
+          {allowed.includes('submit') && (
+            <Button className="h-11" disabled={busy} onClick={() => run(postApprovalRequestsByIdSubmit)}>
+              Gửi duyệt
+            </Button>
+          )}
+          {allowed.includes('cancel') && !cancelling && (
+            <Button variant="outline" className="h-11" disabled={busy} onClick={() => setCancelling(true)}>
+              Hủy yêu cầu
+            </Button>
+          )}
+        </div>
+      )}
 
-        <Timeline request={request} />
-      </div>
-    </>
+      {cancelling && (
+        <section className="flex flex-col gap-3 rounded-xl border p-3">
+          <Field data-invalid={!!errors.cancelReason || undefined}>
+            <FieldLabel htmlFor="approval-cancel-reason">Lý do hủy</FieldLabel>
+            <Textarea
+              id="approval-cancel-reason"
+              rows={3}
+              maxLength={TEXT_MAX}
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              aria-invalid={!!errors.cancelReason || undefined}
+            />
+            {errors.cancelReason && <FieldError>{errors.cancelReason}</FieldError>}
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="destructive" className="h-11" disabled={busy} onClick={cancel}>
+              Xác nhận hủy
+            </Button>
+            <Button variant="ghost" className="h-11" onClick={() => setCancelling(false)}>
+              Không hủy
+            </Button>
+          </div>
+        </section>
+      )}
+
+      <Timeline request={request} />
+    </div>
   )
 }

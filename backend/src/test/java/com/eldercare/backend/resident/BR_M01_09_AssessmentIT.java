@@ -141,7 +141,9 @@ class BR_M01_09_AssessmentIT extends AssessmentTestBase {
         assertThat(result.effects().careLevelChanged()).isTrue();
         assertThat(currentCareLevel(resident)).isEqualTo("SPECIAL");
         assertThat(jdbc.queryForList(
-                        "SELECT care_level, basis_type, basis_id FROM care_level_history WHERE resident_id = ?",
+                        "SELECT care_level, basis_type, basis_id FROM "
+                                + com.eldercare.backend.support.ResidentHistoryRows.CARE_LEVEL
+                                + " WHERE resident_id = ?",
                         resident))
                 .singleElement()
                 .satisfies(row -> {

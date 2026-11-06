@@ -74,7 +74,7 @@ class TreatmentWishVersionIT extends WishTestBase {
                 .as("nội dung bản cũ không đổi")
                 .isEqualTo("Bệnh viện X");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM treatment_wish WHERE resident_id = ? AND status = 'ACTIVE'",
+                        "SELECT COUNT(*) FROM wish WHERE kind = 'TREATMENT' AND resident_id = ? AND status = 'ACTIVE'",
                         Integer.class,
                         residentId))
                 .isEqualTo(1);
@@ -86,13 +86,13 @@ class TreatmentWishVersionIT extends WishTestBase {
         TreatmentWish wish = record(residentId, new TreatmentCommandBuilder()).wish();
 
         assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO treatment_wish (resident_id, hospital1_name, hospital1_address, ask_family_first,"
+                        "INSERT INTO wish (kind, resident_id, hospital1_name, hospital1_address, ask_family_first,"
                                 + " escort, respondent_type, status, recorded_by, recorded_at)"
-                                + " SELECT resident_id, hospital1_name, hospital1_address, ask_family_first, escort,"
-                                + " respondent_type, status, recorded_by, recorded_at FROM treatment_wish WHERE id = ?",
+                                + " SELECT kind, resident_id, hospital1_name, hospital1_address, ask_family_first, escort,"
+                                + " respondent_type, status, recorded_by, recorded_at FROM wish WHERE id = ?",
                         wish.id()))
                 .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("uq_treatment_wish_active");
+                .hasMessageContaining("uq_wish_active");
     }
 
     @Test
@@ -107,21 +107,26 @@ class TreatmentWishVersionIT extends WishTestBase {
                 .wish();
         TreatmentWish second = record(residentId, new TreatmentCommandBuilder()).wish();
 
-        assertThatThrownBy(() -> jdbc.update("UPDATE treatment_wish SET note = 'sửa' WHERE id = ?", second.id()))
+        assertThatThrownBy(() -> jdbc.update("UPDATE wish SET note = 'sửa' WHERE id = ?", second.id()))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("UPDATE treatment_wish SET status = 'ACTIVE' WHERE id = ?", first.id()))
+        assertThatThrownBy(() -> jdbc.update("UPDATE wish SET status = 'ACTIVE' WHERE id = ?", first.id()))
                 .as("không chuyển ngược Hết hiệu lực → Hiệu lực")
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM treatment_wish WHERE id = ?", first.id()))
+        assertThatThrownBy(() -> jdbc.update("DELETE FROM wish WHERE id = ?", first.id()))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(
-                        () -> jdbc.update("DELETE FROM treatment_wish_notify WHERE treatment_wish_id = ?", first.id()))
+        assertThatThrownBy(() ->
+                        jdbc.update("UPDATE wish SET notify_family_member_ids = JSON_ARRAY() WHERE id = ?", first.id()))
+                .as("người cần báo là một phần nội dung phiếu, không sửa")
                 .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update(
-                        "UPDATE treatment_wish_opinion SET content = 'sửa' WHERE treatment_wish_id = ?", first.id()))
+                        "UPDATE record_event SET content = JSON_OBJECT() WHERE kind = 'M01.WISH_OPINION'"
+                                + " AND entity_type = 'M01.TREATMENT_WISH' AND entity_id = ?",
+                        first.id()))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(
-                        () -> jdbc.update("DELETE FROM treatment_wish_opinion WHERE treatment_wish_id = ?", first.id()))
+        assertThatThrownBy(() -> jdbc.update(
+                        "DELETE FROM record_event WHERE kind = 'M01.WISH_OPINION' AND entity_type = 'M01.TREATMENT_WISH'"
+                                + " AND entity_id = ?",
+                        first.id()))
                 .isInstanceOf(DataAccessException.class);
     }
 

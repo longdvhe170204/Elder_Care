@@ -21,7 +21,8 @@ class BR_M01_06_ModuleCommandsIT extends StatusTestBase {
     private Map<String, Object> lastHistory(long residentId) {
         return jdbc.queryForMap(
                 "SELECT from_status, to_status, command, performed_by, by_system, reason, basis_type, basis_id"
-                        + " FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                        + " FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 residentId);
     }
 

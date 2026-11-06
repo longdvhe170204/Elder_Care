@@ -1,66 +1,54 @@
 package com.eldercare.backend.resident.internal.health.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import java.time.Instant;
 
 /**
- * Hồ sơ sức khỏe ban đầu, nhóm 3 có bản nháp (data-model mục 5; FR-017): sửa được tới khi xác nhận, sau đó trigger ở cơ
- * sở dữ liệu chặn mọi {@code UPDATE} và chỉ đính chính qua 000. Mỗi người cao tuổi tối đa một hồ sơ.
+ * Hồ sơ sức khỏe ban đầu, nhóm 3 có bản nháp (data-model mục 5, 0.1; FR-017): sửa được tới khi xác nhận, sau đó dòng
+ * {@code simple_record} bị khóa ở cơ sở dữ liệu và chỉ đính chính qua 000. Mỗi người cao tuổi tối đa một hồ sơ.
  */
-@Entity
-@Table(name = "initial_health_record")
-@DataGroup(DataGroup.Group.RECORD)
 public class InitialHealthRecord {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private long residentId;
-
+    private final Long id;
+    private final long residentId;
     private String bloodType;
-
     private String mobility;
-
     private String selfCareAbility;
-
     private String cognition;
-
     private String initialNeedsNote;
-
     private String nutritionNeeds;
-
     private String currentMedications;
-
     private String rehabilitationNeeds;
-
-    private long performedBy;
-
-    private Instant performedAt;
-
+    private final long performedBy;
+    private final Instant performedAt;
     private Long confirmedBy;
-
     private Instant confirmedAt;
-
-    @Version
-    private int version;
-
-    protected InitialHealthRecord() {}
+    private final int version;
 
     public InitialHealthRecord(long residentId, InitialHealthRecordContent content, long performedBy, Instant now) {
+        this(null, residentId, content, performedBy, now, null, null, 0);
+    }
+
+    /** Hồ sơ đã lưu; {@code confirmedAt} là lúc dòng bị khóa. */
+    public InitialHealthRecord(
+            Long id,
+            long residentId,
+            InitialHealthRecordContent content,
+            long performedBy,
+            Instant performedAt,
+            Long confirmedBy,
+            Instant confirmedAt,
+            int version) {
+        this.id = id;
         this.residentId = residentId;
         this.performedBy = performedBy;
-        this.performedAt = now;
+        this.performedAt = performedAt;
+        this.confirmedBy = confirmedBy;
+        this.confirmedAt = confirmedAt;
+        this.version = version;
         apply(content);
     }
 
-    /** Sửa bản nháp; đã xác nhận thì không sửa được (kiểm ở dịch vụ, trigger chặn thêm một lớp). */
+    /** Sửa bản nháp; đã xác nhận thì không sửa được (kiểm ở dịch vụ, khóa dòng chặn thêm một lớp). */
     public void editDraft(InitialHealthRecordContent content) {
         apply(content);
     }
@@ -84,6 +72,22 @@ public class InitialHealthRecord {
                 nutritionNeeds,
                 currentMedications,
                 rehabilitationNeeds);
+    }
+
+    /** Nội dung lưu ở cột {@code content}. */
+    public InitialHealthRecordData data() {
+        return new InitialHealthRecordData(
+                bloodType,
+                mobility,
+                selfCareAbility,
+                cognition,
+                initialNeedsNote,
+                nutritionNeeds,
+                currentMedications,
+                rehabilitationNeeds,
+                performedBy,
+                performedAt,
+                confirmedBy);
     }
 
     private void apply(InitialHealthRecordContent content) {

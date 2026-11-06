@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app.dart';
 import 'package:mobile/common/auth/secure_store.dart';
 import 'package:mobile/common/auth/session_controller.dart';
+import 'package:mobile/resident/sos/sos_button.dart';
 
 import 'support/fake_backend.dart';
 
@@ -27,6 +28,7 @@ void main() {
   setUp(() {
     backend = FakeBackend();
     store = MemoryStore();
+    store.values[sosIntroSeenKey] = 'seen';
   });
 
   testWidgets('T006_taiKhoanNhanVien_vaoPhanNhanVien', (tester) async {
@@ -39,7 +41,7 @@ void main() {
   testWidgets('T006_taiKhoanNguoiThan_vaoPhanNguoiThan', (tester) async {
     await pumpSignedIn(tester, backend, store, 'FAMILY_MEMBER');
 
-    expect(find.text('Thông báo'), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'Thông báo'), findsOneWidget);
   });
 
   testWidgets('T006_taiKhoanNguoiCaoTuoi_vaoHomNay', (tester) async {

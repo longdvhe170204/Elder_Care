@@ -20,7 +20,10 @@ public record HealthItemBody(
         String recordedBy,
         Instant at,
         HealthItemStatus status,
-        ExclusionBody exclusion) {
+        ExclusionBody exclusion,
+        boolean unverified,
+        String verifiedBy,
+        Instant verifiedAt) {
 
     @Schema(name = "AllergenRef")
     public record AllergenRef(
@@ -52,6 +55,9 @@ public record HealthItemBody(
                         : new ExclusionBody(
                                 v.exclusion().at(),
                                 v.exclusion().by(),
-                                v.exclusion().reason()));
+                                v.exclusion().reason()),
+                v.unverified(),
+                v.verifiedBy(),
+                v.verifiedAt());
     }
 }

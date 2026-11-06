@@ -27,6 +27,9 @@ import org.springframework.test.context.DynamicPropertySource;
  * đặt mật khẩu theo {@code DB_PASSWORD}, {@code DB_RETENTION_PASSWORD} nếu có, không có thì ngẫu nhiên, rồi để Flyway chạy bằng tài
  * khoản quản trị (thêm dữ liệu mẫu {@code db/migration/demo} như profile demo, 000 T048). Quyền của hai tài khoản do migration cấp
  * ({@code V000_00} và migration của từng bảng). Ứng dụng kết nối bằng {@code eldercare_app}.
+ *
+ * <p>Chạy song song ({@code -Dit.forkCount=N}, N > 1): JVM thứ k dùng schema {@code <schema test>_k}, cần đặt
+ * {@code DB_PASSWORD}, {@code DB_RETENTION_PASSWORD}.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -117,6 +120,10 @@ public abstract class MySqlIntegrationTestBase {
             if (!schema.matches("[A-Za-z0-9_]+")) {
                 throw new IllegalStateException("Tên schema test không hợp lệ: " + schema);
             }
+            boolean parallel = Integer.parseInt(System.getProperty("eldercare.it.forkCount", "1")) > 1;
+            if (parallel) {
+                schema = schema + "_" + System.getProperty("eldercare.it.forkNumber");
+            }
             String serverUrl = "jdbc:mysql://" + uri.getAuthority() + "/";
             return new TestDatabase(
                     serverUrl,
@@ -124,14 +131,23 @@ public abstract class MySqlIntegrationTestBase {
                     uri.getQuery(),
                     requireEnv("TEST_DB_ADMIN_USER"),
                     requireEnv("TEST_DB_ADMIN_PASSWORD"),
-                    passwordFor("DB_PASSWORD"),
-                    passwordFor("DB_RETENTION_PASSWORD"));
+                    passwordFor("DB_PASSWORD", parallel),
+                    passwordFor("DB_RETENTION_PASSWORD", parallel));
         }
 
-        /** Mật khẩu của profile demo nếu có (tài khoản dùng chung, đổi mật khẩu thì demo không đăng nhập được). */
-        private static String passwordFor(String name) {
+        /**
+         * Mật khẩu của profile demo nếu có (tài khoản dùng chung, đổi mật khẩu thì demo không đăng nhập được). Chạy song
+         * song thì bắt buộc: mỗi JVM đặt lại mật khẩu của tài khoản dùng chung, mật khẩu ngẫu nhiên sẽ đè nhau.
+         */
+        private static String passwordFor(String name, boolean parallel) {
             String value = System.getenv(name);
-            return value == null || value.isBlank() ? randomPassword() : value;
+            if (value == null || value.isBlank()) {
+                if (parallel) {
+                    throw new IllegalStateException("Chạy test tích hợp song song (it.forkCount > 1) cần biến " + name);
+                }
+                return randomPassword();
+            }
+            return value;
         }
 
         TestDatabase withSchema(String other) {

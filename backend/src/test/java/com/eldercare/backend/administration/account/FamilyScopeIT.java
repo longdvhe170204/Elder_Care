@@ -13,17 +13,20 @@ import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.administration.FakeResidencyEnds;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * 002 T067 (US6 #1, #6, #7; FR-045, FR-049; SC-012): phạm vi của người thân là người cao tuổi có quan hệ Hiệu lực;
@@ -43,7 +46,12 @@ class FamilyScopeIT extends MySqlIntegrationTestBase {
     ScopeApi scope;
 
     @Autowired
-    FakeFamilyRelationships relationships;
+    RelationshipHistoryStore history;
+
+    @Autowired
+    TransactionTemplate tx;
+
+    RelationshipFixtures family;
 
     @Autowired
     FakeResidencyEnds residencyEnds;
@@ -60,7 +68,9 @@ class FamilyScopeIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         AccountFixtures fixtures = new AccountFixtures(jdbc, time);
-        familyMember = AccountFixtures.nextId();
+        family = new RelationshipFixtures(
+                jdbc, tx, history, time.now().minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS));
+        familyMember = family.familyMember("Người thân thử", "0909000000");
         user = fixtures.familyUser(fixtures.familyAccount(familyMember));
     }
 
@@ -68,7 +78,7 @@ class FamilyScopeIT extends MySqlIntegrationTestBase {
     void US6_1_seesOnlyRelatedResident() {
         long a = AccountFixtures.nextId();
         long b = AccountFixtures.nextId();
-        relationships.relate(familyMember, a);
+        family.relate(familyMember, a, 1, false, false);
 
         assertThat(permissions.hasPermission(user, PROFILE_VIEW, resident(a)).allowed())
                 .isTrue();
@@ -81,11 +91,11 @@ class FamilyScopeIT extends MySqlIntegrationTestBase {
     @Test
     void FR_049_relationshipEnded_outOfScopeNextView() {
         long a = AccountFixtures.nextId();
-        long relationship = relationships.relate(familyMember, a);
+        long relationship = family.relate(familyMember, a, 1, false, false);
         assertThat(permissions.hasPermission(user, PROFILE_VIEW, resident(a)).allowed())
                 .isTrue();
 
-        relationships.end(relationship);
+        family.end(relationship, time.now());
 
         assertThat(permissions.hasPermission(user, PROFILE_VIEW, resident(a)).allowed())
                 .isFalse();
@@ -95,7 +105,7 @@ class FamilyScopeIT extends MySqlIntegrationTestBase {
     @Test
     void US6_7_residentEndedWithinGrace_readOnly() {
         long a = AccountFixtures.nextId();
-        relationships.relate(familyMember, a);
+        family.relate(familyMember, a, 1, false, false);
         residencyEnds.ended(a, time.now().minus(Duration.ofDays(29)));
 
         assertThat(permissions.hasPermission(user, PROFILE_VIEW, resident(a)).allowed())
@@ -110,8 +120,8 @@ class FamilyScopeIT extends MySqlIntegrationTestBase {
     void US6_6_residentEndedPastGrace_outOfScope_otherResidentStays() {
         long ended = AccountFixtures.nextId();
         long staying = AccountFixtures.nextId();
-        relationships.relate(familyMember, ended);
-        relationships.relate(familyMember, staying);
+        family.relate(familyMember, ended, 1, false, false);
+        family.relate(familyMember, staying, 1, false, false);
         residencyEnds.ended(ended, time.now().minus(Duration.ofDays(31)));
 
         assertThat(permissions

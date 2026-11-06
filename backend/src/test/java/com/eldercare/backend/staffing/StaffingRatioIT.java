@@ -213,14 +213,18 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
     }
 
     private void history(long resident, String before, String next, String command, Instant at) {
-        jdbc.update(
-                "INSERT INTO resident_status_history(resident_id,from_status,to_status,command,occurred_at,performed_by,by_system,reason) VALUES (?,?,?,?,?,?,TRUE,'Mốc trạng thái kiểm thử')",
+        // Lịch sử trạng thái của 001 ở status_history từ 001 T084 (data-model 001 mục 0.1)
+        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
+                jdbc,
+                null,
                 resident,
                 before,
                 next,
                 command,
                 ShiftStore.sql(at),
-                manager.accountId());
+                manager.accountId(),
+                true,
+                "Mốc trạng thái kiểm thử");
     }
 
     private long save() {

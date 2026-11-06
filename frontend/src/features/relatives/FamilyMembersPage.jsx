@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getResidents, getResidentsByResidentIdRelationships } from '@/api'
+import {
+  getResidents,
+  getResidentsByResidentIdRelationships,
+  getResidentsByResidentIdVisitPickupWishes,
+  getRightChangeRequests,
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
@@ -18,14 +23,22 @@ import { AddRelationshipSheet } from './AddRelationshipSheet'
 import { RegistrationFormSheet } from './RegistrationFormSheet'
 import { RelationshipDetail } from './RelationshipDetail'
 import { RELATIONSHIP_LABELS, enabledRightsText, rolesOf } from './relationshipLabels'
+import { CreateRightChangeRequestSheet } from './right-change-requests/CreateRightChangeRequestSheet'
+import { RightChangeRequestDetail } from './right-change-requests/RightChangeRequestDetail'
+import { RightChangeRequestTable } from './right-change-requests/RightChangeRequestTable'
+import { VisitPickupWishes } from './right-change-requests/VisitPickupWishes'
+import { describeRequest } from './right-change-requests/requestLabels'
 
 // Hồ sơ người thân và quan hệ của một người cao tuổi (012 T013; US1, FR-001 → FR-012; Phụ lục 27 dòng "Hồ sơ, quan hệ,
 // vai trò người thân": Hành chính lập, sửa; Quản lý viện xem). Chọn người cao tuổi, bảng quan hệ theo thứ tự liên hệ,
-// bấm dòng mở khung chi tiết (DESIGN.md 5, 7.2). Nút theo /me/permissions; backend kiểm lại ở lệnh.
+// bấm dòng mở khung chi tiết (DESIGN.md 5, 7.2). Nút theo /me/permissions; backend kiểm lại ở lệnh. Từ T017 (US3): khối
+// yêu cầu thay đổi quyền (FR-013 → FR-020b) và khối mong muốn của người cao tuổi (FR-020a, dòng Phụ lục 27 "Mong muốn
+// về khách thăm, người đón") dùng chung khung chi tiết.
 
 const FUNCTION = 'FAMILY_MEMBER_PERMISSION'
+const WISHES = 'VISITOR_PREFERENCE'
 
-function ResidentPicker({ onPick }) {
+export function ResidentPicker({ onPick }) {
   const [q, setQ] = useState('')
   const [items, setItems] = useState(null)
   const [failure, setFailure] = useState(null)
@@ -147,11 +160,26 @@ export function FamilyMembersPage() {
   const [resident, setResident] = useState(null)
   const [relationships, setRelationships] = useState(null)
   const [failure, setFailure] = useState(null)
-  const [selectedId, setSelectedId] = useState(null)
+  const [requests, setRequests] = useState(null)
+  const [requestFailure, setRequestFailure] = useState(null)
+  const [wishes, setWishes] = useState(null)
+  const [selection, setSelection] = useState(null)
   const [sheet, setSheet] = useState(null)
   const [announcement, setAnnouncement] = useState('')
 
   const load = useCallback(async (residentId) => {
+    getRightChangeRequests({ query: { residentId } })
+      .then(({ data }) => {
+        setRequests(data)
+        setRequestFailure(null)
+      })
+      .catch((error) => {
+        setRequests([])
+        setRequestFailure(problemOf(error))
+      })
+    getResidentsByResidentIdVisitPickupWishes({ path: { residentId } })
+      .then(({ data }) => setWishes(data))
+      .catch(() => setWishes(null))
     try {
       const { data } = await getResidentsByResidentIdRelationships({ path: { residentId } })
       setRelationships(data)
@@ -165,7 +193,9 @@ export function FamilyMembersPage() {
   function pick(next) {
     setResident(next)
     setRelationships(null)
-    setSelectedId(null)
+    setRequests(null)
+    setWishes(null)
+    setSelection(null)
     load(next.id)
   }
 
@@ -175,7 +205,10 @@ export function FamilyMembersPage() {
     load(resident.id)
   }
 
+  const selectedId = selection?.kind === 'relationship' ? selection.id : null
+  const selectedRequestId = selection?.kind === 'request' ? selection.id : null
   const selected = relationships?.find((r) => r.id === selectedId) ?? null
+  const selectedRequest = requests?.find((q) => q.id === selectedRequestId) ?? null
   const active = (relationships ?? []).filter((r) => r.status === 'ACTIVE')
   const hasRepresentative = active.some((r) => r.representative)
   const hasPrimaryContact = active.some((r) => r.primaryContact)
@@ -186,20 +219,37 @@ export function FamilyMembersPage() {
 
   return (
     <DetailLayout
-      open={!!selected}
-      detailKey={selectedId}
-      onClose={() => setSelectedId(null)}
-      label={selected ? `Chi tiết người thân ${selected.familyMember.fullName}` : 'Chi tiết người thân'}
+      open={!!selected || !!selectedRequest}
+      detailKey={selection && `${selection.kind}:${selection.id}`}
+      onClose={() => setSelection(null)}
+      label={
+        selectedRequest
+          ? `Chi tiết yêu cầu ${describeRequest(selectedRequest, relationships ?? [])}`
+          : selected
+            ? `Chi tiết người thân ${selected.familyMember.fullName}`
+            : 'Chi tiết người thân'
+      }
       renderDetail={({ Title, Description }) =>
-        selected && (
-          <RelationshipDetail
-            relationship={selected}
-            hasRepresentative={hasRepresentative}
-            canUpdate={can(FUNCTION, 'UPDATE')}
+        selectedRequest ? (
+          <RightChangeRequestDetail
+            request={selectedRequest}
+            relationships={relationships ?? []}
+            can={(operation) => can(FUNCTION, operation)}
             onChanged={changed}
             Title={Title}
             Description={Description}
           />
+        ) : (
+          selected && (
+            <RelationshipDetail
+              relationship={selected}
+              hasRepresentative={hasRepresentative}
+              canUpdate={can(FUNCTION, 'UPDATE')}
+              onChanged={changed}
+              Title={Title}
+              Description={Description}
+            />
+          )
         )
       }
     >
@@ -251,7 +301,50 @@ export function FamilyMembersPage() {
               </CardContent>
             </Card>
           ) : (
-            <RelationshipTable relationships={relationships} selectedId={selectedId} onSelect={setSelectedId} />
+            <RelationshipTable
+              relationships={relationships}
+              selectedId={selectedId}
+              onSelect={(id) => setSelection({ kind: 'relationship', id })}
+            />
+          )}
+          <section aria-labelledby="right-change-requests" className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 id="right-change-requests" className="type-card-title">
+                Yêu cầu thay đổi quyền
+              </h2>
+              {can(FUNCTION, 'CREATE') && (relationships ?? []).length > 0 && (
+                <Button variant="outline" className="h-11" onClick={() => setSheet('request')}>
+                  Lập yêu cầu
+                </Button>
+              )}
+            </div>
+            <ProblemAlert problem={requestFailure} />
+            {requests === null ? (
+              <Skeleton className="h-24 w-full" />
+            ) : requests.length === 0 ? (
+              !requestFailure && (
+                <p className="type-body-sm text-muted-foreground">
+                  Chưa có yêu cầu thay đổi quyền nào cho người cao tuổi này.
+                </p>
+              )
+            ) : (
+              <RightChangeRequestTable
+                requests={requests}
+                relationships={relationships ?? []}
+                selectedId={selectedRequestId}
+                onSelect={(id) => setSelection({ kind: 'request', id })}
+              />
+            )}
+          </section>
+          {wishes && can(WISHES, 'VIEW') && (
+            <VisitPickupWishes
+              residentId={resident.id}
+              residentName={resident.name}
+              wishes={wishes}
+              relationships={relationships ?? []}
+              canCreate={can(WISHES, 'CREATE')}
+              onChanged={changed}
+            />
           )}
           {sheet === 'add' && (
             <AddRelationshipSheet
@@ -260,6 +353,16 @@ export function FamilyMembersPage() {
               residentName={resident.name}
               hasPrimaryContact={hasPrimaryContact}
               hasRepresentative={hasRepresentative}
+              onClose={() => setSheet(null)}
+              onDone={changed}
+            />
+          )}
+          {sheet === 'request' && (
+            <CreateRightChangeRequestSheet
+              open
+              residentId={resident.id}
+              residentName={resident.name}
+              relationships={relationships ?? []}
               onClose={() => setSheet(null)}
               onDone={changed}
             />

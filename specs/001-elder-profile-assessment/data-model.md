@@ -26,7 +26,7 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 **`resident`** – giữ nguyên mọi cột, `UNIQUE`, `CHECK`, trigger. Bỏ khóa ngoại `current_care_level` → `care_level` (mức chăm sóc vào `danh_muc_chung` loại `M01.CARE_LEVEL`, khóa theo `ma`); backend kiểm mã qua `CatalogApi`.
 
-**`health_item`** (`muc_suc_khoe`) – giữ nguyên mọi cột, `CHECK`, trigger `trg_health_item_immutable`. Khóa ngoại `allergen_id`, `severity_id`, `source_id` trỏ `danh_muc_chung.id` (id mới, đổi trong migration); backend kiểm đúng loại `M01.ALLERGEN`, `M01.ALLERGY_SEVERITY`, `M01.INFORMATION_SOURCE`.
+**`health_item`** (`muc_suc_khoe`) – *(2026-11-06, Q-400, `V001_96`)* thêm `unverified BOOLEAN NOT NULL DEFAULT FALSE`, `verified_by BIGINT NULL`, `verified_at DATETIME(6) NULL` và `CHECK ck_health_item_verified`; trigger dựng lại cho phép kiểm chứng một chiều (đã kiểm chứng không quay lại chưa kiểm chứng). Giữ nguyên mọi cột cũ, `CHECK`, trigger `trg_health_item_immutable`. Khóa ngoại `allergen_id`, `severity_id`, `source_id` trỏ `danh_muc_chung.id` (id mới, đổi trong migration); backend kiểm đúng loại `M01.ALLERGEN`, `M01.ALLERGY_SEVERITY`, `M01.INFORMATION_SOURCE`.
 
 **`consent`** (`ban_dong_y`) – giữ nguyên. Thêm `family_member_ids JSON NOT NULL` (thay `consent_family_member`, ghi cùng `INSERT`; quyền theo cột hiện có đã không cho sửa) và chỉ mục nhiều giá trị `((CAST(family_member_ids AS UNSIGNED ARRAY)))` cho tra "bản đồng ý gồm người thân X" (`JSON_CONTAINS`, `MEMBER OF`).
 

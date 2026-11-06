@@ -22,7 +22,7 @@ import com.eldercare.backend.resident.api.HealthRecordApi;
 import com.eldercare.backend.resident.api.dto.InitialHealthRecordView;
 import com.eldercare.backend.resident.internal.health.domain.InitialHealthRecord;
 import com.eldercare.backend.resident.internal.health.domain.InitialHealthRecordContent;
-import com.eldercare.backend.resident.internal.health.persistence.InitialHealthRecordRepository;
+import com.eldercare.backend.resident.internal.health.persistence.InitialHealthRecordStore;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import java.time.Instant;
@@ -62,7 +62,7 @@ public class InitialHealthRecordService implements HealthRecordApi {
             boolean corrected,
             int version) {}
 
-    private final InitialHealthRecordRepository records;
+    private final InitialHealthRecordStore records;
     private final ResidentRepository residents;
     private final ProfileOpenGuard guard;
     private final AuditLogApi auditLog;
@@ -73,7 +73,7 @@ public class InitialHealthRecordService implements HealthRecordApi {
     private final ObjectProvider<CurrentUser> currentUser;
 
     InitialHealthRecordService(
-            InitialHealthRecordRepository records,
+            InitialHealthRecordStore records,
             ResidentRepository residents,
             ProfileOpenGuard guard,
             AuditLogApi auditLog,
@@ -96,7 +96,11 @@ public class InitialHealthRecordService implements HealthRecordApi {
     @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public Optional<RecordView> get(Target target) {
-        return records.findByResidentId(target.residentId()).map(this::view);
+        boolean officeOnly = SelfReportedHealth.isOfficeOnly(currentUser.getObject());
+        // Hành chính chỉ thấy bản Nháp tự khai do chính mình lập, khi người cao tuổi còn Đang tiếp nhận (Q-400)
+        return records.findByResidentId(target.residentId())
+                .filter(r -> !officeOnly || ownDraft(r) && guard.isAdmitting(target.residentId()))
+                .map(this::view);
     }
 
     /** Lập bản nháp lần đầu, hoặc sửa bản nháp kèm {@code If-Match}; đã xác nhận thì 409 {@code ALREADY_CONFIRMED}. */
@@ -107,12 +111,20 @@ public class InitialHealthRecordService implements HealthRecordApi {
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
+        boolean officeOnly = SelfReportedHealth.isOfficeOnly(currentUser.getObject());
+        if (officeOnly && !guard.isAdmitting(residentId)) {
+            throw SelfReportedHealth.deniedForOffice(
+                    "Hành chính chỉ lập hồ sơ sức khỏe tự khai khi người cao tuổi còn Đang tiếp nhận (Q-400)");
+        }
         InitialHealthRecordContent content = normalized(input);
         long user = currentUser.getObject().accountId();
         Optional<InitialHealthRecord> existing = records.findByResidentId(residentId);
+        if (officeOnly && existing.isPresent() && !ownDraft(existing.get())) {
+            throw SelfReportedHealth.deniedForOffice("Hành chính chỉ sửa bản Nháp do chính mình lập (Q-400)");
+        }
         if (existing.isEmpty()) {
             InitialHealthRecord created =
-                    records.saveAndFlush(new InitialHealthRecord(residentId, content, user, time.now()));
+                    records.create(new InitialHealthRecord(residentId, content, user, time.now()));
             auditLog.write(AuditLogEntry.builder()
                     .action(CREATED)
                     .entity(ENTITY_TYPE, created.getId())
@@ -126,7 +138,7 @@ public class InitialHealthRecordService implements HealthRecordApi {
         VersionEtag.requireMatch(ifMatch, record.getVersion(), view(record));
         InitialHealthRecordContent before = record.content();
         record.editDraft(content);
-        records.saveAndFlush(record);
+        InitialHealthRecord saved = records.save(record);
         auditLog.write(AuditLogEntry.builder()
                 .action(DRAFT_EDITED)
                 .entity(ENTITY_TYPE, record.getId())
@@ -134,7 +146,7 @@ public class InitialHealthRecordService implements HealthRecordApi {
                 .before(snapshot(before))
                 .after(snapshot(content))
                 .build());
-        return view(record);
+        return view(saved);
     }
 
     /** Chỉ Bác sĩ xác nhận (AC-03); sau đó trigger chặn sửa. */
@@ -155,14 +167,14 @@ public class InitialHealthRecordService implements HealthRecordApi {
         VersionEtag.requireMatch(ifMatch, record.getVersion(), view(record));
         Instant now = time.now();
         record.confirm(user.accountId(), now);
-        records.saveAndFlush(record);
+        InitialHealthRecord saved = records.save(record);
         auditLog.write(AuditLogEntry.builder()
                 .action(CONFIRMED)
                 .entity(ENTITY_TYPE, record.getId())
                 .resident(residentId)
                 .after(Map.of("confirmedAt", now.toString()))
                 .build());
-        return view(record);
+        return view(saved);
     }
 
     @Override
@@ -172,6 +184,11 @@ public class InitialHealthRecordService implements HealthRecordApi {
             RecordView v = view(r);
             return new InitialHealthRecordView(v.id(), residentId, v.content().currentMedications(), v.confirmed());
         });
+    }
+
+    private boolean ownDraft(InitialHealthRecord record) {
+        return !record.isConfirmed()
+                && record.getPerformedBy() == currentUser.getObject().accountId();
     }
 
     private static void requireDraft(InitialHealthRecord record) {

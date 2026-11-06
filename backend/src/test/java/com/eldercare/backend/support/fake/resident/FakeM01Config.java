@@ -50,6 +50,12 @@ public class FakeM01Config {
 
     @Bean
     @Primary
+    FakeLatestVitalSignSource fakeLatestVitalSignSource() {
+        return new FakeLatestVitalSignSource();
+    }
+
+    @Bean
+    @Primary
     FakeResidentStatistics fakeResidentStatistics() {
         return new FakeResidentStatistics();
     }

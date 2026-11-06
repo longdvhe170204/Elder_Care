@@ -259,8 +259,8 @@ class FR_004a_AdmissionOpinionIT extends M02TestBase {
                         id))
                 .isEqualTo(activeOpinion);
         assertThat(jdbc.queryForObject(
-                        "SELECT reason FROM resident_status_history WHERE resident_id = ? AND command ="
-                                + " 'COMPLETE_ADMISSION'",
+                        "SELECT reason FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE resident_id = ? AND command =" + " 'COMPLETE_ADMISSION'",
                         String.class,
                         residentId))
                 .isEqualTo("Gia đình đã nhận đủ thông tin");
