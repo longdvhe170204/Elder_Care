@@ -7,6 +7,7 @@ import '../../common/format/date_time.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/header_app_bar.dart';
 import '../../common/widgets/status_pill.dart';
+import '../assessments/assessment_screen.dart';
 import 'resident_avatar.dart';
 import 'resident_health_screen.dart';
 import 'resident_labels.dart';
@@ -251,6 +252,14 @@ class _CardBody extends StatelessWidget {
                   onPressed: () => _open(
                     context,
                     ResidentHealthScreen(api: api, residentId: profile['id'] as int, allowedCommands: allowedCommands),
+                  ),
+                ),
+              if (allowedCommands.contains('CREATE_ASSESSMENT'))
+                _PartButton(
+                  label: 'Đánh giá',
+                  onPressed: () => _open(
+                    context,
+                    AssessmentScreen(api: api, residentId: profile['id'] as int, allowedCommands: allowedCommands),
                   ),
                 ),
               _PartButton(

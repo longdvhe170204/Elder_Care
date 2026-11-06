@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
@@ -7,6 +8,7 @@ import '../../common/notifications/notification_api.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/header_app_bar.dart';
 import '../../common/widgets/status_pill.dart';
+import 'document_picker.dart';
 import 'resident_labels.dart';
 
 /// Chữ thường của tên lệnh, dùng trong nhãn nút xác nhận: "Xác nhận cho tạm vắng".
@@ -19,10 +21,14 @@ String _lower(String label) => label.substring(0, 1).toLowerCase() + label.subst
 /// ngoại tuyến, mất mạng thì báo. Giao diện không tự suy ra quyền hay điều kiện; mọi kiểm tra thật do backend. Chưa đính
 /// kèm giấy tờ (chụp, tải tệp: Ghi nhận trở về, Chuyển viện, bằng chứng Ghi nhận qua đời) vì `ApiClient` chưa tải tệp lên.
 class ResidentStatusScreen extends StatefulWidget {
-  const ResidentStatusScreen({super.key, required this.api, required this.residentId});
+  ResidentStatusScreen({super.key, required this.api, required this.residentId, DocumentPicker? picker})
+    : picker = picker ?? ImageDocumentPicker();
 
   final ApiClient api;
   final int residentId;
+
+  /// Nguồn giấy tờ đính kèm lệnh (001 T082); test truyền bản giả.
+  final DocumentPicker picker;
 
   @override
   State<ResidentStatusScreen> createState() => _ResidentStatusScreenState();
@@ -81,6 +87,7 @@ class _ResidentStatusScreenState extends State<ResidentStatusScreen> {
         residentId: widget.residentId,
         status: profile['status'] as String,
         command: command,
+        picker: widget.picker,
       ),
     );
     if (result == null || !mounted) return;
@@ -310,12 +317,19 @@ class _HistoryItem extends StatelessWidget {
 /// nút xác nhận), lý do bắt buộc, căn cứ của Chuyển viện. Lỗi 422 báo tại ô, 409 hiện câu của backend rồi xem trước lại điều
 /// kiện (DESIGN.md 7.4). Đóng với kết quả của backend khi thành công.
 class _CommandSheet extends StatefulWidget {
-  const _CommandSheet({required this.api, required this.residentId, required this.status, required this.command});
+  const _CommandSheet({
+    required this.api,
+    required this.residentId,
+    required this.status,
+    required this.command,
+    required this.picker,
+  });
 
   final ApiClient api;
   final int residentId;
   final String status;
   final String command;
+  final DocumentPicker picker;
 
   @override
   State<_CommandSheet> createState() => _CommandSheetState();
@@ -326,9 +340,35 @@ class _CommandSheetState extends State<_CommandSheet> {
   final _reason = TextEditingController();
   final _basisText = TextEditingController();
   String? _basisKind;
+  final List<PickedDocument> _documents = [];
+  final Map<PickedDocument, int> _uploaded = {};
   Map<String, String> _errors = {};
   Object? _failure;
   bool _busy = false;
+
+  /// Giấy tờ đính kèm: Ghi nhận trở về từ Điều trị tại bệnh viện, Chuyển viện (tối đa 10, `attachmentFileIds`), bằng chứng Ghi
+  /// nhận qua đời (một tệp, `details.evidenceFileId`) (001 T082, FR-047b).
+  bool get _takesDocuments =>
+      widget.command == 'TRANSFER_OUT' ||
+      widget.command == 'RECORD_DEATH' ||
+      (widget.command == 'RECORD_RETURN' && widget.status == 'HOSPITALIZED');
+
+  int get _maxDocuments => widget.command == 'RECORD_DEATH' ? 1 : 10;
+
+  Future<void> _addDocument(Future<PickedDocument?> Function() source) async {
+    final document = await source();
+    if (document != null && mounted) setState(() => _documents.add(document));
+  }
+
+  /// Tải lên các tệp chưa tải (tệp đã tải ở lần gửi trước không tải lại); trả mã tệp theo thứ tự chọn.
+  Future<List<int>> _uploadDocuments() async {
+    for (final document in _documents) {
+      if (_uploaded.containsKey(document)) continue;
+      final result = await widget.api.uploadFile('/files', 'file', document.bytes, document.name, document.contentType);
+      _uploaded[document] = result!['id'] as int;
+    }
+    return [for (final document in _documents) _uploaded[document]!];
+  }
 
   String get _path => switch (widget.command) {
     'GRANT_TEMPORARY_ABSENCE' => 'grant-temporary-absence',
@@ -382,13 +422,16 @@ class _CommandSheetState extends State<_CommandSheet> {
     if (errors.isNotEmpty) return;
     setState(() => _busy = true);
     try {
+      final fileIds = _takesDocuments ? await _uploadDocuments() : const <int>[];
       final result = await widget.api.post(
         '/residents/${widget.residentId}/$_path',
         {
           'reason': _reason.text.trim(),
           'details': {
             if (widget.command == 'TRANSFER_OUT') 'basis': {kind!.value: kind.numeric ? int.parse(value) : value},
+            if (widget.command == 'RECORD_DEATH' && fileIds.isNotEmpty) 'evidenceFileId': fileIds.first,
           },
+          if (widget.command != 'RECORD_DEATH' && fileIds.isNotEmpty) 'attachmentFileIds': fileIds,
         },
         headers: {'Idempotency-Key': newIdempotencyKey()},
       );
@@ -403,8 +446,7 @@ class _CommandSheetState extends State<_CommandSheet> {
         } else if (e.status == 422 && e.errorCode == 'EVIDENCE_REQUIRED') {
           _errors = {
             'evidence':
-                'Phải kèm giấy tờ bằng chứng khi Hành chính ghi nhận qua đời ngoài viện. '
-                'App chưa đính kèm được tệp, dùng bản web.',
+                'Phải kèm giấy tờ bằng chứng khi Hành chính ghi nhận qua đời ngoài viện. Chụp hoặc chọn giấy tờ ở trên.',
           };
         } else {
           _failure = e;
@@ -507,6 +549,40 @@ class _CommandSheetState extends State<_CommandSheet> {
                   errorText: _errors['basis'],
                 ),
               ),
+            ],
+            if (_takesDocuments) ...[
+              const SizedBox(height: 12),
+              Text(
+                widget.command == 'RECORD_DEATH' ? 'Giấy tờ bằng chứng' : 'Giấy tờ đính kèm (tối đa $_maxDocuments)',
+                style: text.labelMedium,
+              ),
+              for (final document in _documents)
+                Row(
+                  children: [
+                    Expanded(child: Text(document.name, style: text.bodyMedium)),
+                    IconButton(
+                      tooltip: 'Bỏ ${document.name}',
+                      icon: const Icon(LucideIcons.x),
+                      onPressed: _busy ? null : () => setState(() => _documents.remove(document)),
+                    ),
+                  ],
+                ),
+              if (_documents.length < _maxDocuments)
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: _busy ? null : () => _addDocument(widget.picker.capture),
+                      icon: const Icon(LucideIcons.camera),
+                      label: const Text('Chụp giấy tờ'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: _busy ? null : () => _addDocument(widget.picker.pickFromGallery),
+                      icon: const Icon(LucideIcons.image),
+                      label: const Text('Chọn ảnh'),
+                    ),
+                  ],
+                ),
             ],
             if (_errors['evidence'] != null)
               Padding(

@@ -7,8 +7,8 @@ import '../common/notifications/push_coordinator.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'feedback/feedback_screen.dart';
-import 'profile/family_profile_screen.dart';
 import 'portal/portal_screen.dart';
+import 'profile/family_profile_screen.dart';
 import 'right_change_requests/right_change_requests_screen.dart';
 
 /// Gốc phần người thân (000 T007; 002 T047; Q-346, Q-305: cùng chức năng với cổng người thân trên web). Màn của từng
