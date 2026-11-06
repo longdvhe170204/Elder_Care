@@ -10,6 +10,7 @@ import '../common/offline/offline_queue.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'approval_requests/approval_inbox_screen.dart';
+import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'handover/handover_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
@@ -23,7 +24,7 @@ import 'sync_results/sync_results_screen.dart';
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
 /// chung tại tầng, FR-014a), thanh điều hướng dưới. Màn của từng feature thêm vào [_tabs] (tối đa 5 mục, mục thứ 6 trở
 /// đi gom vào "Thêm"); hiện có Thông báo, Đồng bộ, Chờ xem lại, Mở khóa sớm, Thêm (Người cao tuổi (001 T023), Phê duyệt, Mã đăng nhập cho người cao
-/// tuổi; 002 T104). Mục trong "Thêm" mở ngay trong tab, thanh tiêu đề có nút quay lại danh sách. Biểu tượng lucide cùng
+/// tuổi, Chăm sóc hằng ngày; 002 T104). Mục trong "Thêm" mở ngay trong tab, thanh tiêu đề có nút quay lại danh sách. Biểu tượng lucide cùng
 /// tên với web.
 /// Tab Thông báo đứng đầu, có huy hiệu số Khẩn cấp chưa xác nhận; đang ở tab khác mà có Khẩn cấp thì hiện dải báo, vì khi app
 /// đang mở máy không hiện thông báo hệ thống (009 T022).
@@ -51,6 +52,7 @@ class _StaffRootState extends State<StaffRoot> {
     'Ca của tôi',
     'Phân công',
     'Bàn giao ca',
+    'Chăm sóc hằng ngày',
   };
 
   int _index = _inboxIndex;
@@ -147,6 +149,12 @@ class _StaffRootState extends State<StaffRoot> {
     if (_canViewShifts) ('Ca của tôi', LucideIcons.calendarDays, () => MyShiftsScreen(api: widget.session.api)),
     if (_canViewShifts) ('Phân công', LucideIcons.users, () => AssignmentsScreen(api: widget.session.api)),
     if (_canViewHandovers) ('Bàn giao ca', LucideIcons.arrowLeftRight, () => HandoverScreen(api: widget.session.api)),
+    (
+      'Chăm sóc hằng ngày',
+      LucideIcons.clipboardCheck,
+      () =>
+          CareTasksHomeScreen(api: widget.session.api, accountId: widget.session.user!.accountId, queue: widget.queue),
+    ),
   ];
 
   @override

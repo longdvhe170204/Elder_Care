@@ -40,6 +40,10 @@ class CareStaffLookup implements ShiftStaffPort {
         return shifts.published(floor, from, to).stream().map(this::view).toList();
     }
 
+    public List<ShiftView> ongoingShifts(Instant at) {
+        return shifts.ongoingCareShifts(at).stream().map(this::view).toList();
+    }
+
     public Optional<ShiftView> shiftContaining(long floor, Instant at) {
         return shifts.atFloor(floor, at).map(this::view);
     }

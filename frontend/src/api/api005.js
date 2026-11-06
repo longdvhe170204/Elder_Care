@@ -51,6 +51,9 @@ export const postDayCareAttendanceRecordsByIdCorrect = (params) => request('POST
 /** Nhận công việc chung, hoặc Người phụ trách ca nhận việc về mình (FR-031, FR-033, BR-M04-13, BR-M09-01) */
 export const postCareTasksByIdClaim = (params) => request('POST', '/care-tasks/{id}/claim', params)
 
+/** Phân lại công việc chưa đóng (Trưởng tầng; Người phụ trách ca trong phạm vi ca) (FR-031, FR-045, BR-M09-01) */
+export const postCareTasksByIdReassign = (params) => request('POST', '/care-tasks/{id}/reassign', params)
+
 /** Danh sách công việc Quá hạn (tầng của người gọi; Quản lý viện toàn viện) (FR-045) */
 export const getCareTasksOverdue = (params) => request('GET', '/care-tasks/overdue', params)
 
@@ -107,6 +110,9 @@ export const putResultValuesById = (params) => request('PUT', '/result-values/{i
 
 /** Ngừng hiệu lực giá trị kết quả (FR-034, FR-038) */
 export const postResultValuesByIdDeactivate = (params) => request('POST', '/result-values/{id}/deactivate', params)
+
+/** Thời khóa biểu theo ngày (Trưởng tầng, Điều dưỡng; chỉ xem) (FR-048) */
+export const getResidentsByResidentIdTimetable = (params) => request('GET', '/residents/{residentId}/timetable', params)
 
 /** Dữ liệu nguồn của ca để người lập đối chiếu (FR-017) */
 export const getShiftsByShiftIdSourceData = (params) => request('GET', '/shifts/{shiftId}/source-data', params)

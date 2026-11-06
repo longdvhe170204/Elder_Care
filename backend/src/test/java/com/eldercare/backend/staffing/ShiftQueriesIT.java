@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.care.api.spi.CareShiftPort;
+import com.eldercare.backend.care.api.spi.ShiftStaffPort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
@@ -49,6 +50,9 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
     CareShiftPort care;
 
     @Autowired
+    ShiftStaffPort careStaff;
+
+    @Autowired
     NursingShiftPort nursing;
 
     @Autowired
@@ -61,6 +65,43 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
     com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore store;
 
     private long floor;
+
+    @Test
+    void FR_017_ongoingCareShiftsIncludeFloorsAndAreasWithoutBedsOrTasks() {
+        long firstFloor = floor;
+        long first = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        floor = TestUsers.nextId();
+        long second = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        jdbc.update("UPDATE work_shift SET scope_type='AREA' WHERE id=?", second);
+        assertThat(careStaff.ongoingShifts(time.now()))
+                .filteredOn(s -> s.floorAreaId() == firstFloor || s.floorAreaId() == floor)
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .containsExactlyInAnyOrder(first, second);
+    }
+
+    @Test
+    void FR_017_ongoingCareShiftsUseHalfOpenTimeBounds() {
+        long id = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        assertThat(careStaff.ongoingShifts(Instant.parse("2031-01-13T00:00:00Z")))
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .contains(id);
+        assertThat(careStaff.ongoingShifts(Instant.parse("2031-01-13T08:00:00Z")))
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .doesNotContain(id);
+    }
+
+    @Test
+    void FR_017_ongoingCareShiftsExcludeUnpublishedAndFacilityShifts() {
+        long draft = fixture(staff(Role.NURSING_STAFF), "DRAFT");
+        floor = TestUsers.nextId();
+        long cancelled = fixture(staff(Role.NURSING_STAFF), "CANCELLED");
+        floor = TestUsers.nextId();
+        long facility = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        jdbc.update("UPDATE work_shift SET scope_type='FACILITY',scope_id=NULL WHERE id=?", facility);
+        assertThat(careStaff.ongoingShifts(time.now()))
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .doesNotContain(draft, cancelled, facility);
+    }
 
     @BeforeEach
     void setup() {

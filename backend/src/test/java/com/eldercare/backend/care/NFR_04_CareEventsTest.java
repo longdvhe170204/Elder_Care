@@ -10,6 +10,43 @@ import org.junit.jupiter.api.Test;
 
 class NFR_04_CareEventsTest {
     @Test
+    void NFR_04_legacyBatchedReminderOutboxIsReadableWithoutReserializingIds() {
+        var context = new com.eldercare.backend.care.api.dto.CareEventContext(
+                "M04.TASK", 7, "BATCHED_REMINDER", AT, Optional.of(2L), List.of(new RecipientGroup.Staff(4, "TEST")));
+        var json = tools.jackson.databind.json.JsonMapper.builder().build();
+        String legacy = json.writeValueAsString(Map.of("taskIds", List.of(7L, 8L), "context", context));
+        var replay = json.readValue(legacy, com.eldercare.backend.care.api.events.BatchedOverdueTaskReminder.class);
+        assertThat(replay.floorAreaId()).isEqualTo(2);
+        assertThat(replay.taskCount()).isEqualTo(2);
+        assertThat(json.readTree(json.writeValueAsString(replay)).has("taskIds"))
+                .isFalse();
+        assertThat(replay.eventKey())
+                .isEqualTo(
+                        new com.eldercare.backend.care.api.events.BatchedOverdueTaskReminder(List.of(7L, 8L), context)
+                                .eventKey());
+    }
+
+    @Test
+    void NFR_04_legacyResidentAlertOutboxIsReadableWithoutSourceDetails() {
+        var context = new com.eldercare.backend.care.api.dto.CareEventContext(
+                "M04.TASK", 7, "MANDATORY", AT, Optional.of(2L), List.of());
+        var legacy = new com.eldercare.backend.care.api.events.AlertRequested(
+                "OVERDUE_CARE_TASK",
+                NotificationLevel.MEDIUM,
+                8,
+                "M04.TASK:7",
+                com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType.MEAL,
+                9,
+                context);
+        var json = tools.jackson.databind.json.JsonMapper.builder().build();
+        String payload = json.writeValueAsString(legacy).replace(",\"sourceDetails\":null", "");
+        var replay = json.readValue(payload, com.eldercare.backend.care.api.events.AlertRequested.class);
+        assertThat(replay.residentId()).isEqualTo(8);
+        assertThat(replay.sourceDetails()).isEmpty();
+        assertThat(replay.eventKey()).isEqualTo(legacy.eventKey());
+    }
+
+    @Test
     void FR_003_returnedPlanLegacyConstructorAndSerializedEventRemainReadable() {
         var context = new com.eldercare.backend.care.api.dto.CareEventContext(
                 "M04.CARE_PLAN", 7, "RETURN:2", AT, Optional.empty(), List.of(new RecipientGroup.Staff(4, "CREATOR")));
@@ -171,7 +208,7 @@ class NFR_04_CareEventsTest {
         Object[] arguments = Arrays.stream(constructor.getParameterTypes())
                 .map(t -> {
                     if (t.isInstance(context)) return context;
-                    if (t == long.class) return 7L;
+                    if (t == long.class || t == Long.class) return 7L;
                     if (t == boolean.class) return false;
                     if (t == int.class) return 1;
                     if (t == String.class) return "TEST";

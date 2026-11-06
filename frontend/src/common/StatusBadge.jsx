@@ -56,6 +56,9 @@ const STATUS_TONE = {
   'Hoạt động': 'settled',
   'Khóa tạm': 'attention',
   'Đã khóa': 'neutral-outline',
+  // Buổi hoạt động (014 T009; DESIGN.md 6.8.2): Đã lên lịch, Đã hủy giữ neutral
+  'Đã điểm danh': 'settled',
+  'Không điểm danh': 'attention',
 }
 
 function statusTone(status) {

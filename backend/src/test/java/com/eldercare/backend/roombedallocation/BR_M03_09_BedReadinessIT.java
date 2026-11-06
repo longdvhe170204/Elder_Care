@@ -151,19 +151,54 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
 
+    @Autowired
+    com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi allocationCommands;
+
+    @Autowired
+    com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource residency;
+
     @Test
-    void FR_011a_missingScheduledTransferProviderCannotConfirmBedAsEmpty() throws Exception {
+    void FR_011a_readinessImmediatelyStartsTheWaitingScheduledTransfer() throws Exception {
+        long sourceBed = TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code,state) VALUES(?,?,'G-NGUON','OCCUPIED')", sourceBed, room);
+        long current = TestUsers.nextId();
         jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source,waiting_for_bed_ready,basis_type,basis_id) VALUES(?,?,'FUTURE',?,'BASIC','CURRENT',TRUE,'APPROVAL_REQUEST',?)",
+                "INSERT INTO bed_allocation(id,resident_id,bed_id,status,start_at,checked_care_level,care_level_source) VALUES(?,?,?,'ACTIVE',?,'BASIC','CURRENT')",
+                current,
                 departed,
-                bed,
-                Timestamp.from(time.now()),
-                TestUsers.nextId());
-        confirm("{}").andExpect(status().isServiceUnavailable());
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
+                sourceBed,
+                Timestamp.from(time.now().minusSeconds(1800)));
+        residency.resident(
+                departed,
+                com.eldercare.backend.roombedallocation.api.spi.ResidencyType.LONG_TERM,
+                null,
+                null,
+                null,
+                null);
+        long request = TestUsers.nextId();
+        var effective = time.today().plusDays(2);
+        assertThat(allocationCommands.checkScheduledReservation(departed, bed, effective))
+                .isEmpty();
+        long future = allocationCommands.reserveScheduledTransfer(request, departed, bed, effective);
+        allocationCommands.applyScheduledTransfer(
+                request,
+                effective
+                        .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                        .toInstant());
+
+        confirm("{}").andExpect(status().isOk()).andExpect(jsonPath("$.state").value("OCCUPIED"));
+        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, current))
+                .isEqualTo("CLOSED");
+        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, future))
+                .isEqualTo("ACTIVE");
+        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, sourceBed))
                 .isEqualTo("AWAITING_READY");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Integer.class, bed))
-                .isZero();
+        assertThat(events.stream(com.eldercare.backend.roombedallocation.api.events.BedTransferred.class)
+                        .filter(e -> e.residentId() == departed))
+                .hasSize(1);
+        assertThat(events.stream(com.eldercare.backend.roombedallocation.api.events.BedBecameEmpty.class)
+                        .filter(e -> e.bedId() == bed))
+                .isEmpty();
     }
 
     @Test

@@ -149,4 +149,19 @@ class BR_M03_01_AllocationConditionsIT extends StructureTestSupport {
                 .extracting(UnmetCondition::code)
                 .contains("ALLOCATION_CARE_LEVEL");
     }
+
+    @Test
+    void BR_M03_01_registrationFallbackIsUsedOnlyWhenContractLevelIsMissing() throws Exception {
+        jdbc.update("UPDATE resident SET current_care_level=NULL WHERE id=?", resident);
+        residency.resident(resident, ResidencyType.LONG_TERM, null, CareLevelCode.BASIC, null, null);
+        assertThat(check(time.now(), null, true)).isEmpty();
+        residency.resident(resident, ResidencyType.LONG_TERM, CareLevelCode.SPECIAL, CareLevelCode.BASIC, null, null);
+        assertThat(check(time.now(), null, true))
+                .extracting(UnmetCondition::code)
+                .contains("ALLOCATION_CARE_LEVEL");
+        residency.resident(resident, ResidencyType.LONG_TERM, null, null, null, null);
+        assertThat(check(time.now(), null, true))
+                .extracting(UnmetCondition::code)
+                .contains("ALLOCATION_CARE_LEVEL");
+    }
 }
