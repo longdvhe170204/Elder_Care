@@ -11,7 +11,7 @@ import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { ConsentForm } from './ConsentForm'
 import { HandoverForm } from './HandoverForm'
-import { amountText, commandsFor, holderLabel, kindLabel, statusLabel } from './belongingLabels'
+import { amountText, commandsFor, GIVER_LABELS, holderLabel, kindLabel, statusLabel } from './belongingLabels'
 
 // Khung chi tiết một đồ gửi (013 T011; FR-011, FR-012; api-013 GET /belongings/{id}): thông tin đồ, lịch sử bàn giao
 // (cả lần chặn trả) và các lệnh. Hợp đồng không trả danh sách lệnh được phép nên nút hiện theo khóa quyền "Đồ gửi" của
@@ -64,7 +64,9 @@ function IncidentLink({ entry, onLinked }) {
 }
 
 function HistoryEntry({ entry, onFailure, canLink, onLinked }) {
-  const parties = [entry.giverName, entry.recipientName].filter(Boolean).join(' → ')
+  // Bên nhận là nhân viên thì backend không có tên (chỉ mã nhân viên): hiện vai trò thay cho vế bị trống
+  const recipient = entry.recipientName ?? GIVER_LABELS[entry.recipientType]
+  const parties = [entry.giverName, recipient].filter(Boolean).join(' → ')
   return (
     <li className="flex flex-col gap-1 border-t py-3 first:border-t-0 first:pt-0">
       <div className="flex flex-wrap items-baseline justify-between gap-2">

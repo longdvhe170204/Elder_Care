@@ -125,6 +125,34 @@ describe('BelongingsPage (013 T011, US1)', () => {
     expect(screen.getByText(/Trần Văn Bình → Trần Thu Hà/)).toBeInTheDocument()
   })
 
+  it('FR_011_lichSuTiepNhan_benNhanLaNhanVienKhongCoTen_hienVaiTro', async () => {
+    const api = setup()
+    api.on(
+      'GET',
+      '/belongings/90',
+      json(200, {
+        belonging: PHONE,
+        handovers: [
+          {
+            id: 300,
+            belongingId: 90,
+            kind: 'INTAKE',
+            targetStatus: 'HELD',
+            giverType: 'FAMILY_MEMBER',
+            giverName: 'Trần Thu Hà',
+            recipientType: 'STAFF',
+            occurredAt: '2026-11-06T02:00:00Z',
+            quantity: 1,
+            photoFileIds: [],
+          },
+        ],
+      }),
+    )
+    await openResident()
+    fireEvent.click(await screen.findByRole('button', { name: 'Chi tiết Điện thoại Nokia' }))
+    expect(await screen.findByText(/Trần Thu Hà → Nhân viên/)).toBeInTheDocument()
+  })
+
   it('FR_029_khongCoQuyenTao_khongCoNutTiepNhan', async () => {
     setup(['BELONGINGS:VIEW'])
     await openResident()
