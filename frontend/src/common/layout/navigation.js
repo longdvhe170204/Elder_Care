@@ -230,6 +230,14 @@ export const NAV_GROUPS = [
         functions: ['ADMISSION_CONTRACT_DEPOSIT'],
         roles: [QL, HC, NT, KT],
       },
+      // Dòng "Khai báo tạm trú, lưu trú" (018 K1): Hành chính thao tác, Quản lý viện xem
+      {
+        key: 'residence-registrations',
+        label: 'Khai báo cư trú',
+        icon: 'ClipboardCheck',
+        functions: ['RESIDENCE_REGISTRATION'],
+        roles: [QL, HC],
+      },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
       // Dòng "Hồ sơ, quan hệ, vai trò người thân" (FR-067 của 012; Phụ lục 27 "Người thân và quyền"): Hành chính lập, Quản lý viện xem
