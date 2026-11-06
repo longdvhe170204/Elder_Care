@@ -206,7 +206,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [x] T069 [US6] Cài tạo tài khoản người thân (AC-01 hoặc AC-09; hồ sơ người thân có ít nhất một quan hệ chưa ở trạng thái cuối qua `QuanHeNguoiThanApi`; vai trò duy nhất AC-10; `cachXacMinh` vào `chi_tiet` nhật ký) trong `TaiKhoanService.java` và endpoint `POST /tai-khoan-nguoi-than` trong `TaiKhoanController.java` (FR-050, FR-052)
 - [x] T070 [US6] Cài `xetLaiNguoiThan` (`MANDATORY`) trong `TaiKhoanApiImpl.java` và job `BE/administration/taikhoan/lich/KhoaSauKetThucLuuTru.java` (dùng `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` và CFG-M01-04; ShedLock) (BR-M15-14, FR-049)
 - [x] T071 [US6] Cài phạm vi `QUAN_HE` cho AC-10 trong `PhamViService.java` và đăng ký `DieuKienChuThich` ¹, ² (bản đồng ý, người đại diện) do 001/012 cài, qua `QuanHeNguoiThanApi` (FR-045 → FR-048) *(2026-10-21: phạm vi `QUAN_HE`, chế độ chỉ đọc, nhóm trường sức khỏe theo ¹; quyền riêng của từng người thân chờ `quyenDangBat` của 012, plan ghi chú Phase 8)*
-- [ ] T072 [P] [US6] Test app `mobile/test/nguoi-than/an_suc_khoe_test.dart`: phần sức khỏe ẩn khi API không trả trường (giới hạn trường ở backend)
+- [x] T072 [P] [US6] *(2026-11-06: `mobile/test/family/portal/hidden_health_test.dart` 2: phản hồi không có quyền Xem sức khỏe thì không có lối vào, phần trả 403 chỉ hiện câu khóa; hành vi đã có từ 012 T028 nên test xanh ngay, kiểm bằng cách tạm sửa hỏng màn thì cả hai đỏ)* Test app `mobile/test/nguoi-than/an_suc_khoe_test.dart`: phần sức khỏe ẩn khi API không trả trường (giới hạn trường ở backend)
 
 **Checkpoint**: Người thân chỉ thấy đúng phần được cấp.
 
