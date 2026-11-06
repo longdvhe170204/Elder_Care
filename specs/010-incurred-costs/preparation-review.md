@@ -1,5 +1,7 @@
 # Chuẩn bị 010 — bản dịch hợp đồng và phụ thuộc
 
+> **Hiện tại 2026-11-04:** nền `origin/develop 62fdb4f2`, nhánh `impl/010-foundation-next`; xem [foundation-checkpoint-2026-11-04.md](foundation-checkpoint-2026-11-04.md). A đã có API bảng chung; B đã có API/fake tài chính; RepresentativePort có bản thật do A/012 cài. T002/T005–T007 đã kiểm xanh. Các bảng dưới đây là lịch sử, không còn là danh sách blocker hiện tại. T008 còn retention/quyền tệp; quantity/newQuantity chờ nội dung quyết định; gate 17 phản hồi HTTP thiếu schema vẫn còn.
+
 Nhánh `impl/010-incurred-costs`, worktree `.worktrees/010-incurred-costs`, nền `origin/develop da9636a`; người dùng tự tạo. Lượt chuẩn bị đầu chỉ sửa tài liệu E. Sau khi E xác nhận A/chủ dự án đã duyệt trong phiên 2026-10-29, đã bắt đầu T001/phần độc lập T006; trạng thái mã và test hiện tại ở [foundation-verification.md](foundation-verification.md). Giữ nguyên các worktree 008, không commit/push/PR/merge.
 
 > **T003/T004 đã khai báo tại nhánh E:** xem [api-declaration-verification.md](api-declaration-verification.md) để phân biệt khai báo/fake với bản cài và producer. Các bảng rà mã lúc chuẩn bị bên dưới giữ nguyên làm ảnh chụp lịch sử.

@@ -3,8 +3,8 @@ package com.eldercare.backend.staffing.internal.service;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.common.error.NotFoundException;
-import com.eldercare.backend.staffing.credential.internal.persistence.CredentialStore;
-import com.eldercare.backend.staffing.staff.internal.persistence.StaffStore;
+import com.eldercare.backend.staffing.internal.credential.persistence.CredentialStore;
+import com.eldercare.backend.staffing.internal.staff.persistence.StaffStore;
 
 /** T009: hồ sơ/chứng chỉ gắn nhân viên, không gán nhầm nhân viên thành người cao tuổi hoặc tầng. */
 public class M09ScopeAssignment implements ScopeAssignmentProvider {

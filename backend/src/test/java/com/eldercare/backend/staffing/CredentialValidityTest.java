@@ -3,8 +3,8 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.staffing.credential.internal.domain.CredentialValidity;
-import com.eldercare.backend.staffing.credential.internal.domain.CredentialValidity.Status;
+import com.eldercare.backend.staffing.internal.credential.domain.CredentialValidity;
+import com.eldercare.backend.staffing.internal.credential.domain.CredentialValidity.Status;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;

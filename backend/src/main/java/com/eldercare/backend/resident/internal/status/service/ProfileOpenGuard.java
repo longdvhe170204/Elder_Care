@@ -26,6 +26,11 @@ public class ProfileOpenGuard {
         this.statuses = statuses;
     }
 
+    /** Hồ sơ còn Đang tiếp nhận không (Q-400: Hành chính chỉ ghi tự khai về sức khỏe trong giai đoạn này). */
+    public boolean isAdmitting(long residentId) {
+        return statuses.find(residentId).orElseThrow(NotFoundException::new) == ResidentStatus.ADMISSION_IN_PROGRESS;
+    }
+
     /** Hồ sơ phải tồn tại và chưa ở trạng thái cuối; gọi trong transaction của lệnh. */
     public void requireOpen(long residentId) {
         ResidentStatus status = statuses.find(residentId).orElseThrow(NotFoundException::new);

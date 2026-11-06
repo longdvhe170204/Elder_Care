@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Research**: [research.md](research.md)
 
-Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đây không phải script SQL; migration viết ở giai đoạn triển khai. Quy ước kiểu, tên, cột chuẩn của nhóm 1, 2, 3 và mẫu trigger theo [data-model của 000](../000-shared-foundation/data-model.md) mục 1. Người cao tuổi, hợp đồng, phiên bản nội dung, dịch vụ, phiên bản đơn giá, lượt vắng, công việc, kết quả, liều, lần giao, lượt ở lại, suất ăn, điểm danh, người thân, tệp là tham chiếu logic (`BIGINT` hoặc mã nguồn), không có khóa ngoại sang module khác. Số tiền và đơn giá lưu `DECIMAL(15,0)` (đồng, số nguyên, FR-013; quy ước 000 cập nhật 2026-10-29); số lượng `DECIMAL(10,2)`; hệ số `DECIMAL(5,2)` (phần trăm). Thời điểm `DATETIME(6)`, ngày `DATE` theo Asia/Ho_Chi_Minh (DBR-25).
+Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đây không phải script SQL; migration viết ở giai đoạn triển khai. Quy ước kiểu, tên, cột chuẩn của nhóm 1, 2, 3 và mẫu trigger theo [data-model của 000](../000-shared-foundation/data-model.md) mục 1. Người cao tuổi, hợp đồng, phiên bản nội dung, dịch vụ, phiên bản đơn giá, lượt vắng, công việc, kết quả, liều, lần giao, lượt ở lại, suất ăn, điểm danh, người thân, tệp là tham chiếu logic (`BIGINT` hoặc mã nguồn), không có khóa ngoại sang module khác. Số tiền và đơn giá lưu `DECIMAL(15,0)` (đồng, số nguyên, FR-013; quy ước 000 cập nhật 2026-10-29); số lượng `DECIMAL(12,3)`; hệ số `DECIMAL(5,2)` (phần trăm). Thời điểm `DATETIME(6)`, ngày `DATE` theo Asia/Ho_Chi_Minh (DBR-25).
 
 ---
 
@@ -41,7 +41,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 ### 0.2. Lược đồ thực tế của 010 sau R-15 — chuẩn bị T005 ngày 2026-10-30
 
-Mục này thay tên bảng và cách lưu của các mục 2 → 8 khi cài mới. 010 chưa có migration đã merge nên không tạo bảng cũ rồi chép/xóa. Chỉ ba bảng riêng: cost_statement (gồm kỳ), cost_item, cost_source_index. Bảng giao dịch của 017 do feature 017 làm sau. Không thêm hoặc sửa bảng chung, không đọc/ghi trực tiếp bảng của A.
+Mục này thay tên bảng và cách lưu của các mục 2 → 8 khi cài mới. Chỉ ba bảng riêng: cost_statement (gồm kỳ), cost_item, cost_source_index; V010_01/V010_02 đã có trên develop. Bảng giao dịch của 017 do feature 017 làm sau. Không thêm hoặc sửa bảng chung; ghi qua API của A. SQL chỉ đọc dòng có tiền tố M11 trong persistence theo quy ước R-15 ở team-plan mục 8.
 
 **cost_statement**: kind = PERIOD hoặc STATEMENT; id BIGINT. Dòng PERIOD giữ period_month CHAR(7), period_starts_on/period_ends_on DATE, status, finalization_due_on, finalized_at, locked_at, version, created_at/by. Dòng STATEMENT giữ period_id (FK tới PERIOD trong cùng bảng), resident_id, statement_type REGULAR/SUPPLEMENTARY, final_period, through_date, status, total DECIMAL(15,0), totals_by_type JSON, submitted_by/at, change_warning JSON, finalized_by/at, first_export_id, locked_at và cột chuẩn.
 
@@ -51,7 +51,7 @@ Mục này thay tên bảng và cách lưu của các mục 2 → 8 khi cài m�
 - status OPEN/AWAITING_FINALIZATION/FINALIZED; FINALIZED có finalized_at và locked_at, trạng thái khác chưa có hai mốc này. Khi đã khóa, trigger chặn mọi đổi kể cả bỏ khóa, đổi status/version/JSON; chỉ cho first_export_id từ NULL sang id một lần (FR-041). Không có bảng lần xuất: giá trị này là tham chiếu hành động nhật ký, bộ dựng xuất/ghi nhật ký thuộc T030.
 - Dòng PERIOD đã chốt vẫn là đích tham chiếu cho bảng bổ sung phát sinh muộn. Quyết định lập loại bảng/kỳ là nghiệp vụ của backend, không thêm luật chặn bảng bổ sung vào trigger của kỳ.
 
-**cost_item**: id, resident_id, statement_id, period_id; cost_type (10 loại), origin EVENT_BASED/MANUAL/PURCHASE_ASSISTANCE/ADJUSTMENT; source_type/source_id/billing_unit; purchase_assistance_id; service_id, item_code, description; incurred_on, occurred_at; quantity DECIMAL(10,2), unit, unit_price DECIMAL(15,0), factor_percent DECIMAL(5,2), amount DECIMAL(15,0); unit_price_basis/source_values JSON; flags SET; reason, original_item_id/original_period_id, adjustment_type, source_change_id; checked_by/at, approved_by/at, excess_approval_reason, cancelled_by/cancellation_reason; unique_key, locked_at, version, created_at/by.
+**cost_item**: id, resident_id, statement_id, period_id; cost_type (10 loại), origin EVENT_BASED/MANUAL/PURCHASE_ASSISTANCE/ADJUSTMENT; source_type/source_id/billing_unit; purchase_assistance_id; service_id, item_code, description; incurred_on, occurred_at; quantity DECIMAL(12,3), unit, unit_price DECIMAL(15,0), factor_percent DECIMAL(5,2), amount DECIMAL(15,0); unit_price_basis/source_values JSON; flags SET; reason, original_item_id/original_period_id, adjustment_type, source_change_id; checked_by/at, approved_by/at, excess_approval_reason, cancelled_by/cancellation_reason; unique_key, locked_at, version, created_at/by.
 
 - FK chỉ tới bảng M11 hiện có trong migration này. resident/service/purchase_assistance/source_change là tham chiếu logic tới nguồn hoặc bảng chung, chưa thêm FK sang module khác.
 - DBR-15: CHECK theo origin giữ đúng nguồn; MANUAL/ADJUSTMENT có lý do. ADJUSTMENT trỏ khoản gốc hoặc nguồn bổ sung cùng kỳ gốc. EVENT_BASED còn hiệu lực có unique_key = <source_type>:<source_id>:<billing_unit>, hủy thì NULL; loại khác NULL. UNIQUE chống lập trùng kể cả đồng thời, không chặn khoản điều chỉnh.
@@ -61,25 +61,27 @@ Mục này thay tên bảng và cách lưu của các mục 2 → 8 khi cài m�
 - Giữ năm chỉ mục: statement/status, resident/incurred_on, source_type/source_id, original_item_id, service_id/status. Lập chỉ mục để tìm khoản không thêm danh sách chưa lập.
 - Tính giá, gói, tổng gốc + điều chỉnh không âm, kiểm quyền, trạng thái lệnh, khoảng tính phí/ngày giải phóng giường, nhật ký và phát sự kiện nằm ở backend các task sau; test schema không thay các test này.
 
-**cost_source_index**: khóa chính (source_type, source_id, billing_unit); resident_id, incurred_on, occurred_at, service_id NULL, medication_id NULL, current_quantity DECIMAL(10,2), cancelled, updated_at, version; chỉ mục resident/source_type/incurred_on. Chỉ nhận CARE_TASK_RESULT, DOSE, PRN_ADMINISTRATION, DISPENSE_RECORD, FAMILY_MEAL, OVERNIGHT_STAY, ACTIVITY_ATTENDANCE. Không lưu ngày lưu trú/buổi bán trú, không tự tạo khoản. Đây là chỉ mục kỹ thuật mutable.
+**cost_source_index**: khóa chính (source_type, source_id, billing_unit); resident_id, incurred_on, occurred_at, service_id NULL, medication_id NULL, current_quantity DECIMAL(12,3), cancelled, updated_at, version; chỉ mục resident/source_type/incurred_on. Chỉ nhận CARE_TASK_RESULT, DOSE, PRN_ADMINISTRATION, DISPENSE_RECORD, FAMILY_MEAL, OVERNIGHT_STAY, ACTIVITY_ATTENDANCE. Không lưu ngày lưu trú/buổi bán trú, không tự tạo khoản. Đây là chỉ mục kỹ thuật mutable.
 
 **Quyền/trigger ba bảng**: app được SELECT/INSERT/UPDATE; không được DELETE bảng chi phí/khoản; retention được SELECT/DELETE. Chỉ mục kỹ thuật cho app DELETE khi nguồn không còn. Trigger DELETE dùng USER() theo R-05, không dùng CURRENT_USER() của definer. Thời điểm nghiệp vụ do Clock/BusinessTime của caller truyền; fixture dùng mốc riêng, không giả định bảng rỗng.
 
-**Phần chuyển sang bảng chung — chờ A/000 T108**:
+**Phần chuyển sang bảng chung — API A đã có trên develop `62fdb4f2`, cập nhật 2026-11-04**:
 
 | Bảng chung/API chủ A | Loại/đối tượng của M11 | Nội dung được giữ | Ràng buộc và test ở task sau |
 | --- | --- | --- | --- |
-| ResidentModuleStateApi | module M11, resident_id | {finalCostCompletedFrom} thay chi_phi_nct | Khóa dòng qua API, không UPDATE trực tiếp; T007/T024; CostLockIT sau khi có API/fake chủ A |
-| StatusHistoryApi | M11.COST_RECALCULATION, COST_ITEM | {before, after, cause, basis, resetToDraft}; thời điểm/người thực hiện ở cột chung | Chỉ thêm, giữ đủ lịch sử; BR_M11_05 T020/T021 |
+| ResidentModuleStateApi | SharedKind M11.RESIDENT_COST_STATE, module M11, resident_id | BillingResidentState {finalCostCompletedFrom: Instant nullable} thay chi_phi_nct | CostLock khóa kỹ thuật trước trạng thái, rồi bảng; CostLockIT xanh. Mỗi người/module chỉ một dòng: 017 phải mở rộng và dùng chung record này, không ghi một payload M11 khác làm mất trường 010; T024 còn cài nghiệp vụ kỳ cuối |
+| StatusHistoryApi | HistoryTrack(entityType=M11.COST_ITEM, attribute=RECALCULATION) | CostRecalculation {before, after, cause, resetToDraft}; mỗi snapshot có quantity/unitPrice/factorPercent/amount; basis, thời điểm/người thực hiện ở HistoryEntry chung | CostSharedRowsIT kiểm append-only, transaction và giới hạn DECIMAL(12,3)/(15,0)/(5,2) bằng @Valid/@Digits trước ghi JSON; so giá trị BigDecimal không phụ thuộc scale JSON MySQL. Handler BR_M11_05 còn ở T020/T021 |
 | RecordEventApi | M11.POST_FINALIZATION_CHANGE, COST_ITEM | {event, before, after, reference, occurredAt} | Chỉ thêm; khoản điều chỉnh trỏ id sự kiện; FR_027 T020/T022 |
 | SimpleRecordApi | M11.PURCHASE_ASSISTANCE_REQUEST | Giữ toàn bộ cột mục 6 trong nội dung, status/locked_at/version ở cột chung | Máy trạng thái/domain M11, khóa yêu cầu khi quyết định; T025–T027 |
 | RecordEventApi | M11.PURCHASE_RECIPIENT, PURCHASE_ASSISTANCE_REQUEST | {round, familyMemberId} | unique_key M11.RECIPIENT:<requestId>:<round>:<familyMemberId>, giữ danh sách lúc gửi |
 | RecordEventApi | M11.PURCHASE_DECISION, PURCHASE_ASSISTANCE_REQUEST | {type, previousAmount, newAmount, actorType, actorId, channel, reason, insufficientBalance, occurredAt} | Chỉ thêm; một quyết định thắng bằng khóa/version yêu cầu; T025/T027 |
-| ReminderMarkers | M11.SOURCE_PROCESSED, BILLING_SOURCE | Khóa sự kiện đã xử lý và thời điểm xử lý | Dùng UNIQUE của marker, idempotent; T010/T021 sau khi A có API |
+| ReminderMarkers | M11.SOURCE_PROCESSED, M11.BILLING_SOURCE | entityId là residentId, markerKey là khóa sự kiện nguồn | CostSharedRowsIT kiểm UNIQUE và rollback; listener thật còn T010/T021 |
 | AuditLogApi hiện có | COST_ACCOUNTING_EXPORT/COST_STATEMENT_EXPORT | Giữ nội dung bộ lọc/phạm vi/định dạng/số bảng/số khoản/tổng/nhãn xuất trước, id bảng trong chi tiết | Không có cost_export/cost_export_statement; T030, nhật ký giao dịch nguyên tử |
 | Structured logging | Job 010 | jobRunId, mã job, thời điểm, kết quả; căn cứ nhật ký tự đủ dữ liệu | Không có cost_scheduler_run; T007/T018, theo cấu hình chung A |
 
-Tên loại/nội dung ở trên là hợp đồng dữ liệu của E theo R-15; chưa khai báo thêm chữ ký API của A hoặc tạo fake của A. JSON Schema/đăng ký loại và kiểm tích hợp bảng chung chỉ cài sau T108. Bản thật hiện chưa có administration.shared, ReminderMarkers, TechnicalLocks/V000_09. T005 chỉ đóng khi cả phần cần bảng chung có thể kiểm; ba bảng riêng được tách thành T005a.
+Khung T007 lưu mốc kỹ thuật qua ReminderMarkers: M11.JOB_ANCHOR/M11.JOB_DONE, entityType M11.JOB.<tên tác vụ>, entityId DAILY=1/HOURLY=2. Mốc đầu được lưu riêng trước khi chạy để lượt đầu thất bại vẫn chạy lại đúng giờ cũ. Mỗi slot có transaction REQUIRES_NEW chứa marker thành công và tác động; lỗi rollback cả hai, dừng các slot sau của cùng tác vụ. Tác vụ latestOnly đánh dấu slot bỏ qua và chỉ chạy slot mới nhất; không có tác vụ giả trong production. M11Jobs chỉ đọc marker M11 qua CostJobMarkers. Chi tiết kiểm đồng thời/chạy bù ở CostJobCatchUpIT; nghiệp vụ chuyển kỳ/nhắc thuộc các story sau.
+
+Tên loại/nội dung ở trên là hợp đồng dữ liệu của E theo R-15; không thêm chữ ký API hoặc fake của A. Cập nhật 05/11: administration.shared, ReminderMarkers, TechnicalLocks đã có sau T108; T005/T005a được kiểm trên API/MySQL thật theo checkpoint 04/11. Các handler nghiệp vụ còn theo task tương ứng, không còn chờ A khai báo nền.
 
 | Bất biến sau gộp | Nơi bảo đảm | Test dự kiến của phần độc lập |
 | --- | --- | --- |
@@ -329,6 +331,8 @@ DBR-30 (mỗi bảng Đã chốt có đúng một giao dịch thanh toán) do 01
 
 ---
 
+**Triển khai T008b — 05/11:** CostRetention cung cấp M11.COST_PERIOD theo created_at/CFG-M15-04 và M11.COST_STATEMENT/M11.COST_ITEM theo ResidentApi.finalStatusAt/CFG-M15-03. Tham chiếu ngược gồm bảng của kỳ, khoản theo statement_id/period_id/original_period_id và điều chỉnh theo original_item_id; không lọc bỏ tham chiếu chưa hết hạn. Xóa bằng RetentionDatabase; phần đi kèm qua job/bảng chung A. Chưa nghiệm thu chuỗi hồ sơ thật 001 → 010, chỉ mục nguồn hoặc liên kết 017; xem [giới hạn T008](retention-checkpoint-2026-11-05.md).
+
 ## 11. Truy vết DBR, BR và FR
 
 | Mã | Bảo đảm ở | Test |
@@ -346,3 +350,7 @@ DBR-30 (mỗi bảng Đã chốt có đúng một giao dịch thanh toán) do 01
 | BR-M11-08 | P-10 | `BR_M11_08_KyCuoiIT`, `DieuKienChiPhiKyCuoiTest` |
 | BR-M11-09 | P-05 | `BR_M11_09_ChiaGiaThangTest` (SC-002), `PhiBuoiBanTruTest` |
 | BR-M02-06 (phần 010) | Nội trú tính đủ giá, chặn từ ngày giải phóng giường theo Q-395; bán trú giữ tỷ lệ nguồn | ResidencyDayFeeTest/DayCareSessionFeeTest xanh phần số tiền; kiểm nguồn ngày còn chờ B/004 |
+
+**T010 — 06/11:** V010_03__source_quantity_precision mở lượng ở cost_source_index/cost_item lên DECIMAL(12,3), phù hợp lượng thực tế 006 (cột MedicationHandoverItem.quantity là 12,3); CostRecalculation dùng @Digits(9,3). Nghiệp vụ/spec không ấn định số lượng chỉ có hai chữ số lẻ; không làm tròn số lượng nguồn. Tiền và đơn giá giữ DECIMAL(15,0), hệ số giữ DECIMAL(5,2). Nguồn vượt khả năng lưu bị từ chối trước khi ghi dấu, không để MySQL âm thầm làm tròn.
+
+Khóa billing_unit của chỉ mục là định danh đơn vị tính phí: generic giữ nguyên unit do nguồn gửi, kết quả chăm sóc dùng UNIT, thuốc dùng medicationId (chuỗi) để giữ hai thuốc khác nhau nếu cùng tham chiếu nguồn. Đây không phải đơn vị dùng/hiển thị của thuốc hoặc vật phẩm. ID nguồn lưu nguyên văn. Dấu M11.SOURCE_PROCESSED gắn người và hash bộ loại/id/đơn vị/eventKey; hash chỉ dùng cho dấu xử lý có độ dài cố định, không làm ID nguồn hay DataRef retention. Phần dọn chỉ mục/dấu vẫn là gate T033.

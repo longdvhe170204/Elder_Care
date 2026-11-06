@@ -39,16 +39,25 @@ class HealthItemImmutableIT extends MySqlIntegrationTestBase {
     }
 
     private long severity() {
-        return jdbc.queryForObject("SELECT id FROM allergy_severity WHERE name = 'Nhẹ'", Long.class);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY' AND name = 'Nhẹ'", Long.class);
     }
 
     private long source() {
-        return jdbc.queryForObject("SELECT id FROM information_source WHERE name = 'Người thân'", Long.class);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE' AND name = 'Người thân'",
+                Long.class);
     }
 
     private long allergen() {
-        jdbc.update("INSERT INTO allergen (name, allergen_group) VALUES (?, 'FOOD')", "Dị nguyên " + UUID.randomUUID());
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        // Dị nguyên ở catalog_item loại M01.ALLERGEN từ 001 T084
+        String name = "Dị nguyên " + UUID.randomUUID();
+        jdbc.update(
+                "INSERT INTO catalog_item (catalog_type, module, name, sort_order, status, attributes)"
+                        + " VALUES ('M01.ALLERGEN', 'M01', ?, 0, 'ACTIVE', JSON_OBJECT('allergenGroup', 'FOOD'))",
+                name);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN' AND name = ?", Long.class, name);
     }
 
     /** Bản ghi mặc định: bệnh nền nhập văn bản. */

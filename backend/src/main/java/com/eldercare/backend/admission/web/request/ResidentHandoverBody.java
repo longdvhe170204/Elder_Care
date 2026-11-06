@@ -22,4 +22,6 @@ public record ResidentHandoverBody(
         Instant handoverAt,
 
         @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        Long handoverStaffId) {}
+        Long handoverStaffId,
+
+        Long pickupRecordId) {}

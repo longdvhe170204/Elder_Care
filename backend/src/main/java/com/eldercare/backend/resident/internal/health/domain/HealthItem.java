@@ -57,6 +57,12 @@ public class HealthItem {
 
     private boolean pendingNutritionCheck;
 
+    private boolean unverified;
+
+    private Long verifiedBy;
+
+    private Instant verifiedAt;
+
     @Version
     private int version;
 
@@ -85,6 +91,19 @@ public class HealthItem {
         this.pendingNutritionCheck = checkable;
     }
 
+    /** Mục tự khai của gia đình do Hành chính ghi: có hiệu lực ngay nhưng chưa được kiểm chứng (Q-400). */
+    public HealthItem markUnverified() {
+        this.unverified = true;
+        return this;
+    }
+
+    /** Bác sĩ hoặc Điều dưỡng kiểm chứng; một chiều (trigger chặn đặt lại dấu chưa kiểm chứng). */
+    public void verify(long by, Instant now) {
+        this.unverified = false;
+        this.verifiedBy = by;
+        this.verifiedAt = now;
+    }
+
     public void exclude(long by, Instant now, String reason) {
         this.status = HealthItemStatus.EXCLUDED;
         this.excludedAt = now;
@@ -92,11 +111,14 @@ public class HealthItem {
         this.exclusionReason = reason;
     }
 
-    public void markChecked(HealthItemCheckSource source) {
+    /** Gỡ cờ chờ kiểm tra của nguồn; {@code true} khi cờ đổi từ chờ sang đã kiểm, {@code false} khi đã gỡ từ trước. */
+    public boolean markChecked(HealthItemCheckSource source) {
+        boolean pending = source == HealthItemCheckSource.MEDICATION ? pendingMedicationCheck : pendingNutritionCheck;
         switch (source) {
             case MEDICATION -> pendingMedicationCheck = false;
             case NUTRITION -> pendingNutritionCheck = false;
         }
+        return pending;
     }
 
     public boolean isNotAutoChecked() {
@@ -161,6 +183,18 @@ public class HealthItem {
 
     public String getExclusionReason() {
         return exclusionReason;
+    }
+
+    public boolean isUnverified() {
+        return unverified;
+    }
+
+    public Long getVerifiedBy() {
+        return verifiedBy;
+    }
+
+    public Instant getVerifiedAt() {
+        return verifiedAt;
     }
 
     public int getVersion() {

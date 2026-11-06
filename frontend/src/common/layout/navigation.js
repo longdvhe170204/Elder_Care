@@ -68,6 +68,38 @@ export const NAV_GROUPS = [
         functions: ['RESIDENT_PROFILE'],
         roles: [QL, TT, BS, DD, CS, HC, NT, KT],
       },
+      // Dòng "Tiếp nhận, hợp đồng, đặt cọc" (004 T019, T038; Hành chính lập, Quản lý viện xem và duyệt, Kế toán đặt cọc)
+      {
+        key: 'admission-applications',
+        label: 'Đăng ký tiếp nhận',
+        icon: 'ClipboardCheck',
+        functions: ['ADMISSION_CONTRACT_DEPOSIT'],
+        roles: [QL, HC, KT],
+      },
+      // Dòng "Danh sách chờ, dấu ưu tiên" (004 T028)
+      { key: 'waiting-list', label: 'Danh sách chờ', icon: 'ListChecks', functions: ['WAITING_LIST'], roles: [QL, HC] },
+      { key: 'contracts', label: 'Hợp đồng', icon: 'FileSignature', functions: ['ADMISSION_CONTRACT_DEPOSIT'], roles: [QL, HC, KT] },
+      // Dòng "Yêu cầu thay đổi lưu trú" (004 T047)
+      {
+        key: 'residency-changes',
+        label: 'Thay đổi lưu trú',
+        icon: 'ArrowLeftRight',
+        functions: ['RESIDENCY_CHANGE_REQUEST'],
+        roles: [QL, BS, HC],
+      },
+      // Dòng "Tạm vắng, trở về" (004 T056)
+      { key: 'absences', label: 'Tạm vắng, bán trú', icon: 'DoorOpen', functions: ['ABSENCE_RETURN'], roles: [QL, TT, DD, HC] },
+      // Dòng "Kết thúc lưu trú, qua đời" (004 T061, T065)
+      {
+        key: 'residency-endings',
+        label: 'Kết thúc lưu trú',
+        icon: 'History',
+        functions: ['RESIDENCY_END_DEATH'],
+        roles: [QL, BS, HC, KT],
+      },
+      { key: 'deaths', label: 'Qua đời', icon: 'HeartHandshake', functions: ['RESIDENCY_END_DEATH'], roles: [QL, BS, HC, KT] },
+      // Dòng "Dịch vụ, đơn giá" (004 T068)
+      { key: 'services', label: 'Dịch vụ, đơn giá', icon: 'Receipt', functions: ['SERVICE_PRICE'], roles: [QL, HC] },
     ],
   },
   {
@@ -222,6 +254,14 @@ export const NAV_GROUPS = [
         functions: ['ADMISSION_CONTRACT_DEPOSIT'],
         roles: [QL, HC, NT, KT],
       },
+      // Dòng "Khai báo tạm trú, lưu trú" (018 K1): Hành chính thao tác, Quản lý viện xem
+      {
+        key: 'residence-registrations',
+        label: 'Khai báo cư trú',
+        icon: 'ClipboardCheck',
+        functions: ['RESIDENCE_REGISTRATION'],
+        roles: [QL, HC],
+      },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
       // Dòng "Hồ sơ, quan hệ, vai trò người thân" (FR-067 của 012; Phụ lục 27 "Người thân và quyền"): Hành chính lập, Quản lý viện xem
@@ -240,6 +280,14 @@ export const NAV_GROUPS = [
         functions: ['VISITOR_PREFERENCE'],
         roles: [QL, TT, DD, HC],
       },
+      // Dòng "Quy trình đón, ngoại lệ đón" (012 T021): người có quyền lệnh nguồn ghi đón, Quản lý viện duyệt ngoại lệ
+      {
+        key: 'pickups',
+        label: 'Quy trình đón',
+        icon: 'DoorOpen',
+        functions: ['PICKUP'],
+        roles: [QL, TT, DD, CS, HC],
+      },
       // Dòng "Đăng ký thăm"
       {
         key: 'visits',
@@ -248,6 +296,18 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Đồ gửi" (013): Hành chính, Điều dưỡng thực hiện; Quản lý viện, Trưởng tầng xem; người thân xem ở cổng
+      { key: 'belongings', label: 'Đồ gửi', icon: 'ClipboardCheck', functions: ['BELONGINGS'], roles: [QL, TT, DD, HC] },
+      // Dòng "Người thân ở lại" (012 T035; chú thích 20: Hành chính đăng ký, Trưởng tầng xác nhận, Quản lý viện xác nhận thay)
+      {
+        key: 'family-stays',
+        label: 'Người thân ở lại',
+        icon: 'BedDouble',
+        functions: ['FAMILY_STAY'],
+        roles: [QL, TT, HC],
+      },
+      // Dòng "Phản hồi" (012 T030): người phụ trách xử lý, Quản lý viện xem mọi phản hồi; người thân dùng cổng
+      { key: 'feedback', label: 'Phản hồi', icon: 'MessageSquare', functions: ['FEEDBACK'], roles: [QL, TT, DD, HC] },
     ],
   },
   {

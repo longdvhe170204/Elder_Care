@@ -3,8 +3,8 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import com.eldercare.backend.staffing.shift.internal.domain.ContinuousShiftChain;
-import com.eldercare.backend.staffing.shift.internal.domain.ContinuousShiftChain.Interval;
+import com.eldercare.backend.staffing.internal.shift.domain.ContinuousShiftChain;
+import com.eldercare.backend.staffing.internal.shift.domain.ContinuousShiftChain.Interval;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;

@@ -218,3 +218,25 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 
 - Feature không có bảng. Số liệu đọc qua API của module như trước, không đọc bảng chung trực tiếp; API module giữ nguyên nên báo cáo và bảng truy vết số liệu không đổi.
+
+## Phase 13, Convergence (T106 → T108, 2026-11-06, A)
+
+- Nguồn thật đã có: 004 `ResidencyStatisticsApi.waitingList`, 006 `MedicationStatisticsApi`, 007 `VitalSignStatisticsApi`. Lớp mới ở `reporting.internal.waitinglist`, `internal.medication`, `internal.vitalsign` (`service`), mẫu như `internal.bed`.
+- `RES.WAITING_LIST` (FR-025): hồ sơ có ngày đăng ký trong khoảng (đổi `[from, to)` sang ngày theo giờ Việt Nam), chia theo trạng thái hiện tại của 004, lọc `residenceType`; loại lưu trú, mức chăm sóc dự kiến ở dòng chi tiết. Thời gian chờ trung bình, dài nhất tách thành `RES.WAITING_TIME`, `RES.WAITING_TIME_MAX` như tiền lệ `BED.AWAITING_READY_MAX` (chi-tieu.md, glossary 22.4): số liệu "lúc xem" của hồ sơ Chờ, Đã liên hệ, ngày từ ngày đăng ký tới hôm nay, chia theo loại lưu trú. Lệch còn lại: "số hồ sơ rời danh sách trong khoảng theo lý do" chưa tính được vì 004 để `leftOn` trống (M02 chưa lưu ngày rời danh sách); báo B.
+- `MED.MISSED_RATE`, `MED.REFUSED_RATE` (FR-043, 006 FR-051): tỷ lệ trên liều có trạng thái cuối Đã dùng, Từ chối, Không thực hiện, Bỏ lỡ; Không thực hiện do hệ thống đóng (FR-047) nhận biết bằng `closedByStaffId` rỗng vì view không có loại người đóng; chia theo ca (`NO_SHIFT` khi 006 không xác định được ca), lọc người cao tuổi bằng bộ lọc chung; bản ghi ngoại tuyến Chờ xem lại gắn nhãn. Các loại loại khỏi mẫu số (Đã hủy, Tạm dừng, do hệ thống) và liều dùng trễ "đếm riêng" chưa có mã chỉ tiêu riêng ở chi-tieu.md, dòng chi tiết có `administeredLate`.
+- `MED.OVERDUE_RECONCILIATIONS` (FR-044): phiếu Mở, Chờ xác nhận mang dấu quá hạn; "lúc xem" nên đọc `reconciliationsInPeriod(EPOCH, MAX)` vì 006 lọc theo lúc lập phiếu.
+- `HEALTH.VITAL_SIGNS` (FR-040): số lần đo đã xác nhận trong khoảng, chia theo mức lúc đo (vượt ngưỡng là ô `WARNING`, `DANGEROUS`); loại chỉ số ở dòng chi tiết, tầng qua bộ lọc chung (một khóa chia nhóm mỗi chỉ tiêu). Lệch còn lại: chuỗi giá trị theo thời gian cho một người cao tuổi chưa có vì `VitalSignReportView` không có giá trị đo; báo D.
+- Ô chia nhóm trên web hiện khóa thô (`WAITING`, mã ca) như các chỉ tiêu có sẵn; nhãn ô để task web của nhóm.
+- Test: ba lớp test mới viết trước (lỗi biên dịch vì chưa có lớp) rồi xanh. `FR_062_ExportAuditIT` đếm dòng xuất nhóm Sức khỏe, thuốc: thêm `@MockitoBean` hai nguồn để số dòng không phụ thuộc dữ liệu sót, số dòng 7 → 11 (thêm một dòng tổng mỗi chỉ tiêu thật).
+
+## Rà T030 (2026-11-06, A)
+
+- SC-001: 15 mã của chi-tieu.md và `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS` đã cài đều có test; 43 mã chưa cài vì chờ nguồn (team-plan mục 8), test viết khi cài.
+- DBR-25, FR-005: mốc ngày qua `BusinessTime` (giờ Việt Nam), không có lời gọi giờ hệ thống trong `reporting`; web hiện ngày qua `common/dateTime` (dd/MM/yyyy); `FR_060_ReportPeriodTest`. Tiền VND chưa có chỉ tiêu chi phí.
+- FR-002: `M14ArchTest.FR_001_noDirectDataAccessOrEvents`, `FR_001_noCommandApisOfOtherModules` (chỉ đọc API của module nguồn); trạng thái lấy từ view của nguồn (ví dụ `DoseReportView.finalStatus` đã tính đính chính).
+- FR-004: `ReportGroup` sáu nhóm; thêm `M14ArchTest.FR_004_noSourcesOutsideThisPhase` chặn `reporting` dùng `family`, `belongings`, `notification`.
+- FR-006: `MetricRecord.referenceTime` (liều theo thời điểm dự kiến, chỉ số theo lúc đo), chia theo ca theo ca của nguồn; `FR_012_TimeScopeIT`.
+- FR-007: Hủy ghi nhận, chờ xem lại (`MetricTest`), "ngày chưa kết thúc" (`ReportApiIT`), "tính đến" (`asOf`) có; nhãn loại bỏ theo lưu trữ thiếu (T109).
+- FR-008: `NO_DATA`, tử số và mẫu số (`MetricTest`, `ReportsPage.test.jsx`), `NOT_CONFIGURED` (`MetricShiftStaffingRatioTest`).
+- FR-055, FR-055a: chờ `CostStatisticsApi` thật (010) và nguồn mua sắm (019), thuộc T020.
+- T109 hoãn (chủ dự án chọn 2026-11-06): nhãn chỉ hiện khi khoảng báo cáo phủ dữ liệu đã quá thời hạn lưu giữ (mặc định 10 năm), chưa có tác dụng trong giai đoạn này; làm khi đủ chỉ tiêu thật để khai loại dữ liệu cho mọi chỉ tiêu một lần. Cách đã đề xuất: trường `purgedDataTypes` (mảng mã loại dữ liệu) trong `MetricValue` của api-016.

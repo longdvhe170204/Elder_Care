@@ -24,6 +24,12 @@ class SchedulerScopeArchTest {
     /** Job → loại việc FR-010a cho phép. */
     static final Map<String, String> ALLOWED = Map.ofEntries(
             Map.entry(
+                    "com.eldercare.backend.billing.scheduling.M11DailyJob",
+                    "khung kỳ theo lịch và nhắc chi phí; không lập khoản, bảng người, điều chỉnh hoặc đề nghị mua hộ (010 P-15)"),
+            Map.entry(
+                    "com.eldercare.backend.billing.scheduling.M11HourlyJob",
+                    "khung nhắc đề nghị chờ đồng ý; không tự lập đề nghị hay khoản (010 P-15)"),
+            Map.entry(
                     "com.eldercare.backend.care.scheduling.CareMinuteJob",
                     "khung chuyển trạng thái theo giờ, nhắc và cảnh báo; không lập công việc (005 C-12)"),
             Map.entry(
@@ -95,6 +101,12 @@ class SchedulerScopeArchTest {
             Map.entry(
                     "com.eldercare.backend.family.scheduling.M10MidnightJob",
                     "đếm đêm ở lại để hiển thị và báo 010 qua sự kiện; không lập khoản (012 F-17, Q-306)"),
+            Map.entry(
+                    "com.eldercare.backend.belongings.scheduling.M12MinuteJob",
+                    "chuyển trạng thái theo giờ (xác nhận người nhận khác Hết hạn) và báo Quản lý viện đủ điều kiện duyệt thay; không lập bản ghi (013 K-15)"),
+            Map.entry(
+                    "com.eldercare.backend.belongings.scheduling.M12DailyJob",
+                    "nhắc đồ chưa trả sau trạng thái cuối, đồ đủ hạn lập đề nghị xử lý, nhắc kiểm kê; không lập phiếu, không ghi sự cố (013 K-15)"),
             Map.entry(
                     "com.eldercare.backend.health.scheduling.M06MinuteJob",
                     "xác nhận quá hạn đo lại, chuyển trạng thái lịch đo và ngưỡng; không tạo bản ghi đo (007 FR-017/022, S-21)"),

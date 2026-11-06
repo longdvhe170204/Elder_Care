@@ -23,7 +23,7 @@ Feature 018 thêm gói `admission.khaibao` vào module M02 (cùng 004). Giao di�
 | `QuyenTepProvider` (`common.tep`) | `M02.BANG_CHUNG_KHAI_BAO`: Hành chính, Quản lý viện | NFR-08 |
 | `admission.api.KhaiBaoThongKeApi` (016) | `tongHop()`: số người cần khai báo (chưa lập hoặc Cần khai báo), số quá hạn, số Hết hạn, số cần khai báo xóa | FR-011 |
 
-Sự kiện 018 phát: thông báo (cài `CoYeuCauThongBao`) tới 009 theo FR-010; `KhaiBaoDaDoiTrangThai(khaiBaoId, nctId, tu, den)` cho 016.
+Sự kiện 018 phát: thông báo (cài `CoYeuCauThongBao`) tới 009 theo FR-010. Không phát sự kiện đổi trạng thái khai báo cho 016 (A quyết định 2026-11-05, BL-87): 016 lấy số liệu qua `KhaiBaoThongKeApi.tongHop()` (đếm theo người).
 
 ## 3. 018 cần từ module khác
 

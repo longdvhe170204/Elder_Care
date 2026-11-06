@@ -95,6 +95,18 @@ class CostSchemaIT extends MySqlIntegrationTestBase {
         return id;
     }
 
+    @Test
+    void FR_013_costItemPreservesMedicationQuantityWithThreeDecimals() {
+        var f = fixture();
+        long id = item(f);
+        jdbc.execute("SET @m11_recalculating = 1");
+
+        jdbc.update("UPDATE cost_item SET quantity=?,unit_price=256,amount=32 WHERE id=?", new BigDecimal("0.125"), id);
+
+        assertThat(jdbc.queryForObject("SELECT quantity FROM cost_item WHERE id=?", BigDecimal.class, id))
+                .isEqualByComparingTo("0.125");
+    }
+
     private void finalizeStatement(long id) {
         jdbc.update("""
                 UPDATE cost_statement SET status='FINALIZED', total=300,

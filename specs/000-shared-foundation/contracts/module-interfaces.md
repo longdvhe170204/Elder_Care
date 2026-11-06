@@ -173,10 +173,13 @@ String loaiDuLieu();
 LoaiHan loaiHan();                                   // THEO_HO_SO (CFG-M15-03) | KHONG_GAN_HO_SO (CFG-M15-04) | DAI_HON(MaThamSo)
 Stream<UngVien> ungVienHetHan(LocalDate moc, int lo); // bản ghi đã qua hạn
 Set<ThamChieuDuLieu> thamChieuToi(long id);          // ai đang trỏ tới bản ghi này (FR-051a)
+// bổ sung 2026-11-06 (000 T112, chủ dự án duyệt); cả hai có mặc định nên provider cũ vẫn chạy
+Set<ThamChieuDuLieu> dangTroToi(ThamChieuDuLieu dich); // bản ghi của loại này trỏ tới bản ghi loại khác, ví dụ hồ sơ người cao tuổi; mặc định rỗng
+Stream<UngVien> ungVienHetHan(LocalDate moc, UngVien sau, int lo); // trang sau mốc (thoiDiem, id); mặc định chỉ trang đầu
 void xoa(Collection<Long> ids);                      // chỉ được gọi bởi job, qua DataSource eldercare_luu_tru
 ```
 
-Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi và xóa (research R-11).
+Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi và xóa (research R-11). *(Bổ sung 2026-11-06, 000 T112)* Bản ghi trỏ tới một bản ghi gồm `thamChieuToi` của loại bị trỏ và `dangTroToi` của mọi provider: module có bản ghi gắn hồ sơ người cao tuổi (`M01.RESIDENT`) của module khác MUST cài `dangTroToi`, vì provider của hồ sơ không biết module khác. Job lấy ứng viên theo trang (`ungVienHetHan` có `sau`, xếp theo `(thoiDiem, id)`) tới khi hết, tối đa 100 trang mỗi loại mỗi đợt; provider chưa cài phân trang chỉ có trang đầu như trước. Tệp đính kèm (`common.file`) của bản ghi trong chuỗi được xóa cùng chuỗi (nội dung S3 rồi dòng `file`), sau bản ghi.
 
 ### 1.8. Bảng dùng chung sau gộp: `administration.shared.api`, `common` *(chủ dự án duyệt 2026-10-30; T108)*
 
@@ -215,7 +218,8 @@ record CatalogItem<T>(long id, String code, String name, Long parentId, int sort
 `StatusHistoryApi` (`status_history`, nhóm 3, chỉ thêm; `ends_at` đặt một lần):
 
 ```java
-public record HistoryTrack<D>(String entityType, String attribute, Class<D> details) {} // module theo tiền tố entityType
+public record HistoryTrack<D>(String entityType, String attribute, Class<D> details, boolean reasonRequired) {} // module theo tiền tố entityType; hàm tạo 3 tham số = reasonRequired false
+// reasonRequired (FR-046 của 001, 2026-11-04): add ném ReasonRequiredException (422) khi reasonRequired && !bySystem && reason == null && valueBefore != null; dòng đầu (không có "từ") tự được miễn
 <D> long add(HistoryTrack<D> track, long entityId, HistoryEntry<D> entry);   // PERIOD: 409 khi đang có khoảng mở (open_key); unique_key trùng: 409
 <D> Optional<HistoryRow<D>> closeOpen(HistoryTrack<D> track, long entityId, Instant endsAt);
 <D> Optional<HistoryRow<D>> open(HistoryTrack<D> track, long entityId);

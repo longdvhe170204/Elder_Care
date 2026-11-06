@@ -60,8 +60,8 @@ class EndingExceptionIT extends EndingTestBase {
 
         assertThat(residentStatus(ready.residentId())).isEqualTo(ResidentStatus.RESIDENCY_ENDED);
         assertThat(jdbc.queryForObject(
-                        "SELECT condition_waiver FROM resident_status_history WHERE resident_id = ?"
-                                + " AND command = 'END_RESIDENCY'",
+                        "SELECT condition_waiver FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE resident_id = ?" + " AND command = 'END_RESIDENCY'",
                         String.class,
                         ready.residentId()))
                 .contains(D_ALERTS)

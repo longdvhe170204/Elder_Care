@@ -17,6 +17,11 @@ import com.eldercare.backend.resident.internal.assessment.persistence.Assessment
 import com.eldercare.backend.resident.internal.assessment.service.ReassessmentNoticeService;
 import com.eldercare.backend.resident.internal.consent.persistence.ConsentStore;
 import com.eldercare.backend.resident.internal.consent.service.MissingConsentReminderService;
+import com.eldercare.backend.resident.internal.health.domain.HealthItemStatus;
+import com.eldercare.backend.resident.internal.health.domain.InitialHealthRecord;
+import com.eldercare.backend.resident.internal.health.persistence.HealthItemRepository;
+import com.eldercare.backend.resident.internal.health.persistence.InitialHealthRecordStore;
+import com.eldercare.backend.resident.internal.health.service.UnconfirmedHealthRecordReminderService;
 import com.eldercare.backend.resident.internal.wish.service.EndOfLifeWishService;
 import com.eldercare.backend.resident.internal.wish.service.TreatmentWishService;
 import com.eldercare.backend.resident.internal.wish.service.WishReminderService;
@@ -45,6 +50,7 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     static final String MISSING_CONSENT = "MISSING_CONSENT";
     static final String MISSING_END_OF_LIFE_WISH = "MISSING_END_OF_LIFE_WISH";
     static final String MISSING_TREATMENT_WISH = "MISSING_TREATMENT_WISH";
+    static final String UNCONFIRMED_HEALTH_RECORD = "UNCONFIRMED_HEALTH_RECORD";
 
     private final AssessmentRepository assessments;
     private final ParameterApi parameters;
@@ -55,6 +61,9 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     private final EndOfLifeWishService endOfLifeWishes;
     private final TreatmentWishService treatmentWishes;
     private final WishReminderService wishReminders;
+    private final InitialHealthRecordStore healthRecords;
+    private final HealthItemRepository healthItems;
+    private final UnconfirmedHealthRecordReminderService healthReminders;
 
     M01StatusParticipant(
             AssessmentRepository assessments,
@@ -65,7 +74,13 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             ReassessmentNoticeService reassessmentNotices,
             EndOfLifeWishService endOfLifeWishes,
             TreatmentWishService treatmentWishes,
-            WishReminderService wishReminders) {
+            WishReminderService wishReminders,
+            InitialHealthRecordStore healthRecords,
+            HealthItemRepository healthItems,
+            UnconfirmedHealthRecordReminderService healthReminders) {
+        this.healthReminders = healthReminders;
+        this.healthRecords = healthRecords;
+        this.healthItems = healthItems;
         this.assessments = assessments;
         this.parameters = parameters;
         this.time = time;
@@ -122,6 +137,17 @@ class M01StatusParticipant implements StatusTransitionParticipant {
                     MISSING_CONSENT,
                     "Chưa có bản đồng ý chia sẻ dữ liệu Hiệu lực; Hành chính sẽ được nhắc ghi nhận (FR-012)"));
         }
+        boolean recordConfirmed = healthRecords
+                .findByResidentId(residentId)
+                .map(InitialHealthRecord::isConfirmed)
+                .orElse(false);
+        if (!recordConfirmed
+                || healthItems.existsByResidentIdAndStatusAndUnverifiedTrue(residentId, HealthItemStatus.ACTIVE)) {
+            warnings.add(
+                    new Warning(
+                            UNCONFIRMED_HEALTH_RECORD,
+                            "Hồ sơ sức khỏe ban đầu chưa được Bác sĩ xác nhận hoặc còn mục tự khai chưa kiểm chứng (BR-M01-17)"));
+        }
         if (!endOfLifeWishes.hasActive(residentId)) {
             warnings.add(new Warning(
                     MISSING_END_OF_LIFE_WISH,
@@ -145,6 +171,9 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             }
             if (!endOfLifeWishes.hasActive(result.residentId())) {
                 wishReminders.startReminding(result.residentId());
+            }
+            if (healthReminders.needsReminding(result.residentId())) {
+                healthReminders.startReminding(result.residentId());
             }
         }
     }

@@ -64,28 +64,8 @@ class LayerArchTest {
      * 8). Sửa xong thì xóa dòng; không thêm dòng mới.
      */
 
-    /** E (008): chức năng của staffing chuyển vào {@code staffing.internal.<chức năng>}, controller vào {@code staffing.web}. */
-    private static final String[] PENDING_MODULE_ROOT_PACKAGES = Stream.of(
-                    "assignment", "credential", "duty", "handover", "ratio", "shift", "staff")
-            .map(part -> "com.eldercare.backend.staffing." + part + "..")
-            .toArray(String[]::new);
-
-    /** E (008): {@code service.port} về {@code service}. */
-    private static final String[] PENDING_LAYER_SUB_PACKAGES = {"com.eldercare.backend.staffing..internal.service.port"
-    };
-
-    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: E (staffing). */
-    private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
-            "staffing.assignment.internal.service.AssignmentReminders",
-            "staffing.credential.internal.service.CredentialInvalidityEffects",
-            "staffing.credential.internal.service.CredentialReminders",
-            "staffing.credential.internal.service.CredentialService",
-            "staffing.duty.internal.service.PracticeScopeLookup",
-            "staffing.handover.internal.service.HandoverCorrection",
-            "staffing.internal.config.M09GovernanceConfig",
-            "staffing.shift.internal.service.ShiftLifecycle",
-            "staffing.staff.internal.service.StaffEmploymentEffects",
-            "staffing.staff.internal.service.StaffService");
+    private static final String[] PENDING_LAYER_SUB_PACKAGES = {};
+    private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of();
 
     /** C (005): care; record, enum ở gốc {@code api} chuyển vào {@code api.dto}. */
     private static final Set<String> PENDING_API_ROOT_TYPES = Set.of("care.api.MedicationChecklistItem");
@@ -170,8 +150,6 @@ class LayerArchTest {
     static final ArchRule moduleTopLevelPackages = classes()
             .that()
             .resideInAnyPackage(inModules(".."))
-            .and()
-            .resideOutsideOfPackages(PENDING_MODULE_ROOT_PACKAGES)
             .and()
             .doNotHaveSimpleName("package-info")
             .should()
