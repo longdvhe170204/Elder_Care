@@ -255,6 +255,18 @@ public class CareGovernanceConfiguration {
     }
 
     @Bean
+    CareRetention retainACTIVITY(
+            CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
+        return new CareRetention(CareRetentionType.ACTIVITY, store, database, residents);
+    }
+
+    @Bean
+    CareRetention retainQUALITY_CHECKLIST(
+            CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
+        return new CareRetention(CareRetentionType.QUALITY_CHECKLIST, store, database, residents);
+    }
+
+    @Bean
     CareRetention retainACTIVITY_REGISTRATION(
             CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
         return new CareRetention(CareRetentionType.ACTIVITY_REGISTRATION, store, database, residents);

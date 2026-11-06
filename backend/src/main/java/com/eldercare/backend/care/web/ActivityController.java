@@ -49,8 +49,8 @@ public class ActivityController {
         // Kiểm hình dạng trước lớp quyền: thiếu tầng thì Target không có tầng và lớp phạm vi trả 404.
         if ("FLOOR".equals(body.scope()) && body.floorAreaId() == null)
             throw new InvalidValueException("Hoạt động theo tầng cần tầng/khu vực");
-        var row =
-                activities.declare(ActivityService.target(body.floorAreaId()), body.toActivity(), body.groupActivity());
+        var row = activities.declare(
+                activities.declareTarget(body.floorAreaId()), body.toActivity(), body.groupActivity());
         return ResponseEntity.created(URI.create("/api/v1/activities/" + row.id()))
                 .build();
     }

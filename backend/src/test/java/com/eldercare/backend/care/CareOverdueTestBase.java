@@ -50,6 +50,9 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
     BusinessTime time;
 
     @Autowired
+    com.eldercare.backend.common.time.TestClockControl clock;
+
+    @Autowired
     SwitchableUser user;
 
     @Autowired
@@ -83,6 +86,7 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
 
     @BeforeEach
     void fixture() {
+        clock.setTo(time.today().atTime(8, 0).atZone(BusinessTime.ZONE).toInstant());
         org.mockito.Mockito.doAnswer(
                         invocation -> ((java.util.List<com.eldercare.backend.care.internal.task.domain.CareTask>)
                                         invocation.callRealMethod())
@@ -122,13 +126,19 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
                 residentId, shiftId, List.of(new CareAssignmentView(caregiver.staffId(), Role.CAREGIVER, true)));
         shifts.members(shiftId, List.of(new ShiftMemberView(caregiver.staffId(), Role.CAREGIVER)));
         shifts.onShift(caregiver.staffId(), planned, true);
-        shifts.qualified(caregiver.staffId(), Set.of(), time.today(), true);
+        shifts.qualified(
+                caregiver.staffId(), Set.of(), planned.atZone(BusinessTime.ZONE).toLocalDate(), true);
         meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
                 typeId,
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+    }
+
+    @AfterEach
+    void restoreClock() {
+        clock.reset();
     }
 
     String row(long resident, long source, Instant at) {
@@ -151,6 +161,8 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
         var at = planned.plusSeconds(600);
         meals.validation(SourceType.MEAL, other, residentId, at, new SourceValidation(true, true, true, false));
         shifts.onShift(caregiver.staffId(), at, true);
+        shifts.qualified(
+                caregiver.staffId(), Set.of(), at.atZone(BusinessTime.ZONE).toLocalDate(), true);
         var result = plan("[" + row(residentId, other, at) + "]")
                 .andExpect(status().isCreated())
                 .andReturn();

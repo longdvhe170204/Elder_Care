@@ -19,7 +19,8 @@ public class QualityCheckStore {
     /** Công việc Hoàn thành/Hoàn thành trễ của ca và tầng, hoàn thành trong ca. */
     public List<CompletedTask> completed(long shiftId, long floorAreaId, Instant from, Instant to) {
         return jdbc.query(
-                "SELECT id,performer_id,result_recorded_by,result_performed_at,basis_type,shift_id FROM care_task"
+                "SELECT id,performer_id,result_recorded_by,result_performed_at,basis_type,shift_id,task_type_id,resident_id,"
+                        + "location_id FROM care_task"
                         + " WHERE shift_id=? AND floor_area_id=? AND status IN ('COMPLETED','COMPLETED_LATE')"
                         + " AND result_performed_at>=? AND result_performed_at<? ORDER BY id",
                 (rs, i) -> new CompletedTask(
@@ -30,7 +31,10 @@ public class QualityCheckStore {
                                 .atZone(BusinessTime.ZONE)
                                 .toInstant(),
                         rs.getString("basis_type"),
-                        rs.getLong("shift_id")),
+                        rs.getLong("shift_id"),
+                        rs.getLong("task_type_id"),
+                        rs.getObject("resident_id", Long.class),
+                        rs.getObject("location_id", Long.class)),
                 shiftId,
                 floorAreaId,
                 LocalDateTime.ofInstant(from, BusinessTime.ZONE),

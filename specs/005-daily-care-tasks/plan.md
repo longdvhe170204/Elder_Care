@@ -787,7 +787,7 @@ Kiểm trên HEAD e7d7a7c0 và checkout hiện tại; không sửa mã Java/UI t
 | T005, T006, T007, T007a, T008, T009 | Migration/R15, khóa/khung job, danh mục, provider phạm vi/phân loại/lưu giữ và kiến trúc; T005_*, NFR_04_CareSchedulingIT, FR_038_*, FR_028a_*, T008_CareGovernanceIT, M04ArchTest/T009_ArchitectureRulesTest. |
 | T010, T011, T012, T013, T014, T015, T016, T016a | Chuỗi/so sánh, schema/trigger, state machine, lệnh, controller, hiệu lực kế hoạch và thỏa thuận/nhắc; BR_M04_25_*, FR_008_*, FR_003_*, BR_M04_19_* và kiểm hợp đồng. Ca lưu reason tối đa đã xanh với V000_16. Nguồn thật vẫn cần nghiệm thu liên module riêng. |
 | T017 | Màn kế hoạch/danh mục/thỏa thuận, client và test web hiện có; các test feature, lint/build mới xanh. Không dùng checkbox này để tuyên bố đã kiểm trực quan toàn giao diện. |
-| T018, T020, T021, T022, T023, T025 | Luật kiểm/chuyển, schema/domain/JDBC/history, validator/lệnh lập lô-phát sinh-làm lại và bảy HTTP/callback nguồn; FR_026_*, FR_017_*, BR_M04_01_ShiftTaskPlanningIT, ApiContractIT. T019 vẫn mở vì ca nhắc mọi ca trống thuộc T024 còn thiếu. |
+| T018, T020, T021, T022, T023, T025 | Luật kiểm/chuyển, schema/domain/JDBC/history, validator/lệnh lập lô-phát sinh-làm lại và bảy HTTP/callback nguồn; FR_026_*, FR_017_*, BR_M04_01_ShiftTaskPlanningIT, ApiContractIT. T019 đã bổ sung test ca trống và đánh[x]06/11; T024 còn nguồn thật theo bảng cập nhật dưới. |
 | T027, T028 | Test bảng chuyển, hiện diện/đến/về/không báo/hết ngày và schema shared; FR_013_AttendanceTransitionsTest, BR_M04_02_DayCareAttendanceIT, FR_012_AttendanceSchemaIT. Không đánh thay listener/lịch/nguồn của T029–T031. |
 | T032, T035, T041 | Hàm thời điểm đóng, schema kết quả gộp care_task và web checklist; FR_035_CareResultTimingTest, FR_036_CareResultSchemaIT cùng các test web checklist/record theo loại. |
 | T043 | Bộ IT core danh sách/đóng/chuyển/tồn bàn giao; FR_047_TaskHandoverIT, FR_047_HandoverRegressionIT, FR_047a_PendingHandoverIT và review regressions. T045/T061 vẫn mở cho adapter/nguồn008 và task vị trí; không ghi test005 thành tích hợp thật008. |
@@ -795,20 +795,22 @@ Kiểm trên HEAD e7d7a7c0 và checkout hiện tại; không sửa mã Java/UI t
 
 T060 đã được A đánh[x] trước lượt này, giữ nguyên; ApiContractIT và RecordGroupTriggerIT lại xanh sau merge.
 
+Bảng việc còn mở dưới đây cập nhật tiếp đến 07/11/2026; bằng chứng từng lượt nằm cuối plan và progress.
+
 | Task còn mở | Phần thực tế còn lại |
 | --- | --- |
-| T019, T024 | Nhắc toàn bộ ca trống kể cả tầng/khu chưa có task/giường; cảnh báo MANDATORY vị trí/metadata nguồn đầy đủ. |
-| T026, T031, T040 | A đã cung cấp transport mảng/Problem properties; C còn nối adapter vào requestJson/getList, đăng ký shell, danh mục/form kết quả và các luồng còn thiếu; không chỉ widget/gateway độc lập. |
-| T029, T030 | Nguồn lịch/ngày nghỉ/báo vắng và listener004, nghiệm thu job theo nguồn thật; hành vi ngày đổi khỏi DAY_CARE/VOID còn mở. |
+| T024 | Care đã nhắc mọi ca trống và phát cảnh báo vị trí/metadata sau test đỏ→xanh; còn nguồn ShiftStaffPort thật008 và consumer007. T019 test đã xanh và đánh[x]06/11. |
+| T026, T031, T040 | Adapter requestJson/getList, đăng ký shell, form theo loại kết quả và hàng đợi drift chung đã cài/test. Còn kiểm trực quan 3 bề rộng/dark, máy ảo/thật và các nhánh đo/tính phí bị chặn nguồn. |
+| T029, T030 | Còn API004 đọc ngày nghỉ/id báo vắng để nối listener và nghiệm thu job với nguồn thật. Phần ngày đổi khỏi DAY_CARE/VOID chưa có quy tắc spec được người dùng yêu cầu lược bỏ06/11. |
 | T033, T036, T039 | Quantity/billable010, phát sinh đo/metadata đo lại007 và summary012; các guard503 không phải bản cài nhánh nghiệp vụ. |
-| T034, T037 | Hai offline handler và test đồng bộ theo payload03/11 mới duyệt; hiện chưa có bản cài đầy đủ. |
-| T038, T045 | Nhận việc tồn ca sau, nguồn/adapter008 cho nhiệm vụ bàn giao và task gắn vị trí. |
-| T042, T044, T049 | Bỏ giới hạn payload gộp cũ theo quyết định03/11; metadata đo bị bỏ, liên kết bữa phát sinh, payload ăn kém dài và consumer nguồn thật. |
-| T046 | Màn theo dõi quá hạn đủ web/mobile; nhánh mobile chưa đủ. |
-| T050, T051 | Quantity khi đính chính, tín hiệu VOID ngủ và nghiệm thu consumer; giữ quy tắc isolation generic đã chốt03/11, không đổi mặc định chung. |
+
+| T038, T045 | Care đã nhận việc tồn theo ca hiện hành và trả projection task vị trí theo DTO đã duyệt; còn nguồn/consumer bàn giao008 thật và callback vắng/đổi phân công. |
+| T044, T049 | Đã bỏ giới hạn payload, nối bữa phát sinh/đính chính và payload thời gian/số lượng sau test đỏ→xanh; T042 đã[x]. Còn metadata đo bị bỏ007, nguồn ca008, consumer011 thật. |
+| T046 | Màn quá hạn web/mobile đã có; còn kiểm trực quan 3 bề rộng/dark, máy ảo/thật và nguồn thật. |
+| T050, T051 | Provider VOID ngủ và SleepResultVoided đã kiểm xanh; còn consumer007 và quantity/newQuantity/cờ tính phí010. Giữ isolation generic đã chốt03/11. |
 | T052, T053 | Nối và kiểm producer007 mới có, người nhận008 thật; hiện chỉ hai nguồn001/004 được cài/kiểm đầy đủ. |
-| T054–T059 | Test/logic đổi phân công-vắng-nguồn/chuyển giường-thời khóa biểu/thống kê theo đúng từng task; phần có trước chưa đủ phạm vi, chưa có bằng chứng đầy đủ để đánh[x]. |
-| T061–T064 | Tích hợp nguồn thật, benchmark/quickstart, truy vết đầy đủ và kiểm R15 toàn feature; không thay bằng scoped fake. |
+
+| T061–T064 | Giữ T061/T062 theo yêu cầu; T063 còn DBR-15/17 (010); T064 còn định danh attachment/lưu giữ task vị trí cần A/000 review. Nhóm dữ liệu và trigger đã kiểm xanh. |
 
 Các checkpoint cũ giữ lại để truy lịch sử; câu giữ[] toàn phase ở mốc cũ không phủ định bảng rà ngày04/11 này. Nghiệm thu phase/feature và quyền commit/push/merge vẫn độc lập với checkbox từng task.
 
@@ -867,3 +869,53 @@ Làm trên nhánh `impl/019-inventory-assets` sau khi merge `feature/005-daily-c
 - Ghi nhận phát sinh ngoại tuyến còn công việc cùng loại đang mở mà app chưa xác nhận đã xem thì từ chối `SAME_TYPE_TASKS_OPEN`.
 - Giới hạn: "Không thực hiện" ngoại tuyến chưa lưu cờ mất quyền (bảng `care_task` chỉ có cột cho kết quả ghi nhận). App mobile (T040) chưa nối hàng đợi với hai loại này.
 - Test: `BR_M04_12_LateOfflineRecordingIT` 7, `BR_M04_27_ClosedTaskOfflineSyncIT` 4 (nền `CareOfflineTestBase` gọi handler như `SyncService`), đỏ trước khi cài. T063: BR-M04-27 và DBR-25 (thời điểm thiết bị) nay có test.
+
+## Tiếp tục 005 trên impl/019-inventory-assets — 06/11/2026
+
+Phạm vi theo chủ dự án: chỉ care (M04), migration V005 và web/mobile005; giữ thay đổi003 có sẵn, không đổi nhánh/commit/push. Các checkpoint cũ là lịch sử; thứ tự nghiệm thu theo yêu cầu phiên này, giữ T052/T053/T061/T062 mở.
+
+T064: test mới `M04RecordGroupTriggerIT` đỏ 3/3 (khai BUSINESS thay MULTIPLE, thiếu locked_at/trigger chuẩn R-15, tài khoản quản trị vẫn xóa được task Hủy không có kết quả). Migration mới `V005_101` khai MULTIPLE, dùng locked_at sinh từ trạng thái cuối và mốc đóng/kết quả/tạo để bao phủ cả dữ liệu cũ mà không UPDATE bản ghi đã khóa; giữ chặn sửa và cho tài khoản retention xóa theo luồng loại bỏ. Không sửa migration cũ. Đang chạy bộ care/kiến trúc/hợp đồng/RecordGroupTriggerIT trước khi xét checkbox.
+
+Chủ dự án duyệt phương án 1 trong phiên: bổ sung `ShiftStaffPort.ongoingShifts(Instant at)` (mọi ca công bố chứa at, khoảng nửa mở), mở rộng `AlertRequested` cho người cao tuổi vắng và vị trí/metadata nguồn, giữ constructor cũ. Chỉ cài phía care và fake care duy nhất; nguồn008/consumer007 do E/D nối, không lấy fixture thay nghiệm thu tích hợp thật. Đây thay quyết định hoãn ngày01/11 cho hai điểm này; không suy ra quyền đổi API khác.
+
+T024/T019 phần care: `CareShiftReminders` đăng ký `CareMinuteWork`, marker `M04.SHIFT_WITHOUT_TASKS` trên `reminder_marker` (`M09.SHIFT`, `START`) và event cùng transaction; chỉ ca công bố đang diễn ra, không lấy danh sách tầng từ task/giường. `FR_017_ShiftWithoutTasksIT` đỏ ba ca thiếu bean rồi xanh; `BR_M04_05_OverdueReminderIT` đỏ nhánh vị trí trước khi cài `CareAlertSource`. Chủ dự án chọn theo BR-M04-06 khi phát hiện FR-044(b) thêm Người phụ trách ca: chỉ Trưởng tầng nhận mức Quan trọng; cho phép sửa đúng FR-044(b). Test người nhận đỏ vì còn ShiftLead rồi xanh. Scoped đầu:36unit/kiến trúc,39IT xanh. Nguồn thật vẫn thiếu `ShiftStaffPort` (008 hiện cài `CareShiftPort`), consumer cảnh báo vị trí007 chưa cài; mục8 đã ghi chữ ký/phần còn thiếu.
+
+T042/T044: bỏ hai guard32 trong `CareTaskDueStep`/`CareTaskNotices`; `BatchedOverdueTaskReminder(floorAreaId,taskCount,from,to,catchUpAt,context)` theo quyết định03/11. `from/to` là min/max thời điểm dự kiến của các công việc mới được nhắc trong nhóm; không chứa taskIds. `displayParams.path` dẫn `/care-tasks/overdue?floorAreaId=…`; giữ constructor caller cũ và JsonCreator đọc outbox cũ, không ghi lại danh sách id. Test capacity và IT40côngviệc đỏ trước cài; bộ smoke sau cài xanh, đang chạy gate rộng. `BR_M04_29_RemindOnceIT` vẫn kiểm nhắc một lần qua thành chung/gán lại/sang ca. Không đổi chu kỳ job một phút hoặc ngưỡng CFG.
+
+Gate rộng đầu sau nhóm nhắc:159unit/kiến trúc xanh,812IT có6failure/0error/4skip. Năm lỗiMISSING_CERTIFICATE thuộc fixture `CareOverdueTestBase.createAnother`: giờ máy gần nửa đêm, công việc thứhai sang ngày mai nhưng fixture chỉ cấp chứng chỉ hôm nay (HTTP409 ghi đúng mã). Sửa fixture cấp theo ngày công việc, đồng thời cố định clock08:00 mỗi test và reset sau test trong hai fixture care để không phụ thuộc giờ chạy. Lỗi còn lại ở ITpayload mới so nanosecond đầu vào với DATETIME(6): so với thời điểm đã lưu từ task, không tăng tolerance. Đang chạy lại cùng gate; không đánh[x] từ lượt đỏ.
+
+Chủ dự án còn duyệt riêng trong phiên (chưa cài tại checkpoint này): `TaskHandoverView.residentId` long→Long, thêm locationType/locationId/floorAreaId, giữ constructor cũ; thêm `SleepResultVoided(resultId,residentId,date,context)` khi VOID ngủ, giữ SleepResultRecorded. C chỉ cài producer care, E/D nối consumer.
+
+T029/T030, chủ dự án chỉ đạo tiếp: làm theo spec; nếu spec chưa đề cập ngày đổi khỏi bán trú/Hủy thì lược bỏ phần đó trong lượt này. Không áp đề xuất giữ/ẩn trạng thái, không thêm trạng thái hoặc sửa spec ở nhánh này. Nguồn004 đã có `ContractReadApi.attendanceOn` và hai event `DayCareClosureDayChanged`, `DayCareAbsenceNoticeRecorded`; chưa có API đọc đủ `holiday/timelyAbsenceId/lateAbsenceId` cho `DayCareCalendarPort`. `ResidencyDayApi.dayCareSessions` là kết quả hệ số đã phụ thuộc trạng thái điểm danh005, không cung cấp id báo vắng nên không dùng làm nguồn vòng ngược hoặc tự đặt id. Chờ B công bố nguồn đọc tương ứng; chưa nghiệm thu job với nguồn thật.
+
+### T049, T038/T045, T051 — 06–07/11/2026
+
+T049: hai test mới của `FR_039_CareResultRulesIT` và ca đính chính thật của `BR_M04_14_CareResultCorrectionIT` chứng minh EATING phát sinh/đính chính tham gia chuỗi, chuỗi40bữa không bị giới hạn32. RED đúng guard mealId/32 trước cài, sau cài gate159unit/kiến trúc +447/449IT thực chạy xanh,2FR071014skip sẵn (`20261106-t049-green.log`). Payload thời gian/số lượng theo quyết định03/11, giữ khả năng replay cũ; `CurrentCareResults` vẫn dùng current/VOID. T049 giữ[ ] vì nutrition chỉ có package-info, chưa có consumer011; không gọi producer test thành nghiệm thu nguồn thật.
+
+T038/T045: ba ca mới RED403 nhận việc tồn (kiểm ca cũ),503 projection vị trí,503 VOID ngủ. `CareChecklistService.claimant` xét ca đang diễn ra và thời điểm nhận cho task carryover, vẫn kiểm thành viên/vai trò/chứng chỉ hiện hành. FakeShiftStaff.onShift khóa theo Instant chính xác, nên fixture ca nhận dùng spy trả theo khoảng ca để kiểm đúng thời điểm, không sửa luật production. `CareTaskHandoverProjection` dùng DTO vị trí đã duyệt, giữ constructor cũ, ROOM trả roomId trực tiếp từ đích; không thêm fake003 (LocationApi thật đã có ở AllocationQueries).
+
+T051: provider VOID ngủ phát SleepResultVoided theo duyệt, giữ trạng thái COMPLETED và correction.current voided. Gate rộng159unit/kiến trúc,1147IT gồm1144xanh/1failure/2skip; failure duy nhất `staffing.StaffCommandsHttpIT.FR_001a_departmentCatalogueAndChangeEndpointWorkWithoutEditingProfile` mong200/nhận409 INVALID_DEPARTMENT khớp baselineE. Care và admission xanh. Log `20261106-handover-void-scoped.log`. T038/T045/T051 vẫn mở vì nguồn008/consumer007 và quantity010 chưa đủ.
+
+### T026/T031/T040/T046 mobile và kiểm web — 07/11/2026
+
+Đọc hết DESIGN.md,README frontend/mobile. Web đã có đăng ký App/navigation và client sinh từ hợp đồng; không sinh lại/sửa tay client. Mobile thêm `care_api_gateways.dart`: lập lô qua requestJson với JSONarray/Idempotency-Key/ApiProblem.properties.rowErrors; điểm danh trực tuyến qua clientcommon. `CareTasksHomeScreen` mở các màn theo quyền backend; thêm lối Chăm sóc ở thanh app hiện có, không thêm mục thứsáu vào NavigationBar. `CareResultForm` lấy danh mục result-values và snapshot loại kết quả, hỗ trợ ngủ/tâm trạng/hành vi cùng nước/mức ăn/vận động/số lượng/đo/đã làm. Danh mục được cache cùng checklist để form đã tải dùng khi mất mạng. App Ghi nhận phát sinh dùng cùng form.
+
+000T100 đã có: `CareOfflineRecording` dùng OfflineQueue chung cho M04.CARE_TASK_RESULT/M04.AD_HOC_RECORDING. Sau finding review, lưu phong bì TRƯỚC khi gửi `/sync`, tránh đổi khóa khi lệnh đã lưu nhưng mất phản hồi; retry giữ khóa bền vững. Nội dung REJECTED/PENDING_REVIEW giữ trong màn Đồng bộ, form báo lý do. Nhãn Chưa đồng bộ trên từng task, không nhận việc ngoại tuyến; cache theo accountId/shiftId. Mở lại offline qua danh sách shiftIds đã cache đúng tài khoản, không cần gọi nguồn ca online. Chuyển checkbox sameTypeTasksReviewed làm đổi chữ ký/khóa lệnh nhưng giữ giá trị form (test finding đỏ→sửa→kiểm lại). Không sửa OfflineQueue/common, không thêm hàng đợi riêng.
+
+Kiểm giữa nhóm:177Flutter toàn kho xanh,analyze sau sửa12findingkiểu/format sạch;31carewidget/gateway xanh sau form ngủ,33sau queue-first. Đang chạy toàn Flutter cuối sau các finding, số cuối ghi progress. Web toàn kho517/517/87file,lint/build qua (`20261106-web-*`); build cảnh báo chunk lớn có sẵn. ComputerUse: IAB mở127.0.0.1:5173 bị ERR_CONNECTION_TIMED_OUT; Chrome tool dừng do không xác định đủ chắc URL để kiểm chính sách. Không nghiệm thu3bề rộng/dark;chưa kiểm máyảo/máythật. Giữ taskUI[ ] vì còn thiếu các kiểm này và nhánh nguồn thật.
+
+### Nguồn T033/T036/T039/T050, truy vết T063/T064 — 07/11/2026
+
+Rà billing.api: có DTO BillingSourceView.quantity nhưng không có cấu hình quantity/newQuantity/cờ tínhphí cho loại kếtquảcare và consumer010 đủ để bỏ guard; FR051 quyết sốlượng thuộc005 nhưng cách ánhxạ chưa được chốt ở hợpđồng hiện hành. Rà health.api/DefaultVitalSignPort: nguồn thật vẫn cài care.api.VitalSignPort(indicatorId,map,CurrentUser) trả enum,caller005 dùng care.api.spi.VitalSignPort(vitalSignType,value,deviceAt) cần id bảnđo/remeasurementSessionId; không tự đoán mapping hoặc bỏmetadata. 012 chỉ có phần relationship,không có công thức averageEatingRatio/mẫu số ăn/nước cho PublicCareResultApi.summary. Giữ các guard tương ứng và T033/T036/T039/T050[ ]; mục8 ghi chủ nguồn.
+
+T063: DBR25/BR-M04-27 đã có T034/T037; BR-M04-29 đã kiểm lại; BR-M15-20 có Flutter queue/widget thật dùng drift. DBR15/17 chưa nghiệm thu nhánh sốlượng010, không dùng guard503 thaytest; giữT063[ ].
+
+T064: đã sửa MULTIPLE/locked_at/triggercare_task và kiểm3IT mới đỏ→xanh,RecordGroupTriggerIT xanh. Chưa đóng vì kiểm entity_type còn điểm lưu giữ vị trí: lịch sử/nhắc ghi M04.TASK,correction ghi M04.CARE_RESULT,nhưng graph lưu giữ không gắn hồ sơ dùng M04.LOCATION_TASK/M04.LOCATION_CARE_RESULT. Khung000 xóa/xét attachment theo dataType nguyên văn; không dùng LegacyRecordTypeSource toàn cục để đổi nghĩa mọi M04.TASK (cả task gắnngười). Cần A review cách xét các định danh cùng dòng với hạn phù hợp;không sửa common/000 tronglượt này. Các bảng cũ của005 đã drop bởiV005_95,chỉ còn3bảngriêng005;không tạo bảng mới.
+
+Bổ sung kiểm cache BR-M15-20 ngày07/11: khi API quyền xác nhận mất TASK_CHECKLIST VIEW, xóa snapshot của đúng accountId trước khi cho mở lại ngoại tuyến; không xóa queue hay cache tài khoản khác. Widget mới đỏ (cache còn ca9) rồi sửa CareTasksHomeScreen dùng clearAccount hiện có. Flutter cuối183/183 xanh, analyze sạch (`20261107-flutter-final2.log`, `20261107-flutter-analyze-final2.log`).
+
+### Gate kết phiên — 07/11/2026
+
+`clean verify -Dit.forkCount=3` chạy nền sau nạp backend/.env bằng JDK25: 1.133 unit/kiến trúc xanh; 2.882 IT có3failure+4error/2skip trong22:45phút. Đối chiếu mục8: M09JobCatchUpIT2error và StaffCommandsHttpIT1failure đã có; FR076004 lệch ngày khi qua nửa đêm, BRM0412005 fixture chứng chỉ ngày thiết bị, T027014 session now−30phút nằm hôm trước, FR018003 đếm thông báo1/2 là các lỗi khác. Không gộp vào baseline staffing. XML lỗi được chép trước rerun vào logs/005/20261107-full-failures.
+
+Sửa test005 duy nhất: cấp chứng chỉ cho ngày performedAt theo BusinessTime.ZONE, không thay luật production; Spotless áp1file rồi sạch. Rerun `20261107-final-recheck.log`:58kiến trúc xanh,470IT có469xanh/1failure, riêng care444/444 xanh và ApiContractIT/RecordGroupTriggerIT xanh. FR076004,T027014,M09JobCatchUpIT,StaffCommandsHttpIT xanh trong lượt này nhưng chưa coi đã sửa nguyên nhân; FR018003 vẫn expected1/actual2, bàn giao mục8 và không sửa003. Full gate còn đỏ. Chỉ đánh thêmT019/T042; các task thiếu nguồn/thẩm định/UI giữ[ ]. T052/T053/T061/T062 giữ nguyên theo yêu cầu. Đề nghị commit phần005 đã kiểm sau review, không tự commit/push/đổi nhánh.

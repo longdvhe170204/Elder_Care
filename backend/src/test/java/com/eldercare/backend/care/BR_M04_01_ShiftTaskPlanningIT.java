@@ -50,6 +50,9 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     BusinessTime time;
 
     @Autowired
+    com.eldercare.backend.common.time.TestClockControl clock;
+
+    @Autowired
     SwitchableUser user;
 
     @Autowired
@@ -80,6 +83,7 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
 
     @BeforeEach
     void fixture() {
+        clock.setTo(time.today().atTime(8, 0).atZone(BusinessTime.ZONE).toInstant());
         residentId = TestUsers.nextId();
         floor = TestUsers.nextId();
         shiftId = TestUsers.nextId();
@@ -113,13 +117,19 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 residentId, shiftId, List.of(new CareAssignmentView(caregiver.staffId(), Role.CAREGIVER, true)));
         shifts.members(shiftId, List.of(new ShiftMemberView(caregiver.staffId(), Role.CAREGIVER)));
         shifts.onShift(caregiver.staffId(), planned, true);
-        shifts.qualified(caregiver.staffId(), Set.of(), time.today(), true);
+        shifts.qualified(
+                caregiver.staffId(), Set.of(), planned.atZone(BusinessTime.ZONE).toLocalDate(), true);
         meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
                 typeId,
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+    }
+
+    @AfterEach
+    void restoreClock() {
+        clock.reset();
     }
 
     String row(long resident, long source, Instant at) {
@@ -374,7 +384,7 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M04_26_importantLateTaskNotifiesTheFloorAndShiftLeads() throws Exception {
+    void BR_M04_26_importantLateTaskNotifiesTheFloorManager() throws Exception {
         Instant at = time.now().minusSeconds(1800);
         shifts.onShift(caregiver.staffId(), at, true);
         meals.validation(SourceType.MEAL, sourceId, residentId, at, new SourceValidation(true, true, true, false));

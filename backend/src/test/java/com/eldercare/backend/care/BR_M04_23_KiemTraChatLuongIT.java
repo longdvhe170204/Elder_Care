@@ -128,6 +128,39 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
         assertThat(events.stream(QualityCheckFailedNotice.class)).isEmpty();
     }
 
+    /** FR-059, FR-060 (schema GET duyệt 07/11/2026): người kiểm tra xem việc đủ điều kiện chưa chọn, số mục tối thiểu, mục. */
+    @Test
+    void FR_059_inspectorReadsEligibleTasksMinimumAndItemsWithoutRanking() throws Exception {
+        var tasks = completed(3);
+        long own = completed(baseManager.accountId(), performer);
+        mvc.perform(get("/api/v1/quality-checks/shifts/" + shift).param("floorAreaId", Long.toString(floor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.shiftId").value(shift))
+                .andExpect(jsonPath("$.eligibleTaskCount").value(3))
+                .andExpect(jsonPath("$.minimumItems").value(1))
+                .andExpect(jsonPath("$.checklist").doesNotExist())
+                .andExpect(jsonPath("$.eligibleTasks.length()").value(3))
+                .andExpect(
+                        jsonPath("$.eligibleTasks[?(@.taskId == " + own + ")]").isEmpty())
+                .andExpect(jsonPath("$.eligibleTasks[0].residentId").value(resident))
+                .andExpect(jsonPath("$.eligibleTasks[0].taskTypeId").value(type))
+                .andExpect(jsonPath("$.eligibleTasks[0].performerStaffId").value(caregiver.staffId()));
+        select(tasks.subList(0, 1)).andExpect(status().isCreated());
+        mvc.perform(get("/api/v1/quality-checks/shifts/" + shift).param("floorAreaId", Long.toString(floor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eligibleTaskCount").value(3))
+                .andExpect(jsonPath("$.checklist.status").value("OPEN"))
+                .andExpect(jsonPath("$.checklist.inspectorRole").value("FLOOR_MANAGER"))
+                .andExpect(jsonPath("$.eligibleTasks.length()").value(2))
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].taskId").value(tasks.get(0)))
+                .andExpect(jsonPath("$.items[0].status").value("PENDING"));
+        // Người thực hiện không phải người kiểm tra: không xem được danh sách (không báo khi được chọn).
+        user.set(caregiver.user());
+        mvc.perform(get("/api/v1/quality-checks/shifts/" + shift).param("floorAreaId", Long.toString(floor)))
+                .andExpect(status().is(org.hamcrest.Matchers.oneOf(403, 404)));
+    }
+
     @Test
     void FR_060_theFloorManagersOwnTaskIsNeitherSelectableNorCounted() throws Exception {
         long own = completed(baseManager.accountId(), performer);

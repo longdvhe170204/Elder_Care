@@ -1,5 +1,18 @@
 # Giao diện giữa module: Feature 005
 
+### Bổ sung chủ dự án duyệt 06/11/2026 — T024/T019
+
+- `ShiftStaffPort.ongoingShifts(Instant at): List<ShiftView>` trả mọi ca đã công bố chứa `at` theo `[startsAt, endsAt)`, không giới hạn bởi tầng có task/giường. E/008 cài nguồn thật; `FakeShiftStaff` hiện có cài cùng hợp đồng, không tạo fake thứ hai. Thay quyết định hoãn ngày01/11 ở riêng điểm này; không đổi `CareShiftPort` hoặc tự sửa staffing.
+- `AlertRequested.residentId` chuyển `long` → `Long`, vắng khi task gắn vị trí; thêm `Optional<CareAlertSource> sourceDetails`. `CareAlertSource(locationType, locationId, floorAreaId, taskTypeId, taskTypeName, plannedAt, windowFrom, windowTo, importance)` mô tả đích và công việc nguồn; `source`, `basisType`, `basisId`, `context` giữ đủ tham chiếu task/căn cứ. Giữ constructor bảy tham số cũ với residentId kiểu long; payload cũ thiếu sourceDetails đọc thành rỗng. D/007 review và nối consumer, không gán id0 hoặc người cao tuổi giả.
+- Chủ dự án chọn theo BR-M04-06: công việc Quan trọng quá hạn chỉ thông báo Trưởng tầng. Đã cho phép đồng bộ đúng FR-044(b); không đổi quy tắc Thường/Bắt buộc.
+
+### Payload và bàn giao đã cài trong lượt tiếp tục 06–07/11/2026
+
+- Theo quyết định03/11: `BatchedOverdueTaskReminder(floorAreaId,taskCount,from,to,catchUpAt,context)` thay danh sách `taskIds`; from/to là min/max thời điểm dự kiến của các task mới nhắc trong nhóm. Thông báo có `displayParams.path=/care-tasks/overdue?floorAreaId=…`. Giữ constructor cũ và `JsonCreator` đọc payload outbox cũ; không serialize lại danh sách id vào payload mới.
+- `ProlongedPoorEating(residentId,firstMealAt,lastMealAt,mealCount,at,context)` theo quyết định03/11: khoảng từ bữa đầu tới bữa cuối của chuỗi hiện hành (thứ tự plannedAt), gồm ghi nhận EATING phát sinh; không giả mealId. 011 đọc chi tiết qua API kết quả hiện hành theo khoảng, cần D nối consumer. Giữ constructor cũ và đọc outbox mealIds cũ; khoảng không có trên payload cũ dùng at của chính sự kiện cũ khi replay.
+- Chủ dự án duyệt06/11: `TaskHandoverView` giữ id/roomId/description/plannedAt/status/level, `residentId` thành `Long`, thêm `locationType`, `locationId`, `floorAreaId` nullable để payload cũ vẫn đọc được. Constructor bảy tham số cũ giữ nguyên. Producer care trả task vị trí không dùng người cao tuổi giả. E/008 phải xử lý residentId vắng trước nghiệm thu nguồn thật.
+- Chủ dự án duyệt06/11: `SleepResultVoided(resultId,residentId,date,context)` phát cùng transaction của VOID kết quả ngủ, milestone `CORRECTION:<id>`; date theo ngày dự kiến của task (như SleepResultRecorded). Giữ bản gốc và trạng thái task, vẫn phát CorrectionMade cho quy tắc F. D/007 nối consumer để bỏ giá trị bị hủy khi tính quy tắc ngủ; không dùng valueGroup rỗng/null của SleepResultRecorded làm tín hiệu hủy.
+
 ### Ghi chú triển khai Phase 9 (02/11/2026)
 
 - Chủ dự án duyệt bản dịch HTTP `POST /care-results/{id}/correct`, `type/correctedContent/reason`, `AMEND_CONTENT/VOID`, giữ Idempotency-Key và201khôngbody. Không thêm signature API/SPI/event Java. `CareResultCorrectionProvider` cài SPI hiện có cho `M04.CARE_RESULT`; bản gốc vẫn ở care_task, không thay trạng thái hoặc giá trị gốc.

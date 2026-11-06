@@ -1626,6 +1626,21 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | bản cài `CongViecThongKeApi` (T059) | `CareTaskStatistics` (`internal/task/service`); nhãn đồng bộ `syncLabel` `SYNCED_AFTER_PERMISSION_LOST`, `NONE`; test `FR_050_TaskStatisticsIT` |
 | lớp test | `BR_M04_13_SharedTaskIT`, `BR_M04_28_ReassignIT`, `BR_M04_04_ResidentStatusTasksIT`, `FR_048_TimetableIT`, `TimetablePage.test.jsx` |
 
+### 11.14. Nhắc ca trống, nguồn cảnh báo — duyệt 06/11/2026
+
+| Tên logic | Tên tiếng Anh | Ghi chú |
+| --- | --- | --- |
+| Ca đang diễn ra | `ShiftStaffPort.ongoingShifts(at)` | Mọi ca công bố chứa at, kể cả tầng/khu không có giường/task |
+| Thông tin công việc nguồn cảnh báo | `CareAlertSource` | Vị trí đích, tầng/khu, loại công việc, thời điểm dự kiến/khung, mức quan trọng |
+| Dấu nhắc ca chưa có công việc | `M04.SHIFT_WITHOUT_TASKS` | `reminder_marker`, đối tượng `M09.SHIFT`, mốc `START` |
+| Thời điểm khóa task/kết quả | `care_task.locked_at` | Cột sinh cho dòng trạng thái cuối; bảng MULTIPLE, V005_101 |
+| Khoảng chuỗi bữa kém | `ProlongedPoorEating.firstMealAt/lastMealAt/mealCount` | Thay mealIds theo quyết định03/11; gồm bữa ghi phát sinh |
+| Hủy ghi nhận ngủ | `SleepResultVoided` | Sự kiện riêng; không đổi nghĩa SleepResultRecorded |
+| Đích vị trí của bàn giao | `TaskHandoverView.locationType/locationId/floorAreaId` | residentId vắng cho task vị trí, không idgiả |
+| Lối mở mobile005 | `CareTasksHomeScreen` | care_tasks/care_tasks_home_screen.dart; adapter requestJson/getList |
+| Ghi phát sinh trên app | `AdHocCareRecordingScreen` | Cùng CareResultForm của checklist |
+| Ghi nhận qua hàng đợi chung | `CareOfflineRecording` | Lưu phong bì trước, gửi/sync lại cùng Idempotency-Key |
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)
@@ -3147,6 +3162,9 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Việc theo phút nhắc, quá hạn, ca không có danh sách (FR-059a, FR-063) | QualityCheckClockStep (bước `CARE_MINUTE`); sự kiện `QualityCheckReminder` (người nhận `Staff` vai `QUALITY_INSPECTOR`), `QualityCheckManagerNotice` cause `OVERDUE_ITEMS`, `NO_CHECKLIST` |
 | `ca_khong_danh_sach` (→ `moc_da_nhac`), dấu đã nhắc/đã báo | `reminder_marker` kind `M04.QUALITY_NO_CHECKLIST` (details floorAreaId, reason `NO_INSPECTOR` / `NOT_CREATED`, eligible), `M04.QUALITY_REMINDER`, `M04.QUALITY_OVERDUE`; danh sách đã đóng `CLOSED` |
 | Mục tự Không kiểm tra được khi kết quả bị Hủy ghi nhận (FR-062) | QualityCheckTaskVoids.resultVoided, gọi từ `CareResultCorrectionProvider` (005) |
+| Xem danh sách kiểm tra của ca (GET, schema duyệt 07/11/2026); màn web | schema `QualityCheckShiftView` (`shiftId`, `floorAreaId`, `minimumItems`, `eligibleTaskCount`, `checklist`, `eligibleTasks`, `items`); `QualityCheckService.overview`, `ShiftOverview`, `QualityCheckShiftResponse`; `features/quality-checks/QualityCheckPage.jsx` |
+| Nhân viên thực hiện công việc gốc trong số liệu kiểm tra (FR-065) | `QualityCheckStatisticsView.performerStaffId` |
+| Lưu giữ hoạt động, danh sách kiểm tra (L-15, 07/11/2026) | `CareRetentionType.ACTIVITY` (`M04.ACTIVITY`), `CareRetentionType.QUALITY_CHECKLIST` (`M04.QUALITY_CHECKLIST`) |
 
 ### 20.12. Số liệu cho 016 (T027, 06/11/2026)
 

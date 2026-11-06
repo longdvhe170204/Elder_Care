@@ -230,7 +230,7 @@ paths:
       summary: Công việc đủ điều kiện của ca theo tầng, số mục tối thiểu, danh sách hiện có (chỉ người kiểm tra, Quản lý viện); không xếp hạng hay gợi ý
       x-fr: [FR-059, FR-060]
       parameters: [ { name: shiftId, in: path, required: true, schema: { type: integer, format: int64 } }, { name: floorAreaId, in: query, required: true, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/QualityCheckShiftView' } } } }, '403': { $ref: '#/components/responses/Problem' } }
     post:
       tags: [quality-checks]
       summary: Lập danh sách kiểm tra (đủ tỷ lệ CFG-M04-11) hoặc thêm mục
@@ -422,6 +422,17 @@ components:
         lastSeenAt: { type: string, format: date-time }
         description: { type: string }
         deviceAt: { type: string, format: date-time }
+    QualityCheckShiftView:
+      type: object
+      description: 'Bổ sung 2026-11-07 (chủ dự án duyệt): công việc đủ điều kiện chưa chọn, số mục tối thiểu trần(CFG-M04-11 × n), danh sách và mục của ca theo tầng; không xếp hạng, không gợi ý (Q-306, Q-307).'
+      properties:
+        shiftId: { type: integer, format: int64 }
+        floorAreaId: { type: integer, format: int64 }
+        minimumItems: { type: integer }
+        eligibleTaskCount: { type: integer }
+        checklist: { type: object, nullable: true, properties: { id: { type: integer, format: int64 }, status: { type: string }, createdAt: { type: string, format: date-time }, inspectorRole: { type: string } } }
+        eligibleTasks: { type: array, items: { type: object, properties: { taskId: { type: integer, format: int64 }, taskTypeId: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, locationId: { type: integer, format: int64 }, performerStaffId: { type: integer, format: int64 }, performedAt: { type: string, format: date-time } } } }
+        items: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, taskId: { type: integer, format: int64 }, status: { type: string }, note: { type: string }, inspectorRole: { type: string }, recordedAt: { type: string, format: date-time } } } }
     QualityCheckResult:
       type: object
       required: [result]

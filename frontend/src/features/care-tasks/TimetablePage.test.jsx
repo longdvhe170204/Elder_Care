@@ -39,7 +39,7 @@ it('FR_048_sapTheoGioGhiNguonVaTrangThaiKhongCoNutSua', async () => {
       <TimetablePage initialDate="2026-10-01" />
     </PermissionsProvider>,
   )
-  await screen.findByRole('option', { name: /Người kiểm thử/ })
+  await screen.findByText(/Người kiểm thử/, { selector: 'option' })
   fireEvent.change(await screen.findByLabelText('Người cao tuổi'), { target: { value: '9' } })
   const list = await screen.findByRole('list', { name: 'Các mục trong ngày' })
   const rows = within(list).getAllByRole('listitem')
@@ -59,7 +59,7 @@ it('FR_048_khongCoMucThiBaoTrong', async () => {
       <TimetablePage initialDate="2026-10-01" />
     </PermissionsProvider>,
   )
-  await screen.findByRole('option', { name: /Người kiểm thử/ })
+  await screen.findByText(/Người kiểm thử/, { selector: 'option' })
   fireEvent.change(await screen.findByLabelText('Người cao tuổi'), { target: { value: '9' } })
   expect(await screen.findByText('Không có mục nào trong ngày')).toBeInTheDocument()
 })
@@ -71,7 +71,7 @@ it('FR_048_403HienKhongCoQuyen', async () => {
       <TimetablePage initialDate="2026-10-01" />
     </PermissionsProvider>,
   )
-  await screen.findByRole('option', { name: /Người kiểm thử/ })
+  await screen.findByText(/Người kiểm thử/, { selector: 'option' })
   fireEvent.change(await screen.findByLabelText('Người cao tuổi'), { target: { value: '9' } })
   expect(await screen.findByText(/không có quyền/i)).toBeInTheDocument()
 })

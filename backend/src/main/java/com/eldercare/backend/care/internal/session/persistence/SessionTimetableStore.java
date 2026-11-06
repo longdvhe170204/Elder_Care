@@ -7,7 +7,10 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/** 014 T006: buổi, chuyến người cao tuổi còn đăng ký trong ngày; bảng tạo ở US1, chưa có thì rỗng. */
+/**
+ * 014 T006: buổi, chuyến người cao tuổi còn đăng ký trong ngày, mã nguồn {@code ACTIVITY_SESSION} của schema
+ * {@code TimetableItem} (api-005); chuyến ghi trạng thái chuyến. Buổi bị hủy kéo theo đăng ký bị hủy nên không hiện.
+ */
 @Repository
 public class SessionTimetableStore {
     private final JdbcTemplate jdbc;
@@ -17,13 +20,9 @@ public class SessionTimetableStore {
     }
 
     public List<TimetableItemView> registered(long residentId, LocalDate date) {
-        if (jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()"
-                                + " AND table_name IN ('activity_session','activity_registration')",
-                        Integer.class)
-                < 2) return List.of();
         return jdbc.query(
-                "SELECT s.starts_at, JSON_UNQUOTE(JSON_EXTRACT(a.content,'$.name')), s.status"
+                "SELECT s.starts_at, JSON_UNQUOTE(JSON_EXTRACT(a.content,'$.name')),"
+                        + " COALESCE(s.trip_status, s.status)"
                         + " FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
                         + " JOIN simple_record a ON a.id=s.activity_id AND a.kind='M04.ACTIVITY'"
                         + " WHERE r.resident_id=? AND r.status<>'CANCELLED' AND s.status<>'CANCELLED'"
@@ -32,7 +31,7 @@ public class SessionTimetableStore {
                         rs.getObject(1, LocalDateTime.class)
                                 .atZone(BusinessTime.ZONE)
                                 .toInstant(),
-                        "ACTIVITY",
+                        "ACTIVITY_SESSION",
                         rs.getString(2),
                         rs.getString(3)),
                 residentId,

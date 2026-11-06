@@ -74,8 +74,15 @@ class T027_ActivityStatisticsIT extends MySqlIntegrationTestBase {
     SessionAttendanceFixture data;
     ScopeFilter floorOnly;
 
+    @Autowired
+    com.eldercare.backend.common.time.TestClockControl clock;
+
     @BeforeEach
     void fixture() {
+        // Mốc tương đối của fixture (buổi now-30 phút, chuyến now-2 giờ) phải cùng ngày nghiệp vụ với today: chạy qua
+        // nửa
+        // đêm thì buổi rơi sang hôm qua (review 07/11). Cố định giữa ngày, không theo giờ máy.
+        clock.setTo(time.today().atTime(10, 0).atZone(BusinessTime.ZONE).toInstant());
         data = new SessionAttendanceFixture(jdbc, time, assignments, user, residents);
         floorOnly = new ScopeFilter(false, Set.of(data.floor), Set.of(), Set.of());
     }
@@ -97,6 +104,11 @@ class T027_ActivityStatisticsIT extends MySqlIntegrationTestBase {
 
     LocalDateTime local(Instant at) {
         return LocalDateTime.ofInstant(at, BusinessTime.ZONE);
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void restoreClock() {
+        clock.reset();
     }
 
     @Test
@@ -233,6 +245,8 @@ class T027_ActivityStatisticsIT extends MySqlIntegrationTestBase {
         assertThat(views).filteredOn(v -> v.itemId() == passed).singleElement().satisfies(v -> {
             assertThat(v.result()).isEqualTo("PASS");
             assertThat(v.checkerRole()).isEqualTo("FLOOR_MANAGER");
+            // FR-065: tỷ lệ Đạt theo nhân viên thực hiện công việc gốc.
+            assertThat(v.performerStaffId()).isEqualTo(PERFORMER);
         });
         assertThat(views).noneMatch(v -> v.itemId() == pending);
         assertThat(statistics
@@ -247,6 +261,8 @@ class T027_ActivityStatisticsIT extends MySqlIntegrationTestBase {
         assertThat(statistics.isolationRisks()).isEmpty();
     }
 
+    static final long PERFORMER = 901_014L;
+
     long item(long shift, long checklist, String status, String role, Instant at, boolean confirmed) {
         long task = TestUsers.nextId();
         return records.add(
@@ -259,7 +275,7 @@ class T027_ActivityStatisticsIT extends MySqlIntegrationTestBase {
                                         data.floor,
                                         task,
                                         null,
-                                        null,
+                                        PERFORMER,
                                         status,
                                         null,
                                         List.of(),

@@ -8,6 +8,7 @@ import '../common/offline/offline_queue.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'approval_requests/approval_inbox_screen.dart';
+import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'pending_review/pending_review_screen.dart';
@@ -102,6 +103,22 @@ class _StaffRootState extends State<StaffRoot> {
               context,
               title: tabs[_index].$1,
               actions: [
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).extension<Tones>()!.headerInkStrong),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(title: const Text('Chăm sóc hằng ngày')),
+                        body: CareTasksHomeScreen(
+                          api: widget.session.api,
+                          accountId: widget.session.user!.accountId,
+                          queue: widget.queue,
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Chăm sóc'),
+                ),
                 TextButton.icon(
                   style: TextButton.styleFrom(foregroundColor: Theme.of(context).extension<Tones>()!.headerInkStrong),
                   onPressed: () => widget.session.signOut(),
@@ -113,6 +130,21 @@ class _StaffRootState extends State<StaffRoot> {
           : AppBar(
               title: Text(tabs[_index].$1),
               actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(title: const Text('Chăm sóc hằng ngày')),
+                        body: CareTasksHomeScreen(
+                          api: widget.session.api,
+                          accountId: widget.session.user!.accountId,
+                          queue: widget.queue,
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Chăm sóc'),
+                ),
                 TextButton.icon(
                   onPressed: () => widget.session.signOut(),
                   icon: const Icon(LucideIcons.logOut),

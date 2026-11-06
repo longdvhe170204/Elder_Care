@@ -21,7 +21,12 @@ public enum CareRetentionType {
     // chung (sở thích, người thường xuyên, điểm danh, kết quả kiểm tra) gắn resident_id, xóa cùng hồ sơ qua
     // SharedRowRetention.
     ACTIVITY_SESSION("activity_session", false),
-    ACTIVITY_REGISTRATION("activity_registration", true);
+    ACTIVITY_REGISTRATION("activity_registration", true),
+    // 014 T034 (L-15, chủ dự án chọn 07/11/2026): không gắn hồ sơ; hoạt động tính từ ngày ngừng hiệu lực, danh sách
+    // kiểm
+    // tra từ lúc đóng (khóa dòng). Dòng con (mẫu, người thường xuyên, mục kiểm tra) do SharedRowRetention của 000 xóa.
+    ACTIVITY("simple_record", false),
+    QUALITY_CHECKLIST("simple_record", false);
     private final String table;
     private final boolean profile;
 

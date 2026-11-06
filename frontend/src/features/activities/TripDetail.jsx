@@ -17,6 +17,7 @@ import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { ActivityField } from './ActivityField'
 import { TRIP_STATUS, toOffsetIso } from './sessionView'
+import { TripAssessmentSheet, TripReturnPanel } from './TripFollowUp'
 
 const STATUSES = {
   REGISTERED: 'Đã đăng ký',
@@ -47,6 +48,7 @@ export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChang
   const [cancellingTrip, setCancellingTrip] = useState(false)
   const [tripCancelReason, setTripCancelReason] = useState('')
   const [move, setMove] = useState({ startsAt: '', endsAt: '', reason: '' })
+  const [assessing, setAssessing] = useState(null)
   const keys = useRef(new Map())
   useEffect(() => {
     let active = true
@@ -107,6 +109,11 @@ export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChang
       setResidentId('')
       setWarnings([])
     }
+  }
+  const finished = (message) => {
+    setAssessing(null)
+    setRevision((v) => v + 1)
+    onChanged(message)
   }
   const nameOf = (id) => residents.find((r) => r.id === id)?.fullName ?? `Người cao tuổi ${id}`
   return (
@@ -303,6 +310,17 @@ export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChang
                 </label>
                 <StatusBadge status={STATUSES[p.status] ?? p.status} />
                 {p.reason && <p className="mt-2 type-body-sm">Lý do: {p.reason}</p>}
+                {canUpdate && trip.status === 'SCHEDULED' && p.status === 'REGISTERED' && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    aria-label={`Đánh giá ${nameOf(p.residentId)}`}
+                    disabled={busy}
+                    onClick={() => setAssessing(p)}
+                  >
+                    Đánh giá
+                  </Button>
+                )}
                 {canUpdate && trip.status === 'SCHEDULED' && ['REGISTERED', 'ELIGIBLE'].includes(p.status) && (
                   <Button
                     variant="ghost"
@@ -390,6 +408,17 @@ export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChang
               </div>
             )}
           </section>
+          {canCreate && trip.status === 'IN_PROGRESS' && (
+            <TripReturnPanel trip={trip} nameOf={nameOf} onDone={finished} />
+          )}
+          <TripAssessmentSheet
+            key={assessing?.id ?? 'none'}
+            tripId={trip.id}
+            participant={assessing}
+            name={assessing ? nameOf(assessing.residentId) : ''}
+            onOpenChange={(open) => !open && setAssessing(null)}
+            onDone={finished}
+          />
           {canCreate && ['SCHEDULED', 'IN_PROGRESS'].includes(trip.status) && (
             <div className="flex flex-col gap-3 border-t pt-4">
               <ActivityField
