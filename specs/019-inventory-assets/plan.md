@@ -183,3 +183,32 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - Ánh xạ bảng ở data-model mục 0; task T029. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
 - Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
 - Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
+
+### Phase 10 — rà và kiểm phần backend (2026-11-06)
+
+- T019/DBR-32: thêm `DBR_32_BedAssetConcurrencyIT`, hai transaction không bọc transaction test, dùng `BedAssetPort` thật. Spy chỉ điều phối sau lần đọc phân bổ tương lai đầu tiên, để transaction phân bổ commit trước khi transaction báo hỏng lấy khóa giường. Đã thấy đỏ đúng `CannotAcquireLockException` (danh sách phân bổ đổi giữa hai lần đọc); `reportDamage` thêm retry toàn transaction theo mẫu `AllocationCommands.create`. Không đổi chữ ký hay nghiệp vụ. Đã đỏ có điều phối trước khi sửa, sau sửa nhóm DBR-32 + ba lớp IT chuyến 014 xanh 50/50; kiểm cuối toàn bộ ghi bổ sung sau khi chạy đủ.
+- IT thanh lý thật: `FR_013_AssetDisposalTransactionIT` (NOT_SUPPORTED) gọi endpoint lập yêu cầu, duyệt; xác nhận APPLIED, result trên `approval_request` theo R-15, disposed_at và trạng thái giường RETIRED. Không gọi trực tiếp handler. Chạy riêng xanh 2/2.
+- T024 phần lịch xe: ba lớp `BR_M04_16_RoiVienIT`, `BR_M04_17_ThieuNguoiIT`, `FR_031a_DinhChinhChuyenIT` bỏ `FakeVehicleSchedules.Config`; ca FR-019 đặt lịch qua endpoint thật và kiểm Đang dùng khi người đầu tiên rời viện. Ca kiểm rollback dùng spy API lệnh để chủ động gây lỗi nguồn, nguồn đọc và lịch đã đặt vẫn là thật. Giữ fake của các test cô lập 003 dùng để đặt điều kiện riêng; `BR_M03_15_BedAssetIT` và DBR-32 kiểm cổng giường thật. Phần thuốc của T024 vẫn chờ T027/T028.
+- T029: rà `V019_02`, `V019_05`, `V019_07`: chỉ hai bảng nghiệp vụ `procurement_request` (MULTIPLE, khóa nội dung ngoài Nháp, row_lock/no_delete khi chốt) và `asset` (BUSINESS, nguồn/giường đặt một lần, thanh lý là cuối); tiền DECIMAL(15,0). Loại tài sản dùng catalog_item; vị trí/bộ phận dùng status_history; bảo trì/hư hỏng dùng record_event; lịch xe dùng simple_record; mốc nhắc dùng reminder_marker. Các dòng con mang entity_type M03.ASSET theo RetentionProvider của cha. Ba job 019 dùng SchedulerRuns. `RecordGroupTriggerIT` đã có kiểm tổng quát khai nhóm, trigger RECORD và MULTIPLE; không sửa test của 000, chạy lại để kiểm chứng.
+- Chờ chốt trước khi cài: trường, kiểu và tác động đính chính M03.ASSET_HISTORY/M03.VEHICLE_SCHEDULE (000 mục 1.6 chỉ quy định cơ chế); người dùng xác nhận giữ chờ chủ dự án/A. Đã thêm dòng team-plan mục 8. Ba tên job đề xuất A bổ sung vào enum runJobs, không tự sửa api-000.
+
+| Truy vết T026 | Test hiện có / bổ sung |
+| --- | --- |
+| DBR-32 | DBR_32_BedAssetConcurrencyIT; BR_M03_15_BedAssetIT; FR_013_AssetDisposalTransactionIT |
+| DBR-36 | DBR_36_SourceLinkIT; FR_013_AssetLifecycleIT (mua mới, bảo trì thuê ngoài) |
+| BR-M03-15, BR-M03-18 | BedAssetRulesTest; BR_M03_15_BedAssetIT; FR_013_AssetLifecycleIT |
+| BR-M03-16 | VehicleBookingCheckTest; BR_M03_16_VehicleScheduleIT (SC-005) |
+| BR-M03-17 | BR_M03_17_MaintenanceDueIT |
+| BR-M11-17 → 20 | BR_M11_17_ProcurementRequestIT; BR_M11_18_OverrunIT; BR_M11_19_ReconciliationIT; BR_M11_20_ReminderIT |
+| FR-008d | FR_008d_MedicationRequestIT (quyền, đơn nguồn viện, thiếu trường, phạm vi); adapter dòng/Đã nhận vẫn chờ T027/T028 |
+| FR-019 | FR_018_FollowTripIT; BR_M04_16_RoiVienIT.FR_019_firstDepartureStartsTheRealVehicleSchedule |
+| FR-020 | FR_013_AssetLifecycleIT; BR_M03_15_BedAssetIT; BR_M03_16_VehicleScheduleIT; ba lớp BR_M11_17/18/19; FR_008d_MedicationRequestIT |
+| FR-021 | BR_M03_15_BedAssetIT; BR_M03_16_VehicleScheduleIT; BR_M03_17_MaintenanceDueIT; BR_M11_17_ProcurementRequestIT; BR_M11_19_ReconciliationIT; BR_M11_20_ReminderIT |
+
+Đây là truy vết test, chưa phải tuyên bố hoàn tất các task có phần phụ thuộc còn mở hoặc SC/UI chưa đo.
+
+- T023 phần tài sản (chủ dự án xác nhận trong phiên 2026-11-06): ngày on lọc dấu hiện tại có dueOn < on, không tái dựng dấu quá khứ; nếu cần lịch sử phải chốt nguồn trước. `AssetStatisticsService` cài `AssetStatisticsApi`, `AssetStatisticsStore` lọc theo tầng, countOverdue GROUP BY tại DB; vehicleSchedules đọc qua SimpleRecordApi (bốn trạng thái), lọc ngày đi dự kiến theo BusinessTime.ZONE, hai đầu bao gồm. `T023_AssetStatisticsIT` đỏ 3/3 do thiếu provider trước khi cài. T023 phần mua sắm vẫn chờ A xác nhận khoảng của CP.MUA_SAM.
+
+- Kiểm cuối Phase 10 (2026-11-06): `./mvnw -o -q spotless:apply`; `./mvnw -o clean verify -Dit.forkCount=3`: BUILD FAILURE do StaffCommandsHttpIT của E (409 INVALID_DEPARTMENT, khớp dòng chờ mục 8) (1131 đơn vị/kiến trúc xanh; 2799/2802 IT xanh, 1 thất bại, 2 bỏ qua, 15 phút 25 giây); IT các module liên quan đều xanh: roombedallocation 305, care 383, admission 443, reporting 53, medication 39, billing 41. `T023_AssetStatisticsIT` 4/4 (đủ bốn trạng thái lịch và giờ thực tế), DBR-32 1/1, IT thanh lý thật 2/2; `npm test` 512/512 (86 file). Hai test bỏ qua sẵn có là SC_001_UrgentConcurrencyIT của 009, yêu cầu property eldercare.perf; không thay cấu hình bỏ qua test. Log ở scratchpad phiên, không ở backend/logs.
+- Đối chiếu mục 8: chỉ StaffCommandsHttpIT.FR_001a_departmentCatalogueAndChangeEndpointWorkWithoutEditingProfile đỏ (mong 200, nhận 409 INVALID_DEPARTMENT, “Quản lý viện không thuộc bộ phận”, staff_id 5005013); fixture vẫn tạo tài khoản quản lý trước INSERT staff_profile tự tăng, khớp dòng E đang chờ. Không sửa test/fixture của E. ResidentContractIT, BR_M04_01_ShiftTaskPlanningIT, BR_M04_05_OverdueReminderIT xanh trong lượt này; không tự xóa các dòng baseline trên develop. Reviewer độc lập không có finding actionable; giới hạn kiểm: DBR-32 ép chiều phân bổ commit trước khóa giường, IT thanh lý mới kiểm đường thành công (chưa chèn lỗi sau bước đổi trạng thái giường).
+- T019, T029 đã đủ bằng chứng để đánh dấu; T023/T024 còn phần mua sắm thuốc/thống kê mua sắm, T025 còn kịch bản/đo SC đầy đủ, T026 còn kiểm phần adapter FR-008d chưa chốt nên giữ mở. Chưa commit, push hay mở PR. Bản nháp PR lưu scratchpad; nhánh dựa trên 014 nên cần so lại phạm vi khi người dùng cho phép mở PR vào develop.

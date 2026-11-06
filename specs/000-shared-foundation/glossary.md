@@ -3319,6 +3319,8 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | loại phạm vi `M11.MUA_SAM`, `M03.TAI_SAN`, `M03.LICH_XE`; chủ tệp `M11.CHUNG_TU_MUA_SAM` | `M11.PROCUREMENT_REQUEST`, `M03.ASSET`, `M03.VEHICLE_SCHEDULE`; `M11.PROCUREMENT_RECEIPT` |
 | hàm thuần `KiemTraVuot`, `KhopChungTu`, `AnhXaTrangThaiGiuong`, `KiemTraDatLich` | `ApprovedAmountCheck`, `ReceiptMatch`, `BedAssetStateMapping`, `VehicleBookingCheck` |
 | `MuaSamService`, `YeuCauMuaSamPortImpl`, `YeuCauThuocCungUngPortImpl`; `TaiSanService`, `TaiSanGiuongPortImpl`; `LichXeService` | `ProcurementRequestService`, `ProcurementRequestPortImpl`, `ProcurementMedicationPortImpl`; `AssetService`, `BedAssetPortImpl`; `VehicleScheduleService` (cài `VehicleScheduleApi`, `VehicleScheduleCommandApi`) |
+| Kiểm đồng thời báo hỏng giường và phân bổ (T019/DBR-32), kiểm thanh lý qua transaction áp dụng thật (Phase 10) | `DBR_32_BedAssetConcurrencyIT`, `FR_013_AssetDisposalTransactionIT`; retry transaction `AssetService.reportDamage` khi `PessimisticLockingFailureException` |
+| Bản cài thống kê tài sản (T023) | `AssetStatisticsService`, `AssetStatisticsStore`; dấu hiện tại có `dueOn < on`, phạm vi tầng hiện tại; `countOverdue` GROUP BY tại DB; `T023_AssetStatisticsIT` |
 
 ### 25.7. Bảng và loại ở bảng chung (data-model mục 0.1, R-15)
 

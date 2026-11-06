@@ -33,7 +33,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /** 014 T015: HTTP thật, trạng thái 001 thật; dữ liệu từng test có id riêng. */
 @AutoConfigureMockMvc
 @WithMockUser
-@Import({FakeM04Config.class, com.eldercare.backend.support.fake.roombedallocation.FakeVehicleSchedules.Config.class})
+@Import(FakeM04Config.class)
 class BR_M04_16_RoiVienIT extends StatusTestBase {
     @Autowired
     com.eldercare.backend.care.internal.trip.service.TripDepartureService departures;
@@ -65,8 +65,8 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
     @Autowired
     com.eldercare.backend.support.fake.care.FakeTripMedicationPreparation tripMedication;
 
-    @Autowired
-    com.eldercare.backend.support.fake.roombedallocation.FakeVehicleSchedules vehicles;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    com.eldercare.backend.roombedallocation.api.VehicleScheduleCommandApi vehicles;
 
     @Autowired
     MockMvc mvc;
@@ -577,6 +577,42 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
                 .isEqualTo(1);
     }
 
+    /** T024: 014 gọi cả hai API lịch xe thật của 019, cùng transaction điểm danh. */
+    @Test
+    void FR_019_firstDepartureStartsTheRealVehicleSchedule() throws Exception {
+        long s = trip(true), r = participant(s, "ELIGIBLE");
+        leader(s);
+        tripMedication.prepared(r, s);
+        long schedule = bookVehicle(s);
+        depart(s, r).andExpect(status().isOk());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
+        assertThat(jdbc.queryForObject(
+                        "SELECT status FROM simple_record WHERE id=? AND kind='M03.VEHICLE_SCHEDULE'",
+                        String.class,
+                        schedule))
+                .isEqualTo("IN_USE");
+    }
+
+    private long bookVehicle(long trip) throws Exception {
+        long vehicle = TestUsers.nextId(), department = TestUsers.nextId();
+        long type = jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type='M03.ASSET_TYPE' AND code='VEHICLE'", Long.class);
+        jdbc.update(
+                "INSERT INTO asset(id,code,type_id,name,department_id,source,source_description,status,location_type,created_at)"
+                        + " VALUES(?,?,?,?,?,'DONATED','Tặng','READY','PARKING_LOT',?)",
+                vehicle,
+                "XE-" + vehicle,
+                type,
+                "Xe đưa đón",
+                department,
+                LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE));
+        return id(mvc.perform(write(post("/api/v1/vehicle-schedules"), """
+                {"vehicleId":%d,"plannedDepartureAt":"%s","plannedReturnAt":"%s",
+                 "purpose":"TRIP","tripId":%d,"driverStaffId":%d}
+                """.formatted(
+                        vehicle, departure, departure.plusSeconds(21600), trip, manager.staffId()))));
+    }
+
     @Test
     void BR_M04_16_facilityVehicleRequiresBookedScheduleAndRollsBackWhenVehicleCommandFails() throws Exception {
         long s = trip(true), r = participant(s, "ELIGIBLE");
@@ -585,8 +621,20 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
         depart(s, r)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("VEHICLE_SCHEDULE_REQUIRED"));
-        vehicles.book(s, departure);
-        vehicles.failCommand(s);
+        bookVehicle(s);
+        org.mockito.Mockito.doThrow(new com.eldercare.backend.common.error.BusinessException(
+                        org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                        "SOURCE_UNAVAILABLE",
+                        "Lỗi nguồn lịch xe"))
+                .when(org.springframework.test.util.AopTestUtils
+                        .<com.eldercare.backend.roombedallocation.api.VehicleScheduleCommandApi>getUltimateTargetObject(
+                                vehicles))
+                .followTrip(
+                        org.mockito.ArgumentMatchers.eq(s),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any());
         depart(s, r).andExpect(status().isServiceUnavailable());
         assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
         assertThat(jdbc.queryForObject("SELECT trip_status FROM activity_session WHERE id=?", String.class, s))

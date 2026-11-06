@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * mục 2 (chủ dự án duyệt 2026-11-06): nhận phạm vi, chỉ đọc, không khóa, có hàm đếm cho dashboard.
  */
 public interface AssetStatisticsApi {
-    /** Tài sản mang dấu quá hạn bảo trì, đăng kiểm, bảo hiểm tại ngày; phạm vi theo tầng của vị trí. */
+    /** Dấu hiện tại có dueOn trước on; phạm vi theo tầng hiện tại, không tái dựng dấu quá khứ. */
     Stream<OverdueAssetView> overdue(ScopeFilter scope, LocalDate on);
 
     /** Đếm tài sản theo dấu quá hạn tại ngày, không tải bản ghi. */

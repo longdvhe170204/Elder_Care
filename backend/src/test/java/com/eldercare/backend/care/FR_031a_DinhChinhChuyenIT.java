@@ -45,7 +45,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @AutoConfigureMockMvc
 @WithMockUser
 @RecordApplicationEvents
-@Import({FakeM04Config.class, com.eldercare.backend.support.fake.roombedallocation.FakeVehicleSchedules.Config.class})
+@Import(FakeM04Config.class)
 class FR_031a_DinhChinhChuyenIT extends StatusTestBase {
     @Autowired
     com.eldercare.backend.support.fake.care.FakeTripStaffSchedule tripShifts;
