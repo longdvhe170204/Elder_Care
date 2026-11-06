@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/common/theme/app_theme.dart';
+import 'package:mobile/staff/residents/document_picker.dart';
 import 'package:mobile/staff/residents/resident_status_screen.dart';
 
 import '../../support/fake_backend.dart';
@@ -46,11 +47,25 @@ Map<String, dynamic> entry({
   'hiddenFields': hidden,
 };
 
-Future<void> pumpScreen(WidgetTester tester, FakeBackend backend) async {
+/// Bộ chọn giấy tờ giả: mỗi lần chụp trả một tệp có tên tăng dần.
+class FakePicker implements DocumentPicker {
+  int taken = 0;
+
+  @override
+  Future<PickedDocument?> capture() async {
+    taken++;
+    return PickedDocument('giay$taken.jpg', const [1, 2, 3], 'image/jpeg');
+  }
+
+  @override
+  Future<PickedDocument?> pickFromGallery() => capture();
+}
+
+Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {DocumentPicker? picker}) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.light(),
-      home: ResidentStatusScreen(api: backend.client(), residentId: 7),
+      home: ResidentStatusScreen(api: backend.client(), residentId: 7, picker: picker),
     ),
   );
   await tester.pumpAndSettle();
@@ -118,6 +133,73 @@ void main() {
 
     expect(button('Ghi nhận trở về'), findsOneWidget);
     expect(button('Cho tạm vắng'), findsNothing);
+  });
+
+  testWidgets('FR_047b_recordReturn_uploadsCapturedDocumentsThenSendsAttachmentFileIds', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    backend.on('GET', '/residents/7', 200, profile(status: 'HOSPITALIZED', commands: ['RECORD_RETURN']));
+    backend.on('POST', '/files', 201, {'id': 91});
+    final picker = FakePicker();
+    await pumpScreen(tester, backend, picker: picker);
+
+    await tapButton(tester, 'Ghi nhận trở về');
+    await tapButton(tester, 'Chụp giấy tờ');
+    await tapButton(tester, 'Chụp giấy tờ');
+    expect(find.text('giay1.jpg'), findsOneWidget);
+    expect(find.text('giay2.jpg'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Ra viện về lại');
+    await tapButton(tester, 'Xác nhận ghi nhận trở về');
+
+    expect(backend.calls('POST', '/files'), hasLength(2));
+    expect(lastBody(backend, '/residents/7/record-return')['attachmentFileIds'], [91, 91]);
+  });
+
+  testWidgets('FR_047b_removedDocument_isNotUploadedOrSent', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    backend.on('GET', '/residents/7', 200, profile(status: 'HOSPITALIZED', commands: ['RECORD_RETURN']));
+    await pumpScreen(tester, backend, picker: FakePicker());
+
+    await tapButton(tester, 'Ghi nhận trở về');
+    await tapButton(tester, 'Chụp giấy tờ');
+    await tester.tap(find.byTooltip('Bỏ giay1.jpg'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Ra viện');
+    await tapButton(tester, 'Xác nhận ghi nhận trở về');
+
+    expect(backend.calls('POST', '/files'), isEmpty);
+    expect(lastBody(backend, '/residents/7/record-return').containsKey('attachmentFileIds'), isFalse);
+  });
+
+  testWidgets('FR_047b_recordDeath_uploadsEvidenceAsDetailsEvidenceFileId', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    backend.on('POST', '/files', 201, {'id': 55});
+    await pumpScreen(tester, backend, picker: FakePicker());
+
+    await tapButton(tester, 'Ghi nhận qua đời');
+    await tapButton(tester, 'Chụp giấy tờ');
+    await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Mất tại viện');
+    await tapButton(tester, 'Xác nhận ghi nhận qua đời');
+
+    expect((lastBody(backend, '/residents/7/record-death')['details'] as Map)['evidenceFileId'], 55);
+  });
+
+  testWidgets('FR_047b_uploadRefused_showsBackendMessageAndDoesNotSendCommand', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    backend.on('GET', '/residents/7', 200, profile(status: 'HOSPITALIZED', commands: ['RECORD_RETURN']));
+    backend.on('POST', '/files', 422, {'status': 422, 'errorCode': 'FILE_TOO_LARGE', 'detail': 'Tệp quá 10 MB'});
+    await pumpScreen(tester, backend, picker: FakePicker());
+
+    await tapButton(tester, 'Ghi nhận trở về');
+    await tapButton(tester, 'Chụp giấy tờ');
+    await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Ra viện');
+    await tapButton(tester, 'Xác nhận ghi nhận trở về');
+
+    expect(find.text('Tệp quá 10 MB'), findsOneWidget);
+    expect(backend.calls('POST', '/residents/7/record-return'), isEmpty);
   });
 
   testWidgets('FR_044_finalStatus_saysReadOnlyAndHasNoCommands', (tester) async {
