@@ -1297,7 +1297,17 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | Đã bỏ theo Q-394, Q-395 | `score_history`, `waiting_list_circumstance`, `bed_hold_decision`, `absence_day`, `contract_absence_policy`, `absencePolicyOverrides`, `/score-history`, `/update-circumstances`, `/propose-score-adjustment`, `/bed-hold-decision` |
 
 
-## 11. Feature 005 (`005-daily-care-tasks`, C)
+### 10.12. Bổ sung khi triển khai tiếp (2026-11-06)
+
+| Tên logic | Tên trong mã | Ghi chú |
+| --- | --- | --- |
+| `LichBanTruApi`, `LichBanTruView`, `BaoVangBanTruView` | `DayCareCalendarApi`, `DayCareCalendarView`, `DayCareAbsenceNoticeView` | A duyệt 2026-11-05 (ý 004-3); 005 đọc lịch bán trú đã quyết định |
+| mã bản ghi đón ở bàn giao kết thúc lưu trú | `pickupRecordId` (`ResidentHandoverBody`, `HandoverContent`) | Ý 004-2; không bắt buộc, chỉ khi `recipientType = FAMILY_MEMBER` |
+| bản giả lịch bán trú | `FakeDayCareCalendarApi` | `support/fake/admission` |
+| thư mục web của 004 | `frontend/src/features/admissions/` | `ApplicationsPage`, `WaitingListPage`, `ContractsPage`, `ChangeRequestsPage`, `AbsencesPage`, `EndingsPage`, `DeathsPage`, `ServicesPage` |
+| thư mục app của 004 | `mobile/lib/family/admissions/`, `mobile/lib/staff/absences/` | `ContractScreen`, `ChangeRequestScreen`, `AdmissionProgressScreen`, `AbsencesScreen` |
+
+$1Feature 005 (`005-daily-care-tasks`, C)
 
 | Tên logic | Mã |
 | --- | --- |
