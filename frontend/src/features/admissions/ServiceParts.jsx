@@ -55,7 +55,14 @@ function PriceVersionForm({ serviceId, onDone, onCancel }) {
       <FieldGroup>
         <Field data-invalid={(submitted && !!errors.price) || undefined}>
           <FieldLabel htmlFor="price-amount">Đơn giá (đồng)</FieldLabel>
-          <Input id="price-amount" type="number" min="0" className="h-11" value={price} onChange={(e) => setPrice(e.target.value)} />
+          <Input
+            id="price-amount"
+            type="number"
+            min="0"
+            className="h-11"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
           {submitted && errors.price && <FieldError>{errors.price}</FieldError>}
         </Field>
         <Field data-invalid={(submitted && !!errors.from) || undefined}>
@@ -204,7 +211,12 @@ export function ServiceDetail({ service, canUpdate, onChanged, onEdit, Title, De
       )}
       {mode === 'deactivate' && (
         <div className="flex flex-col gap-3 border-t pt-4">
-          <ReasonField id="service-reason" value={reason} onChange={setReason} error={submitted && !reason.trim() ? 'Nhập lý do' : null} />
+          <ReasonField
+            id="service-reason"
+            value={reason}
+            onChange={setReason}
+            error={submitted && !reason.trim() ? 'Nhập lý do' : null}
+          />
           <div className="flex justify-end gap-2">
             <Button variant="ghost" className="h-11" onClick={() => setMode(null)}>
               Đóng
@@ -270,7 +282,9 @@ export function ServiceSheet({ service, onClose, onDone }) {
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
         <SheetTitle>{editing ? 'Sửa dịch vụ' : 'Tạo dịch vụ'}</SheetTitle>
-        <SheetDescription>Dịch vụ chăm sóc gắn đúng một mức; mỗi mức tối đa một dịch vụ chăm sóc hiệu lực.</SheetDescription>
+        <SheetDescription>
+          Dịch vụ chăm sóc gắn đúng một mức; mỗi mức tối đa một dịch vụ chăm sóc hiệu lực.
+        </SheetDescription>
         <FieldGroup className="mt-4">
           <Field data-invalid={!!shown('type') || undefined}>
             <FieldLabel htmlFor="service-type">Loại dịch vụ</FieldLabel>
@@ -294,9 +308,21 @@ export function ServiceSheet({ service, onClose, onDone }) {
             <Input id="service-unit" className="h-11" value={unit} onChange={(e) => setUnit(e.target.value)} />
             {shown('unit') && <FieldError>{shown('unit')}</FieldError>}
           </Field>
-          <Choices label="Kỳ tính" options={SERVICE_BILLING_PERIODS} value={period} onChange={setPeriod} error={shown('period')} />
+          <Choices
+            label="Kỳ tính"
+            options={SERVICE_BILLING_PERIODS}
+            value={period}
+            onChange={setPeriod}
+            error={shown('period')}
+          />
           {type === 'CARE' && (
-            <Choices label="Mức chăm sóc" options={CARE_LEVELS} value={level} onChange={setLevel} error={shown('level')} />
+            <Choices
+              label="Mức chăm sóc"
+              options={CARE_LEVELS}
+              value={level}
+              onChange={setLevel}
+              error={shown('level')}
+            />
           )}
         </FieldGroup>
         <div className="mt-4">

@@ -23,7 +23,15 @@ const FIRST = {
   status: 'WAITING',
 }
 const SECOND = { ...FIRST, id: 22, residentId: 6, fullName: 'Lê Văn Hải', priority: false, previouslyResided: false }
-const CONTACTED = { ...FIRST, id: 23, residentId: 7, fullName: 'Phạm Thị Mai', priority: false, status: 'CONTACTED', heldBedId: 9 }
+const CONTACTED = {
+  ...FIRST,
+  id: 23,
+  residentId: 7,
+  fullName: 'Phạm Thị Mai',
+  priority: false,
+  status: 'CONTACTED',
+  heldBedId: 9,
+}
 
 function renderPage() {
   return render(
@@ -44,8 +52,21 @@ beforeEach(() => {
     ),
   )
   api.on('GET', '/waiting-list-entries', json(200, [FIRST, SECOND, CONTACTED]))
-  api.on('GET', '/beds', json(200, { beds: [{ id: 9, code: 'A-101-1' }, { id: 10, code: 'A-101-2' }] }))
-  api.on('GET', '/beds/10/matching-entries', json(200, { bedId: 10, vacancyStart: '2026-11-05T01:00:00Z', entries: [FIRST, SECOND] }))
+  api.on(
+    'GET',
+    '/beds',
+    json(200, {
+      beds: [
+        { id: 9, code: 'A-101-1' },
+        { id: 10, code: 'A-101-2' },
+      ],
+    }),
+  )
+  api.on(
+    'GET',
+    '/beds/10/matching-entries',
+    json(200, { bedId: 10, vacancyStart: '2026-11-05T01:00:00Z', entries: [FIRST, SECOND] }),
+  )
   api.on('GET', '/admission-applications', json(200, []))
 })
 
@@ -63,7 +84,11 @@ describe('WaitingListPage', () => {
   })
 
   it('FR_012_giuongTrong_hienHoSoPhuHop_khongChonSan_boQuaThuTuCanLyDo', async () => {
-    api.on('POST', '/waiting-list-entries/22/record-contacted', json(200, { ...SECOND, status: 'CONTACTED', heldBedId: 10 }))
+    api.on(
+      'POST',
+      '/waiting-list-entries/22/record-contacted',
+      json(200, { ...SECOND, status: 'CONTACTED', heldBedId: 10 }),
+    )
     renderPage()
     await screen.findByRole('button', { name: 'Nguyễn Thị Lan' })
 
@@ -78,7 +103,9 @@ describe('WaitingListPage', () => {
     expect(await within(panel).findByText('Nhập lý do bỏ qua thứ tự')).toBeInTheDocument()
     expect(api.calls('POST', '/waiting-list-entries/22/record-contacted')).toHaveLength(0)
 
-    fireEvent.change(within(panel).getByLabelText('Lý do bỏ qua thứ tự'), { target: { value: 'Gia đình người đầu chưa liên lạc được' } })
+    fireEvent.change(within(panel).getByLabelText('Lý do bỏ qua thứ tự'), {
+      target: { value: 'Gia đình người đầu chưa liên lạc được' },
+    })
     fireEvent.click(within(panel).getByRole('button', { name: 'Ghi nhận đã liên hệ' }))
     await waitFor(() => expect(api.calls('POST', '/waiting-list-entries/22/record-contacted')).toHaveLength(1))
     expect(JSON.parse(api.calls('POST', '/waiting-list-entries/22/record-contacted')[0][1].body)).toEqual({

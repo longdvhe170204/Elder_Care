@@ -138,7 +138,12 @@ function HandoverForm({ ending, onDone, onCancel }) {
           <>
             <Field data-invalid={!!shown('member') || undefined}>
               <FieldLabel htmlFor="handover-member">Người thân nhận</FieldLabel>
-              <select id="handover-member" className={SELECT} value={memberId} onChange={(e) => setMemberId(e.target.value)}>
+              <select
+                id="handover-member"
+                className={SELECT}
+                value={memberId}
+                onChange={(e) => setMemberId(e.target.value)}
+              >
                 <option value="">Chọn người thân</option>
                 {members.map((r) => (
                   <option key={r.id} value={r.familyMember.id}>
@@ -150,21 +155,41 @@ function HandoverForm({ ending, onDone, onCancel }) {
             </Field>
             <Field>
               <FieldLabel htmlFor="handover-pickup">Mã bản ghi đón</FieldLabel>
-              <Input id="handover-pickup" type="number" min="1" className="h-11" value={pickup} onChange={(e) => setPickup(e.target.value)} />
-              <p className="type-caption text-muted-foreground">Bản ghi đón hợp lệ của 012; dùng một lần, không bắt buộc.</p>
+              <Input
+                id="handover-pickup"
+                type="number"
+                min="1"
+                className="h-11"
+                value={pickup}
+                onChange={(e) => setPickup(e.target.value)}
+              />
+              <p className="type-caption text-muted-foreground">
+                Bản ghi đón hợp lệ của 012; dùng một lần, không bắt buộc.
+              </p>
             </Field>
           </>
         )}
         {type === 'RECEIVING_FACILITY' && (
           <Field data-invalid={!!shown('facility') || undefined}>
             <FieldLabel htmlFor="handover-facility">Tên cơ sở tiếp nhận</FieldLabel>
-            <Input id="handover-facility" className="h-11" value={facility} onChange={(e) => setFacility(e.target.value)} />
+            <Input
+              id="handover-facility"
+              className="h-11"
+              value={facility}
+              onChange={(e) => setFacility(e.target.value)}
+            />
             {shown('facility') && <FieldError>{shown('facility')}</FieldError>}
           </Field>
         )}
         <Field data-invalid={!!shown('at') || undefined}>
           <FieldLabel htmlFor="handover-at">Thời điểm bàn giao</FieldLabel>
-          <Input id="handover-at" type="datetime-local" className="h-11" value={at} onChange={(e) => setAt(e.target.value)} />
+          <Input
+            id="handover-at"
+            type="datetime-local"
+            className="h-11"
+            value={at}
+            onChange={(e) => setAt(e.target.value)}
+          />
           {shown('at') && <FieldError>{shown('at')}</FieldError>}
         </Field>
         <Field data-invalid={!!shown('staff') || undefined}>
@@ -248,10 +273,18 @@ export function EndingView({ ending, role, canUpdate, onChanged }) {
     if (!reason.trim()) return
     if (mode === 'change-date') {
       if (!date) return
-      run(postResidencyEndingsByIdChangeDate, { expectedEndDate: date, reason: reason.trim() }, 'Đã đổi ngày kết thúc dự kiến')
+      run(
+        postResidencyEndingsByIdChangeDate,
+        { expectedEndDate: date, reason: reason.trim() },
+        'Đã đổi ngày kết thúc dự kiến',
+      )
     } else if (mode === 'exception') {
       if (!code) return
-      run(postResidencyEndingsByIdRequestException, { conditionCode: code, reason: reason.trim() }, 'Đã gửi yêu cầu ngoại lệ, chờ Quản lý viện duyệt')
+      run(
+        postResidencyEndingsByIdRequestException,
+        { conditionCode: code, reason: reason.trim() },
+        'Đã gửi yêu cầu ngoại lệ, chờ Quản lý viện duyệt',
+      )
     } else {
       run(postResidencyEndingsByIdCancel, { reason: reason.trim() }, 'Đã hủy hồ sơ kết thúc')
     }
@@ -334,7 +367,13 @@ export function EndingView({ ending, role, canUpdate, onChanged }) {
             {mode === 'change-date' && (
               <Field data-invalid={(submitted && !date) || undefined}>
                 <FieldLabel htmlFor="ending-new-date">Ngày kết thúc dự kiến mới</FieldLabel>
-                <Input id="ending-new-date" type="date" className="h-11" value={date} onChange={(e) => setDate(e.target.value)} />
+                <Input
+                  id="ending-new-date"
+                  type="date"
+                  className="h-11"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
                 {submitted && !date && <FieldError>Nhập ngày mới</FieldError>}
               </Field>
             )}
@@ -365,7 +404,8 @@ export function CreateEndingSheet({ role, onClose, onDone }) {
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState(null)
-  const cases = role === 'DOCTOR' ? END_CASES.filter(([c]) => ['DISCHARGE', 'TRANSFER_TO_ANOTHER_FACILITY'].includes(c)) : END_CASES
+  const cases =
+    role === 'DOCTOR' ? END_CASES.filter(([c]) => ['DISCHARGE', 'TRANSFER_TO_ANOTHER_FACILITY'].includes(c)) : END_CASES
 
   const errors = {
     resident: !residentId && 'Chọn người cao tuổi',
@@ -407,7 +447,9 @@ export function CreateEndingSheet({ role, onClose, onDone }) {
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
         <SheetTitle>Lập hồ sơ kết thúc lưu trú</SheetTitle>
-        <SheetDescription>Mỗi người tối đa một hồ sơ chưa ở trạng thái cuối; bảng kỳ cuối nháp được tạo cùng lúc.</SheetDescription>
+        <SheetDescription>
+          Mỗi người tối đa một hồ sơ chưa ở trạng thái cuối; bảng kỳ cuối nháp được tạo cùng lúc.
+        </SheetDescription>
         <FieldGroup className="mt-4">
           <ResidentSelect
             id="ending-resident"
@@ -417,7 +459,13 @@ export function CreateEndingSheet({ role, onClose, onDone }) {
             error={shown('resident')}
             onFailure={(e) => setFailure(problemOf(e))}
           />
-          <Choices label="Trường hợp kết thúc" options={cases} value={endCase} onChange={setEndCase} error={shown('endCase')} />
+          <Choices
+            label="Trường hợp kết thúc"
+            options={cases}
+            value={endCase}
+            onChange={setEndCase}
+            error={shown('endCase')}
+          />
           <Field>
             <label className="flex items-center gap-2 type-body-sm">
               <input type="checkbox" checked={medical} onChange={(e) => setMedical(e.target.checked)} />
@@ -426,17 +474,33 @@ export function CreateEndingSheet({ role, onClose, onDone }) {
           </Field>
           <Field data-invalid={!!shown('date') || undefined}>
             <FieldLabel htmlFor="ending-date">Ngày kết thúc dự kiến</FieldLabel>
-            <Input id="ending-date" type="date" className="h-11" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              id="ending-date"
+              type="date"
+              className="h-11"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
             {shown('date') && <FieldError>{shown('date')}</FieldError>}
           </Field>
           <Field data-invalid={!!shown('destination') || undefined}>
             <FieldLabel htmlFor="ending-destination">Nơi chuyển đến</FieldLabel>
-            <Input id="ending-destination" className="h-11" value={destination} onChange={(e) => setDestination(e.target.value)} />
+            <Input
+              id="ending-destination"
+              className="h-11"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+            />
             {shown('destination') && <FieldError>{shown('destination')}</FieldError>}
           </Field>
           <Field data-invalid={!!shown('requestedBy') || undefined}>
             <FieldLabel htmlFor="ending-requested-by">Người đề nghị</FieldLabel>
-            <Input id="ending-requested-by" className="h-11" value={requestedBy} onChange={(e) => setRequestedBy(e.target.value)} />
+            <Input
+              id="ending-requested-by"
+              className="h-11"
+              value={requestedBy}
+              onChange={(e) => setRequestedBy(e.target.value)}
+            />
             {shown('requestedBy') && <FieldError>{shown('requestedBy')}</FieldError>}
           </Field>
           <ReasonField id="ending-create-reason" value={reason} onChange={setReason} error={shown('reason')} />

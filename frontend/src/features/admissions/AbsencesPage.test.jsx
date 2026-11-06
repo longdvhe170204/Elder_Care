@@ -20,7 +20,13 @@ const OPEN = {
   holdBed: true,
   status: 'OPEN',
 }
-const CLOSED = { ...OPEN, id: 62, status: 'CLOSED', returnedAt: '2026-10-10T10:00:00Z', departedAt: '2026-10-05T01:00:00Z' }
+const CLOSED = {
+  ...OPEN,
+  id: 62,
+  status: 'CLOSED',
+  returnedAt: '2026-10-10T10:00:00Z',
+  departedAt: '2026-10-05T01:00:00Z',
+}
 
 function renderPage(role = 'OFFICE_STAFF') {
   return render(
@@ -38,12 +44,41 @@ async function chooseResident() {
 
 beforeEach(() => {
   api = mockRoutes()
-  api.on('GET', '/me/permissions', json(200, ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'ABSENCE_RETURN', operation }))))
-  api.on('GET', '/residents', json(200, { items: [{ id: 5, profileCode: 'NCT-0005', personalInfo: { fullName: 'Nguyễn Thị Lan' } }] }))
+  api.on(
+    'GET',
+    '/me/permissions',
+    json(
+      200,
+      ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'ABSENCE_RETURN', operation })),
+    ),
+  )
+  api.on(
+    'GET',
+    '/residents',
+    json(200, { items: [{ id: 5, profileCode: 'NCT-0005', personalInfo: { fullName: 'Nguyễn Thị Lan' } }] }),
+  )
   api.on('GET', '/absences', json(200, [OPEN, CLOSED]))
-  api.on('GET', '/absences/61', json(200, { ...OPEN, expectedReturnHistory: [{ oldValue: '2026-11-06T10:00:00Z', newValue: '2026-11-08T10:00:00Z', reason: 'Gia đình xin thêm', at: '2026-11-05T02:00:00Z' }] }))
+  api.on(
+    'GET',
+    '/absences/61',
+    json(200, {
+      ...OPEN,
+      expectedReturnHistory: [
+        {
+          oldValue: '2026-11-06T10:00:00Z',
+          newValue: '2026-11-08T10:00:00Z',
+          reason: 'Gia đình xin thêm',
+          at: '2026-11-05T02:00:00Z',
+        },
+      ],
+    }),
+  )
   api.on('GET', '/absences/62', json(200, CLOSED))
-  api.on('GET', '/day-care-closure-days', json(200, [{ id: 3, date: '2026-11-20', reason: 'Sửa chữa khu bán trú', status: 'ACTIVE' }]))
+  api.on(
+    'GET',
+    '/day-care-closure-days',
+    json(200, [{ id: 3, date: '2026-11-20', reason: 'Sửa chữa khu bán trú', status: 'ACTIVE' }]),
+  )
 })
 
 describe('AbsencesPage', () => {
@@ -134,7 +169,11 @@ describe('AbsencesPage', () => {
   })
 
   it('FR_060a_khaiBaoNgayNghi_ngayDaQuaCanLyDo409HienLoi', async () => {
-    api.on('POST', '/day-care-closure-days', problem(409, 'DAY_ALREADY_DECLARED', { detail: 'Ngày này đã được khai báo' }))
+    api.on(
+      'POST',
+      '/day-care-closure-days',
+      problem(409, 'DAY_ALREADY_DECLARED', { detail: 'Ngày này đã được khai báo' }),
+    )
     renderPage()
     fireEvent.click(await screen.findByRole('button', { name: 'Bán trú' }))
     await screen.findByText('Sửa chữa khu bán trú')

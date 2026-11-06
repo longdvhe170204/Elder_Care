@@ -27,7 +27,11 @@ function NoticeForm({ canWrite }) {
   const [failure, setFailure] = useState(null)
   const [result, setResult] = useState('')
   const [busy, setBusy] = useState(false)
-  const errors = { resident: !residentId && 'Chọn người cao tuổi', date: !date && 'Nhập ngày vắng', notified: !notified && 'Nhập thời điểm gia đình báo' }
+  const errors = {
+    resident: !residentId && 'Chọn người cao tuổi',
+    date: !date && 'Nhập ngày vắng',
+    notified: !notified && 'Nhập thời điểm gia đình báo',
+  }
 
   async function save() {
     setSubmitted(true)
@@ -52,7 +56,14 @@ function NoticeForm({ canWrite }) {
     <Card className="gap-4 p-4">
       <h2 className="type-card-title">Báo vắng bán trú</h2>
       <FieldGroup>
-        <ResidentSelect id="notice-resident" statuses={['IN_RESIDENCE']} value={residentId} onChange={setResidentId} error={submitted ? errors.resident : null} onFailure={(e) => setFailure(problemOf(e))} />
+        <ResidentSelect
+          id="notice-resident"
+          statuses={['IN_RESIDENCE']}
+          value={residentId}
+          onChange={setResidentId}
+          error={submitted ? errors.resident : null}
+          onFailure={(e) => setFailure(problemOf(e))}
+        />
         <Field data-invalid={(submitted && !!errors.date) || undefined}>
           <FieldLabel htmlFor="notice-date">Ngày vắng</FieldLabel>
           <Input id="notice-date" type="date" className="h-11" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -60,7 +71,13 @@ function NoticeForm({ canWrite }) {
         </Field>
         <Field data-invalid={(submitted && !!errors.notified) || undefined}>
           <FieldLabel htmlFor="notice-at">Gia đình báo lúc</FieldLabel>
-          <Input id="notice-at" type="datetime-local" className="h-11" value={notified} onChange={(e) => setNotified(e.target.value)} />
+          <Input
+            id="notice-at"
+            type="datetime-local"
+            className="h-11"
+            value={notified}
+            onChange={(e) => setNotified(e.target.value)}
+          />
           {submitted && errors.notified && <FieldError>{errors.notified}</FieldError>}
         </Field>
       </FieldGroup>
@@ -125,7 +142,11 @@ function ClosureDays({ canWrite }) {
     if (!cancelReason.trim()) return
     setBusy(true)
     try {
-      await postDayCareClosureDaysByIdCancel({ path: { id: cancelId }, headers: newKey(), body: { reason: cancelReason.trim() } })
+      await postDayCareClosureDaysByIdCancel({
+        path: { id: cancelId },
+        headers: newKey(),
+        body: { reason: cancelReason.trim() },
+      })
       setCancelId(null)
       setCancelReason('')
       load()
@@ -180,10 +201,22 @@ function ClosureDays({ canWrite }) {
         <FieldGroup className="border-t pt-4">
           <Field data-invalid={(submitted && !date) || undefined}>
             <FieldLabel htmlFor="closure-date">Ngày nghỉ</FieldLabel>
-            <Input id="closure-date" type="date" className="h-11" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              id="closure-date"
+              type="date"
+              className="h-11"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
             {submitted && !date && <FieldError>Nhập ngày nghỉ</FieldError>}
           </Field>
-          <ReasonField id="closure-reason" label="Lý do nghỉ" value={reason} onChange={setReason} error={submitted && !reason.trim() ? 'Nhập lý do' : null} />
+          <ReasonField
+            id="closure-reason"
+            label="Lý do nghỉ"
+            value={reason}
+            onChange={setReason}
+            error={submitted && !reason.trim() ? 'Nhập lý do' : null}
+          />
           <div className="flex justify-end">
             <Button className="h-11" disabled={busy} onClick={declare}>
               Khai báo ngày nghỉ

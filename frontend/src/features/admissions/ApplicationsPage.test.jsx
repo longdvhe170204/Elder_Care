@@ -159,11 +159,7 @@ describe('ApplicationsPage', () => {
   })
 
   it('FR_006_khongCoQuyenTao_anNutLapDangKy', async () => {
-    api.on(
-      'GET',
-      '/me/permissions',
-      json(200, [{ function: 'ADMISSION_CONTRACT_DEPOSIT', operation: 'VIEW' }]),
-    )
+    api.on('GET', '/me/permissions', json(200, [{ function: 'ADMISSION_CONTRACT_DEPOSIT', operation: 'VIEW' }]))
     renderPage()
     await screen.findByRole('button', { name: 'Nguyễn Thị Lan' })
     expect(screen.queryByRole('button', { name: 'Lập đăng ký' })).not.toBeInTheDocument()

@@ -1,3 +1,5 @@
+import { formatDateTime } from '@/common/dateTime'
+
 // Nhãn tiếng Việt của enum feature 004 (api-004; glossary mục 10; thuật ngữ nghiep-vu.md mục 2.4).
 
 export const RESIDENCE_TYPES = [
@@ -169,3 +171,10 @@ export function money(value) {
 export const SELECT = 'h-11 w-full rounded-md border border-input bg-transparent px-3'
 
 export const newKey = () => ({ 'Idempotency-Key': crypto.randomUUID() })
+
+export function absenceLabel(absence) {
+  const type = ABSENCE_TYPES[absence.absenceType] ?? absence.absenceType
+  return absence.status === 'OPEN'
+    ? `${type}, dự kiến trở lại ${absence.expectedReturnAt ? formatDateTime(absence.expectedReturnAt) : 'chưa có'}`
+    : `${type}, Đã đóng`
+}

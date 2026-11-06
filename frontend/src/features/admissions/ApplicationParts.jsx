@@ -35,8 +35,7 @@ import { Choices, Info, ReasonField, ResidentSelect } from './FormParts'
 const OPEN_STATUSES = ['IN_PROGRESS', 'WAITING']
 
 function OpinionBlock({ opinions }) {
-  if (!opinions.length)
-    return <p className="type-body-sm text-muted-foreground">Chưa ghi ý kiến về việc vào ở.</p>
+  if (!opinions.length) return <p className="type-body-sm text-muted-foreground">Chưa ghi ý kiến về việc vào ở.</p>
   return (
     <ul className="flex flex-col gap-2">
       {opinions.map((o) => (
@@ -141,9 +140,7 @@ export function ApplicationDetail({ application, residentName, canUpdate, onChan
     }
   }, [id, reload])
 
-  const opinions = conditions?.admissionOpinion
-    ? [conditions.admissionOpinion]
-    : (application.admissionOpinion ?? [])
+  const opinions = conditions?.admissionOpinion ? [conditions.admissionOpinion] : (application.admissionOpinion ?? [])
 
   return (
     <div className="flex flex-col gap-4">
@@ -208,7 +205,9 @@ export function ApplicationDetail({ application, residentName, canUpdate, onChan
 
       <section className="flex flex-col gap-2">
         <h3 className="type-card-title">Ý kiến về việc vào ở</h3>
-        <p className="type-caption text-muted-foreground">Ghi nhận ý kiến của người cao tuổi, không phải điều kiện tiếp nhận.</p>
+        <p className="type-caption text-muted-foreground">
+          Ghi nhận ý kiến của người cao tuổi, không phải điều kiện tiếp nhận.
+        </p>
         <OpinionBlock opinions={opinions} />
         {open && canUpdate && !writing && (
           <div className="flex flex-wrap gap-2">
@@ -313,7 +312,9 @@ export function ApplicationSheet({ application, onClose, onDone }) {
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
         <SheetTitle>{editing ? 'Cập nhật đăng ký tiếp nhận' : 'Lập đăng ký tiếp nhận'}</SheetTitle>
-        <SheetDescription>Người cao tuổi phải đang ở trạng thái Đang tiếp nhận; mỗi người một lượt đang mở.</SheetDescription>
+        <SheetDescription>
+          Người cao tuổi phải đang ở trạng thái Đang tiếp nhận; mỗi người một lượt đang mở.
+        </SheetDescription>
         <FieldGroup className="mt-4">
           {editing ? (
             <Info label="Người cao tuổi">{`Mã ${application.residentId}`}</Info>
@@ -339,15 +340,38 @@ export function ApplicationSheet({ application, onClose, onDone }) {
             />
             {shown('date') && <FieldError>{shown('date')}</FieldError>}
           </Field>
-          <Choices label="Loại lưu trú mong muốn" options={RESIDENCE_TYPES} value={type} onChange={setType} error={shown('type')} />
-          <Choices label="Mức chăm sóc dự kiến" options={CARE_LEVELS} value={level} onChange={setLevel} error={shown('level')} />
+          <Choices
+            label="Loại lưu trú mong muốn"
+            options={RESIDENCE_TYPES}
+            value={type}
+            onChange={setType}
+            error={shown('type')}
+          />
+          <Choices
+            label="Mức chăm sóc dự kiến"
+            options={CARE_LEVELS}
+            value={level}
+            onChange={setLevel}
+            error={shown('level')}
+          />
           <Field>
             <FieldLabel htmlFor="application-desired">Ngày vào dự kiến</FieldLabel>
-            <Input id="application-desired" type="date" className="h-11" value={desiredDate} onChange={(e) => setDesiredDate(e.target.value)} />
+            <Input
+              id="application-desired"
+              type="date"
+              className="h-11"
+              value={desiredDate}
+              onChange={(e) => setDesiredDate(e.target.value)}
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor="application-contact">Người liên hệ</FieldLabel>
-            <Input id="application-contact" className="h-11" value={contact} onChange={(e) => setContact(e.target.value)} />
+            <Input
+              id="application-contact"
+              className="h-11"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+            />
           </Field>
           <Field>
             <FieldLabel htmlFor="application-needs">Nhu cầu</FieldLabel>
@@ -357,7 +381,9 @@ export function ApplicationSheet({ application, onClose, onDone }) {
             <FieldLabel htmlFor="application-note">Ghi chú</FieldLabel>
             <Textarea id="application-note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
-          {editing && <ReasonField id="application-reason" value={reason} onChange={setReason} error={shown('reason')} />}
+          {editing && (
+            <ReasonField id="application-reason" value={reason} onChange={setReason} error={shown('reason')} />
+          )}
         </FieldGroup>
         <div className="mt-4">
           <ProblemAlert problem={failure} />

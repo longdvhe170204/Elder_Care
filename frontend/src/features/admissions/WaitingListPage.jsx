@@ -165,7 +165,9 @@ export function WaitingListPage() {
                   <TableCell className="tabular-nums">{formatDate(e.applicationDate)}</TableCell>
                   <TableCell className="whitespace-normal">
                     {labelOf(RESIDENCE_TYPES, e.residenceType)}
-                    <span className="block type-caption text-muted-foreground">{labelOf(CARE_LEVELS, e.careLevel)}</span>
+                    <span className="block type-caption text-muted-foreground">
+                      {labelOf(CARE_LEVELS, e.careLevel)}
+                    </span>
                   </TableCell>
                   <TableCell className="pr-4">
                     <StatusBadge status={WAITING_STATUS[e.status] ?? e.status} />
