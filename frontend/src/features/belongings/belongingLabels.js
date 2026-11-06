@@ -56,6 +56,32 @@ export function pickLabel(item, locationName) {
   return parts.filter(Boolean).join(', ')
 }
 
+// Xác nhận người nhận khác có dùng được cho lần trả đang nhập không: chép đúng luật ReturnRecipient.matches của backend
+// (FR-017, Q-253) để gợi ý; backend vẫn kiểm khi lưu. belongingIds của xác nhận là các đồ còn lại (api-013).
+// Trả { fits, reason: 'person' | 'items' | 'pending' | 'expired' | 'status' | null, extraIds: đồ của xác nhận không trả lần này }
+const normalize = (s) => (s ?? '').trim().replace(/\s+/g, ' ').toLowerCase()
+const same = (a, b) => normalize(a) !== '' && normalize(a) === normalize(b)
+
+export function confirmationFit(confirmation, { type, fullName, documentType, documentNumber, belongingIds, now }) {
+  const person =
+    type === 'RESIDENT'
+      ? !!confirmation.recipientIsResident
+      : !confirmation.recipientIsResident &&
+        same(confirmation.recipientName, fullName) &&
+        (same(confirmation.recipientIdDocument, documentNumber) ||
+          (normalize(documentType) !== '' &&
+            same(confirmation.recipientIdDocument, `${documentType.trim()} ${(documentNumber ?? '').trim()}`)))
+  const covers = belongingIds.length > 0 && belongingIds.every((id) => confirmation.belongingIds.includes(id))
+  const extraIds = confirmation.belongingIds.filter((id) => !belongingIds.includes(id))
+  let reason = null
+  if (!person) reason = 'person'
+  else if (!covers) reason = 'items'
+  else if (confirmation.status === 'PENDING_CONFIRMATION') reason = 'pending'
+  else if (confirmation.status !== 'EFFECTIVE') reason = 'status'
+  else if (!confirmation.expiresAt || new Date(confirmation.expiresAt) <= now) reason = 'expired'
+  return { fits: reason === null, reason, extraIds: reason === null ? extraIds : [] }
+}
+
 // Giá trị của ô datetime-local (giờ Việt Nam) thành ISO-8601 có +07:00 (frontend/README luật 6)
 export function toOffsetIso(local) {
   return `${local.length === 16 ? `${local}:00` : local}+07:00`

@@ -9,13 +9,16 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { uploadFile } from '@/common/files'
 import { problemOf } from '@/common/problem'
 import { FilesField, SelectField } from './BelongingFields'
-import { activeOptions, pickLabel } from './belongingLabels'
+import { activeOptions, confirmationFit, pickLabel } from './belongingLabels'
+import { ReturnConfirmation } from './ReturnConfirmation'
+import { useOpenConfirmations } from './useOpenConfirmations'
 
 // Lệnh Trả một hoặc nhiều đồ cho cùng người nhận (013 T019, US3; FR-016 → FR-020, BR-M12-04; api-013 ReturnCommand).
 // Mỗi đồ chọn mức tình trạng lúc trả; số trả nhỏ hơn hiện có thì phần trả tách thành đồ mới (FR-012). Người nhận khác
-// người có quyền nhận phải có mã xác nhận người nhận khác đang Hiệu lực. Bản ký của người nhận bắt buộc, trừ người cao
-// tuổi không ký thì ghi lý do (FR-019). Lệnh bị chặn vì người nhận thì backend vẫn ghi lần chặn (FR-016): màn báo lý do,
-// tải lại danh sách và giữ form để sửa.
+// người có quyền nhận, và chính người cao tuổi nhận đồ loại cần đồng ý (FR-018, Q-253), phải có xác nhận người nhận khác
+// Hiệu lực: Hành chính chọn trong danh sách hoặc lập ngay tại đây (ReturnConfirmation); Điều dưỡng không trả theo xác
+// nhận (FR-016a). Bản ký của người nhận bắt buộc, trừ người cao tuổi không ký thì ghi lý do (FR-019). Lệnh bị chặn vì
+// người nhận thì backend vẫn ghi lần chặn (FR-016): màn báo lý do, tải lại danh sách và giữ form để sửa.
 
 const RECIPIENTS = [
   { value: 'FAMILY_MEMBER', label: 'Người thân' },
@@ -24,7 +27,18 @@ const RECIPIENTS = [
 ]
 const BLOCK_CODES = ['RETURN_BLOCKED', 'INVALID_RECIPIENT_CONFIRMATION', 'NURSING_STAFF_VALUABLE_ITEM']
 
-export function ReturnForm({ belongings, levels, isValuable = () => false, locationName, onDone }) {
+export function ReturnForm({
+  residentId,
+  residentName = '',
+  role,
+  belongings,
+  levels,
+  isValuable = () => false,
+  requiresConsent = () => false,
+  locationName,
+  onConfirmationCreated,
+  onDone,
+}) {
   const [chosen, setChosen] = useState({})
   const [v, setV] = useState({
     type: '',
@@ -32,10 +46,12 @@ export function ReturnForm({ belongings, levels, isValuable = () => false, locat
     fullName: '',
     documentType: '',
     documentNumber: '',
-    confirmationId: '',
     noSignatureReason: '',
     opinion: '',
   })
+  const [confirmationId, setConfirmationId] = useState(null)
+  const [creating, setCreating] = useState(false)
+  const [now] = useState(() => new Date())
   const [signature, setSignature] = useState([])
   const [errors, setErrors] = useState({})
   const [failure, setFailure] = useState(null)
@@ -47,8 +63,50 @@ export function ReturnForm({ belongings, levels, isValuable = () => false, locat
   const selected = belongings.filter((b) => chosen[b.id]?.on)
   const levelOptions = activeOptions([...levels].sort((a, b) => a.order - b.order))
 
+  // FR-016a: trả theo xác nhận người nhận khác và lập xác nhận chỉ do Hành chính
+  const office = role === 'OFFICE_STAFF'
+  const consentItems = v.type === 'RESIDENT' && selected.some(requiresConsent)
+  const needsConfirmation = office && (v.type === 'OTHER_PERSON' || consentItems)
+  const openConfirmations = useOpenConfirmations(residentId, needsConfirmation)
+  const fitQuery = {
+    type: v.type,
+    fullName: v.fullName,
+    documentType: v.documentType,
+    documentNumber: v.documentNumber,
+    belongingIds: selected.map((b) => b.id),
+    now,
+  }
+  const fits = openConfirmations.items.map((c) => ({ confirmation: c, ...confirmationFit(c, fitQuery) }))
+  const matches = fits.filter((f) => f.fits)
+  // Xác nhận đã chọn chỉ còn giá trị khi vẫn khớp người nhận, giấy tờ và đồ đang chọn (đổi thì tự bỏ chọn)
+  const confirmation = needsConfirmation ? matches.find((m) => m.confirmation.id === confirmationId) : undefined
+  const itemLabel = (id) => {
+    const b = belongings.find((x) => x.id === id)
+    return b ? pickLabel(b, locationName) : `mã ${id}`
+  }
+  // Xác nhận lưu giấy tờ một chuỗi (api-013): ghép "loại số" từ hai ô của form trả, khớp luật so của backend
+  const idDocument = [v.documentType.trim(), v.documentNumber.trim()].filter(Boolean).join(' ')
+  const createInitial =
+    v.type === 'RESIDENT'
+      ? { name: residentName, document: '', isResident: true, belongingIds: selected.map((b) => b.id) }
+      : { name: v.fullName.trim(), document: idDocument, isResident: false, belongingIds: selected.map((b) => b.id) }
+  const createHint =
+    selected.length === 0
+      ? 'Chọn đồ trả trước khi lập xác nhận.'
+      : v.type === 'OTHER_PERSON' && (!v.fullName.trim() || !v.documentNumber.trim())
+        ? 'Nhập họ tên và số giấy tờ người nhận để lập xác nhận.'
+        : null
+
+  async function confirmationCreated(id) {
+    setCreating(false)
+    await openConfirmations.reload()
+    if (id != null) setConfirmationId(id)
+    onConfirmationCreated?.()
+  }
+
   function validate() {
     const e = {}
+    if (needsConfirmation && creating) e.confirmation = 'Lập xác nhận xong hoặc đóng phần lập trước khi lưu trả.'
     if (selected.length === 0) e.items = 'Chọn ít nhất một đồ để trả.'
     for (const b of selected) {
       if (!chosen[b.id].levelId) e[`level-${b.id}`] = 'Chọn mức tình trạng.'
@@ -96,7 +154,7 @@ export function ReturnForm({ belongings, levels, isValuable = () => false, locat
             ...(photoIds[b.id].length > 0 && { photoFileIds: photoIds[b.id] }),
           })),
           recipient,
-          ...(v.type === 'OTHER_PERSON' && v.confirmationId && { recipientConfirmationId: Number(v.confirmationId) }),
+          ...(confirmation && { recipientConfirmationId: confirmation.confirmation.id }),
           ...(signatureFileId && { signatureFileId }),
           ...(!signatureFileId && v.noSignatureReason.trim() && { noSignatureReason: v.noSignatureReason.trim() }),
           ...(v.opinion.trim() && { conditionOpinion: v.opinion.trim() }),
@@ -179,9 +237,15 @@ export function ReturnForm({ belongings, levels, isValuable = () => false, locat
           label="Người nhận"
           value={v.type}
           onChange={set('type')}
-          options={RECIPIENTS}
+          options={office ? RECIPIENTS : RECIPIENTS.filter((r) => r.value !== 'OTHER_PERSON')}
           error={errors.type}
         />
+        {!office && consentItems && (
+          <p className="type-body-sm text-warning-foreground">
+            Đồ loại cần đồng ý (tiền mặt, trang sức) trả cho chính người cao tuổi phải có xác nhận người nhận khác, chỉ
+            Hành chính trả (FR-016a).
+          </p>
+        )}
         {v.type === 'FAMILY_MEMBER' && (
           <Field data-invalid={!!errors.familyMemberId || undefined}>
             <FieldLabel htmlFor="return-family">Mã người thân</FieldLabel>
@@ -232,17 +296,24 @@ export function ReturnForm({ belongings, levels, isValuable = () => false, locat
             </div>
           </>
         )}
-        {v.type === 'OTHER_PERSON' && (
-          <Field>
-            <FieldLabel htmlFor="return-confirmation">Mã xác nhận người nhận khác</FieldLabel>
-            <Input
-              id="return-confirmation"
-              inputMode="numeric"
-              className="h-11"
-              value={v.confirmationId}
-              onChange={(e) => set('confirmationId')(e.target.value)}
-            />
-          </Field>
+        {needsConfirmation && (
+          <ReturnConfirmation
+            list={openConfirmations}
+            matches={matches}
+            pending={fits.filter((f) => f.reason === 'pending')}
+            chosenId={confirmation ? confirmationId : null}
+            onChoose={setConfirmationId}
+            itemLabel={itemLabel}
+            createInitial={createInitial}
+            createHint={createHint}
+            creating={creating}
+            onCreating={setCreating}
+            onCreated={confirmationCreated}
+            residentId={residentId}
+            belongings={belongings}
+            locationName={locationName}
+            error={errors.confirmation}
+          />
         )}
         <FilesField
           id="return-signature"

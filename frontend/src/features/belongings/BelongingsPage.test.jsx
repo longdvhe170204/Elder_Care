@@ -234,7 +234,8 @@ describe('BelongingsPage (013 T011, US1)', () => {
   })
 })
 
-// Ca 4 kiểm lại (D6): trả bằng mã xác nhận người nhận khác thì mục xác nhận trên cùng hồ sơ đổi ngay, không cần F5
+// Ca 4 kiểm lại (D6): trả bằng mã xác nhận người nhận khác thì mục xác nhận trên cùng hồ sơ đổi ngay, không cần F5.
+// Khối chọn trong form trả gọi GET /recipient-confirmations kèm status; mục ngoài màn gọi không kèm status.
 describe('BelongingsPage: trả đồ bằng xác nhận người nhận khác (013 FR-017)', () => {
   afterEach(() => vi.unstubAllGlobals())
 
@@ -250,33 +251,43 @@ describe('BelongingsPage: trả đồ bằng xác nhận người nhận khác (
     lastHandoverAt: '2026-11-06T02:00:00Z',
     version: 1,
   }
-  const confirmation = (status) => ({
-    id: 7,
+  const confirmation = (id, status) => ({
+    id,
+    residentId: 7,
     recipientName: 'Lê Văn Nam',
     recipientIdDocument: 'CCCD 079000000102',
+    recipientIsResident: false,
     belongingIds: [18],
     status,
+    expiresAt: '2099-01-01T00:00:00Z',
   })
+  const outerCalls = (api) => api.calls('GET', '/recipient-confirmations').filter(([url]) => !url.includes('status='))
 
-  function setupReturn(returnResponse) {
+  function setupReturn(returnResponse, initial = [confirmation(7, 'EFFECTIVE')]) {
     const api = setup()
-    let belongingCalls = 0
+    const state = { items: initial, returned: false }
     api.on('GET', '/residents/7/belongings', () =>
-      json(200, [belongingCalls++ === 0 ? SWEATER : { ...SWEATER, status: 'RETURNED', version: 2 }]),
+      json(200, [state.returned ? { ...SWEATER, status: 'RETURNED', version: 2 } : SWEATER]),
     )
-    let confirmationCalls = 0
-    api.on('GET', '/recipient-confirmations', () =>
-      json(200, [confirmation(confirmationCalls++ === 0 ? 'EFFECTIVE' : 'USED')]),
-    )
+    api.on('GET', '/recipient-confirmations', (url) => {
+      const statuses = url.searchParams.get('status')?.split(',')
+      return json(200, statuses ? state.items.filter((c) => statuses.includes(c.status)) : state.items)
+    })
     api.on('POST', '/files', json(201, { fileId: 700 }))
-    api.on('POST', '/belongings/returns', returnResponse)
-    return api
+    api.on('POST', '/belongings/returns', () => {
+      const response = typeof returnResponse === 'function' ? returnResponse() : returnResponse.clone()
+      if (response.ok) {
+        state.returned = true
+        state.items = state.items.map((c) => ({ ...c, status: 'USED' }))
+      }
+      return response
+    })
+    return { api, state }
   }
 
-  async function returnWithConfirmation() {
+  async function openReturn() {
     fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007' }))
     const section = await screen.findByRole('region', { name: 'Xác nhận người nhận khác' })
-    expect(await within(section).findByText('Hiệu lực')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Trả đồ' }))
     fireEvent.click(await screen.findByRole('checkbox', { name: 'Trả Áo len A, mã 18' }))
     fireEvent.change(screen.getByLabelText('Mức tình trạng lúc trả của Áo len A'), { target: { value: '11' } })
@@ -284,32 +295,60 @@ describe('BelongingsPage: trả đồ bằng xác nhận người nhận khác (
     fireEvent.change(screen.getByLabelText('Họ tên người nhận'), { target: { value: 'Lê Văn Nam' } })
     fireEvent.change(screen.getByLabelText('Loại giấy tờ'), { target: { value: 'CCCD' } })
     fireEvent.change(screen.getByLabelText('Số giấy tờ'), { target: { value: '079000000102' } })
-    fireEvent.change(screen.getByLabelText('Mã xác nhận người nhận khác'), { target: { value: '7' } })
+    return section
+  }
+
+  function signAndSave() {
     fireEvent.change(screen.getByLabelText('Bản ký của người nhận'), {
       target: { files: [new File(['k'], 'chu-ky.pdf', { type: 'application/pdf' })] },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Lưu trả đồ' }))
-    return section
   }
 
   it('FR_017_traThanhCong_xacNhanChuyenDaDungNgayTrenHoSoDangMo', async () => {
-    const api = setupReturn(json(201, { handovers: [], belongings: [] }))
-    const section = await returnWithConfirmation()
+    const { api } = setupReturn(json(201, { handovers: [], belongings: [] }))
+    const section = await openReturn()
+    expect(await within(section).findByText('Hiệu lực')).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Chọn xác nhận mã 7' }))
+    signAndSave()
 
     expect(await screen.findByText('Đã trả đồ.')).toBeInTheDocument()
     expect(await within(section).findByText('Đã dùng')).toBeInTheDocument()
     expect(within(section).queryByText('Hiệu lực')).not.toBeInTheDocument()
     const row = screen.getByText('Áo len A').closest('tr')
     expect(within(row).getByText('Đã trả')).toBeInTheDocument()
-    expect(api.calls('GET', '/recipient-confirmations')).toHaveLength(2)
+    expect(outerCalls(api)).toHaveLength(2)
   })
 
   it('FR_017_traBiChan_khongTaiLaiXacNhan_vanHieuLuc', async () => {
-    const api = setupReturn(problem(409, 'INVALID_RECIPIENT_CONFIRMATION', { detail: 'Xác nhận người nhận khác không hợp lệ (FR-017)' }))
-    const section = await returnWithConfirmation()
+    const { api } = setupReturn(
+      problem(409, 'INVALID_RECIPIENT_CONFIRMATION', { detail: 'Xác nhận người nhận khác không hợp lệ (FR-017)' }),
+    )
+    const section = await openReturn()
+    fireEvent.click(await screen.findByRole('button', { name: 'Chọn xác nhận mã 7' }))
+    signAndSave()
 
     await waitFor(() => expect(api.calls('GET', '/residents/7/belongings')).toHaveLength(2))
-    expect(api.calls('GET', '/recipient-confirmations')).toHaveLength(1)
+    expect(outerCalls(api)).toHaveLength(1)
     expect(within(section).getByText('Hiệu lực')).toBeInTheDocument()
+  })
+
+  it('FR_017_lapNgayTrongFormTra_mucXacNhanNgoaiManCoNgayXacNhanMoi', async () => {
+    const { api, state } = setupReturn(json(201, { handovers: [], belongings: [] }), [])
+    api.on('POST', '/recipient-confirmations', () => {
+      state.items = [confirmation(9, 'EFFECTIVE')]
+      return json(201, { id: 9 })
+    })
+    const section = await openReturn()
+    fireEvent.click(await screen.findByRole('button', { name: 'Lập xác nhận ngay' }))
+    fireEvent.change(screen.getByLabelText('Bản ký của người đại diện (không bắt buộc)'), {
+      target: { files: [new File(['k'], 'dong-y.pdf', { type: 'application/pdf' })] },
+    })
+    fireEvent.change(screen.getByLabelText('Mã người đại diện đã ký'), { target: { value: '1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lập xác nhận' }))
+
+    expect(await screen.findByRole('button', { name: 'Chọn xác nhận mã 9' })).toHaveAttribute('aria-pressed', 'true')
+    expect(await within(section).findByText(/Mã 9/)).toBeInTheDocument()
+    expect(within(screen.getByText('Áo len A').closest('tr')).getByText('Đang giữ')).toBeInTheDocument()
   })
 })
