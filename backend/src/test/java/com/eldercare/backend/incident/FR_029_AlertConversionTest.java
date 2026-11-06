@@ -20,7 +20,6 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
@@ -65,6 +64,7 @@ class FR_029_AlertConversionTest {
             incidents,
             mock(AuditLogApi.class),
             time,
+            mock(com.eldercare.backend.incident.internal.emergency.service.EmergencyCallService.class),
             null);
 
     @BeforeEach
@@ -102,7 +102,10 @@ class FR_029_AlertConversionTest {
     void FR_047i_alertWithoutResidentNeedsResidentInRequest() {
         lock(AlertStatus.IN_PROGRESS, null);
         assertThatThrownBy(() -> service.convert(ID, 3L, null, null, null, user))
-                .isInstanceOf(InvalidValueException.class);
+                .isInstanceOfSatisfying(
+                        com.eldercare.backend.common.error.BusinessException.class,
+                        e -> org.assertj.core.api.Assertions.assertThat(e.errorCode())
+                                .isEqualTo("RESIDENT_REQUIRED"));
 
         service.convert(ID, 3L, null, null, 202L, user);
         var command = ArgumentCaptor.forClass(RecordIncidentCommand.class);

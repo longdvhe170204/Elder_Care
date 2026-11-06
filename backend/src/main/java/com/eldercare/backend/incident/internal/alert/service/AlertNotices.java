@@ -81,6 +81,23 @@ final class AlertNotices {
                 at));
     }
 
+    /** Chỉ số nguồn bị đính chính: báo người phụ trách (hoặc điều dưỡng phụ trách), không đóng cảnh báo (FR-019). */
+    static List<NotificationRequest> sourceCorrected(AlertRecord alert, String eventKey, Instant at) {
+        var groups = new ArrayList<RecipientGroup>();
+        if (alert.assigneeId() != null) {
+            groups.add(new RecipientGroup.Staff(alert.assigneeId(), "ALERT_SOURCE_CORRECTED"));
+        } else if (alert.residentId() != null) {
+            groups.add(new RecipientGroup.AssignedNurse(alert.residentId(), new Substitution.Default()));
+        }
+        return List.of(request(
+                alert,
+                "ALERT_SOURCE_CORRECTED",
+                SOURCE_TYPE + ":" + alert.id() + ":SOURCE_CORRECTED:" + eventKey,
+                groups,
+                "Chỉ số làm căn cứ của cảnh báo đã được đính chính. Cảnh báo chưa tự đóng, hãy xem xét lại.",
+                at));
+    }
+
     /** Báo người được giao phụ trách (bảng FR-029 "Giao người phụ trách"). */
     static List<NotificationRequest> assigned(AlertRecord alert, long staffId, Instant at) {
         return List.of(request(

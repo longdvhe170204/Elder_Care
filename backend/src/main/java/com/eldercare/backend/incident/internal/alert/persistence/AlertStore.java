@@ -102,6 +102,46 @@ public class AlertStore {
         }
     }
 
+    /** Cảnh báo nút hỗ trợ đang mở của người bấm (cột sinh {@code open_assist_lock}, FR-047i). */
+    public Optional<AlertRecord> findOpenAssist(long requesterId) {
+        return jdbc
+                .query(
+                        "SELECT * FROM alert WHERE type = 'STAFF_ASSIST_REQUEST' AND requester_id = ?"
+                                + " AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') LIMIT 1",
+                        MAPPER,
+                        requesterId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Gắn người cao tuổi cho cảnh báo chưa gắn, một lần (trigger chỉ cho NULL → giá trị với nút hỗ trợ). */
+    public void attachResident(long id, long residentId) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET resident_id = ?, version = version + 1 WHERE id = ? AND resident_id IS NULL",
+                residentId,
+                id));
+    }
+
+    /** Đặt tầng cho cảnh báo chưa có tầng (người bấm chọn sau, FR-047i); người phụ trách nếu chưa ai tiếp nhận. */
+    public void attachFloor(long id, long floorAreaId, Long assigneeId) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET floor_area_id = ?, assignee_id = COALESCE(assignee_id, ?), version = version + 1"
+                        + " WHERE id = ? AND floor_area_id IS NULL",
+                floorAreaId,
+                assigneeId,
+                id));
+    }
+
+    /** Mốc "Đã tới nơi", một lần, không đổi trạng thái (FR-047j). */
+    public void markArrived(long id, long byId, Instant at) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET arrived_at = ?, arrived_by_id = ?, version = version + 1"
+                        + " WHERE id = ? AND arrived_at IS NULL",
+                Timestamp.from(at),
+                byId,
+                id));
+    }
+
     public Optional<AlertRecord> findById(long id) {
         try {
             var record = jdbc.queryForObject("SELECT * FROM alert WHERE id = ?", MAPPER, id);
@@ -283,6 +323,11 @@ public class AlertStore {
                 UPDATE alert SET assignee_id = ?, version = version + 1
                 WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
                 """, assigneeId, id, expectedVersion));
+    }
+
+    /** Cảnh báo vừa tạo lúc không có Bác sĩ trực (FR-047b); cùng lệnh tạo (cảnh báo SOS, FR-047e). */
+    public void markNoOnDutyDoctor(long id) {
+        requireOne(jdbc.update("UPDATE alert SET no_on_duty_doctor = TRUE, version = version + 1 WHERE id = ?", id));
     }
 
     /** Gắn dấu nguy kịch vào cảnh báo vừa tạo cho dấu đó, cùng lệnh ghi dấu (FR-050b, DBR-34). */

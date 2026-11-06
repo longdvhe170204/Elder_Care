@@ -53,6 +53,9 @@ import com.eldercare.backend.incident.internal.critical.domain.ReconfirmationRes
 import com.eldercare.backend.incident.internal.critical.domain.WishReconfirmationCommand;
 import com.eldercare.backend.incident.internal.critical.domain.WishReconfirmationContent;
 import com.eldercare.backend.incident.internal.critical.persistence.CriticalCareStore;
+import com.eldercare.backend.incident.internal.emergency.domain.TransferOutCommand;
+import com.eldercare.backend.incident.internal.emergency.domain.TransferRefusedException;
+import com.eldercare.backend.incident.internal.emergency.service.TransferOutService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
 import com.eldercare.backend.resident.api.EndOfLifeWishApi;
 import com.eldercare.backend.resident.api.ResidentApi;
@@ -98,6 +101,7 @@ public class CriticalCareService {
     private final BusinessTime time;
     private final ResidentApi residents;
     private final EndOfLifeWishApi wishes;
+    private final TransferOutService transfers;
     private final Optional<AlertStaffPort> staff;
     private final Optional<EmergencyFamilyPort> family;
 
@@ -113,6 +117,7 @@ public class CriticalCareService {
             BusinessTime time,
             ResidentApi residents,
             EndOfLifeWishApi wishes,
+            TransferOutService transfers,
             @Autowired(required = false) AlertStaffPort staff,
             @Autowired(required = false) EmergencyFamilyPort family) {
         this.store = store;
@@ -126,6 +131,7 @@ public class CriticalCareService {
         this.time = time;
         this.residents = residents;
         this.wishes = wishes;
+        this.transfers = transfers;
         this.staff = Optional.ofNullable(staff);
         this.family = Optional.ofNullable(family);
     }
@@ -305,7 +311,8 @@ public class CriticalCareService {
      * vọng Hiệu lực thì làm theo nguyện vọng đó; chưa có thì Bác sĩ quyết định kèm lý do (BR-M05-16).
      */
     @Transactional
-    public long executeChoice(long alertId, String choiceValue, Reason reason, CurrentUser user) {
+    public long executeChoice(
+            long alertId, String choiceValue, Reason reason, TransferOutCommand transferOut, CurrentUser user) {
         ExecutionChoice choice = parse(ExecutionChoice.class, choiceValue, "Lựa chọn thực hiện không hợp lệ");
         var alert = lockCriticalAlert(alertId, user);
         var results = store.reconfirmations(alertId);
@@ -331,9 +338,17 @@ public class CriticalCareService {
             }
         }
         if (choice == ExecutionChoice.TRANSFER_TO_HOSPITAL) {
-            // Lệnh Chuyển viện và bản tóm tắt thuộc US5 (T040 → T042) chưa cài; không ghi lựa chọn khi chưa chuyển
-            // được.
-            throw blocked("FR-049", "Lệnh Chuyển viện chưa sẵn sàng (007 US5)");
+            // Lệnh Chuyển viện của US5 chạy trên sự cố đã liên kết với cảnh báo (chuyển sự cố hoặc kích hoạt khẩn
+            // cấp); 001 từ chối thì cả lệnh rollback, không ghi lựa chọn (FR-049, "hoặc toàn bộ, hoặc không").
+            if (transferOut == null) throw new InvalidValueException("Thiếu thông tin Chuyển viện");
+            if (alert.incidentId() == null) {
+                throw blocked("FR-049", "Chuyển cảnh báo thành sự cố hoặc kích hoạt khẩn cấp trước khi chuyển viện");
+            }
+            try {
+                transfers.transfer(alert.incidentId(), transferOut, user);
+            } catch (TransferRefusedException refused) {
+                throw refused.refusal();
+            }
         }
         var now = time.now();
         var row = store.addChoice(

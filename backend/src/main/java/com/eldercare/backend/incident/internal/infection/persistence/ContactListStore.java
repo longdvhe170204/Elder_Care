@@ -39,6 +39,14 @@ public class ContactListStore {
         return records.findByUniqueKey(KIND, Long.toString(incidentId));
     }
 
+    public SimpleRecord<ContactListContent> require(long id) {
+        return records.require(KIND, id);
+    }
+
+    public SimpleRecord<ContactListContent> lock(long id) {
+        return records.lockForUpdate(KIND, id);
+    }
+
     public SimpleRecord<ContactListContent> confirm(
             long id, int version, Instant at, long actorId, String noContactsReason) {
         var row = records.lockForUpdate(KIND, id);

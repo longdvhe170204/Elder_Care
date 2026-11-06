@@ -93,7 +93,35 @@ public class AlertQueryService {
             if (view.failedLayer().orElse(null) == FailedLayer.SCOPE) throw new NotFoundException();
             throw new PermissionDeniedException("Không có quyền xem cảnh báo");
         }
-        return new AlertDetails(alert, assigneeName(alert), sources(alertId), allowedCommands(alert, user));
+        var sources = sources(alertId);
+        return new AlertDetails(
+                alert, assigneeName(alert), sources, allowedCommands(alert, user), press(alert, sources));
+    }
+
+    /** Người bấm, loại sự việc, nơi đã chọn (nút hỗ trợ: dòng M05.ASSIST_DETAIL; SOS: nơi của lần bấm mới nhất). */
+    @SuppressWarnings("unchecked")
+    private AlertDetails.Press press(AlertRecord alert, List<AlertDetails.Source> sources) {
+        if (records.isEmpty()) return AlertDetails.Press.NONE;
+        var api = records.get();
+        if (EmergencyAssistService.ALERT_TYPE.equals(alert.type())) {
+            var details = new java.util.HashMap<String, Object>();
+            api.list(EmergencyAssistService.DETAIL, new EntityRef(AlertNotices.SOURCE_TYPE, alert.id()))
+                    .forEach(row -> details.putAll((Map<String, Object>) row.content()));
+            String pressedBy = alert.requesterId() == null
+                    ? null
+                    : accounts.fullName(alert.requesterId()).orElse(null);
+            return new AlertDetails.Press(pressedBy, (String) details.get("eventType"), (String) details.get("place"));
+        }
+        if (SosService.ALERT_TYPE.equals(alert.type())) {
+            String place = sources.stream()
+                    .filter(source -> SosService.PRESS_SOURCE.equals(source.sourceType()) && source.sourceId() != null)
+                    .reduce((first, second) -> second)
+                    .flatMap(source -> api.findByUniqueKey(SosService.PLACE, "SOS_PLACE:" + source.sourceId()))
+                    .map(row -> row.content().place().name())
+                    .orElse(null);
+            return new AlertDetails.Press(null, null, place);
+        }
+        return AlertDetails.Press.NONE;
     }
 
     /** Tên lệnh trong đường dẫn (glossary {@code allowedCommands}); chỉ các lệnh của US3 đã có route. */
@@ -119,6 +147,17 @@ public class AlertQueryService {
             commands.add("change-level");
         }
         if (status == AlertStatus.IN_PROGRESS && handler) commands.add("close");
+        boolean pressed =
+                SosService.ALERT_TYPE.equals(alert.type()) || EmergencyAssistService.ALERT_TYPE.equals(alert.type());
+        if (pressed
+                && handler
+                && alert.arrivedAt() == null
+                && (status == AlertStatus.RECEIVED || status == AlertStatus.IN_PROGRESS)
+                && (Objects.equals(alert.assigneeId(), user.accountId())
+                        || Objects.equals(alert.receiverId(), user.accountId()))) {
+            commands.add("mark-arrived");
+        }
+        if (open && handler && alert.level() == IncidentLevel.CRITICAL) commands.add("call-115");
         return commands;
     }
 

@@ -1,7 +1,7 @@
 package com.eldercare.backend.incident.internal.infection.service;
 
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
-import com.eldercare.backend.incident.internal.infection.persistence.ContactFollowUpStore;
+import com.eldercare.backend.incident.internal.infection.persistence.ContactPersonStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
 import com.eldercare.backend.roombedallocation.api.spi.AllocationInfectionStatus;
 import com.eldercare.backend.roombedallocation.api.spi.CordonedArea;
@@ -17,11 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class IncidentAllocationStatus implements AllocationInfectionStatus {
     private final ContainmentStore containments;
-    private final ContactFollowUpStore contacts;
+    private final ContactPersonStore contacts;
     private final IncidentStore incidents;
 
     public IncidentAllocationStatus(
-            ContainmentStore containments, ContactFollowUpStore contacts, IncidentStore incidents) {
+            ContainmentStore containments, ContactPersonStore contacts, IncidentStore incidents) {
         this.containments = containments;
         this.contacts = contacts;
         this.incidents = incidents;
