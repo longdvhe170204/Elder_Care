@@ -424,3 +424,11 @@ Test backend ở `backend/src/test/java/com/eldercare/backend/family/` (trừ gh
 - Chờ feature khác: K12 (017 chứng từ, T073), FR-046a mua hộ (010, T076), phần 011 của Q31.
 - Còn chạy tay: Q48 (Nhân viên chăm sóc gọi lệnh lượt ở lại, Hành chính gọi nhật ký xem → 403) mới có kiểm ở `RequiresPermissionArchTest` và ma trận quyền, chưa có IT gọi thật.
 - Đo với người dùng hoặc dữ liệu dài: SC-001 (100 lượt đón dựng sẵn), SC-004 (thao tác đăng ký của 10 người thân dùng lần đầu), SC-005 (ba tháng, cần `NguoiThanThongKeApi`, T036 không làm theo Q-194), SC-008 (30 ngày ở lại so tính tay).
+
+### T039 lượt 2 (2026-11-06, A): test cho Q48, SC-001, SC-008
+
+- `Q48_PermissionDeniedIT`: Nhân viên chăm sóc gọi đăng ký, xác nhận, từ chối, bắt đầu, kết thúc lượt ở lại đều 403, lượt không đổi trạng thái; Hành chính đọc nhật ký xem sức khỏe 403, Quản lý viện 200.
+- `SC_001_HundredPickupsIT`: 100 lượt đón (30 trong danh sách, 15 ngoài danh sách, 15 giấy tờ sai, 10 ngoại lệ Hiệu lực xen kẽ người đại diện xác nhận và Quản lý viện duyệt, 5 dùng lại ngoại lệ, 15 người vừa bị bỏ khỏi danh sách, 10 ngoại lệ hết hạn): đúng 40 bản ghi đón, 60 lần chặn; mọi bản ghi có người đón, căn cứ, giấy tờ đã đối chiếu, thời điểm, nhân viên bàn giao.
+- `SC_008_ThirtyDayStaysIT`: sáu lượt trong 30 ngày (3 đêm, trong ngày, 5 đêm qua mốc đổi đơn giá, 2 đêm, Chờ xác nhận, Từ chối), việc nửa đêm chạy mọi mốc 00:00: 10 sự kiện `OVERNIGHT_STAY`, ngày từng đêm khớp bảng; lượt chưa xác nhận Bắt đầu bị 409. Đơn giá do 010 tra theo `incurredOn`, nên phía 012 chỉ kiểm ngày. Số suất ăn chờ 011 (`LuotOLaiDaDoi`).
+- Lúc dựng dữ liệu SC-008 lần đầu, lượt trong ngày chồng giờ với lượt qua đêm nên bị chặn đúng theo CFG-M10-10 (một lượt cùng lúc mỗi người cao tuổi); đã dời ngày trong test, không đổi mã.
+- Còn nghiệm thu với người dùng: SC-004 (thao tác đăng ký của 10 người thân dùng lần đầu), SC-005 (90% hạn mức Cao sau ba tháng; T036 không làm theo Q-194).
