@@ -98,7 +98,7 @@ Checkbox xác nhận phạm vi task; chưa thay thế nghiệm thu toàn phase, 
 ### Tests cho User Story 2
 
 - [x] T018 [P] [US2] Test đơn vị `BT/care/KiemTraLapCongViecTest.java` và `BangChuyenCongViecTest.java` (mọi chuyển của bảng FR-026)
-- [ ] T019 [P] [US2] Test `BT/care/BR_M04_01_LapCongViecCaIT.java`, `DBR_12_KhongTrungCanCuIT.java`, `FR_021_LapLaiSauHuyVangIT.java`, `BR_M04_24_KiemTraDauCaIT.java`, `BR_M04_26_LapMuonVaChayBuIT.java`, `FR_006_KhongTrungKhungPhienBanCuIT.java`, `BR_M09_01_ChungChiCongViecIT.java`: lỗi theo dòng, lô không lưu khi có lỗi; người vắng/chưa đến bị chặn; trùng căn cứ bị `khoa_trung` chặn (bỏ qua Hủy); kiểm tra đầu ca thứ hai bị chặn; lập muộn vào thẳng `DEN_HAN`/`QUA_HAN`; người thiếu chứng chỉ bị chặn; nhắc ca chưa có công việc; không có endpoint gợi ý (Q8 → Q10, Q38)
+- [x] T019 [P] [US2] Test `BT/care/BR_M04_01_LapCongViecCaIT.java`, `DBR_12_KhongTrungCanCuIT.java`, `FR_021_LapLaiSauHuyVangIT.java`, `BR_M04_24_KiemTraDauCaIT.java`, `BR_M04_26_LapMuonVaChayBuIT.java`, `FR_006_KhongTrungKhungPhienBanCuIT.java`, `BR_M09_01_ChungChiCongViecIT.java`: lỗi theo dòng, lô không lưu khi có lỗi; người vắng/chưa đến bị chặn; trùng căn cứ bị `khoa_trung` chặn (bỏ qua Hủy); kiểm tra đầu ca thứ hai bị chặn; lập muộn vào thẳng `DEN_HAN`/`QUA_HAN`; người thiếu chứng chỉ bị chặn; nhắc ca chưa có công việc; không có endpoint gợi ý (Q8 → Q10, Q38)
 
 ### Implementation cho User Story 2
 
@@ -173,13 +173,13 @@ Checkbox xác nhận phạm vi task; chưa thay thế nghiệm thu toàn phase, 
 ## Phase 7: User Story 5 – Quá hạn được nhắc, leo thang theo mức và đưa vào bàn giao (Priority: P1)
 **Bản cài 02/11/2026, chưa nghiệm thu phase:** T042/T043 dùng các IT tiếng Anh BR_M04_05_OverdueReminderIT, FR_052_GroupedOverdueReminderIT, FR_047_TaskHandoverIT, FR_047a_PendingHandoverIT và hồi quy review; T044 mở rộng CareTaskDueStep/CareTaskClockProcessor/CareTaskNotices, không tạo bộ quét khác. T045 có CareHandoverQueries (projection005), CareTaskHandoverProjection (tương thích008) và callback CareTaskHandover. T046 GET /care-tasks/overdue?floorAreaId đã được chủ dự án duyệt bản dịch; web OverdueTasksPage và mobile OverdueTasksScreen là danh sách chỉ đọc. Giữ checkbox mở: nguồn008 thật, nhận việc tồn, projection008 cho vị trí, cảnh báo vị trí và metadata đo bị bỏ, mobile transport/shell, gate cuối và kiểm trực quan chưa đạt. Các callback T038 chưa cài không được coi đã xong trongT045. Quyết định/test/lệnh thực ở plan và Working-history.md; không dùng fake làm bằng chứng tích hợp thật.
 
-**Goal**: Hết khung → Quá hạn; nhắc người thực hiện một lần; Quan trọng báo Trưởng tầng và Người phụ trách ca; Bắt buộc yêu cầu cảnh báo Trung bình; Thường quá CFG-M04-12 báo Người phụ trách ca; danh sách chờ bàn giao; tự đóng sau bàn giao; tồn chờ xác nhận (FR-043 → FR-047a, FR-052, BR-M04-05 → 07, 29, BR-M09-08).
+**Goal**: Hết khung → Quá hạn; nhắc người thực hiện một lần; Quan trọng báo Trưởng tầng (chủ dự án chốt theo BR-M04-06 ngày06/11); Bắt buộc yêu cầu cảnh báo Trung bình; Thường quá CFG-M04-12 báo Người phụ trách ca; danh sách chờ bàn giao; tự đóng sau bàn giao; tồn chờ xác nhận (FR-043 → FR-047a, FR-052, BR-M04-05 → 07, 29, BR-M09-08).
 
 **Independent Test**: 3 công việc (Thường, Quan trọng, Bắt buộc) đến hạn 10:00 khung ±15 phút; không ghi nhận → lúc 10:15 cả ba Quá hạn, nhắc, báo, cảnh báo đúng mức.
 
 ### Tests cho User Story 5
 
-- [ ] T042 [P] [US5] Test `BT/care/BR_M04_05_QuaHanNhacIT.java`, `BR_M04_06_LeoThangTheoMucIT.java`, `BR_M04_29_NhacMotLanIT.java` (đồng hồ giả lập): chuyển trong ≤ 1 phút (SC-005); nhắc một lần; leo thang đúng mức; chạy bù gộp nhắc (`NhacQuaHanGop`); không tự tạo công việc (Q25, Q26)
+- [x] T042 [P] [US5] Test `BT/care/BR_M04_05_QuaHanNhacIT.java`, `BR_M04_06_LeoThangTheoMucIT.java`, `BR_M04_29_NhacMotLanIT.java` (đồng hồ giả lập): chuyển trong ≤ 1 phút (SC-005); nhắc một lần; leo thang đúng mức; chạy bù gộp nhắc (`NhacQuaHanGop`); không tự tạo công việc (Q25, Q26)
 - [x] T043 [P] [US5] Test `BT/care/BR_M04_07_DanhSachChoBanGiaoIT.java`, `FR_047_TuDongDongSauBanGiaoIT.java`, `FR_047a_TonChoXacNhanIT.java`: danh sách cho 008; xác nhận bàn giao đóng công việc Thường Quá hạn có trong bàn giao ("hệ thống đóng sau bàn giao"), chuyển công việc khác sang ca sau với dấu `TON_TU_CA_TRUOC`; bàn giao chưa xác nhận lúc bắt đầu ca → `TON_CHO_XAC_NHAN` (Q27)
 
 ### Implementation cho User Story 5

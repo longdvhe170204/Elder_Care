@@ -18,6 +18,7 @@ import com.eldercare.backend.care.api.spi.ShiftStaffPort;
 import com.eldercare.backend.care.internal.qualitycheck.domain.CompletedTask;
 import com.eldercare.backend.care.internal.qualitycheck.persistence.QualityCheckStore;
 import com.eldercare.backend.care.internal.task.service.CareTaskService;
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.notification.RecipientGroup;
@@ -181,6 +182,53 @@ public class QualityCheckService {
         }
         log(checklistId, existing.isEmpty() ? "QUALITY_CHECKLIST_CREATED" : "QUALITY_CHECK_ITEMS_ADDED", taskIds);
         return checklistId;
+    }
+
+    /**
+     * GET danh sách của ca (FR-059, FR-060; schema duyệt 07/11/2026): công việc đủ điều kiện chưa chọn, số mục tối
+     * thiểu, danh sách và mục. Không xếp hạng, không gợi ý (Q-306, Q-307).
+     */
+    public record ShiftOverview(
+            long shiftId,
+            long floorAreaId,
+            int minimumItems,
+            int eligibleTaskCount,
+            Optional<SimpleRecord<Checklist>> checklist,
+            List<CompletedTask> eligibleTasks,
+            List<RecordEvent<Item>> items) {}
+
+    /** Chỉ người kiểm tra của ca (FR-066) và Quản lý viện; người thực hiện không xem (không báo khi được chọn). */
+    @RequiresPermission(function = Function.QUALITY_CHECK, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public ShiftOverview overview(Target target, long shiftId, long floorAreaId) {
+        var shift = shift(shiftId, floorAreaId);
+        var now = time.now();
+        Inspection context;
+        if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {
+            var duty = duties();
+            context = new Inspection(
+                    null,
+                    duty.assignedFloorManager(floorAreaId, now).orElse(null),
+                    duty.shiftHasNoFloorManager(shiftId));
+        } else context = inspection(shift, now);
+        var eligible = eligible(shift, context);
+        var checklist = lists.findByUniqueKey(CHECKLISTS, shiftId + ":" + floorAreaId);
+        var items = checklist
+                .map(l -> records.list(ITEMS, new EntityRef("M04.QUALITY_CHECKLIST", l.id())))
+                .orElse(List.of());
+        var selected = items.stream().map(i -> i.content().taskId()).collect(java.util.stream.Collectors.toSet());
+        return new ShiftOverview(
+                shiftId,
+                floorAreaId,
+                minimumItems(
+                        eligible.size(),
+                        parameters.read(ParameterCode.CFG_M04_11).asPercent()),
+                eligible.size(),
+                checklist,
+                eligible.values().stream()
+                        .filter(t -> !selected.contains(t.id()))
+                        .toList(),
+                items);
     }
 
     public record Rework(Instant plannedAt, Long performerId, boolean sharedOnFloor) {}

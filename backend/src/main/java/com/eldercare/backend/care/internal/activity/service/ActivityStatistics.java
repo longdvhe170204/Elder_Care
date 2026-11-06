@@ -123,6 +123,7 @@ public class ActivityStatistics implements ActivityStatisticsApi {
                         ((Number) r.get("task_id")).longValue(),
                         (String) r.get("status"),
                         "null".equals(r.get("role")) ? null : (String) r.get("role"),
+                        r.get("performer_staff_id") == null ? null : ((Number) r.get("performer_staff_id")).longValue(),
                         r.get("recorded_at") == null || "null".equals(r.get("recorded_at"))
                                 ? null
                                 : Instant.parse((String) r.get("recorded_at"))));

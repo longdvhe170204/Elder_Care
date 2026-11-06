@@ -124,7 +124,13 @@ class BR_M04_12_LateOfflineRecordingIT extends CareOfflineTestBase {
                 java.util.List.of(new com.eldercare.backend.care.api.spi.ShiftStaffPort.ShiftMemberView(
                         performer, com.eldercare.backend.common.Role.FLOOR_MANAGER)));
         shifts.onShift(performer, performed, true);
-        shifts.qualified(performer, java.util.Set.of(), time.today(), true);
+        shifts.qualified(
+                performer,
+                java.util.Set.of(),
+                performed
+                        .atZone(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                        .toLocalDate(),
+                true);
         String reference = sync(
                 AD_HOC,
                 "{\"residentId\":" + resident + ",\"taskTypeId\":" + type + ",\"performedAt\":\"" + performed

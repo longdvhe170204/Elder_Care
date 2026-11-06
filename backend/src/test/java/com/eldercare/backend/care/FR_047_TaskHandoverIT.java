@@ -13,6 +13,23 @@ import org.junit.jupiter.api.Test;
 /** T043: gọi bean production cụ thể, không lấy FakeCareRequirements làm bằng chứng. */
 class FR_047_TaskHandoverIT extends CareOverdueTestBase {
     @Test
+    void FR_046_locationTaskCanBeReadThroughThe008Projection() throws Exception {
+        long id = create();
+        long room = TestUsers.nextId();
+        jdbc.update("UPDATE care_task SET resident_id=NULL,location_type='ROOM',location_id=? WHERE id=?", room, id);
+        var api = context.getBean("careTaskHandoverProjection", TaskHandoverApi.class);
+        assertThat(api.unclosed(floor, shiftId)).singleElement().satisfies(row -> {
+            var payload = json.readTree(json.writeValueAsString(row));
+            assertThat(payload.path("residentId").isNull()).isTrue();
+            assertThat(payload.path("roomId").asLong()).isEqualTo(room);
+            assertThat(payload.path("locationType").asString()).isEqualTo("ROOM");
+            assertThat(payload.path("locationId").asLong()).isEqualTo(room);
+            assertThat(payload.path("floorAreaId").asLong()).isEqualTo(floor);
+        });
+        assertThat(api.currentStatus(Set.of(id))).containsKey(id);
+    }
+
+    @Test
     void BR_M04_07_listsOnlyOpenTasksOfTheRequestedFloorAndCurrentStatus() throws Exception {
         long id = create();
         var api = context.getBean("careHandoverQueries", HandoverTaskApi.class);

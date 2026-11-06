@@ -8,7 +8,7 @@ import { ActivityField } from './ActivityField'
 import { toOffsetIso } from './sessionView'
 
 // 014 T009: hai form lệnh tạo buổi (FR-006, FR-011) mở bằng Sheet; giá trị đã gõ giữ khi backend báo lỗi (9.2 điểm 4).
-function CommandSheet({ open, onOpenChange, title, description, submitLabel, ready, onSubmit, children }) {
+export function CommandSheet({ open, onOpenChange, title, description, submitLabel, ready, onSubmit, children }) {
   const [problem, setProblem] = useState(null)
   const [busy, setBusy] = useState(false)
   const [key, setKey] = useState(() => crypto.randomUUID())

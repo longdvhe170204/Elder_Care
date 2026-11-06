@@ -34,7 +34,7 @@ class BR_M04_29_RemindOnceIT extends CareOverdueTestBase {
                         .filter(e -> e.taskId() == id)
                         .count()
                 + recorded.stream(BatchedOverdueTaskReminder.class)
-                        .filter(e -> e.taskIds().contains(id))
+                        .filter(e -> e.context().sourceId() == id)
                         .count();
     }
 

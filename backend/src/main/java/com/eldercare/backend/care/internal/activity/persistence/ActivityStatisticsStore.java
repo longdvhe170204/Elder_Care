@@ -94,6 +94,8 @@ public class ActivityStatisticsStore {
                         + "CAST(JSON_EXTRACT(content,'$.taskId') AS UNSIGNED) task_id,"
                         + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.status')) status,"
                         + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.inspectorRole')) role,"
+                        + "CAST(NULLIF(JSON_EXTRACT(content,'$.performerStaffId'),CAST('null' AS JSON)) AS UNSIGNED)"
+                        + " performer_staff_id,"
                         + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.recordedAt')) recorded_at"
                         + " FROM record_event WHERE kind='M04.QUALITY_CHECK_ITEM' AND confirmed_at IS NOT NULL"
                         + " AND confirmed_at>=? AND confirmed_at<?" + where + " ORDER BY confirmed_at,id",

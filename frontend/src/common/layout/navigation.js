@@ -119,6 +119,14 @@ export const NAV_GROUPS = [
         functions: ['ACTIVITY_OUTING'],
         roles: [QL, TT, DD, CS],
       },
+      // Dòng "Kiểm tra chất lượng", Phụ lục 27 (014 T025, bố cục duyệt 2026-11-07); Người phụ trách ca theo nhiệm vụ.
+      {
+        key: 'quality-checks',
+        label: 'Kiểm tra chất lượng',
+        icon: 'ClipboardCheck',
+        functions: ['QUALITY_CHECK'],
+        roles: [QL, TT],
+      },
       // Dòng "Kế hoạch chăm sóc" và "Danh mục loại công việc chăm sóc" (005 T017, Phụ lục 27).
       {
         key: 'care-plans',

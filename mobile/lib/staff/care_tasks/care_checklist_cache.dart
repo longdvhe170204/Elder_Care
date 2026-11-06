@@ -27,6 +27,9 @@ class CareChecklistCache extends _$CareChecklistCache {
   factory CareChecklistCache.onDevice() => CareChecklistCache(driftDatabase(name: 'care_checklist_cache'));
   @override
   int get schemaVersion => 1;
+  Future<List<int>> shiftIds(int accountId) async => (await (select(
+    careChecklistSnapshots,
+  )..where((r) => r.accountId.equals(accountId))).get()).map((row) => row.shiftId).toList();
   Future<void> save(int accountId, int shiftId, Map<String, dynamic> content) async {
     final loaded = DateTime.parse(content['loadedAt'] as String);
     await into(careChecklistSnapshots).insertOnConflictUpdate(

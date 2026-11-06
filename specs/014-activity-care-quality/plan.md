@@ -395,3 +395,28 @@ Kiểm: `BR_M04_18_SuKienTinhPhiIT` 7/7, `FR_031_DinhChinhIT` 3/3, `T014_Session
 - T034 (R-15): migration của 014 chỉ có `V014_02` (`activity_session`, `activity_registration`), `V014_03` (cột `billed_source_id`), `V014_05` (cột chuyến, người tham gia); mọi bảng khác của data-model ghi vào bảng chung (`catalog_item`, `simple_record`, `record_event`, `status_history`, `reminder_marker`) theo data-model mục 0. Hai bảng có `COMMENT DataGroup=BUSINESS`; `T005_FoundationSchemaIT`, `T016_TripSchemaIT` kiểm cấu trúc.
 
 **Kiểm toàn bộ trên `f1c584aa` (06/11/2026).** `clean verify -Dit.forkCount=3`: 1092 đơn vị/kiến trúc xanh, IT 2728 có 1 thất bại là `StaffCommandsHttpIT.FR_001a_…` (lớp đỏ có sẵn của E), 2 bỏ qua; 17 phút 4 giây.
+
+### 07/11/2026 (C): T027, T034, T006, T004, FR-065, T025, web chuyến, app điểm danh
+
+- **T027.** `T027_ActivityStatisticsIT` cố định đồng hồ giả lập 10:00 trong fixture (buổi now−30 phút và truy vấn today phải cùng ngày nghiệp vụ); đặt 00:10 thì `FR_070` đỏ NoSuchElement, sau sửa 4/4. `ApiContractIT` đã so api-014 theo operation; danh sách chờ chỉ còn operation bị chặn (`/activity-types`, đồng ý về muộn, GET sở thích, hồ sơ tinh thần, cổng người thân).
+- **T034, lưu giữ (lệch research L-15, chủ dự án chọn 07/11).** Thêm `CareRetentionType.ACTIVITY` (không gắn hồ sơ, mốc ngày ngừng hiệu lực; buổi trỏ tới hoạt động nên cả chuỗi chờ buổi, đăng ký hết hạn) và `QUALITY_CHECKLIST` (không gắn hồ sơ, mốc lúc đóng = `locked_at`). Mục kiểm tra là dòng con `record_event` của danh sách, xóa cùng danh sách qua `SharedRowRetention`, không còn "theo hồ sơ" như L-15 ghi (mục không gắn người cao tuổi, công việc có thể là việc vị trí). Chuỗi FR-051a: công việc gốc (TASK) trỏ tới danh sách có mục của nó; danh sách trỏ tới công việc làm lại (basis REWORK).
+- **T006, thời khóa biểu.** Nguồn 014 trả mã `ACTIVITY_SESSION` của schema `TimetableItem` (api-005); chuyến ghi `trip_status`; buổi bị hủy kéo theo đăng ký bị hủy nên không hiện. Bỏ kiểm `information_schema` thừa từ US1.
+- **T004, FR-002a/b (chủ dự án chọn 07/11).** Khai báo toàn viện: Target lấy một tầng trong phạm vi `ACTIVITY_OUTING` của người khai báo (`ScopeApi.filter`); sửa: người tạo theo tầng của mình, người khác theo tầng của phòng mặc định (`LocationStructureApi.room`), địa điểm là khu vực (gồm nhiều tầng) thì chỉ người tạo. Địa điểm mặc định: một phòng hoặc một khu vực, đang dùng. Không đổi quyền, ma trận. Còn: phạm vi lệnh buổi của hoạt động toàn viện theo địa điểm buổi; dịch vụ trong danh mục 004 (004 chưa có API).
+- **FR-065 (Đổi api, chủ dự án duyệt 07/11).** `QualityCheckStatisticsView.performerStaffId` (nhân viên thực hiện công việc gốc) cho tỷ lệ Đạt theo nhân viên; A (016) review.
+- **T025 (schema GET, bố cục duyệt 07/11).** `GET /quality-checks/shifts/{shiftId}?floorAreaId=` trả `QualityCheckShiftView` (thêm vào api-014): số mục tối thiểu, số công việc đủ điều kiện, danh sách, công việc đủ điều kiện chưa chọn, mục. Quản lý viện xem theo VIEW toàn viện; vai trò khác phải là người kiểm tra của ca (FR-066). `CompletedTask` thêm loại công việc, người cao tuổi, vị trí. Web `features/quality-checks/QualityCheckPage.jsx`, menu nhóm "Trong ca". Trạng thái mục (Chờ kiểm tra, Đạt…) dùng tông `neutral` mặc định của `StatusBadge`, chưa thêm vào bảng DESIGN 3.5.
+- **Web chuyến (T018, T020).** `TripFollowUp.jsx`: Sheet đánh giá (bố cục 05/11), khối Đang đi (bố cục 07/11); `CommandSheet` của `ActivitySessionForms.jsx` được export để dùng lại. Lệnh xong thì màn tải lại danh sách và khung chi tiết đóng (hành vi sẵn có của `ActivitySessionsPage`).
+- **App (T013, T014).** `session_attendance_screen.dart`: mỗi đăng ký chưa có kết quả một dòng, Có mặt cần mức tham gia, Vắng cần lý do, không điền sẵn; lưu qua `CareOfflineRecording.recordSessionAttendance` (phong bì lưu trước khi gửi, `M04.SESSION_ATTENDANCE`). Chưa gắn StaffRoot.
+- **Web không ổn định (team-plan dòng C (005,014)).** Nguyên nhân: ca đầu file chờ dữ liệu bằng `findByRole`, truy vấn này dựng lại cây trợ năng ở mỗi lần DOM đổi trong lúc tải (quyền rồi ba fetch rồi vẽ bảng); chạy toàn kho nhiều worker thì ca đầu file trung bình 706 ms (ca sau 355 ms), `TripDetail.FR_039` 1811 ms vượt 1000 ms mặc định (`backend/logs/014/20261107-web-full-durations.json`); chạy riêng 462 ms, 2 worker không đỏ. Sửa: chờ bằng `findByLabelText` (aria-label) hoặc `findByText(..., { selector: 'option' })`, cùng phần tử, không đổi timeout hay assertion. Lượt toàn bộ sau sửa 524/524.
+
+| Mã | Test | Trạng thái 07/11 |
+| --- | --- | --- |
+| BR-M04-15 → 18, 21, 23 | như bảng 06/11; thêm `BR_M04_23` ca GET (FR-059, FR-060) | Có test |
+| BR-M04-22 | — | Chờ hàm nghi nhiễm theo khoảng (team-plan mục 8) |
+| DBR-12, 15, 23, 25 | như bảng 06/11 | Có test (DBR-25 chuyến chờ 001 `deviceAt`) |
+| DBR-18 | — | Chờ chuỗi cô lập |
+| FR-002a, FR-002b | `FR_002a_FacilityActivityIT`, `FR_002_ActivityDeclarationIT` | Có test mức hoạt động; mức buổi còn mở |
+| FR-048 (005, nguồn 014) | `FR_048_TimetableIT` | Có test |
+| FR-051a, L-15 | `L_15_ActivityChecklistRetentionIT`, `T006_ActivityGovernanceIT` | Có test |
+| FR-065 | `T027_ActivityStatisticsIT` (vai trò, người thực hiện) | Có test |
+| FR-067 | Ca 403 trong `BR_M04_16`, `BR_M04_17`, `BR_M04_23`, `FR_051` | Một phần (Hành chính, người thân chờ quyền) |
+| FR-068 | — | Chờ schema cổng người thân |

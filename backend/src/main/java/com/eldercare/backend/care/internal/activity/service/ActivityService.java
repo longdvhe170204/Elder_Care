@@ -4,8 +4,10 @@ import static com.eldercare.backend.care.internal.activity.domain.ActivityKinds.
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
@@ -28,6 +30,9 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
+import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
+import com.eldercare.backend.roombedallocation.api.dto.RoomView;
 import java.time.LocalDate;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -45,6 +50,8 @@ public class ActivityService {
     private final AuditLogApi audit;
     private final BusinessTime time;
     private final ActivitySessionService sessions;
+    private final ScopeApi scopes;
+    private final LocationStructureApi structure;
 
     public ActivityService(
             SimpleRecordApi records,
@@ -52,21 +59,58 @@ public class ActivityService {
             CurrentUser user,
             AuditLogApi audit,
             BusinessTime time,
-            ActivitySessionService sessions) {
+            ActivitySessionService sessions,
+            ScopeApi scopes,
+            LocationStructureApi structure) {
         this.records = records;
         this.catalogs = catalogs;
         this.user = user;
         this.audit = audit;
         this.time = time;
         this.sessions = sessions;
+        this.scopes = scopes;
+        this.structure = structure;
     }
 
     public static Target target(Long floorAreaId) {
         return new Target(ENTITY, null, null, floorAreaId);
     }
 
+    /**
+     * FR-002b (chủ dự án chọn 07/11/2026): hoạt động toàn viện không có tầng nên lệnh khai báo kiểm phạm vi theo một tầng
+     * trong phạm vi của chính người khai báo.
+     */
+    public Target declareTarget(Long floorAreaId) {
+        return target(
+                floorAreaId != null ? floorAreaId : ownFloor(Operation.CREATE).orElse(null));
+    }
+
+    /**
+     * FR-002b: hoạt động toàn viện do người tạo quản lý (theo tầng của chính người đó) hoặc Trưởng tầng của tầng nơi đặt
+     * phòng mặc định; địa điểm là khu vực (gồm nhiều tầng) thì chỉ người tạo.
+     */
     public Target target(long id) {
-        return target(records.require(ACTIVITIES, id).content().floorAreaId());
+        var activity = records.require(ACTIVITIES, id).content();
+        if (!Activity.FACILITY.equals(activity.scope())) return target(activity.floorAreaId());
+        if (createdByCurrentUser(activity))
+            return target(ownFloor(Operation.UPDATE).orElse(null));
+        return target(roomFloor(activity).orElse(null));
+    }
+
+    private Optional<Long> ownFloor(Operation operation) {
+        return scopes.filter(user, new PermissionKey(Function.ACTIVITY_OUTING, operation)).floorAreaIds().stream()
+                .sorted()
+                .findFirst();
+    }
+
+    private boolean createdByCurrentUser(Activity activity) {
+        return user.staffId().map(s -> s == activity.createdByStaffId()).orElse(false);
+    }
+
+    private Optional<Long> roomFloor(Activity activity) {
+        var location = activity.defaultLocation();
+        if (location == null || location.roomId() == null) return Optional.empty();
+        return structure.room(location.roomId()).map(RoomView::floorId);
     }
 
     /** Hoạt động của tầng (kèm hoạt động toàn viện) hoặc mọi hoạt động khi không nêu tầng. */
@@ -228,15 +272,14 @@ public class ActivityService {
         log(id, "REGULAR_PARTICIPANT_REMOVED", Map.of("residentId", residentId), null, reason);
     }
 
-    /** FR-002b: chỉ Trưởng tầng; hoạt động toàn viện do người tạo sửa (phần tầng của địa điểm buổi thuộc US1). */
+    /** FR-002b: chỉ Trưởng tầng; hoạt động toàn viện: người tạo, hoặc Trưởng tầng của tầng phòng mặc định (đã qua phạm vi). */
     private SimpleRecord<Activity> editable(long id) {
         requireFloorManager();
         var row = records.lockForUpdate(ACTIVITIES, id);
         if (Activity.FACILITY.equals(row.content().scope())
-                && !user.staffId()
-                        .map(s -> s == row.content().createdByStaffId())
-                        .orElse(false))
-            throw new PermissionDeniedException("Hoạt động toàn viện do Trưởng tầng đã tạo sửa");
+                && !createdByCurrentUser(row.content())
+                && roomFloor(row.content()).isEmpty())
+            throw new PermissionDeniedException("Hoạt động toàn viện đặt ở khu vực do Trưởng tầng đã tạo sửa");
         return row;
     }
 
@@ -254,6 +297,7 @@ public class ActivityService {
         } else if (Activity.FACILITY.equals(in.scope())) {
             if (in.floorAreaId() != null) throw new InvalidValueException("Hoạt động toàn viện không gắn tầng");
         } else throw new InvalidValueException("Phạm vi phải là FLOOR hoặc FACILITY");
+        requireKnownLocation(in.defaultLocation());
         if (in.maxParticipants() < 1) throw new InvalidValueException("Số lượng tối đa từ 1");
         if (in.charged() && in.serviceId() == null) throw new InvalidValueException("Hoạt động thu phí cần dịch vụ");
         boolean group = requestedGroup == null ? type.attributes().groupActivity() : requestedGroup;
@@ -276,6 +320,19 @@ public class ActivityService {
                 group == type.attributes().groupActivity() ? null : reason.trim(),
                 creator,
                 null);
+    }
+
+    /** FR-002a: địa điểm mặc định là một phòng hoặc một khu vực trong cấu trúc 003, đang dùng. */
+    private void requireKnownLocation(Activity.Location location) {
+        if (location == null) return;
+        if (location.roomId() != null && location.areaId() != null)
+            throw new InvalidValueException("Địa điểm mặc định là một phòng hoặc một khu vực");
+        if (location.roomId() != null
+                && (structure.room(location.roomId()).isEmpty()
+                        || !structure.active(new LocationRef("ROOM", location.roomId()))))
+            throw new InvalidValueException("Phòng không có trong cấu trúc của viện hoặc đã ngừng sử dụng");
+        if (location.areaId() != null && !structure.active(new LocationRef("AREA", location.areaId())))
+            throw new InvalidValueException("Khu vực không có trong cấu trúc của viện hoặc đã ngừng sử dụng");
     }
 
     private void log(long id, String action, Map<String, Object> before, Map<String, Object> after, Reason reason) {

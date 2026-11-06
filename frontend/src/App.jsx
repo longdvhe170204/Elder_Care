@@ -16,6 +16,7 @@ import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPa
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
 import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
 import { ActivitySessionsPage } from '@/features/activities/ActivitySessionsPage'
+import { QualityCheckPage } from '@/features/quality-checks/QualityCheckPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
@@ -51,6 +52,7 @@ const PAGES = {
   'day-care-attendance': DayCareAttendancePage,
   'care-catalogs': CareCatalogPage,
   'activity-sessions': ActivitySessionsPage,
+  'quality-checks': QualityCheckPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,

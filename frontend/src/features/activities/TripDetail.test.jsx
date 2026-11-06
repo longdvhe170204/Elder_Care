@@ -1,5 +1,5 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { PermissionsProvider } from '@/common/permissions/permissions'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { ActivitySessionsPage } from './ActivitySessionsPage'
@@ -58,7 +58,9 @@ function page() {
 }
 async function open() {
   page()
-  fireEvent.click(await screen.findByRole('button', { name: /Chi tiết buổi Tham quan/ }))
+  // Chờ dữ liệu tải bằng truy vấn rẻ (aria-label): *ByRole tính lại cây trợ năng ở mỗi lần DOM đổi trong lúc tải, khi
+  // chạy toàn kho (nhiều worker) ca đầu file vượt 1000 ms mặc định (log 014/20261107-web-full-durations.json).
+  fireEvent.click(await screen.findByLabelText(/Chi tiết buổi Tham quan/))
   await screen.findByText('Điểm đến: Chùa')
 }
 
@@ -204,4 +206,95 @@ it('FR_013_huyChuyenCanXacNhanVaLyDo', async () => {
   expect(JSON.parse(api.calls('POST', '/activity-sessions/41/cancel')[0][1].body)).toEqual({
     reason: 'Thời tiết không phù hợp',
   })
+})
+
+it('FR_036_danhGiaDatKhongDatMoSheetKhongDatBatBuocLyDo', async () => {
+  api.on(
+    'GET',
+    '/trips/41',
+    json(200, { ...TRIP, participants: [{ id: 91, residentId: 701, status: 'REGISTERED', reason: null }] }),
+  )
+  api.on('POST', '/trips/41/eligibility-assessments', json(200, {}))
+  await open()
+  fireEvent.click(screen.getByRole('button', { name: 'Đánh giá Nguyễn Thị Lan' }))
+  const sheet = await screen.findByRole('dialog', { name: 'Đánh giá khả năng tham gia' })
+  expect(within(sheet).getByText(/Chưa có dữ liệu thuốc, sức khỏe/)).toBeInTheDocument()
+  fireEvent.click(within(sheet).getByRole('radio', { name: 'Không đạt' }))
+  expect(within(sheet).getByRole('button', { name: 'Lưu đánh giá' })).toBeDisabled()
+  fireEvent.change(within(sheet).getByLabelText(/^Lý do không đạt/), { target: { value: 'Đang sốt' } })
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Lưu đánh giá' }))
+  await screen.findByText('Đã lưu đánh giá khả năng tham gia')
+  expect(JSON.parse(api.calls('POST', '/trips/41/eligibility-assessments')[0][1].body)).toEqual({
+    residentId: 701,
+    result: 'FAIL',
+    reason: 'Đang sốt',
+  })
+})
+
+const OUT = {
+  ...TRIP,
+  status: 'IN_PROGRESS',
+  plannedReturnAt: '2026-11-05T04:30:00Z',
+  companionIds: [22, 23],
+  participants: [
+    { id: 91, residentId: 701, status: 'DEPARTED', reason: null },
+    { id: 92, residentId: 702, status: 'RETURNED', reason: null },
+  ],
+}
+
+it('FR_044_diemDanhVeChiChonNguoiDaRoiVienVaBaoQuaGioVe', async () => {
+  vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-05T05:00:00Z') })
+  api.on('GET', '/trips/41', json(200, OUT))
+  api.on('POST', '/trips/41/return', json(200, {}))
+  await open()
+  expect(screen.getByText('Quá giờ về dự kiến')).toBeInTheDocument()
+  expect(screen.queryByRole('checkbox', { name: 'Chọn về Trần Văn Minh' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Chọn về Nguyễn Thị Lan' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Điểm danh về (1)' }))
+  await screen.findByText('Đã điểm danh về')
+  expect(JSON.parse(api.calls('POST', '/trips/41/return')[0][1].body)).toEqual({ residentIds: [701] })
+  vi.useRealTimers()
+})
+
+it('FR_043_FR_035a_giaHanVaChuyenTruongDoanCanLyDo', async () => {
+  api.on('GET', '/trips/41', json(200, OUT))
+  api.on('POST', '/trips/41/extend', json(200, {}))
+  api.on('POST', '/trips/41/transfer-leader', json(200, {}))
+  await open()
+  fireEvent.click(screen.getByRole('button', { name: 'Gia hạn giờ về' }))
+  let sheet = await screen.findByRole('dialog', { name: 'Gia hạn giờ về' })
+  fireEvent.change(within(sheet).getByLabelText(/^Giờ về mới/), { target: { value: '2026-11-05T13:30' } })
+  expect(within(sheet).getByRole('button', { name: 'Lưu gia hạn' })).toBeDisabled()
+  fireEvent.change(within(sheet).getByLabelText(/^Lý do gia hạn/), { target: { value: 'Kẹt xe' } })
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Lưu gia hạn' }))
+  await screen.findByText('Đã gia hạn giờ về')
+  // Lệnh xong thì màn tải lại danh sách và đóng khung (hành vi sẵn có); mở lại chuyến cho lệnh tiếp theo.
+  fireEvent.click(await screen.findByLabelText(/Chi tiết buổi Tham quan/))
+  await screen.findByText('Điểm đến: Chùa')
+  expect(JSON.parse(api.calls('POST', '/trips/41/extend')[0][1].body)).toEqual({
+    newPlannedReturnAt: '2026-11-05T13:30:00+07:00',
+    reason: 'Kẹt xe',
+  })
+  fireEvent.click(screen.getByRole('button', { name: 'Chuyển trưởng đoàn' }))
+  sheet = await screen.findByRole('dialog', { name: 'Chuyển trưởng đoàn' })
+  fireEvent.change(within(sheet).getByLabelText(/^Người nhận/), { target: { value: '23' } })
+  fireEvent.change(within(sheet).getByLabelText(/^Lý do chuyển/), { target: { value: 'Trưởng đoàn mệt' } })
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Xác nhận chuyển trưởng đoàn' }))
+  await screen.findByText('Đã chuyển trưởng đoàn')
+  expect(JSON.parse(api.calls('POST', '/trips/41/transfer-leader')[0][1].body)).toEqual({
+    newLeaderId: 23,
+    reason: 'Trưởng đoàn mệt',
+  })
+})
+
+it('FR_047_ketThucDiemDanhVeNeuNguoiSeThanhThieuKhiVe', async () => {
+  api.on('GET', '/trips/41', json(200, OUT))
+  api.on('POST', '/trips/41/finish-return', json(200, {}))
+  await open()
+  fireEvent.click(screen.getByRole('button', { name: 'Kết thúc điểm danh về' }))
+  const dialog = await screen.findByRole('dialog', { name: 'Kết thúc điểm danh về' })
+  expect(within(dialog).getByText(/Nguyễn Thị Lan sẽ chuyển sang Thiếu khi về/)).toBeInTheDocument()
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Xác nhận kết thúc' }))
+  await screen.findByText('Đã kết thúc điểm danh về')
+  expect(api.calls('POST', '/trips/41/finish-return')).toHaveLength(1)
 })

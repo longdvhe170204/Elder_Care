@@ -141,6 +141,12 @@ public class CareGovernanceStore {
                         : null;
             case ACTIVITY_SESSION -> "SELECT id,NULL resident_id,starts_at planned_at FROM activity_session";
             case ACTIVITY_REGISTRATION -> "SELECT id,resident_id,NULL planned_at FROM activity_registration";
+            case ACTIVITY ->
+                "SELECT id,NULL resident_id,CAST(JSON_UNQUOTE(JSON_EXTRACT(content,'$.deactivatedFrom')) AS DATETIME(6))"
+                        + " planned_at FROM simple_record WHERE kind='M04.ACTIVITY' AND status='INACTIVE'";
+            case QUALITY_CHECKLIST ->
+                "SELECT id,NULL resident_id,locked_at planned_at FROM simple_record"
+                        + " WHERE kind='M04.QUALITY_CHECKLIST' AND locked_at IS NOT NULL";
         };
         if (sql == null) return List.of();
         return jdbc.query(sql + " ORDER BY id", (rs, i) -> {
@@ -192,11 +198,27 @@ public class CareGovernanceStore {
                             (rs, i) -> new DataRef(
                                     rs.getObject(2) == null ? "M04.LOCATION_TASK" : "M04.TASK", rs.getLong(1)),
                             id));
+                // 014: mục kiểm tra chất lượng trỏ tới công việc gốc (dòng con của danh sách).
+                result.addAll(jdbc.query(
+                        "SELECT DISTINCT entity_id FROM record_event WHERE kind='M04.QUALITY_CHECK_ITEM'"
+                                + " AND entity_type='M04.QUALITY_CHECKLIST' AND JSON_EXTRACT(content,'$.taskId')=?",
+                        (rs, i) -> new DataRef("M04.QUALITY_CHECKLIST", rs.getLong(1)),
+                        id));
             }
             case DAY_CARE_ATTENDANCE ->
                 refs(result, "care_attendance_record", "attendance_id", id, "M04.ATTENDANCE_RECORD");
             case ACTIVITY_SESSION ->
                 refs(result, "activity_registration", "session_id", id, "M04.ACTIVITY_REGISTRATION");
+            case ACTIVITY -> refs(result, "activity_session", "activity_id", id, "M04.ACTIVITY_SESSION");
+            case QUALITY_CHECKLIST ->
+                // Công việc làm lại trỏ tới mục Không đạt của danh sách (basis REWORK).
+                result.addAll(jdbc.query(
+                        "SELECT t.id,t.resident_id FROM care_task t JOIN record_event e ON e.id=t.basis_id"
+                                + " WHERE t.basis_type='REWORK' AND e.kind='M04.QUALITY_CHECK_ITEM'"
+                                + " AND e.entity_type='M04.QUALITY_CHECKLIST' AND e.entity_id=?",
+                        (rs, i) ->
+                                new DataRef(rs.getObject(2) == null ? "M04.LOCATION_TASK" : "M04.TASK", rs.getLong(1)),
+                        id));
             case CARE_RESULT, LOCATION_CARE_RESULT ->
                 result.add(new DataRef(type.profile() ? "M04.TASK" : "M04.LOCATION_TASK", id));
             default -> {}
@@ -235,6 +257,8 @@ public class CareGovernanceStore {
         String kind = switch (type) {
             case CARE_PLAN_ITEM -> " AND kind='TASK'";
             case RISK_AGREEMENT -> " AND kind='RISK_AGREEMENT'";
+            case ACTIVITY -> " AND kind='M04.ACTIVITY'";
+            case QUALITY_CHECKLIST -> " AND kind='M04.QUALITY_CHECKLIST'";
             default -> "";
         };
         retention.update("DELETE FROM " + type.table() + " WHERE id IN (" + marks + ")" + kind, ids.toArray());
