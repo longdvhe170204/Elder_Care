@@ -3357,6 +3357,18 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | provider M11 (`GanPhamViProvider`, `LuuTruProvider`, `QuyenTepProvider`) | `service.ProcurementGovernance` (`M11.PROCUREMENT_REQUEST`, `M11.PROCUREMENT_RECEIPT`) |
 | test | `BR_M11_20_ReminderIT`, `FR_008d_MedicationRequestIT`, `T004_ProcurementGovernanceIT` |
 
+### 25.10. Tài sản, Phase 7 lượt 1 (T016 → T018 một phần, 06/11/2026)
+
+| Tên logic | Mã |
+| --- | --- |
+| bảng `tai_san` và cột | `asset` (`code`, `type_id`, `name`, `department_id`, `source` `PURCHASED`/`DONATED`/`TRANSFERRED_IN`/`BED`, `source_description`, `procurement_request_id`, `acquisition_cost`, `in_service_on`, `maintenance_interval_days`, `maintenance_due_on`, `license_plate`, `seat_count`, `vehicle_inspection_due_on`, `insurance_due_on`, `bed_id`, `status`, `location_type`, `location_id`, `floor_area_id`, bốn cột dấu, `created_by_staff_id`); migration `V019_05__asset.sql`; trigger `trg_asset_final` |
+| hai loại hệ thống | mục `catalog_item` loại `M03.ASSET_TYPE` mã `BED` (Giường), `VEHICLE` (Xe), thuộc tính `system` |
+| lịch sử vị trí, bộ phận; lần bảo trì; hư hỏng | `status_history` `M03.ASSET` thuộc tính `LOCATION` (khoảng), `DEPARTMENT` (mốc); `record_event` `M03.ASSET_MAINTENANCE` (nháp khi đưa vào bảo trì, xác nhận khi ghi kết quả), `M03.ASSET_DAMAGE` |
+| lớp | `roombedallocation.internal.asset`: `domain.AssetKinds`, `AssetRow`, `AssetInput`, `AssetCommandInput`; `persistence.AssetStore`; `service.AssetService`, `AssetTypeService`; `web.AssetController`, `web.request.AssetWrite`, `AssetCommandWrite` (`Location`, schema `AssetLocationRef`), `AssetTypeWrite`; `web.response.AssetResponse` (schema `Asset`), `AssetProblem` |
+| nhật ký, thông báo | `M03_ASSET_<lệnh>`, `M03_ASSET_TYPE_CREATE`, `M03_ASSET_TYPE_UPDATE`; `ASSET_DAMAGED` (mức `LOW`, Phụ trách bộ phận) |
+| điều kiện loại hệ thống không ngừng được | `SYSTEM_ASSET_TYPE` trong 409 `CONDITION_NOT_MET`; mã tài sản trùng dùng `DUPLICATE_CODE` của 003 |
+| test | `FR_013_AssetLifecycleIT` |
+
 #### Bổ sung 003 sau merge M01 (2026-10-24)
 
 | Tên logic, mục đích | Tên trong mã |
