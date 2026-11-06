@@ -43,6 +43,9 @@ class RegistrationStatistics implements ResidenceRegistrationStatisticsApi {
         for (RegistrationObligation obligation : obligations.pending()) {
             (obligation.effectiveDueAt().isBefore(todayStart) ? overdue : toCreate).add(obligation.residentId());
         }
+        for (ResidenceRegistration renewal : registrations.renewalsToSubmit()) {
+            (renewal.dueAt().isBefore(todayStart) ? overdue : toCreate).add(renewal.residentId());
+        }
         Set<Long> expired = new HashSet<>();
         for (ResidenceRegistration registration : registrations.confirmedOrExpired()) {
             if (registration.status() == RegistrationStatus.EXPIRED) {

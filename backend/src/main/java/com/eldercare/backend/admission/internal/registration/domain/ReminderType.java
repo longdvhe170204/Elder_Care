@@ -7,6 +7,7 @@ package com.eldercare.backend.admission.internal.registration.domain;
 public enum ReminderType {
     CREATE,
     OVERDUE,
+    OVERDUE_MANAGER,
     RENEWAL,
     DEREGISTER
 }

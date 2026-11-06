@@ -4,8 +4,10 @@ import com.eldercare.backend.admission.api.events.ResidenceRegistrationReminder;
 import com.eldercare.backend.admission.api.events.ResidenceRegistrationReminder.Kind;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationObligation;
 import com.eldercare.backend.admission.internal.registration.domain.ReminderType;
+import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
 import com.eldercare.backend.admission.internal.registration.persistence.RegistrationObligationStore;
 import com.eldercare.backend.admission.internal.registration.persistence.RegistrationReminderStore;
+import com.eldercare.backend.admission.internal.registration.persistence.ResidenceRegistrationStore;
 import com.eldercare.backend.admission.internal.transition.service.M02DailyTask;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
@@ -29,16 +31,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegistrationOverdueReminders implements M02DailyTask {
 
     private final RegistrationObligationStore obligations;
+    private final ResidenceRegistrationStore registrations;
     private final RegistrationReminderStore reminders;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
     RegistrationOverdueReminders(
             RegistrationObligationStore obligations,
+            ResidenceRegistrationStore registrations,
             RegistrationReminderStore reminders,
             ApplicationEventPublisher events,
             BusinessTime time) {
         this.obligations = obligations;
+        this.registrations = registrations;
         this.reminders = reminders;
         this.events = events;
         this.time = time;
@@ -82,6 +87,21 @@ public class RegistrationOverdueReminders implements M02DailyTask {
                 }
             }
             if (managerFirstTime) {
+                events.publishEvent(new ResidenceRegistrationReminder(Kind.OVERDUE_MANAGER, residentId, day, now));
+            }
+        }
+        // Khai báo gia hạn quá hạn chưa nộp (không gắn nghĩa vụ): nhắc Hành chính mỗi ngày, Quản lý viện một lần
+        for (ResidenceRegistration renewal : registrations.renewalsToSubmit()) {
+            if (!renewal.dueAt().isBefore(dayStart)) {
+                continue;
+            }
+            long residentId = renewal.residentId();
+            if (reminders.claim(ReminderType.OVERDUE, residentId, day)) {
+                events.publishEvent(new ResidenceRegistrationReminder(Kind.OVERDUE, residentId, day, now));
+                reminded++;
+            }
+            if (reminders.lastOn(ReminderType.OVERDUE_MANAGER, residentId).isEmpty()
+                    && reminders.claim(ReminderType.OVERDUE_MANAGER, residentId, day)) {
                 events.publishEvent(new ResidenceRegistrationReminder(Kind.OVERDUE_MANAGER, residentId, day, now));
             }
         }

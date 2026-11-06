@@ -82,15 +82,19 @@ class RegistrationObligationListeners {
         ContractView contract = contracts.contract(event.contractId()).orElse(null);
         if (contract == null
                 || contract.residenceType() == ResidenceType.DAY_CARE
-                || NOT_RESIDING.contains(residents.status(event.residentId()))
-                || !dayCareBefore(contract)) {
+                || NOT_RESIDING.contains(residents.status(event.residentId()))) {
             return;
         }
-        obligations.record(
-                event.residentId(),
-                ObligationTrigger.RESIDENTIAL_EFFECTIVE,
-                contract.startDate().atStartOfDay(BusinessTime.ZONE).toInstant(),
-                contract.id());
+        if (dayCareBefore(contract)) {
+            obligations.record(
+                    event.residentId(),
+                    ObligationTrigger.RESIDENTIAL_EFFECTIVE,
+                    contract.startDate().atStartOfDay(BusinessTime.ZONE).toInstant(),
+                    contract.id());
+        } else if (followsResidential(contract) && onlyStayNotification(event.residentId())) {
+            // Hợp đồng nội trú mới nối tiếp hợp đồng nội trú coi như gia hạn (BR-M02-14, Q-241)
+            obligations.record(event.residentId(), ObligationTrigger.RENEWAL_ADDENDUM, time.now(), contract.id());
+        }
     }
 
     /**
@@ -160,6 +164,18 @@ class RegistrationObligationListeners {
                                         RegistrationStatus.SUBMITTED)
                                 .contains(r.status()));
         return stayNotification && !confirmedTemporary;
+    }
+
+    /** Hợp đồng đã ký liền trước là nội trú và kết thúc ngay ngày hôm trước ngày bắt đầu (chuỗi không gián đoạn). */
+    private boolean followsResidential(ContractView contract) {
+        return contracts.ofResident(contract.residentId()).stream()
+                .filter(other -> other.id() != contract.id() && SIGNED.contains(other.status()))
+                .filter(other -> other.startDate().isBefore(contract.startDate()))
+                .max(Comparator.comparing(ContractView::startDate))
+                .map(previous -> residential(previous.residenceType())
+                        && previous.currentEndDate() != null
+                        && previous.currentEndDate().plusDays(1).equals(contract.startDate()))
+                .orElse(false);
     }
 
     /** Hợp đồng đã ký liền trước (bắt đầu muộn nhất trước {@code contract}) là bán trú. */
