@@ -17,6 +17,7 @@ import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.StatusHistoryApi;
@@ -24,6 +25,7 @@ import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.HistoryEntry;
 import com.eldercare.backend.administration.shared.api.dto.HistoryKind;
 import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
+import com.eldercare.backend.administration.shared.api.dto.RecordEvent;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
@@ -33,6 +35,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.dto.AssetStatus;
+import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.api.dto.ProcurementSourceType;
 import com.eldercare.backend.roombedallocation.api.dto.ProcurementType;
 import com.eldercare.backend.roombedallocation.api.events.AssetStatusChanged;
@@ -41,7 +44,11 @@ import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetComman
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetInput;
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds;
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetRow;
+import com.eldercare.backend.roombedallocation.internal.asset.domain.BedAssetRules;
+import com.eldercare.backend.roombedallocation.internal.asset.domain.BedDamageNotice;
 import com.eldercare.backend.roombedallocation.internal.asset.persistence.AssetStore;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommand;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommandPort;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
@@ -77,6 +84,7 @@ public class AssetService {
     private final ApplicationEventPublisher events;
     private final ObjectProvider<ApprovalRequestApi> approvals;
     private final JsonMapper json;
+    private final BedAssetCommandPort beds;
 
     public AssetService(
             AssetStore store,
@@ -93,7 +101,8 @@ public class AssetService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             ObjectProvider<ApprovalRequestApi> approvals,
-            JsonMapper json) {
+            JsonMapper json,
+            BedAssetCommandPort beds) {
         this.store = store;
         this.catalog = catalog;
         this.history = history;
@@ -109,6 +118,7 @@ public class AssetService {
         this.events = events;
         this.approvals = approvals;
         this.json = json;
+        this.beds = beds;
     }
 
     /** Đối tượng kiểm quyền: tầng của vị trí hiện hành (Trưởng tầng qua lớp phạm vi). */
@@ -187,7 +197,7 @@ public class AssetService {
     @Transactional
     public void putIntoUse(Target target, long id, AssetCommandInput in) {
         var row = locked(id);
-        requireNotBed(row);
+        if (row.bedId() != null) throw conflict("STATE_CHANGED", "Tài sản giường không dùng Đang sử dụng (Q-242)");
         requireStatus(row, READY);
         requireDepartmentLead(row.departmentId());
         move(row, IN_USE, in, "put-into-use", null);
@@ -212,10 +222,13 @@ public class AssetService {
     @Transactional
     public void reportDamage(Target target, long id, AssetCommandInput in) {
         var row = locked(id);
-        requireNotBed(row);
         if (in.description() == null || in.description().isBlank())
             throw new InvalidValueException("Báo hỏng cần mô tả");
         requireStatus(row, READY, IN_USE);
+        if (row.bedId() != null) {
+            reportBedDamage(row, in, "DAMAGE_REPORT");
+            return;
+        }
         requireLeadOrFloorManager(row);
         var now = time.now();
         records.add(
@@ -252,9 +265,8 @@ public class AssetService {
     @Transactional
     public void startMaintenance(Target target, long id, AssetCommandInput in) {
         var row = locked(id);
-        requireNotBed(row);
         requireStatus(row, READY, IN_USE, DAMAGED);
-        requireLeadOrFloorManager(row);
+        requireLeadOrFloorManager(row, row.awaitingResidentTransfer());
         String kind = in.maintenanceKind() == null ? "MAINTENANCE" : in.maintenanceKind();
         if (!Set.of("MAINTENANCE", "INSPECTION", "VEHICLE_INSPECTION", "INSURANCE")
                 .contains(kind))
@@ -262,6 +274,7 @@ public class AssetService {
         if (Set.of("VEHICLE_INSPECTION", "INSURANCE").contains(kind)
                 && typeCode(row.typeId()).filter(VEHICLE_CODE::equals).isEmpty())
             throw new InvalidValueException("Đăng kiểm, bảo hiểm chỉ cho tài sản loại Xe");
+        bedTransition(row, UNDER_MAINTENANCE, false, "Đưa vào bảo trì");
         var now = time.now();
         records.add(
                 MAINTENANCE,
@@ -291,7 +304,6 @@ public class AssetService {
     @Transactional
     public void recordMaintenanceResult(Target target, long id, AssetCommandInput in) {
         var row = locked(id);
-        requireNotBed(row);
         requireStatus(row, UNDER_MAINTENANCE);
         requireDepartmentLead(row.departmentId());
         if (!"PASS".equals(in.result()) && !"FAIL".equals(in.result()))
@@ -340,6 +352,7 @@ public class AssetService {
             port.linkSource(in.procurementRequestId(), ProcurementSourceType.MAINTENANCE, open.id(), in.cost());
         boolean pass = "PASS".equals(in.result());
         AssetStatus to = pass ? READY : DAMAGED;
+        bedTransition(row, to, false, null);
         if (pass && "VEHICLE_INSPECTION".equals(kind))
             store.renewDue(id, to, "vehicle_inspection_due_on", "vehicle_inspection_overdue", in.nextDueOn());
         else if (pass && "INSURANCE".equals(kind))
@@ -364,10 +377,14 @@ public class AssetService {
     @Transactional
     public void requestDisposal(Target target, long id, AssetCommandInput in) {
         var row = locked(id);
-        requireNotBed(row);
         requireNotDisposed(row);
         var reason = new Reason(in.reason());
         requireDepartmentLead(row.departmentId());
+        if (row.bedId() != null) {
+            // FR-015, Q-51: giường có người hoặc giữ chỗ thì chặn như BR-M03-05; kiểm lại khi áp dụng
+            var unmet = beds.checkAssetCommand(row.bedId(), BedAssetCommand.RETIREMENT, false, false);
+            if (!unmet.isEmpty()) throw new ConditionNotMetException(unmet);
+        }
         var api = approvals.getIfAvailable();
         if (api == null)
             throw new BusinessException(
@@ -392,11 +409,194 @@ public class AssetService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void dispose(long id, long requestId) {
         var row = locked(id);
-        requireNotBed(row);
         requireNotDisposed(row);
+        bedTransition(row, DISPOSED, false, "Thanh lý");
         store.dispose(id, time.now());
         record(id, "DISPOSE", row.status(), DISPOSED, null);
         publish(id, row.departmentId(), row.status(), DISPOSED, "dispose", List.of());
+    }
+
+    // ---- Tài sản giường (Phase 8) ---------------------------------------------------------------------------------
+
+    /**
+     * FR-016, Q-282: hư hỏng phát hiện khi dọn giường; Trưởng tầng (tầng mình) hoặc Phụ trách bộ phận xác nhận, ghi
+     * nguồn BED_PREPARATION rồi làm như Báo hỏng với ngoại lệ FR-013a của 003 (hủy phân bổ tương lai). 003 không còn bản
+     * ghi hư hỏng riêng nên {@code damageId} của api-019 không dùng (chủ dự án chọn 2026-11-06).
+     */
+    @RequiresPermission(function = Function.ASSET_VEHICLE, operation = Operation.UPDATE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public void linkBedPreparationDamage(Target target, long id, AssetCommandInput in) {
+        var row = locked(id);
+        if (row.bedId() == null) throw conflict("STATE_CHANGED", "Chỉ tài sản giường có hư hỏng khi dọn giường");
+        if (blank(in.description())) throw new InvalidValueException("Báo hỏng cần mô tả");
+        requireStatus(row, READY);
+        reportBedDamage(row, in, "BED_PREPARATION");
+    }
+
+    /**
+     * FR-015, Q-245, Q-265: Trưởng tầng (tầng mình) hoặc Quản lý viện gỡ dấu "chờ chuyển người" kèm lý do, cả khi giường
+     * còn người; mức mất an toàn bắt buộc nội dung đã sửa và người sửa. Trạng thái không đổi; giường Trống thì 003 kích
+     * hoạt BR-M02-01.
+     */
+    @RequiresPermission(function = Function.ASSET_VEHICLE, operation = Operation.UPDATE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public void removeTransferFlag(Target target, long id, AssetCommandInput in) {
+        var row = locked(id);
+        if (row.bedId() == null || !row.awaitingResidentTransfer())
+            throw conflict("STATE_CHANGED", "Tài sản không mang dấu chờ chuyển người");
+        var reason = new Reason(in.reason());
+        boolean floorManager = row.floorAreaId() != null
+                && user.roles().contains(Role.FLOOR_MANAGER)
+                && scope.inScope(user, new Target(ENTITY, Long.toString(id), null, row.floorAreaId()));
+        if (!floorManager && !user.roles().contains(Role.NURSING_HOME_MANAGER))
+            throw new PermissionDeniedException("Chỉ Trưởng tầng của tầng hoặc Quản lý viện gỡ dấu chờ chuyển người");
+        var open = openFlag(row);
+        if ("UNSAFE".equals(open.content().impactLevel()) && (blank(in.repairDescription()) || blank(in.repairedBy())))
+            throw new InvalidValueException("Gỡ dấu mức mất an toàn cần nội dung đã sửa và người, đơn vị sửa (Q-265)");
+        closeFlag(row, open, reason.value(), in.repairDescription(), in.repairedBy());
+        beds.residentTransferFlagRemoved(row.bedId());
+        record(id, "REMOVE_TRANSFER_FLAG", row.status(), row.status(), reason);
+    }
+
+    /**
+     * FR-015: Báo hỏng tài sản giường. Giường không có người: tài sản Hỏng, giường Đang bảo trì cùng lần (báo hỏng lại
+     * giường mang dấu thì gỡ dấu, Q-232). Giường có người (003 trả BR-M03-05): bắt buộc mức ảnh hưởng, ghi hư hỏng mang
+     * dấu "chờ chuyển người" (bản nháp tới khi gỡ), trạng thái không đổi; nhắc Trưởng tầng, mức mất an toàn gửi Khẩn cấp.
+     */
+    private void reportBedDamage(AssetRow row, AssetCommandInput in, String source) {
+        boolean preparation = "BED_PREPARATION".equals(source);
+        requireLeadOrFloorManager(row, !preparation && row.awaitingResidentTransfer());
+        long bedId = row.bedId();
+        var unmet =
+                beds.checkAssetCommand(bedId, BedAssetCommand.MAINTENANCE, preparation, row.awaitingResidentTransfer());
+        boolean occupied = unmet.stream().anyMatch(c -> "BR-M03-05".equals(c.code()));
+        if (occupied && !preparation && !row.awaitingResidentTransfer()) {
+            flagOccupiedBed(row, in);
+            return;
+        }
+        if (!unmet.isEmpty()) throw new ConditionNotMetException(unmet);
+        bedTransition(row, DAMAGED, preparation, "Báo hỏng lại");
+        var now = time.now();
+        records.add(
+                DAMAGE,
+                new EntityRef(ENTITY, row.id()),
+                new NewRecordEvent<>(
+                        new AssetKinds.Damage(in.description().strip(), source, null, false),
+                        null,
+                        staff(),
+                        false,
+                        now,
+                        null,
+                        now,
+                        row.floorAreaId(),
+                        null));
+        store.updateStatus(row.id(), DAMAGED);
+        record(row.id(), preparation ? "LINK_BED_PREPARATION_DAMAGE" : "REPORT_DAMAGE", row.status(), DAMAGED, null);
+        publish(
+                row.id(),
+                row.departmentId(),
+                row.status(),
+                DAMAGED,
+                preparation ? "link-bed-preparation-damage" : "report-damage",
+                notice(
+                        "ASSET_DAMAGED",
+                        row.id(),
+                        "Tài sản " + row.code() + " bị báo hỏng",
+                        new RecipientGroup.DepartmentLead(row.departmentId(), new Substitution.Default())));
+    }
+
+    private void flagOccupiedBed(AssetRow row, AssetCommandInput in) {
+        String impact = in.impactLevel();
+        if (!"UNSAFE".equals(impact) && !"STILL_SAFE".equals(impact))
+            throw new InvalidValueException(
+                    "Báo hỏng giường có người cần mức ảnh hưởng UNSAFE hoặc STILL_SAFE (Q-245)");
+        long bedId = row.bedId();
+        var suitable = "UNSAFE".equals(impact) ? beds.suitableEmptyBedsForOccupant(bedId) : List.<LocationView>of();
+        var now = time.now();
+        records.add(
+                DAMAGE,
+                new EntityRef(ENTITY, row.id()),
+                new NewRecordEvent<>(
+                        new AssetKinds.Damage(in.description().strip(), "DAMAGE_REPORT", impact, true),
+                        null,
+                        staff(),
+                        false,
+                        now,
+                        null,
+                        null,
+                        row.floorAreaId(),
+                        null));
+        store.setAwaitingTransfer(row.id(), true);
+        beds.residentTransferFlagAdded(bedId);
+        record(row.id(), "REPORT_DAMAGE_AWAITING", row.status(), row.status(), null);
+        long floor = row.floorAreaId();
+        var notices = new ArrayList<NotificationRequest>(notice(
+                "ASSET_DAMAGED",
+                row.id(),
+                "Tài sản " + row.code() + " bị báo hỏng",
+                new RecipientGroup.DepartmentLead(row.departmentId(), new Substitution.Default())));
+        if ("UNSAFE".equals(impact)) {
+            String title = "Giường " + row.code() + " hỏng mất an toàn, cần chuyển người gấp";
+            var recipients = BedAssetRules.unsafeRecipients(floor, suitable);
+            String content = recipients.size() > 2
+                    ? title + ". Giường Trống phù hợp ở tầng khác: " + BedAssetRules.otherFloorBeds(floor, suitable)
+                    : title;
+            notices.add(request("BED_DAMAGED_UNSAFE", row.id(), NotificationLevel.URGENT, title, content, recipients));
+        } else {
+            String title = "Giường " + row.code() + " bị báo hỏng, cần chuyển người sang giường khác";
+            notices.add(request(
+                    "BED_AWAITING_TRANSFER",
+                    row.id(),
+                    NotificationLevel.LOW,
+                    title,
+                    title,
+                    List.of(new RecipientGroup.FloorManager(floor, new Substitution.Default()))));
+        }
+        events.publishEvent(new BedDamageNotice(row.id(), bedId, notices));
+    }
+
+    /** FR-015: đổi trạng thái giường theo trạng thái tài sản mới, cùng transaction; dấu chờ chuyển người được gỡ. */
+    private void bedTransition(AssetRow row, AssetStatus to, boolean preparation, String flagRemoval) {
+        if (row.bedId() == null) return;
+        var command = BedAssetRules.bedCommand(row.status(), to);
+        if (command.isEmpty()) return;
+        long bedId = row.bedId();
+        var unmet = beds.checkAssetCommand(bedId, command.get(), preparation, row.awaitingResidentTransfer());
+        if (!unmet.isEmpty()) throw new ConditionNotMetException(unmet);
+        beds.applyAssetCommand(bedId, command.get(), new Basis("FR-015", null, row.id(), null));
+        if (row.awaitingResidentTransfer() && flagRemoval != null) {
+            closeFlag(row, openFlag(row), flagRemoval, null, null);
+            beds.residentTransferFlagRemoved(bedId);
+        }
+    }
+
+    private RecordEvent<AssetKinds.Damage> openFlag(AssetRow row) {
+        return records.list(DAMAGE, new EntityRef(ENTITY, row.id())).stream()
+                .filter(e -> e.confirmedAt() == null
+                        && Boolean.TRUE.equals(e.content().awaitingTransfer()))
+                .findFirst()
+                .orElseThrow(() -> conflict("STATE_CHANGED", "Không có hư hỏng mang dấu chờ chuyển người"));
+    }
+
+    /** Lần gỡ dấu đặt một lần trên hư hỏng mang dấu (data-model mục 4). */
+    private void closeFlag(
+            AssetRow row, RecordEvent<AssetKinds.Damage> open, String reason, String repair, String repairedBy) {
+        var c = open.content();
+        records.updateDraft(
+                DAMAGE,
+                open.id(),
+                new AssetKinds.Damage(
+                        c.description(),
+                        c.source(),
+                        c.impactLevel(),
+                        true,
+                        reason,
+                        blank(repair) ? null : repair.strip(),
+                        blank(repairedBy) ? null : repairedBy.strip()));
+        records.confirm(DAMAGE, open.id(), time.now());
+        store.setAwaitingTransfer(row.id(), false);
     }
 
     /** FR-011: Quản lý viện chuyển bộ phận quản lý, bắt buộc lý do; trạng thái giữ nguyên, ghi lịch sử bộ phận. */
@@ -599,6 +799,12 @@ public class AssetService {
                     "NOT_DEPARTMENT_LEAD", "Chỉ Phụ trách bộ phận quản lý tài sản thực hiện lệnh", Map.of());
     }
 
+    /** FR-015: báo hỏng lại, đưa vào bảo trì giường mang dấu thì Quản lý viện cũng làm được. */
+    private void requireLeadOrFloorManager(AssetRow row, boolean managerAllowed) {
+        if (managerAllowed && user.roles().contains(Role.NURSING_HOME_MANAGER)) return;
+        requireLeadOrFloorManager(row);
+    }
+
     /** Q-313: Trưởng tầng chỉ với tài sản có vị trí thuộc tầng trong phạm vi; còn lại Phụ trách bộ phận. */
     private void requireLeadOrFloorManager(AssetRow row) {
         boolean lead = duties.getObject()
@@ -618,7 +824,7 @@ public class AssetService {
             throw new BusinessException(
                     HttpStatus.SERVICE_UNAVAILABLE,
                     "SOURCE_UNAVAILABLE",
-                    "Lệnh trên tài sản giường chưa cài (Phase 8)");
+                    "Chuyển vị trí tài sản giường chờ cổng đồng bộ vị trí của 003 (Q-243, tạm hoãn)");
     }
 
     private static void requireNotDisposed(AssetRow row) {
@@ -653,18 +859,23 @@ public class AssetService {
     }
 
     private List<NotificationRequest> notice(String event, long id, String title, RecipientGroup to) {
+        return List.of(request(event, id, NotificationLevel.LOW, title, title, List.of(to)));
+    }
+
+    private NotificationRequest request(
+            String event, long id, NotificationLevel level, String title, String content, List<RecipientGroup> to) {
         var now = time.now();
-        return List.of(new NotificationRequest(
+        return new NotificationRequest(
                 "M03",
                 event,
                 SourceGroup.OTHER,
                 new SourceRecord(ENTITY, Long.toString(id)),
                 event + ":" + id + ":" + now,
-                Optional.of(NotificationLevel.LOW),
+                Optional.of(level),
                 Optional.empty(),
                 Optional.empty(),
-                List.of(to),
-                List.of(new ContentPart(InformationType.GENERAL, title)),
+                to,
+                List.of(new ContentPart(InformationType.GENERAL, content)),
                 Optional.of(title),
                 Optional.of(title),
                 Optional.empty(),
@@ -673,7 +884,7 @@ public class AssetService {
                 Map.of("assetId", id),
                 false,
                 Optional.empty(),
-                Optional.empty()));
+                Optional.empty());
     }
 
     private void publish(
@@ -683,8 +894,15 @@ public class AssetService {
             AssetStatus to,
             String command,
             List<NotificationRequest> notifications) {
-        events.publishEvent(
-                new AssetStatusChanged(id, departmentId, null, from, to, command, time.now(), notifications));
+        events.publishEvent(new AssetStatusChanged(
+                id,
+                departmentId,
+                store.find(id).map(AssetRow::bedId).orElse(null),
+                from,
+                to,
+                command,
+                time.now(),
+                notifications));
     }
 
     private void record(long id, String action, AssetStatus from, AssetStatus to, Reason reason) {

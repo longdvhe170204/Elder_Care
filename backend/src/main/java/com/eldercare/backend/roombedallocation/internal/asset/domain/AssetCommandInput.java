@@ -18,4 +18,6 @@ public record AssetCommandInput(
         Boolean outsourced,
         Long cost,
         Long procurementRequestId,
+        String repairDescription,
+        String repairedBy,
         Long newDepartmentId) {}

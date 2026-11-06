@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -187,6 +189,21 @@ public class AssetStore {
 
     public void updateDepartment(long id, long departmentId) {
         jdbc.update("UPDATE asset SET department_id = ?, version = version + 1 WHERE id = ?", departmentId, id);
+    }
+
+    /** FR-015, Q-232: dấu "chờ chuyển người" của tài sản giường. */
+    public void setAwaitingTransfer(long id, boolean value) {
+        jdbc.update("UPDATE asset SET awaiting_resident_transfer = ?, version = version + 1 WHERE id = ?", value, id);
+    }
+
+    /** Giường mà tài sản đang mang dấu "chờ chuyển người" trong {@code bedIds}. */
+    public Set<Long> flaggedBeds(Collection<Long> bedIds) {
+        if (bedIds.isEmpty()) return Set.of();
+        return Set.copyOf(jdbc.queryForList(
+                "SELECT bed_id FROM asset WHERE awaiting_resident_transfer AND bed_id IN ("
+                        + String.join(",", Collections.nCopies(bedIds.size(), "?")) + ")",
+                Long.class,
+                bedIds.toArray()));
     }
 
     public Optional<AssetRow> find(long id) {

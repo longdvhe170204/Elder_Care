@@ -229,7 +229,7 @@ interface GiuongTheoTaiSanPort {                 // 003 cài, 019 gọi
       // FR-013, FR-013a; giường có người → BR-M03-05 (019 tự ghi dấu "chờ chuyển người" với Báo hỏng)
   void apLenhTaiSan(long giuongId, LenhTaiSanGiuong lenh, CanCu canCu);
       // BAO_TRI | SAN_SANG | THANH_LY; đổi trạng thái giường; hủy phân bổ tương lai khi ngoại lệ FR-013a áp dụng
-  void daGanDauChoChuyenNguoi(long giuongId, List<Long> nctAnhHuong);   // FR-013b: báo phân bổ tương lai bị ảnh hưởng
+  void daGanDauChoChuyenNguoi(long giuongId);   // FR-013b: 003 tự tra phân bổ tương lai bị ảnh hưởng và báo (sửa 2026-11-06, chủ dự án chọn)
   void daGoDauChoChuyenNguoi(long giuongId);   // FR-013b: giường Trống → GiuongDaTrong; chuyển theo lịch đang chờ → thực hiện
   List<ViTriView> giuongTrongPhuHopChoNguoiDangNam(long giuongId);       // Q-256: theo tầng, đạt FR-018
 }

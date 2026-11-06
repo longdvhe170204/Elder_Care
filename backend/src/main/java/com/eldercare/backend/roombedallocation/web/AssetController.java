@@ -125,6 +125,8 @@ public class AssetController {
             case "record-maintenance-result" -> assets.recordMaintenanceResult(target, id, input);
             case "transfer-department" -> assets.transferDepartment(target, id, input);
             case "request-disposal" -> assets.requestDisposal(target, id, input);
+            case "remove-transfer-flag" -> assets.removeTransferFlag(target, id, input);
+            case "link-bed-preparation-damage" -> assets.linkBedPreparationDamage(target, id, input);
             default -> throw new NotFoundException();
         }
     }

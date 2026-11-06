@@ -50,6 +50,8 @@ public record AssetCommandWrite(
                 outsourced,
                 cost,
                 procurementRequestId,
+                repairDescription,
+                repairedBy,
                 newDepartmentId);
     }
 }

@@ -95,11 +95,11 @@ T009 → T015 bỏ: hệ thống không quản lý kho nguyên liệu (nhập, x
 
 ### Tests cho User Story 5
 
-- [ ] T019 [P] [US5] Test đơn vị `BT/roombedallocation/AnhXaTrangThaiGiuongTest.java` và `BT/roombedallocation/BR_M03_15_GiuongTaiSanIT.java` (SC-004), `DBR_32_TaiSanGiuongIT.java` (báo hỏng cùng lúc với phân bổ) (Q20 → Q23)
+- [ ] T019 [P] [US5] Test đơn vị `BT/roombedallocation/AnhXaTrangThaiGiuongTest.java` và `BT/roombedallocation/BR_M03_15_GiuongTaiSanIT.java` (SC-004), `DBR_32_TaiSanGiuongIT.java` (báo hỏng cùng lúc với phân bổ) (Q20 → Q23) *(2026-11-06 lượt 1: `BedAssetRulesTest` 3/3 (ánh xạ trạng thái, người nhận Q-245, Q-256), `BR_M03_15_BedAssetIT` 11/11 (US5 kịch bản 1, 2, 3, 4, 6, 7; FR-013b, FR-016, Q-242), đỏ trước khi cài; DBR-32 báo hỏng đồng thời với phân bổ và nhắc CFG-M03-02 ở lượt 2)*
 
 ### Implementation cho User Story 5
 
-- [ ] T020 [US5] Cài `BE/roombedallocation/taisan/internal/TaiSanGiuongPortImpl.java` (`ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau`) và `AnhXaTrangThaiGiuong` nối lệnh tài sản của giường với `GiuongTheoTaiSanPort` trong `TaiSanService.java`; màn báo hỏng giường hiện tiêu chí "mất an toàn" với test Vitest
+- [ ] T020 [US5] Cài `BE/roombedallocation/taisan/internal/TaiSanGiuongPortImpl.java` (`ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau`) và `AnhXaTrangThaiGiuong` nối lệnh tài sản của giường với `GiuongTheoTaiSanPort` trong `TaiSanService.java`; màn báo hỏng giường hiện tiêu chí "mất an toàn" với test Vitest *(2026-11-06 lượt 1: `BedAssets` (cài `BedAssetPort`; `recordIncreaseForBed` trả 503 chờ chủ dự án chốt bộ phận Chăm sóc), `BedAssetCommands` (003 cài `BedAssetCommandPort`, `residentTransferFlagAdded(bedId)` theo chủ dự án chọn), `BedAssetRules`; `AssetService` nối báo hỏng, đưa vào bảo trì, kết quả, thanh lý giường, `remove-transfer-flag`, `link-bed-preparation-damage`; còn nhắc CFG-M03-02, chuyển vị trí giường (Q-243, tạm hoãn), ghi tăng kèm Tạo giường, màn web (hoãn tới M35))*
 
 ---
 
