@@ -252,6 +252,25 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "POST /api/v1/family-portal/late-return-consents",
                             "POST /api/v1/family-portal/late-return-consents/{id}/withdraw"),
                     Set.of(),
+                    true),
+            // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story
+            new Contract(
+                    Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
+                    Set.of(
+                            "GET /api/v1/procurement-requests",
+                            "POST /api/v1/procurement-requests",
+                            "PUT /api/v1/procurement-requests/{id}",
+                            "POST /api/v1/procurement-requests/{id}/{command}",
+                            "GET /api/v1/assets",
+                            "POST /api/v1/assets",
+                            "POST /api/v1/asset-types",
+                            "GET /api/v1/assets/{id}",
+                            "PUT /api/v1/assets/{id}",
+                            "POST /api/v1/assets/{id}/{command}",
+                            "GET /api/v1/vehicle-schedules",
+                            "POST /api/v1/vehicle-schedules",
+                            "POST /api/v1/vehicle-schedules/{id}/{command}"),
+                    Set.of(),
                     true));
 
     @Autowired

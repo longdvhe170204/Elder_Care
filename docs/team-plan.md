@@ -1,3 +1,4 @@
+| C (019), D (006) | Thống nhất cách màn ghi lần tiếp nhận thuốc cung ứng của 006 lấy `procurementLineId` cho `ProcurementMedicationPort.lineRecordedPurchased(lineId)`: api-019 (đã dịch 2026-11-06) không có trường id dòng trong `ProcurementRequestWrite.lines`, `ProcurementRequest`; không tự thêm trường vào hợp đồng | D (006 FR-054): ghi lần tiếp nhận theo dòng; C (019 T027) | 019 contracts mục 3, plan 019 "Ghi chú triển khai"; `ProcurementMedicationLineView` | Chờ chủ dự án chọn (thêm `id` dòng vào api-019 hoặc 006 đọc dòng qua SPI) |
 # Kế hoạch làm song song (5 người)
 
 **Ngày**: 2026-10-19 | **Người giữ**: A (chủ dự án) | Căn cứ: dòng "Prerequisites" đầu `tasks.md` của từng feature, `contracts/module-interfaces.md`.
