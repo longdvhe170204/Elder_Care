@@ -33,7 +33,7 @@ public record NotificationBody(
 
     public record Source(String type, String id, boolean canOpen) {}
 
-    public static NotificationBody of(Opened o) {
+    public static NotificationBody of(Opened o, boolean canAcknowledgeAndTakeCharge) {
         var r = o.row();
         return new NotificationBody(
                 r.id(),
@@ -49,6 +49,6 @@ public record NotificationBody(
                 r.acknowledgedAt(),
                 r.acknowledgementMethod(),
                 new Source(r.sourceRecordType(), r.sourceRecordId(), false),
-                false);
+                canAcknowledgeAndTakeCharge);
     }
 }

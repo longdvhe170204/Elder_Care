@@ -90,6 +90,16 @@ class ResidentRetentionIT extends StatusTestBase {
                 "ban-ky.pdf", FileTypes.PDF, "%PDF-1.4 thử".getBytes(StandardCharsets.UTF_8), office.accountId());
     }
 
+    /** Gắn tệp như lệnh của module (FileApi.attach chỉ chạy trong transaction của lệnh). */
+    private long attach(long fileId, String ownerType, long ownerId) {
+        jdbc.update(
+                "UPDATE file SET owner_type = ?, owner_id = ?, attached_at = uploaded_at WHERE id = ?",
+                ownerType,
+                ownerId,
+                fileId);
+        return fileId;
+    }
+
     /** Người cao tuổi có đủ loại bản ghi của M01, đã Kết thúc lưu trú vào lúc đồng hồ hiện tại. */
     private long endedResidentWithEverything() {
         long id = newResident();
@@ -220,8 +230,23 @@ class ResidentRetentionIT extends StatusTestBase {
         }
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_log WHERE resident_id = ?", Integer.class, id))
                 .isPositive();
+        // tệp có loại chủ sở hữu khác loại bản ghi (FilePermissionProvider.recordType): ảnh gắn hồ sơ, giấy tờ bệnh
+        // viện
+        // gắn dòng lịch sử trạng thái; cùng tệp bản ký của bản đồng ý (loại chủ sở hữu trùng loại bản ghi)
+        long photo = attach(pdf(), "M01.RESIDENT_PHOTO", id);
+        long hospitalDocument = attach(pdf(), "M01.HOSPITAL_DOCUMENT", lastStatusHistoryId(id));
+        String residentFiles = "SELECT COUNT(*) FROM file WHERE id IN (" + photo + ", " + hospitalDocument
+                + ") OR (owner_type = 'M01.CONSENT' AND owner_id IN (SELECT id FROM consent WHERE resident_id = " + id
+                + "))";
+        assertThat(jdbc.queryForObject(residentFiles, Integer.class)).isEqualTo(3);
 
         runJobAfter(Duration.ofDays(11 * 366));
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM file WHERE id IN (" + photo + ", " + hospitalDocument + ")",
+                        Integer.class))
+                .as("tệp gắn hồ sơ, dòng lịch sử (FR-051a)")
+                .isZero();
 
         for (String table : TABLES) {
             assertThat(count(table, id)).as("sau khi xóa: %s", table).isZero();
