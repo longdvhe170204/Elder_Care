@@ -45,6 +45,19 @@ class M14ArchTest {
             .dependOnClassesThat(commandApiOutsideM14())
             .allowEmptyShould(true);
 
+    /** FR-004: số liệu thăm, phản hồi (012), đồ gửi (013), thống kê thông báo (009) không thuộc báo cáo giai đoạn này. */
+    @ArchTest
+    static final ArchRule FR_004_noSourcesOutsideThisPhase = noClasses()
+            .that()
+            .resideInAPackage(M14)
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage(
+                    "com.eldercare.backend.family..",
+                    "com.eldercare.backend.belongings..",
+                    "com.eldercare.backend.notification..")
+            .allowEmptyShould(true);
+
     @ArchTest
     static final ArchRule O_09_servicesAreReadOnlyExceptExport = classes()
             .that()

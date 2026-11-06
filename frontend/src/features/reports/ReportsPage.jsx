@@ -174,6 +174,7 @@ export function ReportsPage({ role }) {
           from={range.from}
           to={range.to}
           floorAreaId={floorAreaId ?? undefined}
+          floors={floors}
           metrics={metrics}
           onOpen={setOpened}
           onFilterOptions={setFilterOptions}

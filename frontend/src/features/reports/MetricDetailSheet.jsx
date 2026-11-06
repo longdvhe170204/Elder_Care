@@ -136,7 +136,7 @@ export function MetricDetailSheet({ opened, onClose }) {
             <SheetHeader>
               <SheetTitle>{shown.metric.name}</SheetTitle>
               <SheetDescription>
-                {shown.breakdownKey ? `${shown.breakdownKey}: ` : ''}
+                {shown.breakdownKey ? `${shown.breakdownText ?? shown.breakdownKey}: ` : ''}
                 {shown.valueText}
               </SheetDescription>
             </SheetHeader>

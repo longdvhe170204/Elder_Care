@@ -9,7 +9,7 @@ import { PageHeader } from '@/common/PageHeader'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { MetricDetailSheet } from '@/features/reports/MetricDetailSheet'
-import { METRIC_GROUP_LABELS, formatValue, labelNotes } from '@/features/reports/reportLabels'
+import { METRIC_GROUP_LABELS, breakdownLabel, formatValue, labelNotes } from '@/features/reports/reportLabels'
 
 // Tổng quan là dashboard của 016 (T010; FR-020, FR-021; bố cục duyệt 2026-10-24, DESIGN.md 5.21.0 `dashboard-block`).
 // Khối theo nhóm chỉ tiêu backend trả cho vai trò và phạm vi hiện hành; làm mới mỗi 30 giây với ETag (research O-06).
@@ -43,7 +43,9 @@ function MetricButton({ value, metric, onOpen }) {
       <span className="type-caption text-muted-foreground text-balance">{metric.name}</span>
       {value.value === null && <span className="type-caption text-muted-foreground">không có dữ liệu</span>}
       {breakdown.length > 0 && (
-        <span className="type-body-sm">{breakdown.map((b) => `${b.key} ${formatValue(b.value)}`).join(', ')}</span>
+        <span className="type-body-sm">
+          {breakdown.map((b) => `${breakdownLabel(value.metricCode, b.key)} ${formatValue(b.value)}`).join(', ')}
+        </span>
       )}
       {notes && <span className="type-caption text-muted-foreground">{notes}</span>}
     </button>
