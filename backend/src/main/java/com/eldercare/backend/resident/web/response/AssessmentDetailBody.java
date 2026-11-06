@@ -1,6 +1,7 @@
 package com.eldercare.backend.resident.web.response;
 
 import com.eldercare.backend.resident.api.dto.CareLevel;
+import com.eldercare.backend.resident.api.dto.LatestVitalSign;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentStatus;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentType;
@@ -29,12 +30,12 @@ public record AssessmentDetailBody(
         boolean corrected,
         Reference reference) {
 
-    /** Dữ liệu để bác sĩ tham khảo; chỉ số gần nhất lấy từ 007 nên rỗng tới khi 007 cài {@code VitalSignApi}. */
+    /** Dữ liệu để bác sĩ tham khảo; chỉ số gần nhất qua SPI {@code LatestVitalSignSource} (health cài); chưa có bản cài thì rỗng. */
     @Schema(name = "AssessmentReference")
     public record Reference(
             InitialHealthRecordBody initialHealthRecord,
             List<HealthItemBody> activeHealthItems,
-            List<Object> latestVitalSigns) {}
+            List<LatestVitalSign> latestVitalSigns) {}
 
     public static AssessmentDetailBody of(AssessmentBody a, Reference reference) {
         return new AssessmentDetailBody(

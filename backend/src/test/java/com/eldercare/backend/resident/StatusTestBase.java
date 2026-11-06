@@ -8,6 +8,7 @@ import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.spi.StatusTransitionParticipant;
 import com.eldercare.backend.resident.internal.status.service.ResidentStatusService;
 import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
+import com.eldercare.backend.support.ResidentHistoryRows;
 import com.eldercare.backend.support.fake.resident.FakeAbsences;
 import com.eldercare.backend.support.fake.resident.FakeStatusTransitionParticipant;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource;
@@ -146,14 +147,17 @@ public abstract class StatusTestBase extends AssessmentTestBase {
     protected void moveTo(long residentId, ResidentStatus status) {
         ResidentStatus from = currentStatus(residentId);
         jdbc.update("UPDATE resident SET status = ? WHERE id = ?", status.name(), residentId);
-        jdbc.update(
-                "INSERT INTO resident_status_history (resident_id, from_status, to_status, command, occurred_at,"
-                        + " performed_by, by_system) VALUES (?, ?, ?, 'SEED', ?, ?, TRUE)",
+        ResidentHistoryRows.insertStatus(
+                jdbc,
+                null,
                 residentId,
                 from.name(),
                 status.name(),
+                "SEED",
                 java.sql.Timestamp.from(time.now()),
-                office.accountId());
+                office.accountId(),
+                true,
+                null);
     }
 
     protected ResidentStatus currentStatus(long residentId) {
@@ -163,13 +167,16 @@ public abstract class StatusTestBase extends AssessmentTestBase {
 
     protected int historyCount(long residentId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM resident_status_history WHERE resident_id = ?", Integer.class, residentId);
+                "SELECT COUNT(*) FROM " + ResidentHistoryRows.STATUS + " WHERE resident_id = ?",
+                Integer.class,
+                residentId);
     }
 
     /** FR-048: trạng thái hiện tại luôn bằng dòng lịch sử mới nhất. */
     protected ResidentStatus latestHistoryStatus(long residentId) {
         return ResidentStatus.valueOf(jdbc.queryForObject(
-                "SELECT to_status FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT to_status FROM " + ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 String.class,
                 residentId));
     }

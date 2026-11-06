@@ -15,7 +15,7 @@ class ResidenceTypeAndCareLevelAreIndependentIT extends StatusTestBase {
     void FR_052_residentAndCareLevelHistoryHoldNoResidenceType() {
         Integer columns = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE()"
-                        + " AND table_name IN ('resident', 'care_level_history')"
+                        + " AND table_name IN ('resident', 'status_history')"
                         + " AND column_name LIKE '%residence_type%'",
                 Integer.class);
 

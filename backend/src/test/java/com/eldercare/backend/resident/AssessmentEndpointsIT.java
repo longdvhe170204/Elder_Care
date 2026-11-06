@@ -30,6 +30,19 @@ import org.springframework.test.web.servlet.MockMvc;
 @WithMockUser
 class AssessmentEndpointsIT extends AssessmentTestBase {
 
+    @org.springframework.boot.test.context.TestConfiguration
+    static class VitalSignFakes {
+
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        com.eldercare.backend.support.fake.resident.FakeLatestVitalSignSource fakeLatestVitalSignSource() {
+            return new com.eldercare.backend.support.fake.resident.FakeLatestVitalSignSource();
+        }
+    }
+
+    @Autowired
+    com.eldercare.backend.support.fake.resident.FakeLatestVitalSignSource vitalSigns;
+
     @Autowired
     MockMvc mvc;
 
@@ -60,6 +73,36 @@ class AssessmentEndpointsIT extends AssessmentTestBase {
         user.set(office.user());
         mvc.perform(get("/api/v1/residents/" + resident))
                 .andExpect(jsonPath("$.allowedCommands", not(hasItem("CREATE_ASSESSMENT"))));
+    }
+
+    @Test
+    void FR_024_latestVitalSigns_comeFromTheHealthSource_andAreEmptyWithoutOne() throws Exception {
+        long resident = admitting();
+        user.set(doctor.user());
+        String path = "/api/v1/residents/" + resident + "/assessments";
+        mvc.perform(post(path)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"INITIAL\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.reference.latestVitalSigns", hasSize(0)));
+        long id = assessments.list(target(resident)).getFirst().id();
+        vitalSigns.latest(
+                resident,
+                java.util.List.of(new com.eldercare.backend.resident.api.dto.LatestVitalSign(
+                        3L,
+                        "BLOOD_PRESSURE",
+                        "Huyết áp",
+                        "mmHg",
+                        java.util.Map.of("systolic", new java.math.BigDecimal("130")),
+                        java.time.Instant.parse("2026-11-06T01:00:00Z"))));
+
+        mvc.perform(get("/api/v1/assessments/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reference.latestVitalSigns", hasSize(1)))
+                .andExpect(jsonPath("$.reference.latestVitalSigns[0].indicatorCode")
+                        .value("BLOOD_PRESSURE"))
+                .andExpect(jsonPath("$.reference.latestVitalSigns[0].unit").value("mmHg"));
     }
 
     @Test

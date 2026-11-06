@@ -1,6 +1,7 @@
 package com.eldercare.backend.resident.internal.status.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Role;
@@ -8,7 +9,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +31,10 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
     private static final Set<Role> RECORDERS =
             Set.of(Role.NURSING_HOME_MANAGER, Role.DOCTOR, Role.NURSING_STAFF, Role.OFFICE_STAFF);
 
-    private final ResidentStatusHistoryRepository histories;
+    private final ResidentStatusHistoryStore histories;
     private final ResidentApi residents;
 
-    StatusHistoryCorrectionProvider(ResidentStatusHistoryRepository histories, ResidentApi residents) {
+    StatusHistoryCorrectionProvider(ResidentStatusHistoryStore histories, ResidentApi residents) {
         this.histories = histories;
         this.residents = residents;
     }
@@ -41,6 +42,12 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public String recordType() {
         return ResidentStatusService.HISTORY_RECORD_TYPE;
+    }
+
+    /** Lịch sử trạng thái chỉ thêm, không hủy dòng: chỉ đính chính lý do (FR-049a, research 001-2 A duyệt 2026-11-05). */
+    @Override
+    public boolean supports(CorrectionType type) {
+        return type == CorrectionType.AMEND_CONTENT;
     }
 
     @Override

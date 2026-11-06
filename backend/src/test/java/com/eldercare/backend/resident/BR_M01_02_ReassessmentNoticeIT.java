@@ -33,6 +33,9 @@ import org.springframework.dao.DuplicateKeyException;
  */
 class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
 
+    @Autowired
+    com.eldercare.backend.resident.api.ResidentStatisticsApi statistics;
+
     private static final Duration PERIOD = Duration.ofDays(90);
     private static final Duration DEADLINE = Duration.ofHours(48);
 
@@ -68,7 +71,15 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
 
     private List<String> bases(long residentId) {
         return jdbc.queryForList(
-                "SELECT basis FROM reassessment_notice WHERE resident_id = ? ORDER BY id", String.class, residentId);
+                "SELECT basis FROM " + com.eldercare.backend.support.ResidentHistoryRows.NOTICES
+                        + " WHERE resident_id = ? ORDER BY id",
+                String.class,
+                residentId);
+    }
+
+    /** Cột DATETIME(6) làm tròn tới micro giây nên nới mỗi đầu 1 micro giây. */
+    private static void assertBetween(Instant actual, Instant from, Instant to) {
+        assertThat(actual).isBetween(from.minus(1, ChronoUnit.MICROS), to.plus(1, ChronoUnit.MICROS));
     }
 
     /** Đồng hồ giả lập vẫn chạy theo giờ thật nên so mốc thời gian với sai số vài giây. */
@@ -83,7 +94,10 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
 
     private int noticeRows(long residentId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM reassessment_notice WHERE resident_id = ?", Integer.class, residentId);
+                "SELECT COUNT(*) FROM " + com.eldercare.backend.support.ResidentHistoryRows.NOTICES
+                        + " WHERE resident_id = ?",
+                Integer.class,
+                residentId);
     }
 
     @Test
@@ -181,6 +195,13 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
         ReassessmentStatus status = status(id);
         assertThat(status.state()).isEqualTo(ReassessmentState.OVERDUE);
         assertNear(status.overdueSince(), notifiedAt.plus(DEADLINE));
+        // 016 FR-044: số liệu quá hạn đánh giá lại lấy đúng trạng thái 001 xác định
+        assertThat(statistics
+                        .overdueReassessments(com.eldercare.backend.administration.account.api.dto.ScopeFilter.FACILITY)
+                        .filter(o -> o.residentId() == id))
+                .singleElement()
+                .satisfies(o -> assertThat(o.overdueSince())
+                        .isEqualTo(status.overdueSince().orElseThrow()));
 
         confirmed(id, AssessmentType.REASSESSMENT, CareLevel.REGULAR, "Định kỳ", null);
         assertThat(status(id).state())
@@ -209,7 +230,8 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
 
         assertThat(dueCount(id)).as("bác sĩ vẫn được báo định kỳ").isEqualTo(1);
         assertThat(jdbc.queryForObject(
-                        "SELECT deadline_from FROM reassessment_notice WHERE resident_id = ?",
+                        "SELECT deadline_from FROM " + com.eldercare.backend.support.ResidentHistoryRows.NOTICES
+                                + " WHERE resident_id = ?",
                         java.sql.Timestamp.class,
                         id))
                 .isNull();
@@ -232,23 +254,27 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
         user.set(office.user());
         long historyId =
                 statusService.recordReturn(target(id), reason(), noDetails()).historyId();
+        // Đồng hồ giả lập chạy theo giờ thật: mốc của lệnh nằm giữa lúc gọi và lúc trả về, dù máy chậm bao lâu
+        Instant afterCommand = clock.instant();
 
         assertThat(bases(id)).containsExactly("PERIODIC", "RETURN_FROM_HOSPITAL");
         assertThat(jdbc.queryForObject(
-                        "SELECT source_id FROM reassessment_notice WHERE resident_id = ? AND basis ="
-                                + " 'RETURN_FROM_HOSPITAL'",
+                        "SELECT source_id FROM " + com.eldercare.backend.support.ResidentHistoryRows.NOTICES
+                                + " WHERE resident_id = ? AND basis =" + " 'RETURN_FROM_HOSPITAL'",
                         Long.class,
                         id))
                 .isEqualTo(historyId);
         assertThat(jdbc
                         .queryForList(
-                                "SELECT deadline_from FROM reassessment_notice WHERE resident_id = ?",
+                                "SELECT deadline_from FROM " + com.eldercare.backend.support.ResidentHistoryRows.NOTICES
+                                        + " WHERE resident_id = ?",
                                 java.sql.Timestamp.class,
                                 id)
                         .stream()
                         .map(java.sql.Timestamp::toInstant))
-                .allSatisfy(from -> assertThat(from).isCloseTo(returnedAt, within(5, ChronoUnit.SECONDS)));
-        assertNear(status(id).dueAt(), returnedAt.plus(DEADLINE));
+                .allSatisfy(from -> assertBetween(from, returnedAt, afterCommand));
+        assertThat(status(id).dueAt()).isPresent();
+        assertBetween(status(id).dueAt().get(), returnedAt.plus(DEADLINE), afterCommand.plus(DEADLINE));
         assertThat(dueCount(id)).isEqualTo(2);
     }
 
@@ -289,11 +315,12 @@ class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
     @Test
     void NFR_04_uniqueKeyBlocksADuplicateNoticeAtTheDatabase() {
         long id = residentAssessedNow();
-        String insert = "INSERT INTO reassessment_notice (resident_id, basis, source_type, source_id, notified_at)"
-                + " VALUES (?, 'AFTER_INCIDENT', 'INCIDENT', 77, ?)";
-        jdbc.update(insert, id, java.sql.Timestamp.from(clock.instant()));
+        // khóa M01.RAN:<residentId>:<basis>:<sourceType>:<sourceId> của simple_record (001 T084)
+        com.eldercare.backend.support.ResidentHistoryRows.insertNotice(
+                jdbc, id, "AFTER_INCIDENT", "INCIDENT", 77, clock.instant());
 
-        assertThatThrownBy(() -> jdbc.update(insert, id, java.sql.Timestamp.from(clock.instant())))
+        assertThatThrownBy(() -> com.eldercare.backend.support.ResidentHistoryRows.insertNotice(
+                        jdbc, id, "AFTER_INCIDENT", "INCIDENT", 77, clock.instant()))
                 .isInstanceOf(DuplicateKeyException.class);
     }
 }

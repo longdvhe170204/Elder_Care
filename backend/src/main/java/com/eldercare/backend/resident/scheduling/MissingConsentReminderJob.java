@@ -2,6 +2,7 @@ package com.eldercare.backend.resident.scheduling;
 
 import com.eldercare.backend.common.scheduling.ScheduledJob;
 import com.eldercare.backend.resident.internal.consent.service.MissingConsentReminderService;
+import com.eldercare.backend.resident.internal.health.service.UnconfirmedHealthRecordReminderService;
 import com.eldercare.backend.resident.internal.wish.service.WishReminderService;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,8 +18,13 @@ public class MissingConsentReminderJob implements ScheduledJob {
 
     private final MissingConsentReminderService reminders;
     private final WishReminderService wishReminders;
+    private final UnconfirmedHealthRecordReminderService healthReminders;
 
-    public MissingConsentReminderJob(MissingConsentReminderService reminders, WishReminderService wishReminders) {
+    public MissingConsentReminderJob(
+            MissingConsentReminderService reminders,
+            WishReminderService wishReminders,
+            UnconfirmedHealthRecordReminderService healthReminders) {
+        this.healthReminders = healthReminders;
         this.reminders = reminders;
         this.wishReminders = wishReminders;
     }
@@ -39,5 +45,6 @@ public class MissingConsentReminderJob implements ScheduledJob {
         reminders.run();
         wishReminders.runMissing();
         wishReminders.runReviews();
+        healthReminders.run();
     }
 }
