@@ -108,6 +108,6 @@ public class BelongingQueries {
             throw new NotFoundException();
         }
         long intake = belongings.intakeHandoverOf(belongingId).orElseThrow(NotFoundException::new);
-        return new BelongingDetail(belonging, handovers.ofIntake(intake));
+        return new BelongingDetail(belonging, handovers.ofIntakeWithBlocks(intake));
     }
 }

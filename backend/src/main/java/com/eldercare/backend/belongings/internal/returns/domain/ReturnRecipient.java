@@ -138,7 +138,10 @@ public final class ReturnRecipient {
             return true;
         }
         return !blank(recipient.documentType())
-                && same(stored, recipient.documentType().strip() + " " + recipient.documentNumber().strip());
+                && same(
+                        stored,
+                        recipient.documentType().strip() + " "
+                                + recipient.documentNumber().strip());
     }
 
     private static boolean same(String a, String b) {

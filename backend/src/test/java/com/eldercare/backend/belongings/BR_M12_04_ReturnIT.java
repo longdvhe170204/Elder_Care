@@ -97,6 +97,27 @@ class BR_M12_04_ReturnIT extends ReturnTestBase {
     }
 
     @Test
+    void FR_016_blockedReturn_showsInTheStaffHistoryOfTheBelonging() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long clothes = intake(resident, "CLOTHING", "\"quantity\": 3", location());
+        long stranger = TestUsers.nextId();
+        family.relate(stranger, resident);
+
+        giveBack(
+                        tokenA,
+                        returnBody(
+                                List.of(returnItem(clothes, false)),
+                                familyRecipient(stranger, "Người thân " + stranger, "CCCD", "123"),
+                                ""))
+                .andExpect(status().isConflict());
+
+        getJson(tokenA, "/api/v1/belongings/" + clothes)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.handovers[?(@.kind == 'RETURN_BLOCKED')].belongingId")
+                        .value((int) clothes));
+    }
+
+    @Test
     void Q15_SC_004_returnToPersonWithoutRight_isBlocked_andTheBlockIsRecorded() throws Exception {
         long resident = resident("IN_RESIDENCE");
         long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
