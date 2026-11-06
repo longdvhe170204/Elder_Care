@@ -42,6 +42,8 @@ public record AssetCommandWrite(
                 description,
                 impactLevel,
                 result,
+                maintenanceKind,
+                nextDueOn,
                 date,
                 content,
                 performedBy,

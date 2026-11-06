@@ -12,6 +12,8 @@ import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.DutyApi;
+import com.eldercare.backend.administration.approval.api.ApprovalRequestApi;
+import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
@@ -41,12 +43,15 @@ import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds;
 import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetRow;
 import com.eldercare.backend.roombedallocation.internal.asset.persistence.AssetStore;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 019 T018 lượt 1 (FR-008c, FR-011 → FR-013, FR-021; BR-M03-18, DBR-36; Q-284, Q-292, Q-294, Q-313; research W-06): vòng
@@ -70,6 +75,8 @@ public class AssetService {
     private final BusinessTime time;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
+    private final ObjectProvider<ApprovalRequestApi> approvals;
+    private final JsonMapper json;
 
     public AssetService(
             AssetStore store,
@@ -84,7 +91,9 @@ public class AssetService {
             CurrentUser user,
             BusinessTime time,
             AuditLogApi audit,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            ObjectProvider<ApprovalRequestApi> approvals,
+            JsonMapper json) {
         this.store = store;
         this.catalog = catalog;
         this.history = history;
@@ -98,6 +107,8 @@ public class AssetService {
         this.time = time;
         this.audit = audit;
         this.events = events;
+        this.approvals = approvals;
+        this.json = json;
     }
 
     /** Đối tượng kiểm quyền: tầng của vị trí hiện hành (Trưởng tầng qua lớp phạm vi). */
@@ -244,12 +255,19 @@ public class AssetService {
         requireNotBed(row);
         requireStatus(row, READY, IN_USE, DAMAGED);
         requireLeadOrFloorManager(row);
+        String kind = in.maintenanceKind() == null ? "MAINTENANCE" : in.maintenanceKind();
+        if (!Set.of("MAINTENANCE", "INSPECTION", "VEHICLE_INSPECTION", "INSURANCE")
+                .contains(kind))
+            throw new InvalidValueException("Loại lần là MAINTENANCE, INSPECTION, VEHICLE_INSPECTION hoặc INSURANCE");
+        if (Set.of("VEHICLE_INSPECTION", "INSURANCE").contains(kind)
+                && typeCode(row.typeId()).filter(VEHICLE_CODE::equals).isEmpty())
+            throw new InvalidValueException("Đăng kiểm, bảo hiểm chỉ cho tài sản loại Xe");
         var now = time.now();
         records.add(
                 MAINTENANCE,
                 new EntityRef(ENTITY, id),
                 new NewRecordEvent<>(
-                        new AssetKinds.Maintenance("MAINTENANCE", null, null, null, null, null, null, null),
+                        new AssetKinds.Maintenance(kind, null, null, null, null, null, null, null),
                         null,
                         staff(),
                         false,
@@ -301,8 +319,14 @@ public class AssetService {
                 .filter(e -> e.confirmedAt() == null)
                 .findFirst()
                 .orElseThrow(() -> conflict("STATE_CHANGED", "Không có lần bảo trì đang mở"));
+        String kind = open.content().kind();
+        boolean renewal = Set.of("VEHICLE_INSPECTION", "INSURANCE").contains(kind);
+        if ("PASS".equals(in.result())
+                && renewal
+                && (in.nextDueOn() == null || !in.nextDueOn().isAfter(in.date())))
+            throw new InvalidValueException("Lần đăng kiểm, bảo hiểm Đạt cần hạn kế tiếp sau ngày thực hiện (FR-014)");
         var content = new AssetKinds.Maintenance(
-                open.content().kind(),
+                kind,
                 in.result(),
                 in.date(),
                 in.content().strip(),
@@ -315,13 +339,64 @@ public class AssetService {
         if (port != null)
             port.linkSource(in.procurementRequestId(), ProcurementSourceType.MAINTENANCE, open.id(), in.cost());
         boolean pass = "PASS".equals(in.result());
-        var next = pass && row.maintenanceIntervalDays() != null
-                ? in.date().plusDays(row.maintenanceIntervalDays())
-                : null;
         AssetStatus to = pass ? READY : DAMAGED;
-        store.maintenanceResult(id, to, next, pass);
+        if (pass && "VEHICLE_INSPECTION".equals(kind))
+            store.renewDue(id, to, "vehicle_inspection_due_on", "vehicle_inspection_overdue", in.nextDueOn());
+        else if (pass && "INSURANCE".equals(kind))
+            store.renewDue(id, to, "insurance_due_on", "insurance_overdue", in.nextDueOn());
+        else {
+            // Bảo trì, kiểm định: hạn kế tiếp = ngày + chu kỳ (FR-014)
+            LocalDate next = pass && row.maintenanceIntervalDays() != null
+                    ? in.date().plusDays(row.maintenanceIntervalDays())
+                    : null;
+            store.maintenanceResult(id, to, next, pass);
+        }
         record(id, "RECORD_MAINTENANCE_RESULT", row.status(), to, null);
         publish(id, row.departmentId(), row.status(), to, "record-maintenance-result", List.of());
+    }
+
+    /**
+     * FR-013, Q-314: Phụ trách bộ phận lập yêu cầu thanh lý (loại {@code M03.ASSET_DISPOSAL} của 000), bắt buộc lý do;
+     * trạng thái chưa đổi tới khi Quản lý viện duyệt. Đang có yêu cầu chờ duyệt thì chặn.
+     */
+    @RequiresPermission(function = Function.ASSET_VEHICLE, operation = Operation.CREATE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public void requestDisposal(Target target, long id, AssetCommandInput in) {
+        var row = locked(id);
+        requireNotBed(row);
+        requireNotDisposed(row);
+        var reason = new Reason(in.reason());
+        requireDepartmentLead(row.departmentId());
+        var api = approvals.getIfAvailable();
+        if (api == null)
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có yêu cầu phê duyệt của 000");
+        boolean pending = store.disposalRequest(id)
+                .flatMap(api::find)
+                .filter(r -> "PENDING_APPROVAL".equals(String.valueOf(r.status()))
+                        || "DRAFT".equals(String.valueOf(r.status())))
+                .isPresent();
+        if (pending) throw conflict("STATE_CHANGED", "Tài sản đang có yêu cầu thanh lý chờ duyệt");
+        var request = api.create(new CreateRequest(
+                AssetDisposalHandler.TYPE,
+                json.valueToTree(Map.of("assetId", id)),
+                LocalDate.ofInstant(time.now(), BusinessTime.ZONE),
+                reason,
+                true));
+        store.setDisposalRequest(id, request.id());
+        record(id, "REQUEST_DISPOSAL", row.status(), row.status(), reason);
+    }
+
+    /** Áp dụng yêu cầu thanh lý đã duyệt (trong transaction áp dụng của 000): tài sản Đã thanh lý, trạng thái cuối. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void dispose(long id, long requestId) {
+        var row = locked(id);
+        requireNotBed(row);
+        requireNotDisposed(row);
+        store.dispose(id, time.now());
+        record(id, "DISPOSE", row.status(), DISPOSED, null);
+        publish(id, row.departmentId(), row.status(), DISPOSED, "dispose", List.of());
     }
 
     /** FR-011: Quản lý viện chuyển bộ phận quản lý, bắt buộc lý do; trạng thái giữ nguyên, ghi lịch sử bộ phận. */

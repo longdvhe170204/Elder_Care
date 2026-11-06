@@ -36,6 +36,9 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.roombedallocation.scheduling.BedReadinessReminderJob",
                     "nhắc giường Chờ sẵn sàng quá hạn một lần (003 FR-044)"),
             Map.entry(
+                    "com.eldercare.backend.roombedallocation.scheduling.AssetReminderJob",
+                    "nhắc hạn bảo trì, đăng kiểm, bảo hiểm, gắn dấu quá hạn; không tạo tài sản (019 BR-M03-17)"),
+            Map.entry(
                     "com.eldercare.backend.billing.scheduling.ProcurementReminderJob",
                     "nhắc yêu cầu mua sắm quá CFG-M11-08, 09 một lần mỗi lần vào trạng thái, không lập yêu cầu (019 BR-M11-20)"),
             Map.entry(

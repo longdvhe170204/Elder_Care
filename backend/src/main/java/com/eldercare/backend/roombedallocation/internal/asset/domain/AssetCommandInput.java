@@ -10,6 +10,8 @@ public record AssetCommandInput(
         String description,
         String impactLevel,
         String result,
+        String maintenanceKind,
+        LocalDate nextDueOn,
         LocalDate date,
         String content,
         String performedBy,

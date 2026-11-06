@@ -3370,6 +3370,17 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | điều kiện loại hệ thống không ngừng được | `SYSTEM_ASSET_TYPE` trong 409 `CONDITION_NOT_MET`; mã tài sản trùng dùng `DUPLICATE_CODE` của 003 |
 | test | `FR_013_AssetLifecycleIT` |
 
+### 25.11. Tài sản, Phase 7 lượt 2 (06/11/2026)
+
+| Tên logic | Mã |
+| --- | --- |
+| cột thanh lý | `asset.disposal_request_id`, `asset.disposed_at`; migration `V019_07__asset_disposal.sql` |
+| loại yêu cầu thanh lý; lớp | `M03.ASSET_DISPOSAL`; `service.AssetDisposalHandler` (nội dung `{assetId}`), `AssetService.requestDisposal`, `dispose` |
+| job hằng ngày M03 tài sản (`ViecHangNgayM03TaiSan`); bước nhắc | `roombedallocation.scheduling.AssetReminderJob` (`REMIND_ASSET_DUE_DATES`, `eldercare.jobs.asset-reminder.cron`, `.on-startup`); `service.AssetReminders`; sự kiện nội bộ `domain.AssetReminder` |
+| nhắc FR-014; dấu | `ASSET_DUE_SOON`, `ASSET_OVERDUE`; `reminder_marker` loại `M03.ASSET_REMINDER`, mốc `BEFORE:<loại>:<hạn>`, `OVERDUE:<loại>:<hạn>:<ngày>` |
+| provider `M03.ASSET` | `service.AssetGovernance` (phạm vi theo `floor_area_id`; lưu giữ không gắn hồ sơ từ `disposed_at`; `acquisitionCost`, `M03.ASSET_MAINTENANCE.cost` là `FINANCE`) |
+| test | `AssetTestBase`, `FR_013_AssetDisposalIT`, `BR_M03_17_MaintenanceDueIT`, `T004_AssetGovernanceIT` |
+
 #### Bổ sung 003 sau merge M01 (2026-10-24)
 
 | Tên logic, mục đích | Tên trong mã |
