@@ -122,3 +122,8 @@ interface ProcurementMedicationLineApi {                                        
 ```
 
 Thiếu bean `ProcurementPrescriptionPort` thì lệnh lập, sửa yêu cầu loại thuốc trả 503 `SOURCE_UNAVAILABLE`.
+
+
+### Đính chính tài sản và lịch xe (07/11/2026, chủ dự án chốt)
+
+`CorrectableRecordProvider` loại `M03.ASSET_HISTORY` (lần bảo trì, hư hỏng) và `M03.VEHICLE_SCHEDULE` (lịch Đã hoàn thành). Thêm sự kiện `roombedallocation.api.events.VehicleScheduleCorrected(long scheduleId, long tripId, Instant plannedDepartureAt, Instant plannedReturnAt)`, phát khi đính chính đổi giờ dự kiến của lịch gắn chuyến; 014 nghe để đồng bộ giờ chuyến. Quy tắc trường và người đính chính ở plan mục "Đính chính tài sản và lịch xe".
