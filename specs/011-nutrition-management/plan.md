@@ -199,3 +199,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Ánh xạ bảng ở data-model mục 0; task T046. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
 - Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
 - Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
+
+## Ghi chú triển khai *(2026-11-06, Phase 1–2)*
+
+- Tên Anh theo glossary mục 17 (chủ dự án duyệt miệng 2026-11-06): cổng 012, 014 là `StayMealPort`, `TripMealPort`; sự kiện `StayMealChanged`, `TripMealChanged`; API đọc `DietApi`, `GeneralMenuApi`, `ExpectedMealApi`, `MealScheduleApi`, `NutritionStatisticsApi`.
+- Bản giả đặt ở `support/fake/nutrition/` thay cho `BT/support/gia011/` của tasks (team-plan mục 3: bản giả của chủ interface ở `fake/<module>/`).
+- Sau R-15, Phase 2 không có DDL: `V011_01__nen_m08.sql` không tạo vì cả 5 bảng của T004 đã gộp vào bảng chung. Ba bảng riêng tạo ở phase của user story; hằng `SharedKind` `M08.*` khai cùng chỗ dùng đầu tiên.
+- Khung job: việc đăng ký bằng bean `M08MinuteTask`, `M08DailyTask` (thay cho mã bảng `lan_chay_m08`); chống lặp và chạy bù bằng dấu `M08.JOB.<khóa>` trên `reminder_marker`; listener dùng `M08EventListener.once(eventKey, work)` (dấu `M08.PROCESSED_EVENT`, khóa dài hơn 80 ký tự dùng SHA-256 hex).
+- `RetentionProvider`, `ScopeAssignmentProvider` (T007) chuyển sang phase tạo thực thể tương ứng vì cần dữ liệu thật; chỉ `FieldClassificationProvider` làm ở Phase 2. Sự kiện thông báo FR-065 (T003) cũng làm cùng lệnh kích hoạt.

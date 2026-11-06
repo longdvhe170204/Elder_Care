@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 /**
- * Bản giả các SPI, sự kiện do 011 khai báo cho 012, 014 (module-interfaces mục 1.6). Test cần thì
+ * Bản giả các SPI, sự kiện do 011 khai báo cho 012, 014 (module-interfaces mục 1.2 → 1.6). Test cần thì
  * {@code @Import(FakeNutritionConfig.class)} rồi tiêm bản giả để đặt dữ liệu; {@code @Primary} để thắng bản thật khi có.
  */
 @TestConfiguration
@@ -22,6 +22,36 @@ public class FakeNutritionConfig {
     @Primary
     FakeTripMealPort fakeTripMealPort() {
         return new FakeTripMealPort();
+    }
+
+    @Bean
+    @Primary
+    FakeDietApi fakeDietApi() {
+        return new FakeDietApi();
+    }
+
+    @Bean
+    @Primary
+    FakeGeneralMenuApi fakeGeneralMenuApi() {
+        return new FakeGeneralMenuApi();
+    }
+
+    @Bean
+    @Primary
+    FakeExpectedMealApi fakeExpectedMealApi() {
+        return new FakeExpectedMealApi();
+    }
+
+    @Bean
+    @Primary
+    FakeMealScheduleApi fakeMealScheduleApi() {
+        return new FakeMealScheduleApi();
+    }
+
+    @Bean
+    @Primary
+    FakeNutritionStatisticsApi fakeNutritionStatisticsApi() {
+        return new FakeNutritionStatisticsApi();
     }
 
     @Bean
