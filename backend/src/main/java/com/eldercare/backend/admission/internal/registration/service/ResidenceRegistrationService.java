@@ -16,6 +16,7 @@ import com.eldercare.backend.admission.api.dto.ContractView;
 import com.eldercare.backend.admission.internal.registration.domain.ObligationTrigger;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationObligation;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationStatus;
+import com.eldercare.backend.admission.internal.registration.domain.RegistrationSubmission;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
 import com.eldercare.backend.admission.internal.registration.domain.SubmissionChannel;
@@ -123,7 +124,21 @@ public class ResidenceRegistrationService {
         TO_DEREGISTER
     }
 
-    public record Task(long residentId, String fullName, TaskType taskType, Instant dueAt, Long registrationId) {}
+    /** Lệnh {@code {command}} của api-018 (FR-005). */
+    public static final String CONFIRM_LOCAL = "confirm-local-permanent-resident";
+
+    public static final String RECORD_SUBMITTED = "record-submitted";
+    public static final String RECORD_ACCEPTED = "record-accepted";
+    public static final String RECORD_REJECTED = "record-rejected";
+    public static final String RECORD_DEREGISTERED = "record-deregistered";
+
+    public record Task(
+            long residentId,
+            String fullName,
+            TaskType taskType,
+            Instant dueAt,
+            Long registrationId,
+            List<String> allowedCommands) {}
 
     /** Nội dung ghi đã nộp (FR-003): ngày nộp, kênh, cơ quan bắt buộc; mã hồ sơ không bắt buộc. */
     public record Submission(
@@ -177,7 +192,8 @@ public class ResidenceRegistrationService {
                     residents.identity(obligation.residentId()).fullName(),
                     type,
                     obligation.effectiveDueAt(),
-                    obligation.registrationId()));
+                    obligation.registrationId(),
+                    allowedCommandsOf(obligation.registrationId())));
         }
         List<ResidenceRegistration> expiring = renewals.due(time.today());
         Map<Long, LocalDate> expiry = renewals.expiryOf(expiring);
@@ -187,17 +203,55 @@ public class ResidenceRegistrationService {
                     residents.identity(registration.residentId()).fullName(),
                     TaskType.EXPIRING_SOON,
                     endOf(expiry.get(registration.id())),
-                    registration.id()));
+                    registration.id(),
+                    allowedCommands(registration)));
         }
-        for (ResidenceRegistration registration : deregistration.due()) {
+        // Một thủ tục khai báo xóa theo người (BL-97 B): một việc cho mỗi người, mang mã khai báo sớm nhất
+        Map<Long, ResidenceRegistration> toDeregister = new LinkedHashMap<>();
+        deregistration.due().forEach(registration -> toDeregister.putIfAbsent(registration.residentId(), registration));
+        for (ResidenceRegistration registration : toDeregister.values()) {
             tasks.add(new Task(
                     registration.residentId(),
                     residents.identity(registration.residentId()).fullName(),
                     TaskType.TO_DEREGISTER,
                     null,
-                    registration.id()));
+                    registration.id(),
+                    List.of(RECORD_DEREGISTERED)));
         }
         return tasks;
+    }
+
+    /**
+     * Lệnh còn làm được trên khai báo theo trạng thái hiện tại (bảng chuyển FR-005, api-018 {@code allowedCommands}); chưa
+     * xét quyền của người gọi, màn web ẩn thêm theo quyền sửa. Ghi đã khai báo xóa chỉ khi người đã Kết thúc lưu trú hoặc
+     * Qua đời (FR-008).
+     */
+    public List<String> allowedCommands(ResidenceRegistration registration) {
+        return switch (registration.status()) {
+            case TO_SUBMIT ->
+                registration.localPermanentResident()
+                        ? List.of(RECORD_SUBMITTED)
+                        : List.of(CONFIRM_LOCAL, RECORD_SUBMITTED);
+            case SUBMITTED -> List.of(RECORD_ACCEPTED, RECORD_REJECTED);
+            case CONFIRMED, EXPIRED ->
+                RegistrationDeregistration.ENDED.contains(residents.status(registration.residentId()))
+                        ? List.of(RECORD_DEREGISTERED)
+                        : List.of();
+            default -> List.of();
+        };
+    }
+
+    private List<String> allowedCommandsOf(Long registrationId) {
+        return registrationId == null
+                ? List.of()
+                : registrations.find(registrationId).map(this::allowedCommands).orElse(List.of());
+    }
+
+    /** Các lần nộp của một khai báo (api-018 {@code submissions[]}). */
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<RegistrationSubmission> submissionsOf(Target target, ResidenceRegistration registration) {
+        return submissions.ofRegistration(registration.residentId(), registration.id());
     }
 
     // ---- Lệnh -----------------------------------------------------------------------------------------------------
@@ -489,7 +543,8 @@ public class ResidenceRegistrationService {
     }
 
     /**
-     * Ghi đã khai báo xóa (FR-005, FR-008; US4 #2, BR-M02-13): Đã xác nhận, Hết hạn → Đã xóa; người cao tuổi đã Kết thúc lưu
+     * Ghi đã khai báo xóa (FR-005, FR-008; US4 #2, BR-M02-13): một thủ tục xóa theo người (BL-97 B), nên mọi khai báo Đã xác
+     * nhận, Hết hạn của người cùng chuyển Đã xóa với một bằng chứng, mỗi khai báo một dòng nhật ký. Đã xác nhận, Hết hạn → Đã xóa; người cao tuổi đã Kết thúc lưu
      * trú hoặc Qua đời, bằng chứng bắt buộc. Được làm khi hồ sơ ở trạng thái cuối (ngoại lệ (3) của BR-M01-05) nên không
      * gọi chặn hồ sơ đóng. Bằng chứng chấp nhận và các lần nộp giữ nguyên; nhắc khai báo xóa dừng vì khai báo hết là Đã xác
      * nhận, Hết hạn.
@@ -498,6 +553,8 @@ public class ResidenceRegistrationService {
     @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
     @Transactional
     public ResidenceRegistration recordDeregistered(Target target, long id, Long evidenceFileId) {
+        residentLock.lock(
+                registrations.find(id).orElseThrow(NotFoundException::new).residentId());
         ResidenceRegistration before = locked(id);
         if (before.status() != RegistrationStatus.CONFIRMED && before.status() != RegistrationStatus.EXPIRED) {
             throw stateChanged("Chỉ ghi đã khai báo xóa khi khai báo Đã xác nhận hoặc Hết hạn (FR-005)");
@@ -518,12 +575,21 @@ public class ResidenceRegistrationService {
             throw stateChanged("Chỉ ghi đã khai báo xóa khi khai báo Đã xác nhận hoặc Hết hạn (FR-005)");
         }
         files.attach(evidenceFileId, RegistrationNames.EVIDENCE_OWNER_TYPE, id);
+        auditDeregistered(before, now, evidenceFileId);
+        for (ResidenceRegistration other : registrations.confirmedOrExpiredForUpdate(before.residentId())) {
+            if (other.id() != id && registrations.markDeregistered(other.id(), now, accountId, evidenceFileId)) {
+                auditDeregistered(other, now, evidenceFileId);
+            }
+        }
+        return registrations.find(id).orElseThrow();
+    }
+
+    private void auditDeregistered(ResidenceRegistration before, Instant now, Long evidenceFileId) {
         Map<String, Object> after = new LinkedHashMap<>();
         after.put("status", RegistrationStatus.DEREGISTERED.name());
         after.put("deregisteredAt", now.toString());
         after.put("deregistrationEvidenceFileId", evidenceFileId);
         audit(DEREGISTERED, before, after);
-        return registrations.find(id).orElseThrow();
     }
 
     /**

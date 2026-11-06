@@ -108,7 +108,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Implementation cho User Story 4
 
-- [ ] T014 [US4] Cài bean `ThamGiaChuyenTrangThai` trong `BE/admission/khaibao/internal/ThamGiaKhaiBao.java` (không điều kiện; tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`), nhắc khai báo xóa và lệnh ghi đã khai báo xóa (research Z-05) *(2026-11-05, port R-15, nhánh `impl/018-r15`; xem plan "Tích hợp R-15")* backend xong (`REG_DEREGISTER`); web K7 chờ BL-96, câu hỏi một hay hai thủ tục xóa chờ A (BL-97 B).
+- [x] T014 [US4] Cài bean `ThamGiaChuyenTrangThai` trong `BE/admission/khaibao/internal/ThamGiaKhaiBao.java` (không điều kiện; tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`), nhắc khai báo xóa và lệnh ghi đã khai báo xóa (research Z-05) *(2026-11-05, port R-15, nhánh `impl/018-r15`; xem plan "Tích hợp R-15")* backend xong (`REG_DEREGISTER`); web K7 chờ BL-96, câu hỏi một hay hai thủ tục xóa chờ A (BL-97 B). *(2026-11-06)* web K7 xong (nút "Ghi đã khai báo xóa", form bằng chứng); BL-97 B áp: một thủ tục xóa theo người, `BR_M02_13_DeregistrationIT` 17 xanh (test viết lại trước), `ApiContractIT` xanh.
 
 **Checkpoint**: Mọi user story của 018 chạy độc lập.
 

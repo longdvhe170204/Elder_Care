@@ -1,12 +1,14 @@
 package com.eldercare.backend.admission.web.response;
 
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationStatus;
+import com.eldercare.backend.admission.internal.registration.domain.RegistrationSubmission;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 /** Khai báo tạm trú, lưu trú (contracts/api-018.yaml, schema {@code ResidenceRegistration}; FR-003). */
 @Schema(name = "ResidenceRegistration")
@@ -19,9 +21,15 @@ public record ResidenceRegistrationBody(
         Instant dueAt,
         RegistrationStatus status,
         LocalDate expiryDate,
-        boolean localPermanentResident) {
+        boolean localPermanentResident,
+        String basisNote,
+        List<String> allowedCommands,
+        List<RegistrationSubmissionBody> submissions) {
 
-    public static ResidenceRegistrationBody of(ResidenceRegistration registration) {
+    public static ResidenceRegistrationBody of(
+            ResidenceRegistration registration,
+            List<String> allowedCommands,
+            List<RegistrationSubmission> submissions) {
         return new ResidenceRegistrationBody(
                 registration.id(),
                 registration.residentId(),
@@ -30,6 +38,9 @@ public record ResidenceRegistrationBody(
                 registration.dueAt(),
                 registration.status(),
                 registration.expiryDate(),
-                registration.localPermanentResident());
+                registration.localPermanentResident(),
+                registration.basisNote(),
+                allowedCommands,
+                submissions.stream().map(RegistrationSubmissionBody::of).toList());
     }
 }
