@@ -2961,6 +2961,19 @@ Khóa nguồn được giữ nguyên; digest chỉ dùng cho dấu chống lặp
 | Chuyển trạng thái khi nhận khoản Nháp | DraftStatementTransition; billing.internal.period.domain |
 | Ảnh bảng dưới khóa và kết quả chọn bảng | DraftCostStatement, DraftStatementTarget; requiresAdjustment không tự lập khoản điều chỉnh |
 | Bước nội bộ chuẩn bị bảng nhận Nháp | CostDraftStatements, DraftCostStatementStore; billing.internal.period.service/persistence; cùng transaction của lệnh ghi khoản |
+### 16.16. Giá và tính lại Phase 4 — 2026-11-06
+
+| Tên logic | Tên triển khai / cách lưu |
+| --- | --- |
+| Bộ giá ngày/buổi | CalendarCostPricing; CalendarQuote giữ serviceId thực tế, giá gốc, giá cơ sở, hệ số, mẫu số và snapshot |
+| Lịch đầy đủ của tháng | MonthSchedule/Slot trong CalendarCostPricing; giới hạn người/tháng, không chứa buổi phát sinh/ngày nghỉ |
+| Snapshot tính giá | CostPricingSnapshot (billing.internal.item.domain), CostPricingSnapshots (pricing.service); calculation/pricingFlags/unitPriceBasis/sourceValues |
+| Tính lại khoản đã có | ExistingCostPricing, CostPriceRecalculator, CostPriceEvents, CostRepricingStore; RepriceCandidate/RepriceableCost |
+| Snapshot lịch sử trước/sau | CostRecalculation.basisBefore/basisAfter/sourceBefore/sourceAfter; constructor cũ còn dùng được |
+| Nhật ký tính lại | M11.COST_PRICE_RECALCULATED; căn cứ BR-M11-02 và sự kiện giá/phụ lục |
+| Receipt tính lại giá | M11.SOURCE_PROCESSED / M11.PRICE_RECALCULATION, residentId; REPRICE:<cause>:<itemId> |
+| Thông báo giá | CostPricingNotifications; COST_MISSING_UNIT_PRICE/COST_PRICE_RECALCULATED, LOW, Hành chính |
+| Sự kiện khoản đã đổi, tương thích cũ | CostItemChanged(residentId, periodId, notificationRequests) implements HasNotificationRequests; constructor hai tham số/outbox cũ giữ được |
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

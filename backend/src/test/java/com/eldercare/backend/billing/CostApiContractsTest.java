@@ -24,6 +24,22 @@ import tools.jackson.databind.json.JsonMapper;
 class CostApiContractsTest {
     private static final Instant AT = Instant.parse("2026-10-29T10:00:00Z");
 
+    @Test
+    void FR_004_costItemChangedReadsLegacyOutboxAndKeepsItsOldConstructor() {
+        var mapper = JsonMapper.builder().findAndAddModules().build();
+        var legacy = mapper.readValue("{\"residentId\":23,\"periodId\":19}", CostItemChanged.class);
+        assertThat(legacy).isEqualTo(new CostItemChanged(23, 19));
+        assertThat(legacy.notificationRequests()).isEmpty();
+        var notice = notificationEvents()
+                .findFirst()
+                .orElseThrow()
+                .notificationRequests()
+                .getFirst();
+        var current = new CostItemChanged(23, 19, List.of(notice));
+        assertThat(mapper.readValue(mapper.writeValueAsString(current), CostItemChanged.class))
+                .isEqualTo(current);
+    }
+
     @ParameterizedTest
     @CsvSource({"FAMILY_MEAL, true", "OVERNIGHT_STAY, false", "ACTIVITY_ATTENDANCE, true"})
     void FR_005_sourceEventRetainsSourceIdentityQuantityAndOptionalService(String type, boolean pricedService) {

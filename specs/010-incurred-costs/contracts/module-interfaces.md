@@ -150,3 +150,10 @@ FakeM11Config là TestConfiguration; chỉ @Import trong test. Đã thêm FakeCo
 - HTTP BillingSource thêm billingUnit (khóa đơn vị tính phí); unit giữ đơn vị sử dụng/hiển thị. CreateCostsFromEvents thêm sourceUnits gồm sourceId/billingUnit; chọn đúng một kiểu sourceIds/sourceUnits/dateRange. sourceIds cũ chỉ dùng khi xác định duy nhất một đơn vị; mơ hồ trả dòng bỏ qua CONDITION_NOT_MET, không tự lập tất cả.
 - BillingSourceView của E thêm thành phần billingUnit; rà toàn kho chưa có nơi tạo record này ngoài khai báo. Không đổi chữ ký sự kiện CostSourceBilled/CostSourceChanged hoặc API nguồn C/D. Chưa có bản cài endpoint/lệnh đầy đủ.
 - Quyết định và ví dụ: proposal-source-unit-selection-2026-11-06.md. Nguồn metadata/đăng ký client còn bàn giao ở source-metadata-handoff-2026-11-06.md; A/các consumer review thay đổi công khai trước khi tích hợp. Không tự sửa script sinh client của A hoặc frontend/src/api.
+
+## Đổi api — tính lại giá Phase 4, 06/11/2026
+
+- Người dùng giao chọn/cài phương án phù hợp spec từ đề xuất proposal-cost-item-pricing-notification-2026-11-06.md. CostItemChanged nay có (residentId, periodId, List<NotificationRequest> notificationRequests), cài HasNotificationRequests; constructor (residentId, periodId) giữ nguyên. Payload outbox cũ thiếu trường hoặc null đọc thành danh sách rỗng.
+- Chỉ gửi Nhẹ tới FacilityRole(OFFICE_STAFF), InformationType.COSTS cho tác động giá; không tên thuốc/chênh lệch tính sẵn. CostItemChanged vẫn là tín hiệu để 017/016 đọc lại; không thêm mảng id chi phí. Ghi team-plan để A (009/016) và consumer 017 review, chưa coi đã review.
+- Consumer 010 dùng thêm DayCareCalendarApi.onDate của B cho ngày nghỉ trong mẫu số tháng; đọc lịch sử lịch đến từ ContractReadApi.contentAtDate, không qua bảng private hoặc Care API sức khỏe. Không đổi chữ ký B và không tạo fake B/C/D thứ hai.
+- Thuốc dùng UnitPriceApi.facilityMedicationServiceOf; phân giải chăm sóc theo CareLevel của nội dung hợp đồng đúng ngày và kiểm khớp đăng ký; không dùng mức chăm sóc hiện tại hoặc tự gộp thành phí phòng.

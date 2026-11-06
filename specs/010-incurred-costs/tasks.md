@@ -111,6 +111,8 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 - [ ] T014 [US2] Cài `BE/billing/tinhgia/internal/TinhDonGia.java` (`HopDongDocApi.noiDungTaiNgay`, `DonGiaApi`, gói, `NgayLuuTruApi` (vắng, đã giải phóng giường; Q-395), `PhiNgayLuuTru`, `LamTronDong`; ghi `can_cu_don_gia`, `gia_tri_nguon_da_dung`) và listener `PhienBanDonGiaDaTao`, `PhuLucDaApDung` (research P-05). Phần chọn giá và tiền sự kiện dùng lại CostPricingService của T006a; không cài bản thứ hai. Adapter lưu trú/bán trú, ghi căn cứ vào khoản và listener vẫn chưa xong
 
+**Triển khai 06/11, chưa kiểm:** đã cài bộ giá lịch, snapshot, ánh xạ dịch vụ, listener giá mới/phụ lục, lưu lịch sử/nhật ký/receipt và thông báo Hành chính. CostItemChanged mở rộng theo quyết định người dùng, giữ constructor/outbox cũ. Đã viết test nhưng chưa chạy; chỉ định dạng 19 Java. T013/T014 vẫn [ ], giữ gate kiểm trước merge; xem phase-4-implementation-2026-11-06.md. Người dùng cho làm Phase 4 độc lập với Phase 3; dừng cuối phase, chưa sang Phase 5.
+
 **Checkpoint**: Số tiền đúng căn cứ.
 
 ---

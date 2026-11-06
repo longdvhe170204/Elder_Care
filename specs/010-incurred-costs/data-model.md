@@ -354,3 +354,11 @@ DBR-30 (mỗi bảng Đã chốt có đúng một giao dịch thanh toán) do 01
 **T010 — 06/11:** V010_03__source_quantity_precision mở lượng ở cost_source_index/cost_item lên DECIMAL(12,3), phù hợp lượng thực tế 006 (cột MedicationHandoverItem.quantity là 12,3); CostRecalculation dùng @Digits(9,3). Nghiệp vụ/spec không ấn định số lượng chỉ có hai chữ số lẻ; không làm tròn số lượng nguồn. Tiền và đơn giá giữ DECIMAL(15,0), hệ số giữ DECIMAL(5,2). Nguồn vượt khả năng lưu bị từ chối trước khi ghi dấu, không để MySQL âm thầm làm tròn.
 
 Khóa billing_unit của chỉ mục là định danh đơn vị tính phí: generic giữ nguyên unit do nguồn gửi, kết quả chăm sóc dùng UNIT, thuốc dùng medicationId (chuỗi) để giữ hai thuốc khác nhau nếu cùng tham chiếu nguồn. Đây không phải đơn vị dùng/hiển thị của thuốc hoặc vật phẩm. ID nguồn lưu nguyên văn. Dấu M11.SOURCE_PROCESSED gắn người và hash bộ loại/id/đơn vị/eventKey; hash chỉ dùng cho dấu xử lý có độ dài cố định, không làm ID nguồn hay DataRef retention. Phần dọn chỉ mục/dấu vẫn là gate T033.
+
+## Bổ sung triển khai Phase 4 — 2026-11-06
+
+Không thêm bảng/cột hoặc sửa migration. unit_price của khoản ngày/buổi là giá cơ sở đã chia, amount đã nhân hệ số và làm tròn đồng; unit_price_basis giữ serviceId, loại/id căn cứ, sourceUnitPrice gốc và billingPeriod; lịch tháng bán trú giữ scheduledSessionCount/lastScheduledSession. source_values giữ fact nguồn dùng tính, id dịch vụ hợp đồng/buổi phát sinh khi cần để tính lại đúng loại giá.
+
+CostRecalculation tại status_history.details thêm basisBefore/basisAfter/sourceBefore/sourceAfter và giữ constructor/payload lịch sử cũ; không sửa các dòng đã lưu. Receipt giá dùng M11.SOURCE_PROCESSED/M11.PRICE_RECALCULATION, entityId là residentId, khóa theo sự kiện/đợt giá và itemId. Các khóa này chỉ chống lặp, không thay id nguồn/DataRef; gate dọn receipt/bảng chung ở T033 phải tính cả loại này.
+
+Cập nhật giá đi qua cổng m11_recalculating đang có và khôi phục giá trị session cũ; tiền/nguồn/nhật ký/receipt/outbox cùng transaction. Không tự tạo chi phí hoặc sửa giá đã chốt. T013/T014 còn chờ kiểm, mô tả này chưa phải bằng chứng nghiệm thu.

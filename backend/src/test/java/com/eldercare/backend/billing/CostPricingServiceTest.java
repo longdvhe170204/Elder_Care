@@ -5,10 +5,15 @@ import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.admission.api.ContractReadApi;
 import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ContractContentView;
+import com.eldercare.backend.admission.api.dto.ServiceType;
+import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
 import com.eldercare.backend.billing.internal.pricing.service.CostPricingService;
 import com.eldercare.backend.billing.internal.pricing.service.CostPricingService.BasisKind;
+import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.resident.api.dto.CareLevel;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
@@ -23,6 +28,52 @@ class CostPricingServiceTest {
     private final ContractReadApi contracts = mock(ContractReadApi.class);
     private final UnitPriceApi prices = mock(UnitPriceApi.class);
     private final CostPricingService service = new CostPricingService(contracts, prices);
+
+    @Test
+    void FR_013_medicationUsesItsMappedServiceWithoutConvertingTheSourceQuantity() {
+        when(prices.facilityMedicationServiceOf(99))
+                .thenReturn(Optional.of(new ServiceView(
+                        22,
+                        ServiceType.FACILITY_SUPPLIED_MEDICATION,
+                        "[Dịch vụ thuốc kiểm thử]",
+                        "viên",
+                        BillingPeriod.UNIT)));
+        when(prices.unitPriceAt(22, DATE, true))
+                .thenReturn(Optional.of(new UnitPriceView(22, 71, new BigDecimal("256"), DATE, null)));
+        var result = service.medication(11, 99, DATE, new BigDecimal("0.125"));
+        assertThat(result.service().id()).isEqualTo(22);
+        assertThat(result.price().amount()).isEqualByComparingTo("32");
+        verify(prices).unitPriceAt(22, DATE, true);
+    }
+
+    @Test
+    void FR_012_missingMedicationServiceMappingIsNotReportedAsAMissingPriceVersion() {
+        assertThatThrownBy(() -> service.medication(11, 99, DATE, BigDecimal.ONE))
+                .isInstanceOfSatisfying(
+                        BusinessException.class,
+                        error -> assertThat(error.errorCode()).isEqualTo("SOURCE_UNAVAILABLE"));
+        verify(prices, never()).unitPriceAt(anyLong(), any(), anyBoolean());
+    }
+
+    @Test
+    void Q_297_roomAndCareServicesAreResolvedFromTheDatedContractWithoutAddingPricesOrCosts() {
+        var level = CareLevel.values()[0];
+        var body = JsonMapper.builder()
+                .build()
+                .readTree(
+                        "{\"roomTypeId\":41,\"careLevel\":\"" + level.name() + "\",\"services\":[{\"serviceId\":22}]}");
+        when(contracts.contentAtDate(11, DATE))
+                .thenReturn(Optional.of(new ContractContentView(31, 1, DATE, null, body, Map.of())));
+        var room =
+                new ServiceView(21, ServiceType.RESIDENCY_FEE, "[Phí lưu trú kiểm thử]", "tháng", BillingPeriod.MONTH);
+        var care = new ServiceView(22, ServiceType.CARE, "[Chăm sóc kiểm thử]", "tháng", BillingPeriod.MONTH);
+        when(prices.residencyFeeServiceOf(41)).thenReturn(Optional.of(room));
+        when(prices.careServiceOf(level)).thenReturn(Optional.of(care));
+
+        assertThat(service.residencyFeeService(11, DATE)).isEqualTo(room);
+        assertThat(service.careService(11, DATE)).isEqualTo(care);
+        verify(prices, never()).unitPriceAt(anyLong(), any(), anyBoolean());
+    }
 
     @BeforeEach
     void source() {
