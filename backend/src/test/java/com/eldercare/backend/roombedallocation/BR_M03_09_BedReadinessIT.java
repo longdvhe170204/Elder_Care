@@ -151,8 +151,55 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
 
-    // 003 T033 lượt 2 (2026-11-06): ca "thiếu provider chuyển theo lịch" bỏ vì ScheduledTransfers luôn có; chuyển theo
-    // lịch đang chờ thực hiện trong lệnh xác nhận (hoặc hủy khi FR-018 không còn thỏa) ở FR_029_ScheduledTransferIT.
+    @Autowired
+    com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi allocationCommands;
+
+    @Autowired
+    com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource residency;
+
+    @Test
+    void FR_011a_readinessImmediatelyStartsTheWaitingScheduledTransfer() throws Exception {
+        long sourceBed = TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code,state) VALUES(?,?,'G-NGUON','OCCUPIED')", sourceBed, room);
+        long current = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO bed_allocation(id,resident_id,bed_id,status,start_at,checked_care_level,care_level_source) VALUES(?,?,?,'ACTIVE',?,'BASIC','CURRENT')",
+                current,
+                departed,
+                sourceBed,
+                Timestamp.from(time.now().minusSeconds(1800)));
+        residency.resident(
+                departed,
+                com.eldercare.backend.roombedallocation.api.spi.ResidencyType.LONG_TERM,
+                null,
+                null,
+                null,
+                null);
+        long request = TestUsers.nextId();
+        var effective = time.today().plusDays(2);
+        assertThat(allocationCommands.checkScheduledReservation(departed, bed, effective))
+                .isEmpty();
+        long future = allocationCommands.reserveScheduledTransfer(request, departed, bed, effective);
+        allocationCommands.applyScheduledTransfer(
+                request,
+                effective
+                        .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                        .toInstant());
+
+        confirm("{}").andExpect(status().isOk()).andExpect(jsonPath("$.state").value("OCCUPIED"));
+        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, current))
+                .isEqualTo("CLOSED");
+        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, future))
+                .isEqualTo("ACTIVE");
+        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, sourceBed))
+                .isEqualTo("AWAITING_READY");
+        assertThat(events.stream(com.eldercare.backend.roombedallocation.api.events.BedTransferred.class)
+                        .filter(e -> e.residentId() == departed))
+                .hasSize(1);
+        assertThat(events.stream(com.eldercare.backend.roombedallocation.api.events.BedBecameEmpty.class)
+                        .filter(e -> e.bedId() == bed))
+                .isEmpty();
+    }
 
     @Test
     void FR_014_initialFutureReservationPreventsWaitingAdmissionSignal() throws Exception {

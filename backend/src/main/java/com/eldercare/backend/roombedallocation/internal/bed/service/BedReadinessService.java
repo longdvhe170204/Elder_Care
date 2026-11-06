@@ -147,8 +147,6 @@ public class BedReadinessService {
 
     private BusinessException unavailable() {
         return new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "SOURCE_UNAVAILABLE",
-                "Chưa có nguồn kiểm lây nhiễm hoặc thực hiện chuyển theo lịch");
+                HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn kiểm lây nhiễm");
     }
 }

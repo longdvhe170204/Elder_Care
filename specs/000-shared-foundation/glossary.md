@@ -905,6 +905,15 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | Nhật ký đặt trước, chờ, áp dụng, hủy | `M03_SCHEDULED_TRANSFER_RESERVED`, `M03_SCHEDULED_TRANSFER_WAITING`, `M03_SCHEDULED_TRANSFER_APPLIED`, `M03_SCHEDULED_TRANSFER_CANCELLED` |
 | Nhật ký liên kết/kết quả yêu cầu sau chuyển gấp | `M03_URGENT_TRANSFER_REQUEST_LINKED`, `M03_URGENT_TRANSFER_REQUEST_DECIDED` |
 
+### Tiếp tục 003 — 2026-11-06
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| Bản cài `LocationApi.at` đã công bố cho 008 | `AllocationQueries` cài đồng thời `BedAllocationApi`, `ResidentLocationApi`, `LocationApi`; cùng nguồn theo thời điểm |
+| Thân lệnh chuyển thường HTTP (T036) | `web.request.BedTransferWrite`; `FR_028_BedTransferHttpIT` |
+| Bảng giường app nhân viên (T060) | `staff/beds/BedsScreen`; quyền đọc cấu hình dùng bảng giường, Bác sĩ dùng phòng cách ly và phân bổ chờ xác nhận |
+| Xác nhận sẵn sàng / chuyển thường và chuyển theo chỉ định / cách ly và xác nhận ở lại | `BedReadinessScreen`, `BedTransferScreen`, `RoomIsolationScreen` trong `mobile/lib/staff/beds/` |
+| Khóa thử lại lệnh / hiển thị lỗi và điều kiện chưa thỏa của riêng màn giường | `bedCommandKey`, `bedProblem` trong `bed_command.dart`; dùng `ApiClient` chung, không hàng đợi riêng |
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*

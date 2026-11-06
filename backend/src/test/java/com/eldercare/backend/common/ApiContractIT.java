@@ -74,11 +74,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 003 (A review 2026-10-26): còn chuyển giường trực tiếp (FR-028) chưa có controller
+            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
-                    Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
+                    Set.of("POST /api/v1/bed-allocations/{id}/transfer 202"),
                     true),
             // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); còn sửa yêu cầu Nháp chờ API của
             // 000 (T043, T047)
