@@ -4,6 +4,7 @@ import 'common/api/problem_message.dart';
 import 'common/auth/change_password_screen.dart';
 import 'common/auth/login_screen.dart';
 import 'common/auth/session_controller.dart';
+import 'common/auth/session_guard.dart';
 import 'common/notifications/push_coordinator.dart';
 import 'common/offline/offline_queue.dart';
 import 'common/theme/app_theme.dart';
@@ -45,8 +46,9 @@ class ElderCareApp extends StatelessWidget {
       builder: (context, _) {
         final resident = _resident;
         return MaterialApp(
-          // Đổi trạng thái phiên thì dựng lại Navigator: màn đăng nhập mở từ màn chọn không đè lên màn mới
-          key: ValueKey((session.status, session.user?.type)),
+          // Đổi trạng thái phiên hoặc tài khoản thì dựng lại Navigator: màn đăng nhập mở từ màn chọn không đè lên màn mới,
+          // đăng nhập lại khi hết phiên bằng tài khoản khác không thấy phần đang nhập của người trước (002 T047c)
+          key: ValueKey((session.status, session.user?.type, session.user?.accountId)),
           title: 'Elder Care',
           debugShowCheckedModeBanner: false,
           theme: resident ? AppTheme.resident(Brightness.light) : AppTheme.light(),
@@ -82,7 +84,11 @@ class ElderCareApp extends StatelessWidget {
     SessionStatus.offerBiometric => BiometricOfferScreen(session: session),
     SessionStatus.locked => LockedScreen(session: session),
     SessionStatus.signedIn => switch (session.user!.type) {
-      AccountType.staff => StaffRoot(session: session, queue: queue, push: push),
+      // Báo trước khi hết phiên, đăng nhập lại giữ phần đang nhập (002 T047c)
+      AccountType.staff => SessionGuard(
+        session: session,
+        child: StaffRoot(session: session, queue: queue, push: push),
+      ),
       AccountType.familyMember => FamilyRoot(session: session, push: push),
       AccountType.resident => ResidentRoot(api: session.api, push: push, store: session.store),
     },

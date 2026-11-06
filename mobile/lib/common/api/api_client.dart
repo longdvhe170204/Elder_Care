@@ -20,6 +20,10 @@ class ApiProblem implements Exception {
 /// Không gọi được backend (mất mạng, máy chủ không trả lời).
 class ApiUnreachable implements Exception {}
 
+/// Nghe mọi phản hồi của backend (002 T047c, như `onResponse` của web): `background` là yêu cầu gửi kèm
+/// `X-Background-Refresh`, không đếm lại thời gian không thao tác của phiên (FR-013a).
+typedef ResponseListener = void Function(int status, String? errorCode, bool background);
+
 /// Client REST `/api/v1` dùng chung cho mọi phần của app (mobile/README.md luật 2). Viết tay cho các endpoint đã dùng;
 /// script sinh client từ hợp đồng (000 T010b) làm sau.
 class ApiClient {
@@ -37,6 +41,12 @@ class ApiClient {
 
   /// Lần cuối backend trả lời (kể cả trả lỗi); hàng đợi ngoại tuyến gửi kèm khi đồng bộ (002 FR-041c).
   DateTime? lastConnectedAt;
+
+  final List<ResponseListener> _listeners = [];
+
+  void addResponseListener(ResponseListener listener) => _listeners.add(listener);
+
+  void removeResponseListener(ResponseListener listener) => _listeners.remove(listener);
 
   Future<Map<String, dynamic>?> get(String path) async {
     final decoded = await requestJson('GET', path);
@@ -76,6 +86,11 @@ class ApiClient {
     lastConnectedAt = DateTime.now().toUtc();
     final text = utf8.decode(response.bodyBytes);
     final decoded = text.isEmpty ? null : jsonDecode(text);
+    final errorCode = decoded is Map<String, dynamic> ? decoded['errorCode'] as String? : null;
+    final background = request.headers['X-Background-Refresh'] == 'true';
+    for (final listener in List.of(_listeners)) {
+      listener(response.statusCode, errorCode, background);
+    }
     if (response.statusCode >= 400) {
       final problem = decoded is Map<String, dynamic> ? decoded : const <String, dynamic>{};
       throw ApiProblem(response.statusCode, problem['errorCode'] as String?, problem['detail'] as String?, problem);
