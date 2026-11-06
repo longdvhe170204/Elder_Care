@@ -25,6 +25,7 @@ import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.nutrition.api.dto.Texture;
 import com.eldercare.backend.nutrition.api.events.DishConfirmationRequested;
 import com.eldercare.backend.nutrition.api.events.DishConfirmationResult;
+import com.eldercare.backend.nutrition.api.events.MenuDishViolation;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Dish;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishAttributes;
@@ -36,6 +37,8 @@ import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersion;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersionContent;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersionStatus;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
+import com.eldercare.backend.nutrition.internal.closing.service.PortionClosingService;
+import com.eldercare.backend.nutrition.internal.menu.persistence.MenuStore;
 import com.eldercare.backend.resident.api.AllergenApi;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -66,6 +69,8 @@ public class DishService {
     private final CurrentUser user;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
+    private final MenuStore menus;
+    private final PortionClosingService closing;
 
     public DishService(
             NutritionCatalogStore store,
@@ -75,7 +80,9 @@ public class DishService {
             PermissionApi permissions,
             CurrentUser user,
             BusinessTime time,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            MenuStore menus,
+            PortionClosingService closing) {
         this.store = store;
         this.allergens = allergens;
         this.audit = audit;
@@ -84,6 +91,8 @@ public class DishService {
         this.user = user;
         this.time = time;
         this.events = events;
+        this.menus = menus;
+        this.closing = closing;
     }
 
     /** Thân lệnh tạo, sửa món, nội dung bản sửa (api-011 {@code DishCommand}). */
@@ -280,6 +289,16 @@ public class DishService {
                 dish, dish.name(), dish.attributes().deactivated(reason.value(), user.accountId(), now));
         store.closeDish(updated);
         log(dish.id(), "DISH_DEACTIVATED", Map.of("status", "ACTIVE"), Map.of("status", "INACTIVE"), reason);
+        int inMenus = menus.notEnded(time.today()).stream()
+                .filter(m -> m.status().published())
+                .flatMap(m -> m.content().dishes().stream())
+                .mapToInt(d -> (d.dishId() == dish.id() ? 1 : 0)
+                        + (d.substituteDishIds().contains(dish.id()) ? 1 : 0))
+                .sum();
+        if (inMenus > 0) {
+            events.publishEvent(
+                    new MenuDishViolation("DISH_DEACTIVATED", dish.id(), dish.name(), inMenus, user.accountId(), now));
+        }
     }
 
     private void decided(
@@ -296,6 +315,10 @@ public class DishService {
                     submitter,
                     user.accountId(),
                     now));
+        }
+        if (confirmed && revision) {
+            closing.recompute(
+                    java.util.Optional.empty(), "M08.CLOSING.DISH_REVISION:" + version.id(), "DISH_REVISION", false);
         }
     }
 

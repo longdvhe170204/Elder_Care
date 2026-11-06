@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.nutrition.api.events.MenuDishViolation;
 import com.eldercare.backend.nutrition.api.events.MenuPublished;
 import com.eldercare.backend.nutrition.api.events.MenuReturned;
 import com.eldercare.backend.nutrition.api.events.MenuSubmitted;
@@ -178,6 +179,66 @@ class BR_M08_06_CoverageIT extends MenuTestBase {
         f.asDoctor();
         send(post(NutritionCatalogFixture.BASE + "/diets/" + soft + "/deactivate"), "{\"reason\":\"Bỏ\"}")
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void FR_002_dietRestrictionChange_reportsMenuDishesViolatingFr005_menuUnchanged() throws Exception {
+        LocalDate week = futureWeek();
+        long sugar = f.allergen();
+        long soft = f.diet(false, List.of(), safe);
+        long sweet = f.activeDish(List.of(sugar), List.of(soft));
+        long menu = createMenu(week);
+        putContent(menu, List.of(row(week, breakfast, soft, sweet))).andExpect(status().isOk());
+
+        f.asDoctor();
+        String etag =
+                "\"" + jdbc.queryForObject("SELECT version FROM catalog_item WHERE id = ?", Integer.class, soft) + "\"";
+        mvc.perform(put(NutritionCatalogFixture.BASE + "/diets/" + soft)
+                        .header("Idempotency-Key", "m08-diet-" + soft)
+                        .header("If-Match", etag)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(NutritionCatalogFixture.dietBody(
+                                jdbc.queryForObject("SELECT name FROM catalog_item WHERE id = ?", String.class, soft),
+                                false,
+                                false,
+                                List.of(sugar),
+                                safe)))
+                .andExpect(status().isOk());
+
+        assertThat(events.stream(MenuDishViolation.class)).singleElement().satisfies(e -> {
+            assertThat(e.reason()).isEqualTo("DIET_RESTRICTION");
+            assertThat(e.count()).isEqualTo(1);
+        });
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_LENGTH(content->'$.dishes') FROM menu WHERE id = ?", Integer.class, menu))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void FR_065_dishDeactivatedWhileInPublishedMenu_notifiesDoctorAndKitchen() throws Exception {
+        LocalDate week = futureWeek();
+        long fish = f.activeDish(List.of(), List.of(defaultDiet));
+        long menu = createMenu(week);
+        List<String> rows = new ArrayList<>(fullWeek(week, defaultDiet, plain));
+        rows.add(row(week.plusDays(1), lunch, defaultDiet, fish));
+        putContent(menu, rows).andExpect(status().isOk());
+        submit(menu, codes(menu)).andExpect(status().isOk());
+        publish(menu, List.of()).andExpect(status().isOk());
+
+        f.asKitchen();
+        send(post(NutritionCatalogFixture.BASE + "/dishes/" + fish + "/deactivate"), "{\"reason\":\"Hết nguồn cá\"}")
+                .andExpect(status().isOk());
+
+        assertThat(events.stream(MenuDishViolation.class)).singleElement().satisfies(e -> {
+            assertThat(e.reason()).isEqualTo("DISH_DEACTIVATED");
+            assertThat(e.notificationRequests())
+                    .flatExtracting(r -> r.recipientGroups())
+                    .contains(
+                            new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                    com.eldercare.backend.common.Role.DOCTOR),
+                            new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                    com.eldercare.backend.common.Role.KITCHEN_STAFF));
+        });
     }
 
     @Test

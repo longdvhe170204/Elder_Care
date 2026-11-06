@@ -74,6 +74,14 @@ public class NutritionCatalogStore {
         return meal(catalogs.require(MealAttributes.KIND, id));
     }
 
+    /** Thành phần của phiên bản nội dung đang hiệu lực của món (rỗng khi món chưa từng Hiệu lực). */
+    public java.util.Set<Long> effectiveIngredients(long dishId) {
+        Long version = dish(dishId).attributes().effectiveVersionId();
+        return version == null
+                ? java.util.Set.of()
+                : java.util.Set.copyOf(version(version).content().ingredients());
+    }
+
     /** Mã bữa trong danh mục (khóa của {@code mealTimes} ở CFG-M08-04). */
     public String mealCode(long id) {
         return catalogs.require(MealAttributes.KIND, id).code();

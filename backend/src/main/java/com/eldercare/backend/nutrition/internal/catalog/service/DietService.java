@@ -14,6 +14,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.nutrition.api.events.MenuDishViolation;
 import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssignmentStore;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DietAttributes;
@@ -22,6 +23,8 @@ import com.eldercare.backend.nutrition.internal.catalog.domain.DishStatus;
 import com.eldercare.backend.nutrition.internal.catalog.domain.SafeDishRule;
 import com.eldercare.backend.nutrition.internal.catalog.domain.SafeDishRule.SafeDish;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
+import com.eldercare.backend.nutrition.internal.menu.domain.Menu;
+import com.eldercare.backend.nutrition.internal.menu.domain.MenuDish;
 import com.eldercare.backend.nutrition.internal.menu.persistence.MenuStore;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.dto.AllergenGroup;
@@ -32,6 +35,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +62,7 @@ public class DietService {
     private final DietAssignmentStore assignments;
     private final MenuStore menus;
     private final BusinessTime time;
+    private final ApplicationEventPublisher events;
 
     public DietService(
             NutritionCatalogStore store,
@@ -65,7 +71,8 @@ public class DietService {
             TechnicalLocks locks,
             DietAssignmentStore assignments,
             MenuStore menus,
-            BusinessTime time) {
+            BusinessTime time,
+            ApplicationEventPublisher events) {
         this.store = store;
         this.allergens = allergens;
         this.audit = audit;
@@ -73,6 +80,7 @@ public class DietService {
         this.assignments = assignments;
         this.menus = menus;
         this.time = time;
+        this.events = events;
     }
 
     /** Thân lệnh tạo, sửa chế độ ăn (api-011 {@code DietCommand}). */
@@ -132,7 +140,38 @@ public class DietService {
                 .before(snapshot(current))
                 .after(snapshot(after))
                 .build());
+        reportMenuViolations(current, after);
         return after;
+    }
+
+    /**
+     * Đổi hạn chế: kiểm lại FR-005 với thực đơn chưa hết tuần; món vi phạm được báo Bác sĩ, bếp để Đổi món, thực đơn không
+     * tự đổi (FR-002).
+     */
+    private void reportMenuViolations(Diet before, Diet after) {
+        Set<Long> restrictions = new HashSet<>(after.attributes().restrictions());
+        if (restrictions.equals(new HashSet<>(before.attributes().restrictions()))) {
+            return;
+        }
+        int violations = 0;
+        for (Menu menu : menus.notEnded(time.today())) {
+            for (MenuDish row : menu.content().dishes()) {
+                if (row.dietId() != after.id()) {
+                    continue;
+                }
+                List<Long> dishes = new ArrayList<>(row.substituteDishIds());
+                dishes.add(row.dishId());
+                for (long dish : dishes) {
+                    if (store.effectiveIngredients(dish).stream().anyMatch(restrictions::contains)) {
+                        violations++;
+                    }
+                }
+            }
+        }
+        if (violations > 0) {
+            events.publishEvent(
+                    new MenuDishViolation("DIET_RESTRICTION", after.id(), after.name(), violations, null, time.now()));
+        }
     }
 
     @RequiresPermission(function = Function.DIET, operation = Operation.UPDATE)
