@@ -3,7 +3,9 @@ package com.eldercare.backend.incident.web;
 import com.eldercare.backend.administration.account.api.BoundDeviceApi;
 import com.eldercare.backend.administration.account.api.dto.ResidentDevice;
 import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.incident.internal.alert.service.AlertLocationService;
 import com.eldercare.backend.incident.internal.alert.service.SosService;
+import com.eldercare.backend.incident.web.request.LocationReportRequest;
 import com.eldercare.backend.incident.web.request.SosPlaceRequest;
 import com.eldercare.backend.incident.web.response.M05ProblemBody;
 import com.eldercare.backend.incident.web.response.SosProblemBody;
@@ -36,10 +38,12 @@ public class SosController {
 
     private final BoundDeviceApi devices;
     private final SosService sos;
+    private final AlertLocationService locations;
 
-    public SosController(BoundDeviceApi devices, SosService sos) {
+    public SosController(BoundDeviceApi devices, SosService sos, AlertLocationService locations) {
         this.devices = devices;
         this.sos = sos;
+        this.locations = locations;
     }
 
     @PostMapping
@@ -86,6 +90,23 @@ public class SosController {
         ResidentDevice device = device(token);
         if (request == null || request.place() == null) throw new InvalidValueException("Chưa chọn nơi đang ở");
         sos.place(device.residentId(), id, request.place());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Vị trí GPS cho lần bấm (FR-047h, BR-M05-28); đã tới nơi hoặc cảnh báo kết thúc thì 409 để app dừng gửi. */
+    @PostMapping("/{id}/location")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Đã lưu"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> location(
+            @Parameter(hidden = true) @RequestHeader(value = DEVICE_TOKEN, required = false) String token,
+            @PathVariable long id,
+            @RequestBody LocationReportRequest request) {
+        ResidentDevice device = device(token);
+        locations.reportSos(device.residentId(), id, request == null ? null : request.toReport());
         return ResponseEntity.noContent().build();
     }
 

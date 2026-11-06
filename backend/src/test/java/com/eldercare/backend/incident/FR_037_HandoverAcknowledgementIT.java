@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.common.data.ReminderMarkers;
+import com.eldercare.backend.common.notification.HasNotificationRequests;
+import com.eldercare.backend.common.notification.NotificationLevel;
+import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.incident.api.dto.UnconfirmedShiftHandoverView;
 import com.eldercare.backend.incident.internal.alert.service.AlertProvisionalTakeoverService;
 import com.eldercare.backend.incident.internal.alert.service.DefaultAlertHandoverApi;
@@ -95,5 +98,28 @@ class FR_037_HandoverAcknowledgementIT extends AlertHandoverTestBase {
         assertThat(row.assignee()).isEqualTo(NIGHT_NURSE);
         assertThat(row.provisional()).isFalse();
         assertThat(row.status()).isEqualTo("RECEIVED");
+    }
+
+    /** FR-085 (Q-311): tạm nhận bàn giao mức Trung bình; người phụ trách đổi sau xác nhận bàn giao mức Nhẹ. */
+    @Test
+    void FR_085_provisionalTakeoverIsMedium_assigneeChangedIsLow() {
+        insertAlert("RECEIVED", DAY_NURSE, false);
+        takeover.run(NOW);
+        assertThat(levels()).containsOnly(Optional.of(NotificationLevel.MEDIUM));
+
+        published.clear();
+        var api = new DefaultAlertHandoverApi(items, transfer, time, null);
+        transaction.executeWithoutResult(status -> api.onHandoverConfirmed(1, PREVIOUS_SHIFT, NEXT_SHIFT, floor));
+        assertThat(levels()).containsOnly(Optional.of(NotificationLevel.LOW));
+    }
+
+    private List<Optional<NotificationLevel>> levels() {
+        var levels = published.stream()
+                .filter(HasNotificationRequests.class::isInstance)
+                .flatMap(event -> ((HasNotificationRequests) event).notificationRequests().stream())
+                .map(NotificationRequest::level)
+                .toList();
+        assertThat(levels).isNotEmpty();
+        return levels;
     }
 }

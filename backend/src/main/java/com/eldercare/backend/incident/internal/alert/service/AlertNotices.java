@@ -95,7 +95,8 @@ final class AlertNotices {
                 SOURCE_TYPE + ":" + alert.id() + ":SOURCE_CORRECTED:" + eventKey,
                 groups,
                 "Chỉ số làm căn cứ của cảnh báo đã được đính chính. Cảnh báo chưa tự đóng, hãy xem xét lại.",
-                at));
+                at,
+                NotificationLevel.LOW));
     }
 
     /** Báo người được giao phụ trách (bảng FR-029 "Giao người phụ trách"). */
@@ -106,18 +107,31 @@ final class AlertNotices {
                 SOURCE_TYPE + ":" + alert.id() + ":ASSIGNED:" + staffId + ":" + at.toEpochMilli(),
                 List.of(new RecipientGroup.Staff(staffId, "ALERT_ASSIGNED")),
                 "Bạn được giao phụ trách một cảnh báo. Mở cảnh báo để xem ghi chú của người giao.",
-                at));
+                at,
+                NotificationLevel.LOW));
     }
 
     private static NotificationRequest request(
             AlertRecord alert, String eventType, String key, List<RecipientGroup> groups, String content, Instant at) {
+        return request(alert, eventType, key, groups, content, at, NotificationLevel.MEDIUM);
+    }
+
+    /** Mức theo FR-085 (Q-311) cho thông báo spec không nêu mức. */
+    private static NotificationRequest request(
+            AlertRecord alert,
+            String eventType,
+            String key,
+            List<RecipientGroup> groups,
+            String content,
+            Instant at,
+            NotificationLevel level) {
         return new NotificationRequest(
                 "M05",
                 eventType,
                 SourceGroup.HEALTH_ALERT,
                 new SourceRecord(SOURCE_TYPE, Long.toString(alert.id())),
                 key,
-                Optional.of(NotificationLevel.MEDIUM),
+                Optional.of(level),
                 Optional.ofNullable(alert.residentId()),
                 Optional.ofNullable(alert.floorAreaId()),
                 groups,

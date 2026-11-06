@@ -167,6 +167,12 @@ public class AlertStore {
         return count != null && count > 0;
     }
 
+    /** Người cao tuổi từng có cảnh báo (mục việc sau qua đời, research S-17). */
+    public boolean hasAnyAlert(long residentId) {
+        return !jdbc.queryForList("SELECT 1 FROM alert WHERE resident_id = ? LIMIT 1", Integer.class, residentId)
+                .isEmpty();
+    }
+
     public void updateMerged(
             long alertId,
             int newCount,
@@ -299,10 +305,14 @@ public class AlertStore {
                 """, level.name(), deadline == null ? null : Timestamp.from(deadline), id, expectedVersion));
     }
 
-    /** Đang xử lý → Đã đóng do người (bảng FR-029). */
+    /**
+     * Đang xử lý → Đã đóng do người (bảng FR-029). Cảnh báo từ nút SOS, nút hỗ trợ đóng mà chưa ghi đã tới nơi mang dấu
+     * "không ghi mốc tới nơi" (FR-047j).
+     */
     public void close(long id, String resolution, String reason, long closedById, Instant at, int expectedVersion) {
         requireOne(jdbc.update("""
                 UPDATE alert SET status = 'CLOSED', resolution = ?, close_reason = ?, closed_by_id = ?, closed_at = ?,
+                  skip_arrival_time = (type IN ('RESIDENT_HELP_REQUEST', 'STAFF_ASSIST_REQUEST') AND arrived_at IS NULL),
                   escalation_stopped = TRUE, version = version + 1
                 WHERE id = ? AND status = 'IN_PROGRESS' AND version = ?
                 """, resolution, reason, closedById, Timestamp.from(at), id, expectedVersion));

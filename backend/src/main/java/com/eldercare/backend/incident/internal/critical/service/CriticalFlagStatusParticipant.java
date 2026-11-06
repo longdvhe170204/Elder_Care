@@ -8,6 +8,7 @@ import com.eldercare.backend.resident.api.dto.TransitionResult;
 import com.eldercare.backend.resident.api.spi.StatusTransitionParticipant;
 import java.util.List;
 import java.util.Set;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
  * sang Điều trị tại bệnh viện hoặc trạng thái cuối thì Hệ thống gỡ dấu đang mở trong cùng lệnh của 001.
  */
 @Service
+@Order(51)
 public class CriticalFlagStatusParticipant implements StatusTransitionParticipant {
     private static final Set<ResidentStatus> REMOVES_FLAG = Set.of(
             ResidentStatus.HOSPITALIZED,

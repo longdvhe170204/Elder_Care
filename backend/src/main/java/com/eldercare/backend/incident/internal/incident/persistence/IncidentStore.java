@@ -149,6 +149,31 @@ public class IncidentStore {
                 .findFirst();
     }
 
+    /** Sự cố Mới, Đang xử lý, Đang theo dõi của người cao tuổi (CHK061, research S-17). */
+    public boolean hasOpen(long residentId) {
+        return !jdbc.queryForList(
+                        "SELECT 1 FROM incident WHERE resident_id = ? AND status IN ('NEW','IN_PROGRESS','MONITORING')"
+                                + " LIMIT 1",
+                        Integer.class,
+                        residentId)
+                .isEmpty();
+    }
+
+    /** Người cao tuổi từng có sự cố (mục việc sau qua đời, research S-17). */
+    public boolean hasAny(long residentId) {
+        return !jdbc.queryForList("SELECT 1 FROM incident WHERE resident_id = ? LIMIT 1", Integer.class, residentId)
+                .isEmpty();
+    }
+
+    /** Người cao tuổi chuyển trạng thái cuối: dừng leo thang và nhắc mọi sự cố đang mở (FR-038). */
+    public int stopEscalation(long residentId) {
+        return jdbc.update("""
+                UPDATE incident SET escalation_stopped = TRUE, version = version + 1
+                WHERE resident_id = ? AND status IN ('NEW', 'IN_PROGRESS', 'MONITORING')
+                  AND escalation_stopped = FALSE
+                """, residentId);
+    }
+
     private static Timestamp timestamp(Instant at) {
         return at == null ? null : Timestamp.from(at);
     }

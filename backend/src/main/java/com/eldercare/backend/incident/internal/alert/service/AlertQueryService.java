@@ -47,18 +47,21 @@ public class AlertQueryService {
     private final ScopeApi scopes;
     private final AccountApi accounts;
     private final Optional<RecordEventApi> records;
+    private final AlertLocationService locations;
 
     public AlertQueryService(
             AlertStore alerts,
             PermissionApi permissions,
             ScopeApi scopes,
             AccountApi accounts,
-            @Autowired(required = false) RecordEventApi records) {
+            @Autowired(required = false) RecordEventApi records,
+            AlertLocationService locations) {
         this.alerts = alerts;
         this.permissions = permissions;
         this.scopes = scopes;
         this.accounts = accounts;
         this.records = Optional.ofNullable(records);
+        this.locations = locations;
     }
 
     /** Danh sách theo bộ lọc, đã giới hạn theo phạm vi; không kèm nguồn và lệnh (xem chi tiết). */
@@ -95,7 +98,11 @@ public class AlertQueryService {
         }
         var sources = sources(alertId);
         return new AlertDetails(
-                alert, assigneeName(alert), sources, allowedCommands(alert, user), press(alert, sources));
+                alert,
+                assigneeName(alert),
+                sources,
+                allowedCommands(alert, user),
+                press(alert, sources).withLocation(locations.latest(alert).orElse(null)));
     }
 
     /** Người bấm, loại sự việc, nơi đã chọn (nút hỗ trợ: dòng M05.ASSIST_DETAIL; SOS: nơi của lần bấm mới nhất). */

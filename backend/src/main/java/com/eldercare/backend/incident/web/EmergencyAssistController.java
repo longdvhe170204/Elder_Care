@@ -1,8 +1,10 @@
 package com.eldercare.backend.incident.web;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.incident.internal.alert.service.AlertLocationService;
 import com.eldercare.backend.incident.internal.alert.service.EmergencyAssistService;
 import com.eldercare.backend.incident.web.request.AssistDetailsRequest;
+import com.eldercare.backend.incident.web.request.LocationReportRequest;
 import com.eldercare.backend.incident.web.response.M05ProblemBody;
 import com.eldercare.backend.incident.web.response.SosProblemBody;
 import com.eldercare.backend.incident.web.response.SosStatusResponse;
@@ -27,10 +29,13 @@ public class EmergencyAssistController {
     private static final String PROBLEM = "application/problem+json";
 
     private final EmergencyAssistService assist;
+    private final AlertLocationService locations;
     private final CurrentUser currentUser;
 
-    public EmergencyAssistController(EmergencyAssistService assist, CurrentUser currentUser) {
+    public EmergencyAssistController(
+            EmergencyAssistService assist, AlertLocationService locations, CurrentUser currentUser) {
         this.assist = assist;
+        this.locations = locations;
         this.currentUser = currentUser;
     }
 
@@ -70,6 +75,19 @@ public class EmergencyAssistController {
     })
     public ResponseEntity<Void> details(@PathVariable long id, @RequestBody AssistDetailsRequest request) {
         assist.details(id, request == null ? null : request.toDetails(), currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Vị trí GPS cho cảnh báo nút hỗ trợ của người bấm ({@code id} là cảnh báo như {@code /details}; FR-047h). */
+    @PostMapping("/{id}/location")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Đã lưu"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+    })
+    public ResponseEntity<Void> location(@PathVariable long id, @RequestBody LocationReportRequest request) {
+        locations.reportAssist(id, request == null ? null : request.toReport(), currentUser);
         return ResponseEntity.noContent().build();
     }
 }

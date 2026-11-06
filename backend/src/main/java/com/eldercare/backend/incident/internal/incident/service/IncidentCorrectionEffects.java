@@ -2,6 +2,7 @@ package com.eldercare.backend.incident.internal.incident.service;
 
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.EffectiveImpactsRemain;
+import com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentView;
 import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
@@ -56,6 +57,7 @@ public class IncidentCorrectionEffects {
     /** Hủy ghi nhận: báo các tác động còn hiệu lực của loại hiện hành. */
     public void voided(IncidentView incident, long correctionId) {
         notifyRemaining(incident, incidents.currentTypeCode(incident.id()), correctionId);
+        if (incident.residentId() != null) events.publishEvent(new ResidentItemClosed(incident.residentId()));
     }
 
     /** Đổi loại: loại cũ xử lý như Hủy; loại mới là Ngã, lây nhiễm nghi ngờ thì áp tác động từ bây giờ. */

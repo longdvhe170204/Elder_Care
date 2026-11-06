@@ -109,9 +109,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(
                             "GET /api/v1/incidents/{id}/family-contacts-to-notify",
                             "GET /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/sos/{id}/location",
-                            "POST /api/v1/emergency-assist/{id}/location"),
+                            "POST /api/v1/residents/{residentId}/examinations"),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt

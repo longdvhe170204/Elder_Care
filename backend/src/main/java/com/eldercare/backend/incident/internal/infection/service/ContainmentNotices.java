@@ -33,7 +33,7 @@ final class ContainmentNotices {
                 SourceGroup.INCIDENT,
                 new SourceRecord("M05.CONTAINMENT", Long.toString(id)),
                 "M05.CONTAINMENT:" + id + ":CREATED",
-                Optional.empty(),
+                Optional.of(NotificationLevel.MEDIUM),
                 Optional.empty(),
                 Optional.empty(),
                 recipients,
