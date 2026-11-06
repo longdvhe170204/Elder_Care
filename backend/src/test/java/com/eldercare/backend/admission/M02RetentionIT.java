@@ -40,6 +40,38 @@ class M02RetentionIT extends AbsenceTestBase {
         }
     }
 
+    /** 000 T112: mọi provider M02 gắn hồ sơ người cao tuổi nên đều cài {@code referencing} và lấy ứng viên theo trang. */
+    @Test
+    void FR_051a_everyM02Provider_answersReferencingAndPages() throws NoSuchMethodException {
+        List<RetentionProvider> m02 =
+                providers.stream().filter(p -> p.dataType().startsWith("M02.")).toList();
+
+        assertThat(m02).hasSizeGreaterThanOrEqualTo(6);
+        for (RetentionProvider provider : m02) {
+            Class<?> type = org.springframework.aop.support.AopUtils.getTargetClass(provider);
+            assertThat(type.getMethod("referencing", RetentionProvider.DataRef.class)
+                            .getDeclaringClass())
+                    .as(provider.dataType())
+                    .isNotEqualTo(RetentionProvider.class);
+            assertThat(type.getMethod("expiredCandidates", Instant.class, RetentionProvider.Candidate.class, int.class)
+                            .getDeclaringClass())
+                    .as(provider.dataType())
+                    .isNotEqualTo(RetentionProvider.class);
+        }
+    }
+
+    @Test
+    void FR_051a_contractsOfAResident_areFoundByReferencingTheResident() throws Exception {
+        long residentId = inResidence();
+        long contractId = jdbc.queryForObject(
+                "SELECT id FROM contract WHERE resident_id = ? ORDER BY id DESC LIMIT 1", Long.class, residentId);
+
+        assertThat(provider("M02.CONTRACT").referencing(new RetentionProvider.DataRef("M01.RESIDENT", residentId)))
+                .contains(new RetentionProvider.DataRef("M02.CONTRACT", contractId));
+        assertThat(provider("M02.CONTRACT").referencing(new RetentionProvider.DataRef("M02.CONTRACT", residentId)))
+                .isEmpty();
+    }
+
     @Test
     void FR_051_contractRetention_removesVersionsAndDraftRow_evenWhenLocked() throws Exception {
         long residentId = inResidence();
