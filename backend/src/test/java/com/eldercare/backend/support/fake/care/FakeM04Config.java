@@ -70,7 +70,9 @@ public class FakeM04Config {
                         SourceType.WATER_INTAKE_ALERT));
     }
 
+    /** Đứng trước bản thật {@code MealTaskSource} của 011 khi cùng context: test 005 điều khiển được xác nhận phục vụ. */
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakeTaskSource fakeMealTaskSource(FakeM04Switches switches) {
         return new FakeTaskSource(switches, "011", Set.of(SourceType.MEAL));
     }

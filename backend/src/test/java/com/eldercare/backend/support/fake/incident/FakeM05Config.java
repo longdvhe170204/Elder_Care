@@ -46,6 +46,12 @@ public class FakeM05Config {
 
     @Bean
     @Primary
+    public FakeIncidentTypes fakeIncidentTypes() {
+        return new FakeIncidentTypes();
+    }
+
+    @Bean
+    @Primary
     public com.eldercare.backend.incident.api.AlertCommandApi fakeAlertCommands(FakeIncidentCommands commands) {
         return commands::acknowledgeAlert;
     }
