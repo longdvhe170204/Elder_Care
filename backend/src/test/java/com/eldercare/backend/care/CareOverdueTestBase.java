@@ -145,6 +145,21 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
                 .content(body));
     }
 
+    /** Công việc thứ hai cùng người, căn cứ khác (tránh trùng DBR-12). */
+    long createAnother() throws Exception {
+        long other = TestUsers.nextId();
+        var at = planned.plusSeconds(600);
+        meals.validation(SourceType.MEAL, other, residentId, at, new SourceValidation(true, true, true, false));
+        shifts.onShift(caregiver.staffId(), at, true);
+        var result = plan("[" + row(residentId, other, at) + "]")
+                .andExpect(status().isCreated())
+                .andReturn();
+        return json.readTree(result.getResponse().getContentAsString())
+                .get(0)
+                .get("id")
+                .asLong();
+    }
+
     long create() throws Exception {
         var result = plan("[" + row(residentId, sourceId, planned) + "]")
                 .andExpect(status().isCreated())
