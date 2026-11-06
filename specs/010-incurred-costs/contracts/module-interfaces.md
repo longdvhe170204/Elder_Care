@@ -21,7 +21,7 @@ Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực
 
 ## 1. 010 cung cấp
 
-**T008 — đề xuất 06/11 chưa áp dụng:** [proposal-retention-cross-module-2026-11-06.md](proposal-retention-cross-module-2026-11-06.md) mô tả overload referencesTo(DataRef) ở SPI 000 và điểm gọi job để nối M01.RESIDENT → bảng → khoản của 010. Đây chưa phải API đã công bố hoặc bằng chứng toàn chuỗi đã xanh; người dùng đã chốt giữ E, bàn giao để A review/cài. Phần E đã sửa giữ thứ tự khi delete(Collection), không đổi chữ ký API.
+**T033 — tích hợp retention, đề xuất 06/11 chưa áp dụng (tách khỏi gate nền T008):** [proposal-retention-cross-module-2026-11-06.md](proposal-retention-cross-module-2026-11-06.md) mô tả overload referencesTo(DataRef) ở SPI 000 và điểm gọi job để nối M01.RESIDENT → bảng → khoản của 010. Đây chưa phải API đã công bố hoặc bằng chứng toàn chuỗi đã xanh; người dùng đã chốt giữ E, bàn giao để A review/cài. Phần E đã sửa giữ thứ tự khi delete(Collection), không đổi chữ ký API.
 
 **Cập nhật nền đơn giá 06/11:** `billing.internal.pricing.service.CostPricingService` dùng `ContractReadApi.contentAtDate(...).recordedUnitPrices` và `content.services[].serviceId/inPackage` theo hợp đồng 004 hiện có; ngoài hợp đồng gọi `UnitPriceApi.unitPriceAt(..., markReferenced=true)` trong transaction MANDATORY của caller. T006a đã kiểm xanh, không phải API công khai mới hoặc bản cài ba API chi phí ở mục dưới. Không tạo khoản/bảng; adapter lưu trú/bán trú và listener tính lại/thông báo vẫn thuộc T014. Xem [checkpoint 06/11](../pricing-checkpoint-2026-11-06.md).
 
@@ -144,3 +144,9 @@ Số tiền long giữ dấu và đơn vị đồng theo chữ ký P-12/bảng g
 FR-044/P-13 vẫn do dịch vụ nguồn chịu trách nhiệm chọn đúng nhóm/mức/nội dung; yêu cầu tới người thân phải mang InformationSubject.ABOUT_FAMILY_MATTER và không có mã Q-354. Test lượt này kiểm khả năng giữ metadata qua outbox, không thay nghiệm thu producer hoặc bộ dựng yêu cầu thật (chưa có).
 
 FakeM11Config là TestConfiguration; chỉ @Import trong test. Đã thêm FakeCostSources phát CostSourceBilled/CostSourceChanged qua ApplicationEventPublisher cho fixture của 011/012/014; đây không phải producer thật. FakeCostStatistics nhận dòng đã thuộc ScopeFilter do fixture đặt, rồi lọc ngày gồm cả hai đầu; không giả vờ đọc vị trí/phạm vi thật. FakeFinalPeriodCosts/FakeFamilyPortalCosts không tự trả trạng thái đạt hoặc tạm tính khi chưa cấu hình. Các fake này phải được dùng lại khi tích hợp, không tạo bản giả thứ hai.
+
+## Đổi api — chọn đơn vị nguồn, chủ dự án duyệt 06/11/2026
+
+- HTTP BillingSource thêm billingUnit (khóa đơn vị tính phí); unit giữ đơn vị sử dụng/hiển thị. CreateCostsFromEvents thêm sourceUnits gồm sourceId/billingUnit; chọn đúng một kiểu sourceIds/sourceUnits/dateRange. sourceIds cũ chỉ dùng khi xác định duy nhất một đơn vị; mơ hồ trả dòng bỏ qua CONDITION_NOT_MET, không tự lập tất cả.
+- BillingSourceView của E thêm thành phần billingUnit; rà toàn kho chưa có nơi tạo record này ngoài khai báo. Không đổi chữ ký sự kiện CostSourceBilled/CostSourceChanged hoặc API nguồn C/D. Chưa có bản cài endpoint/lệnh đầy đủ.
+- Quyết định và ví dụ: proposal-source-unit-selection-2026-11-06.md. Nguồn metadata/đăng ký client còn bàn giao ở source-metadata-handoff-2026-11-06.md; A/các consumer review thay đổi công khai trước khi tích hợp. Không tự sửa script sinh client của A hoặc frontend/src/api.

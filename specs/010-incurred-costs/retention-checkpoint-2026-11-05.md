@@ -37,26 +37,3 @@ Vì vậy chỉ T008b được đánh xong. Parent T008, Phase 2 và toàn featu
 Đã chuyển nội dung người dùng chốt sang [care-quantity-decision-2026-11-05.md](care-quantity-decision-2026-11-05.md), cập nhật plan, hợp đồng và hai dòng chờ E/C. Không còn yêu cầu người dùng gửi lại quyết định; producer C/005 và consumer E/010 vẫn cần cài và kiểm toàn chuỗi.
 
 ## Lệnh Bash để người dùng tự lưu checkpoint
-
-Chỉ chạy sau khi xem diff, ở đúng nhánh 010; lệnh dưới không hoàn tất merge đang chờ của 008:
-
-```bash
-cd '/c/Users/PHAN THANH LONG/Capstone project/Elder_Care/.worktrees/010-foundation-next' &&
-git status --short &&
-git diff --check &&
-git add -- \
-  backend/src/main/java/com/eldercare/backend/billing/internal/governance/config/M11GovernanceConfig.java \
-  backend/src/main/java/com/eldercare/backend/billing/internal/governance/persistence/CostRetention.java \
-  backend/src/test/java/com/eldercare/backend/billing/CostRetentionIT.java \
-  specs/010-incurred-costs/tasks.md \
-  specs/010-incurred-costs/plan.md \
-  specs/010-incurred-costs/data-model.md \
-  specs/010-incurred-costs/contracts/module-interfaces.md \
-  specs/010-incurred-costs/care-quantity-decision-2026-11-05.md \
-  specs/010-incurred-costs/retention-checkpoint-2026-11-05.md \
-  specs/000-shared-foundation/glossary.md \
-  docs/team-plan.md docs/progress.md &&
-git diff --cached --stat &&
-git commit -m "feat(010): add retention providers for existing cost records" &&
-git push -u origin HEAD:impl/010-foundation-next
-```
