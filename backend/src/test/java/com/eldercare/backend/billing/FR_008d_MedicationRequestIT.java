@@ -131,4 +131,22 @@ class FR_008d_MedicationRequestIT extends ProcurementTestBase {
         command(id, "record-purchased", purchase(60_000, doctorLead)).andExpect(status().isOk());
         assertThat(stateOf(id)).isEqualTo("PENDING_RECONCILIATION");
     }
+
+    /** T007: loại THUOC đối chiếu chỉ chứng từ với số thực tế, không có nguồn gắn để so tổng (FR-008b). */
+    @Test
+    void T007_medicationRequestIsReconciledAgainstTheReceiptOnlyAndNotByTheRecorder() throws Exception {
+        as(doctorLead);
+        long id = created(medication(medical, residentA, facilityA, true));
+        command(id, "submit").andExpect(status().isOk());
+        as(manager);
+        command(id, "approve", "{}").andExpect(status().isOk());
+        as(doctorLead);
+        command(id, "record-purchased", purchase(60_000, doctorLead)).andExpect(status().isOk());
+        command(id, "confirm-match")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("PURCHASE_RECORDER_CANNOT_RECONCILE"));
+        as(accountant);
+        command(id, "confirm-match").andExpect(status().isOk());
+        assertThat(stateOf(id)).isEqualTo("RECONCILED");
+    }
 }
