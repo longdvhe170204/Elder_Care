@@ -56,6 +56,7 @@ class _IntakeScreenState extends State<IntakeScreen> {
   final _description = TextEditingController();
   final _amount = TextEditingController();
   final _giverName = TextEditingController();
+  final _giverDocument = TextEditingController();
   final _key = newIdempotencyKey();
   int? _typeId;
   int? _levelId;
@@ -75,6 +76,7 @@ class _IntakeScreenState extends State<IntakeScreen> {
     _description.dispose();
     _amount.dispose();
     _giverName.dispose();
+    _giverDocument.dispose();
     super.dispose();
   }
 
@@ -89,6 +91,9 @@ class _IntakeScreenState extends State<IntakeScreen> {
       if (_levelId == null) 'level': 'Chọn mức tình trạng.',
       if (_giverType == null) 'giver': 'Chọn người giao.',
       if (_giverType == 'OTHER_PERSON' && _giverName.text.trim().isEmpty) 'giverName': 'Nhập họ tên người giao.',
+      if (_giverType == 'OTHER_PERSON' && _giverDocument.text.trim().isEmpty)
+        'giverDocument': 'Nhập giấy tờ của người giao.',
+      if (!_giveNow && _locationId == null) 'location': 'Chọn vị trí lưu giữ.',
       if (type?['valuable'] == true && _photos.isEmpty) 'photos': 'Đồ có giá trị bắt buộc có ít nhất một ảnh.',
       if (_giveNow && type?['requiresConsentForUse'] == true && _signedForm == null)
         'signedForm': 'Loại đồ này cần bản ký đồng ý của người đại diện khi giao ngay.',
@@ -118,7 +123,11 @@ class _IntakeScreenState extends State<IntakeScreen> {
           'description': _description.text.trim(),
           if (type['hasCashAmount'] == true) 'cashAmount': amount else 'quantity': amount,
           'condition': {'levelId': _levelId},
-          'giver': {'type': _giverType, if (_giverName.text.trim().isNotEmpty) 'fullName': _giverName.text.trim()},
+          'giver': {
+            'type': _giverType,
+            if (_giverName.text.trim().isNotEmpty) 'fullName': _giverName.text.trim(),
+            if (_giverDocument.text.trim().isNotEmpty) 'idDocument': _giverDocument.text.trim(),
+          },
           'at': nowVietnamIso(),
           'storageLocationId': ?_locationId,
           if (photoIds.isNotEmpty) 'photoFileIds': photoIds,
@@ -194,13 +203,20 @@ class _IntakeScreenState extends State<IntakeScreen> {
               const SizedBox(height: 12),
               _select('intake-giver', 'Người giao', _giverType, [
                 for (final e in giverLabels.entries)
-                  if (e.key != 'FAMILY_MEMBER') (e.key, e.value),
+                  // người thân cần mã quan hệ (chưa có danh sách trên app); Nhân viên không là người giao (FR-003)
+                  if (e.key == 'OTHER_PERSON' || e.key == 'RESIDENT') (e.key, e.value),
               ], (v) => setState(() => _giverType = v)),
               if (_giverType == 'OTHER_PERSON')
                 TextField(
                   key: const Key('intake-giver-name'),
                   controller: _giverName,
                   decoration: InputDecoration(labelText: 'Họ tên người giao', errorText: _errors['giverName']),
+                ),
+              if (_giverType == 'OTHER_PERSON')
+                TextField(
+                  key: const Key('intake-giver-doc'),
+                  controller: _giverDocument,
+                  decoration: InputDecoration(labelText: 'Giấy tờ người giao', errorText: _errors['giverDocument']),
                 ),
               const SizedBox(height: 12),
               _select(

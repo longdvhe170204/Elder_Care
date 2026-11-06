@@ -27,6 +27,7 @@ function fill({ type, description = 'Áo len', amount = '5' }) {
   fireEvent.change(screen.getByLabelText('Mức tình trạng'), { target: { value: '11' } })
   fireEvent.change(screen.getByLabelText('Người giao'), { target: { value: 'OTHER_PERSON' } })
   fireEvent.change(screen.getByLabelText('Họ tên người giao'), { target: { value: 'Trần Văn Bình' } })
+  fireEvent.change(screen.getByLabelText('Giấy tờ người giao'), { target: { value: 'CCCD 001' } })
   fireEvent.change(screen.getByLabelText('Vị trí lưu giữ'), { target: { value: '21' } })
 }
 
@@ -62,7 +63,7 @@ describe('IntakeForm (013 T011, US1)', () => {
       description: 'Tiền mặt gửi giữ',
       cashAmount: 2000000,
       condition: { levelId: 11 },
-      giver: { type: 'OTHER_PERSON', fullName: 'Trần Văn Bình' },
+      giver: { type: 'OTHER_PERSON', fullName: 'Trần Văn Bình', idDocument: 'CCCD 001' },
       storageLocationId: 21,
       photoFileIds: [501],
     })
@@ -106,5 +107,20 @@ describe('IntakeForm (013 T011, US1)', () => {
 
     expect(await screen.findByText('Người cao tuổi đã ở trạng thái cuối, không tiếp nhận đồ mới.')).toBeInTheDocument()
     expect(screen.getByLabelText('Mô tả')).toHaveValue('Áo len')
+  })
+
+  it('FR_003_nguoiKhacBatBuocGiayTo_viTriBatBuocKhiDangGiu_khongChonNhanVien', async () => {
+    const api = mockRoutes()
+    renderForm()
+    const givers = Array.from(screen.getByLabelText('Người giao').options).map((o) => o.textContent)
+    expect(givers).not.toContain('Nhân viên')
+    fill({ type: 1 })
+    fireEvent.change(screen.getByLabelText('Giấy tờ người giao'), { target: { value: '' } })
+    fireEvent.change(screen.getByLabelText('Vị trí lưu giữ'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu tiếp nhận' }))
+
+    expect(await screen.findByText('Nhập giấy tờ của người giao.')).toBeInTheDocument()
+    expect(screen.getByText('Chọn vị trí lưu giữ.')).toBeInTheDocument()
+    expect(api.calls('POST', '/residents/7/belongings')).toHaveLength(0)
   })
 })
