@@ -3,10 +3,16 @@ package com.eldercare.backend.billing.internal.procurement.service;
 import static com.eldercare.backend.billing.api.dto.ProcurementStatus.*;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
+import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
+import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.administration.account.api.spi.DutyApi;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
@@ -15,6 +21,7 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.billing.api.dto.ProcurementStatus;
 import com.eldercare.backend.billing.api.events.ProcurementRequestChanged;
+import com.eldercare.backend.billing.api.spi.ProcurementPrescriptionPort;
 import com.eldercare.backend.billing.internal.procurement.domain.*;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementRequestRow.Line;
 import com.eldercare.backend.billing.internal.procurement.persistence.ProcurementRequestStore;
@@ -41,7 +48,10 @@ import org.springframework.transaction.annotation.Transactional;
  * 019 T007 (FR-008 → FR-008c, FR-020, FR-021; BR-M11-17 → 19; Q-284, Q-290, Q-292, Q-293, Q-299; research W-05): vòng đời
  * yêu cầu mua sắm theo bảng data-model mục 3. Quyền vai trò kiểm ở {@link RequiresPermission} (chú thích ³⁷, ³⁸ chỉ mô
  * tả ở lớp vai trò); điều kiện Phụ trách bộ phận, người lập, Kế toán khác người ghi đã mua kiểm ở đây. Hệ thống không tự
- * lập yêu cầu (Q-306). Loại MEDICATION của Điều dưỡng (FR-008d) cài ở lượt sau của Phase 3.
+ * lập yêu cầu (Q-306). Loại MEDICATION (FR-008d, Q-337): Điều dưỡng của bộ phận cũng lập, gửi, rút lại, hủy được với
+ * người cao tuổi trong phạm vi phân công; mọi người lập phải xem được nhóm HEALTH của người cao tuổi; dòng gắn đơn nguồn
+ * viện chưa kết thúc của đúng người đó, kiểm qua {@link ProcurementPrescriptionPort} (M07 cài; đảo chiều để tránh vòng
+ * M11 → M07 → M04 → M11, chủ dự án duyệt 2026-11-06).
  */
 @Service
 public class ProcurementRequestService {
@@ -57,6 +67,10 @@ public class ProcurementRequestService {
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final ProcurementNotices notices;
+    private final PermissionApi permissions;
+    private final ScopeApi scope;
+    private final FieldVisibilityApi visibility;
+    private final ObjectProvider<ProcurementPrescriptionPort> prescriptions;
 
     public ProcurementRequestService(
             ProcurementRequestStore store,
@@ -67,7 +81,11 @@ public class ProcurementRequestService {
             FileApi files,
             AuditLogApi audit,
             ApplicationEventPublisher events,
-            ProcurementNotices notices) {
+            ProcurementNotices notices,
+            PermissionApi permissions,
+            ScopeApi scope,
+            FieldVisibilityApi visibility,
+            ObjectProvider<ProcurementPrescriptionPort> prescriptions) {
         this.store = store;
         this.duties = duties;
         this.user = user;
@@ -77,21 +95,38 @@ public class ProcurementRequestService {
         this.audit = audit;
         this.events = events;
         this.notices = notices;
+        this.permissions = permissions;
+        this.scope = scope;
+        this.visibility = visibility;
+        this.prescriptions = prescriptions;
     }
 
-    public static Target target(long id) {
-        return new Target(ENTITY, Long.toString(id), null, null);
+    /** Đối tượng kiểm quyền; yêu cầu loại thuốc gắn người cao tuổi của dòng đầu để Điều dưỡng qua lớp phạm vi. */
+    public Target target(long id) {
+        var resident = store.find(id)
+                .filter(r -> r.type() == ProcurementType.MEDICATION)
+                .flatMap(r -> r.lines().stream()
+                        .map(Line::residentId)
+                        .filter(Objects::nonNull)
+                        .findFirst())
+                .orElse(null);
+        return new Target(ENTITY, Long.toString(id), resident, null);
     }
 
     // ---- Nháp --------------------------------------------------------------------------------------------------
 
-    /** Lập yêu cầu Nháp; chỉ Phụ trách bộ phận của bộ phận đó (FR-008; Q-292, Q-293, Q-299). */
-    @RequiresPermission(function = Function.PURCHASE_REQUEST, operation = Operation.CREATE)
+    /**
+     * Lập yêu cầu Nháp: Phụ trách bộ phận của bộ phận đó (FR-008; Q-292, Q-293, Q-299), hoặc Điều dưỡng với loại thuốc
+     * (FR-008d). Tự kiểm quyền (RequiresPermissionArchTest.SELF_CHECKED): khóa (PURCHASE_REQUEST, CREATE) không gắn đối
+     * tượng, hoặc với loại thuốc trên từng người cao tuổi của dòng, để người ngoài phạm vi nhận 403.
+     */
     @BusinessCommand(requiresReason = false)
     @Transactional
-    public long create(Target target, ProcurementContent draft) {
+    public long create(ProcurementContent draft) {
         var content = normalize(draft);
-        requireDepartmentLead(content.departmentId());
+        requireCreatePermission(content);
+        requireAuthor(content.type(), content.departmentId());
+        checkMedicationLines(content);
         long id = store.insert(content, staff(), time.now());
         record(id, "CREATE", null, DRAFT, null, Map.of("type", content.type(), "total", content.estimatedTotal()));
         publish(id, content.departmentId(), content.type(), null, DRAFT, "create", List.of());
@@ -110,7 +145,8 @@ public class ProcurementRequestService {
         var content = normalize(draft);
         if (content.departmentId() != row.departmentId())
             throw new InvalidValueException("Không đổi bộ phận của yêu cầu; hủy và lập yêu cầu mới");
-        requireDepartmentLead(row.departmentId());
+        requireAuthor(row.type(), row.departmentId());
+        checkMedicationLines(content);
         store.updateContent(id, content);
         record(id, "UPDATE_DRAFT", DRAFT, DRAFT, null, Map.of("total", content.estimatedTotal()));
     }
@@ -122,7 +158,7 @@ public class ProcurementRequestService {
         var row = locked(id);
         requireStatus(row, DRAFT);
         requireCreator(row);
-        requireDepartmentLead(row.departmentId());
+        requireAuthor(row.type(), row.departmentId());
         move(row, PENDING_APPROVAL, "submit", null, Map.of(), List.of(ProcurementNotices.manager()));
     }
 
@@ -328,9 +364,12 @@ public class ProcurementRequestService {
      * Quản lý viện, Kế toán: mọi yêu cầu; Phụ trách bộ phận: yêu cầu của bộ phận mình; người khác: yêu cầu do mình lập
      * (api-019 GET /procurement-requests).
      */
-    @RequiresPermission(function = Function.PURCHASE_REQUEST, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public List<ProcurementRequestRow> list(Target target, Long departmentId, ProcurementStatus status) {
+    public List<ProcurementRequestRow> list(Long departmentId, ProcurementStatus status) {
+        // Quyền xem theo vai trò không gắn đối tượng (Điều dưỡng phạm vi ASSIGNED, ⁴⁴); hàng lọc theo người dùng bên
+        // dưới
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.PURCHASE_REQUEST, Operation.VIEW)))
+            throw new PermissionDeniedException("Không có quyền xem yêu cầu mua sắm");
         if (user.roles().contains(Role.NURSING_HOME_MANAGER) || user.roles().contains(Role.ACCOUNTANT))
             return store.list(null, null, departmentId, status);
         long staff = staff();
@@ -355,6 +394,7 @@ public class ProcurementRequestService {
             throw new InvalidValueException("Mức ưu tiên không hợp lệ");
         if (draft.originalRequestId() != null && !store.exists(draft.originalRequestId()))
             throw new InvalidValueException("Yêu cầu gốc không tồn tại");
+        boolean medication = draft.type() == ProcurementType.MEDICATION;
         var lines = new ArrayList<Line>();
         long total = 0;
         for (var line : draft.lines()) {
@@ -365,6 +405,15 @@ public class ProcurementRequestService {
                     || line.quantity().signum() <= 0
                     || line.estimatedUnitPrice() < 0)
                 throw new InvalidValueException("Dòng cần tên, số lượng dương, đơn giá dự kiến không âm");
+            if (medication
+                    && (line.residentId() == null
+                            || line.prescriptionId() == null
+                            || blank(line.activeIngredient())
+                            || blank(line.strength())
+                            || blank(line.dosageForm())
+                            || blank(line.unit())))
+                throw new InvalidValueException(
+                        "Dòng thuốc cần người cao tuổi, đơn thuốc, hoạt chất, hàm lượng, dạng, đơn vị (FR-008d)");
             long amount = line.quantity()
                     .multiply(BigDecimal.valueOf(line.estimatedUnitPrice()))
                     .setScale(0, RoundingMode.HALF_UP)
@@ -394,6 +443,65 @@ public class ProcurementRequestService {
                 draft.neededOn(),
                 draft.reference(),
                 draft.originalRequestId());
+    }
+
+    private static boolean blank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private void requireCreatePermission(ProcurementContent content) {
+        var key = new PermissionKey(Function.PURCHASE_REQUEST, Operation.CREATE);
+        if (permissions.hasPermission(user, key, Target.UNSPECIFIED).allowed()) return;
+        boolean perResident = content.type() == ProcurementType.MEDICATION
+                && content.lines().stream()
+                        .allMatch(l -> permissions
+                                .hasPermission(user, key, new Target(ENTITY, null, l.residentId(), null))
+                                .allowed());
+        if (!perResident) throw new PermissionDeniedException("Không có quyền lập yêu cầu mua sắm");
+    }
+
+    /** Điều dưỡng của bộ phận với loại thuốc (FR-008d); còn lại Phụ trách bộ phận (FR-008). */
+    private boolean nurseAuthor(ProcurementType type, long departmentId) {
+        return type == ProcurementType.MEDICATION
+                && user.roles().contains(Role.NURSING_STAFF)
+                && duties.getObject()
+                        .departmentOf(staff(), time.now())
+                        .filter(d -> d == departmentId)
+                        .isPresent();
+    }
+
+    private void requireAuthor(ProcurementType type, long departmentId) {
+        if (!nurseAuthor(type, departmentId)) requireDepartmentLead(departmentId);
+    }
+
+    /**
+     * FR-008d, research W-05: người lập xem được HEALTH của người cao tuổi của dòng (không cấp thêm quyền); Điều dưỡng
+     * không là Phụ trách bộ phận chỉ với người trong phạm vi phân công; đơn là đơn nguồn viện chưa kết thúc của người đó.
+     */
+    private void checkMedicationLines(ProcurementContent content) {
+        if (content.type() != ProcurementType.MEDICATION) return;
+        var source = prescriptions.getIfAvailable();
+        if (source == null)
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn đơn thuốc của 006");
+        boolean lead = duties.getObject()
+                .departmentLead(content.departmentId())
+                .filter(l -> l == staff())
+                .isPresent();
+        for (var line : content.lines()) {
+            var resident = new Target("M01.RESIDENT", Long.toString(line.residentId()), line.residentId(), null);
+            if (!lead && !scope.inScope(user, resident))
+                throw new PermissionDeniedException("Người cao tuổi ngoài phạm vi phân công");
+            if (visibility.canView(user, InfoGroup.HEALTH, resident) != Visibility.FULL)
+                throw new PermissionDeniedException("Người lập không xem được thông tin thuốc của người cao tuổi này");
+            if (!source.isUnendedFacilityPrescription(line.residentId(), line.prescriptionId()))
+                throw new ConditionNotMetException(List.of(new UnmetCondition(
+                        "PRESCRIPTION_NOT_FACILITY_UNENDED",
+                        "Đơn không phải đơn nguồn viện Hiệu lực, Tạm dừng, Chờ hiệu lực của người cao tuổi của dòng",
+                        "FR-008d",
+                        "M11",
+                        false)));
+        }
     }
 
     /** Q-292: bộ phận chưa có Phụ trách thì chặn và nhắc Quản lý viện; Phụ trách khác người dùng thì 403. */

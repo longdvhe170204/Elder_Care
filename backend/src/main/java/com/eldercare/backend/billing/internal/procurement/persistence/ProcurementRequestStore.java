@@ -140,6 +140,40 @@ public class ProcurementRequestStore {
                 .findFirst();
     }
 
+    /**
+     * BR-M11-20: yêu cầu đang ở {@code status} có mốc {@code since} (approved_at hoặc purchase_recorded_at) trước
+     * {@code cutoff}.
+     */
+    public List<ProcurementRequestRow> waitingSince(ProcurementStatus status, String since, Instant cutoff) {
+        if (!Set.of("approved_at", "purchase_recorded_at").contains(since)) throw new IllegalArgumentException(since);
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM procurement_request WHERE status = ? AND " + since + " < ? ORDER BY id",
+                this::row,
+                status.name(),
+                local(cutoff));
+    }
+
+    /** W-09: yêu cầu ở trạng thái cuối, khóa trước {@code cutoff} (mốc tính hạn lưu giữ). */
+    public List<com.eldercare.backend.administration.retention.api.spi.RetentionProvider.Candidate> lockedBefore(
+            Instant cutoff, int batch) {
+        return jdbc.query(
+                "SELECT id, locked_at FROM procurement_request WHERE locked_at IS NOT NULL AND locked_at < ?"
+                        + " ORDER BY locked_at, id LIMIT ?",
+                (rs, i) -> new com.eldercare.backend.administration.retention.api.spi.RetentionProvider.Candidate(
+                        rs.getLong(1), instant(rs, "locked_at")),
+                local(cutoff),
+                batch);
+    }
+
+    /** Xóa bằng tài khoản loại bỏ dữ liệu (trigger chặn tài khoản khác). */
+    public void delete(JdbcTemplate retention, Collection<Long> ids) {
+        if (ids.isEmpty()) return;
+        retention.update(
+                "DELETE FROM procurement_request WHERE id IN (" + String.join(",", Collections.nCopies(ids.size(), "?"))
+                        + ")",
+                ids.toArray());
+    }
+
     public boolean exists(long id) {
         return Boolean.TRUE.equals(jdbc.queryForObject(
                 "SELECT EXISTS (SELECT 1 FROM procurement_request WHERE id = ?)", Boolean.class, id));

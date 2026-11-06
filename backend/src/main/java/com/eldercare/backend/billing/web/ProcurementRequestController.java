@@ -1,6 +1,5 @@
 package com.eldercare.backend.billing.web;
 
-import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.billing.api.dto.ProcurementStatus;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementCommandInput;
 import com.eldercare.backend.billing.internal.procurement.service.ProcurementRequestService;
@@ -33,7 +32,7 @@ public class ProcurementRequestController {
     @ApiResponse(responseCode = "200", description = "OK")
     public List<ProcurementRequestResponse> list(
             @RequestParam(required = false) String status, @RequestParam(required = false) Long departmentId) {
-        return requests.list(Target.UNSPECIFIED, departmentId, status(status)).stream()
+        return requests.list(departmentId, status(status)).stream()
                 .map(ProcurementRequestResponse::of)
                 .toList();
     }
@@ -54,7 +53,7 @@ public class ProcurementRequestController {
                             schema = @Schema(implementation = ProcurementProblemBody.class)))
     public ResponseEntity<Void> create(
             @RequestHeader("Idempotency-Key") String key, @RequestBody ProcurementRequestWrite body) {
-        long id = requests.create(Target.UNSPECIFIED, body.content());
+        long id = requests.create(body.content());
         return ResponseEntity.created(URI.create("/api/v1/procurement-requests/" + id))
                 .build();
     }
@@ -72,7 +71,7 @@ public class ProcurementRequestController {
             @RequestHeader("If-Match") String ifMatch,
             @RequestHeader("Idempotency-Key") String key,
             @RequestBody ProcurementRequestWrite body) {
-        requests.update(ProcurementRequestService.target(id), id, ifMatch, body.content());
+        requests.update(requests.target(id), id, ifMatch, body.content());
     }
 
     @PostMapping("/{id}/{command}")
@@ -110,7 +109,7 @@ public class ProcurementRequestController {
                     String command,
             @RequestHeader("Idempotency-Key") String key,
             @RequestBody(required = false) ProcurementRequestCommandWrite body) {
-        var target = ProcurementRequestService.target(id);
+        var target = requests.target(id);
         ProcurementCommandInput input = body == null ? ProcurementCommandInput.EMPTY : body.input();
         switch (command) {
             case "submit" -> requests.submit(target, id);
