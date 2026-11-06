@@ -28,6 +28,7 @@ import com.eldercare.backend.nutrition.api.events.MenuPublished;
 import com.eldercare.backend.nutrition.api.events.MenuReturned;
 import com.eldercare.backend.nutrition.api.events.MenuSubmitted;
 import com.eldercare.backend.nutrition.internal.catalog.persistence.NutritionCatalogStore;
+import com.eldercare.backend.nutrition.internal.closing.service.PortionClosingService;
 import com.eldercare.backend.nutrition.internal.menu.domain.AllergyWarningRule.AllergyWarning;
 import com.eldercare.backend.nutrition.internal.menu.domain.CoverageCheck.Gap;
 import com.eldercare.backend.nutrition.internal.menu.domain.DishSwapRecord;
@@ -88,6 +89,7 @@ public class MenuService {
     private final CurrentUser user;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
+    private final PortionClosingService closing;
 
     public MenuService(
             MenuStore store,
@@ -100,7 +102,8 @@ public class MenuService {
             AuditLogApi audit,
             CurrentUser user,
             BusinessTime time,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            PortionClosingService closing) {
         this.store = store;
         this.checker = checker;
         this.catalog = catalog;
@@ -112,6 +115,7 @@ public class MenuService {
         this.user = user;
         this.time = time;
         this.events = events;
+        this.closing = closing;
     }
 
     /** Cảnh báo dị ứng đã lọc theo quyền xem: bếp chỉ có số người ({@code residents} {@code null}; 19.3, SC-014). */
@@ -487,6 +491,7 @@ public class MenuService {
                 .after(afterLog)
                 .reason(reason)
                 .build());
+        closing.dishSwapped(swapId, input.date(), input.mealId(), input.dietId());
         events.publishEvent(new DishSwapped(
                 id,
                 swapId,

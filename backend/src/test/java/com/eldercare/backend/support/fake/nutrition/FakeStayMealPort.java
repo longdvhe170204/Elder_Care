@@ -16,6 +16,14 @@ public class FakeStayMealPort implements StayMealPort {
         return this;
     }
 
+    /** Kết thúc sớm hoặc hủy lượt ở lại: lượt còn tới {@code to} (bằng {@code from} là hủy). */
+    public FakeStayMealPort end(long stayId, Instant to) {
+        stays.replaceAll(s -> s.stayId() == stayId
+                ? new StayMealView(s.stayId(), s.residentId(), s.familyMemberId(), s.from(), to, s.mealRegistered())
+                : s);
+        return this;
+    }
+
     @Override
     public List<StayMealView> staysWithMealRegistration(Instant t) {
         return stays.stream()

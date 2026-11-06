@@ -108,6 +108,19 @@ public class MenuStore {
                 .toList();
     }
 
+    /** Thực đơn Công bố hoặc Đã áp dụng của tuần chứa {@code date} (FR-038). */
+    public Optional<Menu> publishedOn(LocalDate date) {
+        return jdbc
+                .query(
+                        SELECT + " WHERE status IN ('PUBLISHED','APPLIED') AND week_start <= ?"
+                                + " AND DATE_ADD(week_start, INTERVAL 6 DAY) >= ?",
+                        this::row,
+                        date,
+                        date)
+                .stream()
+                .findFirst();
+    }
+
     /** {@code false} khi phiên bản đã đổi (412 ở service). */
     public boolean updateContent(long id, int version, MenuContent content) {
         return jdbc.update(
