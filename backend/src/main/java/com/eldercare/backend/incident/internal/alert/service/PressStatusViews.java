@@ -21,10 +21,15 @@ import org.springframework.stereotype.Component;
 class PressStatusViews {
     private final FacilityContactApi facilityContact;
     private final Optional<AccountApi> accounts;
+    private final AlertLocationService locations;
 
-    PressStatusViews(FacilityContactApi facilityContact, @Autowired(required = false) AccountApi accounts) {
+    PressStatusViews(
+            FacilityContactApi facilityContact,
+            @Autowired(required = false) AccountApi accounts,
+            AlertLocationService locations) {
         this.facilityContact = facilityContact;
         this.accounts = Optional.ofNullable(accounts);
+        this.locations = locations;
     }
 
     SosStatusView of(long pressId, AlertRecord alert) {
@@ -47,7 +52,9 @@ class PressStatusViews {
                 status,
                 receiverName,
                 alert.arrivedAt(),
-                facilityContact.current().phoneNumber());
+                facilityContact.current().phoneNumber(),
+                locations.sendLocation(alert),
+                locations.intervalSeconds());
     }
 
     BusinessException refused(HttpStatus status, String code, String detail) {

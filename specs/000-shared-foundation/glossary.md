@@ -1716,6 +1716,8 @@ Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường
 | Handler chỉ số ngoại tuyến; cờ đồng bộ sau khi mất quyền; tác vụ xác nhận quá hạn đo lại (T014) | `VitalSignOfflineHandler`, `VitalSignOfflineContent`; `synced_after_permission_loss`; `OverdueRemeasurementTask` (nhịp `MINUTE`) |
 | Nguồn đọc thật chỉ số M06 | `DefaultVitalSignApi`, `VitalSignRecordStore`; loại đính chính `M06.VITAL_SIGN_RECORD` |
 | Nguồn thống kê lần đo cho 016, giữ mức lúc đo | `DefaultVitalSignStatistics`; `VitalSignStatisticsApi.readings` |
+| Nguồn sức khỏe cho cổng người thân; tách phần chung, phần sức khỏe của sự cố (T061a) | `DefaultFamilyPortalHealth`, `FamilyIncidentPartitioner`; trạng thái rút gọn "viện đang xử lý / đang theo dõi / đã xử lý xong" `HANDLING`, `MONITORING`, `RESOLVED` (`FamilyIncidentGeneralPart.processingStatus`) |
+| Nguồn thống kê cảnh báo, sự cố cho 016 (T061) | `DefaultIncidentStatistics`, `IncidentReportStore`; nguồn cảnh báo `SOS`, `NUT_HO_TRO`, `KHAC` → `AlertReportView.source` `SOS`, `EMERGENCY_ASSIST`, `OTHER`; loại theo dõi sau ngã, tiếp xúc → `MonitoringView.type` `POST_FALL`, `CONTACT` |
 | Dừng nhắc gọi khi hạ sự cố khỏi Khẩn cấp; đã có kết quả xác nhận lại | `CallReminderStopRequested(sourceRecordType, sourceRecordId)`; `WishReconfirmationCompleted(alertId)` |
 | Yêu cầu tạo, đóng nguồn, ghi diễn biến cảnh báo cho 011/014 | `AlertRequested`, `AlertSourceCloseRequested`, `AlertProgressionRequested` |
 | Thêm người tiếp xúc, tạo/gỡ khoanh vùng, đổi dấu nghi nhiễm | `ContactAdded`, `IsolationCreated`, `IsolationLifted`, `InfectionSuspicionChanged` |

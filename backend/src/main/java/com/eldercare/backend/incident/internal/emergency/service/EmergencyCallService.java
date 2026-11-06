@@ -28,6 +28,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
+import com.eldercare.backend.incident.internal.alert.service.AlertLocationService;
 import com.eldercare.backend.incident.internal.emergency.domain.Call115Attempt;
 import com.eldercare.backend.incident.internal.emergency.domain.Call115Content;
 import com.eldercare.backend.incident.internal.emergency.domain.Call115Info;
@@ -80,6 +81,7 @@ public class EmergencyCallService {
     private final Optional<ResidentApi> residents;
     private final Optional<ResidentLocationApi> locations;
     private final Optional<AccountApi> accounts;
+    private final AlertLocationService alertLocations;
 
     public EmergencyCallService(
             AlertStore alerts,
@@ -94,7 +96,8 @@ public class EmergencyCallService {
             BusinessTime time,
             @Autowired(required = false) ResidentApi residents,
             @Autowired(required = false) ResidentLocationApi locations,
-            @Autowired(required = false) AccountApi accounts) {
+            @Autowired(required = false) AccountApi accounts,
+            AlertLocationService alertLocations) {
         this.alerts = alerts;
         this.incidents = incidents;
         this.progressions = progressions;
@@ -108,6 +111,7 @@ public class EmergencyCallService {
         this.residents = Optional.ofNullable(residents);
         this.locations = Optional.ofNullable(locations);
         this.accounts = Optional.ofNullable(accounts);
+        this.alertLocations = alertLocations;
     }
 
     /** Đối tượng gọi 115: cảnh báo hoặc sự cố Khẩn cấp, sau khi kiểm quyền xử lý (FR-036, FR-045). */
@@ -239,6 +243,11 @@ public class EmergencyCallService {
                         : new Call115Info.Facility(facility.name(), facility.address(), facility.phone()),
                 floor,
                 room,
+                subject.alertId() == null
+                        ? null
+                        : alerts.findById(subject.alertId())
+                                .flatMap(alertLocations::latest)
+                                .orElse(null),
                 resident,
                 allergies,
                 conditions,

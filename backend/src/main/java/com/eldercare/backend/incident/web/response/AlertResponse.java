@@ -9,8 +9,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Schema {@code Alert} của api-007. Vị trí GPS, mốc tới nơi, người bấm, loại sự việc, nơi chọn thuộc US12, US13 (T067
- * trở đi) nên lát này để trống. {@code handoverAcknowledged} là dấu "tạm nhận, chờ xác nhận bàn giao" (FR-037).
+ * Schema {@code Alert} của api-007; vị trí GPS, mốc tới nơi, người bấm, loại sự việc, nơi chọn của cảnh báo từ nút SOS,
+ * nút hỗ trợ (US12, US13). {@code handoverAcknowledged} là dấu "tạm nhận, chờ xác nhận bàn giao" (FR-037).
  */
 public record AlertResponse(
         Long id,
@@ -42,7 +42,7 @@ public record AlertResponse(
 
         @Schema(types = {"string", "null"}) String chosenPlace,
 
-        @Schema(description = "LocationView hoặc null; vị trí GPS nối ở US12, US13")
+        @Schema(description = "LocationView hoặc null (FR-047h)")
         Object latestLocation,
 
         @Schema(
@@ -85,7 +85,7 @@ public record AlertResponse(
                 details.press().pressedBy(),
                 details.press().eventType(),
                 details.press().chosenPlace(),
-                null,
+                LocationResponse.of(details.press().latestLocation()),
                 alert.arrivedAt(),
                 alert.skipArrivalTime(),
                 details.sources().stream()

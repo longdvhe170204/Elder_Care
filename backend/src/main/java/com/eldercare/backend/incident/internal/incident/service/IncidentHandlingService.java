@@ -31,6 +31,7 @@ import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.ProgressionGroup;
 import com.eldercare.backend.incident.internal.alert.domain.ProgressionTypeView;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
+import com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentState;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
@@ -153,6 +154,7 @@ public class IncidentHandlingService {
         if (infection && incident.residentId() != null) {
             events.publishEvent(new InfectionSuspicionChanged(incident.residentId(), incidentId, false, now));
         }
+        if (incident.residentId() != null) events.publishEvent(new ResidentItemClosed(incident.residentId()));
     }
 
     /** Tham gia xử lý sự cố Khẩn cấp đang mở; không tạo sự cố mới (FR-041, FR-048b). */

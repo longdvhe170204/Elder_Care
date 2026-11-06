@@ -9,6 +9,7 @@ import com.eldercare.backend.resident.api.spi.StatusTransitionParticipant;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.util.List;
 import java.util.Set;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
  * chỉ cảnh báo người thực hiện trước khi xác nhận lệnh (research S-15 "Cảnh báo không chặn").
  */
 @Service
+@Order(51)
 public class ContainmentStatusParticipant implements StatusTransitionParticipant {
     public static final String IN_ISOLATION_ZONE = "IN_ISOLATION_ZONE";
 

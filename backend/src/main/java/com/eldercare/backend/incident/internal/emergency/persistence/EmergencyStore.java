@@ -72,6 +72,14 @@ public class EmergencyStore {
         return events.require(SUMMARY, id);
     }
 
+    /** Bản tóm tắt chuyển viện gần nhất của sự cố (phần sức khỏe cho người thân, research S-19a). */
+    public Optional<TransferSummaryContent> latestSummary(long incidentId) {
+        var summaries = events.list(SUMMARY, incident(incidentId));
+        return summaries.isEmpty()
+                ? Optional.empty()
+                : Optional.of(summaries.getLast().content());
+    }
+
     private static EntityRef incident(long incidentId) {
         return new EntityRef("M05.INCIDENT", incidentId);
     }

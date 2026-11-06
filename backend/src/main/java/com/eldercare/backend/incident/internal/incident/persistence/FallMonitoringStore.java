@@ -78,6 +78,11 @@ public class FallMonitoringStore {
                 .toList();
     }
 
+    /** Mọi khoảng đang theo dõi sau ngã, cho thống kê của 016 (FR-081). */
+    public List<SimpleRecord<FallMonitoringContent>> activeWindows() {
+        return records.listByStatus(KIND, Set.of(ACTIVE));
+    }
+
     private static String key(long residentId) {
         return "POST_FALL:" + residentId;
     }

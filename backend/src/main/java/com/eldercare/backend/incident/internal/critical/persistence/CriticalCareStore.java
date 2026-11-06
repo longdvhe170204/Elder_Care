@@ -16,6 +16,7 @@ import com.eldercare.backend.incident.internal.critical.domain.WishReconfirmatio
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -44,6 +45,12 @@ public class CriticalCareStore {
 
     public Optional<SimpleRecord<CriticalFlagContent>> openFlag(long residentId) {
         return records.findByUniqueKey(FLAG, key(residentId));
+    }
+
+    /** Dấu Đang mở và dấu tạm của mọi người cao tuổi, cho thống kê của 016 (FR-081). */
+    public List<SimpleRecord<CriticalFlagContent>> openFlags() {
+        return records.listByStatus(
+                FLAG, Set.of(CriticalFlagStatus.OPEN.name(), CriticalFlagStatus.PROVISIONAL.name()));
     }
 
     public SimpleRecord<CriticalFlagContent> create(

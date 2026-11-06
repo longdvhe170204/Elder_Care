@@ -88,6 +88,13 @@ public class ContactPersonStore {
         return records.listByResident(KIND, residentId, Set.of(ACTIVE, EXCLUDED));
     }
 
+    /** Dòng người cao tuổi đã xác nhận của mọi danh sách, cho thống kê của 016 (FR-081). */
+    public List<SimpleRecord<ContactPersonContent>> allMonitored() {
+        return records.listByStatus(KIND, Set.of(ACTIVE, EXCLUDED)).stream()
+                .filter(row -> row.residentId() != null)
+                .toList();
+    }
+
     private static String uniqueKey(long listId, ContactType type, Long subjectId) {
         return subjectId == null ? null : listId + ":" + type + ":" + subjectId;
     }

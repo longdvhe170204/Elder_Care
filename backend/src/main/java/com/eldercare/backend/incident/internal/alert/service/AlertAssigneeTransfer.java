@@ -109,7 +109,7 @@ public class AlertAssigneeTransfer {
                 source, item.id(), assigneeId, key, now, notice(item, source, key, assigneeId, provisional, now)));
     }
 
-    /** Báo người phụ trách mới, mức Nhẹ (research S-18). */
+    /** Báo người phụ trách mới: mức Nhẹ; tạm nhận bàn giao mức Trung bình (FR-085, Q-311; research S-18). */
     private List<NotificationRequest> notice(
             HandoverItem item, String source, String key, long assigneeId, boolean provisional, Instant now) {
         var staffId = responsibility.staffOfAccount(assigneeId).orElse(null);
@@ -123,7 +123,7 @@ public class AlertAssigneeTransfer {
                 SourceGroup.HEALTH_ALERT,
                 new SourceRecord(source, Long.toString(item.id())),
                 key,
-                Optional.of(NotificationLevel.LOW),
+                Optional.of(provisional ? NotificationLevel.MEDIUM : NotificationLevel.LOW),
                 Optional.ofNullable(item.residentId()),
                 Optional.ofNullable(item.floorAreaId()),
                 List.of(new RecipientGroup.Staff(staffId, "HANDOVER_ASSIGNEE")),

@@ -43,6 +43,7 @@ import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import com.eldercare.backend.incident.internal.critical.persistence.CriticalCareStore;
+import com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -189,6 +190,7 @@ public class AlertHandlingService {
                 alertId, resolution, reason == null ? null : reason.value(), user.accountId(), now, alert.version());
         history.add(alertId, "CLOSED", Map.of("by", user.accountId()), now);
         write(CLOSED, alert, Map.of("status", AlertStatus.CLOSED.name()), reason);
+        if (alert.residentId() != null) events.publishEvent(new ResidentItemClosed(alert.residentId()));
     }
 
     private void requireCriticalOutcome(long alertId) {

@@ -4,7 +4,7 @@ import com.eldercare.backend.incident.internal.alert.domain.SosStatusView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
-/** Trạng thái SOS cho app người cao tuổi ({@code SosStatus} của api-007; FR-047f). Vị trí GPS thêm ở T096. */
+/** Trạng thái SOS, nút hỗ trợ cho app ({@code SosStatus} của api-007; FR-047f, FR-047h). */
 @Schema(name = "SosStatus")
 public record SosStatusResponse(
         long pressId,
@@ -30,8 +30,8 @@ public record SosStatusResponse(
                 view.status(),
                 view.receiverName(),
                 view.arrivedAt(),
-                null,
-                null,
+                view.sendLocation(),
+                view.locationIntervalSeconds(),
                 new FallbackContacts(view.facilityPhone(), "115"));
     }
 }
