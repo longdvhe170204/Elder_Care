@@ -57,6 +57,8 @@ void daLapYeuCauSauChuyenGap(long phanBoId, long yeuCauId);                     
 void ketQuaYeuCauSauChuyenGap(long phanBoId, boolean duocDuyet);                   // FR-030: từ chối → dấu chờ chuyển về phòng cùng giá
 ```
 
+*(Bản cài 2026-11-06, 003 T033, chủ dự án chốt)*: `giaHanKetThucDuKien` không làm gì khi người không có phân bổ đang hiệu lực (bán trú, chưa có giường). Chuyển theo lịch đang chờ giường (`cho_giuong_san_sang`) được thực hiện trong lệnh Xác nhận giường sẵn sàng hoặc gỡ dấu của 019; FR-018 không còn thỏa lúc đó thì 003 tự hủy phân bổ tương lai và báo Hành chính, Trưởng tầng, Quản lý viện (`KetQuaChuyenTheoLich` giữ hai giá trị). `ketQuaYeuCauSauChuyenGap` báo người thực hiện lệnh chuyển gấp và Hành chính.
+
 ### 1.5. `SucChuaBanTruApi`: kiểm tra sức chứa cho 004, 005 (FR-038 → FR-042)
 
 ```java

@@ -151,20 +151,8 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
 
-    @Test
-    void FR_011a_missingScheduledTransferProviderCannotConfirmBedAsEmpty() throws Exception {
-        jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source,waiting_for_bed_ready,basis_type,basis_id) VALUES(?,?,'FUTURE',?,'BASIC','CURRENT',TRUE,'APPROVAL_REQUEST',?)",
-                departed,
-                bed,
-                Timestamp.from(time.now()),
-                TestUsers.nextId());
-        confirm("{}").andExpect(status().isServiceUnavailable());
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
-                .isEqualTo("AWAITING_READY");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Integer.class, bed))
-                .isZero();
-    }
+    // 003 T033 lượt 2 (2026-11-06): ca "thiếu provider chuyển theo lịch" bỏ vì ScheduledTransfers luôn có; chuyển theo
+    // lịch đang chờ thực hiện trong lệnh xác nhận (hoặc hủy khi FR-018 không còn thỏa) ở FR_029_ScheduledTransferIT.
 
     @Test
     void FR_014_initialFutureReservationPreventsWaitingAdmissionSignal() throws Exception {
