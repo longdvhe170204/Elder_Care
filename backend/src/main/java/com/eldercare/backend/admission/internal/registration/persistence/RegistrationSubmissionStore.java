@@ -12,6 +12,8 @@ import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -67,6 +69,15 @@ public class RegistrationSubmissionStore {
         } catch (NotFoundException e) {
             return Optional.empty();
         }
+    }
+
+    /** Các lần nộp của một khai báo, theo thứ tự ghi (api-018 {@code submissions[]}). */
+    public List<RegistrationSubmission> ofRegistration(long residentId, long registrationId) {
+        return events.list(SubmissionContent.KIND, parent(residentId)).stream()
+                .filter(row -> row.content().registrationId() == registrationId)
+                .map(RegistrationSubmissionStore::map)
+                .sorted(Comparator.comparingLong(RegistrationSubmission::id))
+                .toList();
     }
 
     /** Đặt kết quả; {@code false} nếu lần nộp đã có kết quả. */

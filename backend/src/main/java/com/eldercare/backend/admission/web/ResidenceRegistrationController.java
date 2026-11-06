@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission.web;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
 import com.eldercare.backend.admission.internal.registration.service.ResidenceRegistrationService;
 import com.eldercare.backend.admission.web.request.CreateRegistrationBody;
 import com.eldercare.backend.admission.web.request.RegistrationCommandBody;
@@ -38,11 +39,11 @@ import org.springframework.web.bind.annotation.RestController;
 class ResidenceRegistrationController {
 
     private static final String PROBLEM = "application/problem+json";
-    private static final String CONFIRM_LOCAL = "confirm-local-permanent-resident";
-    private static final String RECORD_SUBMITTED = "record-submitted";
-    private static final String RECORD_ACCEPTED = "record-accepted";
-    private static final String RECORD_REJECTED = "record-rejected";
-    private static final String RECORD_DEREGISTERED = "record-deregistered";
+    private static final String CONFIRM_LOCAL = ResidenceRegistrationService.CONFIRM_LOCAL;
+    private static final String RECORD_SUBMITTED = ResidenceRegistrationService.RECORD_SUBMITTED;
+    private static final String RECORD_ACCEPTED = ResidenceRegistrationService.RECORD_ACCEPTED;
+    private static final String RECORD_REJECTED = ResidenceRegistrationService.RECORD_REJECTED;
+    private static final String RECORD_DEREGISTERED = ResidenceRegistrationService.RECORD_DEREGISTERED;
 
     private final ResidenceRegistrationService registrations;
 
@@ -61,8 +62,9 @@ class ResidenceRegistrationController {
     @GetMapping("/residents/{residentId}/residence-registrations")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "OK")})
     List<ResidenceRegistrationBody> ofResident(@PathVariable long residentId) {
-        return registrations.ofResident(ResidenceRegistrationService.targetForResident(residentId), residentId).stream()
-                .map(ResidenceRegistrationBody::of)
+        Target target = ResidenceRegistrationService.targetForResident(residentId);
+        return registrations.ofResident(target, residentId).stream()
+                .map(registration -> bodyOf(target, registration))
                 .toList();
     }
 
@@ -74,6 +76,10 @@ class ResidenceRegistrationController {
                 responseCode = "409",
                 description = "NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS,"
                         + " NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "INVALID_VALUE",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     ResidenceRegistrationBody create(
@@ -81,16 +87,24 @@ class ResidenceRegistrationController {
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody CreateRegistrationBody body) {
         Target target = ResidenceRegistrationService.targetForResident(residentId);
-        return ResidenceRegistrationBody.of(
+        return bodyOf(
+                target,
                 body.isRenewal()
                         ? registrations.createRenewalRegistration(target, residentId)
                         : registrations.createRegistration(target, residentId));
     }
 
+    private ResidenceRegistrationBody bodyOf(Target target, ResidenceRegistration registration) {
+        return ResidenceRegistrationBody.of(
+                registration,
+                registrations.allowedCommands(registration),
+                registrations.submissionsOf(target, registration));
+    }
+
     /**
      * Lệnh theo bảng FR-005: {@code confirm-local-permanent-resident} (T008), {@code record-submitted}, {@code
      * record-accepted}, {@code record-rejected} (T010), {@code record-deregistered} (T014). Lệnh khác trả 422 {@code
-     * INVALID_COMMAND} (đề xuất đưa vào hợp đồng chờ duyệt, BL-95).
+     * INVALID_COMMAND} (hợp đồng đã duyệt, BL-95).
      */
     @PostMapping("/residence-registrations/{id}/{command}")
     @ApiResponses({
@@ -103,6 +117,10 @@ class ResidenceRegistrationController {
                 responseCode = "409",
                 description =
                         "STATE_CHANGED, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "INVALID_VALUE (thiếu hoặc sai giá trị), INVALID_COMMAND (lệnh ngoài danh sách)",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     void command(

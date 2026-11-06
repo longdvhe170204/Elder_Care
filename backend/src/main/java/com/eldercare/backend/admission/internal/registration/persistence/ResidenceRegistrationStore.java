@@ -326,6 +326,19 @@ public class ResidenceRegistrationStore {
                 .isEmpty();
     }
 
+    /** Khai báo Đã xác nhận hoặc Hết hạn của một người, đọc khóa (một thủ tục khai báo xóa theo người, BL-97 B). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<ResidenceRegistration> confirmedOrExpiredForUpdate(long residentId) {
+        return lockedReads
+                .ids(
+                        RegistrationContent.KIND.code(),
+                        "resident_id = ? AND status IN ('CONFIRMED', 'EXPIRED')",
+                        residentId)
+                .stream()
+                .map(id -> map(records.lockForUpdate(RegistrationContent.KIND, id)))
+                .toList();
+    }
+
     /** Mọi khai báo Đã xác nhận hoặc Hết hạn (lọc người ở trạng thái cuối ở service, FR-008). */
     public List<ResidenceRegistration> confirmedOrExpired() {
         return byStatus(CONFIRMED_OR_EXPIRED).stream()

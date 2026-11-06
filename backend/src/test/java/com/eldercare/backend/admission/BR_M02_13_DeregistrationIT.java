@@ -437,11 +437,10 @@ class BR_M02_13_DeregistrationIT extends DeathTestBase {
         assertThat(statusOf(id)).isEqualTo("CONFIRMED");
     }
 
-    // ---- BL-97 B: khai báo Hết hạn cũ và khai báo mới Đã xác nhận cùng lúc (FR-008, bảng 6.10) ---------------------
+    // ---- BL-97 B (A duyet 2026-11-05): mot thu tuc khai bao xoa theo nguoi (FR-008, bang 6.10) ---------------------
 
     @Test
-    void FR_008_expiredAndNewConfirmed_eachNeedsDeregistration_oneReminderADay_andEachIsRecordedSeparately()
-            throws Exception {
+    void FR_008_expiredAndNewConfirmed_oneDeregistrationProcedurePerResident_recordedTogether() throws Exception {
         List<Long> ids = new ArrayList<>();
         long residentId = endedWith(id -> {
             ResidenceRegistration old = confirmed(id);
@@ -467,35 +466,27 @@ class BR_M02_13_DeregistrationIT extends DeathTestBase {
         assertThat(statusOf(confirmedId)).isEqualTo("CONFIRMED");
 
         assertThat(tasksOf(residentId))
-                .extracting(Task::taskType, Task::registrationId)
-                .containsExactlyInAnyOrder(
-                        org.assertj.core.groups.Tuple.tuple(TaskType.TO_DEREGISTER, expiredId),
-                        org.assertj.core.groups.Tuple.tuple(TaskType.TO_DEREGISTER, confirmedId));
-        assertThat(deregisterReminders(residentId))
-                .as("một nhắc cho người, không nhắc trùng theo khai báo")
-                .hasSize(1);
+                .as("một việc khai báo xóa cho người, không một việc cho mỗi khai báo")
+                .extracting(Task::taskType)
+                .containsExactly(TaskType.TO_DEREGISTER);
+        assertThat(deregisterReminders(residentId)).as("một nhắc cho người").hasSize(1);
 
-        deregister(confirmedId, evidence());
+        long taskRegistrationId = tasksOf(residentId).get(0).registrationId();
+        deregister(taskRegistrationId, evidence());
 
         assertThat(statusOf(confirmedId)).isEqualTo("DEREGISTERED");
-        assertThat(statusOf(expiredId)).as("không tự đánh dấu khai báo kia").isEqualTo("EXPIRED");
-        assertThat(tasksOf(residentId)).extracting(Task::registrationId).containsExactly(expiredId);
+        assertThat(statusOf(expiredId))
+                .as("một thủ tục xóa ghi cho cả hai khai báo")
+                .isEqualTo("DEREGISTERED");
+        assertThat(tasksOf(residentId)).isEmpty();
         clockAt(d0.plusDays(1), 6, 0);
         deregistration.remind(d0.plusDays(1));
         assertThat(reminderCount(residentId))
-                .as("còn khai báo Hết hạn nên vẫn nhắc, một lần mỗi ngày")
-                .isEqualTo(2);
-
-        deregister(expiredId, evidence());
-
-        assertThat(statusOf(expiredId)).isEqualTo("DEREGISTERED");
-        assertThat(tasksOf(residentId)).isEmpty();
-        clockAt(d0.plusDays(2), 6, 0);
-        deregistration.remind(d0.plusDays(2));
-        assertThat(reminderCount(residentId))
                 .as("hết khai báo cần xóa thì dừng nhắc")
-                .isEqualTo(2);
+                .isEqualTo(1);
         assertThat(registrationCount(residentId)).isEqualTo(2);
+        assertThat(auditCount("M02_REGISTRATION_DEREGISTERED", expiredId)).isEqualTo(1);
+        assertThat(auditCount("M02_REGISTRATION_DEREGISTERED", confirmedId)).isEqualTo(1);
     }
 
     // ---- US4 #4: nhắc mỗi CFG-M02-09 --------------------------------------------------------------------------------
