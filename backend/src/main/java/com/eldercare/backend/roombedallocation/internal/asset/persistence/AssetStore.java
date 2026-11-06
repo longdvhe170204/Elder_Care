@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -110,6 +111,78 @@ public class AssetStore {
                 nextDue,
                 clearOverdue,
                 id);
+    }
+
+    /** FR-014: kết quả Đạt của lần đăng kiểm, bảo hiểm đặt hạn mới và gỡ dấu tương ứng. */
+    public void renewDue(long id, AssetStatus status, String dueColumn, String flagColumn, LocalDate nextDue) {
+        if (!Set.of("vehicle_inspection_due_on", "insurance_due_on").contains(dueColumn)
+                || !Set.of("vehicle_inspection_overdue", "insurance_overdue").contains(flagColumn))
+            throw new IllegalArgumentException(dueColumn + "," + flagColumn);
+        jdbc.update(
+                "UPDATE asset SET status = ?, " + dueColumn + " = ?, " + flagColumn + " = FALSE, version = version + 1"
+                        + " WHERE id = ?",
+                status.name(),
+                nextDue,
+                id);
+    }
+
+    /** BR-M03-17: gắn dấu quá hạn; {@code true} khi vừa gắn. */
+    public boolean flagOverdue(long id, String flagColumn) {
+        if (!Set.of("maintenance_overdue", "vehicle_inspection_overdue", "insurance_overdue")
+                .contains(flagColumn)) throw new IllegalArgumentException(flagColumn);
+        return jdbc.update(
+                        "UPDATE asset SET " + flagColumn + " = TRUE, version = version + 1 WHERE id = ? AND NOT "
+                                + flagColumn,
+                        id)
+                == 1;
+    }
+
+    /** Tài sản chưa thanh lý có ít nhất một hạn bảo trì, đăng kiểm, bảo hiểm (job W-09). */
+    public List<AssetRow> withDueDates() {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM asset WHERE status <> 'DISPOSED' AND (maintenance_due_on IS NOT NULL"
+                        + " OR vehicle_inspection_due_on IS NOT NULL OR insurance_due_on IS NOT NULL) ORDER BY id",
+                this::row);
+    }
+
+    public Optional<Long> disposalRequest(long id) {
+        return Optional.ofNullable(
+                jdbc.queryForObject("SELECT disposal_request_id FROM asset WHERE id = ?", Long.class, id));
+    }
+
+    public void setDisposalRequest(long id, long requestId) {
+        jdbc.update("UPDATE asset SET disposal_request_id = ?, version = version + 1 WHERE id = ?", requestId, id);
+    }
+
+    public void dispose(long id, Instant at) {
+        jdbc.update(
+                "UPDATE asset SET status = 'DISPOSED', disposed_at = ?, version = version + 1 WHERE id = ?",
+                LocalDateTime.ofInstant(at, BusinessTime.ZONE),
+                id);
+    }
+
+    /** W-09: tài sản Đã thanh lý trước {@code cutoff} (mốc tính hạn lưu giữ). */
+    public List<long[]> disposedBefore(Instant cutoff, int batch) {
+        return jdbc.query(
+                "SELECT id, disposed_at FROM asset WHERE status = 'DISPOSED' AND disposed_at < ? ORDER BY disposed_at, id"
+                        + " LIMIT ?",
+                (rs, i) -> new long[] {
+                    rs.getLong(1),
+                    rs.getObject(2, LocalDateTime.class)
+                            .atZone(BusinessTime.ZONE)
+                            .toInstant()
+                            .toEpochMilli()
+                },
+                LocalDateTime.ofInstant(cutoff, BusinessTime.ZONE),
+                batch);
+    }
+
+    public void delete(JdbcTemplate retention, java.util.Collection<Long> ids) {
+        if (ids.isEmpty()) return;
+        retention.update(
+                "DELETE FROM asset WHERE id IN (" + String.join(",", java.util.Collections.nCopies(ids.size(), "?"))
+                        + ")",
+                ids.toArray());
     }
 
     public void updateDepartment(long id, long departmentId) {
