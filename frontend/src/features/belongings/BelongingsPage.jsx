@@ -253,8 +253,13 @@ function ResidentBelongings({ resident, catalogs, role }) {
             <SheetDescription>Của {name}</SheetDescription>
           </SheetHeader>
           <ReturnForm
+            residentId={resident.id}
+            residentName={name}
+            role={role}
             belongings={returnable}
             isValuable={(b) => !!catalogs.typeOf(b.typeId)?.valuable}
+            requiresConsent={(b) => !!catalogs.typeOf(b.typeId)?.requiresConsentForUse}
+            onConfirmationCreated={() => setConfirmationsVersion((n) => n + 1)}
             locationName={catalogs.locationName}
             levels={catalogs.levels}
             onDone={(message) => {

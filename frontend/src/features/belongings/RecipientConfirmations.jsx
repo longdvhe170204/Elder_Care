@@ -31,15 +31,22 @@ const BASES = [
 ]
 const OPEN = ['PENDING_CONFIRMATION', 'EFFECTIVE']
 
-function CreateForm({ residentId, belongings, locationName, onDone }) {
-  const [v, setV] = useState({ name: '', document: '', representativeId: '' })
-  const [isResident, setIsResident] = useState(false)
-  const [ids, setIds] = useState([])
+// Form lập yêu cầu. Dùng lại trong màn Trả đồ (ReturnConfirmation) với `initial` (người nhận, giấy tờ, đồ đã chọn ở form
+// trả, khóa không sửa ở đây) và `embedded` (khung div, nút thường: không lồng <form> trong form trả); `onCreated(id)` nhận
+// mã xác nhận vừa lập (backend trả {id}, api-013 chưa khai schema của 201, như lập phiếu kiểm kê).
+export function CreateForm({ residentId, belongings, locationName, onDone, initial, embedded = false, onCreated }) {
+  const [v, setV] = useState({ name: initial?.name ?? '', document: initial?.document ?? '', representativeId: '' })
+  const [isResident, setIsResident] = useState(initial?.isResident ?? false)
+  const [ids, setIds] = useState(initial?.belongingIds ?? [])
   const [form, setForm] = useState([])
   const [errors, setErrors] = useState({})
   const [failure, setFailure] = useState(null)
+  const [busy, setBusy] = useState(false)
   const key = useRef(crypto.randomUUID())
   const set = (name) => (e) => setV((s) => ({ ...s, [name]: e.target.value }))
+  const lockedName = !!initial?.name
+  const lockedDocument = !!initial?.document
+  const lockedItems = !!initial
 
   async function submit(event) {
     event.preventDefault()
@@ -51,9 +58,10 @@ function CreateForm({ residentId, belongings, locationName, onDone }) {
     setErrors(e)
     setFailure(null)
     if (Object.keys(e).length > 0) return
+    setBusy(true)
     try {
       const fileId = form.length > 0 ? await uploadFile(form[0]) : null
-      await postRecipientConfirmations({
+      const { data } = await postRecipientConfirmations({
         headers: { 'Idempotency-Key': key.current },
         body: {
           residentId,
@@ -64,45 +72,75 @@ function CreateForm({ residentId, belongings, locationName, onDone }) {
           ...(fileId && { signedForm: { representativeId: Number(v.representativeId), fileId } }),
         },
       })
-      onDone('Đã lập yêu cầu xác nhận người nhận khác.')
+      if (onCreated) onCreated(data?.id)
+      else onDone('Đã lập yêu cầu xác nhận người nhận khác.')
     } catch (error) {
       setFailure(problemOf(error))
+    } finally {
+      setBusy(false)
     }
   }
 
+  const Root = embedded ? 'div' : 'form'
   return (
-    <form className="flex flex-col gap-4 rounded-xl border p-3" onSubmit={submit} noValidate>
+    <Root
+      className="flex flex-col gap-4 rounded-xl border p-3"
+      {...(embedded ? { role: 'group', 'aria-label': 'Lập xác nhận người nhận khác' } : { onSubmit: submit, noValidate: true })}
+    >
       <FieldGroup>
         <Field data-invalid={!!errors.name || undefined}>
           <FieldLabel htmlFor="rc-name">Họ tên người nhận khác</FieldLabel>
-          <Input id="rc-name" autoComplete="off" className="h-11" value={v.name} onChange={set('name')} />
+          <Input
+            id="rc-name"
+            autoComplete="off"
+            className="h-11"
+            value={v.name}
+            onChange={set('name')}
+            readOnly={lockedName}
+          />
           {errors.name && <FieldError>{errors.name}</FieldError>}
         </Field>
         <Field data-invalid={!!errors.document || undefined}>
           <FieldLabel htmlFor="rc-document">Giấy tờ của người nhận</FieldLabel>
-          <Input id="rc-document" className="h-11" value={v.document} onChange={set('document')} />
+          <Input
+            id="rc-document"
+            className="h-11"
+            value={v.document}
+            onChange={set('document')}
+            readOnly={lockedDocument}
+          />
           {errors.document && <FieldError>{errors.document}</FieldError>}
         </Field>
-        <label className="flex min-h-10 cursor-pointer items-center gap-2">
-          <Checkbox
-            checked={isResident}
-            onCheckedChange={setIsResident}
-            aria-label="Người nhận là chính người cao tuổi"
-          />
-          <span className="type-body-sm">Người nhận là chính người cao tuổi</span>
-        </label>
+        {!lockedItems && (
+          <label className="flex min-h-10 cursor-pointer items-center gap-2">
+            <Checkbox
+              checked={isResident}
+              onCheckedChange={setIsResident}
+              aria-label="Người nhận là chính người cao tuổi"
+            />
+            <span className="type-body-sm">Người nhận là chính người cao tuổi</span>
+          </label>
+        )}
         <fieldset className="flex flex-col gap-2">
           <legend className="type-label">Đồ được trả cho người này</legend>
-          {belongings.map((b) => (
-            <label key={b.id} className="flex min-h-10 cursor-pointer items-center gap-2">
-              <Checkbox
-                checked={ids.includes(b.id)}
-                onCheckedChange={(on) => setIds((c) => (on ? [...c, b.id] : c.filter((x) => x !== b.id)))}
-                aria-label={`Xác nhận cho ${b.description}, mã ${b.id}`}
-              />
-              <span className="type-body-sm">{pickLabel(b, locationName)}</span>
-            </label>
-          ))}
+          {lockedItems
+            ? belongings
+                .filter((b) => ids.includes(b.id))
+                .map((b) => (
+                  <p key={b.id} className="type-body-sm">
+                    {pickLabel(b, locationName)}
+                  </p>
+                ))
+            : belongings.map((b) => (
+                <label key={b.id} className="flex min-h-10 cursor-pointer items-center gap-2">
+                  <Checkbox
+                    checked={ids.includes(b.id)}
+                    onCheckedChange={(on) => setIds((c) => (on ? [...c, b.id] : c.filter((x) => x !== b.id)))}
+                    aria-label={`Xác nhận cho ${b.description}, mã ${b.id}`}
+                  />
+                  <span className="type-body-sm">{pickLabel(b, locationName)}</span>
+                </label>
+              ))}
           {errors.ids && <FieldError>{errors.ids}</FieldError>}
         </fieldset>
         <FilesField
@@ -127,10 +165,16 @@ function CreateForm({ residentId, belongings, locationName, onDone }) {
         )}
       </FieldGroup>
       <ProblemAlert problem={failure} />
-      <Button type="submit" className="h-11 self-start">
-        Lưu yêu cầu xác nhận
-      </Button>
-    </form>
+      {embedded ? (
+        <Button type="button" className="h-11 self-start" disabled={busy} onClick={submit}>
+          Lập xác nhận
+        </Button>
+      ) : (
+        <Button type="submit" className="h-11 self-start" disabled={busy}>
+          Lưu yêu cầu xác nhận
+        </Button>
+      )}
+    </Root>
   )
 }
 
