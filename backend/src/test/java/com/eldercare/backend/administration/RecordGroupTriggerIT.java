@@ -207,20 +207,6 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
 
     /** Bảng có sẵn chưa khai nhóm (rà 2026-10-30); chủ module khai khi làm migration gộp bảng, xong thì xóa dòng. */
     private static final Set<String> PENDING_DATA_GROUP = Set.of(
-            // B (001)
-            "assessment_care_need",
-            "care_level",
-            "care_level_history",
-            "consent",
-            "consent_family_member",
-            "end_of_life_wish",
-            "end_of_life_wish_opinion",
-            "periodic_reminder",
-            "reassessment_notice",
-            "return_overdue_alert",
-            "treatment_wish",
-            "treatment_wish_notify",
-            "treatment_wish_opinion",
             // C (003, T066)
             "allocation_write_guard",
             "bed_backfill_request",

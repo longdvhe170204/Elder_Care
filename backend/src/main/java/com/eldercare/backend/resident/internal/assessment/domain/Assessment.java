@@ -3,22 +3,20 @@ package com.eldercare.backend.resident.internal.assessment.domain;
 import com.eldercare.backend.common.data.DataGroup;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Lần đánh giá, nhóm 3 có bản nháp (data-model mục 7; FR-025, FR-026): sửa được khi còn Nháp; sau xác nhận hoặc hủy trigger
@@ -67,9 +65,9 @@ public class Assessment {
 
     private String discardReason;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "assessment_care_need", joinColumns = @JoinColumn(name = "assessment_id"))
-    @Column(name = "care_need_id")
+    /** Nhu cầu chăm sóc được chọn (Q-291); cột JSON thay bảng {@code assessment_care_need} từ 001 T084. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "care_need_ids", nullable = false)
     private Set<Long> careNeedIds = new HashSet<>();
 
     @Version

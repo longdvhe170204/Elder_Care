@@ -1,34 +1,33 @@
 package com.eldercare.backend.resident.internal.assessment.persistence;
 
+import com.eldercare.backend.administration.shared.api.StatusHistoryApi;
+import com.eldercare.backend.administration.shared.api.dto.HistoryEntry;
+import com.eldercare.backend.administration.shared.api.dto.HistoryKind;
+import com.eldercare.backend.administration.shared.api.dto.HistoryRow;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.CareLevelAtDate;
 import com.eldercare.backend.resident.api.dto.CareLevelBasisType;
+import com.eldercare.backend.resident.internal.assessment.domain.CareLevelChange;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 /**
- * Mức chăm sóc hiện hành ({@code resident.current_care_level}) và lịch sử chỉ thêm ({@code care_level_history}; FR-052,
- * FR-053). Hai thay đổi đi cùng nhau trong transaction của lệnh gọi.
+ * Mức chăm sóc hiện hành ({@code resident.current_care_level}) và lịch sử chỉ thêm (FR-052, FR-053; từ 001 T084 là dòng
+ * {@code status_history} của {@link CareLevelChange#TRACK}, khóa {@code M01.CLH:<residentId>:<từ>} thay
+ * {@code UNIQUE (resident_id, effective_from)}). Hai thay đổi đi cùng nhau trong transaction của lệnh gọi.
  */
 @Repository
 public class CareLevelHistoryStore {
 
-    private static final RowMapper<CareLevelAtDate> ROW = (rs, i) -> new CareLevelAtDate(
-            CareLevel.valueOf(rs.getString("care_level")),
-            rs.getObject("effective_from", LocalDateTime.class).toInstant(ZoneOffset.UTC),
-            CareLevelBasisType.valueOf(rs.getString("basis_type")),
-            rs.getLong("basis_id"));
-
     private final JdbcTemplate jdbc;
+    private final StatusHistoryApi histories;
 
-    CareLevelHistoryStore(JdbcTemplate jdbc) {
+    CareLevelHistoryStore(JdbcTemplate jdbc, StatusHistoryApi histories) {
         this.jdbc = jdbc;
+        this.histories = histories;
     }
 
     public Optional<CareLevel> current(long residentId) {
@@ -50,41 +49,43 @@ public class CareLevelHistoryStore {
             Instant recordedAt,
             long recordedBy) {
         jdbc.update("UPDATE resident SET current_care_level = ? WHERE id = ?", level.name(), residentId);
-        jdbc.update(
-                "INSERT INTO care_level_history (resident_id, care_level, effective_from, basis_type, basis_id,"
-                        + " recorded_at, recorded_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        histories.add(
+                CareLevelChange.TRACK,
                 residentId,
-                level.name(),
-                utc(effectiveFrom),
-                basisType.name(),
-                basisId,
-                utc(recordedAt),
-                recordedBy);
+                new HistoryEntry<>(
+                        HistoryKind.POINT,
+                        null,
+                        level.name(),
+                        null,
+                        effectiveFrom,
+                        null,
+                        recordedBy,
+                        false,
+                        null,
+                        basisType.name(),
+                        basisId,
+                        new CareLevelChange(recordedAt),
+                        null,
+                        CareLevelChange.uniqueKey(residentId, effectiveFrom)));
     }
 
-    /** Dòng có {@code effective_from} lớn nhất mà không sau {@code at} (FR-053). */
+    /** Dòng có thời điểm hiệu lực lớn nhất mà không sau {@code at} (FR-053). */
     public Optional<CareLevelAtDate> at(long residentId, Instant at) {
-        return jdbc
-                .query(
-                        "SELECT care_level, effective_from, basis_type, basis_id FROM care_level_history"
-                                + " WHERE resident_id = ? AND effective_from <= ?"
-                                + " ORDER BY effective_from DESC LIMIT 1",
-                        ROW,
-                        residentId,
-                        utc(at))
-                .stream()
-                .findFirst();
+        return histories.at(CareLevelChange.TRACK, residentId, at).map(CareLevelHistoryStore::view);
     }
 
+    /** Mới nhất trước. */
     public List<CareLevelAtDate> history(long residentId) {
-        return jdbc.query(
-                "SELECT care_level, effective_from, basis_type, basis_id FROM care_level_history"
-                        + " WHERE resident_id = ? ORDER BY effective_from DESC, id DESC",
-                ROW,
-                residentId);
+        return histories.list(CareLevelChange.TRACK, residentId).reversed().stream()
+                .map(CareLevelHistoryStore::view)
+                .toList();
     }
 
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    private static CareLevelAtDate view(HistoryRow<CareLevelChange> row) {
+        return new CareLevelAtDate(
+                CareLevel.valueOf(row.value()),
+                row.startsAt(),
+                CareLevelBasisType.valueOf(row.basisType()),
+                row.basisId());
     }
 }

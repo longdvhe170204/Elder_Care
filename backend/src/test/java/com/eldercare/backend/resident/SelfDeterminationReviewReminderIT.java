@@ -75,11 +75,11 @@ class SelfDeterminationReviewReminderIT extends WishTestBase {
                 .as("đúng một nhắc cho phiếu này")
                 .containsExactly(wish.id());
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM periodic_reminder WHERE type = 'REVIEW_SELF_DETERMINATION'"
-                                + " AND resident_id = ? AND milestone_id = ?",
+                        "SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M01.PERIODIC_REMINDER.REVIEW_SELF_DETERMINATION'"
+                                + " AND entity_type = 'M01.RESIDENT' AND entity_id = ? AND marker = ?",
                         Integer.class,
                         id,
-                        wish.id()))
+                        "START:" + wish.id()))
                 .isEqualTo(1);
         assertThat(wishes.get(target(id)).current())
                 .hasValueSatisfying(w -> assertThat(w.id()).isEqualTo(wish.id()));

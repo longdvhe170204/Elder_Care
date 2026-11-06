@@ -15,7 +15,7 @@ import com.eldercare.backend.resident.api.events.CareLevelChanged;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentStatus;
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelHistoryStore;
-import com.eldercare.backend.resident.internal.health.persistence.CareNeedRepository;
+import com.eldercare.backend.resident.internal.health.service.M01Catalogs;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class CareLevelApiImpl implements CareLevelApi {
 
     private final CareLevelHistoryStore history;
     private final AssessmentRepository assessments;
-    private final CareNeedRepository careNeeds;
+    private final M01Catalogs catalogs;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
     private final ObjectProvider<CurrentUser> currentUser;
@@ -48,7 +48,7 @@ public class CareLevelApiImpl implements CareLevelApi {
     CareLevelApiImpl(
             CareLevelHistoryStore history,
             AssessmentRepository assessments,
-            CareNeedRepository careNeeds,
+            M01Catalogs catalogs,
             BusinessTime time,
             ApplicationEventPublisher events,
             ObjectProvider<CurrentUser> currentUser,
@@ -56,7 +56,7 @@ public class CareLevelApiImpl implements CareLevelApi {
         this.auditLog = auditLog;
         this.history = history;
         this.assessments = assessments;
-        this.careNeeds = careNeeds;
+        this.catalogs = catalogs;
         this.time = time;
         this.events = events;
         this.currentUser = currentUser;
@@ -80,8 +80,8 @@ public class CareLevelApiImpl implements CareLevelApi {
     public Set<CareNeedView> currentCareNeeds(long residentId) {
         return assessments
                 .findFirstByResidentIdAndStatusOrderByConfirmedAtDescIdDesc(residentId, AssessmentStatus.CONFIRMED)
-                .map(a -> careNeeds.findAllById(a.getCareNeedIds()).stream()
-                        .map(n -> new CareNeedView(n.getId(), n.getName()))
+                .map(a -> catalogs.findAll(M01Catalogs.CARE_NEED, a.getCareNeedIds()).stream()
+                        .map(n -> new CareNeedView(n.id(), n.name()))
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
     }
