@@ -10,6 +10,7 @@ import '../common/widgets/header_app_bar.dart';
 import 'approval_requests/approval_inbox_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
+import 'nutrition/serving_confirmation_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'resident_login_qr/resident_login_qr_screen.dart';
 import 'sync_results/sync_results_screen.dart';
@@ -103,6 +104,15 @@ class _StaffRootState extends State<StaffRoot> {
   List<(String, IconData, Widget Function())> get _moreItems => [
     ('Phê duyệt', LucideIcons.clipboardCheck, () => ApprovalInboxScreen(api: widget.session.api)),
     ('Mã đăng nhập cho người cao tuổi', LucideIcons.qrCode, () => ResidentLoginQrScreen(api: widget.session.api)),
+    (
+      'Xác nhận phục vụ suất ăn',
+      LucideIcons.utensils,
+      () => ServingConfirmationScreen(
+        api: widget.session.api,
+        queue: widget.queue,
+        accountId: widget.session.user!.accountId,
+      ),
+    ),
   ];
 
   @override

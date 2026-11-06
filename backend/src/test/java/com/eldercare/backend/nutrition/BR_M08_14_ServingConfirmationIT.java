@@ -163,7 +163,7 @@ class BR_M08_14_ServingConfirmationIT extends ServingTestBase {
 
         as(serverOf(floor2));
         assertThat(offline.recordType()).isEqualTo("M08.SERVING_CONFIRMATION");
-        offline.apply(new ServingOfflineHandler.Content(forOk, floor2, ok, null, null), accepted, deviceAt);
+        offline.apply(new ServingOfflineHandler.Content(forOk, ok, null, null), accepted, deviceAt);
         assertThat(result(forOk)).isEqualTo("CORRECT_PORTION");
         assertThat(jdbc.queryForObject(
                         "SELECT device_at < occurred_at FROM record_event WHERE kind = 'M08.SERVING_CONFIRMATION'"
@@ -172,12 +172,12 @@ class BR_M08_14_ServingConfirmationIT extends ServingTestBase {
                         forOk))
                 .isTrue();
 
-        assertThatThrownBy(() -> offline.apply(
-                        new ServingOfflineHandler.Content(forLate, floor2, late, null, null), accepted, deviceAt))
+        assertThatThrownBy(() ->
+                        offline.apply(new ServingOfflineHandler.Content(forLate, late, null, null), accepted, deviceAt))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", "PORTION_HAS_ALLERGEN");
         offline.apply(
-                new ServingOfflineHandler.Content(forLate, floor2, late, false, new IncidentData(null, null, null)),
+                new ServingOfflineHandler.Content(forLate, late, false, new IncidentData(null, null, null)),
                 accepted,
                 deviceAt);
         assertThat(result(forLate)).isEqualTo("BLOCKED_CONFLICT_NOT_EATEN");
