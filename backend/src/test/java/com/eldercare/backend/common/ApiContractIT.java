@@ -198,6 +198,14 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
+            // 013 (B, 2026-11-05): đủ endpoint sau Phase 8; chủ dự án duyệt api-013 2026-11-05 (013-1), so chi tiết
+            // operation bật trong PR 013 (T029). Phản hồi lỗi khai bằng ProblemBody chung sau khi đổi Problem của
+            // api-013 theo api-004 (2026-11-06, phương án (a), chờ A review; plan 013 điểm 21).
+            new Contract(
+                    Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
             // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1, US3 xong 2026-11-04;
             // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(

@@ -44,6 +44,7 @@ import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
+import { BelongingsPage } from '@/features/belongings/BelongingsPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
@@ -84,6 +85,7 @@ const PAGES = {
   'approval-requests': ApprovalInbox,
   notifications: NotificationsPage,
   'pending-review-records': PendingReviewPage,
+  belongings: BelongingsPage,
 }
 
 // Mục menu chỉ hiện khi đã có màn
