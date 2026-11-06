@@ -102,3 +102,21 @@ Sự kiện 019 phát: thông báo (cài `CoYeuCauThongBao`) theo FR-021, gồm 
 `LichXeLenhApi` → `VehicleScheduleCommandApi.followTrip(long tripId, TripVehicleChangeType type, Instant plannedDepartureAt, Instant plannedReturnAt, Optional<Instant> actualAt)` (MANDATORY, chỉ trên phương thức lệnh).
 
 DTO tại `roombedallocation.api.dto`: `VehicleScheduleChangeCheck(boolean allowed, List<String> unmetConditions)`; `TripVehicleChangeType` = `CHANGED`, `CANCELLED`, `FIRST_DEPARTURE`, `EXTENDED`, `LAST_DEPARTURE_UNDONE`, `RETURN_FINISHED` (đúng sáu loại ở mục 2.2). Chưa có provider production của 019. Fake duy nhất `support/fake/roombedallocation/FakeVehicleSchedules` và `FakeVehicleSchedules.Config`; mặc định chưa có lịch. Lệnh không tự lập lịch xe (Q-306).
+
+### Đảo chiều phụ thuộc M11 ↔ M07 (06/11/2026, chủ dự án duyệt)
+
+M11 đọc `medication.api` (mục 4: `DonThuocApi`, `TiepNhanThuocCungUngApi`) và cài `medication.api.spi.YeuCauThuocCungUngPort` (mục 3) tạo vòng `billing → medication → care → billing` (M07 cài SPI của `care.api`, M04 phát sự kiện chi phí của `billing.api`); `ModuleBoundaryTest` từ chối. Research W-02 giả định không vòng, nay không còn đúng. Thay bằng:
+
+```java
+// billing.api.spi (M11 khai, M07 cài) — đã khai 06/11/2026; bản giả support/fake/billing/FakeProcurementPrescriptions
+interface ProcurementPrescriptionPort {
+  boolean isUnendedFacilityPrescription(long residentId, long prescriptionId);   // thay DonThuocApi.donNguonVienChuaKetThuc
+}
+// chưa khai, làm cùng T027 sau khi chốt id dòng (team-plan mục 8)
+interface ProcurementIntakePort { Set<Long> passedLineIds(long procurementRequestId); }   // billing.api.spi, M07 cài; thay TiepNhanThuocCungUngApi
+interface ProcurementMedicationLineApi {                                                // billing.api, M11 cài, 006 đọc
+  Optional<ProcurementMedicationLineView> lineRecordedPurchased(long lineId);           // thay medication.api.spi.ProcurementMedicationPort
+}
+```
+
+Thiếu bean `ProcurementPrescriptionPort` thì lệnh lập, sửa yêu cầu loại thuốc trả 503 `SOURCE_UNAVAILABLE`.

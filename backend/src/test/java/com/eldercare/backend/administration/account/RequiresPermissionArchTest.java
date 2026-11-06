@@ -28,6 +28,10 @@ class RequiresPermissionArchTest {
     /** Lệnh tự kiểm quyền: {@code Lớp.phươngThức} → cách kiểm. Thêm dòng thì người xem lại kiểm lệnh có tự kiểm thật. */
     static final Map<String, String> SELF_CHECKED = Map.ofEntries(
             Map.entry(
+                    "com.eldercare.backend.billing.internal.procurement.service.ProcurementRequestService.create",
+                    "PermissionApi.hasPermission (PURCHASE_REQUEST, CREATE) không gắn đối tượng, hoặc với loại thuốc trên từng"
+                            + " người cao tuổi của dòng (Phụ lục 27 ⁴⁴); 019 FR-008d"),
+            Map.entry(
                     "com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.editContent",
                     "khóa Lập theo loại yêu cầu (RequestTypeHandler.createPermission), chỉ người yêu cầu; 000 FR-034"),
             Map.entry(

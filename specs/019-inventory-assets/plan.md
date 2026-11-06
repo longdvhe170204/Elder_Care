@@ -168,7 +168,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
   - Trả lại đối chiếu xóa số thực tế, ngày mua, nhà cung cấp, chứng từ của lần ghi trước để ghi lại; tệp chứng từ đã gắn vẫn thuộc yêu cầu.
   - Xác nhận khớp: hệ thống chỉ so được tổng nguyên giá với số thực tế ở loại tài sản (FR-008b); số trên chứng từ do Kế toán so bằng mắt, hợp đồng không có trường số tiền chứng từ.
   - Xử lý lệch báo người lập và Kế toán đã ghi lệch (`reconciled_by_staff_id`).
-  - Còn lại của Phase 3: loại MEDICATION của Điều dưỡng (FR-008d; T027, T028; kiểm đơn qua `PrescriptionApi`, quyền xem `SUC_KHOE`, phạm vi phân công), nhắc CFG-M11-08, 09 và job (`BR_M11_20_ReminderIT`; T003 phần M11), provider M11 (T004 phần M11), màn web (T008).
+- Phase 3 lượt 2 (2026-11-06): nhắc CFG-M11-08, 09 (`ProcurementReminders`, job `REMIND_PROCUREMENT_REQUESTS` 07:00, một lần mỗi lần vào trạng thái, dấu ở `reminder_marker`; tên job chưa thêm vào enum `runJobs` của api-000, như hai job của 003); loại MEDICATION (Điều dưỡng của bộ phận lập, gửi, rút lại, hủy; lệnh lập tự kiểm quyền theo từng người cao tuổi của dòng để người ngoài phạm vi nhận 403, ghi ở `RequiresPermissionArchTest.SELF_CHECKED`; danh sách tự kiểm quyền xem theo vai trò); provider M11 (phạm vi, lưu giữ không gắn hồ sơ tính từ `locked_at`, quyền tải chứng từ).
+- Lệch research W-02 (chủ dự án duyệt 2026-11-06): M11 không phụ thuộc M07 vì vòng `billing → medication → care → billing`. Kiểm đơn qua `billing.api.spi.ProcurementPrescriptionPort` (M07 cài); T027 đổi thành M11 cung cấp dòng thuốc đã ghi đã mua ở `billing.api` và khai `ProcurementIntakePort` cho "Đã nhận" (contracts mục cuối module-interfaces). Lỗi đơn không hợp lệ dùng 409 `CONDITION_NOT_MET` sẵn có (điều kiện `PRESCRIPTION_NOT_FACILITY_UNENDED`).
+- Còn lại của Phase 3: T027 (chờ id dòng và D đồng ý đảo chiều, team-plan mục 8), màn web (T008).
 
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 
