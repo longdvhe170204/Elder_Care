@@ -9,7 +9,9 @@ import com.eldercare.backend.admission.internal.contract.domain.Contract;
 import com.eldercare.backend.admission.internal.contract.domain.ContractVersion;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.waitinglist.persistence.WaitingListStore;
+import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -95,14 +97,20 @@ class ResidencyStatisticsService implements ResidencyStatisticsApi {
                 .orElse(LocalDate.MAX);
     }
 
-    /** Hồ sơ chờ có ngày đăng ký trong khoảng; M02 chưa lưu ngày rời danh sách nên {@code leftOn} để trống. */
+    /** Hồ sơ chờ có ngày đăng ký trong khoảng; {@code leftOn} là ngày hồ sơ tới trạng thái cuối, hồ sơ còn chờ thì trống. */
     @Override
     @Transactional(readOnly = true)
     public Stream<WaitingEntryView> waitingList(LocalDate from, LocalDate to) {
+        Map<Long, Instant> left = waitingList.leftAt();
         return waitingList.list(null).stream()
                 .filter(e -> !e.applicationDate().isBefore(from)
                         && !e.applicationDate().isAfter(to))
                 .map(e -> new WaitingEntryView(
-                        e.id(), e.status().name(), e.residenceType(), e.careLevel(), e.applicationDate(), null));
+                        e.id(),
+                        e.status().name(),
+                        e.residenceType(),
+                        e.careLevel(),
+                        e.applicationDate(),
+                        left.containsKey(e.id()) ? LocalDate.ofInstant(left.get(e.id()), BusinessTime.ZONE) : null));
     }
 }

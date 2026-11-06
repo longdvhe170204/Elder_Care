@@ -205,7 +205,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 - [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
 - [x] T105 *(bổ sung 2026-10-29, Q-392)* Bỏ nhóm chỉ tiêu kho nguyên liệu: `MetricGroup.INVENTORY`, chỉ tiêu `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` (contracts/chi-tieu.md) và các ô quyền của nhóm này; sửa test liên quan
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T030 Rà: mọi mã ở `contracts/chi-tieu.md` có `ChiTieu_*Test` (SC-001); DBR-25 (mốc theo Asia/Ho_Chi_Minh); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-055, FR-055a — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T030 *(2026-11-06: rà xong lượt đầu, plan "Rà T030"; mọi mã đã cài có test, 43 mã chưa cài chờ nguồn; DBR-25, FR-002, 004 (thêm `M14ArchTest.FR_004_noSourcesOutsideThisPhase`), 005, 006, 008 có mã và test; thiếu FR-007 nhãn loại bỏ theo lưu trữ (T109); FR-055, 055a chờ 010, 019 (T020); để `[ ]` tới khi các mã còn lại có test)* Rà: mọi mã ở `contracts/chi-tieu.md` có `ChiTieu_*Test` (SC-001); DBR-25 (mốc theo Asia/Ho_Chi_Minh); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-055, FR-055a — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
@@ -244,3 +244,13 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 
 - 016 chỉ đọc; không tạo, sửa dữ liệu nghiệp vụ, không gửi thông báo (FR-001, Q-306)
 - Mọi mốc đọc `ThamSoApi` (CFG-M14-*)
+
+## Phase 13: Convergence
+
+*(/speckit-converge 2026-11-06. Các nguồn dưới đây đã có bản cài thật nhưng `reporting` chưa dùng; phần khác của T008, T014, T016, T018, T020, T022, T024, T031, T032 vẫn chờ nguồn như ghi ở từng task.)*
+
+- [x] T106 [US3] *(2026-11-06: `WaitingListMetric` `RES.WAITING_LIST`, thêm `RES.WAITING_TIME`, `RES.WAITING_TIME_MAX` (chi-tieu.md, glossary); test `MetricResWaitingListTest` 3; còn số hồ sơ rời danh sách theo lý do chờ 004 trả `leftOn`, ghi ở plan)* Cài `NCT.DANH_SACH_CHO` qua `ResidencyStatisticsApi.waitingList` (004, bản thật `ResidencyStatisticsService`); test `ChiTieu_NCT_*Test` viết trước; một phần của T013, T014 per FR-025 (partial)
+- [x] T107 [US5] *(2026-11-06: `MissedDoseRateMetric`, `RefusedDoseRateMetric`, `OverdueReconciliationsMetric`; test `MetricMedicationTest` 2)* Cài `THUOC.TY_LE_BO_LO`, `THUOC.TY_LE_TU_CHOI` (`MedicationStatisticsApi.dosesInPeriod`) và `THUOC.DOI_CHIEU_QUA_HAN` (`reconciliationsInPeriod`) của 006 (bản thật `DefaultMedicationStatisticsService`); test `ChiTieu_THUOC_*Test` viết trước; một phần của T017, T018 per FR-043, FR-044 (partial)
+- [x] T108 [US5] *(2026-11-06: `VitalSignsMetric`; test `MetricHealthVitalSignsTest` 1; còn chuỗi giá trị theo thời gian của một người, chờ 007 thêm giá trị đo vào `VitalSignReportView`, ghi ở plan)* Cài `SK.CHI_SO` qua `VitalSignStatisticsApi.readings` (007, bản thật `DefaultVitalSignStatistics`); test `ChiTieu_SK_*Test` viết trước; một phần của T017, T018 per FR-040 (partial)
+- [ ] T109 [US7] Gắn nhãn `PURGED_BY_RETENTION` khi khoảng báo cáo giao với khoảng dữ liệu đã loại bỏ theo bản tóm tắt `EXPIRED_DATA_PURGED` của 000 (FR-051) cho loại dữ liệu mà chỉ tiêu đọc; test viết trước per FR-007 (missing) *(bổ sung 2026-11-06 khi rà T030: nhãn có trong enum, file xuất, web nhưng không chỗ nào gắn; "kèm loại dữ liệu bị ảnh hưởng" cần thêm trường vào `MetricValue` của api-016, chờ chủ dự án duyệt)*
+- [x] T110 *(Bổ sung 2026-11-06)* Web: ô chia nhóm hiện chữ thay khóa thô (`reportLabels.breakdownLabel`: trạng thái giường kèm lý do giữ chỗ, hồ sơ chờ, loại lưu trú, mức chỉ số, bàn giao, tỷ lệ phục vụ, giấy phép, phiếu đối chiếu; tầng theo `getFloors`; ca hiện "Ca {id}" vì hợp đồng chỉ trả khóa) ở bảng báo cáo, tiêu đề danh sách chi tiết, dashboard; test `reportLabels.test.js` 4 (đỏ rồi xanh), `ReportsPage.test.jsx` sửa khóa mẫu

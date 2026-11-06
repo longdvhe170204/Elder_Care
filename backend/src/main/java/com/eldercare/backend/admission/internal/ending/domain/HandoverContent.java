@@ -9,7 +9,8 @@ public record HandoverContent(
         Long familyMemberId,
         String facilityName,
         Instant handoverAt,
-        long handoverStaffId) {
+        long handoverStaffId,
+        Long pickupRecordId) {
 
     public static final SharedKind<HandoverContent> KIND =
             SharedKind.of("M02.RESIDENT_HANDOVER", HandoverContent.class);

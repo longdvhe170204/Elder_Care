@@ -63,7 +63,7 @@ export const postConsentsByIdWithdraw = (params) => request('POST', '/consents/{
 /** Hồ sơ sức khỏe ban đầu (kèm đính chính hiện hành) (FR-017) */
 export const getResidentsByIdInitialHealthRecord = (params) => request('GET', '/residents/{id}/initial-health-record', params)
 
-/** Lập hoặc sửa bản nháp (Bác sĩ, Điều dưỡng); If-Match khi sửa (FR-017) */
+/** Lập hoặc sửa bản nháp (Bác sĩ, Điều dưỡng; Hành chính chỉ lập, sửa bản Nháp của chính mình khi Đang tiếp nhận, Q-400); If-Match khi sửa (FR-017) */
 export const putResidentsByIdInitialHealthRecord = (params) => request('PUT', '/residents/{id}/initial-health-record', params)
 
 /** Bác sĩ xác nhận hồ sơ sức khỏe ban đầu (FR-017) */
@@ -75,11 +75,14 @@ export const postInitialHealthRecordsByIdCorrect = (params) => request('POST', '
 /** Danh sách mục sức khỏe (người thân chỉ thấy mục Hiệu lực, FR-022) (FR-018, FR-022) */
 export const getResidentsByIdHealthItems = (params) => request('GET', '/residents/{id}/health-items', params)
 
-/** Ghi nhận mục dị ứng, bệnh nền, tiền sử bệnh (Bác sĩ, Điều dưỡng) (FR-018, FR-018a, FR-019, FR-020, FR-021, BR-M01-07, BR-M01-11, BR-M01-12) */
+/** Ghi nhận mục dị ứng, bệnh nền, tiền sử bệnh (Bác sĩ, Điều dưỡng; Hành chính ghi tự khai của gia đình khi Đang tiếp nhận, mục mang unverified=true, Q-400) (FR-018, FR-018a, FR-019, FR-020, FR-021, BR-M01-07, BR-M01-11, BR-M01-12) */
 export const postResidentsByIdHealthItems = (params) => request('POST', '/residents/{id}/health-items', params)
 
 /** Loại trừ mục (Bác sĩ, Điều dưỡng); không có lệnh sửa hay xóa (DBR-04) (FR-019, FR-020, BR-M01-07) */
 export const postHealthItemsByIdExclude = (params) => request('POST', '/health-items/{id}/exclude', params)
+
+/** Kiểm chứng mục tự khai của gia đình do Hành chính ghi (Bác sĩ, Điều dưỡng; Q-400, BR-M01-17); một chiều, 409 ALREADY_VERIFIED nếu đã kiểm chứng (FR-018b, BR-M01-17) */
+export const postHealthItemsByIdVerify = (params) => request('POST', '/health-items/{id}/verify', params)
 
 /** Phiên bản Hiệu lực và lịch sử; Hành chính, Kế toán chỉ nhận hasEndOfLifeWish (FR-023e) (FR-023b, FR-023e) */
 export const getResidentsByIdEndOfLifeWishes = (params) => request('GET', '/residents/{id}/end-of-life-wishes', params)

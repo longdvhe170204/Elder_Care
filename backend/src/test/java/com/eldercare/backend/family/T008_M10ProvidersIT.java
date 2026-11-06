@@ -119,4 +119,37 @@ class T008_M10ProvidersIT extends MySqlIntegrationTestBase {
                 .extracting(RetentionProvider.Candidate::id)
                 .doesNotContain(rel);
     }
+
+    /** 000 T112: bản ghi của M10 trỏ tới hồ sơ M01; job tìm qua {@code referencing} để không xóa hồ sơ trước chúng. */
+    @Test
+    void FR_051a_relationshipsOfAResident_areFoundByReferencingTheResident() {
+        long resident = TestUsers.nextId();
+        long m = fixtures.familyMember("Hồ Văn D", "0903000004");
+        long rel = fixtures.relate(m, resident, 1, true, true);
+
+        assertThat(relationships().referencing(new RetentionProvider.DataRef("M01.RESIDENT", resident)))
+                .containsExactly(new RetentionProvider.DataRef(RelationshipAttribute.ENTITY_TYPE, rel));
+        assertThat(relationships().referencing(new RetentionProvider.DataRef("M02.CONTRACT", resident)))
+                .isEmpty();
+    }
+
+    /** 000 T112: mọi provider lưu giữ của M10 đều gắn hồ sơ người cao tuổi nên đều cài {@code referencing}, lấy theo trang. */
+    @Test
+    void FR_051a_everyM10Provider_answersReferencingAndPages() throws NoSuchMethodException {
+        List<RetentionProvider> m10 =
+                retention.stream().filter(p -> p.dataType().startsWith("M10.")).toList();
+
+        assertThat(m10).hasSizeGreaterThanOrEqualTo(5);
+        for (RetentionProvider provider : m10) {
+            Class<?> type = org.springframework.aop.support.AopUtils.getTargetClass(provider);
+            assertThat(type.getMethod("referencing", RetentionProvider.DataRef.class)
+                            .getDeclaringClass())
+                    .as(provider.dataType())
+                    .isNotEqualTo(RetentionProvider.class);
+            assertThat(type.getMethod("expiredCandidates", Instant.class, RetentionProvider.Candidate.class, int.class)
+                            .getDeclaringClass())
+                    .as(provider.dataType())
+                    .isNotEqualTo(RetentionProvider.class);
+        }
+    }
 }

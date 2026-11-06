@@ -207,6 +207,19 @@ public class WaitingListStore {
                 ResidenceType.valueOf(rs.getString("desired_residence_type")));
     }
 
+    /** Thời điểm hồ sơ chờ tới trạng thái cuối (cột {@code locked_at}); hồ sơ còn chờ không có trong kết quả. */
+    public java.util.Map<Long, Instant> leftAt() {
+        java.util.Map<Long, Instant> result = new java.util.HashMap<>();
+        jdbc.query(
+                "SELECT id, locked_at FROM admission_record WHERE kind = 'WAITING_ENTRY' AND locked_at IS NOT NULL",
+                rs -> {
+                    result.put(
+                            rs.getLong("id"),
+                            rs.getObject("locked_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
+                });
+        return result;
+    }
+
     private static LocalDateTime utc(Instant instant) {
         return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }

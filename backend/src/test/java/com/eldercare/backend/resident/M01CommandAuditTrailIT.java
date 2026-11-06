@@ -402,8 +402,8 @@ class M01CommandAuditTrailIT extends StatusTestBase {
                 new RecordCommand(HealthItemType.ALLERGY, allergenId(), null, severityId(), sourceId(), false));
         long m = mark();
 
-        items.markChecked(
-                recorded.item().id(), com.eldercare.backend.resident.api.dto.HealthItemCheckSource.MEDICATION);
+        // 006 đã gỡ cờ thuốc ngay sau khi ghi mục; cờ dinh dưỡng còn chờ nên lần gọi này mới đổi cờ và ghi nhật ký
+        items.markChecked(recorded.item().id(), com.eldercare.backend.resident.api.dto.HealthItemCheckSource.NUTRITION);
 
         Entry e = exactlyOne(
                 since(m),
@@ -417,7 +417,8 @@ class M01CommandAuditTrailIT extends StatusTestBase {
 
     private void statusEntry(List<Entry> trail, long resident, String command, String from, String to, TestUser actor) {
         long historyId = jdbc.queryForObject(
-                "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                        + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                 Long.class,
                 resident);
         Entry e = exactlyOne(trail, "RESIDENT_STATUS_CHANGED", RESIDENT, resident, resident, actor);

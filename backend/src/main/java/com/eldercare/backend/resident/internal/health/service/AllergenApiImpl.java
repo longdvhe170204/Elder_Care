@@ -4,42 +4,44 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.shared.api.CatalogApi;
+import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
+import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.dto.AllergenGroup;
 import com.eldercare.backend.resident.api.dto.AllergenView;
 import com.eldercare.backend.resident.api.dto.CreateAllergen;
-import com.eldercare.backend.resident.internal.health.domain.Allergen;
-import com.eldercare.backend.resident.internal.health.persistence.AllergenRepository;
+import com.eldercare.backend.resident.internal.health.domain.AllergenAttributes;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Danh mục dị nguyên cho 006, 011 (001 T032; data-model mục 5 "Danh mục"). Tra cứu chỉ đọc; {@link #addAllergen} chỉ cho
- * nhóm thực phẩm và chỉ Bác sĩ (011 FR-003); nhóm hoạt chất và nhóm khác do Quản lý viện cấu hình qua {@code
- * CatalogService}.
+ * Danh mục dị nguyên cho 006, 011 (001 T032; data-model mục 5 "Danh mục"; từ 001 T084 ở {@code catalog_item} loại
+ * {@code M01.ALLERGEN}). Tra cứu chỉ đọc; {@link #addAllergen} chỉ cho nhóm thực phẩm và chỉ Bác sĩ (011 FR-003); nhóm
+ * hoạt chất và nhóm khác do Quản lý viện cấu hình qua {@code CatalogService}.
  */
 @Service
 class AllergenApiImpl implements AllergenApi {
 
     private static final AuditAction CREATED = new AuditAction("CATALOG_CREATED", false);
 
-    private final AllergenRepository allergens;
+    private final CatalogApi catalog;
     private final AuditLogApi auditLog;
     private final ObjectProvider<CurrentUser> currentUser;
 
-    AllergenApiImpl(AllergenRepository allergens, AuditLogApi auditLog, ObjectProvider<CurrentUser> currentUser) {
-        this.allergens = allergens;
+    AllergenApiImpl(CatalogApi catalog, AuditLogApi auditLog, ObjectProvider<CurrentUser> currentUser) {
+        this.catalog = catalog;
         this.auditLog = auditLog;
         this.currentUser = currentUser;
     }
@@ -47,14 +49,19 @@ class AllergenApiImpl implements AllergenApi {
     @Override
     @Transactional(readOnly = true)
     public Optional<AllergenView> allergen(long id) {
-        return allergens.findById(id).map(AllergenApiImpl::view);
+        try {
+            return Optional.of(view(catalog.require(M01Catalogs.ALLERGEN, id)));
+        } catch (NotFoundException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AllergenView> activeAllergens(AllergenGroup group) {
-        return allergens.findByStatusOrderByIdAsc(CatalogStatus.ACTIVE).stream()
-                .filter(a -> group == null || a.getGroup() == group)
+        return catalog.list(M01Catalogs.ALLERGEN, null, true).stream()
+                .filter(a -> group == null || a.attributes().allergenGroup() == group)
+                .sorted(Comparator.comparing(CatalogItem::id))
                 .map(AllergenApiImpl::view)
                 .toList();
     }
@@ -73,26 +80,33 @@ class AllergenApiImpl implements AllergenApi {
             throw new InvalidValueException("Tên dị nguyên là bắt buộc");
         }
         String name = command.name().strip();
-        if (allergens.findByNameAndStatus(name, CatalogStatus.ACTIVE).isPresent()) {
-            throw duplicateName();
-        }
-        Allergen created;
+        int order = catalog.list(M01Catalogs.ALLERGEN, null, false).stream()
+                        .mapToInt(CatalogItem::sortOrder)
+                        .max()
+                        .orElse(0)
+                + 1;
+        CatalogItem<AllergenAttributes> created;
         try {
-            created = allergens.saveAndFlush(new Allergen(name, AllergenGroup.FOOD));
-        } catch (DataIntegrityViolationException e) {
-            // UNIQUE (active_name): hai lệnh thêm cùng tên chạy cùng lúc
-            throw duplicateName();
+            created = catalog.create(
+                    M01Catalogs.ALLERGEN,
+                    new NewCatalogItem<>(null, name, null, order, AllergenAttributes.of(AllergenGroup.FOOD)));
+        } catch (BusinessException e) {
+            // trùng tên đang Hiệu lực (BR-M15-06), kể cả hai lệnh thêm cùng tên chạy cùng lúc
+            if (e.status() == HttpStatus.CONFLICT) {
+                throw duplicateName();
+            }
+            throw e;
         }
         auditLog.write(AuditLogEntry.builder()
                 .action(CREATED)
-                .entity("M01.ALLERGEN", created.getId())
+                .entity(M01Catalogs.ALLERGEN.code(), created.id())
                 .after(Map.of("name", name, "group", AllergenGroup.FOOD.name(), "status", "ACTIVE"))
                 .build());
-        return created.getId();
+        return created.id();
     }
 
-    private static AllergenView view(Allergen a) {
-        return new AllergenView(a.getId(), a.getName(), a.getGroup());
+    private static AllergenView view(CatalogItem<AllergenAttributes> a) {
+        return new AllergenView(a.id(), a.name(), a.attributes().allergenGroup());
     }
 
     private static BusinessException duplicateName() {

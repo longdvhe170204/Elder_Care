@@ -100,6 +100,18 @@ class _IntakeScreenState extends State<IntakeScreen> {
     };
   }
 
+  /// Tải một tệp lên `POST /files` (ApiClient.uploadFile dùng chung) và lấy mã tệp trả về (`fileId`).
+  Future<int> _upload(List<int> bytes, String filename) async {
+    final name = filename.toLowerCase();
+    final type = name.endsWith('.png')
+        ? 'image/png'
+        : name.endsWith('.pdf')
+        ? 'application/pdf'
+        : 'image/jpeg';
+    final result = await widget.api.uploadFile('/files', 'file', bytes, filename, type);
+    return result!['fileId'] as int;
+  }
+
   Future<void> _save() async {
     final errors = _validate();
     setState(() {
@@ -109,10 +121,10 @@ class _IntakeScreenState extends State<IntakeScreen> {
     if (errors.isNotEmpty) return;
     setState(() => _busy = true);
     try {
-      final photoIds = [for (final p in _photos) await widget.api.uploadFile(p.$1, p.$2)];
+      final photoIds = [for (final p in _photos) await _upload(p.$1, p.$2)];
       final type = _type!;
       final consentNeeded = _giveNow && type['requiresConsentForUse'] == true;
-      final signedFormId = consentNeeded ? await widget.api.uploadFile(_signedForm!.$1, _signedForm!.$2) : null;
+      final signedFormId = consentNeeded ? await _upload(_signedForm!.$1, _signedForm!.$2) : null;
       final amount = num.parse(_amount.text.replaceAll(',', '.'));
       await widget.api.requestJson(
         'POST',
