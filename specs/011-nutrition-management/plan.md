@@ -224,3 +224,13 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
   - `dish-conflict-check`: Phase 5;
   - kiểm ngừng chế độ ăn khi còn bản gán hoặc thực đơn, và kiểm lại thực đơn khi đổi hạn chế: Phase 4 và Phase 5;
   - màn web: chờ duyệt bố cục.
+
+## Ghi chú triển khai *(2026-11-06, Phase 4)*
+
+- Lớp: `nutrition.internal.assignment.{domain, persistence, service}` và `nutrition.web.DietAssignmentController`. Thay cho `BanGanService`: `DietAssignmentService`; hàm thuần `CanLyDoChuyenMon` là `ProfessionalReasonRule`. Migration `V011_03__diet_assignment.sql` (xem glossary mục 17.6).
+- **Đồng thời**: lệnh lập, áp dụng, hủy và việc chuyển Chờ hiệu lực → Hiệu lực chạy `READ_COMMITTED` như 005 (`CarePlanService`). Lý do: MySQL mặc định `REPEATABLE READ`, lệnh thứ hai khóa `M08.RESIDENT_NUTRITION` xong vẫn đọc lại bản chụp cũ nên cả hai cùng áp dụng được (`BR_M08_03_ConcurrentApplyIT` lỗi lúc đầu, trả 200 và 200). Hai tác động chạy trong lệnh của 001 (`onFinalStatus`, `onAdmissionCompleted`) dùng transaction của 001 và đọc dưới khóa người cao tuổi.
+- **Hợp đồng**: `POST /residents/{residentId}/diet-assignments` trả `MenuCheckResult` đúng hợp đồng, nên id bản gán mới nằm ở header `Location`. `GET` trả thêm một dòng `isDefault = true` (chế độ ăn mặc định của viện) khi người đó chưa có bản Hiệu lực (FR-014); dòng này không có id, trạng thái.
+- **Quyền xem**: Phụ lục 27 dòng `DIET` cho Quản lý viện, Bác sĩ, Điều dưỡng và cả bếp (AC-07) quyền `VIEW` để xem danh mục, nhưng FR-063 cấm bếp xem bản gán. Chủ dự án chọn (2026-11-06): `DietAssignmentService.list` tự loại vai trò ngoài Bác sĩ, Điều dưỡng, Quản lý viện (403 `PERMISSION_DENIED`, `failedLayer` `ROLE`); không tách Function. Không cần thêm vào `SELF_CHECKED` vì `list` không phải `@BusinessCommand`.
+- **Quyết định nghiệp vụ của chủ dự án (2026-11-06)**: (1) lập đề xuất với chế độ ăn thiếu món an toàn bị chặn `CONDITION_NOT_MET` mã `SAFE_DISH_MISSING` (FR-001); (2) `DietAssignmentCommand` không có trường lý do lúc lập, giữ đúng hợp đồng (FR-010 nhắc "lý do" nhưng hợp đồng không có; `personalInstruction` là ghi chú nhu cầu dinh dưỡng).
+- **Hoãn sang phase sau** (chưa có dữ liệu): đối chiếu FR-016 với thực đơn (Phase 5: danh sách cảnh báo hiện rỗng, `confirmedWarnings` rỗng là đủ); phát sinh FR-017 và FR-015 cho bữa đã chốt chưa tới giờ (Phase 6); kiểm ngừng chế độ ăn khi còn thực đơn (`STILL_IN_MENU`, Phase 5); listener `OtherAllergyRecorded`, `AllergyExcluded` (Phase 5, 6, 9); thông báo "chưa gán chế độ ăn" ở mỗi lần chốt (Phase 6).
+- Bản gán Hiệu lực ngay: bản cũ Ngừng và sự kiện `DietAssignmentTookEffect` phát trong cùng lệnh; với Chờ hiệu lực, hiệu lực thực tế là thời điểm hiệu lực mong muốn (FR-017), không phải lúc job chạy.

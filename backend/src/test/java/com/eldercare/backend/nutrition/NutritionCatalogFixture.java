@@ -136,6 +136,63 @@ final class NutritionCatalogFixture {
         return dietId(name);
     }
 
+    /** Chế độ ăn Hiệu lực có dấu liên quan điều trị, món an toàn {@code safeDish}, trả id. */
+    long treatmentDiet(List<Long> restrictions, long safeDish) throws Exception {
+        asDoctor();
+        String name = "Chế độ điều trị " + TestUsers.nextId();
+        send(post(BASE + "/diets"), dietBody(name, true, false, restrictions, safeDish))
+                .andExpect(status().isCreated());
+        return dietId(name);
+    }
+
+    /** Người cao tuổi ở trạng thái {@code status} (bảng {@code resident} của 001, như {@code FamilyCommandTestBase}). */
+    long resident(String status) {
+        String code = "m08-" + TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO resident (profile_code, full_name, date_of_birth, gender, status, status_since,"
+                        + " created_at, created_by) VALUES (?, 'Người cao tuổi thử', '1940-05-01', 'FEMALE', ?,"
+                        + " NOW(6), NOW(6), 1)",
+                code,
+                status);
+        return jdbc.queryForObject("SELECT id FROM resident WHERE profile_code = ?", Long.class, code);
+    }
+
+    static String assignmentBody(long diet, String texture, List<Long> restrictions, java.time.Instant from) {
+        return "{\"dietId\":" + diet + ",\"texture\":\"" + texture + "\",\"personalRestrictions\":" + ids(restrictions)
+                + ",\"personalInstruction\":\"Ăn chậm\",\"basis\":\"ASSESSMENT\",\"effectiveFrom\":\"" + from + "\"}";
+    }
+
+    /** Bác sĩ lập đề xuất bản gán. */
+    ResultActions propose(long resident, String body) throws Exception {
+        asDoctor();
+        return send(post("/api/v1/residents/" + resident + "/diet-assignments"), body);
+    }
+
+    /** Id bản gán mới nhất của người cao tuổi. */
+    long latestAssignment(long resident) {
+        return jdbc.queryForObject("SELECT MAX(id) FROM diet_assignment WHERE resident_id = ?", Long.class, resident);
+    }
+
+    ResultActions apply(long assignment, String professionalReason) throws Exception {
+        asDoctor();
+        String reason = professionalReason == null ? "" : "\"professionalReason\":\"" + professionalReason + "\",";
+        return send(
+                post("/api/v1/diet-assignments/" + assignment + "/apply"), "{" + reason + "\"confirmedWarnings\":[]}");
+    }
+
+    /** Lập và áp dụng ngay (không cần lý do chuyên môn), trả id. */
+    long activeAssignment(long resident, long diet, String texture, List<Long> restrictions, java.time.Instant at)
+            throws Exception {
+        propose(resident, assignmentBody(diet, texture, restrictions, at)).andExpect(status().isCreated());
+        long id = latestAssignment(resident);
+        apply(id, null).andExpect(status().isOk());
+        return id;
+    }
+
+    String assignmentStatus(long id) {
+        return jdbc.queryForObject("SELECT status FROM diet_assignment WHERE id = ?", String.class, id);
+    }
+
     int activeDefaultDiets() {
         return jdbc.queryForObject(
                 "SELECT COUNT(*) FROM catalog_item WHERE catalog_type='M08.DIET' AND status='ACTIVE'"

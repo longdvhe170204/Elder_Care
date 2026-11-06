@@ -2902,6 +2902,7 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 | `QUA_GIO_BUA`, `CHUA_TOI_MOC_CHOT`, `DA_CHOT`, `CHUA_CHUAN_BI`, `THIEU_MON_THAY_THE` | `PAST_MEAL_TIME`, `BEFORE_CLOSING_TIME`, `ALREADY_CLOSED`, `NOT_PREPARED`, `MISSING_SUBSTITUTE_DISH` |
 | `PHAT_SINH_CHUA_XAC_NHAN`, `CHUA_LUU_MAU`, `NGOAI_PHAM_VI_NHAN`, `QUA_NGUONG_GIAO_TRE` | `ADJUSTMENTS_NOT_CONFIRMED`, `SAMPLE_NOT_RETAINED`, `OUT_OF_RECEIVING_SCOPE`, `PAST_LATE_DELIVERY_THRESHOLD` |
 | `SUAT_KHONG_DUNG_NGUOI`, `SUAT_CO_THANH_PHAN_DI_UNG`, `SUAT_TRAI_HAN_CHE`, `KHONG_CHO_DUNG_LAI` | `PORTION_WRONG_RESIDENT`, `PORTION_HAS_ALLERGEN`, `PORTION_VIOLATES_RESTRICTION`, `NOT_ALLOWED_TO_USE` |
+| *(bổ sung 2026-11-06, Phase 4)* mã điều kiện chưa thỏa của lệnh lập bản gán (`unmetConditions[].code`, kèm `CONDITION_NOT_MET`): người ở trạng thái cuối, chế độ ăn đã ngừng, chế độ ăn thiếu món an toàn (FR-001), đã có bản đang chờ (FR-012) | `RESIDENT_FINAL_STATUS`, `DIET_NOT_ACTIVE`, `SAFE_DISH_MISSING`, `PENDING_ASSIGNMENT_EXISTS` |
 
 ### 17.5. Gói `nutrition.api`, sự kiện, giao diện công khai (module-interfaces)
 
@@ -2920,12 +2921,15 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 | tên 011 gọi của module khác: `YeuCauTaoCanhBao` (007) `XUNG_DOT_DI_UNG_CHE_DO_AN` / `THUC_DON_MON`, `PHUC_VU_SUAT_DI_UNG` / `SUAT_DAC_BIET`; `YeuCauDongCanhBaoNguon`; `SuCoLenhApi.ghiNhan`; `SutCanPhatHien` | `incident.api.events.AlertRequested` (`DIET_ALLERGY_CONFLICT` / `MENU_DISH`, `ALLERGEN_PORTION_SERVED` / `SPECIAL_PORTION`), `AlertSourceCloseRequested`, `IncidentCommandApi.record`, `WeightLossDetected` (đã có ở `develop`) |
 | tên 011 nghe: `DiUngDaGhiNhan`, `DiUngKhacDaGhiNhan`, `DiUngDaLoaiTru`, `NguoiCaoTuoiDaChuyenTrangThai`, `DaChuyenGiuong`, `AnKemKeoDai`, `LuotVangDaMo/GiaHan/Dong`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `PhuLucDaApDung` | `AllergyRecorded`, `OtherAllergyRecorded`, `AllergyExcluded`, `ResidentStatusChanged`, `BedTransferred`, `ProlongedPoorEating`, `AbsenceOpened/Extended/Closed`, `DayCareClosureDayChanged`, `DayCareAbsenceNoticeRecorded`, `AddendumApplied` |
 | bản cài SPI: `NguonCongViecPort` loại `BUA` (`loaiQuanLy`, `kiemTra`, `xacNhanPhucVu`), `NgoaiTuyenHandler` | `TaskSourcePort` (`managedTypes`, `validate`, `confirmServing`) loại `MEAL`, `OfflineHandler` |
+| *(bổ sung 2026-11-06, Phase 4)* thông báo FR-065 dòng "Người Đang lưu trú chưa gán chế độ ăn" | sự kiện `ResidentWithoutDietAssignment(residentId, at)` (cài `HasNotificationRequests`, `eventType` `RESIDENT_WITHOUT_DIET_ASSIGNMENT`) |
+| *(bổ sung 2026-11-06, Phase 4)* bean `ThamGiaChuyenTrangThai` của 011; `BanGanService`; bản cài `CheDoAnApi`; việc theo phút bản gán Chờ hiệu lực; listener `DiUngDaGhiNhan`; `LuuTruProvider`, `GanPhamViProvider` của bản gán | `M08StatusParticipant` (`@Order(50)`); `DietAssignmentService`; `DietQueries`; `PendingAssignmentTask` (khóa `DIET_ASSIGNMENT_PENDING`); `NutritionAllergyListener`; `DietAssignmentRetention`, `DietAssignmentScopeAssignment` |
 
 ### 17.6. Bảng và cột *(sau gộp R-15, data-model 011 mục 0, 0.1)*
 
 | Tên logic | Mã |
 | --- | --- |
 | `ban_gan_che_do_an` | `diet_assignment` |
+| *(bổ sung 2026-11-06, Phase 4)* cột `ban_gan_che_do_an`: `nct_id`, `che_do_an_id`, `ket_cau`, `han_che_rieng` (`JSON`, thay `ban_gan_han_che`), `chi_dinh_rieng`, `can_cu`, `can_cu_id`, `thong_bao_xem_lai_id`, `hieu_luc_tu_yeu_cau`, `hieu_luc_tu`, `trang_thai`, `ly_do_chuyen_mon`, `canh_bao_da_xac_nhan`, người và lúc áp dụng, `ngung_luc`, `ly_do_huy`, `huy_boi_id`, lúc hủy; cột sinh `khoa_cho`, `khoa_hieu_luc`; trigger | `resident_id`, `diet_id`, `texture`, `personal_restrictions`, `personal_instruction`, `basis`, `basis_id`, `review_notice_id`, `requested_effective_from`, `actual_effective_at`, `status`, `professional_reason`, `confirmed_warnings`, `applied_by`, `applied_at`, `discontinued_at`, `cancel_reason`, `cancelled_by`, `cancelled_at`; `pending_key`, `active_key`; `trg_diet_assignment_lock_content` (migration `V011_03__diet_assignment.sql`) |
 | `thuc_don` | `menu` (món, món thay thế vào cột `JSON` `dishes`) |
 | `lan_chot` | `portion_closing` (người được tính, suất theo chế độ vào cột `JSON` `counted_residents`, `portions_by_diet`) |
 | loại ở `danh_muc_chung`: `M08.CHE_DO_AN`, `M08.MON_AN`, `M08.BUA_AN`, `M08.LOAI_DO_AN_CAM` | `M08.DIET`, `M08.DISH`, `M08.MEAL`, `M08.FORBIDDEN_FOOD_TYPE` |
@@ -2936,6 +2940,7 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 | job `ViecTheoPhutM08`, `ViecHangNgayM08`; listener `SuKienM08Listener` | `M08MinuteJob`, `M08DailyJob`; `M08EventListener` |
 | migration `V011_01__nen_m08.sql` | `V011_01__nutrition_foundation.sql` |
 | test `XungDotTest`, `ChonMonThayTheTest`, `ChayBuM08IT`, `M08ArchTest` | `ConflictCheckTest`, `SubstituteDishSelectorTest`, `M08CatchUpRunIT`, `M08ArchTest` |
+| *(bổ sung 2026-11-06, Phase 4)* test `CanLyDoChuyenMonTest`, `BR_M08_03_BanGanIT`, `FR_015_TrangThaiCuoiIT` | `ProfessionalReasonRuleTest`, `BR_M08_03_DietAssignmentIT` (đồng thời: `BR_M08_03_ConcurrentApplyIT`), `FR_015_FinalStatusIT`; thêm `FR_021_AllergyCheckIT`, `M08AssignmentProvidersIT` |
 
 ## 18. Feature 012 (`012-family-portal`, A) *(bổ sung 2026-11-03, khi dịch `contracts/api-012.yaml`; chủ feature chuyển từ E sang A cùng ngày)*
 

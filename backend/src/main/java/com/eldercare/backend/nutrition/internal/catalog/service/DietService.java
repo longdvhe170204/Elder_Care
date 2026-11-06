@@ -13,6 +13,7 @@ import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.nutrition.internal.assignment.persistence.DietAssignmentStore;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Diet;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DietAttributes;
 import com.eldercare.backend.nutrition.internal.catalog.domain.Dish;
@@ -35,7 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Danh mục chế độ ăn (FR-001 → FR-003, FR-005, FR-014; research M-04): Bác sĩ tạo, sửa, ngừng; đúng một chế độ ăn mặc
  * định (đặt mặc định cho chế độ khác thì chuyển trong cùng lệnh, chủ dự án duyệt 2026-11-06). Chặn ngừng khi còn bản gán
- * hoặc thực đơn chưa hết tuần (FR-002) và kiểm lại thực đơn khi đổi hạn chế cài ở phase của bản gán, thực đơn.
+ * Hiệu lực, Chờ hiệu lực (FR-002); chặn khi còn thực đơn chưa hết tuần và kiểm lại thực đơn khi đổi hạn chế cài ở phase
+ * thực đơn.
  */
 @Service
 public class DietService {
@@ -50,12 +52,19 @@ public class DietService {
     private final AllergenApi allergens;
     private final AuditLogApi audit;
     private final TechnicalLocks locks;
+    private final DietAssignmentStore assignments;
 
-    public DietService(NutritionCatalogStore store, AllergenApi allergens, AuditLogApi audit, TechnicalLocks locks) {
+    public DietService(
+            NutritionCatalogStore store,
+            AllergenApi allergens,
+            AuditLogApi audit,
+            TechnicalLocks locks,
+            DietAssignmentStore assignments) {
         this.store = store;
         this.allergens = allergens;
         this.audit = audit;
         this.locks = locks;
+        this.assignments = assignments;
     }
 
     /** Thân lệnh tạo, sửa chế độ ăn (api-011 {@code DietCommand}). */
@@ -129,6 +138,12 @@ public class DietService {
         }
         if (current.attributes().isDefault()) {
             throw blocked("DEFAULT_DIET", "Chế độ ăn mặc định không Ngừng hiệu lực được (FR-001)");
+        }
+        if (assignments.dietInUse(id)) {
+            throw new com.eldercare.backend.common.error.BusinessException(
+                    org.springframework.http.HttpStatus.CONFLICT,
+                    "STILL_ASSIGNED",
+                    "Chế độ ăn còn bản gán Hiệu lực hoặc Chờ hiệu lực (FR-002)");
         }
         Diet after = store.deactivateDiet(current);
         audit.write(AuditLogEntry.builder()
