@@ -154,6 +154,13 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 
 3. **Trưởng tầng báo hỏng tài sản "trong tầng mình"** (FR-013, FR-020): tài sản có vị trí tầng, phòng; tài sản ở "kho tài sản", "bãi xe" không thuộc tầng nào nên chỉ Phụ trách bộ phận báo hỏng được. Plan hiểu như vậy; đề nghị xác nhận ở Phụ lục 27 ³³. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
+## Ghi chú triển khai *(2026-11-06)*
+
+- Dịch `contracts/api-019.yaml` theo glossary mục 25 (chủ dự án duyệt 2026-11-06); không thêm bớt endpoint, trường. Thân lệnh lịch xe và thân loại tài sản trước viết thẳng trong operation, nay đặt tên `VehicleScheduleCommand`, `AssetTypeWrite` (cùng trường).
+- Gói (T001): `billing.muasam` → `billing.internal.procurement` (tách khỏi `billing.internal.purchase` của đề nghị mua hộ 010); `roombedallocation.taisan`, `lichxe` → `roombedallocation.internal.asset`, `roombedallocation.internal.vehicle`; job ở `scheduling` của từng module. Port giường của 003: `BedAssetCommandPort` (dùng), `BedAssetPort` (cài).
+- SPI của 006 cho dòng thuốc đã ghi đã mua là `medication.api.spi.ProcurementMedicationPort.lineRecordedPurchased(lineId)` (tra theo id dòng), khác mô tả "trả dòng của yêu cầu" ở contracts mục 3; dòng nằm trong cột `JSON` (R-15) nên phải có id ổn định. Cách 006 lấy id dòng ghi ở team-plan mục 8.
+- `BedAssetCommandPort` (003) chưa có bản cài; US5 cần bản cài của 003 trước khi nối thật.
+
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 
 - Ánh xạ bảng ở data-model mục 0; task T029. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.

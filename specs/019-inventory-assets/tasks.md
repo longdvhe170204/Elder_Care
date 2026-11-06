@@ -24,7 +24,7 @@ description: "Danh sách task triển khai feature 019 – Mua sắm, tài sản
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo ba gói `BE/billing/muasam/`, `BE/roombedallocation/taisan/`, `BE/roombedallocation/lichxe/`; ArchUnit `BT/roombedallocation/TaiSanArchTest.java`: chỉ `roombedallocation.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306); M03 không phụ thuộc M11 (research W-01, W-02)
+- [x] T001 Tạo ba gói `BE/billing/muasam/`, `BE/roombedallocation/taisan/`, `BE/roombedallocation/lichxe/`; ArchUnit `BT/roombedallocation/TaiSanArchTest.java`: chỉ `roombedallocation.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306); M03 không phụ thuộc M11 (research W-01, W-02) *(2026-11-06: gói theo backend/README `billing.internal.procurement`, `roombedallocation.internal.asset`, `roombedallocation.internal.vehicle`; `AssetArchTest` 5/5, gồm fixture cố ý vi phạm)*
 
 ---
 

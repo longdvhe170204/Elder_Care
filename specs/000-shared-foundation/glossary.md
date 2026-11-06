@@ -3239,6 +3239,100 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 
 *Chủ feature điền khi dịch `contracts/api-019.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
+### 25.1. Gói, thư mục (T001; chờ chủ dự án duyệt, 06/11/2026)
+
+| Tên logic | Mã |
+| --- | --- |
+| `billing.muasam` {`internal`, `web`, `lich`} | `billing.internal.procurement` {`service`, `domain`, `persistence`, `config`}, `billing.web`, `billing.scheduling` (khác `billing.internal.purchase` là đề nghị mua hộ của 010) |
+| `roombedallocation.taisan`, `roombedallocation.lichxe` | `roombedallocation.internal.asset`, `roombedallocation.internal.vehicle`; web ở `roombedallocation.web`, job ở `roombedallocation.scheduling` |
+| `TaiSanArchTest` | `roombedallocation.AssetArchTest` |
+| web `tinh-nang/mua-sam`, `tai-san`, `lich-xe` | `frontend/src/features/procurement-requests`, `assets`, `vehicle-schedules`; client sinh `frontend/src/api/api019.js` |
+| chức năng quyền dòng "Yêu cầu mua sắm", "Tài sản, lịch xe" (đã có ở 002) | `Function.PURCHASE_REQUEST`, `Function.ASSET_VEHICLE` (giữ nguyên) |
+
+### 25.2. Đường dẫn API (tiền tố `/api/v1`) và tag
+
+| Tên logic | Mã |
+| --- | --- |
+| `/mua-sam`, `/mua-sam/{id}` | `/procurement-requests`, `/procurement-requests/{id}` |
+| `/mua-sam/{id}/{lenh}`: `gui-duyet`, `rut-lai`, `huy`, `duyet`, `tu-choi`, `ghi-da-mua`, `xac-nhan-khop`, `tra-lai-doi-chieu`, `ghi-lech`, `xu-ly-lech` | `/procurement-requests/{id}/{command}`: `submit`, `withdraw`, `cancel`, `approve`, `reject`, `record-purchased`, `confirm-match`, `return-for-reconciliation`, `record-discrepancy`, `resolve-discrepancy` |
+| `/tai-san`, `/tai-san/loai`, `/tai-san/{id}` | `/assets`, `/asset-types`, `/assets/{id}` |
+| `/tai-san/{id}/{lenh}`: `dua-vao-su-dung`, `chuyen-vi-tri`, `bao-hong`, `dua-vao-bao-tri`, `ghi-ket-qua-bao-tri`, `go-dau-cho-chuyen-nguoi`, `lap-yeu-cau-thanh-ly`, `chuyen-bo-phan`, `gan-hu-hong-don-giuong` | `/assets/{id}/{command}`: `put-into-use`, `relocate`, `report-damage`, `start-maintenance`, `record-maintenance-result`, `remove-transfer-flag`, `request-disposal`, `transfer-department`, `link-bed-preparation-damage` |
+| `/lich-xe`; `/lich-xe/{id}/{lenh}`: `doi-gio`, `huy`, `ghi-xuat-phat`, `ghi-tra-xe` | `/vehicle-schedules`; `/vehicle-schedules/{id}/{command}`: `reschedule`, `cancel`, `record-departure`, `record-return` |
+| tag `mua-sam`, `tai-san`, `lich-xe` | `procurement-requests`, `assets`, `vehicle-schedules` |
+| tham số `trangThai`, `boPhanId`, `loaiId`, `xeId`, `tu`, `den`, `lenh` | `status`, `departmentId`, `typeId`, `vehicleId`, `from`, `to`, `command` |
+
+### 25.3. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| `LapMuaSam` (`boPhanId`, `loai`, `mucUuTien`, `thoiDiemCan`, `tepLienQuanIds`, `dong` {`ten`, `soLuong`, `donGiaDuKien`, `nctId`, `donThuocId`, `hoatChat`, `hamLuong`, `dangThuoc`, `donVi`}, `lyDo`, `ngayCan`, `thamChieu`, `yeuCauGocId`) | `ProcurementRequestWrite` (`departmentId`, `type`, `priority`, `neededBy`, `relatedFileIds`, `lines` {`name`, `quantity`, `estimatedUnitPrice`, `residentId`, `prescriptionId`, `activeIngredient`, `strength`, `dosageForm`, `unit`}, `reason`, `neededOn`, `reference`, `originalRequestId`) |
+| `YeuCauMuaSam` (thêm `id`, `tongDuKien`, `soDuocDuyet`, `soTienThucTe`, `trangThai`, `tongNguonGan`, `daNhan`) | `ProcurementRequest` (`id`, `estimatedTotal`, `approvedAmount`, `actualAmount`, `status`, `linkedSourceTotal`, `received`) |
+| `LenhMuaSam` (`lyDo`, `soDuocDuyet`, `soTienThucTe`, `ngayMua`, `nhaCungCap`, `tepChungTuIds`, `soLech`, `cachXuLy`) | `ProcurementRequestCommand` (`reason`, `approvedAmount`, `actualAmount`, `purchasedOn`, `supplier`, `receiptFileIds`, `discrepancyAmount`, `resolution`) |
+| `TaiSan` (`id`, `ma`, `loaiId`, `ten`, `boPhanId`, `trangThai`, `viTri`, `giuongId`, `dau`) | `Asset` (`id`, `code`, `typeId`, `name`, `departmentId`, `status`, `location`, `bedId`, `flags`) |
+| `GhiTangTaiSan` (`ma`, `loaiId`, `ten`, `boPhanId`, `nguon`, `moTaNguon`, `yeuCauMuaSamId`, `nguyenGia`, `ngayDuaVaoSuDung`, `chuKyBaoTriNgay`, `hanBaoTri`, `bienSo`, `soCho`, `hanDangKiem`, `hanBaoHiem`) | `AssetWrite` (`code`, `typeId`, `name`, `departmentId`, `source`, `sourceDescription`, `procurementRequestId`, `acquisitionCost`, `inServiceOn`, `maintenanceIntervalDays`, `maintenanceDueOn`, `licensePlate`, `seatCount`, `vehicleInspectionDueOn`, `insuranceDueOn`) |
+| thân loại tài sản (`id`, `ten`, `trangThai`) | `AssetTypeWrite` (`id`, `name`, `status`) |
+| `LenhTaiSan` (`lyDo`, `viTri` {`loai`, `id`}, `moTa`, `mucAnhHuong`, `ketQua`, `ngay`, `noiDung`, `donViThucHien`, `thueNgoai`, `chiPhi`, `yeuCauMuaSamId`, `noiDungDaSua`, `nguoiSua`, `boPhanMoiId`, `huHongId`) | `AssetCommand` (`reason`, `location` {`type`, `id`}, `description`, `impactLevel`, `result`, `date`, `content`, `performedBy`, `outsourced`, `cost`, `procurementRequestId`, `repairDescription`, `repairedBy`, `newDepartmentId`, `damageId`) |
+| `DatLichXe` (`xeId`, `diDuKien`, `veDuKien`, `mucDich`, `chuyenDiId`, `nctId`, `nguoiLaiId`, `ghiChu`) | `VehicleScheduleWrite` (`vehicleId`, `plannedDepartureAt`, `plannedReturnAt`, `purpose`, `tripId`, `residentId`, `driverStaffId`, `note`) |
+| thân lệnh lịch xe (`lyDo`, `diDuKien`, `veDuKien`, `thoiDiem`) | `VehicleScheduleCommand` (`reason`, `plannedDepartureAt`, `plannedReturnAt`, `occurredAt`) |
+| `Loi`, response `Loi`, `LoiChan`; `LyDo`; tham số `Id`, `IfMatch`, `IdempotencyKey`; security `phien`; `maLoi`, `dieuKienChuaThoa` | `Problem`, response `Problem`, `Blocked`; `Reason`; `Id`, `IfMatch`, `IdempotencyKey`; `session`; `errorCode`, `unmetConditions` |
+
+### 25.4. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| loại yêu cầu mua sắm `NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `THUOC`, `KHAC`; mức ưu tiên `THUONG`, `GAP` | `INGREDIENT`, `ASSET`, `SERVICE`, `MEDICATION`, `OTHER`; `NORMAL`, `URGENT` |
+| trạng thái yêu cầu `NHAP`, `CHO_DUYET`, `DA_DUYET`, `CHO_DOI_CHIEU`, `LECH`, `DA_DOI_CHIEU`, `TU_CHOI`, `DA_HUY` | `DRAFT`, `PENDING_APPROVAL`, `APPROVED`, `PENDING_RECONCILIATION`, `DISCREPANCY`, `RECONCILED`, `REJECTED`, `CANCELLED` |
+| cách xử lý lệch `CHAP_NHAN_LECH`, `YEU_CAU_HOAN_TIEN`; loại nguồn gắn `TAI_SAN`, `BAO_TRI` | `ACCEPT_DISCREPANCY`, `REQUEST_REFUND`; `ASSET`, `MAINTENANCE` |
+| trạng thái tài sản `SAN_SANG`, `DANG_SU_DUNG`, `HONG`, `DANG_BAO_TRI`, `DA_THANH_LY` | `READY`, `IN_USE`, `DAMAGED`, `UNDER_MAINTENANCE`, `DISPOSED` |
+| nguồn tài sản `MUA`, `TANG`, `CHUYEN`, `GIUONG_003` (chỉ trong mã) | `PURCHASED`, `DONATED`, `TRANSFERRED_IN`, `BED` |
+| loại vị trí `KHU_VUC`, `TANG`, `PHONG`, `BAI_XE`, `KHO_TAI_SAN` | `AREA`, `FLOOR`, `ROOM`, `PARKING_LOT`, `ASSET_STORAGE` |
+| mức ảnh hưởng `MAT_AN_TOAN`, `KHONG_MAT_AN_TOAN`; kết quả bảo trì `DAT`, `KHONG_DAT` | `UNSAFE`, `STILL_SAFE`; `PASS`, `FAIL` |
+| loại lần bảo trì `BAO_TRI`, `KIEM_DINH`, `DANG_KIEM`, `BAO_HIEM`; nguồn hư hỏng `BAO_HONG`, `DON_GIUONG` | `MAINTENANCE`, `INSPECTION`, `VEHICLE_INSPECTION`, `INSURANCE`; `DAMAGE_REPORT`, `BED_PREPARATION` |
+| dấu `qua_han_bao_tri`, `qua_han_dang_kiem`, `qua_han_bao_hiem`, `cho_chuyen_nguoi` | `MAINTENANCE_OVERDUE`, `VEHICLE_INSPECTION_OVERDUE`, `INSURANCE_OVERDUE`, `AWAITING_RESIDENT_TRANSFER` |
+| mục đích lịch xe `CHUYEN_DI`, `DI_KHAM`, `CHUYEN_VIEN_KHONG_CAP_CUU`, `KHAC`; trạng thái `DA_DAT`, `DANG_DUNG`, `DA_HOAN_THANH`, `DA_HUY` | `TRIP`, `MEDICAL_VISIT`, `NON_EMERGENCY_TRANSFER`, `OTHER`; `BOOKED`, `IN_USE`, `COMPLETED`, `CANCELLED` |
+
+### 25.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI`, `TU_DUYET` (cùng nghĩa `KHONG_DUOC_TU_DUYET`) | `STATE_CHANGED`, `SELF_APPROVAL_NOT_ALLOWED` (dùng lại mã đã có) |
+| `BO_PHAN_CHUA_CO_PHU_TRACH`, `KHONG_PHAI_PHU_TRACH_BO_PHAN` | `DEPARTMENT_LEAD_MISSING`, `NOT_DEPARTMENT_LEAD` |
+| `THIEU_YEU_CAU_MUA_SAM`, `YEU_CAU_KHONG_HOP_LE`, `NGUON_DA_GAN`, `DA_CO_NGUON_GAN` | `PROCUREMENT_REQUEST_REQUIRED`, `PROCUREMENT_REQUEST_NOT_USABLE`, `SOURCE_ALREADY_LINKED`, `HAS_LINKED_SOURCES` |
+| `VUOT_SO_DUOC_DUYET`, `THIEU_CHUNG_TU`, `NGUOI_GHI_MUA_KHONG_DOI_CHIEU`, `CHUNG_TU_KHONG_KHOP` | `APPROVED_AMOUNT_EXCEEDED`, `RECEIPT_REQUIRED`, `PURCHASE_RECORDER_CANNOT_RECONCILE`, `RECEIPT_MISMATCH` |
+| `THIEU_NGUYEN_GIA`, `LOAI_GIUONG`, `GIUONG_CO_NGUOI`, `GIUONG_DA_PHAN_BO`, `THIEU_MUC_ANH_HUONG` | `ACQUISITION_COST_REQUIRED`, `BED_ASSET_TYPE_NOT_ALLOWED`, `BED_OCCUPIED`, `BED_HAS_ALLOCATION_HISTORY`, `IMPACT_LEVEL_REQUIRED` |
+| `CHONG_LICH_XE`, `XE_KHONG_SAN_SANG`, `XE_QUA_HAN_DANG_KIEM_BAO_HIEM` | `VEHICLE_SCHEDULE_OVERLAP`, `VEHICLE_NOT_AVAILABLE`, `VEHICLE_INSPECTION_OR_INSURANCE_OVERDUE` (khác `VEHICLE_ALREADY_SCHEDULED` của 014, là lỗi lệnh dời chuyến) |
+
+### 25.6. Giao diện, SPI, loại bản ghi (contracts/module-interfaces.md)
+
+| Tên logic | Mã |
+| --- | --- |
+| SPI `YeuCauMuaSamPort` (`kiemTraDuocDung`, `ganNguon`), `LoaiMuaSam`, `LoaiNguonMuaSam`, `DieuKien` | `roombedallocation.api.spi.ProcurementRequestPort` (`checkUsable(requestId, departmentId, type)`, `linkSource(requestId, sourceType, sourceId, amount)` MANDATORY), `api.dto.ProcurementType`, `ProcurementSourceType`, `common.error.UnmetCondition` |
+| `TaiSanThongKeApi` (`quaHan`, `lichXe`); `TaiSanQuaHanView`, `LichXeView` | `roombedallocation.api.AssetStatisticsApi` (`overdue`, `vehicleSchedules`); `OverdueAssetView`, `VehicleScheduleView` |
+| `MuaSamThongKeApi.theoBoPhan`, `YeuCauMuaSamView` | `billing.api.ProcurementStatisticsApi.byDepartment`, `ProcurementRequestView` |
+| `TaiSanDaDoiTrangThai`, `YeuCauMuaSamDaDoi` | `roombedallocation.api.events.AssetStatusChanged`, `billing.api.events.ProcurementRequestChanged` |
+| 019 cài `YeuCauThuocCungUngPort` (006); đọc `TiepNhanThuocCungUngApi.theoYeuCau`, `DonThuocApi.donNguonVienChuaKetThuc` | `medication.api.spi.ProcurementMedicationPort.lineRecordedPurchased(lineId)` (chữ ký 006 đã có); `medication.api.ProcurementIntakeApi.byProcurementRequest`, `PrescriptionApi.unendedFacilityPrescriptions` |
+| `GiuongTheoTaiSanPort` (dùng), `TaiSanGiuongPort` (cài) | `roombedallocation.internal.bed.domain.BedAssetCommandPort`, `BedAssetPort` (tên đã có ở 9) |
+| `NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, `phuTrachBoPhan`; `QuyenXemTruongApi`; `HoSoNhanVienApi`, `TaiKhoanApi.theoNhanVien` | `DutyApi.departmentOf`, `isDepartmentLead`, `departmentLead`; `FieldVisibilityApi.canView`; `StaffProfileApi`, `AccountApi.byStaff` (tên đã có ở 7) |
+| loại yêu cầu phê duyệt `M03.THANH_LY_TAI_SAN` | `M03.ASSET_DISPOSAL` (`RequestTypeHandler`) |
+| loại đính chính `M03.TAI_SAN_LICH_SU`, `M03.LICH_XE` | `M03.ASSET_HISTORY`, `M03.VEHICLE_SCHEDULE` (`CorrectableRecordProvider`) |
+| loại phạm vi `M11.MUA_SAM`, `M03.TAI_SAN`, `M03.LICH_XE`; chủ tệp `M11.CHUNG_TU_MUA_SAM` | `M11.PROCUREMENT_REQUEST`, `M03.ASSET`, `M03.VEHICLE_SCHEDULE`; `M11.PROCUREMENT_RECEIPT` |
+| hàm thuần `KiemTraVuot`, `KhopChungTu`, `AnhXaTrangThaiGiuong`, `KiemTraDatLich` | `ApprovedAmountCheck`, `ReceiptMatch`, `BedAssetStateMapping`, `VehicleBookingCheck` |
+| `MuaSamService`, `YeuCauMuaSamPortImpl`, `YeuCauThuocCungUngPortImpl`; `TaiSanService`, `TaiSanGiuongPortImpl`; `LichXeService` | `ProcurementRequestService`, `ProcurementRequestPortImpl`, `ProcurementMedicationPortImpl`; `AssetService`, `BedAssetPortImpl`; `VehicleScheduleService` (cài `VehicleScheduleApi`, `VehicleScheduleCommandApi`) |
+
+### 25.7. Bảng và loại ở bảng chung (data-model mục 0.1, R-15)
+
+| Tên logic | Mã |
+| --- | --- |
+| `yeu_cau_mua_sam` (dòng và nguồn gắn thành cột `JSON`) | `procurement_request` (`lines`, `linked_sources`) |
+| `tai_san` | `asset` |
+| `loai_tai_san` → `danh_muc_chung` | `catalog_item` loại `M03.ASSET_TYPE` |
+| `tai_san_vi_tri`, `tai_san_bo_phan` → `lich_su_chung` | `status_history` loại `M03.ASSET_LOCATION`, `M03.ASSET_DEPARTMENT` |
+| `tai_san_bao_tri`, `tai_san_hu_hong` → `su_kien_chung` | `record_event` loại `M03.ASSET_MAINTENANCE`, `M03.ASSET_DAMAGE` |
+| `lich_xe` → `ho_so_chung` | `simple_record` loại `M03.VEHICLE_SCHEDULE` |
+| `nhac_019` → `moc_da_nhac` | `reminder_marker` loại `M11.PROCUREMENT_REMINDER`, `M03.ASSET_REMINDER`, `M03.VEHICLE_SCHEDULE_REMINDER` |
+| test `KiemTraVuotTest`, `KhopChungTuTest`, `BR_M11_17_MuaSamIT`, `BR_M11_18_VuotIT`, `BR_M11_19_DoiChieuIT`, `BR_M11_20_NhacIT`, `DBR_36_GanNguonIT`, `FR_008d_YeuCauThuocIT` | `ApprovedAmountCheckTest`, `ReceiptMatchTest`, `BR_M11_17_ProcurementRequestIT`, `BR_M11_18_OverrunIT`, `BR_M11_19_ReconciliationIT`, `BR_M11_20_ReminderIT`, `DBR_36_SourceLinkIT`, `FR_008d_MedicationRequestIT` |
+| test `BR_M03_17_HanBaoTriIT`, `BR_M03_18_HuHongIT`, `AnhXaTrangThaiGiuongTest`, `BR_M03_15_GiuongTaiSanIT`, `DBR_32_TaiSanGiuongIT`, `KiemTraDatLichTest`, `BR_M03_16_LichXeIT`, `FR_018_TheoChuyenIT` | `BR_M03_17_MaintenanceDueIT`, `BR_M03_18_DamageIT`, `BedAssetStateMappingTest`, `BR_M03_15_BedAssetIT`, `DBR_32_BedAssetIT`, `VehicleBookingCheckTest`, `BR_M03_16_VehicleScheduleIT`, `FR_018_FollowTripIT` |
+
 #### Bổ sung 003 sau merge M01 (2026-10-24)
 
 | Tên logic, mục đích | Tên trong mã |
