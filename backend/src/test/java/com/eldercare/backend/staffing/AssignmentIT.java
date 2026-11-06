@@ -15,9 +15,9 @@ import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
-import com.eldercare.backend.staffing.assignment.internal.domain.AssignmentInput;
-import com.eldercare.backend.staffing.assignment.internal.service.*;
-import com.eldercare.backend.staffing.shift.internal.service.ShiftScheduleService;
+import com.eldercare.backend.staffing.internal.assignment.domain.AssignmentInput;
+import com.eldercare.backend.staffing.internal.assignment.service.*;
+import com.eldercare.backend.staffing.internal.shift.service.ShiftScheduleService;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
@@ -147,7 +147,9 @@ class AssignmentIT extends MySqlIntegrationTestBase {
 
     private long shift(long person, String status, Instant starts, Instant ends) {
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Ca phân công]','07:00','15:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Ca phân công] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,FALSE AS requires_handover) src");
         schedule = insert(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status,created_by) VALUES (?,'FLOOR',?,?,?)",
                 YearMonth.from(starts.atZone(BusinessTime.ZONE)).toString(),
@@ -159,8 +161,8 @@ class AssignmentIT extends MySqlIntegrationTestBase {
                 schedule,
                 template,
                 floor,
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(starts),
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(ends),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(starts),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(ends),
                 status);
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", id, person);
         return id;
@@ -187,6 +189,29 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         jdbc.update("UPDATE work_shift SET status='PUBLISHED' WHERE id=?", shift);
     }
 
+    @Autowired
+    org.springframework.context.ApplicationContext context;
+
+    @Test
+    void FR_024_careStaffPortMapsPrimarySupportAndRejectsDraftAssignments() {
+        var port = context.getBean("careStaffLookup", com.eldercare.backend.care.api.spi.ShiftStaffPort.class);
+        create(usual());
+        assertThat(port.assignments(resident, shift)).isEmpty();
+        service.delete(
+                jdbc.queryForObject("SELECT id FROM staff_assignment WHERE shift_id=?", Long.class, shift), target());
+        published();
+        create(usual());
+        long helper = staff(Role.CAREGIVER);
+        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, helper);
+        create(input(helper, "FLOOR", floor, null, Role.CAREGIVER, "SUPPORT"));
+        assertThat(port.assignments(resident, shift))
+                .containsExactlyInAnyOrder(
+                        new com.eldercare.backend.care.api.spi.ShiftStaffPort.CareAssignmentView(
+                                worker, Role.CAREGIVER, true),
+                        new com.eldercare.backend.care.api.spi.ShiftStaffPort.CareAssignmentView(
+                                helper, Role.CAREGIVER, false));
+    }
+
     @Test
     void FR_025_draftDoesNotGrantScopeAndPublishedAssignmentDoes() {
         long id = create(usual());
@@ -207,7 +232,7 @@ class AssignmentIT extends MySqlIntegrationTestBase {
                 .isInstanceOf(BusinessException.class);
         jdbc.update(
                 "UPDATE shift_staff SET absent_at=? WHERE shift_id=?",
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(from),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(from),
                 shift);
         assertThatThrownBy(() -> create(usual())).isInstanceOf(BusinessException.class);
         jdbc.update("UPDATE shift_staff SET absent_at=NULL WHERE shift_id=?", shift);
@@ -280,7 +305,7 @@ class AssignmentIT extends MySqlIntegrationTestBase {
 
     private void credential(long person, LocalDate expires) {
         jdbc.update(
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT ?,id,?,? FROM credential_type WHERE code='FIRST_AID_TRAINING'",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT ?,id,?,? FROM (SELECT c.id AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
                 person,
                 expires.minusDays(30),
                 expires);
@@ -293,8 +318,8 @@ class AssignmentIT extends MySqlIntegrationTestBase {
                 schedule,
                 template,
                 floor,
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(start),
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(end));
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(start),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(end));
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", result, person);
         return result;
     }
@@ -462,8 +487,8 @@ class AssignmentIT extends MySqlIntegrationTestBase {
                 schedule,
                 template,
                 floor,
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(to),
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(to.plusSeconds(8 * 3600)));
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(to),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(to.plusSeconds(8 * 3600)));
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, worker);
         var copied = service.copy(sourceShift, shift, target());
         assertThat(copied.copiedIds()).hasSize(1);
@@ -489,7 +514,7 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, id))
                 .isEqualTo("SCHEDULED");
         assertThat(jdbc.queryForObject(
-                        "SELECT JSON_LENGTH(content,'$.assignments') FROM shift_publication WHERE schedule_id=?",
+                        "SELECT JSON_LENGTH(content,'$.assignments') FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS schedule_id,e.occurred_at AS published_at,e.content->'$.content' AS content FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION') shift_publication WHERE schedule_id=?",
                         Integer.class,
                         schedule))
                 .isOne();
@@ -512,7 +537,7 @@ class AssignmentIT extends MySqlIntegrationTestBase {
     void FR_025_removingDraftMemberAlsoDeletesTheirDraftAssignments() {
         create(usual());
         long template = jdbc.queryForObject("SELECT template_id FROM work_shift WHERE id=?", Long.class, shift);
-        var input = new com.eldercare.backend.staffing.shift.internal.domain.ShiftInput(
+        var input = new com.eldercare.backend.staffing.internal.shift.domain.ShiftInput(
                 template, time.today(), from, to, List.of(), null, false, null);
         schedules.editShift(shift, "\"0\"", input, target());
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM staff_assignment WHERE shift_id=?", Integer.class, shift))
@@ -633,7 +658,7 @@ class AssignmentIT extends MySqlIntegrationTestBase {
     void BR_M15_05_temporaryLoginLockDoesNotCancelTheEmployeesEligibilityForAssignments() {
         jdbc.update(
                 "UPDATE account SET status='TEMPORARILY_LOCKED',locked_until=? WHERE staff_id=?",
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(
                         time.now().plusSeconds(300)),
                 worker);
         create(usual());
@@ -650,13 +675,20 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         var input = new AssignmentInput(nurse, "FLOOR", floor, null, Role.NURSING_STAFF, "PRIMARY", true, null, null);
         assertThatThrownBy(() -> create(input)).isInstanceOf(BusinessException.class);
         jdbc.update(
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT ?,id,?,? FROM credential_type WHERE code='NURSING_LICENSE'",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT ?,id,?,? FROM (SELECT c.id AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='NURSING_LICENSE'",
                 nurse,
                 time.today().minusDays(1),
                 time.today().plusDays(1));
         published();
         create(input);
         assertThat(care.assignedNurses(resident, from)).containsExactly(nurse);
+        var careStaff = context.getBean("careStaffLookup", com.eldercare.backend.care.api.spi.ShiftStaffPort.class);
+        assertThat(careStaff.responsibleNurses(resident, from)).containsExactly(nurse);
+        assertThat(careStaff.qualified(nurse, Set.of("NURSING_LICENSE"), time.today()))
+                .isTrue();
+        assertThat(careStaff.qualified(
+                        nurse, Set.of("NURSING_LICENSE"), time.today().plusDays(2)))
+                .isFalse();
         assertThat(nursing.assignedTo(resident, from)).contains(nurse);
         assertThat(alerts.assignedNurse(resident, from)).contains(nurse);
     }
@@ -671,17 +703,17 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, lead);
         jdbc.update(
                 "UPDATE work_shift SET starts_at=?,ends_at=?,lead_staff_id=? WHERE id=?",
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(start),
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(end),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(start),
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(end),
                 lead,
                 shift);
         published();
         clock.setTo(start.plusSeconds(2 * 3600));
         jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,command,by_system) SELECT 'M09.SHIFT',src.shift_id,'LEAD_STAFF','M09','PERIOD',src.staff_id,src.starts_at,src.basis,FALSE FROM (SELECT ? AS shift_id,? AS staff_id,? AS starts_at,'SCHEDULED' AS basis) src",
                 shift,
                 lead,
-                com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore.sql(start));
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(start));
         assertThat(duties.assignedFloorManager(floor, time.now())).isEmpty();
         assertThat(duties.floorManagerSubstitute(floor, time.now())).contains(lead);
         assertThat(duties.shiftHasNoFloorManager(shift)).isTrue();

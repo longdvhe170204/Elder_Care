@@ -1,0 +1,197 @@
+openapi: 3.1.0
+info:
+  title: Elder Care – Đề xuất đọc kết quả phân công của 008
+  version: 1.0.0-approved
+  description: |
+    Bản riêng đã được chủ dự án duyệt ngày 2026-10-29 và nhập vào api-008.yaml.
+    Hai GET bổ sung cho FR-026/028/029; không đổi mảng Assignment đang dùng.
+    Backend tính kết quả theo nghiệp vụ và nguồn thật; app chỉ trình bày.
+x-status: approved
+x-owner: E
+x-review-notes: ../assignment-contract-review.md
+servers:
+  - url: /api/v1
+security:
+  - session: []
+tags:
+  - name: assignments
+    description: Kết quả phân công của 008
+paths:
+  /shifts/{id}/assignment-resolution:
+    get:
+      operationId: getShiftAssignmentResolution
+      tags: [assignments]
+      summary: Người chính và Điều dưỡng phụ trách của một người cao tuổi tại thời điểm
+      description: |
+        Kiểm SHIFT_SCHEDULE/VIEW cùng phạm vi ca và người cao tuổi qua ba lớp
+        BR-M15-01; không cấp quyền đọc cả tầng vì người gọi có tên trong ca.
+        residentId phải thuộc phạm vi ca tại at và người gọi được phép đọc.
+        at bắt buộc, nằm trong [giờ bắt đầu, giờ kết thúc) của ca.
+        Chỉ dữ liệu ca đã công bố, không đếm DRAFT/CANCELLED; DRAFT/CANCELLED
+        của ca trả 409 STATE_CHANGED thay vì giả kết quả chưa có người.
+        primaryStaffId được xác định theo role/taskTypeId tại at, từ phân công
+        có hiệu lực trong ca và nguồn vị trí tại at; cùng mức mâu thuẫn thì lỗi.
+        assignedNurseStaffIds là kết quả Điều dưỡng phụ trách không giới hạn
+        loại công việc theo quy tắc hiện có, không phụ thuộc role/taskTypeId hỏi.
+        Thiếu nguồn hoặc không xác định được kết quả thì 422
+        ASSIGNMENT_SOURCE_UNAVAILABLE, không trả null/[] như dữ liệu thật.
+        Không có lệnh ghi, nhật ký nghiệp vụ, thông báo hoặc bản ghi tự sinh.
+      x-fr: [FR-025, FR-026, FR-028, FR-028a, FR-030, FR-033, FR-054]
+      x-br: [BR-M09-01, BR-M09-15, BR-M15-01]
+      parameters:
+        - $ref: './api-008.yaml#/components/parameters/Id'
+        - name: residentId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: at
+          in: query
+          required: true
+          description: Mốc ISO-8601 trong ca, không có mặc định ngầm theo đồng hồ app
+          schema:
+            type: string
+            format: date-time
+        - name: role
+          in: query
+          required: true
+          description: Tên vai trò tiếng Anh như NewAssignment.role, ví dụ CAREGIVER hoặc NURSING_STAFF
+          schema:
+            type: string
+        - name: taskTypeId
+          in: query
+          required: false
+          description: Bỏ tham số thì tra phân công chính không giới hạn loại công việc
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Kết quả đủ nguồn tại đúng mốc hỏi; không có người thì id null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentResolution'
+        '400':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '401':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '403':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '404':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '409':
+          $ref: './api-008.yaml#/components/responses/BlockingProblem'
+        '422':
+          $ref: './api-008.yaml#/components/responses/Problem'
+  /shifts/{id}/unassigned-residents:
+    get:
+      operationId: getShiftUnassignedResidents
+      tags: [assignments]
+      summary: Người cao tuổi chưa đủ nhân viên phụ trách tại giờ bắt đầu ca
+      description: |
+        FR-029: từ khi công bố lịch, Trưởng tầng và Người phụ trách ca được xem
+        trong phạm vi được phép; Quản lý viện theo quyền xem hiện có.
+        Kiểm ba lớp BR-M15-01; VIEW lịch cá nhân không tự cấp quyền danh sách này.
+        Mốc evaluatedAt luôn là giờ bắt đầu ca, không nhận tham số at khác.
+        Lấy người dự kiến/có mặt tại mốc đó theo nguồn vị trí/trạng thái/lịch đến
+        có liên quan; xét lịch sử tại mốc, không lấy vị trí/trạng thái hôm nay
+        để thay mốc đã qua. Không có nguồn cần thiết thì 422
+        ASSIGNMENT_SOURCE_UNAVAILABLE, không trả danh sách rỗng.
+        items chỉ gồm người thiếu ít nhất một trong hai: Điều dưỡng phụ trách,
+        nhân viên chăm sóc chính không giới hạn loại công việc.
+        Hai cờ do backend tính, app không tự xếp ưu tiên hoặc so bảng phân công.
+        DRAFT/CANCELLED của ca trả 409 STATE_CHANGED. Sau công bố đọc kết quả
+        theo dữ liệu hiện hành cho mốc ca, không hứa snapshot bất biến lúc công bố.
+        Chỉ đọc; không phát lại lời nhắc hoặc tạo bản ghi khi người dùng làm mới.
+      x-fr: [FR-025, FR-026, FR-028, FR-029, FR-033, FR-054]
+      x-br: [BR-M04-13, BR-M09-15, BR-M15-01]
+      parameters:
+        - $ref: './api-008.yaml#/components/parameters/Id'
+      responses:
+        '200':
+          description: Danh sách đủ nguồn; items rỗng chỉ khi không ai thiếu người phụ trách
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnassignedResidents'
+        '400':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '401':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '403':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '404':
+          $ref: './api-008.yaml#/components/responses/Problem'
+        '409':
+          $ref: './api-008.yaml#/components/responses/BlockingProblem'
+        '422':
+          $ref: './api-008.yaml#/components/responses/Problem'
+components:
+  securitySchemes:
+    session:
+      type: http
+      scheme: bearer
+  schemas:
+    AssignmentResolution:
+      type: object
+      required: [shiftId, residentId, at, role, taskTypeId, primaryStaffId, assignedNurseStaffIds]
+      properties:
+        shiftId:
+          type: integer
+          format: int64
+        residentId:
+          type: integer
+          format: int64
+        at:
+          type: string
+          format: date-time
+        role:
+          type: string
+        taskTypeId:
+          type: [integer, 'null']
+          format: int64
+        primaryStaffId:
+          type: [integer, 'null']
+          format: int64
+          description: null chỉ khi đủ nguồn và không có người chính phù hợp
+        assignedNurseStaffIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: integer
+            format: int64
+    UnassignedResidents:
+      type: object
+      required: [shiftId, evaluatedAt, items]
+      properties:
+        shiftId:
+          type: integer
+          format: int64
+        evaluatedAt:
+          type: string
+          format: date-time
+          description: Giờ bắt đầu ca theo backend
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnassignedResident'
+    UnassignedResident:
+      type: object
+      required: [residentId, missingAssignedNurse, missingPrimaryCaregiver]
+      anyOf:
+        - properties:
+            missingAssignedNurse:
+              const: true
+        - properties:
+            missingPrimaryCaregiver:
+              const: true
+      properties:
+        residentId:
+          type: integer
+          format: int64
+        missingAssignedNurse:
+          type: boolean
+        missingPrimaryCaregiver:
+          type: boolean

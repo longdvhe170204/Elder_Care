@@ -6,9 +6,9 @@ import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.staffing.api.StaffStatisticsApi;
 import com.eldercare.backend.staffing.api.dto.HandoverReportView;
-import com.eldercare.backend.staffing.ratio.internal.domain.StaffingRatioCalculator.Result;
-import com.eldercare.backend.staffing.ratio.internal.persistence.StaffingRatioStore;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.ratio.domain.StaffingRatioCalculator.Result;
+import com.eldercare.backend.staffing.internal.ratio.persistence.StaffingRatioStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
 import java.math.BigDecimal;
@@ -25,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * nhóm chứng chỉ (016 FR-020, CFG-M06-02 / CFG-M09-03).
  */
 @Import(FakeLocations.Config.class)
+@org.springframework.transaction.annotation.Transactional
 class StaffStatisticsReportFieldsIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
@@ -47,7 +48,9 @@ class StaffStatisticsReportFieldsIT extends MySqlIntegrationTestBase {
     private long template() {
         return AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu chỉ tiêu]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu chỉ tiêu] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
     }
 
     private final Map<Long, Long> schedules = new HashMap<>();
@@ -148,12 +151,12 @@ class StaffStatisticsReportFieldsIT extends MySqlIntegrationTestBase {
         long staff = staff();
         long type = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO credential_type(code,name,credential_group,has_expiry,required_for_roles) VALUES (?,?,'PROFESSIONAL_LICENSE',TRUE,JSON_ARRAY())",
+                "INSERT INTO catalog_item(catalog_type,module,code,name,status,attributes) SELECT 'M09.CREDENTIAL_TYPE','M09',src.code,src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'credentialGroup',src.credential_group,'hasExpiry',IF(src.has_expiry,CAST('true' AS JSON),CAST('false' AS JSON)),'requiredForRoles',CAST(src.required_for_roles AS JSON),'hasPracticeScopes',IF(FALSE,CAST('true' AS JSON),CAST('false' AS JSON)),'legacyCode',src.code) FROM (SELECT ? AS code,? AS name,'PROFESSIONAL_LICENSE' AS credential_group,TRUE AS has_expiry,JSON_ARRAY() AS required_for_roles) src",
                 "LIC-" + staff,
                 "[Giấy phép chỉ tiêu " + staff + "]");
         AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) VALUES (?,?,?,?)",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT src.staff_id,(SELECT c.id FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE' AND COALESCE(c.m09_legacy_id,c.id)=src.credential_type_id),src.issue_date,src.expiry_date FROM (SELECT ? AS staff_id,? AS credential_type_id,? AS issue_date,? AS expiry_date) src",
                 staff,
                 type,
                 time.today().minusYears(1),
