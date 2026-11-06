@@ -37,7 +37,7 @@ export function HeldBelongings({ catalogs }) {
             <Input
               aria-label="Mã nhân viên"
               inputMode="numeric"
-              className="h-11 w-40"
+              className="h-11 w-full sm:w-40"
               value={staffId}
               onChange={(e) => setStaffId(e.target.value)}
             />
