@@ -156,6 +156,7 @@ function ResidentBelongings({ resident, catalogs, role }) {
   const [returning, setReturning] = useState(false)
   const [ending, setEnding] = useState(false)
   const [notice, setNotice] = useState('')
+  const [confirmationsVersion, setConfirmationsVersion] = useState(0)
 
   const load = useCallback(async () => {
     try {
@@ -229,6 +230,7 @@ function ResidentBelongings({ resident, catalogs, role }) {
               belongings={returnable}
               locationName={catalogs.locationName}
               role={role}
+              refreshKey={confirmationsVersion}
             />
           )}
           {state.status === 'ready' && (
@@ -258,6 +260,8 @@ function ResidentBelongings({ resident, catalogs, role }) {
             onDone={(message) => {
               load()
               if (!message) return
+              // Trả thành công: xác nhận người nhận khác đã dùng chuyển Đã dùng (FR-017); lần bị chặn không đổi xác nhận
+              setConfirmationsVersion((n) => n + 1)
               setReturning(false)
               setNotice(message)
             }}
