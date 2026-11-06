@@ -63,7 +63,7 @@ Không có phiên bản hiệu lực tại ngày thì trả rỗng; 010 ghi kho�
 ```java
 List<NgayLuuTruView> theoKhoang(long nctId, LocalDate tu, LocalDate den);
     // mỗi ngày trong thời gian tính phí: hopDongId, phienBanNoiDungId, coMat | VANG, luotVangId, daGiaiPhongGiuong
-    // (Q-395: không có hệ số; sau giải phóng giường không tính phí lưu trú), dau (CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
+    // (Q-395: không có hệ số; từ chính ngày giải phóng giường không tính phí lưu trú), dau (CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
 List<BuoiBanTruView> buoiBanTru(long nctId, LocalDate tu, LocalDate den);
     // mỗi buổi có lịch: trạng thái có mặt (005), tỷ lệ theo CFG-M02-05 (FR-060), ngày khu bán trú nghỉ (FR-060a); buổi chưa xác định không có tỷ lệ
 Optional<LocalDate> mocDungTinhPhi(long nctId);   // ngày kết thúc dự kiến (FR-066), ngày qua đời (FR-070), ngày Hủy tiếp nhận (FR-075a)
@@ -101,6 +101,24 @@ Stream<HoSoChoView> danhSachCho(LocalDate tu, LocalDate den);                   
 void capNhat(long nctId);   // module sở hữu gọi sau lệnh của mình (010, 013, 006, 007, 017); 004 hỏi lại MucViecSauQuaDoiPort
 DanhSachViecView xem(long nctId);
 ```
+
+### 1.6a. `DayCareCalendarApi` (005; A duyệt 2026-11-05, ý 004-3)
+
+```java
+package com.eldercare.backend.admission.api;
+
+public interface DayCareCalendarApi {
+    /** Ngày khu bán trú nghỉ Hiệu lực và mọi báo vắng đã ghi của người cao tuổi ngày D, theo thời điểm ghi. */
+    DayCareCalendarView onDate(long residentId, LocalDate date);
+}
+// admission.api.dto
+record DayCareCalendarView(LocalDate date, boolean closureDay, List<DayCareAbsenceNoticeView> notices) {}
+record DayCareAbsenceNoticeView(long noticeId, Long sessionId, Instant familyNotifiedAt, boolean withinNoticePeriod) {}
+```
+
+- Chỉ đọc bảng `absence` (dòng `CLOSURE_DAY` Hiệu lực, `DAY_CARE_NOTICE`); không thêm bảng, không đổi sự kiện đã công bố. Bản cài `DayCareCalendarService` (`internal/absence/service`), test `DayCareCalendarApiIT`.
+- Bản giả `support/fake/admission/FakeDayCareCalendarApi` (ngày chưa đặt thì báo lỗi). Tên khác `FakeDayCareCalendar` của care vì hai lớp cùng được import theo gói trong test của 005.
+- Adapter `DayCareCalendarPort` của 005 thuộc `care`, gọi API này (chiều 005 → 004; admission không import care). Cách chọn một báo vắng trong số nhiều báo vắng của ngày, nghe sự kiện đồng bộ là việc của 005 (C).
 
 ### 1.7. SPI 004 cài cho 000, 002
 

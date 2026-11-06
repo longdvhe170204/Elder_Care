@@ -68,6 +68,38 @@ export const NAV_GROUPS = [
         functions: ['RESIDENT_PROFILE'],
         roles: [QL, TT, BS, DD, CS, HC, NT, KT],
       },
+      // Dòng "Tiếp nhận, hợp đồng, đặt cọc" (004 T019, T038; Hành chính lập, Quản lý viện xem và duyệt, Kế toán đặt cọc)
+      {
+        key: 'admission-applications',
+        label: 'Đăng ký tiếp nhận',
+        icon: 'ClipboardCheck',
+        functions: ['ADMISSION_CONTRACT_DEPOSIT'],
+        roles: [QL, HC, KT],
+      },
+      // Dòng "Danh sách chờ, dấu ưu tiên" (004 T028)
+      { key: 'waiting-list', label: 'Danh sách chờ', icon: 'ListChecks', functions: ['WAITING_LIST'], roles: [QL, HC] },
+      { key: 'contracts', label: 'Hợp đồng', icon: 'FileSignature', functions: ['ADMISSION_CONTRACT_DEPOSIT'], roles: [QL, HC, KT] },
+      // Dòng "Yêu cầu thay đổi lưu trú" (004 T047)
+      {
+        key: 'residency-changes',
+        label: 'Thay đổi lưu trú',
+        icon: 'ArrowLeftRight',
+        functions: ['RESIDENCY_CHANGE_REQUEST'],
+        roles: [QL, BS, HC],
+      },
+      // Dòng "Tạm vắng, trở về" (004 T056)
+      { key: 'absences', label: 'Tạm vắng, bán trú', icon: 'DoorOpen', functions: ['ABSENCE_RETURN'], roles: [QL, TT, DD, HC] },
+      // Dòng "Kết thúc lưu trú, qua đời" (004 T061, T065)
+      {
+        key: 'residency-endings',
+        label: 'Kết thúc lưu trú',
+        icon: 'History',
+        functions: ['RESIDENCY_END_DEATH'],
+        roles: [QL, BS, HC, KT],
+      },
+      { key: 'deaths', label: 'Qua đời', icon: 'HeartHandshake', functions: ['RESIDENCY_END_DEATH'], roles: [QL, BS, HC, KT] },
+      // Dòng "Dịch vụ, đơn giá" (004 T068)
+      { key: 'services', label: 'Dịch vụ, đơn giá', icon: 'Receipt', functions: ['SERVICE_PRICE'], roles: [QL, HC] },
     ],
   },
   {
