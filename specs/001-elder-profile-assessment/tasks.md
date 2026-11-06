@@ -262,6 +262,8 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [x] T106 [US2] Web `frontend/src/features/residents/`: Hành chính lập Nháp, thêm mục (nguồn mặc định Người thân), nhãn "Tự khai, chưa được Bác sĩ kiểm chứng"; nút "Kiểm chứng" cho Bác sĩ, Điều dưỡng; ẩn nút loại trừ, xác nhận với Hành chính; Vitest trước.
 - [x] T107 [US2] App nhân viên `mobile/lib/staff/residents/`: hiển thị nhãn chưa kiểm chứng ở mục sức khỏe, nút "Kiểm chứng" cho Bác sĩ, Điều dưỡng; test widget. *(Chờ G2 ApiClient của T042 không cần; làm sau T106.)*
 
+*(2026-11-06, A duyệt 001-3/4/5 ngày 2026-11-05, đã làm: `ConsentService` chặn ngày đồng ý ở tương lai bằng 422 `INVALID_VALUE`; `ResidentProfileService` kiểm tối thiểu thư điện tử, số điện thoại (8 → 15 chữ số); `HealthItemResult.items` đổi thành `item` ở api-001 và `HealthItemResultBody`; test `ConsentIT`, `ProfileFieldLimitsIT`, `HealthEndpointsIT`.)*
+
 ---
 
 ## Dependencies & Execution Order

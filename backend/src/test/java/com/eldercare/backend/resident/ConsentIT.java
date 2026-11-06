@@ -60,6 +60,30 @@ class ConsentIT extends ConsentTestBase {
     }
 
     @Test
+    void US5_consentDateInTheFuture_is422InvalidValue() {
+        long residentId = newResident();
+        long evidence = evidence();
+
+        assertThatThrownBy(() -> record(
+                        residentId,
+                        new RecordConsent(
+                                ConsenterType.RESIDENT,
+                                null,
+                                null,
+                                Set.of(),
+                                true,
+                                true,
+                                Instant.now().plusSeconds(3 * 86_400L),
+                                evidence)))
+                .isInstanceOfSatisfying(BusinessException.class, e -> {
+                    assertThat(e.errorCode()).isEqualTo("INVALID_VALUE");
+                    assertThat(e.status().value()).isEqualTo(422);
+                });
+
+        assertThat(activeCount(residentId)).isZero();
+    }
+
+    @Test
     void US5_withoutEvidence_is422() {
         long residentId = newResident();
 

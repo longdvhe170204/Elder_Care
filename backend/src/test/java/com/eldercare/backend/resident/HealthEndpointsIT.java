@@ -168,14 +168,14 @@ class HealthEndpointsIT extends HealthTestBase {
                         .content("{\"type\":\"ALLERGY\",\"allergenId\":" + allergenId() + ",\"severityId\":"
                                 + severityId() + ",\"sourceId\":" + sourceId() + "}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.items.type").value("ALLERGY"))
-                .andExpect(jsonPath("$.items.pendingCheck").value(true))
-                .andExpect(jsonPath("$.items.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.item.type").value("ALLERGY"))
+                .andExpect(jsonPath("$.item.pendingCheck").value(true))
+                .andExpect(jsonPath("$.item.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.warnings", hasSize(0)))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        long itemId = ((Number) com.jayway.jsonpath.JsonPath.read(result, "$.items.id")).longValue();
+        long itemId = ((Number) com.jayway.jsonpath.JsonPath.read(result, "$.item.id")).longValue();
 
         mvc.perform(get(base)).andExpect(jsonPath("$", hasSize(1)));
         mvc.perform(post("/api/v1/health-items/" + itemId + "/exclude")

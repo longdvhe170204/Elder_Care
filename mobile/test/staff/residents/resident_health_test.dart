@@ -93,7 +93,7 @@ void main() {
     backend.on('GET', '/catalogs/information-sources', 200, [
       {'id': 5, 'name': 'Người cao tuổi nói'},
     ]);
-    backend.on('POST', '/residents/7/health-items', 201, {'items': item(), 'warnings': <Object>[]});
+    backend.on('POST', '/residents/7/health-items', 201, {'item': item(), 'warnings': <Object>[]});
     backend.on('POST', '/health-items/1/exclude', 200, item(status: 'EXCLUDED'));
   });
 
@@ -236,7 +236,7 @@ void main() {
 
     expect(find.text('Đã có mục đang hiệu lực trùng nội dung'), findsOneWidget);
 
-    backend.on('POST', '/residents/7/health-items', 201, {'items': item(), 'warnings': <Object>[]});
+    backend.on('POST', '/residents/7/health-items', 201, {'item': item(), 'warnings': <Object>[]});
     await tapButton(tester, 'Vẫn ghi nhận mục này');
 
     expect(lastBody(backend, '/residents/7/health-items')['confirmDuplicate'], true);
@@ -246,7 +246,7 @@ void main() {
   testWidgets('FR_018a_record_warnings_showAfterSaving', (tester) async {
     await pumpScreen(tester, backend);
     backend.on('POST', '/residents/7/health-items', 201, {
-      'items': item(),
+      'item': item(),
       'warnings': [
         {'code': 'ALLERGY_NOT_AUTO_CHECKED', 'description': 'Dị ứng nhập tay không được kiểm tra tự động'},
       ],

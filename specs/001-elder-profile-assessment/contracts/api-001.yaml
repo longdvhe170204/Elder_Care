@@ -950,7 +950,7 @@ components:
     HealthItemResult:
       type: object
       properties:
-        items: { $ref: '#/components/schemas/HealthItem' }
+        item: { $ref: '#/components/schemas/HealthItem' }
         warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
     EndOfLifeWish:
       type: object
