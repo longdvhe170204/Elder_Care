@@ -30,7 +30,7 @@ import { useBelongingCatalogs } from './useBelongingCatalogs'
 // người cao tuổi (tìm qua GET /residents của 001), bảng đồ gửi theo api-013 GET /residents/{residentId}/belongings, bấm
 // đồ mở khung chi tiết (DESIGN.md mục 5). Nút "Tiếp nhận đồ" mở form trong Sheet (T011).
 
-function ResidentPicker({ onPick }) {
+function ResidentPicker({ onPick, selectedId }) {
   const [q, setQ] = useState('')
   const [state, setState] = useState({ status: 'loading', items: [] })
 
@@ -80,13 +80,11 @@ function ResidentPicker({ onPick }) {
           {state.items.map((r) => (
             <li key={r.id}>
               <Button
-                variant="outline"
+                variant={r.id === selectedId ? 'default' : 'outline'}
                 className="h-11 gap-2"
                 aria-label={`${r.personalInfo.fullName}, ${r.profileCode}`}
-                onClick={() => {
-                  onPick(r)
-                  setState({ status: 'idle', items: [] })
-                }}
+                aria-pressed={r.id === selectedId}
+                onClick={() => onPick(r)}
               >
                 <ResidentAvatar name={r.personalInfo.fullName} code={String(r.id)} />
                 <span className="type-label">{r.personalInfo.fullName}</span>
@@ -249,6 +247,7 @@ function ResidentBelongings({ resident, catalogs, role }) {
           </SheetHeader>
           <ReturnForm
             belongings={returnable}
+            isValuable={(b) => !!catalogs.typeOf(b.typeId)?.valuable}
             levels={catalogs.levels}
             onDone={(message) => {
               load()
@@ -305,7 +304,7 @@ export function BelongingsPage({ role }) {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        {tab === 'resident' && <ResidentPicker onPick={setResident} />}
+        {tab === 'resident' && <ResidentPicker onPick={setResident} selectedId={resident?.id} />}
       </PageHeader>
       {catalogs.status === 'error' && (
         <ProblemAlert

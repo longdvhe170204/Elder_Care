@@ -21,7 +21,9 @@ const PHONE = {
   version: 1,
 }
 
-function setup(permissions = ['BELONGINGS:VIEW', 'BELONGINGS:CREATE', 'BELONGINGS:UPDATE']) {
+const LAN = { id: 7, profileCode: 'NCT-0007', personalInfo: { fullName: 'Nguyễn Thị Lan' } }
+
+function setup(permissions = ['BELONGINGS:VIEW', 'BELONGINGS:CREATE', 'BELONGINGS:UPDATE'], residents = [LAN]) {
   const api = mockRoutes()
   api.on(
     'GET',
@@ -42,7 +44,7 @@ function setup(permissions = ['BELONGINGS:VIEW', 'BELONGINGS:CREATE', 'BELONGING
     'GET',
     '/residents',
     json(200, {
-      items: [{ id: 7, profileCode: 'NCT-0007', personalInfo: { fullName: 'Nguyễn Thị Lan' } }],
+      items: residents,
       nextCursor: null,
     }),
   )
@@ -86,6 +88,24 @@ async function openResident() {
 
 describe('BelongingsPage (013 T011, US1)', () => {
   afterEach(() => vi.unstubAllGlobals())
+
+  it('FR_011_chonNguoiCaoTuoi_danhSachConGiu_chonNguoiKhacThiDoiHoSoVaDongKhungChiTiet', async () => {
+    const minh = { id: 8, profileCode: 'NCT-0008', personalInfo: { fullName: 'Lê Văn Minh' } }
+    const api = setup(undefined, [LAN, minh])
+    api.on('GET', '/residents/8/belongings', json(200, []))
+    fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Chi tiết Điện thoại Nokia' }))
+    expect(await screen.findByText('Trần Thu Hà', { exact: false })).toBeInTheDocument()
+
+    expect(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007', hidden: true })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true }))
+
+    expect(await screen.findByRole('heading', { name: 'Đồ gửi của Lê Văn Minh' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Chi tiết Điện thoại Nokia' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Trần Thu Hà', { exact: false })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true })).toHaveAttribute('aria-pressed', 'true')
+  })
 
   it('FR_011_danhSachDoGui_loaiTrangThaiNguoiGiuViTri', async () => {
     setup()

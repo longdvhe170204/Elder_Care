@@ -194,7 +194,13 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
       )}
       {action === 'handover' && (
         <section className="flex flex-col gap-3 rounded-xl border p-3" aria-label="Bàn giao">
-          <HandoverForm belonging={b} levels={catalogs.levels} locations={catalogs.locations} onDone={done} />
+          <HandoverForm
+            belonging={b}
+            levels={catalogs.levels}
+            locations={catalogs.locations}
+            valuable={!!type?.valuable}
+            onDone={done}
+          />
         </section>
       )}
       {action === 'consent' && (

@@ -58,6 +58,27 @@ describe('ReturnForm (013 T019, US3)', () => {
     })
   })
 
+  it('FR_008_traDoCoGiaTri_batBuocAnhTinhTrang_vaGuiPhotoFileIds', async () => {
+    const api = mockRoutes()
+    api.on('POST', '/files', json(201, { fileId: 710 }))
+    api.on('POST', '/belongings/returns', json(201, { handovers: [], belongings: [] }))
+    const onDone = vi.fn()
+    render(<ReturnForm belongings={ITEMS} levels={LEVELS} isValuable={(b) => b.id === 92} onDone={onDone} />)
+    pick('Tiền mặt')
+    fireEvent.change(screen.getByLabelText('Người nhận'), { target: { value: 'RESIDENT' } })
+    fireEvent.change(screen.getByLabelText('Lý do không ký'), { target: { value: 'Run tay' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu trả đồ' }))
+    expect(await screen.findByText('Chọn ảnh tình trạng của đồ có giá trị.')).toBeInTheDocument()
+    expect(api.calls('POST', '/belongings/returns')).toHaveLength(0)
+
+    const png = new File(['x'], 'tinh-trang.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Ảnh tình trạng của Tiền mặt'), { target: { files: [png] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu trả đồ' }))
+    await waitFor(() => expect(onDone).toHaveBeenCalled())
+    const body = JSON.parse(api.calls('POST', '/belongings/returns')[0][1].body)
+    expect(body.items).toEqual([{ belongingId: 92, version: 1, condition: { levelId: 11 }, photoFileIds: [710] }])
+  })
+
   it('FR_019_nguoiCaoTuoiKhongKy_batBuocLyDo_khongGuiChuKy', async () => {
     const api = mockRoutes()
     api.on('POST', '/belongings/returns', json(201, { handovers: [], belongings: [] }))
