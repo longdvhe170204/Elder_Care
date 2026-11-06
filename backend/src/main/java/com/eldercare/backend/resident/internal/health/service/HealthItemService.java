@@ -60,6 +60,7 @@ public class HealthItemService implements HealthItemApi {
     static final AuditAction RECORDED = new AuditAction("HEALTH_ITEM_RECORDED", false);
     static final AuditAction EXCLUDED = new AuditAction("HEALTH_ITEM_EXCLUDED", true);
     static final AuditAction CHECKED = new AuditAction("HEALTH_ITEM_CHECKED", false);
+    static final AuditAction VERIFIED = new AuditAction("HEALTH_ITEM_VERIFIED", false);
     static final String ENTITY_TYPE = "M01.HEALTH_ITEM";
     private static final String CHECK_RULE = "BR-M01-12";
     private static final int MAX_TEXT_LENGTH = 1000;
@@ -96,7 +97,10 @@ public class HealthItemService implements HealthItemApi {
             String recordedBy,
             Instant at,
             HealthItemStatus status,
-            Exclusion exclusion) {}
+            Exclusion exclusion,
+            boolean unverified,
+            String verifiedBy,
+            Instant verifiedAt) {}
 
     public record RecordResult(ItemView item, List<Warning> warnings) {}
 
@@ -145,6 +149,9 @@ public class HealthItemService implements HealthItemApi {
         StatusFilter effective =
                 currentUser.getObject().type() == AccountType.FAMILY_MEMBER ? StatusFilter.ACTIVE : filter;
         long residentId = target.residentId();
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            return ownUnverified(residentId);
+        }
         List<HealthItem> found = switch (effective) {
             case ACTIVE -> items.findByResidentIdAndStatusOrderByIdDesc(residentId, HealthItemStatus.ACTIVE);
             case EXCLUDED -> items.findByResidentIdAndStatusOrderByIdDesc(residentId, HealthItemStatus.EXCLUDED);
@@ -160,6 +167,11 @@ public class HealthItemService implements HealthItemApi {
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
+        boolean selfReported = SelfReportedHealth.isOfficeOnly(currentUser.getObject());
+        if (selfReported && !guard.isAdmitting(residentId)) {
+            throw SelfReportedHealth.deniedForOffice(
+                    "Hành chính chỉ ghi tự khai về sức khỏe khi người cao tuổi còn Đang tiếp nhận (Q-400)");
+        }
         HealthItemType type = validated(command);
         String text = blankToNull(command.freeText());
         if (!command.confirmDuplicate()) {
@@ -167,7 +179,7 @@ public class HealthItemService implements HealthItemApi {
                 throw duplicate(existing);
             });
         }
-        HealthItem item = items.saveAndFlush(new HealthItem(
+        HealthItem entity = new HealthItem(
                 residentId,
                 type,
                 command.allergenId(),
@@ -175,7 +187,8 @@ public class HealthItemService implements HealthItemApi {
                 type == HealthItemType.ALLERGY ? command.severityId() : null,
                 command.sourceId(),
                 currentUser.getObject().accountId(),
-                time.now()));
+                time.now());
+        HealthItem item = items.saveAndFlush(selfReported ? entity.markUnverified() : entity);
         auditLog.write(AuditLogEntry.builder()
                 .action(RECORDED)
                 .entity(ENTITY_TYPE, item.getId())
@@ -201,6 +214,9 @@ public class HealthItemService implements HealthItemApi {
     @Transactional
     public ItemView exclude(Target target, long itemId, Reason reason) {
         long residentId = target.residentId();
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice("Chỉ Bác sĩ, Điều dưỡng được loại trừ mục sức khỏe (BR-M01-07)");
+        }
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
         HealthItem item = items.lockById(itemId)
@@ -269,6 +285,50 @@ public class HealthItemService implements HealthItemApi {
                         "source", source.name(), "stillPending", item.isPendingCheck(), "wasPending", pendingBefore))
                 .basis(new Basis(CHECK_RULE, null, itemId, null))
                 .build());
+    }
+
+    /**
+     * Bác sĩ hoặc Điều dưỡng kiểm chứng mục tự khai (Q-400, BR-M01-17); một chiều, ghi người và thời điểm. Hành chính không
+     * kiểm chứng. Mục đã kiểm chứng thì 409 {@code ALREADY_VERIFIED}.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.UPDATE)
+    @Transactional
+    public ItemView verify(Target target, long itemId) {
+        long residentId = target.residentId();
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice("Chỉ Bác sĩ, Điều dưỡng được kiểm chứng mục sức khỏe (BR-M01-17)");
+        }
+        residents.lockById(residentId).orElseThrow(NotFoundException::new);
+        guard.requireOpen(residentId);
+        HealthItem item = items.lockById(itemId)
+                .filter(i -> i.getResidentId() == residentId)
+                .orElseThrow(NotFoundException::new);
+        if (!item.isUnverified()) {
+            throw new BusinessException(HttpStatus.CONFLICT, "ALREADY_VERIFIED", "Mục đã được kiểm chứng");
+        }
+        Map<String, Object> before = snapshot(item);
+        item.verify(currentUser.getObject().accountId(), time.now());
+        items.saveAndFlush(item);
+        auditLog.write(AuditLogEntry.builder()
+                .action(VERIFIED)
+                .entity(ENTITY_TYPE, itemId)
+                .resident(residentId)
+                .before(before)
+                .after(snapshot(item))
+                .build());
+        return views(List.of(item)).getFirst();
+    }
+
+    /** Hành chính chỉ thấy mục chưa kiểm chứng do chính mình ghi, khi người cao tuổi còn Đang tiếp nhận (Q-400). */
+    private List<ItemView> ownUnverified(long residentId) {
+        if (!guard.isAdmitting(residentId)) {
+            return List.of();
+        }
+        long account = currentUser.getObject().accountId();
+        return views(items.findByResidentIdAndStatusOrderByIdDesc(residentId, HealthItemStatus.ACTIVE).stream()
+                .filter(i -> i.isUnverified() && i.getRecordedBy() == account)
+                .toList());
     }
 
     private HealthItemType validated(RecordCommand c) {
@@ -362,8 +422,10 @@ public class HealthItemService implements HealthItemApi {
                         i.getStatus(),
                         i.isActive()
                                 ? null
-                                : new Exclusion(
-                                        i.getExcludedAt(), names.of(i.getExcludedBy()), i.getExclusionReason())))
+                                : new Exclusion(i.getExcludedAt(), names.of(i.getExcludedBy()), i.getExclusionReason()),
+                        i.isUnverified(),
+                        i.getVerifiedBy() == null ? null : names.of(i.getVerifiedBy()),
+                        i.getVerifiedAt()))
                 .toList();
     }
 
@@ -381,6 +443,7 @@ public class HealthItemService implements HealthItemApi {
         }
         values.put("sourceId", i.getSourceId());
         values.put("status", i.getStatus().name());
+        values.put("unverified", i.isUnverified());
         return values;
     }
 

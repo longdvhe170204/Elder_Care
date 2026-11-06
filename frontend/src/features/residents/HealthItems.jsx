@@ -4,6 +4,7 @@ import {
   getCatalogsByType,
   getResidentsByIdHealthItems,
   postHealthItemsByIdExclude,
+  postHealthItemsByIdVerify,
   postResidentsByIdHealthItems,
 } from '@/api'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -22,8 +23,9 @@ import { problemOf } from '@/common/problem'
 import { CATALOG_TYPES, HEALTH_TYPE_LABELS, HEALTH_TYPE_ORDER } from './healthLabels'
 
 // Dị ứng, bệnh nền, tiền sử bệnh (001 T033; US2; FR-018 → FR-022; DBR-04; hợp đồng GET, POST
-// /residents/{id}/health-items, POST /health-items/{id}/exclude). Mỗi mục chỉ ghi nhận và loại trừ có lý do: không có
-// nút Sửa, Xóa. Dị ứng luôn hiện thành khối riêng tông attention (DESIGN.md 7.2). Nút theo allowedCommands.
+// /residents/{id}/health-items, POST /health-items/{id}/exclude, POST /health-items/{id}/verify). Mỗi mục chỉ ghi nhận và
+// loại trừ có lý do: không có nút Sửa, Xóa. Mục Hành chính ghi theo lời gia đình mang nhãn "Tự khai, chưa được Bác sĩ kiểm chứng"
+// (001 T106; Q-400, BR-M01-17), Bác sĩ, Điều dưỡng bấm "Kiểm chứng"; Hành chính chọn sẵn nguồn "Người thân". Dị ứng luôn hiện thành khối riêng tông attention (DESIGN.md 7.2). Nút theo allowedCommands.
 
 const STATUS_FILTERS = [
   { value: 'ACTIVE', label: 'Hiệu lực' },
@@ -121,8 +123,27 @@ function ExcludeForm({ item, onDone, onCancel }) {
   )
 }
 
-function ItemRow({ item, canExclude, excluding, onExclude, onCancel, onExcluded }) {
+function ItemRow({ item, canExclude, canVerify, excluding, onExclude, onCancel, onExcluded, onVerified }) {
   const excluded = item.status === 'EXCLUDED'
+  const [verifying, setVerifying] = useState(false)
+  const [failure, setFailure] = useState(null)
+
+  async function verify() {
+    setVerifying(true)
+    setFailure(null)
+    try {
+      await postHealthItemsByIdVerify({
+        path: { id: item.id },
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+      })
+      onVerified()
+    } catch (e) {
+      setFailure(problemOf(e))
+    } finally {
+      setVerifying(false)
+    }
+  }
+
   return (
     <li className="flex flex-col gap-1 rounded-lg border p-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -131,16 +152,28 @@ function ItemRow({ item, canExclude, excluding, onExclude, onCancel, onExcluded 
           <span className="type-body-sm text-muted-foreground">Mức độ: {item.severity}</span>
         )}
         {excluded && <StatusBadge status="Đã loại trừ" />}
+        {item.unverified && !excluded && <Badge variant="attention">Tự khai, chưa được Bác sĩ kiểm chứng</Badge>}
         {item.notAutoChecked && <Badge variant="attention">Không kiểm tra tự động</Badge>}
         {item.pendingCheck && !excluded && <Badge variant="neutral">Chờ kiểm tra thuốc và chế độ ăn</Badge>}
       </div>
       <p className="type-caption text-muted-foreground">
         Nguồn: {item.source}. Ghi bởi {item.recordedBy}, {formatDate(item.at)}
       </p>
+      {item.verifiedBy && (
+        <p className="type-caption text-muted-foreground">
+          Kiểm chứng bởi {item.verifiedBy}, {formatDate(item.verifiedAt)}
+        </p>
+      )}
       {excluded && item.exclusion && (
         <p className="type-caption text-muted-foreground">
           Loại trừ bởi {item.exclusion.by}, {formatDate(item.exclusion.at)}. Lý do: {item.exclusion.reason}
         </p>
+      )}
+      <ProblemAlert problem={failure} />
+      {!excluded && item.unverified && canVerify && (
+        <Button type="button" variant="outline" size="sm" className="self-start" disabled={verifying} onClick={verify}>
+          Kiểm chứng
+        </Button>
       )}
       {!excluded && canExclude && !excluding && (
         <Button type="button" variant="outline" size="sm" className="self-start" onClick={onExclude}>
@@ -160,7 +193,7 @@ function bodyOf(kind, form) {
   return body
 }
 
-function RecordItemForm({ residentId, onRecorded, onCancel }) {
+function RecordItemForm({ residentId, selfReport, onRecorded, onCancel }) {
   const [catalogs, setCatalogs] = useState(null)
   const [kind, setKind] = useState('ALLERGY_CATALOG')
   const [form, setForm] = useState({ allergenId: '', freeText: '', severityId: '', sourceId: '' })
@@ -179,7 +212,10 @@ function RecordItemForm({ residentId, onRecorded, onCancel }) {
           getCatalogsByType({ path: { type: CATALOG_TYPES.severities }, query }),
           getCatalogsByType({ path: { type: CATALOG_TYPES.sources }, query }),
         ])
-        if (!cancelled) setCatalogs({ allergens: allergens.data, severities: severities.data, sources: sources.data })
+        if (cancelled) return
+        setCatalogs({ allergens: allergens.data, severities: severities.data, sources: sources.data })
+        const family = selfReport && sources.data.find((s) => s.name === 'Người thân')
+        if (family) setForm((current) => ({ ...current, sourceId: String(family.id) }))
       } catch (error) {
         if (!cancelled) setFailure(problemOf(error))
       }
@@ -188,7 +224,7 @@ function RecordItemForm({ residentId, onRecorded, onCancel }) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [selfReport])
 
   const set = (name) => (event) => setForm((current) => ({ ...current, [name]: event.target.value }))
 
@@ -307,6 +343,14 @@ function RecordItemForm({ residentId, onRecorded, onCancel }) {
           error={errors.sourceId}
         />
       </FieldGroup>
+      {selfReport && (
+        <Alert variant="attention">
+          <AlertTitle>Thông tin tự khai của gia đình, chưa được Bác sĩ kiểm chứng</AlertTitle>
+          <AlertDescription>
+            Mục có hiệu lực ngay để kiểm tra thuốc và chế độ ăn; Bác sĩ hoặc Điều dưỡng sẽ kiểm chứng sau.
+          </AlertDescription>
+        </Alert>
+      )}
       {kind === 'ALLERGY_OTHER' && (
         <Alert variant="attention">
           <AlertTitle>Dị ứng nhập tay không kiểm tra tự động</AlertTitle>
@@ -349,6 +393,7 @@ export function HealthItems({ residentId, allowedCommands }) {
 
   const canRecord = allowedCommands.includes('RECORD_HEALTH_ITEM')
   const canExclude = allowedCommands.includes('EXCLUDE_HEALTH_ITEM')
+  const canVerify = allowedCommands.includes('VERIFY_HEALTH_ITEM')
 
   const load = useCallback(
     async (status) => {
@@ -392,6 +437,7 @@ export function HealthItems({ residentId, allowedCommands }) {
       {recording && (
         <RecordItemForm
           residentId={residentId}
+          selfReport={canRecord && !canVerify}
           onCancel={() => setRecording(false)}
           onRecorded={(next) => {
             setRecording(false)
@@ -464,6 +510,7 @@ export function HealthItems({ residentId, allowedCommands }) {
                     key={item.id}
                     item={item}
                     canExclude={canExclude}
+                    canVerify={canVerify}
                     excluding={excludingId === item.id}
                     onExclude={() => setExcludingId(item.id)}
                     onCancel={() => setExcludingId(null)}
@@ -471,6 +518,7 @@ export function HealthItems({ residentId, allowedCommands }) {
                       setExcludingId(null)
                       load(filter)
                     }}
+                    onVerified={() => load(filter)}
                   />
                 ))}
               </ul>

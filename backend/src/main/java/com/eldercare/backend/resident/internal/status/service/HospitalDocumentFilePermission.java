@@ -6,6 +6,7 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.common.file.FilePermissionProvider;
+import com.eldercare.backend.resident.internal.health.service.SelfReportedHealth;
 import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,9 @@ class HospitalDocumentFilePermission implements FilePermissionProvider {
     // Không đặt readOnly: kiểm quyền theo phạm vi có thể ghi dấu đã khắc phục lỗi dữ liệu nguồn (002 CHK059)
     @Override
     public boolean canDownload(long ownerId) {
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            return false;
+        }
         return histories
                 .findById(ownerId)
                 .map(history -> permissions

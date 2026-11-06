@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.correction.api.CorrectionResult;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.util.List;
@@ -100,6 +101,17 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
                 Map.of())) {
             assertThatThrownBy(() -> correct(historyId, bad)).isInstanceOf(InvalidValueException.class);
         }
+        assertThat(shownReason(id)).isEqualTo("Lý do cũ");
+    }
+
+    @Test
+    void FR_049a_voidIsNotSupported_historyIsAppendOnly() {
+        long id = absentResident();
+        long historyId = lastHistoryId(id);
+
+        assertThatThrownBy(() -> corrections.create(TYPE, historyId, CorrectionType.VOID, null, new Reason("Ghi nhầm")))
+                .isInstanceOfSatisfying(
+                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("CORRECTION_NOT_SUPPORTED"));
         assertThat(shownReason(id)).isEqualTo("Lý do cũ");
     }
 
