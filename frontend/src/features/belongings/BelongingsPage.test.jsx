@@ -178,4 +178,10 @@ describe('BelongingsPage (013 T011, US1)', () => {
     )
     expect(await screen.findByLabelText('Mã nhân viên')).toBeInTheDocument()
   })
+
+  it('FR_011_moManHienNgayDanhSachNguoiCaoTuoi_khongCanTim', async () => {
+    setup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007' }))
+    expect(await screen.findByText('Điện thoại Nokia')).toBeInTheDocument()
+  })
 })
