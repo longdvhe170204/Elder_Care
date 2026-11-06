@@ -22,7 +22,7 @@ const REPORT = {
       denominator: 571,
       labels: ['DAY_NOT_ENDED'],
       pendingReviewCount: 0,
-      breakdown: [{ key: 'Ca sáng', value: 1.8, numerator: 5, denominator: 280 }],
+      breakdown: [{ key: '7', value: 1.8, numerator: 5, denominator: 280 }],
     },
   ],
   notes: [],
@@ -72,11 +72,12 @@ describe('ReportsPage', () => {
     expect(await screen.findByText('Tỷ lệ liều Bỏ lỡ')).toBeInTheDocument()
     expect(screen.getByText('12 / 571')).toBeInTheDocument()
     expect(screen.getByText('ngày chưa kết thúc')).toBeInTheDocument()
+    expect(screen.getByText('Ca 7')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '1,8' }))
 
     expect(await screen.findByText('Không có bản ghi')).toBeInTheDocument()
     const [url] = api.calls('GET', '/metric-details/MED.MISSED_RATE')[0]
-    expect(new URL(url, 'http://localhost').searchParams.get('breakdownKey')).toBe('Ca sáng')
+    expect(new URL(url, 'http://localhost').searchParams.get('breakdownKey')).toBe('7')
   })
 
   it('FR_060_khoangQuaDai_hienLoi', async () => {

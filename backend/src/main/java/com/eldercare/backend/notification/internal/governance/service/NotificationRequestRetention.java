@@ -57,14 +57,28 @@ class NotificationRequestRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (received_at, id)} (000 T112). */
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
+        LocalDateTime afterAt = after == null
+                ? LocalDateTime.of(1000, 1, 1, 0, 0)
+                : LocalDateTime.ofInstant(after.at(), ZoneOffset.UTC);
+        long afterId = after == null ? 0 : after.id();
         return jdbc
                 .query(
                         "SELECT id, received_at FROM notification_request WHERE resident_id IS NULL AND received_at < ?"
+                                + " AND (received_at > ? OR (received_at = ? AND id > ?))"
                                 + " ORDER BY received_at, id LIMIT ?",
                         (rs, i) -> new Candidate(
                                 rs.getLong(1),
                                 rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                         LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
+                        afterAt,
+                        afterAt,
+                        afterId,
                         batch)
                 .stream();
     }

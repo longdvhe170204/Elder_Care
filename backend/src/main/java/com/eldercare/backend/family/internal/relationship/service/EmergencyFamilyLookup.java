@@ -1,6 +1,7 @@
 package com.eldercare.backend.family.internal.relationship.service;
 
 import com.eldercare.backend.family.internal.relationship.domain.FamilyRelationship;
+import com.eldercare.backend.family.internal.visit.service.VisitQueries;
 import com.eldercare.backend.incident.api.dto.EmergencyFamilyContactView;
 import com.eldercare.backend.incident.api.dto.VisitTraceView;
 import com.eldercare.backend.incident.api.spi.EmergencyFamilyPort;
@@ -10,16 +11,18 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
- * Bản cài {@code NguoiThanKhanCapPort} của 007 (012 T006; contracts mục 1.1). Lượt thăm cho truy vết (FR-038) có từ
- * US4 (T024); trước đó trả rỗng.
+ * Bản cài {@code NguoiThanKhanCapPort} của 007 (012 T006; contracts mục 1.1). Lượt thăm cho truy vết (FR-038) đọc qua
+ * {@link VisitQueries} (US4, T024).
  */
 @Service
 class EmergencyFamilyLookup implements EmergencyFamilyPort {
 
     private final RelationshipQueries queries;
+    private final VisitQueries visits;
 
-    EmergencyFamilyLookup(RelationshipQueries queries) {
+    EmergencyFamilyLookup(RelationshipQueries queries, VisitQueries visits) {
         this.queries = queries;
+        this.visits = visits;
     }
 
     @Override
@@ -40,7 +43,7 @@ class EmergencyFamilyLookup implements EmergencyFamilyPort {
 
     @Override
     public List<VisitTraceView> visitsInRange(long residentId, Instant from, Instant to) {
-        return List.of();
+        return visits.inRange(residentId, from, to);
     }
 
     private Optional<EmergencyFamilyContactView> contact(FamilyRelationship r) {

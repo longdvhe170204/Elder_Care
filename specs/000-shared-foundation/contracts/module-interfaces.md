@@ -173,10 +173,13 @@ String loaiDuLieu();
 LoaiHan loaiHan();                                   // THEO_HO_SO (CFG-M15-03) | KHONG_GAN_HO_SO (CFG-M15-04) | DAI_HON(MaThamSo)
 Stream<UngVien> ungVienHetHan(LocalDate moc, int lo); // bản ghi đã qua hạn
 Set<ThamChieuDuLieu> thamChieuToi(long id);          // ai đang trỏ tới bản ghi này (FR-051a)
+// bổ sung 2026-11-06 (000 T112, chủ dự án duyệt); cả hai có mặc định nên provider cũ vẫn chạy
+Set<ThamChieuDuLieu> dangTroToi(ThamChieuDuLieu dich); // bản ghi của loại này trỏ tới bản ghi loại khác, ví dụ hồ sơ người cao tuổi; mặc định rỗng
+Stream<UngVien> ungVienHetHan(LocalDate moc, UngVien sau, int lo); // trang sau mốc (thoiDiem, id); mặc định chỉ trang đầu
 void xoa(Collection<Long> ids);                      // chỉ được gọi bởi job, qua DataSource eldercare_luu_tru
 ```
 
-Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi và xóa (research R-11).
+Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi và xóa (research R-11). *(Bổ sung 2026-11-06, 000 T112)* Bản ghi trỏ tới một bản ghi gồm `thamChieuToi` của loại bị trỏ và `dangTroToi` của mọi provider: module có bản ghi gắn hồ sơ người cao tuổi (`M01.RESIDENT`) của module khác MUST cài `dangTroToi`, vì provider của hồ sơ không biết module khác. Job lấy ứng viên theo trang (`ungVienHetHan` có `sau`, xếp theo `(thoiDiem, id)`) tới khi hết, tối đa 100 trang mỗi loại mỗi đợt; provider chưa cài phân trang chỉ có trang đầu như trước. Tệp đính kèm (`common.file`) của bản ghi trong chuỗi được xóa cùng chuỗi (nội dung S3 rồi dòng `file`), sau bản ghi.
 
 ### 1.8. Bảng dùng chung sau gộp: `administration.shared.api`, `common` *(chủ dự án duyệt 2026-10-30; T108)*
 

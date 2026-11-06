@@ -7,11 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.administration.FakeResidencyEnds;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * 002 T042 (bảng trạng thái "Kích hoạt lại"; FR-011, FR-051, FR-052; SC-011): Hành chính hoặc Quản lý viện kích hoạt lại
@@ -44,7 +47,12 @@ class ReactivateIT extends MySqlIntegrationTestBase {
     BusinessTime time;
 
     @Autowired
-    FakeFamilyRelationships relationships;
+    RelationshipHistoryStore history;
+
+    @Autowired
+    TransactionTemplate tx;
+
+    RelationshipFixtures family;
 
     @Autowired
     FakeResidencyEnds residencyEnds;
@@ -55,15 +63,16 @@ class ReactivateIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
+        family = new RelationshipFixtures(
+                jdbc, tx, history, time.now().minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS));
         office = fixtures.session(fixtures.staffAccount("AC-09"));
     }
 
     @Test
     void US6_9_callbackRegisteredNumber_reactivated_mustChangePassword_audited() throws Exception {
-        long familyMember = AccountFixtures.nextId();
+        long familyMember = family.familyMember("Người thân thử", PHONE);
         long account = inactive(familyMember);
-        relationships.relate(familyMember, AccountFixtures.nextId());
-        relationships.phoneNumber(familyMember, PHONE);
+        family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
 
         reactivate(account, callback(PHONE))
                 .andExpect(status().isOk())
@@ -83,10 +92,9 @@ class ReactivateIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_052_numberJustReadByRequester_refused() throws Exception {
-        long familyMember = AccountFixtures.nextId();
+        long familyMember = family.familyMember("Người thân thử", PHONE);
         long account = inactive(familyMember);
-        relationships.relate(familyMember, AccountFixtures.nextId());
-        relationships.phoneNumber(familyMember, PHONE);
+        family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
 
         reactivate(account, callback("0909999999"))
                 .andExpect(status().isConflict())
@@ -96,11 +104,10 @@ class ReactivateIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_011_residentEndedOver30Days_refused_within30Days_allowed() throws Exception {
-        long familyMember = AccountFixtures.nextId();
+        long familyMember = family.familyMember("Người thân thử", PHONE);
         long account = inactive(familyMember);
         long resident = AccountFixtures.nextId();
-        relationships.relate(familyMember, resident);
-        relationships.phoneNumber(familyMember, PHONE);
+        family.relate(familyMember, resident, 1, false, false);
         residencyEnds.ended(resident, time.now().minus(Duration.ofDays(31)));
 
         reactivate(account, callback(PHONE))
@@ -108,7 +115,7 @@ class ReactivateIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.errorCode").value("RELATIONSHIP_ENDED"));
 
         long other = AccountFixtures.nextId();
-        relationships.relate(familyMember, other);
+        family.relate(familyMember, other, 1, false, false);
         residencyEnds.ended(other, time.now().minus(Duration.ofDays(10)));
         reactivate(account, callback(PHONE)).andExpect(status().isOk());
     }
@@ -116,10 +123,9 @@ class ReactivateIT extends MySqlIntegrationTestBase {
     @Test
     void onlyInactiveFamilyAccounts() throws Exception {
         long staff = fixtures.staffAccount("AC-05");
-        long familyMember = AccountFixtures.nextId();
+        long familyMember = family.familyMember("Người thân thử", PHONE);
         long active = fixtures.familyAccount(familyMember);
-        relationships.relate(familyMember, AccountFixtures.nextId());
-        relationships.phoneNumber(familyMember, PHONE);
+        family.relate(familyMember, AccountFixtures.nextId(), 1, false, false);
 
         reactivate(active, callback(PHONE)).andExpect(status().isConflict());
         reactivate(staff, callback(PHONE)).andExpect(status().isNotFound());
