@@ -12,6 +12,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -225,6 +226,10 @@ public class ConsentService implements ConsentApi {
     private void validate(long residentId, RecordConsent command) {
         if (command.evidenceFileId() == null) {
             throw evidenceRequired();
+        }
+        // BUG-04, A duyệt 2026-11-05: ngày đồng ý không ở tương lai (web đã chặn, backend chặn thêm một lớp)
+        if (command.consentedAt() != null && command.consentedAt().isAfter(time.now())) {
+            throw new InvalidValueException("Ngày đồng ý không được ở tương lai");
         }
         CourtDecision decision = command.courtDecision();
         Long signer = command.consenterFamilyMemberId();
