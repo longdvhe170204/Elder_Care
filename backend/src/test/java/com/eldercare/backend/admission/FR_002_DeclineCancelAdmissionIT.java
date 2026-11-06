@@ -22,6 +22,9 @@ import tools.jackson.databind.node.JsonNodeFactory;
 @WithMockUser
 class FR_002_DeclineCancelAdmissionIT extends WaitingListTestBase {
 
+    @org.springframework.beans.factory.annotation.Autowired
+    com.eldercare.backend.admission.api.ResidencyStatisticsApi statistics;
+
     private static final String REASON = "{\"reason\":\"Gia đình không tiếp tục chờ\"}";
 
     private record Waiting(long residentId, long applicationId, long entryId) {}
@@ -83,6 +86,24 @@ class FR_002_DeclineCancelAdmissionIT extends WaitingListTestBase {
         assertThat(applicationStatus(w.applicationId())).isEqualTo("CANCELLED");
         assertThat(currentStatus(w.residentId())).isEqualTo(ResidentStatus.ADMISSION_CANCELLED);
         assertThat(audit("M02_WAITING_ENTRY_CANCELLED", w.entryId())).isEqualTo(1);
+    }
+
+    @Test
+    void FR_025_waitingList_reportsLeftOnOnlyForEntriesThatLeft() throws Exception {
+        Waiting stays = waiting();
+        Waiting leaves = waiting();
+        mvc.perform(post("/api/v1/waiting-list-entries/" + leaves.entryId() + "/cancel-waiting")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REASON))
+                .andExpect(status().isOk());
+
+        var views = statistics
+                .waitingList(java.time.LocalDate.MIN, java.time.LocalDate.MAX)
+                .collect(java.util.stream.Collectors.toMap(v -> v.id(), v -> v));
+
+        assertThat(views.get(stays.entryId()).leftOn()).isNull();
+        assertThat(views.get(leaves.entryId()).status()).isEqualTo("WAITING_CANCELLED");
+        assertThat(views.get(leaves.entryId()).leftOn()).isEqualTo(today());
     }
 
     @Test
