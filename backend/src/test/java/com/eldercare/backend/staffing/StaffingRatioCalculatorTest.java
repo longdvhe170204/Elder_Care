@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.resident.api.dto.CareLevel;
-import com.eldercare.backend.staffing.ratio.internal.domain.StaffingRatioCalculator;
+import com.eldercare.backend.staffing.internal.ratio.domain.StaffingRatioCalculator;
 import java.math.BigDecimal;
 import java.util.*;
 import org.junit.jupiter.api.Test;

@@ -27,7 +27,9 @@ class AssignmentSchemaIT extends MySqlIntegrationTestBase {
 
     private long shift() {
         jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Mẫu phân công]','07:00','15:00','FLOOR')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu phân công] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type) src");
         long template = id();
         jdbc.update("INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES ('2032-01','FLOOR',?)", template);
         long schedule = id();
@@ -77,11 +79,14 @@ class AssignmentSchemaIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_024_floorManagerIntervalMustBePositiveAndScopeLockIsUnique() {
-        jdbc.update("INSERT INTO floor_scope_lock(floor_area_id) VALUES (912345)");
-        assertThatThrownBy(() -> jdbc.update("INSERT INTO floor_scope_lock(floor_area_id) VALUES (912345)"))
+        jdbc.update(
+                "INSERT INTO technical_lock(lock_key,version,updated_at) SELECT CONCAT('M09.TANG:',src.floor_area_id),0,'1970-01-01 00:00:00' FROM (SELECT 912345 AS floor_area_id) src");
+        assertThatThrownBy(
+                        () -> jdbc.update(
+                                "INSERT INTO technical_lock(lock_key,version,updated_at) SELECT CONCAT('M09.TANG:',src.floor_area_id),0,'1970-01-01 00:00:00' FROM (SELECT 912345 AS floor_area_id) src"))
                 .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,ends_at) VALUES (?,912345,'2032-01-02','2032-01-01')",
+                        "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,ends_at,assigned_by,reason,status) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,src.ends_at,1,'[Khởi tạo fixture]','ACTIVE' FROM (SELECT ? AS staff_id,912345 AS floor_area_id,'2032-01-02' AS starts_at,'2032-01-01' AS ends_at) src",
                         staff()))
                 .isInstanceOf(DataAccessException.class);
     }

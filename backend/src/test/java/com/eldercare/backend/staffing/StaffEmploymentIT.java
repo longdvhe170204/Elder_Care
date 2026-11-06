@@ -8,8 +8,8 @@ import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
-import com.eldercare.backend.staffing.staff.internal.service.StaffService;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.staff.service.StaffService;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.*;
 import java.time.*;
@@ -77,7 +77,9 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
                 employee,
                 account);
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu kiểm thử nghỉ việc]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu kiểm thử nghỉ việc] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
         long schedule = insert(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES (?,'FLOOR',?,'PUBLISHED')",
                 YearMonth.from(now.atZone(BusinessTime.ZONE)).toString(),
@@ -107,9 +109,11 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
         if (fixtureDepartment != null)
             try (var c = retentionConnection()) {
                 c.setAutoCommit(false);
-                for (String table : List.of("department_lead_history", "staff_department", "department"))
-                    try (var p = c.prepareStatement("DELETE FROM " + table + " WHERE "
-                            + (table.equals("department") ? "id" : "department_id") + "=?")) {
+                for (String statement : List.of(
+                        "DELETE FROM status_history WHERE entity_type='M09.DEPARTMENT' AND attribute='LEAD_STAFF' AND entity_id=?",
+                        "DELETE FROM staff_department WHERE department_id=(SELECT id FROM catalog_item WHERE catalog_type='M09.DEPARTMENT' AND COALESCE(m09_legacy_id,id)=?)",
+                        "DELETE FROM catalog_item WHERE catalog_type='M09.DEPARTMENT' AND COALESCE(m09_legacy_id,id)=?"))
+                    try (var p = c.prepareStatement(statement)) {
                         p.setLong(1, fixtureDepartment);
                         p.executeUpdate();
                     }
@@ -190,12 +194,11 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
     @Test
     void Q_292_departmentLeadMustBeReplacedInSameCommand() {
         long dept = insert(
-                "INSERT INTO department(name,lead_staff_id) VALUES (?,?)",
-                "[Bộ phận nghỉ việc " + employee + "]",
-                employee);
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.DEPARTMENT','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'leadStaffId',src.lead_staff_id) FROM (SELECT ? AS name,? AS lead_staff_id) src",
+                "[Bộ phận nghỉ việc " + employee + "]", employee);
         fixtureDepartment = dept;
         jdbc.update(
-                "INSERT INTO staff_department(staff_id,department_id,starts_at,actor_id,reason) VALUES (?,?,?,?,'[Khởi tạo]')",
+                "INSERT INTO staff_department(staff_id,department_id,starts_at,actor_id,reason) SELECT src.staff_id,(SELECT c.id FROM catalog_item c WHERE c.catalog_type='M09.DEPARTMENT' AND COALESCE(c.m09_legacy_id,c.id)=src.department_id),src.starts_at,src.actor_id,src.reason FROM (SELECT ? AS staff_id,? AS department_id,? AS starts_at,? AS actor_id,'[Khởi tạo]' AS reason) src",
                 employee,
                 dept,
                 ShiftStore.sql(now.minusSeconds(1)),
@@ -226,7 +229,7 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
     @Test
     void FR_004_futureFloorManagerAssignmentNeverGrantsScopeAfterResignation() {
         jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,assigned_by) VALUES (?,?,?,?)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,src.assigned_by,'[Khởi tạo fixture]','ACTIVE' FROM (SELECT ? AS staff_id,? AS floor_area_id,? AS starts_at,? AS assigned_by) src",
                 employee,
                 floor,
                 ShiftStore.sql(now.plusSeconds(3600)),

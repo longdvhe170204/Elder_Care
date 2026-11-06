@@ -3,7 +3,7 @@ package com.eldercare.backend.staffing.internal.service;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.file.FilePermissionProvider;
-import com.eldercare.backend.staffing.credential.internal.persistence.CredentialStore;
+import com.eldercare.backend.staffing.internal.credential.persistence.CredentialStore;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 

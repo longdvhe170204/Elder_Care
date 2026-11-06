@@ -2,7 +2,7 @@ package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.staffing.handover.internal.domain.CriticalHandoverItem;
+import com.eldercare.backend.staffing.internal.handover.domain.CriticalHandoverItem;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 

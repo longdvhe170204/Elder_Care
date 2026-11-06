@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.staffing.api.StaffStatisticsApi;
-import com.eldercare.backend.staffing.ratio.internal.domain.StaffingRatioCalculator.Result;
-import com.eldercare.backend.staffing.ratio.internal.persistence.StaffingRatioStore;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.ratio.domain.StaffingRatioCalculator.Result;
+import com.eldercare.backend.staffing.internal.ratio.persistence.StaffingRatioStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.roombedallocation.*;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Import(FakeLocations.Config.class)
+@org.springframework.transaction.annotation.Transactional
 class StaffStatisticsIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
@@ -44,7 +45,9 @@ class StaffStatisticsIT extends MySqlIntegrationTestBase {
     private long shift(String type, long scope) {
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu thống kê]','07:00','15:00',?,FALSE)",
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu thống kê] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,? AS scope_type,FALSE AS requires_handover) src",
                 type);
         long schedule = AssignmentFixtures.insert(
                 jdbc,
@@ -88,7 +91,7 @@ class StaffStatisticsIT extends MySqlIntegrationTestBase {
         long id = shift("FLOOR", floor), person = staff();
         AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,ends_at,status) VALUES (?,?,?,?,'ENDED')",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,ends_at,status,assigned_by,reason) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,src.ends_at,src.status,1,'[Khởi tạo fixture]' FROM (SELECT ? AS staff_id,? AS floor_area_id,? AS starts_at,? AS ends_at,'ENDED' AS status) src",
                 person,
                 floor,
                 ShiftStore.sql(start),
@@ -102,7 +105,7 @@ class StaffStatisticsIT extends MySqlIntegrationTestBase {
                 ShiftStore.sql(start.plusSeconds(3600)));
         AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,ends_at,basis) VALUES (?,?,?,?,'SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,ends_at,command,by_system) SELECT 'M09.SHIFT',src.shift_id,'LEAD_STAFF','M09','PERIOD',src.staff_id,src.starts_at,src.ends_at,src.basis,FALSE FROM (SELECT ? AS shift_id,? AS staff_id,? AS starts_at,? AS ends_at,'SCHEDULED' AS basis) src",
                 id,
                 person,
                 ShiftStore.sql(start),
@@ -274,19 +277,19 @@ class StaffStatisticsIT extends MySqlIntegrationTestBase {
         long staff = staff();
         long type = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO credential_type(code,name,credential_group,has_expiry,required_for_roles) VALUES (?,?,'TRAINING',TRUE,JSON_ARRAY())",
+                "INSERT INTO catalog_item(catalog_type,module,code,name,status,attributes) SELECT 'M09.CREDENTIAL_TYPE','M09',src.code,src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'credentialGroup',src.credential_group,'hasExpiry',IF(src.has_expiry,CAST('true' AS JSON),CAST('false' AS JSON)),'requiredForRoles',CAST(src.required_for_roles AS JSON),'hasPracticeScopes',IF(FALSE,CAST('true' AS JSON),CAST('false' AS JSON)),'legacyCode',src.code) FROM (SELECT ? AS code,? AS name,'TRAINING' AS credential_group,TRUE AS has_expiry,JSON_ARRAY() AS required_for_roles) src",
                 "STAT-" + staff,
                 "[Loại thống kê " + staff + "]");
         long valid = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) VALUES (?,?,?,?)",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT src.staff_id,(SELECT c.id FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE' AND COALESCE(c.m09_legacy_id,c.id)=src.credential_type_id),src.issue_date,src.expiry_date FROM (SELECT ? AS staff_id,? AS credential_type_id,? AS issue_date,? AS expiry_date) src",
                 staff,
                 type,
                 time.today().minusYears(1),
                 time.today());
         AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date,revoked_from,revocation_reason) VALUES (?,?,?,?,?,'Thu hồi kiểm thử')",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date,revoked_from,revocation_reason) SELECT src.staff_id,(SELECT c.id FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE' AND COALESCE(c.m09_legacy_id,c.id)=src.credential_type_id),src.issue_date,src.expiry_date,src.revoked_from,src.revocation_reason FROM (SELECT ? AS staff_id,? AS credential_type_id,? AS issue_date,? AS expiry_date,? AS revoked_from,'Thu hồi kiểm thử' AS revocation_reason) src",
                 staff,
                 type,
                 time.today().minusYears(1),
@@ -294,7 +297,7 @@ class StaffStatisticsIT extends MySqlIntegrationTestBase {
                 time.today());
         AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) VALUES (?,?,?,?)",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT src.staff_id,(SELECT c.id FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE' AND COALESCE(c.m09_legacy_id,c.id)=src.credential_type_id),src.issue_date,src.expiry_date FROM (SELECT ? AS staff_id,? AS credential_type_id,? AS issue_date,? AS expiry_date) src",
                 staff,
                 type,
                 time.today().minusYears(1),
