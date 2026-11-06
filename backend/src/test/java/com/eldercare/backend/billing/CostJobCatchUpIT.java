@@ -38,6 +38,9 @@ class CostJobCatchUpIT extends MySqlIntegrationTestBase {
     ResidentModuleStateApi states;
 
     @Autowired
+    org.springframework.jdbc.core.JdbcTemplate calendarJdbc;
+
+    @Autowired
     @Qualifier("dailyCostTestAction")
     Action dailyAction;
 
@@ -58,6 +61,28 @@ class CostJobCatchUpIT extends MySqlIntegrationTestBase {
     @AfterEach
     void reset() {
         clock.reset();
+    }
+
+    @Test
+    void FR_001_realCalendarTaskCommitsItsPeriodThroughTheScheduler() {
+        int statementsBefore = calendarJdbc.queryForObject(
+                "SELECT COUNT(*) FROM cost_statement WHERE kind='STATEMENT'", Integer.class);
+        daily.runNow();
+        assertThat(calendarJdbc.queryForObject(
+                        "SELECT COUNT(*) FROM cost_statement WHERE kind='PERIOD' AND period_month='2026-11'",
+                        Integer.class))
+                .isEqualTo(1);
+        assertThat(calendarJdbc.queryForObject(
+                        "SELECT COUNT(*) FROM cost_statement WHERE kind='STATEMENT'", Integer.class))
+                .isEqualTo(statementsBefore);
+        assertThat(calendarJdbc.queryForObject(
+                        "SELECT COUNT(*) FROM reminder_marker WHERE kind='M11.JOB_DONE' AND entity_type=? AND entity_id=? AND marker=?",
+                        Integer.class,
+                        com.eldercare.backend.billing.internal.period.persistence.CostJobMarkers.entityType(
+                                "COST_PERIOD_CALENDAR"),
+                        CostJobCadence.DAILY.markerId(),
+                        first.toString()))
+                .isEqualTo(1);
     }
 
     @Test

@@ -192,6 +192,29 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of("POST /api/v1/notifications/{id}/acknowledge-and-take-charge"),
                     Set.of(),
                     true),
+            // 010 T032: đăng ký khi cài endpoint Phase 5; story khác giữ pending, không nới phép so operation.
+            new Contract(
+                    Path.of("..", "specs", "010-incurred-costs", "contracts", "api-010.yaml"),
+                    Set.of(
+                            "GET /api/v1/costs/billing-sources",
+                            "POST /api/v1/costs/items/from-events",
+                            "POST /api/v1/costs/items/manual",
+                            "POST /api/v1/costs/items/{id}/adjust",
+                            "GET /api/v1/costs/post-finalization-changes",
+                            "GET /api/v1/purchase-assistance-requests",
+                            "POST /api/v1/purchase-assistance-requests",
+                            "POST /api/v1/purchase-assistance-requests/{id}/send",
+                            "POST /api/v1/purchase-assistance-requests/{id}/agree",
+                            "POST /api/v1/purchase-assistance-requests/{id}/reject",
+                            "POST /api/v1/purchase-assistance-requests/{id}/request-additional-consent",
+                            "POST /api/v1/purchase-assistance-requests/{id}/withdraw-additional-consent",
+                            "POST /api/v1/purchase-assistance-requests/{id}/cancel",
+                            "POST /api/v1/purchase-assistance-requests/{id}/record-purchased",
+                            "GET /api/v1/residents/{residentId}/costs/statements",
+                            "GET /api/v1/residents/{residentId}/costs/provisional",
+                            "POST /api/v1/costs/periods/{id}/export"),
+                    Set.of(),
+                    true),
             // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
             new Contract(
                     Path.of("..", "specs", "016-reports-dashboard", "contracts", "api-016.yaml"),
