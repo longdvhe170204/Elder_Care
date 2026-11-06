@@ -1,9 +1,13 @@
 package com.eldercare.backend.resident.internal.status.persistence;
 
+import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -12,10 +16,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ResidentStatusStore {
 
-    private final JdbcTemplate jdbc;
+    private static final DateTimeFormatter MARKER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 
-    ResidentStatusStore(JdbcTemplate jdbc) {
+    private final JdbcTemplate jdbc;
+    private final ReminderMarkers markers;
+
+    ResidentStatusStore(JdbcTemplate jdbc, ReminderMarkers markers) {
         this.jdbc = jdbc;
+        this.markers = markers;
     }
 
     public Optional<ResidentStatus> find(long residentId) {
@@ -33,15 +41,16 @@ public class ResidentStatusStore {
         return jdbc.query("SELECT id FROM resident WHERE status = ?", (rs, i) -> rs.getLong(1), status.name());
     }
 
-    /** Ghi đã cảnh báo cho mốc trở lại này; {@code false} khi mốc đã được cảnh báo (FR-050). */
-    public boolean recordOverdueAlert(long absenceId, Instant expectedReturnAt, long residentId, Instant at) {
-        return jdbc.update(
-                        "INSERT IGNORE INTO return_overdue_alert (absence_id, expected_return_at, resident_id, alerted_at)"
-                                + " VALUES (?, ?, ?, ?)",
-                        absenceId,
-                        Timestamp.from(expectedReturnAt),
-                        residentId,
-                        Timestamp.from(at))
-                == 1;
+    /**
+     * Ghi đã cảnh báo (lúc hiện tại của viện) cho mốc trở lại này: dấu {@code M01.RETURN_OVERDUE_ALERT} của lượt vắng, dấu
+     * là mốc dự kiến trở lại; {@code false} khi mốc đã được cảnh báo (FR-050).
+     */
+    public boolean recordOverdueAlert(long absenceId, Instant expectedReturnAt, long residentId) {
+        return markers.mark(
+                "M01.RETURN_OVERDUE_ALERT",
+                "M02.ABSENCE",
+                absenceId,
+                MARKER.format(LocalDateTime.ofInstant(expectedReturnAt, ZoneOffset.UTC)),
+                Map.of("residentId", residentId));
     }
 }

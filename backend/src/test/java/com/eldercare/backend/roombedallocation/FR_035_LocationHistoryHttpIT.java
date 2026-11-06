@@ -200,8 +200,9 @@ class FR_035_LocationHistoryHttpIT extends StructureTestSupport {
     }
 
     private void statusHistory(long person, String from, String to, String command, String at) {
-        jdbc.update(
-                "INSERT INTO resident_status_history(id,resident_id,from_status,to_status,command,occurred_at,performed_by,reason) VALUES(?,?,?,?,?,?,?,?)",
+        // Lịch sử trạng thái của 001 ở status_history từ 001 T084 (data-model 001 mục 0.1)
+        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
+                jdbc,
                 TestUsers.nextId(),
                 person,
                 from,
@@ -209,6 +210,7 @@ class FR_035_LocationHistoryHttpIT extends StructureTestSupport {
                 command,
                 Timestamp.from(java.time.Instant.parse(at)),
                 user.accountId(),
+                false,
                 "Dữ liệu kiểm thử FR-036");
     }
 

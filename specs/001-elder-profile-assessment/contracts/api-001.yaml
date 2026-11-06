@@ -329,7 +329,7 @@ paths:
         '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/InitialHealthRecord' } } } }
     put:
       tags: [health]
-      summary: Lập hoặc sửa bản nháp (Bác sĩ, Điều dưỡng); If-Match khi sửa
+      summary: Lập hoặc sửa bản nháp (Bác sĩ, Điều dưỡng; Hành chính chỉ lập, sửa bản Nháp của chính mình khi Đang tiếp nhận, Q-400); If-Match khi sửa
       x-fr: [FR-017]
       parameters: [ { $ref: '#/components/parameters/Id' }, { name: If-Match, in: header, required: false, schema: { type: string } } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/HealthRecordContent' } } } }
@@ -366,7 +366,7 @@ paths:
         '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/HealthItem' } } } } }
     post:
       tags: [health]
-      summary: Ghi nhận mục dị ứng, bệnh nền, tiền sử bệnh (Bác sĩ, Điều dưỡng)
+      summary: Ghi nhận mục dị ứng, bệnh nền, tiền sử bệnh (Bác sĩ, Điều dưỡng; Hành chính ghi tự khai của gia đình khi Đang tiếp nhận, mục mang unverified=true, Q-400)
       description: |
         Trùng mục Hiệu lực: 409 DUPLICATE_HEALTH_ITEM; gửi lại với confirmDuplicate=true (FR-021).
         Dị ứng loại "khác": phản hồi có warnings ALLERGY_NOT_AUTO_CHECKED (FR-018a).
@@ -400,6 +400,16 @@ paths:
       x-br: [BR-M01-07]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HealthItem' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+  /health-items/{id}/verify:
+    post:
+      tags: [health]
+      summary: Kiểm chứng mục tự khai của gia đình do Hành chính ghi (Bác sĩ, Điều dưỡng; Q-400, BR-M01-17); một chiều, 409 ALREADY_VERIFIED nếu đã kiểm chứng
+      x-fr: [FR-018b]
+      x-br: [BR-M01-17]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HealthItem' } } } }
         '409': { $ref: '#/components/responses/Problem' }
@@ -927,6 +937,9 @@ components:
         at: { type: string, format: date-time }
         status: { type: string, enum: [ACTIVE, EXCLUDED] }
         exclusion: { type: [object, 'null'], properties: { at: { type: string, format: date-time }, by: { type: string }, reason: { type: string } } }
+        unverified: { type: boolean, description: 'Tự khai của gia đình do Hành chính ghi, chưa được Bác sĩ hoặc Điều dưỡng kiểm chứng (Q-400); hiển thị "Tự khai, chưa được Bác sĩ kiểm chứng"' }
+        verifiedBy: { type: [string, 'null'] }
+        verifiedAt: { type: [string, 'null'], format: date-time }
     AllergenRef:
       type: object
       description: Dị nguyên của mục sức khỏe (rỗng khi dị ứng nhập tay); nhóm, thứ tự lấy từ GET /catalogs/allergens
@@ -937,7 +950,7 @@ components:
     HealthItemResult:
       type: object
       properties:
-        items: { $ref: '#/components/schemas/HealthItem' }
+        item: { $ref: '#/components/schemas/HealthItem' }
         warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
     EndOfLifeWish:
       type: object

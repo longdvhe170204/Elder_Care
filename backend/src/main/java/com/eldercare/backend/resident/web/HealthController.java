@@ -145,6 +145,19 @@ class HealthController {
         return HealthItemBody.of(items.exclude(items.targetOf(id), id, body.reason()));
     }
 
+    @PostMapping("/health-items/{id}/verify")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "409",
+                description = "ALREADY_VERIFIED, PROFILE_CLOSED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    HealthItemBody verifyItem(
+            @PathVariable long id, @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey) {
+        return HealthItemBody.of(items.verify(items.targetOf(id), id));
+    }
+
     private static ResponseEntity<InitialHealthRecordBody> ok(RecordView view) {
         return ResponseEntity.ok().eTag(VersionEtag.of(view.version())).body(InitialHealthRecordBody.of(view));
     }

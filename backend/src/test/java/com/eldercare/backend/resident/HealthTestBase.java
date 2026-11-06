@@ -129,18 +129,26 @@ public abstract class HealthTestBase extends MySqlIntegrationTestBase {
     }
 
     protected long severityId() {
-        return jdbc.queryForObject("SELECT id FROM allergy_severity WHERE name = 'Nhẹ'", Long.class);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY' AND name = 'Nhẹ'", Long.class);
     }
 
     protected long sourceId() {
-        return jdbc.queryForObject("SELECT id FROM information_source WHERE name = 'Người thân'", Long.class);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE' AND name = 'Người thân'",
+                Long.class);
     }
 
     /** Dị nguyên chọn từ danh mục, tên riêng cho mỗi lần gọi. */
     protected long allergenId() {
         String name = "Hoạt chất " + UUID.randomUUID();
-        jdbc.update("INSERT INTO allergen (name, allergen_group) VALUES (?, 'ACTIVE_INGREDIENT')", name);
+        // Dị nguyên ở catalog_item loại M01.ALLERGEN từ 001 T084
+        jdbc.update(
+                "INSERT INTO catalog_item (catalog_type, module, name, sort_order, status, attributes)"
+                        + " VALUES ('M01.ALLERGEN', 'M01', ?, 0, 'ACTIVE', JSON_OBJECT('allergenGroup', 'ACTIVE_INGREDIENT'))",
+                name);
         // tra theo tên: LAST_INSERT_ID có thể đọc trên connection khác trong pool
-        return jdbc.queryForObject("SELECT id FROM allergen WHERE name = ?", Long.class, name);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN' AND name = ?", Long.class, name);
     }
 }

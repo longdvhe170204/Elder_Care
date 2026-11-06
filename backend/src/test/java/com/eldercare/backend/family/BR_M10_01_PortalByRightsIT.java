@@ -42,7 +42,7 @@ class BR_M10_01_PortalByRightsIT extends FamilyCommandTestBase {
         n = fixtures.relate(nMember, a, 3, false, false);
         jdbc.update(
                 "INSERT INTO health_item (resident_id, type, free_text, source_id, recorded_by, recorded_at)"
-                        + " VALUES (?, 'CHRONIC_CONDITION', 'Tăng huyết áp', (SELECT MIN(id) FROM information_source),"
+                        + " VALUES (?, 'CHRONIC_CONDITION', 'Tăng huyết áp', (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE'),"
                         + " 1, NOW(6))",
                 a);
     }
