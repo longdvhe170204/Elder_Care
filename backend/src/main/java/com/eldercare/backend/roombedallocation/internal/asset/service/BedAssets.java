@@ -1,6 +1,9 @@
 package com.eldercare.backend.roombedallocation.internal.asset.service;
 
+import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds;
 import com.eldercare.backend.roombedallocation.internal.asset.persistence.AssetStore;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetPort;
 import java.util.Collection;
@@ -19,9 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.MANDATORY)
 public class BedAssets implements BedAssetPort {
     private final AssetStore store;
+    private final RecordEventApi records;
 
-    public BedAssets(AssetStore store) {
+    public BedAssets(AssetStore store, RecordEventApi records) {
         this.store = store;
+        this.records = records;
     }
 
     @Override
@@ -40,5 +45,18 @@ public class BedAssets implements BedAssetPort {
     @Override
     public Set<Long> flaggedBeds(Collection<Long> bedIds) {
         return store.flaggedBeds(bedIds);
+    }
+
+    @Override
+    public Set<Long> flaggedBedsAt(Collection<Long> bedIds, java.time.Instant at) {
+        var flagged = new java.util.HashSet<Long>();
+        store.assetsOfBeds(bedIds).forEach((assetId, bedId) -> {
+            boolean awaiting = records.list(AssetKinds.DAMAGE, new EntityRef(AssetKinds.ENTITY, assetId)).stream()
+                    .anyMatch(e -> Boolean.TRUE.equals(e.content().awaitingTransfer())
+                            && !e.occurredAt().isAfter(at)
+                            && (e.confirmedAt() == null || e.confirmedAt().isAfter(at)));
+            if (awaiting) flagged.add(bedId);
+        });
+        return Set.copyOf(flagged);
     }
 }

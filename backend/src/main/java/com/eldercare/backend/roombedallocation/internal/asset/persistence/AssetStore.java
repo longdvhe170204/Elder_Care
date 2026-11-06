@@ -206,6 +206,27 @@ public class AssetStore {
                 bedIds.toArray()));
     }
 
+    /** Tài sản (id → id giường) của các giường. */
+    public java.util.Map<Long, Long> assetsOfBeds(Collection<Long> bedIds) {
+        var result = new java.util.LinkedHashMap<Long, Long>();
+        if (bedIds.isEmpty()) return result;
+        jdbc.query(
+                "SELECT id, bed_id FROM asset WHERE bed_id IN ("
+                        + String.join(",", Collections.nCopies(bedIds.size(), "?")) + ")",
+                rs -> {
+                    result.put(rs.getLong(1), rs.getLong(2));
+                },
+                bedIds.toArray());
+        return result;
+    }
+
+    /** Tài sản giường đang mang dấu "chờ chuyển người" (nhắc CFG-M03-02). */
+    public List<AssetRow> awaitingTransfer() {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM asset WHERE awaiting_resident_transfer AND bed_id IS NOT NULL ORDER BY id",
+                this::row);
+    }
+
     public Optional<AssetRow> find(long id) {
         return jdbc.query("SELECT " + COLUMNS + " FROM asset WHERE id = ?", this::row, id).stream()
                 .findFirst();
