@@ -94,6 +94,18 @@ public class DietAssignmentStore {
                 utc(now));
     }
 
+    /**
+     * Bản Hiệu lực và bản Chờ hiệu lực có hiệu lực trước {@code before} (FR-027: "có hiệu lực giao với tuần"); người cao
+     * tuổi ở trạng thái cuối do service lọc.
+     */
+    public List<DietAssignment> effectiveBefore(Instant before) {
+        return jdbc.query(
+                SELECT + " WHERE status = 'ACTIVE' OR (status = 'PENDING_EFFECTIVE' AND requested_effective_from < ?)"
+                        + " ORDER BY resident_id, id",
+                this::row,
+                utc(before));
+    }
+
     /** Chế độ ăn còn bản gán Hiệu lực hoặc Chờ hiệu lực (FR-002). */
     public boolean dietInUse(long dietId) {
         Integer n = jdbc.queryForObject(

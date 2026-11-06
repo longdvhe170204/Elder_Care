@@ -15,6 +15,8 @@ import com.eldercare.backend.nutrition.internal.catalog.domain.DishAttributes;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersion;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersionContent;
 import com.eldercare.backend.nutrition.internal.catalog.domain.DishVersionStatus;
+import com.eldercare.backend.nutrition.internal.catalog.domain.Meal;
+import com.eldercare.backend.nutrition.internal.catalog.domain.MealAttributes;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
@@ -58,6 +60,23 @@ public class NutritionCatalogStore {
     public Diet deactivateDiet(Diet diet) {
         return diet(catalogs.deactivate(DietAttributes.KIND, diet.id(), diet.version())
                 .after());
+    }
+
+    /** Bữa Hiệu lực theo thứ tự trong ngày (FR-006). */
+    public List<Meal> activeMeals() {
+        return catalogs.list(MealAttributes.KIND, null, true).stream()
+                .map(NutritionCatalogStore::meal)
+                .sorted(java.util.Comparator.comparingInt(Meal::sortOrder).thenComparingLong(Meal::id))
+                .toList();
+    }
+
+    public Meal meal(long id) {
+        return meal(catalogs.require(MealAttributes.KIND, id));
+    }
+
+    /** Mã bữa trong danh mục (khóa của {@code mealTimes} ở CFG-M08-04). */
+    public String mealCode(long id) {
+        return catalogs.require(MealAttributes.KIND, id).code();
     }
 
     public List<Dish> dishes() {
@@ -136,6 +155,10 @@ public class NutritionCatalogStore {
 
     private static Diet diet(CatalogItem<DietAttributes> item) {
         return new Diet(item.id(), item.name(), item.status(), item.attributes(), item.version());
+    }
+
+    private static Meal meal(CatalogItem<MealAttributes> item) {
+        return new Meal(item.id(), item.name(), item.status(), item.sortOrder(), item.attributes());
     }
 
     private static Dish dish(CatalogItem<DishAttributes> item) {
