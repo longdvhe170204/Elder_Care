@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.staffing.api.events.ShiftEnded;
 import com.eldercare.backend.staffing.api.events.ShiftStarted;
+import com.eldercare.backend.staffing.internal.shift.service.ShiftHandoverState;
 import com.eldercare.backend.staffing.scheduling.M09MinuteJob;
-import com.eldercare.backend.staffing.shift.internal.service.port.ShiftHandoverState;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.time.Instant;
 import java.util.HashSet;
@@ -47,7 +47,9 @@ class ShiftLifecycleIT extends MySqlIntegrationTestBase {
     private long fixture(boolean handover, String day) {
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Vòng đời ca]','07:00','15:00','FACILITY',?)",
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Vòng đời ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FACILITY' AS scope_type,? AS requires_handover) src",
                 handover);
         long schedule = AssignmentFixtures.insert(
                 jdbc,
@@ -90,6 +92,15 @@ class ShiftLifecycleIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         Long.toString(id)))
                 .isEqualTo(2);
+        var runIds = jdbc.queryForList(
+                "SELECT JSON_UNQUOTE(basis->'$.schedulerRunId') FROM audit_log WHERE entity_type='M09.SHIFT' AND entity_id=? AND actor_type='SCHEDULER' ORDER BY id",
+                String.class,
+                Long.toString(id));
+        assertThat(runIds).as("FR_022_basisSchedulerRunId").hasSize(2).doesNotContainNull();
+        assertThat(runIds)
+                .allSatisfy(value ->
+                        assertThat(java.util.UUID.fromString(value).toString()).isEqualTo(value));
+        assertThat(runIds).containsOnly(runIds.getFirst());
     }
 
     @Test

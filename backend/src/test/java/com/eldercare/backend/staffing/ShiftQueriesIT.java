@@ -52,7 +52,7 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
     LocationReferences locations;
 
     @Autowired
-    com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore store;
+    com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore store;
 
     private long floor;
 
@@ -83,7 +83,9 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
 
     private long insertFixture(long worker, String status) {
         jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Tra cứu ca]','07:00','15:00','FLOOR')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Tra cứu ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type) src");
         long template = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         jdbc.update(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2031-01','FLOOR',?,'PUBLISHED')",

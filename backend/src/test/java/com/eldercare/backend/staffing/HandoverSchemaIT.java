@@ -2,15 +2,20 @@ package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.eldercare.backend.staffing.handover.internal.service.HandoverQueries;
+import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.staffing.internal.handover.domain.HandoverItemInput;
+import com.eldercare.backend.staffing.internal.handover.persistence.HandoverStore;
+import com.eldercare.backend.staffing.internal.handover.service.HandoverQueries;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-/** T025/T026: ràng buộc và trigger kiểm trực tiếp trên MySQL, không chỉ qua service. */
+/** T050: giữ kịch bản trigger trên JSON; điều kiện thêm ý kiến sau gộp kiểm ở backend theo data-model 0.1. */
 @Transactional
 class HandoverSchemaIT extends MySqlIntegrationTestBase {
     @Autowired
@@ -18,6 +23,11 @@ class HandoverSchemaIT extends MySqlIntegrationTestBase {
 
     @Autowired
     HandoverQueries handovers;
+
+    @Autowired
+    HandoverStore store;
+
+    private static final Instant AT = Instant.parse("2033-01-01T07:31:00Z");
 
     private long id() {
         return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
@@ -27,7 +37,7 @@ class HandoverSchemaIT extends MySqlIntegrationTestBase {
         jdbc.update("INSERT INTO staff_profile(full_name,position) VALUES ('[Nhân viên bàn giao]','Điều dưỡng')");
         long staff = id();
         jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Mẫu bàn giao]','07:00','15:00','FLOOR')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) VALUES ('M09.SHIFT_TEMPLATE','M09','[Mẫu schema bàn giao]','ACTIVE',JSON_OBJECT('startTime','07:00:00','endTime','15:00:00','scopeType','FLOOR','requiresHandover',CAST('true' AS JSON)))");
         long template = id();
         jdbc.update("INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES ('2033-01','FLOOR',?)", template);
         long schedule = id();
@@ -44,12 +54,20 @@ class HandoverSchemaIT extends MySqlIntegrationTestBase {
         return id();
     }
 
+    private HandoverItemInput input(String group, String description) {
+        return new HandoverItemInput(group, null, null, 1L, null, description, null, false);
+    }
+
     private long item(long parent, String group) {
-        jdbc.update(
-                "INSERT INTO handover_item(handover_id,item_group,resident_id,description,created_at) VALUES (?,?,1,'Nội dung gốc','2033-01-01 07:31')",
-                parent,
-                group);
-        return id();
+        return store.add(parent, input(group, "Nội dung gốc"), "FINALIZED", null, AT);
+    }
+
+    private String path(long item) {
+        return "$[" + (item - 1) + "]";
+    }
+
+    private int remove(long parent, long item) {
+        return jdbc.update("UPDATE shift_handover SET items=JSON_REMOVE(items,?) WHERE id=?", path(item), parent);
     }
 
     @Test
@@ -84,73 +102,72 @@ class HandoverSchemaIT extends MySqlIntegrationTestBase {
         long h = handover();
         for (String group : new String[] {"VITAL_SIGN", "RESIDENT_CHANGE"}) {
             long i = item(h, group);
-            assertThatThrownBy(() -> jdbc.update("DELETE FROM handover_item WHERE id=?", i))
-                    .isInstanceOf(DataAccessException.class);
+            assertThatThrownBy(() -> remove(h, i)).isInstanceOf(DataAccessException.class);
         }
         long ordinary = item(h, "TASK");
-        assertThat(jdbc.update("DELETE FROM handover_item WHERE id=?", ordinary))
-                .isOne();
+        assertThat(remove(h, ordinary)).isOne();
     }
 
     @Test
     void FR_040_protectedSourceCannotBeRenamedToBypassDeletionGuard() {
         long h = handover(), i = item(h, "VITAL_SIGN");
-        assertThatThrownBy(() -> jdbc.update("UPDATE handover_item SET item_group='FOLLOW_UP_ISSUE' WHERE id=?", i))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE shift_handover SET items=JSON_SET(items,?,'FOLLOW_UP_ISSUE') WHERE id=?",
+                        path(i) + ".itemGroup",
+                        h))
                 .isInstanceOf(DataAccessException.class);
     }
 
     @Test
     void FR_041_finalizationLocksOriginalItemsAssessmentsAndTimestamp() {
         long h = handover(), i = item(h, "TASK");
-        jdbc.update(
-                "INSERT INTO handover_assessment(handover_id,assessment_kind,content) VALUES (?,'GENERAL','Nhận định')",
-                h);
+        store.assess(h, "Nhận định", Map.of());
         jdbc.update("UPDATE shift_handover SET finalized_at='2033-01-01 07:50',status='PREPARED' WHERE id=?", h);
         assertThatThrownBy(() -> jdbc.update("UPDATE shift_handover SET finalized_at='2033-01-01 07:51' WHERE id=?", h))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("UPDATE handover_item SET note='Thay đổi' WHERE id=?", i))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE shift_handover SET items=JSON_SET(items,?,'Thay đổi') WHERE id=?",
+                        path(i) + ".note",
+                        h))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM handover_item WHERE id=?", i))
-                .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(
-                        () -> jdbc.update("UPDATE handover_assessment SET content='Thay đổi' WHERE handover_id=?", h))
+        assertThatThrownBy(() -> remove(h, i)).isInstanceOf(DataAccessException.class);
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE shift_handover SET assessments=JSON_SET(assessments,'$[0].content','Thay đổi') WHERE id=?",
+                        h))
                 .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> item(h, "TASK")).isInstanceOf(DataAccessException.class);
-        jdbc.update(
-                "INSERT INTO handover_item(handover_id,item_group,resident_id,description,section,created_at) VALUES (?,'TASK',1,'Bổ sung','AFTER_PREPARATION','2033-01-01 07:55')",
-                h);
-        long appended = id();
-        assertThatThrownBy(() -> jdbc.update("UPDATE handover_item SET description='Sửa bổ sung' WHERE id=?", appended))
+        long appended = store.add(h, input("TASK", "Bổ sung"), "AFTER_PREPARATION", null, AT);
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE shift_handover SET items=JSON_SET(items,?,'Sửa bổ sung') WHERE id=?",
+                        path(appended) + ".description",
+                        h))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM handover_item WHERE id=?", appended))
-                .isInstanceOf(DataAccessException.class);
+        assertThatThrownBy(() -> remove(h, appended)).isInstanceOf(DataAccessException.class);
     }
 
     @Test
     void FR_044_confirmedParentAndChildrenAreImmutableAndRepliesAppendOnly() {
         long h = handover();
-        jdbc.update(
-                "INSERT INTO handover_comment(handover_id,content,sender,created_at) VALUES (?,'Thiếu ghi chú','[Người nhận]','2033-01-01 07:50')",
-                h);
-        long comment = id();
-        jdbc.update(
-                "INSERT INTO handover_reply(comment_id,content,sender,created_at) VALUES (?,'Đã bổ sung','[Người giao]','2033-01-01 07:55')",
-                comment);
-        assertThatThrownBy(() -> jdbc.update("UPDATE handover_reply SET content='Sửa' WHERE comment_id=?", comment))
+        jdbc.update("UPDATE shift_handover SET status='PREPARED',finalized_at='2033-01-01 07:50' WHERE id=?", h);
+        long comment = store.comment(h, "Thiếu ghi chú", "[Người nhận]", AT);
+        store.state(h, "HAS_COMMENTS");
+        store.reply(comment, "Đã bổ sung", "[Người giao]", AT);
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE record_event SET content=JSON_SET(content,'$.content','Sửa') WHERE kind='M09.HANDOVER_REPLY' AND reply_to_id=?",
+                        comment))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM handover_comment WHERE id=?", comment))
+        assertThatThrownBy(() ->
+                        jdbc.update("DELETE FROM record_event WHERE kind='M09.HANDOVER_COMMENT' AND id=?", comment))
                 .isInstanceOf(DataAccessException.class);
-        jdbc.update("UPDATE shift_handover SET status='PREPARED',finalized_at='2033-01-01 07:56' WHERE id=?", h);
+        store.state(h, "PREPARED");
         jdbc.update("UPDATE shift_handover SET status='CONFIRMED',confirmed_at='2033-01-01 07:58' WHERE id=?", h);
         assertThatThrownBy(() -> jdbc.update("UPDATE shift_handover SET status='PREPARED' WHERE id=?", h))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO handover_item(handover_id,item_group,resident_id,description,section,created_at) VALUES (?,'TASK',1,'Muộn','AFTER_PREPARATION','2033-01-01 07:59')",
-                        h))
+        assertThatThrownBy(() -> store.add(h, input("TASK", "Muộn"), "AFTER_PREPARATION", null, AT))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO handover_comment(handover_id,content,sender,created_at) VALUES (?,'Muộn','[Người nhận]','2033-01-01 07:59')",
-                        h))
-                .isInstanceOf(DataAccessException.class);
+        // Kiểm backend thay trigger thêm của bảng con cũ; common API không biết trạng thái nghiệp vụ của cha.
+        assertThatThrownBy(() -> store.comment(h, "Muộn", "[Người nhận]", AT)).isInstanceOf(BusinessException.class);
+        assertThatThrownBy(() -> store.reply(comment, "Muộn", "[Người giao]", AT))
+                .isInstanceOf(BusinessException.class);
     }
 }
