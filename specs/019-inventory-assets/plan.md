@@ -160,6 +160,15 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - Gói (T001): `billing.muasam` → `billing.internal.procurement` (tách khỏi `billing.internal.purchase` của đề nghị mua hộ 010); `roombedallocation.taisan`, `lichxe` → `roombedallocation.internal.asset`, `roombedallocation.internal.vehicle`; job ở `scheduling` của từng module. Port giường của 003: `BedAssetCommandPort` (dùng), `BedAssetPort` (cài).
 - SPI của 006 cho dòng thuốc đã ghi đã mua là `medication.api.spi.ProcurementMedicationPort.lineRecordedPurchased(lineId)` (tra theo id dòng), khác mô tả "trả dòng của yêu cầu" ở contracts mục 3; dòng nằm trong cột `JSON` (R-15) nên phải có id ổn định. Cách 006 lấy id dòng ghi ở team-plan mục 8.
 - `BedAssetCommandPort` (003) chưa có bản cài; US5 cần bản cài của 003 trước khi nối thật.
+- T003, T004 (chủ dự án duyệt 2026-11-06): không làm khung rỗng ở Phase 2. Job và provider cần bảng nghiệp vụ, nên tạo cùng story có bảng: mua sắm (Phase 3), tài sản (Phase 7), lịch xe (Phase 9). Bảng `nhac_019` gộp vào `reminder_marker` nên không có migration `V019_01`.
+- Phase 3 lượt 1 (2026-11-06), cách hiểu đã cài, cần chủ dự án xem khi review:
+  - Quyền: chú thích ³⁷, ³⁸, ⁴⁴ chỉ mô tả ở lớp vai trò của 002 (`FootnoteRules`), nên 019 kiểm trong lệnh: Phụ trách bộ phận của đúng bộ phận (`DutyApi.departmentLead`) cho lập, sửa, gửi, hủy Đã duyệt, ghi đã mua; người lập cho sửa, gửi, rút lại, hủy Nháp; vai trò Kế toán và khác người ghi đã mua cho ba lệnh đối chiếu; Quản lý viện (`APPROVE`) cho duyệt, từ chối, xử lý lệch. Phụ trách bộ phận khác người dùng: 403 `NOT_DEPARTMENT_LEAD`; bộ phận chưa có Phụ trách: 409 `DEPARTMENT_LEAD_MISSING`, nhắc Quản lý viện trong transaction riêng (Q-292).
+  - Danh sách: Quản lý viện, Kế toán thấy mọi yêu cầu; Phụ trách bộ phận thấy yêu cầu của bộ phận mình; người khác thấy yêu cầu do mình lập ("bộ phận của tôi" của api-019).
+  - Thành tiền dòng = số lượng × đơn giá dự kiến, làm tròn HALF_UP tới đồng; tổng dự kiến là tổng thành tiền. Duyệt chỉ giảm ("có thể giảm"), số lớn hơn tổng dự kiến trả 422.
+  - Trả lại đối chiếu xóa số thực tế, ngày mua, nhà cung cấp, chứng từ của lần ghi trước để ghi lại; tệp chứng từ đã gắn vẫn thuộc yêu cầu.
+  - Xác nhận khớp: hệ thống chỉ so được tổng nguyên giá với số thực tế ở loại tài sản (FR-008b); số trên chứng từ do Kế toán so bằng mắt, hợp đồng không có trường số tiền chứng từ.
+  - Xử lý lệch báo người lập và Kế toán đã ghi lệch (`reconciled_by_staff_id`).
+  - Còn lại của Phase 3: loại MEDICATION của Điều dưỡng (FR-008d; T027, T028; kiểm đơn qua `PrescriptionApi`, quyền xem `SUC_KHOE`, phạm vi phân công), nhắc CFG-M11-08, 09 và job (`BR_M11_20_ReminderIT`; T003 phần M11), provider M11 (T004 phần M11), màn web (T008).
 
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 

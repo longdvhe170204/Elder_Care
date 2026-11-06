@@ -3307,8 +3307,8 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | Tên logic | Mã |
 | --- | --- |
 | SPI `YeuCauMuaSamPort` (`kiemTraDuocDung`, `ganNguon`), `LoaiMuaSam`, `LoaiNguonMuaSam`, `DieuKien` | `roombedallocation.api.spi.ProcurementRequestPort` (`checkUsable(requestId, departmentId, type)`, `linkSource(requestId, sourceType, sourceId, amount)` MANDATORY), `api.dto.ProcurementType`, `ProcurementSourceType`, `common.error.UnmetCondition` |
-| `TaiSanThongKeApi` (`quaHan`, `lichXe`); `TaiSanQuaHanView`, `LichXeView` | `roombedallocation.api.AssetStatisticsApi` (`overdue`, `vehicleSchedules`); `OverdueAssetView`, `VehicleScheduleView` |
-| `MuaSamThongKeApi.theoBoPhan`, `YeuCauMuaSamView` | `billing.api.ProcurementStatisticsApi.byDepartment`, `ProcurementRequestView` |
+| `TaiSanThongKeApi` (`quaHan`, `lichXe`, hàm đếm theo dấu); `TaiSanQuaHanView`, `LichXeView`; dấu, trạng thái, mục đích | `roombedallocation.api.AssetStatisticsApi` (`overdue`, `countOverdue`, `vehicleSchedules`); `OverdueAssetView`, `VehicleScheduleView`; `api.dto.AssetFlag`, `AssetStatus`, `VehicleScheduleStatus`, `VehicleSchedulePurpose` |
+| `MuaSamThongKeApi` (`theoBoPhan`, tổng theo bộ phận, trạng thái), `YeuCauMuaSamView`; trạng thái yêu cầu | `billing.api.ProcurementStatisticsApi` (`byDepartment`, `totals`), `ProcurementRequestView`, `ProcurementTotalView`; `billing.api.dto.ProcurementStatus` |
 | `TaiSanDaDoiTrangThai`, `YeuCauMuaSamDaDoi` | `roombedallocation.api.events.AssetStatusChanged`, `billing.api.events.ProcurementRequestChanged` |
 | 019 cài `YeuCauThuocCungUngPort` (006); đọc `TiepNhanThuocCungUngApi.theoYeuCau`, `DonThuocApi.donNguonVienChuaKetThuc` | `medication.api.spi.ProcurementMedicationPort.lineRecordedPurchased(lineId)` (chữ ký 006 đã có); `medication.api.ProcurementIntakeApi.byProcurementRequest`, `PrescriptionApi.unendedFacilityPrescriptions` |
 | `GiuongTheoTaiSanPort` (dùng), `TaiSanGiuongPort` (cài) | `roombedallocation.internal.bed.domain.BedAssetCommandPort`, `BedAssetPort` (tên đã có ở 9) |
@@ -3332,6 +3332,19 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | `nhac_019` → `moc_da_nhac` | `reminder_marker` loại `M11.PROCUREMENT_REMINDER`, `M03.ASSET_REMINDER`, `M03.VEHICLE_SCHEDULE_REMINDER` |
 | test `KiemTraVuotTest`, `KhopChungTuTest`, `BR_M11_17_MuaSamIT`, `BR_M11_18_VuotIT`, `BR_M11_19_DoiChieuIT`, `BR_M11_20_NhacIT`, `DBR_36_GanNguonIT`, `FR_008d_YeuCauThuocIT` | `ApprovedAmountCheckTest`, `ReceiptMatchTest`, `BR_M11_17_ProcurementRequestIT`, `BR_M11_18_OverrunIT`, `BR_M11_19_ReconciliationIT`, `BR_M11_20_ReminderIT`, `DBR_36_SourceLinkIT`, `FR_008d_MedicationRequestIT` |
 | test `BR_M03_17_HanBaoTriIT`, `BR_M03_18_HuHongIT`, `AnhXaTrangThaiGiuongTest`, `BR_M03_15_GiuongTaiSanIT`, `DBR_32_TaiSanGiuongIT`, `KiemTraDatLichTest`, `BR_M03_16_LichXeIT`, `FR_018_TheoChuyenIT` | `BR_M03_17_MaintenanceDueIT`, `BR_M03_18_DamageIT`, `BedAssetStateMappingTest`, `BR_M03_15_BedAssetIT`, `DBR_32_BedAssetIT`, `VehicleBookingCheckTest`, `BR_M03_16_VehicleScheduleIT`, `FR_018_FollowTripIT` |
+
+### 25.8. Mua sắm, Phase 3 lượt 1 (T005 → T008 phần backend, 06/11/2026)
+
+| Tên logic | Mã |
+| --- | --- |
+| bảng `yeu_cau_mua_sam` và cột | `procurement_request` (`department_id`, `created_by_staff_id`, `type`, `priority`, `needed_by`, `related_file_ids`, `lines`, `estimated_total`, `reason`, `needed_on`, `reference`, `original_request_id`, `approved_amount`, `reduction_reason`, `decided_by_staff_id`, `approved_at`, `actual_amount`, `purchased_on`, `supplier`, `receipt_file_ids`, `purchase_recorded_by_staff_id`, `purchase_recorded_at`, `reconciliation_result` `MATCHED`/`DISCREPANCY`, `discrepancy_amount`, `discrepancy_resolution`, `reconciled_by_staff_id`, `linked_sources`, `status`, `status_reason`, `locked_at`); migration `V019_02__procurement_request.sql`; trigger `trg_procurement_request_lock_content`, `_row_lock`, `_no_delete` |
+| dịch vụ, kho dữ liệu, bản cài SPI | `billing.internal.procurement`: `service.ProcurementRequestService`, `service.ProcurementRequestPortImpl`, `service.ProcurementNotices`, `persistence.ProcurementRequestStore`, `domain.ProcurementRequestRow` (`Line`, `LinkedSource`), `domain.ProcurementContent`, `domain.ProcurementCommandInput`, `domain.DepartmentLeadMissing` (sự kiện nội bộ) |
+| HTTP | `billing.web.ProcurementRequestController`; `web.request.ProcurementRequestWrite` (`Line`, schema `ProcurementRequestLine`), `ProcurementRequestCommandWrite`; `web.response.ProcurementRequestResponse` (schema `ProcurementRequest`), `ProcurementProblemBody` (schema `ProcurementProblem`) |
+| loại đối tượng, chủ tệp | `M11.PROCUREMENT_REQUEST`, `M11.PROCUREMENT_RECEIPT`; khóa kỹ thuật `M11.PROCUREMENT_SOURCE:<loại>:<id>` |
+| nhật ký | `PROCUREMENT_CREATE`, `PROCUREMENT_UPDATE_DRAFT`, `PROCUREMENT_SUBMIT`, `PROCUREMENT_WITHDRAW`, `PROCUREMENT_CANCEL`, `PROCUREMENT_APPROVE`, `PROCUREMENT_REJECT`, `PROCUREMENT_RECORD_PURCHASED`, `PROCUREMENT_CONFIRM_MATCH`, `PROCUREMENT_RETURN_FOR_RECONCILIATION`, `PROCUREMENT_RECORD_DISCREPANCY`, `PROCUREMENT_RESOLVE_DISCREPANCY`, `PROCUREMENT_SOURCE_LINKED` |
+| thông báo (mức `LOW`); căn cứ người nhận | `PROCUREMENT_REQUEST_<trạng thái đến>`, `PROCUREMENT_DEPARTMENT_LEAD_MISSING`; `PROCUREMENT_REQUEST_CREATOR`, `PROCUREMENT_RECONCILER` |
+| điều kiện chưa thỏa của SPI | `PROCUREMENT_REQUEST_NOT_USABLE` (cùng mã lỗi 409 khi gắn nguồn) |
+| test | `ApprovedAmountCheckTest`, `ReceiptMatchTest`, `ProcurementTestBase`, `BR_M11_17_ProcurementRequestIT`, `BR_M11_18_OverrunIT`, `BR_M11_19_ReconciliationIT`, `DBR_36_SourceLinkIT` |
 
 #### Bổ sung 003 sau merge M01 (2026-10-24)
 
