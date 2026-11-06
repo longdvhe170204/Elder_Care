@@ -9,7 +9,7 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { uploadFile } from '@/common/files'
 import { problemOf } from '@/common/problem'
 import { FilesField, SelectField } from './BelongingFields'
-import { activeOptions, amountText } from './belongingLabels'
+import { activeOptions, pickLabel } from './belongingLabels'
 
 // Lệnh Trả một hoặc nhiều đồ cho cùng người nhận (013 T019, US3; FR-016 → FR-020, BR-M12-04; api-013 ReturnCommand).
 // Mỗi đồ chọn mức tình trạng lúc trả; số trả nhỏ hơn hiện có thì phần trả tách thành đồ mới (FR-012). Người nhận khác
@@ -24,7 +24,7 @@ const RECIPIENTS = [
 ]
 const BLOCK_CODES = ['RETURN_BLOCKED', 'INVALID_RECIPIENT_CONFIRMATION', 'NURSING_STAFF_VALUABLE_ITEM']
 
-export function ReturnForm({ belongings, levels, isValuable = () => false, onDone }) {
+export function ReturnForm({ belongings, levels, isValuable = () => false, locationName, onDone }) {
   const [chosen, setChosen] = useState({})
   const [v, setV] = useState({
     type: '',
@@ -129,11 +129,9 @@ export function ReturnForm({ belongings, levels, isValuable = () => false, onDon
                 <Checkbox
                   checked={!!chosen[b.id]?.on}
                   onCheckedChange={(on) => setItem(b.id, { on })}
-                  aria-label={`Trả ${b.description}`}
+                  aria-label={`Trả ${b.description}, mã ${b.id}`}
                 />
-                <span className="type-body-sm">
-                  {b.description}, {amountText(b)}
-                </span>
+                <span className="type-body-sm">{pickLabel(b, locationName)}</span>
               </label>
               {chosen[b.id]?.on && (
                 <div className="grid gap-3 sm:grid-cols-2">

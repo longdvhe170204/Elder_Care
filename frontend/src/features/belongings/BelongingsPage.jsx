@@ -224,7 +224,12 @@ function ResidentBelongings({ resident, catalogs, role }) {
             <BelongingTable items={state.items} catalogs={catalogs} opened={opened} onOpen={setOpened} />
           )}
           {state.status === 'ready' && (
-            <RecipientConfirmations residentId={resident.id} belongings={returnable} role={role} />
+            <RecipientConfirmations
+              residentId={resident.id}
+              belongings={returnable}
+              locationName={catalogs.locationName}
+              role={role}
+            />
           )}
           {state.status === 'ready' && (
             <Button
@@ -248,6 +253,7 @@ function ResidentBelongings({ resident, catalogs, role }) {
           <ReturnForm
             belongings={returnable}
             isValuable={(b) => !!catalogs.typeOf(b.typeId)?.valuable}
+            locationName={catalogs.locationName}
             levels={catalogs.levels}
             onDone={(message) => {
               load()

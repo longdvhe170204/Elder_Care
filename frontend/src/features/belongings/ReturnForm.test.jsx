@@ -15,7 +15,8 @@ function renderForm(onDone = vi.fn()) {
 }
 
 function pick(description, level = '11') {
-  fireEvent.click(screen.getByRole('checkbox', { name: `Trả ${description}` }))
+  const id = ITEMS.find((i) => i.description === description).id
+  fireEvent.click(screen.getByRole('checkbox', { name: `Trả ${description}, mã ${id}` }))
   fireEvent.change(screen.getByLabelText(`Mức tình trạng lúc trả của ${description}`), { target: { value: level } })
 }
 

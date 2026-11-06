@@ -124,9 +124,21 @@ public final class ReturnRecipient {
                 ? confirmation.recipientIsResident()
                 : !confirmation.recipientIsResident()
                         && same(confirmation.recipientName(), recipient.fullName())
-                        && same(confirmation.recipientIdDocument(), recipient.documentNumber());
+                        && documentMatches(confirmation.recipientIdDocument(), recipient);
         return person
                 && items.stream().allMatch(i -> confirmation.belongingIds().contains(i.belongingId()));
+    }
+
+    /**
+     * Xác nhận lưu giấy tờ thành một chuỗi (api-013 recipientIdDocument), lệnh trả khai tách loại và số (FR-017): khớp khi
+     * chuỗi bằng số giấy tờ, hoặc bằng "loại số".
+     */
+    private static boolean documentMatches(String stored, Declared recipient) {
+        if (same(stored, recipient.documentNumber())) {
+            return true;
+        }
+        return !blank(recipient.documentType())
+                && same(stored, recipient.documentType().strip() + " " + recipient.documentNumber().strip());
     }
 
     private static boolean same(String a, String b) {
