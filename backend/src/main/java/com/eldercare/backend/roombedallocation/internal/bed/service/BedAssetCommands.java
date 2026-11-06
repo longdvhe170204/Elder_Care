@@ -9,10 +9,12 @@ import com.eldercare.backend.roombedallocation.api.dto.BedStatus;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.AllocationChecker;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.ResidentAllocationFacts;
+import com.eldercare.backend.roombedallocation.internal.allocation.service.ScheduledTransfers;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommand;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommandPort;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.FlaggedBedFutureAllocations;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedAssetStateStore;
+import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedReadinessStore;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedStateStore;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,8 @@ public class BedAssetCommands implements BedAssetCommandPort {
     private final ResidentAllocationFacts facts;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
+    private final BedReadinessStore readiness;
+    private final ScheduledTransfers scheduled;
 
     public BedAssetCommands(
             BedAssetStateService states,
@@ -48,7 +52,9 @@ public class BedAssetCommands implements BedAssetCommandPort {
             AllocationChecker checker,
             ResidentAllocationFacts facts,
             BusinessTime time,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            BedReadinessStore readiness,
+            ScheduledTransfers scheduled) {
         this.states = states;
         this.allocations = allocations;
         this.beds = beds;
@@ -57,6 +63,8 @@ public class BedAssetCommands implements BedAssetCommandPort {
         this.facts = facts;
         this.time = time;
         this.events = events;
+        this.readiness = readiness;
+        this.scheduled = scheduled;
     }
 
     @Override
@@ -111,7 +119,12 @@ public class BedAssetCommands implements BedAssetCommandPort {
     /** FR-013b, FR-014: dấu gỡ khi giường Trống thì kích hoạt BR-M02-01 (trừ khi có phân bổ tương lai). */
     @Override
     public void residentTransferFlagRemoved(long bedId) {
-        if (beds.lock(bedId).state() == BedStatus.EMPTY) holds.becameEmpty(bedId, "ASSET_FLAG_REMOVED");
+        if (beds.lock(bedId).state() != BedStatus.EMPTY) return;
+        // research G-07: chuyển theo lịch đang chờ giường thì thực hiện ngay (FR-011a)
+        boolean transferred = false;
+        for (var waiting : readiness.waiting(bedId))
+            transferred |= scheduled.startWaiting(waiting.requestId(), waiting.plannedAt());
+        if (!transferred) holds.becameEmpty(bedId, "ASSET_FLAG_REMOVED");
     }
 
     @Override
