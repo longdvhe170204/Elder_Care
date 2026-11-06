@@ -26,8 +26,10 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/nutrition/...` với `package-info.java`; ArchUnit `BT/nutrition/M08ArchTest.java`: gói `..lich..` không gọi lệnh chốt, không lập phiếu (Q-306); DTO bếp không tham chiếu kiểu sức khỏe (research M-01, M-09)
-- [ ] T002 [P] Tạo bản giả trong `BT/support/gia011/`: `LuotOLaiAnPort` (012), `ChuyenDiBuaAnPort` (014); phát `LuotOLaiDaDoi`, `ChuyenDiDaDoi` (contracts mục 1.6, 1.7)
+- [x] T001 Tạo khung gói `BE/nutrition/...` với `package-info.java`; ArchUnit `BT/nutrition/M08ArchTest.java`: gói `..lich..` không gọi lệnh chốt, không lập phiếu (Q-306); DTO bếp không tham chiếu kiểu sức khỏe (research M-01, M-09)
+  - *Ghi chú 2026-11-06:* `M08ArchTest` (ở `BT/nutrition/`): luật Q-306 (`scheduling` không phụ thuộc `internal.closing`, `internal.slip`) và SC-008 (lớp `Kitchen*` không tham chiếu kiểu sức khỏe); cả hai `allowEmptyShould` vì chưa có lớp, sẽ thực chất từ Phase 5–6. Gói `api` tạo cùng lúc ở T002 (cần kiểu cho bản giả).
+- [x] T002 [P] Tạo bản giả trong `BT/support/gia011/`: `LuotOLaiAnPort` (012), `ChuyenDiBuaAnPort` (014); phát `LuotOLaiDaDoi`, `ChuyenDiDaDoi` (contracts mục 1.6, 1.7)
+  - *Ghi chú 2026-11-06:* bản giả ở `support/fake/nutrition/` (không phải `gia011`, theo team-plan mục 3): `FakeStayMealPort`, `FakeTripMealPort`, `FakeNutritionEvents`, `FakeNutritionConfig`; test `FakeNutritionTest` 3 xanh. Tên Anh theo glossary mục 17.5; kiểu `StayMealView`, `TripOverlapView`, `StayMealPort`, `TripMealPort`, `StayMealChanged`, `TripMealChanged` làm sớm từ T003.
 
 ---
 

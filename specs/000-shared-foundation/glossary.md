@@ -2821,7 +2821,119 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
-*Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+*Bản dịch `contracts/api-011.yaml` và `module-interfaces.md` (bổ sung 2026-11-06, D; chờ chủ dự án duyệt trước khi viết mã). Không thêm bớt endpoint, trường. Gói chức năng trong `nutrition.internal`: danh mục `catalog`, bản gán `assignment`, đối chiếu `conflict`, thực đơn `menu`, chốt suất `closing`, phiếu `slip`, phục vụ `serving`, đồ ăn gia đình `familyfood`, xem lại `review`, lưu mẫu `sample`; job ở `nutrition.scheduling`.*
+
+### 17.1. Đường dẫn API (tiền tố `/api/v1`) và tag
+
+| Tên logic | Mã |
+| --- | --- |
+| `/dinh-duong/che-do-an`, `/{id}`, `/{id}/ngung-hieu-luc` | `/nutrition/diets`, `/{id}`, `/{id}/deactivate` |
+| `/dinh-duong/thanh-phan-thuc-pham` | `/nutrition/food-ingredients` |
+| `/dinh-duong/mon-an`, `/{id}`, `/{id}/{lenh}` (`gui-xac-nhan`, `rut-lai`, `huy`, `xac-nhan`, `tra-lai`, `gui-ban-sua`, `xac-nhan-ban-sua`, `tra-lai-ban-sua`, `rut-ban-sua`, `ngung-hieu-luc`) | `/nutrition/dishes`, `/{id}`, `/{id}/{command}` (`submit`, `withdraw`, `cancel`, `confirm`, `return`, `submit-revision`, `confirm-revision`, `return-revision`, `withdraw-revision`, `deactivate`) |
+| `/dinh-duong/bua-an`, `/{id}` | `/nutrition/meals`, `/{id}` |
+| `/dinh-duong/loai-do-an-cam` | `/nutrition/forbidden-food-types` |
+| `/nguoi-cao-tuoi/{nctId}/ban-gan-che-do-an` | `/residents/{residentId}/diet-assignments` |
+| `/ban-gan-che-do-an/{id}/ap-dung`, `…/huy` | `/diet-assignments/{id}/apply`, `…/cancel` |
+| `/nguoi-cao-tuoi/{nctId}/doi-chieu-mon` | `/residents/{residentId}/dish-conflict-check` |
+| `/thuc-don` (tham số `tuan`), `/{id}`, `…/truoc-khi-gui`, `…/kiem-tra`, `…/doi-mon` | `/menus` (`week`), `/{id}`, `…/pre-submit-info`, `…/check`, `…/dish-swaps` |
+| `/thuc-don/{id}/{lenh}` (`gui-kiem-tra`, `rut-lai`, `huy`, `tra-lai`, `cong-bo`) | `/menus/{id}/{command}` (`submit`, `withdraw`, `cancel`, `return`, `publish`) |
+| `/bua-ngay` (tham số `ngay`), `/{id}/tinh-san`, `/{id}/chot-suat`, `/{id}/phat-sinh`, `/{id}/suat-bo-sung` | `/daily-meals` (`date`), `/{id}/precomputed`, `/{id}/close-portions`, `/{id}/adjustments`, `/{id}/extra-portions` |
+| `/phat-sinh/{id}/xac-nhan` | `/adjustments/{id}/confirm` |
+| `/suat-dac-biet/{id}/phuc-vu-suat-giu`, `…/huy-suat-giu`, `…/chi-dinh-mon`, `…/da-chuan-bi`, `…/xac-nhan-phuc-vu` | `/special-portions/{id}/serve-held-portion`, `…/discard-held-portion`, `…/assign-dish`, `…/mark-prepared`, `…/confirm-serving` |
+| `/phieu-bua-an` (tham số `buaNgayId`, `tangKhuVucId`), `/{id}/{lenh}` (`chuan-bi-xong`, `giao`, `nhan`, `bao-sai-lech`, `xu-ly-sai-lech`) | `/meal-slips` (`dailyMealId`, `floorAreaId`), `/{id}/{command}` (`mark-prepared`, `deliver`, `receive`, `report-discrepancy`, `resolve-discrepancy`) |
+| `/phan-bo-sung/{id}/{lenh}` (`giao`, `nhan`) | `/supplementary-portions/{id}/{command}` (`deliver`, `receive`) |
+| `/nguoi-cao-tuoi/{nctId}/do-an-gia-dinh`, `/do-an-gia-dinh/{id}/{lenh}` (`xac-nhan-cho-dung`, `khong-cho-dung`, `ghi-xu-ly`, `ket-thuc`) | `/residents/{residentId}/family-foods`, `/family-foods/{id}/{command}` (`approve-use`, `reject-use`, `record-disposal`, `end`) |
+| `/dinh-duong/thong-bao-xem-lai` (tham số `nctId`) | `/nutrition/review-notices` (`residentId`) |
+| `/bua-ngay/{id}/luu-mau`, `/luu-mau/{id}/huy-mau` | `/daily-meals/{id}/retained-samples`, `/retained-samples/{id}/discard` |
+| tag `danh-muc`, `che-do-an`, `thuc-don`, `chot-suat`, `phieu`, `do-an-gia-dinh`, `xem-lai-luu-mau` | `catalog`, `diet`, `menu`, `portion-closing`, `meal-slip`, `family-food`, `review-and-sample` |
+
+### 17.2. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| `CheDoAn` (`ten`, `moTa`, `lienQuanDieuTri`, `macDinh`, `hanChe`, `monAnToanId`, `trangThai`); `CheDoAnLenh` | `Diet` (`name`, `description`, `treatmentRelated`, `isDefault`, `restrictions` (id dị nguyên), `safeDishId`, `status`); `DietCommand` |
+| `MonAnLenh` (`ten`, `ghiChu`, `thanhPhan`, `khongCoThanhPhanTrongDanhMuc`, `cheDoAnPhuHop`, `ketCau`); `MonAn` (`trangThai`, `hieuLuc`, `banSuaCho`, `phienBan`) | `DishCommand` (`name`, `note`, `ingredients`, `noCatalogIngredient`, `suitableDietIds`, `texture`); `Dish` (`status`, `effective`, `pendingRevision`, `version`) |
+| `BuaAn` (`ma`, `ten`, `phucVuNoiTru`, `phucVuBanTru`, `thuTu`, `gioDuKien`, `nguongGiaoTrePhut`, `trangThai`) | `Meal` (`code`, `name`, `servesResidential`, `servesDayCare`, `sortOrder`, `expectedTime`, `lateDeliveryThresholdMinutes`, `status`) |
+| thân loại đồ ăn cấm `ten`, `moTa`, `trangThai` | `name`, `description`, `status` |
+| `BanGanLenh` (`cheDoAnId`, `ketCau`, `hanCheRieng`, `chiDinhRieng`, `canCu`, `canCuId`, `thongBaoXemLaiId`, `hieuLucTu`); `BanGan` (`trangThai`, `hieuLucThucTe`, `lyDoChuyenMon`, `macDinh`) | `DietAssignmentCommand` (`dietId`, `texture`, `personalRestrictions`, `personalInstruction`, `basis`, `basisId`, `reviewNoticeId`, `effectiveFrom`); `DietAssignment` (`status`, `actualEffectiveAt`, `professionalReason`, `isDefault`) |
+| `XungDot` (`ngay`, `buaAnId`, `monAnId`, `thanhPhan`, `loai`, `coMonThayThePhuHop`) | `Conflict` (`date`, `mealId`, `dishId`, `ingredients`, `type`, `hasSuitableSubstitute`) |
+| `KetQuaKiemTra` (`doPhuThieu` {`cheDoAnId`, `ngay`, `buaAnId`}, `lapMon`, `diUng` (bếp: `soNguoi`), `canLyDoChuyenMon`, `maCanhBao`) | `MenuCheckResult` (`coverageGaps` {`dietId`, `date`, `mealId`}, `dishRepetitions`, `allergies` (`residentCount`), `professionalReasonRequired`, `warningCodes`) |
+| `NoiDungThucDon.mon` (`ngay`, `buaAnId`, `cheDoAnId`, `monAnId`, `thayThe`); `ThucDon` (`ngayDauTuan`, `trangThai`, `phienBan`) | `MenuContent.dishes` (`date`, `mealId`, `dietId`, `dishId`, `substituteDishIds`); `Menu` (`weekStart`, `status`, `version`) |
+| `DoiMon` (`ngay`, `buaAnId`, `cheDoAnId`, `monCuId`, `monMoiId`, `lyDo`, `canhBaoDaXacNhan`) | `DishSwap` (`date`, `mealId`, `dietId`, `oldDishId`, `newDishId`, `reason`, `confirmedWarnings`) |
+| `KetQuaChot` (`buaNgayId`, `suatTheoTang` {`tangKhuVucId`, `cheDoAnId`, `soSuat`}, `suatDacBiet`, `suatNguoiThan`, `dau`, `chuaCoDuLieu`) | `ClosingResult` (`dailyMealId`, `portionsByFloorArea` {`floorAreaId`, `dietId`, `portionCount`}, `specialPortions`, `familyMealPortions`, `flags`, `missingData`) |
+| `PhatSinh` (`tangKhuVucId`, `cheDoAnId`, `soSuat`, `loaiThayDoi`, `canGiao`, `bepXacNhanLuc`) | `Adjustment` (`floorAreaId`, `dietId`, `portionCount`, `changeType`, `needsDelivery`, `kitchenConfirmedAt`) |
+| `PhieuChoBep` (`tangKhuVuc`, `bua`, `suatTheoCheDo` {`cheDoAn`, `soSuat`}, `nhan` {`hoTen`, `phong`, `cheDoAn`, `ketCau`, `mon`, `dau`, `daChuanBi`}, `trangThai`); `PhieuChoTang` (`canDoiChieu`, `diUng`) | `KitchenMealSlip` (`floorArea`, `meal`, `portionsByDiet` {`diet`, `portionCount`}, `labels` {`fullName`, `room`, `diet`, `texture`, `dish`, `flags`, `prepared`}, `status`); `FloorMealSlip` (`needsCrossCheck`, `allergies`) |
+| `XacNhanPhucVu` (`nctId`, `daAn`, `suCo` {`mucDo`, `trieuChung`, `xuTri`}, `thoiDiemThietBi`) | `ServingConfirmation` (`residentId`, `hasEaten`, `incident` {`severity`, `symptoms`, `treatment`}, `deviceTime`) |
+| thân phiếu `noiDung`, `cachXuLy`, `moTa` | `content`, `resolution`, `description` |
+| `DoAnGiaDinhLenh` (`nguoiGuiTen`, `nguoiThanId`, `loai`, `moTa`, `thanhPhan`, `thanhPhanKhongRo`, `hanDung`, `cachBaoQuan`); `DoAnGiaDinh` (`trangThai`, `lyDoHeThong`) | `FamilyFoodCommand` (`senderName`, `familyMemberId`, `type`, `description`, `ingredients`, `ingredientsUnknown`, `expiresAt`, `storageMethod`); `FamilyFood` (`status`, `systemReasons`) |
+| thân lệnh đồ ăn gia đình `ghiChu`, `lyDo`, `cach`, `nguoiNhanLai` | `note`, `reason`, `method`, `returnedTo` |
+| `LuuMauLenh` (`viTriLuu`, `mon` {`monAnId`, `daLuu`, `lyDoKhongLuu`}) | `RetainedSampleCommand` (`storageLocation`, `dishes` {`dishId`, `retained`, `notRetainedReason`}) |
+| `Loi` (`maLoi`, `dieuKienChuaThoa`); `LyDo`; security scheme `phien`; tham số `IfMatch`, `IdempotencyKey`, `NctId` | `Problem` (`errorCode`, `unmetConditions`); `Reason`; `session`; `IfMatch`, `IdempotencyKey`, `ResidentId` |
+
+### 17.3. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| kết cấu `THUONG`, `MEM`, `XAY_NHUYEN` | `REGULAR`, `SOFT`, `PUREED` |
+| trạng thái chế độ ăn, bữa, loại cấm `HIEU_LUC`, `NGUNG_HIEU_LUC` | `ACTIVE`, `INACTIVE` |
+| trạng thái món `NHAP`, `CHO_XAC_NHAN`, `HIEU_LUC`, `NGUNG_HIEU_LUC`, `DA_HUY` | `DRAFT`, `PENDING_CONFIRMATION`, `ACTIVE`, `INACTIVE`, `CANCELLED` |
+| trạng thái bản sửa món `NHAP`, `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `DA_TRA_LAI`, `DA_RUT` | `DRAFT`, `PENDING_CONFIRMATION`, `CONFIRMED`, `RETURNED`, `WITHDRAWN` |
+| trạng thái bản gán `DE_XUAT`, `CHO_HIEU_LUC`, `HIEU_LUC`, `NGUNG`, `DA_HUY` | `PROPOSED`, `PENDING_EFFECTIVE`, `ACTIVE`, `DISCONTINUED`, `CANCELLED` |
+| căn cứ bản gán `DANH_GIA`, `XEM_LAI`, `KHAC` | `ASSESSMENT`, `REVIEW`, `OTHER` |
+| loại xung đột `DI_UNG`, `HAN_CHE_RIENG`, `HAN_CHE_CHE_DO` | `ALLERGY`, `PERSONAL_RESTRICTION`, `DIET_RESTRICTION` |
+| trạng thái thực đơn `NHAP`, `CHO_CONG_BO`, `CONG_BO`, `DA_AP_DUNG`, `DA_HUY` | `DRAFT`, `PENDING_PUBLICATION`, `PUBLISHED`, `APPLIED`, `CANCELLED` |
+| dấu khi chốt `CHUA_CO_THUC_DON`, `CHOT_SAU_GIO_BUA`, `THIEU_MON_THAY_THE`, `CHUA_GAN_CHE_DO_AN`; thiếu dữ liệu `O_LAI`, `CHUYEN_DI` | `NO_MENU`, `CLOSED_AFTER_MEAL_TIME`, `MISSING_SUBSTITUTE_DISH`, `NO_DIET_ASSIGNED`; `STAY`, `TRIP` |
+| trạng thái phiếu `DA_CHOT`, `DA_CHUAN_BI`, `DA_GIAO`, `CO_SAI_LECH`, `DA_NHAN` | `CLOSED`, `PREPARED`, `DELIVERED`, `HAS_DISCREPANCY`, `RECEIVED` |
+| cách xử lý sai lệch `BO_SUNG_SUAT`, `DOI_SUAT`, `KHAC` | `ADD_PORTION`, `REPLACE_PORTION`, `OTHER` |
+| trạng thái đồ ăn gia đình `KHONG_SU_DUNG`, `CAN_XAC_NHAN`, `DUOC_SU_DUNG`, `DA_KET_THUC` | `NOT_ALLOWED`, `NEEDS_CONFIRMATION`, `ALLOWED`, `ENDED` |
+| cách xử lý `TRA_LAI`, `HUY_BO`, `DA_DUNG_HET` | `RETURNED`, `DISCARDED`, `CONSUMED` |
+| loại bảng chung, đồng bộ, đính chính `M08.XAC_NHAN_PHUC_VU`, `M08.LUU_MAU` | `M08.SERVING_CONFIRMATION`, `M08.RETAINED_SAMPLE` |
+| phạm vi `M08.BAN_GAN`, `M08.XAC_NHAN_PHUC_VU`, `M08.DO_AN_GIA_DINH`, `M08.PHIEU_BUA_AN` | `M08.DIET_ASSIGNMENT`, `M08.SERVING_CONFIRMATION`, `M08.FAMILY_FOOD`, `M08.MEAL_SLIP` |
+
+### 17.4. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI`, `DIEU_KIEN_CHUA_THOA` | `STATE_CHANGED`, `CONDITION_NOT_MET` (mục 5) |
+| `CON_BAN_GAN`, `CON_TRONG_THUC_DON`, `LA_MON_AN_TOAN`, `DA_CO_BAN_SUA`, `MON_KHONG_PHU_HOP` | `STILL_ASSIGNED`, `STILL_IN_MENU`, `IS_SAFE_DISH`, `REVISION_EXISTS`, `DISH_NOT_SUITABLE` |
+| `CAN_LY_DO_CHUYEN_MON`, `CANH_BAO_CHUA_XAC_NHAN`, `DA_CO_THUC_DON_TUAN`, `THIEU_DO_PHU`, `MON_CHUA_HIEU_LUC` | `PROFESSIONAL_REASON_REQUIRED`, `WARNINGS_NOT_CONFIRMED`, `MENU_EXISTS_FOR_WEEK`, `INSUFFICIENT_COVERAGE`, `DISH_NOT_ACTIVE` |
+| `QUA_GIO_BUA`, `CHUA_TOI_MOC_CHOT`, `DA_CHOT`, `CHUA_CHUAN_BI`, `THIEU_MON_THAY_THE` | `PAST_MEAL_TIME`, `BEFORE_CLOSING_TIME`, `ALREADY_CLOSED`, `NOT_PREPARED`, `MISSING_SUBSTITUTE_DISH` |
+| `PHAT_SINH_CHUA_XAC_NHAN`, `CHUA_LUU_MAU`, `NGOAI_PHAM_VI_NHAN`, `QUA_NGUONG_GIAO_TRE` | `ADJUSTMENTS_NOT_CONFIRMED`, `SAMPLE_NOT_RETAINED`, `OUT_OF_RECEIVING_SCOPE`, `PAST_LATE_DELIVERY_THRESHOLD` |
+| `SUAT_KHONG_DUNG_NGUOI`, `SUAT_CO_THANH_PHAN_DI_UNG`, `SUAT_TRAI_HAN_CHE`, `KHONG_CHO_DUNG_LAI` | `PORTION_WRONG_RESIDENT`, `PORTION_HAS_ALLERGEN`, `PORTION_VIOLATES_RESTRICTION`, `NOT_ALLOWED_TO_USE` |
+
+### 17.5. Gói `nutrition.api`, sự kiện, giao diện công khai (module-interfaces)
+
+| Tên logic | Mã |
+| --- | --- |
+| `CheDoAnApi` (`hienHanh`, `lichSu`), `CheDoAnHienHanhView`, `BanGanView` | `DietApi` (`current`, `history`), `CurrentDietView`, `DietAssignmentView` |
+| `ThucDonChungApi` (`thucDonChung`, `tenCheDoAn`), `MonTheoBuaView` | `GeneralMenuApi` (`generalMenu`, `dietNames`), `DishByMealView` |
+| `SuatAnDuKienApi` (`cuaNguoiCaoTuoi`), `SuatDuKienView` (`laMonThayThe`) | `ExpectedMealApi` (`ofResident`), `ExpectedPortionView` (`isSubstitute`) |
+| `LichBuaApi` (`buaTrongNgay`, `coTrongLichBua`), `BuaNgayView` | `MealScheduleApi` (`mealsOnDate`, `isInMealSchedule`), `DailyMealView` |
+| `DinhDuongThongKeApi` (`phieu`, `suat`, `doAnGiaDinh`), `PhieuBaoCaoView`, `SuatBaoCaoView`, `DoAnGiaDinhView` | `NutritionStatisticsApi` (`slips`, `portions`, `familyFoods`), `MealSlipReportView`, `PortionReportView`, `FamilyFoodReportView` |
+| SPI `LuotOLaiAnPort` (`dangOLaiCoDangKyAn`), `LuotOLaiView` | `StayMealPort` (`staysWithMealRegistration`), `StayMealView` |
+| sự kiện `LuotOLaiDaDoi(luotId, nctId, nguoiThanId, trangThai, dangKyAn, tu, den, khoaSuKien)` | `StayMealChanged(stayId, residentId, familyMemberId, status, mealRegistered, from, to, eventKey)` |
+| SPI `ChuyenDiBuaAnPort` (`trungGioBua`), `ChuyenTrungBuaView` | `TripMealPort` (`overlappingMealTime`), `TripOverlapView` |
+| sự kiện `ChuyenDiDaDoi(chuyenId, nctIds, tu, denDuKien, loai, khoaSuKien)` | `TripMealChanged(tripId, residentIds, from, expectedUntil, changeType, eventKey)` |
+| sự kiện 011 phát: `BanGanCheDoAnDaHieuLuc(nctId, banGanId, cheDoAnId, ketCau, thoiDiem)`, `PhieuDaGiao`, `PhieuCoSaiLech`, `PhieuGiaoTre` | `DietAssignmentTookEffect(residentId, assignmentId, dietId, texture, at)`, `MealSlipDelivered`, `MealSlipDiscrepancyReported`, `MealSlipDeliveredLate` |
+| tên 011 gọi của module khác: `YeuCauTaoCanhBao` (007) `XUNG_DOT_DI_UNG_CHE_DO_AN` / `THUC_DON_MON`, `PHUC_VU_SUAT_DI_UNG` / `SUAT_DAC_BIET`; `YeuCauDongCanhBaoNguon`; `SuCoLenhApi.ghiNhan`; `SutCanPhatHien` | `incident.api.events.AlertRequested` (`DIET_ALLERGY_CONFLICT` / `MENU_DISH`, `ALLERGEN_PORTION_SERVED` / `SPECIAL_PORTION`), `AlertSourceCloseRequested`, `IncidentCommandApi.record`, `WeightLossDetected` (đã có ở `develop`) |
+| tên 011 nghe: `DiUngDaGhiNhan`, `DiUngKhacDaGhiNhan`, `DiUngDaLoaiTru`, `NguoiCaoTuoiDaChuyenTrangThai`, `DaChuyenGiuong`, `AnKemKeoDai`, `LuotVangDaMo/GiaHan/Dong`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `PhuLucDaApDung` | `AllergyRecorded`, `OtherAllergyRecorded`, `AllergyExcluded`, `ResidentStatusChanged`, `BedTransferred`, `ProlongedPoorEating`, `AbsenceOpened/Extended/Closed`, `DayCareClosureDayChanged`, `DayCareAbsenceNoticeRecorded`, `AddendumApplied` |
+| bản cài SPI: `NguonCongViecPort` loại `BUA` (`loaiQuanLy`, `kiemTra`, `xacNhanPhucVu`), `NgoaiTuyenHandler` | `TaskSourcePort` (`managedTypes`, `validate`, `confirmServing`) loại `MEAL`, `OfflineHandler` |
+
+### 17.6. Bảng và cột *(sau gộp R-15, data-model 011 mục 0, 0.1)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `ban_gan_che_do_an` | `diet_assignment` |
+| `thuc_don` | `menu` (món, món thay thế vào cột `JSON` `dishes`) |
+| `lan_chot` | `portion_closing` (người được tính, suất theo chế độ vào cột `JSON` `counted_residents`, `portions_by_diet`) |
+| loại ở `danh_muc_chung`: `M08.CHE_DO_AN`, `M08.MON_AN`, `M08.BUA_AN`, `M08.LOAI_DO_AN_CAM` | `M08.DIET`, `M08.DISH`, `M08.MEAL`, `M08.FORBIDDEN_FOOD_TYPE` |
+| loại ở `su_kien_chung`: `M08.THUC_DON_KIEM_TRA`, `M08.DOI_MON`, `M08.PHAT_SINH`, `M08.YEU_CAU_SUAT_BO_SUNG`, `M08.SAI_LECH_PHIEU`, `M08.PHAN_BO_SUNG`, `M08.XAC_NHAN_PHUC_VU` | `M08.MENU_CHECK`, `M08.DISH_SWAP`, `M08.ADJUSTMENT`, `M08.EXTRA_PORTION_REQUEST`, `M08.SLIP_DISCREPANCY`, `M08.SUPPLEMENTARY_PORTION`, `M08.SERVING_CONFIRMATION` |
+| loại ở `ho_so_chung`: `M08.PHIEU_BUA_AN`, `M08.SUAT_AN_NGUOI_THAN`, `M08.DO_AN_GIA_DINH`, `M08.LUU_MAU`, `M08.MON_AN_PHIEN_BAN` | `M08.MEAL_SLIP`, `M08.FAMILY_MEAL`, `M08.FAMILY_FOOD`, `M08.RETAINED_SAMPLE`, `M08.DISH_VERSION` |
+| `bua_ngay` (`khoa_ky_thuat`); `dinh_duong_nct` (`trang_thai_nct`); `thong_bao_xem_lai`, `su_kien_m08_da_xu_ly`, `lan_chay_m08` (`moc_da_nhac`) | `M08.DAILY_MEAL`; `M08.RESIDENT_NUTRITION`; `M08.REVIEW_NOTICE`, `M08.PROCESSED_EVENT`, `M08.JOB.<jobKey>` |
+| lớp hàm thuần `XungDot`, `ChonMonThayThe`, `CanLyDoChuyenMon`, `KiemTraDoPhu`, `LapMon`, `NguoiDuocTinh`, `TinhPhatSinh`, `DoiChieuDoAn`, `MonCanLuuMau` | `ConflictCheck`, `SubstituteDishSelector`, `ProfessionalReasonRule`, `CoverageCheck`, `DishRepetitionCheck`, `CountedResidents`, `AdjustmentCalculator`, `FamilyFoodCheck`, `DishesToRetain` |
+| job `ViecTheoPhutM08`, `ViecHangNgayM08`; listener `SuKienM08Listener` | `M08MinuteJob`, `M08DailyJob`; `M08EventListener` |
+| migration `V011_01__nen_m08.sql` | `V011_01__nutrition_foundation.sql` |
+| test `XungDotTest`, `ChonMonThayTheTest`, `ChayBuM08IT`, `M08ArchTest` | `ConflictCheckTest`, `SubstituteDishSelectorTest`, `M08CatchUpRunIT`, `M08ArchTest` |
 
 ## 18. Feature 012 (`012-family-portal`, A) *(bổ sung 2026-11-03, khi dịch `contracts/api-012.yaml`; chủ feature chuyển từ E sang A cùng ngày)*
 
