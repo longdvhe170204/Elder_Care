@@ -334,3 +334,18 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 ### Checkpoint chung theo yêu cầu người dùng — 2026-11-06
 
 Người dùng yêu cầu tạm dừng triển khai và lưu toàn bộ hiện trạng lên develop cùng 008. Giữ test T011/T012 đang đỏ trước cài đặt, không triển khai thêm hoặc đánh xong task để đổi kết quả checkpoint. Full verify dừng ở 16 failure của CostSourceRequestTest và 5 error của ResidencyBillingSourcesTest; báo cáo ở ../008-staff-shift-handover/publish-checkpoint-2026-11-06.md. T008/Phase 2 và nghiệm thu toàn chuỗi vẫn mở.
+
+## Triển khai sau checkpoint d9a62fc5, chờ kiểm tra — 2026-11-06
+
+- Người dùng yêu cầu gom code rồi verify sau, cuối mỗi phase phải báo/dừng chờ quyết định merge trước khi sang phase tiếp. Tiếp tục đúng Phase 3, không tự tạo PR/commit/push/merge/đổi nhánh. Checkpoint chung ở develop không phải nghiệm thu các hàm còn khung.
+- Đã cài kiểm thân lệnh CreateCostsFromEventsRequest; ResidencyBillingSources đọc nguồn ngày mỗi lượt, nối khoản qua effectiveItems không qua chỉ mục; thêm component BillingSourceResults và hàm chọn nguồn trong frontend/src/features/charges đúng README. RESIDENCY_DAY vẫn gửi dateRange, sự kiện chọn sourceUnits. Chi tiết phạm vi và test ở phase-3-implementation-pending-verification-2026-11-06.md.
+- 25 ca đỏ trước cài (16 failure/5 error/4 control xanh) chưa chạy lại sau thay đổi; thêm 3 IT SQL và test web chưa chạy. Không đánh xong T009/T011/T012 hoặc lấy lượt xanh 261 ca cũ làm bằng chứng trên mã/nền mới. Chưa chạy thêm verify hoặc bộ kiểm frontend; còn cổng kiểm/định dạng trước nghiệm thu.
+- Còn metadata A/B/C/D và danh tính buổi bán trú: B hiện dùng sessionId là ordinal theo ngày. Không dùng riêng số này như id toàn cục hoặc đoán đồng nhất buổi khi lịch đổi. Chưa cài controller/lệnh giả để trả thành công hoặc nguồn sai căn cứ. Giữ Phase 3 mở, chưa sang Phase 4.
+
+## Tiếp tục lõi E không chờ metadata — 2026-11-06
+
+- Phụ thuộc metadata B/C/D/client A chỉ chặn adapter và tích hợp, không chặn toàn bộ phần E của Phase 3. Tiếp tục lõi T009/T011 độc lập, không chờ nguồn mới rồi mới viết luật/khóa/bảng.
+- ResidencyDayEligibility cài FR-007/011/Q-395: ngày trước nhập viện vẫn theo mốc hợp đồng; từ ngày giải phóng giường không lập phí; hôm nay/ngày sau chưa kết thúc bị chặn trừ phạm vi lập trước của bảng kỳ cuối; giữ ngày qua đời trọn ngày theo BillingPeriod. Mốc ngày/zone caller truyền từ nguồn và BusinessTime, không tự lấy giờ hoặc đoán nguồn còn thiếu.
+- DraftStatementTransition và CostDraftStatements/DraftCostStatementStore cài bước chuẩn bị bảng nhận Nháp: MANDATORY transaction của caller, khóa M11 theo người trước kỳ/bảng; khóa dòng bảng nếu đã có, tránh khóa khoảng rỗng; tạo bảng thường khi caller đã chấp nhận khoản đầu, dùng lại Đang mở, mở lại Chờ chốt và tăng version. Kỳ hoặc bảng đã chốt trả requiresAdjustment, không mở lại hoặc tự sinh khoản điều chỉnh. Không tự tạo kỳ khi kỳ chưa có.
+- Đây là bước nội bộ của lệnh, chưa phải endpoint/lệnh hoàn chỉnh: caller phải kiểm nguồn rồi gọi cùng transaction ghi khoản và nhật ký; không gọi riêng để lập bảng trống hoặc từ job. Phần ghi khoản, orchestration hàng loạt, định giá và thông báo/nhật ký của lệnh còn phải nối tiếp.
+- Đã thêm test luật thuần, điều phối thứ tự khóa/bảng và IT tạo/dùng lại/mở lại/giữ nguyên bảng chốt. Chưa chạy các test này hoặc verify theo yêu cầu gom triển khai trước; không đánh T009/T011 hoặc Phase 3 xong. Tiếp tục phần E, vẫn chờ người dùng quyết định merge tại cuối phase trước khi chuyển phase.

@@ -2945,6 +2945,22 @@ Khóa nguồn được giữ nguyên; digest chỉ dùng cho dấu chống lặp
 | Khóa đơn vị tính phí gửi khi chọn nguồn | billingUnit; khác unit là đơn vị sử dụng/hiển thị. Chủ dự án duyệt 06/11 |
 | Danh sách đơn vị nguồn được chọn | sourceUnits: [{sourceId, billingUnit}]; loại trừ sourceIds/dateRange trong cùng lệnh |
 | Kết quả tra chỉ mục và khoản hiệu lực | IndexedSourceMatch; billing.internal.source.domain; nguồn hiện hành, cancelled, version, existingItemId |
+### 16.14. Tra nguồn ngày và chọn nguồn web — 2026-11-06
+
+| Tên logic | Tên triển khai / vị trí |
+| --- | --- |
+| Khóa nguồn nội bộ | BillingSourceKey(sourceId, billingUnit), billing.internal.source.domain |
+| Ngày lưu trú tính khi tra cứu | ResidencyBillingSources; nguồn qua ResidencyDayApi, khoản hiệu lực từ cost_item |
+| Thân lệnh chọn nguồn đã duyệt | CreateCostsFromEventsRequest, web/request; SourceUnit và DateRange; không thêm trường hợp đồng |
+| Bảng kết quả nguồn và lựa chọn | BillingSourceResults, sourceSelection.js; frontend/src/features/charges (README đã chốt) |
+### 16.15. Điều kiện lập phí ngày và bước nhận Nháp — 2026-11-06
+
+| Tên logic | Tên triển khai / vị trí |
+| --- | --- |
+| Điều kiện lập phí ngày lưu trú | ResidencyDayEligibility; billing.internal.source.domain; allowed/errorCode/reason/createdInAdvance, chưa phải phản hồi HTTP |
+| Chuyển trạng thái khi nhận khoản Nháp | DraftStatementTransition; billing.internal.period.domain |
+| Ảnh bảng dưới khóa và kết quả chọn bảng | DraftCostStatement, DraftStatementTarget; requiresAdjustment không tự lập khoản điều chỉnh |
+| Bước nội bộ chuẩn bị bảng nhận Nháp | CostDraftStatements, DraftCostStatementStore; billing.internal.period.service/persistence; cùng transaction của lệnh ghi khoản |
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

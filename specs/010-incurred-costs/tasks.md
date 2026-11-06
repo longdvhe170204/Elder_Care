@@ -93,6 +93,10 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ---
 
+**Triển khai tiếp 06/11, chờ kiểm:** T011 đã có ResidencyBillingSources đọc ngày nguồn/nối khoản hiệu lực không qua chỉ mục; T012 đã có kiểm thân lệnh và component bảng chọn nguồn/lý do bỏ qua ở charges. Đã cài sau 25 ca đỏ trước cài, chưa chạy lại; test SQL/web mới chưa chạy theo yêu cầu gom code/hoãn kiểm. Còn adapter buổi bán trú, metadata, lệnh/controller và màn nối API. Không đánh T009/T011/T012 hoặc Phase 3 xong; xem phase-3-implementation-pending-verification-2026-11-06.md. Hết phase phải báo người dùng, chờ họ quyết định merge rồi mới sang phase tiếp.
+
+**Lõi E triển khai tiếp, chưa kiểm:** thêm ResidencyDayEligibility cho FR-007/011/Q-395 và CostDraftStatements/DraftCostStatementStore cho bước nhận khoản Nháp dưới khóa, tạo/dùng lại/mở lại bảng thường, chuyển sang luồng điều chỉnh nếu kỳ/bảng đã chốt. Có test mới nhưng chưa chạy; đây chưa phải lệnh ghi khoản/HTTP đầy đủ. Metadata/client chỉ chặn phần nối nguồn, không phải lý do dừng toàn bộ T009/T011.
+
 ## Phase 4: User Story 2 – Đơn giá và số tiền đúng căn cứ (Priority: P1)
 
 **Goal**: Đơn giá theo nội dung hợp đồng tại ngày phát sinh hoặc phiên bản đơn giá; thuộc gói 0 đồng; ngày vắng nội trú tính như ngày lưu trú, chặn từ chính ngày Giải phóng giường (Q-395); thiếu đơn giá thì đánh dấu, tính lại khi có phiên bản (FR-008 → FR-013, DBR-16, BR-M11-02, 03, 09, BR-M02-06 phần 010).
