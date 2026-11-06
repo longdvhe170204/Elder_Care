@@ -170,7 +170,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
   - Xử lý lệch báo người lập và Kế toán đã ghi lệch (`reconciled_by_staff_id`).
 - Phase 3 lượt 2 (2026-11-06): nhắc CFG-M11-08, 09 (`ProcurementReminders`, job `REMIND_PROCUREMENT_REQUESTS` 07:00, một lần mỗi lần vào trạng thái, dấu ở `reminder_marker`; tên job chưa thêm vào enum `runJobs` của api-000, như hai job của 003); loại MEDICATION (Điều dưỡng của bộ phận lập, gửi, rút lại, hủy; lệnh lập tự kiểm quyền theo từng người cao tuổi của dòng để người ngoài phạm vi nhận 403, ghi ở `RequiresPermissionArchTest.SELF_CHECKED`; danh sách tự kiểm quyền xem theo vai trò); provider M11 (phạm vi, lưu giữ không gắn hồ sơ tính từ `locked_at`, quyền tải chứng từ).
 - Lệch research W-02 (chủ dự án duyệt 2026-11-06): M11 không phụ thuộc M07 vì vòng `billing → medication → care → billing`. Kiểm đơn qua `billing.api.spi.ProcurementPrescriptionPort` (M07 cài); T027 đổi thành M11 cung cấp dòng thuốc đã ghi đã mua ở `billing.api` và khai `ProcurementIntakePort` cho "Đã nhận" (contracts mục cuối module-interfaces). Lỗi đơn không hợp lệ dùng 409 `CONDITION_NOT_MET` sẵn có (điều kiện `PRESCRIPTION_NOT_FACILITY_UNENDED`).
-- Còn lại của Phase 3: T027 (chờ id dòng và D đồng ý đảo chiều, team-plan mục 8), màn web (T008).
+- Còn lại của Phase 3: T027 (chờ id dòng và D đồng ý đảo chiều, team-plan mục 8), màn web T008 (chủ dự án hoãn 2026-11-06, làm sau khi thống nhất thiết kế M35 với A; khi làm: thư mục theo frontend/README là `features/inventory`, khác glossary 25.1 ghi ba thư mục, sửa glossary cùng lúc; api-019 không có `allowedCommands` và tên bộ phận, cần chốt cách hiện nút lệnh và cột bộ phận).
 
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 
