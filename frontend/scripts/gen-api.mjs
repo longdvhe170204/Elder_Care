@@ -26,6 +26,14 @@ export class ApiError extends Error {
   }
 }
 
+// Khung phiên của web (002 T047b) nghe mọi phản hồi để đếm giờ không thao tác như máy chủ: yêu cầu tự làm mới gửi
+// X-Background-Refresh không đếm lại; 401 SESSION_EXPIRED là phiên đã hết
+const listeners = new Set()
+export function onResponse(listener) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
 // params: { path, query, body, headers, responseType } — path thay {tên} trong đường dẫn
 export async function request(method, template, params = {}) {
   const { path = {}, query, body, headers = {}, responseType } = params
@@ -57,6 +65,8 @@ export async function request(method, template, params = {}) {
   })
   const type = response.headers.get('Content-Type') || ''
   const data = type.includes('json') ? await response.json() : response.ok && responseType === 'blob' ? await response.blob() : null
+  const background = headers['X-Background-Refresh'] === 'true'
+  listeners.forEach((listener) => listener({ status: response.status, errorCode: data?.errorCode, background }))
   if (!response.ok) throw new ApiError(response.status, data)
   return { data, etag: response.headers.get('ETag'), status: response.status }
 }
@@ -113,6 +123,6 @@ for (const dir of readdirSync(specsDir).sort()) {
 }
 writeFileSync(
   join(outDir, 'index.js'),
-  `${HEADER}export { ApiError, request } from './client.js'\n${exports.join('\n')}\n`,
+  `${HEADER}export { ApiError, onResponse, request } from './client.js'\n${exports.join('\n')}\n`,
 )
 console.log(`Đã sinh ${exports.length} file vào src/api/`)

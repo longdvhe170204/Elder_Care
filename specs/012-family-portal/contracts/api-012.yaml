@@ -137,7 +137,7 @@ paths:
         - { $ref: '#/components/parameters/Id' }
         - { name: command, in: path, required: true, schema: { type: string, enum: [confirm, approve, reject, cancel] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' }, evidenceFileId: { type: integer, format: int64 }, signedByFamilyMemberId: { type: integer, format: int64 }, discussedWithResident: { type: string, maxLength: 2000 } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /residents/{residentId}/pickups:
@@ -327,7 +327,14 @@ paths:
       x-fr: [FR-058, FR-065]
       x-family-member: true
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FeedbackDetail' } } } } }
+  /feedback/{id}/assignable-staff:
+    get:
+      tags: [feedback]
+      summary: Người nhận giao lại được (bổ sung 2026-11-05, chủ dự án duyệt) - tài khoản nhân viên Hoạt động có quyền Tạo, Sửa ở dòng "Phản hồi" trong phạm vi của người cao tuổi (Trưởng tầng, Điều dưỡng, Hành chính)
+      x-fr: [FR-060]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/AssignableStaff' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
   /feedback/{id}/{command}:
     post:
       tags: [feedback]
@@ -345,7 +352,7 @@ paths:
         - { name: command, in: path, required: true, schema: { type: string, enum: [start-handling, reply, add-note, reassign, change-priority, agree-to-close, reopen, change-type, link-opinion] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
       requestBody: { content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' }, handlingDirection: { type: string }, content: { type: string }, assigneeId: { type: integer, format: int64 }, priority: { type: string, enum: [HIGH, NORMAL] }, newType: { type: string, enum: [SUGGESTION, QUESTION] }, opinion: { type: object, description: 'link-opinion chỉ cho mục VISIT_PICKUP_WISH; sở thích của 014 gắn qua sự kiện', properties: { itemType: { type: string, enum: [VISIT_PICKUP_WISH] }, itemId: { type: integer, format: int64 } } }, fileIds: { type: array, items: { type: integer, format: int64 } } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FeedbackDetail' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
   /residents/{residentId}/visit-pickup-wishes:
     get:
@@ -519,15 +526,16 @@ components:
         relationshipId: { type: integer, format: int64 }
         right: { $ref: '#/components/schemas/FamilyRight' }
         newValue: { type: boolean }
-        newPicker: { type: object, properties: { fullName: { type: string }, idDocumentNumber: { type: string }, relationship: { type: string } } }
+        newPicker: { type: object, properties: { fullName: { type: string }, phoneNumber: { type: string }, idDocumentType: { type: string }, idDocumentNumber: { type: string }, relationship: { type: string } } }
         withSignedForm: { type: boolean }
+        signedByFamilyMemberId: { type: integer, format: int64 }
         evidenceFileId: { type: integer, format: int64 }
         reason: { $ref: '#/components/schemas/Reason' }
     RightChangeRequest:
       allOf:
         - { $ref: '#/components/schemas/CreateRightChangeRequest' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, REJECTED, CANCELLED] }, confirmationMethod: { type: string, enum: [PORTAL, SIGNED_FORM, MANAGER_APPROVAL] }, source: { type: string, enum: [COUNTER, PORTAL, REGISTRATION_FORM] }, appliedOnCreation: { type: boolean } }
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [PENDING_CONFIRMATION, EFFECTIVE, REJECTED, CANCELLED] }, confirmationMethod: { type: string, enum: [PORTAL, SIGNED_FORM, MANAGER_APPROVAL] }, source: { type: string, enum: [COUNTER, PORTAL, REGISTRATION_FORM] }, appliedOnCreation: { type: boolean }, conflictingWishId: { type: [integer, 'null'], format: int64 } }
     RecordPickup:
       type: object
       required: [type, handoverStaffId]
@@ -570,4 +578,18 @@ components:
       allOf:
         - { $ref: '#/components/schemas/SubmitFeedback' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [NEW, IN_PROGRESS, REPLIED, REOPENED, CLOSED] }, priority: { type: string, enum: [HIGH, NORMAL] }, dueAt: { type: string, format: date-time }, overdue: { type: boolean }, assignee: { type: string } }
+          properties: { id: { type: integer, format: int64 }, status: { type: string, enum: [NEW, IN_PROGRESS, REPLIED, REOPENED, CLOSED] }, priority: { type: string, enum: [HIGH, NORMAL] }, dueAt: { type: string, format: date-time }, overdue: { type: boolean }, assignee: { type: string }, familyMemberName: { type: string, readOnly: true, description: 'Họ tên người thân gửi (bổ sung 2026-11-05)' }, submittedAt: { type: string, format: date-time, readOnly: true, description: 'Bổ sung 2026-11-05' } }
+    FeedbackItem:
+      type: object
+      description: 'Mục của phản hồi (FR-065; bổ sung 2026-11-05). Người gửi chỉ thấy CONTENT, REPLY, HANDLING_DIRECTION, REOPEN'
+      properties: { id: { type: integer, format: int64 }, type: { type: string, enum: [CONTENT, REPLY, HANDLING_DIRECTION, NOTE, REASSIGNMENT, PRIORITY_CHANGE, REOPEN] }, content: { type: string }, fileIds: { type: array, items: { type: integer, format: int64 } }, byAccountId: { type: integer, format: int64 }, at: { type: string, format: date-time } }
+    FeedbackDetail:
+      description: 'Chi tiết phản hồi (bổ sung 2026-11-05, chủ dự án duyệt). senderHealthRightEffective chỉ cho nhân viên (cảnh báo lúc soạn trả lời); healthReplyHidden chỉ cho người gửi: trả lời là thông tin sức khỏe mà quyền xem sức khỏe không có tác dụng thì không có trong items (FR-058)'
+      allOf:
+        - { $ref: '#/components/schemas/Feedback' }
+        - type: object
+          properties: { source: { type: string, enum: [PORTAL, COUNTER, RESIDENT_CHANNEL, RECORDED_DIRECTLY] }, assigneeId: { type: integer, format: int64 }, repliedAt: { type: string, format: date-time }, closedAt: { type: string, format: date-time }, closeMethod: { type: string, enum: [SENDER, AUTO, RECORDED_ON_BEHALF] }, items: { type: array, items: { $ref: '#/components/schemas/FeedbackItem' } }, senderHealthRightEffective: { type: boolean }, healthReplyHidden: { type: boolean }, allowedCommands: { type: array, items: { type: string } } }
+    AssignableStaff:
+      type: object
+      description: Bổ sung 2026-11-05 (FR-060)
+      properties: { accountId: { type: integer, format: int64 }, fullName: { type: string }, role: { type: string, enum: [FLOOR_MANAGER, NURSING_STAFF, OFFICE_STAFF] } }

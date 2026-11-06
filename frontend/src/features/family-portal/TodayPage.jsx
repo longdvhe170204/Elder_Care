@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { SourceTag } from '@/common/SourceTag'
 import { StatusBadge } from '@/common/StatusBadge'
-import { DEMO_INCIDENT, DEMO_PORTAL_BULLETINS, DEMO_PORTAL_HEALTH, DEMO_PORTAL_TODAY, DEMO_RESIDENTS } from '@/common/demoData'
+import { DEMO_INCIDENT, DEMO_PORTAL_HEALTH, DEMO_PORTAL_TODAY, DEMO_RESIDENTS } from '@/common/demoData'
 import { HealthLock, InfoList, PortalCard } from './PortalParts'
 
 // P2 Hôm nay (trang chủ cổng, 012 FR-046): thông tin chung cho mọi người thân có quan hệ Hiệu lực;
@@ -104,7 +104,6 @@ function RecentIncident({ health }) {
 
 export function TodayPage({ viewer, onNavigate }) {
   const health = viewer.perms.health
-  const latest = DEMO_PORTAL_BULLETINS[0]
   // Máy tính: hai cột, thẻ người cao tuổi chiếm cả hàng; điện thoại: một cột
   return (
     <div className="grid items-start gap-4 lg:grid-cols-2 [&>*:first-child]:lg:col-span-2">
@@ -113,16 +112,6 @@ export function TodayPage({ viewer, onNavigate }) {
       {/* Không có quyền xem sức khỏe thì không có mục Sức khỏe (012 User Story 5 kịch bản 2) */}
       {health && <HealthSummary onNavigate={onNavigate} />}
       <RecentIncident health={health} />
-      <PortalCard
-        title="Bản tin mới nhất"
-        action={
-          <Button variant="outline" size="sm" onClick={() => onNavigate('bulletins')}>
-            Đọc bản tin
-          </Button>
-        }
-      >
-        <span>Tuần {latest.period}</span>
-      </PortalCard>
     </div>
   )
 }
