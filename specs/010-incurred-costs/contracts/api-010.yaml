@@ -170,7 +170,7 @@ paths:
       tags: [statements]
       summary: Kỳ chi phí của viện và trạng thái
       x-fr: [FR-001]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CostPeriod' } } } } } }
 
   # ---------------- Mua hộ ----------------
   /purchase-assistance-requests:
@@ -373,6 +373,7 @@ components:
         originalItemId: { type: integer, format: int64 }
         originalPeriod: { type: string }
         recalculationHistory: { type: array, items: { type: object } }
+        commandHistory: { type: array, items: { $ref: '#/components/schemas/CostCommandHistory' } }
         adjustments: { type: array, items: { type: object } }
         currentTotal: { type: integer, format: int64 }
         hiddenFields: { type: array, items: { type: string } }
@@ -389,8 +390,28 @@ components:
         totalsByType: { type: array, items: { type: object, properties: { type: { $ref: '#/components/schemas/CostType' }, total: { type: integer, format: int64 } } } }
         total: { type: integer, format: int64 }
         items: { type: array, items: { $ref: '#/components/schemas/CostItem' } }
+    CostPeriod:
+      type: object
+      description: 'Hình dạng CostPeriodView đã công bố; kỳ của viện, không phải bảng của một người.'
+      properties:
+        id: { type: integer, format: int64 }
+        month: { type: string }
+        fromDate: { type: string, format: date }
+        throughDate: { type: string, format: date }
+        status: { type: string, enum: [OPEN, AWAITING_FINALIZATION, FINALIZED] }
+        finalizationDueOn: { type: string, format: date }
+        finalizedAt: { type: string, format: date-time }
+    CostCommandHistory:
+      type: object
+      description: 'FR-018: mỗi lần kiểm tra, bỏ kiểm tra, duyệt, trả lại, hủy hoặc chốt; chỉ thêm.'
+      properties:
+        operation: { type: string, enum: [CHECK, UNCHECK, APPROVE, RETURN, CANCEL, FINALIZE] }
+        actorId: { type: integer, format: int64 }
+        at: { type: string, format: date-time }
+        reason: { type: string }
     CostChangeWarning:
       type: object
+      description: 'increaseRatio theo phần trăm; khi kỳ trước bằng 0 thì bỏ trường này vì không có tỷ lệ hữu hạn, vẫn trả cảnh báo và các loại tăng.'
       properties: { increaseRatio: { type: number }, topThreeIncreases: { type: array, items: { type: string } } }
     NewPurchaseAssistanceRequest:
       type: object

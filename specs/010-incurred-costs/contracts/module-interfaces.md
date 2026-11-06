@@ -150,3 +150,7 @@ FakeM11Config là TestConfiguration; chỉ @Import trong test. Đã thêm FakeCo
 - HTTP BillingSource thêm billingUnit (khóa đơn vị tính phí); unit giữ đơn vị sử dụng/hiển thị. CreateCostsFromEvents thêm sourceUnits gồm sourceId/billingUnit; chọn đúng một kiểu sourceIds/sourceUnits/dateRange. sourceIds cũ chỉ dùng khi xác định duy nhất một đơn vị; mơ hồ trả dòng bỏ qua CONDITION_NOT_MET, không tự lập tất cả.
 - BillingSourceView của E thêm thành phần billingUnit; rà toàn kho chưa có nơi tạo record này ngoài khai báo. Không đổi chữ ký sự kiện CostSourceBilled/CostSourceChanged hoặc API nguồn C/D. Chưa có bản cài endpoint/lệnh đầy đủ.
 - Quyết định và ví dụ: proposal-source-unit-selection-2026-11-06.md. Nguồn metadata/đăng ký client còn bàn giao ở source-metadata-handoff-2026-11-06.md; A/các consumer review thay đổi công khai trước khi tích hợp. Không tự sửa script sinh client của A hoặc frontend/src/api.
+
+## Đổi api — lịch sử lệnh Phase 5, 07/11/2026
+
+CostItemView của E thêm commandHistory: List<Map<String,Object>>, mỗi dòng operation (CHECK/UNCHECK/APPROVE/RETURN/CANCEL/FINALIZE), actorId, at, reason tùy chọn. Đã sửa mọi constructor hiện có. Dữ liệu qua StatusHistoryApi trên track M11.COST_ITEM/COMMAND, cùng transaction lệnh; không đổi API nguồn hoặc tạo bảng riêng. HTTP dùng schema CostCommandHistory; GET kỳ mô tả CostPeriod theo CostPeriodView đã công bố. Người dùng giao tự chọn cách triển khai theo spec; consumer/A review trong PR, không coi đã có review của A. Chi tiết tại phase5-contract-handoff-2026-11-07.md.

@@ -44,9 +44,11 @@ import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
+import { ChargesPage } from '@/features/charges/ChargesPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
+  charges: ChargesPage,
   beds: BedsPage,
   dashboard: DashboardPage,
   reports: ReportsPage,

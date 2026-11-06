@@ -2945,6 +2945,25 @@ Khóa nguồn được giữ nguyên; digest chỉ dùng cho dấu chống lặp
 | Khóa đơn vị tính phí gửi khi chọn nguồn | billingUnit; khác unit là đơn vị sử dụng/hiển thị. Chủ dự án duyệt 06/11 |
 | Danh sách đơn vị nguồn được chọn | sourceUnits: [{sourceId, billingUnit}]; loại trừ sourceIds/dateRange trong cùng lệnh |
 | Kết quả tra chỉ mục và khoản hiệu lực | IndexedSourceMatch; billing.internal.source.domain; nguồn hiện hành, cancelled, version, existingItemId |
+### 16.14. Kiểm tra, duyệt và chốt — 2026-11-07
+
+Lịch sử lệnh khoản: CostItemHistory, track M11.COST_ITEM/COMMAND qua StatusHistoryApi; CostItemView.commandHistory / HTTP CostCommandHistory gồm operation, actorId, at, reason tùy chọn. Danh sách kỳ HTTP: CostPeriodBody / schema CostPeriod, theo CostPeriodView đã công bố. Màn kiểm tra/duyệt/chốt: ChargesPage, StatementDetail, CostItemSheet, ChargeConfirmation trong frontend/src/features/charges.
+
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| So biến động hai kỳ đủ tháng | PeriodCostChange, Warning; billing.internal.period.domain; increaseRatio theo phần trăm |
+| Kiểm mức vượt số đã đồng ý | PurchaseExcessCheck; billing.internal.purchase.domain; WITHIN_CONSENT, EXCESS, ADDITIONAL_CONSENT_REQUIRED (kết quả nội bộ) |
+| Lựa chọn khoản / kết quả lô | CostItemSelection, CostBatchResult, CostItemRecord; billing.internal.item.domain |
+| Lệnh kiểm tra, duyệt, trả lại, hủy | CostItemService, CostItemStore; billing.internal.item |
+| Lệnh gửi chốt, trả lại bảng, chốt nguyên tử | CostStatementService, CostStatementStore, CostStatementRecord; billing.internal.period |
+| Khoảng tính phí cho cảnh báo và kỳ | CostBillingCoverage; chỉ gọi api của admission/resident |
+| Tác vụ kỳ theo lịch | CostDailyTask, CostPeriodStore, CostPeriodRecord; tên tác vụ COST_PERIOD_CALENDAR, khung M11Jobs |
+| Đọc bảng, khoản | CostQueries, CostViewStore; CostItemController, CostStatementController; CostWorkflowRequests |
+| DTO HTTP chi phí | CostItemBody, CostStatementBody, CostBatchBody, CostSubmissionBody, CostProblemBody; schema có tên riêng của 010 để không ghi đè schema module khác |
+| Kiểm quyền và thông báo nội bộ | CostAccess, CostNotifications, CostNotificationEvent; không thay sự kiện công khai CostStatementFinalized |
+| Khóa đọc dữ liệu hiện hành | lockedStatement, lockedItem, lockItems; dùng locking read sau khi giữ khóa nghiệp vụ, không dùng snapshot cũ để chốt |
+
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
