@@ -10,10 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.administration.FakeStaffProfiles;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * 002 T032a (contracts/module-interfaces.md mục 1.6, mục 2): họ tên người dùng lấy từ hồ sơ liên kết (nhân viên ở 008,
@@ -45,7 +49,12 @@ class ActorFullNameIT extends MySqlIntegrationTestBase {
     FakeStaffProfiles staffProfiles;
 
     @Autowired
-    FakeFamilyRelationships familyRelationships;
+    RelationshipHistoryStore history;
+
+    @Autowired
+    TransactionTemplate tx;
+
+    RelationshipFixtures family;
 
     @Autowired
     AccountApi accounts;
@@ -81,7 +90,9 @@ class ActorFullNameIT extends MySqlIntegrationTestBase {
 
     @Test
     void T032a_familyMemberAccount_hasFullNameFromFamilyProfile() {
-        long familyMemberId = AccountFixtures.nextId();
+        family = new RelationshipFixtures(
+                jdbc, tx, history, time.now().minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS));
+        long familyMemberId = family.familyMember("Lê Thị Người Thân", "0909000000");
         jdbc.update("""
                 INSERT INTO account (username, type, family_member_id, status, password_hash, must_change_password,
                                      inactivity_reference_at, created_at)
@@ -89,7 +100,6 @@ class ActorFullNameIT extends MySqlIntegrationTestBase {
                 """, "nguoi-than-" + familyMemberId, familyMemberId);
         long account =
                 jdbc.queryForObject("SELECT id FROM account WHERE family_member_id = ?", Long.class, familyMemberId);
-        familyRelationships.name(familyMemberId, "Lê Thị Người Thân");
 
         assertThat(accounts.fullName(account)).contains("Lê Thị Người Thân");
     }
