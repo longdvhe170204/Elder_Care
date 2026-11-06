@@ -345,3 +345,10 @@ Task: "T098 hop_duyet.dart"
 - [x] T109 [US5] Thêm test cho phần còn thiếu của FR-034a trong `ApproverRoleRestrictionIT` hoặc lớp mới cùng gói: (1) quyết định đã ghi giữ nguyên khi người duyệt sau đó mất quyền duyệt hoặc bị khóa tài khoản (002); (2) người yêu cầu bị khóa hoặc mất quyền tạo: yêu cầu Chờ duyệt vẫn duyệt, từ chối được, yêu cầu Đã duyệt (chờ hiệu lực) vẫn được áp dụng, yêu cầu không tự đổi trạng thái per FR-034a (partial)
 - [x] T110 Chuyển record, enum, sự kiện đang ở gốc `api` của `administration.approval`, `auditlog`, `correction`, `parameter` vào `api/dto`, `api/events` (gốc `api` chỉ còn interface, chú thích); với `RetentionDatabase` chọn chỗ hợp lệ hoặc ghi ngoại lệ có lý do trong `LayerArchTest`; xóa các dòng tương ứng khỏi `PENDING_API_ROOT_TYPES`, báo "Đổi api" cho các module đang dùng per plan: research R-02 (contradicts)
 - [x] T111 Chuyển câu SQL của `DueRequestApplication`, `PendingRequestReminder` (approval), `AuditLogService`, `AuditLogQueryService` (auditlog), `CorrectionService` (correction), `ParameterService` (parameter) vào lớp `*Store` ở `internal/persistence` của từng phần; ghi nhật ký vẫn trong transaction của lệnh (FR-047); xóa các dòng tương ứng khỏi `PENDING_JDBC_OUTSIDE_PERSISTENCE` per plan: research R-02 (contradicts)
+
+## Phase 10: Convergence
+
+*(/speckit-converge 2026-11-06. Việc đã có task đang mở không lặp lại ở đây: T010b, T103, T106.)*
+
+- [ ] T112 Rà và xử lý các điểm B báo 2026-10-27 về administration còn mở ở team-plan mục 8: loại bỏ dữ liệu hết hạn (`ExpiredDataPurge`) chưa xét tệp đính kèm (`common.file`) của bản ghi trong chuỗi và chưa xóa nội dung S3; `VOID` của chuỗi lịch sử trạng thái; tham chiếu chéo giữa module; `BATCH`. Mỗi điểm viết test trước; điểm nào chạm nghiệp vụ thì dừng, báo chủ dự án; xong thì xóa dòng team-plan per FR-050, FR-051a (partial)
+- [ ] T113 Tìm nguyên nhân `DuplicateKeyException` trên `uq_parameter_history` (CFG-M05-01, `effective_from` trùng tới micro giây) ở `ParameterChangeIT` US4_7, US4_9 (log Phase 8 của C, team-plan mục 8); sửa nếu là lỗi của `ParameterService`, hoặc ghi kết luận vào plan rồi xóa dòng team-plan per US4 (partial)

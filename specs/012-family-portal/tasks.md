@@ -275,3 +275,9 @@ US1 → US3 → US2 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 - 012 không tạo khoản chi phí, không tự từ chối yêu cầu (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M10-*)
 - Ghi đón chỉ trực tuyến
+
+## Phase 12: Convergence
+
+*(/speckit-converge 2026-11-06. Việc đã có task đang mở không lặp lại ở đây: T035 phần 011, T036, T038, T039, T067 phần 011, T073.)*
+
+- [ ] T076 [US5] Cổng web `frontend/src/features/family-portal/`: người đại diện có quan hệ Hiệu lực xem và Đồng ý / Từ chối kèm lý do các đề nghị mua hộ Chờ đồng ý (mục cần mua, số lượng, số tiền dự kiến, lý do, người yêu cầu; tên thuốc chỉ hiện khi có quyền xem sức khỏe, Q-133), gọi `/purchase-assistance-requests/{id}/agree`, `/reject` của api-010; phần chi phí hiện khoản mua hộ có phần vượt số đã đồng ý (số cũ, số mới, Q-251); test Vitest viết trước. Chờ 010 T026 → T028; phối hợp với 010 T028 (app người thân do 010 làm), một màn không làm hai lần per FR-046a (missing)
