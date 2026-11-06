@@ -68,13 +68,22 @@ export function EndingsPage({ role }) {
         >
           <Field className="w-48">
             <FieldLabel htmlFor="ending-code">Mã hồ sơ kết thúc</FieldLabel>
-            <Input id="ending-code" type="number" min="1" className="h-11" value={code} onChange={(e) => setCode(e.target.value)} />
+            <Input
+              id="ending-code"
+              type="number"
+              min="1"
+              className="h-11"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
           </Field>
           <Button type="submit" variant="outline" className="h-11">
             Mở hồ sơ
           </Button>
         </form>
-        <p className="type-caption text-muted-foreground">Mã hồ sơ hiện ở thông báo khi lập hồ sơ; danh sách hồ sơ chờ hợp đồng bổ sung.</p>
+        <p className="type-caption text-muted-foreground">
+          Mã hồ sơ hiện ở thông báo khi lập hồ sơ; danh sách hồ sơ chờ hợp đồng bổ sung.
+        </p>
       </Card>
       <p role="status" className="empty:hidden type-body-sm">
         {announcement}

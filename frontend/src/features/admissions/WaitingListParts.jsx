@@ -26,9 +26,19 @@ import { Info, ReasonField } from './FormParts'
 // Hợp đồng không trả lệnh được phép: nút theo trạng thái hồ sơ, backend kiểm lại.
 
 const REASON_COMMANDS = {
-  decline: ['Ghi nhận từ chối…', 'Ghi nhận gia đình không tiếp tục chờ', postWaitingListEntriesByIdDecline, 'Đã ghi nhận từ chối'],
+  decline: [
+    'Ghi nhận từ chối…',
+    'Ghi nhận gia đình không tiếp tục chờ',
+    postWaitingListEntriesByIdDecline,
+    'Đã ghi nhận từ chối',
+  ],
   cancel: ['Hủy chờ…', 'Hủy chờ', postWaitingListEntriesByIdCancelWaiting, 'Đã hủy chờ'],
-  declineBed: ['Gia đình từ chối giường…', 'Gia đình từ chối giường này', postWaitingListEntriesByIdDeclineBed, 'Đã ghi nhận từ chối giường'],
+  declineBed: [
+    'Gia đình từ chối giường…',
+    'Gia đình từ chối giường này',
+    postWaitingListEntriesByIdDeclineBed,
+    'Đã ghi nhận từ chối giường',
+  ],
 }
 
 export function EntryBadges({ entry }) {
@@ -75,7 +85,11 @@ export function EntryDetail({ entry, canUpdate, onChanged, Title, Description })
     setSubmitted(true)
     if (!reason.trim()) return
     if (mode === 'priority') {
-      run(postWaitingListEntriesByIdMarkPriority, { priority: !entry.priority, reason: reason.trim() }, 'Đã lưu dấu Ưu tiên')
+      run(
+        postWaitingListEntriesByIdMarkPriority,
+        { priority: !entry.priority, reason: reason.trim() },
+        'Đã lưu dấu Ưu tiên',
+      )
       return
     }
     const [, , call, message] = REASON_COMMANDS[mode]
@@ -83,7 +97,8 @@ export function EntryDetail({ entry, canUpdate, onChanged, Title, Description })
   }
 
   const reasonError = submitted && !reason.trim() ? 'Nhập lý do' : null
-  const title = mode === 'priority' ? (entry.priority ? 'Gỡ dấu Ưu tiên' : 'Đánh dấu Ưu tiên') : REASON_COMMANDS[mode]?.[1]
+  const title =
+    mode === 'priority' ? (entry.priority ? 'Gỡ dấu Ưu tiên' : 'Đánh dấu Ưu tiên') : REASON_COMMANDS[mode]?.[1]
 
   return (
     <div className="flex flex-col gap-4">
@@ -112,7 +127,12 @@ export function EntryDetail({ entry, canUpdate, onChanged, Title, Description })
         <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
           {waiting && (
             <>
-              <Button variant="outline" className="h-11" disabled={busy} onClick={() => run(postWaitingListEntriesByIdConfirmStillNeeded, null, 'Đã xác nhận còn nhu cầu')}>
+              <Button
+                variant="outline"
+                className="h-11"
+                disabled={busy}
+                onClick={() => run(postWaitingListEntriesByIdConfirmStillNeeded, null, 'Đã xác nhận còn nhu cầu')}
+              >
                 Xác nhận còn nhu cầu
               </Button>
               <Button variant="outline" className="h-11" onClick={() => open('priority')}>
@@ -261,7 +281,13 @@ export function MatchingSheet({ onClose, onDone }) {
           <div className="mt-4 flex flex-col gap-3">
             {outOfOrder && (
               <Field data-invalid={!!reasonError || undefined}>
-                <ReasonField id="matching-reason" label="Lý do bỏ qua thứ tự" value={reason} onChange={setReason} error={reasonError} />
+                <ReasonField
+                  id="matching-reason"
+                  label="Lý do bỏ qua thứ tự"
+                  value={reason}
+                  onChange={setReason}
+                  error={reasonError}
+                />
               </Field>
             )}
             <div className="flex justify-end">
@@ -324,7 +350,9 @@ export function AddEntrySheet({ onClose, onDone }) {
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
         <SheetTitle>Đưa vào danh sách chờ</SheetTitle>
-        <SheetDescription>Chọn lượt đăng ký đang tiếp nhận; mức chăm sóc lấy từ đánh giá được chấp nhận (FR-008).</SheetDescription>
+        <SheetDescription>
+          Chọn lượt đăng ký đang tiếp nhận; mức chăm sóc lấy từ đánh giá được chấp nhận (FR-008).
+        </SheetDescription>
         <FieldGroup className="mt-4">
           <Field data-invalid={!!error || undefined}>
             <FieldLabel htmlFor="entry-application">Lượt đăng ký</FieldLabel>

@@ -11,8 +11,8 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
-import { ABSENCE_STATUS } from './admissionLabels'
-import { AbsenceDetail, absenceLabel } from './AbsenceParts'
+import { ABSENCE_STATUS, absenceLabel } from './admissionLabels'
+import { AbsenceDetail } from './AbsenceParts'
 import { DayCareTab } from './DayCareTab'
 import { ResidentSelect } from './FormParts'
 
@@ -42,8 +42,6 @@ export function AbsencesPage({ role }) {
   }, [residentId])
 
   useEffect(() => {
-    setAbsences(null)
-    setOpened(null)
     load()
   }, [load])
 
@@ -99,7 +97,17 @@ export function AbsencesPage({ role }) {
       ) : (
         <>
           <Card className="gap-3 p-4">
-            <ResidentSelect id="absence-resident" value={residentId} onChange={setResidentId} onFailure={(e) => setFailure(problemOf(e))} />
+            <ResidentSelect
+              id="absence-resident"
+              value={residentId}
+              onChange={(value) => {
+                setResidentId(value)
+                setAbsences(null)
+                setOpened(null)
+                setFailure(null)
+              }}
+              onFailure={(e) => setFailure(problemOf(e))}
+            />
           </Card>
           <ProblemAlert problem={failure} />
           {!residentId ? (
@@ -112,7 +120,10 @@ export function AbsencesPage({ role }) {
             <Card className="gap-0 py-0">
               <ul aria-label="Lượt vắng">
                 {absences.map((a) => (
-                  <li key={a.id} className={`flex flex-wrap items-center justify-between gap-2 border-b p-4 last:border-b-0 ${a.id === opened ? 'bg-accent/40' : ''}`}>
+                  <li
+                    key={a.id}
+                    className={`flex flex-wrap items-center justify-between gap-2 border-b p-4 last:border-b-0 ${a.id === opened ? 'bg-accent/40' : ''}`}
+                  >
                     <button
                       type="button"
                       className="text-left underline-offset-4 hover:underline"

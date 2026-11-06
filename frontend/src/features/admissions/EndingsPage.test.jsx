@@ -24,7 +24,12 @@ const CONDITIONS = {
     { code: 'END_E_HANDOVER', name: 'Đã bàn giao người cao tuổi', status: 'NOT_MET', basis: 'FR-063' },
     { code: 'END_F_CONTRACT', name: 'Hợp đồng được xử lý', status: 'AUTOMATIC', basis: 'FR-063' },
     { code: 'END_H_SETTLEMENT', name: 'Số dư và tiền cọc đã quyết toán', status: 'NOT_MET', basis: 'FR-063' },
-    { code: 'END_H_SETTLEMENT_CONFIRMATION', name: 'Kế toán đã xác nhận quyết toán', status: 'NOT_MET', basis: 'FR-063' },
+    {
+      code: 'END_H_SETTLEMENT_CONFIRMATION',
+      name: 'Kế toán đã xác nhận quyết toán',
+      status: 'NOT_MET',
+      basis: 'FR-063',
+    },
   ],
   warnings: [],
 }
@@ -45,13 +50,30 @@ async function openEnding() {
 
 beforeEach(() => {
   api = mockRoutes()
-  api.on('GET', '/me/permissions', json(200, ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'RESIDENCY_END_DEATH', operation }))))
+  api.on(
+    'GET',
+    '/me/permissions',
+    json(
+      200,
+      ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'RESIDENCY_END_DEATH', operation })),
+    ),
+  )
   api.on('GET', '/residency-endings/14', json(200, ENDING))
   api.on('GET', '/residency-endings/14/conditions', json(200, CONDITIONS))
   api.on('GET', '/residents/5', json(200, { id: 5, personalInfo: { fullName: 'Nguyễn Thị Lan' } }))
-  api.on('GET', '/residents/5/relationships', json(200, [{ id: 1, status: 'ACTIVE', relationship: 'CHILD', familyMember: { id: 41, fullName: 'Trần Văn Minh' } }]))
+  api.on(
+    'GET',
+    '/residents/5/relationships',
+    json(200, [
+      { id: 1, status: 'ACTIVE', relationship: 'CHILD', familyMember: { id: 41, fullName: 'Trần Văn Minh' } },
+    ]),
+  )
   api.on('GET', '/staff', json(200, [{ id: 9, fullName: 'Hoàng Thu Hà' }]))
-  api.on('GET', '/residents', json(200, { items: [{ id: 5, profileCode: 'NCT-0005', personalInfo: { fullName: 'Nguyễn Thị Lan' } }] }))
+  api.on(
+    'GET',
+    '/residents',
+    json(200, { items: [{ id: 5, profileCode: 'NCT-0005', personalInfo: { fullName: 'Nguyễn Thị Lan' } }] }),
+  )
 })
 
 describe('EndingsPage', () => {
@@ -71,7 +93,9 @@ describe('EndingsPage', () => {
     await openEnding()
 
     fireEvent.click(screen.getByRole('button', { name: 'Xin ngoại lệ…' }))
-    const options = within(screen.getByLabelText('Điều kiện xin ngoại lệ')).getAllByRole('option').map((o) => o.textContent)
+    const options = within(screen.getByLabelText('Điều kiện xin ngoại lệ'))
+      .getAllByRole('option')
+      .map((o) => o.textContent)
     expect(options).toContain('Chi phí kỳ cuối đã chốt')
     expect(options).toContain('Số dư và tiền cọc đã quyết toán')
     expect(options).not.toContain('Đã bàn giao người cao tuổi')

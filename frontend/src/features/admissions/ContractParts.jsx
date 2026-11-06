@@ -41,8 +41,18 @@ import { Choices, Info, ReasonField, ResidentSelect } from './FormParts'
 
 const DEPOSIT_STATUS = { NOT_SATISFIED: 'Chưa đặt cọc', SATISFIED: 'Đã đặt cọc', NOT_REQUIRED: 'Không yêu cầu đặt cọc' }
 const REASON_COMMANDS = {
-  'submit-terms-for-approval': ['Gửi duyệt điều khoản…', 'Gửi Quản lý viện duyệt điều khoản khác chuẩn', postContractsByIdSubmitTermsForApproval, 'Đã gửi duyệt điều khoản'],
-  'return-to-draft': ['Trả về nháp…', 'Trả hợp đồng về nháp', postContractsByIdReturnToDraft, 'Đã trả hợp đồng về nháp'],
+  'submit-terms-for-approval': [
+    'Gửi duyệt điều khoản…',
+    'Gửi Quản lý viện duyệt điều khoản khác chuẩn',
+    postContractsByIdSubmitTermsForApproval,
+    'Đã gửi duyệt điều khoản',
+  ],
+  'return-to-draft': [
+    'Trả về nháp…',
+    'Trả hợp đồng về nháp',
+    postContractsByIdReturnToDraft,
+    'Đã trả hợp đồng về nháp',
+  ],
   cancel: ['Hủy hợp đồng…', 'Hủy hợp đồng', postContractsByIdCancel, 'Đã hủy hợp đồng'],
 }
 
@@ -93,12 +103,23 @@ function RecordSignedForm({ contract, onDone, onCancel }) {
       <FieldGroup>
         <Field data-invalid={(submitted && !!errors.date) || undefined}>
           <FieldLabel htmlFor="signed-date">Ngày ký</FieldLabel>
-          <Input id="signed-date" type="date" className="h-11" value={signedDate} onChange={(e) => setSignedDate(e.target.value)} />
+          <Input
+            id="signed-date"
+            type="date"
+            className="h-11"
+            value={signedDate}
+            onChange={(e) => setSignedDate(e.target.value)}
+          />
           {submitted && errors.date && <FieldError>{errors.date}</FieldError>}
         </Field>
         <Field data-invalid={(submitted && !!errors.representative) || undefined}>
           <FieldLabel htmlFor="signed-representative">Người đại diện ký</FieldLabel>
-          <select id="signed-representative" className={SELECT} value={representativeId} onChange={(e) => setRepresentativeId(e.target.value)}>
+          <select
+            id="signed-representative"
+            className={SELECT}
+            value={representativeId}
+            onChange={(e) => setRepresentativeId(e.target.value)}
+          >
             <option value="">Chọn người đại diện</option>
             {representatives.map((r) => (
               <option key={r.id} value={r.familyMember.id}>
@@ -110,7 +131,13 @@ function RecordSignedForm({ contract, onDone, onCancel }) {
         </Field>
         <Field data-invalid={(submitted && !!errors.file) || undefined}>
           <FieldLabel htmlFor="signed-scan">Bản scan hợp đồng</FieldLabel>
-          <Input id="signed-scan" type="file" accept="application/pdf,image/*" className="h-11" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <Input
+            id="signed-scan"
+            type="file"
+            accept="application/pdf,image/*"
+            className="h-11"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
           {submitted && errors.file && <FieldError>{errors.file}</FieldError>}
         </Field>
       </FieldGroup>
@@ -242,7 +269,9 @@ export function ContractDetail({ contract, residentName, canUpdate, onChanged, o
             {addenda.map((a) => (
               <li key={a.id} className="type-body-sm">
                 {`Hiệu lực ${formatDate(a.effectiveDate)}`}
-                <span className="block type-caption text-muted-foreground">{ADDENDUM_STATUS[a.status] ?? a.status}</span>
+                <span className="block type-caption text-muted-foreground">
+                  {ADDENDUM_STATUS[a.status] ?? a.status}
+                </span>
               </li>
             ))}
           </ul>
@@ -270,18 +299,36 @@ export function ContractDetail({ contract, residentName, canUpdate, onChanged, o
             </Button>
           )}
           {allowed.includes('send-for-signature') && (
-            <Button className="h-11" disabled={busy} onClick={() => run(postContractsByIdSendForSignature, null, 'Đã gửi ký')}>
+            <Button
+              className="h-11"
+              disabled={busy}
+              onClick={() => run(postContractsByIdSendForSignature, null, 'Đã gửi ký')}
+            >
               Gửi ký
             </Button>
           )}
         </div>
       )}
 
-      {mode === 'record-signed' && <RecordSignedForm contract={contract} onCancel={() => open(null)} onDone={(m) => { open(null); onChanged(m) }} />}
+      {mode === 'record-signed' && (
+        <RecordSignedForm
+          contract={contract}
+          onCancel={() => open(null)}
+          onDone={(m) => {
+            open(null)
+            onChanged(m)
+          }}
+        />
+      )}
       {mode && mode !== 'record-signed' && (
         <div className="flex flex-col gap-3 border-t pt-4">
           <h3 className="type-card-title">{REASON_COMMANDS[mode][1]}</h3>
-          <ReasonField id="contract-reason" value={reason} onChange={setReason} error={submitted && !reason.trim() ? 'Nhập lý do' : null} />
+          <ReasonField
+            id="contract-reason"
+            value={reason}
+            onChange={setReason}
+            error={submitted && !reason.trim() ? 'Nhập lý do' : null}
+          />
           <div className="flex justify-end gap-2">
             <Button variant="ghost" className="h-11" onClick={() => open(null)}>
               Đóng
@@ -317,7 +364,9 @@ export function ContractSheet({ contract, onClose, onDone }) {
   const [endDate, setEndDate] = useState(contract?.endDate ?? '')
   const [level, setLevel] = useState(contract?.careLevel ?? '')
   const [period, setPeriod] = useState(contract?.residencyFeeBillingPeriod ?? '')
-  const [picked, setPicked] = useState(() => new Map((contract?.services ?? []).map((s) => [s.serviceId, !!s.inPackage])))
+  const [picked, setPicked] = useState(
+    () => new Map((contract?.services ?? []).map((s) => [s.serviceId, !!s.inPackage])),
+  )
   const [noDeposit, setNoDeposit] = useState(!!contract?.noDepositRequired)
   const [deposit, setDeposit] = useState(contract?.depositAmount ?? '')
   const [schedule, setSchedule] = useState(contract?.arrivalSchedule ?? [])
@@ -390,26 +439,64 @@ export function ContractSheet({ contract, onClose, onDone }) {
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
         <SheetTitle>{editing ? 'Sửa hợp đồng nháp' : 'Lập hợp đồng nháp'}</SheetTitle>
-        <SheetDescription>Đúng một dịch vụ chăm sóc theo mức của hợp đồng; người cao tuổi phải có người đại diện.</SheetDescription>
+        <SheetDescription>
+          Đúng một dịch vụ chăm sóc theo mức của hợp đồng; người cao tuổi phải có người đại diện.
+        </SheetDescription>
         <FieldGroup className="mt-4">
           {editing ? (
             <Info label="Người cao tuổi">{`Mã ${contract.residentId}`}</Info>
           ) : (
-            <ResidentSelect id="contract-resident" value={residentId} onChange={setResidentId} error={shown('resident')} onFailure={(e) => setFailure(problemOf(e))} />
+            <ResidentSelect
+              id="contract-resident"
+              value={residentId}
+              onChange={setResidentId}
+              error={shown('resident')}
+              onFailure={(e) => setFailure(problemOf(e))}
+            />
           )}
-          <Choices label="Loại lưu trú" options={RESIDENCE_TYPES} value={type} onChange={setType} error={shown('type')} />
+          <Choices
+            label="Loại lưu trú"
+            options={RESIDENCE_TYPES}
+            value={type}
+            onChange={setType}
+            error={shown('type')}
+          />
           <Field data-invalid={!!shown('start') || undefined}>
             <FieldLabel htmlFor="contract-start">Ngày bắt đầu</FieldLabel>
-            <Input id="contract-start" type="date" className="h-11" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <Input
+              id="contract-start"
+              type="date"
+              className="h-11"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
             {shown('start') && <FieldError>{shown('start')}</FieldError>}
           </Field>
           <Field data-invalid={!!shown('end') || undefined}>
             <FieldLabel htmlFor="contract-end">Ngày kết thúc</FieldLabel>
-            <Input id="contract-end" type="date" className="h-11" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <Input
+              id="contract-end"
+              type="date"
+              className="h-11"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
             {shown('end') && <FieldError>{shown('end')}</FieldError>}
           </Field>
-          <Choices label="Mức chăm sóc" options={CARE_LEVELS} value={level} onChange={setLevel} error={shown('level')} />
-          <Choices label="Kỳ tính phí lưu trú" options={BILLING_PERIODS} value={period} onChange={setPeriod} error={shown('period')} />
+          <Choices
+            label="Mức chăm sóc"
+            options={CARE_LEVELS}
+            value={level}
+            onChange={setLevel}
+            error={shown('level')}
+          />
+          <Choices
+            label="Kỳ tính phí lưu trú"
+            options={BILLING_PERIODS}
+            value={period}
+            onChange={setPeriod}
+            error={shown('period')}
+          />
 
           <Field>
             <FieldLabel>Dịch vụ trong hợp đồng</FieldLabel>
@@ -448,7 +535,14 @@ export function ContractSheet({ contract, onClose, onDone }) {
           {!noDeposit && (
             <Field>
               <FieldLabel htmlFor="contract-deposit">Khoản đặt cọc (đồng)</FieldLabel>
-              <Input id="contract-deposit" type="number" min="0" className="h-11" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+              <Input
+                id="contract-deposit"
+                type="number"
+                min="0"
+                className="h-11"
+                value={deposit}
+                onChange={(e) => setDeposit(e.target.value)}
+              />
             </Field>
           )}
 
@@ -461,7 +555,9 @@ export function ContractSheet({ contract, onClose, onDone }) {
                     aria-label={`Thứ trong tuần dòng ${i + 1}`}
                     className={SELECT}
                     value={row.dayOfWeek ?? ''}
-                    onChange={(e) => setSchedule((s) => s.map((r, j) => (j === i ? { ...r, dayOfWeek: Number(e.target.value) } : r)))}
+                    onChange={(e) =>
+                      setSchedule((s) => s.map((r, j) => (j === i ? { ...r, dayOfWeek: Number(e.target.value) } : r)))
+                    }
                   >
                     <option value="">Chọn thứ</option>
                     {DAYS.map(([d, text]) => (
@@ -475,16 +571,24 @@ export function ContractSheet({ contract, onClose, onDone }) {
                     type="time"
                     className="h-11 w-32"
                     value={row.arrivalTime ?? ''}
-                    onChange={(e) => setSchedule((s) => s.map((r, j) => (j === i ? { ...r, arrivalTime: e.target.value } : r)))}
+                    onChange={(e) =>
+                      setSchedule((s) => s.map((r, j) => (j === i ? { ...r, arrivalTime: e.target.value } : r)))
+                    }
                   />
                   <Input
                     aria-label={`Giờ về dòng ${i + 1}`}
                     type="time"
                     className="h-11 w-32"
                     value={row.departureTime ?? ''}
-                    onChange={(e) => setSchedule((s) => s.map((r, j) => (j === i ? { ...r, departureTime: e.target.value } : r)))}
+                    onChange={(e) =>
+                      setSchedule((s) => s.map((r, j) => (j === i ? { ...r, departureTime: e.target.value } : r)))
+                    }
                   />
-                  <Button variant="ghost" className="h-11" onClick={() => setSchedule((s) => s.filter((_, j) => j !== i))}>
+                  <Button
+                    variant="ghost"
+                    className="h-11"
+                    onClick={() => setSchedule((s) => s.filter((_, j) => j !== i))}
+                  >
                     {`Bỏ dòng ${i + 1}`}
                   </Button>
                 </div>

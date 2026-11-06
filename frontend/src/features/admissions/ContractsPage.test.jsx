@@ -22,8 +22,24 @@ const DRAFT = {
   allowedCommands: ['update', 'send-for-signature', 'cancel'],
   hiddenFields: [],
 }
-const PENDING = { ...DRAFT, id: 32, residentId: 6, contractNumber: 'HD-032', status: 'PENDING_SIGNATURE', allowedCommands: ['return-to-draft', 'record-signed', 'cancel'] }
-const ACTIVE = { ...DRAFT, id: 33, residentId: 7, contractNumber: 'HD-033', status: 'ACTIVE', allowedCommands: [], overdueSince: '2026-10-30', hiddenFields: ['depositAmount'] }
+const PENDING = {
+  ...DRAFT,
+  id: 32,
+  residentId: 6,
+  contractNumber: 'HD-032',
+  status: 'PENDING_SIGNATURE',
+  allowedCommands: ['return-to-draft', 'record-signed', 'cancel'],
+}
+const ACTIVE = {
+  ...DRAFT,
+  id: 33,
+  residentId: 7,
+  contractNumber: 'HD-033',
+  status: 'ACTIVE',
+  allowedCommands: [],
+  overdueSince: '2026-10-30',
+  hiddenFields: ['depositAmount'],
+}
 
 function renderPage() {
   return render(
@@ -35,12 +51,33 @@ function renderPage() {
 
 beforeEach(() => {
   api = mockRoutes()
-  api.on('GET', '/me/permissions', json(200, ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'ADMISSION_CONTRACT_DEPOSIT', operation }))))
+  api.on(
+    'GET',
+    '/me/permissions',
+    json(
+      200,
+      ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'ADMISSION_CONTRACT_DEPOSIT', operation })),
+    ),
+  )
   api.on('GET', '/contracts', json(200, [DRAFT, PENDING, ACTIVE]))
-  for (const [id, name] of [[5, 'Nguyễn Thị Lan'], [6, 'Lê Văn Hải'], [7, 'Phạm Thị Mai']])
+  for (const [id, name] of [
+    [5, 'Nguyễn Thị Lan'],
+    [6, 'Lê Văn Hải'],
+    [7, 'Phạm Thị Mai'],
+  ])
     api.on('GET', `/residents/${id}`, json(200, { id, personalInfo: { fullName: name } }))
-  api.on('GET', '/residents/6/relationships', json(200, [{ id: 1, status: 'ACTIVE', relationship: 'CHILD', familyMember: { id: 41, fullName: 'Trần Văn Minh' } }]))
-  api.on('GET', '/contracts/31/deposit', json(200, { notRequired: false, requiredAmount: 10000000, status: 'NOT_SATISFIED' }))
+  api.on(
+    'GET',
+    '/residents/6/relationships',
+    json(200, [
+      { id: 1, status: 'ACTIVE', relationship: 'CHILD', familyMember: { id: 41, fullName: 'Trần Văn Minh' } },
+    ]),
+  )
+  api.on(
+    'GET',
+    '/contracts/31/deposit',
+    json(200, { notRequired: false, requiredAmount: 10000000, status: 'NOT_SATISFIED' }),
+  )
   api.on('GET', '/contracts/32/deposit', json(200, { notRequired: true, status: 'NOT_REQUIRED' }))
   api.on('GET', '/contracts/33/deposit', json(200, { notRequired: false, status: 'SATISFIED' }))
   for (const id of [31, 32, 33]) api.on('GET', `/contracts/${id}/addenda`, json(200, []))
@@ -86,7 +123,9 @@ describe('ContractsPage', () => {
     api.on(
       'POST',
       '/contracts/31/send-for-signature',
-      problem(409, 'CONDITION_NOT_MET', { unmetConditions: [{ code: 'CARE_SERVICE', description: 'Cần đúng một dịch vụ chăm sóc theo mức của hợp đồng' }] }),
+      problem(409, 'CONDITION_NOT_MET', {
+        unmetConditions: [{ code: 'CARE_SERVICE', description: 'Cần đúng một dịch vụ chăm sóc theo mức của hợp đồng' }],
+      }),
     )
     renderPage()
     fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan' }))
@@ -96,7 +135,11 @@ describe('ContractsPage', () => {
 
   it('FR_021_ghiNhanDaKy_canNgayKyNguoiDaiDienVaBanScan', async () => {
     api.on('POST', '/files', json(201, { fileId: 77 }))
-    api.on('POST', '/contracts/32/record-signed', json(200, { contract: { ...PENDING, status: 'ACTIVE' }, warnings: [] }))
+    api.on(
+      'POST',
+      '/contracts/32/record-signed',
+      json(200, { contract: { ...PENDING, status: 'ACTIVE' }, warnings: [] }),
+    )
     renderPage()
     fireEvent.click(await screen.findByRole('button', { name: 'Chờ ký 1' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Lê Văn Hải' }))

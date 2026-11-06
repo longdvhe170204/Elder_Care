@@ -9,8 +9,25 @@ import { ServicesPage } from './ServicesPage'
 
 let api
 
-const CARE = { id: 3, type: 'CARE', name: 'Chăm sóc thường xuyên', unit: 'tháng', billingPeriod: 'MONTH', careLevelCode: 'REGULAR', status: 'ACTIVE', version: 4 }
-const MEAL = { id: 4, type: 'MEAL', name: 'Bữa ăn', unit: 'bữa', billingPeriod: 'OCCURRENCE', status: 'ACTIVE', version: 1 }
+const CARE = {
+  id: 3,
+  type: 'CARE',
+  name: 'Chăm sóc thường xuyên',
+  unit: 'tháng',
+  billingPeriod: 'MONTH',
+  careLevelCode: 'REGULAR',
+  status: 'ACTIVE',
+  version: 4,
+}
+const MEAL = {
+  id: 4,
+  type: 'MEAL',
+  name: 'Bữa ăn',
+  unit: 'bữa',
+  billingPeriod: 'OCCURRENCE',
+  status: 'ACTIVE',
+  version: 1,
+}
 const VERSIONS = [
   { id: 1, unitPrice: 5000000, effectiveFrom: '2026-01-01', effectiveTo: '2026-06-30', referenced: true },
   { id: 2, unitPrice: 5500000, effectiveFrom: '2026-07-01', referenced: false },
@@ -26,10 +43,21 @@ function renderPage() {
 
 beforeEach(() => {
   api = mockRoutes()
-  api.on('GET', '/me/permissions', json(200, ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'SERVICE_PRICE', operation }))))
+  api.on(
+    'GET',
+    '/me/permissions',
+    json(
+      200,
+      ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'SERVICE_PRICE', operation })),
+    ),
+  )
   api.on('GET', '/services', json(200, [CARE, MEAL]))
   api.on('GET', '/services/3/price-versions', json(200, VERSIONS))
-  api.on('GET', '/services/3/mismatched-price-contracts', json(200, [{ contractId: 9, contractNumber: 'HD-009', recordedUnitPrice: 5000000, newUnitPrice: 5500000 }]))
+  api.on(
+    'GET',
+    '/services/3/mismatched-price-contracts',
+    json(200, [{ contractId: 9, contractNumber: 'HD-009', recordedUnitPrice: 5000000, newUnitPrice: 5500000 }]),
+  )
 })
 
 describe('ServicesPage', () => {
@@ -72,7 +100,11 @@ describe('ServicesPage', () => {
   })
 
   it('FR_035_409ChongPhienBan_hienLoiTrongKhung', async () => {
-    api.on('POST', '/services/3/price-versions', problem(409, 'PRICE_VERSION_OVERLAP', { detail: 'Chồng lên phiên bản đã có' }))
+    api.on(
+      'POST',
+      '/services/3/price-versions',
+      problem(409, 'PRICE_VERSION_OVERLAP', { detail: 'Chồng lên phiên bản đã có' }),
+    )
     renderPage()
     fireEvent.click(await screen.findByRole('button', { name: 'Chăm sóc thường xuyên' }))
     await screen.findByText(/đang mở/)

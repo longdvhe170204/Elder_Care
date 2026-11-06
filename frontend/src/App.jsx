@@ -32,6 +32,14 @@ import { PickupPage } from '@/features/relatives/pickups/PickupPage'
 import { VisitsPage } from '@/features/relatives/visits/VisitsPage'
 import { FeedbackPage } from '@/features/relatives/feedback/FeedbackPage'
 import { FamilyStaysPage } from '@/features/relatives/stays/FamilyStaysPage'
+import { ApplicationsPage } from '@/features/admissions/ApplicationsPage'
+import { WaitingListPage } from '@/features/admissions/WaitingListPage'
+import { ContractsPage } from '@/features/admissions/ContractsPage'
+import { ChangeRequestsPage } from '@/features/admissions/ChangeRequestsPage'
+import { AbsencesPage } from '@/features/admissions/AbsencesPage'
+import { EndingsPage } from '@/features/admissions/EndingsPage'
+import { DeathsPage } from '@/features/admissions/DeathsPage'
+import { ServicesPage } from '@/features/admissions/ServicesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
@@ -63,6 +71,14 @@ const PAGES = {
   visits: VisitsPage,
   feedback: FeedbackPage,
   'family-stays': FamilyStaysPage,
+  'admission-applications': ApplicationsPage,
+  'waiting-list': WaitingListPage,
+  contracts: ContractsPage,
+  'residency-changes': ChangeRequestsPage,
+  absences: AbsencesPage,
+  'residency-endings': EndingsPage,
+  deaths: DeathsPage,
+  services: ServicesPage,
   'audit-log': AuditLogTable,
   admin: AdminPage,
   'approval-requests': ApprovalInbox,

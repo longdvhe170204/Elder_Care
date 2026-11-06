@@ -19,13 +19,6 @@ import { Info, ReasonField } from './FormParts'
 // Quản lý viện (Q-395, BR-M02-07); đính chính lượt đã đóng theo 000 FR-026 (BR-M02-18). Cho tạm vắng và Ghi nhận trở về là
 // lệnh của 001 ở tab Trạng thái của hồ sơ người cao tuổi.
 
-export function absenceLabel(absence) {
-  const type = ABSENCE_TYPES[absence.absenceType] ?? absence.absenceType
-  return absence.status === 'OPEN'
-    ? `${type}, dự kiến trở lại ${absence.expectedReturnAt ? formatDateTime(absence.expectedReturnAt) : 'chưa có'}`
-    : `${type}, Đã đóng`
-}
-
 export function AbsenceDetail({ absence, role, canUpdate, onChanged, Title, Description }) {
   const [detail, setDetail] = useState(absence)
   const [mode, setMode] = useState(null)
@@ -77,13 +70,24 @@ export function AbsenceDetail({ absence, role, canUpdate, onChanged, Title, Desc
     if (!reason.trim()) return
     if (mode === 'extend') {
       if (!expected) return
-      run(postAbsencesByIdExtendExpectedReturn, { expectedReturnAt: vietnamIso(expected), reason: reason.trim() }, 'Đã gia hạn dự kiến trở lại')
+      run(
+        postAbsencesByIdExtendExpectedReturn,
+        { expectedReturnAt: vietnamIso(expected), reason: reason.trim() },
+        'Đã gia hạn dự kiến trở lại',
+      )
     } else if (mode === 'release') {
       run(postAbsencesByIdReleaseBed, { reason: reason.trim() }, 'Đã giải phóng giường')
     } else {
-      const corrected = { ...(departed && { departedAt: vietnamIso(departed) }), ...(returned && { returnedAt: vietnamIso(returned) }) }
+      const corrected = {
+        ...(departed && { departedAt: vietnamIso(departed) }),
+        ...(returned && { returnedAt: vietnamIso(returned) }),
+      }
       if (Object.keys(corrected).length === 0) return
-      run(postAbsencesByIdCorrect, { type: 'EDIT_CONTENT', correctedContent: corrected, reason: reason.trim() }, 'Đã đính chính lượt vắng')
+      run(
+        postAbsencesByIdCorrect,
+        { type: 'EDIT_CONTENT', correctedContent: corrected, reason: reason.trim() },
+        'Đã đính chính lượt vắng',
+      )
     }
   }
 
@@ -144,7 +148,13 @@ export function AbsenceDetail({ absence, role, canUpdate, onChanged, Title, Desc
             {mode === 'extend' && (
               <Field data-invalid={(submitted && !expected) || undefined}>
                 <FieldLabel htmlFor="absence-expected">Dự kiến trở lại</FieldLabel>
-                <Input id="absence-expected" type="datetime-local" className="h-11" value={expected} onChange={(e) => setExpected(e.target.value)} />
+                <Input
+                  id="absence-expected"
+                  type="datetime-local"
+                  className="h-11"
+                  value={expected}
+                  onChange={(e) => setExpected(e.target.value)}
+                />
                 {submitted && !expected && <FieldError>Nhập thời điểm dự kiến trở lại</FieldError>}
               </Field>
             )}
@@ -157,11 +167,23 @@ export function AbsenceDetail({ absence, role, canUpdate, onChanged, Title, Desc
               <>
                 <Field>
                   <FieldLabel htmlFor="absence-departed">Thời điểm rời đúng</FieldLabel>
-                  <Input id="absence-departed" type="datetime-local" className="h-11" value={departed} onChange={(e) => setDeparted(e.target.value)} />
+                  <Input
+                    id="absence-departed"
+                    type="datetime-local"
+                    className="h-11"
+                    value={departed}
+                    onChange={(e) => setDeparted(e.target.value)}
+                  />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="absence-returned">Thời điểm về đúng</FieldLabel>
-                  <Input id="absence-returned" type="datetime-local" className="h-11" value={returned} onChange={(e) => setReturned(e.target.value)} />
+                  <Input
+                    id="absence-returned"
+                    type="datetime-local"
+                    className="h-11"
+                    value={returned}
+                    onChange={(e) => setReturned(e.target.value)}
+                  />
                 </Field>
               </>
             )}
