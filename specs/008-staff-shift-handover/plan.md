@@ -591,3 +591,7 @@ Không đánh xT030: ApiClient chung bỏ ETag trong khi Handover chỉ có ETag
 ## Đồng bộ develop2fd4cd8c ngày2026-11-05
 
 Người dùng cho phép đồng bộ; checkpointca179af1 đã push. Ghép14commit bằng --no-commit --no-ff, xử lý chỉ hai conflict tài liệu: giữ toàn nhật ký hai phía, trạng thái adapter/startedAt đã làm và chủ011 mới làD. Không có quy tắc/API/mã production008 bị đổi. Phát hiện test biên checklist củaE phụ thuộc thời gian truy vấn: đồng hồ giả lập vẫn chạy, trước biên1giây không đủ cho lượt truy vấn6,154giây. Cố định BusinessTime.now bằng spy chỉ trong test đó; giữ assertion/biên và tham số30phút. Không đổi common hoặc production. Sau kiểm lại37HandoverIT, bộ ghép cuối53unit/arch+126IT xanh,web485/analyzerFlutter227/lint/build qua. Xem develop-sync-2026-11-05.md. Không tự tạo merge commit/push;57/62task và các phụ thuộc vẫn giữ mở.
+
+### Checkpoint chung theo yêu cầu người dùng — 2026-11-06
+
+Tạm dừng triển khai để gom công việc hiện có lên develop; chi tiết ở publish-checkpoint-2026-11-06.md. Ghép menu mobile với bản A/B mới, giữ các mục theo quyền; khôi phục bản sửa fixture và test đổi kết nối từ hai worktree cũ vào package/bảng R-15 hiện tại. Các gate nguồn thật/nghiệm thu của 008 giữ mở.
