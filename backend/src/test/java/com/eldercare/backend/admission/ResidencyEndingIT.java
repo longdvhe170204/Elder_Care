@@ -187,6 +187,45 @@ class ResidencyEndingIT extends EndingTestBase {
     }
 
     @Test
+    void FR_063_handoverToFamily_withPickupRecord_usesTheRecordOnce_andRejectsInvalidOnes() throws Exception {
+        long residentId = inResidence();
+        long id = createEnding(residentId, d0.plusDays(5));
+        pickups.reset();
+
+        ObjectNode body = handoverBody();
+        body.put("pickupRecordId", 7_001);
+        handoverRaw(office, id, body).andExpect(status().isUnprocessableEntity());
+        assertThat(pickups.isUsed(7_001)).isFalse();
+
+        pickups.valid(
+                residentId,
+                9_100_001,
+                new com.eldercare.backend.admission.api.dto.PickupRecordView(7_002, residentId, "RESIDENCY_ENDING"));
+        handoverRaw(office, id, body).andExpect(status().isUnprocessableEntity());
+
+        pickups.valid(
+                residentId,
+                9_100_001,
+                new com.eldercare.backend.admission.api.dto.PickupRecordView(7_001, residentId, "RESIDENCY_ENDING"));
+        ObjectNode facility = handoverBody();
+        facility.put("recipientType", "RECEIVING_FACILITY");
+        facility.remove("familyMemberId");
+        facility.put("facilityName", "Bệnh viện Lão khoa");
+        facility.put("pickupRecordId", 7_001);
+        handoverRaw(office, id, facility).andExpect(status().isUnprocessableEntity());
+        assertThat(pickups.isUsed(7_001)).isFalse();
+
+        handoverRaw(office, id, body).andExpect(status().isCreated());
+        assertThat(pickups.isUsed(7_001)).isTrue();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M02.RESIDENT_HANDOVER' AND entity_id = ?",
+                        Integer.class,
+                        id))
+                .isEqualTo(1);
+        handoverRaw(office, id, body).andExpect(status().isConflict());
+    }
+
+    @Test
     void FR_063_handover_isRecordedAppendOnly_andShownOnTheEnding() throws Exception {
         long residentId = inResidence();
         long id = createEnding(residentId, d0.plusDays(5));

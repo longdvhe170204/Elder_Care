@@ -1,5 +1,6 @@
 package com.eldercare.backend.admission.internal.absence.persistence;
 
+import com.eldercare.backend.admission.api.dto.DayCareAbsenceNoticeView;
 import com.eldercare.backend.admission.internal.absence.domain.ClosureDay;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -72,6 +73,20 @@ public class AdmissionDayCareStore {
                 Date.valueOf(date),
                 sessionId);
         return count != null && count > 0;
+    }
+
+    /** Báo vắng của người ngày {@code date}, theo thời điểm ghi (cũ nhất trước). */
+    public List<DayCareAbsenceNoticeView> noticesOn(long residentId, LocalDate date) {
+        return jdbc.query(
+                "SELECT id, session_id, family_notified_at, within_notice_period FROM absence"
+                        + " WHERE kind = 'DAY_CARE_NOTICE' AND resident_id = ? AND `date` = ? ORDER BY created_at, id",
+                (rs, row) -> new DayCareAbsenceNoticeView(
+                        rs.getLong("id"),
+                        rs.getObject("session_id", Long.class),
+                        rs.getObject("family_notified_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                        rs.getBoolean("within_notice_period")),
+                residentId,
+                Date.valueOf(date));
     }
 
     public long insertClosure(LocalDate date, String reason, boolean late, long declaredBy, Instant declaredAt) {

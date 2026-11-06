@@ -16,6 +16,7 @@ import com.eldercare.backend.admission.api.events.ResidencyEndingCancelled;
 import com.eldercare.backend.admission.api.events.ResidencyEndingCreated;
 import com.eldercare.backend.admission.api.events.ResidencyEndingDateChanged;
 import com.eldercare.backend.admission.api.spi.FinalPeriodPort;
+import com.eldercare.backend.admission.api.spi.PickupRecordPort;
 import com.eldercare.backend.admission.internal.ending.domain.EndingConditionCode;
 import com.eldercare.backend.admission.internal.ending.domain.Handover;
 import com.eldercare.backend.admission.internal.ending.domain.NewEnding;
@@ -79,6 +80,7 @@ public class ResidencyEndingService {
     private final ObjectProvider<FinalPeriodPort> finalPeriods;
     private final ObjectProvider<ApprovalRequestApi> approvals;
     private final EndingHandovers handovers;
+    private final ObjectProvider<PickupRecordPort> pickups;
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
@@ -91,6 +93,7 @@ public class ResidencyEndingService {
             ObjectProvider<FinalPeriodPort> finalPeriods,
             ObjectProvider<ApprovalRequestApi> approvals,
             EndingHandovers handovers,
+            ObjectProvider<PickupRecordPort> pickups,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
             BusinessTime time,
@@ -101,6 +104,7 @@ public class ResidencyEndingService {
         this.finalPeriods = finalPeriods;
         this.approvals = approvals;
         this.handovers = handovers;
+        this.pickups = pickups;
         this.auditLog = auditLog;
         this.events = events;
         this.time = time;
@@ -122,7 +126,8 @@ public class ResidencyEndingService {
             Long familyMemberId,
             String facilityName,
             Instant handoverAt,
-            long handoverStaffId) {}
+            long handoverStaffId,
+            Long pickupRecordId) {}
 
     /** Hồ sơ kèm lần bàn giao hiện hành. */
     public record Detail(ResidencyEnding ending, Optional<EndingHandovers.Effective> handover) {}
@@ -284,18 +289,27 @@ public class ResidencyEndingService {
         requireOfficeOrDoctor(user);
         validate(input);
         ResidencyEnding ending = lockedPreparing(id);
-        long handoverId = store.insertHandover(new Handover(
-                0,
-                id,
-                input.recipientType(),
-                input.recipientType() == RecipientType.FAMILY_MEMBER ? input.familyMemberId() : null,
-                input.recipientType() == RecipientType.RECEIVING_FACILITY
-                        ? input.facilityName().strip()
-                        : null,
-                input.handoverAt(),
-                input.handoverStaffId(),
-                user.accountId(),
-                time.now()));
+        Long pickupRecordId = input.pickupRecordId();
+        if (pickupRecordId != null) {
+            requireValidPickupRecord(ending.residentId(), input, pickupRecordId);
+        }
+        long handoverId = store.insertHandover(
+                new Handover(
+                        0,
+                        id,
+                        input.recipientType(),
+                        input.recipientType() == RecipientType.FAMILY_MEMBER ? input.familyMemberId() : null,
+                        input.recipientType() == RecipientType.RECEIVING_FACILITY
+                                ? input.facilityName().strip()
+                                : null,
+                        input.handoverAt(),
+                        input.handoverStaffId(),
+                        user.accountId(),
+                        time.now()),
+                pickupRecordId);
+        if (pickupRecordId != null) {
+            pickups.getObject().markUsed(pickupRecordId, "RESIDENCY_ENDING_HANDOVER", handoverId);
+        }
         auditLog.write(AuditLogEntry.builder()
                 .action(HANDOVER_RECORDED)
                 .entity(ENTITY_TYPE, id)
@@ -363,6 +377,21 @@ public class ResidencyEndingService {
                 HttpStatus.CONFLICT,
                 "RESIDENCY_ENDING_NOT_PREPARING",
                 "Hồ sơ kết thúc lưu trú không còn Đang chuẩn bị (FR-067)");
+    }
+
+    /** Bàn giao cho người thân dùng bản ghi đón (012; FR-064 (e)): bản ghi hợp lệ của đúng người đón, dùng một lần. */
+    private void requireValidPickupRecord(long residentId, HandoverInput input, long pickupRecordId) {
+        if (input.recipientType() != RecipientType.FAMILY_MEMBER || input.familyMemberId() == null) {
+            throw new InvalidValueException("pickupRecordId chỉ dùng khi bàn giao cho người thân");
+        }
+        PickupRecordPort port = pickups.getIfAvailable();
+        boolean valid = port != null
+                && port.validPickupRecord(residentId, input.familyMemberId(), input.handoverAt())
+                        .filter(r -> r.id() == pickupRecordId)
+                        .isPresent();
+        if (!valid) {
+            throw new InvalidValueException("Bản ghi đón không hợp lệ cho người nhận bàn giao (feature 012)");
+        }
     }
 
     private static void validate(HandoverInput input) {
