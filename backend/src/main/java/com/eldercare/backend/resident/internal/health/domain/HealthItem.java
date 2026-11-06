@@ -57,6 +57,12 @@ public class HealthItem {
 
     private boolean pendingNutritionCheck;
 
+    private boolean unverified;
+
+    private Long verifiedBy;
+
+    private Instant verifiedAt;
+
     @Version
     private int version;
 
@@ -83,6 +89,19 @@ public class HealthItem {
         boolean checkable = type == HealthItemType.ALLERGY && allergenId != null;
         this.pendingMedicationCheck = checkable;
         this.pendingNutritionCheck = checkable;
+    }
+
+    /** Mục tự khai của gia đình do Hành chính ghi: có hiệu lực ngay nhưng chưa được kiểm chứng (Q-400). */
+    public HealthItem markUnverified() {
+        this.unverified = true;
+        return this;
+    }
+
+    /** Bác sĩ hoặc Điều dưỡng kiểm chứng; một chiều (trigger chặn đặt lại dấu chưa kiểm chứng). */
+    public void verify(long by, Instant now) {
+        this.unverified = false;
+        this.verifiedBy = by;
+        this.verifiedAt = now;
     }
 
     public void exclude(long by, Instant now, String reason) {
@@ -164,6 +183,18 @@ public class HealthItem {
 
     public String getExclusionReason() {
         return exclusionReason;
+    }
+
+    public boolean isUnverified() {
+        return unverified;
+    }
+
+    public Long getVerifiedBy() {
+        return verifiedBy;
+    }
+
+    public Instant getVerifiedAt() {
+        return verifiedAt;
     }
 
     public int getVersion() {

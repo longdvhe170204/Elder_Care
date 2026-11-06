@@ -49,6 +49,7 @@ class _ResidentHealthScreenState extends State<ResidentHealthScreen> {
 
   bool get _canRecord => widget.allowedCommands.contains('RECORD_HEALTH_ITEM');
   bool get _canExclude => widget.allowedCommands.contains('EXCLUDE_HEALTH_ITEM');
+  bool get _canVerify => widget.allowedCommands.contains('VERIFY_HEALTH_ITEM');
 
   @override
   void initState() {
@@ -96,6 +97,21 @@ class _ResidentHealthScreenState extends State<ResidentHealthScreen> {
     if (warnings == null || !mounted) return;
     setState(() => _warnings = warnings);
     await _load();
+  }
+
+  /// Bác sĩ, Điều dưỡng kiểm chứng mục tự khai của gia đình (Q-400, BR-M01-17); một chiều, không cần thân yêu cầu.
+  Future<void> _verify(Map<String, dynamic> item) async {
+    try {
+      await widget.api.post(
+        '/health-items/${item['id']}/verify',
+        {},
+        headers: {'Idempotency-Key': newIdempotencyKey()},
+      );
+    } on Exception catch (e) {
+      if (mounted) setState(() => _loadError = e);
+      return;
+    }
+    if (mounted) await _load();
   }
 
   Future<void> _exclude(Map<String, dynamic> item) async {
@@ -228,7 +244,13 @@ class _ResidentHealthScreenState extends State<ResidentHealthScreen> {
                       ),
                     ),
                     for (final item in items.where((i) => i['type'] == type)) ...[
-                      _ItemRow(item: item, canExclude: _canExclude, onExclude: () => _exclude(item)),
+                      _ItemRow(
+                        item: item,
+                        canExclude: _canExclude,
+                        canVerify: _canVerify,
+                        onExclude: () => _exclude(item),
+                        onVerify: () => _verify(item),
+                      ),
                       const Divider(height: 1),
                     ],
                   ],
@@ -240,11 +262,19 @@ class _ResidentHealthScreenState extends State<ResidentHealthScreen> {
 
 /// Dòng mục sức khỏe: tên (kèm mức độ với dị ứng), nhãn, nguồn và người ghi; mục đã loại trừ ghi người, ngày, lý do.
 class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.item, required this.canExclude, required this.onExclude});
+  const _ItemRow({
+    required this.item,
+    required this.canExclude,
+    required this.canVerify,
+    required this.onExclude,
+    required this.onVerify,
+  });
 
   final Map<String, dynamic> item;
   final bool canExclude;
+  final bool canVerify;
   final VoidCallback onExclude;
+  final VoidCallback onVerify;
 
   @override
   Widget build(BuildContext context) {
@@ -270,6 +300,8 @@ class _ItemRow extends StatelessWidget {
                   if (item['type'] == 'ALLERGY' && item['severity'] != null)
                     Text('Mức độ: ${item['severity']}', style: secondary),
                   if (excluded) const StatusPill(label: 'Đã loại trừ', tone: StatusTone.neutral),
+                  if (item['unverified'] == true && !excluded)
+                    const StatusPill(label: 'Tự khai, chưa được Bác sĩ kiểm chứng', tone: StatusTone.attention),
                   if (item['notAutoChecked'] == true)
                     const StatusPill(label: 'Không kiểm tra tự động', tone: StatusTone.attention),
                   if (item['pendingCheck'] == true && !excluded)
@@ -284,6 +316,11 @@ class _ItemRow extends StatelessWidget {
                 Text(
                   'Loại trừ bởi ${exclusion['by']}, ${_dateOf(exclusion['at'] as String)}. Lý do: ${exclusion['reason']}',
                   style: secondary,
+                ),
+              if (!excluded && item['unverified'] == true && canVerify)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: OutlinedButton(onPressed: onVerify, child: const Text('Kiểm chứng')),
                 ),
               if (!excluded && canExclude)
                 Padding(

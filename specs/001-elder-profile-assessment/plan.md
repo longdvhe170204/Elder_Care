@@ -591,6 +591,14 @@ Không còn vấn đề mở ở phía B. #4, #5, #8 đã xong phần B, còn ph
 - **Hợp đồng dùng**: `GET, POST /residents/{id}/health-items`, `POST /health-items/{id}/exclude`, `GET /catalogs/{allergens, allergy-severities, information-sources}?status=ACTIVE`, `GET /residents/{id}`, `GET …/status-history`, `GET …/conditions/{command}`, `POST …/{grant-temporary-absence, record-return, transfer-out, record-death}`; mọi lệnh ghi gửi `Idempotency-Key` (hàm `newIdempotencyKey` của A). Chỉ trực tuyến, không vào hàng đợi ngoại tuyến (CLAUDE.md giai đoạn mobile, research R-13).
 - **Giới hạn**: app chỉ có bốn lệnh trạng thái của task; Hoàn tất tiếp nhận, Hủy tiếp nhận, Kết thúc lưu trú, hồ sơ sức khỏe ban đầu, đánh giá (T042), đồng ý, nguyện vọng làm trên web. Cho tạm vắng gửi `details` rỗng như web. Chưa đính kèm giấy tờ (T082) vì `ApiClient` chưa tải tệp lên và chưa có gói chụp ảnh; chờ A.
 
+## Ghi chú triển khai *(2026-11-06, Q-400: Hành chính lập tự khai sức khỏe, T101 → T107)*
+
+- Nghiệp vụ do chủ dự án chọn hướng A (2026-11-06), ghi ở nghiep-vu.md 5.2, 5.6, BR-M01-17, Q-400, Phụ lục 27 (⁵⁰), BF-01 bước 3. Không đổi trường cũ của hợp đồng; thêm `unverified`, `verifiedBy`, `verifiedAt` và lệnh `verify`.
+- Cách kiểm "chỉ khi Đang tiếp nhận": chú thích ⁵⁰ do `SelfReportFootnoteCondition` (resident) kiểm qua `ProfileOpenGuard.isAdmitting`, nên 002 từ chối ở lớp `ROLE` khi người cao tuổi đã Đang lưu trú; không thêm cột hay lệnh mới. Lý do: ít rộng nhất, kiểm ở mỗi yêu cầu, không phải cài lại khi trạng thái đổi.
+- Ma trận quyền chỉ có ô T (xem, tạo, sửa) nên Hành chính có thêm UPDATE; phần hẹp hơn (không loại trừ, không xác nhận, không kiểm chứng, chỉ xem phần mình ghi) kiểm ở dịch vụ bằng `SelfReportedHealth.isOfficeOnly` (có vai trò Hành chính, không đồng thời Bác sĩ hoặc Điều dưỡng). Quy tắc xem trường của Hành chính với nhóm sức khỏe giữ NONE (19.3).
+- Mục tự khai Hiệu lực ngay, không thêm trạng thái chờ duyệt: 006, 011 đọc `HealthItemApi.active` như trước, `HealthItemView` không đổi. Nhãn ở nơi 006, 011, 012 hiển thị mục dị ứng là việc tùy chọn của chủ module đó (team-plan mục 8).
+- Cảnh báo ở Hoàn tất tiếp nhận (T104) là `Warning`, không là `Condition`; nhắc định kỳ (T105) chưa làm vì cần 009 xếp người nhận.
+
 ## Ghi chú triển khai *(2026-11-05, T042 app bị chặn)*
 
 - App chưa lập được nháp đánh giá: `PUT /assessments/{id}` cần `If-Match` lấy từ header `ETag` của `GET /assessments/{id}` (`VersionEtag.of(version)`), `ApiClient` hiện không trả header phản hồi và thân `Assessment` không có `version`. Chờ A cho `ApiClient` trả ETag; xong thì làm `mobile/lib/staff/residents/` (tên logic `nhan-vien/danh-gia/`): thẻ mức hiện hành, tạo nháp (`INITIAL` hoặc `REASSESSMENT` theo trạng thái, FR-034, FR-035), Lưu nháp, Hủy nháp có lý do, lịch sử, khối tham khảo, không có ô điểm hay mức đề xuất; xác nhận và đính chính làm trên web (chỉ Bác sĩ).

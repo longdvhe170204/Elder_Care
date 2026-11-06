@@ -1,6 +1,7 @@
 package com.eldercare.backend.resident.internal.status.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Role;
@@ -41,6 +42,12 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public String recordType() {
         return ResidentStatusService.HISTORY_RECORD_TYPE;
+    }
+
+    /** Lịch sử trạng thái chỉ thêm, không hủy dòng: chỉ đính chính lý do (FR-049a, research 001-2 A duyệt 2026-11-05). */
+    @Override
+    public boolean supports(CorrectionType type) {
+        return type == CorrectionType.AMEND_CONTENT;
     }
 
     @Override

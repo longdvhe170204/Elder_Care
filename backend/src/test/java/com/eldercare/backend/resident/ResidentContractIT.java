@@ -42,6 +42,7 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "GET /residents/{id}/health-items",
             "POST /residents/{id}/health-items",
             "POST /health-items/{id}/exclude",
+            "POST /health-items/{id}/verify",
             "GET /residents/{id}/assessments",
             "POST /residents/{id}/assessments",
             "GET /assessments/{id}",

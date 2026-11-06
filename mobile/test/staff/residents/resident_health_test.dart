@@ -20,6 +20,7 @@ Map<String, dynamic> item({
   String status = 'ACTIVE',
   bool notAutoChecked = false,
   bool pendingCheck = false,
+  bool unverified = false,
   Map<String, dynamic>? exclusion,
 }) => {
   'id': id,
@@ -34,6 +35,7 @@ Map<String, dynamic> item({
   'at': '2026-10-20T02:00:00Z',
   'status': status,
   'exclusion': exclusion,
+  'unverified': unverified,
 };
 
 const both = ['RECORD_HEALTH_ITEM', 'EXCLUDE_HEALTH_ITEM'];
@@ -259,6 +261,25 @@ void main() {
 
     expect(find.text('Đã ghi nhận, cần chú ý'), findsOneWidget);
     expect(find.text('Dị ứng nhập tay không được kiểm tra tự động'), findsOneWidget);
+  });
+
+  testWidgets('FR_018b_unverifiedItem_showsSelfReportedTag_andVerifyButtonForDoctorOrNurse', (tester) async {
+    backend.on('GET', '/residents/7/health-items', 200, [item(unverified: true)]);
+    backend.on('POST', '/health-items/1/verify', 200, item());
+    await pumpScreen(tester, backend, commands: const [...both, 'VERIFY_HEALTH_ITEM']);
+
+    expect(find.text('Tự khai, chưa được Bác sĩ kiểm chứng'), findsOneWidget);
+    await tapButton(tester, 'Kiểm chứng');
+
+    expect(backend.requests.any((r) => r.method == 'POST' && r.url.path == '/api/v1/health-items/1/verify'), isTrue);
+  });
+
+  testWidgets('FR_018b_unverifiedItem_withoutVerifyCommand_hasNoVerifyButton', (tester) async {
+    backend.on('GET', '/residents/7/health-items', 200, [item(unverified: true)]);
+    await pumpScreen(tester, backend, commands: const ['RECORD_HEALTH_ITEM']);
+
+    expect(find.text('Tự khai, chưa được Bác sĩ kiểm chứng'), findsOneWidget);
+    expect(button('Kiểm chứng'), findsNothing);
   });
 
   testWidgets('FR_019_exclude_requiresReasonThenPostsAndReloads', (tester) async {
