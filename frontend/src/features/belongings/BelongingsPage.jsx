@@ -61,7 +61,7 @@ function ResidentPicker({ onPick, selectedId }) {
         <Input
           aria-label="Tìm người cao tuổi"
           placeholder="Họ tên hoặc mã hồ sơ"
-          className="h-11 w-72"
+          className="h-11 w-full sm:w-72"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -190,8 +190,8 @@ function ResidentBelongings({ resident, catalogs, role }) {
         />
       )}
     >
-      <Card>
-        <CardContent className="flex flex-col gap-4">
+      <Card className="min-w-0">
+        <CardContent className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="type-title">Đồ gửi của {name}</h2>
             <div className="flex flex-wrap gap-2">
@@ -303,7 +303,7 @@ export function BelongingsPage({ role }) {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Đồ gửi" subtitle="Tiếp nhận, bàn giao và trả đồ gia đình gửi viện giữ hộ.">
-        <ToggleGroup variant="filter" value={[tab]} onValueChange={(next) => next[0] && setTab(next[0])}>
+        <ToggleGroup variant="filter" className="flex-wrap" value={[tab]} onValueChange={(next) => next[0] && setTab(next[0])}>
           {TABS.filter((t) => !t.roles || t.roles.includes(role)).map((t) => (
             <ToggleGroupItem key={t.value} value={t.value}>
               {t.label}
