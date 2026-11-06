@@ -125,7 +125,8 @@ abstract class StayTestBase extends FamilyCommandTestBase {
 
     @BeforeEach
     void stayFamily() {
-        day = LocalDate.of(2034, 1, 1).plusDays(TestUsers.nextId() % 20_000);
+        // Trước 2038-01-19: EVENT_PUBLICATION.PUBLICATION_DATE là TIMESTAMP, đồng hồ giả lập đặt theo ngày này
+        day = LocalDate.of(2028, 1, 1).plusDays(TestUsers.nextId() % 3000);
         Instant start = at(day.minusDays(1), 8, 0);
         clock.setTo(start);
         a = resident(ResidentStatus.IN_RESIDENCE);

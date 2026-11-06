@@ -75,7 +75,8 @@ abstract class VisitTestBase extends FamilyCommandTestBase {
 
     @BeforeEach
     void visitFamily() {
-        day = LocalDate.of(2031, 1, 1).plusDays(TestUsers.nextId() % 3000);
+        // Trước 2038-01-19: EVENT_PUBLICATION.PUBLICATION_DATE là TIMESTAMP, đồng hồ giả lập đặt theo ngày này
+        day = LocalDate.of(2031, 1, 1).plusDays(TestUsers.nextId() % 2000);
         jdbc.update(
                 "UPDATE simple_record SET status = 'CANCELLED' WHERE kind = 'M10.VISIT' AND effective_from = ?"
                         + " AND status IN ('APPROVED', 'CHECKED_IN')",
