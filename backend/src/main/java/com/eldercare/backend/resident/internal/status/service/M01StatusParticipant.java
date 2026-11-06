@@ -21,6 +21,7 @@ import com.eldercare.backend.resident.internal.health.domain.HealthItemStatus;
 import com.eldercare.backend.resident.internal.health.domain.InitialHealthRecord;
 import com.eldercare.backend.resident.internal.health.persistence.HealthItemRepository;
 import com.eldercare.backend.resident.internal.health.persistence.InitialHealthRecordStore;
+import com.eldercare.backend.resident.internal.health.service.UnconfirmedHealthRecordReminderService;
 import com.eldercare.backend.resident.internal.wish.service.EndOfLifeWishService;
 import com.eldercare.backend.resident.internal.wish.service.TreatmentWishService;
 import com.eldercare.backend.resident.internal.wish.service.WishReminderService;
@@ -62,6 +63,7 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     private final WishReminderService wishReminders;
     private final InitialHealthRecordStore healthRecords;
     private final HealthItemRepository healthItems;
+    private final UnconfirmedHealthRecordReminderService healthReminders;
 
     M01StatusParticipant(
             AssessmentRepository assessments,
@@ -74,7 +76,9 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             TreatmentWishService treatmentWishes,
             WishReminderService wishReminders,
             InitialHealthRecordStore healthRecords,
-            HealthItemRepository healthItems) {
+            HealthItemRepository healthItems,
+            UnconfirmedHealthRecordReminderService healthReminders) {
+        this.healthReminders = healthReminders;
         this.healthRecords = healthRecords;
         this.healthItems = healthItems;
         this.assessments = assessments;
@@ -167,6 +171,9 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             }
             if (!endOfLifeWishes.hasActive(result.residentId())) {
                 wishReminders.startReminding(result.residentId());
+            }
+            if (healthReminders.needsReminding(result.residentId())) {
+                healthReminders.startReminding(result.residentId());
             }
         }
     }
