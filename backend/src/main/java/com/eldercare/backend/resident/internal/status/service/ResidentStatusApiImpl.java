@@ -23,11 +23,11 @@ import tools.jackson.databind.JsonNode;
 class ResidentStatusApiImpl implements ResidentStatusApi {
 
     private final ResidentStatusService status;
-    private final com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository histories;
+    private final com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore histories;
 
     ResidentStatusApiImpl(
             ResidentStatusService status,
-            com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository histories) {
+            com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore histories) {
         this.status = status;
         this.histories = histories;
     }

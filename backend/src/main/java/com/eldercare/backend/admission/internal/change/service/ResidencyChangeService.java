@@ -27,6 +27,7 @@ import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.LocalDate;
 import java.util.List;
@@ -108,6 +109,62 @@ public class ResidencyChangeService {
     public View create(Target target, JsonNode input, LocalDate requestedEffectiveDate, Reason reason) {
         ResidencyChangeContent change = ResidencyChangeContent.parse(input);
         Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
+        ObjectNode content = withSystemValues(input, change, contract, requestedEffectiveDate);
+        ApprovalRequestView request = approvals
+                .getObject()
+                .create(new CreateRequest(ResidencyChangeHandler.TYPE, content, requestedEffectiveDate, reason, false));
+        addenda.addAttributes(
+                request.id(), contract.id(), contract.residentId(), change.changeTypes(), request.requesterId());
+        if (currentUser.getObject().type() == AccountType.FAMILY_MEMBER) {
+            events.publishEvent(
+                    new RepresentativeRequestNeedsCompletion(request.id(), contract.residentId(), time.now()));
+        }
+        return view(approvals.getObject().detail(request.id()));
+    }
+
+    /**
+     * Sửa yêu cầu còn Nháp (T043, T047; FR-038, FR-039): cùng kiểm như lúc lập, điền lại giá trị trước và ảnh hưởng chi
+     * phí, rồi sửa qua {@code ApprovalRequestApi.editDraft} trong transaction này (người sửa theo {@code mayActOnDraft},
+     * Nháp, {@code If-Match}, nhật ký do 000 kiểm). Không xem được hoặc không phải loại này thì 404. Quyền lập như lệnh
+     * lập, trên hợp đồng của nội dung mới ({@code target}).
+     */
+    @BusinessCommand(requiresReason = true)
+    @RequiresPermission(function = Function.RESIDENCY_CHANGE_REQUEST, operation = Operation.CREATE)
+    @Transactional
+    public View edit(
+            Target target,
+            long approvalRequestId,
+            String ifMatch,
+            JsonNode input,
+            LocalDate requestedEffectiveDate,
+            Reason reason) {
+        ApprovalRequestView current =
+                approvals.getObject().detail(approvalRequestId).request();
+        if (!ResidencyChangeHandler.TYPE.equals(current.type())) {
+            throw new NotFoundException();
+        }
+        if (!handler.mayActOnDraft(currentUser.getObject(), current)) {
+            throw new PermissionDeniedException("Chỉ người yêu cầu được thực hiện lệnh này");
+        }
+        ResidencyChangeContent change = ResidencyChangeContent.parse(input);
+        Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
+        ObjectNode content = withSystemValues(input, change, contract, requestedEffectiveDate);
+        approvals.getObject().editDraft(approvalRequestId, ifMatch, content, requestedEffectiveDate, reason);
+        addenda.replaceAttributes(
+                approvalRequestId,
+                contract.id(),
+                contract.residentId(),
+                change.changeTypes(),
+                currentUser.getObject().accountId());
+        return view(approvals.getObject().detail(approvalRequestId));
+    }
+
+    /**
+     * Hợp đồng phải Hiệu lực (FR-037), ngày hiệu lực mong muốn không sớm hơn ngày bắt đầu hợp đồng gốc (FR-040); trả nội
+     * dung kèm giá trị trước và ảnh hưởng chi phí do hệ thống điền (FR-038).
+     */
+    private ObjectNode withSystemValues(
+            JsonNode input, ResidencyChangeContent change, Contract contract, LocalDate requestedEffectiveDate) {
         if (contract.status() != ContractStatus.ACTIVE) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
@@ -130,16 +187,7 @@ public class ResidencyChangeService {
         ObjectNode content = ((ObjectNode) input.deepCopy());
         content.set("previousValue", rules.previousValue(base.content(), change));
         content.set("costImpact", rules.costImpact(base.content(), change, effective));
-        ApprovalRequestView request = approvals
-                .getObject()
-                .create(new CreateRequest(ResidencyChangeHandler.TYPE, content, requestedEffectiveDate, reason, false));
-        addenda.addAttributes(
-                request.id(), contract.id(), contract.residentId(), change.changeTypes(), request.requesterId());
-        if (currentUser.getObject().type() == AccountType.FAMILY_MEMBER) {
-            events.publishEvent(
-                    new RepresentativeRequestNeedsCompletion(request.id(), contract.residentId(), time.now()));
-        }
-        return view(approvals.getObject().detail(request.id()));
+        return content;
     }
 
     /** Xem một yêu cầu; không phải loại này hoặc không xem được thì 404. */

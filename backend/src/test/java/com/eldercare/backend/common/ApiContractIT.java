@@ -80,11 +80,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
                     true),
-            // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); còn sửa yêu cầu Nháp chờ API của
-            // 000 (T043, T047)
+            // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); sửa yêu cầu Nháp xong 2026-11-04
+            // (T043, T047)
             new Contract(
                     Path.of("..", "specs", "004-admission-residency", "contracts", "api-004.yaml"),
-                    Set.of("PUT /api/v1/residency-change-requests/{id}"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 005 T060 (2026-11-03): 38/41 operation đã cài khớp hợp đồng; còn hai đường dẫn tiếng Việt chưa dịch và
@@ -206,43 +206,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1 xong 2026-11-04)
+            // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1, US3 xong 2026-11-04;
+            // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(
                     Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"),
-                    Set.of(
-                            "GET /api/v1/residents/{residentId}/pickup-list",
-                            "GET /api/v1/right-change-requests",
-                            "POST /api/v1/right-change-requests",
-                            "POST /api/v1/right-change-requests/{id}/{command}",
-                            "POST /api/v1/residents/{residentId}/pickups",
-                            "GET /api/v1/residents/{residentId}/pickup-records",
-                            "POST /api/v1/residents/{residentId}/pickup-exceptions",
-                            "POST /api/v1/pickup-exceptions/{id}/{command}",
-                            "GET /api/v1/visit-slots",
-                            "GET /api/v1/visits",
-                            "POST /api/v1/visits",
-                            "POST /api/v1/visits/{id}/{command}",
-                            "GET /api/v1/family-stays",
-                            "POST /api/v1/family-stays",
-                            "POST /api/v1/family-stays/{id}/{command}",
-                            "GET /api/v1/family-portal/residents",
-                            "GET /api/v1/family-portal/residents/{residentId}/general",
-                            "GET /api/v1/family-portal/residents/{residentId}/health/{section}",
-                            "GET /api/v1/family-portal/residents/{residentId}/contract",
-                            "GET /api/v1/health-view-logs",
-                            "GET /api/v1/feedback",
-                            "POST /api/v1/feedback",
-                            "GET /api/v1/feedback/{id}",
-                            "POST /api/v1/feedback/{id}/{command}",
-                            "GET /api/v1/residents/{residentId}/visit-pickup-wishes",
-                            "POST /api/v1/residents/{residentId}/visit-pickup-wishes",
-                            "GET /api/v1/resident-channel/today",
-                            "GET /api/v1/resident-channel/menu",
-                            "GET /api/v1/resident-channel/activities",
-                            "GET /api/v1/resident-channel/visits",
-                            "GET /api/v1/resident-channel/belongings",
-                            "GET /api/v1/resident-channel/feedback",
-                            "POST /api/v1/resident-channel/feedback"),
+                    Set.of(),
                     Set.of(),
                     true));
 

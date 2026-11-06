@@ -8,8 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +45,9 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
 
+    @Autowired
+    TestClockControl clock;
+
     private ParameterClient api;
 
     @BeforeEach
@@ -53,6 +58,7 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
 
     @AfterEach
     void restore() throws Exception {
+        clock.reset();
         user.set(MANAGER);
         api.restoreDefault(ALERT, api.etag(ALERT), "khôi phục sau test");
     }
@@ -118,6 +124,26 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
         api.change(ALERT, api.etag(ALERT), "{\"value\":30,\"unit\":\"MINUTES\"}", "Lưu lại sau khi thấy 20")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.currentValue.value").value(30));
+    }
+
+    /**
+     * 000 T113, DBR-24: đồng hồ lùi (đồng hồ giả lập đặt về trước, NTP chỉnh giờ) không làm lần đổi sau có mốc hiệu lực
+     * trước hoặc trùng lần đổi trước: dòng lịch sử mới nhất vẫn là giá trị hiện hành, không lỗi trùng khóa.
+     */
+    @Test
+    void DBR_24_clockMovedBack_laterChangeIsStillTheLatestHistoryRow() throws Exception {
+        api.change(ALERT, api.etag(ALERT), MINUTES_20, "Lần đổi trước").andExpect(status().isOk());
+        clock.advanceBy(Duration.ofHours(-1));
+
+        api.change(ALERT, api.etag(ALERT), "{\"value\":30,\"unit\":\"MINUTES\"}", "Lần đổi sau, đồng hồ đã lùi")
+                .andExpect(status().isOk());
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_EXTRACT(value, '$.value') FROM parameter_history WHERE code = ?"
+                                + " ORDER BY effective_from DESC LIMIT 1",
+                        Integer.class,
+                        ALERT))
+                .isEqualTo(30);
     }
 
     @Test

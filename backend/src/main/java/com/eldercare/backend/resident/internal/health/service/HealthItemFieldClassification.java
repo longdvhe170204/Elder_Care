@@ -26,6 +26,7 @@ class HealthItemFieldClassification implements FieldClassificationProvider {
                 "freeText", InfoGroup.HEALTH,
                 "severityId", InfoGroup.HEALTH,
                 "sourceId", InfoGroup.HEALTH,
-                "status", InfoGroup.HEALTH);
+                "status", InfoGroup.HEALTH,
+                "unverified", InfoGroup.HEALTH);
     }
 }

@@ -3,6 +3,7 @@ package com.eldercare.backend.family.internal.relationship.service;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.family.internal.relationship.domain.RelationshipAttribute;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -52,6 +53,11 @@ class FamilyRelationshipRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         Map<Long, Instant> expired = new HashMap<>();
         for (long residentId : residents.byStatus(FINAL_STATUSES)) {
             residents
@@ -61,19 +67,30 @@ class FamilyRelationshipRetention implements RetentionProvider {
         }
         List<Long> ids = new ArrayList<>(expired.keySet());
         List<Candidate> candidates = new ArrayList<>();
-        for (int from = 0; from < ids.size() && candidates.size() < batch; from += CHUNK) {
+        for (int from = 0; from < ids.size(); from += CHUNK) {
             String in = ids.subList(from, Math.min(from + CHUNK, ids.size())).stream()
                     .map(String::valueOf)
                     .collect(Collectors.joining(","));
             jdbc.query(
                     "SELECT id, resident_id FROM family_relationship WHERE resident_id IN (" + in + ") ORDER BY id",
                     rs -> {
-                        if (candidates.size() < batch) {
-                            candidates.add(new Candidate(rs.getLong(1), expired.get(rs.getLong(2))));
-                        }
+                        candidates.add(new Candidate(rs.getLong(1), expired.get(rs.getLong(2))));
                     });
         }
-        return candidates.stream();
+        return RetentionProvider.page(candidates.stream(), after, batch);
+    }
+
+    /** Bản ghi gắn hồ sơ người cao tuổi {@code target} (000 T112, FR-051a). */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!SharedRowRetention.RESIDENT.equals(target.dataType())) {
+            return Set.of();
+        }
+        return jdbc
+                .queryForList("SELECT id FROM family_relationship WHERE resident_id = ?", Long.class, target.id())
+                .stream()
+                .map(id -> new DataRef(dataType(), id))
+                .collect(Collectors.toSet());
     }
 
     @Override

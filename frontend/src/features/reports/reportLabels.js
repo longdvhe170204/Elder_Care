@@ -76,3 +76,63 @@ export function labelNotes(value) {
 export function isoDate(date) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(date)
 }
+
+// Nhãn ô chia nhóm (breakdown.key) theo chỉ tiêu; chữ trùng màn của feature nguồn (giường 003, lưu trú 001, 004)
+const BED_STATES = {
+  EMPTY: 'Trống',
+  OCCUPIED: 'Đang sử dụng',
+  HELD: 'Đang giữ chỗ',
+  AWAITING_READY: 'Chờ sẵn sàng',
+  UNDER_MAINTENANCE: 'Đang bảo trì',
+  SUSPENDED: 'Tạm ngừng sử dụng',
+  RETIRED: 'Không sử dụng',
+}
+const HOLD_REASONS = { WAITING_RECORD: 'hồ sơ chờ', ABSENT_RESIDENT: 'người vắng' }
+const KEY_LABELS = {
+  // trạng thái hồ sơ chờ (004)
+  WAITING: 'Đang chờ',
+  CONTACTED: 'Đã liên hệ',
+  ADMITTED: 'Đã tiếp nhận',
+  DECLINED: 'Từ chối',
+  WAITING_CANCELLED: 'Hủy chờ',
+  // loại lưu trú
+  LONG_TERM_RESIDENTIAL: 'Nội trú dài hạn',
+  SHORT_TERM_RESIDENTIAL: 'Nội trú ngắn ngày',
+  DAY_CARE: 'Bán trú',
+  // mức lúc đo chỉ số (007)
+  NORMAL: 'Bình thường',
+  WARNING: 'Cảnh báo',
+  DANGEROUS: 'Nguy hiểm',
+  NO_THRESHOLD: 'Chưa có ngưỡng',
+  // bàn giao (008), tỷ lệ phục vụ, giấy phép
+  PREPARED: 'Đã lập',
+  HAS_COMMENTS: 'Có ý kiến',
+  DRAFT: 'Bản nháp',
+  MET: 'Đạt',
+  NOT_MET: 'Không đạt',
+  NOT_CONFIGURED: 'Chưa cấu hình',
+  PROFESSIONAL_LICENSE: 'Giấy phép hành nghề',
+  TRAINING: 'Chứng chỉ đào tạo',
+  // phiếu đối chiếu thuốc (006)
+  OPEN: 'Mở',
+  PENDING_CONFIRMATION: 'Chờ xác nhận',
+}
+const FLOOR_KEYED = ['BED.AWAITING_READY', 'BED.AWAITING_READY_MAX', 'BED.AWAITING_READY_OVERDUE', 'BED.OCCUPANTS']
+const SHIFT_KEYED = ['MED.MISSED_RATE', 'MED.REFUSED_RATE']
+
+// Chữ của một ô chia nhóm; khóa chưa biết giữ nguyên
+export function breakdownLabel(metricCode, key, floors = []) {
+  if (FLOOR_KEYED.includes(metricCode)) {
+    const floor = floors.find((f) => String(f.id) === key)
+    return floor ? floor.name : `Tầng/khu ${key}`
+  }
+  if (SHIFT_KEYED.includes(metricCode)) {
+    return key === 'NO_SHIFT' ? 'Không xác định ca' : `Ca ${key}`
+  }
+  if (metricCode === 'BED.STATUS') {
+    const [state, ...reason] = key.startsWith('HELD_') ? ['HELD', key.slice(5)] : [key]
+    const label = BED_STATES[state] ?? key
+    return reason.length ? `${label} (${HOLD_REASONS[reason[0]] ?? reason[0]})` : label
+  }
+  return KEY_LABELS[key] ?? key
+}

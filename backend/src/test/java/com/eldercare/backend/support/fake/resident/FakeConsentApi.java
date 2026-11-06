@@ -37,6 +37,21 @@ public class FakeConsentApi implements ConsentApi {
         return this;
     }
 
+    /** Bản đồng ý Hiệu lực do người đại diện theo pháp luật ký (001 FR-011; 012 FR-020c). */
+    public FakeConsentApi legalRepresentative(long residentId, long familyMemberId, Set<Long> healthViewers) {
+        active.put(
+                residentId,
+                new ConsentView(
+                        nextId++,
+                        residentId,
+                        ConsenterType.LEGAL_REPRESENTATIVE,
+                        Optional.of(familyMemberId),
+                        Set.copyOf(healthViewers),
+                        false,
+                        false));
+        return this;
+    }
+
     public FakeConsentApi withdraw(long residentId) {
         active.remove(residentId);
         return this;

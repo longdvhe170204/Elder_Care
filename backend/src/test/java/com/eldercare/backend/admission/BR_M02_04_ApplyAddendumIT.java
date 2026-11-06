@@ -253,8 +253,8 @@ class BR_M02_04_ApplyAddendumIT extends ChangeTestBase {
 
         assertThat(versionCount(s.contractId())).isEqualTo(2);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM care_level_history WHERE resident_id = ? AND basis_type ="
-                                + " 'RESIDENCY_CHANGE_REQUEST'",
+                        "SELECT COUNT(*) FROM " + com.eldercare.backend.support.ResidentHistoryRows.CARE_LEVEL
+                                + " WHERE resident_id = ? AND basis_type =" + " 'RESIDENCY_CHANGE_REQUEST'",
                         Integer.class,
                         s.residentId()))
                 .isEqualTo(1);

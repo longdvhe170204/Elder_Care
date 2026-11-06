@@ -49,7 +49,7 @@ class FR_023h_NoCapacityFlagIT extends MySqlIntegrationTestBase {
                 SELECT DISTINCT table_name FROM information_schema.COLUMNS
                 WHERE table_schema = DATABASE() AND (column_name = 'resident_id' OR table_name = 'resident')
                 """, String.class);
-        assertThat(linked).as("bảng gắn với người cao tuổi").contains("resident", "resident_status_history");
+        assertThat(linked).as("bảng gắn với người cao tuổi").contains("resident", "consent");
 
         List<String> offending = new ArrayList<>();
         for (String table : linked) {
