@@ -25,6 +25,50 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 /** T048: MySQL thật; spy chỉ cung cấp projection đính chính/plan khi provider nguồn chưa đủ. */
 class FR_039_CareResultRulesIT extends CareResultTestBase {
+    @Test
+    void FR_040_adHocEatingCommandJoinsTheExistingPoorMealStreak() throws Exception {
+        var at = time.now();
+        save("EATING", "SOME", null, at.minusSeconds(600), TestUsers.nextId());
+        save("EATING", "NOT_EATEN", null, at.minusSeconds(300), TestUsers.nextId());
+        jdbc.update(
+                "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
+                type,
+                "Ăn phát sinh kiểm thử " + type,
+                "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"EATING\",\"defaultRole\":\"FLOOR_MANAGER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+        shifts.onShift(performer, at, true);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                "/api/v1/ad-hoc-care-recordings")
+                        .header("Idempotency-Key", "eating-" + TestUsers.nextId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"residentId\":" + resident + ",\"taskTypeId\":" + type + ",\"performedAt\":\"" + at
+                                + "\",\"codeValue\":\"SKIPPED\",\"sameTypeTasksReviewed\":true}"))
+                .andExpect(status().isCreated());
+        assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
+                .singleElement();
+    }
+
+    @Test
+    void FR_040_longPoorMealStreakUsesTimeRangeAndCountWithoutMealIds() throws Exception {
+        var start = time.now().minusSeconds(7200);
+        long latest = 0;
+        for (int i = 0; i < 40; i++)
+            latest = save("EATING", "SOME", null, start.plusSeconds(i * 60L), TestUsers.nextId());
+        recalculate(latest);
+        assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
+                .singleElement()
+                .satisfies(e -> {
+                    var json = context.getBean(tools.jackson.databind.json.JsonMapper.class);
+                    var payload = json.readTree(json.writeValueAsString(e));
+                    assertThat(payload.has("mealIds")).isFalse();
+                    assertThat(payload.path("mealCount").asInt()).isEqualTo(40);
+                    assertThat(payload.path("firstMealAt").isMissingNode()).isFalse();
+                    assertThat(payload.path("lastMealAt").isMissingNode()).isFalse();
+                });
+        recalculate(latest);
+        assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
+                .hasSize(1);
+    }
+
     @Autowired
     ApplicationContext context;
 
@@ -45,12 +89,16 @@ class FR_039_CareResultRulesIT extends CareResultTestBase {
 
     @org.junit.jupiter.api.BeforeEach
     void presence() {
-        doReturn(List.of(new com.eldercare.backend.resident.api.dto.StatusPeriod(
-                        com.eldercare.backend.resident.api.dto.ResidentStatus.IN_RESIDENCE,
-                        time.today()
-                                .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
-                                .toInstant(),
-                        Optional.empty())))
+        var present = List.of(new com.eldercare.backend.resident.api.dto.StatusPeriod(
+                com.eldercare.backend.resident.api.dto.ResidentStatus.IN_RESIDENCE,
+                time.today()
+                        .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                        .toInstant(),
+                Optional.empty()));
+        doAnswer(invocation -> ((Set<?>) invocation.getArgument(1))
+                                .contains(com.eldercare.backend.resident.api.dto.ResidentStatus.IN_RESIDENCE)
+                        ? present
+                        : List.of())
                 .when(statuses)
                 .statusPeriods(eq(resident), anySet(), any(), any());
     }
@@ -117,7 +165,7 @@ class FR_039_CareResultRulesIT extends CareResultTestBase {
         recalculate(latest);
         assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
                 .singleElement()
-                .satisfies(e -> assertThat(e.mealIds()).hasSize(3));
+                .satisfies(e -> assertThat(e.mealCount()).isEqualTo(3));
         recalculate(latest);
         assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
                 .hasSize(1);
@@ -280,7 +328,7 @@ class FR_039_CareResultRulesIT extends CareResultTestBase {
                 new CorrectionMade("M04.CARE_RESULT", good, CorrectionType.AMEND_CONTENT, TestUsers.nextId()));
         assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
                 .singleElement()
-                .satisfies(e -> assertThat(e.mealIds()).hasSize(4));
+                .satisfies(e -> assertThat(e.mealCount()).isEqualTo(4));
     }
 
     @Test

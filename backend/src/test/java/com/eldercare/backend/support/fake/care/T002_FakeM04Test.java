@@ -203,7 +203,7 @@ class T002_FakeM04Test {
                                 .hasSingleBean(MedicationChecklistPort.class)
                                 .hasSingleBean(AlertReadPort.class)
                                 .hasSingleBean(DayCarePickupPort.class)
-                                .hasSingleBean(QualityCheckPort.class);
+                                .doesNotHaveBean(QualityCheckPort.class);
                         assertThat(context.getBeansOfType(TaskSourcePort.class)).hasSize(3);
                         assertThat(context.getBeansOfType(TimetableSourcePort.class))
                                 .hasSize(3);

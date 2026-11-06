@@ -122,6 +122,20 @@ public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedH
     }
 
     @Override
+    public int countEmptyAwaitingTransfer(ScopeFilter scope, Instant at) {
+        var empty = states(scope, at).stream()
+                .filter(s -> s.state() == BedStatus.EMPTY)
+                .map(State::bedId)
+                .collect(Collectors.toSet());
+        if (empty.isEmpty()) return 0;
+        var asset = assets.getIfAvailable();
+        if (asset == null)
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn dấu tài sản giường");
+        return asset.flaggedBedsAt(empty, at).size();
+    }
+
+    @Override
     public List<BedFlagView> flaggedBeds(ScopeFilter scope) {
         point(scope, time.now());
         List<BedFlagView> result = new ArrayList<>();
