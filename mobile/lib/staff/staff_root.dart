@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -9,10 +11,13 @@ import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'approval_requests/approval_inbox_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
+import 'handover/handover_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'resident_login_qr/resident_login_qr_screen.dart';
 import 'residents/resident_lookup_screen.dart';
+import 'shifts/assignments_screen.dart';
+import 'shifts/my_shifts_screen.dart';
 import 'sync_results/sync_results_screen.dart';
 
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
@@ -37,7 +42,16 @@ class _StaffRootState extends State<StaffRoot> {
   static const _inboxIndex = 0;
 
   /// Tab đã áp đầu màn xanh đêm của DESIGN.md 15.4; tab khác giữ thanh của theme tới khi đổi (15.7).
-  static const _headerTabs = {'Thông báo', 'Thêm', 'Người cao tuổi', 'Phê duyệt', 'Mã đăng nhập cho người cao tuổi'};
+  static const _headerTabs = {
+    'Thông báo',
+    'Thêm',
+    'Người cao tuổi',
+    'Phê duyệt',
+    'Mã đăng nhập cho người cao tuổi',
+    'Ca của tôi',
+    'Phân công',
+    'Bàn giao ca',
+  };
 
   int _index = _inboxIndex;
 
@@ -45,11 +59,36 @@ class _StaffRootState extends State<StaffRoot> {
   int? _more;
   int _urgent = 0;
   bool _urgentBand = false;
+  bool _canViewShifts = false;
+  bool _canViewHandovers = false;
 
   @override
   void initState() {
     super.initState();
     widget.push?.addListener(_onPush);
+    unawaited(_loadShiftPermission());
+  }
+
+  Future<void> _loadShiftPermission() async {
+    var allowed = false;
+    var handovers = false;
+    try {
+      final grants = await widget.session.api.getList('/me/permissions');
+      allowed = grants.whereType<Map<String, dynamic>>().any(
+        (grant) => grant['function'] == 'SHIFT_SCHEDULE' && grant['operation'] == 'VIEW',
+      );
+      handovers = grants.whereType<Map<String, dynamic>>().any(
+        (grant) => grant['function'] == 'SHIFT_HANDOVER' && grant['operation'] == 'VIEW',
+      );
+    } on Object {
+      // Chưa xác nhận được quyền thì không mở mục lịch ca.
+    }
+    if (mounted) {
+      setState(() {
+        _canViewShifts = allowed;
+        _canViewHandovers = handovers;
+      });
+    }
   }
 
   @override
@@ -105,6 +144,9 @@ class _StaffRootState extends State<StaffRoot> {
     ('Người cao tuổi', LucideIcons.users, () => ResidentLookupScreen(api: widget.session.api)),
     ('Phê duyệt', LucideIcons.clipboardCheck, () => ApprovalInboxScreen(api: widget.session.api)),
     ('Mã đăng nhập cho người cao tuổi', LucideIcons.qrCode, () => ResidentLoginQrScreen(api: widget.session.api)),
+    if (_canViewShifts) ('Ca của tôi', LucideIcons.calendarDays, () => MyShiftsScreen(api: widget.session.api)),
+    if (_canViewShifts) ('Phân công', LucideIcons.users, () => AssignmentsScreen(api: widget.session.api)),
+    if (_canViewHandovers) ('Bàn giao ca', LucideIcons.arrowLeftRight, () => HandoverScreen(api: widget.session.api)),
   ];
 
   @override

@@ -303,7 +303,8 @@ components:
       properties:
         sourceType: { $ref: '#/components/schemas/BillingSourceType' }
         sourceId: { type: string }
-        unit: { type: string }
+        unit: { type: string, description: 'Đơn vị sử dụng/hiển thị lấy từ nguồn' }
+        billingUnit: { type: string, description: 'Khóa đơn vị tính phí trong nguồn, dùng để chọn đúng một đêm/thuốc; không phải đơn vị sử dụng' }
         incurredOn: { type: string, format: date }
         occurredAt: { type: string, format: date-time }
         description: { type: string, description: 'Thuốc: mã vật phẩm với người không có quyền xem thuốc' }
@@ -314,11 +315,26 @@ components:
     CreateCostsFromEvents:
       type: object
       required: [residentId, sourceType]
+      description: 'Chọn đúng một kiểu sourceIds, sourceUnits hoặc dateRange. sourceIds chỉ dùng khi id xác định duy nhất một đơn vị; id mơ hồ bị bỏ qua với CONDITION_NOT_MET.'
+      oneOf:
+        - { required: [sourceIds] }
+        - { required: [sourceUnits] }
+        - { required: [dateRange] }
       properties:
         residentId: { type: integer, format: int64 }
         sourceType: { $ref: '#/components/schemas/BillingSourceType' }
-        sourceIds: { type: array, items: { type: string } }
-        dateRange: { type: object, properties: { from: { type: string, format: date }, to: { type: string, format: date } }, description: 'Phí lưu trú: một khoảng ngày' }
+        sourceIds: { type: array, minItems: 1, uniqueItems: true, items: { type: string } }
+        sourceUnits:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: object
+            required: [sourceId, billingUnit]
+            properties:
+              sourceId: { type: string }
+              billingUnit: { type: string }
+        dateRange: { type: object, required: [from, to], properties: { from: { type: string, format: date }, to: { type: string, format: date } }, description: 'Phí lưu trú: một khoảng ngày' }
     CostBatchResult:
       type: object
       properties:

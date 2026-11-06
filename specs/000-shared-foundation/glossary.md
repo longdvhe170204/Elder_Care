@@ -2213,6 +2213,14 @@ Tên bổ sung cho T010–T016; chỉ mục 14 thay đổi. Người dùng duy�
 | `coTenTrongCa / duDieuKien / caCoNguoi / dieuDuongCoCa` | `listedInShift / qualified / hasQualifiedStaff / nursesWithShift` |
 | `coTenTrongCaDangDienRa / truongTangDuocGiao / tangTrongCa / cacTangCoCa` | `inProgressShiftMember / assignedFloorManager / floorDuringShift / floorsWithShift` |
 | `Bản giả dùng chung 003 / 005 / 006 / 007` | `FakeLocationReferences / FakeCareShifts / FakeNursingShifts / FakeAlertStaff` và `FakeM03Config / FakeM04Config / FakeM07Config / FakeM05Config` |
+| Có mặt trong đúng ca / test ngoại lệ Q-262 (T051a) | `ShiftQueries.presentInShift / DutyDirectoryIT`; helper nội bộ, dùng mốc thành viên/vắng/nghỉ đã duyệt |
+| Bộ tạo provider lưu giữ của staffing (T050a) | `M09RetentionFactory`; lớp cụ thể trong `internal/persistence`, tạo 17 `M09Retention` theo `Kind`; cấu hình không phụ thuộc JDBC |
+| Nội dung bảng chung và metadata định danh 008 (T050) | `StaffingCatalogData / StaffingHistoryData / StaffingEventData / StaffingRecordData`; `Legacy(table,id)`, `legacyCode`, `originalName`, `createdAt` |
+| Kho nối API bảng chung của 008 | `StaffingCatalogStore / StaffingHistoryStore / StaffingRecordStore`; `CatalogApi / StatusHistoryApi / RecordEventApi / SimpleRecordApi` của A |
+| ID logic / ID vật lý / chỉ mục legacy | `logicalId / physicalId / m09_legacy_id`; giữ ID công khai cũ, FK dùng ID bảng chung |
+| Mục, nhận định JSON và bộ đếm trong bàn giao | `HandoverJsonData.Item / HandoverJsonData.Assessment`; `items / assessments / next_item_id`, khóa trên cha |
+| Dấu lần xử lý và căn cứ job 008 | `ReminderMarkers`: `M09.JOB.<job>`; `SchedulerRuns.MDC_KEY / Basis.schedulerRunId`, UUID cùng lần chạy |
+| Loại dòng phân công sau gộp | `staff_assignment.kind`: `CARE / FLOOR_MANAGER`; `legacy_floor_manager_id` giữ ID giao Trưởng tầng cũ |
 | `HTTP lịch ca: controller / yêu cầu / phản hồi` | `ShiftController / ShiftRequests / ShiftResponses` |
 | `Web lịch: trang / form ca / form lịch-mẫu-công bố / nhãn` | `features/shifts/ShiftsPage / ShiftForm / ScheduleForms / shiftLabels` |
 | `M09.LICH_CA / M09.CA / M09.MAU_CA / M09.CA_NHAN_VIEN / M09.NGUOI_PHU_TRACH_CA / M09.BAN_CONG_BO_LICH` | `M09.SCHEDULE / M09.SHIFT / M09.SHIFT_TEMPLATE / M09.SHIFT_STAFF / M09.SHIFT_LEAD_HISTORY / M09.SHIFT_PUBLICATION` |
@@ -2256,7 +2264,7 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Nhật ký giao / kết thúc / đổi trạng thái giao Trưởng tầng | `FLOOR_MANAGER_ASSIGNED / FLOOR_MANAGER_ASSIGNMENT_ENDED / FLOOR_MANAGER_ASSIGNMENT_STATUS_CHANGED` |
 | Nhật ký thay Phụ trách bộ phận | `DEPARTMENT_LEAD_REPLACED` |
 | Thiếu nguồn / phân công không hợp lệ / đối tượng không hợp lệ | `ASSIGNMENT_SOURCE_UNAVAILABLE / INVALID_ASSIGNMENT / INVALID_ASSIGNMENT_TARGET` |
-| Thiếu chứng chỉ / trùng nhân viên chính / công việc không đủ điều kiện | `ASSIGNMENT_CREDENTIAL_REQUIRED / PRIMARY_ASSIGNMENT_OVERLAP / UNQUALIFIED_TASK_TYPES` |
+| Thiếu chứng chỉ / trùng nhân viên chính / công việc không đủ điều kiện | `ASSIGNMENT_CREDENTIAL_REQUIRED / PRIMARY_ASSIGNMENT_OVERLAP / TASK_TYPE_REQUIREMENTS_NOT_MET` |
 | Giao Trưởng tầng không hợp lệ / chồng thời gian / người thay bộ phận không hợp lệ | `INVALID_FLOOR_MANAGER_ASSIGNMENT / FLOOR_MANAGER_ASSIGNMENT_OVERLAP / INVALID_REPLACEMENT_DEPARTMENT_LEAD` |
 | Dữ liệu nhiều người chính / nhiều Trưởng tầng / nhiều bộ phận | `MULTIPLE_PRIMARY_ASSIGNEES / MULTIPLE_FLOOR_MANAGERS / MULTIPLE_DEPARTMENTS` |
 
@@ -2270,7 +2278,7 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Loại nhận định / khóa người cao tuổi / nhóm mục | `assessment_kind / resident_key / item_group` |
 | Người bàn giao / tài khoản tạo / tài khoản xác nhận / căn cứ nhiệm vụ | `handover_staff_id / created_by / confirmed_by / duty_basis` |
 | Lúc chốt / lúc xác nhận / trạng thái lúc chốt / người ghi chú | `finalized_at / confirmed_at / status_at_finalization / note_author` |
-| Kho và truy vấn trạng thái bàn giao thật | `handover.internal.persistence.HandoverStore / handover.internal.service.HandoverQueries` |
+| Kho và truy vấn trạng thái bàn giao thật | `staffing.internal.handover.persistence.HandoverStore / staffing.internal.handover.service.HandoverQueries` |
 | Đã lập xong / đã xác nhận theo ca | `prepared(shiftId) / confirmed(shiftId)`; `HAS_COMMENTS` không phải đã lập xong |
 | Dịch vụ nguồn / lệnh / nội dung hiện hành / đính chính / lưu giữ / nhắc | `HandoverSources / HandoverService / HandoverContents / HandoverCorrection / HandoverRetention / HandoverReminders` |
 | Tài khoản hoàn tất / các khóa nguồn lúc chốt | `finalized_by / source_keys_at_finalization` (metadata kỹ thuật, không phải mục sinh tự động) |
@@ -2374,6 +2382,7 @@ Tên chính thức của C/D giữ theo feature sở hữu; các tên dưới đ
 | Mã tầng của vị trí / vị trí nghỉ bán trú | `LocationView.floorId`; `LocationStructureApi.dayCareRestAreaLocation` |
 | Tham chiếu vị trí hiện tại từ lịch ca/phân công | `LocationReferences.currentReferences`; `roombedallocation.api.spi.LocationReferenceView(type, id, label)` |
 | Giường chờ sẵn sàng quá hạn / khoảng chờ / trạng thái tại mốc | `BedStatusApi.overdueAwaitingReady`; `BedStatisticsApi.awaitingReady / stateAt`; nguồn C dùng `AWAITING_READY`, adapter bàn giao giữ `AWAITING_READINESS` |
+| Mốc vào Chờ sẵn sàng của giường trong bàn giao | `AwaitingReadyInterval.startedAt` → `HandoverSource.at`; `from` chỉ là đầu khoảng tra cứu đã cắt, không phải mốc vào trạng thái |
 | Liều thuốc đang chờ bàn giao / trạng thái hiện tại | `DosePendingHandoverView(doseKey, residentId, prescriptionId, scheduledTime, status, reason, controlledSubstance)`; `DoseHandoverApi.currentStatuses` |
 | SPI ca/điều dưỡng chính thức của thuốc | `medication.api.spi.ShiftNursePort`, do `NursingShiftLookup` cài cùng nguồn với `NursingShiftPort` hiện có |
 | Sự kiện phân bổ mở / đóng / chuyển giường thật | `BedAllocationStarted / BedAllocationClosed / BedTransferred`; `StaffingRatioEvents` tiếp nhận để tính lại theo logic hiện có |
@@ -2395,6 +2404,51 @@ Tên chính thức của C/D giữ theo feature sở hữu; các tên dưới đ
 | --- | --- |
 | Người xác nhận bàn giao đã ghi | `confirmed_by` là mã tài khoản; đọc hồ sơ nhân viên qua `AccountApi.byId(...).staffId`, không dùng liên kết tài khoản cục bộ của M09 |
 | Người phụ trách ca hiện tại nhận đính chính | `RecipientGroup.ShiftLead(floorAreaId, Substitution.Default)` trong `HandoverCorrected`; M13 phân giải theo nhiệm vụ tại thời điểm gửi (FR-057) |
+
+### 14.18. Ca cá nhân trên app — ghép lại 2026-11-05
+
+| Tên logic | Tên mã |
+| --- | --- |
+| Ca của tôi, điều phối tải lịch cá nhân | MyShiftsScreen, MyShiftsController; mobile/lib/staff/shifts/ |
+| Nhãn trạng thái ca | shiftStatusLabel trong shift_labels.dart; giữ trạng thái backend |
+| Mục điều hướng lịch cá nhân | Ca của tôi; SHIFT_SCHEDULE/VIEW; mục Thêm theo DESIGN 15.4 |
+| Danh sách ca cá nhân | GET /me/shifts?from=&to=; đầu khoảng gồm, cuối không gồm; không mở lịch người khác |
+
+Không thêm endpoint hoặc API dùng chung; consumer chuyển kiểu mảng từ ApiClient hiện có. Dữ liệu tên lấy đúng phạm vi backend, không đưa liên hệ riêng tư vào màn.
+
+### 14.19. Nguồn ca và việc bàn giao cho checklist005 (2026-11-05)
+
+| Tên logic | Tên mã |
+| --- | --- |
+| Bộ cài nguồn mới của005 | CareStaffLookup implements care.api.spi.ShiftStaffPort; giữ CareShiftLookup/CareShiftPort cũ |
+| Kiểm quyền bàn giao dùng chung | HandoverAccess; lệnh dùng người đang thao tác, truy vấn hỏi quyền đúng tài khoản nhân viên |
+| Việc nhận còn cần làm | HandoverTasksView.receiveAtStart; chỉ Đã lập và đủ quyền, đúng ca sau đã xếp |
+| Việc lập còn cần làm | HandoverTasksView.prepareAtEnd; cửa sổ CFG-M09-04, chưa lập xong/Có ý kiến và còn được phép xử lý |
+| Thành viên nguồn ca | ShiftStaffPort.ShiftMemberView(staffId, role); vai trò thật, loại vắng/rút/rời/nghỉ đã duyệt |
+
+Các view là dữ liệu tính khi đọc, không phải công việc hoặc bàn giao tự sinh. Không thêm chữ ký API/DTO/sự kiện của C.
+
+### 14.20. Ghi vắng ca trên app(T041b,2026-11-05)
+
+| Tên logic | Tên mã |
+| --- | --- |
+| Form ghi vắng ca trực tuyến | ShiftAbsenceSheet trong mobile/lib/staff/shifts/ |
+| Người vắng/người thay/lý do | staffId/replacementLeadStaffId/reason của POST /shifts/{id}/record-absence; không thêm trường |
+| Khóa lệnh gửi lại | Idempotency-Key; cùng nội dung thử lại giữ khóa, không tự thêm If-Match |
+
+### 14.21. Sửa Nháp/đọc phân công và app đã duyệt29/10, ghép05/11
+
+| Tên logic | Tên triển khai |
+| --- | --- |
+| Chi tiết phân công/phiên bản | AssignmentDetail;AssignmentResponses.Detail;GET /assignments/{id} |
+| Xem trước/sửa Nháp | DraftAssignmentPreview;DraftAssignmentUpdateResult;previewDraftUpdate/updateDraft;updateDraftAssignment |
+| Đọc kết quả phân công | AssignmentReadService/AssignmentReadSources/AssignmentReadController/AssignmentReadResponses;AssignmentResolution;UnassignedResidents/UnassignedResident |
+| Màn app phân công | AssignmentsScreen/AssignmentsController/AssignmentForm/FloorManagerSheet/assignmentMoment |
+| Mã cảnh báo loại công việc không đủ điều kiện theo HTTP đã duyệt | TASK_TYPE_REQUIREMENTS_NOT_MET; thay mã nội bộ UNQUALIFIED_TASK_TYPES trả sai enum |
+
+### 14.22. Bàn giao trực tuyến trên app(T030,05/11)
+
+HandoverScreen tại staff/handover;menu SHIFT_HANDOVER/VIEW. Dùng đúng lệnh create/complete/confirm/comment/supplementAndResubmit từ allowedCommands và HTTP008 hiện có. Không có version trong HandoverBody,không suy version;client ETag và nguồn hạn cache chờ nềnA. Không thêm recordType ngoại tuyến hoặc API.
 
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
@@ -2837,6 +2891,60 @@ Không tạo các tên bảng legacy resident_cost_guard, cost_period, cost_stat
 
 Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ số phần trăm DECIMAL(5,2), thời điểm DATETIME(6), id BIGINT. JSON tiền vẫn integer/int64. Kind của dòng SQL không mở rộng statementType trong REST. JSON ở bảng chung theo data-model 010 mục 0.1; chưa tự khai báo chữ ký Java của A.
 
+### 16.9. Nền bảng chung, khóa và job 010 — 2026-11-04
+
+| Tên logic | Tên triển khai / cách lưu |
+| --- | --- |
+| Thời gian tính phí | BillingPeriod; startsOn/endsOn, admittedOn, deathAt, firstSessionAt, residential |
+| Trạng thái chi phí người cao tuổi | BillingResidentState; SharedKind M11.RESIDENT_COST_STATE; finalCostCompletedFrom (Instant nullable); dùng chung payload M11 với 017 khi mở rộng |
+| Lịch sử tính lại | CostRecalculation; HistoryTrack M11.COST_ITEM / RECALCULATION; before/after, cause, resetToDraft; snapshot quantity/unitPrice/factorPercent/amount |
+| Khóa chi phí | CostLock, CostRowLocks; khóa kỹ thuật M11.COST_RESIDENT:<residentId>, rồi trạng thái/bảng |
+| Sự kiện nguồn đã xử lý | ReminderMarkers: kind M11.SOURCE_PROCESSED, entityType M11.BILLING_SOURCE; residentId và khóa sự kiện |
+| Khung chạy định kỳ | M11DailyJob, M11HourlyJob, M11Jobs, CostTimedTask, CostJobCadence (DAILY/HOURLY) |
+| Mốc chạy bù | M11.JOB_ANCHOR / M11.JOB_DONE; M11.JOB.<tên tác vụ>; DAILY=1, HOURLY=2; mã lần chạy SchedulerRuns là UUID |
+| Metadata, phạm vi | M11GovernanceConfig, CostScopeAssignment, CostScopeStore; M11.COST_PERIOD/COST_STATEMENT/COST_ITEM; FINANCE/MEDICATION |
+
+Các mã trên là nội bộ, không thêm trường REST/API công khai. Lịch sử lưu căn cứ/người/thời điểm trong HistoryEntry chung; JSON không thay đổi giới hạn DECIMAL của dữ liệu gốc. Provider kỳ/bảng/khoản theo T008a/T008b; quyền tệp mua hộ làm cùng T027 khi có chứng từ thật.
+
+### 16.10. Lưu giữ ba loại chi phí hiện có — 2026-11-05
+
+| Tên logic | Tên triển khai / mốc |
+| --- | --- |
+| Provider lưu giữ chi phí | CostRetention, Kind PERIOD/STATEMENT/ITEM, M11GovernanceConfig |
+| Kỳ của viện | M11.COST_PERIOD; cost_statement kind PERIOD, created_at; CFG-M15-04 |
+| Bảng chi phí | M11.COST_STATEMENT; cost_statement kind STATEMENT, ResidentApi.finalStatusAt; CFG-M15-03 |
+| Khoản chi phí | M11.COST_ITEM; cost_item, ResidentApi.finalStatusAt; CFG-M15-03 |
+
+Phạm vi T008 nền chỉ gồm dữ liệu hiện có (T008a/T008b). Phân rã lại 06/11: metadata/phạm vi/retention mua hộ đi cùng T026, quyền tệp đi cùng T027; chuỗi hồ sơ liên module, bảng chung và dọn chỉ mục theo nguồn là gate T033 trước hoàn tất feature/merge/vận hành. Không thêm trường API hoặc tham số nghiệp vụ; chưa nghiệm thu chuỗi hồ sơ thật.
+
+### 16.11. Nền chọn đơn giá T006a — 2026-11-06
+
+| Tên logic | Tên triển khai / ý nghĩa |
+| --- | --- |
+| Chọn giá và tính tiền sự kiện | CostPricingService.event(residentId, serviceId, incurredOn, quantity); transaction của caller |
+| Kết quả đơn giá | PriceQuote: unitPrice, amount, inPackage, basis; missingUnitPrice không đồng nghĩa đơn giá 0 |
+| Căn cứ giá nội bộ | PriceBasis; BasisKind CONTRACT hoặc PRICE_VERSION; contractId/contentVersion/addendumId hoặc priceVersionId |
+
+Các kiểu trên lồng trong service nội bộ M11, chưa là schema HTTP hoặc API cho module khác. Giá hợp đồng từ recordedUnitPrices tại đúng ngày; khoản trong gói có amount=0, giữ unitPrice thật nếu có. Nguồn không có giá và ngoài gói giữ amount/unitPrice rỗng.
+
+### 16.12. Chỉ mục nguồn T010 — 2026-11-06
+
+| Tên logic | Tên triển khai / cách lưu |
+| --- | --- |
+| Chỉ mục nguồn | IndexedBillingSource, BillingSourceIndexStore, BillingSourceIndex, BillingSourceEvents; billing.internal.source |
+| Khóa đơn vị tính phí kỹ thuật | billing_unit; generic giữ unit, care dùng UNIT, thuốc dùng medicationId; không phải đơn vị dùng hiển thị |
+| Dấu nhận nguồn | M11.SOURCE_PROCESSED / M11.BILLING_SOURCE / residentId; BILLED: + SHA-256 bộ loại/id/đơn vị/eventKey |
+| Độ chính xác lượng nguồn/khoản/lịch sử | DECIMAL(12,3), @Digits(9,3); V010_03__source_quantity_precision.sql; tiền giữ DECIMAL(15,0) |
+
+Khóa nguồn được giữ nguyên; digest chỉ dùng cho dấu chống lặp. Ngày care/thuốc lấy thời điểm thực hiện theo múi giờ Việt Nam; generic giữ ngày nguồn. Không tạo khoản khi nhận sự kiện, không đổi API công khai hoặc producer chủ nguồn.
+
+### 16.13. Chọn đơn vị nguồn và truy vấn chỉ mục — 2026-11-06
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| Khóa đơn vị tính phí gửi khi chọn nguồn | billingUnit; khác unit là đơn vị sử dụng/hiển thị. Chủ dự án duyệt 06/11 |
+| Danh sách đơn vị nguồn được chọn | sourceUnits: [{sourceId, billingUnit}]; loại trừ sourceIds/dateRange trong cùng lệnh |
+| Kết quả tra chỉ mục và khoản hiệu lực | IndexedSourceMatch; billing.internal.source.domain; nguồn hiện hành, cancelled, version, existingItemId |
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

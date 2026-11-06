@@ -13,9 +13,9 @@ import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.staffing.api.events.SchedulePublished;
-import com.eldercare.backend.staffing.shift.internal.domain.ShiftInput;
-import com.eldercare.backend.staffing.shift.internal.domain.TemplateInput;
-import com.eldercare.backend.staffing.shift.internal.service.ShiftScheduleService;
+import com.eldercare.backend.staffing.internal.shift.domain.ShiftInput;
+import com.eldercare.backend.staffing.internal.shift.domain.TemplateInput;
+import com.eldercare.backend.staffing.internal.shift.service.ShiftScheduleService;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import com.eldercare.backend.support.TestUsers;
@@ -86,7 +86,8 @@ class ShiftScheduleIT extends MySqlIntegrationTestBase {
     }
 
     private long template(String scope, boolean handover, LocalTime from, LocalTime to) {
-        return service.createTemplate(new TemplateInput("[Mẫu ca kiểm thử]", from, to, scope, handover, true))
+        return service.createTemplate(new TemplateInput(
+                        "[Mẫu ca kiểm thử " + TestUsers.nextId() + "]", from, to, scope, handover, true))
                 .id();
     }
 
@@ -206,7 +207,9 @@ class ShiftScheduleIT extends MySqlIntegrationTestBase {
         assertThat(jdbc.queryForObject("SELECT status FROM shift_schedule WHERE id=?", String.class, schedule))
                 .isEqualTo("DRAFT");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM shift_publication WHERE schedule_id=?", Integer.class, schedule))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS schedule_id,e.occurred_at AS published_at,e.content->'$.content' AS content FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION') shift_publication WHERE schedule_id=?",
+                        Integer.class,
+                        schedule))
                 .isZero();
     }
 
@@ -254,15 +257,17 @@ class ShiftScheduleIT extends MySqlIntegrationTestBase {
         assertThat(jdbc.queryForObject("SELECT self_approved FROM shift_schedule WHERE id=?", Boolean.class, schedule))
                 .isTrue();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM shift_publication WHERE schedule_id=?", Integer.class, schedule))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS schedule_id,e.occurred_at AS published_at,e.content->'$.content' AS content FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION') shift_publication WHERE schedule_id=?",
+                        Integer.class,
+                        schedule))
                 .isOne();
         assertThat(jdbc.queryForObject(
-                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.schedule.status')) FROM shift_publication WHERE schedule_id=?",
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.schedule.status')) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS schedule_id,e.occurred_at AS published_at,e.content->'$.content' AS content FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION') shift_publication WHERE schedule_id=?",
                         String.class,
                         schedule))
                 .isEqualTo("PUBLISHED");
         assertThat(jdbc.queryForObject(
-                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.shifts[0].shift.status')) FROM shift_publication WHERE schedule_id=?",
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content,'$.shifts[0].shift.status')) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS schedule_id,e.occurred_at AS published_at,e.content->'$.content' AS content FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION') shift_publication WHERE schedule_id=?",
                         String.class,
                         schedule))
                 .isEqualTo("PUBLISHED");

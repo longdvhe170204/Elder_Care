@@ -16,6 +16,22 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class CostSharedFakesTest {
     @Test
+    void FR_023a_costFixtureReusesTheAdmissionOwnersRepresentativeFake() {
+        try (var context = new AnnotationConfigApplicationContext(FakeM11Config.class)) {
+            var source = context.getBean(com.eldercare.backend.admission.api.spi.RepresentativePort.class);
+            assertThat(source).isInstanceOf(com.eldercare.backend.support.fake.admission.FakeRepresentatives.class);
+            var fixture = (com.eldercare.backend.support.fake.admission.FakeRepresentatives) source;
+            var day = LocalDate.of(2026, 11, 4);
+            assertThat(source.isActiveRepresentative(10, 20, day)).isFalse();
+            fixture.representative(20, 10);
+            assertThat(source.isActiveRepresentative(10, 20, day)).isTrue();
+            assertThat(source.isActiveRepresentative(11, 20, day)).isFalse();
+            fixture.reset();
+            assertThat(source.hasRepresentative(20)).isFalse();
+        }
+    }
+
+    @Test
     void FR_009_sharedPriceFakeDistinguishesZeroFromUnknownAndKeepsSignedTotal() {
         var fake = new FakeCostForBalance();
         var day = LocalDate.of(2026, 10, 29);

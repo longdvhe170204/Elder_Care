@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.*;
 import com.eldercare.backend.staffing.api.events.ShiftBelowStaffingThreshold;
-import com.eldercare.backend.staffing.ratio.internal.domain.StaffingRatioCalculator.Result;
-import com.eldercare.backend.staffing.ratio.internal.service.StaffingRatioService;
+import com.eldercare.backend.staffing.internal.ratio.domain.StaffingRatioCalculator.Result;
+import com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.roombedallocation.*;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
@@ -54,7 +54,9 @@ class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
         start = time.now().plus(Duration.ofDays(3));
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu tỷ lệ]','07:00','15:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu tỷ lệ] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,FALSE AS requires_handover) src");
         long schedule = AssignmentFixtures.insert(
                 jdbc, "INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES ('2026-10','FLOOR',?)", floor);
         shift = AssignmentFixtures.insert(
@@ -112,7 +114,9 @@ class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
         service.record(shift, "STAFF_ABSENT", result(false));
         assertThat(count()).isEqualTo(2);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
+                        Integer.class,
+                        shift))
                 .isEqualTo(5);
     }
 
@@ -141,7 +145,9 @@ class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
         jdbc.update("UPDATE work_shift SET status='CLOSED' WHERE id=?", shift);
         service.record(shift, "CARE_LEVEL_CHANGED", result(false));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
+                        Integer.class,
+                        shift))
                 .isZero();
         assertThat(count()).isZero();
     }
@@ -154,7 +160,9 @@ class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
             tx.setRollbackOnly();
         });
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
+                        Integer.class,
+                        shift))
                 .isZero();
         assertThat(jdbc.queryForObject("SELECT below_threshold FROM work_shift WHERE id=?", Boolean.class, shift))
                 .isFalse();

@@ -2,8 +2,8 @@ package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.staffing.handover.internal.domain.NextHandoverShift;
-import com.eldercare.backend.staffing.shift.internal.domain.WorkShift;
+import com.eldercare.backend.staffing.internal.handover.domain.NextHandoverShift;
+import com.eldercare.backend.staffing.internal.shift.domain.WorkShift;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;

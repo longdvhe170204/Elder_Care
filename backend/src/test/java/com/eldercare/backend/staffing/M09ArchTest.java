@@ -22,9 +22,9 @@ class M09ArchTest {
                 @Override
                 public boolean test(JavaMethodCall call) {
                     String targetPackage = call.getTarget().getOwner().getPackageName();
-                    return (targetPackage.startsWith("com.eldercare.backend.staffing.shift.internal.service.port")
+                    return (targetPackage.startsWith("com.eldercare.backend.staffing.internal.shift.service")
                                     || targetPackage.startsWith(
-                                            "com.eldercare.backend.staffing.assignment.internal.service.port"))
+                                            "com.eldercare.backend.staffing.internal.assignment.service"))
                             && call.getTarget().getOwner().getSimpleName().contains("CommandPort");
                 }
             })
