@@ -192,6 +192,8 @@ components:
         description: { type: string }
         impactLevel: { type: string, enum: [UNSAFE, STILL_SAFE] }
         result: { type: string, enum: [PASS, FAIL] }
+        maintenanceKind: { type: string, enum: [MAINTENANCE, INSPECTION, VEHICLE_INSPECTION, INSURANCE], description: 'Loại lần của start-maintenance; mặc định MAINTENANCE (FR-014; bổ sung 2026-11-06, chủ dự án duyệt)' }
+        nextDueOn: { type: string, format: date, description: 'Hạn kế tiếp khi ghi kết quả Đạt của lần đăng kiểm, bảo hiểm (bắt buộc); bảo trì, kiểm định tính bằng ngày + chu kỳ' }
         date: { type: string, format: date }
         content: { type: string }
         performedBy: { type: string }
