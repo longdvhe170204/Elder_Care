@@ -35,6 +35,8 @@
         <openapi-diff.version>2.1.7</openapi-diff.version>
         <datasource-proxy.version>1.11.0</datasource-proxy.version>
         <bouncycastle.version>1.86</bouncycastle.version>
+        <!-- Số JVM chạy *IT song song; mỗi JVM một schema test riêng (MySqlIntegrationTestBase) -->
+        <it.forkCount>1</it.forkCount>
         <firebase-admin.version>9.11.0</firebase-admin.version>
         <openpdf.version>3.0.5</openpdf.version>
         <fastexcel.version>0.20.2</fastexcel.version>
@@ -252,6 +254,14 @@
                 <!-- *IT: test tích hợp trên MySQL cài trên máy (R-14) -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <forkCount>${it.forkCount}</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <systemPropertyVariables>
+                        <eldercare.it.forkCount>${it.forkCount}</eldercare.it.forkCount>
+                        <eldercare.it.forkNumber>$${surefire.forkNumber}</eldercare.it.forkNumber>
+                    </systemPropertyVariables>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

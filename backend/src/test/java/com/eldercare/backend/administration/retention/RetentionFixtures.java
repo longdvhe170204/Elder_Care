@@ -31,9 +31,18 @@ public class RetentionFixtures {
     public static class Control {
         final Map<RetentionProvider.DataRef, Set<RetentionProvider.DataRef>> references = new HashMap<>();
         final Set<Long> failOnDelete = new HashSet<>();
+        final Map<RetentionProvider.DataRef, Set<RetentionProvider.DataRef>> crossReferences = new HashMap<>();
 
         public void reference(RetentionProvider.DataRef from, RetentionProvider.DataRef to) {
             references.computeIfAbsent(to, k -> new HashSet<>()).add(from);
+        }
+
+        /**
+         * {@code from} trỏ tới {@code to} mà chỉ provider của {@code from} biết (module khác, 000 T112): job tìm qua
+         * {@link RetentionProvider#referencing}, không qua {@code referencesTo} của {@code to}.
+         */
+        public void crossReference(RetentionProvider.DataRef from, RetentionProvider.DataRef to) {
+            crossReferences.computeIfAbsent(to, k -> new HashSet<>()).add(from);
         }
 
         public void failOnDelete(long id) {
@@ -43,6 +52,7 @@ public class RetentionFixtures {
         public void clear() {
             references.clear();
             failOnDelete.clear();
+            crossReferences.clear();
         }
     }
 
@@ -75,15 +85,36 @@ public class RetentionFixtures {
 
         @Override
         public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+            return expiredCandidates(cutoff, null, batch);
+        }
+
+        /** Lấy tiếp sau mốc {@code (at, id)} của ứng viên cuối trang trước (000 T112). */
+        @Override
+        public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
+            LocalDateTime afterAt = after == null
+                    ? LocalDateTime.of(1000, 1, 1, 0, 0)
+                    : LocalDateTime.ofInstant(after.at(), ZoneOffset.UTC);
+            long afterId = after == null ? 0 : after.id();
             return jdbc
                     .query(
-                            "SELECT id, occurred_at FROM " + table + " WHERE occurred_at < ? ORDER BY id LIMIT ?",
+                            "SELECT id, occurred_at FROM " + table + " WHERE occurred_at < ?"
+                                    + " AND (occurred_at > ? OR (occurred_at = ? AND id > ?)) ORDER BY occurred_at, id LIMIT ?",
                             (rs, i) -> new Candidate(
                                     rs.getLong(1),
                                     rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                             LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
+                            afterAt,
+                            afterAt,
+                            afterId,
                             batch)
                     .stream();
+        }
+
+        @Override
+        public Set<DataRef> referencing(DataRef target) {
+            return control.crossReferences.getOrDefault(target, Set.of()).stream()
+                    .filter(from -> from.dataType().equals(type))
+                    .collect(Collectors.toSet());
         }
 
         @Override

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app.dart';
 import 'package:mobile/common/auth/secure_store.dart';
 import 'package:mobile/common/auth/session_controller.dart';
+import 'package:mobile/resident/sos/sos_button.dart';
 
 import '../../support/fake_backend.dart';
 
@@ -28,6 +29,7 @@ void main() {
   setUp(() {
     backend = FakeBackend();
     store = MemoryStore();
+    store.values[sosIntroSeenKey] = 'seen';
     backend.on('POST', '/auth/qr-login', 200, loginResponse());
     backend.on('GET', '/me', 200, residentUser());
   });

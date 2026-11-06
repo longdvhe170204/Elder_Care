@@ -9,6 +9,7 @@ import com.eldercare.backend.support.fake.notification.FakeM13Config;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
@@ -35,6 +36,17 @@ abstract class M13IntegrationTestBase extends MySqlIntegrationTestBase {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    /**
+     * Job giải phóng giờ yên tĩnh quét mọi thông báo đang giữ: đẩy dòng sót của test khác (ví dụ thông báo người thân của
+     * 012 chạy ban đêm theo giờ thật) ra xa để job trong test chỉ gặp dòng của chính nó (CLAUDE.md, mẫu
+     * {@code CallReminderTestBase}).
+     */
+    @BeforeEach
+    void isolateHeldNotices() {
+        jdbc.update("UPDATE notification SET scheduled_send_at = '2099-01-01 00:00:00'"
+                + " WHERE status = 'HELD_FOR_QUIET_HOURS'");
+    }
 
     /** Lệnh nguồn: ghi một bản ghi nghiệp vụ mẫu và phát sự kiện trong cùng transaction. */
     void sourceCommand(String note, HasNotificationRequests event) {

@@ -22,6 +22,14 @@ interface AttachedRetention extends RetentionProvider {
 
     record Attached(long id, Instant at, boolean expired) {}
 
+    /**
+     * Xóa sau bản ghi đi kèm thay vì trước: bản ghi có khóa ngoại trỏ tới phần này (tệp đính kèm, {@code
+     * fk_consent_evidence}…).
+     */
+    default boolean deletedAfterRecords() {
+        return false;
+    }
+
     @Override
     default Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
         return Stream.empty();

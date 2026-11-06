@@ -273,6 +273,7 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | khóa quyền xem nhật ký (Phụ lục 27, dòng "Nhật ký thay đổi": X toàn viện, P trong phạm vi) | `AuditLogPermissions.VIEW` = `(Function.AUDIT_LOG, Operation.VIEW)`; tra cứu toàn viện là kiểm `VIEW` với `Target.UNSPECIFIED` (chỉ phạm vi toàn viện đạt; bỏ `VIEW_FACILITY` khi 002 đổi khóa sang enum) |
 | `NhatKyQueryService`: tra toàn viện, lịch sử một đối tượng, `TrangNhatKy` | `AuditLogQueryService`: `search`, `history`, `Page`; controller `AuditLogController` |
 | SPI `LuuTruProvider`: `loaiDuLieu`, `loaiHan`, `ungVienHetHan`, `thamChieuToi`, `xoa`; `UngVien`, `ThamChieuDuLieu` | `RetentionProvider`: `dataType`, `retentionKind`, `expiredCandidates`, `referencesTo`, `delete`; `Candidate`, `DataRef` |
+| *(bổ sung 2026-11-06, 000 T112)* `LuuTruProvider.dangTroToi`, `ungVienHetHan(moc, sau, lo)`, hàm chia trang; tệp đính kèm trong chuỗi; cỡ lô | `RetentionProvider.referencing(DataRef)`, `expiredCandidates(Instant, Candidate, int)`, `RetentionProvider.page`; `AttachedFileRetention` (`M15.ATTACHED_FILE`), `AttachedRetention.deletedAfterRecords`; thuộc tính `eldercare.retention.batch-size` (mặc định 1000) |
 | `LoaiHan` (`THEO_HO_SO`, `KHONG_GAN_HO_SO`, `DAI_HON(MaThamSo)`) | `RetentionKind` (`ResidentRecord`, `NotResidentLinked`, `Longer(ParameterCode)`) |
 | kết nối tài khoản `eldercare_luu_tru` | `RetentionDatabase` (`jdbc`, `transaction`) |
 | loại dữ liệu lưu giữ của 000: nhật ký, đính chính (đi kèm bản ghi trong chuỗi) | `M15.AUDIT_LOG`, `M15.CORRECTION` (`AuditLogRetention`, `CorrectionRetention`, `AttachedRetention`); một đợt loại bỏ: `ExpiredDataPurge` |
@@ -362,6 +363,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `/nghiep-vu-chuyen-mon`, `…/ngung-hieu-luc` | `/professional-activities`, `…/deactivate` |
 | `/dong-bo`, `/ban-ghi-cho-xem-lai`, `…/chap-nhan`, `…/tu-choi` | `/sync`, `/pending-review-records`, `…/accept`, `…/reject` |
 | header `X-Thiet-Bi`, `X-Yeu-Cau-Tu`; cookie và security scheme `phien` | `X-Device-Id`, `X-Requested-From`; `session` |
+| *(Bổ sung 2026-10-29, 002 T047a)* header `X-Lam-Moi-Nen` (tham số `lamMoiNen` cho luồng SSE): yêu cầu tự làm mới không đếm giờ phiên; `UserInfo.thoiGianKhongThaoTacGiay` (CFG-M15-10 của kênh phiên) | `X-Background-Refresh` (`backgroundRefresh`); `sessionIdleTimeoutSeconds` |
 | tag `xac-thuc`, `tai-khoan`, `phan-quyen`, `nghiep-vu-chuyen-mon`, `ngoai-tuyen` | `auth`, `accounts`, `permissions`, `professional-activities`, `offline` |
 
 ### 7.2. Schema và trường JSON
@@ -2926,6 +2928,58 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | thông báo Q-249 (người đại diện khác) | sự kiện `family.api.events.RightChangesTookEffect`, loại sự kiện `RIGHT_CHANGE_EFFECTIVE_OTHER_REPRESENTATIVES` |
 | màn `tinh-nang/nguoi-than/ho-so/` | `frontend/src/features/relatives/FamilyMembersPage.jsx` (mục menu `family-members`, "Người thân và quyền"), `RelationshipDetail`, `AddRelationshipSheet`, `RegistrationFormSheet`, `relationshipLabels.js` |
 
+### 18.8. Lớp, loại dòng và màn của US3 *(bổ sung 2026-11-05, Phase 4: T014 → T017)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `YeuCauQuyenService` | `family.internal.right.service.RightChangeRequestService` (`create`, `confirm`, `approve`, `reject`, `cancel`, `cancelForEndedRelationship`, `cancelOnFinalStatus`); REST `family.web.RightChangeRequestController` |
+| `KiemTraYeuCau` | `family.internal.right.domain.RightRequestCheck` (hàm thuần: tự bỏ mình FR-014, áp ngay FR-017, trái mong muốn FR-020b, người đại diện theo pháp luật FR-020c); FR-007, FR-010, FR-011 khi bật quyền: `RightGrantRules` |
+| `yeu_cau_quyen` (`khoa_cho`, `trai_mong_muon_id`, `trao_doi_voi_nct`, `ap_ngay_khi_lap`) | `simple_record` loại `M10.RIGHT_CHANGE_REQUEST`; `khoa_cho` là `unique_key` `M10.RCR:<residentId>:<relationshipId hoặc 0>:<right hoặc type>` chỉ khi Chờ xác nhận; `conflictingWishId`, `discussedWithResident`, `appliedOnCreation` trong `RightChangeRequest` |
+| `dau_tu_ve` | `simple_record` loại `M10.SELF_RETURN_FLAG` (`SelfReturnFlag`: `enabled`, `requestId`, `from`), khóa `unique_key` `M10.SELF_RETURN:<residentId>` |
+| `mong_muon_nct` (`khoa_hieu_luc`) | `simple_record` loại `M10.VISIT_PICKUP_WISH` (`VisitPickupWish`); `khoa_hieu_luc` là `unique_key` `M10.WISH:<residentId>:<type>:<relationshipId hoặc G+số giấy tờ>`; bản Được thay thế khóa dòng (bất biến); `MongMuonService` → `VisitPickupWishService` |
+| `ban_ghi_don` (`loai`, `nguoi_than_id`, `can_cu`, `ngoai_le_id`, `xac_minh`, `thoi_diem`, `nhan_vien_ban_giao_id`, `ghi_boi_id`, `het_hieu_luc_luc`); `V012_04__don.sql` *(bổ sung 2026-11-05, 012 Phase 5)* | `pickup_record` (`type`, `family_member_id`, `basis`, `exception_id`, `picker_name`, `id_document_type`, `id_document_number`, `at`, `handover_staff_id`, `recorded_by`, `expires_at`); `V012_04__pickup_record.sql`; loại đối tượng `M10.PICKUP_RECORD` |
+| `ban_ghi_don_su_kien` (`DA_DUNG`, `KHONG_DUNG`, `khoa_da_dung`); `lan_chan_don` (`nguoi_don_khai`, `ly_do`); `yeu_cau_ngoai_le_don` (`CHO_XAC_NHAN`, `HIEU_LUC`, `DA_DUNG`, `HET_HAN`, `TU_CHOI`, `HUY`; cách `CONG`, `QL_DUYET`) | `record_event` loại `M10.PICKUP_RECORD_EVENT` (`PickupOutcome`: `USED`, `NOT_USED`; khóa kết quả `M10.PICKUP_DONE:<id>`); `record_event` loại `M10.PICKUP_BLOCK` (`PickupBlock`: `NOT_ON_LIST`, `ID_DOCUMENT_MISMATCH`, `EXCEPTION_EXPIRED`, `SELF_RETURN_OFF`); `simple_record` loại `M10.PICKUP_EXCEPTION` (`PickupException`: `PENDING_CONFIRMATION`, `EFFECTIVE`, `USED`, `EXPIRED`, `REJECTED`, `CANCELLED`; cách `PORTAL`, `MANAGER_APPROVAL`) |
+| `DonService`, việc hết hiệu lực, ngoại lệ hết hạn; sự kiện báo chặn đón, ngoại lệ cần xác nhận | `PickupService`, `PickupPorts` (bản cài `PickupRecordPort`, `DayCarePickupPort`), `PickupOutcomes`; việc `PICKUP_RECORD_EXPIRY`, `PICKUP_EXCEPTION_EXPIRY`; `PickupBlockNotice` (`PICKUP_BLOCKED`), `PickupExceptionNotice` (`PICKUP_EXCEPTION_NEEDS_CONFIRMATION`); trường lỗi `blockReason` |
+| nhắc CFG-M10-11 trong `ViecHangGioM10` | `RightChangeReminders` (`M10TimedTask` theo giờ), dấu `reminder_marker` loại `M10.RIGHT_CHANGE_REMINDER` (`REMIND`, `NOTIFY_MANAGER`) |
+| thông báo "cần xác nhận", "có kết quả", nhắc (FR-019, FR-069) | sự kiện `family.api.events.RightChangeRequestNotice` (`RIGHT_CHANGE_NEEDS_CONFIRMATION`, `RIGHT_CHANGE_DECIDED`, `RIGHT_CHANGE_REMINDER`, `RIGHT_CHANGE_MANAGER_NOTICE`) |
+| màn `tinh-nang/nguoi-than/yeu-cau-quyen/` | `frontend/src/features/relatives/right-change-requests/` (`RightChangeRequestTable`, `RightChangeRequestDetail`, `CreateRightChangeRequestSheet`, `VisitPickupWishes`, `requestLabels.js`), gắn vào `FamilyMembersPage` |
+| app người thân xác nhận yêu cầu | `mobile/lib/family/right_change_requests/right_change_requests_screen.dart` (`RightChangeRequestsScreen`), tab "Yêu cầu" của `FamilyRoot` |
+
+### 18.9. Lớp, bảng và màn của US6 *(bổ sung 2026-11-05, Phase 8: T029, T030)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `phan_hoi` (`nct_id`, `nguoi_than_id`, `loai`, `nhom`, `nguon` `CONG`/`QUAY`, `gui_luc`, `muc`, `moc_tinh_han`, `han_xu_ly`, `phu_trach_vai_tro`, `phu_trach_id`, `trang_thai`, `qua_han`, `han_da_leo_thang`, `da_phan_hoi_luc`, `dong_luc`, `cach_dong` `NGUOI_GUI`/`TU_DONG`); `V012_07__phan_hoi.sql` | `feedback` (`resident_id`, `family_member_id`, `type`, `content_group`, `source` `PORTAL`/`COUNTER`, `submitted_at`, `priority`, `due_basis_at`, `due_at`, `assignee_role` `FLOOR_MANAGER`/`NURSING_STAFF`/`OFFICE_STAFF`/`NURSING_HOME_MANAGER`, `assignee_account_id`, `status`, `overdue`, `escalated_due_at`, `replied_at`, `closed_at`, `close_method` `SENDER`/`AUTO`); `V012_07__feedback.sql`; đối tượng `M10.FEEDBACK` |
+| `phan_hoi_muc` (`NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`, `MO_LAI`; `phan_loai_thong_tin`) | `record_event` loại `M10.FEEDBACK_ITEM` gắn `M10.FEEDBACK` (`FeedbackItem`: `CONTENT`, `REPLY`, `HANDLING_DIRECTION`, `NOTE`, `REASSIGNMENT`, `PRIORITY_CHANGE`, `REOPEN`; `healthInformation`, `fileIds`) |
+| `PhanHoiService`, `HanPhanHoi`; việc quá hạn, tự đóng | `family.internal.feedback.service.FeedbackService` (`submit`, `list`, `get`, `startHandling`, `reply`, `addNote`, `reassign`, `changePriority`, `agreeToClose`, `reopen`), `domain.FeedbackDeadline`, `persistence.FeedbackStore`, `service.FeedbackRules`, `FeedbackRetention`, `config.FeedbackConfig`; việc `FEEDBACK_ESCALATION`, `FEEDBACK_AUTO_CLOSE`; REST `family.web.FeedbackController` (`SubmitFeedbackRequest`, `FeedbackCommandRequest`, `FeedbackResponse`, `FeedbackDetailResponse`) |
+| thông báo phản hồi mới, giao lại, mở lại; đã trả lời; quá hạn | sự kiện `family.api.events.FeedbackNotice` (`ASSIGNED`, `REPLIED`, `ESCALATED`; loại sự kiện `FEEDBACK_ASSIGNED`, `FEEDBACK_REPLIED`, `FEEDBACK_ESCALATED`) |
+| chi tiết cho người xem: cảnh báo người gửi không có quyền sức khỏe; phần sức khỏe bị ẩn | `senderHealthRightEffective`, `healthReplyHidden` |
+| đổi api 2026-11-05 (chủ dự án duyệt): tên người gửi, thời điểm gửi; mục phản hồi; chi tiết phản hồi; lệnh được phép; người nhận giao lại được | `Feedback` thêm `familyMemberName`, `submittedAt`; schema `FeedbackItem` (`id`, `type`, `content`, `fileIds`, `byAccountId`, `at`), `FeedbackDetail` (`allOf` `Feedback` và `source`, `assigneeId`, `repliedAt`, `closedAt`, `closeMethod`, `items`, `senderHealthRightEffective`, `healthReplyHidden`, `allowedCommands`); `GET /feedback/{id}/assignable-staff` → `AssignableStaff` (`accountId`, `fullName`, `role` `FLOOR_MANAGER`/`NURSING_STAFF`/`OFFICE_STAFF`); `FeedbackService.assignableStaff`, `AssignableView`; `AssignableStaffResponse` |
+| màn `tinh-nang/nguoi-than/phan-hoi/`; cổng P8; app người thân | `frontend/src/features/relatives/feedback/` (`FeedbackPage`, `feedbackLabels.js`; mục menu `feedback`), `features/family-portal/live/LiveFeedbackPage.jsx`; `mobile/lib/family/feedback/feedback_screen.dart` (`FeedbackScreen`, tab "Phản hồi" của `FamilyRoot`) |
+
+### 18.10. Lớp, cột và việc của US9 *(bổ sung 2026-11-05, Phase 10a: T062 → T069)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `phan_hoi.nguoi_gui_loai` (`NGUOI_THAN`, `NGUOI_CAO_TUOI`), `ghi_thay_boi_id`, `chu_de_mong_muon` (`KHACH_THAM_NGUOI_DON`, `KHAC`); nguồn `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`; cách đóng `GHI_THAY`; `V012_10__kenh_nguoi_cao_tuoi.sql` | `feedback.sender_type` (`FAMILY_MEMBER`, `RESIDENT`), `recorded_on_behalf_by`, `wish_topic` (`VISITORS_PICKERS`, `OTHER`); `source` `RESIDENT_CHANNEL`, `RECORDED_DIRECTLY`; `close_method` `RECORDED_ON_BEHALF`; `V012_10__resident_channel.sql`; `Feedback.SenderType`, `Feedback.WishTopic`, `Feedback.Sender` |
+| mục `DOI_LOAI` | `FeedbackItem.Type.TYPE_CHANGE` |
+| `phan_hoi_y_kien` (`loai_muc` `MONG_MUON_NCT`, `SO_THICH`) | `record_event` loại `M10.FEEDBACK_OPINION` gắn `M10.FEEDBACK` (`FeedbackOpinion`: `VISIT_PICKUP_WISH`, `INTEREST`; khóa `unique_key` `M10.FBO:<feedbackId>:<itemType>:<itemId>`) |
+| lệnh `doi-loai`, `gan-y-kien`; nghe `YKienDaGhiTuPhanHoi`; mã lỗi `CHUA_GAN_Y_KIEN` | `FeedbackService.changeType`, `linkOpinion`, `onOpinionRecorded` (`resident.api.events.OpinionRecordedFromFeedback`); `OPINION_NOT_LINKED` (409) |
+| `KenhNguoiCaoTuoiService`, `KenhNguoiCaoTuoiController` | `family.internal.residentchannel.service.ResidentChannelService` (`self`, `today`, `menu`, `upcomingActivities`, `upcomingVisits`, `heldBelongings`; `ChannelVisit`, `ChannelActivity`, `ChannelBelonging`, `ChannelDayCare`, `Today`, `Section`), `family.web.ResidentChannelController` (`ResidentChannelFeedbackRequest`); `VisitQueries.approvedFrom` |
+| bản giả `HoatDongKenhNctPort`, `DoGuiKenhNctPort` | `support/fake/family/FakeResidentChannelActivities`, `FakeResidentChannelBelongings` |
+| job `NhacLuotThamNct` (FR-069) | việc nửa đêm `VISIT_RESIDENT_REMINDER`, `internal.visit.service.ResidentVisitReminders`; sự kiện `family.api.events.ResidentVisitReminder` (loại sự kiện `VISIT_RESIDENT_REMINDER`, nhóm `RecipientGroup.Resident`) |
+
+### 18.11. Lượt ở lại *(bổ sung 2026-11-05, Phase 10 US8: T034, T035)*
+
+| Tên logic | Mã |
+| --- | --- |
+| `luot_o_lai`, `OLaiService`, `OLaiController` | `simple_record` loại `M10.FAMILY_STAY` (`family.internal.stay.domain.FamilyStay`, `Status` `PENDING_CONFIRMATION`, `CONFIRMED`, `REJECTED`, `STAYING`, `ENDED`, `CANCELLED`); `internal.stay.service.FamilyStayService` (`register`, `list`, `confirm`, `reject`, `start`, `cancel`, `extend`, `end`); `web.FamilyStayController` |
+| `luot_o_lai_gia_han` | `record_event` loại `M10.FAMILY_STAY_EXTENSION` gắn `M10.FAMILY_STAY` (`FamilyStay.Extension`: `previousExpectedEndAt`, `newExpectedEndAt`, `reason`) |
+| `dem_o_lai`, `SoDem`, job đêm ở lại | `reminder_marker` loại `M10.STAY_NIGHT` (hủy: `M10.STAY_NIGHT_CANCELLED`), `entity_type` `M10.FAMILY_STAY`, `marker` là ngày bắt đầu của đêm; `internal.stay.domain.NightCount`; việc nửa đêm `FAMILY_STAY_NIGHTS` (`internal.stay.service.StayNights`) |
+| `SuKienTinhPhiNguon(DEM_O_LAI)` | `CostSourceBilled` (`sourceType` `OVERNIGHT_STAY`, `sourceId` `<stayId>:<ngày>`, `unit` `NIGHT`, `serviceId` trống, `quantity` 1); hủy đêm: `CostSourceChanged` (`cancelled` true) |
+| thông báo lượt ở lại (cần xác nhận, xác nhận/từ chối, nhắc kết thúc) | `family.api.events.FamilyStayNotice` (`Kind` `REGISTERED`, `CONFIRMED`, `REJECTED`, `END_REMINDER`); nhắc kết thúc: `internal.stay.service.StayEndReminders` |
+| `SoDemTest`, `BR_M10_04_DemOLaiIT`, `FR_040_GioiHanOLaiIT` | `NightCountTest`, `BR_M10_04_OvernightStayIT`, `FR_040_StayLimitIT` (nền `StayTestBase`) |
+
 ## 19. Feature 013 (`013-personal-belongings`, B)
 
 *Chủ feature điền khi dịch `contracts/api-013.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
@@ -2983,6 +3037,7 @@ Dùng lại bản dịch đã có: người thân `familyMember` (002), loại q
 | --- | --- |
 | tiền tố `NCT`, `GIUONG`, `CV`, `BUA`, `HD`, `KT`, `SK`, `THUOC`, `CA`, `GP`, `CP`, `SD`, `KB`, `TS`, `KHO` | `RES`, `BED`, `TASK`, `MEAL`, `ACT`, `QC`, `HEALTH`, `MED`, `SHIFT`, `LICENSE`, `COST`, `BALANCE`, `REGISTRATION`, `ASSET`, `INVENTORY` |
 | `NCT.DANG_LUU_TRU`, `NCT.TAI_NGAY`, `NCT.BIEN_DONG`, `NCT.DANH_SACH_CHO` | `RES.IN_RESIDENCE`, `RES.AT_DATE`, `RES.MOVEMENTS`, `RES.WAITING_LIST` |
+| *(bổ sung 2026-11-06, 016 T106)* `NCT.THOI_GIAN_CHO`, `NCT.THOI_GIAN_CHO_DAI_NHAT` | `RES.WAITING_TIME`, `RES.WAITING_TIME_MAX` |
 | `GIUONG.TRANG_THAI`, `GIUONG.CHO_SAN_SANG` | `BED.STATUS`, `BED.AWAITING_READY` |
 | *(bổ sung 2026-10-27)* `GIUONG.CO_THE_DUNG`, `GIUONG.PHONG_CACH_LY`, `GIUONG.SO_NGUOI`, `GIUONG.TRONG_CHO_CHUYEN`, `GIUONG.CHO_SAN_SANG_DAI_NHAT`, `GIUONG.CHO_SAN_SANG_VUOT_HAN` | `BED.USABLE`, `BED.ISOLATED_ROOMS`, `BED.OCCUPANTS`, `BED.EMPTY_AWAITING_TRANSFER`, `BED.AWAITING_READY_MAX`, `BED.AWAITING_READY_OVERDUE` |
 | `CV.HOM_NAY`, `CV.QUA_HAN`, `CV.THEO_TRANG_THAI`, `CV.TY_LE_DUNG_HAN_BAT_BUOC`, `CV.GHI_NHAN_MUON`, `CV.THEO_NHAN_VIEN` | `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` |
