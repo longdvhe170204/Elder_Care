@@ -32,6 +32,13 @@ class RequiresPermissionArchTest {
                     "PermissionApi.hasPermission DISH_MENU: UPDATE cho lệnh của Nhân viên bếp, APPROVE cho lệnh của Bác sĩ,"
                             + " ngừng hiệu lực một trong hai (bảng trạng thái món, Q-308); 011 FR-004a"),
             Map.entry(
+                    "com.eldercare.backend.nutrition.internal.slip.service.MealSlipService.floorCommand",
+                    "PermissionApi.hasPermission MEAL_RECEIPT (CONFIRM nhận, CREATE báo sai lệch) theo tầng/khu của phiếu;"
+                            + " ngoài phạm vi trả 403 OUT_OF_RECEIVING_SCOPE (quickstart Q33); 011 FR-048"),
+            Map.entry(
+                    "com.eldercare.backend.nutrition.internal.slip.service.MealSlipService.supplementFloorCommand",
+                    "như floorCommand, trên phần bổ sung của phiếu; 011 FR-048b"),
+            Map.entry(
                     "com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.editContent",
                     "khóa Lập theo loại yêu cầu (RequestTypeHandler.createPermission), chỉ người yêu cầu; 000 FR-034"),
             Map.entry(

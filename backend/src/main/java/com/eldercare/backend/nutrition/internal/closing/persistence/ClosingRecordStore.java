@@ -12,7 +12,10 @@ import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.Ad
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.ExtraPortionRequest;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.FamilyMeal;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.MealSlip;
+import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.RetainedSampleMarker;
+import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SlipDiscrepancy;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SpecialPortion;
+import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SupplementaryPortion;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -70,6 +73,76 @@ public class ClosingRecordStore {
 
     public List<SimpleRecord<MealSlip>> slips(long dailyMealId) {
         return records.listByParent(MealSlip.KIND, dailyMeal(dailyMealId));
+    }
+
+    public SimpleRecord<MealSlip> lockSlip(long id) {
+        return records.lockForUpdate(MealSlip.KIND, id);
+    }
+
+    public SimpleRecord<MealSlip> requireSlip(long id) {
+        return records.require(MealSlip.KIND, id);
+    }
+
+    /** Đổi trạng thái, nội dung phiếu; giữ {@code uniqueKey} (bảng chung ghi lại cột này mỗi lần đổi; DBR-27). */
+    public SimpleRecord<MealSlip> changeSlip(SimpleRecord<MealSlip> row, String status, MealSlip content) {
+        String key = MealSlip.key(content.dailyMealId(), content.floorAreaId());
+        return records.change(
+                        MealSlip.KIND, row.id(), row.version(), new RecordChange<>(status, content, null, key, false))
+                .after();
+    }
+
+    public static EntityRef slipRef(long slipId) {
+        return new EntityRef(MealSlip.KIND.code(), slipId);
+    }
+
+    public RecordEvent<SupplementaryPortion> addSupplement(SupplementaryPortion portion, long actor, Instant at) {
+        return events.add(
+                SupplementaryPortion.KIND,
+                slipRef(portion.slipId()),
+                new NewRecordEvent<>(portion, null, actor, false, at, null, null, portion.floorAreaId(), null));
+    }
+
+    public List<RecordEvent<SupplementaryPortion>> supplements(long slipId) {
+        return events.list(SupplementaryPortion.KIND, slipRef(slipId));
+    }
+
+    public RecordEvent<SupplementaryPortion> supplement(long id) {
+        return events.require(SupplementaryPortion.KIND, id);
+    }
+
+    public void deliverSupplement(RecordEvent<SupplementaryPortion> row, long by, Instant at) {
+        events.updateDraft(SupplementaryPortion.KIND, row.id(), row.content().delivered(by, at));
+    }
+
+    /** Nhận phần bổ sung: đặt người, thời điểm nhận rồi khóa dòng (nhóm 3). */
+    public void receiveSupplement(RecordEvent<SupplementaryPortion> row, long by, Instant at) {
+        events.updateDraft(SupplementaryPortion.KIND, row.id(), row.content().received(by, at));
+        events.confirm(SupplementaryPortion.KIND, row.id(), at);
+    }
+
+    public RecordEvent<SlipDiscrepancy> addDiscrepancy(
+            SlipDiscrepancy discrepancy, long actor, Instant at, long floor) {
+        return events.add(
+                SlipDiscrepancy.KIND,
+                slipRef(discrepancy.slipId()),
+                new NewRecordEvent<>(discrepancy, null, actor, false, at, null, null, floor, null));
+    }
+
+    public List<RecordEvent<SlipDiscrepancy>> discrepancies(long slipId) {
+        return events.list(SlipDiscrepancy.KIND, slipRef(slipId));
+    }
+
+    /** Ghi xử lý sai lệch (đặt một lần) rồi khóa dòng; lịch sử sai lệch giữ nguyên (BR-M08-11). */
+    public void resolveDiscrepancy(
+            RecordEvent<SlipDiscrepancy> row, String resolution, String description, long by, Instant at) {
+        events.updateDraft(SlipDiscrepancy.KIND, row.id(), row.content().resolved(resolution, description, by));
+        events.confirm(SlipDiscrepancy.KIND, row.id(), at);
+    }
+
+    /** Bữa ngày đã có bản ghi lưu mẫu (FR-047, FR-060; bản ghi do Phase 11 lập). */
+    public boolean hasRetainedSample(long dailyMealId) {
+        return !records.listByParent(RetainedSampleMarker.KIND, dailyMeal(dailyMealId))
+                .isEmpty();
     }
 
     public SimpleRecord<SpecialPortion> createSpecial(long slipId, SpecialPortion portion, long by) {
