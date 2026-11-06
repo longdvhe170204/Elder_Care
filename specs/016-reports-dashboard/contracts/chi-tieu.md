@@ -10,6 +10,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `NCT.TAI_NGAY` | Người cao tuổi | 001, 004 | FR-022 |
 | `NCT.BIEN_DONG` | Người cao tuổi | 001 `bienDong` | FR-023 |
 | `NCT.DANH_SACH_CHO` | Danh sách chờ | 004 `LuuTruThongKeApi.danhSachCho` | FR-025 |
+| `NCT.THOI_GIAN_CHO`, `NCT.THOI_GIAN_CHO_DAI_NHAT` *(bổ sung 2026-11-06, 016 T106)* | Danh sách chờ | 004 `LuuTruThongKeApi.danhSachCho` | FR-025 (thời gian chờ trung bình, dài nhất của hồ sơ đang chờ, ngày) |
 | `GIUONG.TRANG_THAI` | Phòng, giường | 003 `TinhTrangGiuongApi.demTheoTrangThai`, `GiuongThongKeApi.trangThaiTaiNgay`; 019 dấu chờ chuyển người | FR-020, FR-024 |
 | `GIUONG.CO_THE_DUNG` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `GiuongThongKeApi.trangThaiTaiNgay` | FR-020 (tổng giường có thể dùng, Q-246) |
 | `GIUONG.PHONG_CACH_LY` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `GiuongThongKeApi.phongCachLy` | FR-020 |

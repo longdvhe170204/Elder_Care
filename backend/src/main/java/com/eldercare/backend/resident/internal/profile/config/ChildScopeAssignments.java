@@ -11,7 +11,13 @@ class ChildScopeAssignments {
 
     @Bean
     ChildScopeAssignment statusHistoryScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.RESIDENT_STATUS_HISTORY", "resident_status_history", records);
+        // Dòng status_history của M01.RESIDENT, thuộc tính STATUS (001 T084)
+        return new ChildScopeAssignment(
+                "M01.RESIDENT_STATUS_HISTORY",
+                "status_history",
+                "entity_id",
+                " AND entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'",
+                records);
     }
 
     @Bean
@@ -21,7 +27,9 @@ class ChildScopeAssignments {
 
     @Bean
     ChildScopeAssignment initialHealthRecordScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.INITIAL_HEALTH_RECORD", "initial_health_record", records);
+        // Dòng simple_record M01.INITIAL_HEALTH_RECORD (001 T084)
+        return new ChildScopeAssignment(
+                "M01.INITIAL_HEALTH_RECORD", "simple_record", " AND kind = 'M01.INITIAL_HEALTH_RECORD'", records);
     }
 
     @Bean
@@ -36,11 +44,11 @@ class ChildScopeAssignments {
 
     @Bean
     ChildScopeAssignment endOfLifeWishScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.END_OF_LIFE_WISH", "end_of_life_wish", records);
+        return new ChildScopeAssignment("M01.END_OF_LIFE_WISH", "wish", " AND kind = 'END_OF_LIFE'", records);
     }
 
     @Bean
     ChildScopeAssignment treatmentWishScope(ResidentRecordStore records) {
-        return new ChildScopeAssignment("M01.TREATMENT_WISH", "treatment_wish", records);
+        return new ChildScopeAssignment("M01.TREATMENT_WISH", "wish", " AND kind = 'TREATMENT'", records);
     }
 }

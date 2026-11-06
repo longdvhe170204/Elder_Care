@@ -45,6 +45,8 @@ public class AddendumStore {
     private static final String SELECT = "SELECT * FROM contract_version WHERE kind = 'ADDENDUM'";
     private static final String NOT_PENDING = "NOT_PENDING";
     private static final String PENDING = "PENDING";
+    /** Thuộc tính bị bỏ khi sửa Nháp (T043); không bị đọc lại. */
+    private static final String REMOVED = "REMOVED";
 
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
@@ -147,6 +149,24 @@ public class AddendumStore {
         }
     }
 
+    /**
+     * Sửa Nháp (T043): thuộc tính bỏ đi hoặc của hợp đồng cũ chuyển {@code REMOVED}, thuộc tính mới thêm dòng. Yêu cầu
+     * còn Nháp nên chưa dòng nào chờ hiệu lực.
+     */
+    public void replaceAttributes(
+            long approvalRequestId, long contractId, long residentId, Set<ChangeType> types, long actorId) {
+        for (SimpleRecord<ChangeAttribute> row : attributesOf(approvalRequestId)) {
+            if (!types.contains(row.content().attribute()) || row.content().contractId() != contractId) {
+                records.change(
+                        ChangeAttribute.KIND,
+                        row.id(),
+                        row.version(),
+                        new RecordChange<>(REMOVED, row.content(), null, null, false));
+            }
+        }
+        addAttributes(approvalRequestId, contractId, residentId, types, actorId);
+    }
+
     /** Đặt cờ chờ hiệu lực của mọi thuộc tính của yêu cầu; đặt TRUE vi phạm UNIQUE nếu yêu cầu khác đang giữ thuộc tính. */
     public void setPending(long approvalRequestId, boolean pending) {
         for (SimpleRecord<ChangeAttribute> row : attributesOf(approvalRequestId)) {
@@ -177,7 +197,7 @@ public class AddendumStore {
 
     /** Mã yêu cầu đã ghi nhận cho thuộc tính của người cao tuổi, mới nhất trước (trạng thái xét ở yêu cầu phê duyệt). */
     public List<Long> requestsOf(long residentId, ChangeType attribute) {
-        return records.listByResident(ChangeAttribute.KIND, residentId, Set.of()).stream()
+        return records.listByResident(ChangeAttribute.KIND, residentId, Set.of(NOT_PENDING, PENDING)).stream()
                 .map(SimpleRecord::content)
                 .filter(content -> content.attribute() == attribute)
                 .map(ChangeAttribute::approvalRequestId)
@@ -187,7 +207,7 @@ public class AddendumStore {
 
     /** Mã mọi yêu cầu đã ghi nhận của người cao tuổi, mới nhất trước. */
     public List<Long> requestsOf(long residentId) {
-        return records.listByResident(ChangeAttribute.KIND, residentId, Set.of()).stream()
+        return records.listByResident(ChangeAttribute.KIND, residentId, Set.of(NOT_PENDING, PENDING)).stream()
                 .map(row -> row.content().approvalRequestId())
                 .distinct()
                 .sorted(Comparator.reverseOrder())
@@ -203,7 +223,9 @@ public class AddendumStore {
     }
 
     private List<SimpleRecord<ChangeAttribute>> attributesOf(long approvalRequestId) {
-        return records.listByParent(ChangeAttribute.KIND, new EntityRef(REQUEST_ENTITY, approvalRequestId));
+        return records.listByParent(ChangeAttribute.KIND, new EntityRef(REQUEST_ENTITY, approvalRequestId)).stream()
+                .filter(row -> !REMOVED.equals(row.status()))
+                .toList();
     }
 
     private static String uniqueKey(Long residentId, ChangeType attribute) {

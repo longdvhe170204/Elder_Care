@@ -2,8 +2,8 @@ package com.eldercare.backend.staffing.internal.service;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
-import com.eldercare.backend.staffing.assignment.internal.persistence.AssignmentStore;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.assignment.persistence.AssignmentStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 
 /** Phạm vi bản ghi phân công là ca quản lý nó; giao Trưởng tầng là tầng/khu được giao. */
 public class AssignmentScopeAssignment implements ScopeAssignmentProvider {

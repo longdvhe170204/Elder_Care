@@ -21,14 +21,44 @@ public interface RetentionProvider {
     /** Bản ghi có mốc tính hạn trước {@code cutoff}, tối đa {@code batch} bản ghi. */
     Stream<Candidate> expiredCandidates(Instant cutoff, int batch);
 
+    /**
+     * Trang tiếp theo của {@link #expiredCandidates(Instant, int)}: ứng viên xếp theo {@code (at, id)} tăng dần, đứng sau
+     * {@code after} (rỗng là trang đầu). Job lặp trang để ứng viên đầu danh sách bị giữ (FR-051a) không chặn ứng viên
+     * sau (000 T112). Mặc định chỉ có trang đầu, như trước khi có hàm này.
+     */
+    default Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
+        return after == null ? expiredCandidates(cutoff, batch) : Stream.empty();
+    }
+
     /** Bản ghi đang trỏ tới bản ghi {@code id} của loại này (FR-051a). */
     Set<DataRef> referencesTo(long id);
+
+    /**
+     * Bản ghi của loại này đang trỏ tới {@code target}, một bản ghi của loại khác (FR-051a; 000 T112): module có bản ghi
+     * gắn hồ sơ người cao tuổi của module khác trả các bản ghi đó, vì provider của hồ sơ không biết module khác. Mặc
+     * định rỗng.
+     */
+    default Set<DataRef> referencing(DataRef target) {
+        return Set.of();
+    }
 
     /** Xóa bằng tài khoản {@code eldercare_retention}, trong transaction của job. */
     void delete(Collection<Long> ids);
 
     /** Một bản ghi đã qua hạn, kèm mốc tính hạn. */
     record Candidate(long id, Instant at) {}
+
+    /**
+     * Trang của {@code all} theo {@link #expiredCandidates(Instant, Candidate, int)}: xếp theo {@code (at, id)}, đứng sau
+     * {@code after}, tối đa {@code batch}; cho provider dựng ứng viên trong bộ nhớ (000 T112).
+     */
+    static Stream<Candidate> page(Stream<Candidate> all, Candidate after, int batch) {
+        java.util.Comparator<Candidate> order =
+                java.util.Comparator.comparing(Candidate::at).thenComparingLong(Candidate::id);
+        return all.filter(c -> after == null || order.compare(c, after) > 0)
+                .sorted(order)
+                .limit(batch);
+    }
 
     /** Tham chiếu tới một bản ghi của loại dữ liệu khác. */
     record DataRef(String dataType, long id) {}

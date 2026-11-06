@@ -1,7 +1,9 @@
 package com.eldercare.backend.admission.internal.change.service;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
+import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -84,6 +86,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<RepresentativePort> representatives;
+    private final ObjectProvider<AccountApi> accounts;
 
     private final ObjectProvider<BedAllocationCommandApi> beds;
 
@@ -100,7 +103,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             ApplicationEventPublisher events,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
-            ObjectProvider<RepresentativePort> representatives) {
+            ObjectProvider<RepresentativePort> representatives,
+            ObjectProvider<AccountApi> accounts) {
         this.beds = beds;
         this.contracts = contracts;
         this.addenda = addenda;
@@ -114,6 +118,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         this.time = time;
         this.currentUser = currentUser;
         this.representatives = representatives;
+        this.accounts = accounts;
     }
 
     @Override
@@ -145,6 +150,23 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 throw new PermissionDeniedException("Chỉ người đại diện hiệu lực lập yêu cầu qua cổng (FR-039)");
             }
         }
+    }
+
+    /**
+     * Sửa, gửi duyệt Nháp (FR-039): người yêu cầu, hoặc Hành chính khi người yêu cầu là người đại diện gửi qua cổng người
+     * thân (tài khoản người thân). Hủy vẫn chỉ người yêu cầu (000).
+     */
+    @Override
+    public boolean mayActOnDraft(CurrentUser user, ApprovalRequestView request) {
+        if (request.requesterId() == user.accountId()) {
+            return true;
+        }
+        return user.roles().contains(Role.OFFICE_STAFF)
+                && accounts.getObject()
+                        .byId(request.requesterId())
+                        .map(AccountView::type)
+                        .filter(type -> type == AccountType.FAMILY_MEMBER)
+                        .isPresent();
     }
 
     /** Hành chính, Bác sĩ, người đại diện lập (Phụ lục 27 dòng "Yêu cầu thay đổi lưu trú", ô T). */

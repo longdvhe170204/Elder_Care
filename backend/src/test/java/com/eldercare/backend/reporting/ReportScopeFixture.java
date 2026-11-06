@@ -2,7 +2,7 @@ package com.eldercare.backend.reporting;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import java.sql.Statement;
@@ -49,7 +49,9 @@ final class ReportScopeFixture {
                         month,
                         floor));
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu báo cáo]','07:00','15:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) VALUES ('M09.SHIFT_TEMPLATE','M09',?,'ACTIVE',JSON_OBJECT('createdAt',?,'startTime','07:00:00','endTime','15:00:00','scopeType','FLOOR','requiresHandover',CAST('false' AS JSON),'originalName','[Mẫu báo cáo]'))",
+                "[Mẫu báo cáo] #" + TestUsers.nextId(),
+                start.toString());
         return insert(
                 "INSERT INTO work_shift(schedule_id,template_id,scope_type,scope_id,starts_at,ends_at,requires_handover,status) VALUES (?,?,'FLOOR',?,?,?,FALSE,?)",
                 schedule,
@@ -89,7 +91,7 @@ final class ReportScopeFixture {
 
     void lead(long shift, long staff, Instant from) {
         jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,command,by_system) VALUES ('M09.SHIFT',?,'LEAD_STAFF','M09','PERIOD',?,?,'SCHEDULED',FALSE)",
                 shift,
                 staff,
                 ShiftStore.sql(from));
@@ -98,7 +100,7 @@ final class ReportScopeFixture {
     /** Giao Trưởng tầng; {@code to} rỗng là chưa kết thúc. */
     void floorManager(long staff, long floor, Instant from, Instant to) {
         jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,ends_at,assigned_by) VALUES (?,?,?,?,1)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,ends_at,assigned_by,status) VALUES ('FLOOR_MANAGER',?,?,?,?,1,'ACTIVE')",
                 staff,
                 floor,
                 ShiftStore.sql(from),

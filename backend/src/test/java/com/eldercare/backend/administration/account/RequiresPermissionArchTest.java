@@ -92,7 +92,101 @@ class RequiresPermissionArchTest {
                     "com.eldercare.backend.administration.account.internal.auth.service.ResidentAccountService"
                             + ".createLoginCodeForResident",
                     "PermissionApi.hasPermission (RESIDENT_ACCOUNT, CREATE) trên người cao tuổi; Điều dưỡng chỉ trong phạm"
-                            + " vi (Phụ lục 27 ⁴⁸); 002 FR-069"));
+                            + " vi (Phụ lục 27 ⁴⁸); 002 FR-069"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.right.service.RightChangeRequestService.create",
+                    "người thân theo FR-014 (người đại diện, hoặc tự bỏ mình), nhân viên PermissionApi.hasPermission"
+                            + " (FAMILY_MEMBER_PERMISSION, CREATE); 012 FR-013, FR-014"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.right.service.RightChangeRequestService.confirm",
+                    "người đại diện Hiệu lực qua cổng, hoặc Hành chính (FAMILY_MEMBER_PERMISSION, UPDATE) ghi bản ký;"
+                            + " không phải người bị đặt/thôi; 012 FR-005, FR-015"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.right.service.RightChangeRequestService.reject",
+                    "người đại diện Hiệu lực qua cổng, hoặc Quản lý viện (FAMILY_MEMBER_PERMISSION, APPROVE); 012"
+                            + " FR-015"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.right.service.RightChangeRequestService.cancel",
+                    "chỉ người lập yêu cầu (data-model 012 mục 3)"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.record",
+                    "PermissionApi.hasPermission Tạo của lệnh nguồn theo loại đón rồi (PICKUP, CREATE); 012 FR-022,"
+                            + " Phụ lục 27 ¹⁹"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.createException",
+                    "(PICKUP, CREATE) và Tạo của ít nhất một lệnh nguồn; 012 FR-022, FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.confirm",
+                    "người đại diện Hiệu lực qua cổng (PICKUP, UPDATE, chú thích ²); 012 FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.reject",
+                    "người đại diện (PICKUP, UPDATE) hoặc Quản lý viện (PICKUP, APPROVE); 012 FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.pickup.service.PickupService.cancel",
+                    "Chờ xác nhận: người lập; Hiệu lực: người đại diện hoặc Quản lý viện kèm lý do; 012 FR-024"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.register",
+                    "(VISIT_REGISTRATION, CREATE); người thân cần quyền đăng ký thăm, Hành chính đăng ký thay; 012 FR-029"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.cancel",
+                    "(VISIT_REGISTRATION, UPDATE); người thân chỉ lượt của mình, Hành chính kèm lý do; 012 FR-035"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.checkIn",
+                    "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-033, FR-067"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.visit.service.VisitService.checkOut",
+                    "(VISIT_REGISTRATION, UPDATE), chỉ nhân viên; 012 FR-034, FR-067"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.submit",
+                    "(FEEDBACK, CREATE); người thân cho chính mình, Hành chính ghi thay; 012 FR-058"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.startHandling",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reply",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.addNote",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-065"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reassign",
+                    "Trưởng tầng, Hành chính (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-060"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.changePriority",
+                    "người phụ trách: (FEEDBACK, UPDATE), Quản lý viện (FEEDBACK, APPROVE); 012 FR-062"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.agreeToClose",
+                    "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ); 012 FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.reopen",
+                    "người gửi (FEEDBACK, UPDATE, phạm vi quan hệ) kèm lý do; 012 FR-061, FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.changeType",
+                    "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi) kèm lý do; 012 FR-058b, FR-066"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.feedback.service.FeedbackService.linkOpinion",
+                    "người phụ trách (FEEDBACK, UPDATE hoặc APPROVE trong phạm vi); 012 BR-M10-12"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.register",
+                    "(FAMILY_STAY, CREATE) theo người cao tuổi, chỉ Hành chính; 012 FR-040, Phụ lục 27 chú thích 20"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.confirm",
+                    "(FAMILY_STAY, VIEW) rồi Trưởng tầng được giao của tầng, tầng không có thì Quản lý viện; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.reject",
+                    "(FAMILY_STAY, VIEW) rồi Trưởng tầng được giao của tầng, tầng không có thì Quản lý viện, kèm lý do"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.start",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, Hành chính hoặc Trưởng tầng; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.cancel",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, chỉ Hành chính, kèm lý do; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.extend",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, chỉ Hành chính, kèm lý do; 012 FR-045"),
+            Map.entry(
+                    "com.eldercare.backend.family.internal.stay.service.FamilyStayService.end",
+                    "(FAMILY_STAY, UPDATE) theo người cao tuổi, Hành chính hoặc Trưởng tầng; 012 FR-045"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho

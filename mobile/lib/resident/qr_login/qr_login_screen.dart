@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../common/auth/session_controller.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/page_body.dart';
+import '../sos/sos_button.dart';
 import 'login_messages.dart';
 
 /// Khung quét mã; test thay bằng bản giả gọi thẳng [onCode].
@@ -102,6 +103,10 @@ class _QrLoginScreenState extends State<QrLoginScreen> {
           ),
         ),
       ),
+      // Máy đã gắn người cao tuổi: nút SOS hiện cả khi chưa có phiên (012 FR-085)
+      bottomNavigationBar: widget.session.boundToResident
+          ? SosButton(api: widget.session.api, store: widget.session.store)
+          : null,
     );
   }
 

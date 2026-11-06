@@ -22,7 +22,9 @@ class ShiftSchemaIT extends MySqlIntegrationTestBase {
 
     private long template() {
         jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu kiểm thử]','07:00','19:00','FACILITY',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu kiểm thử] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'19:00' AS end_time,'FACILITY' AS scope_type,FALSE AS requires_handover) src");
         return lastId();
     }
 
@@ -72,14 +74,21 @@ class ShiftSchemaIT extends MySqlIntegrationTestBase {
     void FR_055_publicationSnapshotCannotBeEditedOrDeletedByApplication() {
         long schedule = schedule("2027-02");
         jdbc.update(
-                "INSERT INTO shift_publication(schedule_id,published_at,content) VALUES (?, '2026-10-24', '{}')",
+                "INSERT INTO record_event(entity_type,entity_id,module,kind,by_system,occurred_at,confirmed_at,content) SELECT 'M09.SCHEDULE',src.schedule_id,'M09','M09.SHIFT_PUBLICATION',FALSE,src.published_at,src.published_at,JSON_OBJECT('content',CAST(src.content AS JSON)) FROM (SELECT ? AS schedule_id,'2026-10-24' AS published_at,'{}' AS content) src",
                 schedule);
         long id = lastId();
-        assertThatThrownBy(() -> jdbc.update("UPDATE shift_publication SET content='[]' WHERE id=?", id))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE record_event e SET content=JSON_SET(content,'$.content',CAST('[]' AS JSON)) WHERE e.kind='M09.SHIFT_PUBLICATION' AND (COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id)=?)",
+                        id))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM shift_publication WHERE id=?", id))
+        assertThatThrownBy(() -> jdbc.update(
+                        "DELETE FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION' AND (COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id)=?)",
+                        id))
                 .isInstanceOf(DataAccessException.class);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shift_publication WHERE id=?", Integer.class, id))
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS schedule_id,e.occurred_at AS published_at,e.content->'$.content' AS content FROM record_event e WHERE e.kind='M09.SHIFT_PUBLICATION') shift_publication WHERE id=?",
+                        Integer.class,
+                        id))
                 .isOne();
     }
 }

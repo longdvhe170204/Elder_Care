@@ -15,10 +15,10 @@ import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.resident.api.events.CareLevelChanged;
 import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import com.eldercare.backend.staffing.api.events.*;
-import com.eldercare.backend.staffing.ratio.internal.service.StaffingRatioService;
-import com.eldercare.backend.staffing.shift.internal.domain.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
-import com.eldercare.backend.staffing.shift.internal.service.ShiftScheduleService;
+import com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService;
+import com.eldercare.backend.staffing.internal.shift.domain.*;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.service.ShiftScheduleService;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.administration.*;
 import com.eldercare.backend.support.fake.admission.*;
@@ -87,7 +87,7 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
     com.eldercare.backend.support.fake.resident.FakeCareLevelChangeRequests levelRequests;
 
     @Autowired
-    com.eldercare.backend.staffing.staff.internal.service.StaffEmploymentEffects employment;
+    com.eldercare.backend.staffing.internal.staff.service.StaffEmploymentEffects employment;
 
     @Autowired
     ApplicationEventPublisher events;
@@ -125,7 +125,12 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
                 staff(Role.NURSING_STAFF), staff(Role.CAREGIVER), staff(Role.CAREGIVER), staff(Role.NURSING_STAFF));
         template = schedules
                 .createTemplate(new TemplateInput(
-                        "[Mẫu tỷ lệ tích hợp]", LocalTime.of(7, 0), LocalTime.of(15, 0), "FLOOR", false, true))
+                        "[Mẫu tỷ lệ tích hợp] #" + TestUsers.nextId(),
+                        LocalTime.of(7, 0),
+                        LocalTime.of(15, 0),
+                        "FLOOR",
+                        false,
+                        true))
                 .id();
         schedule = schedules
                 .createSchedule(YearMonth.of(2027, 11), "FLOOR", floor, new Target("M09.SCHEDULE", null, null, floor))
@@ -213,14 +218,18 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
     }
 
     private void history(long resident, String before, String next, String command, Instant at) {
-        jdbc.update(
-                "INSERT INTO resident_status_history(resident_id,from_status,to_status,command,occurred_at,performed_by,by_system,reason) VALUES (?,?,?,?,?,?,TRUE,'Mốc trạng thái kiểm thử')",
+        // Lịch sử trạng thái của 001 ở status_history từ 001 T084 (data-model 001 mục 0.1)
+        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
+                jdbc,
+                null,
                 resident,
                 before,
                 next,
                 command,
                 ShiftStore.sql(at),
-                manager.accountId());
+                manager.accountId(),
+                true,
+                "Mốc trạng thái kiểm thử");
     }
 
     private long save() {

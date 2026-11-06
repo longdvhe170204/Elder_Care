@@ -215,7 +215,10 @@ class EndOfLifeWishSignerIT extends WishTestBase {
         assertThat(wish.otherOpinions().get(0).recordedBy()).isEqualTo(nurse.accountId());
         assertThat(wish.otherOpinions().get(2).source().type()).isEqualTo(OpinionSourceType.OBSERVING_STAFF);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM end_of_life_wish_opinion WHERE wish_id = ?", Integer.class, wish.id()))
+                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M01.WISH_OPINION'"
+                                + " AND entity_type = 'M01.END_OF_LIFE_WISH' AND entity_id = ?",
+                        Integer.class,
+                        wish.id()))
                 .isEqualTo(3);
         assertThat(wish.choice())
                 .as("lựa chọn ghi theo ý người cao tuổi, không bị ý kiến khác đổi")
@@ -235,8 +238,9 @@ class EndOfLifeWishSignerIT extends WishTestBase {
         assertThat(error.status().value()).isEqualTo(422);
         assertThat(activeWishCount(residentId)).isZero();
         assertThat(List.of(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM end_of_life_wish_opinion o JOIN end_of_life_wish w"
-                                + " ON w.id = o.wish_id WHERE w.resident_id = ?",
+                        "SELECT COUNT(*) FROM record_event o JOIN wish w ON w.id = o.entity_id"
+                                + " WHERE o.kind = 'M01.WISH_OPINION' AND o.entity_type = 'M01.END_OF_LIFE_WISH'"
+                                + " AND w.resident_id = ?",
                         Integer.class,
                         residentId)))
                 .containsExactly(0);
@@ -249,7 +253,7 @@ class EndOfLifeWishSignerIT extends WishTestBase {
 
         var columns = jdbc.queryForList(
                 "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
-                        + " AND TABLE_NAME LIKE 'end_of_life_wish%' AND (COLUMN_NAME LIKE '%capacity%'"
+                        + " AND TABLE_NAME = 'wish' AND (COLUMN_NAME LIKE '%capacity%'"
                         + " OR COLUMN_NAME LIKE '%nang_luc%' OR COLUMN_NAME LIKE '%competen%')",
                 String.class);
         assertThat(columns)

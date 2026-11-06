@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app.dart';
 import 'package:mobile/common/auth/secure_store.dart';
 import 'package:mobile/common/auth/session_controller.dart';
+import 'package:mobile/resident/sos/sos_button.dart';
 
 import '../../support/fake_backend.dart';
 
@@ -35,6 +36,7 @@ void main() {
   setUp(() {
     backend = FakeBackend();
     store = MemoryStore();
+    store.values[sosIntroSeenKey] = 'seen';
   });
 
   testWidgets('FR_069_quetMa_guiMaVaMaThietBi_luuToken_vaoHomNay', (tester) async {
@@ -87,12 +89,18 @@ void main() {
     expect(find.textContaining('Hôm nay'), findsOneWidget);
   });
 
-  testWidgets('FR_006_buocDoiMatKhau_doiXong_dangNhapLai', (tester) async {
-    backend.on('POST', '/auth/qr-login', 200, loginResponse(mustChangePassword: true));
+  // FR-006 (sửa 2026-11-02): quét mã không buộc đổi mật khẩu (backend không trả cờ, test FR_069 trên); chỉ mật khẩu do
+  // Hành chính cấp lại khi người cao tuổi yêu cầu (FR-051a) mới buộc đổi ở lần đăng nhập đầu.
+  testWidgets('FR_051a_matKhauCapLai_buocDoiMatKhau_doiXong_dangNhapLai', (tester) async {
+    backend.on('POST', '/auth/login', 200, loginResponse(mustChangePassword: true));
     backend.on('POST', '/auth/change-password', 204);
     await pumpApp(tester, backend, store);
 
-    await tester.tap(find.text('Giả quét mã'));
+    await tester.tap(find.text('Dùng mật khẩu'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Tên đăng nhập'), 'nct-41');
+    await tester.enterText(find.widgetWithText(TextField, 'Mật khẩu'), 'Tam-123456');
+    await tester.tap(find.text('Đăng nhập'));
     await tester.pumpAndSettle();
     expect(find.text('Đặt mật khẩu mới'), findsOneWidget);
 
@@ -145,5 +153,23 @@ void main() {
 
     expect(find.text('Đặt mã QR nhân viên đưa vào trong khung.'), findsOneWidget);
     expect(store.values[SessionController.tokenKey], isNull);
+  });
+
+  testWidgets('FR_085_mayDaGan_chuaCoPhien_manQuetCoNutSos', (tester) async {
+    store.values[SessionController.deviceTokenKey] = 'device-token-1';
+    final s = session(backend, store, FakeBiometric(available: false));
+    await s.start();
+    await tester.pumpWidget(ElderCareApp(session: s, queue: memoryQueue(s), scannerBuilder: fakeScanner));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đặt mã QR nhân viên đưa vào trong khung.'), findsOneWidget);
+    expect(find.byType(SosButton), findsOneWidget);
+  });
+
+  testWidgets('FR_085_mayChuaGan_manQuetKhongCoNutSos', (tester) async {
+    await pumpApp(tester, backend, store);
+
+    expect(find.text('Đặt mã QR nhân viên đưa vào trong khung.'), findsOneWidget);
+    expect(find.byType(SosButton), findsNothing);
   });
 }

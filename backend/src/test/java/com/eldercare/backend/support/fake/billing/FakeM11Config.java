@@ -9,6 +9,12 @@ import org.springframework.context.annotation.Primary;
 public class FakeM11Config {
     @Bean
     @Primary
+    com.eldercare.backend.support.fake.admission.FakeRepresentatives fakeCostRepresentatives() {
+        return new com.eldercare.backend.support.fake.admission.FakeRepresentatives();
+    }
+
+    @Bean
+    @Primary
     FakeFamilyPortalCosts fakeFamilyPortalCosts() {
         return new FakeFamilyPortalCosts();
     }
