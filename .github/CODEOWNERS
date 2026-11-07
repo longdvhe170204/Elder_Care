@@ -22,7 +22,7 @@
 /specs/004-admission-residency/                     @AAnh004
 /specs/013-personal-belongings/                     @AAnh004
 /specs/018-residence-registration/                  @AAnh004
-# 017 nhận 2026-11-07: A Phase 1–6, B Phase 7–10; gói con của 017 trong billing thêm dòng khi chốt tên
+# 017 nhận 2026-11-07: A Phase 1–6, B Phase 7–10; gói backend billing/balance ở mục E (ghi đè dòng billing)
 /specs/017-resident-balance-ledger/                 @longdvhe170204 @AAnh004
 
 # C: phòng giường, chăm sóc, hoạt động, kho
@@ -47,6 +47,8 @@
 # E: nhân sự, ca, tài chính
 /backend/src/main/java/com/eldercare/backend/staffing/      @ptlog18
 /backend/src/main/java/com/eldercare/backend/billing/      @ptlog18
+# 017 (gói con của billing, A Phase 1–6, B Phase 7–10; ghi đè dòng trên)
+/backend/src/main/java/com/eldercare/backend/billing/balance/  @longdvhe170204 @AAnh004
 /specs/008-staff-shift-handover/                    @ptlog18
 /specs/010-incurred-costs/                          @ptlog18
 
