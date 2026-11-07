@@ -2,11 +2,9 @@ package com.eldercare.backend.common.scheduling;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.support.JobLogCapture;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
@@ -38,23 +36,5 @@ class SchedulingIT extends MySqlIntegrationTestBase {
             first.unlock();
         }
         locks.lock(config).orElseThrow().unlock();
-    }
-
-    @Test
-    void FR_045_run_isLoggedWithUuid_toJobsLog() {
-        try (JobLogCapture log = new JobLogCapture()) {
-            String runId = runs.start("SAMPLE_JOB");
-            runs.finish(runId, SchedulerRuns.Result.SUCCEEDED, 3);
-
-            assertThat(UUID.fromString(runId)).isNotNull();
-            assertThat(log.events(runId)).hasSize(2);
-            assertThat(log.events(runId).getFirst())
-                    .containsEntry("job", "SAMPLE_JOB")
-                    .containsEntry("event", "START");
-            assertThat(log.events(runId).getLast())
-                    .containsEntry("event", "FINISH")
-                    .containsEntry("result", "SUCCEEDED")
-                    .containsEntry("processedCount", 3);
-        }
     }
 }

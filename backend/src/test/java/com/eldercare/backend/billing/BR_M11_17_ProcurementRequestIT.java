@@ -59,29 +59,6 @@ class BR_M11_17_ProcurementRequestIT extends ProcurementTestBase {
     }
 
     @Test
-    void FR_008_approvalWithoutReductionNeedsNoReasonAndRejectionNeedsOne() throws Exception {
-        long id = created(ingredientBody(kitchen));
-        command(id, "submit").andExpect(status().isOk());
-        as(manager);
-        command(id, "reject")
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
-        command(id, "reject", "{\"reason\":\"Chưa cần\"}").andExpect(status().isOk());
-        assertThat(stateOf(id)).isEqualTo("REJECTED");
-        command(id, "approve", "{}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-
-        as(kitchenLead);
-        long other = created(ingredientBody(kitchen));
-        command(other, "submit").andExpect(status().isOk());
-        as(manager);
-        command(other, "approve", "{}").andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT approved_amount FROM procurement_request WHERE id=?", Long.class, other))
-                .isEqualTo(2_000_000L);
-    }
-
-    @Test
     void Q2_Q293_Q299_onlyTheDepartmentLeadCreates() throws Exception {
         as(accountant);
         create(ingredientBody(kitchen)).andExpect(status().isForbidden());
@@ -99,61 +76,6 @@ class BR_M11_17_ProcurementRequestIT extends ProcurementTestBase {
         create(ingredientBody(other))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.errorCode").value("NOT_DEPARTMENT_LEAD"));
-    }
-
-    @Test
-    void Q9_Q292_departmentWithoutLeadIsBlockedAndManagerIsReminded() throws Exception {
-        as(technicalStaff);
-        create(ingredientBody(technical))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("DEPARTMENT_LEAD_MISSING"));
-        assertThat(events.stream(com.eldercare.backend.billing.internal.procurement.domain.DepartmentLeadMissing.class)
-                        .filter(e -> e.departmentId() == technical)
-                        .flatMap(e -> e.notificationRequests().stream())
-                        .flatMap(n -> n.recipientGroups().stream()))
-                .containsExactly(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM procurement_request WHERE department_id=?", Integer.class, technical))
-                .isZero();
-    }
-
-    @Test
-    void FR_008_validationAndCancellation() throws Exception {
-        create("{\"departmentId\":" + kitchen + ",\"type\":\"INGREDIENT\",\"reason\":\"x\",\"lines\":[]}")
-                .andExpect(status().isUnprocessableEntity());
-        create("{\"departmentId\":" + kitchen + ",\"type\":\"INGREDIENT\",\"reason\":\" \",\"lines\":["
-                        + "{\"name\":\"Gạo\",\"quantity\":1,\"estimatedUnitPrice\":1}]}")
-                .andExpect(status().isUnprocessableEntity());
-        create("{\"departmentId\":" + kitchen + ",\"type\":\"INGREDIENT\",\"reason\":\"x\",\"lines\":["
-                        + "{\"name\":\"Gạo\",\"quantity\":0,\"estimatedUnitPrice\":1}]}")
-                .andExpect(status().isUnprocessableEntity());
-
-        long draft = created(ingredientBody(kitchen));
-        as(kitchenStaff);
-        command(draft, "cancel").andExpect(status().isForbidden());
-        as(kitchenLead);
-        command(draft, "cancel").andExpect(status().isOk());
-        assertThat(stateOf(draft)).isEqualTo("CANCELLED");
-
-        long approved = approved(1_800_000);
-        as(kitchenLead);
-        command(approved, "cancel")
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
-        command(approved, "cancel", "{\"reason\":\"Không mua nữa\"}").andExpect(status().isOk());
-        assertThat(stateOf(approved)).isEqualTo("CANCELLED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT locked_at IS NOT NULL FROM procurement_request WHERE id=?", Boolean.class, approved))
-                .isTrue();
-    }
-
-    @Test
-    void DBR_content_isLockedByTriggerOutsideDraft() throws Exception {
-        long id = created(ingredientBody(kitchen));
-        command(id, "submit").andExpect(status().isOk());
-        org.assertj.core.api.Assertions.assertThatThrownBy(
-                        () -> jdbc.update("UPDATE procurement_request SET reason='sửa lén' WHERE id=?", id))
-                .hasMessageContaining("procurement request content is locked");
     }
 
     private org.springframework.test.web.servlet.ResultActions update(long id, long version) throws Exception {

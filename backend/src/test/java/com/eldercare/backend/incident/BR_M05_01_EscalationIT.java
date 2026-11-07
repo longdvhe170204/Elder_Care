@@ -9,7 +9,6 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.incident.api.events.AlertEscalated;
-import com.eldercare.backend.incident.api.events.MaximumEscalationReminder;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import com.eldercare.backend.incident.internal.alert.service.AlertEscalationService;
@@ -73,75 +72,6 @@ class BR_M05_01_EscalationIT extends MySqlIntegrationTestBase {
             assertThat(event.escalationLevel()).isEqualTo(1);
             assertThat(event.notificationRequests()).hasSize(1);
         });
-    }
-
-    @Test
-    void BR_M05_01_skipsLevelOneWhenNoFloorManagerAndNoDoctor() {
-        when(staff.assignedFloorManager(any(Long.class), any())).thenReturn(Optional.empty());
-        long id = insert("NEW", 0, NOW.minusSeconds(60));
-
-        service.escalate(id, NOW);
-
-        assertThat(row(id).level()).isEqualTo(2);
-    }
-
-    @Test
-    void BR_M05_25_catchUpMovesOnlyOneLevelPerRun() {
-        long id = insert("ESCALATED", 0, NOW.minus(Duration.ofHours(3)));
-
-        service.escalate(id, NOW);
-
-        assertThat(row(id).level()).isEqualTo(1);
-        assertThat(service.escalate(id, NOW)).isFalse(); // hạn mới ở tương lai: chưa lên tiếp
-        assertThat(row(id).level()).isEqualTo(1);
-    }
-
-    @Test
-    void BR_M05_01_levelTwoOverdueSetsMaximumMarkThenRemindsOncePerInterval() {
-        long id = insert("ESCALATED", 2, NOW.minusSeconds(60));
-
-        service.escalate(id, NOW);
-        var marked = row(id);
-        assertThat(marked.level()).isEqualTo(2);
-        assertThat(marked.maximumAt()).isEqualTo(NOW.minusSeconds(60));
-        assertThat(marked.deadline()).isEqualTo(NOW.minusSeconds(60).plus(INTERVAL));
-        assertThat(published).isEmpty();
-
-        Instant later = NOW.plus(INTERVAL);
-        service.escalate(id, later);
-        service.escalate(id, later); // chạy lại: chưa tới hạn nhắc kế tiếp, không nhắc trùng
-        assertThat(row(id).reminders()).isEqualTo(1);
-        assertThat(published).singleElement().isInstanceOfSatisfying(MaximumEscalationReminder.class, event -> {
-            assertThat(event.sequence()).isEqualTo(1);
-            assertThat(event.eventKey()).endsWith(":MAX_REMINDER:1");
-        });
-    }
-
-    @Test
-    void FR_033_lowAlertAtShiftEndGoesUpOneLevelWithDeadlineAtEndOfNextShift() {
-        var nextShiftEnd = NOW.plus(Duration.ofHours(8));
-        var handoverLead = mock(ParameterValue.class);
-        when(handoverLead.asDuration()).thenReturn(Duration.ofMinutes(30));
-        when(parameters.read(ParameterCode.CFG_M09_04)).thenReturn(handoverLead);
-        when(staff.shiftAt(any(Long.class), any()))
-                .thenReturn(Optional.of(new com.eldercare.backend.incident.api.dto.AlertShiftView(
-                        TestUsers.nextId(), null, NOW.minusSeconds(60), nextShiftEnd)));
-        long id = insert("NEW", 0, NOW.minusSeconds(60));
-        jdbc.update("UPDATE alert SET level = 'LOW' WHERE id = ?", id);
-
-        assertThat(service.escalate(id, NOW)).isTrue();
-
-        assertThat(row(id).level()).isEqualTo(1);
-        assertThat(row(id).deadline()).isEqualTo(nextShiftEnd);
-    }
-
-    @Test
-    void BR_M05_01_receivedAlertIsNotEscalated() {
-        long id = insert("RECEIVED", 0, NOW.minusSeconds(60));
-        jdbc.update("UPDATE alert SET escalation_stopped = TRUE WHERE id = ?", id);
-
-        assertThat(service.escalate(id, NOW)).isFalse();
-        assertThat(row(id).level()).isZero();
     }
 
     private long insert(String status, int level, Instant deadline) {

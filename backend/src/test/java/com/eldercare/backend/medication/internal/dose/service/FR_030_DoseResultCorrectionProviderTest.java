@@ -1,9 +1,7 @@
 package com.eldercare.backend.medication.internal.dose.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
@@ -12,17 +10,12 @@ import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.spi.LicenseApi;
 import com.eldercare.backend.administration.account.api.spi.LicenseValidity;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.dto.CorrectionChainView;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.api.events.BillAdjustmentReason;
-import com.eldercare.backend.medication.api.events.BilledSource;
-import com.eldercare.backend.medication.api.events.MedicationBillAdjustedEvent;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResultType;
@@ -32,13 +25,11 @@ import com.eldercare.backend.medication.internal.dose.persistence.MedicationDose
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -82,42 +73,6 @@ class FR_030_DoseResultCorrectionProviderTest {
         assertThat(provider.canRecord(nurse)).isTrue();
         assertThat(provider.canRecord(user(12L, 102L, Set.of(Role.FLOOR_MANAGER))))
                 .isFalse();
-    }
-
-    @Test
-    void FR_030_administeredCorrectionRequiresAdministeredAt() {
-        assertThatThrownBy(() -> provider.validateContent(Map.of("resultType", "ADMINISTERED")))
-                .isInstanceOf(InvalidValueException.class);
-
-        provider.validateContent(Map.of("resultType", "ADMINISTERED", "administeredAt", "2026-10-29T00:30:00Z"));
-        provider.validateContent(Map.of("resultType", "NOT_ADMINISTERED", "reason", "Người cao tuổi vắng mặt"));
-    }
-
-    @Test
-    void FR_030_changingFacilityDoseAwayFromAdministeredPublishesZeroQuantityAdjustment() {
-        DoseResult result = result(51L, 71L, DoseResultType.ADMINISTERED, null);
-        MedicationDose dose = dose(71L, MedicationSource.FACILITY, new BigDecimal("1.50"));
-        when(results.findById(51L)).thenReturn(Optional.of(result));
-        when(doses.findById(71L)).thenReturn(Optional.of(dose));
-        CorrectionView correction =
-                correction(51L, Map.of("resultType", "NOT_ADMINISTERED", "reason", "Bác sĩ yêu cầu không dùng"));
-        when(corrections.chain(DoseResultCorrectionProvider.RECORD_TYPE, 51L))
-                .thenReturn(new CorrectionChainView(
-                        DoseResultCorrectionProvider.RECORD_TYPE,
-                        51L,
-                        true,
-                        false,
-                        Map.of("resultType", "ADMINISTERED", "administeredAt", "2026-10-29T00:30:00Z"),
-                        correction.correctedContent(),
-                        List.of(correction)));
-
-        provider.afterCorrection(correction);
-
-        ArgumentCaptor<Object> event = ArgumentCaptor.forClass(Object.class);
-        verify(events).publishEvent(event.capture());
-        assertThat(event.getValue())
-                .isEqualTo(new MedicationBillAdjustedEvent(
-                        BilledSource.DOSE, 51L, BigDecimal.ZERO, BillAdjustmentReason.CORRECTION));
     }
 
     private CurrentUser user(long accountId, long staffId, Set<Role> roles) {

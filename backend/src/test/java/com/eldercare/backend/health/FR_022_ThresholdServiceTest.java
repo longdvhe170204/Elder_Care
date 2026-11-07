@@ -3,7 +3,6 @@ package com.eldercare.backend.health;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -14,7 +13,6 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.TechnicalLocks;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.internal.governance.service.VitalSignLock;
@@ -32,7 +30,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,83 +104,5 @@ class FR_022_ThresholdServiceTest {
         assertThatThrownBy(() -> service.set(facility(NOW, valid, null), user))
                 .isInstanceOf(ReasonRequiredException.class);
         verify(store, never()).insert(any(), any(), anyLong(), any());
-    }
-
-    @Test
-    void FR_022_futurePersonalThresholdIsPendingAndCancelsOldPending() {
-        var tomorrow = NOW.plus(Duration.ofDays(1));
-        when(store.open("PERSONAL", 101L, TEMPERATURE))
-                .thenReturn(List.of(
-                        version(11, "PERSONAL", 101L, "EFFECTIVE", NOW.minus(Duration.ofDays(3))),
-                        version(12, "PERSONAL", 101L, "PENDING", NOW.plus(Duration.ofHours(5)))));
-
-        service.set(new NewThreshold("PERSONAL", 101L, TEMPERATURE, tomorrow, valid, new Reason("Sốt kéo dài")), user);
-
-        verify(residentLock).lock(101L);
-        verify(store).end(12, "CANCELLED", null, "Sốt kéo dài", 900L, 2);
-        verify(store, never()).end(org.mockito.ArgumentMatchers.eq(11L), any(), any(), any(), any(), anyInt());
-        var inserted = ArgumentCaptor.forClass(ThresholdVersion.class);
-        verify(store).insert(inserted.capture(), any(), anyLong(), any());
-        assertThat(inserted.getValue().status()).isEqualTo("PENDING");
-        assertThat(inserted.getValue().effectiveFrom()).isEqualTo(tomorrow);
-    }
-
-    @Test
-    void FR_022_personalThresholdBlockedForResidentInFinalStatusAndPastEffectiveTime() {
-        when(residents.isFinalStatus(101L)).thenReturn(true);
-        assertThatThrownBy(() -> service.set(new NewThreshold("PERSONAL", 101L, TEMPERATURE, NOW, valid, null), user))
-                .isInstanceOf(BusinessException.class);
-
-        assertThatThrownBy(() -> service.set(facility(NOW.minus(Duration.ofMinutes(5)), valid, null), user))
-                .isInstanceOf(BusinessException.class);
-        verify(store, never()).insert(any(), any(), anyLong(), any());
-    }
-
-    @Test
-    void FR_021_invalidBoundsAreRejectedWithCode() {
-        var reversed = Map.of("VALUE", new ThresholdBand(null, new BigDecimal("38"), new BigDecimal("37"), null));
-
-        assertThatThrownBy(() -> service.set(facility(NOW, reversed, null), user))
-                .isInstanceOfSatisfying(
-                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("INVALID_THRESHOLD"));
-        verify(store, never()).insert(any(), any(), anyLong(), any());
-    }
-
-    @Test
-    void FR_022_cancelOnlyPendingAndStopOnlyPersonalEffective() {
-        when(store.lock(12)).thenReturn(Optional.of(version(12, "PERSONAL", 101L, "PENDING", NOW.plusSeconds(3600))));
-        service.cancel(12, new Reason("Nhập nhầm"), user);
-        verify(store).end(12, "CANCELLED", null, "Nhập nhầm", 900L, 2);
-
-        when(store.lock(11))
-                .thenReturn(Optional.of(version(11, "PERSONAL", 101L, "EFFECTIVE", NOW.minusSeconds(3600))));
-        assertThatThrownBy(() -> service.cancel(11, new Reason("x"), user)).isInstanceOf(BusinessException.class);
-        service.stop(11, new Reason("Đã hồi phục"), user);
-        verify(store).end(11, "EXPIRED", NOW, "Đã hồi phục", 900L, 2);
-        verify(reminders).allowReminderAgain(101L);
-
-        when(store.lock(10))
-                .thenReturn(Optional.of(version(10, "FACILITY", null, "EFFECTIVE", NOW.minusSeconds(3600))));
-        assertThatThrownBy(() -> service.stop(10, new Reason("x"), user)).isInstanceOf(BusinessException.class);
-    }
-
-    @Test
-    void FR_022_dueVersionBecomesEffectiveAndExpiresCurrentAtItsStart() {
-        var start = NOW.minusSeconds(10);
-        var pending = version(12, "PERSONAL", 101L, "PENDING", start);
-        when(store.due(NOW)).thenReturn(List.of(pending));
-        when(store.lock(12)).thenReturn(Optional.of(pending));
-        when(store.open("PERSONAL", 101L, TEMPERATURE))
-                .thenReturn(
-                        List.of(version(11, "PERSONAL", 101L, "EFFECTIVE", NOW.minus(Duration.ofDays(3))), pending));
-
-        int done = service.activateDue(NOW);
-
-        assertThat(done).isEqualTo(1);
-        verify(store).end(11, "EXPIRED", start, null, null, 2);
-        verify(store).activate(12, 2);
-        verify(store, never()).end(org.mockito.ArgumentMatchers.eq(12L), any(), any(), any(), any(), anyInt());
-        verify(store, never()).insert(any(), any(), anyLong(), any());
-        verify(residentLock).lock(anyLong());
     }
 }

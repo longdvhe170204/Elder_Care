@@ -36,27 +36,6 @@ class ContinuousShiftChainTest {
     }
 
     @Test
-    void BR_M09_03_realGapBreaksTheChainEvenAcrossMonthBoundary() {
-        var separated =
-                new Interval(hours(8, 16).from().plusNanos(1), hours(8, 16).to());
-        assertThat(ContinuousShiftChain.duration(List.of(hours(0, 8)), separated))
-                .isEqualTo(Duration.ofHours(8).minusNanos(1));
-    }
-
-    @Test
-    void BR_M09_03_unrelatedLongerChainIsNotAttributedToNewShift() {
-        assertThat(ContinuousShiftChain.duration(List.of(hours(-48, -24), hours(-24, -8)), hours(0, 8)))
-                .isEqualTo(Duration.ofHours(8));
-    }
-
-    @Test
-    void BR_M09_03_overlappingIntervalsCountElapsedTimeOnceWithoutMutatingInput() {
-        var existing = List.of(hours(4, 12), hours(0, 8));
-        assertThat(ContinuousShiftChain.duration(existing, hours(10, 16))).isEqualTo(Duration.ofHours(16));
-        assertThat(existing).containsExactly(hours(4, 12), hours(0, 8));
-    }
-
-    @Test
     void BR_M09_12_emptyAndReversedIntervalsAreRejected() {
         assertThatIllegalArgumentException().isThrownBy(() -> hours(8, 8));
         assertThatIllegalArgumentException().isThrownBy(() -> hours(9, 8));

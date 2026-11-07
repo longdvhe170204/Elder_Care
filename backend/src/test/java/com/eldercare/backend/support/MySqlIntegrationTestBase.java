@@ -13,7 +13,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -30,8 +34,12 @@ import org.springframework.test.context.DynamicPropertySource;
  *
  * <p>Chạy song song ({@code -Dit.forkCount=N}, N > 1): JVM thứ k dùng schema {@code <schema test>_k}, cần đặt
  * {@code DB_PASSWORD}, {@code DB_RETENTION_PASSWORD}.
+ *
+ * <p>{@code @AutoConfigureMockMvc} bật cho mọi lớp con: lớp có và không có MockMvc dùng chung một context Spring thay vì
+ * dựng hai bản (rà 2026-11-07: 296 lần dựng context chiếm 85/156 phút của {@code clean verify}).
  */
 @SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 public abstract class MySqlIntegrationTestBase {
 
@@ -40,6 +48,23 @@ public abstract class MySqlIntegrationTestBase {
     private static final String DEFAULT_SCHEMA = "eldercare_test";
 
     private static TestDatabase database;
+
+    private static Class<?> lastTestClass;
+
+    @Autowired
+    private ObjectProvider<SwitchableUser> switchableUsers;
+
+    /**
+     * Bean {@link SwitchableUser} dùng chung giữa các lớp ({@link SwitchableUserConfig}): sang lớp test mới thì về người
+     * dùng mặc định như context vừa dựng; trong một lớp giữ nguyên như trước.
+     */
+    @BeforeEach
+    void resetSharedUserForNewTestClass() {
+        if (getClass() != lastTestClass) {
+            lastTestClass = getClass();
+            switchableUsers.orderedStream().forEach(SwitchableUser::reset);
+        }
+    }
 
     @DynamicPropertySource
     static void databaseProperties(DynamicPropertyRegistry registry) {

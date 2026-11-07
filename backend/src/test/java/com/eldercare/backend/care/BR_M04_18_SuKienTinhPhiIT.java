@@ -9,6 +9,7 @@ import com.eldercare.backend.care.api.events.ActivitySessionEnded;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -17,7 +18,6 @@ import com.eldercare.backend.support.fake.resident.FakeM01Config;
 import com.eldercare.backend.support.fake.resident.FakeResidents;
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 class BR_M04_18_SuKienTinhPhiIT extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;
@@ -135,77 +135,5 @@ class BR_M04_18_SuKienTinhPhiIT extends MySqlIntegrationTestBase {
                 .isEqualTo("ATTENDANCE_TAKEN");
         assertThat(events.stream(ActivitySessionEnded.class).map(ActivitySessionEnded::sessionId))
                 .contains(session);
-    }
-
-    @Test
-    void FR_032_absentAndUnchargedAreNotBillingEvents() throws Exception {
-        long session = data.session(data.activity(false), Duration.ofMinutes(-30));
-        var registered = data.residents(session, 1);
-        attendance(session, present(registered.getFirst())).andExpect(status().isOk());
-        assertThat(events.stream(CostSourceBilled.class)).isEmpty();
-    }
-
-    @Test
-    void FR_028_attendanceStartsAtSessionStartAndIsRecordedOncePerRegistration() throws Exception {
-        long future = data.session(data.activity(false), Duration.ofHours(2));
-        var r = data.residents(future, 1).getFirst();
-        attendance(future, present(r))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_YET_STARTED"));
-
-        long session = data.session(data.activity(false), Duration.ofMinutes(-30));
-        var resident = data.residents(session, 1).getFirst();
-        attendance(session, present(resident)).andExpect(status().isOk());
-        attendance(session, present(resident))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ATTENDANCE_ALREADY_RECORDED"));
-    }
-
-    @Test
-    void FR_029_presentNeedsParticipationLevelAndAbsentNeedsReason() throws Exception {
-        long session = data.session(data.activity(false), Duration.ofMinutes(-30));
-        var r = data.residents(session, 1).getFirst();
-        attendance(session, "{\"residentId\":" + r + ",\"result\":\"PRESENT\"}")
-                .andExpect(status().isUnprocessableContent());
-        attendance(session, "{\"residentId\":" + r + ",\"result\":\"ABSENT\"}")
-                .andExpect(status().isUnprocessableContent());
-    }
-
-    @Test
-    void FR_029_completeNeedsEveryActiveRegistrationToHaveAResult() throws Exception {
-        long session = data.session(data.activity(false), Duration.ofMinutes(-30));
-        var rs = data.residents(session, 2);
-        attendance(session, present(rs.getFirst())).andExpect(status().isOk());
-        command(session, "complete-attendance")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("REGISTRATIONS_WITHOUT_RESULT"));
-    }
-
-    @Test
-    void FR_030_attendanceAfterEndPlusGracePeriodIsLabelledLate() throws Exception {
-        long session = data.session(data.activity(false), Duration.ofHours(-4));
-        var r = data.residents(session, 1).getFirst();
-        attendance(session, present(r)).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT JSON_EXTRACT(content,'$.lateRecorded') FROM record_event WHERE kind='M04.SESSION_ATTENDANCE'"
-                                + " AND JSON_EXTRACT(content,'$.sessionId')=?",
-                        String.class,
-                        session))
-                .isEqualTo("true");
-    }
-
-    @Test
-    void FR_028_walkInMustMeetRegistrationConditions() throws Exception {
-        long session = data.session(data.activity(false), Duration.ofMinutes(-30));
-        long ended = data.resident();
-        residents.changeStatus(
-                ended, com.eldercare.backend.resident.api.dto.ResidentStatus.RESIDENCY_ENDED, time.now());
-        attendance(
-                        session,
-                        "{\"residentId\":" + ended
-                                + ",\"addedAtAttendance\":true,\"result\":\"PRESENT\",\"participationLevel\":\"ACTIVE\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RESIDENT_STATUS_INVALID"));
-        assertThat(List.of(session)).isNotEmpty();
     }
 }

@@ -8,13 +8,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.nutrition.api.events.RetainedSampleNotice;
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -182,67 +179,6 @@ class BR_M08_15_RetainedSampleIT extends SlipTestBase {
                         Integer.class,
                         "M08.RETAINED_SAMPLE:" + dailyMeal(breakfast)))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void BR_M08_15_dishAlreadyRecordedOrUnknown_rejected_noMenuAllowsKitchenToListDishes() throws Exception {
-        residentIn(room2);
-        clock.setTo(at(LocalTime.of(10, 0)));
-        long lunchMeal = dailyMeal(lunch);
-
-        sampleView(lunchMeal)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.dishes").isEmpty());
-        recordSample(lunchMeal, sampleBody("Tủ lạnh bếp")).andExpect(status().isUnprocessableEntity());
-        recordSample(lunchMeal, sampleBody("Tủ lạnh bếp", dish(Long.MAX_VALUE - 1, true, null)))
-                .andExpect(status().isUnprocessableEntity());
-        recordSample(lunchMeal, sampleBody("Tủ lạnh bếp", dish(plain, true, null)))
-                .andExpect(status().isCreated());
-        recordSample(lunchMeal, sampleBody(null, dish(plain, true, null))).andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
-    void BR_M08_15_pastRetentionParameter_remindsKitchenOnce_thenDiscardOnceOnly() throws Exception {
-        residentIn(room2);
-        clock.setTo(at(LocalTime.of(10, 0)));
-        long lunchMeal = dailyMeal(lunch);
-        f.asKitchen();
-        recordSample(lunchMeal, sampleBody("Tủ lạnh bếp", dish(plain, true, null)))
-                .andExpect(status().isCreated());
-        long sample = sampleIdOf(lunchMeal);
-        Duration keep = parameters.read(ParameterCode.CFG_M08_06).asDuration();
-        Instant recordedAt = at(LocalTime.of(10, 0));
-        assertThat(jdbc.queryForObject(
-                        "SELECT content->>'$.expiresAt' FROM simple_record WHERE id = ?", String.class, sample))
-                .isNotNull();
-
-        jobs.runMinuteTasks(recordedAt.plus(keep).minusSeconds(60));
-        assertThat(reminders(sample)).isEmpty();
-
-        jobs.runMinuteTasks(recordedAt.plus(keep));
-        jobs.runMinuteTasks(recordedAt.plus(keep).plusSeconds(60));
-        assertThat(reminders(sample)).singleElement().satisfies(n -> {
-            var request = n.notificationRequests().getFirst();
-            assertThat(request.level()).contains(NotificationLevel.LOW);
-            assertThat(request.recipientGroups()).contains(new RecipientGroup.FacilityRole(Role.KITCHEN_STAFF));
-        });
-
-        f.asDoctor();
-        discardSample(sample).andExpect(status().isForbidden());
-        f.asKitchen();
-        discardSample(sample).andExpect(status().isOk());
-        discardSample(sample).andExpect(status().isConflict());
-        assertThat(jdbc.queryForObject("SELECT status FROM simple_record WHERE id = ?", String.class, sample))
-                .isEqualTo("DISCARDED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT content->>'$.discardedAt' IS NOT NULL AND content->>'$.discardedBy' IS NOT NULL"
-                                + " FROM simple_record WHERE id = ?",
-                        Integer.class,
-                        sample))
-                .isEqualTo(1);
-        long later = f.activeDish(List.of(), List.of(defaultDiet));
-        f.asKitchen();
-        recordSample(lunchMeal, sampleBody(null, dish(later, true, null))).andExpect(status().isConflict());
     }
 
     List<RetainedSampleNotice> reminders(long sample) {

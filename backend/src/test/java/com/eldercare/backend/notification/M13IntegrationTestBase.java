@@ -7,6 +7,8 @@ import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.notification.FakeM13Config;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +48,19 @@ abstract class M13IntegrationTestBase extends MySqlIntegrationTestBase {
     void isolateHeldNotices() {
         jdbc.update("UPDATE notification SET scheduled_send_at = '2099-01-01 00:00:00'"
                 + " WHERE status = 'HELD_FOR_QUIET_HOURS'");
+    }
+
+    /**
+     * Gọi ngay trước job giải phóng: đẩy ra xa dòng đang giữ không thuộc các yêu cầu {@code requestIds} của test.
+     * {@link #isolateHeldNotices()} chỉ chạy đầu test; dòng sinh sau đó (job của context khác trong cùng JVM chạy theo giờ
+     * thật, người cao tuổi không có trong bản giả của context này) vẫn tới hạn trước mốc giờ test tua tới.
+     */
+    void isolateHeldNoticesExcept(long... requestIds) {
+        jdbc.update(
+                "UPDATE notification SET scheduled_send_at = '2099-01-01 00:00:00' WHERE status = 'HELD_FOR_QUIET_HOURS'"
+                        + " AND request_id NOT IN (" + String.join(", ", Collections.nCopies(requestIds.length, "?"))
+                        + ")",
+                Arrays.stream(requestIds).boxed().toArray());
     }
 
     /** Lệnh nguồn: ghi một bản ghi nghiệp vụ mẫu và phát sự kiện trong cùng transaction. */

@@ -109,10 +109,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt
-            // nhắc gọi US1 xong 2026-10-26; còn "Xác nhận và tiếp nhận" chờ lệnh tiếp nhận của 007
+            // nhắc gọi US1 xong 2026-10-26; "Xác nhận và tiếp nhận" xong 2026-11-06 (T021)
             new Contract(
                     Path.of("..", "specs", "009-notification-service", "contracts", "api-009.yaml"),
-                    Set.of("POST /api/v1/notifications/{id}/acknowledge-and-take-charge"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết

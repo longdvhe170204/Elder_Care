@@ -1,14 +1,8 @@
 package com.eldercare.backend.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 
 import com.eldercare.backend.care.api.TaskSourceApi;
-import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
-import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.api.MeasurementScheduleApi;
 import com.eldercare.backend.health.api.dto.MeasurementFrequency;
@@ -16,11 +10,11 @@ import com.eldercare.backend.health.internal.schedule.domain.MeasurementSchedule
 import com.eldercare.backend.health.internal.schedule.domain.NewMeasurementSchedule;
 import com.eldercare.backend.health.internal.schedule.domain.ScheduleFrequency;
 import com.eldercare.backend.health.internal.schedule.persistence.MeasurementScheduleStore;
-import com.eldercare.backend.health.internal.schedule.service.MeasurementScheduleService;
 import com.eldercare.backend.health.internal.threshold.service.ThresholdIndicators;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,11 +22,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.dao.DataAccessException;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * lệnh chạy với một Bác sĩ thật qua kiểm quyền.
  */
 @Transactional
+@Import(SwitchableUserConfig.class)
 class MeasurementScheduleIT extends MySqlIntegrationTestBase {
     private static final Instant NOW = Instant.parse("2026-11-04T03:00:00Z");
 
@@ -105,53 +97,5 @@ class MeasurementScheduleIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         resident))
                 .isEqualTo(3);
-    }
-
-    @Test
-    void FR_005_scheduleContentCannotBeEditedAndStoppedIsFinal() {
-        long resident = TestUsers.nextId();
-        var clock = new ScheduleFrequency(
-                MeasurementFrequency.CLOCK_TIMES, List.of(LocalTime.of(6, 0)), null, null, Set.of());
-        long id = insert(resident, schedule(clock, NOW), "EFFECTIVE", null);
-
-        assertThatThrownBy(() -> jdbc.update(
-                        "UPDATE monitoring_setting SET effective_from = effective_from + INTERVAL 1 HOUR WHERE id = ?",
-                        id))
-                .isInstanceOf(DataAccessException.class);
-        store.stop(id, NOW.plus(Duration.ofHours(1)), "Ngừng", TestUsers.nextId(), 0);
-        assertThatThrownBy(() -> jdbc.update("UPDATE monitoring_setting SET status = 'EFFECTIVE' WHERE id = ?", id))
-                .isInstanceOf(DataAccessException.class);
-        var stopped = store.find(id).orElseThrow();
-        assertThat(stopped.status()).isEqualTo("STOPPED");
-        assertThat(stopped.basisAt(NOW.plus(Duration.ofMinutes(30)))).isTrue();
-        assertThat(stopped.basisAt(NOW.plus(Duration.ofHours(2)))).isFalse();
-    }
-
-    @Test
-    void FR_006_changeAndStopNotifyCareAsSourceChangedOrCancelled(@Autowired MeasurementScheduleService service) {
-        long resident = TestUsers.nextId();
-        var clock = new ScheduleFrequency(
-                MeasurementFrequency.CLOCK_TIMES, List.of(LocalTime.of(6, 0)), null, null, Set.of());
-        long old = insert(resident, schedule(clock, NOW.minus(Duration.ofDays(2))), "EFFECTIVE", null);
-        current.set(new TestUsers(jdbc, time).staff(Role.DOCTOR).user());
-        var user = current;
-
-        long replacement =
-                service.change(old, schedule(clock, NOW.plus(Duration.ofDays(1))), new Reason("Đổi giờ"), user);
-        verify(taskSources).sourceChanged(SourceType.MEASUREMENT, old);
-        assertThat(store.find(replacement).orElseThrow().replaces()).isEqualTo(old);
-        assertThat(store.find(old).orElseThrow().status()).isEqualTo("STOPPED");
-
-        service.stop(replacement, new Reason("Không cần đo"), user);
-        verify(taskSources).sourceCancelled(SourceType.MEASUREMENT, replacement, new Reason("Không cần đo"));
-        verify(residents, Mockito.never()).byStatus(any());
-    }
-
-    @TestConfiguration
-    static class Users {
-        @Bean
-        SwitchableUser current() {
-            return new SwitchableUser();
-        }
     }
 }

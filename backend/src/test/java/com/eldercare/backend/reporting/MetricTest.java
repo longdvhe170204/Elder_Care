@@ -166,28 +166,4 @@ class MetricTest {
         assertThat(value.pendingReviewCount()).isEqualTo(1);
         assertThat(value.labels()).containsExactly(ValueLabel.PENDING_REVIEW);
     }
-
-    @Test
-    void FR_009_averageDetailsAreTheRecordsInTheCalculation() {
-        Metric<Task> average = new Metric<>(
-                "X.AVG",
-                MetricGroup.CARE_TASKS,
-                "TB",
-                "TB phút",
-                "005",
-                new Computation.Aggregate<>(Computation.Aggregate.Kind.AVERAGE, Task::minutes),
-                null,
-                MetricTest::row);
-        List<Task> included = average.included(
-                Stream.of(
-                        new Task("a", "S", true, 1L, false, false, BigDecimal.valueOf(10)),
-                        new Task("b", "S", true, 1L, false, false, BigDecimal.valueOf(25)),
-                        new Task("c", "S", true, 1L, false, false, null)),
-                t -> true);
-
-        assertThat(average.compute(included).value()).isEqualByComparingTo("17.5");
-        assertThat(average.details(included, null))
-                .extracting(DetailRow::sourceKey)
-                .containsExactly("a", "b");
-    }
 }

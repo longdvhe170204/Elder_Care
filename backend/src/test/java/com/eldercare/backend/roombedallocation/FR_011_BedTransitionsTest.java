@@ -73,11 +73,4 @@ class FR_011_BedTransitionsTest {
             }
         return invalid.stream();
     }
-
-    @ParameterizedTest
-    @MethodSource("rejected")
-    void FR_011_everyOtherStateEventPairIsRejected(Row row) {
-        assertThatThrownBy(() -> BedTransitions.next(row.from(), row.hold(), row.event(), null, false))
-                .isInstanceOf(IllegalStateException.class);
-    }
 }

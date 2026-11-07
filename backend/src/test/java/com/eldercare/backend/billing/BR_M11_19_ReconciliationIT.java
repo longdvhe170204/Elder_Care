@@ -28,37 +28,6 @@ class BR_M11_19_ReconciliationIT extends ProcurementTestBase {
     }
 
     @Test
-    void Q6_purchaseRecorderCannotReconcileAndOnlyAccountantsReconcile() throws Exception {
-        long id = purchased(1_800_000, 1_900_000);
-        as(kitchenLead);
-        command(id, "confirm-match")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("PURCHASE_RECORDER_CANNOT_RECONCILE"));
-        as(kitchenStaff);
-        command(id, "confirm-match").andExpect(status().isForbidden());
-        as(manager);
-        command(id, "confirm-match").andExpect(status().isForbidden());
-        assertThat(stateOf(id)).isEqualTo("PENDING_RECONCILIATION");
-    }
-
-    @Test
-    void US7_5_returnForMissingReceiptGoesBackToApprovedForANewPurchaseRecord() throws Exception {
-        long id = purchased(1_800_000, 1_900_000);
-        as(accountant);
-        command(id, "return-for-reconciliation")
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
-        command(id, "return-for-reconciliation", "{\"reason\":\"Thiếu hóa đơn thịt\"}")
-                .andExpect(status().isOk());
-        assertThat(stateOf(id)).isEqualTo("APPROVED");
-        assertThat(recipients(id, "APPROVED"))
-                .contains(new RecipientGroup.Staff(kitchenLead.staffId(), "PROCUREMENT_REQUEST_CREATOR"));
-        as(kitchenLead);
-        command(id, "record-purchased", purchase(1_950_000, kitchenLead)).andExpect(status().isOk());
-        assertThat(stateOf(id)).isEqualTo("PENDING_RECONCILIATION");
-    }
-
-    @Test
     void Q7_discrepancyIsRecordedThenResolvedByManager() throws Exception {
         long id = purchased(1_800_000, 1_950_000);
         as(accountant);

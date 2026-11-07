@@ -4,6 +4,7 @@ import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.internal.inbox.domain.InboxFilter;
 import com.eldercare.backend.notification.internal.inbox.service.InboxService;
+import com.eldercare.backend.notification.internal.urgent.service.UrgentTakeCharge;
 import com.eldercare.backend.notification.web.request.PushDeviceBody;
 import com.eldercare.backend.notification.web.response.InboxBody;
 import com.eldercare.backend.notification.web.response.NotificationBody;
@@ -36,9 +37,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class InboxController {
 
     private final InboxService inbox;
+    private final UrgentTakeCharge takeCharge;
 
-    public InboxController(InboxService inbox) {
+    public InboxController(InboxService inbox, UrgentTakeCharge takeCharge) {
         this.inbox = inbox;
+        this.takeCharge = takeCharge;
     }
 
     @GetMapping("/me/notifications")
@@ -48,7 +51,8 @@ public class InboxController {
             @RequestParam(required = false) String eventType,
             @RequestParam(required = false) Long residentId,
             @RequestParam(required = false) String cursor) {
-        return InboxBody.of(inbox.list(new InboxFilter(level, unread, eventType, residentId), cursor));
+        return InboxBody.of(
+                inbox.list(new InboxFilter(level, unread, eventType, residentId), cursor), takeCharge::available);
     }
 
     @GetMapping("/me/notifications/{id}")
@@ -62,7 +66,8 @@ public class InboxController {
                                 schema = @Schema(implementation = ProblemBody.class)))
     })
     NotificationBody open(@PathVariable long id) {
-        return NotificationBody.of(inbox.open(id));
+        InboxService.Opened opened = inbox.open(id);
+        return NotificationBody.of(opened, takeCharge.available(opened.row()));
     }
 
     @PostMapping("/me/notifications/{id}/hide")

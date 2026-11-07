@@ -5,29 +5,19 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.internal.structure.service.StructureService;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocationReferences;
 import com.eldercare.backend.support.fake.roombedallocation.FakeM03Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Dữ liệu từng test tách bằng id; quyền thật của 002 và fake SPI đúng chủ khai báo. */
-@Import({StructureTestSupport.Users.class, FakeM03Config.class, FakeM15Config.class})
+@Import({SwitchableUserConfig.class, FakeM03Config.class, FakeM15Config.class})
 abstract class StructureTestSupport extends MySqlIntegrationTestBase {
-    @TestConfiguration
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser structureUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     JdbcTemplate jdbc;

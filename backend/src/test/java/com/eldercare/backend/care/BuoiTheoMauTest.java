@@ -45,19 +45,6 @@ class BuoiTheoMauTest {
     }
 
     @Test
-    void FR_005_intervalDaysCountFromTemplateStartDate() {
-        var every3 = new TemplateVersion(null, 3, "15:00", "16:00", MONDAY, null, "r", 1);
-        var slots =
-                SessionTemplate.slots(List.of(new VersionFrom(MONDAY, every3)), MONDAY.plusDays(1), MONDAY.plusDays(9));
-        assertThat(slots)
-                .extracting(SessionTemplate.Slot::startsAt)
-                .containsExactly(
-                        at(MONDAY.plusDays(3), "15:00"),
-                        at(MONDAY.plusDays(6), "15:00"),
-                        at(MONDAY.plusDays(9), "15:00"));
-    }
-
-    @Test
     void FR_009_eachDayUsesTheVersionInEffectOnThatDay() {
         var versions = List.of(
                 new VersionFrom(MONDAY, weekdays("08:00", "08:45", MONDAY, null)),

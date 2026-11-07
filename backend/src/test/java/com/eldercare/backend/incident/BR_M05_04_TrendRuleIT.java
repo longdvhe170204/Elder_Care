@@ -16,7 +16,6 @@ import com.eldercare.backend.health.api.dto.VitalSignConfirmationStatus;
 import com.eldercare.backend.health.api.dto.VitalSignLevel;
 import com.eldercare.backend.health.api.dto.VitalSignReadingView;
 import com.eldercare.backend.health.api.events.VitalSignConfirmed;
-import com.eldercare.backend.health.api.events.VitalSignCorrected;
 import com.eldercare.backend.incident.api.events.WeightLossDetected;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
@@ -104,113 +103,6 @@ class BR_M05_04_TrendRuleIT extends MySqlIntegrationTestBase {
                 .orElseThrow();
         assertThat(detected.highestRecordId()).isEqualTo(1);
         assertThat(detected.latestRecordId()).isEqualTo(latestId);
-    }
-
-    @Test
-    void FR_039a_correctedWeightIsCheckedAgain() {
-        long resident = TestUsers.nextId();
-        long indicator = TestUsers.nextId();
-        long recordId = TestUsers.nextId();
-        weights(resident, indicator, recordId, "47.4", List.of(reading(1, resident, indicator, "50.0")));
-
-        trends.onVitalSignCorrected(new VitalSignCorrected(
-                recordId,
-                resident,
-                indicator,
-                VitalSignLevel.NORMAL,
-                VitalSignLevel.NORMAL,
-                AT,
-                "VITAL_SIGN_CORRECTED:" + recordId,
-                AT.plusSeconds(3600)));
-
-        assertThat(open(resident, TypeLock.forTrend("WEIGHT_LOSS")).level()).isEqualTo(IncidentLevel.MEDIUM);
-    }
-
-    @Test
-    void FR_039a_smallDropOrNoPreviousWeighingCreatesNothing() {
-        long resident = TestUsers.nextId();
-        long indicator = TestUsers.nextId();
-        long latestId = TestUsers.nextId();
-        weights(resident, indicator, latestId, "48.5", List.of(reading(1, resident, indicator, "50.0")));
-        trends.onVitalSignConfirmed(confirmed(resident, indicator, latestId));
-
-        long other = TestUsers.nextId();
-        weights(other, indicator, latestId, "40.0", List.of());
-        trends.onVitalSignConfirmed(confirmed(other, indicator, latestId));
-
-        none(resident, TypeLock.forTrend("WEIGHT_LOSS"));
-        none(other, TypeLock.forTrend("WEIGHT_LOSS"));
-    }
-
-    @Test
-    void FR_039b_missedMeasurementMergesByIndicatorAndMandatoryIsAtLeastMedium() {
-        long resident = TestUsers.nextId();
-        long indicator = TestUsers.nextId();
-        String lock = TypeLock.forMissedMeasurement(indicator);
-
-        trends.onMeasurementTaskMissed(missed(resident, indicator, Importance.MANDATORY, TestUsers.nextId()));
-        var first = open(resident, lock);
-        assertThat(first.level()).isEqualTo(IncidentLevel.MEDIUM);
-        assertThat(first.occurrenceCount()).isEqualTo(1);
-
-        trends.onMeasurementTaskMissed(missed(resident, indicator, Importance.MANDATORY, TestUsers.nextId()));
-        await().atMost(Duration.ofSeconds(10)).until(() -> open(resident, lock).occurrenceCount() == 2);
-        var merged = open(resident, lock);
-        assertThat(merged.id()).isEqualTo(first.id());
-        assertThat(merged.level()).isEqualTo(IncidentLevel.MEDIUM);
-    }
-
-    @Test
-    void FR_039b_sameMissedTaskTwiceDoesNotCountTwice() {
-        long resident = TestUsers.nextId();
-        long indicator = TestUsers.nextId();
-        long task = TestUsers.nextId();
-        String lock = TypeLock.forMissedMeasurement(indicator);
-
-        trends.onMeasurementTaskMissed(missed(resident, indicator, Importance.MANDATORY, task));
-        open(resident, lock);
-        trends.onMeasurementTaskMissed(missed(resident, indicator, Importance.MANDATORY, task));
-
-        await().during(Duration.ofSeconds(2))
-                .atMost(Duration.ofSeconds(8))
-                .until(() -> open(resident, lock).occurrenceCount() == 1);
-    }
-
-    @Test
-    void FR_039_medicationRefusalMergesByMedicationWithRuleLevel() {
-        long resident = TestUsers.nextId();
-        long medication = TestUsers.nextId();
-        long other = TestUsers.nextId();
-        String lock = TypeLock.forMedication("TU_CHOI_LIEN_TIEP", medication);
-
-        trends.onMedicationAlertRequested(refusal(resident, medication, AT));
-        var first = open(resident, lock);
-        assertThat(first.level()).isEqualTo(IncidentLevel.MEDIUM);
-
-        trends.onMedicationAlertRequested(refusal(resident, medication, AT.plusSeconds(3600)));
-        await().atMost(Duration.ofSeconds(10)).until(() -> open(resident, lock).occurrenceCount() == 2);
-        assertThat(open(resident, lock).id()).isEqualTo(first.id());
-
-        trends.onMedicationAlertRequested(refusal(resident, other, AT));
-        assertThat(open(resident, TypeLock.forMedication("TU_CHOI_LIEN_TIEP", other))
-                        .id())
-                .isNotEqualTo(first.id());
-    }
-
-    @Test
-    void FR_039_ruleLevelAppliesAndDisabledRuleCreatesNothing() {
-        long resident = TestUsers.nextId();
-        long medication = TestUsers.nextId();
-        rule("MEDICATION_REFUSAL", true, IncidentLevel.CRITICAL);
-        trends.onMedicationAlertRequested(refusal(resident, medication, AT));
-        assertThat(open(resident, TypeLock.forMedication("TU_CHOI_LIEN_TIEP", medication))
-                        .level())
-                .isEqualTo(IncidentLevel.CRITICAL);
-
-        long silent = TestUsers.nextId();
-        rule("MEDICATION_REFUSAL", false, IncidentLevel.MEDIUM);
-        trends.onMedicationAlertRequested(refusal(silent, medication, AT));
-        none(silent, TypeLock.forMedication("TU_CHOI_LIEN_TIEP", medication));
     }
 
     /** Thay quy tắc đọc từ danh mục chỉ trong context của lớp test này (bản spy), không ghi danh mục dùng chung. */

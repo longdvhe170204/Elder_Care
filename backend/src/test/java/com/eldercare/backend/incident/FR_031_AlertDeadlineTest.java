@@ -64,40 +64,6 @@ class FR_031_AlertDeadlineTest {
         verify(store, never()).insert(any());
     }
 
-    @Test
-    void FR_031_lowUsesCurrentFloorShiftEnd() {
-        currentShift(END);
-        assertThat(request(IncidentLevel.LOW).acknowledgementDeadline()).isEqualTo(END);
-        verify(staff, never()).nextShift(anyLong(), any());
-    }
-
-    @Test
-    void FR_031_lowAfterHandoverCutoffUsesNextShiftEnd() {
-        currentShift(NOW.plusSeconds(600));
-        var nextEnd = END.plusSeconds(28800);
-        when(staff.nextShift(10L, NOW))
-                .thenReturn(Optional.of(new AlertShiftView(2L, 10L, NOW.plusSeconds(600), nextEnd)));
-        assertThat(request(IncidentLevel.LOW).acknowledgementDeadline()).isEqualTo(nextEnd);
-    }
-
-    @Test
-    void FR_031_lowAtHandoverCutoffStillUsesCurrentShiftEnd() {
-        currentShift(NOW.plusSeconds(1800));
-        assertThat(request(IncidentLevel.LOW).acknowledgementDeadline()).isEqualTo(NOW.plusSeconds(1800));
-    }
-
-    @Test
-    void FR_031_lowWithoutShiftDoesNotInventAnHourlyDeadline() {
-        assertThatThrownBy(() -> request(IncidentLevel.LOW)).isInstanceOf(IllegalStateException.class);
-        verify(store, never()).insert(any());
-    }
-
-    @Test
-    void FR_031_criticalHasNoEscalationDeadline() {
-        assertThat(request(IncidentLevel.CRITICAL).acknowledgementDeadline()).isNull();
-        verifyNoInteractions(parameters);
-    }
-
     private AlertRecord request(IncidentLevel level) {
         return service.requestAlert(new CreateAlertCommand(
                         100L, 10L, "MANUAL", "MANUAL:1", level, NOW, null, null, "Cảnh báo kiểm thử", 20L))

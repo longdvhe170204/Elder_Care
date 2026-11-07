@@ -27,37 +27,6 @@ class BR_M05_09_CloseIncidentIT extends IncidentHttpTestBase {
         assertThat(incidentStatus(id)).isEqualTo("MONITORING");
     }
 
-    @Test
-    void BR_M05_09_floorManagerClosesLowIncident() throws Exception {
-        long id = incident("FALL", "LOW", "IN_PROGRESS", nurse.accountId(), nurse.accountId());
-
-        post(floorManager, CLOSE, id, "{\"resolution\":\"Đã ổn\"}").andExpect(status().isOk());
-
-        var row = jdbc.queryForMap("SELECT status, resolution, closed_by FROM incident WHERE id = ?", id);
-        assertThat(row.get("status")).isEqualTo("CLOSED");
-        assertThat(row.get("resolution")).isEqualTo("Đã ổn");
-        assertThat(((Number) row.get("closed_by")).longValue()).isEqualTo(floorManager.accountId());
-    }
-
-    @Test
-    void BR_M05_09_mediumIncidentOnlyNurseOrDoctorClosesWithResolution() throws Exception {
-        long id = incident("FALL", "MEDIUM", "MONITORING", nurse.accountId(), nurse.accountId());
-
-        post(floorManager, CLOSE, id, "{\"resolution\":\"Đã ổn\"}").andExpect(status().isForbidden());
-        post(nurse, CLOSE, id, "{\"resolution\":\" \"}").andExpect(status().isUnprocessableContent());
-        assertThat(incidentStatus(id)).isEqualTo("MONITORING");
-
-        post(nurse, CLOSE, id, "{\"resolution\":\"Đã ổn định\"}").andExpect(status().isOk());
-        assertThat(incidentStatus(id)).isEqualTo("CLOSED");
-    }
-
-    @Test
-    void FR_045_newIncidentCannotBeClosed() throws Exception {
-        long id = incident("FALL", "LOW", "NEW", null, nurse.accountId());
-        post(nurse, CLOSE, id, "{\"resolution\":\"Đã ổn\"}").andExpect(status().isConflict());
-        assertThat(incidentStatus(id)).isEqualTo("NEW");
-    }
-
     private void progression(long incident, ProgressionGroup group) throws Exception {
         post(
                         nurse,

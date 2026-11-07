@@ -11,6 +11,7 @@ import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeDuties;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -19,11 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -42,19 +40,10 @@ import tools.jackson.databind.json.JsonMapper;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import({ProcurementTestBase.Users.class, FakeM15Config.class, FakeFileConfig.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeFileConfig.class})
 abstract class ProcurementTestBase extends MySqlIntegrationTestBase {
     static final String URL = "/api/v1/procurement-requests";
     static final JsonMapper JSON = JsonMapper.builder().build();
-
-    @TestConfiguration
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser procurementUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     MockMvc mvc;

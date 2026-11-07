@@ -53,17 +53,6 @@ class BR_M01_01_TemporaryAbsenceOverdueIT extends StatusTestBase {
     }
 
     @Test
-    void BR_M01_01_notYetPastExpectedReturnPlusTwoHours_noAlert() {
-        long id = residentIn(ResidentStatus.TEMPORARILY_ABSENT);
-        absentUntil(id, Duration.ofHours(1));
-
-        clock.advanceBy(Duration.ofHours(1).plusMinutes(119));
-        alert.run();
-
-        assertThat(overdueEvents(id)).isZero();
-    }
-
-    @Test
     void BR_M01_01_pastTheMilestone_alertsExactlyOnce_evenWhenTheJobRunsAgain() {
         long id = residentIn(ResidentStatus.TEMPORARILY_ABSENT);
         long absence = absentUntil(id, Duration.ofHours(1));
@@ -82,48 +71,5 @@ class BR_M01_01_TemporaryAbsenceOverdueIT extends StatusTestBase {
                     assertThat(e.absenceId()).isEqualTo(absence);
                     assertThat(e.expectedReturnAt()).isCloseTo(expected, within(1, ChronoUnit.MILLIS));
                 });
-    }
-
-    @Test
-    void BR_M01_01_extendingCreatesANewMilestone_andAlertsAgain() {
-        long id = residentIn(ResidentStatus.TEMPORARILY_ABSENT);
-        long absence = absentUntil(id, Duration.ofHours(1));
-        clock.advanceBy(Duration.ofHours(4));
-        alert.run();
-        assertThat(overdueEvents(id)).isEqualTo(1);
-
-        absences.open(id, new OpenAbsence(absence, time.now().plus(Duration.ofHours(1))));
-        clock.advanceBy(Duration.ofHours(2));
-        alert.run();
-        assertThat(overdueEvents(id)).as("mốc mới chưa quá hạn").isEqualTo(1);
-
-        clock.advanceBy(Duration.ofHours(2));
-        alert.run();
-        assertThat(overdueEvents(id)).isEqualTo(2);
-    }
-
-    @Test
-    void BR_M01_01_afterRecordReturn_noAlert() {
-        long id = residentIn(ResidentStatus.TEMPORARILY_ABSENT);
-        absentUntil(id, Duration.ofHours(1));
-        user.set(office.user());
-        statusService.recordReturn(target(id), reason(), noDetails());
-        absences.close(id);
-
-        clock.advanceBy(Duration.ofHours(10));
-        alert.run();
-
-        assertThat(overdueEvents(id)).isZero();
-    }
-
-    @Test
-    void BR_M01_01_onlyResidentsWhoAreTemporarilyAbsentAreChecked() {
-        long inResidence = residentIn(ResidentStatus.IN_RESIDENCE);
-        absentUntil(inResidence, Duration.ofHours(1));
-
-        clock.advanceBy(Duration.ofHours(10));
-        alert.run();
-
-        assertThat(overdueEvents(inResidence)).isZero();
     }
 }

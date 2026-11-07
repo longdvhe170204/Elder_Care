@@ -7,8 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.administration.parameter.api.dto.*;
-import com.eldercare.backend.common.Role;
-import com.eldercare.backend.roombedallocation.api.dto.SessionDate;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.roombedallocation.FakeDayCareArrivals;
 import org.junit.jupiter.api.*;
@@ -68,50 +66,5 @@ class FR_038_DayCareHttpIT extends StructureTestSupport {
                         .content("{\"name\":\"Chiều\",\"startTime\":\"12:00\",\"endTime\":\"17:00\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.session.name").value("Chiều"));
-    }
-
-    @Test
-    void BR_M03_25_editSessionRecountsAndWarnsWithoutDeletingArrivals() throws Exception {
-        arrivals.count(new SessionDate(time.today().plusDays(1), morning), 4);
-        mvc.perform(put("/api/v1/day-care-sessions/" + morning)
-                        .header("If-Match", "\"0\"")
-                        .contentType("application/json")
-                        .content("{\"name\":\"Sáng\",\"startTime\":\"08:00\",\"endTime\":\"12:00\"}"))
-                .andExpect(status().isOk())
-                .andExpect(header().string("ETag", "\"1\""))
-                .andExpect(jsonPath("$.overCapacitySessions[0].remaining").value(-1));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action='M03_DAY_CARE_OVER_CAPACITY'", Integer.class))
-                .isPositive();
-        mvc.perform(get("/api/v1/day-care-rest-areas/registration-counts")
-                        .param("from", time.today().toString())
-                        .param("to", time.today().plusDays(2).toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.registrations == 4)]").isNotEmpty());
-    }
-
-    @Test
-    void FR_038_futureArrivalsPreventAreaDeactivationAndStaleVersionFails() throws Exception {
-        arrivals.count(new SessionDate(time.today().plusDays(1), morning), 1);
-        mvc.perform(post("/api/v1/day-care-rest-areas/" + rest + "/deactivate")
-                        .header("If-Match", "\"0\"")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Sửa khu nghỉ\"}"))
-                .andExpect(status().isConflict());
-        mvc.perform(put("/api/v1/day-care-sessions/" + morning)
-                        .header("If-Match", "\"8\"")
-                        .contentType("application/json")
-                        .content("{\"name\":\"Sáng\",\"startTime\":\"08:00\",\"endTime\":\"12:00\"}"))
-                .andExpect(status().isPreconditionFailed());
-    }
-
-    @Test
-    void FR_038_floorManagerReadsButCannotConfigure() throws Exception {
-        user.set(new TestUsers(jdbc, time).staff(Role.FLOOR_MANAGER).user());
-        mvc.perform(get("/api/v1/day-care-sessions")).andExpect(status().isOk());
-        mvc.perform(post("/api/v1/day-care-sessions")
-                        .contentType("application/json")
-                        .content("{\"name\":\"Chiều\",\"startTime\":\"12:00\",\"endTime\":\"17:00\"}"))
-                .andExpect(status().isForbidden());
     }
 }

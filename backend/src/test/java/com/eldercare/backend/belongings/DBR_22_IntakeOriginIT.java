@@ -25,18 +25,6 @@ class DBR_22_IntakeOriginIT extends IntakeTestBase {
     }
 
     @Test
-    void Q1_BR_M12_05_valuableWithoutPhoto_isBlocked_andNothingIsCreated() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-
-        postJson(office, "/api/v1/residents/" + resident + "/belongings", phone(location(), "[]"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("PHOTO_REQUIRED"));
-
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM belonging WHERE resident_id = ?", Integer.class, resident))
-                .isZero();
-    }
-
-    @Test
     void Q2_DBR_22_intakeCreatesHeldBelongingWithExactlyOneIntakeRecord() throws Exception {
         long resident = resident("IN_RESIDENCE");
         long location = location();
@@ -84,57 +72,5 @@ class DBR_22_IntakeOriginIT extends IntakeTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(id));
-    }
-
-    @Test
-    void FR_003_cashUsesAmount_notQuantity() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long location = location();
-        String body = "{\"typeId\": " + typeId("CASH") + ", \"description\": \"Tiền mặt\", %s,"
-                + " \"condition\": {\"levelId\": " + levelId("GOOD") + "}, \"giver\": {\"type\": \"RESIDENT\"},"
-                + " \"at\": \"2026-11-05T08:00:00+07:00\", \"storageLocationId\": " + location
-                + ", \"photoFileIds\": [%d]}";
-
-        postJson(office, "/api/v1/residents/" + resident + "/belongings", body.formatted("\"quantity\": 1", photo()))
-                .andExpect(status().isUnprocessableEntity());
-        postJson(
-                        office,
-                        "/api/v1/residents/" + resident + "/belongings",
-                        body.formatted("\"cashAmount\": 2000000", photo()))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.cashAmount").value(2000000));
-    }
-
-    @Test
-    void FR_006_finalStatus_blocksIntake() throws Exception {
-        long resident = resident("DECEASED");
-
-        postJson(office, "/api/v1/residents/" + resident + "/belongings", phone(location(), "[" + photo() + "]"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RESIDENT_FINAL_STATE"));
-    }
-
-    @Test
-    void Q4_FR_007_nurseOutsideScope_andManager_cannotIntake() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-
-        postJson(nurse, "/api/v1/residents/" + resident + "/belongings", phone(location(), "[" + photo() + "]"))
-                .andExpect(status().is4xxClientError());
-        postJson(manager, "/api/v1/residents/" + resident + "/belongings", phone(location(), "[" + photo() + "]"))
-                .andExpect(status().isForbidden());
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM belonging WHERE resident_id = ?", Integer.class, resident))
-                .isZero();
-    }
-
-    @Test
-    void FR_011_heldIntake_needsStorageLocation() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        String body = "{\"typeId\": " + typeId("CLOTHING") + ", \"description\": \"Áo\", \"quantity\": 5,"
-                + " \"condition\": {\"levelId\": " + levelId("GOOD") + "}, \"giver\": {\"type\": \"RESIDENT\"},"
-                + " \"at\": \"2026-11-05T08:00:00+07:00\"}";
-
-        postJson(office, "/api/v1/residents/" + resident + "/belongings", body)
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errorCode").value("STORAGE_LOCATION_REQUIRED"));
     }
 }

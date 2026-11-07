@@ -37,6 +37,12 @@ class HospitalDocumentFilePermission implements FilePermissionProvider {
         return ResidentStatusService.HOSPITAL_DOCUMENT_OWNER;
     }
 
+    /** Giấy tờ gắn mã dòng lịch sử trạng thái: xóa cùng dòng đó khi hết hạn lưu giữ (FR-051a). */
+    @Override
+    public String recordType() {
+        return ResidentStatusService.HISTORY_RECORD_TYPE;
+    }
+
     // Không đặt readOnly: kiểm quyền theo phạm vi có thể ghi dấu đã khắc phục lỗi dữ liệu nguồn (002 CHK059)
     @Override
     public boolean canDownload(long ownerId) {

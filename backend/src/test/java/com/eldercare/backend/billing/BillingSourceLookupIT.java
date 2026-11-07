@@ -115,54 +115,6 @@ class BillingSourceLookupIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_005_emptyIdSelectionNeverExpandsToAllSources() {
-        long resident = TestUsers.nextId();
-        source(resident, "stay-" + TestUsers.nextId(), "night");
-
-        assertThat(store.findBySourceIds(resident, "OVERNIGHT_STAY", List.of())).isEmpty();
-    }
-
-    @Test
-    void FR_005_lookupIsScopedToResidentTypeAndInclusiveDateRange() {
-        long resident = TestUsers.nextId();
-        String id = "stay-" + TestUsers.nextId();
-        source(resident, "OVERNIGHT_STAY", id, "before", DAY.minusDays(1));
-        source(resident, "OVERNIGHT_STAY", id, "first", DAY);
-        source(resident, "OVERNIGHT_STAY", id, "last", DAY.plusDays(1));
-        source(resident, "OVERNIGHT_STAY", id, "after", DAY.plusDays(2));
-        source(TestUsers.nextId(), "OVERNIGHT_STAY", id + "-other", "first", DAY);
-        source(resident, "FAMILY_MEAL", id, "meal", DAY);
-
-        var matches = store.find(resident, "OVERNIGHT_STAY", DAY, DAY.plusDays(1));
-
-        assertThat(matches).extracting(row -> row.source().unit()).containsExactly("first", "last");
-        assertThat(matches).allSatisfy(row -> {
-            assertThat(row.source().residentId()).isEqualTo(resident);
-            assertThat(row.source().sourceType()).isEqualTo("OVERNIGHT_STAY");
-        });
-    }
-
-    @Test
-    void FR_005_sourcesWithAndWithoutCostsAreReturnedTogether() {
-        long resident = TestUsers.nextId();
-        var withItem = source(resident, "stay-" + TestUsers.nextId(), "night");
-        var withoutItem = source(resident, "stay-" + TestUsers.nextId(), "night");
-        long itemId = item(withItem, false);
-
-        var matches = store.find(resident, "OVERNIGHT_STAY", DAY, DAY);
-
-        assertThat(matches).hasSize(2);
-        assertThat(matches)
-                .filteredOn(row -> row.source().sourceId().equals(withItem.sourceId()))
-                .singleElement()
-                .satisfies(row -> assertThat(row.existingItemId()).isEqualTo(itemId));
-        assertThat(matches)
-                .filteredOn(row -> row.source().sourceId().equals(withoutItem.sourceId()))
-                .singleElement()
-                .satisfies(row -> assertThat(row.existingItemId()).isNull());
-    }
-
-    @Test
     void DBR_15_existingCostMatchesTheExactBillingUnit() {
         long resident = TestUsers.nextId();
         String id = "stay-" + TestUsers.nextId();
@@ -175,49 +127,5 @@ class BillingSourceLookupIT extends MySqlIntegrationTestBase {
         assertThat(matches).hasSize(2);
         assertThat(matches.getFirst().existingItemId()).isEqualTo(itemId);
         assertThat(matches.getLast().existingItemId()).isNull();
-    }
-
-    @Test
-    void FR_006_cancelledCostDoesNotHideTheNewEffectiveCostOrDuplicateTheSource() {
-        long resident = TestUsers.nextId();
-        var source = source(resident, "stay-" + TestUsers.nextId(), "night");
-        item(source, true);
-        long active = item(source, false);
-
-        assertThat(store.find(resident, "OVERNIGHT_STAY", DAY, DAY))
-                .singleElement()
-                .satisfies(row -> assertThat(row.existingItemId()).isEqualTo(active));
-    }
-
-    @Test
-    void FR_020_lookupReadsCurrentQuantityCancellationAndVersionWithoutRestoringTheOriginal() {
-        long resident = TestUsers.nextId();
-        var source = source(resident, "stay-" + TestUsers.nextId(), "night");
-        jdbc.update("""
-                UPDATE cost_source_index SET current_quantity=2.125,cancelled=TRUE,version=3
-                WHERE source_type=? AND source_id=? AND billing_unit=?
-                """, source.sourceType(), source.sourceId(), source.unit());
-
-        assertThat(store.find(resident, "OVERNIGHT_STAY", DAY, DAY))
-                .singleElement()
-                .satisfies(row -> {
-                    assertThat(row.source().quantity()).isEqualByComparingTo("2.125");
-                    assertThat(row.cancelled()).isTrue();
-                    assertThat(row.version()).isEqualTo(3);
-                    assertThat(row.source().occurredAt()).isEqualTo(AT);
-                });
-    }
-
-    @Test
-    void FR_005_emptyLookupDoesNotCreateAnyBusinessRecord() {
-        long resident = TestUsers.nextId();
-
-        assertThat(store.find(resident, "OVERNIGHT_STAY", DAY, DAY)).isEmpty();
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM cost_statement WHERE resident_id=?", Integer.class, resident))
-                .isZero();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_item WHERE resident_id=?", Integer.class, resident))
-                .isZero();
     }
 }

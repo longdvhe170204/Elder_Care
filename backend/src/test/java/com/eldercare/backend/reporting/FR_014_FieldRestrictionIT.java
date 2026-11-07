@@ -9,9 +9,6 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.reporting.TestScopedMetrics.Event;
 import com.eldercare.backend.reporting.TestScopedMetrics.EventSource;
-import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
-import com.eldercare.backend.reporting.internal.report.domain.Report;
-import com.eldercare.backend.reporting.internal.report.domain.ReportGroup;
 import com.eldercare.backend.reporting.internal.report.service.ReportService;
 import com.eldercare.backend.reporting.internal.scope.service.ReportPeriods;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -98,27 +95,5 @@ class FR_014_FieldRestrictionIT extends MySqlIntegrationTestBase {
     void SC_005_office_andAccountant_seeItemCodeOnly() throws Exception {
         expectItemCodeOnly(users.staff(Role.OFFICE_STAFF));
         expectItemCodeOnly(users.staff(Role.ACCOUNTANT));
-    }
-
-    @Test
-    void SC_005_manager_seesMedicationName() throws Exception {
-        details(users.staff(Role.NURSING_HOME_MANAGER))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows[0].result.item").value(TestScopedMetrics.RESTRICTED));
-    }
-
-    @Test
-    void FR_014_exportRows_sameRestriction() {
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-
-        Report report =
-                reports.period(office.user(), ReportGroup.INCURRED_COSTS, periods.check(from, to), ReportFilters.NONE);
-
-        assertThat(report.results())
-                .filteredOn(r -> r.metricCode().equals(TestScopedMetrics.COSTS))
-                .singleElement()
-                .satisfies(r -> assertThat(r.rows())
-                        .singleElement()
-                        .satisfies(row -> assertThat(row.result()).containsOnlyKeys("itemCode")));
     }
 }

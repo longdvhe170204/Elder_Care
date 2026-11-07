@@ -5,7 +5,9 @@ import com.eldercare.backend.notification.internal.urgent.service.CallReminderQu
 import com.eldercare.backend.notification.internal.urgent.service.CallResultService;
 import com.eldercare.backend.notification.internal.urgent.service.CallResultService.CallResultInput;
 import com.eldercare.backend.notification.internal.urgent.service.UrgentAcknowledgement;
+import com.eldercare.backend.notification.internal.urgent.service.UrgentTakeCharge;
 import com.eldercare.backend.notification.web.request.CallResultBody;
+import com.eldercare.backend.notification.web.response.AcknowledgeAndTakeChargeBody;
 import com.eldercare.backend.notification.web.response.CallReminderBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Thông báo Khẩn cấp theo contracts/api-009.yaml (thẻ {@code urgent}; 009 T021): xác nhận đã nhận, lượt nhắc gọi của tôi,
- * chi tiết lượt, ghi kết quả gọi. "Xác nhận và tiếp nhận" chờ lệnh tiếp nhận của 007.
+ * chi tiết lượt, ghi kết quả gọi, "Xác nhận và tiếp nhận" (tiếp nhận qua lệnh của 007).
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -38,12 +40,17 @@ public class UrgentController {
     private final UrgentAcknowledgement acknowledgement;
     private final CallReminderQueries reminders;
     private final CallResultService results;
+    private final UrgentTakeCharge takeCharge;
 
     public UrgentController(
-            UrgentAcknowledgement acknowledgement, CallReminderQueries reminders, CallResultService results) {
+            UrgentAcknowledgement acknowledgement,
+            CallReminderQueries reminders,
+            CallResultService results,
+            UrgentTakeCharge takeCharge) {
         this.acknowledgement = acknowledgement;
         this.reminders = reminders;
         this.results = results;
+        this.takeCharge = takeCharge;
     }
 
     @PostMapping("/notifications/{id}/acknowledge")
@@ -66,6 +73,12 @@ public class UrgentController {
             @PathVariable long id, @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey) {
         acknowledgement.acknowledge(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/notifications/{id}/acknowledge-and-take-charge")
+    AcknowledgeAndTakeChargeBody acknowledgeAndTakeCharge(
+            @PathVariable long id, @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey) {
+        return AcknowledgeAndTakeChargeBody.of(takeCharge.acknowledgeAndTakeCharge(id));
     }
 
     @GetMapping("/me/call-reminders")
