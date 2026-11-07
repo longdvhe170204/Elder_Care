@@ -22,6 +22,8 @@
 /specs/004-admission-residency/                     @AAnh004
 /specs/013-personal-belongings/                     @AAnh004
 /specs/018-residence-registration/                  @AAnh004
+# 017 nhận 2026-11-07: A Phase 1–6, B Phase 7–10; gói con của 017 trong billing thêm dòng khi chốt tên
+/specs/017-resident-balance-ledger/                 @longdvhe170204 @AAnh004
 
 # C: phòng giường, chăm sóc, hoạt động, kho
 /backend/src/main/java/com/eldercare/backend/roombedallocation/      @HungNX-nguyen
@@ -46,7 +48,6 @@
 /specs/008-staff-shift-handover/                    @ptlog18
 /specs/010-incurred-costs/                          @ptlog18
 /specs/015-shift-rotation-swap/                     @ptlog18
-/specs/017-resident-balance-ledger/                 @ptlog18
 
 # Phần module thêm vào bảng dùng chung của R-15 (research R-15 mục 5): A review
 /backend/src/main/resources/db/migration/*__shared_*.sql @longdvhe170204
