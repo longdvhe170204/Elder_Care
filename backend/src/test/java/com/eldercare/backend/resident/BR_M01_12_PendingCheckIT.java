@@ -26,7 +26,7 @@ import org.springframework.test.context.event.ApplicationEvents;
  * được lưu dù listener của 006, 011 lỗi; cờ chờ kiểm tra còn cho tới khi cả hai module gọi {@code markChecked}; job phát
  * lại {@code AllergyRecorded} cho mục còn cờ quá 15 phút và dừng khi hết cờ.
  */
-@Import(BR_M01_12_PendingCheckIT.FailingChecker.class)
+@Import({BR_M01_12_PendingCheckIT.FailingChecker.class, AllergyCheckersOff.class})
 class BR_M01_12_PendingCheckIT extends HealthTestBase {
 
     /** Giả lập 006 hoặc 011 lỗi khi kiểm tra: listener ném ngoại lệ, lệnh ghi mục không bị ảnh hưởng. */

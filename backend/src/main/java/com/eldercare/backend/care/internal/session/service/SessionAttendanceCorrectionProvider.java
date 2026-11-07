@@ -8,7 +8,7 @@ import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
-import com.eldercare.backend.billing.api.events.CostSourceChanged;
+import com.eldercare.backend.care.api.events.ActivityCostSourceChanged;
 import com.eldercare.backend.care.internal.session.domain.SessionKinds;
 import com.eldercare.backend.care.internal.session.domain.SessionKinds.AttendanceResult;
 import com.eldercare.backend.care.internal.session.persistence.ActivitySessionStore;
@@ -122,7 +122,7 @@ public class SessionAttendanceCorrectionProvider implements CorrectableRecordPro
                         item(correction.correctedContent()).result());
         var billed = store.billedSource(original.registrationId());
         if (billed.isPresent() && !present) {
-            events.publishEvent(new CostSourceChanged(
+            events.publishEvent(new ActivityCostSourceChanged(
                     SessionAttendanceService.BILLING_SOURCE,
                     billed.get(),
                     SessionAttendanceService.BILLING_UNIT,
