@@ -3,9 +3,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
+import '../../common/residents/resident_avatar.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/status_pill.dart';
-import 'resident_avatar.dart';
 import 'resident_card_screen.dart';
 import 'resident_labels.dart';
 
