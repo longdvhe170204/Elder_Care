@@ -11,7 +11,8 @@ import java.util.List;
  * Phiếu cho bếp (api-011 {@code KitchenMealSlip}; FR-046, SC-008): chỉ tầng/khu, bữa, số suất theo chế độ ăn, nhãn suất
  * đặc biệt (họ tên, phòng, chế độ ăn, kết cấu, món, dấu đóng, đã chuẩn bị) và phần bổ sung. Không có dị ứng, bệnh lý,
  * thành phần xung đột, lý do món thay thế, danh sách cần đối chiếu. {@code labels[].id}, {@code supplementaryPortions} thêm
- * vào hợp đồng 2026-11-07 (chủ dự án chọn).
+ * vào hợp đồng 2026-11-07 (chủ dự án chọn); {@code flags} (dấu mức phiếu {@code NO_MENU}, {@code CLOSED_AFTER_MEAL_TIME}, FR-046)
+ * thêm 2026-11-07 (chủ dự án chọn).
  */
 @Schema(name = "KitchenMealSlip", description = "Chỉ trường FR-046; không có dị ứng, bệnh lý, thành phần xung đột")
 public record KitchenMealSlipResponse(
@@ -21,7 +22,8 @@ public record KitchenMealSlipResponse(
         List<DietCountResponse> portionsByDiet,
         List<LabelResponse> labels,
         MealSlipStatus status,
-        List<SupplementResponse> supplementaryPortions) {
+        List<SupplementResponse> supplementaryPortions,
+        List<String> flags) {
 
     public record DietCountResponse(String diet, Integer portionCount) {}
 
@@ -61,6 +63,7 @@ public record KitchenMealSlipResponse(
                 s.supplementaryPortions().stream()
                         .map(p -> new SupplementResponse(
                                 p.id(), p.dietId(), p.portionCount(), p.deliveredAt(), p.receivedAt()))
-                        .toList());
+                        .toList(),
+                s.flags());
     }
 }

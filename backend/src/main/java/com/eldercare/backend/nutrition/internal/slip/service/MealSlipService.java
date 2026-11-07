@@ -144,7 +144,7 @@ public class MealSlipService {
     /** Phần bổ sung của phiếu (FR-048b; trường thêm vào hợp đồng 2026-11-07). */
     public record Supplement(long id, Long dietId, int portionCount, Instant deliveredAt, Instant receivedAt) {}
 
-    /** Phiếu cho bếp (api-011 {@code KitchenMealSlip}; FR-046, SC-008). */
+    /** Phiếu cho bếp (api-011 {@code KitchenMealSlip}; FR-046, SC-008); {@code flags} là dấu mức phiếu (danh sách đóng). */
     public record KitchenSlip(
             long id,
             String floorArea,
@@ -152,7 +152,8 @@ public class MealSlipService {
             List<DietCount> portionsByDiet,
             List<Label> labels,
             MealSlipStatus status,
-            List<Supplement> supplementaryPortions) {}
+            List<Supplement> supplementaryPortions,
+            List<String> flags) {}
 
     /** Phiếu cho nhân viên tại tầng (api-011 {@code FloorMealSlip}): thêm người cần đối chiếu, dị ứng khi có quyền xem. */
     public record FloorSlip(KitchenSlip slip, List<Long> needsCrossCheck, List<Map<String, Object>> allergies) {}
@@ -570,7 +571,8 @@ public class MealSlipService {
                 counts,
                 labels,
                 MealSlipStatus.valueOf(slip.status()),
-                supplements);
+                supplements,
+                m.flags().stream().sorted().toList());
     }
 
     private Label label(SimpleRecord<SpecialPortion> row, Optional<LocationView> where) {
