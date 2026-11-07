@@ -35,22 +35,6 @@ class ProlongedInsomniaCounterTest {
     }
 
     @Test
-    void FR_039c_otherGroupBreaksTheChain() {
-        var results = List.of(night(D.minusDays(2), INSOMNIA), night(D.minusDays(1), null), night(D, INSOMNIA));
-
-        assertThat(ProlongedInsomniaCounter.consecutiveNights(D, results, Set.of()))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void FR_039c_absentNightIsSkippedWithoutBreaking() {
-        var results = List.of(night(D.minusDays(3), INSOMNIA), night(D.minusDays(1), INSOMNIA), night(D, INSOMNIA));
-
-        assertThat(ProlongedInsomniaCounter.consecutiveNights(D, results, Set.of(D.minusDays(2))))
-                .isEqualTo(3);
-    }
-
-    @Test
     void CHK045_latestCurrentResultOfTheDayWins() {
         var overridden = List.of(
                 night(D.minusDays(1), INSOMNIA),

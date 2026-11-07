@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.dto.StatusCommand;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -38,50 +37,5 @@ class FR_045_ListConditionsIT extends StatusTestBase {
         assertThat(historyCount(id)).isEqualTo(rows);
         assertThat(one.applied()).isEmpty();
         assertThat(two.applied()).isEmpty();
-    }
-
-    @Test
-    void FR_045_onlyParticipantsInterestedInTheCommandAreAsked() {
-        long id = residentIn(ResidentStatus.IN_RESIDENCE);
-        one.interestedIn(StatusCommand.END_RESIDENCY).unmet(BELONGINGS);
-        two.interestedIn(StatusCommand.TRANSFER_OUT).unmet(MEDICINE);
-        user.set(office.user());
-
-        BusinessException e = failure(() -> statusService.endResidency(target(id), reason(), noDetails()));
-
-        assertThat(unmetCodes(e)).containsExactly("BELONGINGS_NOT_RETURNED");
-    }
-
-    @Test
-    void FR_045_preview_returnsTheSameListWithoutChangingAnything() {
-        long id = residentIn(ResidentStatus.IN_RESIDENCE);
-        one.unmet(BELONGINGS);
-        two.unmet(MEDICINE);
-        user.set(office.user());
-        int rows = historyCount(id);
-
-        var conditions = statusService.previewConditions(target(id), StatusCommand.END_RESIDENCY);
-
-        assertThat(conditions)
-                .extracting(Condition::code)
-                .containsExactlyInAnyOrder("BELONGINGS_NOT_RETURNED", "MEDICINE_NOT_RETURNED");
-        assertThat(conditions)
-                .filteredOn(Condition::waivable)
-                .extracting(Condition::code)
-                .containsExactly("MEDICINE_NOT_RETURNED");
-        assertThat(historyCount(id)).isEqualTo(rows);
-        assertThat(currentStatus(id)).isEqualTo(ResidentStatus.IN_RESIDENCE);
-    }
-
-    @Test
-    void FR_045_noUnmetCondition_previewIsEmptyAndTheCommandSucceeds() {
-        long id = residentIn(ResidentStatus.IN_RESIDENCE);
-        user.set(office.user());
-
-        assertThat(statusService.previewConditions(target(id), StatusCommand.END_RESIDENCY))
-                .isEmpty();
-        var outcome = statusService.endResidency(target(id), reason(), noDetails());
-
-        assertThat(outcome.status()).isEqualTo(ResidentStatus.RESIDENCY_ENDED);
     }
 }

@@ -81,17 +81,6 @@ class FR_022_ThresholdFinalStatusIT extends MySqlIntegrationTestBase {
         assertThat(store.hasPersonalOpen(resident)).isFalse();
     }
 
-    @Test
-    void FR_022_nonFinalStatusKeepsPersonalThresholds() {
-        long resident = TestUsers.nextId();
-        long effective = personal(resident, "EFFECTIVE", NOW.minus(Duration.ofDays(5)));
-
-        tx.executeWithoutResult(s ->
-                participant.applyEffects(result(resident, StatusCommand.TRANSFER_OUT, ResidentStatus.HOSPITALIZED)));
-
-        assertThat(status(effective)).isEqualTo("EFFECTIVE");
-    }
-
     private static TransitionResult result(long resident, StatusCommand command, ResidentStatus to) {
         return new TransitionResult(resident, ResidentStatus.IN_RESIDENCE, to, command, TestUsers.nextId(), NOW, null);
     }

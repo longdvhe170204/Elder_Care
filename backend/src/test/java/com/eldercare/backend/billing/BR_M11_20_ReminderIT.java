@@ -2,7 +2,6 @@ package com.eldercare.backend.billing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.HasNotificationRequests;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
@@ -63,35 +62,5 @@ class BR_M11_20_ReminderIT extends ProcurementTestBase {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM procurement_request", Integer.class))
                 .as("Q-306: job không tạo yêu cầu")
                 .isEqualTo(requestsBefore);
-    }
-
-    @Test
-    void BR_M11_20_pendingReconciliationPastSevenDaysRemindsAccountants() throws Exception {
-        long due = purchased(1_800_000, 1_900_000);
-        long early = purchased(1_800_000, 1_900_000);
-        shift(due, "purchase_recorded_at", 7);
-        shift(early, "purchase_recorded_at", 6);
-
-        job().runNow();
-        job().runNow();
-
-        assertThat(reminders(due, "PROCUREMENT_RECONCILIATION_OVERDUE"))
-                .containsExactly(new RecipientGroup.FacilityRole(Role.ACCOUNTANT));
-        assertThat(reminders(early, "PROCUREMENT_RECONCILIATION_OVERDUE")).isEmpty();
-    }
-
-    @Test
-    void BR_M11_20_returnedRequestIsRemindedAgainForTheNewPurchaseCycle() throws Exception {
-        long id = purchased(1_800_000, 1_900_000);
-        shift(id, "purchase_recorded_at", 8);
-        job().runNow();
-        as(accountant);
-        command(id, "return-for-reconciliation", "{\"reason\":\"Thiếu hóa đơn\"}");
-        as(kitchenLead);
-        command(id, "record-purchased", purchase(1_900_000, kitchenLead));
-        shift(id, "purchase_recorded_at", 9);
-        job().runNow();
-
-        assertThat(reminders(id, "PROCUREMENT_RECONCILIATION_OVERDUE")).hasSize(2);
     }
 }

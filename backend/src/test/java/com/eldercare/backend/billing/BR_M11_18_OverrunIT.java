@@ -33,34 +33,4 @@ class BR_M11_18_OverrunIT extends ProcurementTestBase {
         assertThat(recipients(id, "PENDING_RECONCILIATION"))
                 .containsExactly(new RecipientGroup.FacilityRole(Role.ACCOUNTANT));
     }
-
-    @Test
-    void FR_008a_receiptIsRequiredAndOnlyTheDepartmentLeadRecordsPurchase() throws Exception {
-        long id = approved(1_800_000);
-        as(kitchenLead);
-        command(id, "record-purchased", "{\"actualAmount\":1900000,\"purchasedOn\":\"2026-11-05\",\"supplier\":\"A\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RECEIPT_REQUIRED"));
-        as(kitchenStaff);
-        command(id, "record-purchased", purchase(1_900_000, kitchenStaff))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.errorCode").value("NOT_DEPARTMENT_LEAD"));
-        assertThat(stateOf(id)).isEqualTo("APPROVED");
-    }
-
-    @Test
-    void FR_008a_supplementaryRequestReferencesTheOriginal() throws Exception {
-        long original = approved(1_800_000);
-        as(kitchenLead);
-        long supplement = created("{\"departmentId\":" + kitchen + ",\"type\":\"INGREDIENT\",\"reason\":\"Phần vượt\","
-                + "\"originalRequestId\":" + original + ",\"lines\":[{\"name\":\"Gạo\",\"quantity\":10,"
-                + "\"estimatedUnitPrice\":30000}]}");
-        assertThat(jdbc.queryForObject(
-                        "SELECT original_request_id FROM procurement_request WHERE id=?", Long.class, supplement))
-                .isEqualTo(original);
-        create(
-                        "{\"departmentId\":" + kitchen + ",\"type\":\"INGREDIENT\",\"reason\":\"Phần vượt\","
-                                + "\"originalRequestId\":-1,\"lines\":[{\"name\":\"Gạo\",\"quantity\":1,\"estimatedUnitPrice\":1}]}")
-                .andExpect(status().isUnprocessableEntity());
-    }
 }

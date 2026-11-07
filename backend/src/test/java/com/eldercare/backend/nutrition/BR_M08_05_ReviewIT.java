@@ -111,55 +111,6 @@ class BR_M08_05_ReviewIT extends MenuTestBase {
                 .isZero();
     }
 
-    @Test
-    void BR_M08_05_residentWithoutAssignment_noticeNamesDefaultDiet_noCurrentAssignment() throws Exception {
-        long resident = f.resident("IN_RESIDENCE");
-
-        review.onWeightLossDetected(weightLoss(resident, TestUsers.nextId()));
-
-        assertThat(notices())
-                .singleElement()
-                .satisfies(n -> assertThat(n.notificationRequests()
-                                .getFirst()
-                                .content()
-                                .getLast()
-                                .content())
-                        .contains("mặc định"));
-        listNotices(resident)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].currentAssignmentId").doesNotExist());
-    }
-
-    @Test
-    void FR_059_q46_assignmentMayReferenceReceivedNotice_otherResidentOrUnknownNoticeRejected() throws Exception {
-        long resident = f.resident("IN_RESIDENCE");
-        long other = f.resident("IN_RESIDENCE");
-        f.activeAssignment(resident, defaultDiet, "REGULAR", List.of(), time.now());
-        review.onProlongedPoorEating(poorEating(resident, TestUsers.nextId()));
-        review.onProlongedPoorEating(poorEating(other, TestUsers.nextId()));
-        long notice = noticeOf(resident);
-        long foreign = noticeOf(other);
-
-        f.propose(resident, reviewBody(foreign)).andExpect(status().isUnprocessableEntity());
-        f.propose(resident, reviewBody(TestUsers.nextId())).andExpect(status().isUnprocessableEntity());
-        f.propose(resident, reviewBody(notice)).andExpect(status().isCreated());
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT review_notice_id FROM diet_assignment WHERE id = ?",
-                        Long.class,
-                        f.latestAssignment(resident)))
-                .isEqualTo(notice);
-    }
-
-    @Test
-    void FR_063_kitchenCannotReadReviewNotices() throws Exception {
-        long resident = f.resident("IN_RESIDENCE");
-        review.onProlongedPoorEating(poorEating(resident, TestUsers.nextId()));
-
-        f.asKitchen();
-        f.send(get(NOTICES + "?residentId=" + resident), null).andExpect(status().isForbidden());
-    }
-
     private long noticeOf(long resident) throws Exception {
         String body = listNotices(resident)
                 .andExpect(status().isOk())

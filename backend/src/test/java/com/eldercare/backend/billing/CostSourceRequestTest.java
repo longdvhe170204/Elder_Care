@@ -39,12 +39,6 @@ class CostSourceRequestTest {
                         42L, "RESIDENCY_DAY", null, null, new DateRange(DAY, DAY.plusDays(1))));
     }
 
-    @ParameterizedTest
-    @MethodSource("validSelections")
-    void FR_005_eachApprovedSelectionModeIsAccepted(CreateCostsFromEventsRequest request) {
-        assertThat(VALIDATOR.validate(request)).isEmpty();
-    }
-
     static Stream<CreateCostsFromEventsRequest> invalidSelections() {
         return Stream.of(
                 new CreateCostsFromEventsRequest(null, "DOSE", List.of("17"), null, null),

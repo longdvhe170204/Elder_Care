@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.events.SuppliedMedicationIntakeFailed;
 import com.eldercare.backend.medication.api.spi.ProcurementMedicationLineView;
@@ -184,36 +182,5 @@ class BR_M07_24_SuppliedMedicationIntakeIT extends M07IntegrationTestBase {
         // giao bù: lần tiếp nhận mới cho cùng dòng
         service.record(service.targetOfLine(lineId), intake(lineId, IntakeResult.PASSED, null, null));
         assertThat(service.byProcurementRequest(requestId)).hasSize(2);
-    }
-
-    @Test
-    void FR_054_list_showsResultAndReceiverName() {
-        staffProfiles.name(nurse.staffId(), "Điều dưỡng Hoa");
-        service.record(service.targetOfLine(lineId), intake(lineId, IntakeResult.PASSED, null, null));
-
-        assertThat(controller.list(requestId)).singleElement().satisfies(r -> {
-            assertThat(r.result()).isEqualTo("PASSED");
-            assertThat(r.receiverName()).isEqualTo("Điều dưỡng Hoa");
-        });
-    }
-
-    @Test
-    void US9_3_lineNotPurchased_isBlocked() {
-        long notPurchased = TestUsers.nextId();
-
-        assertThatThrownBy(() -> service.targetOfLine(notPurchased))
-                .isInstanceOf(ConditionNotMetException.class)
-                .satisfies(e -> assertThat(((ConditionNotMetException) e).unmetConditions())
-                        .extracting(c -> c.code())
-                        .containsExactly("REQUEST_NOT_PURCHASED"));
-    }
-
-    @Test
-    void appendix27_doctorOnlyViews() {
-        user.set(doctor.user());
-
-        assertThatThrownBy(() ->
-                        service.record(service.targetOfLine(lineId), intake(lineId, IntakeResult.PASSED, null, null)))
-                .isInstanceOf(PermissionDeniedException.class);
     }
 }

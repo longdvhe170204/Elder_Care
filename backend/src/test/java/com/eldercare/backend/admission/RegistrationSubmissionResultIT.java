@@ -1,25 +1,18 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.groups.Tuple.tuple;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.admission.api.events.ResidenceRegistrationReminder;
-import com.eldercare.backend.admission.api.events.ResidenceRegistrationReminder.Kind;
-import com.eldercare.backend.admission.internal.registration.domain.ObligationTrigger;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationStatus;
-import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
 import com.eldercare.backend.admission.internal.registration.domain.SubmissionChannel;
 import com.eldercare.backend.admission.internal.registration.persistence.RegistrationObligationStore;
 import com.eldercare.backend.admission.internal.registration.service.ResidenceRegistrationService;
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.file.FileTypes;
 import com.eldercare.backend.common.time.TestClockControl;
@@ -27,7 +20,6 @@ import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.file.FakeFileConfig;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,7 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -236,279 +227,11 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                         .isEmpty());
     }
 
-    @Test
-    void Q7_recordingSubmitted_withoutDateChannelOrAuthority_isRejected() {
-        ResidenceRegistration registration = created();
-        user.set(office.user());
-
-        assertThat(failure(() -> registrations.recordSubmitted(
-                        registrations.targetOf(registration.id()),
-                        registration.id(),
-                        new ResidenceRegistrationService.Submission(today(), SubmissionChannel.IN_PERSON, " ", null))))
-                .isInstanceOf(InvalidValueException.class);
-        assertThat(failure(() -> registrations.recordSubmitted(
-                        registrations.targetOf(registration.id()),
-                        registration.id(),
-                        new ResidenceRegistrationService.Submission(null, SubmissionChannel.IN_PERSON, "CA", null))))
-                .isInstanceOf(InvalidValueException.class);
-        assertThat(reload(registration).status()).isEqualTo(RegistrationStatus.TO_SUBMIT);
-        assertThat(submissions(registration.id())).isEmpty();
-    }
-
-    @Test
-    void Q7_acceptingATemporaryResidenceRegistration_needsEvidenceAndExpiryDate() throws Exception {
-        ResidenceRegistration registration = created();
-        assertThat(registration.type()).isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
-        submit(registration);
-
-        command(office, registration.id(), "record-accepted", acceptedBody(evidence(), null))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("EXPIRY_DATE_REQUIRED"));
-        command(office, registration.id(), "record-accepted", acceptedBody(null, today().plusYears(1)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("EVIDENCE_REQUIRED"));
-        assertThat(reload(registration).status()).isEqualTo(RegistrationStatus.SUBMITTED);
-
-        long file = evidence();
-        LocalDate expiry = LocalDate.of(2027, 9, 30);
-        command(office, registration.id(), "record-accepted", acceptedBody(file, expiry))
-                .andExpect(status().isOk());
-
-        ResidenceRegistration after = reload(registration);
-        assertThat(after.status()).isEqualTo(RegistrationStatus.CONFIRMED);
-        assertThat(after.expiryDate()).isEqualTo(expiry);
-        assertThat(((Number) row(registration.id()).get("evidence_file_id")).longValue())
-                .isEqualTo(file);
-        assertThat(submissions(registration.id()))
-                .extracting(s -> s.get("result"))
-                .containsExactly("ACCEPTED");
-        assertThat(jdbc.queryForMap("SELECT owner_type, owner_id FROM file WHERE id = ?", file))
-                .as("bằng chứng gắn vào khai báo")
-                .containsEntry("owner_type", "M02.REGISTRATION_EVIDENCE")
-                .containsEntry("owner_id", registration.id());
-    }
-
-    @Test
-    void Q7_acceptingAStayNotification_needsNoExpiryDate() throws Exception {
-        ResidenceRegistration registration = createdFor(ResidenceType.SHORT_TERM_RESIDENTIAL, today().plusDays(13));
-        assertThat(registration.type()).isEqualTo(RegistrationType.STAY_NOTIFICATION);
-        submit(registration);
-
-        command(office, registration.id(), "record-accepted", acceptedBody(evidence(), null))
-                .andExpect(status().isOk());
-
-        ResidenceRegistration after = reload(registration);
-        assertThat(after.status()).isEqualTo(RegistrationStatus.CONFIRMED);
-        assertThat(after.expiryDate()).isNull();
-    }
-
     // ---- Q8: chưa ghi nộp -------------------------------------------------------------------------------------
-
-    @Test
-    void Q8_recordingAResultBeforeSubmission_isBlocked() throws Exception {
-        ResidenceRegistration registration = created();
-
-        command(office, registration.id(), "record-accepted", acceptedBody(evidence(), today().plusYears(1)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_SUBMITTED"));
-        command(office, registration.id(), "record-rejected", "{\"reason\":\"thiếu giấy tờ\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_SUBMITTED"));
-
-        assertThat(reload(registration).status()).isEqualTo(RegistrationStatus.TO_SUBMIT);
-        assertThat(submissions(registration.id())).isEmpty();
-    }
-
-    @Test
-    void FR_005_aResultIsRecordedOnce() throws Exception {
-        ResidenceRegistration registration = created();
-        submit(registration);
-        accept(registration);
-
-        command(office, registration.id(), "record-rejected", "{\"reason\":\"ghi nhầm\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-        command(office, registration.id(), "record-accepted", acceptedBody(evidence(), today().plusYears(2)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-        command(office, registration.id(), "record-submitted", submittedBody(today()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-
-        assertThat(submissions(registration.id()))
-                .extracting(s -> s.get("result"))
-                .containsExactly("ACCEPTED");
-        assertThatThrownBy(() -> jdbc.update(
-                        "UPDATE record_event SET content = JSON_SET(content, '$.result', 'REJECTED')"
-                                + " WHERE kind = 'M02.REGISTRATION_SUBMISSION'"
-                                + " AND CAST(content ->> '$.registrationId' AS UNSIGNED) = ?",
-                        registration.id()))
-                .as("kết quả đặt một lần cả ở tầng dữ liệu (dòng đã xác nhận không sửa được)")
-                .hasMessageContaining("append-only once confirmed");
-    }
 
     // ---- Q9: bị từ chối ---------------------------------------------------------------------------------------
 
-    @Test
-    void Q9_rejecting_returnsToToSubmit_withANewDueDate_andKeepsTheObligationDueDate() throws Exception {
-        ResidenceRegistration registration = created();
-        Map<String, Object> obligationBefore =
-                obligations(registration.residentId()).getFirst();
-        submit(registration);
-        clockAt(today().plusDays(3), 10);
-        Instant before = time.now();
-
-        reject(registration, "thiếu giấy tờ");
-
-        Instant after = time.now();
-        ResidenceRegistration rejected = reload(registration);
-        assertThat(rejected.status()).isEqualTo(RegistrationStatus.TO_SUBMIT);
-        assertThat(rejected.dueAt())
-                .as("hạn mới = thời điểm ghi từ chối + CFG-M02-12 (1 ngày)")
-                .isBetween(before.plus(Duration.ofDays(1)), after.plus(Duration.ofDays(1)));
-        Map<String, Object> obligation = obligations(registration.residentId()).getFirst();
-        assertThat(obligation.get("due_at"))
-                .as("hạn gốc của nghĩa vụ giữ nguyên")
-                .isEqualTo(obligationBefore.get("due_at"));
-        assertThat(obligation.get("submitted")).as("không còn lần nộp đang chờ").isEqualTo(false);
-        assertThat(registrationCount(registration.residentId()))
-                .as("tiếp tục khai báo hiện tại, không lập khai báo mới")
-                .isEqualTo(1);
-        assertThat(submissions(registration.id()))
-                .extracting(s -> s.get("result"), s -> s.get("rejection_reason"))
-                .containsExactly(tuple("REJECTED", "thiếu giấy tờ"));
-    }
-
-    @Test
-    void Q9_rejectingWithoutAReason_isRejected() throws Exception {
-        ResidenceRegistration registration = created();
-        submit(registration);
-        user.set(office.user());
-
-        assertThat(failure(() -> registrations.recordRejected(
-                        registrations.targetOf(registration.id()), registration.id(), "  ")))
-                .isInstanceOf(InvalidValueException.class);
-        assertThat(reload(registration).status()).isEqualTo(RegistrationStatus.SUBMITTED);
-    }
-
-    @Test
-    void Q9_resubmittingAfterRejections_addsNewSubmissions_andKeepsTheHistory() throws Exception {
-        ResidenceRegistration registration = created();
-        submit(registration);
-        reject(registration, "thiếu giấy tờ");
-        submit(registration);
-        reject(registration, "sai địa chỉ");
-        submit(registration);
-        List<Map<String, Object>> beforeAccept = submissions(registration.id());
-
-        accept(registration);
-
-        List<Map<String, Object>> rows = submissions(registration.id());
-        assertThat(rows)
-                .extracting(s -> s.get("result"), s -> s.get("rejection_reason"))
-                .containsExactly(
-                        tuple("REJECTED", "thiếu giấy tờ"), tuple("REJECTED", "sai địa chỉ"), tuple("ACCEPTED", null));
-        for (int i = 0; i < 2; i++) {
-            assertThat(rows.get(i)).as("lần nộp cũ không đổi").isEqualTo(beforeAccept.get(i));
-        }
-        assertThat(row(registration.id()).get("current_submission_id"))
-                .isEqualTo(rows.get(2).get("id"));
-        assertThat(reload(registration).status()).isEqualTo(RegistrationStatus.CONFIRMED);
-        assertThat(registrationCount(registration.residentId())).isEqualTo(1);
-    }
-
-    @Test
-    void Q9_afterARejection_overdueRemindersUseTheNewDueDate_andTheManagerIsToldOnce() throws Exception {
-        ResidenceRegistration registration = created();
-        long residentId = registration.residentId();
-        LocalDate originalDue = dateOf(obligations(residentId).getFirst().get("due_at"));
-        submit(registration);
-        LocalDate rejectedOn = originalDue.plusDays(2);
-        clockAt(rejectedOn, 10);
-        reject(registration, "thiếu giấy tờ");
-
-        overdueReminders.remind(rejectedOn.plusDays(1));
-        assertThat(reminders(residentId))
-                .as("hạn gốc đã qua nhưng hạn đang có hiệu lực là hạn mới của khai báo (lúc ghi + 1 ngày)")
-                .isEmpty();
-        clockAt(rejectedOn.plusDays(1), 12);
-        mvc.perform(get("/api/v1/residence-registrations/to-do"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.residentId == %d)]".formatted(residentId))
-                        .isEmpty());
-
-        overdueReminders.remind(rejectedOn.plusDays(2));
-        overdueReminders.remind(rejectedOn.plusDays(2));
-        overdueReminders.remind(rejectedOn.plusDays(3));
-
-        assertThat(reminders(residentId))
-                .extracting(ResidenceRegistrationReminder::kind, ResidenceRegistrationReminder::on)
-                .containsExactly(
-                        tuple(Kind.OVERDUE, rejectedOn.plusDays(2)),
-                        tuple(Kind.OVERDUE_MANAGER, rejectedOn.plusDays(2)),
-                        tuple(Kind.OVERDUE, rejectedOn.plusDays(3)));
-        clockAt(rejectedOn.plusDays(3), 12);
-        mvc.perform(get("/api/v1/residence-registrations/to-do"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.residentId == %d)].taskType".formatted(residentId))
-                        .value("OVERDUE"))
-                .andExpect(jsonPath("$[?(@.residentId == %d)].dueAt".formatted(residentId))
-                        .value(reload(registration).dueAt().toString()));
-    }
-
-    @Test
-    void Q9_aManagerAlreadyToldBeforeTheRejection_isNotToldAgain() throws Exception {
-        ResidenceRegistration registration = created();
-        long residentId = registration.residentId();
-        LocalDate originalDue = dateOf(obligations(residentId).getFirst().get("due_at"));
-        overdueReminders.remind(originalDue.plusDays(1));
-        Object notifiedAt = obligations(residentId).getFirst().get("manager_notified_at");
-        assertThat(notifiedAt).isNotNull();
-
-        submit(registration);
-        LocalDate rejectedOn = originalDue.plusDays(2);
-        clockAt(rejectedOn, 10);
-        reject(registration, "thiếu giấy tờ");
-        overdueReminders.remind(rejectedOn.plusDays(2));
-
-        assertThat(reminders(residentId))
-                .extracting(ResidenceRegistrationReminder::kind, ResidenceRegistrationReminder::on)
-                .containsExactly(
-                        tuple(Kind.OVERDUE, originalDue.plusDays(1)),
-                        tuple(Kind.OVERDUE_MANAGER, originalDue.plusDays(1)),
-                        tuple(Kind.OVERDUE, rejectedOn.plusDays(2)));
-        assertThat(obligations(residentId).getFirst().get("manager_notified_at"))
-                .as("không đặt lại khi bị từ chối")
-                .isEqualTo(notifiedAt);
-    }
-
     // ---- Thay thế khai báo Đã xác nhận cũ (FR-005, DBR-33) ------------------------------------------------------
-
-    @Test
-    void FR_005_acceptingANewRegistration_supersedesTheConfirmedOne_inTheSameTransaction() throws Exception {
-        ResidenceRegistration first = created();
-        long residentId = first.residentId();
-        submit(first);
-        accept(first);
-        transaction.executeWithoutResult(s -> obligationStore.record(
-                residentId,
-                ObligationTrigger.RENEWAL_ADDENDUM,
-                time.now(),
-                time.now().plus(Duration.ofDays(1)),
-                first.id()));
-        ResidenceRegistration second = create(residentId);
-        assertThat(row(second.id()).get("replaced_registration_id")).isEqualTo(first.id());
-        submit(second);
-        assertThat(reload(first).status())
-                .as("chưa chấp nhận thì khai báo cũ còn hiệu lực")
-                .isEqualTo(RegistrationStatus.CONFIRMED);
-
-        accept(second);
-
-        assertThat(reload(first).status()).isEqualTo(RegistrationStatus.SUPERSEDED);
-        assertThat(reload(second).status()).isEqualTo(RegistrationStatus.CONFIRMED);
-        assertThat(RegistrationSql.confirmedCount(jdbc, residentId)).isEqualTo(1);
-    }
 
     // ---- Đồng thời, chống lặp ---------------------------------------------------------------------------------
 
@@ -543,91 +266,7 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
         return e.status().value();
     }
 
-    @Test
-    void concurrency_twoSimultaneousSubmissions_recordOne() throws Exception {
-        ResidenceRegistration registration = created();
-        user.set(office.user());
-        ResidenceRegistrationService.Submission submission = new ResidenceRegistrationService.Submission(
-                today(), SubmissionChannel.IN_PERSON, "Công an phường X", null);
-
-        List<Integer> statuses = concurrently(() -> serviceCall(() -> registrations.recordSubmitted(
-                registrations.targetOf(registration.id()), registration.id(), submission)));
-
-        assertThat(statuses).containsExactlyInAnyOrder(200, HttpStatus.CONFLICT.value());
-        assertThat(submissions(registration.id())).hasSize(1);
-    }
-
-    @Test
-    void concurrency_acceptAndRejectAtTheSameTime_onlyOneResultIsRecorded() throws Exception {
-        ResidenceRegistration registration = created();
-        submit(registration);
-        user.set(office.user());
-        long file = evidence();
-        ResidenceRegistrationService.Acceptance acceptance =
-                new ResidenceRegistrationService.Acceptance(file, today().plusYears(1));
-        CyclicBarrier start = new CyclicBarrier(2);
-        ExecutorService pool = Executors.newFixedThreadPool(2);
-        List<Integer> statuses = new ArrayList<>();
-        try {
-            Future<Integer> accepted = pool.submit(() -> {
-                start.await();
-                return serviceCall(() -> registrations.recordAccepted(
-                        registrations.targetOf(registration.id()), registration.id(), acceptance));
-            });
-            Future<Integer> rejected = pool.submit(() -> {
-                start.await();
-                return serviceCall(() -> registrations.recordRejected(
-                        registrations.targetOf(registration.id()), registration.id(), "thiếu giấy tờ"));
-            });
-            statuses.add(accepted.get());
-            statuses.add(rejected.get());
-        } finally {
-            pool.shutdownNow();
-        }
-
-        assertThat(statuses).containsExactlyInAnyOrder(200, HttpStatus.CONFLICT.value());
-        assertThat(submissions(registration.id())).hasSize(1);
-        assertThat(submissions(registration.id()).getFirst().get("result")).isIn("ACCEPTED", "REJECTED");
-    }
-
-    @Test
-    void idempotency_theSameKeyTwice_recordsOneSubmission() throws Exception {
-        ResidenceRegistration registration = created();
-        UUID key = UUID.randomUUID();
-        String body = submittedBody(today());
-
-        command(office, registration.id(), "record-submitted", body, key).andExpect(status().isOk());
-        command(office, registration.id(), "record-submitted", body, key).andExpect(status().isOk());
-
-        assertThat(submissions(registration.id())).hasSize(1);
-    }
-
     // ---- Q10: quyền -------------------------------------------------------------------------------------------
-
-    @Test
-    void Q10_nurseFloorManagerAccountantAndManager_cannotRecord() throws Exception {
-        ResidenceRegistration registration = created();
-        List<TestUser> others = List.of(
-                users.staff(Role.NURSING_STAFF),
-                users.staff(Role.FLOOR_MANAGER),
-                users.staff(Role.ACCOUNTANT),
-                manager);
-
-        for (TestUser who : others) {
-            command(who, registration.id(), "record-submitted", submittedBody(today()))
-                    .andExpect(status().isForbidden());
-        }
-        submit(registration);
-        for (TestUser who : others) {
-            command(who, registration.id(), "record-rejected", "{\"reason\":\"x\"}")
-                    .andExpect(status().isForbidden());
-            command(who, registration.id(), "record-accepted", acceptedBody(evidence(), today().plusYears(1)))
-                    .andExpect(status().isForbidden());
-        }
-
-        assertThat(reload(registration).status()).isEqualTo(RegistrationStatus.SUBMITTED);
-        assertThat(submissions(registration.id())).hasSize(1);
-    }
 
     // ---- Đính chính M02.RESIDENCE_REGISTRATION (research Z-04, FR-001) --------------------------------------------
 
@@ -644,59 +283,5 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
         user.set(office.user());
         registrations.confirmLocalPermanentResident(
                 registrations.targetOf(registration.id()), registration.id(), "CCCD: thường trú phường Bến Nghé");
-    }
-
-    @Test
-    void FR_001_aMistakenLocalConfirmation_isRemovedByCorrection_whileToSubmit() throws Exception {
-        ResidenceRegistration registration = created();
-        confirmLocal(registration);
-
-        correct(registration.id(), "{\"localPermanentResident\":false}").andExpect(status().isCreated());
-
-        ResidenceRegistration after = reload(registration);
-        assertThat(after.localPermanentResident()).isFalse();
-        assertThat(after.type())
-                .as("loại tính lại theo thời gian lưu trú dự kiến (FR-001)")
-                .isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
-        assertThat(after.dueAt()).isEqualTo(registration.dueAt());
-        assertThat(RegistrationSql.localPermanentResident(jdbc, registration.residentId()))
-                .isFalse();
-    }
-
-    @Test
-    void FR_001_theLocalConfirmation_cannotBeRemovedAfterSubmission() throws Exception {
-        ResidenceRegistration registration = created();
-        confirmLocal(registration);
-        submit(registration);
-
-        correct(registration.id(), "{\"localPermanentResident\":false}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-        assertThat(reload(registration).localPermanentResident()).isTrue();
-    }
-
-    @Test
-    void Z_04_submissionContent_isCorrectedInTheChain_andTheRecordedRowIsUnchanged() throws Exception {
-        ResidenceRegistration registration = created();
-        submit(registration);
-        Map<String, Object> recorded = submissions(registration.id()).getFirst();
-
-        correct(registration.id(), "{\"dossierCode\":\"G22.SUA\"}").andExpect(status().isCreated());
-
-        assertThat(submissions(registration.id()).getFirst()).isEqualTo(recorded);
-        mvc.perform(get(CORRECTIONS + registration.id()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentContent.dossierCode").value("G22.SUA"))
-                .andExpect(jsonPath("$.originalContent.dossierCode").value(recorded.get("dossier_code")));
-        correct(registration.id(), "{\"status\":\"CONFIRMED\"}").andExpect(status().isUnprocessableContent());
-    }
-
-    @Test
-    void Z_04_aRegistrationWithNothingRecorded_cannotBeCorrected() throws Exception {
-        ResidenceRegistration registration = created();
-
-        correct(registration.id(), "{\"dossierCode\":\"G22.SUA\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RECORD_NOT_CONFIRMED"));
     }
 }

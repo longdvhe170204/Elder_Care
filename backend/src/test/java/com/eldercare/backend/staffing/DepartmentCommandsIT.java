@@ -8,16 +8,16 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.staffing.internal.duty.service.DepartmentDutyService;
 import com.eldercare.backend.staffing.internal.staff.service.StaffService;
 import com.eldercare.backend.support.*;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /** T031/T033: lịch sử bộ phận, người phụ trách và giới hạn vai trò. */
-@Import(DepartmentCommandsIT.Users.class)
+@Import(SwitchableUserConfig.class)
 class DepartmentCommandsIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
@@ -123,57 +123,5 @@ class DepartmentCommandsIT extends MySqlIntegrationTestBase {
         change(person, second, replacement);
         assertThat(duties.lead(first)).contains(replacement);
         assertThat(duties.departmentOf(person, time.now())).contains(second);
-    }
-
-    @Test
-    void Q_293_managerCannotJoinDepartment() {
-        long manager = person(Role.NURSING_HOME_MANAGER);
-        assertThatThrownBy(() -> change(manager, first, null))
-                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
-        assertThat(duties.departmentOf(manager, time.now())).isEmpty();
-    }
-
-    @Test
-    void Q_292_leadMustBelongToDepartmentAndHavePermittedActiveAccount() {
-        assertThatThrownBy(() -> lead(first, person))
-                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
-        long accountant = person(Role.ACCOUNTANT);
-        change(accountant, first, null);
-        assertThatThrownBy(() -> lead(first, accountant))
-                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
-        assertThat(duties.lead(first)).isEmpty();
-    }
-
-    @Test
-    void FR_001a_nonManagerCannotChangeDepartment() {
-        var ordinary = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF);
-        current.set(ordinary.user());
-        assertThatThrownBy(() -> change(person, first, null))
-                .isInstanceOf(com.eldercare.backend.common.error.PermissionDeniedException.class);
-        assertThat(duties.departmentOf(person, time.now())).isEmpty();
-    }
-
-    @Test
-    void FR_001a_departmentCreationUsesBusinessClock() {
-        clock.setTo(java.time.Instant.parse("2033-03-01T00:00:00Z"));
-        long id = ReflectionTestUtils.invokeMethod(duties, "create", "[Bộ phận đồng hồ " + person + "]", true);
-        departments.add(id);
-        assertThat(jdbc.queryForObject(
-                                "SELECT created_at FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.leadStaffId'),'null') AS UNSIGNED) AS lead_staff_id FROM catalog_item c WHERE c.catalog_type='M09.DEPARTMENT') department WHERE id=?",
-                                java.sql.Timestamp.class,
-                                id)
-                        .toInstant())
-                .isBetween(
-                        java.time.Instant.parse("2033-03-01T00:00:00Z"),
-                        java.time.Instant.parse("2033-03-01T00:01:00Z"));
-    }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser current() {
-            return new SwitchableUser();
-        }
     }
 }

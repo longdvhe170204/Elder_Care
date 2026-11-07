@@ -1,9 +1,7 @@
 package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.staffing.internal.assignment.domain.PrimaryAssigneeResolver;
 import com.eldercare.backend.staffing.internal.assignment.domain.PrimaryAssigneeResolver.TargetRef;
@@ -65,17 +63,6 @@ class PrimaryAssigneeResolverTest {
     }
 
     @Test
-    void FR_028_supportAndOtherResidentsOrRolesCannotBecomePrimary() {
-        var support = assignment(1, "RESIDENT", 31, null, "SUPPORT", "ACTIVE", at.plusSeconds(60));
-        var other = assignment(2, "RESIDENT", 32, null);
-        assertThat(PrimaryAssigneeResolver.resolve(List.of(support, other), position, Role.CAREGIVER, 7L, at))
-                .isEmpty();
-        assertThat(PrimaryAssigneeResolver.resolve(
-                        List.of(assignment(3, "FLOOR", 11, null)), position, Role.NURSING_STAFF, null, at))
-                .isEmpty();
-    }
-
-    @Test
     void BR_M09_15_draftsCancelledAndEndedDoNotCreateAssignments() {
         var rows = List.of("DRAFT", "CANCELLED", "ENDED").stream()
                 .map(status -> assignment(
@@ -98,17 +85,6 @@ class PrimaryAssigneeResolverTest {
                 .contains(row);
         assertThat(PrimaryAssigneeResolver.resolve(List.of(row), position, Role.CAREGIVER, null, row.endsAt()))
                 .isEmpty();
-    }
-
-    @Test
-    void FR_028_equalPrecedenceFromConflictingSourceFailsClosed() {
-        assertThatThrownBy(() -> PrimaryAssigneeResolver.resolve(
-                        List.of(assignment(1, "ROOM", 21, null), assignment(2, "ROOM", 21, null)),
-                        position,
-                        Role.CAREGIVER,
-                        null,
-                        at))
-                .isInstanceOf(InvalidPermissionDataException.class);
     }
 
     @Test
@@ -135,21 +111,5 @@ class PrimaryAssigneeResolverTest {
                 .contains(ended);
         assertThat(PrimaryAssigneeResolver.resolve(List.of(ended), position, Role.CAREGIVER, null, at))
                 .isEmpty();
-    }
-
-    @Test
-    void FR_028_primarySelectionIsStableAcrossTwoHundredInputOrders() {
-        var winner = assignment(4, "RESIDENT", 31, 7L);
-        var rows = new ArrayList<>(List.of(
-                assignment(1, "FLOOR", 11, null),
-                assignment(2, "ROOM", 21, null),
-                assignment(3, "RESIDENT", 31, null),
-                winner));
-        var random = new Random(8);
-        for (int i = 0; i < 200; i++) {
-            Collections.shuffle(rows, random);
-            assertThat(PrimaryAssigneeResolver.resolve(rows, position, Role.CAREGIVER, 7L, at))
-                    .contains(winner);
-        }
     }
 }

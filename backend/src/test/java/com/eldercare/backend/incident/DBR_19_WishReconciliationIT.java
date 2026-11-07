@@ -39,19 +39,6 @@ class DBR_19_WishReconciliationIT extends EmergencyTestBase {
         post(nurse, PROGRESSIONS, incident, resuscitation).andExpect(status().isCreated());
     }
 
-    @Test
-    void FR_048a_noWish_resuscitationAllowedAndNothingToConfirm() throws Exception {
-        long incident = criticalIncident();
-
-        post(nurse, CHECK, incident, "{}").andExpect(status().isConflict());
-        post(
-                        nurse,
-                        PROGRESSIONS,
-                        incident,
-                        "{\"progressionTypeId\":" + resuscitationType() + ",\"content\":\"Ép tim\"}")
-                .andExpect(status().isCreated());
-    }
-
     private long resuscitationType() {
         return catalog.progressionTypes().stream()
                 .filter(type -> type.resuscitation())

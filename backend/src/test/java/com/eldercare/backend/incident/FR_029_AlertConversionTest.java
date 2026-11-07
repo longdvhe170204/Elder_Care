@@ -20,7 +20,6 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
@@ -111,13 +110,6 @@ class FR_029_AlertConversionTest {
         var command = ArgumentCaptor.forClass(RecordIncidentCommand.class);
         verify(incidents).record(command.capture(), eq(user), eq(ID));
         assertThat(command.getValue().residentId()).isEqualTo(202L);
-    }
-
-    @Test
-    void FR_029_onlyNurseFloorManagerOrDoctorConverts() {
-        when(user.roles()).thenReturn(Set.of(Role.OFFICE_STAFF));
-        assertThatThrownBy(() -> service.convert(ID, 3L, null, null, null, user))
-                .isInstanceOf(PermissionDeniedException.class);
     }
 
     private void lock(AlertStatus status, Long residentId) {

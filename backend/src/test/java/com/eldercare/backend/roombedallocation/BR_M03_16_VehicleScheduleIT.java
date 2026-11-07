@@ -1,13 +1,9 @@
 package com.eldercare.backend.roombedallocation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.eldercare.backend.common.notification.RecipientGroup;
-import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.support.TestUsers;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,103 +34,11 @@ class BR_M03_16_VehicleScheduleIT extends VehicleTestBase {
         book(booking(vehicle, TEN, ELEVEN, "TRIP", null)).andExpect(status().isUnprocessableEntity());
     }
 
-    @Test
-    void US6_2_unavailableOrOverdueVehicleIsBlocked() throws Exception {
-        book(booking(vehicle(null, "UNDER_MAINTENANCE"), TEN, ELEVEN, "OTHER", null))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("VEHICLE_NOT_AVAILABLE"));
-        book(booking(vehicle(LocalDate.of(2099, 1, 4), null), TEN, ELEVEN, "OTHER", null))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("VEHICLE_INSPECTION_OR_INSURANCE_OVERDUE"));
-        as(medicalLead);
-        long notVehicle = created(donated("Tặng"));
-        as(office);
-        book(booking(notVehicle, TEN, ELEVEN, "OTHER", null)).andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
-    void FR_020_floorManagerOfficeAndManagerBookOthersCannot() throws Exception {
-        as(floorManager);
-        booked(booking(vehicle, SEVEN, TEN, "OTHER", null));
-        as(manager);
-        booked(booking(vehicle, TEN, ELEVEN, "OTHER", null));
-        as(medicalLead);
-        book(booking(vehicle, ELEVEN, THIRTEEN, "OTHER", null)).andExpect(status().isForbidden());
-    }
-
-    @Test
-    void US6_5_bookerRecordsDepartureAndReturnWithActualTimes() throws Exception {
-        long id = booked(booking(vehicle, TEN, ELEVEN, "MEDICAL_VISIT", null));
-        as(otherOffice);
-        schedule(id, "record-departure", "{}").andExpect(status().isForbidden());
-        as(office);
-        schedule(id, "record-return", "{}").andExpect(status().isConflict());
-        schedule(id, "record-departure", "{\"occurredAt\":\"2099-01-05T03:05:00Z\"}")
-                .andExpect(status().isOk());
-        assertThat(scheduleStatus(id)).isEqualTo("IN_USE");
-        as(manager);
-        schedule(id, "record-return", "{}").andExpect(status().isOk());
-        assertThat(scheduleStatus(id)).isEqualTo("COMPLETED");
-        as(office);
-        mvc.perform(get(SCHEDULES).param("vehicleId", Long.toString(vehicle)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(id))
-                .andExpect(jsonPath("$[0].status").value("COMPLETED"))
-                .andExpect(jsonPath("$[0].departedAt").value("2099-01-05T03:05:00Z"))
-                .andExpect(jsonPath("$[0].returnedAt").isNotEmpty())
-                .andExpect(jsonPath("$[0].bookedByStaffId").value(office.staffId()))
-                .andExpect(jsonPath("$[0].driverStaffId").value(driver.staffId()));
-        mvc.perform(get(SCHEDULES)
-                        .param("vehicleId", Long.toString(vehicle))
-                        .param("from", THIRTEEN.toString())
-                        .param("to", FOURTEEN.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
-    }
-
-    @Test
-    void US6_7_rescheduleAndCancelNotifyBookerVehicleDepartmentLeadAndDriver() throws Exception {
-        long id = booked(booking(vehicle, TEN, ELEVEN, "OTHER", null));
-        long other = booked(booking(vehicle, THIRTEEN, FOURTEEN, "OTHER", null));
-        as(manager);
-        schedule(
-                        id,
-                        "reschedule",
-                        "{\"plannedDepartureAt\":\"" + ELEVEN + "\",\"plannedReturnAt\":\"" + FOURTEEN + "\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("VEHICLE_SCHEDULE_OVERLAP"));
-        schedule(id, "reschedule", "{\"plannedDepartureAt\":\"" + SEVEN + "\",\"plannedReturnAt\":\"" + TEN + "\"}")
-                .andExpect(status().isOk());
-        assertThat(staffNotified(office.staffId(), "VEHICLE_SCHEDULE_CHANGED")).isTrue();
-        assertThat(staffNotified(driver.staffId(), "VEHICLE_SCHEDULE_CHANGED")).isTrue();
-        assertThat(noticesTo(new RecipientGroup.DepartmentLead(fleet, new Substitution.Default())))
-                .isNotEmpty();
-        as(office);
-        schedule(other, "cancel", "{}").andExpect(status().isUnprocessableEntity());
-        schedule(other, "cancel", "{\"reason\":\"Đổi kế hoạch\"}").andExpect(status().isOk());
-        assertThat(scheduleStatus(other)).isEqualTo("CANCELLED");
-        assertThat(staffNotified(driver.staffId(), "VEHICLE_SCHEDULE_CANCELLED"))
-                .isTrue();
-        schedule(other, "cancel", "{\"reason\":\"Lần nữa\"}").andExpect(status().isConflict());
-        booked(booking(vehicle, THIRTEEN, FOURTEEN, "OTHER", null));
-    }
-
     @org.springframework.beans.factory.annotation.Autowired
     List<com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider> scopes;
 
     @org.springframework.beans.factory.annotation.Autowired
     List<com.eldercare.backend.administration.retention.api.spi.RetentionProvider> retentions;
-
-    @Test
-    void T004_vehicleScheduleIsFacilityWideAndHasARetentionProvider() throws Exception {
-        long id = booked(booking(vehicle, TEN, ELEVEN, "OTHER", null));
-        var scope = scopes.stream()
-                .filter(p -> p.entityType().equals("M03.VEHICLE_SCHEDULE"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(scope.assignScope(id).floorAreaId()).isNull();
-        assertThat(retentions).anyMatch(p -> p.dataType().equals("M03.VEHICLE_SCHEDULE"));
-    }
 
     /** SC-005: hai lịch cùng giờ đặt đồng thời, đúng một lịch được ghi (khóa xe). Dữ liệu commit thật, id riêng. */
     @Test

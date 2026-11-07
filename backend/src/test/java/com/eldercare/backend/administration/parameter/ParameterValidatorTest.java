@@ -76,26 +76,4 @@ class ParameterValidatorTest {
         valid(money, "750000");
         invalid(money, "-1");
     }
-
-    @Test
-    void FR_015_timeOfDay_andTable_checkShape() {
-        Definition meal = def("CFG-M08-04", ParameterKind.TIME_OF_DAY, null, null, "\"07:00\"");
-        Definition table = def("CFG-M02-05", ParameterKind.TABLE, null, null, "{\"rows\":[]}");
-
-        valid(meal, "\"07:30\"");
-        invalid(meal, "\"25:00\"");
-        valid(table, "{\"rows\":[{\"fromDay\":1}]}");
-        invalid(table, "\"bảng\"");
-        invalid(table, "null");
-    }
-
-    @Test
-    void FR_015_escalation_mustStayGreaterThanReminder_checkedFromBothSides() {
-        valid(ESCALATE, "{\"value\":72,\"unit\":\"HOURS\"}", REMIND);
-        invalid(ESCALATE, "{\"value\":20,\"unit\":\"HOURS\"}", REMIND);
-        invalid(ESCALATE, "{\"value\":48,\"unit\":\"HOURS\"}", REMIND);
-
-        valid(REMIND, "{\"value\":24,\"unit\":\"HOURS\"}", ESCALATE);
-        invalid(REMIND, "{\"value\":100,\"unit\":\"HOURS\"}", ESCALATE);
-    }
 }

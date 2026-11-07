@@ -10,10 +10,19 @@ import java.util.Set;
 /** Người dùng hiện tại đổi được giữa các bước của test (bản giả của 002 {@code CurrentUser}). */
 public class SwitchableUser implements CurrentUser {
 
-    private volatile CurrentUser delegate = FakePermissions.user(1, Role.NURSING_HOME_MANAGER);
+    private volatile CurrentUser delegate = defaultUser();
+
+    private static CurrentUser defaultUser() {
+        return FakePermissions.user(1, Role.NURSING_HOME_MANAGER);
+    }
 
     public void set(CurrentUser user) {
         this.delegate = user;
+    }
+
+    /** Về người dùng mặc định như lúc bean vừa tạo (bean dùng chung giữa các lớp test, {@link SwitchableUserConfig}). */
+    public void reset() {
+        this.delegate = defaultUser();
     }
 
     @Override

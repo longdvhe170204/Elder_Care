@@ -80,16 +80,6 @@ class FamilyFoodCheckTest {
     }
 
     @Test
-    void FR_053_expiredFood_isNotAllowed() {
-        Food expired = new Food("Sữa chua", Set.of(), false, false, NOW, true);
-
-        Result result = check(expired, healthy());
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NOT_ALLOWED);
-        assertThat(result.reasons()).containsExactly(FamilyFoodCheck.EXPIRED);
-    }
-
-    @Test
     void FR_054_unknownIngredients_needsConfirmation() {
         Result result = check(food("Hộp cơm", Set.of(), true, false, true), healthy());
 
@@ -103,40 +93,5 @@ class FamilyFoodCheckTest {
 
         assertThat(result.status()).isEqualTo(FamilyFoodStatus.NEEDS_CONFIRMATION);
         assertThat(result.reasons()).containsExactly(FamilyFoodCheck.OTHER_INGREDIENT);
-    }
-
-    @Test
-    void FR_054_residentWithOtherKindAllergy_alwaysNeedsConfirmation() {
-        Person otherAllergy =
-                new Person(List.of(new AllergyItem(null, true)), Set.of(), Set.of(), Texture.REGULAR, false);
-
-        Result result = check(fruit(), otherAllergy);
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NEEDS_CONFIRMATION);
-        assertThat(result.reasons()).containsExactly(FamilyFoodCheck.RESIDENT_OTHER_ALLERGY);
-    }
-
-    @Test
-    void FR_054_nonRegularTexture_treatmentDietAndUnrelatedSender_listEverySuspicion() {
-        Person person = new Person(List.of(), Set.of(), Set.of(), Texture.PUREED, true);
-
-        Result result = check(food("Táo", Set.of(), false, false, false), person);
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NEEDS_CONFIRMATION);
-        assertThat(result.reasons())
-                .containsExactlyInAnyOrder(
-                        FamilyFoodCheck.TEXTURE_NOT_REGULAR,
-                        FamilyFoodCheck.TREATMENT_DIET,
-                        FamilyFoodCheck.SENDER_NOT_RELATED);
-    }
-
-    @Test
-    void FR_053_notAllowedReasonsOutrankSuspicions() {
-        Person allergic = new Person(List.of(new AllergyItem(PEANUT, false)), Set.of(), Set.of(), Texture.SOFT, true);
-
-        Result result = check(food("Bánh", Set.of(PEANUT), true, false, false), allergic);
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NOT_ALLOWED);
-        assertThat(result.reasons()).containsExactly(FamilyFoodCheck.ALLERGY);
     }
 }

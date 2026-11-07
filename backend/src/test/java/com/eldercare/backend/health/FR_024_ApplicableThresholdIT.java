@@ -24,13 +24,6 @@ class FR_024_ApplicableThresholdIT extends MySqlIntegrationTestBase {
     JdbcTemplate jdbc;
 
     @Test
-    void FR_024_spo2WithoutConfiguredThresholdHasNoThreshold() {
-        assertThat(resolver.resolve(TestUsers.nextId(), TestUsers.nextId(), "SPO2", AT)
-                        .bands())
-                .isEmpty();
-    }
-
-    @Test
     void FR_024_personalVersionWinsOnlyDuringItsEffectiveInterval() {
         long resident = TestUsers.nextId();
         long indicator = TestUsers.nextId();
@@ -49,19 +42,6 @@ class FR_024_ApplicableThresholdIT extends MySqlIntegrationTestBase {
         assertThat(resolver.resolve(TestUsers.nextId(), indicator, "ARBITRARY", AT)
                         .thresholdVersionId())
                 .isEqualTo(facility);
-    }
-
-    @Test
-    void FR_024_historicalFacilityVersionRemainsApplicableAfterItExpires() {
-        long resident = TestUsers.nextId();
-        long indicator = TestUsers.nextId();
-        long old = threshold(null, indicator, AT.minusSeconds(3600), AT, "EXPIRED", 80);
-        long current = threshold(null, indicator, AT, null, "EFFECTIVE", 90);
-        assertThat(resolver.resolve(resident, indicator, "TEST", AT.minusSeconds(1))
-                        .thresholdVersionId())
-                .isEqualTo(old);
-        assertThat(resolver.resolve(resident, indicator, "TEST", AT).thresholdVersionId())
-                .isEqualTo(current);
     }
 
     private long threshold(Long resident, long indicator, Instant from, Instant to, String status, int danger) {

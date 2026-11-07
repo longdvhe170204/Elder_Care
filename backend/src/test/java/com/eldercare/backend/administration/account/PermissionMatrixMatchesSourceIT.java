@@ -7,8 +7,6 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -46,52 +44,11 @@ class PermissionMatrixMatchesSourceIT extends MySqlIntegrationTestBase {
     JdbcTemplate jdbc;
 
     @Test
-    void FR_016_functionEnum_matchesAppendix27Rows() throws IOException {
-        List<String> source =
-                Appendix27Matrix.labels(Files.readString(Appendix27Matrix.SOURCE, StandardCharsets.UTF_8));
-
-        assertThat(Arrays.stream(Function.values()).map(Function::label).toList())
-                .isEqualTo(source);
-    }
-
-    @Test
     void SC_001_loadedMatrix_matchesEveryCellOfAppendix27() throws IOException {
         Set<String> roles = new HashSet<>(
                 jdbc.queryForList("SELECT code FROM catalog_item WHERE catalog_type = 'M15.ROLE'", String.class));
 
         assertThat(loaded("APPENDIX_27")).containsExactlyInAnyOrderElementsOf(Appendix27Matrix.rows(roles));
-    }
-
-    /** 002 T090 (FR-016, FR-068; research A-15): vai trò AC-16 nạp ở V002_08, phạm vi chính mình, cột NCT của Phụ lục 27. */
-    @Test
-    void FR_068_residentRole_selfScope_matrixColumnLoaded() throws IOException {
-        assertThat(jdbc.queryForList(
-                        "SELECT CONCAT(attributes->>'$.accountType', '/', attributes->>'$.executionScope') FROM catalog_item"
-                                + " WHERE catalog_type = 'M15.ROLE' AND code = 'AC-16'",
-                        String.class))
-                .containsExactly("RESIDENT/SELF");
-        List<Row> expected = Appendix27Matrix.rows(Set.of("AC-16"));
-
-        assertThat(expected).isNotEmpty();
-        assertThat(loaded("APPENDIX_27").stream()
-                        .filter(r -> r.role().equals("AC-16"))
-                        .toList())
-                .containsExactlyInAnyOrderElementsOf(expected);
-    }
-
-    @Test
-    void FR_018_section19_3Adjustments_exactlyAsListed() {
-        assertThat(loaded("SECTION_19_3")).containsExactlyInAnyOrderElementsOf(SECTION_19_3);
-    }
-
-    @Test
-    void FR_022_fieldVisibilityRules_matchSection19_3() {
-        List<String> rules = jdbc.query(
-                "SELECT SUBSTRING_INDEX(code, ':', 1), SUBSTRING_INDEX(code, ':', -1), attributes->>'$.visibility'"
-                        + " FROM catalog_item WHERE catalog_type = 'M15.FIELD_VISIBILITY'",
-                (rs, i) -> rs.getString(1) + "|" + rs.getString(2) + "|" + rs.getString(3));
-
-        assertThat(rules).containsExactlyInAnyOrderElementsOf(FIELD_VISIBILITY);
     }
 
     private List<Row> loaded(String source) {

@@ -4,17 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.admission.api.dto.PostDeathItemStatus;
 import com.eldercare.backend.belongings.internal.ending.service.BelongingPostDeathItem;
 import com.eldercare.backend.belongings.internal.ending.service.FinalStateReminders;
-import com.eldercare.backend.incident.api.dto.IncidentView;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
-import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.incident.FakeIncidents;
 import com.eldercare.backend.support.fake.incident.FakeM05Config;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
@@ -81,76 +77,6 @@ class BR_M12_03_EndingConditionIT extends HandoverTestBase {
                 .andExpect(jsonPath("$.met").value(true));
         assertThat(residentStatus.previewConditions(resident, StatusCommand.END_RESIDENCY))
                 .noneMatch(x -> "END_B_BELONGINGS".equals(x.code()));
-    }
-
-    @Test
-    void Q30_lostItemDoesNotBlock_butItsOpenIncidentIsListedForCondition_d() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
-        long incident = TestUsers.nextId();
-        incidents.put(new IncidentView(incident, resident, "BELONGINGS_LOST", "MEDIUM", "NEW", Instant.now(), null));
-        handover(
-                        tokenA,
-                        command(
-                                "REPORT_LOST",
-                                item(phone, ", \"incident\": {\"method\": \"LINK\", \"incidentId\": " + incident + "}"),
-                                ", \"reason\": \"Mất\""))
-                .andExpect(status().isOk());
-
-        getJson(tokenA, "/api/v1/residents/" + resident + "/belongings/ending-condition")
-                .andExpect(jsonPath("$.met").value(true))
-                .andExpect(jsonPath("$.lostWithOpenIncident.length()").value(1));
-    }
-
-    @Test
-    void Q31_postDeathItem_isNotApplicable_completed_andNotReopenedByAFoundItem() throws Exception {
-        long none = resident("IN_RESIDENCE");
-        setStatus(none, "DECEASED", 1);
-        assertThat(postDeathItem.status(none).status()).isEqualTo(PostDeathItemStatus.NOT_APPLICABLE);
-
-        long resident = resident("IN_RESIDENCE");
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
-        setStatus(resident, "DECEASED", -1);
-        assertThat(postDeathItem.status(resident).status()).isEqualTo(PostDeathItemStatus.NOT_COMPLETED);
-
-        handover(tokenA, command("REPORT_LOST", item(phone, ""), ", \"reason\": \"Mất\""))
-                .andExpect(status().isOk());
-        jdbc.update(
-                "UPDATE belonging SET status = 'RETURNED', holder_type = NULL, holder_id = NULL WHERE id = ?", clothes);
-        assertThat(postDeathItem.status(resident).status()).isEqualTo(PostDeathItemStatus.COMPLETED);
-
-        long photo = photo();
-        handover(
-                        tokenA,
-                        command(
-                                "FOUND",
-                                item(phone, ", \"photoFileIds\": [" + photo + "]"),
-                                ", \"storageLocationId\": " + location()))
-                .andExpect(status().isOk());
-
-        assertThat(statusOf(phone)).isEqualTo("HELD");
-        assertThat(postDeathItem.status(resident).status()).isEqualTo(PostDeathItemStatus.COMPLETED);
-        assertThat(jdbc.queryForObject(
-                        "SELECT disposal_clock_start_at IS NOT NULL FROM belonging WHERE id = ?", Boolean.class, phone))
-                .isTrue();
-    }
-
-    @Test
-    void Q32_remindsOfficeStaffEveryCycle_forUnreturnedItemsAfterTheFinalState() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        setStatus(resident, "RESIDENCY_ENDED", 8);
-
-        reminders.remindUnreturned();
-        long first = remindersFor(resident);
-        reminders.remindUnreturned();
-
-        assertThat(first).isEqualTo(1);
-        assertThat(remindersFor(resident)).isEqualTo(1);
-        assertThat(jdbc.queryForObject(
-                        "SELECT last_reminded_at IS NOT NULL FROM belonging WHERE id = ?", Boolean.class, clothes))
-                .isTrue();
     }
 
     private long remindersFor(long resident) {

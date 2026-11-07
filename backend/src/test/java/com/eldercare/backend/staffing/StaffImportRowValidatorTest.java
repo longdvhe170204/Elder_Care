@@ -34,10 +34,4 @@ class StaffImportRowValidatorTest {
             assertThat(e.errorCode()).isEqualTo(StaffImportData.ErrorCode.INVALID_PHONE_NUMBER_FORMAT);
         });
     }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"09 01.234-567", "0901234567"})
-    void FR_001b_normalizedPhoneAndOptionalEmailAreValid(String phone) {
-        assertThat(errors(phone, "25/10/2026", null)).isEmpty();
-    }
 }

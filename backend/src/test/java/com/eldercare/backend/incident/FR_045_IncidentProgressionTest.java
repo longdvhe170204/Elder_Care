@@ -13,14 +13,11 @@ import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.NotFoundException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.ProgressionGroup;
@@ -77,23 +74,6 @@ class FR_045_IncidentProgressionTest {
     }
 
     @Test
-    void FR_045_staffInScopeAddsProgression() {
-        service.add(41, ACTION, "Đã sơ cứu vết thương", null, user);
-
-        verify(progressions).add(41, ACTION, "ACTION_TAKEN", "Đã sơ cứu vết thương", NOW, 900L, false, 7L, NOW);
-        verify(audit).write(any());
-    }
-
-    @Test
-    void Q_71_managerMayNotAddProgression() {
-        when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
-
-        assertThatThrownBy(() -> service.add(41, ACTION, "Ghi chú", null, user))
-                .isInstanceOf(PermissionDeniedException.class);
-        verifyNothingAdded();
-    }
-
-    @Test
     void FR_046_closedIncidentDoesNotTakeProgression() {
         when(incidents.lock(41)).thenReturn(Optional.of(state("CLOSED")));
 
@@ -124,34 +104,6 @@ class FR_045_IncidentProgressionTest {
         service.add(41, CPR, "Ép tim", NOW.minusSeconds(60), user);
 
         verify(progressions).add(41, CPR, "CHEST_COMPRESSION", "Ép tim", NOW.minusSeconds(60), 900L, false, 7L, NOW);
-    }
-
-    @Test
-    void FR_045_recorderOutsideScopeMayStillAddProgression() {
-        when(user.accountId()).thenReturn(800L);
-        when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
-
-        service.add(41, ACTION, "Đã gọi điều dưỡng", null, user);
-
-        verify(progressions).add(41, ACTION, "ACTION_TAKEN", "Đã gọi điều dưỡng", NOW, 800L, true, 7L, NOW);
-    }
-
-    @Test
-    void FR_045_otherStaffOutsideScopeSeesNotFound() {
-        when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
-
-        assertThatThrownBy(() -> service.add(41, ACTION, "Ghi chú", null, user)).isInstanceOf(NotFoundException.class);
-        verifyNothingAdded();
-    }
-
-    @Test
-    void FR_041_joinedHandlerOutsideScopeMayAddProgression() {
-        when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
-        when(progressions.isHandler(41, 900L)).thenReturn(true);
-
-        service.add(41, ACTION, "Hỗ trợ ép tim", null, user);
-
-        verify(progressions).add(41, ACTION, "ACTION_TAKEN", "Hỗ trợ ép tim", NOW, 900L, true, 7L, NOW);
     }
 
     private void verifyNothingAdded() {

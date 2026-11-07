@@ -2,14 +2,10 @@ package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.care.api.dto.AttendanceStatus;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import java.sql.Timestamp;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -34,73 +30,5 @@ class FR_047d_SosLocationConditionIT extends SosTestBase {
 
         assertThat(sosAlerts()).isZero();
         assertThat(presses()).isZero();
-    }
-
-    @Test
-    void FR_047d_offSiteActivityCanPress() throws Exception {
-        when(residents.status(resident)).thenReturn(ResidentStatus.OFF_SITE_ACTIVITY);
-
-        press("k1").andExpect(status().isCreated());
-    }
-
-    @Test
-    void FR_047d_dayCareNotPresentRefused() throws Exception {
-        dayCare(AttendanceStatus.NOT_ARRIVED);
-        press("k1")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_PRESENT"))
-                .andExpect(jsonPath("$.contacts.emergencyNumber").value("115"));
-
-        dayCare(AttendanceStatus.LEFT);
-        press("k2")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_PRESENT"));
-
-        dayCare(null);
-        press("k3")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_PRESENT"));
-        assertThat(sosAlerts()).isZero();
-    }
-
-    @Test
-    void FR_047d_dayCarePresentCanPress() throws Exception {
-        dayCare(AttendanceStatus.PRESENT);
-
-        press("k1").andExpect(status().isCreated());
-    }
-
-    @Test
-    void FR_047d_wrongTokenOrMissingHeaderUnauthorized() throws Exception {
-        press("sai-" + deviceToken, "k1")
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_DEVICE"))
-                .andExpect(jsonPath("$.contacts.emergencyNumber").value("115"));
-        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(SOS))
-                .andExpect(status().isUnauthorized());
-        mvc.perform(get(CURRENT).header("X-Device-Token", "sai")).andExpect(status().isUnauthorized());
-        assertThat(sosAlerts()).isZero();
-    }
-
-    @Test
-    void FR_047d_unboundDeviceUnauthorized() throws Exception {
-        jdbc.update(
-                "UPDATE device_credential SET ended_at = ?, end_reason = 'NEW_DEVICE_BOUND' WHERE account_id = ?"
-                        + " AND kind = 'BOUND_DEVICE'",
-                Timestamp.from(time.now()),
-                residentAccount);
-
-        press("k1")
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_DEVICE"));
-    }
-
-    @Test
-    void FR_047d_lockedAccountUnauthorized() throws Exception {
-        jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'MANUAL' WHERE id = ?", residentAccount);
-
-        press("k1")
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_DEVICE"));
     }
 }

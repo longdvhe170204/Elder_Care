@@ -9,6 +9,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeDuties;
@@ -17,11 +18,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -39,18 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import({AssetTestBase.Users.class, FakeM15Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class})
 abstract class AssetTestBase extends MySqlIntegrationTestBase {
     static final String URL = "/api/v1/assets";
-
-    @TestConfiguration
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser assetUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     MockMvc mvc;

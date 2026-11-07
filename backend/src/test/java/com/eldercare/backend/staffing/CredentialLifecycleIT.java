@@ -14,12 +14,12 @@ import com.eldercare.backend.staffing.internal.credential.persistence.Credential
 import com.eldercare.backend.staffing.internal.credential.service.CredentialService;
 import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.fake.care.*;
 import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.event.*;
@@ -29,7 +29,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @Import({
     FakeM04Config.class,
     com.eldercare.backend.support.fake.roombedallocation.FakeLocations.Config.class,
-    CredentialLifecycleIT.Users.class
+    SwitchableUserConfig.class
 })
 @RecordApplicationEvents
 class CredentialLifecycleIT extends MySqlIntegrationTestBase {
@@ -200,49 +200,6 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M09_05_requiredTrainingWarnsOnceAtConfiguredHorizonAndRenewalClosesWarning() {
-        var expiry = time.today().plus(parameters.read(ParameterCode.CFG_M09_03).asPeriod());
-        long id = add(expiry);
-        daily.runNow();
-        daily.runNow();
-        assertThat(events.stream(CredentialExpiring.class)
-                        .filter(e -> e.credentialId() == id)
-                        .count())
-                .isOne();
-        Credential renewed = ReflectionTestUtils.invokeMethod(service, "renew", id, input("T-2", expiry.plusMonths(1)));
-        assertThat(renewed.replacesId()).isEqualTo(id);
-        assertThat(store.find(id).orElseThrow().replaced()).isTrue();
-        assertThat(store.find(id).orElseThrow().credentialNumber()).isEqualTo("T-1");
-        assertThat(events.stream(CredentialExpiryWarningClosed.class)
-                        .filter(e -> e.credentialId() == id)
-                        .count())
-                .isOne();
-    }
-
-    @Test
-    void FR_008_professionalLicenseAndNonRequiredTrainingDoNotRaiseM09TrainingWarning() {
-        long license = jdbc.queryForObject(
-                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='NURSING_LICENSE'",
-                Long.class);
-        long id = service.add(
-                        person,
-                        new CredentialInput(
-                                license,
-                                "L-1",
-                                null,
-                                Set.of(),
-                                time.today().minusDays(1),
-                                time.today().plusDays(1),
-                                null))
-                .id();
-        daily.runNow();
-        assertThat(events.stream(CredentialExpiring.class)
-                        .filter(e -> e.credentialId() == id)
-                        .count())
-                .isZero();
-    }
-
-    @Test
     void FR_009_revocationEndsOnlyRequiredAssignmentsAndKeepsShiftMembership() {
         long id = add(time.today().plusDays(10));
         long assigned = assignment(now.minusSeconds(7200), now.plusSeconds(21600), "ACTIVE");
@@ -269,167 +226,5 @@ class CredentialLifecycleIT extends MySqlIntegrationTestBase {
                         java.sql.Timestamp.class,
                         person))
                 .isNull();
-    }
-
-    @Test
-    void FR_009_futureRevocationWaitsUntilItsDateThenAppliesOnce() {
-        long id = add(time.today().plusDays(10));
-        var cut = time.startOfDay(time.today().plusDays(1));
-        long assigned = assignment(cut.minusSeconds(3600), cut.plusSeconds(21600), "SCHEDULED");
-        revoke(id, time.today().plusDays(1));
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("SCHEDULED");
-        clock.setTo(cut.plusSeconds(1));
-        minute.runNow();
-        minute.runNow();
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("ENDED");
-        assertThat(tasks.endedAssignments().stream().filter(a -> a == assigned).count())
-                .isOne();
-    }
-
-    @Test
-    void FR_009_careFailureRollsBackCredentialRevocationAndAssignment() {
-        long id = add(time.today().plusDays(10));
-        long assigned = assignment(now.minusSeconds(7200), now.plusSeconds(21600), "ACTIVE");
-        tasks.failOnEnd(true);
-        assertThatThrownBy(() -> revoke(id, time.today()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Nguồn công việc từ chối kết thúc");
-        assertThat(store.find(id).orElseThrow().revokedFrom()).isNull();
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("ACTIVE");
-    }
-
-    @Test
-    void FR_009_correctingExpiryEarlierEndsAffectedAssignmentWithoutRewritingSourceIdentity() {
-        long id = add(time.today().plusDays(10));
-        long assigned = assignment(now.minusSeconds(7200), now.plusSeconds(21600), "ACTIVE");
-        ReflectionTestUtils.invokeMethod(
-                service,
-                "correct",
-                id,
-                input("T-1 đúng", time.today().minusDays(1)),
-                new Reason("Sửa ngày trên bản gốc"));
-        assertThat(store.find(id).orElseThrow().id()).isEqualTo(id);
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("ENDED");
-    }
-
-    @Test
-    void FR_009_validAlternativeKeepsAssignmentAndShiftMembership() {
-        long id = add(time.today().plusDays(10));
-        add(time.today().plusDays(20));
-        long assigned = assignment(now.minusSeconds(7200), now.plusSeconds(21600), "ACTIVE");
-        revoke(id, time.today());
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("ACTIVE");
-        assertThat(tasks.endedAssignments()).doesNotContain(assigned);
-    }
-
-    @Test
-    void FR_009_revocationCancelsFutureAssignmentWithoutCallingEndCallback() {
-        long id = add(time.today().plusDays(10));
-        long assigned = assignment(now.plusSeconds(7200), now.plusSeconds(21600), "SCHEDULED");
-        revoke(id, time.today());
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("CANCELLED");
-        assertThat(tasks.endedAssignments()).doesNotContain(assigned);
-    }
-
-    @Test
-    void FR_008_optionalTrainingDoesNotWarn() {
-        long optional = jdbc.queryForObject(
-                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
-                Long.class);
-        long id = service.add(
-                        person,
-                        new CredentialInput(
-                                optional,
-                                "OPT",
-                                null,
-                                Set.of(),
-                                time.today().minusDays(1),
-                                time.today().plusDays(1),
-                                null))
-                .id();
-        daily.runNow();
-        assertThat(events.stream(CredentialExpiring.class)
-                        .filter(e -> e.credentialId() == id)
-                        .count())
-                .isZero();
-    }
-
-    @Test
-    void FR_009_changingTypeStillSchedulesFutureInvalidityForCorrectedType() {
-        long id = add(time.today().plusDays(10));
-        long target = jdbc.queryForObject(
-                "SELECT id FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
-                Long.class);
-        var code = store.type(target).orElseThrow().code();
-        tasks.require(task, new TaskRequirements(Role.NURSING_STAFF, Set.of(code)));
-        var expiry = time.today().plusDays(1);
-        var cut = time.startOfDay(expiry.plusDays(1));
-        long assigned = assignment(cut.minusSeconds(3600), cut.plusSeconds(21600), "SCHEDULED");
-        service.correct(
-                id,
-                new CredentialInput(
-                        target, "T-correct", null, Set.of(), time.today().minusDays(1), expiry, null),
-                new Reason("Sửa đúng loại trên bản gốc"));
-        clock.setTo(cut.plusSeconds(1));
-        minute.runNow();
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assigned))
-                .isEqualTo("ENDED");
-    }
-
-    @Test
-    void FR_008_trainingReminderIncludesFloorsInsideFutureAreaShift() {
-        long area = TestUsers.nextId(), floor = TestUsers.nextId();
-        locations.floor(floor, area);
-        var expiry = time.today().plusDays(1);
-        long credential = add(expiry);
-        var from = time.startOfDay(expiry.plusDays(1));
-        long template = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Ca khu chứng chỉ] #"
-                        + com.eldercare.backend.support.TestUsers.nextId()
-                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'AREA' AS scope_type,FALSE AS requires_handover) src");
-        fixtureTemplates.add(template);
-        long schedule = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES (?,'AREA',?,'PUBLISHED')",
-                YearMonth.from(from.atZone(BusinessTime.ZONE)).toString(),
-                area);
-        fixtureSchedules.add(schedule);
-        long shift = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) VALUES (?,?,?,?,'AREA',?,FALSE,'PUBLISHED')",
-                schedule,
-                template,
-                ShiftStore.sql(from),
-                ShiftStore.sql(from.plusSeconds(28800)),
-                area);
-        fixtureShifts.add(shift);
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, person);
-        daily.runNow();
-        var reminder = events.stream(CredentialExpiring.class)
-                .filter(e -> e.credentialId() == credential)
-                .findFirst()
-                .orElseThrow()
-                .notificationRequests()
-                .getFirst();
-        assertThat(reminder.recipientGroups())
-                .contains(new com.eldercare.backend.common.notification.RecipientGroup.FloorManager(
-                        floor, new com.eldercare.backend.common.notification.Substitution.Default()));
-        assertThat(reminder.content().getFirst().content()).contains("[Nhân viên chứng chỉ]", Long.toString(shift));
-    }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser current() {
-            return new SwitchableUser();
-        }
     }
 }

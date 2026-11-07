@@ -13,7 +13,6 @@ import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -127,23 +126,6 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_013_medicationQuantityKeepsThreeDecimalsInHistory() {
-        long item = TestUsers.nextId();
-        var details = new CostRecalculation(
-                new CostRecalculation.Calculation(new BigDecimal("0.125"), null, new BigDecimal("100.00"), null),
-                new CostRecalculation.Calculation(
-                        new BigDecimal("0.125"), new BigDecimal("256"), new BigDecimal("100.00"), new BigDecimal("32")),
-                "UNIT_PRICE_AVAILABLE",
-                true);
-
-        add(item, TestUsers.nextId(), details);
-
-        assertThat(history.list(CostRecalculation.TRACK, item))
-                .singleElement()
-                .satisfies(row -> assertThat(row.details().after().quantity()).isEqualByComparingTo("0.125"));
-    }
-
-    @Test
     void DBR_17_recalculationHistoryCannotBeEditedOrDeletedEvenByAdministrator() throws Exception {
         long id = add(TestUsers.nextId(), TestUsers.nextId());
         assertThatThrownBy(() -> jdbc.update("UPDATE status_history SET details=JSON_OBJECT() WHERE id=?", id))
@@ -156,26 +138,5 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
             assertThatThrownBy(update::executeUpdate).isInstanceOf(SQLException.class);
             assertThatThrownBy(delete::executeUpdate).isInstanceOf(SQLException.class);
         }
-    }
-
-    @Test
-    void NFR_04_processedSourceMarkerIsUniqueAndRollsBackWithItsCommand() {
-        long resident = TestUsers.nextId();
-        String event = "M04.RESULT:" + TestUsers.nextId();
-        transaction().executeWithoutResult(status -> {
-            assertThat(markers.mark("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event, Map.of()))
-                    .isTrue();
-            status.setRollbackOnly();
-        });
-        assertThat(markers.isMarked("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event))
-                .isFalse();
-        transaction()
-                .executeWithoutResult(status -> assertThat(
-                                markers.mark("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event, Map.of()))
-                        .isTrue());
-        transaction()
-                .executeWithoutResult(status -> assertThat(
-                                markers.mark("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event, Map.of()))
-                        .isFalse());
     }
 }

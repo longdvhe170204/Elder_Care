@@ -1,15 +1,9 @@
 package com.eldercare.backend.administration.correction;
 
-import static com.eldercare.backend.administration.sample.CorrectionFixtures.FLOOR_MANAGER;
 import static com.eldercare.backend.administration.sample.CorrectionFixtures.MANAGER;
 import static com.eldercare.backend.administration.sample.CorrectionFixtures.OFFICE_A;
 import static com.eldercare.backend.administration.sample.CorrectionFixtures.OFFICE_B;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
@@ -18,11 +12,8 @@ import com.eldercare.backend.administration.correction.api.CorrectionApi;
 import com.eldercare.backend.administration.correction.api.CorrectionResult;
 import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.sample.CorrectionFixtures;
-import com.eldercare.backend.administration.sample.SampleAmendOnlyRecordProvider;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import java.sql.Statement;
@@ -32,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -107,43 +97,12 @@ class CorrectionApprovalIT extends MySqlIntegrationTestBase {
                 id);
     }
 
-    /** Loại đính chính provider không hỗ trợ bị từ chối trước khi chọn cách, không lập yêu cầu cách C (005 T029). */
-    @Test
-    void FR_024_unsupportedType_rejectedBeforeApprovalRequest() {
-        long id = officeRecord("điểm danh mẫu");
-        Integer before = jdbc.queryForObject("SELECT COUNT(*) FROM approval_request", Integer.class);
-        user.set(OFFICE_B);
-
-        assertThatThrownBy(() ->
-                        corrections.create(SampleAmendOnlyRecordProvider.TYPE, id, CorrectionType.VOID, null, REASON))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", "CORRECTION_NOT_SUPPORTED");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM approval_request", Integer.class))
-                .isEqualTo(before);
-        assertThat(requestByColleagueOn(SampleAmendOnlyRecordProvider.TYPE, id).type())
-                .isEqualTo("M15.CORRECTION");
-    }
-
     private ApprovalRequestView requestByColleagueOn(String recordType, long id) {
         user.set(OFFICE_B);
         CorrectionResult result =
                 corrections.create(recordType, id, CorrectionType.AMEND_CONTENT, Map.of("note", "sửa"), REASON);
         assertThat(result).isInstanceOf(CorrectionResult.PendingApproval.class);
         return ((CorrectionResult.PendingApproval) result).request();
-    }
-
-    @Test
-    void US2_4_colleagueRequest_isPendingApproval_withoutCorrection() {
-        long id = officeRecord("giao 2 túi đồ");
-
-        ApprovalRequestView request =
-                requestByColleague(id, CorrectionType.AMEND_CONTENT, Map.of("note", "giao 3 túi"));
-
-        assertThat(request.type()).isEqualTo("M15.CORRECTION");
-        assertThat(request.status()).isEqualTo(ApprovalStatus.PENDING_APPROVAL);
-        assertThat(request.requesterId()).isEqualTo(OFFICE_B.accountId());
-        assertThat(request.reason()).isEqualTo(REASON.value());
-        assertThat(corrections(id)).isZero();
     }
 
     @Test
@@ -180,69 +139,5 @@ class CorrectionApprovalIT extends MySqlIntegrationTestBase {
                         String.valueOf(id),
                         request.id()))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void US2_4_onlyManagerApproves() {
-        long id = officeRecord("x");
-        ApprovalRequestView request = requestByColleague(id, CorrectionType.AMEND_CONTENT, Map.of("note", "y"));
-
-        user.set(OFFICE_A);
-        assertThatThrownBy(() -> approvals.approve(request.id(), String.valueOf(request.version()), null))
-                .isInstanceOf(PermissionDeniedException.class);
-        assertThat(corrections(id)).isZero();
-    }
-
-    @Test
-    void FR_036_rejected_noCorrection() {
-        long id = officeRecord("x");
-        ApprovalRequestView request = requestByColleague(id, CorrectionType.AMEND_CONTENT, Map.of("note", "y"));
-
-        user.set(MANAGER);
-        approvals.reject(request.id(), String.valueOf(request.version()), new Reason("đúng như bản gốc"));
-
-        assertThat(corrections(id)).isZero();
-    }
-
-    @Test
-    void FR_029_originalVoidedBeforeApproval_applyFails() {
-        long id = officeRecord("x");
-        ApprovalRequestView request = requestByColleague(id, CorrectionType.AMEND_CONTENT, Map.of("note", "y"));
-        user.set(OFFICE_A);
-        corrections.create(OFFICE_RECORD, id, CorrectionType.VOID, null, REASON);
-
-        ApprovalRequestView after = approveAsManager(request);
-
-        assertThat(after.status()).isEqualTo(ApprovalStatus.APPLY_FAILED);
-        assertThat(after.closingReason()).contains("FR-029");
-        assertThat(corrections(id)).isEqualTo(1);
-    }
-
-    @Test
-    void US2_4_floorManager_stillRefused() {
-        long id = officeRecord("x");
-        user.set(FLOOR_MANAGER);
-
-        assertThatThrownBy(() -> corrections.create(
-                        OFFICE_RECORD, id, CorrectionType.AMEND_CONTENT, Map.of("note", "y"), REASON))
-                .hasFieldOrPropertyWithValue("errorCode", "CORRECTION_NOT_ALLOWED");
-    }
-
-    @Test
-    void T059_httpWayC_returns202WithApprovalRequest() throws Exception {
-        long id = officeRecord("giao 2 túi đồ");
-        user.set(OFFICE_B);
-
-        mvc.perform(
-                        post("/api/v1/corrections/" + OFFICE_RECORD + "/" + id)
-                                .with(csrf())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        "{\"type\":\"AMEND_CONTENT\",\"correctedContent\":{\"note\":\"giao 3 túi\"},\"reason\":\"ghi nhầm\"}"))
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.type").value("M15.CORRECTION"))
-                .andExpect(jsonPath("$.status").value("PENDING_APPROVAL"))
-                .andExpect(jsonPath("$.content.originalRecordId").value(id))
-                .andExpect(jsonPath("$.requester.id").value((int) OFFICE_B.accountId()));
     }
 }

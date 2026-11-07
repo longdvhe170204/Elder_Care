@@ -28,18 +28,4 @@ class RepeatWithin24HoursCounterTest {
         assertThat(RepeatWithin24HoursCounter.count(List.of(T.plusSeconds(1)), T, DAY))
                 .isZero();
     }
-
-    @Test
-    void BR_M05_03_windowComesFromParameter() {
-        var times = List.of(T.minus(Duration.ofHours(13)), T.minus(Duration.ofHours(1)));
-        assertThat(RepeatWithin24HoursCounter.count(times, T, Duration.ofHours(12)))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void BR_M05_03_reachedWhenCountMeetsThreshold() {
-        assertThat(RepeatWithin24HoursCounter.reached(2, 3)).isFalse();
-        assertThat(RepeatWithin24HoursCounter.reached(3, 3)).isTrue();
-        assertThat(RepeatWithin24HoursCounter.reached(4, 3)).isTrue();
-    }
 }

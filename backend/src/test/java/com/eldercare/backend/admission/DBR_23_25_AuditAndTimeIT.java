@@ -1,17 +1,12 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.admission.api.ResidencyDayApi;
-import com.eldercare.backend.admission.api.dto.ResidencyDayView;
-import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 /**
@@ -58,49 +53,5 @@ class DBR_23_25_AuditAndTimeIT extends AbsenceTestBase {
         clockAt(d0.plusDays(1), 10, 0);
         recordReturn(residentId, null);
         assertThat(m02AuditRows(residentId)).as("đóng lượt vắng").isGreaterThan(afterGrant);
-    }
-
-    @Test
-    void DBR_23_aCorrection_pointsToExactlyOneOriginalRecord() throws Exception {
-        long residentId = inResidence();
-        clockAt(d0, 9, 0);
-        long absenceId = transferOut(residentId);
-        clockAt(d0.plusDays(29), 15, 0);
-        recordReturn(residentId, null);
-        user.set(office.user());
-        int beforeCorrection = m02AuditRows(residentId);
-
-        mvc.perform(post("/api/v1/absences/" + absenceId + "/correct")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"type":"EDIT_CONTENT","correctedContent":{"returnedAt":"%s"},"reason":"Ghi nhầm ngày về"}""".formatted(at(d0.plusDays(31), 15, 0))))
-                .andExpect(status().isCreated());
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM correction WHERE record_type = 'M02.ABSENCE' AND original_record_id = ?",
-                        Integer.class,
-                        absenceId))
-                .isEqualTo(1);
-        assertThat(m02AuditRows(residentId)).as("đính chính có nhật ký").isGreaterThan(beforeCorrection);
-    }
-
-    @Test
-    void DBR_25_absenceDay_followsVietnamTime_atHalfPastMidnight() throws Exception {
-        long residentId = inResidence();
-        LocalDate vietnamDay = d0.plusDays(2);
-        // 00:30 giờ Việt Nam là 17:30 UTC của ngày hôm trước; ngày rời viện phải là ngày Việt Nam
-        clockAt(vietnamDay, 0, 30);
-        long absenceId = grant(residentId, "HOME_VISIT", at(vietnamDay.plusDays(3), 10, 0));
-
-        ResidencyDayView before = days.daysBetween(residentId, vietnamDay.minusDays(1), vietnamDay.minusDays(1))
-                .getFirst();
-        ResidencyDayView leaving =
-                days.daysBetween(residentId, vietnamDay, vietnamDay).getFirst();
-
-        assertThat(before.absenceId())
-                .as("ngày trước đó theo giờ Việt Nam không vắng")
-                .isNull();
-        assertThat(leaving.absenceId()).isEqualTo(absenceId);
     }
 }

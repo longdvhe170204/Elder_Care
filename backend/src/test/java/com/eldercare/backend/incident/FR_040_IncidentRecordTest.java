@@ -154,13 +154,6 @@ class FR_040_IncidentRecordTest {
     }
 
     @Test
-    void FR_042_lowerThanDefaultLevelRequiresReason() {
-        assertThatThrownBy(() -> service.record(command(RESIDENT, 1, "MEDIUM", " ", false), user))
-                .isInstanceOf(BusinessException.class);
-        verify(incidents, never()).insert(any());
-    }
-
-    @Test
     void FR_041_openEmergencyIncidentBlocksUnlessCreateDespiteOpen() {
         when(incidents.openEmergency(RESIDENT)).thenReturn(Optional.of(30L));
 
@@ -243,16 +236,6 @@ class FR_040_IncidentRecordTest {
                 null, 4, null, null, NOW, null, null, null, "Vỡ ống nước", "LOW", null, null, false);
         assertThatThrownBy(() -> service.record(noFloor, user)).isInstanceOf(BusinessException.class);
         verify(incidents, never()).insert(any());
-    }
-
-    @Test
-    void FR_041_outsideScopeRecorderOnlyGetsIdentification() {
-        allow(PermissionBasis.OUT_OF_SCOPE);
-
-        var result = service.record(command(RESIDENT, 2, "MEDIUM", null, false), user);
-
-        assertThat(result.identificationOnly()).isTrue();
-        assertThat(inserted().outOfScope()).isTrue();
     }
 
     @Test

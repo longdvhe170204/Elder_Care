@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -17,11 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -41,19 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import(MenuTestBase.Users.class)
+@Import(SwitchableUserConfig.class)
 abstract class MenuTestBase extends MySqlIntegrationTestBase {
 
     static final String MENUS = "/api/v1/menus";
-
-    @TestConfiguration
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser menuUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     MockMvc mvc;

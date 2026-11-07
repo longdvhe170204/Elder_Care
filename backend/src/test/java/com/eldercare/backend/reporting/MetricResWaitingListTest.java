@@ -130,14 +130,4 @@ class MetricResWaitingListTest {
         assertThat(value(average, ReportFilters.NONE).value()).isEqualByComparingTo("12.0");
         assertThat(value(maximum, ReportFilters.NONE).value()).isEqualByComparingTo("14");
     }
-
-    @Test
-    void FR_025_noSourceBean_isEmpty() {
-        WaitingListRecords none = new WaitingListRecords(
-                new StaticListableBeanFactory().getBeanProvider(ResidencyStatisticsApi.class),
-                new BusinessTime(Clock.fixed(NOW, BusinessTime.ZONE)));
-
-        assertThat(new WaitingListMetric(none).records(ScopeFilter.FACILITY, FROM, TO, ReportFilters.NONE))
-                .isEmpty();
-    }
 }

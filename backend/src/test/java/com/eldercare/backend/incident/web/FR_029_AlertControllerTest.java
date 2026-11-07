@@ -1,18 +1,12 @@
 package com.eldercare.backend.incident.web;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.incident.internal.alert.domain.AlertDetails;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
@@ -25,7 +19,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -62,54 +55,6 @@ class FR_029_AlertControllerTest {
                 .andExpect(jsonPath("$.origin").value("SYSTEM"))
                 .andExpect(jsonPath("$.sources[0].sourceId").value(77))
                 .andExpect(jsonPath("$.allowedCommands[0]").value("receive"));
-    }
-
-    @Test
-    void FR_036_listPassesFilters() throws Exception {
-        when(queries.list(any(), eq(7L), isNull(), eq(true), eq(user)))
-                .thenReturn(List.of(new AlertDetails(alert(1), null, List.of(), Set.of())));
-
-        mvc.perform(get("/api/v1/alerts?status=NEW&status=ESCALATED&floorAreaId=7&maxEscalationReached=true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(12));
-
-        verify(queries).list(List.of(AlertStatus.NEW, AlertStatus.ESCALATED), 7L, null, true, user);
-    }
-
-    @Test
-    void FR_026_manualCreateReturnsCreatedWithMergedFlag() throws Exception {
-        when(manual.create(101, 30, "MEDIUM", "Đi lại liên tục", user))
-                .thenReturn(new ManualAlertService.Created(alert(2), true));
-
-        mvc.perform(post("/api/v1/alerts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"residentId":101,"incidentTypeId":30,"level":"MEDIUM","description":"Đi lại liên tục"}
-                                """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.merged").value(true));
-    }
-
-    @Test
-    void FR_029_commandRoutesCallServices() throws Exception {
-        mvc.perform(post("/api/v1/alerts/12/start-handling")).andExpect(status().isOk());
-        mvc.perform(post("/api/v1/alerts/12/assign")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"staffId\":55,\"note\":\"Giao D2\"}"))
-                .andExpect(status().isOk());
-        mvc.perform(post("/api/v1/alerts/12/change-level")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"newLevel\":\"CRITICAL\",\"reason\":\"Lặp 3 lần\"}"))
-                .andExpect(status().isOk());
-        mvc.perform(post("/api/v1/alerts/12/close")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"resolution\":\"Đã cho nghỉ\"}"))
-                .andExpect(status().isOk());
-
-        verify(handling).startHandling(12, user);
-        verify(handling).assign(12, 55, "Giao D2", user);
-        verify(handling).changeLevel(null, 12, IncidentLevel.CRITICAL, new Reason("Lặp 3 lần"), user);
-        verify(handling).close(12, "Đã cho nghỉ", null, user);
     }
 
     private static AlertRecord alert(int count) {

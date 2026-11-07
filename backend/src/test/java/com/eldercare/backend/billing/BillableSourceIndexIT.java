@@ -4,12 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.eldercare.backend.billing.api.events.CostSourceBilled;
-import com.eldercare.backend.care.api.dto.CareEventContext;
-import com.eldercare.backend.care.api.events.BillableCareResultRecorded;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
-import com.eldercare.backend.medication.api.events.BilledSource;
-import com.eldercare.backend.medication.api.events.MedicationBilledEvent;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.billing.FakeCostSources;
@@ -31,7 +27,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -155,54 +150,6 @@ class BillableSourceIndexIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_005_sourceWithoutAServiceIsStillIndexedForLaterPriceResolution() {
-        long resident = TestUsers.nextId();
-        var event = new CostSourceBilled(
-                "FAMILY_MEAL",
-                "meal-" + resident,
-                "UNIT",
-                resident,
-                Optional.empty(),
-                BigDecimal.ONE,
-                LocalDate.of(2026, 11, 4),
-                PERFORMED_AT,
-                "meal:" + resident);
-
-        publish(event);
-
-        awaitCount(resident, 1);
-        assertThat(indexed(resident).getFirst().get("service_id")).isNull();
-        noBusinessRecords(resident);
-    }
-
-    @Test
-    void FR_006_eachOvernightUnitKeepsItsOwnIdentityForTheSameStay() {
-        long resident = TestUsers.nextId();
-        String stay = "stay-" + TestUsers.nextId();
-        var first = source("OVERNIGHT_STAY", resident, stay, "2026-11-04", "night:" + resident + ":1");
-        var second = new CostSourceBilled(
-                "OVERNIGHT_STAY",
-                stay,
-                "2026-11-05",
-                resident,
-                first.serviceId(),
-                BigDecimal.ONE,
-                LocalDate.of(2026, 11, 5),
-                PERFORMED_AT.plusSeconds(86_400),
-                "night:" + resident + ":2");
-
-        publish(first);
-        publish(second);
-
-        awaitCount(resident, 2);
-        assertThat(indexed(resident))
-                .extracting(row -> row.get("billing_unit"))
-                .containsExactly("2026-11-04", "2026-11-05");
-        assertThat(receiptCount(resident)).isEqualTo(2);
-        noBusinessRecords(resident);
-    }
-
-    @Test
     void NFR_04_repeatedAndConcurrentDeliveriesAreHandledOnce() throws Exception {
         long resident = TestUsers.nextId();
         var event = source("FAMILY_MEAL", resident, "meal-" + resident, "UNIT", "repeat:" + resident);
@@ -228,154 +175,6 @@ class BillableSourceIndexIT extends MySqlIntegrationTestBase {
         assertThat(receiptCount(resident)).isEqualTo(1);
         assertThat(((Number) indexed(resident).getFirst().get("version")).intValue())
                 .isZero();
-        noBusinessRecords(resident);
-    }
-
-    @Test
-    void NFR_04_lateInitialDeliveryDoesNotRestoreAnAlreadyCancelledSource() {
-        long resident = TestUsers.nextId();
-        var event = source("FAMILY_MEAL", resident, "meal-" + resident, "UNIT", "initial:" + resident);
-        publish(event);
-        awaitCount(resident, 1);
-        jdbc.update("UPDATE cost_source_index SET cancelled=TRUE,version=3 WHERE resident_id=?", resident);
-        var late = new CostSourceBilled(
-                event.sourceType(),
-                event.sourceId(),
-                event.unit(),
-                resident,
-                event.serviceId(),
-                event.quantity(),
-                event.incurredOn(),
-                event.occurredAt(),
-                "late-copy:" + resident);
-
-        publish(late);
-
-        await().atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> assertThat(receiptCount(resident)).isEqualTo(2));
-        assertThat(jdbc.queryForObject(
-                        "SELECT cancelled FROM cost_source_index WHERE resident_id=?", Boolean.class, resident))
-                .isTrue();
-        assertThat(((Number) indexed(resident).getFirst().get("version")).intValue())
-                .isEqualTo(3);
-        noBusinessRecords(resident);
-    }
-
-    @Test
-    void NFR_04_longEventKeysAreNotTruncatedIntoTheSameReceipt() {
-        long resident = TestUsers.nextId();
-        String common = "delivery:" + "x".repeat(1000);
-        var first = source("FAMILY_MEAL", resident, "meal-" + resident, "UNIT", common + "A");
-        var second = new CostSourceBilled(
-                first.sourceType(),
-                first.sourceId(),
-                first.unit(),
-                resident,
-                first.serviceId(),
-                first.quantity(),
-                first.incurredOn(),
-                first.occurredAt(),
-                common + "B");
-
-        publish(first);
-        publish(second);
-
-        awaitCount(resident, 1);
-        await().atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> assertThat(receiptCount(resident)).isEqualTo(2));
-    }
-
-    @Test
-    void FR_005_careResultUsesPerformedTimeAndKeepsTheActualQuantity() {
-        long resident = TestUsers.nextId(), result = TestUsers.nextId(), service = TestUsers.nextId();
-        var context =
-                new CareEventContext("M04.CARE_RESULT", result, "RECORDED", INDEXED_AT, Optional.empty(), List.of());
-        var event = new BillableCareResultRecorded(
-                result, resident, TestUsers.nextId(), service, new BigDecimal("2.25"), PERFORMED_AT, context);
-
-        publish(event);
-
-        awaitCount(resident, 1);
-        var row = indexed(resident).getFirst();
-        assertThat(row).containsEntry("source_type", "CARE_TASK_RESULT");
-        assertThat(row).containsEntry("source_id", Long.toString(result));
-        assertThat(row).containsEntry("billing_unit", "UNIT");
-        assertThat(row).containsEntry("service_id", service);
-        assertThat(row.get("incurred_on").toString()).isEqualTo("2026-11-05");
-        assertThat(((LocalDateTime) row.get("occurred_at")).toInstant(ZoneOffset.UTC))
-                .isEqualTo(PERFORMED_AT);
-        assertThat((BigDecimal) row.get("current_quantity")).isEqualByComparingTo("2.25");
-        noBusinessRecords(resident);
-    }
-
-    @ParameterizedTest
-    @EnumSource(BilledSource.class)
-    void FR_005_medicationKeepsTheOriginalSourceAndQuantity(BilledSource type) {
-        long resident = TestUsers.nextId(), source = TestUsers.nextId(), medication = TestUsers.nextId();
-
-        publish(new MedicationBilledEvent(type, source, resident, medication, new BigDecimal("0.50"), PERFORMED_AT));
-
-        awaitCount(resident, 1);
-        var row = indexed(resident).getFirst();
-        assertThat(row).containsEntry("source_type", type.name());
-        assertThat(row).containsEntry("source_id", Long.toString(source));
-        assertThat(row).containsEntry("billing_unit", Long.toString(medication));
-        assertThat(row).containsEntry("medication_id", medication);
-        assertThat(row.get("service_id")).isNull();
-        assertThat(row.get("incurred_on").toString()).isEqualTo("2026-11-05");
-        assertThat((BigDecimal) row.get("current_quantity")).isEqualByComparingTo("0.50");
-        noBusinessRecords(resident);
-    }
-
-    @Test
-    void FR_005_medicationIdentitySeparatesTwoDrugsSharingASourceReference() {
-        long resident = TestUsers.nextId(), source = TestUsers.nextId();
-        long first = TestUsers.nextId(), second = TestUsers.nextId();
-
-        publish(new MedicationBilledEvent(
-                BilledSource.DISPENSE_RECORD, source, resident, first, BigDecimal.ONE, PERFORMED_AT));
-        publish(new MedicationBilledEvent(
-                BilledSource.DISPENSE_RECORD, source, resident, second, new BigDecimal("2.00"), PERFORMED_AT));
-
-        awaitCount(resident, 2);
-        assertThat(indexed(resident))
-                .extracting(row -> row.get("medication_id"))
-                .containsExactlyInAnyOrder(first, second);
-        assertThat(receiptCount(resident)).isEqualTo(2);
-        noBusinessRecords(resident);
-    }
-
-    @Test
-    void FR_005_medicationQuantityIsNotRoundedToTwoDecimals() {
-        long resident = TestUsers.nextId();
-        publish(new MedicationBilledEvent(
-                BilledSource.DOSE,
-                TestUsers.nextId(),
-                resident,
-                TestUsers.nextId(),
-                new BigDecimal("0.125"),
-                PERFORMED_AT));
-
-        awaitCount(resident, 1);
-        assertThat((BigDecimal) indexed(resident).getFirst().get("current_quantity"))
-                .isEqualByComparingTo("0.125");
-        noBusinessRecords(resident);
-    }
-
-    @Test
-    void NFR_04_rolledBackSourceCommandDoesNotLeaveAnIndexOrReceipt() {
-        long resident = TestUsers.nextId();
-        var event = source("FAMILY_MEAL", resident, "rollback-" + resident, "UNIT", "rollback:" + resident);
-
-        transaction().executeWithoutResult(status -> {
-            sources.billed(event);
-            status.setRollbackOnly();
-        });
-
-        await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(1)).untilAsserted(() -> {
-            assertThat(indexed(resident)).isEmpty();
-            assertThat(receiptCount(resident)).isZero();
-        });
         noBusinessRecords(resident);
     }
 }

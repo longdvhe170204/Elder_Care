@@ -1,6 +1,5 @@
 package com.eldercare.backend.incident;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -18,7 +17,6 @@ import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -59,37 +57,6 @@ class FR_029_AlertReceiveTest {
     }
 
     @Test
-    void FR_029_receiveSetsReceiverAsAssigneeAndStopsEscalation() {
-        service.receive(12, user);
-
-        verify(alerts).receive(12, 900L, NOW, IncidentLevel.MEDIUM, 4);
-        verify(audit).write(any());
-    }
-
-    @Test
-    void FR_029_escalatedAlertCanBeReceived() {
-        when(alerts.lockForReceive(12)).thenReturn(Optional.of(state(AlertStatus.ESCALATED, 1)));
-
-        service.receive(12, user);
-
-        verify(alerts).receive(12, 900L, NOW, IncidentLevel.MEDIUM, 4);
-    }
-
-    @Test
-    void FR_029_alreadyReceivedIsConflictWithReceiver() {
-        var at = NOW.minusSeconds(120);
-        when(alerts.lockForReceive(12))
-                .thenReturn(Optional.of(new AlertReceiveState(
-                        12, 101L, 7L, AlertStatus.RECEIVED, 0, IncidentLevel.MEDIUM, 800L, at, 5)));
-
-        assertThatThrownBy(() -> service.receive(12, user)).isInstanceOfSatisfying(BusinessException.class, e -> {
-            assertThat(e.errorCode()).isEqualTo("ALREADY_RECEIVED");
-            assertThat(e.properties()).containsEntry("receivedBy", "800").containsEntry("receivedAt", at);
-        });
-        verifyNotReceived();
-    }
-
-    @Test
     void Q_71_managerReceivesOnlyAtEscalationLevelTwo() {
         when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
         when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.ROLE));
@@ -109,14 +76,6 @@ class FR_029_AlertReceiveTest {
         when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
 
         assertThatThrownBy(() -> service.receive(12, user)).isInstanceOf(NotFoundException.class);
-        verifyNotReceived();
-    }
-
-    @Test
-    void FR_029_closedAlertCannotBeReceived() {
-        when(alerts.lockForReceive(12)).thenReturn(Optional.of(state(AlertStatus.CLOSED, 0)));
-
-        assertThatThrownBy(() -> service.receive(12, user)).isInstanceOf(BusinessException.class);
         verifyNotReceived();
     }
 

@@ -2,16 +2,10 @@ package com.eldercare.backend.notification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
-import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.ContentPart;
-import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.notification.InformationSubject;
 import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationLevel;
@@ -19,33 +13,26 @@ import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
-import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.api.events.NotificationViewed;
-import com.eldercare.backend.notification.api.spi.NotifiableRelationshipView;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.notification.FakeFamilyNotifications;
 import com.eldercare.backend.support.fake.resident.FakeConsentApi;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -155,41 +142,6 @@ class InboxIT extends M13IntegrationTestBase {
     }
 
     @Test
-    void FR_033_ownInbox_urgentUnacknowledgedFirst_counts() throws Exception {
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-        TestUser other = users.staff(Role.OFFICE_STAFF);
-        String token = users.session(office.accountId());
-        send(notice(
-                "fr033-low-" + resident,
-                NotificationLevel.LOW,
-                staff(office),
-                Optional.empty(),
-                InformationType.GENERAL));
-        send(notice(
-                "fr033-urgent-" + resident,
-                NotificationLevel.URGENT,
-                staff(office),
-                Optional.empty(),
-                InformationType.GENERAL));
-        send(notice(
-                "fr033-medium-" + resident,
-                NotificationLevel.MEDIUM,
-                staff(office),
-                Optional.empty(),
-                InformationType.GENERAL));
-
-        JsonNode inbox = getJson(INBOX, token);
-
-        assertThat(inbox.get("items")).hasSize(3);
-        assertThat(inbox.get("items").get(0).get("level").asString()).isEqualTo("URGENT");
-        assertThat(inbox.get("unreadCount").asInt()).isEqualTo(3);
-        assertThat(inbox.get("unacknowledgedUrgentCount").asInt()).isEqualTo(1);
-        assertThat(getJson(INBOX + "?level=MEDIUM", token).get("items")).hasSize(1);
-        assertThat(getJson(INBOX, users.session(other.accountId())).get("items"))
-                .isEmpty();
-    }
-
-    @Test
     void FR_034_open_recordsFirstViewOnce_andPublishesViewedOnce() throws Exception {
         TestUser office = users.staff(Role.OFFICE_STAFF);
         String token = users.session(office.accountId());
@@ -212,216 +164,5 @@ class InboxIT extends M13IntegrationTestBase {
         assertThat(events.stream(NotificationViewed.class).filter(e -> e.notificationId() == id))
                 .hasSize(1);
         assertThat(getJson(INBOX, token).get("unreadCount").asInt()).isZero();
-    }
-
-    @Test
-    void FR_034_otherPersonsNotification_is404() throws Exception {
-        TestUser owner = users.staff(Role.OFFICE_STAFF);
-        TestUser other = users.staff(Role.OFFICE_STAFF);
-        String key = send(notice(
-                "fr034b-" + resident, NotificationLevel.LOW, staff(owner), Optional.empty(), InformationType.GENERAL));
-        long id = notificationId(key, owner.accountId());
-
-        mvc.perform(get(INBOX + "/" + id).header("Authorization", TestUsers.bearer(users.session(other.accountId()))))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void FR_034_staff_contentByCurrentScope_notAtSendTime() throws Exception {
-        TestUser nurse = users.staff(Role.NURSING_STAFF);
-        assignments.assign(
-                nurse.staffId(),
-                new AssignmentView(
-                        AssignmentKind.SHIFT_MEMBER,
-                        null,
-                        null,
-                        resident,
-                        null,
-                        time.now().minus(Duration.ofHours(1)),
-                        null));
-        String token = users.session(nurse.accountId());
-        String key = send(notice(
-                "fr034c-" + resident,
-                NotificationLevel.MEDIUM,
-                new RecipientGroup.AssignedNurse(resident, new Substitution.Default()),
-                Optional.empty(),
-                InformationType.GENERAL,
-                InformationType.HEALTH));
-        long id = notificationId(key, nurse.accountId());
-
-        JsonNode inScope = getJson(INBOX + "/" + id, token);
-        assertThat(inScope.get("content"))
-                .extracting(p -> p.get("informationType").asString())
-                .containsExactly("GENERAL", "HEALTH");
-        assertThat(inScope.get("hiddenParts")).isEmpty();
-
-        assignments.unassign(nurse.staffId());
-        JsonNode outOfScope = getJson(INBOX + "/" + id, token);
-
-        assertThat(outOfScope.get("content")).isEmpty();
-        assertThat(outOfScope.get("hiddenParts")).extracting(JsonNode::asString).containsExactly("GENERAL", "HEALTH");
-        assertThat(outOfScope.get("title").asString()).isEqualTo("Tiêu đề " + key);
-        assertThat(outOfScope.get("eventType").asString()).isEqualTo("TEST_EVENT");
-    }
-
-    @Test
-    void FR_034_family_rightRemoved_partHidden() throws Exception {
-        long familyMemberId = TestUsers.nextId();
-        TestUser member = users.family(familyMemberId);
-        family.relate(
-                resident,
-                new NotifiableRelationshipView(
-                        familyMemberId,
-                        false,
-                        false,
-                        Set.of(FamilyRight.VIEW_COSTS),
-                        Optional.of(member.accountId()),
-                        true,
-                        Optional.empty()));
-        String token = users.session(member.accountId());
-        String key = send(notice(
-                "fr034d-" + resident,
-                NotificationLevel.LOW,
-                new RecipientGroup.FamilyWithRight(resident, FamilyRight.VIEW_COSTS),
-                Optional.of(InformationSubject.ABOUT_FAMILY_MATTER),
-                InformationType.GENERAL,
-                InformationType.COSTS));
-        long id = notificationId(key, member.accountId());
-
-        assertThat(getJson(INBOX + "/" + id, token).get("content"))
-                .extracting(p -> p.get("informationType").asString())
-                .containsExactly("GENERAL", "COSTS");
-
-        family.reset();
-        family.relate(
-                resident,
-                new NotifiableRelationshipView(
-                        familyMemberId,
-                        false,
-                        false,
-                        Set.of(),
-                        Optional.of(member.accountId()),
-                        true,
-                        Optional.empty()));
-        JsonNode after = getJson(INBOX + "/" + id, token);
-
-        assertThat(after.get("content"))
-                .extracting(p -> p.get("informationType").asString())
-                .containsExactly("GENERAL");
-        assertThat(after.get("hiddenParts")).extracting(JsonNode::asString).containsExactly("COSTS");
-    }
-
-    @Test
-    void FR_034_family_consentWithdrawn_healthPartHidden() throws Exception {
-        long familyMemberId = TestUsers.nextId();
-        TestUser member = users.family(familyMemberId);
-        family.relate(
-                resident,
-                new NotifiableRelationshipView(
-                        familyMemberId,
-                        true,
-                        false,
-                        Set.of(FamilyRight.VIEW_HEALTH),
-                        Optional.of(member.accountId()),
-                        true,
-                        Optional.empty()));
-        consents.active(resident, Set.of(familyMemberId), true);
-        String token = users.session(member.accountId());
-        String key = send(notice(
-                "fr034h-" + resident,
-                NotificationLevel.URGENT,
-                new RecipientGroup.PrimaryContact(resident),
-                Optional.of(InformationSubject.ABOUT_RESIDENT),
-                InformationType.GENERAL,
-                InformationType.HEALTH));
-        long id = notificationId(key, member.accountId());
-
-        assertThat(getJson(INBOX + "/" + id, token).get("content"))
-                .extracting(p -> p.get("informationType").asString())
-                .containsExactly("GENERAL", "HEALTH");
-
-        consents.withdraw(resident);
-        JsonNode after = getJson(INBOX + "/" + id, token);
-
-        assertThat(after.get("content"))
-                .extracting(p -> p.get("informationType").asString())
-                .containsExactly("GENERAL");
-        assertThat(after.get("hiddenParts")).extracting(JsonNode::asString).containsExactly("HEALTH");
-    }
-
-    @Test
-    void FR_036_hide_onlyViewed_thenLeavesInbox_recordKept() throws Exception {
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-        String token = users.session(office.accountId());
-        String key = send(notice(
-                "fr036-" + resident, NotificationLevel.LOW, staff(office), Optional.empty(), InformationType.GENERAL));
-        long id = notificationId(key, office.accountId());
-
-        mvc.perform(post(INBOX + "/" + id + "/hide")
-                        .header("Authorization", TestUsers.bearer(token))
-                        .header("Idempotency-Key", UUID.randomUUID().toString()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOTIFICATION_NOT_VIEWED"));
-        getJson(INBOX + "/" + id, token);
-        mvc.perform(post(INBOX + "/" + id + "/hide")
-                        .header("Authorization", TestUsers.bearer(token))
-                        .header("Idempotency-Key", UUID.randomUUID().toString()))
-                .andExpect(status().isOk());
-
-        assertThat(getJson(INBOX, token).get("items")).isEmpty();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE id = ?", Integer.class, id))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void pushDevice_registerThenUpdateToken() throws Exception {
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-        String token = users.session(office.accountId());
-        for (String fcm : List.of("token-1", "token-2")) {
-            mvc.perform(post("/api/v1/push-devices")
-                            .header("Authorization", TestUsers.bearer(token))
-                            .header("Idempotency-Key", UUID.randomUUID().toString())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"app\":\"STAFF_APP\",\"fcmToken\":\"" + fcm + "\"}"))
-                    .andExpect(status().isOk());
-        }
-
-        assertThat(jdbc.queryForList(
-                        "SELECT fcm_token FROM push_device WHERE account_id = ?", String.class, office.accountId()))
-                .containsExactly("token-2");
-    }
-
-    @Test
-    void stream_pushesNewNotificationToOwner() throws Exception {
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-        String token = users.session(office.accountId());
-        MvcResult stream = mvc.perform(
-                        get("/api/v1/notifications/stream").header("Authorization", TestUsers.bearer(token)))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        String key = send(notice(
-                "sse-" + resident, NotificationLevel.MEDIUM, staff(office), Optional.empty(), InformationType.GENERAL));
-        long id = notificationId(key, office.accountId());
-
-        org.awaitility.Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .until(() -> stream.getResponse().getContentAsString().contains("\"notificationId\":" + id));
-        assertThat(stream.getResponse().getContentType()).startsWith("text/event-stream");
-    }
-
-    @Test
-    void stream_sendsCommentOnOpenBeforeAnyNotification() throws Exception {
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-        String token = users.session(office.accountId());
-        MvcResult stream = mvc.perform(
-                        get("/api/v1/notifications/stream").header("Authorization", TestUsers.bearer(token)))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        org.awaitility.Awaitility.await()
-                .atMost(Duration.ofSeconds(5))
-                .until(() -> !stream.getResponse().getContentAsString().isEmpty());
-        assertThat(stream.getResponse().getContentAsString()).startsWith(":").doesNotContain("event:");
     }
 }

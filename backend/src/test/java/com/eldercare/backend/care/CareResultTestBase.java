@@ -10,6 +10,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.support.*;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.fake.administration.*;
 import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
@@ -31,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 abstract class CareResultTestBase extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;

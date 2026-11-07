@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -15,11 +16,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.test.context.TestSecurityContextHolder;
@@ -34,17 +32,8 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @AutoConfigureMockMvc
 @WithMockUser
-@Import(BR_M08_03_ConcurrentApplyIT.Users.class)
+@Import(SwitchableUserConfig.class)
 class BR_M08_03_ConcurrentApplyIT extends MySqlIntegrationTestBase {
-
-    @TestConfiguration
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser nutritionConcurrentUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     MockMvc mvc;

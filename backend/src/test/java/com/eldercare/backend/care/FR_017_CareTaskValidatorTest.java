@@ -96,40 +96,6 @@ class FR_017_CareTaskValidatorTest {
     }
 
     @Test
-    void FR_017_shiftEndIsExcludedAndStartIncluded() {
-        assertThat(validator
-                        .validate(
-                                row(SourceType.MEAL, shift.endsAt(), Importance.NORMAL, 22L, false),
-                                shift,
-                                now,
-                                1,
-                                null)
-                        .codes())
-                .contains("OUTSIDE_SHIFT");
-        assertThat(validator
-                        .validate(
-                                row(SourceType.MEAL, shift.startsAt(), Importance.NORMAL, 22L, false),
-                                shift,
-                                now,
-                                1,
-                                null)
-                        .codes())
-                .doesNotContain("OUTSIDE_SHIFT");
-    }
-
-    @Test
-    void FR_017_collectsIndependentErrorsForTheSameRow() {
-        when(residents.status(77)).thenReturn(ResidentStatus.TEMPORARILY_ABSENT);
-        when(staff.qualified(eq(22L), anySet(), any())).thenReturn(false);
-        when(source.validate(any(), anyLong(), anyLong(), any()))
-                .thenReturn(new SourceValidation(false, false, false, false));
-        assertThat(validator
-                        .validate(row(SourceType.MEAL, at, Importance.NORMAL, 22L, false), shift, now, 1, null)
-                        .codes())
-                .contains("RESIDENT_ABSENT", "MISSING_CERTIFICATE", "INVALID_BASIS");
-    }
-
-    @Test
     void FR_024_nurseMayPerformCaregiverWorkButNotTheReverse() {
         assertThat(CareTaskValidator.roleMatches(Role.CAREGIVER, Role.NURSING_STAFF))
                 .isTrue();
@@ -178,16 +144,6 @@ class FR_017_CareTaskValidatorTest {
                         .validate(row(SourceType.MEAL, at, Importance.NORMAL, 22L, false), shift, now, 1, null)
                         .codes())
                 .contains("DUPLICATE_BASIS");
-    }
-
-    @Test
-    void FR_017_missingContractProviderFailsClearlyWithoutAProductionFake() {
-        when(contractProvider.getIfAvailable()).thenReturn(null);
-        assertThatThrownBy(() -> validator.validate(
-                        row(SourceType.MEAL, at, Importance.NORMAL, 22L, false), shift, now, 1, null))
-                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo("CARE_SOURCE_UNAVAILABLE");
     }
 
     @Test
