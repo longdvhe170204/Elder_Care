@@ -1,41 +1,30 @@
 package com.eldercare.backend.medication.internal.handover.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.math.BigDecimal;
 
-/**
- * Carried medication return item line (FR-048a).
- */
-@Entity
-@DataGroup(DataGroup.Group.RECORD)
-@Table(name = "medication_return_item")
+/** Dòng thuốc nhận lại, nhúng trong {@code lines.items} của dòng {@code RETURN} (006 T069, {@code V006_97}). */
 public class MedicationReturnItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "return_id", nullable = false)
     private Long returnId;
 
-    @Column(name = "prescription_id", nullable = false)
     private Long prescriptionId;
 
-    @Column(nullable = false, precision = 12, scale = 3)
     private BigDecimal quantity;
 
-    protected MedicationReturnItem() {}
+    public MedicationReturnItem() {}
 
     public MedicationReturnItem(Long returnId, Long prescriptionId, BigDecimal quantity) {
         this.returnId = returnId;
         this.prescriptionId = prescriptionId;
         this.quantity = quantity;
+    }
+
+    public void assignId(Long id) {
+        if (this.id == null) {
+            this.id = id;
+        }
     }
 
     public Long getId() {
@@ -52,5 +41,19 @@ public class MedicationReturnItem {
 
     public BigDecimal getQuantity() {
         return quantity;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof MedicationReturnItem other
+                && java.util.Objects.equals(id, other.id)
+                && java.util.Objects.equals(returnId, other.returnId)
+                && java.util.Objects.equals(prescriptionId, other.prescriptionId)
+                && java.util.Objects.equals(quantity, other.quantity);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id, returnId, prescriptionId, quantity);
     }
 }

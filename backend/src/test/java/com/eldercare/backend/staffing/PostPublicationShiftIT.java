@@ -8,7 +8,7 @@ import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.admission.FakeM02Config;
 import com.eldercare.backend.support.fake.care.*;
@@ -31,6 +31,9 @@ import tools.jackson.databind.json.JsonMapper;
 @AutoConfigureMockMvc
 @Import({FakeM02Config.class, FakeLocations.Config.class, FakeM04Config.class, PostPublicationShiftIT.Time.class})
 class PostPublicationShiftIT extends MySqlIntegrationTestBase {
+    @Autowired
+    com.eldercare.backend.staffing.internal.handover.persistence.HandoverStore embeddedStore;
+
     @Autowired
     JdbcTemplate jdbc;
 
@@ -97,7 +100,9 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
         locations.floor(floor, null);
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu lệnh ca]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu lệnh ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
         long schedule = AssignmentFixtures.insert(
                 jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2026-10','FLOOR',?,'PUBLISHED')",
@@ -112,7 +117,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                 floor,
                 lead.staffId());
         jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at) VALUES (?,?,?)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,1,'[Khởi tạo fixture]','ACTIVE' FROM (SELECT ? AS staff_id,? AS floor_area_id,? AS starts_at) src",
                 head.staffId(),
                 floor,
                 ShiftStore.sql(from.minusSeconds(86400)));
@@ -120,7 +125,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
         member = AssignmentFixtures.insert(
                 jdbc, "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, worker.staffId());
         jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,command,by_system) SELECT 'M09.SHIFT',src.shift_id,'LEAD_STAFF','M09','PERIOD',src.staff_id,src.starts_at,src.basis,FALSE FROM (SELECT ? AS shift_id,? AS staff_id,? AS starts_at,'SCHEDULED' AS basis) src",
                 shift,
                 lead.staffId(),
                 ShiftStore.sql(from));
@@ -216,7 +221,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                         "SELECT actual_end_at FROM staff_assignment WHERE id=?", LocalDateTime.class, assignment))
                 .isEqualTo(LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=? AND event='STAFF_ABSENT'",
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=? AND event='STAFF_ABSENT'",
                         Integer.class,
                         shift))
                 .isEqualTo(1);
@@ -245,7 +250,9 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                         Long.toString(member)))
                 .isZero();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
+                        Integer.class,
+                        shift))
                 .isZero();
     }
 
@@ -281,30 +288,33 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                 shift,
                 lead.staffId(),
                 ShiftStore.sql(time.now()));
-        jdbc.update(
-                "INSERT INTO handover_assessment(handover_id,assessment_kind,content) VALUES (?,'GENERAL','[Nhận định được giữ]')",
-                handover);
-        jdbc.update(
-                "INSERT INTO handover_item(handover_id,item_group,room_id,description,note,note_author,created_at) VALUES (?,'FOLLOW_UP_ISSUE',?,'[Mục được giữ]','[Ghi chú cũ]','[Người viết cũ]',?)",
+        embeddedStore.assess(handover, "[Nhận định được giữ]", Map.of());
+        embeddedStore.add(
                 handover,
-                TestUsers.nextId(),
-                ShiftStore.sql(time.now()));
+                new com.eldercare.backend.staffing.internal.handover.domain.HandoverItemInput(
+                        "FOLLOW_UP_ISSUE",
+                        null,
+                        null,
+                        null,
+                        TestUsers.nextId(),
+                        "[Mục được giữ]",
+                        "[Ghi chú cũ]",
+                        false),
+                "FINALIZED",
+                "[Người viết cũ]",
+                time.now());
         command("change-lead", headToken, reason(replacement.staffId())).andExpect(status().isOk());
         assertThat(jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, shift))
                 .isEqualTo(replacement.staffId());
         assertThat(jdbc.queryForObject("SELECT handover_staff_id FROM shift_handover WHERE id=?", Long.class, handover))
                 .isEqualTo(replacement.staffId());
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM shift_lead_history WHERE shift_id=? AND ends_at IS NULL",
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(h.details->'$.legacy.id'),'null') AS UNSIGNED),h.id) AS id,h.entity_id AS shift_id,h.value_id AS staff_id,h.starts_at AS starts_at,h.ends_at AS ends_at,h.actor_id AS actor_id,h.reason AS reason,h.command AS basis FROM status_history h WHERE h.entity_type='M09.SHIFT' AND h.attribute='LEAD_STAFF' AND h.kind='PERIOD') shift_lead_history WHERE shift_id=? AND ends_at IS NULL",
                         Integer.class,
                         shift))
                 .isEqualTo(1);
-        assertThat(jdbc.queryForObject(
-                        "SELECT content FROM handover_assessment WHERE handover_id=?", String.class, handover))
-                .isEqualTo("[Nhận định được giữ]");
-        assertThat(jdbc.queryForObject(
-                        "SELECT note_author FROM handover_item WHERE handover_id=?", String.class, handover))
-                .isEqualTo("[Người viết cũ]");
+        assertThat(embeddedStore.general(handover)).isEqualTo("[Nhận định được giữ]");
+        assertThat(embeddedStore.items(handover).getFirst().noteAuthor()).isEqualTo("[Người viết cũ]");
         command("record-absence", leadToken, reason(worker.staffId())).andExpect(status().isNotFound());
         command("record-absence", token(replacement), reason(worker.staffId())).andExpect(status().isOk());
     }

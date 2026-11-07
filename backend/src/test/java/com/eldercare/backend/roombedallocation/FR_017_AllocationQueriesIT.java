@@ -29,6 +29,22 @@ class FR_017_AllocationQueriesIT extends StructureTestSupport {
         return beans.values().iterator().next();
     }
 
+    @Test
+    void FR_035_locationApiUsesTheRealHalfOpenAllocationSource() {
+        var beans = context.getBeansOfType(com.eldercare.backend.roombedallocation.api.LocationApi.class);
+        assertThat(beans).as("Cần provider LocationApi thật cho 008").hasSize(1);
+        var source = beans.values().iterator().next();
+        long resident = TestUsers.nextId();
+        Instant boundary = time.now();
+        allocation(resident, "CLOSED", boundary.minusSeconds(3600), boundary);
+        assertThat(source.at(resident, boundary.minusSeconds(1)).orElseThrow().bedId())
+                .isEqualTo(bed);
+        assertThat(source.at(resident, boundary)).isEmpty();
+        assertThat(source.at(TestUsers.nextId(), boundary)).isEmpty();
+        assertThat(source.at(resident, boundary.minusSeconds(1)))
+                .isEqualTo(locations().at(resident, boundary.minusSeconds(1)));
+    }
+
     private long allocation(long resident, String status, Instant start, Instant end) {
         long id = TestUsers.nextId();
         jdbc.update(

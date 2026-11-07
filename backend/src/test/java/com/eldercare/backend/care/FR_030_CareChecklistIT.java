@@ -15,6 +15,36 @@ import org.junit.jupiter.api.Test;
 
 /** T038: cùng scope thật và một lần đọc nguồn vị trí/lưu ý theo lô. */
 class FR_030_CareChecklistIT extends CareResultTestBase {
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean(name = "fakeShiftStaff")
+    com.eldercare.backend.support.fake.care.FakeShiftStaff shiftFixture;
+
+    @Test
+    void FR_047a_currentShiftMemberCanClaimCarriedTaskAtCurrentTime() throws Exception {
+        caregiver();
+        long previous = TestUsers.nextId();
+        var at = time.now().minusSeconds(7200);
+        shifts.shift(
+                new ShiftView(previous, floor, at.minusSeconds(3600), time.now().minusSeconds(3600), true));
+        shifts.onShift(performer, at, false);
+        shifts.onShift(performer, time.now(), true);
+        org.mockito.Mockito.doAnswer(invocation -> !((Instant) invocation.getArgument(1))
+                        .isBefore(time.now().minusSeconds(3600)))
+                .when(shiftFixture)
+                .onShift(org.mockito.ArgumentMatchers.eq(performer), org.mockito.ArgumentMatchers.any());
+        jdbc.update(
+                "UPDATE care_task SET performer_id=NULL,shift_id=?,planned_at=?,window_from=?,window_to=?,status='OVERDUE',carryover='AWAITING_HANDOVER_CONFIRMATION' WHERE id=?",
+                previous,
+                local(at),
+                local(at.minusSeconds(900)),
+                local(at.plusSeconds(900)),
+                task);
+        mvc.perform(post("/api/v1/care-tasks/" + task + "/claim")
+                        .header("Idempotency-Key", "carry-" + TestUsers.nextId()))
+                .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT performer_id FROM care_task WHERE id=?", Long.class, task))
+                .isEqualTo(performer);
+    }
+
     @Test
     void FR_030_carryoverDoesNotOfferClaimWhenTheCurrentRuleRejectsIt() throws Exception {
         caregiver();

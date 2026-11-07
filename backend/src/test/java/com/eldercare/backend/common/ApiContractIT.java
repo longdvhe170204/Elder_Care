@@ -74,27 +74,23 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 003 (A review 2026-10-26): còn chuyển giường trực tiếp (FR-028) chưa có controller
+            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
-                    Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
+                    Set.of("POST /api/v1/bed-allocations/{id}/transfer 202"),
                     true),
-            // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); còn sửa yêu cầu Nháp chờ API của
-            // 000 (T043, T047)
+            // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); sửa yêu cầu Nháp xong 2026-11-04
+            // (T043, T047)
             new Contract(
                     Path.of("..", "specs", "004-admission-residency", "contracts", "api-004.yaml"),
-                    Set.of("PUT /api/v1/residency-change-requests/{id}"),
+                    Set.of(),
                     Set.of(),
                     true),
-            // 005 T060 (2026-11-03): 38/41 operation đã cài khớp hợp đồng; còn hai đường dẫn tiếng Việt chưa dịch và
-            // /testing/fakes chưa cài
+            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu; còn /testing/fakes
             new Contract(
                     Path.of("..", "specs", "005-daily-care-tasks", "contracts", "api-005.yaml"),
-                    Set.of(
-                            "GET /api/v1/nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu",
-                            "POST /api/v1/cong-viec/{id}/phan-lai",
-                            "PUT /api/v1/testing/fakes/{module}"),
+                    Set.of("PUT /api/v1/testing/fakes/{module}"),
                     Set.of(),
                     true),
             // 006 (dịch 2026-10-26 sau PR #34)
@@ -107,82 +103,9 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "007-health-alert-incident", "contracts", "api-007.yaml"),
                     Set.of(
-                            "GET /api/v1/residents/{residentId}/measurement-schedules",
-                            "POST /api/v1/residents/{residentId}/measurement-schedules",
-                            "GET /api/v1/measurement-schedules/{id}/measurement-times",
-                            "POST /api/v1/measurement-schedules/{id}/change",
-                            "POST /api/v1/measurement-schedules/{id}/stop",
-                            "GET /api/v1/vital-signs/missing-personal-threshold",
-                            "GET /api/v1/thresholds",
-                            "POST /api/v1/thresholds",
-                            "POST /api/v1/thresholds/{id}/cancel",
-                            "POST /api/v1/thresholds/{id}/stop",
-                            "GET /api/v1/alerts",
-                            "POST /api/v1/alerts",
-                            "GET /api/v1/alerts/{id}",
-                            "POST /api/v1/alerts/{id}/receive",
-                            "POST /api/v1/alerts/{id}/assign",
-                            "POST /api/v1/alerts/{id}/start-handling",
-                            "POST /api/v1/alerts/{id}/change-level",
-                            "POST /api/v1/alerts/{id}/close",
-                            "POST /api/v1/alerts/{id}/convert-to-incident",
-                            "POST /api/v1/alerts/{id}/activate-emergency",
-                            "GET /api/v1/incidents",
-                            "POST /api/v1/incidents",
-                            "GET /api/v1/incidents/{id}",
-                            "POST /api/v1/incidents/{id}/receive",
-                            "POST /api/v1/incidents/{id}/assign-handler",
-                            "POST /api/v1/incidents/{id}/join-handling",
-                            "POST /api/v1/incidents/{id}/progressions",
-                            "POST /api/v1/incidents/{id}/change-level",
-                            "POST /api/v1/incidents/{id}/move-to-monitoring",
-                            "POST /api/v1/incidents/{id}/reopen",
-                            "POST /api/v1/incidents/{id}/close",
-                            "POST /api/v1/incidents/{id}/end-post-fall-monitoring",
-                            "GET /api/v1/incidents/{id}/emergency-card",
-                            "POST /api/v1/incidents/{id}/confirm-wish-check",
-                            "POST /api/v1/incidents/{id}/transfer-out",
-                            "GET /api/v1/transfer-summaries/{id}",
-                            "POST /api/v1/residents/{residentId}/critical-flags",
-                            "POST /api/v1/critical-flags/{id}/confirm",
-                            "POST /api/v1/critical-flags/{id}/remove",
-                            "POST /api/v1/alerts/{id}/wish-reconfirmation",
-                            "POST /api/v1/alerts/{id}/execute-choice",
-                            "GET /api/v1/incidents/{id}/contact-lookup",
-                            "GET /api/v1/incidents/{id}/contact-list",
-                            "POST /api/v1/incidents/{id}/contact-list",
-                            "POST /api/v1/contact-lists/{id}/contacts",
-                            "POST /api/v1/contact-lists/{id}/contacts/{contactId}/remove",
-                            "POST /api/v1/contact-lists/{id}/contacts/{contactId}/exclude",
-                            "POST /api/v1/contact-lists/{id}/confirm",
                             "GET /api/v1/incidents/{id}/family-contacts-to-notify",
-                            "GET /api/v1/isolations",
-                            "POST /api/v1/isolations",
-                            "POST /api/v1/isolations/{id}/attach-incident",
-                            "POST /api/v1/isolations/{id}/lift",
-                            "GET /api/v1/facility-licenses",
-                            "POST /api/v1/facility-licenses",
-                            "GET /api/v1/facility-contact",
-                            "PUT /api/v1/facility-contact",
                             "GET /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/sos",
-                            "GET /api/v1/sos/current",
-                            "POST /api/v1/sos/{id}/place",
-                            "POST /api/v1/sos/{id}/location",
-                            "POST /api/v1/emergency-assist",
-                            "GET /api/v1/emergency-assist/current",
-                            "POST /api/v1/emergency-assist/{id}/details",
-                            "POST /api/v1/emergency-assist/{id}/location",
-                            "POST /api/v1/alerts/{id}/mark-arrived",
-                            "GET /api/v1/alerts/{id}/call-115-info",
-                            "POST /api/v1/alerts/{id}/call-115",
-                            "GET /api/v1/incidents/{id}/call-115-info",
-                            "POST /api/v1/incidents/{id}/call-115",
-                            "POST /api/v1/call-115-attempts/{id}/result",
-                            "GET /api/v1/incidents/{id}/transfer-out/info",
-                            "GET /api/v1/transfer-summaries/{id}/document",
-                            "POST /api/v1/transfer-summaries/{id}/reprint"),
+                            "POST /api/v1/residents/{residentId}/examinations"),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt
@@ -198,11 +121,55 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
+            // 013 (B, 2026-11-05): đủ endpoint sau Phase 8; chủ dự án duyệt api-013 2026-11-05 (013-1), so chi tiết
+            // operation bật trong PR 013 (T029). Phản hồi lỗi khai bằng ProblemBody chung sau khi đổi Problem của
+            // api-013 theo api-004 (2026-11-06, phương án (a), chờ A review; plan 013 điểm 21).
+            new Contract(
+                    Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
             // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1, US3 xong 2026-11-04;
             // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(
-                    Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"),
+                    Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"), Set.of(), Set.of(), true),
+            // 011 (2026-11-06, D): hợp đồng đã dịch; xóa dòng khi cài controller của từng story. Bữa ăn, loại đồ ăn bị
+            // cấm
+            // chờ chức năng quyền của Quản lý viện (A, team-plan mục 8)
+            new Contract(
+                    Path.of("..", "specs", "011-nutrition-management", "contracts", "api-011.yaml"),
+                    Set.of(
+                            "GET /api/v1/nutrition/meals",
+                            "POST /api/v1/nutrition/meals",
+                            "PUT /api/v1/nutrition/meals/{id}"),
                     Set.of(),
+                    true),
+            // 018 (R-15, 2026-11-04; chờ A xem, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài enum trả 422
+            // INVALID_COMMAND (ngoài hợp đồng, BL-95)
+            new Contract(
+                    Path.of("..", "specs", "018-residence-registration", "contracts", "api-018.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
+            // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story
+            new Contract(
+                    Path.of("..", "specs", "014-activity-care-quality", "contracts", "api-014.yaml"),
+                    Set.of(
+                            "GET /api/v1/activity-types",
+                            "POST /api/v1/activity-types",
+                            "POST /api/v1/late-return-consents",
+                            "POST /api/v1/late-return-consents/{id}/withdraw",
+                            "GET /api/v1/residents/{residentId}/preferences",
+                            "GET /api/v1/residents/{residentId}/wellbeing-profile",
+                            "GET /api/v1/family-portal/residents/{residentId}/activities",
+                            "POST /api/v1/family-portal/late-return-consents",
+                            "POST /api/v1/family-portal/late-return-consents/{id}/withdraw"),
+                    Set.of(),
+                    true),
+            // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story
+            new Contract(
+                    Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
+                    Set.of("GET /api/v1/assets/{id}"),
                     Set.of(),
                     true));
 

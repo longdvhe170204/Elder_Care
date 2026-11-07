@@ -13,6 +13,18 @@ import org.springframework.context.annotation.*;
 public class FakeM04Config {
     @Bean
     @Primary
+    public FakeTripMedicationPreparation fakeTripMedicationPreparation() {
+        return new FakeTripMedicationPreparation();
+    }
+
+    @Bean
+    @Primary
+    public FakeTripStaffSchedule fakeTripStaffSchedule() {
+        return new FakeTripStaffSchedule();
+    }
+
+    @Bean
+    @Primary
     public FakeDayCareCalendar fakeDayCareCalendar() {
         return new FakeDayCareCalendar();
     }
@@ -42,6 +54,12 @@ public class FakeM04Config {
 
     @Bean
     @Primary
+    public FakeActivityHealthGate fakeActivityHealthGate(FakeM04Switches switches) {
+        return new FakeActivityHealthGate(switches);
+    }
+
+    @Bean
+    @Primary
     FakeAlertReader fakeAlertReader(FakeM04Switches switches) {
         return new FakeAlertReader(switches);
     }
@@ -52,11 +70,7 @@ public class FakeM04Config {
         return new FakeDayCarePickups(switches);
     }
 
-    @Bean
-    @Primary
-    FakeQualityChecks fakeQualityChecks(FakeM04Switches switches) {
-        return new FakeQualityChecks(switches);
-    }
+    // 014 T028: QualityCheckPort dùng nguồn thật QualityCheckResultSource của 014, không còn bean giả trong cấu hình.
 
     @Bean
     FakeTaskSource fakeHealthTaskSource(FakeM04Switches switches) {
@@ -70,7 +84,9 @@ public class FakeM04Config {
                         SourceType.WATER_INTAKE_ALERT));
     }
 
+    /** Đứng trước bản thật {@code MealTaskSource} của 011 khi cùng context: test 005 điều khiển được xác nhận phục vụ. */
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakeTaskSource fakeMealTaskSource(FakeM04Switches switches) {
         return new FakeTaskSource(switches, "011", Set.of(SourceType.MEAL));
     }

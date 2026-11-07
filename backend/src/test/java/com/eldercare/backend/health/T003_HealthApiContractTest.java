@@ -128,7 +128,7 @@ class T003_HealthApiContractTest {
                 201, 101, 301, VitalSignLevel.DANGEROUS, 601L, 701L, FROM, labels, "confirmed:201", TO);
         labels.clear();
         var corrected = new VitalSignCorrected(
-                201, 101, 301, VitalSignLevel.DANGEROUS, VitalSignLevel.NORMAL, "corrected:201:1", TO);
+                201, 101, 301, VitalSignLevel.DANGEROUS, VitalSignLevel.NORMAL, FROM, "corrected:201:1", TO);
         var changed = new MeasurementScheduleChanged(401, 101, "schedule:401:1", TO);
         var mapper = JsonMapper.builder().build();
 

@@ -175,7 +175,7 @@ public class ResidencyEndingStore {
 
     // ---- Bàn giao ---------------------------------------------------------------------------------------------------
 
-    public long insertHandover(Handover h) {
+    public long insertHandover(Handover h, Long pickupRecordId) {
         return events.add(
                         HandoverContent.KIND,
                         new EntityRef(ENDING_ENTITY, h.endingId()),
@@ -185,7 +185,8 @@ public class ResidencyEndingStore {
                                         h.familyMemberId(),
                                         h.facilityName(),
                                         h.handoverAt(),
-                                        h.handoverStaffId()),
+                                        h.handoverStaffId(),
+                                        pickupRecordId),
                                 null,
                                 h.recordedBy(),
                                 false,

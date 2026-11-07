@@ -12,6 +12,54 @@ import org.junit.jupiter.api.Test;
 /** T042: mốc đọc lại từ MySQL, không giả định schema test rỗng. */
 class BR_M04_05_OverdueReminderIT extends CareOverdueTestBase {
     @Test
+    void BR_M04_06_importantTaskNotifiesOnlyFloorManager() throws Exception {
+        long id = create();
+        jdbc.update("UPDATE care_task SET importance='IMPORTANT' WHERE id=?", id);
+        var task = context.getBean(CareTaskStore.class).get(id, false);
+        context.getBean(CareTaskDueStep.class).run(task.windowTo());
+        assertThat(recorded.stream(OverdueTaskNeedsHandling.class).filter(e -> e.taskId() == id))
+                .singleElement()
+                .satisfies(e -> assertThat(e.context().recipients())
+                        .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.FloorManager(
+                                floor, new com.eldercare.backend.common.notification.Substitution.Default())));
+    }
+
+    @Test
+    void BR_M04_06_mandatoryLocationTaskIncludesTargetAndSourceMetadata() throws Exception {
+        long id = create();
+        long location = com.eldercare.backend.support.TestUsers.nextId();
+        jdbc.update(
+                "UPDATE care_task SET resident_id=NULL,location_type='ROOM',location_id=?,importance='MANDATORY' WHERE id=?",
+                location,
+                id);
+        var task = context.getBean(CareTaskStore.class).get(id, false);
+        context.getBean(CareTaskDueStep.class).run(task.windowTo());
+        assertThat(recorded.stream(AlertRequested.class).filter(e -> e.context().sourceId() == id))
+                .singleElement()
+                .satisfies(e -> {
+                    var payload = json.readTree(json.writeValueAsString(e));
+                    assertThat(payload.path("residentId").isNull()).isTrue();
+                    assertThat(payload.path("source").asString()).isEqualTo("M04.TASK:" + id);
+                    assertThat(payload.path("basisType").asString()).isEqualTo("MEAL");
+                    assertThat(payload.path("basisId").asLong()).isEqualTo(sourceId);
+                    var details = payload.path("sourceDetails");
+                    assertThat(details.path("locationType").asString()).isEqualTo("ROOM");
+                    assertThat(details.path("locationId").asLong()).isEqualTo(location);
+                    assertThat(details.path("floorAreaId").asLong()).isEqualTo(floor);
+                    assertThat(details.path("taskTypeId").asLong()).isEqualTo(typeId);
+                    assertThat(details.path("taskTypeName").asString())
+                            .isEqualTo(task.data().taskTypeName());
+                    assertThat(details.path("plannedAt").asString())
+                            .isEqualTo(task.plannedAt().toString());
+                    assertThat(details.path("windowFrom").asString())
+                            .isEqualTo(task.windowFrom().toString());
+                    assertThat(details.path("windowTo").asString())
+                            .isEqualTo(task.windowTo().toString());
+                    assertThat(details.path("importance").asString()).isEqualTo("MANDATORY");
+                });
+    }
+
+    @Test
     void BR_M04_05_dueTaskBecomesOverdueAtWindowEndAndRemindsOnlyOnce() throws Exception {
         long id = create();
         var store = context.getBean(CareTaskStore.class);

@@ -5,10 +5,21 @@ import '../../common/format/date_time.dart';
 import 'care_checklist_repository.dart';
 
 class CareResultForm extends StatefulWidget {
-  const CareResultForm({super.key, required this.task, required this.repository, required this.newKey});
+  const CareResultForm({
+    super.key,
+    required this.task,
+    this.repository,
+    required this.newKey,
+    this.resultValues = const [],
+    this.onRecord,
+    this.commandContext = '',
+  });
   final Map<String, dynamic> task;
-  final CareChecklistRepository repository;
+  final CareChecklistRepository? repository;
+  final Future<void> Function(Map<String, dynamic> body, String key)? onRecord;
+  final String commandContext;
   final String Function() newKey;
+  final List<Map<String, dynamic>> resultValues;
   @override
   State<CareResultForm> createState() => _CareResultFormState();
 }
@@ -17,10 +28,28 @@ class _CareResultFormState extends State<CareResultForm> {
   final numeric = TextEditingController(),
       note = TextEditingController(),
       reason = TextEditingController(),
+      behavior = TextEditingController(),
       performed = TextEditingController();
-  String? code, error, signature, retryKey;
+  String? code, occurred, error, signature, retryKey;
   bool busy = false, needsConfirmation = false, confirmed = false;
-  static const labels = {'ML': 'Lượng nước (ml)', 'ITEM_QUANTITY': 'Số lượng', 'MEASURED_VALUE': 'Giá trị đo'};
+  static const labels = {
+    'ML': 'Lượng nước (ml)',
+    'ITEM_QUANTITY': 'Số lượng',
+    'MEASURED_VALUE': 'Giá trị đo',
+    'SLEEP': 'Thời gian ngủ (phút)',
+  };
+  Map<String, String> codes(String type) =>
+      choices[type] ??
+      {
+        for (final row in widget.resultValues.where(
+          (r) =>
+              r['status'] == 'ACTIVE' &&
+              r['type'] == const {'SLEEP': 'SLEEP_QUALITY', 'MOOD': 'MOOD', 'BEHAVIOR': 'BEHAVIOR'}[type],
+        ))
+          row['code'] as String: row['name'] as String,
+      };
+  bool needsCode(String type) =>
+      choices.containsKey(type) || ['SLEEP', 'MOOD'].contains(type) || (type == 'BEHAVIOR' && occurred == 'yes');
   static const choices = {
     'EATING': {
       'ATE_ALL': 'Ăn hết',
@@ -37,11 +66,12 @@ class _CareResultFormState extends State<CareResultForm> {
     note.dispose();
     reason.dispose();
     performed.dispose();
+    behavior.dispose();
     super.dispose();
   }
 
   Future<void> save() async {
-    final type = widget.task['resultType'];
+    final type = widget.task['resultType'] as String;
     final value = num.tryParse(numeric.text);
     String? performedAt;
     if (performed.text.trim().isNotEmpty) {
@@ -57,19 +87,25 @@ class _CareResultFormState extends State<CareResultForm> {
       performedAt = parsed.toUtc().toIso8601String();
     }
     if ((labels.containsKey(type) && (value == null || !value.isFinite)) ||
-        (choices.containsKey(type) && code == null)) {
+        (needsCode(type) && code == null) ||
+        (type == 'BEHAVIOR' && (occurred == null || (occurred == 'yes' && behavior.text.trim().isEmpty)))) {
       setState(() => error = 'Nhập đầy đủ kết quả trước khi lưu.');
       return;
     }
     final body = <String, dynamic>{
       if (labels.containsKey(type)) 'numericValue': value,
-      if (choices.containsKey(type)) 'codeValue': code,
+      if (needsCode(type) && type != 'BEHAVIOR') 'codeValue': code,
+      if (type == 'BEHAVIOR')
+        'jsonValue': {
+          'occurred': occurred == 'yes',
+          if (occurred == 'yes') ...{'behaviorCode': code, 'description': behavior.text},
+        },
       if (note.text.isNotEmpty) 'note': note.text,
       if (reason.text.isNotEmpty) 'reason': reason.text,
       if (confirmed) 'upperLimitConfirmed': true,
       'performedAt': ?performedAt,
     };
-    final nextSignature = jsonEncode(body);
+    final nextSignature = jsonEncode({'body': body, 'context': widget.commandContext});
     if (signature != nextSignature) {
       signature = nextSignature;
       retryKey = widget.newKey();
@@ -79,8 +115,12 @@ class _CareResultFormState extends State<CareResultForm> {
       error = null;
     });
     try {
-      await widget.repository.gateway.record(widget.task['id'] as int, body, retryKey!);
-      if (mounted) Navigator.pop(context, true);
+      if (widget.onRecord != null) {
+        await widget.onRecord!(body, retryKey!);
+      } else {
+        await widget.repository!.record(widget.task['id'] as int, body, retryKey!);
+        if (mounted) Navigator.pop(context, true);
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -95,8 +135,9 @@ class _CareResultFormState extends State<CareResultForm> {
 
   @override
   Widget build(BuildContext context) {
-    final type = widget.task['resultType'];
-    final supported = labels.containsKey(type) || choices.containsKey(type) || type == 'PERFORMED';
+    final type = widget.task['resultType'] as String;
+    final supported =
+        labels.containsKey(type) || choices.containsKey(type) || ['PERFORMED', 'MOOD', 'BEHAVIOR'].contains(type);
     return PopScope(
       canPop: !busy,
       child: Padding(
@@ -116,7 +157,23 @@ class _CareResultFormState extends State<CareResultForm> {
                   onChanged: (_) => setState(() => confirmed = false),
                   decoration: InputDecoration(labelText: labels[type]),
                 ),
-              if (choices.containsKey(type))
+              if (type == 'BEHAVIOR')
+                RadioGroup<String>(
+                  groupValue: occurred,
+                  onChanged: busy
+                      ? (_) {}
+                      : (v) => setState(() {
+                          occurred = v;
+                          code = null;
+                        }),
+                  child: const Column(
+                    children: [
+                      RadioListTile<String>(value: 'no', title: Text('Không có hành vi bất thường')),
+                      RadioListTile<String>(value: 'yes', title: Text('Có hành vi bất thường')),
+                    ],
+                  ),
+                ),
+              if (needsCode(type))
                 RadioGroup<String>(
                   groupValue: code,
                   onChanged: (v) {
@@ -124,10 +181,17 @@ class _CareResultFormState extends State<CareResultForm> {
                   },
                   child: Column(
                     children: [
-                      for (final entry in choices[type]!.entries)
+                      for (final entry in codes(type).entries)
                         RadioListTile<String>(value: entry.key, title: Text(entry.value), enabled: !busy),
                     ],
                   ),
+                ),
+              if (type == 'BEHAVIOR' && occurred == 'yes')
+                TextField(
+                  controller: behavior,
+                  enabled: !busy,
+                  maxLength: 2000,
+                  decoration: const InputDecoration(labelText: 'Mô tả hành vi (bắt buộc)'),
                 ),
               if (supported) ...[
                 TextField(
