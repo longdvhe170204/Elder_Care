@@ -6,15 +6,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "--port", "5173", "--strictPort"],
       "port": 5173
-    },
-    {
-      "name": "backend-demo",
-      "runtimeExecutable": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "runtimeArgs": [
-        "-c",
-        "cd backend && set -a && . <(sed 's/\\r$//' .env) && set +a && export TEMP='D:\\eldercare-tmp-demo' TMP='D:\\eldercare-tmp-demo' && ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo"
-      ],
-      "port": 8080
     }
   ]
 }
