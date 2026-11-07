@@ -80,6 +80,11 @@ public class PortionClosingStore {
         return jdbc.query(SELECT + " WHERE meal_date = ? ORDER BY meal_time", this::row, date);
     }
 
+    /** Lần chốt của các bữa có ngày trong {@code [from, to]} (số liệu cho báo cáo 016). */
+    public List<PortionClosing> mealDateBetween(LocalDate from, LocalDate to) {
+        return jdbc.query(SELECT + " WHERE meal_date BETWEEN ? AND ? ORDER BY meal_time", this::row, from, to);
+    }
+
     /** Lần chốt có giờ bữa sau {@code at}: bữa đã chốt chưa tới giờ (FR-039). */
     public List<PortionClosing> beforeMealTime(Instant at) {
         return jdbc.query(SELECT + " WHERE meal_time > ? ORDER BY meal_time", this::row, utc(at));
