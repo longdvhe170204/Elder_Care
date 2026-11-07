@@ -97,6 +97,33 @@ class LegalConditionIT extends MySqlIntegrationTestBase {
         assertThat(nextDay.license()).contains(new LicenseView("Giấy phép hành nghề", expiry));
     }
 
+    @Test
+    void FR_072_examTreatment_needsDoctorLicenseAndFacilityScope() {
+        jdbc.update(
+                "UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.requiredLicenseType', ?)"
+                        + " WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code = ?",
+                LICENSE_TYPE,
+                ProfessionalActivityApi.INTERNAL_EXAM_TREATMENT);
+        var examine = new PermissionKey(Function.EXAM_TREATMENT, Operation.PROFESSIONAL);
+        ActiveSession doctor = doctorWithLicense(expiry);
+
+        assertThat(permissions
+                        .hasPermissionAt(doctor, examine, Target.UNSPECIFIED, lastMinuteOf(expiry))
+                        .failedLayer())
+                .as("giấy phép cơ sở chưa có phạm vi khám và điều trị")
+                .contains(FailedLayer.LEGAL);
+        facility.scope(ProfessionalActivityApi.INTERNAL_EXAM_TREATMENT, expiry.plusDays(100));
+        assertThat(permissions
+                        .hasPermissionAt(doctor, examine, Target.UNSPECIFIED, lastMinuteOf(expiry))
+                        .allowed())
+                .isTrue();
+        assertThat(permissions
+                        .hasPermissionAt(doctor, examine, Target.UNSPECIFIED, firstMinuteOf(expiry.plusDays(1)))
+                        .failedLayer())
+                .as("giấy phép bác sĩ hết hạn")
+                .contains(FailedLayer.LEGAL);
+    }
+
     private ActiveSession doctorWithLicense(LocalDate expiryDate) {
         long account = fixtures.staffAccount("AC-03");
         licenses.license(
