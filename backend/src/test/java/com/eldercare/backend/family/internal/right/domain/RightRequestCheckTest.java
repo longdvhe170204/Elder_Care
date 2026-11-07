@@ -6,10 +6,10 @@ import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.family.internal.right.domain.RightChangeRequest.Type;
 import com.eldercare.backend.family.internal.right.domain.RightRequestCheck.ActiveWish;
 import com.eldercare.backend.family.internal.right.domain.RightRequestCheck.Person;
+import com.eldercare.backend.support.TableRows;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * 012 T014 ({@code KiemTraYeuCauTest}; research F-06, F-06a; FR-014, FR-017, FR-020b, FR-020c): áp ngay khi lập, yêu cầu
@@ -34,9 +34,12 @@ class RightRequestCheckTest {
                 .isFalse();
     }
 
-    @ParameterizedTest
-    @EnumSource(FamilyRight.class)
-    void FR_014_anyFamilyMember_mayTurnOffOwnRight(FamilyRight right) {
+    @Test
+    void FR_014_anyFamilyMember_mayTurnOffOwnRight() {
+        TableRows.each(Arrays.stream(FamilyRight.values()), this::mayTurnOffOwnRight);
+    }
+
+    private void mayTurnOffOwnRight(FamilyRight right) {
         assertThat(RightRequestCheck.selfRestriction(Type.RIGHT, right, false, true))
                 .isTrue();
         assertThat(RightRequestCheck.selfRestriction(Type.RIGHT, right, true, true))

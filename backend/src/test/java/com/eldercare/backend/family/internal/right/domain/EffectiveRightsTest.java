@@ -3,9 +3,9 @@ package com.eldercare.backend.family.internal.right.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.common.notification.FamilyRight;
+import com.eldercare.backend.support.TableRows;
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 /** 012 T005 (research F-04; FR-011, DBR-03): quyền có tác dụng. */
 class EffectiveRightsTest {
@@ -28,16 +28,19 @@ class EffectiveRightsTest {
                 .isFalse();
     }
 
-    @ParameterizedTest
-    @EnumSource(value = FamilyRight.class, names = "VIEW_HEALTH", mode = EnumSource.Mode.EXCLUDE)
-    void FR_007_otherRights_effectiveWhenEnabled_regardlessOfConsent(FamilyRight right) {
-        assertThat(EffectiveRights.effective(right, true, false)).isTrue();
-        assertThat(EffectiveRights.effective(right, false, true)).isFalse();
+    @Test
+    void FR_007_otherRights_effectiveWhenEnabled_regardlessOfConsent() {
+        TableRows.each(Arrays.stream(FamilyRight.values()).filter(right -> right != FamilyRight.VIEW_HEALTH), right -> {
+            assertThat(EffectiveRights.effective(right, true, false)).isTrue();
+            assertThat(EffectiveRights.effective(right, false, true)).isFalse();
+        });
     }
 
-    @ParameterizedTest
-    @EnumSource(FamilyRight.class)
-    void FR_007_disabledRight_isNeverEffective(FamilyRight right) {
-        assertThat(EffectiveRights.effective(right, false, true)).isFalse();
+    @Test
+    void FR_007_disabledRight_isNeverEffective() {
+        TableRows.each(
+                Arrays.stream(FamilyRight.values()),
+                right -> assertThat(EffectiveRights.effective(right, false, true))
+                        .isFalse());
     }
 }
