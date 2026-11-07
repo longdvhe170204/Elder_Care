@@ -11,8 +11,8 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.shared.api.*;
 import com.eldercare.backend.administration.shared.api.dto.*;
 import com.eldercare.backend.admission.api.ContractReadApi;
-import com.eldercare.backend.billing.api.events.CostSourceBilled;
 import com.eldercare.backend.care.api.DayCareAttendanceApi;
+import com.eldercare.backend.care.api.events.ActivityCostSourceBilled;
 import com.eldercare.backend.care.api.events.TripChanged;
 import com.eldercare.backend.care.api.spi.*;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
@@ -196,7 +196,7 @@ public class TripDepartureService {
             var activity = simple.require(ActivityKinds.ACTIVITIES, locked.activityId())
                     .content();
             if (activity.charged())
-                events.publishEvent(new CostSourceBilled(
+                events.publishEvent(new ActivityCostSourceBilled(
                         "ACTIVITY_ATTENDANCE",
                         Long.toString(record.id()),
                         "OCCURRENCE",

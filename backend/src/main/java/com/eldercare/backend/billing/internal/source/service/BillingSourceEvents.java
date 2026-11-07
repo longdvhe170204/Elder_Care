@@ -2,6 +2,7 @@ package com.eldercare.backend.billing.internal.source.service;
 
 import com.eldercare.backend.billing.api.events.CostSourceBilled;
 import com.eldercare.backend.billing.internal.source.domain.IndexedBillingSource;
+import com.eldercare.backend.care.api.events.ActivityCostSourceBilled;
 import com.eldercare.backend.care.api.events.BillableCareResultRecorded;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.events.MedicationBilledEvent;
@@ -19,6 +20,23 @@ class BillingSourceEvents {
 
     @ApplicationModuleListener
     void onSourceBilled(CostSourceBilled event) {
+        index.record(
+                new IndexedBillingSource(
+                        event.sourceType(),
+                        event.sourceId(),
+                        event.unit(),
+                        event.residentId(),
+                        event.incurredOn(),
+                        event.occurredAt(),
+                        event.serviceId().orElse(null),
+                        null,
+                        event.quantity()),
+                event.eventKey());
+    }
+
+    /** Hoạt động của 014 (lượt có mặt ở buổi, lượt rời viện có tính phí): cùng cách ghi như {@link CostSourceBilled}. */
+    @ApplicationModuleListener
+    void onActivityCostSourceBilled(ActivityCostSourceBilled event) {
         index.record(
                 new IndexedBillingSource(
                         event.sourceType(),

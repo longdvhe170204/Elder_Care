@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.eldercare.backend.billing.api.events.CostSourceBilled;
+import com.eldercare.backend.care.api.events.ActivityCostSourceBilled;
 import com.eldercare.backend.care.api.events.ActivitySessionEnded;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -107,7 +107,7 @@ class BR_M04_18_SuKienTinhPhiIT extends MySqlIntegrationTestBase {
                                         + ",\"addedAtAttendance\":true,\"result\":\"PRESENT\",\"participationLevel\":\"LEFT_EARLY\"}"))
                 .andExpect(status().isOk());
 
-        var billed = events.stream(CostSourceBilled.class).toList();
+        var billed = events.stream(ActivityCostSourceBilled.class).toList();
         assertThat(billed).hasSize(4);
         assertThat(billed).allSatisfy(e -> {
             assertThat(e.sourceType()).isEqualTo("ACTIVITY_ATTENDANCE");
@@ -115,7 +115,7 @@ class BR_M04_18_SuKienTinhPhiIT extends MySqlIntegrationTestBase {
             assertThat(e.quantity()).isEqualByComparingTo(BigDecimal.ONE);
         });
         assertThat(billed)
-                .extracting(CostSourceBilled::residentId)
+                .extracting(ActivityCostSourceBilled::residentId)
                 .doesNotContain(registered.get(3))
                 .contains(walkIn);
         assertThat(jdbc.queryForObject(
