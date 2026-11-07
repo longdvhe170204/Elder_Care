@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.billing.web.request.CreateCostsFromEventsRequest;
 import com.eldercare.backend.billing.web.request.CreateCostsFromEventsRequest.DateRange;
 import com.eldercare.backend.billing.web.request.CreateCostsFromEventsRequest.SourceUnit;
+import com.eldercare.backend.support.TableRows;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -15,8 +16,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import tools.jackson.databind.json.JsonMapper;
 
 /** T012: kiểm thân lệnh, không suy chọn tất cả hoặc nhận ô nhập tiền. */
@@ -62,10 +61,11 @@ class CostSourceRequestTest {
                         42L, "RESIDENCY_DAY", null, null, new DateRange(DAY, DAY.minusDays(1))));
     }
 
-    @ParameterizedTest
-    @MethodSource("invalidSelections")
-    void FR_005_missingMixedDuplicateOrInvalidSelectionsAreRejected(CreateCostsFromEventsRequest request) {
-        assertThat(VALIDATOR.validate(request)).isNotEmpty();
+    @Test
+    void FR_005_missingMixedDuplicateOrInvalidSelectionsAreRejected() {
+        TableRows.each(
+                invalidSelections(),
+                request -> assertThat(VALIDATOR.validate(request)).isNotEmpty());
     }
 
     @Test
