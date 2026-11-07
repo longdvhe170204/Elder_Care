@@ -123,7 +123,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     true),
             // 013 (B, 2026-11-05): đủ endpoint sau Phase 8; chủ dự án duyệt api-013 2026-11-05 (013-1), so chi tiết
             // operation bật trong PR 013 (T029). Phản hồi lỗi khai bằng ProblemBody chung sau khi đổi Problem của
-            // api-013 theo api-004 (2026-11-06, phương án (a), chờ A review; plan 013 điểm 21).
+            // api-013 theo api-004 (2026-11-06, phương án (a), A review xong 2026-11-07; plan 013 điểm 21).
             new Contract(
                     Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
                     Set.of(),
@@ -144,7 +144,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "PUT /api/v1/nutrition/meals/{id}"),
                     Set.of(),
                     true),
-            // 018 (R-15, 2026-11-04; chờ A xem, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài enum trả 422
+            // 018 (R-15, 2026-11-04; A xem xong 2026-11-07, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài
+            // enum trả 422
             // INVALID_COMMAND (ngoài hợp đồng, BL-95)
             new Contract(
                     Path.of("..", "specs", "018-residence-registration", "contracts", "api-018.yaml"),
