@@ -94,14 +94,16 @@ abstract class FamilyCommandTestBase extends MySqlIntegrationTestBase {
         consents.reset();
     }
 
+    /** Đọc id theo mã hồ sơ: {@code LAST_INSERT_ID()} ngoài transaction có thể lấy kết nối khác của pool. */
     long resident(ResidentStatus status) {
+        String code = UUID.randomUUID().toString().substring(0, 20);
         jdbc.update(
                 "INSERT INTO resident (profile_code, full_name, date_of_birth, gender, status, status_since,"
                         + " created_at, created_by) VALUES (?, 'Người cao tuổi thử', '1940-05-01', 'FEMALE', ?,"
                         + " NOW(6), NOW(6), 1)",
-                UUID.randomUUID().toString().substring(0, 20),
+                code,
                 status.name());
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        return jdbc.queryForObject("SELECT id FROM resident WHERE profile_code = ?", Long.class, code);
     }
 
     long member(String name) throws Exception {
@@ -144,15 +146,23 @@ abstract class FamilyCommandTestBase extends MySqlIntegrationTestBase {
     }
 
     ResultActions post(String path, String body) throws Exception {
+        return postAs(office, path, body);
+    }
+
+    ResultActions postAs(String authorization, String path, String body) throws Exception {
         return mvc.perform(MockMvcRequestBuilders.post(path)
-                .header("Authorization", office)
+                .header("Authorization", authorization)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
     }
 
     JsonNode getJson(String path) throws Exception {
-        String body = mvc.perform(get(path).header("Authorization", office))
+        return getJsonAs(office, path);
+    }
+
+    JsonNode getJsonAs(String authorization, String path) throws Exception {
+        String body = mvc.perform(get(path).header("Authorization", authorization))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -160,20 +170,32 @@ abstract class FamilyCommandTestBase extends MySqlIntegrationTestBase {
         return JSON.readTree(body);
     }
 
+    /** Phiên của tài khoản người thân gắn hồ sơ {@code familyMemberId} (cổng). */
+    String familySession(long familyMemberId) {
+        return bearer(users.session(users.family(familyMemberId).accountId()));
+    }
+
+    String staffSession(Role role) {
+        return bearer(users.session(users.staff(role).accountId()));
+    }
+
     static long id(ResultActions result) throws Exception {
-        return JSON.readTree(result.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8))
-                .get("id")
-                .asLong();
+        return json(result).get("id").asLong();
+    }
+
+    static JsonNode json(ResultActions result) throws Exception {
+        return JSON.readTree(result.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
     /** Tệp đã tải lên, chưa gắn chủ sở hữu (bằng chứng, bản scan). */
     long file() {
+        String uuid = UUID.randomUUID().toString();
         jdbc.update(
                 "INSERT INTO file (uuid, original_name, mime_type, size_bytes, sha256, uploaded_by, uploaded_at)"
                         + " VALUES (?, 'scan.pdf', 'application/pdf', 10, REPEAT('0', 64), 1, ?)",
-                UUID.randomUUID().toString(),
+                uuid,
                 LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        return jdbc.queryForObject("SELECT id FROM file WHERE uuid = ?", Long.class, uuid);
     }
 
     boolean column(long relationshipId, String column) {
@@ -195,5 +217,31 @@ abstract class FamilyCommandTestBase extends MySqlIntegrationTestBase {
 
     static String reason(String value) {
         return "{\"reason\": \"" + value + "\"}";
+    }
+
+    /** Lập yêu cầu thay đổi quyền (US3); {@code fields} là các trường JSON ngoài người cao tuổi và lý do. */
+    ResultActions createRequest(String authorization, long residentId, String fields) throws Exception {
+        return postAs(
+                authorization,
+                "/api/v1/right-change-requests",
+                "{\"residentId\": " + residentId + ", " + fields + ", \"reason\": \"Gia đình đề nghị\"}");
+    }
+
+    /** Yêu cầu đổi một quyền của quan hệ. */
+    ResultActions requestRight(String authorization, long residentId, long relationshipId, String right, boolean value)
+            throws Exception {
+        return createRequest(
+                authorization,
+                residentId,
+                "\"type\": \"RIGHT\", \"relationshipId\": " + relationshipId + ", \"right\": \"" + right
+                        + "\", \"newValue\": " + value);
+    }
+
+    ResultActions requestCommand(String authorization, long requestId, String command, String body) throws Exception {
+        return postAs(authorization, "/api/v1/right-change-requests/" + requestId + "/" + command, body);
+    }
+
+    String requestStatus(long requestId) {
+        return jdbc.queryForObject("SELECT status FROM simple_record WHERE id = ?", String.class, requestId);
     }
 }

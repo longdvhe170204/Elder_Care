@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.*;
-import com.eldercare.backend.staffing.staff.internal.service.StaffNotifications;
+import com.eldercare.backend.staffing.internal.staff.service.StaffNotifications;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 

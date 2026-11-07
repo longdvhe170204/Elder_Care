@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
-import { formatValue, labelNotes } from './reportLabels'
+import { breakdownLabel, formatValue, labelNotes } from './reportLabels'
 
 // Bảng một báo cáo (016 FR-022 → FR-073; DESIGN.md `report-table`): dòng tổng rồi dòng chia nhóm; bấm giá trị mở danh
 // sách bản ghi của con số hoặc của ô đó (FR-009).
@@ -18,7 +18,7 @@ function ratio(v) {
     : `${formatValue(v.numerator)} / ${formatValue(v.denominator)}`
 }
 
-export function ReportTable({ group, from, to, floorAreaId, metrics, onOpen, onFilterOptions }) {
+export function ReportTable({ group, from, to, floorAreaId, floors = [], metrics, onOpen, onFilterOptions }) {
   const [state, setState] = useState({ status: 'loading' })
 
   const load = useCallback(async () => {
@@ -92,7 +92,15 @@ export function ReportTable({ group, from, to, floorAreaId, metrics, onOpen, onF
             {report.values.flatMap((v) => {
               const metric = metricOf(v.metricCode)
               const open = (breakdownKey, value) =>
-                onOpen({ metric, from, to, floorAreaId, breakdownKey, valueText: formatValue(value) })
+                onOpen({
+                  metric,
+                  from,
+                  to,
+                  floorAreaId,
+                  breakdownKey,
+                  breakdownText: breakdownKey && breakdownLabel(v.metricCode, breakdownKey, floors),
+                  valueText: formatValue(value),
+                })
               return [
                 <TableRow key={v.metricCode}>
                   <TableCell className="type-label">{metric.name}</TableCell>
@@ -108,7 +116,9 @@ export function ReportTable({ group, from, to, floorAreaId, metrics, onOpen, onF
                 ...v.breakdown.map((b) => (
                   <TableRow key={`${v.metricCode}|${b.key}`}>
                     <TableCell />
-                    <TableCell className="pl-6 text-muted-foreground">{b.key}</TableCell>
+                    <TableCell className="pl-6 text-muted-foreground">
+                      {breakdownLabel(v.metricCode, b.key, floors)}
+                    </TableCell>
                     <TableCell>
                       <Button variant="link" className="h-auto p-0 tabular-nums" onClick={() => open(b.key, b.value)}>
                         {formatValue(b.value)}

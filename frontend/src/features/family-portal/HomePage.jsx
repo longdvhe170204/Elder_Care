@@ -81,7 +81,7 @@ const SPACE = [
 
 const TEAM = [
   { title: 'Bác sĩ', text: 'Đánh giá và chọn mức chăm sóc, duyệt kế hoạch chăm sóc, kê đơn trong phạm vi được phép, đặt chế độ ăn.' },
-  { title: 'Điều dưỡng', text: 'Lập kế hoạch chăm sóc, phát thuốc và xác nhận từng liều, xử lý cảnh báo, bàn giao ca, soạn bản tin cho gia đình.' },
+  { title: 'Điều dưỡng', text: 'Lập kế hoạch chăm sóc, phát thuốc và xác nhận từng liều, xử lý cảnh báo, bàn giao ca.' },
   { title: 'Nhân viên chăm sóc', text: 'Làm và ghi lại từng việc chăm sóc trong ca, đo chỉ số, đưa người cao tuổi tham gia hoạt động.' },
   { title: 'Trưởng tầng', text: 'Điều phối tầng, phân công người chăm sóc, theo dõi việc quá giờ, tiếp nhận góp ý của gia đình về tầng mình.' },
   { title: 'Nhân viên bếp', text: 'Lập thực đơn để bác sĩ xác nhận, chuẩn bị suất ăn theo chế độ riêng của từng người.' },
@@ -115,7 +115,7 @@ const CARE = [
 const FAMILY = [
   { title: 'Tham gia kế hoạch chăm sóc', text: 'Ý kiến của gia đình được ghi riêng, có tên người góp ý, cạnh ý kiến của người cao tuổi; không ai viết đè lên ai.' },
   { title: 'Thăm người thân', text: 'Đặt lịch thăm theo khung giờ của viện; lượt thăm phải hủy, như khi người cao tuổi đi khám, viện báo lại.' },
-  { title: 'Nhận cập nhật', text: 'Bản tin mỗi tuần do điều dưỡng phụ trách soạn và thông báo khi có việc; không phải gọi điện hỏi mới biết.' },
+  { title: 'Nhận cập nhật', text: 'Xem trực tiếp trên cổng và nhận thông báo khi có việc; không phải gọi điện hỏi mới biết.' },
   { title: 'Trao đổi khi có vấn đề', text: 'Gửi góp ý, hỏi đáp hoặc khiếu nại; mỗi phản hồi có người phụ trách và thời hạn trả lời.' },
 ]
 
@@ -218,10 +218,9 @@ export function HomePage({ onNavigate }) {
         <Intro id="elder-care" title="Elder_Care giúp gia đình đồng hành">
           Những gì viện ghi lại mỗi ngày đến với gia đình qua cổng người thân, đúng phần người cao tuổi đồng ý chia sẻ.
         </Intro>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
             ['Hôm nay', 'Lịch sinh hoạt, sự cố gần đây và thông tin của người cao tuổi.', 'today'],
-            ['Bản tin', 'Bản tin tuần do điều dưỡng phụ trách soạn.', 'bulletins'],
             ['Thăm', 'Đặt và hủy lịch thăm theo khung giờ của viện.', 'visits'],
             ['Phản hồi', 'Góp ý, hỏi đáp, khiếu nại có người phụ trách và hạn trả lời.', 'feedback'],
           ].map(([title, text, page]) => (

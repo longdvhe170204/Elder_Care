@@ -96,4 +96,66 @@ void main() {
     expect(await client.post('/x', {'a': 1}), {'ok': true});
     expect(ApiProblem(400, 'A', 'b').properties, isEmpty);
   });
+
+  test('requestResponse trả thân và header phản hồi (ETag cho If-Match, 001 T042)', () async {
+    final client = ApiClient(
+      baseUrl: 'http://api',
+      httpClient: MockClient(
+        (request) async =>
+            http.Response(jsonEncode({'id': 5}), 200, headers: {'content-type': 'application/json', 'etag': '"3"'}),
+      ),
+    );
+
+    final response = await client.requestResponse('GET', '/assessments/5');
+
+    expect(response.body, {'id': 5});
+    expect(response.headers['etag'], '"3"');
+  });
+
+  test('uploadFile gửi multipart đúng tên trường, kèm token, và trả JSON (001 T082)', () async {
+    late http.BaseRequest sent;
+    List<int> sentBytes = const [];
+    final client = ApiClient(
+      baseUrl: 'http://api',
+      httpClient: MockClient.streaming((request, bodyStream) async {
+        sent = request;
+        sentBytes = await bodyStream.toBytes();
+        return http.StreamedResponse(
+          Stream.value(utf8.encode(jsonEncode({'id': 77}))),
+          201,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    )..token = 'tok';
+
+    final result = await client.uploadFile('/files', 'file', utf8.encode('%PDF'), 'giay.pdf', 'application/pdf');
+
+    expect(sent.method, 'POST');
+    expect(sent.url.toString(), 'http://api/api/v1/files');
+    expect(sent.headers['Authorization'], 'Bearer tok');
+    expect(sent.headers['content-type'], startsWith('multipart/form-data'));
+    final text = utf8.decode(sentBytes);
+    expect(text, contains('name="file"'));
+    expect(text, contains('filename="giay.pdf"'));
+    expect(text, contains('application/pdf'));
+    expect(result, {'id': 77});
+  });
+
+  test('uploadFile báo ApiProblem khi backend từ chối (FILE_TOO_LARGE)', () async {
+    final client = ApiClient(
+      baseUrl: 'http://api',
+      httpClient: MockClient.streaming(
+        (request, bodyStream) async => http.StreamedResponse(
+          Stream.value(utf8.encode(jsonEncode({'errorCode': 'FILE_TOO_LARGE', 'detail': 'Tệp quá lớn'}))),
+          422,
+          headers: {'content-type': 'application/problem+json'},
+        ),
+      ),
+    );
+
+    expect(
+      client.uploadFile('/files', 'file', const [1], 'a.pdf', 'application/pdf'),
+      throwsA(isA<ApiProblem>().having((p) => p.errorCode, 'errorCode', 'FILE_TOO_LARGE')),
+    );
+  });
 }

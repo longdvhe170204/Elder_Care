@@ -6,10 +6,10 @@ import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
 import com.eldercare.backend.roombedallocation.api.dto.*;
 import com.eldercare.backend.roombedallocation.api.spi.AllocationInfectionStatus;
 import com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationStore;
+import com.eldercare.backend.roombedallocation.internal.allocation.service.ScheduledTransfers;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.*;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.*;
 import java.util.List;
@@ -31,7 +31,7 @@ public class BedReadinessService {
     private final PermissionApi permissions;
     private final BusinessTime time;
     private final ObjectProvider<AllocationInfectionStatus> infection;
-    private final ObjectProvider<BedAllocationCommandApi> transfers;
+    private final ScheduledTransfers transfers;
     private final BedHoldService holds;
 
     public BedReadinessService(
@@ -44,7 +44,7 @@ public class BedReadinessService {
             PermissionApi permissions,
             BusinessTime time,
             ObjectProvider<AllocationInfectionStatus> infection,
-            ObjectProvider<BedAllocationCommandApi> transfers,
+            ScheduledTransfers transfers,
             BedHoldService holds) {
         this.store = store;
         this.locks = locks;
@@ -117,8 +117,6 @@ public class BedReadinessService {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "BED_NOT_AWAITING_READY", "Giường không ở trạng thái Chờ sẵn sàng");
         var pending = store.waiting(id);
-        var source = pending.isEmpty() ? null : transfers.getIfAvailable();
-        if (!pending.isEmpty() && source == null) throw unavailable();
         states.transition(
                 id,
                 new BedTransition(
@@ -137,24 +135,18 @@ public class BedReadinessService {
                         false,
                         false,
                         note));
-        for (var waiting : pending)
-            if (source.applyScheduledTransfer(waiting.requestId(), waiting.plannedAt())
-                    != ScheduledTransferResult.TRANSFERRED)
-                throw new BusinessException(
-                        HttpStatus.CONFLICT,
-                        "SCHEDULED_TRANSFER_NOT_COMPLETED",
-                        "Chuyển theo lịch chưa thực hiện được");
+        // FR-011a, FR-029: chuyển theo lịch đang chờ thực hiện ngay; FR-018 không còn thỏa thì hủy và báo (003 T033)
+        boolean transferred = false;
+        for (var waiting : pending) transferred |= transfers.startWaiting(waiting.requestId(), waiting.plannedAt());
         var result = beds.details(id).orElseThrow(NotFoundException::new);
-        if (!pending.isEmpty() && result.state() != BedStatus.OCCUPIED && result.state() != BedStatus.HELD)
+        if (transferred && result.state() != BedStatus.OCCUPIED && result.state() != BedStatus.HELD)
             throw new IllegalStateException("Nguồn chuyển chưa cập nhật giường");
-        if (pending.isEmpty()) holds.becameEmpty(id, "CONFIRM_READY");
+        if (!transferred) holds.becameEmpty(id, "CONFIRM_READY");
         return result;
     }
 
     private BusinessException unavailable() {
         return new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "SOURCE_UNAVAILABLE",
-                "Chưa có nguồn kiểm lây nhiễm hoặc thực hiện chuyển theo lịch");
+                HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn kiểm lây nhiễm");
     }
 }

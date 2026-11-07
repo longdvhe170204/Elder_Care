@@ -11,7 +11,13 @@ enum AccountType { staff, familyMember, resident }
 
 /// Người dùng đang đăng nhập (api-002 `UserInfo`).
 class UserInfo {
-  const UserInfo({required this.accountId, required this.type, this.fullName, required this.mustChangePassword});
+  const UserInfo({
+    required this.accountId,
+    required this.type,
+    this.fullName,
+    required this.mustChangePassword,
+    this.sessionIdleTimeoutSeconds,
+  });
 
   factory UserInfo.fromJson(Map<String, dynamic> json) => UserInfo(
     accountId: (json['accountId'] as num).toInt(),
@@ -22,12 +28,16 @@ class UserInfo {
     },
     fullName: json['fullName'] as String?,
     mustChangePassword: json['mustChangePassword'] == true,
+    sessionIdleTimeoutSeconds: (json['sessionIdleTimeoutSeconds'] as num?)?.toInt(),
   );
 
   final int accountId;
   final AccountType type;
   final String? fullName;
   final bool mustChangePassword;
+
+  /// Thời gian không thao tác của kênh phiên (CFG-M15-10); chỉ `GET /me` trả, `null` khi kênh không tự đăng xuất.
+  final int? sessionIdleTimeoutSeconds;
 }
 
 enum SessionStatus {
@@ -58,6 +68,9 @@ class SessionController extends ChangeNotifier {
   static const deviceIdKey = 'device.id';
   static const userTypeKey = 'session.userType';
   static const accountIdKey = 'session.accountId';
+
+  /// Tên đăng nhập của nhân viên, người thân: màn đăng nhập lại khi hết phiên chỉ cho đúng tài khoản (002 T047c).
+  static const usernameKey = 'session.username';
   static const biometricKey = 'resident.biometric';
   static const biometricOfferedKey = 'resident.biometricOffered';
 
@@ -75,11 +88,15 @@ class SessionController extends ChangeNotifier {
   /// Câu báo cho màn đăng nhập, ví dụ sau khi đổi mật khẩu.
   String? notice;
 
+  /// Tên đăng nhập của phiên nhân viên, người thân; `null` khi không biết.
+  String? username;
+
   /// Mở app: lấy mã thiết bị, đọc phiên đã lưu và kiểm lại với backend.
   Future<void> start() async {
     api.deviceId = await _deviceId();
     boundToResident = await store.read(deviceTokenKey) != null;
     api.token = await store.read(tokenKey);
+    username = await store.read(usernameKey);
     if (api.token == null) {
       return _set(SessionStatus.signedOut);
     }
@@ -123,9 +140,33 @@ class SessionController extends ChangeNotifier {
   /// Nhân viên, người thân đăng nhập ở màn đầu chung (002 T046, T047; FR-014a): kênh `MOBILE_APP`, backend gán kênh
   /// phiên STAFF_APP hoặc FAMILY_APP theo loại tài khoản (đổi api-002 2026-10-28; FR-013a).
   Future<void> appLogin(String username, String password) async {
-    await _signedIn(
-      await api.post('/auth/login', {'username': username, 'password': password, 'channel': 'MOBILE_APP'}),
-    );
+    final response = await api.post('/auth/login', {
+      'username': username,
+      'password': password,
+      'channel': 'MOBILE_APP',
+    });
+    this.username = username;
+    await store.write(usernameKey, username);
+    await _signedIn(response);
+  }
+
+  /// Đăng nhập lại khi hết phiên (002 T047c; DESIGN.md 9.1): đúng tài khoản đang dùng và không phải đổi mật khẩu thì chỉ
+  /// thay token, màn đang mở giữ nguyên phần đang nhập; khác thì vào như đăng nhập mới (`ElderCareApp` dựng lại theo tài
+  /// khoản nên không lộ phần đang nhập của người trước).
+  Future<void> resume(String username, String password) async {
+    final response = await api.post('/auth/login', {
+      'username': username,
+      'password': password,
+      'channel': 'MOBILE_APP',
+    });
+    final next = UserInfo.fromJson(response!['user'] as Map<String, dynamic>);
+    if (next.accountId != user?.accountId || next.mustChangePassword || response['mustChangePassword'] == true) {
+      this.username = username;
+      await store.write(usernameKey, username);
+      return _signedIn(response);
+    }
+    api.token = response['token'] as String;
+    await store.write(tokenKey, api.token!);
   }
 
   /// Đăng xuất (002 FR-013): báo backend kết thúc phiên nếu còn mạng, rồi về màn đăng nhập. [notice] là câu báo cho màn
@@ -216,7 +257,9 @@ class SessionController extends ChangeNotifier {
   Future<void> _clear() async {
     api.token = null;
     user = null;
+    username = null;
     await store.delete(tokenKey);
+    await store.delete(usernameKey);
   }
 
   void _set(SessionStatus next) {

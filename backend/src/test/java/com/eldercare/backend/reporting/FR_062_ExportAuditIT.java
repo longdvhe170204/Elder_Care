@@ -14,6 +14,8 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.health.api.VitalSignStatisticsApi;
+import com.eldercare.backend.medication.api.MedicationStatisticsApi;
 import com.eldercare.backend.reporting.TestDoseMetric.Dose;
 import com.eldercare.backend.reporting.TestDoseMetric.DoseSource;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -42,6 +44,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.AopTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -76,6 +79,13 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
 
     @MockitoSpyBean
     AuditLogApi auditLog;
+
+    /** Nguồn thật của nhóm Sức khỏe, thuốc (016 T107, T108) trả rỗng để số dòng không phụ thuộc dữ liệu sót của test khác. */
+    @MockitoBean
+    MedicationStatisticsApi medicationStatistics;
+
+    @MockitoBean
+    VitalSignStatisticsApi vitalSignStatistics;
 
     TestUsers users;
     TestUser manager;
@@ -205,8 +215,8 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
                 .containsEntry("report_group", "HEALTH_MEDICATION")
                 .containsEntry("from_date", time.today().minusDays(7).toString());
         assertThat(String.valueOf(row.get("include_identity"))).isEqualTo("true");
-        // tổng, hai ca, bốn liều chi tiết
-        assertThat(String.valueOf(row.get("row_count"))).isEqualTo("7");
+        // tổng, hai ca, bốn liều chi tiết; một dòng tổng cho mỗi chỉ tiêu thật nguồn rỗng (HEALTH.VITAL_SIGNS, MED.*)
+        assertThat(String.valueOf(row.get("row_count"))).isEqualTo("11");
         assertThat(jdbc.queryForObject("SELECT owner_type FROM file WHERE id = ?", String.class, fileId))
                 .isEqualTo("M14.REPORT_EXPORT");
 

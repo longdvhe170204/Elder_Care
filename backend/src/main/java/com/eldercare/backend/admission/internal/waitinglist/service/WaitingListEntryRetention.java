@@ -3,6 +3,7 @@ package com.eldercare.backend.admission.internal.waitinglist.service;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
@@ -50,6 +51,11 @@ class WaitingListEntryRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         Map<Long, Instant> expiredResidents = new HashMap<>();
         for (long residentId : residents.byStatus(FINAL_STATUSES)) {
             residents
@@ -59,19 +65,29 @@ class WaitingListEntryRetention implements RetentionProvider {
         }
         List<Long> ids = new ArrayList<>(expiredResidents.keySet());
         List<Candidate> candidates = new ArrayList<>();
-        for (int from = 0; from < ids.size() && candidates.size() < batch; from += CHUNK) {
+        for (int from = 0; from < ids.size(); from += CHUNK) {
             List<Long> chunk = ids.subList(from, Math.min(from + CHUNK, ids.size()));
             String in = chunk.stream().map(String::valueOf).collect(Collectors.joining(","));
             jdbc.query(
                     "SELECT id, resident_id FROM admission_record WHERE kind = 'WAITING_ENTRY' AND resident_id IN ("
                             + in + ") ORDER BY id",
                     rs -> {
-                        if (candidates.size() < batch) {
-                            candidates.add(new Candidate(rs.getLong(1), expiredResidents.get(rs.getLong(2))));
-                        }
+                        candidates.add(new Candidate(rs.getLong(1), expiredResidents.get(rs.getLong(2))));
                     });
         }
-        return candidates.stream();
+        return RetentionProvider.page(candidates.stream(), after, batch);
+    }
+
+    /** Bản ghi gắn hồ sơ người cao tuổi {@code target} (000 T112, FR-051a). */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!SharedRowRetention.RESIDENT.equals(target.dataType())) {
+            return Set.of();
+        }
+        return Set.copyOf(jdbc.query(
+                "SELECT id FROM admission_record WHERE kind = 'WAITING_ENTRY' AND resident_id = ?",
+                (rs, i) -> new DataRef(dataType(), rs.getLong(1)),
+                target.id()));
     }
 
     @Override

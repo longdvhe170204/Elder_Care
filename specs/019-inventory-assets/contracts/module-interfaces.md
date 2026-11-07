@@ -54,6 +54,22 @@ Stream<LichXeView> lichXe(LocalDate tu, LocalDate den);
 Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng thái, số được duyệt, thực tế (016 FR-055a)
 ```
 
+*(Sửa 2026-11-06, chủ dự án duyệt: theo yêu cầu chung của 016 module-interfaces mục 2 — nhận phạm vi và khoảng, có hàm đếm cho dashboard. Chữ ký đã cài, tên theo glossary 25.6:)*
+
+```java
+// roombedallocation.api.AssetStatisticsApi
+Stream<OverdueAssetView> overdue(ScopeFilter scope, LocalDate on);   // phạm vi theo tầng của vị trí
+Map<AssetFlag, Long> countOverdue(ScopeFilter scope, LocalDate on);
+Stream<VehicleScheduleView> vehicleSchedules(LocalDate from, LocalDate to);   // toàn viện
+// billing.api.ProcurementStatisticsApi (ScopeFilter không có bộ phận: lọc departmentIds, rỗng là toàn viện)
+Stream<ProcurementRequestView> byDepartment(Set<Long> departmentIds, LocalDate from, LocalDate to);
+List<ProcurementTotalView> totals(Set<Long> departmentIds, LocalDate from, LocalDate to);   // theo bộ phận, trạng thái
+```
+
+**Xác nhận 2026-11-06 (Phase 10):** `overdue(scope, on)`, `countOverdue(scope, on)` lấy dấu và hạn **hiện tại**, chỉ gồm dấu có `dueOn < on`; không tái dựng dấu từng có trong quá khứ. Phạm vi theo tầng hiện tại; tài sản không gắn tầng chỉ có trong toàn viện. `countOverdue` đếm tại DB, không tải danh sách tài sản. `vehicleSchedules` lấy mọi trạng thái, ngày đi dự kiến theo `BusinessTime.ZONE` trong `[from, to]`. Nếu cần thống kê dấu quá khứ thì phải chốt nguồn tái dựng riêng.
+
+Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu, chờ A (016) xác nhận (team-plan mục 8). Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
+
 ---
 
 ## 3. SPI, provider 019 cài
@@ -80,3 +96,34 @@ Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng t
 | `NhatKyApi`, `ThamSoApi` (CFG-M03-02, 09, CFG-M11-07 → 09), kho tệp | 000 | Chung |
 
 Sự kiện 019 phát: thông báo (cài `CoYeuCauThongBao`) theo FR-021, gồm Khẩn cấp cho báo hỏng giường có người mức "mất an toàn"; `TaiSanDaDoiTrangThai`, `YeuCauMuaSamDaDoi` cho 016.
+
+### Bản dịch API lịch xe cho 014 (05/11/2026, chủ dự án duyệt hướng API)
+
+`LichXeApi` → `roombedallocation.api.VehicleScheduleApi`: `boolean hasBookedSchedule(long tripId, Instant plannedDepartureAt)`, `VehicleScheduleChangeCheck checkChange(long tripId, Instant newDepartureAt, Instant newReturnAt)`.
+
+`LichXeLenhApi` → `VehicleScheduleCommandApi.followTrip(long tripId, TripVehicleChangeType type, Instant plannedDepartureAt, Instant plannedReturnAt, Optional<Instant> actualAt)` (MANDATORY, chỉ trên phương thức lệnh).
+
+DTO tại `roombedallocation.api.dto`: `VehicleScheduleChangeCheck(boolean allowed, List<String> unmetConditions)`; `TripVehicleChangeType` = `CHANGED`, `CANCELLED`, `FIRST_DEPARTURE`, `EXTENDED`, `LAST_DEPARTURE_UNDONE`, `RETURN_FINISHED` (đúng sáu loại ở mục 2.2). Chưa có provider production của 019. Fake duy nhất `support/fake/roombedallocation/FakeVehicleSchedules` và `FakeVehicleSchedules.Config`; mặc định chưa có lịch. Lệnh không tự lập lịch xe (Q-306).
+
+### Đảo chiều phụ thuộc M11 ↔ M07 (06/11/2026, chủ dự án duyệt)
+
+M11 đọc `medication.api` (mục 4: `DonThuocApi`, `TiepNhanThuocCungUngApi`) và cài `medication.api.spi.YeuCauThuocCungUngPort` (mục 3) tạo vòng `billing → medication → care → billing` (M07 cài SPI của `care.api`, M04 phát sự kiện chi phí của `billing.api`); `ModuleBoundaryTest` từ chối. Research W-02 giả định không vòng, nay không còn đúng. Thay bằng:
+
+```java
+// billing.api.spi (M11 khai, M07 cài) — đã khai 06/11/2026; bản giả support/fake/billing/FakeProcurementPrescriptions
+interface ProcurementPrescriptionPort {
+  boolean isUnendedFacilityPrescription(long residentId, long prescriptionId);   // thay DonThuocApi.donNguonVienChuaKetThuc
+}
+// chưa khai, làm cùng T027 sau khi chốt id dòng (team-plan mục 8)
+interface ProcurementIntakePort { Set<Long> passedLineIds(long procurementRequestId); }   // billing.api.spi, M07 cài; thay TiepNhanThuocCungUngApi
+interface ProcurementMedicationLineApi {                                                // billing.api, M11 cài, 006 đọc
+  Optional<ProcurementMedicationLineView> lineRecordedPurchased(long lineId);           // thay medication.api.spi.ProcurementMedicationPort
+}
+```
+
+Thiếu bean `ProcurementPrescriptionPort` thì lệnh lập, sửa yêu cầu loại thuốc trả 503 `SOURCE_UNAVAILABLE`.
+
+
+### Đính chính tài sản và lịch xe (07/11/2026, chủ dự án chốt)
+
+`CorrectableRecordProvider` loại `M03.ASSET_HISTORY` (lần bảo trì, hư hỏng) và `M03.VEHICLE_SCHEDULE` (lịch Đã hoàn thành). Thêm sự kiện `roombedallocation.api.events.VehicleScheduleCorrected(long scheduleId, long tripId, Instant plannedDepartureAt, Instant plannedReturnAt)`, phát khi đính chính đổi giờ dự kiến của lịch gắn chuyến; 014 nghe để đồng bộ giờ chuyến. Quy tắc trường và người đính chính ở plan mục "Đính chính tài sản và lịch xe".

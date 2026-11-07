@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -8,14 +10,22 @@ import '../common/offline/offline_queue.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'approval_requests/approval_inbox_screen.dart';
+import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
+import 'handover/handover_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'pending_review/pending_review_screen.dart';
+import 'resident_login_qr/resident_login_qr_screen.dart';
+import 'residents/resident_lookup_screen.dart';
+import 'shifts/assignments_screen.dart';
+import 'shifts/my_shifts_screen.dart';
 import 'sync_results/sync_results_screen.dart';
 
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
 /// chung tại tầng, FR-014a), thanh điều hướng dưới. Màn của từng feature thêm vào [_tabs] (tối đa 5 mục, mục thứ 6 trở
-/// đi gom vào "Thêm"); hiện có Thông báo, Đồng bộ, Chờ xem lại, Mở khóa sớm, Phê duyệt. Biểu tượng lucide cùng tên với web.
+/// đi gom vào "Thêm"); hiện có Thông báo, Đồng bộ, Chờ xem lại, Mở khóa sớm, Thêm (Người cao tuổi (001 T023), Phê duyệt, Mã đăng nhập cho người cao
+/// tuổi, Chăm sóc hằng ngày; 002 T104). Mục trong "Thêm" mở ngay trong tab, thanh tiêu đề có nút quay lại danh sách. Biểu tượng lucide cùng
+/// tên với web.
 /// Tab Thông báo đứng đầu, có huy hiệu số Khẩn cấp chưa xác nhận; đang ở tab khác mà có Khẩn cấp thì hiện dải báo, vì khi app
 /// đang mở máy không hiện thông báo hệ thống (009 T022).
 class StaffRoot extends StatefulWidget {
@@ -33,16 +43,54 @@ class _StaffRootState extends State<StaffRoot> {
   static const _inboxIndex = 0;
 
   /// Tab đã áp đầu màn xanh đêm của DESIGN.md 15.4; tab khác giữ thanh của theme tới khi đổi (15.7).
-  static const _headerTabs = {'Thông báo', 'Phê duyệt'};
+  static const _headerTabs = {
+    'Thông báo',
+    'Thêm',
+    'Người cao tuổi',
+    'Phê duyệt',
+    'Mã đăng nhập cho người cao tuổi',
+    'Ca của tôi',
+    'Phân công',
+    'Bàn giao ca',
+    'Chăm sóc hằng ngày',
+  };
 
   int _index = _inboxIndex;
+
+  /// Mục đang mở trong "Thêm"; `null` là danh sách.
+  int? _more;
   int _urgent = 0;
   bool _urgentBand = false;
+  bool _canViewShifts = false;
+  bool _canViewHandovers = false;
 
   @override
   void initState() {
     super.initState();
     widget.push?.addListener(_onPush);
+    unawaited(_loadShiftPermission());
+  }
+
+  Future<void> _loadShiftPermission() async {
+    var allowed = false;
+    var handovers = false;
+    try {
+      final grants = await widget.session.api.getList('/me/permissions');
+      allowed = grants.whereType<Map<String, dynamic>>().any(
+        (grant) => grant['function'] == 'SHIFT_SCHEDULE' && grant['operation'] == 'VIEW',
+      );
+      handovers = grants.whereType<Map<String, dynamic>>().any(
+        (grant) => grant['function'] == 'SHIFT_HANDOVER' && grant['operation'] == 'VIEW',
+      );
+    } on Object {
+      // Chưa xác nhận được quyền thì không mở mục lịch ca.
+    }
+    if (mounted) {
+      setState(() {
+        _canViewShifts = allowed;
+        _canViewHandovers = handovers;
+      });
+    }
   }
 
   @override
@@ -78,6 +126,7 @@ class _StaffRootState extends State<StaffRoot> {
 
   void _select(int index) => setState(() {
     _index = index;
+    _more = null;
     if (index == _inboxIndex) _urgentBand = false;
   });
 
@@ -90,17 +139,42 @@ class _StaffRootState extends State<StaffRoot> {
     ('Đồng bộ', LucideIcons.refreshCw, () => SyncResultsScreen(queue: widget.queue, session: widget.session)),
     ('Chờ xem lại', LucideIcons.cloudOff, () => PendingReviewScreen(api: widget.session.api)),
     ('Mở khóa sớm', LucideIcons.lockOpen, () => EarlyUnlockScreen(api: widget.session.api)),
+    ('Thêm', LucideIcons.ellipsis, () => _MoreList(items: _moreItems, onOpen: (i) => setState(() => _more = i))),
+  ];
+
+  List<(String, IconData, Widget Function())> get _moreItems => [
+    ('Người cao tuổi', LucideIcons.users, () => ResidentLookupScreen(api: widget.session.api)),
     ('Phê duyệt', LucideIcons.clipboardCheck, () => ApprovalInboxScreen(api: widget.session.api)),
+    ('Mã đăng nhập cho người cao tuổi', LucideIcons.qrCode, () => ResidentLoginQrScreen(api: widget.session.api)),
+    if (_canViewShifts) ('Ca của tôi', LucideIcons.calendarDays, () => MyShiftsScreen(api: widget.session.api)),
+    if (_canViewShifts) ('Phân công', LucideIcons.users, () => AssignmentsScreen(api: widget.session.api)),
+    if (_canViewHandovers) ('Bàn giao ca', LucideIcons.arrowLeftRight, () => HandoverScreen(api: widget.session.api)),
+    (
+      'Chăm sóc hằng ngày',
+      LucideIcons.clipboardCheck,
+      () =>
+          CareTasksHomeScreen(api: widget.session.api, accountId: widget.session.user!.accountId, queue: widget.queue),
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     final tabs = _tabs;
+    final more = _more;
+    final (title, _, body) = more == null ? tabs[_index] : _moreItems[more];
+    final back = more == null
+        ? null
+        : IconButton(
+            tooltip: 'Quay lại',
+            icon: const Icon(LucideIcons.arrowLeft),
+            onPressed: () => setState(() => _more = null),
+          );
     return Scaffold(
-      appBar: _headerTabs.contains(tabs[_index].$1)
+      appBar: _headerTabs.contains(title)
           ? headerAppBar(
               context,
-              title: tabs[_index].$1,
+              title: title,
+              leading: back,
               actions: [
                 TextButton.icon(
                   style: TextButton.styleFrom(foregroundColor: Theme.of(context).extension<Tones>()!.headerInkStrong),
@@ -111,7 +185,8 @@ class _StaffRootState extends State<StaffRoot> {
               ],
             )
           : AppBar(
-              title: Text(tabs[_index].$1),
+              title: Text(title),
+              leading: back,
               actions: [
                 TextButton.icon(
                   onPressed: () => widget.session.signOut(),
@@ -125,7 +200,7 @@ class _StaffRootState extends State<StaffRoot> {
         children: [
           if (_urgentBand) _UrgentBand(onOpen: () => _select(_inboxIndex)),
           Expanded(
-            child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index].$3()),
+            child: KeyedSubtree(key: ValueKey((_index, more)), child: body()),
           ),
         ],
       ),
@@ -181,6 +256,30 @@ class _UrgentBand extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Danh sách dòng của mục "Thêm" (DESIGN.md 15.4).
+class _MoreList extends StatelessWidget {
+  const _MoreList({required this.items, required this.onOpen});
+
+  final List<(String, IconData, Widget Function())> items;
+  final ValueChanged<int> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        for (final (i, (label, icon, _)) in items.indexed)
+          ListTile(
+            minTileHeight: 56,
+            leading: Icon(icon),
+            title: Text(label),
+            trailing: const Icon(LucideIcons.chevronRight),
+            onTap: () => onOpen(i),
+          ),
+      ],
     );
   }
 }

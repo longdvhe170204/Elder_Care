@@ -44,7 +44,9 @@ class ShiftGovernanceIT extends MySqlIntegrationTestBase {
         long staff = TestUsers.nextId();
         jdbc.update("INSERT INTO staff_profile(id,full_name,position) VALUES (?,'[Lưu giữ ca]','Điều dưỡng')", staff);
         jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,status,created_at) VALUES ('[Lưu giữ ca]','07:00','15:00','FLOOR','INACTIVE','2000-01-01')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,src.status,JSON_OBJECT('createdAt',DATE_FORMAT(src.created_at,'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Lưu giữ ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,'INACTIVE' AS status,'2000-01-01' AS created_at) src");
         long template = id();
         jdbc.update(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status,created_at) VALUES ('2010-01','FLOOR',?,'PUBLISHED','2000-01-01')",
@@ -60,12 +62,12 @@ class ShiftGovernanceIT extends MySqlIntegrationTestBase {
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, staff);
         long member = id();
         jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,ends_at,basis) VALUES (?,?,'2010-01-01','2010-01-01 08:00','SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,ends_at,command,by_system) SELECT 'M09.SHIFT',src.shift_id,'LEAD_STAFF','M09','PERIOD',src.staff_id,src.starts_at,src.ends_at,src.basis,FALSE FROM (SELECT ? AS shift_id,? AS staff_id,'2010-01-01' AS starts_at,'2010-01-01 08:00' AS ends_at,'SCHEDULED' AS basis) src",
                 shift,
                 staff);
         long lead = id();
         jdbc.update(
-                "INSERT INTO shift_publication(schedule_id,published_at,content) VALUES (?,'2010-01-01','{}')",
+                "INSERT INTO record_event(entity_type,entity_id,module,kind,by_system,occurred_at,confirmed_at,content) SELECT 'M09.SCHEDULE',src.schedule_id,'M09','M09.SHIFT_PUBLICATION',FALSE,src.published_at,src.published_at,JSON_OBJECT('content',CAST(src.content AS JSON)) FROM (SELECT ? AS schedule_id,'2010-01-01' AS published_at,'{}' AS content) src",
                 schedule);
         long publication = id();
         assertThat(scopes.stream()
@@ -108,7 +110,9 @@ class ShiftGovernanceIT extends MySqlIntegrationTestBase {
     void FR_051_oldButUnfinishedShiftIsNotAPurgeCandidate() {
         long floor = TestUsers.nextId();
         jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Ca còn dùng]','07:00','15:00','FLOOR')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Ca còn dùng] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type) src");
         long template = id();
         jdbc.update("INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES ('2010-01','FLOOR',?)", floor);
         long schedule = id();

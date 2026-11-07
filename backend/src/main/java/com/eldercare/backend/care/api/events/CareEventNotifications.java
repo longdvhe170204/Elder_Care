@@ -8,8 +8,18 @@ final class CareEventNotifications {
 
     static NotificationRequest create(
             CareNotice event, NotificationLevel level, List<RecipientGroup> recipients, String key) {
+        return create(event, level, recipients, key, Map.of());
+    }
+
+    static NotificationRequest create(
+            CareNotice event,
+            NotificationLevel level,
+            List<RecipientGroup> recipients,
+            String key,
+            Map<String, Object> displayParams) {
         String title = "Thông tin chăm sóc cần xem xét";
-        return create(event, level, recipients, key, List.of(new ContentPart(InformationType.GENERAL, title)));
+        return create(
+                event, level, recipients, key, List.of(new ContentPart(InformationType.GENERAL, title)), displayParams);
     }
 
     static NotificationRequest create(
@@ -18,6 +28,16 @@ final class CareEventNotifications {
             List<RecipientGroup> recipients,
             String key,
             List<ContentPart> content) {
+        return create(event, level, recipients, key, content, Map.of());
+    }
+
+    private static NotificationRequest create(
+            CareNotice event,
+            NotificationLevel level,
+            List<RecipientGroup> recipients,
+            String key,
+            List<ContentPart> content,
+            Map<String, Object> displayParams) {
         var context = event.context();
         String title = "Thông tin chăm sóc cần xem xét";
         return new NotificationRequest(
@@ -36,7 +56,7 @@ final class CareEventNotifications {
                 Optional.empty(),
                 false,
                 context.occurredAt(),
-                Map.of(),
+                displayParams,
                 false,
                 Optional.empty(),
                 Optional.empty());

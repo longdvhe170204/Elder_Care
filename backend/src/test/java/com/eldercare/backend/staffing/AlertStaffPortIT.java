@@ -11,8 +11,8 @@ import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.staffing.api.ShiftApi;
-import com.eldercare.backend.staffing.duty.internal.service.ShiftQueries;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.duty.service.ShiftQueries;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import java.time.*;
@@ -77,7 +77,9 @@ class AlertStaffPortIT extends MySqlIntegrationTestBase {
     private long shift(long floor, long worker, String status) {
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Kiểm SPI ca]','07:00','15:00','FLOOR')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Kiểm SPI ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type) src");
         long schedule = AssignmentFixtures.insert(
                 jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2026-10','FLOOR',?,'PUBLISHED')",

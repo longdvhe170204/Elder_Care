@@ -22,11 +22,73 @@ public class BedAllocationController {
     private final AllocationCommands commands;
     private final AllocationReading reading;
     private final AccountApi accounts;
+    private final BedTransferService transfers;
+    private final com.eldercare.backend.common.time.BusinessTime time;
 
-    public BedAllocationController(AllocationCommands commands, AllocationReading reading, AccountApi accounts) {
+    public BedAllocationController(
+            AllocationCommands commands,
+            AllocationReading reading,
+            AccountApi accounts,
+            BedTransferService transfers,
+            com.eldercare.backend.common.time.BusinessTime time) {
         this.commands = commands;
         this.reading = reading;
         this.accounts = accounts;
+        this.transfers = transfers;
+        this.time = time;
+    }
+
+    @PostMapping("/{id}/transfer")
+    @Operation(
+            parameters =
+                    @Parameter(
+                            name = "Idempotency-Key",
+                            in = ParameterIn.HEADER,
+                            required = true,
+                            schema = @Schema(type = "string")))
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Đã chuyển",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = BedTransferResult.class))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Điều kiện chưa thỏa",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "Thông tin không hợp lệ",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class)))
+    })
+    public BedTransferResult transfer(@PathVariable long id, @Valid @RequestBody BedTransferWrite body) {
+        var now = time.now();
+        // Chủ dự án chọn chờ quyền duyệt của A cho T034; không đổi nhập bù thành chuyển ngay.
+        if (body.transferAt() != null && body.transferAt().isBefore(now))
+            throw new com.eldercare.backend.common.error.BusinessException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                    "SOURCE_UNAVAILABLE",
+                    "Chức năng nhập bù chưa sẵn sàng. Liên hệ quản trị hệ thống.");
+        if (body.transferAt() != null && body.transferAt().isAfter(now))
+            throw new com.eldercare.backend.common.error.InvalidValueException(
+                    "Chuyển trong tương lai phải qua yêu cầu thay đổi lưu trú");
+        long next = transfers.transfer(id, body.newBedId(), body.transferReasonId(), body.reason());
+        return new BedTransferResult(detail(id), detail(next), List.of());
     }
 
     @GetMapping

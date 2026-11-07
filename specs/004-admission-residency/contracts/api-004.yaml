@@ -656,6 +656,7 @@ paths:
                 facilityName: { type: string }
                 handoverAt: { type: string, format: date-time }
                 handoverStaffId: { type: integer, format: int64 }
+                pickupRecordId: { type: integer, format: int64, description: 'Bản ghi đón của 012 (chỉ khi recipientType = FAMILY_MEMBER); hợp lệ thì được dùng một lần, không hợp lệ thì 422 (A duyệt 2026-11-05, 004-2)' }
       responses: { '201': { description: Đã ghi }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-endings/{id}/request-exception:
     post:

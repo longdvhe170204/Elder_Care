@@ -9,9 +9,7 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $CareChecklistSnapshotsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _accountIdMeta = const VerificationMeta(
-    'accountId',
-  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta('accountId');
   @override
   late final GeneratedColumn<int> accountId = GeneratedColumn<int>(
     'account_id',
@@ -20,9 +18,7 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _shiftIdMeta = const VerificationMeta(
-    'shiftId',
-  );
+  static const VerificationMeta _shiftIdMeta = const VerificationMeta('shiftId');
   @override
   late final GeneratedColumn<int> shiftId = GeneratedColumn<int>(
     'shift_id',
@@ -31,9 +27,7 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _contentMeta = const VerificationMeta(
-    'content',
-  );
+  static const VerificationMeta _contentMeta = const VerificationMeta('content');
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
     'content',
@@ -42,9 +36,7 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _loadedAtMeta = const VerificationMeta(
-    'loadedAt',
-  );
+  static const VerificationMeta _loadedAtMeta = const VerificationMeta('loadedAt');
   @override
   late final GeneratedColumn<DateTime> loadedAt = GeneratedColumn<DateTime>(
     'loaded_at',
@@ -61,41 +53,26 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
   String get actualTableName => $name;
   static const String $name = 'care_checklist_snapshots';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<CareChecklistSnapshot> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<CareChecklistSnapshot> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('account_id')) {
-      context.handle(
-        _accountIdMeta,
-        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
-      );
+      context.handle(_accountIdMeta, accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
     } else if (isInserting) {
       context.missing(_accountIdMeta);
     }
     if (data.containsKey('shift_id')) {
-      context.handle(
-        _shiftIdMeta,
-        shiftId.isAcceptableOrUnknown(data['shift_id']!, _shiftIdMeta),
-      );
+      context.handle(_shiftIdMeta, shiftId.isAcceptableOrUnknown(data['shift_id']!, _shiftIdMeta));
     } else if (isInserting) {
       context.missing(_shiftIdMeta);
     }
     if (data.containsKey('content')) {
-      context.handle(
-        _contentMeta,
-        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
-      );
+      context.handle(_contentMeta, content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
     if (data.containsKey('loaded_at')) {
-      context.handle(
-        _loadedAtMeta,
-        loadedAt.isAcceptableOrUnknown(data['loaded_at']!, _loadedAtMeta),
-      );
+      context.handle(_loadedAtMeta, loadedAt.isAcceptableOrUnknown(data['loaded_at']!, _loadedAtMeta));
     } else if (isInserting) {
       context.missing(_loadedAtMeta);
     }
@@ -108,22 +85,10 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
   CareChecklistSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CareChecklistSnapshot(
-      accountId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}account_id'],
-      )!,
-      shiftId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}shift_id'],
-      )!,
-      content: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}content'],
-      )!,
-      loadedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}loaded_at'],
-      )!,
+      accountId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}account_id'])!,
+      shiftId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}shift_id'])!,
+      content: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      loadedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}loaded_at'])!,
     );
   }
 
@@ -133,8 +98,7 @@ class $CareChecklistSnapshotsTable extends CareChecklistSnapshots
   }
 }
 
-class CareChecklistSnapshot extends DataClass
-    implements Insertable<CareChecklistSnapshot> {
+class CareChecklistSnapshot extends DataClass implements Insertable<CareChecklistSnapshot> {
   final int accountId;
   final int shiftId;
   final String content;
@@ -164,10 +128,7 @@ class CareChecklistSnapshot extends DataClass
     );
   }
 
-  factory CareChecklistSnapshot.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory CareChecklistSnapshot.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CareChecklistSnapshot(
       accountId: serializer.fromJson<int>(json['accountId']),
@@ -187,20 +148,14 @@ class CareChecklistSnapshot extends DataClass
     };
   }
 
-  CareChecklistSnapshot copyWith({
-    int? accountId,
-    int? shiftId,
-    String? content,
-    DateTime? loadedAt,
-  }) => CareChecklistSnapshot(
-    accountId: accountId ?? this.accountId,
-    shiftId: shiftId ?? this.shiftId,
-    content: content ?? this.content,
-    loadedAt: loadedAt ?? this.loadedAt,
-  );
-  CareChecklistSnapshot copyWithCompanion(
-    CareChecklistSnapshotsCompanion data,
-  ) {
+  CareChecklistSnapshot copyWith({int? accountId, int? shiftId, String? content, DateTime? loadedAt}) =>
+      CareChecklistSnapshot(
+        accountId: accountId ?? this.accountId,
+        shiftId: shiftId ?? this.shiftId,
+        content: content ?? this.content,
+        loadedAt: loadedAt ?? this.loadedAt,
+      );
+  CareChecklistSnapshot copyWithCompanion(CareChecklistSnapshotsCompanion data) {
     return CareChecklistSnapshot(
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       shiftId: data.shiftId.present ? data.shiftId.value : this.shiftId,
@@ -232,8 +187,7 @@ class CareChecklistSnapshot extends DataClass
           other.loadedAt == this.loadedAt);
 }
 
-class CareChecklistSnapshotsCompanion
-    extends UpdateCompanion<CareChecklistSnapshot> {
+class CareChecklistSnapshotsCompanion extends UpdateCompanion<CareChecklistSnapshot> {
   final Value<int> accountId;
   final Value<int> shiftId;
   final Value<String> content;
@@ -325,11 +279,9 @@ class CareChecklistSnapshotsCompanion
 abstract class _$CareChecklistCache extends GeneratedDatabase {
   _$CareChecklistCache(QueryExecutor e) : super(e);
   $CareChecklistCacheManager get managers => $CareChecklistCacheManager(this);
-  late final $CareChecklistSnapshotsTable careChecklistSnapshots =
-      $CareChecklistSnapshotsTable(this);
+  late final $CareChecklistSnapshotsTable careChecklistSnapshots = $CareChecklistSnapshotsTable(this);
   @override
-  Iterable<TableInfo<Table, Object?>> get allTables =>
-      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [careChecklistSnapshots];
 }
@@ -351,8 +303,7 @@ typedef $$CareChecklistSnapshotsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $$CareChecklistSnapshotsTableFilterComposer
-    extends Composer<_$CareChecklistCache, $CareChecklistSnapshotsTable> {
+class $$CareChecklistSnapshotsTableFilterComposer extends Composer<_$CareChecklistCache, $CareChecklistSnapshotsTable> {
   $$CareChecklistSnapshotsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -360,25 +311,17 @@ class $$CareChecklistSnapshotsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get accountId => $composableBuilder(
-    column: $table.accountId,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<int> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get shiftId => $composableBuilder(
-    column: $table.shiftId,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<int> get shiftId =>
+      $composableBuilder(column: $table.shiftId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<DateTime> get loadedAt => $composableBuilder(
-    column: $table.loadedAt,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<DateTime> get loadedAt =>
+      $composableBuilder(column: $table.loadedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$CareChecklistSnapshotsTableOrderingComposer
@@ -390,25 +333,17 @@ class $$CareChecklistSnapshotsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get accountId => $composableBuilder(
-    column: $table.accountId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<int> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get shiftId => $composableBuilder(
-    column: $table.shiftId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<int> get shiftId =>
+      $composableBuilder(column: $table.shiftId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get content => $composableBuilder(
-    column: $table.content,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<DateTime> get loadedAt => $composableBuilder(
-    column: $table.loadedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<DateTime> get loadedAt =>
+      $composableBuilder(column: $table.loadedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CareChecklistSnapshotsTableAnnotationComposer
@@ -420,17 +355,13 @@ class $$CareChecklistSnapshotsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get accountId =>
-      $composableBuilder(column: $table.accountId, builder: (column) => column);
+  GeneratedColumn<int> get accountId => $composableBuilder(column: $table.accountId, builder: (column) => column);
 
-  GeneratedColumn<int> get shiftId =>
-      $composableBuilder(column: $table.shiftId, builder: (column) => column);
+  GeneratedColumn<int> get shiftId => $composableBuilder(column: $table.shiftId, builder: (column) => column);
 
-  GeneratedColumn<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => column);
+  GeneratedColumn<String> get content => $composableBuilder(column: $table.content, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get loadedAt =>
-      $composableBuilder(column: $table.loadedAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get loadedAt => $composableBuilder(column: $table.loadedAt, builder: (column) => column);
 }
 
 class $$CareChecklistSnapshotsTableTableManager
@@ -446,37 +377,19 @@ class $$CareChecklistSnapshotsTableTableManager
           $$CareChecklistSnapshotsTableUpdateCompanionBuilder,
           (
             CareChecklistSnapshot,
-            BaseReferences<
-              _$CareChecklistCache,
-              $CareChecklistSnapshotsTable,
-              CareChecklistSnapshot
-            >,
+            BaseReferences<_$CareChecklistCache, $CareChecklistSnapshotsTable, CareChecklistSnapshot>,
           ),
           CareChecklistSnapshot,
           PrefetchHooks Function()
         > {
-  $$CareChecklistSnapshotsTableTableManager(
-    _$CareChecklistCache db,
-    $CareChecklistSnapshotsTable table,
-  ) : super(
+  $$CareChecklistSnapshotsTableTableManager(_$CareChecklistCache db, $CareChecklistSnapshotsTable table)
+    : super(
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$CareChecklistSnapshotsTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer: () =>
-              $$CareChecklistSnapshotsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $$CareChecklistSnapshotsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+          createFilteringComposer: () => $$CareChecklistSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$CareChecklistSnapshotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$CareChecklistSnapshotsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> accountId = const Value.absent(),
@@ -505,9 +418,7 @@ class $$CareChecklistSnapshotsTableTableManager
                 loadedAt: loadedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -525,11 +436,7 @@ typedef $$CareChecklistSnapshotsTableProcessedTableManager =
       $$CareChecklistSnapshotsTableUpdateCompanionBuilder,
       (
         CareChecklistSnapshot,
-        BaseReferences<
-          _$CareChecklistCache,
-          $CareChecklistSnapshotsTable,
-          CareChecklistSnapshot
-        >,
+        BaseReferences<_$CareChecklistCache, $CareChecklistSnapshotsTable, CareChecklistSnapshot>,
       ),
       CareChecklistSnapshot,
       PrefetchHooks Function()
@@ -539,8 +446,5 @@ class $CareChecklistCacheManager {
   final _$CareChecklistCache _db;
   $CareChecklistCacheManager(this._db);
   $$CareChecklistSnapshotsTableTableManager get careChecklistSnapshots =>
-      $$CareChecklistSnapshotsTableTableManager(
-        _db,
-        _db.careChecklistSnapshots,
-      );
+      $$CareChecklistSnapshotsTableTableManager(_db, _db.careChecklistSnapshots);
 }
