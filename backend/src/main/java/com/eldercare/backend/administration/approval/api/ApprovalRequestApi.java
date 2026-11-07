@@ -6,7 +6,9 @@ import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.error.UnmetCondition;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import tools.jackson.databind.JsonNode;
 
@@ -40,4 +42,12 @@ public interface ApprovalRequestApi {
      * thành Hủy; Đã duyệt thành Áp dụng không thành; trạng thái cuối thì không làm gì.
      */
     void closeForFinalState(long requestId, Basis basis);
+
+    /**
+     * Yêu cầu Đã duyệt chưa áp dụng thành Áp dụng không thành vì điều kiện ngoài yêu cầu không còn đạt, kèm lệnh của actor ở
+     * module khác (Propagation.MANDATORY; bổ sung theo 003 FR-013a: giường hỏng trước ngày chuyển giường theo lịch). Ghi
+     * điều kiện vào lý do đóng, nhật ký kèm căn cứ, phát {@code RequestApplyFailed}; trạng thái khác thì 409
+     * {@code INVALID_STATE}.
+     */
+    void failApplication(long requestId, List<UnmetCondition> unmet, Basis basis);
 }

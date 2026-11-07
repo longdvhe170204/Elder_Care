@@ -6,10 +6,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import com.eldercare.backend.support.TableRows;
 import com.testsupport.SampleController;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
@@ -26,23 +25,26 @@ class ProblemDetailsHandlerIT extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;
 
-    @ParameterizedTest
-    @CsvSource({
-        "condition, 409, CONDITION_NOT_MET",
-        "permission, 403, PERMISSION_DENIED",
-        "processed, 409, ALREADY_PROCESSED",
-        "version, 412, VERSION_MISMATCH",
-        "reason, 422, REASON_REQUIRED",
-        "invalid, 422, INVALID_VALUE",
-        "missing, 404, NOT_FOUND"
-    })
-    void R_03_businessError_mapsToStatusAndErrorCode(String kind, int status, String errorCode) throws Exception {
-        mvc.perform(get("/api/v1/test-support/errors/" + kind))
-                .andExpect(status().is(status))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(status))
-                .andExpect(jsonPath("$.title").isNotEmpty())
-                .andExpect(jsonPath("$.errorCode").value(errorCode));
+    @Test
+    void R_03_businessError_mapsToStatusAndErrorCode() {
+        // loại lỗi, mã HTTP, errorCode
+        TableRows.csv(
+                r -> {
+                    int status = Integer.parseInt(r[1]);
+                    mvc.perform(get("/api/v1/test-support/errors/" + r[0]))
+                            .andExpect(status().is(status))
+                            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                            .andExpect(jsonPath("$.status").value(status))
+                            .andExpect(jsonPath("$.title").isNotEmpty())
+                            .andExpect(jsonPath("$.errorCode").value(r[2]));
+                },
+                "condition, 409, CONDITION_NOT_MET",
+                "permission, 403, PERMISSION_DENIED",
+                "processed, 409, ALREADY_PROCESSED",
+                "version, 412, VERSION_MISMATCH",
+                "reason, 422, REASON_REQUIRED",
+                "invalid, 422, INVALID_VALUE",
+                "missing, 404, NOT_FOUND");
     }
 
     @Test

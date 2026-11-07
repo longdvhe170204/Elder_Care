@@ -18,6 +18,15 @@ public interface RetentionProvider {
 
     RetentionKind retentionKind();
 
+    /**
+     * Loại đối tượng của bản ghi ở bảng dùng chung R-15 (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc) để job tìm và
+     * xóa các dòng đó cùng bản ghi. Mặc định là {@link #dataType()}; loại tách riêng để tính hạn nhưng ghi bảng chung bằng
+     * loại khác thì trả loại đó (005 T064: task vị trí ghi {@code M04.TASK}). Bổ sung 2026-11-07.
+     */
+    default String sharedRowEntityType() {
+        return dataType();
+    }
+
     /** Bản ghi có mốc tính hạn trước {@code cutoff}, tối đa {@code batch} bản ghi. */
     Stream<Candidate> expiredCandidates(Instant cutoff, int batch);
 
