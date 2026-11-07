@@ -7,6 +7,7 @@ import com.eldercare.backend.billing.api.events.CostSourceBilled;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import com.eldercare.backend.support.TableRows;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.billing.FakeCostSources;
 import com.eldercare.backend.support.fake.billing.FakeM11Config;
@@ -23,11 +24,10 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
@@ -121,9 +121,12 @@ class BillableSourceIndexIT extends MySqlIntegrationTestBase {
                 .isZero();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"FAMILY_MEAL", "OVERNIGHT_STAY", "ACTIVITY_ATTENDANCE"})
-    void FR_005_genericSourcesPreserveTheirOwnDateQuantityAndUnitWithoutCreatingCosts(String type) {
+    @Test
+    void FR_005_genericSourcesPreserveTheirOwnDateQuantityAndUnitWithoutCreatingCosts() {
+        TableRows.each(Stream.of("FAMILY_MEAL", "OVERNIGHT_STAY", "ACTIVITY_ATTENDANCE"), this::genericSourceIndexed);
+    }
+
+    private void genericSourceIndexed(String type) {
         long resident = TestUsers.nextId();
         var event = source(type, resident, "source-" + TestUsers.nextId(), "UNIT", "billed:" + resident);
         Instant before = time.now().truncatedTo(ChronoUnit.MICROS);

@@ -9,13 +9,13 @@ import com.eldercare.backend.resident.api.spi.StatusTransitionParticipant;
 import com.eldercare.backend.roombedallocation.api.spi.*;
 import com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationCommandStore;
 import com.eldercare.backend.roombedallocation.internal.bed.service.BedHoldService;
+import com.eldercare.backend.support.TableRows;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -96,11 +96,15 @@ class FR_024_AllocationStatusParticipantIT extends StructureTestSupport {
                 .isEqualTo("OCCUPIED");
     }
 
-    @ParameterizedTest
-    @EnumSource(
-            value = StatusCommand.class,
-            names = {"GRANT_TEMPORARY_ABSENCE", "TRANSFER_OUT"})
-    void FR_024_absenceWithRetentionKeepsAllocationAndHoldDeadline(StatusCommand command) {
+    @Test
+    void FR_024_absenceWithRetentionKeepsAllocationAndHoldDeadline() {
+        TableRows.each(
+                Stream.of(StatusCommand.GRANT_TEMPORARY_ABSENCE, StatusCommand.TRANSFER_OUT), this::absenceKeepsBed);
+    }
+
+    /** Mỗi dòng dựng giường, người cao tuổi riêng như một ca của test tham số trước đây. */
+    private void absenceKeepsBed(StatusCommand command) {
+        freshFixture();
         allocation("ACTIVE");
         residency.resident(
                 resident,
@@ -123,11 +127,14 @@ class FR_024_AllocationStatusParticipantIT extends StructureTestSupport {
                 .isNotNull();
     }
 
-    @ParameterizedTest
-    @EnumSource(
-            value = StatusCommand.class,
-            names = {"END_RESIDENCY", "RECORD_DEATH"})
-    void FR_025_finalStatusClosesAllocationAndReleasesBed(StatusCommand command) {
+    @Test
+    void FR_025_finalStatusClosesAllocationAndReleasesBed() {
+        TableRows.each(
+                Stream.of(StatusCommand.END_RESIDENCY, StatusCommand.RECORD_DEATH), this::finalStatusReleasesBed);
+    }
+
+    private void finalStatusReleasesBed(StatusCommand command) {
+        freshFixture();
         allocation("ACTIVE");
         apply(
                 command,
@@ -137,6 +144,11 @@ class FR_024_AllocationStatusParticipantIT extends StructureTestSupport {
                 .isEqualTo("CLOSED");
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
                 .isEqualTo("AWAITING_READY");
+    }
+
+    private void freshFixture() {
+        structureFixture();
+        residentFixture();
     }
 
     private void holdInOtherTransaction(long owner) {
