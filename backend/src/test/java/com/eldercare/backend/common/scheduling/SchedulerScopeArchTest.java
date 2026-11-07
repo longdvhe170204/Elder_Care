@@ -123,6 +123,12 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.medication.scheduling.M07DailyJob",
                     "việc hàng ngày m07: đối chiếu thuốc, cảnh báo hết hạn đơn (006 research D-19)"),
             Map.entry(
+                    "com.eldercare.backend.nutrition.scheduling.M08MinuteJob",
+                    "việc theo phút m08: nhắc chốt, bản gán Chờ hiệu lực, món an toàn, suất giữ, giao trễ; không chốt suất, không lập phiếu (011 Q-306, research M-15)"),
+            Map.entry(
+                    "com.eldercare.backend.nutrition.scheduling.M08DailyJob",
+                    "việc hằng ngày m08: thực đơn Đã áp dụng, nhắc CFG-M08-07; không chốt suất, không lập phiếu (011 Q-306, research M-15)"),
+            Map.entry(
                     "com.eldercare.backend.admission.scheduling.M02DailyJob",
                     "Báo Quản lý viện lượt vắng dài, dấu quá hạn hợp đồng, quá ngày dự kiến, nhắc Hành chính (004 FR-077, Q-395)"),
             Map.entry(

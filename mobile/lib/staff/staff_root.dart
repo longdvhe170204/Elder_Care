@@ -14,6 +14,8 @@ import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'handover/handover_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
+import 'nutrition/family_food_screen.dart';
+import 'nutrition/serving_confirmation_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'resident_login_qr/resident_login_qr_screen.dart';
 import 'residents/resident_lookup_screen.dart';
@@ -155,6 +157,16 @@ class _StaffRootState extends State<StaffRoot> {
       () =>
           CareTasksHomeScreen(api: widget.session.api, accountId: widget.session.user!.accountId, queue: widget.queue),
     ),
+    (
+      'Xác nhận phục vụ suất ăn',
+      LucideIcons.utensils,
+      () => ServingConfirmationScreen(
+        api: widget.session.api,
+        queue: widget.queue,
+        accountId: widget.session.user!.accountId,
+      ),
+    ),
+    ('Đồ ăn gia đình', LucideIcons.apple, () => FamilyFoodScreen(api: widget.session.api)),
   ];
 
   @override
