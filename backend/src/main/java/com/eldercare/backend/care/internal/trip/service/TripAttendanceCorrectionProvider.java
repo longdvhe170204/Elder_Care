@@ -7,9 +7,9 @@ import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.administration.correction.api.dto.*;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.administration.shared.api.*;
-import com.eldercare.backend.billing.api.events.CostSourceChanged;
 import com.eldercare.backend.care.api.dto.TripInterval;
 import com.eldercare.backend.care.api.dto.TripMedicationChangeType;
+import com.eldercare.backend.care.api.events.ActivityCostSourceChanged;
 import com.eldercare.backend.care.api.events.TripChanged;
 import com.eldercare.backend.care.api.spi.TripMedicationPreparationPort;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
@@ -200,7 +200,7 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
                 .content()
                 .charged()) {
             String source = Long.toString(correction.originalRecordId());
-            events.publishEvent(new CostSourceChanged(
+            events.publishEvent(new ActivityCostSourceChanged(
                     "ACTIVITY_ATTENDANCE",
                     source,
                     "OCCURRENCE",

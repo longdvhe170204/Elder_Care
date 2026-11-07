@@ -37,7 +37,7 @@ import tools.jackson.databind.json.JsonMapper;
  * câu {@code INSERT}). Mỗi test chạy lệnh bằng người dùng thật của lệnh đó (Phụ lục 27) rồi đọc các dòng
  * {@code audit_log} mới phát sinh.
  */
-@Import(FakeFileConfig.class)
+@Import({FakeFileConfig.class, AllergyCheckersOff.class})
 class M01CommandAuditTrailIT extends StatusTestBase {
 
     private static final Reason REASON = new Reason("Lý do kiểm vết");
@@ -175,7 +175,8 @@ class M01CommandAuditTrailIT extends StatusTestBase {
                 new RecordCommand(HealthItemType.ALLERGY, allergenId(), null, severityId(), sourceId(), false));
         long m = mark();
 
-        // 006 đã gỡ cờ thuốc ngay sau khi ghi mục; cờ dinh dưỡng còn chờ nên lần gọi này mới đổi cờ và ghi nhật ký
+        // Listener thật của 006, 011 bị gỡ (AllergyCheckersOff): cờ dinh dưỡng còn chờ nên lần gọi này đổi cờ, ghi nhật
+        // ký
         items.markChecked(recorded.item().id(), com.eldercare.backend.resident.api.dto.HealthItemCheckSource.NUTRITION);
 
         Entry e = exactlyOne(

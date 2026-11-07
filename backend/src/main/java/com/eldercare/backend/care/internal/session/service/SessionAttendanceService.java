@@ -13,7 +13,7 @@ import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
-import com.eldercare.backend.billing.api.events.CostSourceBilled;
+import com.eldercare.backend.care.api.events.ActivityCostSourceBilled;
 import com.eldercare.backend.care.api.events.ActivitySessionEnded;
 import com.eldercare.backend.care.internal.activity.domain.Activity;
 import com.eldercare.backend.care.internal.session.domain.Registration;
@@ -182,7 +182,7 @@ public class SessionAttendanceService {
 
     /** FR-032: một lượt, dịch vụ của hoạt động, ngày của buổi. */
     void bill(String source, long resident, Activity activity, Session session, Instant now) {
-        events.publishEvent(new CostSourceBilled(
+        events.publishEvent(new ActivityCostSourceBilled(
                 BILLING_SOURCE,
                 source,
                 BILLING_UNIT,
