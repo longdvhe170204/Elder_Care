@@ -277,11 +277,11 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Tests cho User Story 9
 
-- [ ] T038 [P] [US9] Test đơn vị `BT/nutrition/MonCanLuuMauTest.java` và `BT/nutrition/BR_M08_15_LuuMauIT.java` (Q46, Q47)
+- [x] T038 [P] [US9] Test đơn vị `BT/nutrition/MonCanLuuMauTest.java` và `BT/nutrition/BR_M08_15_LuuMauIT.java` (Q46, Q47) *(2026-11-07, Phase 11: xong và xanh — IT tên `BR_M08_15_RetainedSampleIT` (3 test), hàm thuần `DishesToRetain` (4 test))*
 
 ### Implementation cho User Story 9
 
-- [ ] T039 [US9] Tạo bảng `luu_mau` (nhóm 3; `bua_ngay_id UNIQUE`; `het_han_luu`; hủy đặt một lần), `luu_mau_mon` trong `MIG/V011_10__luu_mau.sql`; cài `BE/nutrition/luumau/internal/LuuMauService.java` (`DinhChinhDuocProvider` `M08.LUU_MAU`; nhắc hủy mẫu) và endpoint `POST /bua-ngay/{id}/luu-mau`, `/luu-mau/{id}/huy-mau`; màn web `frontend/src/tinh-nang/dinh-duong/luu-mau/` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `luu_mau`, `luu_mau_mon` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T039 *(2026-11-07, Phase 11: đã cài backend — không có `V011_10` theo R-15, `M08.RETAINED_SAMPLE` ở `simple_record`; `RetainedSampleService`, `RetainedSampleExpiryTask`, `RetainedSampleController`; chưa đánh [x] vì còn màn web, chờ duyệt bố cục, team-plan mục 8)* [US9] Tạo bảng `luu_mau` (nhóm 3; `bua_ngay_id UNIQUE`; `het_han_luu`; hủy đặt một lần), `luu_mau_mon` trong `MIG/V011_10__luu_mau.sql`; cài `BE/nutrition/luumau/internal/LuuMauService.java` (`DinhChinhDuocProvider` `M08.LUU_MAU`; nhắc hủy mẫu) và endpoint `POST /bua-ngay/{id}/luu-mau`, `/luu-mau/{id}/huy-mau`; màn web `frontend/src/tinh-nang/dinh-duong/luu-mau/` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `luu_mau`, `luu_mau_mon` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Mọi user story của 011 chạy độc lập.
 

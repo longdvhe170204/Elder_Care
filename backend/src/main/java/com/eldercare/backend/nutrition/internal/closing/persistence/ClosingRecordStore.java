@@ -12,7 +12,7 @@ import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.Ad
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.ExtraPortionRequest;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.FamilyMeal;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.MealSlip;
-import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.RetainedSampleMarker;
+import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.RetainedSample;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SlipDiscrepancy;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SpecialPortion;
 import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.SupplementaryPortion;
@@ -139,10 +139,46 @@ public class ClosingRecordStore {
         events.confirm(SlipDiscrepancy.KIND, row.id(), at);
     }
 
-    /** Bữa ngày đã có bản ghi lưu mẫu (FR-047, FR-060; bản ghi do Phase 11 lập). */
+    /** Bữa ngày đã có bản ghi lưu mẫu (FR-047, FR-060). */
     public boolean hasRetainedSample(long dailyMealId) {
-        return !records.listByParent(RetainedSampleMarker.KIND, dailyMeal(dailyMealId))
+        return !records.listByParent(RetainedSample.KIND, dailyMeal(dailyMealId))
                 .isEmpty();
+    }
+
+    public Optional<SimpleRecord<RetainedSample>> retainedSample(long dailyMealId) {
+        return records.findByUniqueKey(RetainedSample.KIND, RetainedSample.key(dailyMealId));
+    }
+
+    public SimpleRecord<RetainedSample> createSample(RetainedSample sample, long by) {
+        return records.create(
+                RetainedSample.KIND,
+                new NewSimpleRecord<>(
+                        null,
+                        dailyMeal(sample.dailyMealId()),
+                        RECORDED,
+                        sample,
+                        null,
+                        null,
+                        RetainedSample.key(sample.dailyMealId()),
+                        by,
+                        false));
+    }
+
+    public SimpleRecord<RetainedSample> lockSample(long id) {
+        return records.lockForUpdate(RetainedSample.KIND, id);
+    }
+
+    public List<SimpleRecord<RetainedSample>> samplesWithStatus(String status) {
+        return records.listByStatus(RetainedSample.KIND, java.util.Set.of(status));
+    }
+
+    /** Đổi nội dung, trạng thái bản ghi lưu mẫu; giữ {@code uniqueKey}, khóa dòng khi {@code lock} (hủy mẫu đặt một lần). */
+    public void changeSample(SimpleRecord<RetainedSample> row, String status, RetainedSample content, boolean lock) {
+        records.change(
+                RetainedSample.KIND,
+                row.id(),
+                row.version(),
+                new RecordChange<>(status, content, null, RetainedSample.key(content.dailyMealId()), lock));
     }
 
     public SimpleRecord<SpecialPortion> createSpecial(long slipId, SpecialPortion portion, long by) {

@@ -210,10 +210,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(
                             "GET /api/v1/nutrition/meals",
                             "POST /api/v1/nutrition/meals",
-                            "PUT /api/v1/nutrition/meals/{id}",
-                            "GET /api/v1/daily-meals/{id}/retained-samples",
-                            "POST /api/v1/daily-meals/{id}/retained-samples",
-                            "POST /api/v1/retained-samples/{id}/discard"),
+                            "PUT /api/v1/nutrition/meals/{id}"),
                     Set.of(),
                     true));
 

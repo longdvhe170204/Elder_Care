@@ -14,7 +14,7 @@ import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.RetainedSampleMarker;
+import com.eldercare.backend.nutrition.internal.closing.domain.ClosingRecords.RetainedSample;
 import com.eldercare.backend.nutrition.internal.closing.service.ClosingEventHandlers;
 import com.eldercare.backend.nutrition.internal.schedule.service.M08JobService;
 import com.eldercare.backend.support.TestUsers;
@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * Nền chung cho IT phiếu bữa ăn của 011 Phase 7 (trên {@link ClosingTestBase}, một context): bản ghi lưu mẫu của bữa ngày
- * ghi thẳng qua {@link SimpleRecordApi} (lệnh lưu mẫu là Phase 11); người nhận tại tầng mở quyền "Nhận phiếu, báo sai lệch"
+ * ghi thẳng qua {@link SimpleRecordApi} (dấu tối thiểu; lệnh lưu mẫu thật ở {@code BR_M08_15_RetainedSampleIT}); người nhận tại tầng mở quyền "Nhận phiếu, báo sai lệch"
  * cho đúng một tầng/khu bằng spy {@code PermissionApi}, tầng khác trả lớp {@code SCOPE} không thỏa.
  */
 abstract class SlipTestBase extends ClosingTestBase {
@@ -43,18 +43,22 @@ abstract class SlipTestBase extends ClosingTestBase {
     @Autowired
     M08JobService jobs;
 
-    /** Bữa ngày có bản ghi lưu mẫu (FR-060). */
+    /** Bữa ngày có bản ghi lưu mẫu (FR-060): dấu tối thiểu, không món, không hạn lưu; ghi một lần mỗi bữa. */
     void sample(long dailyMeal) {
+        String key = RetainedSample.key(dailyMeal);
+        if (simpleRecords.findByUniqueKey(RetainedSample.KIND, key).isPresent()) {
+            return;
+        }
         simpleRecords.create(
-                RetainedSampleMarker.KIND,
+                RetainedSample.KIND,
                 new NewSimpleRecord<>(
                         null,
                         new EntityRef("M08.DAILY_MEAL", dailyMeal),
                         "RECORDED",
-                        new RetainedSampleMarker(dailyMeal),
+                        RetainedSample.recorded(dailyMeal, null, 1, time.now(), null, List.of()),
                         null,
                         null,
-                        null,
+                        key,
                         1,
                         false));
     }

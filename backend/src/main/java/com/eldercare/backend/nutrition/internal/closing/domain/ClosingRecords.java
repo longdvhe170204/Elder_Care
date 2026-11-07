@@ -133,13 +133,53 @@ public final class ClosingRecords {
     }
 
     /**
-     * Bản ghi lưu mẫu của bữa ngày (FR-060, FR-061; {@code M08.RETAINED_SAMPLE}, cha là bữa ngày): Phase 11 (T039) cài nội
-     * dung và lệnh; giao phiếu chỉ cần biết bữa đã có bản ghi (FR-047).
+     * Bản ghi lưu mẫu của bữa ngày (FR-060 → FR-062; thay {@code luu_mau}, {@code luu_mau_mon}, nhóm 3, cha là bữa ngày):
+     * một bản ghi mỗi bữa (khóa {@link #key(long)}), trạng thái {@code RECORDED}, {@code DISCARDED}. {@code expiresAt} là
+     * lúc lưu + CFG-M08-06; hủy mẫu ({@code discardedBy}, {@code discardedAt}) đặt một lần rồi khóa dòng. Món ghi thêm sau
+     * phát sinh có {@code addedLater}. Bản ghi dạng dấu tối thiểu (không món, không hạn) chỉ để giao phiếu qua kiểm lưu mẫu.
      */
-    public record RetainedSampleMarker(long dailyMealId) {
+    public record RetainedSample(
+            long dailyMealId,
+            String storageLocation,
+            long retainedBy,
+            Instant retainedAt,
+            Instant expiresAt,
+            List<SampleDish> dishes,
+            Long discardedBy,
+            Instant discardedAt) {
 
-        public static final SharedKind<RetainedSampleMarker> KIND =
-                SharedKind.of("M08.RETAINED_SAMPLE", RetainedSampleMarker.class);
+        public static final SharedKind<RetainedSample> KIND =
+                SharedKind.of("M08.RETAINED_SAMPLE", RetainedSample.class);
+
+        /** Một món trong bản ghi: đã lưu mẫu hay chưa, lý do khi không lưu. */
+        public record SampleDish(long dishId, boolean retained, String notRetainedReason, boolean addedLater) {}
+
+        public RetainedSample {
+            dishes = dishes == null ? List.of() : List.copyOf(dishes);
+        }
+
+        public static String key(long dailyMealId) {
+            return "M08.RETAINED_SAMPLE:" + dailyMealId;
+        }
+
+        public static RetainedSample recorded(
+                long dailyMealId,
+                String storageLocation,
+                long by,
+                Instant at,
+                Instant expiresAt,
+                List<SampleDish> dishes) {
+            return new RetainedSample(dailyMealId, storageLocation, by, at, expiresAt, dishes, null, null);
+        }
+
+        public RetainedSample withDishes(List<SampleDish> more) {
+            return new RetainedSample(
+                    dailyMealId, storageLocation, retainedBy, retainedAt, expiresAt, more, discardedBy, discardedAt);
+        }
+
+        public RetainedSample discarded(long by, Instant at) {
+            return new RetainedSample(dailyMealId, storageLocation, retainedBy, retainedAt, expiresAt, dishes, by, at);
+        }
     }
 
     /**
