@@ -1,36 +1,19 @@
 package com.eldercare.backend.medication.internal.handover.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.Instant;
 
-/**
- * Carried dose link to handover record (FR-048a).
- */
-@Entity
-@DataGroup(DataGroup.Group.RECORD)
-@Table(name = "medication_handover_dose")
+/** Liều mang theo của lần giao, nhúng trong {@code medication_handover.lines.doses} (006 T069, {@code V006_97}); một liều thuộc tối đa một lần giao, kiểm ở domain. */
 public class MedicationHandoverDose {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "handover_id", nullable = false)
     private Long handoverId;
 
-    @Column(name = "dose_id", nullable = false, unique = true)
     private Long doseId;
 
-    @Column(name = "reverted_at")
     private Instant revertedAt;
 
-    protected MedicationHandoverDose() {}
+    public MedicationHandoverDose() {}
 
     public MedicationHandoverDose(Long handoverId, Long doseId) {
         this.handoverId = handoverId;
@@ -39,6 +22,12 @@ public class MedicationHandoverDose {
 
     public void markReverted(Instant revertedAt) {
         this.revertedAt = revertedAt;
+    }
+
+    public void assignId(Long id) {
+        if (this.id == null) {
+            this.id = id;
+        }
     }
 
     public Long getId() {
@@ -55,5 +44,19 @@ public class MedicationHandoverDose {
 
     public Instant getRevertedAt() {
         return revertedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof MedicationHandoverDose other
+                && java.util.Objects.equals(id, other.id)
+                && java.util.Objects.equals(handoverId, other.handoverId)
+                && java.util.Objects.equals(doseId, other.doseId)
+                && java.util.Objects.equals(revertedAt, other.revertedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id, handoverId, doseId, revertedAt);
     }
 }

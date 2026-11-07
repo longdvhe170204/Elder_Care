@@ -1,54 +1,31 @@
 package com.eldercare.backend.medication.internal.handover.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * Absence interval affecting medication schedule (FR-048, BR-M07-03).
+ * Khoảng vắng ảnh hưởng liều (BR-M07-03): dòng {@code simple_record} loại {@code M07.ABSENCE_INTERVAL} (006 T069,
+ * {@code V006_98}); một khoảng mở mỗi người qua {@code unique_key} {@code M07.AI:<residentId>}.
  */
-@Entity
-@DataGroup(DataGroup.Group.BUSINESS)
-@Table(name = "medication_absence_interval")
 public class MedicationAbsenceInterval {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "resident_id", nullable = false)
     private Long residentId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "absence_type", nullable = false, length = 35)
     private AbsenceIntervalType absenceType;
 
-    @Column(name = "from_time", nullable = false)
     private Instant fromTime;
 
-    @Column(name = "expected_to_time")
     private Instant expectedToTime;
 
-    @Column(name = "actual_to_time")
     private Instant actualToTime;
 
-    @Column(name = "absence_session_id")
     private Long absenceSessionId;
 
-    @Column(name = "trip_id")
     private Long tripId;
 
-    @Column(name = "no_medication_order_id")
     private Long noMedicationOrderId;
 
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     protected MedicationAbsenceInterval() {}
@@ -83,6 +60,39 @@ public class MedicationAbsenceInterval {
     }
 
     // --- Getters & Setters ---
+
+    private int version;
+
+    /** Gán id, phiên bản của dòng bảng chung sau khi đọc hoặc ghi. */
+    public void restoreRow(long id, int version, Instant createdAt) {
+        this.id = id;
+        this.version = version;
+        this.createdAt = createdAt;
+    }
+
+    public static MedicationAbsenceInterval restore(long residentId, AbsenceIntervalContent c) {
+        MedicationAbsenceInterval a = new MedicationAbsenceInterval(
+                residentId, c.absenceType(), c.fromTime(), c.expectedToTime(), c.absenceSessionId(), c.tripId(), null);
+        a.actualToTime = c.actualToTime();
+        a.noMedicationOrderId = c.noMedicationOrderId();
+        return a;
+    }
+
+    public AbsenceIntervalContent content() {
+        return new AbsenceIntervalContent(
+                absenceType,
+                fromTime,
+                expectedToTime,
+                actualToTime,
+                absenceSessionId,
+                tripId,
+                noMedicationOrderId,
+                null);
+    }
+
+    public int getVersion() {
+        return version;
+    }
 
     public Long getId() {
         return id;

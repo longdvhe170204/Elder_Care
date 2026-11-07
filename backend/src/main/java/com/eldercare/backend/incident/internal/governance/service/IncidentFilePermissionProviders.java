@@ -17,6 +17,12 @@ public class IncidentFilePermissionProviders {
         return incidentFile();
     }
 
+    /** Phiếu tóm tắt chuyển viện (FR-050h): endpoint của bản tóm tắt kiểm quyền trước khi đọc tệp. */
+    @Bean
+    public FilePermissionProvider transferSummaryFilePermission() {
+        return new BaseFilePermission("M05.TRANSFER_SUMMARY");
+    }
+
     public static FilePermissionProvider incidentFile() {
         return new BaseFilePermission(TEP_SU_CO);
     }
