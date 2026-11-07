@@ -40,8 +40,9 @@ import org.springframework.stereotype.Service;
  * CFG-M15-07 quanh ca, {@link ActiveAssignments}) và phân bổ giường đang mở của 003; không đệm giữa các yêu cầu
  * (FR-033). Đối tượng trong phạm vi khi một phân công trùng người cao tuổi, phòng hoặc tầng/khu vực của đối tượng; người
  * phụ trách ca có phạm vi là tầng/khu của ca qua phân công {@code SHIFT_LEAD} (FR-031). Người phụ trách ca, trưởng tầng
- * được giao lấy từ {@code DutyApi} và trả id tài khoản. Chưa có: phạm vi người tham gia chuyến của Trưởng đoàn, Người đi
- * cùng (FR-031; cần SPI của 014), của người cao tuổi (T091, US8). Người thân: người cao tuổi có quan hệ Hiệu lực
+ * được giao lấy từ {@code DutyApi} và trả id tài khoản. Trưởng đoàn, Người đi cùng có phạm vi là chuyến của mình
+ * ({@code M04.TRIP}, {@code DutyApi.groupLeader}, {@code companions}; 014 FR-031). Chưa có: phạm vi của người cao tuổi
+ * (T091, US8). Người thân: người cao tuổi có quan hệ Hiệu lực
  * (012), người đã ở trạng thái cuối còn trong phạm vi tới hết CFG-M01-04 (T071; FR-045, FR-049).
  */
 @Service
@@ -102,6 +103,9 @@ class ScopeService implements ScopeApi {
         if (user.staffId().isEmpty()) {
             return false;
         }
+        if (onTrip(user.staffId().get(), target)) {
+            return true;
+        }
         Long floorAreaId = target.floorAreaId();
         Long roomId = null;
         if (target.residentId() != null) {
@@ -109,6 +113,10 @@ class ScopeService implements ScopeApi {
             if (bed.isPresent()) {
                 floorAreaId = floorAreaId != null ? floorAreaId : bed.get().floorAreaId();
                 roomId = bed.get().roomId();
+            } else if (floorAreaId == null) {
+                // Người bán trú không có giường: tầng của khu nghỉ bán trú (Q-403)
+                floorAreaId =
+                        assignments.dayCareFloorOf(target.residentId(), at).orElse(null);
             }
         }
         for (AssignmentView a : assignments.at(user.staffId().get(), at)) {
@@ -119,6 +127,20 @@ class ScopeService implements ScopeApi {
             }
         }
         return false;
+    }
+
+    /** Trưởng đoàn, Người đi cùng của chuyến đối tượng (014 FR-031, FR-039, FR-040). */
+    private boolean onTrip(long staffId, Target target) {
+        if (!"M04.TRIP".equals(target.type()) || target.id() == null) {
+            return false;
+        }
+        DutyApi api = duties.getIfAvailable();
+        if (api == null) {
+            return false;
+        }
+        long trip = Long.parseLong(target.id());
+        return api.groupLeader(trip).filter(leader -> leader == staffId).isPresent()
+                || api.companions(trip).contains(staffId);
     }
 
     private static ScopeFilter self(long residentId) {

@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -206,6 +207,27 @@ public class ApprovalRequestService implements ApprovalRequestApi {
                     time.now(),
                     directory.requesterStaffId(closed)));
         }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void failApplication(long requestId, List<UnmetCondition> unmet, Basis basis) {
+        ApprovalRequestView request = store.lock(requestId).orElseThrow(NotFoundException::new);
+        String to = table.next(request.status(), Command.APPLY_FAILED);
+        String reasons =
+                unmet.stream().map(c -> c.code() + ": " + c.description()).collect(Collectors.joining("; "));
+        store.update(requestId, "status = ?, closing_reason = ?", to, reasons);
+        auditLog.write(AuditLogEntry.builder()
+                .action(ApprovalActions.APPLY_FAILED)
+                .entity(ApprovalActions.ENTITY, requestId)
+                .resident(request.target().residentId())
+                .before(Map.of("status", request.status()))
+                .after(Map.of("status", to))
+                .basis(basis)
+                .details(Map.of("unmetConditions", reasons))
+                .build());
+        ApprovalRequestView failed = store.find(requestId).orElseThrow();
+        events.publishEvent(new RequestApplyFailed(failed, unmet, time.now(), directory.requesterStaffId(failed)));
     }
 
     // ---- Lệnh qua HTTP ------------------------------------------------------------------------------------------

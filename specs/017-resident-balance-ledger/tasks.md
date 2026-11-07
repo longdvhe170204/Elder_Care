@@ -27,7 +27,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/billing/sodu/{so,giaodich,tinhtrang,quyettoan,chungtu,xuat,lich}/`; mở rộng `BT/billing/M11ArchTest.java` (010): chỉ `billing.sodu` dùng `ChiPhiChoSoDuPort`; gói `..lich..` không tạo giao dịch (research E-01, E-02)
-- [ ] T002 [P] Thêm ZXing core 3.5.4 vào `backend/pom.xml` (đã duyệt 2026-10-22; research E-04, 007 research S-26); kiểm `common.bieumau` (007 T104) và fastexcel (010) đã có
+- [x] T002 [P] *(Xong 2026-11-08, A: `zxing.version` 3.5.4 trong `backend/pom.xml`, biên dịch được; `common.document.PdfDocument` và fastexcel đã có)* Thêm ZXing core 3.5.4 vào `backend/pom.xml` (đã duyệt 2026-10-22; research E-04, 007 research S-26); kiểm `common.bieumau` (007 T104) và fastexcel (010) đã có
 - [x] T003 [P] *(Xong 2026-10-22: `common.file.FileTypes`, `FileTypesTest`; ghi chú triển khai ở plan)* Bổ sung kiểu `.xlsx` cho tệp do hệ thống tạo trong `FileApi.upload` của `BE/common/file/` (không mở cho `POST /tep`) và test (research E-11)
 
 ---
@@ -42,7 +42,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 - [ ] T005 [P] Khai báo ở `BE/billing/api/`: `SoDuApi` (`soDu`, `dieuKienQuyetToan`, `chungTu`), `SoDuThongKeApi` (`tinhTrang`, `thuChi`), sự kiện `TrangThaiDatCocDaDoi`, `DieuKienQuyetToanDaDoi`, `TinhTrangSoDuDaDoi`, `ChungTuDaPhatHanh` (module-interfaces mục 2.2 → 2.4) và bản giả `BT/support/fake/billing/` cho 004, 012, 016
 - [ ] T006 [P] Bản giả cho test của 017 trong `BT/support/`: `ChiPhiChoSoDuPort` (010, có `bangDaChot`), `HoSoKetThucDocApi` và phát sự kiện 004, `QuyenNguoiThanApi` (012) — dùng bản giả do người khai báo viết nếu đã có (docs/team-plan.md mục 3)
 - [ ] T007 Cài provider trong `BE/billing/sodu/`: `PhanLoaiTruongProvider` (`TAI_CHINH`), `LuuTruProvider` (`THEO_HO_SO`), `GanPhamViProvider`, `QuyenTepProvider` (`M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`, `M11.BAN_KY_QUYET_TOAN`, `M11.FILE_XUAT`) theo research E-12; khóa `@RequiresPermission` theo bảng E-12
-- [ ] T008 [P] Test bảng các hàm thuần dùng chung về sau: `BT/billing/sodu/VietQrPayloadTest.java` (test vector, CRC16) và `TrangThaiDatCocTest.java` (research E-04, E-05, E-13)
+- [ ] T008 [P] *(Chia 2026-11-08: `VietQrPayloadTest` và `VietQrPayload` do B làm cùng phiếu báo phí (Phase 9), `TrangThaiDatCocTest` do A làm)* Test bảng các hàm thuần dùng chung về sau: `BT/billing/sodu/VietQrPayloadTest.java` (test vector, CRC16) và `TrangThaiDatCocTest.java` (research E-04, E-05, E-13)
 
 **Checkpoint**: Bảng, API, bản giả sẵn sàng.
 
