@@ -79,7 +79,7 @@ public class ActiveAssignments {
 
     /**
      * Tầng/khu vực của đối tượng: tầng ghi trên đối tượng, không có thì tầng của phân bổ giường đang mở của người cao tuổi
-     * tại {@code at}; rỗng khi không xác định được (bản ghi không gắn tầng).
+     * tại {@code at}, người không có giường thì tầng của khu nghỉ bán trú (Q-403); rỗng khi không xác định được.
      */
     public Optional<Long> floorOf(Target target, Instant at) {
         if (target.floorAreaId() != null) {
@@ -87,7 +87,15 @@ public class ActiveAssignments {
         }
         return target.residentId() == null
                 ? Optional.empty()
-                : bedOf(target.residentId(), at).map(BedAllocationView::floorAreaId);
+                : bedOf(target.residentId(), at)
+                        .map(BedAllocationView::floorAreaId)
+                        .or(() -> dayCareFloorOf(target.residentId(), at));
+    }
+
+    /** Tầng của khu nghỉ bán trú của người cao tuổi không có giường tại {@code at} (Q-403). */
+    public Optional<Long> dayCareFloorOf(long residentId, Instant at) {
+        BedAllocationApi api = bedAllocations.getIfAvailable();
+        return api == null ? Optional.empty() : api.dayCareFloorAt(residentId, at);
     }
 
     /** Như {@link #floorOf} nhưng dữ liệu nguồn lỗi thì coi như không gắn tầng (chỉ để chọn người nhận báo). */

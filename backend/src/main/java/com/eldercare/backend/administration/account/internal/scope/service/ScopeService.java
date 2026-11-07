@@ -109,6 +109,10 @@ class ScopeService implements ScopeApi {
             if (bed.isPresent()) {
                 floorAreaId = floorAreaId != null ? floorAreaId : bed.get().floorAreaId();
                 roomId = bed.get().roomId();
+            } else if (floorAreaId == null) {
+                // Người bán trú không có giường: tầng của khu nghỉ bán trú (Q-403)
+                floorAreaId =
+                        assignments.dayCareFloorOf(target.residentId(), at).orElse(null);
             }
         }
         for (AssignmentView a : assignments.at(user.staffId().get(), at)) {
