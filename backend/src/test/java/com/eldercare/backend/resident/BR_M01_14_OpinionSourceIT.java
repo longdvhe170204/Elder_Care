@@ -10,6 +10,7 @@ import com.eldercare.backend.resident.api.dto.OpinionSource;
 import com.eldercare.backend.resident.api.dto.OpinionSourceType;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
+import com.eldercare.backend.support.fake.administration.FakeFamilyRelationshipsConfig;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Import;
  * cao tuổi lúc gọi (bản giả {@code FamilyRelationshipApi} của 012); loại khác thì {@code familyMemberId} phải rỗng; sai
  * thì 422 {@code INVALID_OPINION_SOURCE}.
  */
-@Import(FakeM15Config.class)
+@Import({FakeM15Config.class, FakeFamilyRelationshipsConfig.class})
 class BR_M01_14_OpinionSourceIT extends MySqlIntegrationTestBase {
 
     @Autowired

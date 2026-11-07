@@ -24,6 +24,7 @@ import com.eldercare.backend.resident.api.dto.TreatmentWishView;
 import com.eldercare.backend.resident.api.dto.Warning;
 import com.eldercare.backend.resident.api.dto.WishOpinion;
 import com.eldercare.backend.resident.internal.health.service.ActorNames;
+import com.eldercare.backend.resident.internal.health.service.SelfReportedHealth;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
@@ -109,6 +110,14 @@ public class TreatmentWishService {
 
     /** Đối tượng kiểm quyền của phiếu: hồ sơ người cao tuổi mà nó thuộc về (quyền tải bản ký). */
     @Transactional(readOnly = true)
+    /** Ô T⁵⁰ của Hành chính chỉ là tự khai về sức khỏe (Q-400); phiếu nguyện vọng khi điều trị chỉ cho Bác sĩ, Điều dưỡng. */
+    private void requireNotOfficeOnly() {
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice(
+                    "Hành chính chỉ biết đã có hay chưa có phiếu nguyện vọng khi điều trị");
+        }
+    }
+
     public Target targetOf(long wishId) {
         return ResidentProfileService.target(store.residentIdOf(wishId).orElseThrow(NotFoundException::new));
     }
@@ -116,6 +125,7 @@ public class TreatmentWishService {
     @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public Summary get(Target target) {
+        requireNotOfficeOnly();
         return new Summary(store.findActive(target.residentId()), store.listByResident(target.residentId()));
     }
 
@@ -129,6 +139,7 @@ public class TreatmentWishService {
     @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.CREATE)
     @Transactional
     public Result record(Target target, RecordCommand command) {
+        requireNotOfficeOnly();
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);

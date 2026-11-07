@@ -24,6 +24,9 @@ public final class SharedTestKinds {
     public static final HistoryTrack<Attributes> TRACK =
             new HistoryTrack<>("M15.TEST_ENTITY", "status", Attributes.class);
     public static final HistoryTrack<Void> OTHER_TRACK = new HistoryTrack<>("M15.TEST_ENTITY", "owner", Void.class);
+    /** Track bật {@code reasonRequired} (FR-046 của 001). */
+    public static final HistoryTrack<Void> REASON_TRACK =
+            new HistoryTrack<>("M15.TEST_ENTITY", "reasoned", Void.class, true);
 
     /** Tên, mã, khóa không trùng giữa các lần chạy (schema test giữ dữ liệu). */
     public static String unique(String prefix) {

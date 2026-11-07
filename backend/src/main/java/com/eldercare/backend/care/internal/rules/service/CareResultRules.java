@@ -111,12 +111,7 @@ public class CareResultRules {
         }
         int count = PoorMealStreak.count(codes);
         if (count < parameters.read(ParameterCode.CFG_M04_04).asInt()) return;
-        if (count > 32) throw unavailable("Chuỗi bữa dài chờ payload outbox an toàn của phần nền");
         var chain = meals.subList(0, count);
-        for (var meal : chain) {
-            if (meal.task().basisType() != SourceType.MEAL || meal.task().basisId() == null)
-                throw unavailable("Chờ 011 liên kết mealId cho ghi nhận ăn phát sinh");
-        }
         var first = chain.getFirst();
         String marker = chain.stream()
                 .map(v -> Long.toString(v.original().id()))
@@ -135,11 +130,13 @@ public class CareResultRules {
                 NotificationLevel.LOW,
                 resident,
                 "M04",
-                SourceType.MEAL,
-                first.task().basisId(),
+                first.task().basisType(),
+                first.task().basisId() == null
+                        ? first.task().id()
+                        : first.task().basisId(),
                 context));
         events.publishEvent(new ProlongedPoorEating(
-                resident, chain.stream().map(v -> v.task().basisId()).toList(), time.now(), context));
+                resident, chain.getLast().task().plannedAt(), first.task().plannedAt(), count, time.now(), context));
     }
 
     private byte[] digest(String text) {

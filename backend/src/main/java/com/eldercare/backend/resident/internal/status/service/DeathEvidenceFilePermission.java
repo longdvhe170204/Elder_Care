@@ -6,7 +6,7 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.common.file.FilePermissionProvider;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
@@ -21,14 +21,12 @@ class DeathEvidenceFilePermission implements FilePermissionProvider {
 
     private static final PermissionKey VIEW = new PermissionKey(Function.RESIDENCY_END_DEATH, Operation.VIEW);
 
-    private final ResidentStatusHistoryRepository histories;
+    private final ResidentStatusHistoryStore histories;
     private final PermissionApi permissions;
     private final ObjectProvider<CurrentUser> currentUser;
 
     DeathEvidenceFilePermission(
-            ResidentStatusHistoryRepository histories,
-            PermissionApi permissions,
-            ObjectProvider<CurrentUser> currentUser) {
+            ResidentStatusHistoryStore histories, PermissionApi permissions, ObjectProvider<CurrentUser> currentUser) {
         this.histories = histories;
         this.permissions = permissions;
         this.currentUser = currentUser;

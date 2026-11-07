@@ -10,7 +10,7 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.events.InitialHealthRecordChanged;
 import com.eldercare.backend.resident.internal.health.domain.InitialHealthRecord;
-import com.eldercare.backend.resident.internal.health.persistence.InitialHealthRecordRepository;
+import com.eldercare.backend.resident.internal.health.persistence.InitialHealthRecordStore;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -35,12 +35,12 @@ class InitialHealthRecordCorrectionProvider implements CorrectableRecordProvider
             "currentMedications",
             "rehabilitationNeeds");
 
-    private final InitialHealthRecordRepository records;
+    private final InitialHealthRecordStore records;
     private final ResidentApi residents;
     private final ApplicationEventPublisher events;
 
     InitialHealthRecordCorrectionProvider(
-            InitialHealthRecordRepository records, ResidentApi residents, ApplicationEventPublisher events) {
+            InitialHealthRecordStore records, ResidentApi residents, ApplicationEventPublisher events) {
         this.records = records;
         this.residents = residents;
         this.events = events;

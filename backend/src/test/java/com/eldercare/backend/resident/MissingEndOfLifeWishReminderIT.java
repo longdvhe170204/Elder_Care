@@ -69,10 +69,9 @@ class MissingEndOfLifeWishReminderIT extends WishTestBase {
         wishReminders.startReminding(id);
 
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM periodic_reminder WHERE type = 'MISSING_END_OF_LIFE_WISH'"
-                                + " AND resident_id = ?",
-                        Integer.class,
-                        id))
+                        "SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M01.PERIODIC_REMINDER.MISSING_END_OF_LIFE_WISH'"
+                                + " AND entity_type = 'M01.RESIDENT' AND entity_id = ? AND marker LIKE 'START:%'",
+                        Integer.class, id))
                 .isEqualTo(1);
     }
 

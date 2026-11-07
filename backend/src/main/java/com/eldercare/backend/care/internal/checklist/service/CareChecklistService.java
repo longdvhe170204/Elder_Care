@@ -247,12 +247,18 @@ public class CareChecklistService {
         long actor = user.staffId().orElseThrow(() -> new PermissionDeniedException("Chỉ nhân viên được nhận việc"));
         var staff = commands.staff();
         var shift = commands.shift(before.shiftId());
+        var claimAt = before.plannedAt();
+        if (before.carryover() != null) {
+            shift = staff.shiftContaining(before.floorAreaId(), time.now())
+                    .orElseThrow(() -> new PermissionDeniedException("Không có ca đang diễn ra để nhận công việc tồn"));
+            claimAt = time.now();
+        }
         boolean lead = staff.shiftLead(shift.id()).equals(user.staffId());
         if (before.performerId() != null && (!lead || before.performerId() == actor))
             throw new BusinessException(HttpStatus.CONFLICT, "INVALID_PERFORMER", "Công việc đã có người được giao");
         if (!shift.published()
                 || staff.members(shift.id()).stream().noneMatch(m -> m.staffId() == actor)
-                || !staff.onShift(actor, before.plannedAt()))
+                || !staff.onShift(actor, claimAt))
             throw new PermissionDeniedException("Người nhận không có tên trong ca tại thời điểm công việc");
         if (user.roles().stream().noneMatch(role -> CareTaskValidator.roleMatches(before.performerRole(), role)))
             throw new PermissionDeniedException("Vai trò không phù hợp công việc");

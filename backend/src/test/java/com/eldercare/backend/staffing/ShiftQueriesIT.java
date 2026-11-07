@@ -1,8 +1,10 @@
 package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.care.api.spi.CareShiftPort;
+import com.eldercare.backend.care.api.spi.ShiftStaffPort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
@@ -15,10 +17,15 @@ import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Instant;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** T015: truy vấn thật theo giờ, không dựa vào việc job đã kịp chuyển trạng thái hay chưa. */
@@ -43,6 +50,9 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
     CareShiftPort care;
 
     @Autowired
+    ShiftStaffPort careStaff;
+
+    @Autowired
     NursingShiftPort nursing;
 
     @Autowired
@@ -52,9 +62,46 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
     LocationReferences locations;
 
     @Autowired
-    com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore store;
+    com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore store;
 
     private long floor;
+
+    @Test
+    void FR_017_ongoingCareShiftsIncludeFloorsAndAreasWithoutBedsOrTasks() {
+        long firstFloor = floor;
+        long first = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        floor = TestUsers.nextId();
+        long second = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        jdbc.update("UPDATE work_shift SET scope_type='AREA' WHERE id=?", second);
+        assertThat(careStaff.ongoingShifts(time.now()))
+                .filteredOn(s -> s.floorAreaId() == firstFloor || s.floorAreaId() == floor)
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .containsExactlyInAnyOrder(first, second);
+    }
+
+    @Test
+    void FR_017_ongoingCareShiftsUseHalfOpenTimeBounds() {
+        long id = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        assertThat(careStaff.ongoingShifts(Instant.parse("2031-01-13T00:00:00Z")))
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .contains(id);
+        assertThat(careStaff.ongoingShifts(Instant.parse("2031-01-13T08:00:00Z")))
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .doesNotContain(id);
+    }
+
+    @Test
+    void FR_017_ongoingCareShiftsExcludeUnpublishedAndFacilityShifts() {
+        long draft = fixture(staff(Role.NURSING_STAFF), "DRAFT");
+        floor = TestUsers.nextId();
+        long cancelled = fixture(staff(Role.NURSING_STAFF), "CANCELLED");
+        floor = TestUsers.nextId();
+        long facility = fixture(staff(Role.NURSING_STAFF), "PUBLISHED");
+        jdbc.update("UPDATE work_shift SET scope_type='FACILITY',scope_id=NULL WHERE id=?", facility);
+        assertThat(careStaff.ongoingShifts(time.now()))
+                .extracting(ShiftStaffPort.ShiftView::id)
+                .doesNotContain(draft, cancelled, facility);
+    }
 
     @BeforeEach
     void setup() {
@@ -82,22 +129,84 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
     }
 
     private long insertFixture(long worker, String status) {
-        jdbc.update(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Tra cứu ca]','07:00','15:00','FLOOR')");
-        long template = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
+        long template = AssignmentFixtures.insert(
+                jdbc,
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Tra cứu ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type) src");
+        long schedule = AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2031-01','FLOOR',?,'PUBLISHED')",
                 floor);
-        long schedule = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
+        long id = AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) VALUES (?,?,'2031-01-13 00:00','2031-01-13 08:00','FLOOR',?,TRUE,?)",
                 schedule,
                 template,
                 floor,
                 status);
-        long id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", id, worker);
         return id;
+    }
+
+    private long doctorShift(long template, YearMonth month) {
+        long schedule = AssignmentFixtures.insert(
+                jdbc,
+                "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES (?,'FACILITY',NULL,'PUBLISHED')",
+                month.toString());
+        String day = month.atDay(13).toString();
+        return AssignmentFixtures.insert(
+                jdbc,
+                "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) VALUES (?,?,CONCAT(?,' 00:00'),CONCAT(?,' 08:00'),'FACILITY',NULL,FALSE,'PUBLISHED')",
+                schedule,
+                template,
+                day,
+                day);
+    }
+
+    @Test
+    void FR_049_floorAndDoctorFixturesKeepTheirGeneratedKeysWhenConnectionsRotate() throws Exception {
+        long worker = staff(Role.NURSING_STAFF);
+        var originalJdbc = jdbc;
+        try (var firstConnection = originalJdbc.getDataSource().getConnection();
+                var secondConnection = originalJdbc.getDataSource().getConnection()) {
+            var firstSource = new SingleConnectionDataSource(firstConnection, true);
+            var secondSource = new SingleConnectionDataSource(secondConnection, true);
+            var connections = List.of(firstSource.getConnection(), secondSource.getConnection());
+            var nextConnection = new AtomicInteger();
+            var rotatingSource = mock(DataSource.class);
+            when(rotatingSource.getConnection())
+                    .thenAnswer(invocation -> connections.get(nextConnection.getAndIncrement() % connections.size()));
+            jdbc = new JdbcTemplate(rotatingSource);
+            var secondJdbc = new JdbcTemplate(secondSource);
+            secondJdbc.queryForObject("SELECT LAST_INSERT_ID(0)", Long.class);
+
+            long floorShift = fixture(worker, "PUBLISHED");
+
+            var created = store.find(floorShift).orElseThrow();
+            assertThat(created.scopeType()).isEqualTo("FLOOR");
+            assertThat(created.scopeId()).isEqualTo(floor);
+            assertThat(shifts.staffOnShift(floor, time.now())).containsExactly(worker);
+
+            var month = YearMonth.of(2031, 2);
+            while (originalJdbc.queryForObject(
+                            "SELECT COUNT(*) FROM shift_schedule WHERE month=? AND scope_type='FACILITY'",
+                            Integer.class,
+                            month.toString())
+                    > 0) month = month.plusMonths(1);
+            // Buộc cả hai helper đổi kết nối; không phụ thuộc pool trả lại kết nối nào.
+            secondJdbc.queryForObject("SELECT LAST_INSERT_ID(0)", Long.class);
+            nextConnection.set(0);
+            long facilityShift = doctorShift(created.shiftTemplateId(), month);
+
+            assertThat(store.find(facilityShift)).hasValueSatisfying(s -> {
+                assertThat(s.scopeType()).isEqualTo("FACILITY");
+                assertThat(s.scopeId()).isNull();
+                assertThat(s.shiftTemplateId()).isEqualTo(created.shiftTemplateId());
+            });
+        } finally {
+            jdbc = originalJdbc;
+        }
     }
 
     @Test
@@ -187,14 +296,14 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
         // Bác sĩ trực ở ca cấp viện; dấu Bác sĩ trực trên ca tầng không tính
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id,on_duty_doctor) VALUES (?,?,TRUE)", floorShift, other);
         long template = jdbc.queryForObject("SELECT template_id FROM work_shift WHERE id=?", Long.class, floorShift);
-        jdbc.update(
+        long schedule = AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2031-01','FACILITY',NULL,'PUBLISHED')");
-        long schedule = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
+        long id = AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) VALUES (?,?,'2031-01-13 00:00','2031-01-13 08:00','FACILITY',NULL,FALSE,'PUBLISHED')",
                 schedule,
                 template);
-        long id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id,on_duty_doctor) VALUES (?,?,TRUE)", id, doctor);
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", id, other);
         assertThat(shifts.onDutyDoctors(time.now())).contains(doctor).doesNotContain(other, nurse);

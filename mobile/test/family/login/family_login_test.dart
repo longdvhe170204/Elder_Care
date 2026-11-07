@@ -48,7 +48,7 @@ void main() {
     await tester.tap(find.text('Lưu mật khẩu mới'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Thông báo'), findsOneWidget);
+    expect(find.widgetWithText(NavigationDestination, 'Thông báo'), findsOneWidget);
     expect(store.values[SessionController.tokenKey], 'family-1');
   });
 

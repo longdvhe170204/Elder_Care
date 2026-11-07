@@ -133,7 +133,8 @@ class ChildScopeAssignmentIT extends StatusTestBase {
         ids.put(
                 "M01.RESIDENT_STATUS_HISTORY",
                 jdbc.queryForObject(
-                        "SELECT id FROM resident_status_history WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
+                        "SELECT id FROM " + com.eldercare.backend.support.ResidentHistoryRows.STATUS
+                                + " WHERE resident_id = ? ORDER BY id DESC LIMIT 1",
                         Long.class,
                         resident));
         ids.put("M01.RESIDENT", resident);

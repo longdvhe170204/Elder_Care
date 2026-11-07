@@ -20,11 +20,12 @@ class FakeBackend {
   /// Mất mạng: mọi yêu cầu lỗi kết nối.
   bool down = false;
 
-  void on(String method, String path, int status, [Object? body]) {
+  /// `headers`: header phản hồi thêm, ví dụ `etag` của `GET /assessments/{id}`.
+  void on(String method, String path, int status, [Object? body, Map<String, String> headers = const {}]) {
     _routes['$method $path'] = (_) => http.Response.bytes(
       body == null ? const [] : utf8.encode(jsonEncode(body)),
       status,
-      headers: {'content-type': status >= 400 ? 'application/problem+json' : 'application/json'},
+      headers: {'content-type': status >= 400 ? 'application/problem+json' : 'application/json', ...headers},
     );
   }
 

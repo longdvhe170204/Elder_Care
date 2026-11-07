@@ -39,6 +39,7 @@ const STATUS_TONE = {
   'Đã xác nhận': 'settled',
   'Hiệu lực': 'settled',
   'Đã vào': 'occupied',
+  'Đang ở lại': 'occupied',
   'Đang giữ chỗ': 'held',
   'Đang sử dụng': 'occupied',
   // Thông báo, liên hệ trực tiếp, kênh (009; DESIGN.md 5.19.0): Chờ hết giờ yên tĩnh, Đã gửi, Không gửi, Không liên hệ
@@ -55,6 +56,9 @@ const STATUS_TONE = {
   'Hoạt động': 'settled',
   'Khóa tạm': 'attention',
   'Đã khóa': 'neutral-outline',
+  // Buổi hoạt động (014 T009; DESIGN.md 6.8.2): Đã lên lịch, Đã hủy giữ neutral
+  'Đã điểm danh': 'settled',
+  'Không điểm danh': 'attention',
 }
 
 function statusTone(status) {

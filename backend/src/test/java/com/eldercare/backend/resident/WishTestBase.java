@@ -60,7 +60,7 @@ public abstract class WishTestBase extends ConsentTestBase {
 
     protected int activeWishCount(long residentId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM end_of_life_wish WHERE resident_id = ? AND status = 'ACTIVE'",
+                "SELECT COUNT(*) FROM wish WHERE kind = 'END_OF_LIFE' AND resident_id = ? AND status = 'ACTIVE'",
                 Integer.class,
                 residentId);
     }

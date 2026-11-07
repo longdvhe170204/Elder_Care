@@ -3,8 +3,8 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.notification.*;
-import com.eldercare.backend.staffing.shift.internal.domain.WorkShift;
-import com.eldercare.backend.staffing.shift.internal.service.PostPublicationNotifications;
+import com.eldercare.backend.staffing.internal.shift.domain.WorkShift;
+import com.eldercare.backend.staffing.internal.shift.service.PostPublicationNotifications;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;

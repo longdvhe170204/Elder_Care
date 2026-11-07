@@ -7,11 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.administration.FakeResidencyEnds;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * 002 T068 (US6 #8, #9; FR-050, FR-051, FR-052; SC-011): Hành chính hoặc Quản lý viện tạo tài khoản người thân cho hồ
@@ -44,7 +47,12 @@ class FamilyVerificationIT extends MySqlIntegrationTestBase {
     BusinessTime time;
 
     @Autowired
-    FakeFamilyRelationships relationships;
+    RelationshipHistoryStore history;
+
+    @Autowired
+    TransactionTemplate tx;
+
+    RelationshipFixtures family;
 
     @Autowired
     FakeResidencyEnds residencyEnds;
@@ -58,10 +66,11 @@ class FamilyVerificationIT extends MySqlIntegrationTestBase {
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
         office = fixtures.session(fixtures.staffAccount("AC-09"));
-        familyMember = AccountFixtures.nextId();
+        family = new RelationshipFixtures(
+                jdbc, tx, history, time.now().minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.MICROS));
+        familyMember = family.familyMember("Người thân thử", PHONE);
         resident = AccountFixtures.nextId();
-        relationships.relate(familyMember, resident);
-        relationships.phoneNumber(familyMember, PHONE);
+        family.relate(familyMember, resident, 1, false, false);
     }
 
     @Test

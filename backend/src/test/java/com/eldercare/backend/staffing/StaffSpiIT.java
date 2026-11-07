@@ -79,7 +79,7 @@ class StaffSpiIT extends MySqlIntegrationTestBase {
         long staff = staff("DOCTOR");
         var expiry = time.today();
         jdbc.update(
-                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) VALUES (?,1,?,?)",
+                "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT src.staff_id,(SELECT c.id FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE' AND COALESCE(c.m09_legacy_id,c.id)=src.credential_type_id),src.issue_date,src.expiry_date FROM (SELECT ? AS staff_id,1 AS credential_type_id,? AS issue_date,? AS expiry_date) src",
                 staff,
                 expiry.minusYears(1),
                 expiry);
@@ -93,7 +93,7 @@ class StaffSpiIT extends MySqlIntegrationTestBase {
     @Test
     void FR_005_practiceScopeKeepsTechnicalIdAndActiveState() {
         jdbc.update(
-                "INSERT INTO practice_scope(code,name,status) VALUES ('TEST-SPI-SCOPE','[Phạm vi kiểm thử]','INACTIVE')");
+                "INSERT INTO catalog_item(catalog_type,module,code,name,status,attributes) SELECT 'M09.PRACTICE_SCOPE','M09',src.code,src.name,src.status,JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'legacyCode',src.code) FROM (SELECT 'TEST-SPI-SCOPE' AS code,'[Phạm vi kiểm thử]' AS name,'INACTIVE' AS status) src");
         long id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         assertThat(scopes.find(id)).hasValueSatisfying(v -> {
             assertThat(v.name()).isEqualTo("[Phạm vi kiểm thử]");

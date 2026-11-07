@@ -10,10 +10,13 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
 import { OverdueTasksPage } from '@/features/care-tasks/OverdueTasksPage'
+import { TimetablePage } from '@/features/care-tasks/TimetablePage'
 import { CarePlanPage } from '@/features/care-tasks/CarePlanPage'
 import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPage'
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
 import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
+import { ActivitySessionsPage } from '@/features/activities/ActivitySessionsPage'
+import { QualityCheckPage } from '@/features/quality-checks/QualityCheckPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
@@ -22,16 +25,30 @@ import { PendingReviewPage } from '@/features/pending-review/PendingReviewPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
+import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { HealthCatalogPage } from '@/features/health-catalog/HealthCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { FamilyMembersPage } from '@/features/relatives/FamilyMembersPage'
+import { PickupPage } from '@/features/relatives/pickups/PickupPage'
+import { VisitsPage } from '@/features/relatives/visits/VisitsPage'
+import { FeedbackPage } from '@/features/relatives/feedback/FeedbackPage'
+import { FamilyStaysPage } from '@/features/relatives/stays/FamilyStaysPage'
+import { ApplicationsPage } from '@/features/admissions/ApplicationsPage'
+import { WaitingListPage } from '@/features/admissions/WaitingListPage'
+import { ContractsPage } from '@/features/admissions/ContractsPage'
+import { ChangeRequestsPage } from '@/features/admissions/ChangeRequestsPage'
+import { AbsencesPage } from '@/features/admissions/AbsencesPage'
+import { EndingsPage } from '@/features/admissions/EndingsPage'
+import { DeathsPage } from '@/features/admissions/DeathsPage'
+import { ServicesPage } from '@/features/admissions/ServicesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
+import { BelongingsPage } from '@/features/belongings/BelongingsPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
@@ -43,23 +60,40 @@ const PAGES = {
   staff: StaffPage,
   'care-tasks': CareChecklistPage,
   'overdue-care-tasks': OverdueTasksPage,
+  'care-timetable': TimetablePage,
   'care-plans': CarePlanPage,
   'care-task-planning': ShiftTaskPlanningPage,
   'day-care-attendance': DayCareAttendancePage,
   'care-catalogs': CareCatalogPage,
+  'activity-sessions': ActivitySessionsPage,
+  'quality-checks': QualityCheckPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
   'health-catalog': HealthCatalogPage,
   alerts: AlertsPage,
   handovers: HandoverPage,
+  'residence-registrations': ResidenceRegistrationPage,
   relatives: RelativesPage,
   'family-members': FamilyMembersPage,
+  pickups: PickupPage,
+  visits: VisitsPage,
+  feedback: FeedbackPage,
+  'family-stays': FamilyStaysPage,
+  'admission-applications': ApplicationsPage,
+  'waiting-list': WaitingListPage,
+  contracts: ContractsPage,
+  'residency-changes': ChangeRequestsPage,
+  absences: AbsencesPage,
+  'residency-endings': EndingsPage,
+  deaths: DeathsPage,
+  services: ServicesPage,
   'audit-log': AuditLogTable,
   admin: AdminPage,
   'approval-requests': ApprovalInbox,
   notifications: NotificationsPage,
   'pending-review-records': PendingReviewPage,
+  belongings: BelongingsPage,
 }
 
 // Mục menu chỉ hiện khi đã có màn
