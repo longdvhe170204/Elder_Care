@@ -1056,7 +1056,7 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | `CanQuyetDinhGiuGiuong`, `DenNgayXemXetGiuGiuong`, `KhongCoDongChinhSach`, `HopDongQuaHanBaoQuanLy`, `NhacM02`, `DatCocChuaDapUngSauLuuTru`, `YeuCauNguoiDaiDienCanHoanThien` | `BedHoldDecisionNeeded(absenceId, days, policyLine)`, `BedHoldReviewDue(absenceId)`, `NoAbsencePolicyLine(absenceId, date)`, `ContractOverdueEscalated(contractId, days)`, `M02Reminder(type, subjectId)`, `DepositNotSatisfiedAfterAdmission(contractId)`, `RepresentativeRequestNeedsCompletion(requestId)` |
 | `HoSoKetThucDaLap`, `…DaDoiNgay`, `…DaHuy`, `…HoanTat`; `QuaDoiDaGhiNhan`; `NgoaiLeKetThucDaDuyet`; `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`; `PhienBanDonGiaDaTao` | `ResidencyEndingCreated`, `ResidencyEndingDateChanged`, `ResidencyEndingCancelled`, `ResidencyEndingCompleted` (`residencyEndingId`, `residentId`, ngày); `DeathRecorded(residentId, at, recordId)`; `EndingExceptionApproved(residencyEndingId, residentId, conditionCode)` (`residencyEndingId` rỗng khi qua đời, Q-387); `DayCareClosureDayChanged(date, active)`, `DayCareAbsenceNoticeRecorded(residentId, date, sessionId, withinNoticePeriod)`; `PriceVersionCreated(serviceId, effectiveFrom, effectiveTo)` |
 | sự kiện 004 nghe: `NguoiCaoTuoiDaChuyenTrangThai`, `DanhGiaDauVaoDaXacNhan`, `MucChamSocDaDoi` (001); `GiuongDaTrong` (003); `YeuCauDaQuyetDinh`, `YeuCauApDungKhongThanh`, `YeuCauDaHuy`, `ThamSoDaDoi` (000) | `ResidentStatusChanged`, `InitialAssessmentConfirmed`, `CareLevelChanged`; `BedBecameVacant` (tên do C chốt, mục 9); `RequestDecided`, `RequestApplyFailed`, `RequestCancelled`, `ParameterChanged` |
-| `TrangThaiDatCocDaDoi`, `DieuKienQuyetToanDaDoi` (017 phát) | `DepositStatusChanged`, `SettlementConditionChanged` (tên do E chốt ở mục 23; 004 chỉ nghe) |
+| `TrangThaiDatCocDaDoi`, `DieuKienQuyetToanDaDoi` (017 phát) | `DepositStatusChanged`, `SettlementConditionChanged` (tên chốt ở mục 23; 004 chỉ nghe) |
 | `ThamSoApi`, `NhatKyApi`, `DinhChinhApi`, `YeuCauPheDuyetApi`, `TepApi`, `TaiKhoanApi.coVaiTro` | `ParameterApi`, `AuditLogApi`, `CorrectionApi`, `ApprovalRequestApi`, `FileApi`, `AccountApi.hasRole` (như mục 6, 7, 8) |
 
 ### 10.6. Bảng, cột, lớp và migration (T005 → T009, T015, T023, T032, T044, T051, T058, T063)
@@ -3764,9 +3764,126 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | màn web (chốt 2026-10-24): một màn Báo cáo có tab cho mọi nhóm thay các thư mục theo nhóm | `features/dashboard/DashboardPage.jsx`; `features/reports/` (`ReportsPage`, `ReportTable`, `MetricDetailSheet`, `ExportDialog`, `ExportList`, `reportLabels`) |
 | web `tinh-nang/bao-cao/{dashboard, nguoi-cao-tuoi, cham-soc, chat-luong, suc-khoe-thuoc, chi-phi, nhan-su-ca, chi-tiet}` | `features/reports/{dashboard, residents, care, quality, health-medication, incurred-costs, staffing-shifts, metric-details}` |
 
-## 23. Feature 017 (`017-resident-balance-ledger`, E)
+## 23. Feature 017 (`017-resident-balance-ledger`, A Phase 1–6, B Phase 7–10) — bản dịch chờ chủ dự án duyệt
 
-*Chủ feature điền khi dịch `contracts/api-017.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+*(A lập 2026-11-08 khi dịch `contracts/api-017.yaml`; 017 chuyển từ E sang A, B ngày 2026-11-07, team-plan mục 1.)* Không thêm bớt endpoint hay trường; chỉ đổi tên. Mã FR/BR/DBR/CFG/Q giữ nguyên. Enum dùng lại tên đã có: trạng thái đặt cọc như 004 (mục 10), mã điều kiện kết thúc như mục 10 (`END_H_SETTLEMENT`, `END_H_SETTLEMENT_CONFIRMATION`), loại bảng chi phí như 010 (`REGULAR`, `SUPPLEMENTARY`). Người thân dùng `/family-portal/**` như 012. Gói backend: `billing.balance` (con của module `billing`, chủ A, B; phần 010 vẫn của E).
+
+### 23.1. Đường dẫn HTTP (giữ nguyên phương thức và phạm vi)
+
+| Tên logic | Tên tiếng Anh |
+| --- | --- |
+| `/nguoi-cao-tuoi/{nctId}/so-du` | `/residents/{residentId}/balance` |
+| `/nguoi-cao-tuoi/{nctId}/giao-dich` | `/residents/{residentId}/balance-transactions` |
+| `/ngan-hang` | `/banks` |
+| `/so-du/tim-theo-ma` (`ma`) | `/balances/by-payment-code` (`code`) |
+| `/nguoi-cao-tuoi/{nctId}/nop-tien-mat` | `/residents/{residentId}/cash-payments` |
+| `/nguoi-cao-tuoi/{nctId}/nop-chuyen-khoan` | `/residents/{residentId}/bank-transfer-payments` |
+| `/giao-dich` | `/balance-transactions` |
+| `/giao-dich/cho-duyet` | `/balance-transactions/pending-approval` |
+| `/nguoi-cao-tuoi/{nctId}/can-tru-coc` | `/residents/{residentId}/deposit-offsets` |
+| `/tinh-trang-so-du` | `/balance-statuses` |
+| `/nguoi-cao-tuoi/{nctId}/so-du/dung-nhac` | `/residents/{residentId}/balance/stop-reminders` |
+| `/nguoi-cao-tuoi/{nctId}/quyet-toan` | `/residents/{residentId}/settlement` |
+| `/nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` | `/residents/{residentId}/settlement/confirm` |
+| `/bang-quyet-toan/{id}/ban-ky` | `/settlement-statements/{id}/signed-copy` |
+| `/bang-quyet-toan/{id}/file` | `/settlement-statements/{id}/file` |
+| `/phieu-bao-phi/cho-phat-hanh` | `/payment-notices/pending-issue` |
+| `/bang-chi-phi/{bangId}/phieu-bao-phi` | `/costs/statements/{statementId}/payment-notice` (cùng gốc `/costs/statements` của 010) |
+| `/nguoi-cao-tuoi/{nctId}/phieu-bao-phi` | `/residents/{residentId}/payment-notices` |
+| `/phieu-bao-phi/{id}/file` | `/payment-notices/{id}/file` |
+| `/xuat/sao-ke` | `/balance-exports/statement` |
+| `/xuat/bao-cao-thu-chi` | `/balance-exports/income-expense-report` |
+| `/xuat/{id}/file` | `/balance-exports/{id}/file` |
+| `/cong/nguoi-cao-tuoi/{nctId}/so-du` | `/family-portal/residents/{residentId}/balance` |
+| `/cong/nguoi-cao-tuoi/{nctId}/chung-tu` | `/family-portal/residents/{residentId}/documents` |
+| `/cong/chung-tu/{loai}/{id}/file` | `/family-portal/documents/{type}/{id}/file` |
+| `/cong/nguoi-cao-tuoi/{nctId}/sao-ke` | `/family-portal/residents/{residentId}/balance-statement` |
+
+Tag: `so-du → balance`, `nop-tien → payments`, `giao-dich → balance-transactions`, `tinh-trang → balance-status`, `quyet-toan → settlement`, `phieu-bao-phi → payment-notices`, `xuat → balance-exports`, `cong → family-portal`. `NctId → ResidentId`, `DinhDang → Format`, `phien → session`; response `Loi → Problem`, `LoiChan → BlockingProblem`; thân `LyDo → Reason`. `Problem` đầy đủ như api-004, api-013 (khớp `ProblemBody` chung).
+
+### 23.2. Schema và trường JSON
+
+| Tên logic | Tên tiếng Anh |
+| --- | --- |
+| `SoDu` (`nctId`, `maNopTien`, `soDu`, `soDuCoc`, `conNo`, `tinhTrang`, `soNgayConDu`, `tongChuaChot`, `trangThaiDatCoc`, `dungNhac`, `thongTinNopTien`, `truongBiAn`) | `Balance` (`residentId`, `paymentCode`, `balance`, `depositBalance`, `debt`, `status`, `daysCovered`, `unfinalizedTotal`, `depositStatus`, `remindersStopped`, `paymentInstructions`, `hiddenFields`) |
+| `SoDuCong` (`giaoDich`) | `PortalBalance` (`transactions`) |
+| `ThongTinNopTien` (`nganHang`, `soTaiKhoan`, `chuTaiKhoan`, `maNopTien`, `vietQr`) | `PaymentInstructions` (`bank`, `accountNumber`, `accountHolder`, `paymentCode`, `vietQr`) |
+| `NganHang` (`maBin`, `tenVietTat`, `tenDayDu`) | `Bank` (`bin`, `shortName`, `fullName`) |
+| `GiaoDich` (`so`, `loai`, `soTien`, `thoiDiem`, `phuongThuc`, `maGiaoDichNganHang`, `bangChiPhiId`, `giaoDichGocId`, `giaoDichLienKetId`, `nguoiLap`, `nguoiDuyet`, `lyDo`, `ghiChu`, `trangThai`, `daDieuChinh`, `yeuCauPheDuyetId`) | `BalanceTransaction` (`ledger`, `type`, `amount`, `at`, `method`, `bankTransactionCode`, `costStatementId`, `originalTransactionId`, `linkedTransactionId`, `createdBy`, `approvedBy`, `reason`, `note`, `status`, `adjusted`, `approvalRequestId`) |
+| `KetQuaNop` (`giaoDich`, `soDu`) | `PaymentResult` (`transactions`, `balance`) |
+| `LapGiaoDich` (`nguoiNhan` {`nguoiThanId`, `hoTen`, `giayTo`}) | `NewBalanceTransaction` (`recipient` {`familyMemberId`, `fullName`, `identityDocument`}) |
+| thân nộp tiền mặt (`so`, `soTien`, `nguoiNop`, `thoiDiemThu`, `ghiChu`) | (`ledger`, `amount`, `payerName`, `receivedAt`, `note`) |
+| thân nộp chuyển khoản (`dong[]`, `ngayNhan`, `maGiaoDichNganHang`, `nguoiNop`, `ghiChu`, `xacNhanTrungMa`) | (`lines[]`, `receivedOn`, `bankTransactionCode`, `payerName`, `note`, `confirmDuplicateCode`) |
+| `LoiTrungMa` (`giaoDichTrung`) | `DuplicateCodeProblem` (`duplicateTransactions`) |
+| `DieuKienMa` (`ma`, `trangThai`, `coTheMien`, `lyDo`) | `SettlementCondition` (`code`, `status`, `waivable`, `reasons`) |
+| `QuyetToan` (`dieuKien`, `coNgoaiLe`, `phienBan`) | `Settlement` (`conditions`, `hasException`, `versions`) |
+| `BangQuyetToan` (`phienBan`, `hienHanh`, `coNgoaiLe`, `soConNoHoacPhaiHoan`, `xacNhanBoi`, `xacNhanLuc`, `coBanKy`) | `SettlementStatement` (`version`, `current`, `hasException`, `debtOrRefundAmount`, `confirmedBy`, `confirmedAt`, `hasSignedCopy`) |
+| thân bản ký (`tepId`) | (`fileId`) |
+| `BangChoPhatHanh` (`bangChiPhiId`, `nctId`, `hoTen`, `ky`, `loaiBang`, `tong`, `chotLuc`) | `StatementPendingNotice` (`costStatementId`, `residentId`, `fullName`, `period`, `statementType`, `total`, `finalizedAt`) |
+| `PhieuBaoPhi` (`maPhieu`, `soDuTruoc`, `soDuSau`, `phatHanhBoi`, `phatHanhLuc`) | `PaymentNotice` (`noticeCode`, `balanceBefore`, `balanceAfter`, `issuedBy`, `issuedAt`) |
+| `ChungTu` (`loai`, `ma`, `ngay`, `ky`, `dinhDang[]`) | `BalanceDocument` (`type`, `code`, `date`, `period`, `formats[]`) |
+| `LanXuat` (`loai`, `dinhDang`, `tu`, `den`, `soDong`, `luc`) | `BalanceExport` (`type`, `format`, `from`, `to`, `rowCount`, `at`) |
+| thân xuất (`nctIds`, `tu`, `den`, `dinhDang`) | (`residentIds`, `from`, `to`, `format`) |
+| enum tách thành schema riêng (cùng giá trị) | `Ledger`, `TransactionStatus`, `ExportFormat`, `DocumentType`, `StatementType` |
+
+### 23.3. Enum
+
+| Tên logic | Tên tiếng Anh |
+| --- | --- |
+| sổ `SO_DU`, `COC` | `BALANCE`, `DEPOSIT` |
+| loại giao dịch `NOP_TIEN_MAT`, `NOP_CHUYEN_KHOAN`, `THANH_TOAN_BANG`, `HOAN_TIEN`, `CAN_TRU_COC`, `DIEU_CHINH`, `THU_COC`, `HOAN_COC` | `CASH_PAYMENT`, `BANK_TRANSFER_PAYMENT`, `STATEMENT_PAYMENT`, `REFUND`, `DEPOSIT_OFFSET`, `ADJUSTMENT`, `DEPOSIT_RECEIPT`, `DEPOSIT_REFUND` |
+| phương thức `TIEN_MAT`, `CHUYEN_KHOAN`, `NOI_BO`, `KHAC` | `CASH`, `BANK_TRANSFER`, `INTERNAL`, `OTHER` |
+| trạng thái giao dịch `CHO_DUYET`, `DA_XAC_NHAN`, `TU_CHOI`, `DA_HUY` | `PENDING_APPROVAL`, `CONFIRMED`, `REJECTED`, `CANCELLED` |
+| tình trạng số dư `BINH_THUONG`, `SAP_HET_TIEN`, `CON_NO` | `NORMAL`, `RUNNING_LOW`, `IN_DEBT` |
+| trạng thái đặt cọc `KHONG_YEU_CAU`, `DA_DAP_UNG`, `CHUA_DAP_UNG` | `NOT_REQUIRED`, `SATISFIED`, `NOT_SATISFIED` (như 004) |
+| mã điều kiện `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN`; trạng thái `DAT`, `CHUA_DAT` | `END_H_SETTLEMENT`, `END_H_SETTLEMENT_CONFIRMATION`; `MET`, `NOT_MET` |
+| loại bảng `THUONG`, `BO_SUNG`, `KY_CUOI` | `REGULAR`, `SUPPLEMENTARY`, `FINAL_PERIOD` |
+| chứng từ `PHIEU_BAO_PHI`, `BANG_QUYET_TOAN` | `PAYMENT_NOTICE`, `SETTLEMENT_STATEMENT` |
+| lần xuất `SAO_KE`, `THU_CHI` | `BALANCE_STATEMENT`, `INCOME_EXPENSE` |
+
+### 23.4. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI` | `STATE_CHANGED` |
+| `CHUA_CO_SO` | `NO_LEDGER` |
+| `SO_TIEN_KHONG_HOP_LE` | `INVALID_AMOUNT` |
+| `VUOT_SO_DU`, `VUOT_SO_DU_COC` | `BALANCE_EXCEEDED`, `DEPOSIT_BALANCE_EXCEEDED` |
+| `VUOT_GIOI_HAN_HOAN` | `REFUND_LIMIT_EXCEEDED` |
+| `NGUOI_NHAN_KHONG_CON_DAI_DIEN` | `RECIPIENT_NO_LONGER_REPRESENTATIVE` |
+| `KHONG_DIEU_CHINH_THANH_TOAN_BANG` | `STATEMENT_PAYMENT_NOT_ADJUSTABLE` |
+| `CHUA_DU_DIEU_KIEN_CAN_TRU` | `OFFSET_CONDITIONS_NOT_MET` |
+| `CHUA_DU_DIEU_KIEN_QUYET_TOAN` | `SETTLEMENT_CONDITIONS_NOT_MET` |
+| `CON_GIAO_DICH_CHO_DUYET` | `PENDING_TRANSACTIONS_REMAIN` |
+| `KHONG_PHAI_TRANG_THAI_CUOI` | `NOT_FINAL_STATUS` |
+| `DA_CO_BAN_KY` | `SIGNED_COPY_EXISTS` |
+| `KHONG_PHAI_PHIEN_BAN_HIEN_HANH` | `NOT_CURRENT_VERSION` |
+| `MA_GIAO_DICH_DA_DUNG` | `BANK_TRANSACTION_CODE_USED` |
+| `DA_PHAT_HANH`, `BANG_CHUA_THANH_TOAN` | `ALREADY_ISSUED`, `STATEMENT_NOT_PAID` |
+| `VUOT_KHOANG_XUAT` | `EXPORT_RANGE_EXCEEDED` |
+
+### 23.5. Giao diện Java, sự kiện, mã loại (module-interfaces 017)
+
+| Tên logic | Tên tiếng Anh |
+| --- | --- |
+| gói `billing.sodu` (`so`, `giaodich`, `tinhtrang`, `quyettoan`, `chungtu`, `xuat`, `lich`) | `billing.balance` (`internal/{ledger, transaction, status, settlement, document, export}`, `scheduling`) |
+| `SoDuApi` (`soDu`, `dieuKienQuyetToan`, `chungTu`) | `BalanceApi` (`balance`, `settlementConditions`, `documents`) |
+| `SoDuView`, `DieuKienQuyetToanView`, `ChungTuView` | `BalanceView`, `SettlementConditionsView`, `BalanceDocumentView` |
+| `SoDuThongKeApi` (`tinhTrang`, `thuChi`) | `BalanceStatisticsApi` (`statuses`, `incomeExpense`) |
+| `SoDuTinhTrangView`, `BaoCaoThuChiView` | `BalanceStatusView`, `IncomeExpenseReportView` |
+| `SoDuMuaHoPort` (`soDuKhongDu`) | `PurchaseBalancePort` (đã có ở 010, `billing.internal.purchase.domain`) |
+| `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`, `bangDaChot`) | `CostForBalancePort` (đã có ở 010, `billing.internal.provision.domain`) |
+| SPI của 004 017 cài: `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` | `DepositStatusPort`, `PostDeathItemPort` (đã có ở `admission.api.spi`) |
+| `KiemTraGiaTriThamSo` cho CFG-M11-10 | `ParameterValueCheck` (`code()` = `CFG_M11_10`) |
+| `TrangThaiDatCocDaDoi(hopDongId, nctId, trangThai, giaoDichId, keToanId, thoiDiem)` | `DepositStatusChanged(contractId, residentId, status, transactionId, accountantId, at)` |
+| `DieuKienQuyetToanDaDoi(nctId)` | `SettlementConditionChanged(residentId)` |
+| `TinhTrangSoDuDaDoi(nctId, tinhTrang)` | `BalanceStatusChanged(residentId, status)` |
+| `ChungTuDaPhatHanh(nctId, loai, id)` | `BalanceDocumentIssued(residentId, type, id)` |
+| loại yêu cầu `M11.GIAO_DICH_SO_DU` | `M11.BALANCE_TRANSACTION` |
+| loại đối tượng phạm vi, tệp `M11.SO_DU`, `M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`, `M11.BAN_KY_QUYET_TOAN`, `M11.FILE_XUAT` | `M11.BALANCE`, `M11.PAYMENT_NOTICE`, `M11.SETTLEMENT_STATEMENT`, `M11.SETTLEMENT_SIGNED_COPY`, `M11.BALANCE_EXPORT` |
+| mục việc sau qua đời `QUYET_TOAN` | `SETTLEMENT` (mã mục của 004) |
+
+Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi viết migration và test (A Phase 1–6, B Phase 7–10); không tạo bảng đã gộp theo R-15 (data-model 017 mục 0).
 
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
