@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.offline.SyncOutcome;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
@@ -27,7 +28,8 @@ class T045_PrnOfflineHandlerTest {
     private final PrnMedicationService service = mock(PrnMedicationService.class);
     private final PrescriptionRepository prescriptions = mock(PrescriptionRepository.class);
     private final MedicationRepository medications = mock(MedicationRepository.class);
-    private final PrnOfflineHandler handler = new PrnOfflineHandler(service, prescriptions, medications);
+    private final CurrentUser user = mock(CurrentUser.class);
+    private final PrnOfflineHandler handler = new PrnOfflineHandler(service, prescriptions, medications, user);
 
     @Test
     void BR_M07_20_specialControlPrnRequiresOnline() {
@@ -45,7 +47,8 @@ class T045_PrnOfflineHandlerTest {
     }
 
     @Test
-    void T045_applyUsesDeviceTimeAndMarksRecordedAfterDisconnect() {
+    void T045_applyUsesDeviceTimeSyncingAccountAndMarksRecordedAfterDisconnect() {
+        when(user.accountId()).thenReturn(71L);
         PrnAdministrationResponse saved = new PrnAdministrationResponse();
         saved.setId(81L);
         when(service.recordPrn(eq(31L), any(RecordPrnBody.class), eq(71L))).thenReturn(saved);
@@ -70,7 +73,6 @@ class T045_PrnOfflineHandlerTest {
                 null,
                 Instant.parse("2026-10-29T01:00:00Z"),
                 null,
-                "Ghi ngoại tuyến",
-                71L);
+                "Ghi ngoại tuyến");
     }
 }
