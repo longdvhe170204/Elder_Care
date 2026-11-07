@@ -40,6 +40,7 @@
         <firebase-admin.version>9.11.0</firebase-admin.version>
         <openpdf.version>3.0.5</openpdf.version>
         <fastexcel.version>0.20.2</fastexcel.version>
+        <zxing.version>3.5.4</zxing.version>
         <awssdk.version>2.49.6</awssdk.version>
     </properties>
     <dependencyManagement>
@@ -97,6 +98,12 @@
             <groupId>org.dhatim</groupId>
             <artifactId>fastexcel-reader</artifactId>
             <version>${fastexcel.version}</version>
+        </dependency>
+        <!-- Ảnh mã VietQR trên phiếu báo phí (017 T002, research E-04; chủ dự án duyệt 2026-10-22) -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
         </dependency>
         <!-- Tệp đính kèm trên AWS S3 ở common.file (001 research H-13, T003); chỉ máy khách đồng bộ Apache, bỏ Netty -->
         <dependency>
