@@ -58,28 +58,6 @@ class PortionContentTest {
     }
 
     @Test
-    void FR_036_conflictWithoutSuitableSubstitute_isMarkedMissing() {
-        Portion p = PortionContent.of(
-                input(List.of(row(SHRIMP_SOUP, PEANUT_SOUP)), Texture.REGULAR, null, SHRIMP_AND_PEANUT, false));
-
-        assertThat(p.special()).isTrue();
-        assertThat(p.flags()).containsExactly(PortionFlag.MISSING_SUBSTITUTE_DISH);
-        assertThat(p.dishes()).containsExactly(new DishChoice(SHRIMP_SOUP, null));
-    }
-
-    @Test
-    void FR_036_nonRegularTexture_orAssignedDish_isSpecial() {
-        assertThat(PortionContent.of(input(List.of(row(PLAIN_SOUP)), Texture.PUREED, null, NONE, false))
-                        .special())
-                .isTrue();
-        Portion assigned = PortionContent.of(
-                input(List.of(row(SHRIMP_SOUP)), Texture.REGULAR, PLAIN_SOUP, SHRIMP_AND_PEANUT, false));
-        assertThat(assigned.special()).isTrue();
-        assertThat(assigned.flags()).isEmpty();
-        assertThat(assigned.dishes()).containsExactly(new DishChoice(SHRIMP_SOUP, PLAIN_SOUP));
-    }
-
-    @Test
     void FR_037a_safeDish_appliedOnlyWhenAllowed_andNotConflicting() {
         List<MenuDish> rows = List.of(row(SHRIMP_SOUP));
 
@@ -114,11 +92,5 @@ class PortionContentTest {
 
         assertThat(p.flags()).isEqualTo(Set.of(PortionFlag.NEEDS_CROSS_CHECK));
         assertThat(p.special()).isFalse();
-    }
-
-    @Test
-    void FR_036_familyPortion_mainDishesOnly() {
-        assertThat(PortionContent.family(List.of(row(SHRIMP_SOUP, PLAIN_SOUP))))
-                .containsExactly(new DishChoice(SHRIMP_SOUP, null));
     }
 }

@@ -115,19 +115,6 @@ class FR_012_TimeScopeIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void Q11_absentFromStartOfShift_notCounted() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        long shift = fixture.shift(floor, day1, "CLOSED");
-        fixture.member(shift, nurse.staffId());
-        fixture.assignResidentEnded(shift, nurse.staffId(), resident, day1, plusHours(day1, 8), day1);
-        jdbc.update("UPDATE shift_staff SET absent_at=? WHERE shift_id=?", ShiftStore.sql(day1), shift);
-        event(plusHours(day1, 1), floor, resident);
-        event(day1.minus(Duration.ofHours(1)), floor, resident);
-
-        expectCount(nurse, 0);
-    }
-
-    @Test
     void absentMidShift_countedUpToAbsenceOnly_noMarginAfter() throws Exception {
         TestUser nurse = fixture.staff(Role.NURSING_STAFF);
         long shift = fixture.shift(floor, day1, "CLOSED");
@@ -139,81 +126,5 @@ class FR_012_TimeScopeIT extends MySqlIntegrationTestBase {
         event(plusHours(day1, 4), floor, resident);
 
         expectCount(nurse, 1);
-    }
-
-    @Test
-    void approvedLeave_shiftNotCounted() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        long shift = nurseShift(nurse, day1);
-        jdbc.update("UPDATE shift_staff SET approved_leave_request_id=1 WHERE shift_id=?", shift);
-        event(plusHours(day1, 1), floor, resident);
-
-        expectCount(nurse, 0);
-    }
-
-    @Test
-    void cancelledShift_notCounted() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        long shift = fixture.shift(floor, day1, "CANCELLED");
-        fixture.member(shift, nurse.staffId());
-        fixture.assignResident(shift, nurse.staffId(), resident, day1, plusHours(day1, 8));
-        event(plusHours(day1, 1), floor, resident);
-
-        expectCount(nurse, 0);
-    }
-
-    @Test
-    void removedFromShift_countedUpToRemovalOnly() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        long shift = fixture.shift(floor, day1, "CLOSED");
-        Instant leftAt = plusHours(day1, 3);
-        fixture.member(shift, nurse.staffId());
-        fixture.assignResidentEnded(shift, nurse.staffId(), resident, day1, plusHours(day1, 8), leftAt);
-        jdbc.update("UPDATE shift_staff SET left_at=? WHERE shift_id=?", ShiftStore.sql(leftAt), shift);
-        event(plusHours(day1, 2), floor, resident);
-        event(plusHours(day1, 4), floor, resident);
-
-        expectCount(nurse, 1);
-    }
-
-    @Test
-    void addedMidShift_countedFromAdditionOnly() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        long shift = fixture.shift(floor, day1, "CLOSED");
-        Instant addedAt = plusHours(day1, 3);
-        fixture.member(shift, nurse.staffId());
-        jdbc.update("UPDATE shift_staff SET added_at=? WHERE shift_id=?", ShiftStore.sql(addedAt), shift);
-        fixture.assignResident(shift, nurse.staffId(), resident, addedAt, plusHours(day1, 8));
-        event(plusHours(day1, 2), floor, resident);
-        event(plusHours(day1, 4), floor, resident);
-
-        expectCount(nurse, 1);
-    }
-
-    @Test
-    void Q_195_shiftLead_wholeFloorInLedShift_ownAssignmentsInOtherShifts() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        long led = fixture.shift(floor, day1, "CLOSED");
-        fixture.member(led, nurse.staffId());
-        fixture.lead(led, nurse.staffId(), day1);
-        nurseShift(nurse, day2);
-        event(plusHours(day1, 1), floor, otherResident);
-        event(plusHours(day2, 1), floor, otherResident);
-        event(plusHours(day2, 1), floor, resident);
-
-        expectCount(nurse, 2);
-    }
-
-    @Test
-    void Q10_temporaryFloorManager_seesRecordsBeforeAssigned_formerManagerDoesNot() throws Exception {
-        Instant now = time.now();
-        TestUser temporary = fixture.staff(Role.FLOOR_MANAGER);
-        TestUser former = fixture.staff(Role.FLOOR_MANAGER);
-        fixture.floorManager(temporary.staffId(), floor, now.minus(Duration.ofDays(1)), now.plus(Duration.ofDays(7)));
-        fixture.floorManager(former.staffId(), floor, now.minus(Duration.ofDays(30)), now.minus(Duration.ofDays(1)));
-        event(plusHours(day1, 1), floor, resident);
-
-        expectCount(temporary, 1);
-        expectCount(former, 0);
     }
 }

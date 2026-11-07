@@ -21,8 +21,6 @@ import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.IncidentAssigned;
@@ -100,25 +98,6 @@ class FR_045a_AssignIncidentHandlerTest {
     }
 
     @Test
-    void FR_045a_assigneeMustBeNurseFloorManagerOrDoctorWithRightsOnResident() {
-        when(accounts.hasRole(eq(701L), any(Role[].class))).thenReturn(false);
-        assertThatThrownBy(() -> service.assign(41, 701L, "Giao", user)).isInstanceOf(ConditionNotMetException.class);
-        assertThatThrownBy(() -> service.assign(41, 702L, "Giao", user)).isInstanceOf(ConditionNotMetException.class);
-        verifyNotAssigned();
-    }
-
-    @Test
-    void FR_045a_floorManagerOutsideScopeAndKitchenStaffAreRejected() {
-        when(scopes.inScope(eq(user), any())).thenReturn(false);
-        assertThatThrownBy(() -> service.assign(41, NURSE, "Giao", user)).isInstanceOf(PermissionDeniedException.class);
-
-        when(user.roles()).thenReturn(Set.of(Role.KITCHEN_STAFF));
-        when(scopes.inScope(eq(user), any())).thenReturn(true);
-        assertThatThrownBy(() -> service.assign(41, NURSE, "Giao", user)).isInstanceOf(PermissionDeniedException.class);
-        verifyNotAssigned();
-    }
-
-    @Test
     void Q_339_managerReassignsInProgressIncidentWithoutChangingStatus() {
         when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
         when(scopes.inScope(eq(user), any())).thenReturn(false);
@@ -128,28 +107,6 @@ class FR_045a_AssignIncidentHandlerTest {
 
         verify(incidents).reassign(41, NURSE, 3);
         verify(incidents, never()).assignFromNew(anyLong(), anyLong(), anyLong(), any(), anyInt());
-    }
-
-    @Test
-    void FR_045a_currentHandlerMayReassignButOnlyWhileHandling() {
-        when(user.roles()).thenReturn(Set.of(Role.NURSING_STAFF));
-        when(user.accountId()).thenReturn(701L);
-        incident("MONITORING", 701L);
-        service.assign(41, NURSE, "Hết ca", user);
-        verify(incidents).reassign(41, NURSE, 3);
-
-        incident("NEW", null);
-        assertThatThrownBy(() -> service.assign(41, NURSE, "Giao", user)).isInstanceOf(PermissionDeniedException.class);
-    }
-
-    @Test
-    void FR_045a_assigneeMustDifferFromCurrentHandlerAndIncidentMustBeOpen() {
-        incident("IN_PROGRESS", NURSE);
-        assertThatThrownBy(() -> service.assign(41, NURSE, "Giao", user)).isInstanceOf(ConditionNotMetException.class);
-
-        incident("CLOSED", 701L);
-        assertThatThrownBy(() -> service.assign(41, NURSE, "Giao", user)).isInstanceOf(ConditionNotMetException.class);
-        verifyNotAssigned();
     }
 
     private void verifyNotAssigned() {

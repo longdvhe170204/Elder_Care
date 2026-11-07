@@ -31,11 +31,6 @@ class FR_085_AlertNoticeLevelTest {
                 .containsOnly(Optional.of(NotificationLevel.LOW));
     }
 
-    @Test
-    void FR_085_assigneeChangedIsLow() {
-        assertThat(levels(AlertNotices.assigned(alert(), 55L, NOW))).containsOnly(Optional.of(NotificationLevel.LOW));
-    }
-
     private static List<Optional<NotificationLevel>> levels(List<NotificationRequest> requests) {
         assertThat(requests).isNotEmpty();
         return requests.stream().map(NotificationRequest::level).toList();

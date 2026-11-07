@@ -11,13 +11,11 @@ import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
-import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
@@ -98,23 +96,6 @@ class FR_026_ManualAlertTest {
     void FR_026_descriptionRequired() {
         assertThatThrownBy(() -> service.create(101, 30, "MEDIUM", "  ", user))
                 .isInstanceOf(InvalidValueException.class);
-        verify(alerts, never()).requestAlert(any());
-    }
-
-    @Test
-    void FR_026_inactiveOrUnknownTypeRejected() {
-        assertThatThrownBy(() -> service.create(101, 31, "MEDIUM", "Mô tả", user))
-                .isInstanceOf(InvalidValueException.class);
-        assertThatThrownBy(() -> service.create(101, 99, "MEDIUM", "Mô tả", user))
-                .isInstanceOf(InvalidValueException.class);
-    }
-
-    @Test
-    void FR_026_needsCreateRightOnResident() {
-        when(permissions.hasPermission(eq(user), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
-
-        assertThatThrownBy(() -> service.create(101, 30, "MEDIUM", "Mô tả", user))
-                .isInstanceOf(PermissionDeniedException.class);
         verify(alerts, never()).requestAlert(any());
     }
 

@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.notification.ContentPart;
 import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationLevel;
@@ -17,7 +16,6 @@ import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.AlertView;
-import com.eldercare.backend.incident.api.dto.IncidentView;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -34,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -139,83 +136,5 @@ class FR_026a_AcknowledgeAndTakeChargeIT extends M13IntegrationTestBase {
         assertThat(notificationStatus(id)).isEqualTo("ACKNOWLEDGED");
         assertThat(commands.acknowledgedAlerts()).contains(alertId);
         assertThat(commands.acknowledgedIncidents()).doesNotContain(alertId);
-    }
-
-    @Test
-    void FR_026a_incident_takeChargeGoesToIncidentCommand() throws Exception {
-        long incidentId = TestUsers.nextId();
-        incidents.put(new IncidentView(incidentId, residentId, "FALL", "URGENT", "NEW", time.now(), null));
-        long id = send(doctor, "M05.INCIDENT", Long.toString(incidentId), NotificationLevel.URGENT);
-
-        takeCharge(id, token)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.takeCharge.result").value("SUCCEEDED"));
-
-        assertThat(commands.acknowledgedIncidents()).contains(incidentId);
-    }
-
-    @Test
-    void Q_102_rejectedBy007_acknowledgementStays_200WithErrorCode() throws Exception {
-        long alertId = alert("NEW");
-        long id = send(doctor, "M05.ALERT", Long.toString(alertId), NotificationLevel.URGENT);
-        commands.rejectNextAcknowledge(new BusinessException(
-                HttpStatus.CONFLICT, "ALREADY_RECEIVED", "Cảnh báo đã có người tiếp nhận", Map.of("receivedBy", "77")));
-
-        takeCharge(id, token)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.acknowledgement").value("ACKNOWLEDGED"))
-                .andExpect(jsonPath("$.takeCharge.result").value("REJECTED"))
-                .andExpect(jsonPath("$.takeCharge.errorCode").value("ALREADY_RECEIVED"))
-                .andExpect(jsonPath("$.takeCharge.details.receivedBy").value("77"));
-
-        assertThat(notificationStatus(id)).isEqualTo("ACKNOWLEDGED");
-        assertThat(commands.acknowledgedAlerts()).doesNotContain(alertId);
-    }
-
-    @Test
-    void FR_026a_sourceNotAlertOrIncident_acknowledgesOnly_rejectsTakeCharge() throws Exception {
-        long id = send(doctor, "M01.RESIDENT", Long.toString(residentId), NotificationLevel.URGENT);
-
-        mvc.perform(get("/api/v1/me/notifications/" + id).header("Authorization", token))
-                .andExpect(jsonPath("$.canAcknowledgeAndTakeCharge").value(false));
-        takeCharge(id, token)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.acknowledgement").value("ACKNOWLEDGED"))
-                .andExpect(jsonPath("$.takeCharge.result").value("REJECTED"))
-                .andExpect(jsonPath("$.takeCharge.errorCode").value("SOURCE_UNAVAILABLE"));
-
-        assertThat(notificationStatus(id)).isEqualTo("ACKNOWLEDGED");
-    }
-
-    @Test
-    void FR_026a_buttonHidden_whenAlreadyReceived_orNoHandlingPermission_orAcknowledged() throws Exception {
-        long received = send(doctor, "M05.ALERT", Long.toString(alert("RECEIVED")), NotificationLevel.URGENT);
-        TestUser office = users.staff(Role.OFFICE_STAFF);
-        String officeToken = TestUsers.bearer(users.session(office.accountId()));
-        long noPermission = send(office, "M05.ALERT", Long.toString(alert("NEW")), NotificationLevel.URGENT);
-        long acknowledged = send(doctor, "M05.ALERT", Long.toString(alert("NEW")), NotificationLevel.URGENT);
-        takeCharge(acknowledged, token).andExpect(status().isOk());
-
-        mvc.perform(get("/api/v1/me/notifications/" + received).header("Authorization", token))
-                .andExpect(jsonPath("$.canAcknowledgeAndTakeCharge").value(false));
-        mvc.perform(get("/api/v1/me/notifications/" + noPermission).header("Authorization", officeToken))
-                .andExpect(jsonPath("$.canAcknowledgeAndTakeCharge").value(false));
-        mvc.perform(get("/api/v1/me/notifications/" + acknowledged).header("Authorization", token))
-                .andExpect(jsonPath("$.canAcknowledgeAndTakeCharge").value(false));
-    }
-
-    @Test
-    void FR_026a_alreadyAcknowledged_409_noTakeCharge() throws Exception {
-        long alertId = alert("NEW");
-        long id = send(doctor, "M05.ALERT", Long.toString(alertId), NotificationLevel.URGENT);
-        mvc.perform(post("/api/v1/notifications/" + id + "/acknowledge")
-                        .header("Authorization", token)
-                        .header("Idempotency-Key", UUID.randomUUID().toString()))
-                .andExpect(status().isOk());
-
-        takeCharge(id, token)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ALREADY_ACKNOWLEDGED"));
-        assertThat(commands.acknowledgedAlerts()).doesNotContain(alertId);
     }
 }

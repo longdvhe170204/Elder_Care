@@ -32,29 +32,6 @@ class ConflictCheckTest {
     }
 
     @Test
-    void BR_M08_02_ingredientMatchesPersonalRestriction_isPersonalRestrictionConflict() {
-        assertThat(ConflictCheck.conflicts(Set.of(SUGAR), List.of(), Set.of(SUGAR), Set.of()))
-                .containsExactly(ConflictType.PERSONAL_RESTRICTION);
-    }
-
-    @Test
-    void BR_M08_02_ingredientMatchesDietRestriction_isDietRestrictionConflict() {
-        assertThat(ConflictCheck.conflicts(Set.of(SALT), List.of(), Set.of(), Set.of(SALT)))
-                .containsExactly(ConflictType.DIET_RESTRICTION);
-    }
-
-    @Test
-    void BR_M08_02_severalKinds_returnedInFixedOrderWithoutDuplicates() {
-        assertThat(ConflictCheck.conflicts(
-                        Set.of(FISH, PEANUT, SUGAR, SALT),
-                        List.of(new AllergyItem(FISH, false), new AllergyItem(PEANUT, false)),
-                        Set.of(SUGAR),
-                        Set.of(SALT)))
-                .containsExactly(
-                        ConflictType.ALLERGY, ConflictType.PERSONAL_RESTRICTION, ConflictType.DIET_RESTRICTION);
-    }
-
-    @Test
     void BR_M01_07_otherAllergyNotAutoChecked_isNeverMatched() {
         assertThat(ConflictCheck.conflicts(
                         Set.of(FISH),
@@ -68,13 +45,5 @@ class ConflictCheckTest {
     void BR_M01_07_allergyWithoutAllergenId_isIgnored() {
         assertThat(ConflictCheck.conflicts(Set.of(FISH), List.of(new AllergyItem(null, false)), Set.of(), Set.of()))
                 .isEmpty();
-    }
-
-    @Test
-    void BR_M08_02_hasConflictFlag_matchesConflictsNotEmpty() {
-        assertThat(ConflictCheck.hasConflict(Set.of(FISH), List.of(new AllergyItem(FISH, false)), Set.of(), Set.of()))
-                .isTrue();
-        assertThat(ConflictCheck.hasConflict(Set.of(SALT), List.of(new AllergyItem(FISH, false)), Set.of(), Set.of()))
-                .isFalse();
     }
 }

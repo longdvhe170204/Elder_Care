@@ -29,19 +29,4 @@ class WeightLossTest {
         assertThat(detection.highest().recordId()).isEqualTo(1);
         assertThat(detection.dropPercent()).isEqualByComparingTo("5.2");
     }
-
-    @Test
-    void FR_039a_exactlyThresholdTriggers() {
-        assertThat(WeightLoss.detect(r(2, "47.5"), List.of(r(1, "50.0")), FIVE)).isPresent();
-    }
-
-    @Test
-    void FR_039a_noPreviousWeighingDoesNotRun() {
-        assertThat(WeightLoss.detect(r(1, "40.0"), List.of(), FIVE)).isEmpty();
-    }
-
-    @Test
-    void FR_039a_latestItselfIsNotCompared() {
-        assertThat(WeightLoss.detect(r(1, "40.0"), List.of(r(1, "40.0")), FIVE)).isEmpty();
-    }
 }

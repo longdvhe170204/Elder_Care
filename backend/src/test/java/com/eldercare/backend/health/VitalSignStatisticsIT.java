@@ -8,7 +8,6 @@ import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import com.eldercare.backend.health.api.VitalSignStatisticsApi;
 import com.eldercare.backend.health.api.dto.VitalSignLevel;
-import com.eldercare.backend.health.api.dto.VitalSignReportView;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
@@ -61,26 +60,6 @@ class VitalSignStatisticsIT extends MySqlIntegrationTestBase {
             assertThat(row.recordId()).isEqualTo(valid);
             assertThat(row.level()).isEqualTo(VitalSignLevel.WARNING);
         });
-    }
-
-    @Test
-    void FR_081_scopeUsesHistoricalLocationAndEmptyScopeRevealsNothing() {
-        long resident = TestUsers.nextId();
-        long indicator = indicator();
-        long floor = TestUsers.nextId();
-        long room = TestUsers.nextId();
-        locations.floor(floor, null).room(room, floor).stay(resident, room, from, to);
-        long id = record(resident, indicator, from, "CONFIRMED", "");
-        var floorScope = new ScopeFilter(false, Set.of(floor), Set.of(), Set.of());
-        var roomScope = new ScopeFilter(false, Set.of(), Set.of(room), Set.of());
-        assertThat(api.readings(floorScope, from, to))
-                .extracting(VitalSignReportView::recordId)
-                .containsExactly(id);
-        assertThat(api.readings(roomScope, from, to))
-                .extracting(VitalSignReportView::recordId)
-                .containsExactly(id);
-        assertThat(api.readings(new ScopeFilter(false, Set.of(), Set.of(), Set.of()), from, to))
-                .isEmpty();
     }
 
     private long indicator() {

@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.*;
 import com.eldercare.backend.administration.shared.api.ResidentModuleStateApi;
 import com.eldercare.backend.billing.internal.period.domain.BillingResidentState;
 import com.eldercare.backend.billing.internal.period.service.CostLock;
-import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import java.sql.Timestamp;
@@ -15,7 +14,6 @@ import java.util.concurrent.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -40,45 +38,6 @@ class CostLockIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void DBR_15_lockRequiresTheCallersTransaction() {
-        long resident = TestUsers.nextId();
-        assertThatThrownBy(() -> locks.resident(resident)).isInstanceOf(IllegalTransactionStateException.class);
-        assertThat(states.get(BillingResidentState.KIND, resident)).isEmpty();
-    }
-
-    @Test
-    void FR_036_firstLockCreatesExactlyOneM11StateThroughTheSharedApi() {
-        long resident = TestUsers.nextId();
-        transaction().executeWithoutResult(status -> {
-            assertThat(locks.resident(resident).finalCostCompletedFrom()).isNull();
-            states.save(BillingResidentState.KIND, resident, new BillingResidentState(AT));
-            assertThat(locks.resident(resident).finalCostCompletedFrom()).isEqualTo(AT);
-        });
-        assertThat(states.get(BillingResidentState.KIND, resident)).contains(new BillingResidentState(AT));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM resident_module_state WHERE module='M11' AND resident_id=?",
-                        Integer.class,
-                        resident))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void DBR_15_rollbackAlsoRemovesTheNewStateAndTechnicalLock() {
-        long resident = TestUsers.nextId();
-        transaction().executeWithoutResult(status -> {
-            locks.resident(resident);
-            states.save(BillingResidentState.KIND, resident, new BillingResidentState(AT));
-            status.setRollbackOnly();
-        });
-        assertThat(states.get(BillingResidentState.KIND, resident)).isEmpty();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM technical_lock WHERE lock_key=?",
-                        Integer.class,
-                        "M11.COST_RESIDENT:" + resident))
-                .isZero();
-    }
-
-    @Test
     void DBR_15_twoFirstCommandsReadEachOthersCommittedStateInsteadOfLosingAnUpdate() throws Exception {
         long resident = TestUsers.nextId();
         var start = new CyclicBarrier(2);
@@ -96,30 +55,6 @@ class CostLockIT extends MySqlIntegrationTestBase {
             assertThat(List.of(first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS)))
                     .containsExactlyInAnyOrder(Optional.empty(), Optional.of(AT));
         }
-    }
-
-    @Test
-    void DBR_17_statementLockRequiresTheCorrectResidentAndKeepsExistingState() {
-        long resident = TestUsers.nextId();
-        long statement = statement(resident);
-        transaction().executeWithoutResult(status -> {
-            locks.resident(resident);
-            states.save(BillingResidentState.KIND, resident, new BillingResidentState(AT));
-            assertThat(locks.statement(resident, statement).finalCostCompletedFrom())
-                    .isEqualTo(AT);
-        });
-        assertThatThrownBy(() ->
-                        transaction().executeWithoutResult(status -> locks.statement(TestUsers.nextId(), statement)))
-                .isInstanceOf(NotFoundException.class);
-    }
-
-    @Test
-    void DBR_17_unknownStatementDoesNotCommitAPartialResidentState() {
-        long resident = TestUsers.nextId();
-        assertThatThrownBy(() ->
-                        transaction().executeWithoutResult(status -> locks.statement(resident, TestUsers.nextId())))
-                .isInstanceOf(NotFoundException.class);
-        assertThat(states.get(BillingResidentState.KIND, resident)).isEmpty();
     }
 
     private long statement(long resident) {

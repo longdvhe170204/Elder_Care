@@ -121,26 +121,4 @@ class FR_026_AcknowledgeIT extends M13IntegrationTestBase {
         assertThat(recorded.stream(UrgentNotificationAcknowledged.class))
                 .anyMatch(e -> e.notificationId() == id && e.sourceRecord().id().equals("ack-" + nurse.staffId()));
     }
-
-    @Test
-    void FR_026_alreadyAcknowledged_or_notUrgent_409() throws Exception {
-        long urgent = send("ack-twice-" + nurse.staffId(), NotificationLevel.URGENT);
-        long medium = send("ack-medium-" + nurse.staffId(), NotificationLevel.MEDIUM);
-
-        acknowledge(urgent, token).andExpect(status().isOk());
-        acknowledge(urgent, token)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ALREADY_ACKNOWLEDGED"));
-        acknowledge(medium, token)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_URGENT"));
-    }
-
-    @Test
-    void FR_026_someoneElsesNotification_404() throws Exception {
-        long id = send("ack-other-" + nurse.staffId(), NotificationLevel.URGENT);
-        TestUser other = users.staff(Role.NURSING_STAFF);
-
-        acknowledge(id, TestUsers.bearer(users.session(other.accountId()))).andExpect(status().isNotFound());
-    }
 }

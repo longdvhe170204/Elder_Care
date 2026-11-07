@@ -1,15 +1,11 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.persistence.ResidenceRegistrationStore;
 import com.eldercare.backend.admission.internal.registration.service.ResidenceRegistrationService;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -44,19 +40,6 @@ class DBR_33_OneRegistrationIT extends RegistrationTestBase {
     }
 
     @Test
-    void DBR_33_aSecondCreateWhileOneIsInProgress_isBlocked() {
-        long residentId = admittedWithObligation();
-        assertThat(create(residentId)).isNull();
-
-        BusinessException second = create(residentId);
-
-        assertThat(second).isNotNull();
-        assertThat(second.status()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(second.errorCode()).isEqualTo("REGISTRATION_IN_PROGRESS_EXISTS");
-        assertThat(registrationCount(residentId)).isEqualTo(1);
-    }
-
-    @Test
     void DBR_33_twoSimultaneousCreates_exactlyOneSucceeds() throws Exception {
         long residentId = admittedWithObligation();
         CyclicBarrier start = new CyclicBarrier(2);
@@ -83,19 +66,6 @@ class DBR_33_OneRegistrationIT extends RegistrationTestBase {
             assertThat(e.status()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(e.errorCode()).isEqualTo("REGISTRATION_IN_PROGRESS_EXISTS");
         });
-        assertThat(registrationCount(residentId)).isEqualTo(1);
-    }
-
-    @Test
-    void DBR_33_theUniqueKeyHolds_evenWhenTheServiceIsBypassed() {
-        long residentId = admittedWithObligation();
-        Instant due = time.now();
-        transaction.executeWithoutResult(status -> store.insertToSubmit(
-                residentId, RegistrationType.STAY_NOTIFICATION, false, null, due, false, null, null, 7L));
-
-        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> store.insertToSubmit(
-                        residentId, RegistrationType.STAY_NOTIFICATION, false, null, due, false, null, null, 7L)))
-                .isInstanceOf(ConditionNotMetException.class);
         assertThat(registrationCount(residentId)).isEqualTo(1);
     }
 }

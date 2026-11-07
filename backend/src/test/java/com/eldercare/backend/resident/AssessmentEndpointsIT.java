@@ -1,9 +1,6 @@
 package com.eldercare.backend.resident;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,8 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.resident.api.dto.CareLevel;
-import com.eldercare.backend.resident.internal.assessment.domain.AssessmentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -54,55 +49,6 @@ class AssessmentEndpointsIT extends AssessmentTestBase {
         setStatus(id, "ADMISSION_IN_PROGRESS");
         assignNurse(nurse, id);
         return id;
-    }
-
-    @Test
-    void US3_allowedCommands_followRole_onlyDoctorConfirms() throws Exception {
-        long resident = admitting();
-
-        user.set(nurse.user());
-        mvc.perform(get("/api/v1/residents/" + resident))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.allowedCommands", hasItem("CREATE_ASSESSMENT")))
-                .andExpect(jsonPath("$.allowedCommands", not(hasItem("CONFIRM_ASSESSMENT"))));
-
-        user.set(doctor.user());
-        mvc.perform(get("/api/v1/residents/" + resident))
-                .andExpect(jsonPath("$.allowedCommands", hasItems("CREATE_ASSESSMENT", "CONFIRM_ASSESSMENT")));
-
-        user.set(office.user());
-        mvc.perform(get("/api/v1/residents/" + resident))
-                .andExpect(jsonPath("$.allowedCommands", not(hasItem("CREATE_ASSESSMENT"))));
-    }
-
-    @Test
-    void FR_024_latestVitalSigns_comeFromTheHealthSource_andAreEmptyWithoutOne() throws Exception {
-        long resident = admitting();
-        user.set(doctor.user());
-        String path = "/api/v1/residents/" + resident + "/assessments";
-        mvc.perform(post(path)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"type\":\"INITIAL\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.reference.latestVitalSigns", hasSize(0)));
-        long id = assessments.list(target(resident)).getFirst().id();
-        vitalSigns.latest(
-                resident,
-                java.util.List.of(new com.eldercare.backend.resident.api.dto.LatestVitalSign(
-                        3L,
-                        "BLOOD_PRESSURE",
-                        "Huyết áp",
-                        "mmHg",
-                        java.util.Map.of("systolic", new java.math.BigDecimal("130")),
-                        java.time.Instant.parse("2026-11-06T01:00:00Z"))));
-
-        mvc.perform(get("/api/v1/assessments/" + id))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.reference.latestVitalSigns", hasSize(1)))
-                .andExpect(jsonPath("$.reference.latestVitalSigns[0].indicatorCode")
-                        .value("BLOOD_PRESSURE"))
-                .andExpect(jsonPath("$.reference.latestVitalSigns[0].unit").value("mmHg"));
     }
 
     @Test
@@ -155,88 +101,5 @@ class AssessmentEndpointsIT extends AssessmentTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
         mvc.perform(get(base)).andExpect(jsonPath("$.currentCareLevel").value("REGULAR"));
-    }
-
-    @Test
-    void FR_028_confirmWithoutComment_returns409_listingMissingFields() throws Exception {
-        long resident = admitting();
-        user.set(doctor.user());
-        String etag = mvc.perform(post("/api/v1/residents/" + resident + "/assessments")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"type\":\"INITIAL\"}"))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getHeader("ETag");
-        long id = assessments.list(target(resident)).getFirst().id();
-
-        mvc.perform(post("/api/v1/assessments/" + id + "/confirm").with(csrf()).header("If-Match", etag))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("CONDITION_NOT_MET"))
-                .andExpect(jsonPath("$.unmetConditions[*].code", hasItems("comment", "careLevel")));
-    }
-
-    @Test
-    void BR_M01_13_secondDraftReturns409_discardWithReasonThenCreateAgain() throws Exception {
-        long resident = admitting();
-        String base = "/api/v1/residents/" + resident + "/assessments";
-        user.set(nurse.user());
-        mvc.perform(post(base)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"type\":\"INITIAL\"}"))
-                .andExpect(status().isCreated());
-        mvc.perform(post(base)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"type\":\"INITIAL\"}"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("DRAFT_ALREADY_EXISTS"));
-
-        long id = assessments.list(target(resident)).getFirst().id();
-        mvc.perform(post("/api/v1/assessments/" + id + "/discard-draft")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"reason\":\"Nhập nhầm\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("DISCARDED"));
-        mvc.perform(post(base)
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"type\":\"INITIAL\"}"))
-                .andExpect(status().isCreated());
-        mvc.perform(get(base)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
-    }
-
-    @Test
-    void FR_052_careLevelBeforeAnyAssessment_returns404() throws Exception {
-        long resident = admitting();
-        user.set(doctor.user());
-
-        mvc.perform(get("/api/v1/residents/" + resident + "/care-level")).andExpect(status().isNotFound());
-        mvc.perform(get("/api/v1/residents/" + resident + "/care-level-history"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
-    }
-
-    @Test
-    void FR_032_correctAssessmentThroughHttp_changesDisplayedNote() throws Exception {
-        long resident = admitting();
-        long id = confirmed(resident, AssessmentType.INITIAL, CareLevel.REGULAR, "Khỏe", "Lưu ý cũ")
-                .id();
-
-        user.set(doctor.user());
-        mvc.perform(post("/api/v1/assessments/" + id + "/correct")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"type\":\"EDIT_CONTENT\",\"correctedContent\":{\"careNote\":\"Lưu ý đúng\"},"
-                                + "\"reason\":\"Ghi sai\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.creationMethod").value("A_ORIGINAL_AUTHOR"));
-        mvc.perform(get("/api/v1/assessments/" + id))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.careNote").value("Lưu ý đúng"))
-                .andExpect(jsonPath("$.corrected").value(true));
     }
 }

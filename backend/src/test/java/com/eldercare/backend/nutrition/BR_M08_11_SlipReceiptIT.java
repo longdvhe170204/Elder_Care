@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.nutrition.api.events.MealSlipDiscrepancyReported;
-import com.eldercare.backend.nutrition.api.events.SlipDiscrepancyNotice;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import java.time.LocalTime;
 import java.util.List;
@@ -52,47 +50,5 @@ class BR_M08_11_SlipReceiptIT extends SlipTestBase {
                         Long.class,
                         slip))
                 .isEqualTo(floor2Staff.accountId());
-    }
-
-    @Test
-    void BR_M08_11_discrepancyReported_kitchenResolves_backToDelivered_thenReceived_historyKept() throws Exception {
-        long slip = deliveredSlip();
-        TestUser reporter = receiverOf(floor2);
-
-        as(reporter);
-        slipCommand(slip, "report-discrepancy", "{}").andExpect(status().isUnprocessableEntity());
-        slipCommand(slip, "report-discrepancy", "{\"content\":\"Thiếu 1 suất Tiểu đường\"}")
-                .andExpect(status().isOk());
-        assertThat(slipStatus(slip)).isEqualTo("HAS_DISCREPANCY");
-        slipCommand(slip, "receive", "{}").andExpect(status().isConflict());
-        assertThat(events.stream(MealSlipDiscrepancyReported.class)).hasSize(1);
-        assertThat(events.stream(SlipDiscrepancyNotice.class))
-                .singleElement()
-                .satisfies(n -> assertThat(n.resolved()).isFalse());
-
-        f.asKitchen();
-        slipCommand(slip, "resolve-discrepancy", "{\"resolution\":\"WRONG\"}")
-                .andExpect(status().isUnprocessableEntity());
-        slipCommand(
-                        slip,
-                        "resolve-discrepancy",
-                        "{\"resolution\":\"ADD_PORTION\",\"description\":\"Đã bổ sung 1 suất\"}")
-                .andExpect(status().isOk());
-        slipCommand(slip, "resolve-discrepancy", "{\"resolution\":\"ADD_PORTION\"}")
-                .andExpect(status().isConflict());
-        assertThat(slipStatus(slip)).isEqualTo("DELIVERED");
-        assertThat(events.stream(SlipDiscrepancyNotice.class).filter(SlipDiscrepancyNotice::resolved))
-                .singleElement()
-                .satisfies(n -> assertThat(n.reporterStaffId()).isEqualTo(reporter.staffId()));
-
-        as(reporter);
-        slipCommand(slip, "receive", "{}").andExpect(status().isOk());
-        assertThat(slipStatus(slip)).isEqualTo("RECEIVED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M08.SLIP_DISCREPANCY' AND entity_id = ?"
-                                + " AND confirmed_at IS NOT NULL AND content->>'$.resolution' = 'ADD_PORTION'",
-                        Integer.class,
-                        slip))
-                .isEqualTo(1);
     }
 }

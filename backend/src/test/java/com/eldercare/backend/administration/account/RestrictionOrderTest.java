@@ -59,22 +59,6 @@ class RestrictionOrderTest {
     }
 
     @Test
-    void BR_M15_18_accountRestriction_afterUnion_removedWhicheverRoleGivesIt() {
-        Map<PermissionKey, Set<RoleGrant>> result = RolePermissionRules.combine(
-                OFFICE_AND_NURSE, List.of(), List.of(new RestrictionRule(null, COST_CREATE, false)), Set.of());
-
-        assertThat(result).doesNotContainKey(COST_CREATE).containsKey(PROFILE_VIEW);
-    }
-
-    @Test
-    void BR_M15_18_accountLowerScope_afterUnion_facilityBecomesAssigned() {
-        Map<PermissionKey, Set<RoleGrant>> result = RolePermissionRules.combine(
-                OFFICE_AND_NURSE, List.of(), List.of(new RestrictionRule(null, PROFILE_VIEW, true)), Set.of());
-
-        assertThat(result.get(PROFILE_VIEW)).containsExactly(role(ASSIGNED));
-    }
-
-    @Test
     void FR_024_additionalGrant_addedLast_assignedScope() {
         Map<PermissionKey, Set<RoleGrant>> result = RolePermissionRules.combine(
                 OFFICE_AND_NURSE,

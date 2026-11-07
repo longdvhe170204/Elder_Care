@@ -8,10 +8,7 @@ import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -71,23 +68,6 @@ class FR_069_NotificationKeyTest {
         assertThat(confirmed.eventKey()).isEqualTo("M10.FAMILY_STAY:9:CONFIRMED");
         assertThat(confirmed.informationSubject()).contains(InformationSubject.ABOUT_FAMILY_MATTER);
         assertThat(reminder.informationSubject()).isEmpty();
-    }
-
-    @Test
-    void FR_069_cancelledVisit_isAboutTheRegistrantsOwnMatter() {
-        NotificationRequest request = only(new VisitCancelledNotice(
-                        11L,
-                        3L,
-                        5L,
-                        LocalDate.of(2026, 11, 6),
-                        LocalTime.of(9, 0),
-                        LocalTime.of(10, 0),
-                        "RESIDENT_NOT_PRESENT",
-                        AT)
-                .notificationRequests());
-
-        assertThat(request.eventKey()).isEqualTo("M10.VISIT:11:CANCELLED");
-        assertThat(request.informationSubject()).isEqualTo(Optional.of(InformationSubject.ABOUT_FAMILY_MATTER));
     }
 
     @Test

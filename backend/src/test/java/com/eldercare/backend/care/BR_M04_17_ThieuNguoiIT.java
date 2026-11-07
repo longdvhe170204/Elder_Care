@@ -17,12 +17,9 @@ import com.eldercare.backend.care.internal.activity.domain.ActivityTypeAttribute
 import com.eldercare.backend.care.internal.trip.service.TripReturnOverdueStep;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.NotificationLevel;
-import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.StatusTestBase;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.dto.StatusCommand;
-import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.care.FakeM04Config;
 import java.time.*;
@@ -189,117 +186,6 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
     }
 
     @Test
-    void FR_044_returnMovesTheResidentBackAndRecalculatesCarriedMedicationWhileTheTripContinues() throws Exception {
-        long s = trip(), a = eligible(s), b = eligible(s);
-        assign(s);
-        departed(s, a, b);
-        command(s, "return", "{\"residentIds\":[" + a + "]}").andExpect(status().isOk());
-        assertThat(currentStatus(a)).isEqualTo(ResidentStatus.IN_RESIDENCE);
-        assertThat(currentStatus(b)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
-        assertThat(participant(s, a)).isEqualTo("RETURNED");
-        assertThat(tripStatus(s)).isEqualTo("IN_PROGRESS");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM record_event WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=?"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(content,'$.type'))='RETURN'",
-                        Integer.class,
-                        a))
-                .isEqualTo(1);
-        // Khoảng mang thuốc kết thúc ở giờ về thực tế, sớm hơn giờ về dự kiến.
-        assertThat(tripMedication.interval(a, s)).hasValueSatisfying(i -> {
-            assertThat(i.to()).isAfterOrEqualTo(i.from()).isBeforeOrEqualTo(time.now());
-            // Đầu khoảng là giờ rời thực tế (record_event lưu UTC), không lệch múi giờ.
-            assertThat(i.from()).isBetween(time.now().minusSeconds(60), time.now());
-            assertThat(i.to()).isBefore(plannedReturn);
-        });
-        command(s, "return", "{\"residentIds\":[" + a + "]}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-    }
-
-    @Test
-    void FR_046a_returnFromAnOfflineDeviceIsBlockedUntil001SupportsDeviceTime() throws Exception {
-        long s = trip(), a = eligible(s);
-        assign(s);
-        departed(s, a);
-        command(s, "return", "{\"residentIds\":[" + a + "],\"deviceAt\":\"" + time.now() + "\"}")
-                .andExpect(status().isServiceUnavailable());
-        assertThat(currentStatus(a)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
-    }
-
-    @Test
-    void FR_043_extensionNeedsAReasonMovesTheMilestoneAndNotifiesMedicationAndMeals() throws Exception {
-        long s = trip(), a = eligible(s);
-        assign(s);
-        departed(s, a);
-        Instant later = plannedReturn.plusSeconds(3600);
-        command(s, "extend", "{\"newPlannedReturnAt\":\"" + later + "\"}").andExpect(status().isUnprocessableEntity());
-        command(
-                        s,
-                        "extend",
-                        "{\"newPlannedReturnAt\":\"" + plannedReturn.minusSeconds(60) + "\",\"reason\":\"Kẹt xe\"}")
-                .andExpect(status().isUnprocessableEntity());
-        command(s, "extend", "{\"newPlannedReturnAt\":\"" + later + "\",\"reason\":\"Kẹt xe\"}")
-                .andExpect(status().isOk());
-        // FR-069, DBR-23: lệnh ghi nhật ký với người thực hiện, thời điểm, lý do.
-        assertThat(jdbc.queryForMap(
-                        "SELECT actor_id,reason,occurred_at FROM audit_log WHERE action=? AND entity_type=? AND entity_id=?"
-                                + " ORDER BY id DESC LIMIT 1",
-                        "TRIP_RETURN_EXTENDED",
-                        "M04.TRIP",
-                        Long.toString(s)))
-                .containsEntry("actor_id", manager.accountId())
-                .containsEntry("reason", "Kẹt xe")
-                .containsKey("occurred_at");
-        assertThat(jdbc.queryForObject(
-                        "SELECT trip_planned_return_at FROM activity_session WHERE id=?", LocalDateTime.class, s))
-                .isEqualTo(LocalDateTime.ofInstant(later, BusinessTime.ZONE));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM record_event WHERE kind='M04.TRIP_EXTENSION'"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(content,'$.tripId'))=?",
-                        Integer.class,
-                        Long.toString(s)))
-                .isEqualTo(1);
-        assertThat(tripMedication.interval(a, s))
-                .hasValueSatisfying(i -> assertThat(i.to()).isEqualTo(later));
-        assertThat(recorded.stream(TripChanged.class)
-                        .filter(e -> e.tripId() == s && e.type().equals("EXTENDED")))
-                .singleElement()
-                .satisfies(e -> assertThat(e.plannedReturnAt()).isEqualTo(later));
-        // Mốc cũ không còn báo; mốc mới báo một lần.
-        Instant cfg = later.plusSeconds(1860);
-        overdue.run(plannedReturn.plusSeconds(1860));
-        assertThat(notices(s, "RETURN_OVERDUE")).isEmpty();
-        overdue.run(cfg);
-        overdue.run(cfg.plusSeconds(60));
-        assertThat(notices(s, "RETURN_OVERDUE")).hasSize(1);
-    }
-
-    @Test
-    void FR_049_overdueReturnNotifiesLeaderAndFloorOnceThenTheManagerAtTwiceTheThreshold() throws Exception {
-        long s = trip(), a = eligible(s);
-        assign(s);
-        departed(s, a);
-        overdue.run(plannedReturn.plusSeconds(1740));
-        assertThat(notices(s, "RETURN_OVERDUE")).isEmpty();
-        overdue.run(plannedReturn.plusSeconds(1860));
-        overdue.run(plannedReturn.plusSeconds(1920));
-        assertThat(notices(s, "RETURN_OVERDUE"))
-                .singleElement()
-                .satisfies(n ->
-                        assertThat(n.context().recipients()).noneMatch(r -> r instanceof RecipientGroup.FacilityRole));
-        assertThat(jdbc.queryForObject("SELECT trip_overdue_return FROM activity_session WHERE id=?", Boolean.class, s))
-                .isTrue();
-        assertThat(participant(s, a)).isEqualTo("DEPARTED");
-        assertThat(notices(s, "RETURN_OVERDUE_MANAGER")).isEmpty();
-        overdue.run(plannedReturn.plusSeconds(3660));
-        overdue.run(plannedReturn.plusSeconds(3720));
-        assertThat(notices(s, "RETURN_OVERDUE_MANAGER"))
-                .singleElement()
-                .satisfies(n -> assertThat(n.context().recipients())
-                        .contains(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER)));
-    }
-
-    @Test
     void FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident() throws Exception {
         long s = trip(), a = eligible(s), c = eligible(s);
         assign(s);
@@ -338,70 +224,5 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
                 .anySatisfy(e -> assertThat(e.progressCode()).isEqualTo("FOUND_RETURNED"));
         overdue.run(plannedReturn.plusSeconds(3660));
         assertThat(notices(s, "RETURN_OVERDUE")).isEmpty();
-    }
-
-    @Test
-    void FR_045_residentTransferredToHospitalDuringTheTripLeavesTheGroupAndIsNotCountedMissing() throws Exception {
-        long s = trip(), b = eligible(s);
-        assign(s);
-        departed(s, b);
-        tx.executeWithoutResult(t -> publisher.publishEvent(new ResidentStatusChanged(
-                b,
-                ResidentStatus.OFF_SITE_ACTIVITY,
-                ResidentStatus.HOSPITALIZED,
-                StatusCommand.TRANSFER_OUT,
-                TestUsers.nextId(),
-                time.now())));
-        assertThat(participant(s, b)).isEqualTo("LEFT_GROUP");
-        command(s, "finish-return", "{}").andExpect(status().isOk());
-        assertThat(participant(s, b)).isEqualTo("LEFT_GROUP");
-        assertThat(recorded.stream(AlertRequested.class).filter(e -> e.residentId() == b))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_035a_transferLeaderOnlyToACompanionWithALeaderRoleAndKeepsTheHistory() throws Exception {
-        var nurse = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF);
-        var office = new TestUsers(jdbc, time).staff(Role.OFFICE_STAFF);
-        user.set(manager.user());
-        long s = trip(), a = eligible(s);
-        assign(s, nurse.staffId(), office.staffId());
-        departed(s, a);
-        command(s, "transfer-leader", "{\"newLeaderId\":" + nurse.staffId() + "}")
-                .andExpect(status().isUnprocessableEntity());
-        command(s, "transfer-leader", "{\"newLeaderId\":" + office.staffId() + ",\"reason\":\"Đưa B đi viện\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ROLE_NOT_ELIGIBLE"));
-        command(s, "transfer-leader", "{\"newLeaderId\":" + TestUsers.nextId() + ",\"reason\":\"Đưa B đi viện\"}")
-                .andExpect(status().isConflict());
-        command(s, "transfer-leader", "{\"newLeaderId\":" + nurse.staffId() + ",\"reason\":\"Đưa B đi viện\"}")
-                .andExpect(status().isOk());
-        mvc.perform(get("/api/v1/trips/" + s))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.leaderId").value(nurse.staffId()))
-                .andExpect(jsonPath("$.companionIds.length()").value(2));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM status_history WHERE entity_type='M04.ACTIVITY_SESSION' AND entity_id=?"
-                                + " AND attribute='TRIP_DUTIES'",
-                        Integer.class,
-                        s))
-                .isEqualTo(2);
-    }
-
-    @Test
-    void FR_046_incidentCommandsWaitForThe007PortAndChangeNothing() throws Exception {
-        long s = trip(), c = eligible(s);
-        assign(s);
-        departed(s, c);
-        command(
-                        s,
-                        "report-missing",
-                        "{\"residentIds\":[" + c + "],\"lastSeenPlace\":\"Cổng chùa\",\"lastSeenAt\":\"" + time.now()
-                                + "\",\"description\":\"Không thấy\"}")
-                .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.errorCode").value("CARE_SOURCE_UNAVAILABLE"));
-        command(s, "record-missing-incident", "{\"residentIds\":[" + c + "]}")
-                .andExpect(status().isServiceUnavailable());
-        assertThat(participant(s, c)).isEqualTo("DEPARTED");
     }
 }

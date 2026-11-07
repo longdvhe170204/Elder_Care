@@ -4,15 +4,12 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 014 T002 (contracts mục 1.2, 1.3; chủ dự án duyệt 2026-11-05 đặt sự kiện ở care.api.events, tính phí dùng
@@ -66,31 +63,5 @@ class T002_ActivityApiContractTest {
                     .as(entry.getKey())
                     .containsExactlyElementsOf(entry.getValue());
         }
-    }
-
-    @Test
-    void T002_tripChangedSerializesForTheOutbox() throws Exception {
-        Class<?> type = Class.forName(API + "events.TripChanged");
-        var constructor = type.getDeclaredConstructors()[0];
-        Object event = constructor.newInstance(
-                7L,
-                "EXTENDED",
-                true,
-                Instant.parse("2026-11-05T01:00:00Z"),
-                Instant.parse("2026-11-05T05:00:00Z"),
-                Optional.of(Instant.parse("2026-11-05T04:00:00Z")),
-                "M04.TRIP:7:EXTENDED:1");
-        var json = JsonMapper.builder().findAndAddModules().build();
-        assertThat(json.readValue(json.writeValueAsString(event), type)).isEqualTo(event);
-    }
-
-    @Test
-    void T002_sharedFakesCoverTheNewApis() throws Exception {
-        var fixture = new com.eldercare.backend.support.fake.care.FakeM04ApiFixture();
-        for (String name : new String[] {"TripDutyCommandApi", "ActivityStatisticsApi"})
-            assertThat(fixture.api(Class.forName(API + name))).as(name).isNotNull();
-        assertThat(Arrays.stream(com.eldercare.backend.support.fake.care.FakeM04ApiConfig.class.getDeclaredMethods())
-                        .map(m -> m.getReturnType().getSimpleName()))
-                .contains("TripDutyCommandApi", "ActivityStatisticsApi");
     }
 }

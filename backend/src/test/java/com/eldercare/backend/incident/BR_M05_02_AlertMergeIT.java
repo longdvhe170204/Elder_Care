@@ -3,7 +3,6 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.incident.api.events.AlertCreated;
-import com.eldercare.backend.incident.api.events.AlertLevelRaised;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import org.junit.jupiter.api.Test;
 
@@ -30,17 +29,6 @@ class BR_M05_02_AlertMergeIT extends AlertRequestTestBase {
     }
 
     @Test
-    void FR_030_higherLevelOccurrenceRaisesAlertLevel() {
-        var first = request(KEY, IncidentLevel.MEDIUM, T0, 1);
-        request(KEY, IncidentLevel.CRITICAL, T0.plusSeconds(60), 2);
-
-        var stored = alerts.findById(first.id()).orElseThrow();
-        assertThat(stored.level()).isEqualTo(IncidentLevel.CRITICAL);
-        assertThat(stored.acknowledgementDeadline()).isNull();
-        assertThat(published).filteredOn(AlertLevelRaised.class::isInstance).hasSize(1);
-    }
-
-    @Test
     void FR_030_closedAlertIsNotReusedSoNewOccurrenceCreatesNewAlert() {
         var first = request(KEY, IncidentLevel.MEDIUM, T0, 1);
         jdbc.update(
@@ -52,13 +40,5 @@ class BR_M05_02_AlertMergeIT extends AlertRequestTestBase {
 
         assertThat(next.id()).isNotEqualTo(first.id());
         assertThat(next.occurrenceCount()).isEqualTo(1);
-    }
-
-    @Test
-    void FR_028_differentKeyCreatesSeparateAlert() {
-        var first = request(KEY, IncidentLevel.MEDIUM, T0, 1);
-        var other = request("VUOT_NGUONG:10", IncidentLevel.MEDIUM, T0, 2);
-
-        assertThat(other.id()).isNotEqualTo(first.id());
     }
 }

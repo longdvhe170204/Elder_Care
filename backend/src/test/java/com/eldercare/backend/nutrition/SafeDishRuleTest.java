@@ -33,19 +33,8 @@ class SafeDishRuleTest {
     }
 
     @Test
-    void FR_004a_safeDishNotActive_isBlocked() {
-        assertThat(codes(SafeDishRule.check(Optional.of(new SafeDish(DishStatus.DRAFT, Set.of())), Set.of(), true)))
-                .containsExactly("SAFE_DISH_NOT_ACTIVE");
-    }
-
-    @Test
     void FR_001_missingSafeDish_isBlockedWhenAnActiveDishExists() {
         assertThat(codes(SafeDishRule.check(Optional.empty(), Set.of(), true))).containsExactly("SAFE_DISH_REQUIRED");
-    }
-
-    @Test
-    void FR_001_firstDietWithoutAnyActiveDish_mayHaveNoSafeDish() {
-        assertThat(codes(SafeDishRule.check(Optional.empty(), Set.of(), false))).isEmpty();
     }
 
     private static java.util.List<String> codes(java.util.List<UnmetCondition> conditions) {

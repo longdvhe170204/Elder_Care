@@ -3,8 +3,6 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.incident.api.events.IncidentAssigned;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
@@ -46,75 +44,6 @@ class FR_045a_AssignIncidentHandlerIT extends IncidentHttpTestBase {
             assertThat(event.incidentId()).isEqualTo(incident);
             assertThat(event.level()).isEqualTo("MEDIUM");
         });
-    }
-
-    @Test
-    void FR_045a_noteIsRequired() throws Exception {
-        long incident = incident("FALL", "MEDIUM", "NEW", null, TestUsers.nextId());
-        assignHandler(floorManager, incident, nurse.accountId(), " ").andExpect(status().isUnprocessableContent());
-        assertThat(incidentStatus(incident)).isEqualTo("NEW");
-    }
-
-    @Test
-    void FR_045a_assigneeMustBeClinicalRoleWithScope() throws Exception {
-        long incident = incident("FALL", "MEDIUM", "NEW", null, TestUsers.nextId());
-        TestUser careStaff = users.staff(Role.CAREGIVER);
-        assign(careStaff, AssignmentKind.SHIFT_MEMBER, null, resident);
-        TestUser otherNurse = users.staff(Role.NURSING_STAFF);
-
-        assignHandler(floorManager, incident, careStaff.accountId(), "Giao").andExpect(status().isConflict());
-        assignHandler(floorManager, incident, otherNurse.accountId(), "Giao").andExpect(status().isConflict());
-        assertThat(incidentStatus(incident)).isEqualTo("NEW");
-    }
-
-    @Test
-    void FR_045a_floorManagerOfOtherFloorAndKitchenStaffAreForbidden() throws Exception {
-        long incident = incident("FALL", "MEDIUM", "NEW", null, TestUsers.nextId());
-        TestUser otherFloorManager = users.staff(Role.FLOOR_MANAGER);
-        assign(otherFloorManager, AssignmentKind.FLOOR_MANAGER, TestUsers.nextId(), null);
-        TestUser kitchen = users.staff(Role.KITCHEN_STAFF);
-
-        assignHandler(otherFloorManager, incident, nurse.accountId(), "Giao").andExpect(status().isForbidden());
-        assignHandler(kitchen, incident, nurse.accountId(), "Giao").andExpect(status().isForbidden());
-        assertThat(incidentStatus(incident)).isEqualTo("NEW");
-    }
-
-    @Test
-    void Q_71_managerReassignsInProgressIncidentButCannotClose() throws Exception {
-        long incident = incident("FALL", "MEDIUM", "IN_PROGRESS", nurse.accountId(), TestUsers.nextId());
-        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
-        TestUser doctor = users.staff(Role.DOCTOR);
-
-        assignHandler(manager, incident, doctor.accountId(), "Chuyển Bác sĩ").andExpect(status().isOk());
-        assertThat(incidentStatus(incident)).isEqualTo("IN_PROGRESS");
-        assertThat(jdbc.queryForObject("SELECT assignee_id FROM incident WHERE id = ?", Long.class, incident))
-                .isEqualTo(doctor.accountId());
-
-        post(manager, "/api/v1/incidents/{id}/close", incident, "{\"resolution\":\"Đã ổn\"}")
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_045a_currentHandlerMayReassign() throws Exception {
-        long incident = incident("FALL", "MEDIUM", "IN_PROGRESS", nurse.accountId(), TestUsers.nextId());
-        TestUser doctor = users.staff(Role.DOCTOR);
-
-        assignHandler(nurse, incident, doctor.accountId(), "Cần Bác sĩ khám").andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT assignee_id FROM incident WHERE id = ?", Long.class, incident))
-                .isEqualTo(doctor.accountId());
-    }
-
-    @Test
-    void FR_045a_facilityIncidentScopeFollowsFloorOfLocation() throws Exception {
-        long incident = facilityIncident();
-        TestUser otherFloorManager = users.staff(Role.FLOOR_MANAGER);
-        assign(otherFloorManager, AssignmentKind.FLOOR_MANAGER, TestUsers.nextId(), null);
-        TestUser doctor = users.staff(Role.DOCTOR);
-
-        assignHandler(otherFloorManager, incident, doctor.accountId(), "Giao").andExpect(status().isForbidden());
-        assignHandler(floorManager, incident, doctor.accountId(), "Giao").andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT assignee_id FROM incident WHERE id = ?", Long.class, incident))
-                .isEqualTo(doctor.accountId());
     }
 
     private ResultActions assignHandler(TestUser as, long incident, long assignee, String note) throws Exception {

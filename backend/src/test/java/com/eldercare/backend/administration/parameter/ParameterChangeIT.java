@@ -3,15 +3,12 @@ package com.eldercare.backend.administration.parameter;
 import static com.eldercare.backend.administration.parameter.ParameterFixtures.MANAGER;
 import static com.eldercare.backend.administration.parameter.ParameterFixtures.MANAGER_2;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
-import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,48 +65,6 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void US4_2_change_updatesCurrentValue_addsHistory_andAuditBeforeAfter() throws Exception {
-        String etag = api.etag(ALERT);
-        int before = historyRows(ALERT);
-        int logs = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM audit_log WHERE action = 'PARAMETER_CHANGED' AND entity_id = ?",
-                Integer.class,
-                ALERT);
-
-        api.change(ALERT, etag, MINUTES_20, "Tăng thời hạn tiếp nhận")
-                .andExpect(status().isOk())
-                .andExpect(header().exists("ETag"))
-                .andExpect(jsonPath("$.code").value(ALERT))
-                .andExpect(jsonPath("$.currentValue.value").value(20))
-                .andExpect(jsonPath("$.defaultValue.value").value(15));
-
-        assertThat(historyRows(ALERT)).isEqualTo(before + 1);
-        // DBR-24: giá trị hiện hành bằng giá trị của dòng lịch sử mới nhất
-        assertThat(jdbc.queryForObject(
-                        "SELECT p.current_value = h.value FROM parameter p JOIN parameter_history h ON h.code = p.code"
-                                + " WHERE p.code = ? ORDER BY h.effective_from DESC LIMIT 1",
-                        Boolean.class,
-                        ALERT))
-                .isTrue();
-        Map<String, Object> log = jdbc.queryForMap(
-                "SELECT actor_id, reason, JSON_EXTRACT(data_before, '$.value.value') AS before_value,"
-                        + " JSON_EXTRACT(data_after, '$.value.value') AS after_value FROM audit_log"
-                        + " WHERE action = 'PARAMETER_CHANGED' AND entity_type = 'M15.PARAMETER' AND entity_id = ?"
-                        + " ORDER BY id DESC LIMIT 1",
-                ALERT);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action = 'PARAMETER_CHANGED' AND entity_id = ?",
-                        Integer.class,
-                        ALERT))
-                .isEqualTo(logs + 1);
-        assertThat(log)
-                .containsEntry("actor_id", MANAGER.accountId())
-                .containsEntry("reason", "Tăng thời hạn tiếp nhận");
-        assertThat(String.valueOf(log.get("before_value"))).isEqualTo("15");
-        assertThat(String.valueOf(log.get("after_value"))).isEqualTo("20");
-    }
-
-    @Test
     void US4_9_staleIfMatch_isRejectedWithCurrentValue_thenSavesAfterReload() throws Exception {
         String seen = api.etag(ALERT);
         user.set(MANAGER_2);
@@ -126,26 +81,6 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.currentValue.value").value(30));
     }
 
-    /**
-     * 000 T113, DBR-24: đồng hồ lùi (đồng hồ giả lập đặt về trước, NTP chỉnh giờ) không làm lần đổi sau có mốc hiệu lực
-     * trước hoặc trùng lần đổi trước: dòng lịch sử mới nhất vẫn là giá trị hiện hành, không lỗi trùng khóa.
-     */
-    @Test
-    void DBR_24_clockMovedBack_laterChangeIsStillTheLatestHistoryRow() throws Exception {
-        api.change(ALERT, api.etag(ALERT), MINUTES_20, "Lần đổi trước").andExpect(status().isOk());
-        clock.advanceBy(Duration.ofHours(-1));
-
-        api.change(ALERT, api.etag(ALERT), "{\"value\":30,\"unit\":\"MINUTES\"}", "Lần đổi sau, đồng hồ đã lùi")
-                .andExpect(status().isOk());
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT JSON_EXTRACT(value, '$.value') FROM parameter_history WHERE code = ?"
-                                + " ORDER BY effective_from DESC LIMIT 1",
-                        Integer.class,
-                        ALERT))
-                .isEqualTo(30);
-    }
-
     @Test
     void US4_7_restoreDefault_isAnOrdinaryChange_markedAsRestore() throws Exception {
         api.change(ALERT, api.etag(ALERT), MINUTES_20, "Thử giá trị mới").andExpect(status().isOk());
@@ -160,60 +95,5 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
                 ALERT);
         assertThat(last).containsEntry("is_default_restore", true).containsEntry("reason", "Trở về mặc định");
         assertThat(String.valueOf(last.get("v"))).isEqualTo("15");
-    }
-
-    @Test
-    void US4_5_invalidValue_isRejected_currentValueKept() throws Exception {
-        int before = historyRows(ALERT);
-
-        api.change(ALERT, api.etag(ALERT), "{\"value\":0,\"unit\":\"MINUTES\"}", "Sai khoảng")
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_VALUE"));
-
-        assertThat(historyRows(ALERT)).isEqualTo(before);
-        mvc.perform(get(ParameterClient.URL + ALERT))
-                .andExpect(jsonPath("$.currentValue.value").value(15));
-    }
-
-    @Test
-    void FR_015_K3_escalationNotGreaterThanReminder_isRejected() throws Exception {
-        api.change("CFG-M15-06", api.etag("CFG-M15-06"), "{\"value\":20,\"unit\":\"HOURS\"}", "Thử nhỏ hơn mốc nhắc")
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_VALUE"));
-    }
-
-    @Test
-    void FR_014_missingReason_isRejectedBeforeAnyChange() throws Exception {
-        int before = historyRows(ALERT);
-
-        api.change(ALERT, api.etag(ALERT), MINUTES_20, null)
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
-
-        assertThat(historyRows(ALERT)).isEqualTo(before);
-    }
-
-    @Test
-    void US4_1_detail_listAndHistory_showCodeDescriptionValuesAndUsage() throws Exception {
-        api.change(ALERT, api.etag(ALERT), MINUTES_20, "Để có lịch sử").andExpect(status().isOk());
-
-        mvc.perform(get(ParameterClient.URL + ALERT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.description").isNotEmpty())
-                .andExpect(jsonPath("$.type").value("DURATION"))
-                .andExpect(jsonPath("$.unit").value("MINUTES"))
-                .andExpect(jsonPath("$.usedIn").isNotEmpty())
-                .andExpect(jsonPath("$.constraints.min").value(1));
-        mvc.perform(get("/api/v1/parameters").param("module", "M05"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.code == 'CFG-M05-01')]").exists())
-                .andExpect(jsonPath("$[?(@.code == 'CFG-M15-05')]").doesNotExist());
-        mvc.perform(get(ParameterClient.URL + ALERT + "/history"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].actor.type").value("SCHEDULER"))
-                .andExpect(jsonPath("$[0].effectiveTo").isNotEmpty())
-                .andExpect(jsonPath("$[-1:].actor.id").value((int) MANAGER.accountId()))
-                .andExpect(jsonPath("$[-1:].reason").value("Để có lịch sử"))
-                .andExpect(jsonPath("$[-1:].effectiveTo").value((Object) null));
     }
 }

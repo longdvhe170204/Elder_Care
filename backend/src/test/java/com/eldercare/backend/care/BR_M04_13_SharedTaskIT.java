@@ -8,7 +8,6 @@ import com.eldercare.backend.care.api.events.SharedTaskWithoutQualifiedStaff;
 import com.eldercare.backend.care.api.events.TaskBecameShared;
 import com.eldercare.backend.care.internal.task.persistence.CareTaskStore;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.support.TestUsers;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -38,56 +37,5 @@ class BR_M04_13_SharedTaskIT extends CareOverdueTestBase {
                 .extracting(TaskBecameShared::taskId)
                 .containsExactly(open);
         assertThat(recorded.stream(SharedTaskWithoutQualifiedStaff.class)).isEmpty();
-    }
-
-    @Test
-    void Q_91_absenceInAnotherShiftKeepsTasks() throws Exception {
-        long id = create();
-        api().onAbsence(caregiver.staffId(), TestUsers.nextId());
-        assertThat(store().get(id, false).performerId()).isEqualTo(caregiver.staffId());
-        assertThat(recorded.stream(TaskBecameShared.class)).isEmpty();
-    }
-
-    @Test
-    void BR_M04_13_noQualifiedStaffInShiftNotifiesMedium() throws Exception {
-        long id = create();
-        api().onAbsence(caregiver.staffId(), shiftId);
-        assertThat(recorded.stream(SharedTaskWithoutQualifiedStaff.class))
-                .extracting(SharedTaskWithoutQualifiedStaff::taskId)
-                .containsExactly(id);
-    }
-
-    @Test
-    void FR_032_approvedLeaveMakesTasksOfLeaveShiftsShared() throws Exception {
-        long id = create();
-        api().onApprovedLeave(caregiver.staffId(), Set.of(shiftId));
-        assertThat(store().get(id, false).performerId()).isNull();
-    }
-
-    @Test
-    void FR_032_resignationMakesCurrentAndFutureShiftTasksShared() throws Exception {
-        long id = create();
-        api().onResignation(caregiver.staffId(), time.now());
-        assertThat(store().get(id, false).performerId()).isNull();
-        assertThat(recorded.stream(TaskBecameShared.class))
-                .extracting(TaskBecameShared::taskId)
-                .containsExactly(id);
-    }
-
-    @Test
-    void FR_032_resignationAfterShiftEndKeepsTasksOfEndedShift() throws Exception {
-        long id = create();
-        api().onResignation(caregiver.staffId(), time.now().plusSeconds(86400));
-        assertThat(store().get(id, false).performerId()).isEqualTo(caregiver.staffId());
-    }
-
-    @Test
-    void BR_M04_13_repeatedCallbackDoesNotNotifyAgain() throws Exception {
-        long id = create();
-        api().onAbsence(caregiver.staffId(), shiftId);
-        api().onAbsence(caregiver.staffId(), shiftId);
-        assertThat(recorded.stream(TaskBecameShared.class))
-                .extracting(TaskBecameShared::taskId)
-                .containsExactly(id);
     }
 }

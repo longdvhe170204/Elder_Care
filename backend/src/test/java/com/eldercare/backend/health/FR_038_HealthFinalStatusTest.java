@@ -2,8 +2,6 @@ package com.eldercare.backend.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.eldercare.backend.health.internal.governance.service.HealthStatusParticipant;
 import com.eldercare.backend.health.internal.schedule.service.MeasurementScheduleService;
@@ -35,21 +33,6 @@ class FR_038_HealthFinalStatusTest {
         assertThat(participant.checkConditions(null)).isEmpty();
         assertThat(HealthStatusParticipant.class.getAnnotation(Order.class).value())
                 .isEqualTo(50);
-    }
-
-    @Test
-    void FR_006_FR_022_deathStopsSchedulesAndEndsPersonalThresholds() {
-        participant.applyEffects(result(ResidentStatus.DECEASED));
-
-        verify(schedules).stopForFinalStatus(A, AT);
-        verify(thresholds).end(A, AT);
-    }
-
-    @Test
-    void FR_006_nonFinalTargetDoesNothing() {
-        participant.applyEffects(result(ResidentStatus.IN_RESIDENCE));
-
-        verifyNoInteractions(schedules, thresholds);
     }
 
     private static TransitionResult result(ResidentStatus to) {

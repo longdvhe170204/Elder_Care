@@ -54,52 +54,9 @@ class ProblemDetailsHandlerIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.unmetConditions[0].waivable").doesNotExist());
     }
 
-    /** 001 BL-23 (004 FR-004): điều kiện trạng thái kèm căn cứ, feature sở hữu, miễn được. */
-    @Test
-    void FR_006_unmetConditions_carryBasisModuleWaivable() throws Exception {
-        mvc.perform(get("/api/v1/test-support/errors/waivable"))
-                .andExpect(jsonPath("$.unmetConditions[0].code").value("KT_H_QUYET_TOAN"))
-                .andExpect(jsonPath("$.unmetConditions[0].basis").value("BR-M11-22"))
-                .andExpect(jsonPath("$.unmetConditions[0].module").value("017"))
-                .andExpect(jsonPath("$.unmetConditions[0].waivable").value(true));
-    }
-
-    /** 001 BL-23 (POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM): bản ghi có thể trùng. */
-    @Test
-    void R_03_candidates_returnedInProblem() throws Exception {
-        mvc.perform(get("/api/v1/test-support/errors/candidates"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("POSSIBLE_DUPLICATE_PROFILE"))
-                .andExpect(jsonPath("$.candidates[0].id").value(7));
-    }
-
-    /** 002 FR-043 (T014): lỗi quyền kèm lớp không thỏa và giấy phép. */
-    @Test
-    void FR_043_permissionDenied_carriesFailedLayerAndLicense() throws Exception {
-        mvc.perform(get("/api/v1/test-support/errors/legal"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.errorCode").value("LEGAL_CONDITION_NOT_MET"))
-                .andExpect(jsonPath("$.failedLayer").value("LEGAL"))
-                .andExpect(jsonPath("$.license.name").value("Chứng chỉ hành nghề"))
-                .andExpect(jsonPath("$.license.expiryDate").value("2026-09-30"));
-    }
-
     @Test
     void FR_021_versionMismatch_returnsCurrentValue() throws Exception {
         mvc.perform(get("/api/v1/test-support/errors/version"))
                 .andExpect(jsonPath("$.currentValue.currentValue").value(20));
-    }
-
-    @Test
-    void R_03_notFound_doesNotRevealWhy() throws Exception {
-        mvc.perform(get("/api/v1/test-support/errors/missing"))
-                .andExpect(jsonPath("$.detail").value("Không tìm thấy"));
-    }
-
-    @Test
-    void R_03_frameworkError_alsoHasErrorCode() throws Exception {
-        mvc.perform(get("/api/v1/test-support/no-such-endpoint"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
     }
 }

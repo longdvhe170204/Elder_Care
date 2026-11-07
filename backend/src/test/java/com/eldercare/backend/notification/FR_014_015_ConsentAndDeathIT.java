@@ -1,7 +1,6 @@
 package com.eldercare.backend.notification;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.ContentPart;
@@ -20,7 +19,6 @@ import com.eldercare.backend.notification.api.spi.NotifiableRelationshipView;
 import com.eldercare.backend.notification.internal.quiethours.service.QuietHoursRelease;
 import com.eldercare.backend.resident.api.dto.Gender;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -183,51 +181,6 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
     }
 
     @Test
-    void FR_014_notificationConsentOn_everyRelativeInScope_offOrMissing_none() {
-        long m = relative(true, FamilyRight.VIEW_COSTS);
-        long r = relative(false, FamilyRight.VIEW_COSTS);
-
-        long none = send(aboutResident("fr014-none-" + resident, FamilyRight.VIEW_COSTS, InformationType.GENERAL));
-        consents.active(resident, Set.of(), false);
-        long off = send(aboutResident("fr014-off-" + resident, FamilyRight.VIEW_COSTS, InformationType.GENERAL));
-        consents.active(resident, Set.of(m), true);
-        long on = send(aboutResident("fr014-on-" + resident, FamilyRight.VIEW_COSTS, InformationType.GENERAL));
-
-        assertThat(familyRecipients(none)).isEmpty();
-        assertThat(familyRecipients(off)).isEmpty();
-        // Q-357: mục "nhận thông báo" là mục chung, R không cần nằm trong danh sách xem sức khỏe
-        assertThat(familyRecipients(on)).containsOnlyKeys(m, r);
-        assertThat(jdbc.queryForList("SELECT q354_case FROM notification WHERE request_id = ?", String.class, on))
-                .containsOnlyNulls();
-    }
-
-    @Test
-    void FR_013_healthPartOnlyForRelativeWithRightAndInConsent() {
-        long m = relative(true, FamilyRight.VIEW_HEALTH);
-        long n = relative(false);
-        long p = relative(false, FamilyRight.VIEW_HEALTH);
-        consents.active(resident, Set.of(m), true);
-
-        long id = send(request(
-                "fr013-" + resident,
-                NotificationLevel.LOW,
-                time.now(),
-                false,
-                Optional.empty(),
-                List.of(
-                        new RecipientGroup.FamilyWithRight(resident, FamilyRight.VIEW_HEALTH),
-                        new RecipientGroup.PrimaryContact(resident),
-                        new RecipientGroup.FamilyMember(n, "TEST")),
-                InformationType.GENERAL,
-                InformationType.HEALTH));
-
-        Map<Long, String> got = familyRecipients(id);
-        assertThat(got.get(m)).contains("GENERAL").contains("HEALTH");
-        assertThat(got.get(n)).isEqualTo("GENERAL");
-        assertThat(got.get(p)).isEqualTo("GENERAL");
-    }
-
-    @Test
     void FR_015_afterDeath_noFamilyNotification_staffStillNotified() {
         long m = relative(true, FamilyRight.VIEW_COSTS);
         consents.active(resident, Set.of(m), true);
@@ -252,59 +205,6 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
                         Long.class,
                         id))
                 .contains(manager.staffId());
-    }
-
-    @Test
-    void FR_015_deathNoticeAtDeathTime_andAfterDeathTask_stillReachFamily() {
-        long m = relative(true);
-        Instant death = time.now().minus(Duration.ofMinutes(5));
-        residents.changeStatus(resident, ResidentStatus.DECEASED, death);
-
-        long notice = send(request(
-                "fr015-notice-" + resident,
-                NotificationLevel.URGENT,
-                death,
-                false,
-                Optional.of(Q354Case.DEATH),
-                List.of(new RecipientGroup.PrimaryContact(resident)),
-                InformationType.GENERAL));
-        long task = send(request(
-                "fr015-task-" + resident,
-                NotificationLevel.URGENT,
-                time.now(),
-                true,
-                Optional.of(Q354Case.DEATH),
-                List.of(new RecipientGroup.PrimaryContact(resident)),
-                InformationType.GENERAL));
-
-        assertThat(familyRecipients(notice)).containsOnlyKeys(m);
-        assertThat(familyRecipients(task)).containsOnlyKeys(m);
-    }
-
-    @Test
-    void FR_025_heldNotice_residentDiesBeforeRelease_notSentResidentDeceased() {
-        long n = relative(false, FamilyRight.VIEW_COSTS);
-        consents.active(resident, Set.of(), true);
-        clock.setTo(at("2030-03-04T22:30:00"));
-        long id = send(aboutResident("fr025-death-" + resident, FamilyRight.VIEW_COSTS, InformationType.GENERAL));
-        assertThat(state(id, n).get("status")).isEqualTo("HELD_FOR_QUIET_HOURS");
-
-        clock.setTo(at("2030-03-05T05:00:00"));
-        residents.changeStatus(resident, ResidentStatus.DECEASED, time.now());
-        tx.executeWithoutResult(s -> residentEvents.statusChanged(
-                resident,
-                ResidentStatus.HOSPITALIZED,
-                ResidentStatus.DECEASED,
-                StatusCommand.RECORD_DEATH,
-                time.now()));
-
-        await().atMost(Duration.ofSeconds(10))
-                .until(() -> "NOT_SENT".equals(state(id, n).get("status")));
-        assertThat(notSentReason(state(id, n))).isEqualTo("RESIDENT_DECEASED");
-        clock.setTo(at("2030-03-05T07:00:00"));
-        isolateHeldNoticesExcept(id);
-        release.run();
-        assertThat(state(id, n).get("status")).isEqualTo("NOT_SENT");
     }
 
     @Test

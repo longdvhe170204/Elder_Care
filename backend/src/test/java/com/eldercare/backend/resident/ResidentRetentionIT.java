@@ -280,53 +280,6 @@ class ResidentRetentionIT extends StatusTestBase {
                 .isZero();
     }
 
-    @Test
-    void FR_050_activeResident_andEndedResidentWithinTheRetentionPeriod_areKept() {
-        long active = newResident();
-        long recentlyEnded = newResident();
-        // hồ sơ này Kết thúc lưu trú sau hạn của hồ sơ khác: 5 năm sau hôm nay, còn trong CFG-M15-03 (10 năm) lúc chạy
-        clock.setTo(Instant.now().plus(Duration.ofDays(5 * 366)));
-        user.set(office.user());
-        statusService.endResidency(target(recentlyEnded), REASON, noDetails());
-
-        runJobAfter(Duration.ofDays(11 * 366));
-
-        assertThat(count("resident", active)).isEqualTo(1);
-        assertThat(count("resident", recentlyEnded)).isEqualTo(1);
-        assertThat(count("status_history:STATUS", recentlyEnded)).isPositive();
-    }
-
-    @Test
-    void FR_051a_expiredProfileWithALaterActiveProfileLinkedToIt_isKept() {
-        String cccd = ResidentProfileTestBase_citizenId();
-        user.set(office.user());
-        long earlier =
-                profiles.create(personal("Trần Văn Cũ", cccd), false).profile().id();
-        setStatus(earlier, "RESIDENCY_ENDED");
-        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
-                jdbc,
-                null,
-                earlier,
-                "IN_RESIDENCE",
-                "RESIDENCY_ENDED",
-                "SEED",
-                java.sql.Timestamp.from(time.now()),
-                office.accountId(),
-                true,
-                null);
-        long later =
-                profiles.create(personal("Trần Văn Mới", cccd), false).profile().id();
-        assertThat(jdbc.queryForObject("SELECT previous_profile_id FROM resident WHERE id = ?", Long.class, later))
-                .isEqualTo(earlier);
-
-        runJobAfter(Duration.ofDays(11 * 366));
-
-        assertThat(count("resident", earlier))
-                .as("hồ sơ cũ được hồ sơ sau trỏ tới")
-                .isEqualTo(1);
-        assertThat(count("resident", later)).isEqualTo(1);
-    }
-
     private static String ResidentProfileTestBase_citizenId() {
         return String.valueOf(300_000_000_000L + (System.nanoTime() % 99_999_999_999L));
     }

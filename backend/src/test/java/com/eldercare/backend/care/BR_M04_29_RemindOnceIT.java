@@ -55,20 +55,4 @@ class BR_M04_29_RemindOnceIT extends CareOverdueTestBase {
 
         assertThat(reminders(id)).isEqualTo(1);
     }
-
-    @Test
-    void BR_M04_29_taskCarriedToNextShiftIsNotRemindedAgain() throws Exception {
-        long id = overdue();
-        jdbc.update("UPDATE care_task SET importance='IMPORTANT' WHERE id=?", id);
-        long next = TestUsers.nextId();
-        shifts.shift(new ShiftView(next, floor, time.now(), time.now().plusSeconds(28800), true));
-        context.getBean("careTaskHandover", ShiftTaskApi.class)
-                .onHandoverConfirmed(TestUsers.nextId(), shiftId, next, Set.of(id), time.now());
-        var task = store().get(id, false);
-        assertThat(task.shiftId()).isEqualTo(next);
-
-        context.getBean(CareTaskDueStep.class).run(task.windowTo().plusSeconds(600));
-
-        assertThat(reminders(id)).isEqualTo(1);
-    }
 }

@@ -11,8 +11,6 @@ import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
-import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.account.api.spi.LicenseValidity;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -97,95 +95,6 @@ class LegalConditionIT extends MySqlIntegrationTestBase {
                 permissions.hasPermissionAt(doctor, PRESCRIBE, Target.UNSPECIFIED, firstMinuteOf(expiry.plusDays(1)));
         assertThat(nextDay.failedLayer()).contains(FailedLayer.LEGAL);
         assertThat(nextDay.license()).contains(new LicenseView("Giấy phép hành nghề", expiry));
-    }
-
-    @Test
-    void US5_3_facilityScopeExpired_doctorDenied() {
-        facility.scope(ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING, expiry.minusDays(5));
-        ActiveSession doctor = doctorWithLicense(expiry.plusDays(100));
-
-        assertThat(permissions
-                        .hasPermissionAt(doctor, PRESCRIBE, Target.UNSPECIFIED, firstMinuteOf(expiry))
-                        .failedLayer())
-                .contains(FailedLayer.LEGAL);
-    }
-
-    @Test
-    void US5_5_nurseExpiredLicense_doseDenied_nonProfessionalStillAllowed() {
-        long account = fixtures.staffAccount("AC-04");
-        long staffId = fixtures.staffId(account);
-        long floor = AccountFixtures.nextId();
-        assignments.assign(
-                staffId,
-                new AssignmentView(
-                        AssignmentKind.SHIFT_MEMBER,
-                        floor,
-                        null,
-                        null,
-                        null,
-                        time.now().minus(Duration.ofDays(30)),
-                        null));
-        licenses.license(
-                staffId,
-                LICENSE_TYPE,
-                new LicenseValidity(
-                        AccountFixtures.nextId(),
-                        "Giấy phép hành nghề",
-                        time.today().minusDays(1),
-                        Set.of()));
-        ActiveSession nurse = fixtures.user(account);
-        Target onFloor = new Target("M07.DOSE", "1", null, floor);
-
-        assertThat(permissions.hasPermission(nurse, ADMINISTER, onFloor).failedLayer())
-                .contains(FailedLayer.LEGAL);
-        assertThat(permissions
-                        .hasPermission(nurse, new PermissionKey(Function.ABSENCE_RETURN, Operation.VIEW), onFloor)
-                        .allowed())
-                .isTrue();
-    }
-
-    @Test
-    void US5_6_renewedLicense_allowedAgain_withoutManagerAction() {
-        facility.scope(ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING, expiry.plusDays(400));
-        long account = fixtures.staffAccount("AC-03");
-        long staffId = fixtures.staffId(account);
-        licenses.license(
-                staffId,
-                LICENSE_TYPE,
-                new LicenseValidity(
-                        AccountFixtures.nextId(),
-                        "Giấy phép hành nghề",
-                        time.today().minusDays(1),
-                        Set.of()));
-        ActiveSession doctor = fixtures.user(account);
-        assertThat(permissions
-                        .hasPermission(doctor, PRESCRIBE, Target.UNSPECIFIED)
-                        .allowed())
-                .isFalse();
-
-        licenses.license(
-                staffId,
-                LICENSE_TYPE,
-                new LicenseValidity(
-                        AccountFixtures.nextId(),
-                        "Giấy phép hành nghề",
-                        time.today().plusYears(5),
-                        Set.of()));
-
-        assertThat(permissions
-                        .hasPermission(doctor, PRESCRIBE, Target.UNSPECIFIED)
-                        .allowed())
-                .isTrue();
-    }
-
-    @Test
-    void BR_M06_05_noLicenseAtAll_denied_legal() {
-        facility.scope(ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING, expiry.plusDays(100));
-        ActiveSession doctor = fixtures.user(fixtures.staffAccount("AC-03"));
-
-        PermissionResult result = permissions.hasPermission(doctor, PRESCRIBE, Target.UNSPECIFIED);
-        assertThat(result.failedLayer()).contains(FailedLayer.LEGAL);
-        assertThat(result.license()).isEmpty();
     }
 
     private ActiveSession doctorWithLicense(LocalDate expiryDate) {

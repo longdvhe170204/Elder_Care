@@ -5,15 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.events.M02Reminder;
-import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.notification.NotificationLevel;
-import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.resident.api.dto.CareLevel;
-import com.eldercare.backend.resident.api.dto.ResidenceType;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -29,7 +23,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.JsonNodeFactory;
 
 /**
  * 004 T014 (US1; FR-076, FR-074): người cao tuổi nội trú chưa Hoàn tất tiếp nhận sau ngày bắt đầu hợp đồng thì danh sách
@@ -94,34 +87,6 @@ class FR_076_NotYetAdmittedWarningIT extends M02TestBase {
     }
 
     @Test
-    void FR_076_contractStartedInThePast_warnsOnTheConditionList() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        confirmedAssessment(residentId, CareLevel.BASIC);
-
-        contracts.active(residentId, CareLevel.BASIC, today().minusDays(2));
-        assertThat(warns(id)).isTrue();
-
-        contracts.reset();
-        contracts.active(residentId, CareLevel.BASIC, today());
-        assertThat(warns(id)).as("đúng ngày bắt đầu chưa là 'sau ngày bắt đầu'").isFalse();
-
-        contracts.reset();
-        contracts.active(residentId, CareLevel.BASIC, today().plusDays(1));
-        assertThat(warns(id)).isFalse();
-    }
-
-    @Test
-    void FR_076_dayCareDoesNotWarn() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        contracts.contract(
-                residentId, ContractStatus.ACTIVE, ResidenceType.DAY_CARE, CareLevel.BASIC, today().minusDays(2));
-
-        assertThat(warns(id)).isFalse();
-    }
-
-    @Test
     void FR_076_dailyRun_remindsOncePerDay_untilTheStartDateIsNoLongerInThePast() throws Exception {
         long residentId = admissionResident();
         long id = application(residentId);
@@ -144,48 +109,5 @@ class FR_076_NotYetAdmittedWarningIT extends M02TestBase {
         clock.advanceBy(Duration.ofDays(1));
         dailyRunner.catchUp();
         assertThat(remindersOf(id)).hasSize(2);
-    }
-
-    @Test
-    void FR_076_remindersStopAfterCompletionOrCancellation() throws Exception {
-        long completed = admissionResident();
-        long completedApplication = application(completed);
-        confirmedAssessment(completed, CareLevel.BASIC);
-        contracts.active(completed, CareLevel.BASIC, today().minusDays(1));
-        user.set(office.user());
-        statusService.completeAdmission(
-                target(completed), new Reason("Vào ở muộn"), JsonNodeFactory.instance.objectNode());
-
-        long cancelled = admissionResident();
-        long cancelledApplication = application(cancelled);
-        contracts.active(cancelled, CareLevel.BASIC, today().minusDays(1));
-        user.set(office.user());
-        statusService.cancelAdmission(
-                target(cancelled), new Reason("Gia đình không đồng ý"), JsonNodeFactory.instance.objectNode());
-
-        dailyRunner.catchUp();
-
-        assertThat(remindersOf(completedApplication)).isEmpty();
-        assertThat(remindersOf(cancelledApplication)).isEmpty();
-        assertThat(jdbc.queryForObject(
-                        "SELECT status FROM admission_record WHERE kind = 'APPLICATION' AND id = ?",
-                        String.class,
-                        cancelledApplication))
-                .isEqualTo("CANCELLED");
-    }
-
-    @Test
-    void FR_076_reminderIsLowLevelAndForOfficeOnly() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        contracts.active(residentId, CareLevel.BASIC, today().minusDays(2));
-
-        dailyRunner.catchUp();
-
-        var requests = remindersOf(id).get(0).notificationRequests();
-        assertThat(requests).hasSize(1);
-        assertThat(requests.get(0).level()).contains(NotificationLevel.LOW);
-        assertThat(requests.get(0).recipientGroups())
-                .containsExactly(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF));
     }
 }

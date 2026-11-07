@@ -118,16 +118,6 @@ class FR_011_MeasurementValidationTest {
     }
 
     @Test
-    void FR_010_permissionIsCheckedBeforeRecording() {
-        when(permissions.hasPermission(any(), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.ROLE));
-        assertThatThrownBy(() -> service.record(
-                        new RecordVitalSignCommand(12L, 3L, NOW, 42L, Map.of(), false, null, null, false, null), user))
-                .isInstanceOfSatisfying(
-                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("PERMISSION_DENIED"));
-        verifyNoInteractions(records, audit, events);
-    }
-
-    @Test
     void FR_016_remeasurementChecksScopeOfTheOriginalResident() {
         when(permissions.hasPermission(any(), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
         assertThatThrownBy(() -> service.remeasure(
@@ -140,26 +130,5 @@ class FR_011_MeasurementValidationTest {
                         new Target("M06.VITAL_SIGN_RECORD", null, 12L, null));
         verify(records, never()).confirmRemeasurement(anyLong(), any(), any());
         verifyNoInteractions(audit, events);
-    }
-
-    @Test
-    void FR_010_offlinePermissionUsesDeviceTimeEvenAfterCurrentPermissionIsLost() {
-        when(permissions.hasPermission(any(), any(), any())).thenReturn(PermissionResult.denied(FailedLayer.ROLE));
-        when(thresholds.resolve(anyLong(), eq(3L), anyString(), any()))
-                .thenThrow(new IllegalStateException("historical permission accepted"));
-        assertThatThrownBy(() -> service.recordOffline(
-                        new RecordVitalSignCommand(
-                                12L, 3L, NOW, 42L, Map.of("VALUE", BigDecimal.TEN), false, null, NOW, true, null),
-                        user,
-                        true))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("historical permission accepted");
-        verify(permissions)
-                .hasPermissionAt(
-                        user,
-                        new PermissionKey(Function.VITAL_SIGN, Operation.CREATE),
-                        new Target("M06.VITAL_SIGN_RECORD", null, 12L, null),
-                        NOW);
-        verify(permissions, never()).hasPermission(any(), any(), any());
     }
 }

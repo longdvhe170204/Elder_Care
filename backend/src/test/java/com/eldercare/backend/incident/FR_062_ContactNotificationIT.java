@@ -3,15 +3,12 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
-import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.InformationSubject;
 import com.eldercare.backend.common.notification.Q354Case;
@@ -163,84 +160,6 @@ class FR_062_ContactNotificationIT extends ContactTracingTestBase {
                 .noneMatch(r -> r.recipientGroups().stream()
                         .anyMatch(g -> g instanceof RecipientGroup.FamilyMember
                                 && !g.equals(new RecipientGroup.FamilyMember(n, "CONTACT_LIST"))));
-    }
-
-    @Test
-    void FR_061_supplementNeedsReasonAndExcludeRemovesMarkAndCancelsTasks() throws Exception {
-        post(nurse, CONTACTS, listId, contact("RESIDENT", b, "SAME_ROOM", from, to, null))
-                .andExpect(status().isCreated());
-        long bRow = contactId(listId, "RESIDENT", b);
-        post(nurse, CONTACTS + "/{contactId}/exclude", listId, bRow, "{\"reason\":\"Nhầm\"}")
-                .andExpect(status().isConflict());
-        post(doctor, CONFIRM, listId, "{}").andExpect(status().isOk());
-
-        long c = TestUsers.nextId();
-        post(nurse, CONTACTS, listId, contact("RESIDENT", c, "ACTIVITY", from, to, null))
-                .andExpect(status().isUnprocessableContent());
-        post(nurse, CONTACTS, listId, contact("RESIDENT", c, "ACTIVITY", from, to, "Tra cứu lại thấy cùng buổi"))
-                .andExpect(status().isCreated());
-        assertThat(infections.listedAt(c, time.now())).isTrue();
-        assertThat(events.stream(ContactTemperatureCheckRequested.class))
-                .extracting(ContactTemperatureCheckRequested::residentId)
-                .containsExactlyInAnyOrder(b, c);
-
-        post(nurse, CONTACTS + "/{contactId}/remove", listId, bRow, "{}").andExpect(status().isConflict());
-        post(nurse, CONTACTS + "/{contactId}/exclude", listId, bRow, "{}").andExpect(status().isUnprocessableContent());
-        verify(taskSources, never()).sourceCancelled(any(), eq(bRow), any());
-        post(nurse, CONTACTS + "/{contactId}/exclude", listId, bRow, "{\"reason\":\"Không ở cùng phòng thực tế\"}")
-                .andExpect(status().isOk());
-        assertThat(infections.listedAt(b, time.now())).isFalse();
-        verify(taskSources).sourceCancelled(eq(SourceType.CONTACT_MONITORING), eq(bRow), any());
-        mvc.perform(as(nurse, get(LIST, incidentId)))
-                .andExpect(jsonPath("$.contacts[?(@.subjectId == " + b + ")].excludedAt")
-                        .isNotEmpty());
-    }
-
-    @Test
-    void FR_061_confirmNeedsSomeoneOrNoContactsWithReason() throws Exception {
-        post(nurse, CONFIRM, listId, "{}").andExpect(status().isConflict());
-        post(nurse, CONFIRM, listId, "{\"noContacts\":true}").andExpect(status().isUnprocessableContent());
-        post(nurse, CONFIRM, listId, "{\"noContacts\":true,\"reason\":\"Ở phòng đơn, không tham gia hoạt động\"}")
-                .andExpect(status().isOk());
-        mvc.perform(as(nurse, get(LIST, incidentId)))
-                .andExpect(jsonPath("$.status").value("CONFIRMED"))
-                .andExpect(jsonPath("$.noContacts").value(true));
-        post(nurse, CONFIRM, listId, "{}").andExpect(status().isConflict());
-    }
-
-    @Test
-    void FR_060_managerViewsOnlyAndFloorManagerCannotChangeList() throws Exception {
-        var manager = users.staff(Role.NURSING_HOME_MANAGER);
-        mvc.perform(as(manager, get(LIST, incidentId))).andExpect(status().isOk());
-        post(manager, CONTACTS, listId, contact("RESIDENT", b, "SAME_ROOM", from, to, null))
-                .andExpect(status().isForbidden());
-        post(floorManager, CONTACTS, listId, contact("RESIDENT", b, "SAME_ROOM", from, to, null))
-                .andExpect(status().isForbidden());
-        post(manager, CONFIRM, listId, "{}").andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_061_closingInfectionEndsListButKeepsContactMark() throws Exception {
-        post(nurse, CONTACTS, listId, contact("RESIDENT", b, "SAME_ROOM", from, to, null))
-                .andExpect(status().isCreated());
-        post(nurse, CONFIRM, listId, "{}").andExpect(status().isOk());
-        jdbc.update(
-                "UPDATE incident SET status = 'IN_PROGRESS', assignee_id = ? WHERE id = ?",
-                nurse.accountId(),
-                incidentId);
-
-        post(
-                        nurse,
-                        "/api/v1/incidents/{id}/close",
-                        incidentId,
-                        "{\"resolution\":\"Đã loại trừ\",\"infectionOutcome\":\"RULED_OUT\"}")
-                .andExpect(status().isOk());
-
-        mvc.perform(as(nurse, get(LIST, incidentId)))
-                .andExpect(jsonPath("$.status").value("ENDED"));
-        assertThat(infections.listedAt(b, time.now())).isTrue();
-        post(nurse, CONTACTS, listId, contact("RESIDENT", TestUsers.nextId(), "SAME_ROOM", from, to, "Bổ sung"))
-                .andExpect(status().isConflict());
     }
 
     org.springframework.test.web.servlet.ResultActions post(

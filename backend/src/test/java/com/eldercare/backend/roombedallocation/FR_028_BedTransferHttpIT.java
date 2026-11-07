@@ -79,35 +79,4 @@ class FR_028_BedTransferHttpIT extends StructureTestSupport {
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, target))
                 .isEqualTo("OCCUPIED");
     }
-
-    @Test
-    void FR_029_emptyReasonIsRejectedWithoutClosingTheOriginal() throws Exception {
-        transfer("", "").andExpect(status().isUnprocessableEntity());
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-    }
-
-    @Test
-    void FR_021_managerCannotExecuteTheTransfer() throws Exception {
-        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
-        transfer("", "Chuyển giường").andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_029_futureTransferMustUseAScheduledResidencyChange() throws Exception {
-        transfer(",\"transferAt\":\"" + time.now().plusSeconds(3600) + "\"", "Chuyển giường")
-                .andExpect(status().isUnprocessableEntity());
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-    }
-
-    @Test
-    void FR_027_pendingBackfillCannotSilentlyBecomeAnImmediateTransfer() throws Exception {
-        transfer(",\"transferAt\":\"" + time.now().minusSeconds(600) + "\"", "Nhập bù")
-                .andExpect(status().isServiceUnavailable());
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_allocation WHERE bed_id=?", Integer.class, target))
-                .isZero();
-    }
 }

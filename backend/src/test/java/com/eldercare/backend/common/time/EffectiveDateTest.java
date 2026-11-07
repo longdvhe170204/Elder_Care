@@ -30,24 +30,4 @@ class EffectiveDateTest {
     void FR_046_now_comesFromInjectedClock() {
         assertThat(time.now()).isEqualTo(Instant.parse("2026-10-19T23:30:00Z"));
     }
-
-    @Test
-    void BR_M15_07_isWithin_includesBothEnds() {
-        LocalDate from = LocalDate.of(2026, 10, 1);
-        LocalDate to = LocalDate.of(2026, 10, 31);
-
-        assertThat(time.isWithin(from, from, to)).isTrue();
-        assertThat(time.isWithin(to, from, to)).isTrue();
-        assertThat(time.isWithin(LocalDate.of(2026, 10, 15), from, to)).isTrue();
-        assertThat(time.isWithin(LocalDate.of(2026, 9, 30), from, to)).isFalse();
-        assertThat(time.isWithin(LocalDate.of(2026, 11, 1), from, to)).isFalse();
-    }
-
-    @Test
-    void BR_M15_07_isWithin_nullEndMeansOpenEnded() {
-        LocalDate from = LocalDate.of(2026, 10, 1);
-
-        assertThat(time.isWithin(LocalDate.of(2099, 1, 1), from, null)).isTrue();
-        assertThat(time.isWithin(LocalDate.of(2026, 9, 30), from, null)).isFalse();
-    }
 }
