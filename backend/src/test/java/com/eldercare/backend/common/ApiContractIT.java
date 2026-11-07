@@ -133,6 +133,17 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(
                     Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"), Set.of(), Set.of(), true),
+            // 011 (2026-11-06, D): hợp đồng đã dịch; xóa dòng khi cài controller của từng story. Bữa ăn, loại đồ ăn bị
+            // cấm
+            // chờ chức năng quyền của Quản lý viện (A, team-plan mục 8)
+            new Contract(
+                    Path.of("..", "specs", "011-nutrition-management", "contracts", "api-011.yaml"),
+                    Set.of(
+                            "GET /api/v1/nutrition/meals",
+                            "POST /api/v1/nutrition/meals",
+                            "PUT /api/v1/nutrition/meals/{id}"),
+                    Set.of(),
+                    true),
             // 018 (R-15, 2026-11-04; chờ A xem, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài enum trả 422
             // INVALID_COMMAND (ngoài hợp đồng, BL-95)
             new Contract(
