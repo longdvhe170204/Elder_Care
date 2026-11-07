@@ -1,7 +1,7 @@
-import '../../common/widgets/status_pill.dart';
+import '../widgets/status_pill.dart';
 
-// Nhãn tiếng Việt cho hồ sơ người cao tuổi ở phần người thân (hợp đồng api-001; cùng chữ với phần nhân viên và web).
-// Không import từ `staff/` (mobile/README.md mục 4 luật 1); khi A đưa nhãn dùng chung lên `common/` thì bỏ bản này.
+// Nhãn tiếng Việt dùng chung cho hồ sơ người cao tuổi ở phần nhân viên và người thân (hợp đồng api-001; cùng chữ với
+// frontend `residentLabels.js`). Đưa lên `common/` 2026-11-07; nhãn chỉ phần nhân viên dùng giữ ở `staff/residents/`.
 
 const statusLabels = {
   'ADMISSION_IN_PROGRESS': 'Đang tiếp nhận',
@@ -22,7 +22,7 @@ const careLevelLabels = {
   'SPECIAL': 'Chăm sóc đặc biệt',
 };
 
-/// Thứ tự nhóm mục sức khỏe: dị ứng trước để không chìm giữa các mục khác (DESIGN.md 7.2).
+/// Nhóm mục sức khỏe, theo thứ tự hiện: dị ứng trước để không chìm giữa các mục khác (DESIGN.md 7.2).
 const healthTypeLabels = {'ALLERGY': 'Dị ứng', 'CHRONIC_CONDITION': 'Bệnh nền', 'MEDICAL_HISTORY': 'Tiền sử bệnh'};
 
 String statusLabel(String status) => statusLabels[status] ?? status;
