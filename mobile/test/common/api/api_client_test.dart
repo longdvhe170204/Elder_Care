@@ -158,4 +158,40 @@ void main() {
       throwsA(isA<ApiProblem>().having((p) => p.errorCode, 'errorCode', 'FILE_TOO_LARGE')),
     );
   });
+  test('getBytes trả nội dung nhị phân kèm token, không giải mã JSON (ảnh ở thẻ, 001)', () async {
+    late http.Request sent;
+    final bytes = [0x89, 0x50, 0x4E, 0x47, 0x00, 0xFF];
+    final client = ApiClient(
+      baseUrl: 'http://api',
+      httpClient: MockClient((request) async {
+        sent = request;
+        return http.Response.bytes(bytes, 200, headers: {'content-type': 'image/png'});
+      }),
+    )..token = 't-1';
+
+    final result = await client.getBytes('/files/9');
+
+    expect(sent.method, 'GET');
+    expect(sent.url.toString(), 'http://api/api/v1/files/9');
+    expect(sent.headers['Authorization'], 'Bearer t-1');
+    expect(result, bytes);
+  });
+
+  test('getBytes báo ApiProblem khi không có quyền tải tệp', () async {
+    final client = ApiClient(
+      baseUrl: 'http://api',
+      httpClient: MockClient(
+        (request) async => http.Response(
+          jsonEncode({'errorCode': 'PERMISSION_DENIED', 'detail': 'Không có quyền'}),
+          403,
+          headers: {'content-type': 'application/problem+json; charset=utf-8'},
+        ),
+      ),
+    );
+
+    await expectLater(
+      client.getBytes('/files/9'),
+      throwsA(isA<ApiProblem>().having((p) => p.errorCode, 'errorCode', 'PERMISSION_DENIED')),
+    );
+  });
 }
