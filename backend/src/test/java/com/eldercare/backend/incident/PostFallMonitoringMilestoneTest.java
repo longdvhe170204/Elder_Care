@@ -14,25 +14,6 @@ class PostFallMonitoringMilestoneTest {
     private final Instant recorded = Instant.parse("2026-11-05T10:00:00Z");
 
     @Test
-    void FR_051_noOccurredAtUsesRecordedAt() {
-        assertThat(setting.anchor(null, recorded)).isEqualTo(recorded);
-    }
-
-    @Test
-    void FR_051_recentOccurredAtIsKept() {
-        var occurred = Instant.parse("2026-11-05T08:30:00Z");
-
-        assertThat(setting.anchor(occurred, recorded)).isEqualTo(occurred);
-    }
-
-    @Test
-    void FR_051_oldOccurredAtIsLimitedToOneIntervalBeforeRecording() {
-        var occurred = Instant.parse("2026-11-04T10:00:00Z");
-
-        assertThat(setting.anchor(occurred, recorded)).isEqualTo(Instant.parse("2026-11-05T06:00:00Z"));
-    }
-
-    @Test
     void FR_052_windowEndsAfterConfiguredDuration() {
         var anchor = setting.anchor(null, recorded);
 

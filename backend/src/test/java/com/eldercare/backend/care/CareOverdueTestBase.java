@@ -11,6 +11,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.support.*;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.fake.administration.*;
 import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
@@ -32,7 +33,7 @@ import tools.jackson.databind.json.JsonMapper;
 @WithMockUser
 @Transactional
 @org.springframework.test.context.event.RecordApplicationEvents
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
     @Autowired
     org.springframework.context.ApplicationContext context;

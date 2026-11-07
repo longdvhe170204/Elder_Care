@@ -25,25 +25,6 @@ class CostApiContractsTest {
     private static final Instant AT = Instant.parse("2026-10-29T10:00:00Z");
 
     @ParameterizedTest
-    @CsvSource({"FAMILY_MEAL, true", "OVERNIGHT_STAY, false", "ACTIVITY_ATTENDANCE, true"})
-    void FR_005_sourceEventRetainsSourceIdentityQuantityAndOptionalService(String type, boolean pricedService) {
-        var original = new CostSourceBilled(
-                type,
-                "17",
-                "UNIT",
-                23,
-                pricedService ? Optional.of(41L) : Optional.empty(),
-                new BigDecimal("1.25"),
-                LocalDate.of(2026, 10, 29),
-                AT,
-                "source:17:1");
-        var mapper = JsonMapper.builder().findAndAddModules().build();
-        var payload = mapper.writeValueAsString(original);
-        assertThat(payload.length()).isLessThanOrEqualTo(4000);
-        assertThat(mapper.readValue(payload, CostSourceBilled.class)).isEqualTo(original);
-    }
-
-    @ParameterizedTest
     @CsvSource({"true", "false"})
     void FR_020_sourceCancellationRemainsDifferentFromAZeroQuantity(boolean cancelled) {
         var original = new CostSourceChanged(

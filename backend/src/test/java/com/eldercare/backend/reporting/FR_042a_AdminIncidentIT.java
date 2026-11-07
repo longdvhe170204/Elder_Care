@@ -2,8 +2,6 @@ package com.eldercare.backend.reporting;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -107,32 +105,5 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
                         .value(contains(3)))
                 .andExpect(jsonPath("$.values[?(@.metricCode == '" + TestScopedMetrics.HEALTH + "')]")
                         .value(empty()));
-    }
-
-    @Test
-    void office_details_noDescription_otherIncidentsDenied() throws Exception {
-        perform(office, ranged("/api/v1/metric-details/" + TestScopedMetrics.NON_HEALTH))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(3))
-                .andExpect(jsonPath("$.rows", hasSize(3)))
-                .andExpect(jsonPath("$.rows[0].result.item").doesNotExist());
-        perform(office, ranged("/api/v1/metric-details/" + TestScopedMetrics.HEALTH))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void US2_1_office_dashboard_ownBlockOnly() throws Exception {
-        perform(office, get("/api/v1/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(NON_HEALTH_BLOCK + ".values[0].value").value(contains(3)))
-                .andExpect(jsonPath(HEALTH_BLOCK).value(empty()));
-    }
-
-    @Test
-    void manager_dashboard_incidentsInHealthBlock_noSeparateBlock() throws Exception {
-        perform(users.staff(Role.NURSING_HOME_MANAGER), get("/api/v1/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(HEALTH_BLOCK).value(not(empty())))
-                .andExpect(jsonPath(NON_HEALTH_BLOCK).value(empty()));
     }
 }

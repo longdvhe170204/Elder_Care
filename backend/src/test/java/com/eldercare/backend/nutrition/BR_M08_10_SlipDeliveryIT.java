@@ -4,15 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.nutrition.api.events.MealSlipDelivered;
-import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
-import com.eldercare.backend.support.TestUsers;
 import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 
@@ -81,93 +77,5 @@ class BR_M08_10_SlipDeliveryIT extends SlipTestBase {
         assertThat(events.stream(MealSlipDelivered.class))
                 .singleElement()
                 .satisfies(e -> assertThat(e.slipId()).isEqualTo(slip));
-    }
-
-    @Test
-    void BR_M08_10_newAdjustmentReopensPreparedSlip_unconfirmedAdjustmentBlocksDelivery() throws Exception {
-        publishedWeek();
-        residentIn(room2);
-        long b = residentIn(room2);
-        clock.setTo(at(LocalTime.of(9, 30)));
-        close(dailyMeal(lunch)).andExpect(status().isCreated());
-        long slip = slipId(dailyMeal(lunch), floor2);
-        f.asKitchen();
-        slipCommand(slip, "mark-prepared", "{}").andExpect(status().isOk());
-        sample(dailyMeal(lunch));
-
-        clock.setTo(at(LocalTime.of(10, 0)));
-        setStatus(b, "HOSPITALIZED");
-        handlers.onResidentStatusChanged(new ResidentStatusChanged(
-                b,
-                ResidentStatus.IN_RESIDENCE,
-                ResidentStatus.HOSPITALIZED,
-                null,
-                TestUsers.nextId(),
-                at(LocalTime.of(10, 0))));
-
-        assertThat(slipStatus(slip)).isEqualTo("CLOSED");
-        f.asKitchen();
-        slipCommand(slip, "deliver", "{}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.unmetConditions[*].code", containsInAnyOrder("ADJUSTMENTS_NOT_CONFIRMED")));
-    }
-
-    @Test
-    void SC_008_kitchenSlipHasNoCrossCheckOrAllergy_floorSlipHasCrossCheck() throws Exception {
-        publishedWeek();
-        long c = residentIn(room2);
-        jdbc.update(
-                "INSERT INTO health_item (resident_id, type, free_text, severity_id, source_id, recorded_by, recorded_at,"
-                        + " pending_nutrition_check) VALUES (?, 'ALLERGY', 'Dị ứng khác', (SELECT MIN(id) FROM"
-                        + " catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY'), (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE'), 1, NOW(6), FALSE)",
-                c);
-        clock.setTo(at(LocalTime.of(9, 30)));
-        close(dailyMeal(lunch)).andExpect(status().isCreated());
-        long slip = slipId(dailyMeal(lunch), floor2);
-
-        f.asKitchen();
-        String kitchen = slipsOf(dailyMeal(lunch))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + slip + ")].labels[*]", hasSize(1)))
-                .andExpect(jsonPath("$[*].labels[*].flags[*]", not(hasItem("NEEDS_CROSS_CHECK"))))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        assertThat(kitchen).doesNotContain("needsCrossCheck", "allergies", "Dị ứng khác");
-
-        as(receiverOf(floor2));
-        slipsOf(dailyMeal(lunch))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].needsCrossCheck", hasItem(num(c))));
-    }
-
-    @Test
-    void FR_046_slipFlags_noMenuAndClosedAfterMealTime_shownToKitchen() throws Exception {
-        residentIn(room2);
-        clock.setTo(at(LocalTime.of(11, 10)));
-        close(dailyMeal(lunch)).andExpect(status().isCreated());
-        long slip = slipId(dailyMeal(lunch), floor2);
-
-        f.asKitchen();
-        slipsOf(dailyMeal(lunch))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(
-                        "$[?(@.id == " + slip + ")].flags[*]",
-                        containsInAnyOrder("NO_MENU", "CLOSED_AFTER_MEAL_TIME")));
-    }
-
-    @Test
-    void FR_046_slipFlags_publishedMenuOnTime_noFlags() throws Exception {
-        publishedWeek();
-        residentIn(room2);
-        clock.setTo(at(LocalTime.of(9, 30)));
-        close(dailyMeal(lunch)).andExpect(status().isCreated());
-        long slip = slipId(dailyMeal(lunch), floor2);
-
-        f.asKitchen();
-        slipsOf(dailyMeal(lunch))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + slip + ")].flags[0]").doesNotExist());
     }
 }

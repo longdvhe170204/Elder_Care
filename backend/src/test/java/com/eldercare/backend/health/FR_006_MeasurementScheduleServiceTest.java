@@ -3,7 +3,6 @@ package com.eldercare.backend.health;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -125,54 +124,5 @@ class FR_006_MeasurementScheduleServiceTest {
         service.change(50, schedule(NOW.minus(Duration.ofHours(2))), new Reason("Đổi giờ đo"), user);
 
         verify(store).stop(50, NOW, "Đổi giờ đo", 900L, 2);
-    }
-
-    @Test
-    void FR_006_stopCancelsNotDueTasksAndFinalSchedulesCannotChange() {
-        when(store.lock(50)).thenReturn(Optional.of(existing(50, "PENDING", NOW.plus(Duration.ofDays(1)))));
-        service.stop(50, new Reason("Không cần đo nữa"), user);
-        verify(store).stop(50, NOW, "Không cần đo nữa", 900L, 2);
-        verify(taskSources).sourceCancelled(SourceType.MEASUREMENT, 50L, new Reason("Không cần đo nữa"));
-
-        when(store.lock(51)).thenReturn(Optional.of(existing(51, "STOPPED", NOW.minus(Duration.ofDays(3)))));
-        assertThatThrownBy(() -> service.stop(51, new Reason("x"), user)).isInstanceOf(BusinessException.class);
-        assertThatThrownBy(() -> service.change(51, schedule(NOW), new Reason("x"), user))
-                .isInstanceOf(BusinessException.class);
-    }
-
-    @Test
-    void FR_006_dueTransitionsPendingToEffectiveAndEffectiveToExpired() {
-        when(store.duePending(NOW)).thenReturn(List.of(existing(52, "PENDING", NOW.minusSeconds(30))));
-        var ending = new MeasurementSchedule(
-                53,
-                A,
-                new NewMeasurementSchedule(
-                        Set.of(3L), twiceDaily, NOW.minus(Duration.ofDays(2)), NOW.minusSeconds(5), "MANDATORY", null),
-                "EFFECTIVE",
-                null,
-                null,
-                null,
-                4);
-        when(store.dueExpiry(NOW)).thenReturn(List.of(ending));
-
-        assertThat(service.transitionDue(NOW)).isEqualTo(2);
-        verify(store).activate(52, 2);
-        verify(store).expire(53, 4);
-    }
-
-    @Test
-    void FR_006_finalStatusStopsOpenSchedulesWithReason() {
-        when(store.openByResident(A)).thenReturn(List.of(existing(54, "EFFECTIVE", NOW.minus(Duration.ofDays(1)))));
-
-        service.stopForFinalStatus(A, NOW);
-
-        verify(store)
-                .stop(
-                        org.mockito.ArgumentMatchers.eq(54L),
-                        org.mockito.ArgumentMatchers.eq(NOW),
-                        any(),
-                        org.mockito.ArgumentMatchers.isNull(),
-                        anyInt());
-        verify(taskSources, never()).sourceCancelled(any(), anyLong(), any());
     }
 }

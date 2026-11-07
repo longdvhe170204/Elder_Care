@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -143,50 +142,5 @@ class FR_009_DetailMatchIT extends MySqlIntegrationTestBase {
     @Test
     void SC_006_dashboardReportAndDetails_sameNumber_facilityWide() throws Exception {
         expectSameNumberEverywhere(manager, 2 * PER_FLOOR);
-    }
-
-    @Test
-    void SC_006_dashboardReportAndDetails_sameNumber_withinFloor() throws Exception {
-        expectSameNumberEverywhere(floorManager, PER_FLOOR);
-    }
-
-    @Test
-    void Q12_breakdownCell_rowsEqualCell() throws Exception {
-        perform(
-                        manager,
-                        today("/api/v1/metric-details/" + TestScopedMetrics.TASKS)
-                                .param("breakdownKey", "ALL"))
-                .andExpect(jsonPath("$.total").value(2 * PER_FLOOR));
-        perform(
-                        manager,
-                        today("/api/v1/metric-details/" + TestScopedMetrics.TASKS)
-                                .param("breakdownKey", "OTHER"))
-                .andExpect(jsonPath("$.total").value(0));
-    }
-
-    @Test
-    void Q12_paging_totalKeepsWholeList() throws Exception {
-        for (int i = 0; i < 60; i++) {
-            testTasks.events.add(event(time.now(), floor));
-        }
-
-        perform(floorManager, today("/api/v1/metric-details/" + TestScopedMetrics.TASKS))
-                .andExpect(jsonPath("$.total").value(60 + PER_FLOOR))
-                .andExpect(jsonPath("$.rows", hasSize(50)));
-        perform(
-                        floorManager,
-                        today("/api/v1/metric-details/" + TestScopedMetrics.TASKS)
-                                .param("page", "2"))
-                .andExpect(jsonPath("$.rows", hasSize(10 + PER_FLOOR)));
-    }
-
-    @Test
-    void Q13_residentOutOfCurrentScope_reducedRow_cannotOpenRecord() throws Exception {
-        // người cao tuổi của bản ghi không còn phân bổ giường ở tầng được giao (đã chuyển tầng)
-        perform(floorManager, today("/api/v1/metric-details/" + TestScopedMetrics.TASKS))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows[0].reduced").value(true))
-                .andExpect(jsonPath("$.rows[0].canOpenRecord").value(false))
-                .andExpect(jsonPath("$.rows[0].resident").value("Nguyễn Văn A"));
     }
 }

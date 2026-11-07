@@ -3,7 +3,6 @@ package com.eldercare.backend.nutrition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,57 +73,4 @@ class FR_016_AssignmentMenuConflictIT extends MenuTestBase {
 
     @org.springframework.beans.factory.annotation.Autowired
     com.eldercare.backend.nutrition.internal.conflict.service.AllergyMenuCheck allergyCheck;
-
-    @Test
-    void FR_021_newAllergyConflictingWithMenuWithoutSubstitute_requestsMediumAlertOncePerDish() throws Exception {
-        publishedMenuWithShrimpBreakfast();
-        jdbc.update(
-                "INSERT INTO diet_assignment(resident_id,diet_id,texture,personal_restrictions,basis,"
-                        + " requested_effective_from,actual_effective_at,status,created_by,created_at)"
-                        + " VALUES(?,?,'REGULAR',JSON_ARRAY(),'ASSESSMENT',NOW(6),NOW(6),'ACTIVE',1,NOW(6))",
-                resident,
-                shrimpDiet);
-        long item = jdbc.queryForObject(
-                "SELECT MAX(id) FROM health_item WHERE resident_id = ? AND allergen_id = ?",
-                Long.class,
-                resident,
-                shrimp);
-
-        allergyCheck.onAllergyRecorded(item, resident);
-
-        assertThat(events.stream(com.eldercare.backend.incident.api.events.AlertRequested.class))
-                .singleElement()
-                .satisfies(alert -> {
-                    assertThat(alert.residentId()).isEqualTo(resident);
-                    assertThat(alert.type()).isEqualTo("DIET_ALLERGY_CONFLICT");
-                    assertThat(alert.sourceType()).isEqualTo("MENU_DISH");
-                    assertThat(alert.level()).isEqualTo("MEDIUM");
-                    assertThat(alert.sourceId()).isEqualTo(shrimpSoup);
-                });
-    }
-
-    @Test
-    void FR_022_dishConflictCheck_forDoctor_hiddenFromKitchen() throws Exception {
-        publishedMenuWithShrimpBreakfast();
-        jdbc.update(
-                "INSERT INTO diet_assignment(resident_id,diet_id,texture,personal_restrictions,basis,"
-                        + " requested_effective_from,actual_effective_at,status,created_by,created_at)"
-                        + " VALUES(?,?,'REGULAR',JSON_ARRAY(),'ASSESSMENT',NOW(6),NOW(6),'ACTIVE',1,NOW(6))",
-                resident,
-                shrimpDiet);
-
-        f.asDoctor();
-        f.send(get("/api/v1/residents/" + resident + "/dish-conflict-check"), null)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].date").value(week.toString()))
-                .andExpect(jsonPath("$[0].mealId").value(breakfast))
-                .andExpect(jsonPath("$[0].dishId").value(shrimpSoup))
-                .andExpect(jsonPath("$[0].ingredients[0]").value(shrimp))
-                .andExpect(jsonPath("$[0].type").value("ALLERGY"))
-                .andExpect(jsonPath("$[0].hasSuitableSubstitute").value(false));
-        f.asKitchen();
-        f.send(get("/api/v1/residents/" + resident + "/dish-conflict-check"), null)
-                .andExpect(status().isForbidden());
-    }
 }

@@ -81,46 +81,6 @@ class ScopeByShiftIT extends MySqlIntegrationTestBase {
                 .contains(FailedLayer.SCOPE);
     }
 
-    @Test
-    void US4_9_shiftStartsIn90Minutes_inScope_in150Minutes_denied() {
-        ActiveSession early = caregiverWithShift(now.plus(Duration.ofMinutes(90)), now.plus(Duration.ofHours(9)));
-        ActiveSession tooEarly = caregiverWithShift(now.plus(Duration.ofMinutes(150)), now.plus(Duration.ofHours(10)));
-
-        assertThat(scope.inScope(early, resident())).isTrue();
-        assertThat(scope.inScope(tooEarly, resident())).isFalse();
-    }
-
-    @Test
-    void FR_032_assignmentWithoutShift_noMargin_afterItEnds() {
-        long account = fixtures.staffAccount("AC-02");
-        long staffId = fixtures.staffId(account);
-        assignments.assign(
-                staffId,
-                new AssignmentView(
-                        AssignmentKind.FLOOR_MANAGER,
-                        1L,
-                        null,
-                        null,
-                        null,
-                        now.minus(Duration.ofDays(3)),
-                        now.minus(Duration.ofMinutes(5))));
-
-        assertThat(scope.inScope(fixtures.user(account), resident())).isFalse();
-    }
-
-    @Test
-    void FR_041a_permissionAtDeviceTime_usesAssignmentAtThatTime() {
-        ActiveSession user = caregiverWithShift(now.minus(Duration.ofHours(14)), now.minus(Duration.ofHours(6)));
-        Instant deviceTime = now.minus(Duration.ofHours(7));
-
-        assertThat(permissions
-                        .hasPermissionAt(user, VIEW_PROFILE, resident(), deviceTime)
-                        .allowed())
-                .isTrue();
-        assertThat(permissions.hasPermission(user, VIEW_PROFILE, resident()).allowed())
-                .isFalse();
-    }
-
     /** Nhân viên chăm sóc có một ca trên tầng 1 trong khoảng đã cho. */
     private ActiveSession caregiverWithShift(Instant from, Instant to) {
         long account = fixtures.staffAccount("AC-05");

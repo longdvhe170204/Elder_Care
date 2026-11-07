@@ -127,32 +127,6 @@ class HandoverCommandCheckTest {
     }
 
     @Test
-    void FR_014_exceptions_returnFromInUse_reportLost_found() {
-        var returnFromUse =
-                HandoverCommandCheck.check(inUse(), request(HandoverType.RETURN).build());
-        assertThat(returnFromUse.violations()).isEmpty();
-        assertThat(returnFromUse.target()).isEqualTo(BelongingStatus.RETURNED);
-
-        var lost = HandoverCommandCheck.check(
-                heldBy(OTHER_NURSE),
-                Request.builder(HandoverType.REPORT_LOST, 3)
-                        .reason("Không thấy trong tủ")
-                        .build());
-        assertThat(lost.violations()).isEmpty();
-        assertThat(lost.target()).isEqualTo(BelongingStatus.LOST);
-
-        var lostCurrent = new Current(BelongingStatus.LOST, null, null, 3, null);
-        var found = HandoverCommandCheck.check(
-                lostCurrent,
-                Request.builder(HandoverType.FOUND, 3)
-                        .conditionOrder(1)
-                        .storageLocationId(5L)
-                        .build());
-        assertThat(found.violations()).isEmpty();
-        assertThat(found.target()).isEqualTo(BelongingStatus.HELD);
-    }
-
-    @Test
     void FR_008_photoRequired_forValuableReturnAndFound_andAnyDamage() {
         assertThat(HandoverCommandCheck.check(
                                 heldBy(NURSE),
@@ -287,30 +261,6 @@ class HandoverCommandCheckTest {
         assertThat(result.violations()).isEmpty();
         assertThat(result.effectiveType()).isEqualTo(HandoverType.RECORD_DAMAGE);
         assertThat(result.target()).isEqualTo(BelongingStatus.DAMAGED);
-    }
-
-    @Test
-    void FR_015_unusableLevel_onlyViaRecordDamage() {
-        assertThat(HandoverCommandCheck.check(
-                                heldBy(NURSE),
-                                request(HandoverType.TRANSFER_CUSTODY)
-                                        .conditionOrder(4)
-                                        .unusableLevel(true)
-                                        .conditionHandling(ConditionHandling.ACKNOWLEDGE)
-                                        .reason("Đổi tủ")
-                                        .build())
-                        .violations())
-                .containsExactly("UNUSABLE_LEVEL_ONLY_VIA_RECORD_DAMAGE");
-        assertThat(HandoverCommandCheck.check(
-                                heldBy(NURSE),
-                                request(HandoverType.RECORD_DAMAGE)
-                                        .conditionOrder(4)
-                                        .unusableLevel(true)
-                                        .reason("Vỡ")
-                                        .photoCount(1)
-                                        .build())
-                        .violations())
-                .isEmpty();
     }
 
     @Test

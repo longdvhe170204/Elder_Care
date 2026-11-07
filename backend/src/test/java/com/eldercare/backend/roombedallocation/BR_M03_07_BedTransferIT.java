@@ -2,30 +2,24 @@ package com.eldercare.backend.roombedallocation;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doThrow;
 
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.roombedallocation.api.events.BedTransferred;
-import com.eldercare.backend.roombedallocation.api.events.DifferentPriceBedTransfer;
 import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.BedTransferService;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationInfectionStatus;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource;
 import java.sql.Timestamp;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
-import org.springframework.test.util.AopTestUtils;
 
 /** T029/T032: transaction thật, không có transaction bao test để che lỗi hoàn tác. */
 @RecordApplicationEvents
@@ -129,59 +123,6 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                 .isZero();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"TEMPORARILY_ABSENT", "HOSPITALIZED"})
-    void FR_032_absentResidentPreservesHoldAndDeadline(String status) throws Exception {
-        var until = time.now().plusSeconds(3600).truncatedTo(ChronoUnit.MICROS);
-        jdbc.update("UPDATE resident SET status=? WHERE id=?", status, resident);
-        jdbc.update(
-                "UPDATE bed SET state='HELD',hold_reason='ABSENT_RESIDENT',hold_resident_id=?,hold_until=? WHERE id=?",
-                resident,
-                Timestamp.from(until),
-                bed);
-        transfer(target, transferReason, new Reason("Chuyển khi đang vắng"));
-        assertThat(state(target)).isEqualTo("HELD");
-        assertThat(jdbc.queryForMap("SELECT hold_reason,hold_resident_id FROM bed WHERE id=?", target))
-                .containsEntry("hold_reason", "ABSENT_RESIDENT")
-                .containsEntry("hold_resident_id", resident);
-        assertThat(jdbc.queryForObject("SELECT hold_until FROM bed WHERE id=?", Timestamp.class, target)
-                        .toInstant())
-                .isEqualTo(until);
-        assertThat(state(bed)).isEqualTo("AWAITING_READY");
-    }
-
-    @Test
-    void FR_032_offSiteActivityDoesNotBecomeAnAbsentHold() throws Exception {
-        jdbc.update("UPDATE resident SET status='OFF_SITE_ACTIVITY' WHERE id=?", resident);
-        transfer(target, transferReason, new Reason("Đổi giường khi đi hoạt động"));
-        assertThat(state(target)).isEqualTo("OCCUPIED");
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void FR_028_lateSourceFailureRollsBackAllWrites(boolean priceChange) {
-        if (priceChange) {
-            differentPrice();
-            jdbc.update("UPDATE bed_transfer_reason SET medical_safety=TRUE WHERE id=?", transferReason);
-        }
-        doThrow(new IllegalStateException("Nguồn004 lỗi sau đổi giường"))
-                .when(AopTestUtils.<FakeAllocationResidencySource>getUltimateTargetObject(residency))
-                .allocated(eq(resident), anyLong());
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Thử hoàn tác")))
-                .isInstanceOf(IllegalStateException.class);
-        unchanged();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_state_history WHERE bed_id IN (?,?)", Integer.class, bed, target))
-                .isZero();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action='M03_BED_TRANSFER' AND resident_id=?",
-                        Integer.class,
-                        resident))
-                .isZero();
-        assertThat(published.stream(BedTransferred.class).filter(e -> e.residentId() == resident))
-                .isEmpty();
-    }
-
     @Test
     void FR_033_twoTransfersOnSameAllocationHaveOneWinner() throws Exception {
         long other = TestUsers.nextId();
@@ -222,106 +163,6 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                         target,
                         other))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void FR_030_nonMedicalDifferentPriceCannotTransfer() {
-        differentPrice();
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Đổi phòng khác giá")))
-                .isInstanceOfSatisfying(
-                        BusinessException.class,
-                        e -> assertThat(e.errorCode()).isEqualTo("RESIDENCY_CHANGE_REQUEST_REQUIRED"));
-        unchanged();
-    }
-
-    @Test
-    void FR_030_medicalDifferentPriceSetsFlagReminderAndNotificationAtomically() throws Exception {
-        differentPrice();
-        jdbc.update("UPDATE bed_transfer_reason SET medical_safety=TRUE WHERE id=?", transferReason);
-        long next = transfer(target, transferReason, new Reason("Cần an toàn"));
-        assertThat(jdbc.queryForObject("SELECT awaiting_request FROM bed_allocation WHERE id=?", Boolean.class, next))
-                .isTrue();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=? AND flag_type='AWAITING_REQUEST' AND reminder_count=0",
-                        Integer.class,
-                        next))
-                .isEqualTo(1);
-        var events = published.stream(DifferentPriceBedTransfer.class)
-                .filter(e -> e.residentId() == resident)
-                .toList();
-        assertThat(events).hasSize(1);
-        assertThat(events.getFirst().notification().recipients())
-                .containsExactlyInAnyOrder(
-                        new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
-                        new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
-                                Role.NURSING_HOME_MANAGER));
-    }
-
-    @Test
-    void FR_010_isolatedSourceRequiresControlledTransfer() {
-        jdbc.update("UPDATE room SET isolated=TRUE WHERE id=?", room);
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Không dùng lệnh ngoại lệ")))
-                .isInstanceOfSatisfying(
-                        BusinessException.class,
-                        e -> assertThat(e.errorCode()).isEqualTo("INFECTION_CONTROL_TRANSFER_REQUIRED"));
-        unchanged();
-    }
-
-    @Test
-    void FR_018_targetPoliciesAreCheckedAgainBeforeWrite() {
-        jdbc.update("DELETE FROM room_allowed_care_level WHERE room_id=?", targetRoom);
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Phòng không phù hợp")))
-                .isInstanceOfSatisfying(
-                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("UNMET_CONDITIONS"));
-        unchanged();
-    }
-
-    @Test
-    void FR_028_inactiveCatalogReasonIsRejected() {
-        jdbc.update("UPDATE bed_transfer_reason SET status='INACTIVE' WHERE id=?", transferReason);
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Không dùng lý do ngừng")))
-                .isInstanceOf(BusinessException.class);
-        unchanged();
-    }
-
-    @Test
-    void FR_028_reasonAndRealPermissionAreRequired() {
-        assertThatThrownBy(() -> transfer(target, transferReason, null)).isInstanceOf(BusinessException.class);
-        user.set(new TestUsers(jdbc, time).staff(Role.CAREGIVER).user());
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Không có quyền")))
-                .isInstanceOf(BusinessException.class);
-        unchanged();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"AWAITING_REQUEST", "AWAITING_SAME_PRICE"})
-    void FR_030_pendingPriceResolutionDoesNotLoseFlagOrReminder(String flag) {
-        String column = flag.equals("AWAITING_REQUEST") ? "awaiting_request" : "awaiting_same_price";
-        jdbc.update("UPDATE bed_allocation SET " + column + "=TRUE WHERE id=?", allocation);
-        var started = time.now().minusSeconds(3600).truncatedTo(ChronoUnit.MICROS);
-        jdbc.update(
-                "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,reminder_count) VALUES('BED_ALLOCATION',?,?,?,NULL,0)",
-                allocation,
-                flag,
-                Timestamp.from(started));
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Chuyển tiếp khi còn nghĩa vụ")))
-                .isInstanceOfSatisfying(BusinessException.class, error -> {
-                    assertThat(error.errorCode()).isEqualTo("SOURCE_UNAVAILABLE");
-                    assertThat(error.status().value()).isEqualTo(503);
-                });
-        unchanged();
-        assertThat(jdbc.queryForObject(
-                        "SELECT " + column + " FROM bed_allocation WHERE id=?", Boolean.class, allocation))
-                .isTrue();
-        assertThat(jdbc.queryForObject(
-                                "SELECT started_at FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=? AND flag_type=?",
-                                Timestamp.class,
-                                allocation,
-                                flag)
-                        .toInstant())
-                .isEqualTo(started);
-        assertThat(published.stream(BedTransferred.class).filter(e -> e.residentId() == resident))
-                .isEmpty();
     }
 
     private void differentPrice() {

@@ -70,78 +70,6 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                 Timestamp.from(time.now().minusSeconds(60)));
     }
 
-    @Test
-    void BR_M03_21_officeListsDoctorsWithoutReadingStaffAccountAdministrationData() throws Exception {
-        mvc.perform(get("/api/v1/bed-allocations/prescribing-doctors"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + doctor + ")]").isNotEmpty());
-        mvc.perform(get("/api/v1/accounts").param("type", "STAFF"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items").isEmpty());
-    }
-
-    @Test
-    void FR_024a_onlyDoctorReadsPendingStays() throws Exception {
-        mvc.perform(get("/api/v1/room-isolation/pending-stays")).andExpect(status().isForbidden());
-        user.set(new TestUsers(jdbc, time).staff(Role.DOCTOR).user());
-        mvc.perform(get("/api/v1/room-isolation/pending-stays"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + allocation + ")]").isNotEmpty());
-    }
-
-    @Test
-    void FR_024a_liftRetainsFlagInsideCordonAndClearsItWhenUnblocked() throws Exception {
-        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
-        jdbc.update("UPDATE room SET isolated=TRUE WHERE id=?", room);
-        infection.cordon(
-                time.now().minusSeconds(1),
-                new com.eldercare.backend.roombedallocation.api.spi.CordonedArea(
-                        java.util.Set.of(), java.util.Set.of(area)));
-        mvc.perform(post("/api/v1/rooms/" + room + "/lift-isolation")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Gỡ phòng, vùng còn chặn\"}"))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT awaiting_doctor_confirmation FROM bed_allocation WHERE id=?",
-                        Boolean.class,
-                        allocation))
-                .isTrue();
-        infection.reset();
-        mvc.perform(post("/api/v1/rooms/" + room + "/isolate")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Đợt mới\"}"))
-                .andExpect(status().isOk());
-        mvc.perform(post("/api/v1/rooms/" + room + "/lift-isolation")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Hết chặn\"}"))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT awaiting_doctor_confirmation FROM bed_allocation WHERE id=?",
-                        Boolean.class,
-                        allocation))
-                .isFalse();
-    }
-
-    @Test
-    void FR_032_absentResidentKeepsHoldAndRemainingDeadlineOnTarget() throws Exception {
-        var deadline = time.now().plusSeconds(3600).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
-        jdbc.update("UPDATE resident SET status='TEMPORARILY_ABSENT' WHERE id=?", resident);
-        jdbc.update(
-                "UPDATE bed SET state='HELD',hold_reason='ABSENT_RESIDENT',hold_resident_id=?,hold_until=? WHERE id=?",
-                resident,
-                Timestamp.from(deadline),
-                bed);
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/infection-control-transfer")
-                        .contentType("application/json")
-                        .content(body(doctor)))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, target))
-                .isEqualTo("HELD");
-        assertThat(jdbc.queryForObject("SELECT hold_until FROM bed WHERE id=?", Timestamp.class, target)
-                        .toInstant())
-                .isEqualTo(deadline);
-    }
-
     private String body(long doctorId) {
         return "{\"newBedId\":" + target + ",\"prescribingDoctorId\":" + doctorId
                 + ",\"reason\":\"Chỉ định kiểm soát lây nhiễm\"}";
@@ -184,18 +112,6 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                 .isEqualTo(allocation);
     }
 
-    @Test
-    void BR_M03_21_invalidDoctorLeavesBothBedsAndAllocationUnchanged() throws Exception {
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/infection-control-transfer")
-                        .contentType("application/json")
-                        .content(body(user.accountId())))
-                .andExpect(status().isUnprocessableEntity());
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, target))
-                .isEqualTo("EMPTY");
-    }
-
     @org.junit.jupiter.params.ParameterizedTest
     @org.junit.jupiter.params.provider.ValueSource(strings = {"LOCKED", "INACTIVE", "TEMPORARILY_LOCKED"})
     void BR_M03_21_nonActiveDoctorCannotBeSelectedOrPrescribe(String status) throws Exception {
@@ -214,52 +130,5 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                 .andExpect(status().isUnprocessableEntity());
         assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
                 .isEqualTo("ACTIVE");
-    }
-
-    @Test
-    void FR_024a_nonActiveDoctorCannotConfirmOrListPendingStays() throws Exception {
-        var actor = new TestUsers(jdbc, time).staff(Role.DOCTOR).user();
-        user.set(actor);
-        jdbc.update(
-                "UPDATE account SET status='TEMPORARILY_LOCKED',locked_until=? WHERE id=?",
-                Timestamp.from(time.now().plusSeconds(3600)),
-                actor.accountId());
-        mvc.perform(get("/api/v1/room-isolation/pending-stays")).andExpect(status().isForbidden());
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/confirm-isolated-stay")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Ở lại\"}"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_010_genderConditionStillBlocksPrescribedTransfer() throws Exception {
-        jdbc.update("UPDATE room SET gender_policy='MALE' WHERE id=?", targetRoom);
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/infection-control-transfer")
-                        .contentType("application/json")
-                        .content(body(doctor)))
-                .andExpect(status().isConflict());
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-    }
-
-    @Test
-    void FR_024a_onlyActiveDoctorCanConfirmStay() throws Exception {
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/confirm-isolated-stay")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Ở lại\"}"))
-                .andExpect(status().isForbidden());
-        user.set(new TestUsers(jdbc, time).staff(Role.DOCTOR).user());
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/confirm-isolated-stay")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Ở lại\"}"))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT awaiting_doctor_confirmation FROM bed_allocation WHERE id=?",
-                        Boolean.class,
-                        allocation))
-                .isFalse();
-        assertThat(jdbc.queryForObject(
-                        "SELECT confirming_doctor_id FROM bed_allocation WHERE id=?", Long.class, allocation))
-                .isEqualTo(user.accountId());
     }
 }

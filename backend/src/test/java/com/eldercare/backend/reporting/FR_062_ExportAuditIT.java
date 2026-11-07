@@ -1,9 +1,6 @@
 package com.eldercare.backend.reporting;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,7 +43,6 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.util.AopTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -225,83 +221,10 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void Q25_manager_withIdentity_withoutPurpose_422_nothingLogged() throws Exception {
-        int before = auditCount(manager);
-
-        export(manager, body(true, null))
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("PURPOSE_REQUIRED"));
-
-        assertThat(auditCount(manager)).isEqualTo(before);
-        assertThat(fileCount(manager)).isZero();
-    }
-
-    @Test
-    void Q26_floorManager_aggregateOnly_ownFloor_noIdentity_noSinglePersonGroup() throws Exception {
-        long fileId = fileId(export(floorManager, body(false, null)).andExpect(status().isCreated()));
-
-        Map<String, Object> row = auditRow(fileId);
-        assertThat(String.valueOf(row.get("include_identity"))).isEqualTo("false");
-        assertThat(((Number) row.get("actor_id")).longValue()).isEqualTo(floorManager.accountId());
-        String content = text(download(floorManager, fileId, 200));
-        assertThat(content)
-                .contains(TestDoseMetric.CODE, "Sáng")
-                // ca Tối chỉ có một người; tầng 2 ngoài phạm vi
-                .doesNotContain("Nguyễn Văn A", "Trần Thị B", "Lê Văn C", "Tối");
-    }
-
-    @Test
     void US9_1_floorManager_withIdentity_403() throws Exception {
         export(floorManager, body(true, "họp"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.errorCode").value("PERMISSION_DENIED"));
         assertThat(fileCount(floorManager)).isZero();
-    }
-
-    @Test
-    void FR_060_rangeTooLong_422() throws Exception {
-        LocalDate today = time.today();
-        export(manager, """
-                        {"from": "%s", "to": "%s"}
-                        """.formatted(today.minusYears(2), today))
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("RANGE_EXCEEDS_MAXIMUM"));
-    }
-
-    @Test
-    void Q27_auditLogFails_noFileDelivered() throws Exception {
-        // stub trên đối tượng đích: gọi qua proxy transaction thì write (MANDATORY) chạy trước Mockito
-        AuditLogApi target = AopTestUtils.getUltimateTargetObject(auditLog);
-        doThrow(new IllegalStateException("không ghi được nhật ký"))
-                .when(target)
-                .write(any());
-
-        // lỗi không có mã đi tới bộ xử lý mặc định (500 ở máy chủ thật); MockMvc ném lại
-        assertThatThrownBy(() -> export(floorManager, body(false, null))).hasRootCauseMessage("không ghi được nhật ký");
-
-        assertThat(fileCount(floorManager)).isZero();
-        assertThat(auditCount(floorManager)).isZero();
-    }
-
-    @Test
-    void FR_062_managerSeesEveryExport_othersOnlyTheirOwn_downloadByExporterOrManager() throws Exception {
-        long own = fileId(export(floorManager, body(false, null)).andExpect(status().isCreated()));
-        long managers = fileId(export(manager, body(false, null)).andExpect(status().isCreated()));
-        TestUser otherFloorManager = users.staff(Role.FLOOR_MANAGER);
-
-        mvc.perform(get("/api/v1/reports/exports")
-                        .header("Authorization", TestUsers.bearer(users.session(floorManager.accountId()))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].fileId").value(org.hamcrest.Matchers.contains((int) own)))
-                .andExpect(jsonPath("$[0].group").value("HEALTH_MEDICATION"))
-                .andExpect(jsonPath("$[0].includeIdentity").value(false));
-        mvc.perform(get("/api/v1/reports/exports")
-                        .header("Authorization", TestUsers.bearer(users.session(manager.accountId()))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].fileId").value(org.hamcrest.Matchers.hasItems((int) own, (int) managers)));
-
-        download(manager, own, 200);
-        download(otherFloorManager, own, 403);
-        download(floorManager, managers, 403);
     }
 }

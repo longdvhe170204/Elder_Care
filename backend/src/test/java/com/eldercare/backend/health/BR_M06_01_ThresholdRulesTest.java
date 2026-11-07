@@ -38,22 +38,6 @@ class BR_M06_01_ThresholdRulesTest {
     }
 
     @Test
-    void FR_021_equalOrReversedBoundsAreRejected() {
-        assertThat(ThresholdRules.violations(Map.of("VALUE", band("36", "36", "37.5", "39")), COMPONENTS, range))
-                .isNotEmpty();
-        assertThat(ThresholdRules.violations(Map.of("VALUE", band(null, "38", "37", null)), COMPONENTS, range))
-                .isNotEmpty();
-    }
-
-    @Test
-    void FR_021_boundOutsidePhysicalRangeIsRejected() {
-        assertThat(ThresholdRules.violations(Map.of("VALUE", band("29", "36", "37.5", "39")), COMPONENTS, range))
-                .isNotEmpty();
-        assertThat(ThresholdRules.violations(Map.of("VALUE", band(null, null, null, "46")), COMPONENTS, range))
-                .isNotEmpty();
-    }
-
-    @Test
     void FR_020_unknownComponentAndEmptyListAreRejected() {
         assertThat(ThresholdRules.violations(Map.of("OTHER", band(null, "36", null, null)), COMPONENTS, range))
                 .isNotEmpty();

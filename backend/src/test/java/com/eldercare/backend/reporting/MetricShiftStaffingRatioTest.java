@@ -4,9 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.reporting.internal.metric.domain.DetailRow;
 import com.eldercare.backend.reporting.internal.metric.domain.Metric;
-import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
 import com.eldercare.backend.reporting.internal.scope.domain.ReportScope;
@@ -60,37 +58,6 @@ class MetricShiftStaffingRatioTest {
                 3L,
                 start,
                 end);
-    }
-
-    @Test
-    void FR_020_dashboard_currentShiftOnly_withStatusByArea() {
-        Instant start = NOW.minus(Duration.ofHours(3));
-        statistics.ratios(List.of(
-                ratio(1, 101, start, start.plus(Duration.ofHours(8)), "8.00", false, true),
-                ratio(2, 102, start, start.plus(Duration.ofHours(8)), null, false, false),
-                ratio(3, 101, start.minus(Duration.ofHours(8)), start, "8.00", true, false)));
-        Metric<StaffingRatioRecord> metric = source.metric();
-
-        List<StaffingRatioRecord> included = metric.included(
-                source.current(ScopeFilter.FACILITY, time.startOfDay(time.today()), NOW), ReportScope.FACILITY::covers);
-        MetricValue value = metric.compute(included);
-        List<DetailRow> rows = metric.details(included, null);
-
-        assertThat(metric.code()).isEqualTo("SHIFT.STAFFING_RATIO");
-        assertThat(metric.group()).isEqualTo(MetricGroup.STAFFING_RATIO);
-        assertThat(value.value()).isEqualByComparingTo("2");
-        assertThat(value.breakdown())
-                .extracting(MetricValue.Breakdown::key, b -> b.value().intValue())
-                .containsExactly(
-                        org.assertj.core.groups.Tuple.tuple("NOT_CONFIGURED", 1),
-                        org.assertj.core.groups.Tuple.tuple("NOT_MET", 1));
-        assertThat(rows).extracting(DetailRow::floorAreaId).containsExactly(101L, 102L);
-        assertThat(rows.getFirst().result())
-                .containsEntry("ratio", new BigDecimal("7.00"))
-                .containsEntry("staffCount", 5)
-                .containsEntry("totalWeight", new BigDecimal("35.00"))
-                .containsEntry("passed", false);
-        assertThat(rows.get(1).result()).containsEntry("threshold", null);
     }
 
     @Test

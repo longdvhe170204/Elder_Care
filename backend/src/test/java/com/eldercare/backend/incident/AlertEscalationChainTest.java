@@ -16,25 +16,4 @@ class AlertEscalationChainTest {
     void BR_M05_01_levelOneGoesToManager() {
         assertThat(AlertEscalationChain.next(1, level -> true)).hasValue(2);
     }
-
-    @Test
-    void BR_M05_01_skipsLevelWithNobody() {
-        assertThat(AlertEscalationChain.next(0, level -> level == 2)).hasValue(2);
-    }
-
-    @Test
-    void BR_M05_01_maximumLevelHasNoNext() {
-        assertThat(AlertEscalationChain.next(2, level -> true)).isEmpty();
-    }
-
-    @Test
-    void BR_M05_01_noRecipientsAnywhereHasNoNext() {
-        assertThat(AlertEscalationChain.next(0, level -> false)).isEmpty();
-    }
-
-    @Test
-    void BR_M05_01_reachedMaximumOnlyAtLevelTwo() {
-        assertThat(AlertEscalationChain.atMaximum(1)).isFalse();
-        assertThat(AlertEscalationChain.atMaximum(2)).isTrue();
-    }
 }

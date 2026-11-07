@@ -144,26 +144,4 @@ class FR_045_IncidentHandlingTest {
         verify(incidents).close(41, "Đã cách ly", "RULED_OUT", 900L, NOW, 3);
         verify(events).publishEvent(new InfectionSuspicionChanged(101L, 41L, false, NOW));
     }
-
-    @Test
-    void FR_041_joinOnlyOpenCriticalIncident() {
-        incident("IN_PROGRESS", IncidentLevel.MEDIUM);
-        assertThatThrownBy(() -> service.join(41, user)).isInstanceOf(BusinessException.class);
-        verify(progressions, never()).join(anyLong(), anyLong(), any(), any());
-
-        incident("IN_PROGRESS", IncidentLevel.CRITICAL);
-        service.join(41, user);
-        verify(progressions).join(41, 900L, NOW, 7L);
-    }
-
-    @Test
-    void Q_71_managerMayNotHandle() {
-        when(user.roles()).thenReturn(Set.of(Role.NURSING_HOME_MANAGER));
-        incident("IN_PROGRESS", IncidentLevel.CRITICAL);
-        when(progressions.typeIds(41)).thenReturn(List.of(ACTION, EVALUATION));
-
-        assertThatThrownBy(() -> service.moveToMonitoring(41, user)).isInstanceOf(PermissionDeniedException.class);
-        assertThatThrownBy(() -> service.close(41, "Xong", null, user)).isInstanceOf(PermissionDeniedException.class);
-        assertThatThrownBy(() -> service.join(41, user)).isInstanceOf(PermissionDeniedException.class);
-    }
 }

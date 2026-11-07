@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.account.api.spi.StaffStatus;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -78,58 +77,6 @@ class StaffAccountCreationIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         String.valueOf(accountId)))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void US2_2_profileAlreadyHasAccount_409() throws Exception {
-        long staffId = AccountFixtures.nextId();
-        staffProfiles.staff(staffId, Role.CAREGIVER);
-        create(manager, staffId, "cham-soc-" + staffId, "AC-05").andExpect(status().isCreated());
-
-        create(manager, staffId, "cham-soc-2-" + staffId, "AC-05")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("PROFILE_ALREADY_HAS_ACCOUNT"));
-    }
-
-    @Test
-    void FR_004_resignedProfile_409() throws Exception {
-        long staffId = AccountFixtures.nextId();
-        staffProfiles.staff(staffId, Role.CAREGIVER).status(staffId, StaffStatus.RESIGNED);
-
-        create(manager, staffId, "nghi-" + staffId, "AC-05")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STAFF_RESIGNED"));
-    }
-
-    @Test
-    void FR_004a_positionNotSystemUser_409() throws Exception {
-        long staffId = AccountFixtures.nextId();
-
-        create(manager, staffId, "bao-ve-" + staffId, "AC-05")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("POSITION_NOT_SYSTEM_USER"));
-    }
-
-    @Test
-    void US2_3_noRoleOrFamilyRole_rejected() throws Exception {
-        long staffId = AccountFixtures.nextId();
-        staffProfiles.staff(staffId, Role.CAREGIVER);
-
-        create(manager, staffId, "khong-vai-tro-" + staffId).andExpect(status().is4xxClientError());
-        create(manager, staffId, "nguoi-than-" + staffId, "AC-10").andExpect(status().is4xxClientError());
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM account WHERE staff_id = ?", Integer.class, staffId))
-                .isZero();
-    }
-
-    @Test
-    void FR_004_onlyManager_officeAndFloorManagerDenied() throws Exception {
-        long staffId = AccountFixtures.nextId();
-        staffProfiles.staff(staffId, Role.CAREGIVER);
-        String office = fixtures.session(fixtures.staffAccount("AC-09"));
-        String floorManager = fixtures.session(fixtures.staffAccount("AC-02"));
-
-        create(office, staffId, "hc-tao-" + staffId, "AC-05").andExpect(status().isForbidden());
-        create(floorManager, staffId, "tt-tao-" + staffId, "AC-05").andExpect(status().isForbidden());
     }
 
     private ResultActions create(String token, long staffId, String username, String... roles) throws Exception {

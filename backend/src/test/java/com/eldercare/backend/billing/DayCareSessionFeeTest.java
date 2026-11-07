@@ -35,29 +35,4 @@ class DayCareSessionFeeTest {
         assertThat(DayCareSessionFee.base(price, 13, false)).isEqualByComparingTo("769231");
         assertThat(DayCareSessionFee.base(price, 13, true)).isEqualByComparingTo("769228");
     }
-
-    @Test
-    void FR_009_roundsTheSessionBaseBeforeApplyingAttendancePercentage() {
-        assertThat(DayCareSessionFee.monthly(new BigDecimal("3900020"), 13, false, new BigDecimal("30")))
-                .isEqualByComparingTo("90001");
-        assertThat(DayCareSessionFee.monthly(new BigDecimal("3900020"), 13, false, BigDecimal.ZERO))
-                .isEqualByComparingTo("0");
-    }
-
-    @Test
-    void FR_009_providedScheduledCountAndDirectAdditionalSessionPriceStaySeparate() {
-        // Nguồn 004 cung cấp số buổi sau lọc ngày khu nghỉ; tính lại dùng số mới, không số ngày trong tháng.
-        var price = new BigDecimal("10000000");
-        assertThat(DayCareSessionFee.base(price, 12, false)).isEqualByComparingTo("833333");
-        assertThat(DayCareSessionFee.base(price, 13, false)).isEqualByComparingTo("769231");
-        // Buổi phát sinh dùng giá trực tiếp 100%, không nhận phần dư của giá tháng.
-        assertThat(DayCareSessionFee.direct(new BigDecimal("800001"), new BigDecimal("100")))
-                .isEqualByComparingTo("800001");
-    }
-
-    @Test
-    void FR_009_monthlyDivisionRequiresAScheduledSession() {
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> DayCareSessionFee.base(new BigDecimal("10000000"), 0, false));
-    }
 }

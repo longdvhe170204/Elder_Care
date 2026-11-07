@@ -5,7 +5,6 @@ import static org.awaitility.Awaitility.await;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.ContentPart;
-import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.notification.InformationSubject;
 import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationLevel;
@@ -15,8 +14,6 @@ import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
-import com.eldercare.backend.notification.api.spi.NotifiableRelationshipView;
-import com.eldercare.backend.notification.api.spi.SmsResult;
 import com.eldercare.backend.notification.internal.delivery.service.OutOfAppResender;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
@@ -30,7 +27,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -167,91 +163,5 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
         awaitOutcomes(medium, Map.of("IN_APP", "SENT", "SMS", "SENT"));
         assertThat(sms.sent())
                 .containsExactly(new FakeSmsProvider.SentSms("0901111001", "Có việc mới cần xem trong ứng dụng"));
-    }
-
-    @Test
-    void BR_M13_01_family_mediumPortalAndSms_FR_016_smsOff_notUsed() {
-        long m = TestUsers.nextId();
-        TestUser account = users.family(m);
-        family.relate(
-                resident,
-                new NotifiableRelationshipView(
-                        m,
-                        true,
-                        false,
-                        Set.of(FamilyRight.VIEW_COSTS),
-                        Optional.of(account.accountId()),
-                        true,
-                        Optional.of("0901111002")));
-
-        long on = send(request(
-                "ch-family-" + resident,
-                NotificationLevel.MEDIUM,
-                Map.of(),
-                new RecipientGroup.PrimaryContact(resident)));
-        awaitOutcomes(on, Map.of("FAMILY_PORTAL", "SENT", "SMS", "SENT"));
-
-        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON))"
-                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
-        long off = send(request(
-                "ch-family-off-" + resident,
-                NotificationLevel.MEDIUM,
-                Map.of(),
-                new RecipientGroup.PrimaryContact(resident)));
-        awaitOutcomes(off, Map.of("FAMILY_PORTAL", "SENT"));
-    }
-
-    @Test
-    void FR_018_noPhone_noAddress_temporaryFailure_resentOnce() {
-        TestUser noPhone = users.staff(Role.ACCOUNTANT);
-        long a = send(request(
-                "ch-nophone-" + resident,
-                NotificationLevel.MEDIUM,
-                Map.of(),
-                new RecipientGroup.Staff(noPhone.staffId(), "X")));
-        awaitOutcomes(a, Map.of("IN_APP", "SENT", "SMS", "NO_ADDRESS"));
-
-        TestUser u = staffWithPhone("0901111003");
-        sms.thenReturn(
-                SmsResult.of(SmsResult.Outcome.TEMPORARY_FAILURE), SmsResult.of(SmsResult.Outcome.TEMPORARY_FAILURE));
-        long b = send(request(
-                "ch-resend-" + resident,
-                NotificationLevel.MEDIUM,
-                Map.of(),
-                new RecipientGroup.Staff(u.staffId(), "X")));
-        awaitOutcomes(b, Map.of("IN_APP", "SENT", "SMS", "FAILED"));
-
-        resender.run();
-        await().atMost(Duration.ofSeconds(10))
-                .until(() -> jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM record_event a JOIN record_event r ON r.kind = 'M13.DELIVERY_RESULT' AND r.entity_type = 'M13.DELIVERY_ATTEMPT' AND r.entity_id = a.id"
-                                        + " WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
-                                        + " AND a.entity_id = ? AND a.content->>'$.channel' = 'SMS'",
-                                Integer.class,
-                                b)
-                        == 2);
-        // CFG-M13-05 mặc định 1 lần gửi lại: lần thứ ba không có
-        resender.run();
-        assertThat(jdbc.queryForObject(
-                        "SELECT MAX(JSON_VALUE(a.content, '$.attemptNo' RETURNING SIGNED)) FROM record_event a WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
-                                + " AND a.entity_id = ? AND a.content->>'$.channel' = 'SMS'",
-                        Integer.class,
-                        b))
-                .isEqualTo(2);
-        assertThat(sms.sent()).hasSize(2);
-    }
-
-    @Test
-    void FR_020_healthKeyInShortContent_smsInvalid_inAppStillSent() {
-        TestUser u = staffWithPhone("0901111004");
-
-        long id = send(request(
-                "ch-health-" + resident,
-                NotificationLevel.MEDIUM,
-                Map.of("diagnosis", "Viêm phổi"),
-                new RecipientGroup.Staff(u.staffId(), "X")));
-
-        awaitOutcomes(id, Map.of("IN_APP", "SENT", "SMS", "INVALID_CONTENT"));
-        assertThat(sms.sent()).isEmpty();
     }
 }

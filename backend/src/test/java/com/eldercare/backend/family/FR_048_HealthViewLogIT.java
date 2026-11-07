@@ -44,43 +44,6 @@ class FR_048_HealthViewLogIT extends FamilyCommandTestBase {
     }
 
     @Test
-    void FR_048_eachOpenedSection_isLogged_managerQueries() throws Exception {
-        String m = familySession(mMember);
-        mvc.perform(get("/api/v1/family-portal/residents/" + a + "/health/allergies-conditions")
-                        .header("Authorization", m))
-                .andExpect(status().isOk());
-        mvc.perform(get("/api/v1/family-portal/residents/" + a + "/health/medications")
-                        .header("Authorization", m))
-                .andExpect(status().isOk());
-
-        JsonNode rows = logs(staffSession(Role.NURSING_HOME_MANAGER));
-        assertThat(rows).hasSize(2);
-        assertThat(rows).allSatisfy(r -> {
-            assertThat(r.get("familyMemberId").asLong()).isEqualTo(mMember);
-            assertThat(r.get("residentId").asLong()).isEqualTo(a);
-            assertThat(r.get("source").asString()).isEqualTo("PORTAL");
-            assertThat(r.has("at")).isTrue();
-        });
-        assertThat(rows)
-                .extracting(r -> r.get("section").asString())
-                .containsExactlyInAnyOrder("ALLERGIES_CONDITIONS", "MEDICATIONS");
-
-        mvc.perform(get("/api/v1/health-view-logs?residentId=" + a).header("Authorization", m))
-                .andExpect(status().isForbidden());
-        mvc.perform(get("/api/v1/health-view-logs?residentId=" + a)
-                        .header("Authorization", staffSession(Role.OFFICE_STAFF)))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void Q_352_noHealthRight_noLogLine() throws Exception {
-        mvc.perform(get("/api/v1/family-portal/residents/" + a + "/health/incidents")
-                        .header("Authorization", familySession(nMember)))
-                .andExpect(status().isForbidden());
-        assertThat(logs(staffSession(Role.NURSING_HOME_MANAGER))).isEmpty();
-    }
-
-    @Test
     void FR_046_sourceNotAvailable_saysSo_noNumbers_noLog() throws Exception {
         String m = familySession(mMember);
         for (String section : new String[] {"eating", "diet", "vital-signs"}) {

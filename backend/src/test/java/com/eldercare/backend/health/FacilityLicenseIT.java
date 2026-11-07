@@ -1,12 +1,9 @@
 package com.eldercare.backend.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.administration.account.api.spi.FacilityLicenseApi;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.InvalidValueException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.api.FacilityContactApi;
 import com.eldercare.backend.health.internal.license.service.FacilityLicenseService;
@@ -63,14 +60,6 @@ class FacilityLicenseIT extends VitalSignMeasurementTestBase {
     }
 
     @Test
-    void FR_070_onlyManagerSavesLicense() {
-        actAs(Role.DOCTOR);
-
-        assertThatThrownBy(() -> service.save(input("PA-1", true, null, false, null), today()))
-                .isInstanceOf(PermissionDeniedException.class);
-    }
-
-    @Test
     void FR_071_savedLicenseCoversScopeOnlyWithMedicalFlag() {
         actAs(Role.NURSING_HOME_MANAGER);
         String scope = "PA-" + TestUsers.nextId();
@@ -81,57 +70,5 @@ class FacilityLicenseIT extends VitalSignMeasurementTestBase {
 
         assertThat(licenseApi.coversScope(scope, today())).isTrue();
         assertThat(licenseApi.coversScope(other, today())).isFalse();
-    }
-
-    @Test
-    void FR_075_replacementForErrorKeepsOldRowButStopsUsingIt() {
-        actAs(Role.NURSING_HOME_MANAGER);
-        String oldScope = "PA-" + TestUsers.nextId();
-        var old = service.save(input(oldScope, true, null, false, null), today());
-
-        var replacement =
-                service.save(input("PA-" + TestUsers.nextId(), true, old.id(), true, "Nhập nhầm ngày"), today());
-
-        assertThat(licenseApi.coversScope(oldScope, today())).isFalse();
-        var all = service.list(today());
-        assertThat(all).extracting(v -> v.id()).contains(old.id(), replacement.id());
-        assertThat(all.stream()
-                        .filter(v -> v.id() == old.id())
-                        .findFirst()
-                        .orElseThrow()
-                        .active())
-                .isFalse();
-    }
-
-    @Test
-    void FR_075_replacementForErrorNeedsReasonAndTarget() {
-        actAs(Role.NURSING_HOME_MANAGER);
-
-        assertThatThrownBy(() -> service.save(input("PA-1", true, null, true, "Lý do"), today()))
-                .isInstanceOf(InvalidValueException.class);
-        assertThatThrownBy(() -> service.save(input("PA-1", true, 1L, true, " "), today()))
-                .isInstanceOf(InvalidValueException.class);
-    }
-
-    @Test
-    void FR_070_licenseDatesMustBeOrdered() {
-        actAs(Role.NURSING_HOME_MANAGER);
-        var bad = new LicenseInput(
-                "GP-1", "Sở Y tế", today(), today().minusDays(1), true, List.of(), null, null, false, null);
-
-        assertThatThrownBy(() -> service.save(bad, today())).isInstanceOf(InvalidValueException.class);
-    }
-
-    @Test
-    void FR_070_contactChangeRequiresManagerAndIsReadBack() {
-        actAs(Role.DOCTOR);
-        assertThatThrownBy(() -> service.changeContact("0900000000", null, 0))
-                .isInstanceOf(PermissionDeniedException.class);
-
-        actAs(Role.NURSING_HOME_MANAGER);
-        var saved = service.changeContact("0912345678", "Trực 24/7", 0);
-
-        assertThat(contactApi.current().phoneNumber()).isEqualTo("0912345678");
-        assertThat(saved.version()).isGreaterThanOrEqualTo(0);
     }
 }

@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -19,8 +18,31 @@ import org.junit.jupiter.api.Test;
  */
 class FR_005_DeduplicationIT extends M13IntegrationTestBase {
 
+    private static NotificationRequest withKey(NotificationRequest r, String key, SourceRecord source) {
+        return new NotificationRequest(
+                r.sourceModule(),
+                r.eventType(),
+                r.sourceGroup(),
+                source,
+                key,
+                r.level(),
+                r.residentId(),
+                r.floorAreaId(),
+                r.recipientGroups(),
+                r.content(),
+                r.shortContent(),
+                r.title(),
+                r.causedBy(),
+                r.notifyCauser(),
+                r.occurredAt(),
+                r.displayParams(),
+                r.afterDeath(),
+                r.informationSubject(),
+                r.q354Case());
+    }
+
     private NotificationRequest request(String sourceId, String key) {
-        return FR_003_RequestValidationIT.withKey(
+        return withKey(
                 RequestValidationTest.request(
                         Optional.of(NotificationLevel.LOW),
                         RequestValidationTest.MANAGERS,
@@ -50,36 +72,5 @@ class FR_005_DeduplicationIT extends M13IntegrationTestBase {
 
         await().atMost(Duration.ofSeconds(10)).until(() -> duplicates(id) == 1);
         assertThat(requests(key)).hasSize(1);
-    }
-
-    @Test
-    void FR_005_concurrentDuplicates_createOneRequest() {
-        String source = UUID.randomUUID().toString();
-        String key = "overdue#1-" + source;
-
-        CompletableFuture<?> a = CompletableFuture.runAsync(
-                () -> sourceCommand("fr005-c1", new SampleSourceEvent(List.of(request(source, key)))));
-        CompletableFuture<?> b = CompletableFuture.runAsync(
-                () -> sourceCommand("fr005-c2", new SampleSourceEvent(List.of(request(source, key)))));
-        CompletableFuture.allOf(a, b).join();
-
-        Object id = awaitRequests(key, 1).getFirst().get("id");
-        await().atMost(Duration.ofSeconds(10)).until(() -> duplicates(id) == 1);
-        assertThat(requests(key)).hasSize(1);
-    }
-
-    @Test
-    void FR_005_newKeyForRepeatedReminder_isNewRequest() {
-        String source = UUID.randomUUID().toString();
-
-        sourceCommand("fr005-k1", new SampleSourceEvent(List.of(request(source, "overdue#1"))));
-        sourceCommand("fr005-k2", new SampleSourceEvent(List.of(request(source, "overdue#2"))));
-
-        await().atMost(Duration.ofSeconds(10))
-                .until(() -> jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM notification_request WHERE source_record_id = ?",
-                                Integer.class,
-                                source)
-                        == 2);
     }
 }

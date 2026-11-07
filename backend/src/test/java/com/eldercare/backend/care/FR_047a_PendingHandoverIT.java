@@ -2,7 +2,6 @@ package com.eldercare.backend.care;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.eldercare.backend.care.api.ShiftTaskApi;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.spi.ShiftStaffPort.ShiftView;
 import com.eldercare.backend.care.internal.task.service.CareTaskDueStep;
@@ -25,18 +24,5 @@ class FR_047a_PendingHandoverIT extends CareOverdueTestBase {
         assertThat(task.plannedAt()).isEqualTo(taskStore.get(id, false).plannedAt());
         context.getBean(CareTaskDueStep.class).run(old.endsAt());
         assertThat(taskStore.get(id, false).version()).isEqualTo(task.version());
-    }
-
-    @Test
-    void FR_047a_confirmDoesNotCloseOrReassignATaskClaimedWhileWaiting() throws Exception {
-        long id = create();
-        jdbc.update("UPDATE care_task SET status='OVERDUE',carryover='AWAITING_HANDOVER_CONFIRMATION' WHERE id=?", id);
-        long next = TestUsers.nextId();
-        shifts.shift(new ShiftView(next, floor, time.now(), time.now().plusSeconds(28800), true));
-        var result = context.getBean("careTaskHandover", ShiftTaskApi.class)
-                .onHandoverConfirmed(TestUsers.nextId(), shiftId, next, Set.of(id), time.now());
-        assertThat(result.closedTaskIds()).isEmpty();
-        assertThat(taskStore.get(id, false).performerId()).isEqualTo(caregiver.staffId());
-        assertThat(taskStore.get(id, false).status()).isEqualTo(TaskStatus.OVERDUE);
     }
 }

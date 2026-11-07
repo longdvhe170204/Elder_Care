@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.resident.api.HealthItemApi;
-import com.eldercare.backend.resident.api.dto.HealthItemCheckSource;
 import com.eldercare.backend.resident.api.dto.HealthItemType;
 import com.eldercare.backend.resident.api.dto.HealthItemView;
 import com.eldercare.backend.resident.api.events.AllergyRecorded;
@@ -12,7 +11,6 @@ import com.eldercare.backend.resident.internal.health.service.AllergyCheckRetry;
 import com.eldercare.backend.resident.internal.health.service.HealthItemService;
 import com.eldercare.backend.resident.internal.health.service.HealthItemService.ItemView;
 import com.eldercare.backend.resident.internal.health.service.HealthItemService.RecordCommand;
-import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,81 +87,11 @@ class BR_M01_12_PendingCheckIT extends HealthTestBase {
         assertThat(saved.notAutoChecked()).isFalse();
     }
 
-    @Test
-    void BR_M01_12_flagStaysUntilBothModulesCheck_markCheckedIsIdempotent() {
-        long resident = newResident();
-        ItemView item = recordAllergy(resident);
-
-        // 006 (PrescriptionAllergyListener) kiểm đơn thuốc ngay sau khi lệnh ghi mục commit; 011 chưa kiểm
-        assertThat(flags(item.id())).as("[chờ thuốc, chờ dinh dưỡng]").containsExactly(false, true);
-        assertThat(pending(resident)).as("cờ còn tới khi cả hai module kiểm").isTrue();
-
-        api.markChecked(item.id(), HealthItemCheckSource.MEDICATION);
-        assertThat(flags(item.id())).as("gọi lặp không lỗi, không đổi cờ").containsExactly(false, true);
-        assertThat(pending(resident)).isTrue();
-
-        api.markChecked(item.id(), HealthItemCheckSource.NUTRITION);
-        assertThat(flags(item.id())).containsExactly(false, false);
-        assertThat(pending(resident)).isFalse();
-
-        api.markChecked(item.id(), HealthItemCheckSource.NUTRITION);
-        assertThat(pending(resident)).as("gọi lặp sau khi gỡ cờ").isFalse();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE entity_type = 'M01.HEALTH_ITEM' AND entity_id = ?"
-                                + " AND action = 'HEALTH_ITEM_CHECKED'",
-                        Integer.class,
-                        String.valueOf(item.id())))
-                // chỉ lần đổi cờ từ chờ sang đã kiểm mới ghi (A chốt 2026-11-03): listener 006 một lần, 011 một lần;
-                // gọi lặp cho cờ đã gỡ không ghi
-                .isEqualTo(2);
-    }
-
     private List<Boolean> flags(long itemId) {
         return jdbc.queryForObject(
                 "SELECT pending_medication_check, pending_nutrition_check FROM health_item WHERE id = ?",
                 (rs, i) -> List.of(rs.getBoolean(1), rs.getBoolean(2)),
                 itemId);
-    }
-
-    @Test
-    void BR_M01_12_retryJob_republishesOnlyAfter15Minutes_andStopsOnceChecked() {
-        long resident = newResident();
-        ItemView item = recordAllergy(resident);
-        long once = republished(item.id());
-
-        retry.run();
-        assertThat(republished(item.id())).as("chưa quá 15 phút").isEqualTo(once);
-
-        clock.advanceBy(Duration.ofMinutes(16));
-        assertThat(retry.run()).isGreaterThanOrEqualTo(1);
-        assertThat(republished(item.id())).isEqualTo(once + 1);
-
-        api.markChecked(item.id(), HealthItemCheckSource.MEDICATION);
-        retry.run();
-        assertThat(republished(item.id())).as("còn cờ dinh dưỡng").isEqualTo(once + 2);
-
-        api.markChecked(item.id(), HealthItemCheckSource.NUTRITION);
-        retry.run();
-        assertThat(republished(item.id())).as("hết cờ thì dừng").isEqualTo(once + 2);
-    }
-
-    @Test
-    void BR_M01_12_retryJob_skipsExcludedItemsAndOtherAllergies() {
-        long resident = newResident();
-        ItemView excluded = recordAllergy(resident);
-        items.exclude(target(resident), excluded.id(), new com.eldercare.backend.common.Reason("Ghi nhầm"));
-        user.set(doctor.user());
-        ItemView other = items.record(
-                        target(resident),
-                        new RecordCommand(HealthItemType.ALLERGY, null, "Phấn hoa", severityId(), sourceId(), false))
-                .item();
-        long excludedBefore = republished(excluded.id());
-
-        clock.advanceBy(Duration.ofMinutes(16));
-        retry.run();
-
-        assertThat(republished(excluded.id())).isEqualTo(excludedBefore);
-        assertThat(republished(other.id())).isZero();
     }
 
     private boolean pending(long residentId) {

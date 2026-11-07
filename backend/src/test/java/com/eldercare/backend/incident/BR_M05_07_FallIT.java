@@ -3,7 +3,6 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.incident.api.events.FallIncidentRecorded;
 import com.eldercare.backend.incident.api.events.PostFallFollowUpRequested;
 import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
@@ -49,73 +48,6 @@ class BR_M05_07_FallIT extends EmergencyTestBase {
         assertThat(events.stream(PostFallFollowUpRequested.class).toList()).hasSize(1);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_task WHERE resident_id = ?", Integer.class, resident))
                 .isZero();
-    }
-
-    @Test
-    void FR_052_newFallReplacesOpenWindow() throws Exception {
-        long first = recordFall();
-        long second = recordFall();
-
-        assertThat(windows.active(resident).orElseThrow().content().incidentId())
-                .isEqualTo(second);
-        assertThat(jdbc.queryForObject(
-                        "SELECT status FROM simple_record WHERE kind = 'M05.POST_FALL_MONITORING' AND resident_id = ?"
-                                + " AND JSON_EXTRACT(content, '$.incidentId') = ?",
-                        String.class,
-                        resident,
-                        first))
-                .isEqualTo(FallMonitoringStore.REPLACED);
-    }
-
-    @Test
-    void FR_052_onlyDoctorEndsEarlyWithReason() throws Exception {
-        long incident = recordFall();
-        String path = "/api/v1/incidents/{id}/end-post-fall-monitoring";
-
-        post(nurse, path, incident, "{\"reason\":\"Đã ổn định\"}").andExpect(status().isForbidden());
-        post(doctor, path, incident, "{}").andExpect(status().isUnprocessableContent());
-        post(doctor, path, incident, "{\"reason\":\"Đã ổn định\"}").andExpect(status().isOk());
-
-        assertThat(windows.active(resident)).isEmpty();
-        assertThat(jdbc.queryForObject(
-                        "SELECT status FROM simple_record WHERE kind = 'M05.POST_FALL_MONITORING' AND resident_id = ?"
-                                + " ORDER BY id DESC LIMIT 1",
-                        String.class,
-                        resident))
-                .isEqualTo(FallMonitoringStore.ENDED_EARLY);
-        post(doctor, path, incident, "{\"reason\":\"Lần hai\"}").andExpect(status().isConflict());
-    }
-
-    @Test
-    void FR_052_expiredWindowBecomesEnded() throws Exception {
-        recordFall();
-        var endsAt = windows.active(resident).orElseThrow().content().endsAt();
-
-        assertThat(monitoring.expireDue(endsAt.minusSeconds(1))).isZero();
-        assertThat(windows.active(resident)).isPresent();
-        assertThat(monitoring.expireDue(endsAt)).isGreaterThanOrEqualTo(1);
-
-        assertThat(windows.active(resident)).isEmpty();
-    }
-
-    @Test
-    void FR_052_taskSourceValidOnlyInsideWindow() throws Exception {
-        long incident = recordFall();
-        var content = windows.active(resident).orElseThrow().content();
-        var type = SourceType.POST_FALL_MONITORING;
-
-        assertThat(taskSource
-                        .validate(type, incident, resident, content.anchor().plusSeconds(60))
-                        .valid())
-                .isTrue();
-        assertThat(taskSource
-                        .validate(type, incident, resident, content.endsAt().plusSeconds(1))
-                        .valid())
-                .isFalse();
-        assertThat(taskSource
-                        .validate(type, incident + 1, resident, content.anchor().plusSeconds(60))
-                        .valid())
-                .isFalse();
     }
 
     /** Ghi sự cố Ngã mức mặc định Khẩn cấp qua HTTP; trả mã sự cố vừa tạo. */

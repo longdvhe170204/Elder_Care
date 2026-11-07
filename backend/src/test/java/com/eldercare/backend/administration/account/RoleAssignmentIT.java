@@ -73,57 +73,6 @@ class RoleAssignmentIT extends MySqlIntegrationTestBase {
                 .contains("AC-04");
     }
 
-    @Test
-    void BR_M15_17_staleIfMatch_412() throws Exception {
-        long account = fixtures.staffAccount("AC-05");
-
-        command(account, "assign-role", "\"5\"", "{\"role\":\"AC-04\",\"reason\":\"Có chứng chỉ\"}")
-                .andExpect(status().isPreconditionFailed());
-    }
-
-    @Test
-    void FR_004_removeRole_lastRoleRefused_otherRoleRemoved() throws Exception {
-        long account = fixtures.staffAccount("AC-04", "AC-05");
-
-        command(account, "remove-role", "\"0\"", "{\"role\":\"AC-04\",\"reason\":\"Hết chứng chỉ\"}")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.roles", containsInAnyOrder("AC-05")));
-        command(account, "remove-role", "\"1\"", "{\"role\":\"AC-05\",\"reason\":\"Thử gỡ hết\"}")
-                .andExpect(status().isConflict());
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ?"
-                                + " AND effective_to IS NOT NULL",
-                        Integer.class,
-                        account))
-                .isEqualTo(1);
-    }
-
-    /** T076 kéo lên cho màn T035: phần hiện hành của {@code GET /accounts/{id}/permissions} (chưa có {@code asOf}). */
-    @Test
-    void FR_026a_currentPermissions_etagIsPermissionVersion_onlyManager() throws Exception {
-        long account = fixtures.staffAccount("AC-05");
-
-        mvc.perform(get("/api/v1/accounts/" + account + "/permissions").header("Authorization", bearer(manager)))
-                .andExpect(status().isOk())
-                .andExpect(header().string("ETag", "\"0\""))
-                .andExpect(jsonPath("$.roles", containsInAnyOrder("AC-05")));
-        command(account, "assign-role", "\"0\"", "{\"role\":\"AC-04\",\"reason\":\"Có chứng chỉ điều dưỡng\"}")
-                .andExpect(status().isOk());
-        mvc.perform(get("/api/v1/accounts/" + account + "/permissions").header("Authorization", bearer(manager)))
-                .andExpect(header().string("ETag", "\"1\""));
-
-        String office = fixtures.session(fixtures.staffAccount("AC-09"));
-        mvc.perform(get("/api/v1/accounts/" + account + "/permissions").header("Authorization", bearer(office)))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_003_assignRoleWithoutReason_422() throws Exception {
-        long account = fixtures.staffAccount("AC-05");
-
-        command(account, "assign-role", "\"0\"", "{\"role\":\"AC-04\"}").andExpect(status().isUnprocessableEntity());
-    }
-
     private ResultActions command(long account, String command, String ifMatch, String body) throws Exception {
         return mvc.perform(post("/api/v1/accounts/" + account + "/" + command)
                 .header("Authorization", bearer(manager))

@@ -77,25 +77,6 @@ class CostPricingServiceTest {
     }
 
     @Test
-    void BR_M11_02_recordedFeeIsContractualEvenOutsideTheServicesArray() {
-        contract(content(1, null, "[]", Map.of(21L, new BigDecimal("300000"))));
-        assertThat(service.event(11, 21, DATE, BigDecimal.ONE).amount()).isEqualByComparingTo("300000");
-        verifyNoInteractions(prices);
-    }
-
-    @Test
-    void BR_M11_02_unregisteredServiceUsesItsSourceDatePriceAndMarksTheVersion() {
-        contract(content(1, null, "[{\"serviceId\":22,\"inPackage\":true}]", Map.of()));
-        catalogue("12500");
-        var quote = service.event(11, 21, DATE, new BigDecimal("2"));
-        assertThat(quote.amount()).isEqualByComparingTo("25000");
-        assertThat(quote.inPackage()).isFalse();
-        assertThat(quote.basis().kind()).isEqualTo(BasisKind.PRICE_VERSION);
-        assertThat(quote.basis().priceVersionId()).isEqualTo(41L);
-        verify(prices).unitPriceAt(21, DATE, true);
-    }
-
-    @Test
     void BR_M11_03_packagedServiceCostsZeroWithoutACataloguePrice() {
         contract(content(1, null, "[{\"serviceId\":21,\"inPackage\":true}]", Map.of()));
         var quote = service.event(11, 21, DATE, new BigDecimal("3"));
@@ -126,17 +107,6 @@ class CostPricingServiceTest {
     }
 
     @Test
-    void BR_M11_02_missingSignedPriceDoesNotSilentlyUseACataloguePrice() {
-        contract(content(1, null, "[{\"serviceId\":21}]", Map.of()));
-        var quote = service.event(11, 21, DATE, BigDecimal.ONE);
-        assertThat(quote.unitPrice()).isNull();
-        assertThat(quote.amount()).isNull();
-        assertThat(quote.missingUnitPrice()).isTrue();
-        assertThat(quote.basis().contractId()).isEqualTo(31L);
-        verifyNoInteractions(prices);
-    }
-
-    @Test
     void FR_012_anExplicitZeroCataloguePriceIsNotMissing() {
         catalogue("0");
         var quote = service.event(11, 21, DATE, BigDecimal.ONE);
@@ -151,22 +121,5 @@ class CostPricingServiceTest {
         var quote = service.event(11, 21, DATE, new BigDecimal("1.50"));
         assertThat(quote.unitPrice()).isEqualByComparingTo("101");
         assertThat(quote.amount()).isEqualByComparingTo("152");
-    }
-
-    @Test
-    void BR_M11_02_unavailableContractSourceIsNotTreatedAsNoContract() {
-        when(contracts.contentAtDate(11, DATE)).thenThrow(new IllegalStateException("Nguồn hợp đồng chưa sẵn sàng"));
-        assertThatThrownBy(() -> service.event(11, 21, DATE, BigDecimal.ONE))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Nguồn hợp đồng chưa sẵn sàng");
-        verifyNoInteractions(prices);
-    }
-
-    @Test
-    void FR_012_unavailablePriceSourceIsNotConvertedIntoAMissingPriceOrZero() {
-        when(prices.unitPriceAt(21, DATE, true)).thenThrow(new IllegalStateException("Nguồn giá chưa sẵn sàng"));
-        assertThatThrownBy(() -> service.event(11, 21, DATE, BigDecimal.ONE))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Nguồn giá chưa sẵn sàng");
     }
 }

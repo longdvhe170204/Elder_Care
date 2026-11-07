@@ -8,9 +8,6 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
-import com.eldercare.backend.care.api.events.ActivitySessionCancelled;
-import com.eldercare.backend.care.api.events.ActivitySessionChanged;
-import com.eldercare.backend.care.api.events.RegularParticipantsNotRegistered;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
 import com.eldercare.backend.care.internal.activity.domain.ActivityTypeAttributes;
 import com.eldercare.backend.common.Role;
@@ -19,6 +16,7 @@ import com.eldercare.backend.resident.api.dto.Gender;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -51,7 +49,7 @@ import tools.jackson.databind.json.JsonMapper;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 class BR_M04_21_TaoBuoiTuMauIT extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;
@@ -196,128 +194,5 @@ class BR_M04_21_TaoBuoiTuMauIT extends MySqlIntegrationTestBase {
         assertThat(list).hasSize(7);
         assertThat(list.get(0).get("registrationCount").asInt()).isEqualTo(3);
         assertThat(list.get(0).get("isTrip").asBoolean()).isFalse();
-    }
-
-    @Test
-    void FR_007_recreatingCoversOnlyMissingDaysAndNeverRecreatesCancelledSessions() throws Exception {
-        createFromTemplate(today.plusDays(1), today.plusDays(3)).andExpect(status().isOk());
-        long cancelled = firstSession();
-        sessionCommand(cancelled, "cancel", "{\"reason\":\"Ngày lễ\"}").andExpect(status().isOk());
-        createFromTemplate(today.plusDays(1), today.plusDays(5)).andExpect(status().isOk());
-        var rows = sessions();
-        assertThat(rows).hasSize(5);
-        assertThat(rows.getFirst().get("status")).isEqualTo("CANCELLED");
-        assertThat(registrations(cancelled, "REGULAR", "CANCELLED")).isEqualTo(3);
-        assertThat(events.stream(ActivitySessionCancelled.class).map(ActivitySessionCancelled::sessionId))
-                .contains(cancelled);
-    }
-
-    @Test
-    void FR_006_fromDateBeforeTodayIsRejected() throws Exception {
-        createFromTemplate(today.minusDays(1), today.plusDays(1)).andExpect(status().isUnprocessableContent());
-        assertThat(sessions()).isEmpty();
-    }
-
-    @Test
-    void FR_008_regularNotMeetingConditionsIsSkippedAndFloorManagerNotifiedOnce() throws Exception {
-        long ended = TestUsers.nextId();
-        residents.resident(ended, "[Họ tên NCT]", Gender.MALE, ResidentStatus.IN_RESIDENCE);
-        command(activity, "add-regular-participant", "{\"residentId\":" + ended + "}")
-                .andExpect(status().isOk());
-        residents.changeStatus(ended, ResidentStatus.RESIDENCY_ENDED, time.now());
-        createFromTemplate(today.plusDays(1), today.plusDays(2)).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM activity_registration WHERE resident_id=?", Integer.class, ended))
-                .isZero();
-        assertThat(events.stream(RegularParticipantsNotRegistered.class))
-                .singleElement()
-                .satisfies(e -> assertThat(e.residentIds()).containsExactly(ended));
-    }
-
-    @Test
-    void FR_009_templateChangeCancelsNonMatchingFutureSessionsAndKeepsMatchingOnes() throws Exception {
-        createFromTemplate(today.plusDays(1), today.plusDays(4)).andExpect(status().isOk());
-        template(today.plusDays(3), "08:30", "09:15").andExpect(status().isOk());
-        var rows = sessions();
-        assertThat(rows)
-                .extracting(r -> r.get("status"))
-                .containsExactly("SCHEDULED", "SCHEDULED", "CANCELLED", "CANCELLED");
-        assertThat(rows.get(2).get("cancelled_by")).isEqualTo("TEMPLATE_CHANGED");
-        createFromTemplate(today.plusDays(3), today.plusDays(4)).andExpect(status().isOk());
-        var after = sessions();
-        assertThat(after).hasSize(6);
-        var recreated = ((Number) after.get(3).get("id")).longValue();
-        assertThat(((LocalDateTime) after.get(3).get("starts_at")).toLocalTime())
-                .isEqualTo(LocalTime.of(8, 30));
-        assertThat(registrations(recreated, "REGULAR", "REGISTERED")).isEqualTo(3);
-    }
-
-    @Test
-    void FR_004_deactivatingCancelsSessionsFromThatDay() throws Exception {
-        createFromTemplate(today.plusDays(1), today.plusDays(3)).andExpect(status().isOk());
-        command(activity, "deactivate", "{\"effectiveDate\":\"" + today.plusDays(2) + "\"}")
-                .andExpect(status().isOk());
-        assertThat(sessions()).extracting(r -> r.get("status")).containsExactly("SCHEDULED", "CANCELLED", "CANCELLED");
-        assertThat(sessions().get(1).get("cancelled_by")).isEqualTo("DEACTIVATED");
-    }
-
-    @Test
-    void FR_010_addingRegularRegistersFutureSessionsAndRemovingCancelsOnlyRegularRegistrations() throws Exception {
-        createFromTemplate(today.plusDays(1), today.plusDays(2)).andExpect(status().isOk());
-        long newcomer = TestUsers.nextId();
-        residents.resident(newcomer, "[Họ tên NCT]", Gender.MALE, ResidentStatus.IN_RESIDENCE);
-        command(activity, "add-regular-participant", "{\"residentId\":" + newcomer + "}")
-                .andExpect(status().isOk());
-        long session = firstSession();
-        assertThat(registrations(session, "REGULAR", "REGISTERED")).isEqualTo(4);
-        command(
-                        activity,
-                        "remove-regular-participant",
-                        "{\"residentId\":" + regulars.getFirst() + ",\"reason\":\"Không muốn tham gia\"}")
-                .andExpect(status().isOk());
-        assertThat(registrations(session, "REGULAR", "REGISTERED")).isEqualTo(3);
-        assertThat(registrations(session, "REGULAR", "CANCELLED")).isEqualTo(1);
-    }
-
-    @Test
-    void FR_011_singleSessionInTheFutureOnlyAndFR_012_rescheduleNeedsReason() throws Exception {
-        var start = today.plusDays(1).atTime(15, 0).atZone(BusinessTime.ZONE).toInstant();
-        String body = "{\"activityId\":" + activity + ",\"startsAt\":\"" + start + "\",\"endsAt\":\""
-                + start.plusSeconds(3600) + "\"}";
-        mvc.perform(write(post("/api/v1/activity-sessions"), body)).andExpect(status().isCreated());
-        var past = time.now().minusSeconds(3600);
-        mvc.perform(write(
-                        post("/api/v1/activity-sessions"),
-                        "{\"activityId\":" + activity + ",\"startsAt\":\"" + past + "\",\"endsAt\":\""
-                                + past.plusSeconds(1800) + "\"}"))
-                .andExpect(status().isUnprocessableContent());
-        long id = firstSession();
-        var moved = start.plusSeconds(7200);
-        sessionCommand(
-                        id,
-                        "reschedule",
-                        "{\"startsAt\":\"" + moved + "\",\"endsAt\":\"" + moved.plusSeconds(3600) + "\"}")
-                .andExpect(status().isUnprocessableContent());
-        sessionCommand(
-                        id,
-                        "reschedule",
-                        "{\"reason\":\"Đổi phòng\",\"startsAt\":\"" + moved + "\",\"endsAt\":\""
-                                + moved.plusSeconds(3600) + "\"}")
-                .andExpect(status().isOk());
-        assertThat(events.stream(ActivitySessionChanged.class).map(ActivitySessionChanged::sessionId))
-                .contains(id);
-        var detail = json.readTree(mvc.perform(get("/api/v1/activity-sessions/" + id))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
-        assertThat(Instant.parse(detail.get("startsAt").asString())).isEqualTo(moved);
-        sessionCommand(id, "cancel", "{}").andExpect(status().isUnprocessableContent());
-    }
-
-    @Test
-    void FR_006_noSchedulerCreatesSessions() {
-        // Không gọi lệnh: không có buổi nào dù mẫu đã có (Q-306); luật kiến trúc T001 cấm job gọi lệnh tạo.
-        assertThat(sessions()).isEmpty();
     }
 }

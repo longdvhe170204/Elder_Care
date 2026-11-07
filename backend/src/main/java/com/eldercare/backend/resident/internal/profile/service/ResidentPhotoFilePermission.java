@@ -39,6 +39,12 @@ class ResidentPhotoFilePermission implements FilePermissionProvider {
         return ResidentProfileService.PHOTO_OWNER;
     }
 
+    /** Ảnh gắn mã hồ sơ: xóa cùng hồ sơ khi hết hạn lưu giữ (FR-051a). */
+    @Override
+    public String recordType() {
+        return ResidentScopeAssignment.ENTITY_TYPE;
+    }
+
     @Override
     public boolean canDownload(long ownerId) {
         CurrentUser user = currentUser.getObject();

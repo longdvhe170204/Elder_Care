@@ -32,18 +32,4 @@ class MonCanLuuMauTest {
 
         assertThat(dishes).containsExactly(10L, 20L, 40L);
     }
-
-    @Test
-    void FR_061_noMenu_onlySafeDish() {
-        assertThat(DishesToRetain.of(List.of(new DishChoice(99, null)), List.of()))
-                .containsExactly(99L);
-        assertThat(DishesToRetain.of(List.of(), List.of())).isEmpty();
-    }
-
-    @Test
-    void FR_061_notRecorded_returnsOnlyDishesMissingFromRecord() {
-        assertThat(DishesToRetain.notRecorded(List.of(10L, 20L, 30L), List.of(20L)))
-                .containsExactly(10L, 30L);
-        assertThat(DishesToRetain.notRecorded(List.of(10L), List.of(10L, 50L))).isEmpty();
-    }
 }

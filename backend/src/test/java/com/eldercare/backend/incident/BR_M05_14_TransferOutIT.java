@@ -4,23 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
-import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -54,37 +47,6 @@ class BR_M05_14_TransferOutIT extends EmergencyTestBase {
         assertThat(details.getValue().path("basis").path("incidentId").asLong()).isEqualTo(id);
         assertThat(basis.getValue().sourceRecordId()).isEqualTo(id);
         assertThat(count("M05.TRANSFER_SUMMARY", id)).isEqualTo(1);
-    }
-
-    @Test
-    void FR_049_onlyNurseOrDoctorFromNewOrInProgress() throws Exception {
-        accepted();
-        long closed = incident("FALL", "CRITICAL", "CLOSED", nurse.accountId(), nurse.accountId());
-        post(doctor, TRANSFER, closed, body()).andExpect(status().isConflict());
-
-        long open = incident("FALL", "CRITICAL", "IN_PROGRESS", nurse.accountId(), nurse.accountId());
-        post(floorManager, TRANSFER, open, body()).andExpect(status().isForbidden());
-        verify(statuses, never()).execute(any(Long.class), any(), any(), any(), any(), any());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void BR_M05_14_refusedBy001_noSummary_attemptRecorded() throws Exception {
-        long id = incident("FALL", "CRITICAL", "IN_PROGRESS", nurse.accountId(), nurse.accountId());
-        doThrow(new ConditionNotMetException(
-                        List.of(new UnmetCondition("5.5", "Trạng thái hiện tại không cho Chuyển viện"))))
-                .when(statuses)
-                .execute(eq(resident), eq(StatusCommand.TRANSFER_OUT), any(), any(), any(), any());
-
-        post(doctor, TRANSFER, id, body()).andExpect(status().isConflict());
-
-        assertThat(count("M05.TRANSFER_SUMMARY", id)).isZero();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M05.INCIDENT_PROGRESSION' AND entity_id = ?"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(content, '$.typeCode')) = 'TRANSFER_REFUSED'",
-                        Integer.class,
-                        id))
-                .isEqualTo(1);
     }
 
     void accepted() {

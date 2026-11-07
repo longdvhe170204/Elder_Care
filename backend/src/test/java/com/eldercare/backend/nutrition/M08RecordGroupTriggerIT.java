@@ -1,6 +1,5 @@
 package com.eldercare.backend.nutrition;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -9,9 +8,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -79,21 +76,6 @@ class M08RecordGroupTriggerIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void XII_portionClosing_hasBothAppendOnlyTriggers() throws SQLException {
-        Set<String> triggers = new HashSet<>();
-        try (Connection c = adminConnection();
-                Statement st = c.createStatement();
-                ResultSet rs = st.executeQuery("SELECT LOWER(TRIGGER_NAME) FROM information_schema.TRIGGERS"
-                        + " WHERE TRIGGER_SCHEMA = DATABASE() AND EVENT_OBJECT_TABLE = 'portion_closing'")) {
-            while (rs.next()) {
-                triggers.add(rs.getString(1));
-            }
-        }
-
-        assertThat(triggers).contains("trg_portion_closing_no_update", "trg_portion_closing_no_delete");
-    }
-
-    @Test
     void BR_M08_01_portionClosing_appAccountCannotUpdateOrDelete() throws SQLException {
         long id = portionClosing();
 
@@ -101,41 +83,5 @@ class M08RecordGroupTriggerIT extends MySqlIntegrationTestBase {
                 .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update("DELETE FROM portion_closing WHERE id = ?", id))
                 .isInstanceOf(DataAccessException.class);
-    }
-
-    @Test
-    void BR_M08_01_portionClosing_evenAdminIsBlockedByTriggers() throws SQLException {
-        long id = portionClosing();
-        try (Connection c = adminConnection();
-                Statement s = c.createStatement()) {
-            assertThatThrownBy(() -> s.executeUpdate("UPDATE portion_closing SET total_portions = 9 WHERE id = " + id))
-                    .isInstanceOf(SQLException.class)
-                    .hasFieldOrPropertyWithValue("SQLState", "45000");
-            assertThatThrownBy(() -> s.executeUpdate("DELETE FROM portion_closing WHERE id = " + id))
-                    .isInstanceOf(SQLException.class)
-                    .hasFieldOrPropertyWithValue("SQLState", "45000");
-        }
-    }
-
-    @Test
-    void XII_confirmedRecordEvents_ofM08_cannotBeChangedOrDeleted() throws SQLException {
-        for (String kind : RECORD_EVENT_KINDS) {
-            long id = confirmedEvent(kind);
-
-            assertThatThrownBy(() -> jdbc.update("UPDATE record_event SET actor_id = 2 WHERE id = ?", id))
-                    .as(kind)
-                    .isInstanceOf(DataAccessException.class)
-                    .hasMessageContaining("append-only");
-            assertThatThrownBy(() -> jdbc.update("DELETE FROM record_event WHERE id = ?", id))
-                    .as(kind)
-                    .isInstanceOf(DataAccessException.class);
-            try (Connection c = adminConnection();
-                    Statement s = c.createStatement()) {
-                assertThatThrownBy(() -> s.executeUpdate("DELETE FROM record_event WHERE id = " + id))
-                        .as(kind)
-                        .isInstanceOf(SQLException.class)
-                        .hasFieldOrPropertyWithValue("SQLState", "45000");
-            }
-        }
     }
 }

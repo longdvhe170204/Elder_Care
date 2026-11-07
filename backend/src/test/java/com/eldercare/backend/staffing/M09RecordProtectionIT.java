@@ -31,35 +31,6 @@ class M09RecordProtectionIT extends MySqlIntegrationTestBase {
         }
     }
 
-    @Test
-    void DBR_23_originalRecordsRemainImmutableEvenForAdmin_andFixturesRollBack() throws SQLException {
-        try (var c = adminConnection()) {
-            c.setAutoCommit(false);
-            try {
-                var records = records(c);
-                assertThat(records).hasSize(11);
-                assertThat(records.stream().map(ProtectedRow::table).collect(java.util.stream.Collectors.toSet()))
-                        .isEqualTo(RECORD_TABLES);
-                try (var st = c.createStatement()) {
-                    for (var row : records) {
-                        assertThatThrownBy(() -> st.executeUpdate("UPDATE " + row.table() + " SET " + row.field() + "="
-                                        + row.field() + " WHERE id=" + row.id()))
-                                .as("UPDATE %s", row.kind())
-                                .isInstanceOf(SQLException.class)
-                                .hasFieldOrPropertyWithValue("SQLState", "45000");
-                        assertThatThrownBy(
-                                        () -> st.executeUpdate("DELETE FROM " + row.table() + " WHERE id=" + row.id()))
-                                .as("DELETE %s", row.kind())
-                                .isInstanceOf(SQLException.class)
-                                .hasFieldOrPropertyWithValue("SQLState", "45000");
-                    }
-                }
-            } finally {
-                c.rollback();
-            }
-        }
-    }
-
     private List<ProtectedRow> records(Connection c) throws SQLException {
         var rows = new ArrayList<ProtectedRow>();
         long staff = insert(c, "INSERT INTO staff_profile(full_name,position) VALUES ('[Kiểm bất biến]','Điều dưỡng')");

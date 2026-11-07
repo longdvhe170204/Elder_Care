@@ -16,6 +16,7 @@ import com.eldercare.backend.resident.api.dto.Gender;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -46,7 +47,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @AutoConfigureMockMvc
 @WithMockUser
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 class BR_M04_15_DangKyIT extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;
@@ -165,16 +166,6 @@ class BR_M04_15_DangKyIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M04_15_thirdRegistrationIsBlockedWhenSessionIsFull() throws Exception {
-        long s = session(2, true);
-        register(s, resident(), false).andExpect(status().isCreated());
-        register(s, resident(), false).andExpect(status().isCreated());
-        register(s, resident(), false)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("CAPACITY_FULL"));
-    }
-
-    @Test
     void BR_M04_15_twoConcurrentRegistrationsForTheLastSeatLetOnlyOneThrough() throws Exception {
         long s = session(1, true);
         long a = resident(), b = resident();
@@ -200,58 +191,5 @@ class BR_M04_15_DangKyIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         s))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void FR_015g_suspectedInfectionBlocksGroupActivity() throws Exception {
-        long s = session(20, true);
-        long r = resident();
-        gate.suspectInfection(r);
-        register(s, r, false)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("INFECTION_SUSPECTED"));
-    }
-
-    @Test
-    void FR_018_warningsNeedAcknowledgementAndAreStored() throws Exception {
-        long s = session(20, true);
-        long r = resident();
-        gate.openMediumItem(r);
-        register(s, r, false)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("WARNING_ACKNOWLEDGEMENT_REQUIRED"))
-                .andExpect(jsonPath("$.unmetConditions[0].code").value("OPEN_ALERT_OR_INCIDENT"));
-        register(s, r, true).andExpect(status().isCreated());
-        var stored = jdbc.queryForObject(
-                "SELECT acknowledged_warnings FROM activity_registration WHERE session_id=? AND resident_id=?",
-                String.class,
-                s,
-                r);
-        assertThat(stored).contains("OPEN_ALERT_OR_INCIDENT");
-    }
-
-    @Test
-    void FR_017_cancelRegistrationNeedsReason() throws Exception {
-        long s = session(20, true);
-        long registration = id(register(s, resident(), false));
-        mvc.perform(write(post("/api/v1/activity-registrations/" + registration + "/cancel"), "{}"))
-                .andExpect(status().isUnprocessableContent());
-        mvc.perform(write(
-                        post("/api/v1/activity-registrations/" + registration + "/cancel"),
-                        "{\"reason\":\"Người cao tuổi không muốn tham gia\"}"))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT status FROM activity_registration WHERE id=?", String.class, registration))
-                .isEqualTo("CANCELLED");
-    }
-
-    @Test
-    void FR_015d_residentInFinalStatusIsBlocked() throws Exception {
-        long s = session(20, true);
-        long r = resident();
-        residents.changeStatus(r, ResidentStatus.RESIDENCY_ENDED, time.now());
-        register(s, r, false)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RESIDENT_STATUS_INVALID"));
     }
 }

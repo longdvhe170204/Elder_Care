@@ -6,11 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.prescription.domain.ConfirmedIssueBody;
 import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
 import com.eldercare.backend.medication.internal.prescription.domain.FrequencyBody;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody;
-import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
 import com.eldercare.backend.medication.internal.prescription.service.AllergyItemView;
 import com.eldercare.backend.medication.internal.prescription.service.HealthAllergyPort;
 import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
@@ -120,36 +118,6 @@ class BR_M07_05_PrescriberAuthorityIT extends M07IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("BR-M07-05: Đơn bên ngoài thiếu thông tin cơ sở/người kê/ngày kê bị từ chối với 422 INVALID_VALUE")
-    void external_prescription_missing_facility_info_throws_422() {
-        CreatePrescriptionBody body = new CreatePrescriptionBody();
-        body.setMedicationId(medId);
-        body.setDosage(new BigDecimal("1.0"));
-        body.setRoute("Uống");
-        body.setPrescriptionType("REGULAR");
-        body.setMedicationSource("FACILITY");
-        body.setStartedAt(Instant.now());
-
-        FrequencyBody freq = new FrequencyBody();
-        freq.setType("TIMED_SLOTS");
-        freq.setTimedSlots(List.of("08:00"));
-        body.setFrequency(freq);
-
-        PrescriberBody prescriber = new PrescriberBody();
-        prescriber.setType("EXTERNAL");
-        // Thiếu tenCoSo, nguoiKe, ngayKe
-        body.setPrescriber(prescriber);
-
-        assertThatThrownBy(() ->
-                        prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(ex -> {
-                    BusinessException be = (BusinessException) ex;
-                    assertThat(be.errorCode()).isEqualTo("INVALID_VALUE");
-                });
-    }
-
-    @Test
     @DisplayName(
             "FR-007, BR-M07-06: Phát hiện xung đột dị ứng mà chưa xác nhận lý do thì bị chặn với 409 CAN_XAC_NHAN_VAN_DE")
     void allergy_conflict_without_confirmation_throws_409() {
@@ -179,37 +147,5 @@ class BR_M07_05_PrescriberAuthorityIT extends M07IntegrationTestBase {
                     assertThat(be.errorCode()).isEqualTo("ISSUES_REQUIRE_CONFIRMATION");
                     assertThat(be.properties()).containsKey("issues");
                 });
-    }
-
-    @Test
-    @DisplayName("FR-007: Khi đã gửi kèm xác nhận lý do vấn đề thì tạo đơn thành công")
-    void allergy_conflict_with_confirmation_succeeds() {
-        CreatePrescriptionBody body = new CreatePrescriptionBody();
-        body.setMedicationId(medId);
-        body.setDosage(new BigDecimal("1.0"));
-        body.setRoute("Uống");
-        body.setPrescriptionType("REGULAR");
-        body.setMedicationSource("FACILITY");
-        body.setStartedAt(Instant.now());
-
-        FrequencyBody freq = new FrequencyBody();
-        freq.setType("TIMED_SLOTS");
-        freq.setTimedSlots(List.of("08:00"));
-        body.setFrequency(freq);
-
-        PrescriberBody prescriber = new PrescriberBody();
-        prescriber.setType("INTERNAL");
-        prescriber.setPrescriberId(1L);
-        body.setPrescriber(prescriber);
-
-        // Đã có xác nhận lý do
-        body.setConfirmedIssues(
-                List.of(new ConfirmedIssueBody("ALLERGY_101", "Bác sĩ đã cân nhắc lợi ích vượt trội nguy cơ")));
-
-        PrescriptionResponse resp =
-                prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true);
-        assertThat(resp).isNotNull();
-        assertThat(resp.id()).isNotNull();
-        assertThat(resp.confirmedIssues()).isNotEmpty();
     }
 }

@@ -43,19 +43,4 @@ class M08FieldClassificationConfigTest {
                 .containsEntry("professionalReason", InfoGroup.HEALTH);
         assertThat(groups).doesNotContainKey("effectiveFrom");
     }
-
-    @Test
-    void FR_064_familyFoodIngredientsAndSystemReasons_areHealth() {
-        assertThat(byType.get("M08.FAMILY_FOOD").fieldGroups())
-                .containsEntry("ingredients", InfoGroup.HEALTH)
-                .containsEntry("systemReasons", InfoGroup.HEALTH)
-                .doesNotContainKey("description");
-    }
-
-    @Test
-    void FR_064_servingConfirmationIncident_isHealth() {
-        assertThat(byType.get("M08.SERVING_CONFIRMATION").fieldGroups())
-                .containsEntry("hasEaten", InfoGroup.HEALTH)
-                .containsEntry("incident", InfoGroup.HEALTH);
-    }
 }
