@@ -182,10 +182,17 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                 + time.today().plusDays(30) + "\"}]";
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(
-            strings = {"nullItem", "nullRisk", "nullTime", "nullWeekday", "nullParticipant", "nullOpinion"})
-    void FR_004_nullArrayMembersAreRejectedWithoutPartialWrites(String sample) throws Exception {
+    @Test
+    void FR_004_nullArrayMembersAreRejectedWithoutPartialWrites() {
+        com.eldercare.backend.support.TableRows.each(
+                java.util.stream.Stream.of(
+                        "nullItem", "nullRisk", "nullTime", "nullWeekday", "nullParticipant", "nullOpinion"),
+                this::nullMemberRejected);
+    }
+
+    /** Mỗi dòng dựng người cao tuổi riêng như một ca của test tham số trước đây. */
+    private void nullMemberRejected(String sample) throws Exception {
+        setup();
         long id = create();
         boolean risk =
                 java.util.Set.of("nullRisk", "nullParticipant", "nullOpinion").contains(sample);

@@ -112,9 +112,16 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                 .isEqualTo(allocation);
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"LOCKED", "INACTIVE", "TEMPORARILY_LOCKED"})
-    void BR_M03_21_nonActiveDoctorCannotBeSelectedOrPrescribe(String status) throws Exception {
+    @Test
+    void BR_M03_21_nonActiveDoctorCannotBeSelectedOrPrescribe() {
+        com.eldercare.backend.support.TableRows.each(
+                java.util.stream.Stream.of("LOCKED", "INACTIVE", "TEMPORARILY_LOCKED"), this::nonActiveDoctorRefused);
+    }
+
+    /** Mỗi dòng dựng phân bổ và Bác sĩ riêng như một ca của test tham số trước đây. */
+    private void nonActiveDoctorRefused(String status) throws Exception {
+        structureFixture();
+        allocationFixture();
         jdbc.update(
                 "UPDATE account SET status=?,lock_cause=?,locked_until=? WHERE id=?",
                 status,

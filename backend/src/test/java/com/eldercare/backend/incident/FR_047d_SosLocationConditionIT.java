@@ -6,8 +6,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import com.eldercare.backend.support.TableRows;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 
 /**
  * FR-047d, US12 #5 (T068): không ở viện → 409 {@code NOT_AT_FACILITY}; bán trú không Có mặt → 409 {@code NOT_PRESENT};
@@ -16,11 +17,18 @@ import org.junit.jupiter.params.provider.EnumSource;
  */
 class FR_047d_SosLocationConditionIT extends SosTestBase {
 
-    @ParameterizedTest
-    @EnumSource(
-            value = ResidentStatus.class,
-            names = {"TEMPORARILY_ABSENT", "HOSPITALIZED", "RESIDENCY_ENDED", "DECEASED"})
-    void FR_047d_notAtFacilityRefused(ResidentStatus residentStatus) throws Exception {
+    @Test
+    void FR_047d_notAtFacilityRefused() {
+        TableRows.each(
+                Stream.of(
+                        ResidentStatus.TEMPORARILY_ABSENT,
+                        ResidentStatus.HOSPITALIZED,
+                        ResidentStatus.RESIDENCY_ENDED,
+                        ResidentStatus.DECEASED),
+                this::refused);
+    }
+
+    private void refused(ResidentStatus residentStatus) throws Exception {
         when(residents.status(resident)).thenReturn(residentStatus);
 
         press("k1")

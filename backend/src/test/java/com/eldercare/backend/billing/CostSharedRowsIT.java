@@ -9,13 +9,12 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import com.eldercare.backend.support.TableRows;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -99,18 +98,21 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
         });
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "1.2555,1200,100.00,1500",
-        "1.25,1200.5,100.00,1500",
-        "1.25,1200,100.001,1500",
-        "1.25,1200,100.00,1500.5",
-        "1.25,1200,100.00,1000000000000000",
-        "1000000000,1200,100.00,1500",
-        "1.25,1200,1000.00,1500"
-    })
-    void FR_013_sharedHistoryRejectsMoneyOrQuantityOutsideStoragePrecision(
-            String quantity, String price, String factor, String amount) {
+    @Test
+    void FR_013_sharedHistoryRejectsMoneyOrQuantityOutsideStoragePrecision() {
+        // số lượng, đơn giá, hệ số, số tiền
+        TableRows.csv(
+                r -> rejectedOutsidePrecision(r[0], r[1], r[2], r[3]),
+                "1.2555,1200,100.00,1500",
+                "1.25,1200.5,100.00,1500",
+                "1.25,1200,100.001,1500",
+                "1.25,1200,100.00,1500.5",
+                "1.25,1200,100.00,1000000000000000",
+                "1000000000,1200,100.00,1500",
+                "1.25,1200,1000.00,1500");
+    }
+
+    private void rejectedOutsidePrecision(String quantity, String price, String factor, String amount) {
         long item = TestUsers.nextId();
         var invalid = new CostRecalculation(
                 change().before(),

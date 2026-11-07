@@ -14,6 +14,9 @@ public interface ProfessionalActivityApi {
     /** Mã nghiệp vụ mặc định "chẩn đoán và kê đơn nội bộ". */
     String INTERNAL_DIAGNOSIS_PRESCRIBING = "INTERNAL_DIAGNOSIS_PRESCRIBING";
 
+    /** Mã nghiệp vụ mặc định "khám, chẩn đoán và điều trị tại viện" (007 FR-072, FR-073; Q-401). */
+    String INTERNAL_EXAM_TREATMENT = "INTERNAL_EXAM_TREATMENT";
+
     /** Loại giấy phép/đào tạo yêu cầu (mã loại của 008) của mục đang hiệu lực; rỗng khi chưa cấu hình hoặc không có. */
     Optional<String> requiredLicenseType(String activityCode);
 
