@@ -302,6 +302,7 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
                 .until(() -> "NOT_SENT".equals(state(id, n).get("status")));
         assertThat(notSentReason(state(id, n))).isEqualTo("RESIDENT_DECEASED");
         clock.setTo(at("2030-03-05T07:00:00"));
+        isolateHeldNoticesExcept(id);
         release.run();
         assertThat(state(id, n).get("status")).isEqualTo("NOT_SENT");
     }
@@ -322,14 +323,42 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
         consents.active(resident, Set.of(), true);
         long withdrawn =
                 send(aboutResident("fr025-withdrawn-" + resident, FamilyRight.VIEW_COSTS, InformationType.GENERAL));
+        // Dòng đang giữ như của context khác sinh sau @BeforeEach (chép một dòng của test sang yêu cầu về người cao
+        // tuổi
+        // không có trong FakeResidents): job phải chỉ gặp dòng của test
+        long stray = send(aboutResident("fr025-stray-" + resident, FamilyRight.VIEW_COSTS, InformationType.GENERAL));
+        resident = TestUsers.nextId();
+        long unknownResident = send(request(
+                "fr025-unknown-" + resident,
+                NotificationLevel.LOW,
+                time.now(),
+                false,
+                Optional.empty(),
+                List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER)),
+                InformationType.GENERAL));
+        resident = other;
+        String columns = String.join(
+                ", ",
+                jdbc.queryForList(
+                        "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE()"
+                                + " AND table_name = 'notification' AND column_name NOT IN ('id', 'request_id')"
+                                + " AND extra NOT LIKE '%GENERATED%' ORDER BY ordinal_position",
+                        String.class));
+        jdbc.update(
+                "INSERT INTO notification (request_id, " + columns + ") SELECT ?, " + columns
+                        + " FROM notification WHERE request_id = ? AND recipient_type = 'FAMILY_MEMBER'",
+                unknownResident,
+                stray);
 
         clock.setTo(at("2030-03-05T05:00:00"));
         // Qua đời không kèm sự kiện: lúc giải phóng vẫn phải chặn (FR-025)
         residents.changeStatus(first, ResidentStatus.DECEASED, time.now());
         consents.withdraw(other);
         clock.setTo(at("2030-03-05T07:00:00"));
+        isolateHeldNoticesExcept(dies, withdrawn);
         release.run();
 
+        assertThat(state(unknownResident, r).get("status")).isEqualTo("HELD_FOR_QUIET_HOURS");
         assertThat(state(dies, n).get("status")).isEqualTo("NOT_SENT");
         assertThat(notSentReason(state(dies, n))).isEqualTo("RESIDENT_DECEASED");
         assertThat(state(withdrawn, r).get("status")).isEqualTo("NOT_SENT");
