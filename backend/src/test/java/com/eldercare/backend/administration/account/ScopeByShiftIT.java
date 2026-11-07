@@ -17,9 +17,11 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
+import com.eldercare.backend.support.fake.administration.FakeDuties;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +81,24 @@ class ScopeByShiftIT extends MySqlIntegrationTestBase {
         assertThat(scope.inScope(tooLate, resident())).isFalse();
         assertThat(permissions.hasPermission(tooLate, VIEW_PROFILE, resident()).failedLayer())
                 .contains(FailedLayer.SCOPE);
+    }
+
+    @Autowired
+    FakeDuties duties;
+
+    @Test
+    void FR_031_groupLeaderAndCompanionsSeeTheirTrip_onAnotherFloor_othersDoNot() {
+        long trip = AccountFixtures.nextId();
+        long tripFloor = AccountFixtures.nextId();
+        long leaderAccount = fixtures.staffAccount("AC-05");
+        long companionAccount = fixtures.staffAccount("AC-04");
+        long otherAccount = fixtures.staffAccount("AC-05");
+        duties.trip(trip, fixtures.staffId(leaderAccount), List.of(fixtures.staffId(companionAccount)));
+        var target = new Target("M04.TRIP", String.valueOf(trip), null, tripFloor);
+
+        assertThat(scope.inScope(fixtures.user(leaderAccount), target)).isTrue();
+        assertThat(scope.inScope(fixtures.user(companionAccount), target)).isTrue();
+        assertThat(scope.inScope(fixtures.user(otherAccount), target)).isFalse();
     }
 
     /** Nhân viên chăm sóc có một ca trên tầng 1 trong khoảng đã cho. */
