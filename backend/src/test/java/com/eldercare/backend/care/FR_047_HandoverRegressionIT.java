@@ -58,7 +58,7 @@ class FR_047_HandoverRegressionIT extends CareOverdueTestBase {
         context.getBean(CareTaskNotices.class)
                 .overdueBatch(List.of(taskStore.get(a, false), taskStore.get(b, false)), time.now());
         assertThat(recorded.stream(BatchedOverdueTaskReminder.class)
-                        .filter(e -> e.taskIds().contains(a) || e.taskIds().contains(b)))
+                        .filter(e -> e.context().sourceId() == a || e.context().sourceId() == b))
                 .hasSize(2);
     }
 

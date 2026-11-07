@@ -193,6 +193,19 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
     }
 
     @Test
+    void T069_prnRowsShareDoseResultTableButNotTheScheduledEntity() {
+        Instant at = time.now().truncatedTo(ChronoUnit.SECONDS).minus(Duration.ofHours(3));
+        PrnAdministration saved = prnRepository.save(prnAdministration(at));
+
+        assertThat(jdbc.queryForObject("SELECT kind FROM dose_result WHERE id = ?", String.class, saved.getId()))
+                .isEqualTo("PRN");
+        assertThat(prnRepository.findById(saved.getId())).isPresent();
+        assertThat(doseResultRepository.findById(saved.getId())).isEmpty();
+        assertThat(doseResultRepository.findAll())
+                .allSatisfy(r -> assertThat(r.getDoseId()).isNotNull());
+    }
+
+    @Test
     void FR_029_reviewOfPrn_identifiesRecordAndRecorder() {
         Instant at = time.now().truncatedTo(ChronoUnit.SECONDS).minus(Duration.ofHours(1));
         PrnAdministration saved = prnRepository.save(prnAdministration(at));

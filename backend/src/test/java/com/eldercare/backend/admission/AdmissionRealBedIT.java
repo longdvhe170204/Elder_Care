@@ -22,7 +22,6 @@ import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.admission.FakeDepositStatuses;
 import com.eldercare.backend.support.fake.admission.FakeM02PortsConfig;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationInfectionStatus;
-import com.eldercare.backend.support.fake.roombedallocation.FakeBedAssets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -48,19 +47,15 @@ import tools.jackson.databind.node.ObjectNode;
 class AdmissionRealBedIT extends AssessmentTestBase {
 
     /**
-     * {@code AllocationInfectionStatus} (007, D) và {@code BedAssetPort} (019, C) chưa có bản cài production: thiếu hai cổng này thì lệnh
-     * phân bổ giường của 003 trả 503 {@code SOURCE_UNAVAILABLE} (team-plan mục 8). Nguồn lưu trú của 004 vẫn là bean thật.
+     * {@code AllocationInfectionStatus} (007, D) chưa có bản cài production: thiếu cổng này thì lệnh phân bổ giường của 003
+     * trả 503 {@code SOURCE_UNAVAILABLE} (team-plan mục 8). Nguồn lưu trú của 004 và {@code BedAssetPort} (019, cài
+     * 2026-11-06) là bean thật.
      */
     @TestConfiguration
     static class OtherModulePorts {
         @Bean
         FakeAllocationInfectionStatus fakeAllocationInfectionStatus() {
             return new FakeAllocationInfectionStatus();
-        }
-
-        @Bean
-        FakeBedAssets fakeBedAssets() {
-            return new FakeBedAssets();
         }
     }
 

@@ -3,201 +3,215 @@ info:
   title: Elder Care – Feature 019 (mua sắm, tài sản, lịch xe)
   version: 1.0.0-design
   description: |
-    Hợp đồng REST của feature 019 (M11 billing.muasam, M03 roombedallocation.taisan, roombedallocation.lichxe). Kho nguyên liệu (M08 nutrition.kho) bỏ theo Q-392. Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Hợp đồng REST của feature 019 (M11 billing.internal.procurement, M03 roombedallocation.internal.asset, roombedallocation.internal.vehicle). Kho nguyên liệu (M08 nutrition.kho) bỏ theo Q-392. Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], Idempotency-Key cho mọi lệnh ghi.
     Hệ thống không tạo yêu cầu mua sắm (Q-306).
-    Lệnh của Phụ trách bộ phận bị chặn khi bộ phận chưa có Phụ trách bộ phận (BO_PHAN_CHUA_CO_PHU_TRACH; Q-292).
+    Lệnh của Phụ trách bộ phận bị chặn khi bộ phận chưa có Phụ trách bộ phận (DEPARTMENT_LEAD_MISSING; Q-292).
     Truy vết: mỗi operation có x-fr (FR của spec 019) và x-br khi có.
+    Bản dịch tiếng Anh chủ dự án duyệt 2026-11-06 (glossary mục 25).
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
-  - { name: mua-sam, description: 'UC-94, UC-95' }
-  - { name: tai-san, description: 'UC-89' }
-  - { name: lich-xe, description: 'UC-90' }
+  - { name: procurement-requests, description: 'UC-94, UC-95' }
+  - { name: assets, description: 'UC-89' }
+  - { name: vehicle-schedules, description: 'UC-90' }
 
 paths:
-  /mua-sam:
+  /procurement-requests:
     get:
-      tags: [mua-sam]
+      tags: [procurement-requests]
       summary: Yêu cầu mua sắm (bộ phận của tôi; Quản lý viện, Kế toán theo vai trò)
       x-fr: [FR-008]
-      parameters: [ { name: trangThai, in: query, schema: { type: string } }, { name: boPhanId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/YeuCauMuaSam' } } } } } }
+      parameters: [ { name: status, in: query, schema: { type: string } }, { name: departmentId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProcurementRequest' } } } } } }
     post:
-      tags: [mua-sam]
-      summary: Lập yêu cầu mua sắm Nháp (Phụ trách bộ phận; Điều dưỡng chỉ loại THUOC, FR-008d); yêu cầu bổ sung tham chiếu yêu cầu gốc
+      tags: [procurement-requests]
+      summary: Lập yêu cầu mua sắm Nháp (Phụ trách bộ phận; Điều dưỡng chỉ loại MEDICATION, FR-008d); yêu cầu bổ sung tham chiếu yêu cầu gốc
       x-fr: [FR-008, FR-008a, FR-008d]
       x-br: [BR-M11-17]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapMuaSam' } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /mua-sam/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ProcurementRequestWrite' } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /procurement-requests/{id}:
     put:
-      tags: [mua-sam]
+      tags: [procurement-requests]
       summary: Sửa yêu cầu Nháp
       x-fr: [FR-008]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapMuaSam' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /mua-sam/{id}/{lenh}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ProcurementRequestWrite' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /procurement-requests/{id}/{command}:
     post:
-      tags: [mua-sam]
+      tags: [procurement-requests]
       summary: Lệnh trên yêu cầu mua sắm theo bảng FR-008
       description: |
-        gui-duyet, rut-lai, huy (Phụ trách bộ phận / người lập); duyet (có thể giảm, lý do khi giảm), tu-choi (Quản lý viện);
-        ghi-da-mua (số tiền thực tế, ngày, nhà cung cấp, chứng từ; vượt quá CFG-M11-07 bị chặn); xac-nhan-khop, tra-lai-doi-chieu, ghi-lech (Kế toán, không phải người ghi đã mua);
-        xu-ly-lech (Quản lý viện: chấp nhận hoặc yêu cầu hoàn tiền).
+        submit, withdraw, cancel (Phụ trách bộ phận / người lập); approve (có thể giảm, lý do khi giảm), reject (Quản lý viện);
+        record-purchased (số tiền thực tế, ngày, nhà cung cấp, chứng từ; vượt quá CFG-M11-07 bị chặn); confirm-match, return-for-reconciliation, record-discrepancy (Kế toán, không phải người ghi đã mua);
+        resolve-discrepancy (Quản lý viện: chấp nhận hoặc yêu cầu hoàn tiền).
       x-fr: [FR-008, FR-008a, FR-008b]
       x-br: [BR-M11-17, BR-M11-18, BR-M11-19]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [gui-duyet, rut-lai, huy, duyet, tu-choi, ghi-da-mua, xac-nhan-khop, tra-lai-doi-chieu, ghi-lech, xu-ly-lech] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [submit, withdraw, cancel, approve, reject, record-purchased, confirm-match, return-for-reconciliation, record-discrepancy, resolve-discrepancy] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/LenhMuaSam' } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/ProcurementRequestCommand' } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
-  /tai-san:
+  /assets:
     get:
-      tags: [tai-san]
+      tags: [assets]
       summary: Tài sản theo bộ phận, loại, trạng thái, dấu quá hạn
       x-fr: [FR-011, FR-014]
-      parameters: [ { name: boPhanId, in: query, schema: { type: integer, format: int64 } }, { name: loaiId, in: query, schema: { type: integer, format: int64 } }, { name: trangThai, in: query, schema: { type: string } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TaiSan' } } } } } }
+      parameters: [ { name: departmentId, in: query, schema: { type: integer, format: int64 } }, { name: typeId, in: query, schema: { type: integer, format: int64 } }, { name: status, in: query, schema: { type: string } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Asset' } } } } } }
     post:
-      tags: [tai-san]
+      tags: [assets]
       summary: Ghi tăng tài sản (không phải loại giường); mua mới gắn yêu cầu mua sắm Đã duyệt và nguyên giá
       x-fr: [FR-011, FR-008c]
       x-br: [DBR-32, DBR-36]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiTangTaiSan' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /tai-san/loai:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AssetWrite' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /asset-types:
     post:
-      tags: [tai-san]
+      tags: [assets]
       summary: Tạo, sửa, ngừng loại tài sản (Quản lý viện)
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { id: { type: integer, format: int64 }, ten: { type: string }, trangThai: { type: string } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AssetTypeWrite' } } } }
       responses: { '200': { description: OK } }
-  /tai-san/{id}:
+  /assets/{id}:
     get:
-      tags: [tai-san]
+      tags: [assets]
       summary: Chi tiết tài sản và lịch sử (vị trí, bộ phận, bảo trì, hư hỏng)
       x-fr: [FR-012]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK } }
     put:
-      tags: [tai-san]
+      tags: [assets]
       summary: Sửa thông tin mô tả (nhóm 1); Phụ trách bộ phận Chăm sóc bổ sung trường của tài sản giường
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiTangTaiSan' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /tai-san/{id}/{lenh}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AssetWrite' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /assets/{id}/{command}:
     post:
-      tags: [tai-san]
+      tags: [assets]
       summary: Lệnh trên tài sản theo bảng FR-013
       description: |
-        dua-vao-su-dung (vị trí; không phải giường), chuyen-vi-tri (lý do; giường đã từng phân bổ bị chặn),
-        bao-hong (mô tả; giường có người: mức ảnh hưởng bắt buộc, dấu chờ chuyển người), dua-vao-bao-tri, ghi-ket-qua-bao-tri (Đạt/Không đạt; thuê ngoài có chi phí gắn yêu cầu mua sắm),
-        go-dau-cho-chuyen-nguoi (Trưởng tầng, Quản lý viện; lý do; mất an toàn cần nội dung đã sửa và người sửa),
-        lap-yeu-cau-thanh-ly (Phụ trách bộ phận; tạo yêu cầu phê duyệt loại M03.THANH_LY_TAI_SAN của 000, Quản lý viện duyệt qua endpoint chung của 000),
-        chuyen-bo-phan (Quản lý viện), gan-hu-hong-don-giuong (xác nhận hư hỏng từ 003).
+        put-into-use (vị trí; không phải giường), relocate (lý do; giường đã từng phân bổ bị chặn),
+        report-damage (mô tả; giường có người: mức ảnh hưởng bắt buộc, dấu chờ chuyển người), start-maintenance, record-maintenance-result (Đạt/Không đạt; thuê ngoài có chi phí gắn yêu cầu mua sắm),
+        remove-transfer-flag (Trưởng tầng, Quản lý viện; lý do; mất an toàn cần nội dung đã sửa và người sửa),
+        request-disposal (Phụ trách bộ phận; tạo yêu cầu phê duyệt loại M03.ASSET_DISPOSAL của 000, Quản lý viện duyệt qua endpoint chung của 000),
+        transfer-department (Quản lý viện), link-bed-preparation-damage (xác nhận hư hỏng từ 003).
       x-fr: [FR-012, FR-013, FR-015, FR-016]
       x-br: [BR-M03-15, BR-M03-17, BR-M03-18]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [dua-vao-su-dung, chuyen-vi-tri, bao-hong, dua-vao-bao-tri, ghi-ket-qua-bao-tri, go-dau-cho-chuyen-nguoi, lap-yeu-cau-thanh-ly, chuyen-bo-phan, gan-hu-hong-don-giuong] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [put-into-use, relocate, report-damage, start-maintenance, record-maintenance-result, remove-transfer-flag, request-disposal, transfer-department, link-bed-preparation-damage] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LenhTaiSan' } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /lich-xe:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AssetCommand' } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /vehicle-schedules:
     get:
-      tags: [lich-xe]
+      tags: [vehicle-schedules]
       summary: Lịch xe theo xe, khoảng
       x-fr: [FR-017]
-      parameters: [ { name: xeId, in: query, schema: { type: integer, format: int64 } }, { name: tu, in: query, schema: { type: string, format: date-time } }, { name: den, in: query, schema: { type: string, format: date-time } } ]
-      responses: { '200': { description: OK } }
+      parameters: [ { name: vehicleId, in: query, schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/VehicleSchedule' } } } } } }
     post:
-      tags: [lich-xe]
+      tags: [vehicle-schedules]
       summary: Đặt lịch xe (Trưởng tầng, Hành chính, Quản lý viện)
       x-fr: [FR-017, FR-018]
       x-br: [BR-M03-16]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DatLichXe' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /lich-xe/{id}/{lenh}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VehicleScheduleWrite' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /vehicle-schedules/{id}/{command}:
     post:
-      tags: [lich-xe]
-      summary: "doi-gio, huy (lý do), ghi-xuat-phat, ghi-tra-xe – người đặt, Quản lý viện"
+      tags: [vehicle-schedules]
+      summary: "reschedule, cancel (lý do), record-departure, record-return – người đặt, Quản lý viện"
       x-fr: [FR-017, FR-018]
       x-br: [BR-M03-16]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [doi-gio, huy, ghi-xuat-phat, ghi-tra-xe] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [reschedule, cancel, record-departure, record-return] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { type: string }, diDuKien: { type: string, format: date-time }, veDuKien: { type: string, format: date-time }, thoiDiem: { type: string, format: date-time } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/VehicleScheduleCommand' } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   responses:
-    Loi:
+    Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiChan:
-      description: 'TRANG_THAI_DA_DOI, BO_PHAN_CHUA_CO_PHU_TRACH, KHONG_PHAI_PHU_TRACH_BO_PHAN, THIEU_YEU_CAU_MUA_SAM, YEU_CAU_KHONG_HOP_LE, NGUON_DA_GAN, TU_DUYET, VUOT_SO_DUOC_DUYET, THIEU_CHUNG_TU, NGUOI_GHI_MUA_KHONG_DOI_CHIEU, CHUNG_TU_KHONG_KHOP, DA_CO_NGUON_GAN, THIEU_NGUYEN_GIA, LOAI_GIUONG, GIUONG_CO_NGUOI, GIUONG_DA_PHAN_BO, THIEU_MUC_ANH_HUONG, CHONG_LICH_XE, XE_KHONG_SAN_SANG, XE_QUA_HAN_DANG_KIEM_BAO_HIEM'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Blocked:
+      description: 'STATE_CHANGED, DEPARTMENT_LEAD_MISSING, NOT_DEPARTMENT_LEAD, PROCUREMENT_REQUEST_REQUIRED, PROCUREMENT_REQUEST_NOT_USABLE, SOURCE_ALREADY_LINKED, SELF_APPROVAL_NOT_ALLOWED, APPROVED_AMOUNT_EXCEEDED, RECEIPT_REQUIRED, PURCHASE_RECORDER_CANNOT_RECONCILE, RECEIPT_MISMATCH, HAS_LINKED_SOURCES, ACQUISITION_COST_REQUIRED, BED_ASSET_TYPE_NOT_ALLOWED, BED_OCCUPIED, BED_HAS_ALLOCATION_HISTORY, IMPACT_LEVEL_REQUIRED, VEHICLE_SCHEDULE_OVERLAP, VEHICLE_NOT_AVAILABLE, VEHICLE_INSPECTION_OR_INSURANCE_OVERDUE'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
-    LyDo: { type: string, minLength: 1, maxLength: 2000 }
-    Loi:
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
+    Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
-    LapMuaSam:
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, errorCode: { type: string }, unmetConditions: { type: array, items: { type: object } } }
+    ProcurementRequestWrite:
       type: object
-      required: [boPhanId, loai, dong, lyDo]
-      properties: { boPhanId: { type: integer, format: int64 }, loai: { type: string, enum: [NGUYEN_LIEU, TAI_SAN, DICH_VU, THUOC, KHAC] }, mucUuTien: { type: string, enum: [THUONG, GAP], description: 'Bắt buộc khi loai = THUOC (FR-008d)' }, thoiDiemCan: { type: string, format: date-time, description: 'Bắt buộc khi loai = THUOC' }, tepLienQuanIds: { type: array, items: { type: integer, format: int64 }, description: 'Tài liệu liên quan, không bắt buộc (FR-008d)' }, dong: { type: array, minItems: 1, items: { type: object, required: [ten, soLuong, donGiaDuKien], properties: { ten: { type: string }, soLuong: { type: number }, donGiaDuKien: { type: integer, format: int64 }, nctId: { type: integer, format: int64 }, donThuocId: { type: integer, format: int64 }, hoatChat: { type: string }, hamLuong: { type: string }, dangThuoc: { type: string }, donVi: { type: string } }, description: 'Với THUOC: nctId, donThuocId (đơn nguồn viện chưa kết thúc), hoatChat, hamLuong, dangThuoc, donVi bắt buộc' } }, lyDo: { type: string }, ngayCan: { type: string, format: date }, thamChieu: { type: object }, yeuCauGocId: { type: integer, format: int64 } }
-    YeuCauMuaSam:
+      required: [departmentId, type, lines, reason]
+      properties: { departmentId: { type: integer, format: int64 }, type: { type: string, enum: [INGREDIENT, ASSET, SERVICE, MEDICATION, OTHER] }, priority: { type: string, enum: [NORMAL, URGENT], description: 'Bắt buộc khi type = MEDICATION (FR-008d)' }, neededBy: { type: string, format: date-time, description: 'Bắt buộc khi type = MEDICATION' }, relatedFileIds: { type: array, items: { type: integer, format: int64 }, description: 'Tài liệu liên quan, không bắt buộc (FR-008d)' }, lines: { type: array, minItems: 1, items: { type: object, required: [name, quantity, estimatedUnitPrice], properties: { name: { type: string }, quantity: { type: number }, estimatedUnitPrice: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, prescriptionId: { type: integer, format: int64 }, activeIngredient: { type: string }, strength: { type: string }, dosageForm: { type: string }, unit: { type: string } }, description: 'Với MEDICATION: residentId, prescriptionId (đơn nguồn viện chưa kết thúc), activeIngredient, strength, dosageForm, unit bắt buộc' } }, reason: { type: string }, neededOn: { type: string, format: date }, reference: { type: object }, originalRequestId: { type: integer, format: int64 } }
+    ProcurementRequest:
       allOf:
-        - { $ref: '#/components/schemas/LapMuaSam' }
+        - { $ref: '#/components/schemas/ProcurementRequestWrite' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, tongDuKien: { type: integer, format: int64 }, soDuocDuyet: { type: integer, format: int64 }, soTienThucTe: { type: integer, format: int64 }, trangThai: { type: string, enum: [NHAP, CHO_DUYET, DA_DUYET, CHO_DOI_CHIEU, LECH, DA_DOI_CHIEU, TU_CHOI, DA_HUY] }, tongNguonGan: { type: integer, format: int64 }, daNhan: { type: [boolean, 'null'], readOnly: true, description: 'Chỉ loại THUOC: mọi dòng có lần tiếp nhận Đạt, đọc từ TiepNhanThuocCungUngApi của 006 (FR-008d, 11.7)' } }
-    LenhMuaSam:
+          properties: { id: { type: integer, format: int64 }, estimatedTotal: { type: integer, format: int64 }, approvedAmount: { type: integer, format: int64 }, actualAmount: { type: integer, format: int64 }, status: { type: string, enum: [DRAFT, PENDING_APPROVAL, APPROVED, PENDING_RECONCILIATION, DISCREPANCY, RECONCILED, REJECTED, CANCELLED] }, linkedSourceTotal: { type: integer, format: int64 }, received: { type: [boolean, 'null'], readOnly: true, description: 'Chỉ loại MEDICATION: mọi dòng có lần tiếp nhận Đạt, đọc từ ProcurementIntakeApi của 006 (FR-008d, 11.7)' } }
+    ProcurementRequestCommand:
       type: object
-      properties: { lyDo: { type: string }, soDuocDuyet: { type: integer, format: int64 }, soTienThucTe: { type: integer, format: int64 }, ngayMua: { type: string, format: date }, nhaCungCap: { type: string }, tepChungTuIds: { type: array, items: { type: integer, format: int64 } }, soLech: { type: integer, format: int64 }, cachXuLy: { type: string, enum: [CHAP_NHAN_LECH, YEU_CAU_HOAN_TIEN] } }
-    TaiSan:
+      properties: { reason: { type: string }, approvedAmount: { type: integer, format: int64 }, actualAmount: { type: integer, format: int64 }, purchasedOn: { type: string, format: date }, supplier: { type: string }, receiptFileIds: { type: array, items: { type: integer, format: int64 } }, discrepancyAmount: { type: integer, format: int64 }, resolution: { type: string, enum: [ACCEPT_DISCREPANCY, REQUEST_REFUND] } }
+    Asset:
       type: object
-      properties: { id: { type: integer, format: int64 }, ma: { type: string }, loaiId: { type: integer, format: int64 }, ten: { type: string }, boPhanId: { type: integer, format: int64 }, trangThai: { type: string, enum: [SAN_SANG, DANG_SU_DUNG, HONG, DANG_BAO_TRI, DA_THANH_LY] }, viTri: { type: string }, giuongId: { type: integer, format: int64 }, dau: { type: array, items: { type: string } } }
-    GhiTangTaiSan:
+      properties: { id: { type: integer, format: int64 }, code: { type: string }, typeId: { type: integer, format: int64 }, name: { type: string }, departmentId: { type: integer, format: int64 }, status: { type: string, enum: [READY, IN_USE, DAMAGED, UNDER_MAINTENANCE, DISPOSED] }, location: { type: string }, bedId: { type: integer, format: int64 }, flags: { type: array, items: { type: string } } }
+    AssetWrite:
       type: object
-      required: [ma, loaiId, ten, boPhanId, nguon]
-      properties: { ma: { type: string }, loaiId: { type: integer, format: int64 }, ten: { type: string }, boPhanId: { type: integer, format: int64 }, nguon: { type: string, enum: [MUA, TANG, CHUYEN] }, moTaNguon: { type: string }, yeuCauMuaSamId: { type: integer, format: int64 }, nguyenGia: { type: integer, format: int64 }, ngayDuaVaoSuDung: { type: string, format: date }, chuKyBaoTriNgay: { type: integer }, hanBaoTri: { type: string, format: date }, bienSo: { type: string }, soCho: { type: integer }, hanDangKiem: { type: string, format: date }, hanBaoHiem: { type: string, format: date } }
-    LenhTaiSan:
+      required: [code, typeId, name, departmentId, source]
+      properties: { code: { type: string }, typeId: { type: integer, format: int64 }, name: { type: string }, departmentId: { type: integer, format: int64 }, source: { type: string, enum: [PURCHASED, DONATED, TRANSFERRED_IN] }, sourceDescription: { type: string }, procurementRequestId: { type: integer, format: int64 }, acquisitionCost: { type: integer, format: int64 }, inServiceOn: { type: string, format: date }, maintenanceIntervalDays: { type: integer }, maintenanceDueOn: { type: string, format: date }, licensePlate: { type: string }, seatCount: { type: integer }, vehicleInspectionDueOn: { type: string, format: date }, insuranceDueOn: { type: string, format: date } }
+    AssetTypeWrite:
+      type: object
+      required: [name]
+      properties: { id: { type: integer, format: int64 }, name: { type: string }, status: { type: string } }
+    AssetCommand:
       type: object
       properties:
-        lyDo: { type: string }
-        viTri: { type: object, properties: { loai: { type: string, enum: [KHU_VUC, TANG, PHONG, BAI_XE, KHO_TAI_SAN] }, id: { type: integer, format: int64 } } }
-        moTa: { type: string }
-        mucAnhHuong: { type: string, enum: [MAT_AN_TOAN, KHONG_MAT_AN_TOAN] }
-        ketQua: { type: string, enum: [DAT, KHONG_DAT] }
-        ngay: { type: string, format: date }
-        noiDung: { type: string }
-        donViThucHien: { type: string }
-        thueNgoai: { type: boolean }
-        chiPhi: { type: integer, format: int64 }
-        yeuCauMuaSamId: { type: integer, format: int64 }
-        noiDungDaSua: { type: string }
-        nguoiSua: { type: string }
-        boPhanMoiId: { type: integer, format: int64 }
-        huHongId: { type: integer, format: int64 }
-    DatLichXe:
+        reason: { type: string }
+        location: { type: object, properties: { type: { type: string, enum: [AREA, FLOOR, ROOM, PARKING_LOT, ASSET_STORAGE] }, id: { type: integer, format: int64 } } }
+        description: { type: string }
+        impactLevel: { type: string, enum: [UNSAFE, STILL_SAFE] }
+        result: { type: string, enum: [PASS, FAIL] }
+        maintenanceKind: { type: string, enum: [MAINTENANCE, INSPECTION, VEHICLE_INSPECTION, INSURANCE], description: 'Loại lần của start-maintenance; mặc định MAINTENANCE (FR-014; bổ sung 2026-11-06, chủ dự án duyệt)' }
+        nextDueOn: { type: string, format: date, description: 'Hạn kế tiếp khi ghi kết quả Đạt của lần đăng kiểm, bảo hiểm (bắt buộc); bảo trì, kiểm định tính bằng ngày + chu kỳ' }
+        date: { type: string, format: date }
+        content: { type: string }
+        performedBy: { type: string }
+        outsourced: { type: boolean }
+        cost: { type: integer, format: int64 }
+        procurementRequestId: { type: integer, format: int64 }
+        repairDescription: { type: string }
+        repairedBy: { type: string }
+        newDepartmentId: { type: integer, format: int64 }
+        damageId: { type: integer, format: int64 }
+    VehicleScheduleWrite:
       type: object
-      required: [xeId, diDuKien, veDuKien, mucDich, nguoiLaiId]
-      properties: { xeId: { type: integer, format: int64 }, diDuKien: { type: string, format: date-time }, veDuKien: { type: string, format: date-time }, mucDich: { type: string, enum: [CHUYEN_DI, DI_KHAM, CHUYEN_VIEN_KHONG_CAP_CUU, KHAC] }, chuyenDiId: { type: integer, format: int64 }, nctId: { type: integer, format: int64 }, nguoiLaiId: { type: integer, format: int64 }, ghiChu: { type: string } }
+      required: [vehicleId, plannedDepartureAt, plannedReturnAt, purpose, driverStaffId]
+      properties: { vehicleId: { type: integer, format: int64 }, plannedDepartureAt: { type: string, format: date-time }, plannedReturnAt: { type: string, format: date-time }, purpose: { type: string, enum: [TRIP, MEDICAL_VISIT, NON_EMERGENCY_TRANSFER, OTHER] }, tripId: { type: integer, format: int64 }, residentId: { type: integer, format: int64 }, driverStaffId: { type: integer, format: int64 }, note: { type: string } }
+    VehicleScheduleCommand:
+      type: object
+      properties: { reason: { type: string }, plannedDepartureAt: { type: string, format: date-time }, plannedReturnAt: { type: string, format: date-time }, occurredAt: { type: string, format: date-time } }
+    VehicleSchedule:
+      type: object
+      description: 'Lịch xe (FR-017, FR-018); bổ sung 2026-11-06, chủ dự án duyệt (GET /vehicle-schedules trước đây chưa có schema)'
+      properties: { id: { type: integer, format: int64 }, vehicleId: { type: integer, format: int64 }, plannedDepartureAt: { type: string, format: date-time }, plannedReturnAt: { type: string, format: date-time }, purpose: { type: string, enum: [TRIP, MEDICAL_VISIT, NON_EMERGENCY_TRANSFER, OTHER] }, tripId: { type: [integer, 'null'], format: int64 }, residentId: { type: [integer, 'null'], format: int64 }, driverStaffId: { type: integer, format: int64 }, bookedByStaffId: { type: integer, format: int64 }, status: { type: string, enum: [BOOKED, IN_USE, COMPLETED, CANCELLED] }, departedAt: { type: [string, 'null'], format: date-time }, returnedAt: { type: [string, 'null'], format: date-time }, cancellationReason: { type: [string, 'null'] } }

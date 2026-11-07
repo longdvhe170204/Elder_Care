@@ -26,13 +26,8 @@ public class CareTaskHandoverProjection implements TaskHandoverApi {
 
     private TaskHandoverView row(long id) {
         var t = tasks.get(id, false);
-        if (t.residentId() == null)
-            throw new com.eldercare.backend.common.error.BusinessException(
-                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                    "CARE_SOURCE_UNAVAILABLE",
-                    "Projection bàn giao008 chưa hỗ trợ công việc gắn vị trí không có người cao tuổi");
         Long room = t.residentId() == null
-                ? null
+                ? ("ROOM".equals(t.locationType()) ? t.locationId() : null)
                 : beds.openAt(t.residentId(), t.plannedAt())
                         .map(b -> b.roomId())
                         .orElse(null);
@@ -43,7 +38,10 @@ public class CareTaskHandoverProjection implements TaskHandoverApi {
                 t.data().taskTypeName(),
                 t.plannedAt(),
                 t.status().name(),
-                t.importance().name());
+                t.importance().name(),
+                t.locationType(),
+                t.locationId(),
+                t.floorAreaId());
     }
 
     @Override

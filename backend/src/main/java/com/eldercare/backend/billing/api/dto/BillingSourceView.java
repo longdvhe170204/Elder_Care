@@ -15,4 +15,5 @@ public record BillingSourceView(
         BigDecimal quantity,
         BigDecimal factor,
         List<String> flags,
-        Long existingItemId) {}
+        Long existingItemId,
+        String billingUnit) {}

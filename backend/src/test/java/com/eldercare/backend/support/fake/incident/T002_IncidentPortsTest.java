@@ -98,6 +98,27 @@ class T002_IncidentPortsTest {
     }
 
     @Test
+    void Q_388_notificationHistoryKeepsTheFullCallChain() {
+        var first = new IncidentNotificationView.CallReminderSummary(
+                1,
+                "FAMILY",
+                601,
+                "RESULT_RECORDED",
+                List.of(new IncidentNotificationView.CallOutcome("NOT_REACHED", FROM)));
+        var next = new IncidentNotificationView.CallReminderSummary(
+                2, "FAMILY", 602, "RESULT_RECORDED", List.of(new IncidentNotificationView.CallOutcome("REACHED", TO)));
+        var chain = new ArrayList<>(List.of(first, next));
+        var row = new IncidentNotificationView("FAMILY", 601, "IN_APP", Optional.of(FROM), Optional.empty(), chain);
+        var notifications = new FakeNotificationLog().source("M05.INCIDENT", 201, List.of(row));
+        chain.clear();
+
+        var notification = notifications.bySource("M05.INCIDENT", 201).getFirst();
+        assertThat(notification.recipientId()).isEqualTo(601);
+        assertThat(notification.callReminders()).containsExactly(first, next);
+        assertThat(next.results()).containsExactly(new IncidentNotificationView.CallOutcome("REACHED", TO));
+    }
+
+    @Test
     void FR_031_existingStaffFakeUsesInclusiveStartAndExclusiveEnd() {
         var staff = new FakeAlertStaff()
                 .shift(new AlertShiftView(701, 801L, FROM, TO), List.of(601L), List.of(602L))
@@ -117,6 +138,8 @@ class T002_IncidentPortsTest {
             assertThat(context.getBean(EmergencyFamilyPort.class)).isSameAs(context.getBean(FakeEmergencyFamily.class));
             assertThat(context.getBean(AttendanceTracePort.class)).isSameAs(context.getBean(FakeAttendanceTrace.class));
             assertThat(context.getBean(NotificationLogPort.class)).isSameAs(context.getBean(FakeNotificationLog.class));
+            assertThat(context.getBean(com.eldercare.backend.incident.api.spi.SosTripPort.class))
+                    .isSameAs(context.getBean(FakeSosTrip.class));
         }
     }
 }

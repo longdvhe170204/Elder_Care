@@ -37,6 +37,8 @@ public class CareTaskController {
     private final com.eldercare.backend.care.internal.result.service.CareResultService recording;
     private final com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist;
     private final com.eldercare.backend.administration.correction.api.CorrectionApi corrections;
+    private final SharedCareTasks shared;
+    private final com.eldercare.backend.care.internal.timetable.service.CareTimetable timetable;
 
     public CareTaskController(
             CareTaskService commands,
@@ -51,7 +53,9 @@ public class CareTaskController {
             com.eldercare.backend.care.internal.result.service.CareResultQueries results,
             com.eldercare.backend.care.internal.result.service.CareResultService recording,
             com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist,
-            com.eldercare.backend.administration.correction.api.CorrectionApi corrections) {
+            com.eldercare.backend.administration.correction.api.CorrectionApi corrections,
+            SharedCareTasks shared,
+            com.eldercare.backend.care.internal.timetable.service.CareTimetable timetable) {
         this.commands = commands;
         this.queries = queries;
         this.user = user;
@@ -65,6 +69,8 @@ public class CareTaskController {
         this.recording = recording;
         this.checklist = checklist;
         this.corrections = corrections;
+        this.shared = shared;
+        this.timetable = timetable;
     }
 
     @GetMapping("/shifts/{shiftId}/source-data")
@@ -208,6 +214,42 @@ public class CareTaskController {
     public void cancel(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
         commands.cancel(commands.target(id), id, body.reason());
+    }
+
+    @PostMapping("/care-tasks/{id}/reassign")
+    @ApiResponse(responseCode = "200", description = "Đã phân lại")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    @ApiResponse(
+            responseCode = "409",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
+    public void reassign(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") String key,
+            @RequestBody CareTaskReassignWrite body) {
+        if (body.recipientId() == null) throw new InvalidValueException("Thiếu người nhận");
+        shared.reassign(commands.target(id), id, body.recipientId(), body.reason());
+    }
+
+    @GetMapping("/residents/{residentId}/timetable")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<TimetableItemResponse> timetable(
+            @PathVariable long residentId, @RequestParam java.time.LocalDate date) {
+        return timetable
+                .view(
+                        com.eldercare.backend.care.internal.timetable.service.CareTimetable.target(residentId),
+                        residentId,
+                        date)
+                .stream()
+                .map(TimetableItemResponse::of)
+                .toList();
     }
 
     private String actor(long id) {

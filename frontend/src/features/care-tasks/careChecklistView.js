@@ -1,7 +1,7 @@
 import { formatDate, formatDateTime } from '@/common/dateTime'
 
 export const careTime = (iso) => (iso ? formatDateTime(iso).slice(-5) : '')
-const STATUS = {
+export const STATUS = {
   NOT_YET_DUE: 'Chưa đến hạn',
   DUE: 'Đến hạn',
   OVERDUE: 'Quá hạn',

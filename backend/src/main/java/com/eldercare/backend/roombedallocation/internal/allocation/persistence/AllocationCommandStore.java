@@ -102,6 +102,113 @@ public class AllocationCommandStore {
         return key.getKey().longValue();
     }
 
+    // ---- Chuyển theo lịch, kết quả yêu cầu sau chuyển gấp (003 T033 lượt 2; FR-029, FR-030) ---------------------
+
+    /** Phân bổ tương lai đặt trước cho yêu cầu thay đổi lưu trú; căn cứ là yêu cầu, trỏ về phân bổ đang hiệu lực. */
+    public long createScheduled(
+            long residentId,
+            long bedId,
+            Instant start,
+            Instant expectedEnd,
+            long requestId,
+            long previousId,
+            Long actor,
+            CheckedCareLevel level) {
+        var key = new GeneratedKeyHolder();
+        jdbc.update(
+                connection -> {
+                    var statement = connection.prepareStatement(
+                            "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,expected_end,start_reason,"
+                                    + "opened_by_id,checked_care_level,care_level_source,basis_type,basis_id,"
+                                    + "previous_allocation_id) VALUES(?,?,'FUTURE',?,?,?,?,?,?,'APPROVAL_REQUEST',?,?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    statement.setLong(1, residentId);
+                    statement.setLong(2, bedId);
+                    statement.setTimestamp(3, Timestamp.from(start));
+                    statement.setTimestamp(4, expectedEnd == null ? null : Timestamp.from(expectedEnd));
+                    statement.setString(5, "Chuyển giường theo lịch");
+                    statement.setObject(6, actor);
+                    statement.setString(7, level.level().name());
+                    statement.setString(8, level.source().name());
+                    statement.setLong(9, requestId);
+                    statement.setLong(10, previousId);
+                    return statement;
+                },
+                key);
+        return key.getKey().longValue();
+    }
+
+    /** Phân bổ đặt trước gần nhất của yêu cầu, khóa dòng. */
+    public java.util.Optional<AllocationRecord> scheduledFor(long requestId) {
+        return jdbc
+                .query(
+                        "SELECT id,resident_id,bed_id,status,start_at,expected_end FROM bed_allocation"
+                                + " WHERE basis_type='APPROVAL_REQUEST' AND basis_id=? ORDER BY id DESC LIMIT 1 FOR UPDATE",
+                        (rs, i) -> new AllocationRecord(
+                                rs.getLong("id"),
+                                rs.getLong("resident_id"),
+                                rs.getLong("bed_id"),
+                                AllocationStatus.valueOf(rs.getString("status")),
+                                rs.getTimestamp("start_at").toInstant(),
+                                rs.getTimestamp("expected_end") == null
+                                        ? null
+                                        : rs.getTimestamp("expected_end").toInstant()),
+                        requestId)
+                .stream()
+                .findFirst();
+    }
+
+    public long previousOf(long id) {
+        Long previous =
+                jdbc.queryForObject("SELECT previous_allocation_id FROM bed_allocation WHERE id=?", Long.class, id);
+        if (previous == null) throw new IllegalStateException("Phân bổ theo lịch thiếu phân bổ trước");
+        return previous;
+    }
+
+    /** FR-011a: tới ngày mà giường mới chưa Trống, giữ Tương lai và chờ giường về Trống. */
+    public void waitForBed(long id, Instant plannedAt) {
+        jdbc.update(
+                "UPDATE bed_allocation SET waiting_for_bed_ready=TRUE,planned_at=? WHERE id=?",
+                Timestamp.from(plannedAt),
+                id);
+    }
+
+    public void activateScheduled(long id, Instant at, Instant plannedAt, CheckedCareLevel level) {
+        jdbc.update(
+                "UPDATE bed_allocation SET status='ACTIVE',start_at=?,planned_at=?,waiting_for_bed_ready=FALSE,"
+                        + "checked_care_level=?,care_level_source=? WHERE id=?",
+                Timestamp.from(at),
+                Timestamp.from(plannedAt),
+                level.level().name(),
+                level.source().name(),
+                id);
+    }
+
+    /** FR-030: Hành chính đã lập yêu cầu sau chuyển gấp: gỡ dấu chờ lập yêu cầu, ngừng nhắc. */
+    public void requestCreated(long id) {
+        jdbc.update("UPDATE bed_allocation SET awaiting_request=FALSE WHERE id=?", id);
+        jdbc.update(
+                "DELETE FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=?"
+                        + " AND flag_type='AWAITING_REQUEST'",
+                id);
+    }
+
+    /** FR-030: yêu cầu bị từ chối: dấu "chờ chuyển về phòng cùng giá", nhắc mỗi CFG-M03-02. */
+    public void awaitingSamePrice(long id, Instant at) {
+        jdbc.update("UPDATE bed_allocation SET awaiting_same_price=TRUE WHERE id=?", id);
+        jdbc.update(
+                "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,"
+                        + "reminder_count) VALUES('BED_ALLOCATION',?,'AWAITING_SAME_PRICE',?,NULL,0)"
+                        + " ON DUPLICATE KEY UPDATE started_at=VALUES(started_at),last_reminded_at=NULL,reminder_count=0",
+                id,
+                Timestamp.from(at));
+    }
+
+    public java.util.Optional<Long> openedBy(long id) {
+        return java.util.Optional.ofNullable(
+                jdbc.queryForObject("SELECT opened_by_id FROM bed_allocation WHERE id=?", Long.class, id));
+    }
+
     public void clearWithoutBed(long residentId) {
         jdbc.update("UPDATE resident_position SET without_bed_since=NULL WHERE resident_id=?", residentId);
         jdbc.update(
