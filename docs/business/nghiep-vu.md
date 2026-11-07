@@ -3098,7 +3098,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Cấu hình phòng, giường | UC-19 | C³⁵ | X | — | — | — | — | X | — | — | — |
 | Đặt, gỡ cách ly phòng | UC-19, 37 | T | X | T | X | — | — | X | — | — | — |
 | Dịch vụ, đơn giá | 6.4 | C | — | — | — | — | — | X | — | — | — |
-| Phân bổ, chuyển giường | UC-20, 21 | X | T | — | — | — | — | T | — | — | — |
+| Phân bổ, chuyển giường | UC-20, 21, Q-43 | X, D | T | — | — | — | — | T | — | — | — |
 | Xử lý hư hỏng, đưa giường vào bảo trì | UC-74 | T | T | — | — | — | — | X | — | — | — |
 | Xác nhận giường sẵn sàng | UC-74 | X | T | — | T⁴⁰ | T⁴⁰ | — | X | — | — | — |
 | Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — | — |
