@@ -82,6 +82,10 @@ void dongDoTrangThaiCuoi(long yeuCauId, CanCu canCu);
     // bổ sung theo plan 004 (research T-06): Propagation.MANDATORY, kèm lệnh làm người cao tuổi sang trạng thái cuối
     // (004 FR-065, FR-070); Nháp, Chờ duyệt → Hủy; Đã duyệt (chờ hiệu lực) → Áp dụng không thành; trạng thái cuối thì không làm gì;
     // người thực hiện là hệ thống, căn cứ là lệnh; phát YeuCauDaHuy / YeuCauApDungKhongThanh
+void apDungKhongThanh(long yeuCauId, List<DieuKienChuaDat> dieuKien, CanCu canCu);
+    // bổ sung 2026-11-07 theo 003 FR-013a (chủ dự án duyệt; Java: failApplication): Propagation.MANDATORY, kèm lệnh của
+    // actor ở module khác (giường hỏng trước ngày chuyển giường theo lịch); chỉ Đã duyệt → Áp dụng không thành, trạng
+    // thái khác 409 INVALID_STATE; điều kiện ghi vào lý do đóng; nhật ký REQUEST_APPLY_FAILED kèm căn cứ; phát YeuCauApDungKhongThanh
 YeuCauView suaNhap(long id, String ifMatch, JsonNode noiDung, LocalDate ngayHieuLucMongMuon, LyDo lyDo);
     // bổ sung 2026-11-03 theo plan 004 T043 (PUT /residency-change-requests/{id}), chủ dự án duyệt; Java: editDraft.
     // Propagation.MANDATORY, trong transaction lệnh của module sở hữu; cùng kiểm và nhật ký DRAFT_EDITED như
