@@ -16,11 +16,25 @@ public class FakeBedAllocations implements BedAllocationApi {
 
     private final Map<Long, BedAllocationView> allocations = new HashMap<>();
     private final Map<Long, InvalidPermissionDataException> invalid = new HashMap<>();
+    private final Map<Long, Long> dayCareFloors = new HashMap<>();
 
     public FakeBedAllocations allocate(long residentId, BedAllocationView allocation) {
         allocations.put(residentId, allocation);
         invalid.remove(residentId);
         return this;
+    }
+
+    /** Người bán trú không có giường, khu nghỉ ở tầng {@code floorAreaId} (Q-403). */
+    public FakeBedAllocations dayCare(long residentId, long floorAreaId) {
+        dayCareFloors.put(residentId, floorAreaId);
+        return this;
+    }
+
+    @Override
+    public Optional<Long> dayCareFloorAt(long residentId, Instant at) {
+        return allocations.containsKey(residentId)
+                ? Optional.empty()
+                : Optional.ofNullable(dayCareFloors.get(residentId));
     }
 
     public FakeBedAllocations release(long residentId) {
