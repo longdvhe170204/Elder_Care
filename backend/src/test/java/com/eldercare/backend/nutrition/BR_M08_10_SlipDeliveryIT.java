@@ -141,4 +141,33 @@ class BR_M08_10_SlipDeliveryIT extends SlipTestBase {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].needsCrossCheck", hasItem(num(c))));
     }
+
+    @Test
+    void FR_046_slipFlags_noMenuAndClosedAfterMealTime_shownToKitchen() throws Exception {
+        residentIn(room2);
+        clock.setTo(at(LocalTime.of(11, 10)));
+        close(dailyMeal(lunch)).andExpect(status().isCreated());
+        long slip = slipId(dailyMeal(lunch), floor2);
+
+        f.asKitchen();
+        slipsOf(dailyMeal(lunch))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(
+                        "$[?(@.id == " + slip + ")].flags[*]",
+                        containsInAnyOrder("NO_MENU", "CLOSED_AFTER_MEAL_TIME")));
+    }
+
+    @Test
+    void FR_046_slipFlags_publishedMenuOnTime_noFlags() throws Exception {
+        publishedWeek();
+        residentIn(room2);
+        clock.setTo(at(LocalTime.of(9, 30)));
+        close(dailyMeal(lunch)).andExpect(status().isCreated());
+        long slip = slipId(dailyMeal(lunch), floor2);
+
+        f.asKitchen();
+        slipsOf(dailyMeal(lunch))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + slip + ")].flags[0]").doesNotExist());
+    }
 }
