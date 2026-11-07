@@ -41,13 +41,14 @@
 /specs/006-medication-management/                   @03coc08
 /specs/007-health-alert-incident/                   @03coc08
 /specs/011-nutrition-management/                    @03coc08
+# 015 nhận 2026-11-07 (từ E); gói con của 015 trong staffing thêm dòng khi chốt tên
+/specs/015-shift-rotation-swap/                    @03coc08
 
 # E: nhân sự, ca, tài chính
 /backend/src/main/java/com/eldercare/backend/staffing/      @ptlog18
 /backend/src/main/java/com/eldercare/backend/billing/      @ptlog18
 /specs/008-staff-shift-handover/                    @ptlog18
 /specs/010-incurred-costs/                          @ptlog18
-/specs/015-shift-rotation-swap/                     @ptlog18
 
 # Phần module thêm vào bảng dùng chung của R-15 (research R-15 mục 5): A review
 /backend/src/main/resources/db/migration/*__shared_*.sql @longdvhe170204
