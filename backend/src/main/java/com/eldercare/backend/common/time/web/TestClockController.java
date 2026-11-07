@@ -87,7 +87,11 @@ public class TestClockController {
         EXPIRE_BED_HOLDS,
         REPORT_FUTURE_ALLOCATION_PAST_START,
         // Dọn dữ liệu kỹ thuật (audit cơ sở dữ liệu F-11, F-12; chủ dự án duyệt 2026-10-30)
-        CLEAN_TECHNICAL_DATA
+        CLEAN_TECHNICAL_DATA,
+        // Ba job nhắc của 019 (019 T025; chủ dự án duyệt 2026-11-07)
+        REMIND_PROCUREMENT_REQUESTS,
+        REMIND_ASSET_DUE_DATES,
+        REMIND_VEHICLE_SCHEDULES
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}
