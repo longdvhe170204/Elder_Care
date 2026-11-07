@@ -9,10 +9,16 @@ import '../common/notifications/push_coordinator.dart';
 import '../common/offline/offline_queue.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
+import 'activities/trip_list_screen.dart';
 import 'approval_requests/approval_inbox_screen.dart';
+import 'beds/beds_screen.dart';
 import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'handover/handover_screen.dart';
+import 'medication/medication_round_cache.dart';
+import 'medication/medication_round_gateway.dart';
+import 'medication/medication_round_repository.dart';
+import 'medication/medication_round_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'nutrition/family_food_screen.dart';
 import 'nutrition/serving_confirmation_screen.dart';
@@ -26,8 +32,8 @@ import 'sync_results/sync_results_screen.dart';
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
 /// chung tại tầng, FR-014a), thanh điều hướng dưới. Màn của từng feature thêm vào [_tabs] (tối đa 5 mục, mục thứ 6 trở
 /// đi gom vào "Thêm"); hiện có Thông báo, Đồng bộ, Chờ xem lại, Mở khóa sớm, Thêm (Người cao tuổi (001 T023), Phê duyệt, Mã đăng nhập cho người cao
-/// tuổi, Chăm sóc hằng ngày; 002 T104). Mục trong "Thêm" mở ngay trong tab, thanh tiêu đề có nút quay lại danh sách. Biểu tượng lucide cùng
-/// tên với web.
+/// tuổi, Chăm sóc hằng ngày; 002 T104; theo quyền: Phát thuốc (006 T028), Giường (003), Hoạt động ngoài viện (014 T018)).
+/// Mục trong "Thêm" mở ngay trong tab, thanh tiêu đề có nút quay lại danh sách. Biểu tượng lucide cùng tên với web.
 /// Tab Thông báo đứng đầu, có huy hiệu số Khẩn cấp chưa xác nhận; đang ở tab khác mà có Khẩn cấp thì hiện dải báo, vì khi app
 /// đang mở máy không hiện thông báo hệ thống (009 T022).
 class StaffRoot extends StatefulWidget {
@@ -55,6 +61,9 @@ class _StaffRootState extends State<StaffRoot> {
     'Phân công',
     'Bàn giao ca',
     'Chăm sóc hằng ngày',
+    'Phát thuốc',
+    'Giường',
+    'Hoạt động ngoài viện',
   };
 
   int _index = _inboxIndex;
@@ -63,43 +72,49 @@ class _StaffRootState extends State<StaffRoot> {
   int? _more;
   int _urgent = 0;
   bool _urgentBand = false;
-  bool _canViewShifts = false;
-  bool _canViewHandovers = false;
+
+  /// Quyền hiện hành dạng `CHUC_NANG:THAO_TAC` từ `/me/permissions`; chưa tải được thì rỗng, mục theo quyền không hiện.
+  Set<String> _grants = const {};
+
+  /// Bộ nhớ đệm vòng phát thuốc trên máy (006 T028): mở một lần, đóng khi rời phần nhân viên.
+  MedicationRoundCache? _medicationCache;
+
+  bool _can(String function, String operation) => _grants.contains('$function:$operation');
+
+  bool get _canViewShifts => _can('SHIFT_SCHEDULE', 'VIEW');
+  bool get _canViewHandovers => _can('SHIFT_HANDOVER', 'VIEW');
+  bool get _canRunMedicationRound =>
+      _can('MEDICATION_ADMINISTRATION', 'VIEW') || _can('MEDICATION_ADMINISTRATION', 'PROFESSIONAL');
 
   @override
   void initState() {
     super.initState();
     widget.push?.addListener(_onPush);
-    unawaited(_loadShiftPermission());
+    unawaited(_loadPermissions());
   }
 
-  Future<void> _loadShiftPermission() async {
-    var allowed = false;
-    var handovers = false;
+  Future<void> _loadPermissions() async {
+    var grants = <String>{};
     try {
-      final grants = await widget.session.api.getList('/me/permissions');
-      allowed = grants.whereType<Map<String, dynamic>>().any(
-        (grant) => grant['function'] == 'SHIFT_SCHEDULE' && grant['operation'] == 'VIEW',
-      );
-      handovers = grants.whereType<Map<String, dynamic>>().any(
-        (grant) => grant['function'] == 'SHIFT_HANDOVER' && grant['operation'] == 'VIEW',
-      );
+      grants = {
+        for (final grant in (await widget.session.api.getList('/me/permissions')).whereType<Map<String, dynamic>>())
+          '${grant['function']}:${grant['operation']}',
+      };
     } on Object {
-      // Chưa xác nhận được quyền thì không mở mục lịch ca.
+      // Chưa xác nhận được quyền thì không mở mục theo quyền.
     }
-    if (mounted) {
-      setState(() {
-        _canViewShifts = allowed;
-        _canViewHandovers = handovers;
-      });
-    }
+    if (mounted) setState(() => _grants = grants);
   }
 
   @override
   void dispose() {
     widget.push?.removeListener(_onPush);
+    unawaited(_medicationCache?.close());
     super.dispose();
   }
+
+  /// Ngày hôm nay theo máy, `yyyy-MM-dd` cho danh sách chuyến (014 T018).
+  static String _today() => DateTime.now().toIso8601String().substring(0, 10);
 
   /// Hộp đang mở tự tải lại và mở thông báo; tab khác thì chuyển sang hộp hoặc báo.
   void _onPush() {
@@ -167,6 +182,23 @@ class _StaffRootState extends State<StaffRoot> {
       ),
     ),
     ('Đồ ăn gia đình', LucideIcons.apple, () => FamilyFoodScreen(api: widget.session.api)),
+    if (_canRunMedicationRound)
+      (
+        'Phát thuốc',
+        LucideIcons.pill,
+        () => MedicationRoundScreen(
+          repository: MedicationRoundRepository(
+            ApiMedicationRoundGateway(widget.session.api),
+            _medicationCache ??= MedicationRoundCache.onDevice(),
+            widget.queue,
+          ),
+          accountId: widget.session.user!.accountId,
+        ),
+      ),
+    if (_can('ROOM_BED_CONFIGURATION', 'VIEW'))
+      ('Giường', LucideIcons.bedDouble, () => BedsScreen(api: widget.session.api)),
+    if (_can('ACTIVITY_OUTING', 'VIEW'))
+      ('Hoạt động ngoài viện', LucideIcons.bus, () => TripListScreen(api: widget.session.api, date: _today())),
   ];
 
   @override

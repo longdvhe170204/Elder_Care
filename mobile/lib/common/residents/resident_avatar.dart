@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../common/theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
-/// Ảnh đại diện chữ cái của người cao tuổi (DESIGN.md 3.6, 7.2 `resident-avatar`): màu theo `id` trong bốn cặp của
-/// theme, chữ cái là chữ đầu của tên gọi (từ cuối của họ tên). Trang trí nên loại khỏi cây trợ năng; tên đã có ở dòng bên
-/// cạnh. Ảnh thật cần `ApiClient` tải tệp nhị phân (chờ A), chưa dùng.
+/// Ảnh đại diện chữ cái của người cao tuổi (DESIGN.md 3.6, 7.2 `resident-avatar`), dùng chung cho phần nhân viên và
+/// người thân (đưa lên `common/` 2026-11-07, trước đây hai bản ở `staff/residents/`, `family/profile/`): màu theo `id`
+/// trong bốn cặp của theme, chữ cái là chữ đầu của tên gọi (từ cuối của họ tên). Trang trí nên loại khỏi cây trợ năng;
+/// tên đã có ở dòng bên cạnh.
 class ResidentAvatar extends StatelessWidget {
   const ResidentAvatar({super.key, required this.name, required this.id, this.size = 40});
 
