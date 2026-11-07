@@ -342,9 +342,15 @@ class HandoverIT extends MySqlIntegrationTestBase {
         return manager;
     }
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(strings = {"NOT_LISTED", "ABSENT", "WITHDRAWN", "LEAVE"})
-    void FR_038_floorManagerMustBePresentInTheScheduledNextShift(String condition) {
+    @Test
+    void FR_038_floorManagerMustBePresentInTheScheduledNextShift() {
+        com.eldercare.backend.support.TableRows.each(
+                java.util.stream.Stream.of("NOT_LISTED", "ABSENT", "WITHDRAWN", "LEAVE"), this::nextShiftRequired);
+    }
+
+    /** Mỗi dòng dựng ca, người cao tuổi riêng như một ca của test tham số trước đây. */
+    private void nextShiftRequired(String condition) {
+        setup();
         long id = draft();
         assessment(id);
         service.complete(id);

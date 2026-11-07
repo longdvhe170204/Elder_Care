@@ -8,11 +8,13 @@ import com.eldercare.backend.admission.internal.ending.service.ResidencyEndingSe
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.support.TableRows;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.RepeatedTest;
+import java.util.stream.IntStream;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -29,8 +31,14 @@ class EndingConcurrencyIT extends EndingTestBase {
     @Autowired
     ResidencyEndingService endings;
 
-    @RepeatedTest(8)
-    void FR_062_twoConcurrentCreates_exactlyOneEndingIsPreparing() throws Exception {
+    /** Lặp 8 lần để bắt tranh chấp; mỗi lần dựng lại trạng thái như một lần của {@code @RepeatedTest} trước đây. */
+    @Test
+    void FR_062_twoConcurrentCreates_exactlyOneEndingIsPreparing() {
+        TableRows.each(IntStream.rangeClosed(1, 8).boxed(), run -> concurrentCreates());
+    }
+
+    private void concurrentCreates() throws Exception {
+        endingSetup();
         long residentId = inResidence();
         user.set(office.user());
 
@@ -47,8 +55,13 @@ class EndingConcurrencyIT extends EndingTestBase {
         assertThat(finalPeriods.calls()).as("chỉ lệnh thắng gọi 010").hasSize(1);
     }
 
-    @RepeatedTest(4)
-    void FR_067_cancelRacingWithTheEndCommand_leavesOneConsistentOutcome() throws Exception {
+    @Test
+    void FR_067_cancelRacingWithTheEndCommand_leavesOneConsistentOutcome() {
+        TableRows.each(IntStream.rangeClosed(1, 4).boxed(), run -> cancelRacingEnd());
+    }
+
+    private void cancelRacingEnd() throws Exception {
+        endingSetup();
         ReadyEnding ready = readyToEnd(d0.plusDays(1));
         Instant effectiveAt = at(d0.plusDays(1), 12, 0);
         user.set(office.user());
