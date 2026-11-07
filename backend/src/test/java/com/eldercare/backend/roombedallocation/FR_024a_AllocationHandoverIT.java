@@ -140,8 +140,10 @@ class FR_024a_AllocationHandoverIT extends StructureTestSupport {
                 staff,
                 user.accountId());
         jdbc.update(
-                "INSERT INTO shift_template(id,name,start_time,end_time,scope_type) VALUES(?,'[Ca kiểm nguồn]','07:00','15:00','FLOOR')",
-                template);
+                "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M09.SHIFT_TEMPLATE','M09',?,'ACTIVE',JSON_OBJECT('createdAt',?,'startTime','07:00:00','endTime','15:00:00','scopeType','FLOOR','requiresHandover',CAST('true' AS JSON),'originalName','[Ca kiểm nguồn]'))",
+                template,
+                "[Ca kiểm nguồn] #" + template,
+                began.toString());
         jdbc.update(
                 "INSERT INTO shift_schedule(id,month,scope_type,scope_id,status) VALUES(?,'2026-10','FLOOR',?,'PUBLISHED')",
                 schedule,

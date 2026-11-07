@@ -50,6 +50,9 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     BusinessTime time;
 
     @Autowired
+    com.eldercare.backend.common.time.TestClockControl clock;
+
+    @Autowired
     SwitchableUser user;
 
     @Autowired
@@ -80,6 +83,7 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
 
     @BeforeEach
     void fixture() {
+        clock.setTo(time.today().atTime(8, 0).atZone(BusinessTime.ZONE).toInstant());
         residentId = TestUsers.nextId();
         floor = TestUsers.nextId();
         shiftId = TestUsers.nextId();
@@ -113,13 +117,19 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 residentId, shiftId, List.of(new CareAssignmentView(caregiver.staffId(), Role.CAREGIVER, true)));
         shifts.members(shiftId, List.of(new ShiftMemberView(caregiver.staffId(), Role.CAREGIVER)));
         shifts.onShift(caregiver.staffId(), planned, true);
-        shifts.qualified(caregiver.staffId(), Set.of(), time.today(), true);
+        shifts.qualified(
+                caregiver.staffId(), Set.of(), planned.atZone(BusinessTime.ZONE).toLocalDate(), true);
         meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
                 typeId,
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+    }
+
+    @AfterEach
+    void restoreClock() {
+        clock.reset();
     }
 
     String row(long resident, long source, Instant at) {
@@ -374,7 +384,7 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M04_26_importantLateTaskNotifiesTheFloorAndShiftLeads() throws Exception {
+    void BR_M04_26_importantLateTaskNotifiesTheFloorManager() throws Exception {
         Instant at = time.now().minusSeconds(1800);
         shifts.onShift(caregiver.staffId(), at, true);
         meals.validation(SourceType.MEAL, sourceId, residentId, at, new SourceValidation(true, true, true, false));
@@ -463,12 +473,10 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_026a_reworkUsesTheFailedCheckShiftAndPreservesTheOriginal() throws Exception {
-        long original = create(), checkId = TestUsers.nextId();
-        context.getBean(FakeQualityChecks.class)
-                .failed(
-                        checkId,
-                        original,
-                        new com.eldercare.backend.care.api.spi.QualityCheckPort.FailedCheckView(checkId, shiftId));
+        long original = create();
+        // 014 T028: căn cứ làm lại là mục kiểm tra Không đạt thật của 014 (QualityCheckResultSource), không qua bản
+        // giả.
+        long checkId = failedCheck(original);
         Instant next = planned.plusSeconds(60);
         shifts.onShift(caregiver.staffId(), next, true);
         mvc.perform(post("/api/v1/care-tasks/" + original + "/rework")
@@ -484,6 +492,38 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
                 .isEqualTo(original);
         assertThat(jdbc.queryForObject("SELECT status FROM care_task WHERE id=?", String.class, original))
                 .isEqualTo("NOT_YET_DUE");
+    }
+
+    private long failedCheck(long task) {
+        long checklist = TestUsers.nextId();
+        return context.getBean(com.eldercare.backend.administration.shared.api.RecordEventApi.class)
+                .add(
+                        com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.ITEMS,
+                        new com.eldercare.backend.administration.shared.api.dto.EntityRef(
+                                "M04.QUALITY_CHECKLIST", checklist),
+                        new com.eldercare.backend.administration.shared.api.dto.NewRecordEvent<>(
+                                new com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.Item(
+                                        checklist,
+                                        shiftId,
+                                        floor,
+                                        task,
+                                        null,
+                                        null,
+                                        com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.FAIL,
+                                        "Chưa đạt",
+                                        List.of(),
+                                        user.accountId(),
+                                        "FLOOR_MANAGER",
+                                        time.now()),
+                                null,
+                                user.accountId(),
+                                false,
+                                time.now(),
+                                null,
+                                time.now(),
+                                floor,
+                                "QC_TASK:" + task))
+                .id();
     }
 
     private long effectiveItem() {

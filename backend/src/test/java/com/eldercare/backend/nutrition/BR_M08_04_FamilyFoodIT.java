@@ -199,7 +199,7 @@ class BR_M08_04_FamilyFoodIT extends MenuTestBase {
         jdbc.update(
                 "INSERT INTO health_item (resident_id, type, free_text, severity_id, source_id, recorded_by,"
                         + " recorded_at, pending_nutrition_check) VALUES (?, 'ALLERGY', 'Dị ứng lạ',"
-                        + " (SELECT MIN(id) FROM allergy_severity), (SELECT MIN(id) FROM information_source), 1,"
+                        + " (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY'), (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE'), 1,"
                         + " NOW(6), FALSE)",
                 otherAllergy);
         long soft = f.resident("IN_RESIDENCE");

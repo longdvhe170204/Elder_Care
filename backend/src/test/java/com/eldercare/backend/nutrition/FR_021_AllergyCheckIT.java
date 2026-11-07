@@ -64,7 +64,7 @@ class FR_021_AllergyCheckIT extends MySqlIntegrationTestBase {
         jdbc.update(
                 "INSERT INTO health_item (resident_id, type, allergen_id, severity_id, source_id, recorded_by,"
                         + " recorded_at, pending_nutrition_check) VALUES (?, 'ALLERGY', ?,"
-                        + " (SELECT MIN(id) FROM allergy_severity), (SELECT MIN(id) FROM information_source), 1,"
+                        + " (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY'), (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE'), 1,"
                         + " NOW(6), TRUE)",
                 resident,
                 allergen);

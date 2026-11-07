@@ -50,14 +50,15 @@ final class NutritionCatalogFixture {
                 .content(body == null ? "{}" : body));
     }
 
-    /** Một dị nguyên nhóm thực phẩm mới (bảng {@code allergen} của 001, V001_03). */
+    /** Một dị nguyên nhóm thực phẩm mới ({@code catalog_item} loại {@code M01.ALLERGEN} của 001, V001_95). */
     long allergen() {
-        long id = TestUsers.nextId();
+        String name = "Thành phần " + TestUsers.nextId();
         jdbc.update(
-                "INSERT INTO allergen(id,name,allergen_group,status) VALUES(?,?,'FOOD','ACTIVE')",
-                id,
-                "Thành phần " + id);
-        return id;
+                "INSERT INTO catalog_item (catalog_type, module, name, sort_order, status, attributes)"
+                        + " VALUES ('M01.ALLERGEN', 'M01', ?, 0, 'ACTIVE', JSON_OBJECT('allergenGroup', 'FOOD'))",
+                name);
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN' AND name = ?", Long.class, name);
     }
 
     static String dishBody(String name, List<Long> ingredients, boolean noCatalog, List<Long> diets) {

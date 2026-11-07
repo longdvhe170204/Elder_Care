@@ -62,8 +62,7 @@ class EndOfLifeWishVersionIT extends WishTestBase {
         EndOfLifeWish old = summary.history().get(1);
         assertThat(old.status()).isEqualTo(WishStatus.SUPERSEDED);
         assertThat(old.choice()).as("nội dung bản cũ không đổi").isEqualTo(WishChoice.TRANSFER_TO_HOSPITAL);
-        assertThat(jdbc.queryForObject(
-                        "SELECT superseded_by_id FROM end_of_life_wish WHERE id = ?", Long.class, first.id()))
+        assertThat(jdbc.queryForObject("SELECT superseded_by_id FROM wish WHERE id = ?", Long.class, first.id()))
                 .isEqualTo(second.id());
         assertThat(wishAuditActions(first.id())).contains("END_OF_LIFE_WISH_SUPERSEDED");
     }
@@ -74,11 +73,11 @@ class EndOfLifeWishVersionIT extends WishTestBase {
         EndOfLifeWish wish = record(command(residentId).build());
 
         assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO end_of_life_wish (" + COPY_COLUMNS + ") SELECT " + COPY_COLUMNS
-                                + " FROM end_of_life_wish WHERE id = ?",
+                        "INSERT INTO wish (kind, " + COPY_COLUMNS + ") SELECT kind, " + COPY_COLUMNS
+                                + " FROM wish WHERE id = ?",
                         wish.id()))
                 .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("uq_end_of_life_wish_active");
+                .hasMessageContaining("uq_wish_active");
     }
 
     @Test
@@ -89,14 +88,14 @@ class EndOfLifeWishVersionIT extends WishTestBase {
         // bản sao đã Được thay thế (không vướng UNIQUE) nhưng nhận định "không tự quyết được" mà người ký vẫn là người
         // cao tuổi
         assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO end_of_life_wish (" + COPY_COLUMNS + ") SELECT "
+                        "INSERT INTO wish (kind, " + COPY_COLUMNS + ") SELECT kind, "
                                 + COPY_COLUMNS
                                         .replace("can_self_determine", "FALSE")
                                         .replace("status", "'SUPERSEDED'")
-                                + " FROM end_of_life_wish WHERE id = ?",
+                                + " FROM wish WHERE id = ?",
                         wish.id()))
                 .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("ck_end_of_life_wish_signer");
+                .hasMessageContaining("ck_wish_signer");
     }
 
     @Test
@@ -108,18 +107,22 @@ class EndOfLifeWishVersionIT extends WishTestBase {
         EndOfLifeWish newer =
                 recordAs(WishRecordSource.FAMILY_REQUEST, command(residentId).build());
 
-        assertThatThrownBy(() ->
-                        jdbc.update("UPDATE end_of_life_wish SET choice = 'RETURN_HOME' WHERE id = ?", newer.id()))
+        assertThatThrownBy(() -> jdbc.update("UPDATE wish SET choice = 'RETURN_HOME' WHERE id = ?", newer.id()))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("UPDATE end_of_life_wish SET status = 'ACTIVE' WHERE id = ?", wish.id()))
+        assertThatThrownBy(() -> jdbc.update("UPDATE wish SET status = 'ACTIVE' WHERE id = ?", wish.id()))
                 .as("không chuyển ngược Được thay thế → Hiệu lực")
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM end_of_life_wish WHERE id = ?", wish.id()))
+        assertThatThrownBy(() -> jdbc.update("DELETE FROM wish WHERE id = ?", wish.id()))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() ->
-                        jdbc.update("UPDATE end_of_life_wish_opinion SET content = 'sửa' WHERE wish_id = ?", wish.id()))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE record_event SET content = JSON_OBJECT() WHERE kind = 'M01.WISH_OPINION'"
+                                + " AND entity_type = 'M01.END_OF_LIFE_WISH' AND entity_id = ?",
+                        wish.id()))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM end_of_life_wish_opinion WHERE wish_id = ?", wish.id()))
+        assertThatThrownBy(() -> jdbc.update(
+                        "DELETE FROM record_event WHERE kind = 'M01.WISH_OPINION' AND entity_type = 'M01.END_OF_LIFE_WISH'"
+                                + " AND entity_id = ?",
+                        wish.id()))
                 .isInstanceOf(DataAccessException.class);
     }
 

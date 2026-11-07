@@ -6,6 +6,8 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.resident.api.dto.CareLevelAtDate;
+import com.eldercare.backend.resident.api.dto.LatestVitalSign;
+import com.eldercare.backend.resident.api.spi.LatestVitalSignSource;
 import com.eldercare.backend.resident.internal.assessment.service.AssessmentService;
 import com.eldercare.backend.resident.internal.assessment.service.AssessmentService.AssessmentView;
 import com.eldercare.backend.resident.internal.assessment.service.CareLevelQueryService;
@@ -33,6 +35,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,13 +65,16 @@ class AssessmentController {
     private final InitialHealthRecordService records;
     private final HealthItemService items;
     private final CorrectionApi corrections;
+    private final ObjectProvider<LatestVitalSignSource> vitalSigns;
 
     AssessmentController(
             AssessmentService assessments,
             CareLevelQueryService careLevels,
             InitialHealthRecordService records,
             HealthItemService items,
-            CorrectionApi corrections) {
+            CorrectionApi corrections,
+            ObjectProvider<LatestVitalSignSource> vitalSigns) {
+        this.vitalSigns = vitalSigns;
         this.assessments = assessments;
         this.careLevels = careLevels;
         this.records = records;
@@ -194,6 +200,8 @@ class AssessmentController {
         List<HealthItemBody> active = items.list(target, StatusFilter.ACTIVE).stream()
                 .map(HealthItemBody::of)
                 .toList();
-        return AssessmentDetailBody.of(AssessmentBody.of(view), new Reference(initial, active, List.of()));
+        List<LatestVitalSign> latestVitalSigns =
+                vitalSigns.getIfAvailable(() -> residentId -> List.of()).latest(target.residentId());
+        return AssessmentDetailBody.of(AssessmentBody.of(view), new Reference(initial, active, latestVitalSigns));
     }
 }

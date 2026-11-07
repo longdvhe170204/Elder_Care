@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Cảnh báo Tạm vắng quá hạn trở lại (001 T051; BR-M01-01, FR-050): quá mốc dự kiến cộng CFG-M01-01 mà chưa Ghi nhận
- * trở về thì phát {@link TemporaryAbsenceOverdue} đúng một lần cho mỗi mốc ({@code return_overdue_alert}); gia hạn đổi
+ * trở về thì phát {@link TemporaryAbsenceOverdue} đúng một lần cho mỗi mốc (dấu {@code M01.RETURN_OVERDUE_ALERT}); gia hạn đổi
  * mốc nên cảnh báo lại. Lượt vắng đang mở lấy từ {@link AbsenceApi} của 004; chưa có 004 thì không cảnh báo.
  */
 @Service
@@ -64,7 +64,7 @@ public class TemporaryAbsenceOverdueAlert {
             if (open == null || !now.isAfter(open.expectedReturnAt().plus(grace))) {
                 continue;
             }
-            if (statuses.recordOverdueAlert(open.absenceId(), open.expectedReturnAt(), residentId, now)) {
+            if (statuses.recordOverdueAlert(open.absenceId(), open.expectedReturnAt(), residentId)) {
                 events.publishEvent(new TemporaryAbsenceOverdue(
                         residentId, open.absenceId(), open.expectedReturnAt(), floorOf(residentId, now), now));
                 alerted++;

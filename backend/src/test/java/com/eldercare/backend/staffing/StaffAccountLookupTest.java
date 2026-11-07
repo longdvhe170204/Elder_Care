@@ -10,10 +10,10 @@ import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.staffing.api.ShiftApi;
-import com.eldercare.backend.staffing.staff.internal.domain.StaffProfile;
-import com.eldercare.backend.staffing.staff.internal.persistence.StaffStore;
-import com.eldercare.backend.staffing.staff.internal.service.StaffEmploymentEffects;
-import com.eldercare.backend.staffing.staff.internal.service.StaffService;
+import com.eldercare.backend.staffing.internal.staff.domain.StaffProfile;
+import com.eldercare.backend.staffing.internal.staff.persistence.StaffStore;
+import com.eldercare.backend.staffing.internal.staff.service.StaffEmploymentEffects;
+import com.eldercare.backend.staffing.internal.staff.service.StaffService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +51,6 @@ class StaffAccountLookupTest {
         var beans = new StaticListableBeanFactory(Map.of("currentUser", user));
         service = new StaffService(
                 staff,
-                null,
                 null,
                 beans.getBeanProvider(CurrentUser.class),
                 beans.getBeanProvider(ShiftApi.class),

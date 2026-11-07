@@ -43,7 +43,7 @@ class FR_003_PublicContractsTest {
                 "RoomPolicyApi",
                 2,
                 "BedStatusApi",
-                5,
+                6,
                 "BedStatisticsApi",
                 3,
                 "BedHandoverAlertApi",

@@ -36,7 +36,8 @@ class FR_031_AlertDeadlineTest {
             mock(MonitoringLock.class),
             staff,
             null,
-            null);
+            null,
+            mock(com.eldercare.backend.incident.internal.alert.service.AlertResponsibility.class));
 
     @BeforeEach
     void storeInsertedRecord() {

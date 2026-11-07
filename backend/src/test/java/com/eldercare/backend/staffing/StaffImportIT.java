@@ -53,7 +53,7 @@ class StaffImportIT extends MySqlIntegrationTestBase {
 
     private Object service() throws Exception {
         return context.getBean(
-                Class.forName("com.eldercare.backend.staffing.staff.internal.service.StaffImportService"));
+                Class.forName("com.eldercare.backend.staffing.internal.staff.service.StaffImportService"));
     }
 
     private Map<?, ?> call(String method, byte[] file) throws Exception {
@@ -217,7 +217,7 @@ class StaffImportIT extends MySqlIntegrationTestBase {
                     try {
                         call("confirm", data);
                         return true;
-                    } catch (com.eldercare.backend.staffing.staff.internal.domain.StaffImportRejected expected) {
+                    } catch (com.eldercare.backend.staffing.internal.staff.domain.StaffImportRejected expected) {
                         return false;
                     }
                 }));

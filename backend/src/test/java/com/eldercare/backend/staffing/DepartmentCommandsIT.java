@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.staffing.duty.internal.service.DepartmentDutyService;
-import com.eldercare.backend.staffing.staff.internal.service.StaffService;
+import com.eldercare.backend.staffing.internal.duty.service.DepartmentDutyService;
+import com.eldercare.backend.staffing.internal.staff.service.StaffService;
 import com.eldercare.backend.support.*;
 import java.util.*;
 import org.junit.jupiter.api.*;
@@ -50,7 +50,9 @@ class DepartmentCommandsIT extends MySqlIntegrationTestBase {
 
     private long department() {
         long id = AssignmentFixtures.insert(
-                jdbc, "INSERT INTO department(name) VALUES (?)", "[Bộ phận " + TestUsers.nextId() + "]");
+                jdbc,
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.DEPARTMENT','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'leadStaffId',NULL) FROM (SELECT ? AS name) src",
+                "[Bộ phận " + TestUsers.nextId() + "]");
         departments.add(id);
         return id;
     }
@@ -81,9 +83,11 @@ class DepartmentCommandsIT extends MySqlIntegrationTestBase {
         try (var c = retentionConnection()) {
             c.setAutoCommit(false);
             for (long id : departments)
-                for (String t : List.of("department_lead_history", "staff_department", "department"))
-                    try (var p = c.prepareStatement("DELETE FROM " + t + " WHERE "
-                            + (t.equals("department") ? "id" : "department_id") + "=?")) {
+                for (String statement : List.of(
+                        "DELETE FROM status_history WHERE entity_type='M09.DEPARTMENT' AND attribute='LEAD_STAFF' AND entity_id=?",
+                        "DELETE FROM staff_department WHERE department_id=(SELECT id FROM catalog_item WHERE catalog_type='M09.DEPARTMENT' AND COALESCE(m09_legacy_id,id)=?)",
+                        "DELETE FROM catalog_item WHERE catalog_type='M09.DEPARTMENT' AND COALESCE(m09_legacy_id,id)=?"))
+                    try (var p = c.prepareStatement(statement)) {
                         p.setLong(1, id);
                         p.executeUpdate();
                     }
@@ -154,7 +158,10 @@ class DepartmentCommandsIT extends MySqlIntegrationTestBase {
         clock.setTo(java.time.Instant.parse("2033-03-01T00:00:00Z"));
         long id = ReflectionTestUtils.invokeMethod(duties, "create", "[Bộ phận đồng hồ " + person + "]", true);
         departments.add(id);
-        assertThat(jdbc.queryForObject("SELECT created_at FROM department WHERE id=?", java.sql.Timestamp.class, id)
+        assertThat(jdbc.queryForObject(
+                                "SELECT created_at FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.leadStaffId'),'null') AS UNSIGNED) AS lead_staff_id FROM catalog_item c WHERE c.catalog_type='M09.DEPARTMENT') department WHERE id=?",
+                                java.sql.Timestamp.class,
+                                id)
                         .toInstant())
                 .isBetween(
                         java.time.Instant.parse("2033-03-01T00:00:00Z"),

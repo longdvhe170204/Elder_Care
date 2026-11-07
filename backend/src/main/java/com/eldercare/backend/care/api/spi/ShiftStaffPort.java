@@ -15,6 +15,9 @@ public interface ShiftStaffPort {
 
     List<ShiftView> publishedShifts(long floorAreaId, Instant from, Instant to);
 
+    /** FR-017/052: mọi ca công bố đang diễn ra tại at, kể cả tầng/khu chưa có giường hoặc công việc. */
+    List<ShiftView> ongoingShifts(Instant at);
+
     Optional<ShiftView> shiftContaining(long floorAreaId, Instant at);
 
     Optional<Long> shiftLead(long shiftId);

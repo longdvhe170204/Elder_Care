@@ -70,6 +70,12 @@ public class FakeM05Config {
 
     @Bean
     @Primary
+    public FakeSosTrip fakeSosTrip() {
+        return new FakeSosTrip();
+    }
+
+    @Bean
+    @Primary
     public FakeNotificationLog fakeNotificationLog() {
         return new FakeNotificationLog();
     }

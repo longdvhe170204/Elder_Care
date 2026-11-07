@@ -459,7 +459,7 @@ paths:
       x-br: [BR-M05-15, BR-M05-16]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [type, assessment], properties: { type: { type: string, enum: [OFFICIAL, PROVISIONAL] }, assessment: { type: string, minLength: 1 } } } } } }
-      responses: { '201': { description: Dấu và cảnh báo }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '201': { description: Dấu và cảnh báo, content: { application/json: { schema: { type: object, required: [flagId, alertId], properties: { flagId: { type: integer, format: int64 }, alertId: { type: integer, format: int64 } } } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
   /critical-flags/{id}/confirm:
     post:
       tags: [critical-condition]
@@ -1030,6 +1030,7 @@ components:
         handoverAcknowledged: { type: boolean }
         noOnDutyDoctor: { type: boolean }
         incidentId: { type: integer, format: int64 }
+        criticalFlagId: { type: [integer, 'null'], format: int64, description: 'Bổ sung 2026-11-05: mã dấu nguy kịch của cảnh báo CRITICAL_CONDITION (FR-050a); dùng cho confirm, remove' }
         merged: { type: boolean, readOnly: true }
         origin: { type: string, enum: [SYSTEM, MANUAL, SOS, ASSIST_BUTTON], description: 'Bổ sung 2026-10-22' }
         pressedBy: { type: [string, 'null'], description: 'Nút hỗ trợ: họ tên người bấm' }

@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * Dose Result Entity (Group 3 - Recording append-only; DBR-13, BR-M07-12; data-model section 5).
@@ -17,6 +18,7 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "dose_result")
+@SQLRestriction("kind = 'SCHEDULED'")
 @DataGroup(DataGroup.Group.RECORD)
 public class DoseResult {
 

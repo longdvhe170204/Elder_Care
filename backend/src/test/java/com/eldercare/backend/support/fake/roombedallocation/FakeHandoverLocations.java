@@ -130,6 +130,11 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
         return Optional.empty();
     }
 
+    public int countEmptyAwaitingTransfer(
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant at) {
+        return 0;
+    }
+
     public List<AllocationHandoverView> atFloor(long floor, Instant at) {
         return alerts.getOrDefault(floor, List.of());
     }

@@ -81,7 +81,8 @@ class ShiftHttpIT extends MySqlIntegrationTestBase {
         return created(
                 command(
                         post("/api/v1/shift-templates"),
-                        "{\"name\":\"[Mẫu HTTP]\",\"startTime\":\"07:00\",\"endTime\":\"15:00\",\"scopeType\":\"FACILITY\",\"handoverRequired\":false}"));
+                        "{\"name\":\"[Mẫu HTTP] #" + TestUsers.nextId()
+                                + "\",\"startTime\":\"07:00\",\"endTime\":\"15:00\",\"scopeType\":\"FACILITY\",\"handoverRequired\":false}"));
     }
 
     @Test
@@ -89,7 +90,10 @@ class ShiftHttpIT extends MySqlIntegrationTestBase {
         long id = template();
         mvc.perform(get("/api/v1/shift-templates").header("Authorization", manager))
                 .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT version FROM shift_template WHERE id=?", Long.class, id))
+        assertThat(jdbc.queryForObject(
+                        "SELECT version FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacy.id'),'null') AS UNSIGNED),c.id) AS id,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.originalName'),'null'),c.name) AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.startTime'),'null') AS TIME) AS start_time,CAST(NULLIF(JSON_UNQUOTE(c.attributes->'$.endTime'),'null') AS TIME) AS end_time,NULLIF(JSON_UNQUOTE(c.attributes->'$.scopeType'),'null') AS scope_type,(c.attributes->'$.requiresHandover'=CAST('true' AS JSON)) AS requires_handover FROM catalog_item c WHERE c.catalog_type='M09.SHIFT_TEMPLATE') shift_template WHERE id=?",
+                        Long.class,
+                        id))
                 .isZero();
         mvc.perform(
                         post("/api/v1/shift-templates")

@@ -12,5 +12,6 @@ public interface M09TimedTask {
 
     Cadence cadence();
 
-    void run(Instant scheduledAt, Instant actualAt);
+    /** Số bản ghi nguồn đã xử lý, để SchedulerRuns ghi kết quả lần chạy. */
+    int run(Instant scheduledAt, Instant actualAt);
 }

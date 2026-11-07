@@ -49,7 +49,9 @@ class AssignmentGovernanceIT extends MySqlIntegrationTestBase {
                 "INSERT INTO staff_profile(id,full_name,position) VALUES (?,'[Nhân viên lưu giữ phân công]','Điều dưỡng')",
                 staff);
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type) VALUES ('[Mẫu lưu giữ phân công]','07:00','15:00','FLOOR')");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(TRUE,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu lưu giữ phân công] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type) src");
         long floor = TestUsers.nextId();
         long schedule =
                 insert("INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES ('2010-01','FLOOR',?)", floor);
@@ -83,7 +85,7 @@ class AssignmentGovernanceIT extends MySqlIntegrationTestBase {
                 .assignScope(assignment);
         assertThat(target.floorAreaId()).isEqualTo(floor);
         long manager = insert(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,assigned_by) VALUES (?,?,'2010-01-01',1)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,src.assigned_by,'[Khởi tạo fixture]','ACTIVE' FROM (SELECT ? AS staff_id,? AS floor_area_id,'2010-01-01' AS starts_at,1 AS assigned_by) src",
                 staff,
                 floor);
         assertThat(scopes.stream()
@@ -131,11 +133,11 @@ class AssignmentGovernanceIT extends MySqlIntegrationTestBase {
         fixture();
         long floor = TestUsers.nextId();
         long ended = insert(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,ends_at,status,assigned_by) VALUES (?,?,'2010-01-01','2010-02-01','ENDED',1)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,ends_at,status,assigned_by,reason) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,src.ends_at,src.status,src.assigned_by,'[Khởi tạo fixture]' FROM (SELECT ? AS staff_id,? AS floor_area_id,'2010-01-01' AS starts_at,'2010-02-01' AS ends_at,'ENDED' AS status,1 AS assigned_by) src",
                 staff,
                 floor);
         long active = insert(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,ends_at,status,assigned_by) VALUES (?,?,'2010-01-01','2010-02-01','ACTIVE',1)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,ends_at,status,assigned_by,reason) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,src.ends_at,src.status,src.assigned_by,'[Khởi tạo fixture]' FROM (SELECT ? AS staff_id,? AS floor_area_id,'2010-01-01' AS starts_at,'2010-02-01' AS ends_at,'ACTIVE' AS status,1 AS assigned_by) src",
                 staff,
                 floor);
         var p = provider("M09.FLOOR_MANAGER_ASSIGNMENT");
@@ -148,7 +150,9 @@ class AssignmentGovernanceIT extends MySqlIntegrationTestBase {
                         new RetentionProvider.DataRef("M09.FLOOR_MANAGER_ASSIGNMENT", active));
         database.transaction().executeWithoutResult(s -> p.delete(List.of(ended)));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM floor_manager_assignment WHERE id=?", Integer.class, ended))
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(a.legacy_floor_manager_id,a.id) AS id,a.staff_id AS staff_id,a.floor_area_id AS floor_area_id,a.starts_at AS starts_at,a.ends_at AS ends_at,a.status AS status,a.assigned_by AS assigned_by,a.reason AS reason,a.version AS version,a.created_at AS created_at FROM staff_assignment a WHERE a.kind='FLOOR_MANAGER') floor_manager_assignment WHERE id=?",
+                        Integer.class,
+                        ended))
                 .isZero();
     }
 }
