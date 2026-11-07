@@ -50,6 +50,11 @@ public final class TypeLock {
         return "STAFF_ASSIST_REQUEST:" + accountId;
     }
 
+    /** Xung đột dị ứng của món trong thực đơn (011): {@code DIET_ALLERGY_CONFLICT:<món>}. */
+    public static String forDietAllergy(long dishId) {
+        return "DIET_ALLERGY_CONFLICT:" + dishId;
+    }
+
     /** Dấu hiệu nguy kịch: {@code NGUY_KICH:<dauNguyKichId>}. */
     public static String forCritical(long criticalSignId) {
         return "NGUY_KICH:" + criticalSignId;

@@ -2,6 +2,7 @@ package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eldercare.backend.incident.internal.alert.service.DefaultIncidentTypeApi;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class T005_IncidentCatalogMigrationIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    DefaultIncidentTypeApi incidentTypes;
 
     @Test
     void FR_042_fallAndMissingResidentKeepTheEmergencyDefaultsFromBusinessRules() {
@@ -27,6 +31,18 @@ class T005_IncidentCatalogMigrationIT extends MySqlIntegrationTestBase {
         assertThat(types).extracting(row -> row.get("level")).containsOnly("CRITICAL");
         assertThat(types).extracting(row -> row.get("non_health")).containsOnly("false");
         assertThat(types).extracting(row -> row.get("allows_no_resident")).containsOnly("false");
+    }
+
+    @Test
+    void Q_398_wrongMealServedIsMediumHealthTypeAndResolvableByCode() {
+        var row = jdbc.queryForMap("""
+                SELECT id, JSON_UNQUOTE(attributes->'$.defaultLevel') AS level,
+                  attributes->'$.nonHealth' AS non_health, attributes->'$.allowsNoResident' AS allows_no_resident
+                FROM catalog_item WHERE catalog_type='M05.INCIDENT_TYPE' AND code='WRONG_MEAL_SERVED' AND status='ACTIVE'
+                """);
+        assertThat(row).containsEntry("level", "MEDIUM").containsEntry("non_health", "false");
+        assertThat(row).containsEntry("allows_no_resident", "false");
+        assertThat(incidentTypes.idOf("WRONG_MEAL_SERVED")).isEqualTo(((Number) row.get("id")).longValue());
     }
 
     @Test
