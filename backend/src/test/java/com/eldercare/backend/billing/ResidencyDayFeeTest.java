@@ -3,14 +3,13 @@ package com.eldercare.backend.billing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.billing.internal.pricing.domain.ResidencyDayFee;
+import com.eldercare.backend.support.TableRows;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class ResidencyDayFeeTest {
     static Stream<YearMonth> months() {
@@ -19,14 +18,15 @@ class ResidencyDayFeeTest {
                 Stream.of(YearMonth.of(2028, 2)));
     }
 
-    @ParameterizedTest
-    @MethodSource("months")
-    void BR_M11_09_twelveMonthsAndLeapFebruarySumToTheExactMonthlyPrice(YearMonth month) {
+    @Test
+    void BR_M11_09_twelveMonthsAndLeapFebruarySumToTheExactMonthlyPrice() {
         var price = new BigDecimal("9300001");
-        var total = IntStream.rangeClosed(1, month.lengthOfMonth())
-                .mapToObj(day -> ResidencyDayFee.monthly(price, month.atDay(day)))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        assertThat(total).isEqualByComparingTo(price);
+        TableRows.each(months(), month -> {
+            var total = IntStream.rangeClosed(1, month.lengthOfMonth())
+                    .mapToObj(day -> ResidencyDayFee.monthly(price, month.atDay(day)))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            assertThat(total).isEqualByComparingTo(price);
+        });
     }
 
     @Test

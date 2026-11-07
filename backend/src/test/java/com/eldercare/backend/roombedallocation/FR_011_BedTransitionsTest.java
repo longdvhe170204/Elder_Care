@@ -6,10 +6,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.roombedallocation.api.dto.BedStatus;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.*;
+import com.eldercare.backend.support.TableRows;
 import java.util.*;
 import java.util.stream.Stream;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 class FR_011_BedTransitionsTest {
     record Row(
@@ -43,15 +43,13 @@ class FR_011_BedTransitionsTest {
         return rows;
     }
 
-    static Stream<Row> allowed() {
-        return rows().stream();
-    }
-
-    @ParameterizedTest
-    @MethodSource("allowed")
-    void FR_011_allDeclaredTransitionsMatchTheTable(Row row) {
-        assertThat(BedTransitions.next(row.from(), row.hold(), row.event(), row.maintenance(), row.reserved()))
-                .isEqualTo(row.to());
+    @Test
+    void FR_011_allDeclaredTransitionsMatchTheTable() {
+        TableRows.each(
+                rows(),
+                row -> assertThat(BedTransitions.next(
+                                row.from(), row.hold(), row.event(), row.maintenance(), row.reserved()))
+                        .isEqualTo(row.to()));
     }
 
     static Stream<Row> rejected() {
