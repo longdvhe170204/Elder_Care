@@ -180,6 +180,9 @@ Set<ThamChieuDuLieu> thamChieuToi(long id);          // ai đang trỏ tới b�
 // bổ sung 2026-11-06 (000 T112, chủ dự án duyệt); cả hai có mặc định nên provider cũ vẫn chạy
 Set<ThamChieuDuLieu> dangTroToi(ThamChieuDuLieu dich); // bản ghi của loại này trỏ tới bản ghi loại khác, ví dụ hồ sơ người cao tuổi; mặc định rỗng
 Stream<UngVien> ungVienHetHan(LocalDate moc, UngVien sau, int lo); // trang sau mốc (thoiDiem, id); mặc định chỉ trang đầu
+// bổ sung 2026-11-07 (005 T064, chủ dự án duyệt; Java sharedRowEntityType): loại đối tượng của bản ghi ở bảng dùng chung R-15,
+// mặc định trùng loaiDuLieu(); loại tách riêng để tính hạn nhưng ghi bảng chung bằng loại khác thì trả loại đó
+String loaiDoiTuongBangChung();
 void xoa(Collection<Long> ids);                      // chỉ được gọi bởi job, qua DataSource eldercare_luu_tru
 ```
 

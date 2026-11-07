@@ -32,6 +32,7 @@ public class RetentionFixtures {
         final Map<RetentionProvider.DataRef, Set<RetentionProvider.DataRef>> references = new HashMap<>();
         final Set<Long> failOnDelete = new HashSet<>();
         final Map<RetentionProvider.DataRef, Set<RetentionProvider.DataRef>> crossReferences = new HashMap<>();
+        final Map<String, String> sharedTypes = new HashMap<>();
 
         public void reference(RetentionProvider.DataRef from, RetentionProvider.DataRef to) {
             references.computeIfAbsent(to, k -> new HashSet<>()).add(from);
@@ -45,6 +46,11 @@ public class RetentionFixtures {
             crossReferences.computeIfAbsent(to, k -> new HashSet<>()).add(from);
         }
 
+        /** Dòng bảng dùng chung của loại {@code type} ghi với loại đối tượng {@code entityType} (005 T064). */
+        public void sharedAs(String type, String entityType) {
+            sharedTypes.put(type, entityType);
+        }
+
         public void failOnDelete(long id) {
             failOnDelete.add(id);
         }
@@ -53,6 +59,7 @@ public class RetentionFixtures {
             references.clear();
             failOnDelete.clear();
             crossReferences.clear();
+            sharedTypes.clear();
         }
     }
 
@@ -76,6 +83,11 @@ public class RetentionFixtures {
         @Override
         public String dataType() {
             return type;
+        }
+
+        @Override
+        public String sharedRowEntityType() {
+            return control.sharedTypes.getOrDefault(type, type);
         }
 
         @Override
