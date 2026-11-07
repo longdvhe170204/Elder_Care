@@ -105,6 +105,27 @@ class FR_028_GeneralMenuApiIT extends MySqlIntegrationTestBase {
                 .containsExactly(name(personalDish) + ":false", name(substituteDish) + ":true");
     }
 
+    @Test
+    void FR_063_expectedMeals_weekWithoutPublishedMenuIsEmpty() {
+        jdbc.update(
+                "INSERT INTO diet_assignment(resident_id,diet_id,texture,personal_restrictions,basis,"
+                        + " requested_effective_from,actual_effective_at,status,created_by,created_at)"
+                        + " VALUES(?,?,'SOFT',JSON_ARRAY(),'ASSESSMENT',NOW(6),NOW(6),'ACTIVE',1,NOW(6))",
+                resident,
+                personalDiet);
+
+        assertThat(expectedMeals.ofResident(
+                        resident, monday.plusWeeks(1), monday.plusWeeks(1).plusDays(6)))
+                .isEmpty();
+    }
+
+    @Test
+    void FR_063_expectedPortionView_hasNoDietTextureOrAllergyField() {
+        assertThat(com.eldercare.backend.nutrition.api.dto.ExpectedPortionView.class.getRecordComponents())
+                .extracting(java.lang.reflect.RecordComponent::getName)
+                .containsExactly("date", "mealId", "mealName", "dishName", "isSubstitute");
+    }
+
     private long catalog(String type, String name, boolean isDefault) {
         long id = com.eldercare.backend.support.TestUsers.nextId();
         String attributes = switch (type) {

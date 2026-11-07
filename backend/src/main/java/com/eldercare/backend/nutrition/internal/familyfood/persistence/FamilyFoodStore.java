@@ -48,6 +48,11 @@ public class FamilyFoodStore {
         return records.listByStatus(FamilyFood.KIND, Set.of(status.name()));
     }
 
+    /** Mọi đồ ăn gia đình, mọi trạng thái (số liệu cho báo cáo 016). */
+    public List<SimpleRecord<FamilyFood>> all() {
+        return records.listByStatus(FamilyFood.KIND, ALL_STATUSES);
+    }
+
     public SimpleRecord<FamilyFood> require(long id) {
         return records.require(FamilyFood.KIND, id);
     }

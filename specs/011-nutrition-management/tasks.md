@@ -289,14 +289,14 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ## Phase 12: Polish & Cross-Cutting
 
-- [ ] T045 *(Bổ sung 2026-10-18, Q-366)* Cài `BE/nutrition/api/SuatAnDuKienApi.java` và bản cài trong `BE/nutrition/phieu/internal/` theo research M-16; test `BT/nutrition/FR_063_SuatAnDuKienNguoiCaoTuoiIT.java` (quickstart A1, A2)
+- [x] T045 *(Bổ sung 2026-10-18, Q-366)* Cài `BE/nutrition/api/SuatAnDuKienApi.java` và bản cài trong `BE/nutrition/phieu/internal/` theo research M-16; test `BT/nutrition/FR_063_SuatAnDuKienNguoiCaoTuoiIT.java` (quickstart A1, A2)
 
-- [ ] T040 [P] Cài `DinhDuongThongKeApi` (016)
-- [ ] T041 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/011-nutrition-management/contracts/api-011.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 011
-- [ ] T042 Khi 012, 014, 019 có bản thật, chạy lại test US4 với bean thật thay T002; thay bản giả `NguonCongViecPort` `BUA` ở test 005
-- [ ] T043 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-001, SC-002 theo quickstart mục 5
-- [ ] T044 Rà truy vết: BR-M08-01 → 16, DBR-15 (phần 011), DBR-25, DBR-27 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-057, FR-063, FR-064, FR-065 — mỗi FR có task hoặc test tương ứng (constitution XV)
-- [ ] T046 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp *(2026-10-30, audit cơ sở dữ liệu F-04, PR #63)* Mọi bảng tạo hoặc gộp khai nhóm dữ liệu: entity bằng `@DataGroup`, bảng JDBC bằng `COMMENT = 'DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|TECHNICAL'` (backend/README.md mục 4); bảng `RECORD` có `trg_<bảng>_no_update`, `trg_<bảng>_no_delete`; bảng chứa nhóm 2 và nhóm 3 dùng `@DataGroup(MULTIPLE)`, cột `locked_at`, trigger `trg_<bảng>_row_lock`; dòng bảng chung đặt `entity_type` trùng `RetentionProvider.dataType()` của bản ghi cha; job dùng `SchedulerRuns` (module-interfaces 000 mục 1.8). `RecordGroupTriggerIT` kiểm.
+- [x] T040 [P] Cài `DinhDuongThongKeApi` (016)
+- [x] T041 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/011-nutrition-management/contracts/api-011.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 011
+- [ ] T042 *(2026-11-07, chưa làm: `main` chưa có bản cài `StayMealPort` của 012 và `TripMealPort` của 014, 019 chưa có; team-plan mục 8)* Khi 012, 014, 019 có bản thật, chạy lại test US4 với bean thật thay T002; thay bản giả `NguonCongViecPort` `BUA` ở test 005
+- [ ] T043 *(2026-11-07, một phần: test cuối phase và `flutter test test/staff` xanh; chưa đo SC-001, SC-002, SC-006 đúng quy mô, xem plan "Phase 12")* Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-001, SC-002 theo quickstart mục 5
+- [x] T044 Rà truy vết: BR-M08-01 → 16, DBR-15 (phần 011), DBR-25, DBR-27 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-057, FR-063, FR-064, FR-065 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [x] T046 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp *(2026-10-30, audit cơ sở dữ liệu F-04, PR #63)* Mọi bảng tạo hoặc gộp khai nhóm dữ liệu: entity bằng `@DataGroup`, bảng JDBC bằng `COMMENT = 'DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|TECHNICAL'` (backend/README.md mục 4); bảng `RECORD` có `trg_<bảng>_no_update`, `trg_<bảng>_no_delete`; bảng chứa nhóm 2 và nhóm 3 dùng `@DataGroup(MULTIPLE)`, cột `locked_at`, trigger `trg_<bảng>_row_lock`; dòng bảng chung đặt `entity_type` trùng `RetentionProvider.dataType()` của bản ghi cha; job dùng `SchedulerRuns` (module-interfaces 000 mục 1.8). `RecordGroupTriggerIT` kiểm.
 
 ---
 

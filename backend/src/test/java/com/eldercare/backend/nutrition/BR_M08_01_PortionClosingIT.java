@@ -55,6 +55,22 @@ class BR_M08_01_PortionClosingIT extends ClosingTestBase {
     }
 
     @Test
+    void FR_064_closing_isWrittenToAuditLog() throws Exception {
+        publishedWeek();
+        residentIn(room2);
+        clock.setTo(at(LocalTime.of(9, 30)));
+        close(dailyMeal(lunch)).andExpect(status().isCreated());
+
+        Long closing = jdbc.queryForObject(
+                "SELECT id FROM portion_closing WHERE daily_meal_id = ?", Long.class, dailyMeal(lunch));
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM audit_log WHERE action = 'PORTIONS_CLOSED' AND entity_id = ?",
+                        Integer.class,
+                        String.valueOf(closing)))
+                .isEqualTo(1);
+    }
+
+    @Test
     void FR_034_closing_countsByStatusAbsenceDayCare_slipsPerFloor_closedOnce() throws Exception {
         publishedWeek();
         long a = residentIn(room2);
