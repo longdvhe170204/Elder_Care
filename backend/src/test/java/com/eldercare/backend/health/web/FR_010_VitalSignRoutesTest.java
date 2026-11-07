@@ -38,7 +38,14 @@ class FR_010_VitalSignRoutesTest {
         when(measurements.getHistory(42L, 2L, now, now)).thenReturn(List.of());
         when(measurements.record(any(), same(user))).thenReturn(record);
         when(measurements.remeasure(any(), same(user))).thenReturn(record);
-        var http = MockMvcBuilders.standaloneSetup(new VitalSignController(measurements, user, mock(AccountApi.class)))
+        var http = MockMvcBuilders.standaloneSetup(new VitalSignController(
+                        measurements,
+                        user,
+                        mock(AccountApi.class),
+                        mock(com.eldercare.backend.administration.correction.api.CorrectionApi.class),
+                        mock(
+                                com.eldercare.backend.health.internal.measurement.service.VitalSignCorrectionProvider
+                                        .class)))
                 .build();
 
         http.perform(get("/api/v1/residents/42/vital-signs")).andExpect(status().isOk());

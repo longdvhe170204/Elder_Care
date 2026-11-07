@@ -15,6 +15,7 @@ class ApiCareChecklistGateway implements CareChecklistGateway {
   Future<Map<String, dynamic>> load(int shiftId) async {
     final data = await api.get('/checklist?shiftId=$shiftId');
     if (data == null) throw const FormatException('Checklist thiếu dữ liệu.');
+    data['resultValues'] = await api.getList('/result-values');
     return data;
   }
 

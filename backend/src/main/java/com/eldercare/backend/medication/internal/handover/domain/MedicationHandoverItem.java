@@ -1,42 +1,23 @@
 package com.eldercare.backend.medication.internal.handover.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.math.BigDecimal;
 
-/**
- * Carried medication line item in handover record (FR-048a).
- */
-@Entity
-@DataGroup(DataGroup.Group.RECORD)
-@Table(name = "medication_handover_item")
+/** Dòng thuốc giao, nhúng trong {@code medication_handover.lines.items} (006 T069, {@code V006_97}). */
 public class MedicationHandoverItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "handover_id", nullable = false)
     private Long handoverId;
 
-    @Column(name = "prescription_id", nullable = false)
     private Long prescriptionId;
 
-    @Column(nullable = false, precision = 12, scale = 3)
     private BigDecimal quantity;
 
-    @Column(name = "family_medication_batch_id")
     private Long familyMedicationBatchId;
 
-    @Column(name = "medication_source", length = 30)
     private String medicationSource;
 
-    protected MedicationHandoverItem() {}
+    public MedicationHandoverItem() {}
 
     public MedicationHandoverItem(
             Long handoverId,
@@ -49,6 +30,12 @@ public class MedicationHandoverItem {
         this.quantity = quantity;
         this.familyMedicationBatchId = familyMedicationBatchId;
         this.medicationSource = medicationSource;
+    }
+
+    public void assignId(Long id) {
+        if (this.id == null) {
+            this.id = id;
+        }
     }
 
     public Long getId() {
@@ -73,5 +60,22 @@ public class MedicationHandoverItem {
 
     public String getMedicationSource() {
         return medicationSource;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof MedicationHandoverItem other
+                && java.util.Objects.equals(id, other.id)
+                && java.util.Objects.equals(handoverId, other.handoverId)
+                && java.util.Objects.equals(prescriptionId, other.prescriptionId)
+                && java.util.Objects.equals(quantity, other.quantity)
+                && java.util.Objects.equals(familyMedicationBatchId, other.familyMedicationBatchId)
+                && java.util.Objects.equals(medicationSource, other.medicationSource);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(
+                id, handoverId, prescriptionId, quantity, familyMedicationBatchId, medicationSource);
     }
 }

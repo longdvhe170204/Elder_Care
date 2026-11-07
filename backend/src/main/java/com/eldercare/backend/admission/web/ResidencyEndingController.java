@@ -143,7 +143,8 @@ class ResidencyEndingController {
                         body.familyMemberId(),
                         body.facilityName(),
                         body.handoverAt(),
-                        body.handoverStaffId()));
+                        body.handoverStaffId(),
+                        body.pickupRecordId()));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

@@ -289,7 +289,23 @@ class BR_M04_14_CareResultCorrectionIT extends CareResultTestBase {
                 Reason.of("Đối chiếu ghi nhận"));
         assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
                 .singleElement()
-                .satisfies(e -> assertThat(e.mealIds()).hasSize(3));
+                .satisfies(e -> assertThat(e.mealCount()).isEqualTo(3));
+    }
+
+    @Test
+    void BR_M04_14_correctedAdHocMealParticipatesUsingItsCurrentValue() throws Exception {
+        var at = time.now().minusSeconds(600);
+        complete("EATING", Map.of("codeValue", "SOME"), at.minusSeconds(300), TestUsers.nextId());
+        complete("EATING", Map.of("codeValue", "NOT_EATEN"), at.minusSeconds(200), TestUsers.nextId());
+        long latest = complete("EATING", Map.of("codeValue", "ATE_ALL"), at, null);
+        corrections.create(
+                "M04.CARE_RESULT",
+                latest,
+                CorrectionType.AMEND_CONTENT,
+                Map.of("codeValue", "SKIPPED"),
+                Reason.of("Đối chiếu bữa phát sinh"));
+        assertThat(events.stream(ProlongedPoorEating.class).filter(e -> e.residentId() == resident))
+                .singleElement();
     }
 
     @Test
@@ -304,9 +320,24 @@ class BR_M04_14_CareResultCorrectionIT extends CareResultTestBase {
     }
 
     @Test
-    void BR_M04_14_sleepVoidWaitsForThe007EventContract() throws Exception {
+    void BR_M04_14_sleepVoidPublishesCancellationAndKeepsOriginalResult() throws Exception {
         task = complete("SLEEP", Map.of("numericValue", 60, "codeValue", "TEST_SLEEP"), time.now(), null);
-        correct("{\"type\":\"VOID\",\"reason\":\"Chờ tín hiệu hủy007\"}").andExpect(status().isServiceUnavailable());
+        correct("{\"type\":\"VOID\",\"reason\":\"Hủy ghi nhầm giấc ngủ\"}").andExpect(status().isCreated());
+        var type = Class.forName("com.eldercare.backend.care.api.events.SleepResultVoided");
+        var json = tools.jackson.databind.json.JsonMapper.builder().build();
+        assertThat(events.stream(type)).singleElement().satisfies(event -> {
+            var payload = json.readTree(json.writeValueAsString(event));
+            assertThat(payload.path("resultId").asLong()).isEqualTo(task);
+            assertThat(payload.path("residentId").asLong()).isEqualTo(resident);
+            assertThat(payload.path("date").asString()).isEqualTo(time.today().toString());
+            assertThat(payload.path("context").path("milestone").asString()).startsWith("CORRECTION:");
+        });
+        assertThat(storedStatus()).isEqualTo("COMPLETED");
+        assertThat(corrections
+                        .current("M04.CARE_RESULT", List.of(task))
+                        .get(task)
+                        .voided())
+                .isTrue();
     }
 
     @Test

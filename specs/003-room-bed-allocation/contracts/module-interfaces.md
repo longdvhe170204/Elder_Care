@@ -57,6 +57,8 @@ void daLapYeuCauSauChuyenGap(long phanBoId, long yeuCauId);                     
 void ketQuaYeuCauSauChuyenGap(long phanBoId, boolean duocDuyet);                   // FR-030: từ chối → dấu chờ chuyển về phòng cùng giá
 ```
 
+*(Bản cài 2026-11-06, 003 T033, chủ dự án chốt)*: `giaHanKetThucDuKien` không làm gì khi người không có phân bổ đang hiệu lực (bán trú, chưa có giường). Chuyển theo lịch đang chờ giường (`cho_giuong_san_sang`) được thực hiện trong lệnh Xác nhận giường sẵn sàng hoặc gỡ dấu của 019; FR-018 không còn thỏa lúc đó thì 003 tự hủy phân bổ tương lai và báo Hành chính, Trưởng tầng, Quản lý viện (`KetQuaChuyenTheoLich` giữ hai giá trị). `ketQuaYeuCauSauChuyenGap` báo người thực hiện lệnh chuyển gấp và Hành chính.
+
 ### 1.5. `SucChuaBanTruApi`: kiểm tra sức chứa cho 004, 005 (FR-038 → FR-042)
 
 ```java
@@ -103,6 +105,9 @@ Optional<Instant> batDauLuotTrong(long giuongId);
 List<GiuongView> choSanSangQuaHan(long tangId, Instant t);
     // bổ sung theo plan 008 (008 FR-039 f): giường Chờ sẵn sàng của tầng đã quá CFG-M03-04; chỉ để hiển thị trong danh sách
     // bản ghi nguồn của bàn giao, không lập mục (Q-307)
+int demTrongChoChuyenNguoi(PhamViLoc phamVi, Instant t);
+    // bổ sung 2026-11-06 (chủ dự án duyệt; 016 `BED.EMPTY_AWAITING_TRANSFER`, FR-020, Q-235): giường Trống tại t mà tài sản mang dấu
+    // "chờ chuyển người" tại t (019 FR-015); thiếu nguồn dấu thì 503
 ```
 
 **Bổ sung đã duyệt 2026-10-25 (T061)**: kiểu mã nguồn `BedFlagView(Long residentId, Long bedId, Set<String> flags)` dùng `bedId = null` chỉ cho dấu `WITHOUT_BED`; không dùng id giường giả như0 hoặc-1. Các dấu gắn phân bổ vẫn có bedId thật. Chỉ thay khả năng null của trường này, giữ nguyên thao tác và trường khác.
@@ -229,15 +234,17 @@ interface GiuongTheoTaiSanPort {                 // 003 cài, 019 gọi
       // FR-013, FR-013a; giường có người → BR-M03-05 (019 tự ghi dấu "chờ chuyển người" với Báo hỏng)
   void apLenhTaiSan(long giuongId, LenhTaiSanGiuong lenh, CanCu canCu);
       // BAO_TRI | SAN_SANG | THANH_LY; đổi trạng thái giường; hủy phân bổ tương lai khi ngoại lệ FR-013a áp dụng
-  void daGanDauChoChuyenNguoi(long giuongId, List<Long> nctAnhHuong);   // FR-013b: báo phân bổ tương lai bị ảnh hưởng
+  void daGanDauChoChuyenNguoi(long giuongId);   // FR-013b: 003 tự tra phân bổ tương lai bị ảnh hưởng và báo (sửa 2026-11-06, chủ dự án chọn)
   void daGoDauChoChuyenNguoi(long giuongId);   // FR-013b: giường Trống → GiuongDaTrong; chuyển theo lịch đang chờ → thực hiện
   List<ViTriView> giuongTrongPhuHopChoNguoiDangNam(long giuongId);       // Q-256: theo tầng, đạt FR-018
+  TrangThaiGiuong trangThaiGiuong(long giuongId);   // 019 FR-015: nhắc CFG-M03-02 theo giường còn người / đã Trống (bổ sung 2026-11-06, chủ dự án duyệt)
 }
 
 interface TaiSanGiuongPort {                     // 019 cài, 003 gọi
   void ghiTangChoGiuong(long giuongId);          // Q-238, DBR-32: trong lệnh Tạo giường
   boolean mangDauChoChuyenNguoi(long giuongId);  // FR-018 (i), FR-014
   Set<Long> giuongMangDau(Collection<Long> giuongIds);   // lọc danh sách giường
+  Set<Long> giuongMangDauTai(Collection<Long> giuongIds, Instant t);   // dấu tại thời điểm, từ lần gắn và gỡ dấu (bổ sung 2026-11-06, chủ dự án duyệt; cho demTrongChoChuyenNguoi)
 }
 ```
 

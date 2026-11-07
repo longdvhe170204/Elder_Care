@@ -167,6 +167,8 @@ class ChangeArrivalScheduleIT extends ChangeTestBase {
         user.set(manager.user());
         MvcResult blocked = approveRaw(id).andExpect(status().isConflict()).andReturn();
 
-        assertThat(unmetCodes(blocked)).contains("BED_ALLOCATION_CHECK_UNAVAILABLE");
+        // 003 T033 (2026-11-06): 003 đã có bản cài thật, kiểm FR-018 của giường mới; người chưa có phân bổ đang
+        // hiệu lực thì chặn với mã của 003 (trước đó là BED_ALLOCATION_CHECK_UNAVAILABLE khi chưa có bản cài).
+        assertThat(unmetCodes(blocked)).contains("ALLOCATION_NOT_ACTIVE");
     }
 }

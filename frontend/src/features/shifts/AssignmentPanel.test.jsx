@@ -25,7 +25,7 @@ it('FR_031_xemCanhBaoTruocLuu_vaDoiDuLieuThiPhaiXemLai', async () => {
     json(200, {
       warnings: [
         {
-          code: 'UNQUALIFIED_TASK_TYPES',
+          code: 'TASK_TYPE_REQUIREMENTS_NOT_MET',
           description: 'Chưa đủ chứng chỉ cho một số công việc',
           details: { taskTypeIds: [7] },
         },

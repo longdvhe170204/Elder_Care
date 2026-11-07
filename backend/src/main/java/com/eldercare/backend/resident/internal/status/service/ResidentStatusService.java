@@ -38,7 +38,7 @@ import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepos
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
 import com.eldercare.backend.resident.internal.status.domain.StatusTransitionTable;
-import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -53,7 +53,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Điểm duy nhất đổi trạng thái người cao tuổi (001 US4; FR-044 → FR-050; research H-02, H-03). Mỗi lệnh: khóa dòng hồ
@@ -133,13 +132,12 @@ public class ResidentStatusService {
     public record Outcome(ResidentStatus status, long historyId, HistoryEntry history, List<Warning> warnings) {}
 
     private final ResidentRepository residents;
-    private final ResidentStatusHistoryRepository histories;
+    private final ResidentStatusHistoryStore histories;
     private final ProfileOpenGuard guard;
     private final ObjectProvider<StatusTransitionParticipant> participants;
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
-    private final JsonMapper json;
     private final ActorNames names;
     private final ObjectProvider<CurrentUser> currentUser;
     private final FileApi files;
@@ -147,13 +145,12 @@ public class ResidentStatusService {
 
     ResidentStatusService(
             ResidentRepository residents,
-            ResidentStatusHistoryRepository histories,
+            ResidentStatusHistoryStore histories,
             ProfileOpenGuard guard,
             ObjectProvider<StatusTransitionParticipant> participants,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
             BusinessTime time,
-            JsonMapper json,
             ActorNames names,
             ObjectProvider<CurrentUser> currentUser,
             FileApi files,
@@ -166,7 +163,6 @@ public class ResidentStatusService {
         this.auditLog = auditLog;
         this.events = events;
         this.time = time;
-        this.json = json;
         this.names = names;
         this.currentUser = currentUser;
         this.files = files;
@@ -408,7 +404,7 @@ public class ResidentStatusService {
                 reason.map(Reason::value).orElse(null),
                 basis == null ? null : basis.type(),
                 basis == null ? null : basis.id(),
-                evaluation.waiver() == null ? null : json.writeValueAsString(evaluation.waiver())));
+                evaluation.waiver()));
         // tệp không có hoặc đã gắn thì ném lỗi và cả lệnh rollback, kể cả tệp đã gắn trước đó trong vòng lặp (FR-047c)
         attachments.forEach(fileId -> files.attach(fileId, HOSPITAL_DOCUMENT_OWNER, row.getId()));
         if (basis != null && EVIDENCE_BASIS.equals(basis.type())) {
@@ -585,9 +581,7 @@ public class ResidentStatusService {
     private HistoryEntry entry(ResidentStatusHistory row, String correctedReason) {
         Map<String, Object> basis =
                 row.getBasisType() == null ? null : Map.of("type", row.getBasisType(), "id", row.getBasisId());
-        Map<String, Object> waiver = row.getConditionWaiver() == null
-                ? null
-                : json.readValue(row.getConditionWaiver(), new tools.jackson.core.type.TypeReference<>() {});
+        Map<String, Object> waiver = row.getConditionWaiver();
         return new HistoryEntry(
                 row.getResidentId(),
                 row.getFromStatus(),

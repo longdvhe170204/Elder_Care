@@ -84,6 +84,26 @@ class ProfileFieldLimitsIT extends ResidentProfileTestBase {
     }
 
     @Test
+    void FR_001_contactWithMalformedEmailOrPhone_is422InvalidValue() throws Exception {
+        user.set(OFFICE);
+        for (String contact : new String[] {
+            "{\"email\":\"khong-co-a-cong\"}",
+            "{\"email\":\"a@\"}",
+            "{\"phoneNumber\":\"abc\"}",
+            "{\"phoneNumber\":\"12\"}"
+        }) {
+            mvc.perform(post("/api/v1/residents")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json(uniqueName(), ",\"contact\":" + contact)))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.errorCode").value("INVALID_VALUE"));
+        }
+        create(json(
+                uniqueName(), ",\"contact\":{\"phoneNumber\":\"+84 912-345-678\",\"email\":\"hoa.nguyen@mail.vn\"}"));
+    }
+
+    @Test
     void US1_1_post_withMissingRequiredField_isRejected() throws Exception {
         user.set(OFFICE);
 

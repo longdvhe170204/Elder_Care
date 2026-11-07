@@ -2,9 +2,9 @@ package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.staffing.duty.internal.service.ForbiddenPortCallerFixture;
+import com.eldercare.backend.staffing.internal.duty.service.ForbiddenPortCallerFixture;
+import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPortFixture;
 import com.eldercare.backend.staffing.scheduling.M09SchedulingFixtures;
-import com.eldercare.backend.staffing.shift.internal.service.port.ShiftCommandPortFixture;
 import com.eldercare.backend.staffing.swap.internal.service.SwapPortCallerFixture;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

@@ -9,6 +9,18 @@ import org.springframework.context.annotation.*;
 @Profile({"test", "demo"})
 public class FakeM04ApiConfig {
     @Bean
+    @Primary
+    TripMedicationReadApi fakeTripMedicationReadApi(FakeM04ApiFixture fixture) {
+        return fixture.api(TripMedicationReadApi.class);
+    }
+
+    @Bean
+    @Primary
+    TripDutyReadApi fakeTripDutyReadApi(FakeM04ApiFixture fixture) {
+        return fixture.api(TripDutyReadApi.class);
+    }
+
+    @Bean
     FakeM04ApiFixture fakeM04ApiFixture() {
         return new FakeM04ApiFixture();
     }
@@ -71,6 +83,19 @@ public class FakeM04ApiConfig {
     @Primary
     TimetableApi fakeTimetableApi(FakeM04ApiFixture fixture) {
         return fixture.api(TimetableApi.class);
+    }
+
+    // 014 T002: bản giả cho 015 (gỡ nhiệm vụ chuyến) và 016 (số liệu hoạt động).
+    @Bean
+    @Primary
+    TripDutyCommandApi fakeTripDutyCommandApi(FakeM04ApiFixture fixture) {
+        return fixture.api(TripDutyCommandApi.class);
+    }
+
+    @Bean
+    @Primary
+    ActivityStatisticsApi fakeActivityStatisticsApi(FakeM04ApiFixture fixture) {
+        return fixture.api(ActivityStatisticsApi.class);
     }
 
     @Bean

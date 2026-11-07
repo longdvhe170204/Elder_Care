@@ -1,39 +1,61 @@
 package com.eldercare.backend.resident.internal.assessment.persistence;
 
+import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
+import com.eldercare.backend.administration.shared.api.dto.RecordChange;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.resident.internal.assessment.domain.PeriodicReassessmentDue;
 import com.eldercare.backend.resident.internal.assessment.domain.ReassessmentBasis;
 import com.eldercare.backend.resident.internal.assessment.domain.ReassessmentNotice;
+import com.eldercare.backend.resident.internal.assessment.domain.ReassessmentNoticeContent;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Bảng kỹ thuật {@code reassessment_notice} (research H-11): lần báo "chưa đáp ứng" là lần sau lần đánh giá Đã xác nhận
- * gần nhất; bộ {@code (resident_id, basis, source_type, source_id)} chống báo trùng.
+ * Lần báo cần đánh giá lại ở {@code simple_record} loại {@code M01.REASSESSMENT_NOTICE} (001 T084; research H-11; thay
+ * bảng kỹ thuật {@code reassessment_notice}): lần báo "chưa đáp ứng" là lần báo sau lần đánh giá Đã xác nhận gần nhất
+ * (so theo {@code created_at}, lúc báo); khóa duy nhất {@code M01.RAN:…} chống báo trùng. Ghi qua {@link SimpleRecordApi}
+ * trong transaction của lệnh gọi; chọn dòng chưa đáp ứng bằng SQL (so với bảng {@code assessment}).
  */
 @Repository
 public class ReassessmentNoticeStore {
+
+    /** Nguồn của lần báo → loại đối tượng cha của dòng (data-model 001 mục 0.1: đối tượng là nguồn). */
+    private static final Map<String, String> SOURCE_ENTITY_TYPES = Map.of(
+            "ASSESSMENT", "M01.ASSESSMENT",
+            "INCIDENT", "M05.INCIDENT",
+            "STATUS_HISTORY", "M01.RESIDENT_STATUS_HISTORY",
+            "CORRECTION", "M15.CORRECTION");
+
+    private static final Map<String, String> SOURCE_TYPES =
+            SOURCE_ENTITY_TYPES.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+    private static final String KIND = ReassessmentNoticeContent.KIND.code();
 
     private static final String LATEST_CONFIRMED =
             "COALESCE((SELECT MAX(a.confirmed_at) FROM assessment a WHERE a.resident_id = n.resident_id"
                     + " AND a.status = 'CONFIRMED'), '1000-01-01')";
 
     private final JdbcTemplate jdbc;
+    private final SimpleRecordApi records;
 
-    ReassessmentNoticeStore(JdbcTemplate jdbc) {
+    ReassessmentNoticeStore(JdbcTemplate jdbc, SimpleRecordApi records) {
         this.jdbc = jdbc;
+        this.records = records;
     }
 
     /** Mọi lần báo chưa đáp ứng của hồ sơ tính hạn từ {@code from}, xóa dấu đã cảnh báo quá hạn. */
     public void restartDeadlines(long residentId, Instant from) {
-        jdbc.update(
-                "UPDATE reassessment_notice n SET n.deadline_from = ?, n.overdue_alerted_at = NULL"
-                        + " WHERE n.resident_id = ? AND n.notified_at > " + LATEST_CONFIRMED,
-                Timestamp.from(from),
-                residentId);
+        for (long id : unmetIds(residentId)) {
+            change(id, content -> content.withDeadline(from));
+        }
     }
 
     /** Hồ sơ ở bốn trạng thái của FR-039 có lần Đã xác nhận gần nhất không muộn hơn {@code before}. */
@@ -48,15 +70,16 @@ public class ReassessmentNoticeStore {
     }
 
     public void markOverdueAlerted(long noticeId, Instant at) {
-        jdbc.update("UPDATE reassessment_notice SET overdue_alerted_at = ? WHERE id = ?", Timestamp.from(at), noticeId);
+        change(noticeId, content -> content.alerted(at));
     }
 
     /** Mã người cao tuổi đang có lần báo chưa đáp ứng. */
     public List<Long> residentsWithUnmetNotices() {
         return jdbc.query(
-                "SELECT DISTINCT n.resident_id FROM reassessment_notice n WHERE n.notified_at > " + LATEST_CONFIRMED
-                        + " ORDER BY n.resident_id",
-                (rs, i) -> rs.getLong(1));
+                "SELECT DISTINCT n.resident_id FROM simple_record n WHERE n.kind = ? AND n.created_at > "
+                        + LATEST_CONFIRMED + " ORDER BY n.resident_id",
+                (rs, i) -> rs.getLong(1),
+                KIND);
     }
 
     /** Thêm lần báo; rỗng khi đã báo cùng căn cứ và nguồn. */
@@ -67,39 +90,55 @@ public class ReassessmentNoticeStore {
             long sourceId,
             Instant notifiedAt,
             Instant deadlineFrom) {
-        int inserted = jdbc.update(
-                "INSERT IGNORE INTO reassessment_notice (resident_id, basis, source_type, source_id, notified_at,"
-                        + " deadline_from) VALUES (?, ?, ?, ?, ?, ?)",
-                residentId,
-                basis.name(),
-                sourceType,
-                sourceId,
-                Timestamp.from(notifiedAt),
-                deadlineFrom == null ? null : Timestamp.from(deadlineFrom));
-        if (inserted == 0) {
+        String key = ReassessmentNoticeContent.uniqueKey(residentId, basis, sourceType, sourceId);
+        if (records.findByUniqueKey(ReassessmentNoticeContent.KIND, key).isPresent()) {
             return Optional.empty();
         }
-        return Optional.of(jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class));
+        SimpleRecord<ReassessmentNoticeContent> row = records.create(
+                ReassessmentNoticeContent.KIND,
+                new NewSimpleRecord<>(
+                        residentId,
+                        new EntityRef(SOURCE_ENTITY_TYPES.get(sourceType), sourceId),
+                        ReassessmentNoticeContent.STATUS,
+                        new ReassessmentNoticeContent(basis, notifiedAt, deadlineFrom, null),
+                        null,
+                        null,
+                        key,
+                        0,
+                        false));
+        return Optional.of(row.id());
     }
 
     /** Các lần báo chưa đáp ứng của hồ sơ, sớm nhất trước. */
     public List<ReassessmentNotice> unmet(long residentId) {
-        return jdbc.query(
-                "SELECT n.id, n.basis, n.source_type, n.source_id, n.notified_at, n.deadline_from,"
-                        + " n.overdue_alerted_at FROM reassessment_notice n WHERE n.resident_id = ? AND n.notified_at > "
-                        + LATEST_CONFIRMED + " ORDER BY n.notified_at, n.id",
-                (rs, i) -> new ReassessmentNotice(
-                        rs.getLong(1),
-                        ReassessmentBasis.valueOf(rs.getString(2)),
-                        rs.getString(3),
-                        rs.getLong(4),
-                        rs.getTimestamp(5).toInstant(),
-                        instant(rs.getTimestamp(6)),
-                        instant(rs.getTimestamp(7))),
+        return unmetIds(residentId).stream()
+                .map(id -> records.require(ReassessmentNoticeContent.KIND, id))
+                .map(r -> new ReassessmentNotice(
+                        r.id(),
+                        r.content().basis(),
+                        SOURCE_TYPES.get(r.parent().entityType()),
+                        r.parent().entityId(),
+                        r.content().notifiedAt(),
+                        r.content().deadlineFrom(),
+                        r.content().overdueAlertedAt()))
+                .toList();
+    }
+
+    private List<Long> unmetIds(long residentId) {
+        return jdbc.queryForList(
+                "SELECT n.id FROM simple_record n WHERE n.kind = ? AND n.resident_id = ? AND n.created_at > "
+                        + LATEST_CONFIRMED + " ORDER BY n.created_at, n.id",
+                Long.class,
+                KIND,
                 residentId);
     }
 
-    private static Instant instant(Timestamp timestamp) {
-        return timestamp == null ? null : timestamp.toInstant();
+    private void change(long id, java.util.function.UnaryOperator<ReassessmentNoticeContent> update) {
+        SimpleRecord<ReassessmentNoticeContent> row = records.lockForUpdate(ReassessmentNoticeContent.KIND, id);
+        records.change(
+                ReassessmentNoticeContent.KIND,
+                id,
+                row.version(),
+                new RecordChange<>(row.status(), update.apply(row.content()), null, row.uniqueKey(), false));
     }
 }

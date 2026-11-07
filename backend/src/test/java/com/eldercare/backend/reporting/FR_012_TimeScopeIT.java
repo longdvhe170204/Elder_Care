@@ -9,7 +9,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.reporting.TestScopedMetrics.Event;
 import com.eldercare.backend.reporting.TestScopedMetrics.EventSource;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;

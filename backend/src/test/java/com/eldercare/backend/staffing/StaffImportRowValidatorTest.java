@@ -3,7 +3,7 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.document.ExcelDocument;
-import com.eldercare.backend.staffing.staff.internal.domain.*;
+import com.eldercare.backend.staffing.internal.staff.domain.*;
 import java.util.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

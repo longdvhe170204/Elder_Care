@@ -32,6 +32,11 @@ public class FakeBedAssets implements BedAssetPort {
         return bedIds.stream().filter(flagged::contains).collect(Collectors.toUnmodifiableSet());
     }
 
+    @Override
+    public Set<Long> flaggedBedsAt(Collection<Long> bedIds, java.time.Instant at) {
+        return flaggedBeds(bedIds);
+    }
+
     public void reset() {
         flagged.clear();
     }

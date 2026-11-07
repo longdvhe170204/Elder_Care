@@ -119,7 +119,7 @@ class BR_M08_10_SlipDeliveryIT extends SlipTestBase {
         jdbc.update(
                 "INSERT INTO health_item (resident_id, type, free_text, severity_id, source_id, recorded_by, recorded_at,"
                         + " pending_nutrition_check) VALUES (?, 'ALLERGY', 'Dị ứng khác', (SELECT MIN(id) FROM"
-                        + " allergy_severity), (SELECT MIN(id) FROM information_source), 1, NOW(6), FALSE)",
+                        + " catalog_item WHERE catalog_type = 'M01.ALLERGY_SEVERITY'), (SELECT MIN(id) FROM catalog_item WHERE catalog_type = 'M01.INFORMATION_SOURCE'), 1, NOW(6), FALSE)",
                 c);
         clock.setTo(at(LocalTime.of(9, 30)));
         close(dailyMeal(lunch)).andExpect(status().isCreated());

@@ -11,6 +11,7 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.*;
+import com.eldercare.backend.care.internal.catalog.domain.NonPerformanceReasonType;
 import com.eldercare.backend.care.internal.catalog.persistence.NonPerformanceReasonStore;
 import com.eldercare.backend.care.internal.result.domain.*;
 import com.eldercare.backend.care.internal.result.persistence.CareResultStore;
@@ -96,6 +97,15 @@ public class CareResultService {
         return write(id, input, null, false);
     }
 
+    /**
+     * 005 T037 (C-14, BR-M04-12, FR-035): ghi nhận đồng bộ sau mất kết nối; quyền tại thời điểm thiết bị đã được 002 kiểm
+     * và kiểm lại ở đây theo thời điểm thiết bị; thời điểm thiết bị là "thời điểm ghi" cho nhãn ghi muộn.
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public boolean recordOffline(long id, CareResultInput input, Instant deviceAt, boolean permissionLost) {
+        return write(id, input, deviceAt, permissionLost);
+    }
+
     private CareTask lock(long id) {
         var before = tasks.get(id, false);
         if (before.residentId() != null) locks.lock(List.of(before.residentId()));
@@ -157,11 +167,18 @@ public class CareResultService {
                 && task.data().upperLimit() == null
                 && !Boolean.TRUE.equals(task.data().resultConfigurationCaptured()))
             throw unavailable("Snapshot công việc cũ chưa có cấu hình giới hạn kết quả");
-        if (task.residentId() != null && residents.isFinalStatus(task.residentId()))
-            throw new BusinessException(HttpStatus.CONFLICT, "RESIDENT_NOT_STAYING", "Hồ sơ đã ở trạng thái cuối");
         if (results.pending(id).isPresent())
             throw new BusinessException(HttpStatus.CONFLICT, "AWAITING_REMEASUREMENT", "Đang chờ xác nhận đo lại");
         var performed = input.performedAt() == null ? effectiveAt : input.performedAt();
+        // CHK056: Ghi nhận phát sinh trỏ công việc gốc bị đóng vì trạng thái cuối, thực hiện trước lúc đó (005 T037)
+        boolean beforeFinal = task.originalTaskId() != null
+                && task.residentId() != null
+                && residents
+                        .finalStatusAt(task.residentId())
+                        .filter(performed::isBefore)
+                        .isPresent();
+        if (task.residentId() != null && residents.isFinalStatus(task.residentId()) && !beforeFinal)
+            throw new BusinessException(HttpStatus.CONFLICT, "RESIDENT_NOT_STAYING", "Hồ sơ đã ở trạng thái cuối");
         if (performed.isAfter(effectiveAt) || (task.windowFrom() != null && performed.isBefore(task.windowFrom())))
             throw invalid("Thời điểm thực hiện ngoài khoảng được ghi");
         validation.validate(task.data(), input);
@@ -329,14 +346,44 @@ public class CareResultService {
     @BusinessCommand(requiresReason = false)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void notPerformed(Target target, long id, Long reasonTypeId, String note) {
+        notPerformed(id, reasonTypeId, note, null);
+    }
+
+    /** 005 T037 (C-14, FR-028a): Không thực hiện đồng bộ sau mất kết nối; loại lý do xét tại thời điểm thiết bị. */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void notPerformedOffline(long id, Long reasonTypeId, String note, Instant deviceAt) {
+        notPerformed(id, reasonTypeId, note, deviceAt);
+    }
+
+    /**
+     * FR-028a, C-14: loại lý do Hiệu lực, hoặc (ngoại tuyến) đã ngừng sau thời điểm thiết bị; lần ngừng hiệu lực đọc từ
+     * nhật ký {@code NON_PERFORMANCE_REASON_DEACTIVATED} do danh mục 005 ghi (người dùng chọn 2026-11-06).
+     */
+    private boolean activeAt(NonPerformanceReasonType reason, Instant deviceAt) {
+        if (reason.status() == CatalogStatus.ACTIVE) return true;
+        if (deviceAt == null) return false;
+        return audit
+                .recorded(
+                        new AuditAction("NON_PERFORMANCE_REASON_DEACTIVATED", true),
+                        "M04.NON_PERFORMANCE_REASON_TYPE",
+                        Long.toString(reason.id()),
+                        null)
+                .stream()
+                .map(r -> r.occurredAt())
+                .max(Comparator.naturalOrder())
+                .filter(deactivatedAt -> deactivatedAt.isAfter(deviceAt))
+                .isPresent();
+    }
+
+    private void notPerformed(long id, Long reasonTypeId, String note, Instant deviceAt) {
         var task = lock(id);
         open(task, Map.of("reasonTypeId", reasonTypeId == null ? 0 : reasonTypeId));
-        basis(task, null);
+        basis(task, deviceAt);
         if (results.pending(id).isPresent())
             throw new BusinessException(HttpStatus.CONFLICT, "AWAITING_REMEASUREMENT", "Đang chờ xác nhận đo lại");
         if (reasonTypeId == null) throw invalid("Phải chọn loại lý do Không thực hiện");
         var reason = reasons.list().stream()
-                .filter(r -> r.id() == reasonTypeId && r.status() == CatalogStatus.ACTIVE)
+                .filter(r -> r.id() == reasonTypeId && activeAt(r, deviceAt))
                 .findFirst()
                 .orElseThrow(() -> invalid("Loại lý do không còn hiệu lực"));
         if (note != null && note.length() > 2000) throw invalid("Ghi chú tối đa 2000 ký tự");

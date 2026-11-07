@@ -212,7 +212,7 @@ mobile/lib/nhan-vien/
 - T008 test trước `M09JobCatchUpIT` đỏ vì chưa có khung; sau cài: 3 test MySQL + 23 ArchTests qua. `M09TimedTask` là điểm đăng ký nội bộ cho story, `M09Jobs` điều phối transaction và `M09JobRuns` ở tầng persistence. Ba wrapper job có ShedLock; mốc hằng ngày là 00:10 giờ Việt Nam. Khóa dòng theo job/mốc, chỉ SUCCEEDED được bỏ trùng; lỗi rollback tác vụ, lưu FAILED để thử lại. Chạy bù mốc gần nhất, tác vụ xét tất cả dòng nguồn đã tới hạn, không tạo lại từng nhịp bị lỡ. Đăng ký ba tên job theo hướng dẫn ngay trong `SchedulerScopeArchTest`; chuyển Map.of sang Map.ofEntries vì vượt 10 mục; chỉ thêm khóa tắt job M09 trong profile test của application.yml.
 - Đã gặp class do bộ biên dịch khác ghi vào target có lỗi "Unresolved compilation problems" dù nguồn hợp lệ; từ lượt kiểm tra bổ sung dùng clean + test của task + ArchTests để javac biên dịch lại toàn bộ, không sửa test cho xanh. Script nạp biến kiểm thử ở cache cục bộ được Git bỏ qua; không thêm thư viện hoặc sửa pom.
 - T009: người dùng đã duyệt hai hàm đọc `ProfessionalActivityApi.usesCredentialType`, `usesPracticeScope` và bản cài/test trong phần A để giữ danh mục còn tham chiếu. Provider gắn bảng ca/phân công/bàn giao sẽ đăng ký cùng migration của story tương ứng; Phase 2 không tạo sớm các bảng hoặc truy vấn bảng chưa tồn tại. Phân loại trường cho nội dung bàn giao/lý do vắng ca có thể công bố trước vì không cần đọc bảng.
-- T009 test trước `M09GovernanceIT` đỏ vì chưa có hai hàm đọc tham chiếu danh mục; sau cài 6 test MySQL + 23 ArchTests qua. Kiểm phân loại trường, gắn phạm vi, quyền tải scan (Quản lý viện/chính nhân viên), giữ hồ sơ đang làm và các tham chiếu, giữ danh mục đang được nghiệp vụ chuyên môn dùng, xoá chứng chỉ hết hạn cùng liên kết phạm vi bằng tài khoản lưu giữ. Provider `M09.STAFF` giữ hồ sơ còn tài khoản liên kết; phần bảng chưa tồn tại bổ sung ở T012/T019/T026. Tệp scan cần bản cài `FileApi.attach` của B (001); chưa có thì trả lỗi, không ghi chứng chỉ dở dang và không tạo thêm bản giả của B.
+- T009 test trước `M09GovernanceIT` đỏ vì chưa có hai hàm đọc tham chiếu danh mục; sau cài 6 test MySQL + 23 ArchTests qua. Kiểm phân loại trường, gắn phạm vi, quyền tải scan (Quản lý viện/chính nhân viên), giữ hồ sơ đang làm và các tham chiếu, giữ danh mục đang được nghiệp vụ chuyên môn dùng, xoá chứng chỉ hết hạn cùng liên kết phạm vi bằng tài khoản lưu giữ. Provider `M09.STAFF` giữ hồ sơ còn tài khoản liên kết; phần bảng chưa tồn tại bổ sung ở T012/T019/T026. (Cập nhật 2026-10-30) `FileApi.attach` MANDATORY đã có bản thật ở `common.file.FileService` trên develop; không còn chờ B cài API. Kiểm lưu/tải S3 trên môi trường thật vẫn thuộc nghiệm thu demo, không tạo thêm bản giả.
 - T001–T002 giữ hoàn thành; T003–T009 đã đánh xong sau clean verify cuối phase. Chưa commit/push Phase 2.
 - Kiểm tra toàn dự án lần đầu: 182 test đơn vị/kiến trúc qua; 452 test tích hợp có 4 thất bại. Ba test pháp lý của 002 bị ảnh hưởng bởi fixture nghiệp vụ chuyên môn của `M09GovernanceIT` chưa hoàn tác; sửa riêng test mới của M09 bằng transaction rollback, không sửa test/quy tắc của 002. `ApiContractIT` phát hiện đường dẫn mới chưa đăng ký: lấy sớm phần đăng ký hợp đồng của T042 vào T006, ghi rõ 9 operation đã cài và 51 operation còn chờ story; giữ nguyên mọi luật so cấu trúc schema/tham số/phản hồi.
 - Sau sửa: 19 test HTTP/provider/pháp lý và 23 ArchTests qua. Thêm trước hai test hồi quy cho thời điểm tạo loại chứng chỉ và số liên hệ không chuẩn: đã thấy đỏ (ngày SQL khác ngày giả lập; khóa tra cứu chứa chữ), rồi sửa để thời điểm lấy từ `BusinessTime`, khóa tra cứu chỉ chứa tối đa 15 chữ số hoặc NULL, không sửa liên hệ gốc hay thêm luật chặn tạo tay. Metadata OpenAPI dùng đúng schema đọc/ghi chung, enum, mã phản hồi và header của hợp đồng; `Idempotency-Key` bắt buộc kiểu UUID ở bốn lệnh đã cài.
@@ -462,3 +462,136 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Lượt cấu hình chuẩn 5 kết nối còn bị cạn kết nối khi các luồng M13 chạy nền: HandoverIT có 3 lỗi kết nối, gồm một test mới và hai test cũ; bằng chứng ghi rõ ở team-plan cho A. Lượt đó bị dừng, không coi là kiểm toàn kho hoàn tất. Lượt chẩn đoán dùng `-Dspring.datasource.hikari.maximum-pool-size=20 -Dlogging.level.org.springframework.jdbc.core=INFO` chỉ trong tiến trình, giữ nguyên application.yml và mọi assertion; kết quả/giới hạn nêu ở dòng trên. Việc pool mặc định và fixture lưu giữ M09 còn mở, tách khỏi sửa thông báo FR-057.
 - Mobile nhân viên đã mở 2026-10-27; các ghi chú đóng giai đoạn ở checkpoint cũ chỉ là lịch sử. Nguồn FileApi.attach và API vị trí/giường chính thức của 003 đã có; giữ các phụ thuộc nguồn thật còn thiếu ở team-plan. 009 đã chốt không nghe CredentialExpiryWarningClosed (progress 2026-10-27), bỏ cách hiểu đây là listener còn chờ.
 - Ghi A/009 review nhóm người nhận ở team-plan mục 8; không có dòng hoàn thành FR-057 cũ để xóa. Không xóa các dòng review hoặc residentId chưa xử lý. Không commit, push hoặc mở PR.
+## Sửa sau review M09 — Q-262 (2026-10-30, T051a)
+
+- Nền d2bd7de0 (PR #66), nhánh impl/008-q262, worktree riêng; không ghép phần FR-057/mobile/010 chưa commit ở worktree khác.
+- Lỗi đúng Q-262: DutyDirectory chỉ kiểm tầng có Trưởng tầng được giao, chưa kiểm người đó có mặt trong đúng ca. T051a sửa truy vấn điều kiện của SPI hiện có; không đổi DutyApi/HTTP/nghiệp vụ.
+- Test trước: DutyDirectoryIT chạy bảy tình huống với DutyApi và PermissionApi thật. Sau sửa fixture bắt buộc requires_handover, lượt đỏ hợp lệ có bốn thất bại nghiệp vụ, không lỗi thực thi; sau cài hai hàm, bảy test xanh. Kiểm tập trung: 39 test kiến trúc và 71 IT xanh, 0 bỏ qua.
+- Kỹ thuật: dùng ShiftStore.members và ShiftMember.presentAt có sẵn, thời điểm qua BusinessTime; helper presentInShift ở ShiftQueries là nội bộ module. T051a không tách/chuyển cả gói duty vì việc cấu trúc thuộc T050/converge; không thêm ngoại lệ kiến trúc.
+- Review chi tiết và log: q262-review.md. clean verify cuối (output test vào file): 674 unit/arch xanh; 1486 IT, 7 thất bại/9 lỗi ở chín lớp baseline, 0 bỏ qua, không lớp đỏ mới; 14:10. StaffImportTransportIT xanh. T051a [x], không gọi toàn backend là xanh. Lượt đầu bị nghẽn output, kết quả dừng giữ riêng trong review; không đổi mã/test/ngưỡng giữa hai lượt.
+- Phụ thuộc hiện tại: 000 T108, 009 T004, FileService thật đã có; các câu chờ trong ghi chú phase cũ không còn là điều kiện chặn. T050 làm được bằng API bảng chung thật/bản giả của A. Mobile nhân viên đã mở 2026-10-27; phần chưa ghép vẫn giữ task mở.
+- Review nguồn C: BedStatusApi/BedStatisticsApi đã có thật; cảnh báo phân bổ của HandoverSources còn dùng AllocationHandoverApi, khác BedHandoverAlertApi C đã cài. Giữ dòng chờ C chốt nguồn, không tự đổi DTO hoặc dựng mốc thời gian giả. Lỗi fixture 404/503 thuộc C/B như baseline, không sửa test của chủ module khác.
+
+
+## Cấu trúc trước gộp bảng R-15 (2026-10-31, phần T050)
+
+- Tách điểm kiểm T050a cho cấu trúc theo constitution 3.3.0/backend README mục 4; T050 vẫn mở tới khi migration, API bảng chung, fixture, bảo vệ dữ liệu và hồi quy đầy đủ xanh. Đây là tách kỹ thuật để kiểm được nguyên nhân lỗi trước khi đổi lược đồ, không đổi nghiệp vụ/phạm vi T050.
+- Chuyển bảy nhóm chức năng staffing vào internal/<chức năng>/{service,domain,persistence}; controller/request/response vào web; hai command port nội bộ đặt ngay service thay service/port. API và scheduling giữ gói công khai.
+- SQL của AssignmentReminders, CredentialInvalidityEffects, CredentialReminders, CredentialService, PracticeScopeLookup, HandoverCorrection, ShiftLifecycle, StaffEmploymentEffects, StaffService chuyển vào Store tương ứng; điều kiện WHERE, thứ tự ghi, khóa, giao dịch và nhật ký ở dịch vụ giữ nguyên. PracticeScopeLookup lấy cùng bản ghi qua CredentialStore.
+- M09Retention chuyển sang persistence; M09RetentionFactory tạo 17 provider dùng chung các phụ thuộc, giúp M09GovernanceConfig không phụ thuộc JDBC. Chỉ thêm factory cụ thể này, không thêm repository/interface bọc Store.
+- Xóa các ngoại lệ cấu trúc/JDBC của E khỏi LayerArchTest trước khi chuyển mã. Lượt đỏ: 10 test, 3 thất bại, 0 lỗi thực thi; lượt sau cài: 19 test kiến trúc/hồi quy đơn vị xanh, 0 bỏ qua. clean verify chạy hết 13:55: 674 unit/arch xanh; 1486 IT còn 7 thất bại/9 lỗi đúng chín lớp và đúng tập phương thức baseline. Toàn bộ 258 IT staffing xanh, 0 bỏ qua; T050a [x], T050 vẫn mở.
+- Review chi tiết, phạm vi và chứng cứ: r15-architecture-review.md. Chưa có V008_94/V008_95, chưa xóa PENDING_DATA_GROUP của E.
+
+## Định danh logic sau gộp R-15 (2026-10-31, người dùng đã chốt)
+
+- Giữ ID logic và liên kết cũ như phương án 1 của r15-migration-identity-review.md. Store ánh xạ (loại, legacy.table/id) tới ID vật lý của bảng chung; chỉ đổi FK vật lý, không sửa nhật ký/đính chính cũ hoặc attributes.practiceScopeIds của A.
+- Giao Trưởng tầng có id vật lý mới trong staff_assignment, nhưng legacy_floor_manager_id giữ id logic cũ. Miền id cấp mới vượt miền id logic cũ ở thời điểm migration; không tự lấy max+1 trong request.
+- HandoverCorrection giữ M09.HANDOVER + id bàn giao gốc theo FR-046; id mục chỉ nhận diện nội dung. JSON giữ bổ sung AFTER_PREPARATION theo FR-044 và bảo vệ phần đã chốt.
+- Test trước cho migration trên schema tạm: cố tình trùng id giữa các bảng nguồn/bảng chung, chép đủ dòng, giữ tham chiếu chuyên môn/nhật ký, kiểm trigger/COMMENT và tạo mới sau chuyển. T050 còn mở tới khi cả Store, fixture, quyền và hồi quy xanh.
+
+
+### T050: phần lưu giữ chờ API, không mở rộng phần A (2026-10-31)
+
+Người dùng chọn chờ A bổ sung RecordEventApi.scanBefore(kind, cutoff, afterId, limit) theo shared-event-scan-proposal.md. E tiếp tục phần độc lập: Catalog/History/Event/Record API hiện có, JSON bàn giao, phân công gộp, marker và SchedulerRuns, thống kê và provider theo parent đang tồn tại, fixture. Provider tỷ lệ còn bỏ sót lịch sử của ca Nháp đã bị xóa; test FR_037_retentionFindsExpiredRatioEvenWhenDraftShiftHasBeenDeleted giữ lại để thấy thiếu sót, không bỏ qua để xanh. T050 vẫn [ ]; không xem helper SharedRowRetention là thay thế bước quét ứng viên.
+
+Ràng buộc kiểu/numeric của dữ liệu chuyển sang content được kiểm qua Bean Validation và shared API thật; bất biến ghi nhận vẫn kiểm trực tiếp SQL/trigger với tài khoản app và admin. Fixture FR_020_StaffingDashboardIT của A đổi đúng bảng đích theo danh sách T050 và ghi A review. UUID của lần job được truyền rõ vào Basis.schedulerRunId trong các tác vụ E, có test nhật ký job thật.
+
+## Tích hợp bản đang dở lên develop mới — 2026-11-04
+
+- Nhánh `impl/008-integration` từ `62fdb4f2`, dùng snapshot đầy đủ của `008-q262`; giữ nguyên các worktree/stash cũ. Biên bản và phạm vi ở [integration-2026-11-04.md](integration-2026-11-04.md).
+- Giữ FR-057 trên develop và `AccountApi.byId`, chuyển import/fixture mới theo cấu trúc và bảng R-15. Fixture reporting và HandoverIT chỉ đổi bảng đích/metadata bắt buộc, assertion nghiệp vụ giữ nguyên; A review phần test reporting/bảng chung.
+- `T051` hiện là FR-057; sửa Q-262 được ghi `T051a` để không trùng số. `T050a` và `T051a` đã kiểm lại trên nền mới; T050 còn mở vì `RecordEventApi.scanBefore` chưa được A công bố.
+- Kiểm: 144 test đơn vị/kiến trúc xanh; bộ 318 IT ban đầu còn một failure chờ API và một error fixture mới. Sửa fixture, ba unit FR-057 và 27 HandoverIT xanh; 10 LayerArchTest và Spotless cuối xanh. Báo cáo mới nhất của 47 lớp IT còn đúng một failure quét tỷ lệ mồ côi, không có error/skip. Không cộng các lượt hoặc gọi toàn feature/verify xanh.
+- Lượt kiểm dùng đường dẫn tạm ngắn cho JVM Windows và ghi output test trực tiếp ra file. Không thay pool, assertion, lịch chạy hoặc dependency để đạt test. Mobile và nghiệm thu nguồn thật/SC giữ task mở; chưa commit/push/merge.
+
+- Kiểm toàn backend sau cùng: `clean verify` không lọc lớp, 1.071 đơn vị/kiến trúc xanh (217 suite); 2.636 IT (481 suite), 1 failure chờ scanBefore, 2 error (fixture 003 còn INSERT shift_template và MissingConsentReminderIT timeout pool), 2 test hiệu năng opt-in skipped; Maven exit 1. Không gọi toàn verify xanh. XML/txt gốc giữ ở snapshot `reports-full`.
+- Test 003 đã đỏ trước sửa: chỉ chuyển INSERT mẫu ca sang catalog_item/M09.SHIFT_TEMPLATE, giữ assertion; cập nhật data-model 0.1 từ danh sách lịch sử 33 lên 35 file trên develop mới, tasks tham chiếu danh sách hiện hành. Chạy lại 10 LayerArchTest + 5 AllocationHandoverIT + 6 MissingConsentReminderIT xanh, Maven exit 0, Spotless qua. Không sửa nguồn/test B hoặc pool; retry riêng xanh chưa chứng minh đã sửa timeout toàn kho. C review fixture; B/A rà error mới. Báo cáo/log và giới hạn môi trường dev ở integration-2026-11-04.md.
+
+## Checkpoint 008 và thứ tự các feature của E — 2026-11-04
+
+- Người dùng yêu cầu làm lần lượt 008 → 010 → 017 → 015 và tự commit/push sau mỗi mốc; AI chỉ chuẩn bị mã, kiểm và hướng dẫn Git, không thực hiện commit/push.
+- T027 sửa mốc giường chờ sang AwaitingReadyInterval.startedAt sau khi test mới tái hiện đỏ (mốc gốc 23:00 bị cắt thành 00:00); 13 unit/arch + 80 IT xanh, Maven exit 0, Spotless qua. Không thay API, migration hay dependency. Đồng bộ tài liệu consumer003/006 và glossary; review mốc startsAt của lịch sử phân công A016 đạt. Xóa đúng ba dòng E đã làm xong ở team-plan, giữ kết quả trong progress.
+- T043c tách rõ bản thật ShiftStaffPort mới của005 khỏi các kiểm CareShiftPort cũ. Cần quyết định chủ dự án về hai cờ checklist bàn giao và ca/thời điểm kiểm nhận việc tồn (đã tra Q-93 mục24.2; Q-93 chỉ chốt việc đã nhận không tự đóng). Đã hỏi E trong phiên, không tự chọn theo tên hàm hoặc trả false để giả hoàn tất. Không sửa spec/business hay API C; ongoingShifts vẫn hoãn theo lựa chọn đã ghi ở005.
+- Hướng dẫn commit/push checkpoint và các gate ở handoff-008-2026-11-04.md. Toàn feature008/clean verify chưa được gọi xanh; giữ T050, mobile, nguồn thật và nghiệm thu mở. Ảnh người dùng chèn vào biên bản tích hợp được giữ ngoài stage, không trộn vào thay đổi mã.
+
+- Quyết định tiếp theo của người dùng: giữ cả hai điểm cờ checklist bàn giao và ca/thời điểm kiểm nhận việc tồn chờ chủ dự án. Giữ T043c và dòng Q-93 mở; bàn giao checkpoint008 cho người dùng tự commit/push rồi tiếp tục phần độc lập010, không coi lựa chọn chờ là duyệt bất kỳ quy tắc mới nào.
+
+## T050: chuyển sang SQL chỉ đọc M09 theo quyết định người dùng — 2026-11-05
+
+- Người dùng duyệt hướng xử lý trong phần E, thay lựa chọn chờ scanBefore cũ. Quy ước R-15 mục 8 cho phép SQL chỉ đọc dòng có loại mang tiền tố M09 trong persistence; không thêm API/fake/bản cài của A, không thêm bảng chỉ mục để né ranh giới module.
+- M09Retention chọn ID record_event theo module/kind/entity_type, cutoff nghiêm ngặt, loại cha còn ca hoạt động bằng NOT EXISTS trước LIMIT; đọc nội dung bằng RecordEventApi.require rồi dùng ánh xạ legacy hiện có. Áp dụng cả tỷ lệ phục vụ và bản công bố, giữ tài khoản/quyền xóa retention như trước. Bỏ hai helper kiểm cha do truy vấn mới thay thế, không thay thuật toán nghiệp vụ khác.
+- Giữ test mồ côi đã đỏ trước đây, sửa thông báo để không gắn cứng giải pháp API A. Bổ sung 9 ca cho ID mới/legacy, sáu trạng thái ca, loại sự kiện khác, batch=1, biên cutoff và bản công bố mất lịch cha; fixture mới rollback, lấy ID bằng KeyHolder trên đúng connection.
+- Ban đầu người dùng yêu cầu chỉ clean, sau đó cho phép “chạy cả lệnh kiểm thử để hoàn tất spec”. Đã chạy Spotless đúng hai file Java sửa; 117 unit/arch +333 IT của staffing và consumer/hợp đồng liên quan xanh, 0 failure/error/skip. Chạy Maven test và failsafe:integration-test theo lớp đã chọn, kiểm XML để không bỏ lọt failure; không chạy lifecycle verify toàn kho. T050 đã [x]; giữ các gate nguồn thật/nghiệm thu còn dở, không lấy lượt xanh 04/11 thay bằng chứng mới.
+- Theo yêu cầu mới, trong mỗi lượt đối chiếu merge/sync phải kiểm các quy tắc người dùng đã chốt (quantity/newQuantity và hướng SQL T050) còn được giữ, báo ngay nếu diff sửa hoặc loại bỏ. Không tự merge, commit, push, rebase hoặc đổi nhánh; không hứa giám sát Git khi không có phiên làm việc.
+
+## T016b: ghép Ca của tôi vào nhánh tích hợp — 2026-11-05
+
+- Dùng lại ba file màn/controller/nhãn và hai file test của impl/008-my-shifts-mobile, giữ nguyên bản nguồn; biên bản duyệt đã đưa vào mobile-my-shifts-proposal.md. Không tạo worktree mới hoặc thêm thư viện, không sửa common ApiClient. Consumer E chuyển List<dynamic> sang mảng map có kiểu, xóa dữ liệu cũ khi tải lại/mất quyền và bỏ phản hồi tháng cũ trả chậm.
+- StaffRoot nối Ca của tôi theo SHIFT_SCHEDULE/VIEW; lỗi tải quyền thì không hiện mục. Giữ Thông báo đứng đầu, huy hiệu, luồng đẩy và Phê duyệt; khi quá năm mục thì giữ bốn mục đầu và Thêm theo DESIGN 15.4. Phạm vi nền/bố cục này đã được A/chủ dự án duyệt trong biên bản nguồn; thêm dòng A review bản ghép, không tự ghi là A đã review mã mới.
+- Màn dùng PageBody, danh sách dòng trên bề mặt theo DESIGN hiện hành, thời gian chung, chữ 200%/sáng/tối; chỉ đọc /me/shifts và tên được backend cho xem, không lộ liên hệ riêng tư. Không gọi lịch người khác hoặc tự tính trạng thái.
+- Lượt đầu đỏ biên dịch vì kiểu getList mới, navigation đỏ vì thiếu menu; sau cài toàn app 179 test xanh (27 ca riêng), flutter analyze sạch, dart format qua. Pubspec/lockfile giữ nguyên. T016b [x], nghiệm thu thiết bị/người dùng thật ở T044b vẫn mở.
+- T043c và nhận việc tồn còn hai quyết định: đã giải thích luồng BF-13, 005 FR-029/031/047a, 008 FR-044a/Q-93 và ví dụ cho người dùng; chưa có quyết định mốc kiểm hoặc đối tượng/thời điểm hiện/tắt cờ. Người dùng xác nhận chưa có biên bản SC-002/010 và tháng vận hành SC-003. Không tự chốt hoặc đề xuất thay nghiệp vụ.
+
+## Quyết định 2026-11-05: người xác nhận bắt buộc thuộc ca sau đã xếp
+
+Chủ dự án chốt trực tiếp: người xác nhận bắt buộc thuộc đúng ca sau trong lịch Trưởng tầng đã xếp. Đã đồng bộ nguồn nghiệp vụ13.5 và quyết định bổ sung24.2 trước spec008 FR038/042, các trường hợp biên và SC003; BF02/BF13 bỏ ngoại lệ nhận ngoài lịch. Không mở quyền cho mọi nhân viên có tên trong ca. Trưởng tầng vẫn cần đúng nhiệm vụ/phạm vi, có tên, đang đủ điều kiện hiện diện và trong cửa sổ thời gian của đúng ca sau đã công bố. Không tìm được ca sau thì chưa được xác nhận; không tự tạo ca, bàn giao hoặc gán người thay. Chưa đổi quy tắc lập/hoàn tất bàn giao của ca trước hay tạm nhận cảnh báo.
+
+HandoverService.receiver dùng cùng điều kiện cho allowedCommands, xác nhận và gửi ý kiến: phải tìm được ca sau; người phụ trách ca giữ điều kiện hiện có; Trưởng tầng thêm kiểm thành viên, hiện diện và cửa sổ ca sau. Giữ PermissionApi và căn cứ nhật ký hiện có. HTTP chỉ sửa hai mô tả confirm/comments cho đúng quy tắc, không đổi đường dẫn/tham số/schema/DTO/sự kiện/API module. Không sửa mã hoặc spec005 của C.
+
+TDD tại HandoverIT: đổi kịch bản cũ cho phép Trưởng tầng xác nhận khi không có ca sau thành từ chối; thêm trường hợp ngoài danh sách, vắng, rút do nghỉ việc, nghỉ được duyệt, Trưởng tầng có tên hợp lệ và thành viên thường không có nhiệm vụ xác nhận. Năm ca từ chối đã đỏ trên mã cũ trước khi sửa receiver. Hồi quy đã xanh: 47 unit/arch (8 lớp) + 67 IT (6 lớp), không failure/error/skip; Spotless đúng hai file Java, git diff --check qua. Không chạy lifecycle verify toàn kho. XML/log ở .worktrees/.snapshots/008-handover-next-shift-20261105, chi tiết ở validation. T043c còn mở vì chưa cài adapter ShiftStaffPort và chưa chốt đủ vòng đời cờ; mốc kiểm người nhận công việc tồn đã được chốt ở phần tiếp theo, còn C cài lệnh và E cung cấp nguồn.
+
+## Quyết định tiếp 2026-11-05: kiểm người nhận việc tồn theo giờ nhận thực tế
+
+Người dùng xác nhận ví dụ việc13:50, Bình ca14:00–22:00, nhận14:10: kiểm ca/phân công/phạm vi/vai trò/chứng chỉ tại14:10 theo BusinessTime phía máy chủ. Giữ giờ dự kiến, trạng thái, lịch sử công việc, ghi thêm lịch sử nhận; không đổi quy tắc giao/phân lại việc thông thường, không tự chuyển người nhận hoặc đóng việc. Đã cập nhật nguồn13.5/24.2 trước FR044a và tiêu chí chấp nhận008.
+
+C/005 sở hữu CareChecklistService.claimant và allowedCommands: hiện còn lấy shiftId của công việc và kiểm members ca đó/onShift(actor, plannedAt), nên chỉ đổi tham số plannedAt thành now chưa đủ bảo đảm nhận đúng ca sau. C cần đối chiếu ca sau/phạm vi theo giờ nhận bằng hợp đồng đã có, giữ cơ chế khóa/lịch sử/rollback hiện hành. E không sửa source/spec/test005 hoặc API công khai của C trong phiên008. Hợp đồng ShiftStaffPort có sẵn shiftContaining, members, onShift, qualified và các hàm phân công; không đề xuất hoặc thêm chữ ký mới.
+
+Đã chuyển dòng chờ quyết định trong team-plan sang C cài và E cung cấp nguồn/review; chưa xóa dòng vì chưa nghiệm thu. T043c vẫn mở do adapter chưa có và đủ vòng đời hai cờ checklist còn chờ trả lời. Bàn giao cụ thể: carryover-claim-decision-2026-11-05.md. Không chạy lại test mã vì lượt này chỉ sửa tài liệu; kết quả47 unit/arch+67IT của thay đổi quyền xác nhận trước đó không được dùng làm bằng chứng claim005 đã xong.
+
+## T043c — vòng đời checklist đã được chốt 2026-11-05
+
+Người dùng đồng ý vòng đời receiveAtStart/prepareAtEnd như nguồn13.5/24.2. Không còn chờ quyết định hai cờ hoặc mốc nhận việc tồn; còn công việc triển khai/kiểm thử và bàn giao. Giữ CareShiftLookup/CareShiftPort cũ; thêm CareStaffLookup cài đúng ShiftStaffPort vì hai interface có DTO trả về khác nhau. Ánh xạ PRIMARY/SUPPORT và truy vấn ca/phân công/chứng chỉ từ nguồn008 đã có, không thêm chữ ký/DTO/sự kiện vào API005.
+
+HandoverAccess giữ chung kiểm quyền/người phụ trách/Trưởng tầng/hiện diện/cửa sổ ca cho lệnh thật và checklist. Truy vấn checklist hỏi quyền cho đúng nhân viên từ AccountApi theo mẫu tra người duyệt của002, không đổi CurrentUser của phiên, không dùng scheduler hoặc quyền giả. HandoverQueries xét trạng thái bàn giao của ca và các ca trước thật trong khoảng CFG-M09-09, chỉ nhận bản Đã lập mà ca sau được chọn đúng là ca đang hỏi. Không tự tạo dữ liệu.
+
+TDD: thêm kiểm bean production, đủ truy vấn ShiftStaffPort, biên ca/ca Nháp, thành viên vắng, chứng chỉ, phân công chính/hỗ trợ/Điều dưỡng phụ trách và đầy đủ vòng đời hai cờ. Giữ kiểm giao dịch/rollback/quyền của HandoverIT cũ sau khi dùng chung kiểm quyền. Kết quả và giới hạn nguồn C/D sẽ ghi ở validation; chưa đánh xong T043c trước test xanh.
+
+### Kết quả T043c ngày2026-11-05
+
+Đủ12 hàm ShiftStaffPort có bean productionCareStaffLookup; giữ DTO/API và CareShiftPort cũ. 51unit/arch(10lớp)+123IT(10lớp) xanh,0 failure/error/skip. Lượt đầu bị ngắt sau5lớp/53IT; giữ XML đã xanh, chạy tiếp5lớp/70IT từ cùng mã đã biên dịch, không cộng các lượt đỏ hoặc checkpoint cũ. TDD trước sửa có5lượt đỏ(3failure/2error): nguồn thật còn thiếu, cấu hình fake005 bị chọn nhầm và một fixture cố sửa ca đã Hủy; đã chọn rõ bean thật và giữ ca Hủy bất biến trong test, không sửa fake của C.
+
+Đính chính Spotless: bộ lọc đường dẫn tương đối trước không khớp Windows, không dùng exit0 đó làm bằng chứng định dạng. Đã chạy apply/check với10 regex đường dẫn tuyệt đối, thực kiểm10file Java E vừa sửa (8fileT043c và2fileT050);9file được định dạng,1file đã sạch, check xanh. Thay đổi cuối chỉ định dạng/loại import thừa, bytecode test từ cùng mã có sẵn trước định dạng. Không chạy verify toàn kho. Chứng cứ staff-port-{green-reports,result.json,real-spotless.log,resume.log} ở .worktrees/.snapshots/008-handover-next-shift-20261105.
+
+T043c được đánh x,54/60task. Các quyết định không còn chờ; consumer005 còn kiểm vai trò Trưởng tầng trên checklist, sửa nhận việc tồn/callback và nghiệm thu với nguồn thật, không đánh x T043b/T049b hoặc toàn008. Không sửa source/spec/test005.
+
+## T041b — ghi vắng ca trực tuyến đã kiểm xanh2026-11-05
+
+Người dùng chốt trực tuyến trước; đã ghi nguồn13.2/24.2 và phạm vi spec. ShiftAbsenceSheet dùng ApiClient và hàm newIdempotencyKey có sẵn của common, không sửa common. Vào từ chi tiết ca cá nhân chỉ khi allowedCommands có recordAbsence; lọc người đã vắng/nghỉ, tên từ nguồn được phép, lý do bắt buộc, người thay tùy điều kiện backend. Không cố định CFG hoặc đoán ai đủ vai trò phụ trách. Không thêm If-Match ngoài hợp đồng; cùng nội dung thử lại giữ UUID, chặn gửi khi đang chờ; lỗi giữ nội dung,403/404 xóa và dừng form. Sau thành công hoặc mất quyền đóng form thì đọc lại ca, không tự áp trạng thái ở client.
+
+TDD: test đỏ vì chưa có màn; sau cài7test nghiệp vụ xanh; thêm ghép với MyShifts và2ca chữ200%/sáng tối. Toàn app189test xanh,flutter analyze--no-pub sạch,dart format4file qua. Lượt đầu SDK kẹt khóa vì sandbox không ghi cacheC:/flutter; đã dừng riêng lượt đó và chạy bằng quyền cache, không sửa SDK/cấu hình hệ thống. Pubspec/lock và common giữ nguyên hash. Không có API,migration,thư viện hoặc hàng đợi mới. Phần offline chưa mở,không tự coi thất lạc phản hồi là server chưa ghi. Đánh xT041b,55/60task; không dùng widget test thay thử thiết bị/người dùng T044b. Rawlog mobile-absence-* trong snapshot008-handover-next-shift-20261105.
+
+## Ghép phân công mobile và hợp đồng đã duyệt29/10 — 2026-11-05
+
+Khôi phục từ worktree008-mobile-assignments hiện có, không tạo feature/thư mục spec/nhánh mới. Biên bản assignment-contract-review cùng hai proposal ghi rõ A/chủ dự án đã duyệt năm thao tác HTTP, bố cục/StaffRoot/ApiClient và cho đổi staffId khi Nháp. Phục hồi T054/T055 đã tồn tại ở bản nguồn; số task tăng60→62 do đưa lại hai task được duyệt, không phát sinh nghiệp vụ.
+
+Chuyển gói cũ sang staffing/internal và web; giữ Store/migration R15 hiện tại. updateDraft chỉ sửa kindCARE, giữ id/source/createdAt/createdBy và tăng version; không ghi nhật ký từng sửa Nháp hoặc gọi callback005. Fixture dùng catalog_item M09.SHIFT_TEMPLATE và permission_assignment ROLE_ASSIGNMENT, tên có id duy nhất, dọn đúng dữ liệu của fixture. Không đổi API Java A/B/C/D.
+
+Mobile dùng getList hiện có và requestJson DELETE, UUID chung đã có; không chép phần common cũ. Giữ preview bị vô hiệu khi đổi form, xác nhận lại cảnh báo, cùng khóa khi thử lại, đọc lại dữ liệu sau412. Đọc task-types/status đã có ở hợp đồng005, giữ loại cũ đang áp dụng, không thêm endpoint. Tên nhân viên/đối tượng đọc nguồn được phép, thiếu tên không dựng tên hoặc lấy raw staffId làm tên. Menu Phân công dưới Thêm theo SHIFT_SCHEDULE/VIEW, giữ năm mục A/huy hiệu/đẩy.
+
+TDD mới trên nhánh:28HTTPtest,26failure/0error trước thêm endpoint;2ca che quyền404 đã qua. Các lỗi fixture chuyển package/tên catalog trùng được sửa trước lượt đỏ hợp lệ. Sau cài còn1test cảnh báo đỏ: mã nội bộ UNQUALIFIED_TASK_TYPES lệch enum HTTP; sửa về TASK_TYPE_REQUIREMENTS_NOT_MET đã duyệt, cập nhật đúng fixture web củaE. Kết quả cuối19unit/arch+64IT,0failure/error/skip;Spotless thực kiểm16file. Generator chuẩn sinh lại, chỉ api008.js đổi. Web472test/81file xanh,lint/build qua; fixture cảnh báo đổi sau đó được chạy riêng3test xanh. Mobile sau cả bước bàn giao bên dưới227test xanh;analyze/format ghi ở validation. Không chạy lifecycle verify toàn kho.
+
+T054/T055[x],57/62task; T022b giữ mở vì callback005 và nghiệm thu nguồn/thiết bị thật. B004 attendanceOn đã có bản thật ContractReadService, C005 có danh mục/kế hoạch; không tiếp tục ghi nhầm đang chờ các API này từ mốc29/10. CareTaskHandover vẫn có năm callback vắng/nghỉ/nghỉ việc/đổi/kết thúc phân công trả503 ở T038. Không sửa nguồn C.
+
+## T030 — phần trực tuyến có thể làm với nền hiện hành
+
+Đã cài HandoverScreen và menu SHIFT_HANDOVER/VIEW: đọc ca/bàn giao/nguồn/nhận định/mục/ý kiến theo backend, lập/hoàn tất/xác nhận/gửi ý kiến/phản hồi và gửi lại bằng các lệnh không yêu cầu If-Match. Không tự sinh bản ghi, lệnh nhạy cảm cần người dùng bấm xác nhận; lỗi giữ nội dung và khóa,403/404 xóa; phản hồi tải cũ không ghi đè nguồn mới. Không lưu bền hoặc đưa lệnh vào OfflineQueue.
+
+Không đánh xT030: ApiClient chung bỏ ETag trong khi Handover chỉ có ETag trên header, nên chưa cài sửa mục/nhận định bằng version suy đoán. Không có hợp đồng hạn quyền lưu ngoại tuyến theo002 FR032/033; chưa cài cache/xóa hết phạm vi hoặc tự cố định hai giờ. Bàn giao A cụ thể ở mobile-handover-foundation-handoff-2026-11-05.md. Đây là giới hạn triển khai hiện tại, không phải đã hoàn tất FR060. Không sửa common,HTTP002 hoặc nghiệp vụ để né phụ thuộc.
+
+## Đồng bộ develop2fd4cd8c ngày2026-11-05
+
+Người dùng cho phép đồng bộ; checkpointca179af1 đã push. Ghép14commit bằng --no-commit --no-ff, xử lý chỉ hai conflict tài liệu: giữ toàn nhật ký hai phía, trạng thái adapter/startedAt đã làm và chủ011 mới làD. Không có quy tắc/API/mã production008 bị đổi. Phát hiện test biên checklist củaE phụ thuộc thời gian truy vấn: đồng hồ giả lập vẫn chạy, trước biên1giây không đủ cho lượt truy vấn6,154giây. Cố định BusinessTime.now bằng spy chỉ trong test đó; giữ assertion/biên và tham số30phút. Không đổi common hoặc production. Sau kiểm lại37HandoverIT, bộ ghép cuối53unit/arch+126IT xanh,web485/analyzerFlutter227/lint/build qua. Xem develop-sync-2026-11-05.md. Không tự tạo merge commit/push;57/62task và các phụ thuộc vẫn giữ mở.
+
+### Checkpoint chung theo yêu cầu người dùng — 2026-11-06
+
+Tạm dừng triển khai để gom công việc hiện có lên develop; chi tiết ở publish-checkpoint-2026-11-06.md. Ghép menu mobile với bản A/B mới, giữ các mục theo quyền; khôi phục bản sửa fixture và test đổi kết nối từ hai worktree cũ vào package/bảng R-15 hiện tại. Các gate nguồn thật/nghiệm thu của 008 giữ mở.

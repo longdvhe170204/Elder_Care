@@ -169,7 +169,10 @@ class FR_014_DefaultDietIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isCreated());
 
         assertThat(jdbc.queryForObject(
-                        "SELECT allergen_group FROM allergen WHERE name=? AND status='ACTIVE'", String.class, name))
+                        "SELECT attributes ->> '$.allergenGroup' FROM catalog_item WHERE catalog_type = 'M01.ALLERGEN'"
+                                + " AND name=? AND status='ACTIVE'",
+                        String.class,
+                        name))
                 .isEqualTo("FOOD");
     }
 

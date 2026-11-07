@@ -100,3 +100,15 @@ Khi 019 chưa có (bản giả), chuyến dùng xe của viện bị chặn rờ
 | `NguoiCaoTuoiDaChuyenTrangThai` (001) | Tạm vắng, Điều trị bệnh viện: hiển thị sẵn "Vắng – đang vắng mặt"; chuỗi cô lập bỏ qua ngày | FR-028, FR-054 |
 
 Mọi listener idempotent theo `khoaSuKien` (`su_kien_m04hd_da_xu_ly`). *(R-15: `su_kien_m04hd_da_xu_ly` → `moc_da_nhac`)*
+
+## 3. Bản dịch và chiều phụ thuộc Phase 6 (chủ dự án duyệt 05/11/2026)
+
+Mục 1.1 giữ tên logic để truy vết. Khi triển khai, care không cài trực tiếp SPI trong medication/staffing vì hai module đó đã phụ thuộc care; không tạo vòng module và không sửa API cũ của D/E.
+
+- `care.api.TripMedicationReadApi`: `Optional<TripInterval> approvedTripInterval(long residentId, long tripId)`, `Optional<TripInterval> tripInterval(long tripId)`. `care.api.dto.TripInterval(Instant from, Instant to)`. D cài adapter của `medication.api.spi.TripMedicationPort` gọi API này.
+- `care.api.spi.TripMedicationPreparationPort`: `boolean isPrepared(long residentId, long tripId)`; `void onTripChanged(long tripId, long residentId, TripMedicationChangeType changeType)` và `void recalculateInterval(long tripId, long residentId, TripInterval newInterval)` MANDATORY. Enum `care.api.dto.TripMedicationChangeType`: `CANCEL_TRIP`, `NOT_ATTENDING`, `RESCHEDULE`, ánh xạ đúng enum 006. D cài adapter ủy API thuốc hiện có; không đưa fake vào production. Fake C sở hữu: `FakeTripMedicationPreparation` trong `FakeM04Config`.
+- `care.api.TripDutyReadApi`: `Optional<Long> groupLeader(long tripId)`, `List<Long> companions(long tripId)`, `List<TripInShiftView> inShift(long floorAreaId, Instant from, Instant to)`. `care.api.dto.TripInShiftView(long tripId, List<Long> staffIds, Instant expectedReturnAt, List<Long> residentIds, Instant departedAt)` giữ năm trường của 008. E cài adapter từ `staffing.api.spi.TripDutyPort` hiện có; không đổi constructor/kiểu cũ của staffing.
+- `care.api.spi.TripStaffSchedulePort.hasOverlappingPublishedShift(long staffId, Instant from, Instant to)`: nhân viên còn có mặt trong ca đã công bố, ca giao với khoảng chuyến; không giới hạn vào tầng tổ chức. E cài. Tài khoản Hoạt động/vai trò kiểm qua `AccountApi` có sẵn. Fake C sở hữu: `FakeTripStaffSchedule` trong `FakeM04Config`.
+- Lịch xe do 019 cung cấp: tên tiếng Anh ở contracts 019 mục 2.2; care chỉ gọi `roombedallocation.api`, không khai SPI xe trong care.
+
+Thiếu bean nguồn thuốc, ca hoặc lịch xe tại nhánh cần dùng trả `503 CARE_SOURCE_UNAVAILABLE`; chưa có lịch xe Đã đặt trả `409 VEHICLE_SCHEDULE_REQUIRED`. Xe ngoài viện không gọi nguồn lịch xe của viện. Các adapter thật do D/E thực hiện và review trong PR của họ.

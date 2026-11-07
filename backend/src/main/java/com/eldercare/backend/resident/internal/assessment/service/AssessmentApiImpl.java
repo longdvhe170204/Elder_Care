@@ -7,7 +7,7 @@ import com.eldercare.backend.resident.internal.assessment.domain.Assessment;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentStatus;
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
 import com.eldercare.backend.resident.internal.assessment.service.AssessmentContents.Effective;
-import com.eldercare.backend.resident.internal.health.persistence.CareNeedRepository;
+import com.eldercare.backend.resident.internal.health.service.M01Catalogs;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -28,12 +28,12 @@ class AssessmentApiImpl implements AssessmentApi {
 
     private final AssessmentRepository assessments;
     private final AssessmentContents contents;
-    private final CareNeedRepository careNeeds;
+    private final M01Catalogs catalogs;
 
-    AssessmentApiImpl(AssessmentRepository assessments, AssessmentContents contents, CareNeedRepository careNeeds) {
+    AssessmentApiImpl(AssessmentRepository assessments, AssessmentContents contents, M01Catalogs catalogs) {
         this.assessments = assessments;
         this.contents = contents;
-        this.careNeeds = careNeeds;
+        this.catalogs = catalogs;
     }
 
     @Override
@@ -75,8 +75,8 @@ class AssessmentApiImpl implements AssessmentApi {
     }
 
     private Set<CareNeedView> needViews(Assessment a) {
-        return careNeeds.findAllById(a.getCareNeedIds()).stream()
-                .map(n -> new CareNeedView(n.getId(), n.getName()))
+        return catalogs.findAll(M01Catalogs.CARE_NEED, a.getCareNeedIds()).stream()
+                .map(n -> new CareNeedView(n.id(), n.name()))
                 .collect(Collectors.toSet());
     }
 }
