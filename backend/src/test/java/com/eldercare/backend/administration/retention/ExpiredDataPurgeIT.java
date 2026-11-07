@@ -207,6 +207,19 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         assertThat(String.valueOf(summary.get("stopped"))).isEqualTo("false");
     }
 
+    @Test
+    void T_064_sharedRowsWrittenUnderAnotherEntityType_arePurgedWithTheirRecord() {
+        String sharedType = "M15.SAMPLE_OFFICE_SHARED";
+        control.sharedAs(OFFICE, sharedType);
+        long old = record("sample_office_record", expired);
+        sharedRowsFor(sharedType, old);
+
+        runJob();
+
+        assertThat(exists("sample_office_record", old)).isFalse();
+        assertThat(sharedRowsOf(sharedType, old)).isZero();
+    }
+
     /** Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2. */
     private void sharedRowsFor(String type, long id) {
         jdbc.update(
