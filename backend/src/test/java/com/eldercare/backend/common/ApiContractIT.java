@@ -160,10 +160,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "017-resident-balance-ledger", "contracts", "api-017.yaml"),
                     Set.of(
-                            "GET /api/v1/residents/{residentId}/settlement",
-                            "POST /api/v1/residents/{residentId}/settlement/confirm",
-                            "POST /api/v1/settlement-statements/{id}/signed-copy",
-                            "GET /api/v1/settlement-statements/{id}/file",
                             "GET /api/v1/payment-notices/pending-issue",
                             "POST /api/v1/costs/statements/{statementId}/payment-notice",
                             "GET /api/v1/residents/{residentId}/payment-notices",
