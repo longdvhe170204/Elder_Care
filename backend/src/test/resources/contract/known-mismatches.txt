@@ -12,30 +12,6 @@ api-001.yaml: POST /api/v1/residents/{id}/treatment-wishes phản hồi 201 appl
 api-001.yaml: POST /api/v1/residents/{id}/treatment-wishes request application/json.otherOpinions[] đổi trường bắt buộc
 api-001.yaml: POST /api/v1/residents/{id}/treatment-wishes request application/json.preferredHospitals[] đổi trường bắt buộc
 
-# api-002 (A)
-api-002.yaml: GET /api/v1/accounts/{id}/permissions phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: GET /api/v1/accounts/{id}/permissions phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: GET /api/v1/me/permissions phản hồi 200 application/json[].scope đổi enum
-api-002.yaml: GET /api/v1/roles phản hồi 200 application/json[].executionScope đổi enum
-api-002.yaml: GET /api/v1/roles/{code}/permissions phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: GET /api/v1/roles/{code}/permissions phản hồi 200 application/json.maximum[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/assign-role phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/assign-role phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/grant-care-plan-approval phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/grant-care-plan-approval phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/remove-role phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/remove-role phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/restore-permission phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/restore-permission phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/restrict phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/restrict phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/revoke-care-plan-approval phản hồi 200 application/json.additionalGrants[].scope đổi enum
-api-002.yaml: POST /api/v1/accounts/{id}/revoke-care-plan-approval phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/roles/{code}/restore-permission phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/roles/{code}/restore-permission phản hồi 200 application/json.maximum[].scope đổi enum
-api-002.yaml: POST /api/v1/roles/{code}/restrict phản hồi 200 application/json.current[].scope đổi enum
-api-002.yaml: POST /api/v1/roles/{code}/restrict phản hồi 200 application/json.maximum[].scope đổi enum
-
 # api-003 (C)
 api-003.yaml: GET /api/v1/beds/{id}/readiness-conditions phản hồi 200 application/json.unmetConditions[] thừa trường module
 api-003.yaml: GET /api/v1/beds/{id}/readiness-conditions phản hồi 200 application/json.unmetConditions[] thừa trường waivable
@@ -170,10 +146,6 @@ api-007.yaml: POST /api/v1/incidents/{id}/receive phản hồi 409 application/p
 # api-011 (D)
 api-011.yaml: GET /api/v1/residents/{residentId}/family-foods phản hồi 200 application/json[] đổi trường bắt buộc
 api-011.yaml: POST /api/v1/residents/{residentId}/family-foods phản hồi 201 application/json đổi trường bắt buộc
-
-# api-012 (A)
-api-012.yaml: GET /api/v1/feedback/{id} phản hồi 200 application/json.items[].type đổi enum
-api-012.yaml: POST /api/v1/feedback/{id}/{command} phản hồi 200 application/json.items[].type đổi enum
 
 # api-013 (B)
 api-013.yaml: GET /api/v1/recipient-confirmations phản hồi 200 application/json[] thiếu trường signedForm

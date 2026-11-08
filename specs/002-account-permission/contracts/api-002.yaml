@@ -829,13 +829,13 @@ components:
         code: { type: string }
         name: { type: string }
         accountType: { type: string }
-        executionScope: { type: string, enum: [ASSIGNED, FACILITY, RELATIONSHIP] }
+        executionScope: { type: string, enum: [ASSIGNED, FACILITY, RELATIONSHIP, SELF], description: 'SELF: chính người cao tuổi của tài khoản (AC-16, FR-068; bổ sung 2026-11-08)' }
     EffectivePermission:
       type: object
       properties:
         function: { type: string }
         operation: { $ref: '#/components/schemas/Operation' }
-        scope: { type: string, enum: [FACILITY, ASSIGNED, RELATIONSHIP] }
+        scope: { type: string, enum: [FACILITY, ASSIGNED, RELATIONSHIP, SELF], description: 'SELF: chính người cao tuổi của tài khoản (AC-16, FR-068; bổ sung 2026-11-08)' }
         footnoteCodes: { type: array, items: { type: string } }
         source: { type: string, enum: [ROLE, DUTY, ADDITIONAL_GRANT] }
     RolePermissions:

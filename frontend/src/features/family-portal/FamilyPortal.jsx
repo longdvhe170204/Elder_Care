@@ -16,7 +16,7 @@ import { MorePage } from './MorePage'
 import { NotificationsPage } from './NotificationsPage'
 import { TodayPage } from './TodayPage'
 import { VisitsPage } from './VisitsPage'
-import { LiveContractPage, LiveHealthPage, LiveTodayPage } from './live/LivePages'
+import { LiveContractPage, LiveDepositsPage, LiveHealthPage, LiveTodayPage } from './live/LivePages'
 import { LiveCostsPage } from './live/LiveCostsPage'
 import { LiveFeedbackPage } from './live/LiveFeedbackPage'
 
@@ -50,14 +50,15 @@ const PAGES = {
   account: AccountPage,
 }
 
-// Có phiên thật: ba màn đọc API của 012 (T028), Chi phí, số dư đọc số dư của 017 (T011); các màn khác còn bản mẫu tới
-// task web của phần đó
+// Có phiên thật: ba màn đọc API của 012 (T028), Chi phí, số dư đọc số dư của 017 (T011), Đồ gửi đọc phần của 013 (T028)
+// do App.jsx truyền vào; các màn khác còn bản mẫu tới task web của phần đó
 const LIVE_PAGES = {
   today: LiveTodayPage,
   health: LiveHealthPage,
   contract: LiveContractPage,
   costs: LiveCostsPage,
   feedback: LiveFeedbackPage,
+  deposits: LiveDepositsPage,
 }
 
 // Người xem từ phiên và người cao tuổi đầu tiên có quan hệ Hiệu lực (chọn người khi có nhiều người: chưa thiết kế,
@@ -157,7 +158,8 @@ function Header({ viewer, page, badge, onNavigate, onLogout }) {
   )
 }
 
-export function FamilyPortal({ onExit }) {
+// belongings: phần đồ gửi của 013 (PortalBelongings), App.jsx truyền vào vì feature không import chéo (frontend/README 4.1)
+export function FamilyPortal({ onExit, belongings }) {
   const [page, setPage] = useState('home')
   const [session, setSession] = useState(null)
   const [checking, setChecking] = useState(true)
@@ -221,7 +223,7 @@ export function FamilyPortal({ onExit }) {
           <HomePage onNavigate={navigate} />
         ) : (
           <main className="mx-auto flex max-w-[960px] flex-col gap-4 px-4 py-6 sm:px-8 md:py-8">
-            <Page viewer={viewer} onNavigate={navigate} onExit={onExit} />
+            <Page viewer={viewer} onNavigate={navigate} onExit={onExit} belongings={belongings} />
           </main>
         )}
       </div>

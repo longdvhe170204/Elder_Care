@@ -24,6 +24,7 @@ import { NotificationsPage } from '@/features/notifications/NotificationsPage'
 import { PendingReviewPage } from '@/features/pending-review/PendingReviewPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
+import { PortalBelongings } from '@/features/belongings/PortalBelongings'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
@@ -183,7 +184,8 @@ function App() {
   }
 
   if (checking) return null
-  if (role === 'FAMILY_MEMBER') return <FamilyPortal onExit={() => changeRole('FLOOR_MANAGER')} />
+  if (role === 'FAMILY_MEMBER')
+    return <FamilyPortal onExit={() => changeRole('FLOOR_MANAGER')} belongings={PortalBelongings} />
 
   const Page = PAGES[page]
   const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)

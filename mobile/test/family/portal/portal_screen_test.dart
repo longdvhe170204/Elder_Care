@@ -19,14 +19,14 @@ Map<String, dynamic> rights({bool health = false, bool visits = false}) => {
   'REQUEST_SERVICES': false,
 };
 
-Map<String, dynamic> resident({bool health = false, bool visits = false}) => {
+Map<String, dynamic> resident({bool health = false, bool visits = false, bool belongings = false}) => {
   'residentId': 5,
   'fullName': 'Nguyễn Thị Lan',
   'relationship': 'CHILD',
   'representative': false,
   'primaryContact': false,
   'rights': rights(health: health, visits: visits),
-  'canViewBelongings': false,
+  'canViewBelongings': belongings,
 };
 
 const _general = {
@@ -59,6 +59,29 @@ Future<void> tapText(WidgetTester tester, String text) async {
 }
 
 void main() {
+  testWidgets('FR_046b_nguoiDuocPhepXemDoGui_moManDoGuiCua013', (tester) async {
+    final fake = FakeBackend()
+      ..on('GET', '/family-portal/residents', 200, [resident(belongings: true)])
+      ..on('GET', '/family-portal/residents/5/general', 200, _general)
+      ..on('GET', '/family-portal/residents/5/belongings', 200, <Object>[]);
+    await pumpScreen(tester, fake.client());
+
+    await tapText(tester, 'Nguyễn Thị Lan');
+    await tapText(tester, 'Xem đồ gửi');
+    expect(find.text('Đồ gửi'), findsOneWidget);
+    expect(fake.calls('GET', '/family-portal/residents/5/belongings'), hasLength(1));
+  });
+
+  testWidgets('FR_046b_khongDuocXemDoGui_khongCoNut', (tester) async {
+    final fake = FakeBackend()
+      ..on('GET', '/family-portal/residents', 200, [resident()])
+      ..on('GET', '/family-portal/residents/5/general', 200, _general);
+    await pumpScreen(tester, fake.client());
+
+    await tapText(tester, 'Nguyễn Thị Lan');
+    expect(find.text('Xem đồ gửi'), findsNothing);
+  });
+
   testWidgets('US5_2_khongCoQuyenSucKhoe_chiThayPhanChung', (tester) async {
     final fake = FakeBackend()
       ..on('GET', '/family-portal/residents', 200, [resident()])
