@@ -152,6 +152,7 @@ DoiTuong ganPhamVi(long id);                // tầng/khu, người cao tuổi, 
 | `BanGhiChoXemLai(id, tangKhuVucId)` | Như trên | FR-041c |
 | `LoiDuLieuQuyen(nguon, banGhiId, loaiLoi)` | Quản lý viện | FR-041b |
 | `GiayPhepSapHetHan(loai, giayPhepId, ngayHetHan, nghiepVuBiTat, nguoiLienQuan)` | Quản lý viện | FR-039 |
+| `DatLaiMatKhauTuLam(taiKhoanId, nhanVienId, nguoiThanId, quanLyVien, luc)` *(bổ sung 2026-11-08, 002 T105)* | Chủ tài khoản; Quản lý viện khác khi tài khoản có vai trò Quản lý viện | FR-052a, BR-M15-25 |
 
 Mức thông báo do 009 xếp theo nguyên tắc chung (009 FR-043b); 002 không tự gửi.
 
@@ -167,6 +168,8 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 ---
 
 ## 2. 002 cần từ module khác
+
+*(Bổ sung 2026-11-08, 002 T105)* SPI `GuiMaDatLaiMatKhauPort` (`PasswordResetSmsPort`) khai ở `administration.account.api.spi`, 009 cài: `boolean coKenh()` (kênh tin nhắn đã cấu hình, Q-06), `boolean gui(soDienThoai, noiDung)`. Khai ở 002 để tránh vòng M15 ↔ M13; không có bean thì tự đặt lại mật khẩu coi như chưa cấu hình.
 
 | Giao diện | Module cung cấp (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
