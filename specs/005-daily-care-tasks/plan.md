@@ -801,7 +801,8 @@ Bảng việc còn mở dưới đây cập nhật tiếp đến 07/11/2026; b�
 | --- | --- |
 | T024 | Care đã nhắc mọi ca trống và phát cảnh báo vị trí/metadata sau test đỏ→xanh; còn nguồn ShiftStaffPort thật008 và consumer007. T019 test đã xanh và đánh[x]06/11. |
 | T026, T031, T040 | Adapter requestJson/getList, đăng ký shell, form theo loại kết quả và hàng đợi drift chung đã cài/test. Còn kiểm trực quan 3 bề rộng/dark, máy ảo/thật và các nhánh đo/tính phí bị chặn nguồn. |
-| T029, T030 | Còn API004 đọc ngày nghỉ/id báo vắng để nối listener và nghiệm thu job với nguồn thật. Phần ngày đổi khỏi DAY_CARE/VOID chưa có quy tắc spec được người dùng yêu cầu lược bỏ06/11. |
+| T029 | *(09/11)* Adapter lịch, listener báo vắng, ngày nghỉ, phụ lục `ARRIVAL_SCHEDULE` đã nối; IT dùng hợp đồng bán trú thật của 004. Còn: luồng phụ lục thật qua job (000 áp dụng REQUIRES_NEW sau commit, IT phát sự kiện), `TrangThaiCoMatBanTruPort` (`DayCareAttendancePort`) chưa cài, ngày bị bỏ khỏi lịch chờ Q mới, trạng thái 001 còn bản giả. Phần đổi khỏi DAY_CARE/VOID lược bỏ 06/11. |
+| T030 | Xong 09/11: ba việc theo lịch xanh với lịch đến thật của 004. |
 | T033, T036, T039 | Quantity/billable010, phát sinh đo/metadata đo lại007 và summary012; các guard503 không phải bản cài nhánh nghiệp vụ. |
 
 | T038, T045 | Care đã nhận việc tồn theo ca hiện hành và trả projection task vị trí theo DTO đã duyệt; còn nguồn/consumer bàn giao008 thật và callback vắng/đổi phân công. |
