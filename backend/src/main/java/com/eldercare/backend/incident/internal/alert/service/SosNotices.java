@@ -1,6 +1,5 @@
 package com.eldercare.backend.incident.internal.alert.service;
 
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.ContentPart;
 import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationLevel;
@@ -29,18 +28,7 @@ final class SosNotices {
 
     static List<NotificationRequest> created(
             AlertRecord alert, boolean noOnDutyDoctor, Optional<SosTripView> trip, Instant at) {
-        var groups = new LinkedHashSet<RecipientGroup>();
-        groups.add(new RecipientGroup.AssignedNurse(alert.residentId(), new Substitution.Default()));
-        if (alert.floorAreaId() != null) {
-            groups.add(new RecipientGroup.ShiftLead(alert.floorAreaId(), new Substitution.Default()));
-            groups.add(new RecipientGroup.FloorManager(alert.floorAreaId(), new Substitution.Default()));
-        }
-        if (noOnDutyDoctor) {
-            groups.add(new RecipientGroup.FacilityRole(Role.DOCTOR));
-            groups.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
-        } else {
-            groups.add(new RecipientGroup.OnDutyDoctor(new Substitution.Default()));
-        }
+        var groups = new LinkedHashSet<>(AlertNotices.emergencyGroups(alert, noOnDutyDoctor));
         trip.ifPresent(t -> {
             groups.add(new RecipientGroup.TripLeader(t.tripId(), new Substitution.Default()));
             t.companionStaffIds().forEach(id -> groups.add(new RecipientGroup.Staff(id, "SOS_TRIP_COMPANION")));

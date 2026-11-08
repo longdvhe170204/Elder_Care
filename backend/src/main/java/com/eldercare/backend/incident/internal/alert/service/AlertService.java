@@ -70,7 +70,13 @@ public class AlertService {
 
     @Transactional
     public Optional<AlertRecord> requestAlert(CreateAlertCommand cmd) {
-        return requestAlert(cmd, created -> List.of());
+        return requestAlert(
+                cmd,
+                created -> AlertNotices.created(
+                        created,
+                        cmd.sourceStaffId(),
+                        false,
+                        cmd.occurredAt() != null ? cmd.occurredAt() : businessTime.now()));
     }
 
     /**
@@ -187,7 +193,7 @@ public class AlertService {
                     updated.noOnDutyDoctor(),
                     updated.typeLock(),
                     now,
-                    List.of()));
+                    AlertNotices.created(updated, cmd.sourceStaffId(), true, now)));
         }
 
         return updated;
