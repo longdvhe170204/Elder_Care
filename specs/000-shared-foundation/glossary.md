@@ -3898,6 +3898,23 @@ Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi vi
 | chỗ đặt sự kiện | `admission.api.events.DepositStatusChanged`, `SettlementConditionChanged` (004 nghe); `billing.api.events.BalanceStatusChanged`, `BalanceDocumentIssued` |
 | bản giả | `support/fake/billing/FakeBalances`, `FakeBalanceStatistics`, `FakeBalanceConfig` |
 
+### 23.7. Phase 3–6 (A, 2026-11-08)
+
+| Tên logic | Tên mã |
+| --- | --- |
+| mã nộp tiền, mở sổ | `ledger.domain.PaymentCode` (`generate`, `normalize`), `ledger.service.LedgerOpening`; nhật ký `BALANCE_LEDGER_OPENED` |
+| `ngan_hang`, CFG-M11-10 | `catalog_item` loại `M11.BANK` (`ledger.domain.BankInfo`), `V017_02__banks_deposit_status.sql`; giá trị tham số `CollectionAccount(bin, accountNumber, accountHolder)`; `CollectionAccountCheck`; web `parameters/CollectionAccountEditor` |
+| đọc sổ, cổng | `ledger.service.BalanceQueries`, `ledger.domain.{BalanceDetails, BalanceTransactionView, PaymentInstructions}`, `web.BalanceController`, `web.response.{BankResponse, PortalBalanceResponse}` |
+| ghi nhận tiền nộp | `ledger.service.{PaymentService, LedgerPosting, DepositStatuses}`, `ledger.domain.{Payments, ConfirmedEntry, BalanceTransactionRow, LedgerState}`, `web.PaymentController`, `web.request.{CashPaymentRequest, BankTransferPaymentRequest}`, `web.response.DuplicateCodeProblemBody`; nhật ký `BALANCE_PAYMENT_RECORDED`; cột `resident_balance.deposit_status`, `deposit_status_contract_id` |
+| enum giao dịch (cùng nội dung của B) | `billing.balance.internal.transaction.domain.{Ledger, TransactionType, TransactionStatus, PaymentMethod}`; `document.domain.VietQrPayload` (B viết, A đặt vào gói đã chốt) |
+| thanh toán bảng | `ledger.service.StatementPayments`; nhật ký `BALANCE_STATEMENT_PAID` |
+| `TinhTrang`, `QuyetDinhBao`, lịch sử tình trạng | `status.domain.{BalanceStatusRule, StatusComputation, NoticeDecision, Decision, Cycle, Notice, Trigger, StatusSnapshot}`; `status_history` `M11.BALANCE`/`STATUS` |
+| thông báo số dư | `status.domain.{BalanceNotices, BalanceNotice}`; loại `M11_BALANCE_RUNNING_LOW`, `M11_BALANCE_IN_DEBT`, `M11_BALANCE_IN_DEBT_MANAGER`, `M11_BALANCE_PAYMENT_SUFFICIENT`, `M11_BALANCE_PAYMENT_RECORDED` |
+| tính tình trạng, dừng nhắc, mua hộ | `status.service.{BalanceStatusService, DailyBalanceStatus, BalanceStatusCommands, PurchaseBalance}`, `web.BalanceStatusController`, `web.request.StopRemindersRequest`; nhật ký `BALANCE_REMINDERS_STOPPED`; dấu `reminder_marker` loại `M11.BALANCE_STATUS_DAILY` |
+| `ViecHangNgayM11SoDu` | `billing.balance.scheduling.BalanceStatusJob` (`COMPUTE_BALANCE_STATUS`, `eldercare.jobs.balance-status.cron`, `.on-startup`) |
+| màn web | `features/balance/{PaymentRecording, BalanceStatuses, amounts}`, `features/family-portal/live/LiveCostsPage`; app `lib/family/balance/family_balance_screen.dart` |
+| test | `US1_BalanceIT`, `US2_PaymentIT`, `US4_StatementPaymentIT`, `US5_BalanceStatusIT`, `PaymentCodeTest`, `BalanceStatusRuleTest`, `NoticeDecisionTest`; lớp nền `BalanceTestBase` |
+
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
 "Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).
