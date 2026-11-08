@@ -101,8 +101,9 @@ public class CostStatementStore {
     }
 
     public void lockPeriod(long period) {
-        jdbc.queryForObject(
-                "SELECT id FROM cost_statement WHERE id=? AND kind='PERIOD' FOR UPDATE", Long.class, period);
+        if (jdbc.queryForList(
+                        "SELECT id FROM cost_statement WHERE id=? AND kind='PERIOD' FOR UPDATE", Long.class, period)
+                .isEmpty()) throw new NotFoundException();
     }
 
     public boolean finalizePeriodIfComplete(long period, Set<Long> expected, Instant at) {

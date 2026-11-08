@@ -3004,6 +3004,17 @@ Chưa nghiệm thu; phần thiếu nguồn và phương án tại specs/010-incu
 | Nhắc chờ và mất tài khoản đại diện | PurchaseReminderTask; PURCHASE_CONSENT_REMINDER; marker M11.PURCHASE_REMINDER, M11.PURCHASE_NO_PORTAL |
 | Màn mua hộ web và đồng ý trên app | PurchaseRequests trong frontend/src/features/charges; PurchaseConsentScreen trong mobile/lib/family/charges |
 
+### 16.18. Cung cấp và xuất kế toán — Phase 9, 09/11/2026
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| Tổng tạm tính, tổng chưa chốt | ProvisionalCostTotal, ProvisionalItem, CostSummaries; billing.internal.provision |
+| Cổng chi phí người thân / số liệu 016 | FamilyPortalCosts / CostStatistics; billing.internal.provision.service |
+| Bản cài port số dư 017 | CostForBalance; finalizedStatement trả FinalizedCostStatement(periodId, finalizedAt, statement) |
+| Bảng chốt che dữ liệu nội bộ | FinalizedCostViews; chỉ khoản FINALIZED, không lịch sử hoặc điều chỉnh chưa chốt |
+| Xuất kế toán | CostAccountingExport, CostExportStore, CostExportFile; billing.internal.export; COST_ACCOUNTING_EXPORT, COST_STATEMENT_EXPORTED |
+| Màn xuất / chi phí người thân | AccountingExport, FamilyCosts trong frontend/src/features/charges; FamilyCostsScreen trong mobile/lib/family/charges |
+
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-011.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

@@ -75,12 +75,17 @@ class CostWorkflowIT extends MySqlIntegrationTestBase {
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     AuditLogApi audit;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    com.eldercare.backend.resident.api.ResidentApi residentApi;
+
     TestUsers.TestUser office, manager;
     long period, statement, resident;
     YearMonth billedMonth;
 
     @BeforeEach
     void fixture() {
+        // Fixture chỉ tạo bảng/khoản 010, không tạo hồ sơ 001. Không quét hồ sơ sót của IT khác.
+        org.mockito.Mockito.doReturn(List.of()).when(residentApi).byStatus(org.mockito.ArgumentMatchers.anySet());
         var users = new TestUsers(jdbc, time);
         office = users.staff(Role.OFFICE_STAFF);
         manager = users.staff(Role.NURSING_HOME_MANAGER);

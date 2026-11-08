@@ -8,6 +8,35 @@
 
 ## Summary
 
+### Phase 9–10, 08/11/2026
+
+- `CostSummaries` dùng chung thành phần FR-038/038a: khoản chưa hủy/chưa chốt, nhập tay và mua hộ chỉ sau duyệt; thiếu giá có ghi chú; điều chỉnh kỳ gốc đã chốt tính theo ngày tạo tại Việt Nam. Tổng cho 017 không giới hạn kỳ. `CostForBalance` trả phí ngày cơ sở theo hợp đồng tháng và chi tiết bảng đã chốt với tổng lưu sẵn, kỳ gốc, không tên thuốc.
+- `FamilyPortalCosts` kiểm quyền chi phí theo người cao tuổi. Chỉ khi quyền nhóm MEDICATION là FULL mới đọc `PrescriptionApi.history`; nối tên bằng medicationId trong chỉ mục nguồn của 010, không suy từ mô tả. Chưa nối được thì chỉ hiện mã. Không trả lịch sử nội bộ hoặc điều chỉnh chưa chốt.
+- `CostAccountingExport`: ALL/NEVER_EXPORTED, CSV UTF-8 BOM/XLSX, tổng kiểm soát, danh sách người có bảng chưa chốt; khóa kỳ và ghi nhật ký xuất/từng bảng/first_export_id cùng transaction. Snapshot dòng của lần ALL cùng tập bảng giữ tên và nhãn khi xuất lại; nhật ký được đọc theo trang. Không tạo bảng/migration xuất riêng theo R-15. Ô CSV dạng công thức được xử lý như văn bản; số tiền âm giữ kiểu số.
+- Ba HTTP operation giữ hợp đồng đã duyệt. `AccountingExport` nằm trong màn Chi phí của Kế toán; `FamilyCosts` và `FamilyCostsScreen` nhận residentId để A nối vào cổng 012. Dùng component/theme có sẵn; không sửa khung A hoặc import chéo feature. Port nội bộ E thêm `finalizedStatement`, fake chung cập nhật tương ứng; xem contracts/module-interfaces.
+- T032: bỏ ba operation đã cài khỏi pending Contract 010, không nới assertion. T033: SPI `RetentionProvider.referencing` của 000 T112 đã có, nên E nối M01.RESIDENT → bảng/khoản và phân trang ứng viên ngay trong provider của mình. PurchaseRetention đã nối từ Phase 8. Dọn cost_source_index vẫn cần hợp đồng định danh loại/ID nguồn; không băm ID, tự đổi sự kiện hoặc sửa bảng private của module khác.
+- Gate còn lại của toàn feature: nhập tay/danh mục/nguồn thuốc-bán trú từ phase trước; fixture tích hợp B/D, chuỗi retention thật/chỉ mục nguồn và 017; điều hướng cổng do A giữ; quickstart/đo SC. Không coi test provider dùng hồ sơ giả là nghiệm thu toàn chuỗi. Không chạy verify theo yêu cầu, không commit/push.
+- Ghi chú/log chi tiết nằm trong `.local/phase9-10/` đã gitignore; không thêm file phụ trong spec. Kết quả kiểm cuối phiên được ghi ở docs/progress.md.
+
+**09/11/2026:** người dùng yêu cầu chạy lại toàn bộ, gồm `clean verify -Dit.forkCount=3`; yêu cầu này thay ngoại lệ bỏ verify của ngày 08/11. Chỉ hướng dẫn merge develop/push, chưa tự thực hiện các thao tác Git đó.
+
+Rà truy vết T035 (tên lớp thực tế theo README, không tạo lớp trùng tên logic trong tasks):
+
+| Quy tắc | Bằng chứng / phần còn mở |
+| --- | --- |
+| DBR-15, BR-M11-01 | CostSchemaIT, CostLockIT, BillableSourceIndexIT, BillingSourceLookupIT; nguồn thật thuốc/bán trú còn T011–T014/T021 |
+| DBR-16, BR-M11-02/03/09, BR-M02-06 | CostPricingServiceTest, CostPricingTransactionIT, ResidencyDayFeeTest, DayCareSessionFeeTest, SourceCostPricingTest; adapter bán trú còn thiếu nguồn |
+| DBR-17, BR-M11-06 | CostWorkflowIT, CostSchemaIT, CostRecalculationIT; không sửa bản ghi đã chốt |
+| DBR-23 | CostWorkflowIT, PurchaseAssistanceIT.DBR_23_auditFailureRollsBackCreation, CostSharedRowsIT |
+| BR-M11-04 | T025 còn API đọc danh mục kể cả ngừng hiệu lực; chưa có kiểm chứng nhập tay đầy đủ, không coi đã xong |
+| BR-M11-05, FR-028 | CostRecalculationIT, CostRecalculationServiceTest, CostAdjustmentServiceTest; nguyên bảng chốt, điều chỉnh thuộc bảng đích và giữ kỳ gốc |
+| BR-M11-07, BR-M10-10 | PeriodCostChangeTest, PurchaseExcessCheckTest, PurchaseConsentTest, PurchaseAssistanceIT; ngoại lệ thuốc/vật tư y tế cần nguồn T027 |
+| BR-M11-08 | FinalPeriodConditionTest, FinalPeriodIT, FinalPeriodStatusIT; fixture B và chuỗi thật ở T033 |
+| FR-037/038/038a/039/041/042 | ProvisionalCostTotalTest, CostSummariesTest, FamilyPortalCostsTest, CostProvisionIT; test web FamilyCosts và test mobile family_costs_screen |
+| FR-043/044 | CostGovernanceIT, CostWorkflowIT, CostAdjustmentServiceTest, FamilyPortalCostsTest, CostApiContractsTest, PurchaseAssistanceIT; producer nguồn còn theo task tương ứng |
+
+Đây là kết quả rà và xác định khoảng trống, không phải khẳng định mọi BR/FR đã có nghiệm thu đầy đủ. T035 giữ mở cùng các nhánh nhập tay/nguồn chưa cài.
+
 **Cập nhật triển khai 07/11/2026 — T011–T014, T020–T022:** đọc [note triển khai và đề xuất nguồn](plan.md#implementation-notes). Lượt này thêm mã lưu trú/chọn nguồn/tính lại/điều chỉnh trong phạm vi E; không verify/test và không nghiệm thu phase. Phân rã kỹ thuật giữ nguồn thiếu metadata ở trạng thái từ chối có lý do; bán trú và consumer điều chỉnh thuốc chưa đủ hợp đồng để hoàn tất. Dùng bảng chung hiện có cho biến động, không tạo migration `V010_02__bien_dong.sql` đã bị R-15 thay thế. Giữ nguyên các gate nguồn thật/retention/HTTP nêu trong note.
 
 Feature 010 là phần chi phí phát sinh của module M11 (mục 15.1 → 15.8; UC-61 → UC-64, UC-79). Nó cung cấp:

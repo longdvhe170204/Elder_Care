@@ -18,10 +18,11 @@ import { StatementDetail } from './StatementDetail'
 import { BillingSources } from './BillingSources'
 import { PostFinalizationChanges } from './PostFinalizationChanges'
 import { PurchaseRequests } from './PurchaseRequests'
+import { AccountingExport } from './AccountingExport'
 import { controlClass, money, periodLabel, STATEMENT_STATUS } from './chargeLabels'
 
 // 010 T019: chỉ đọc dữ liệu thật qua client sinh; không lập sẵn bảng, không tự chọn khoản.
-export function ChargesPage() {
+export function ChargesPage({ role }) {
   const { status, can } = usePermissions()
   const canView = can('COST_ADJUSTMENT', 'VIEW')
   const [periods, setPeriods] = useState(null)
@@ -99,7 +100,15 @@ export function ChargesPage() {
   }
 
   if (workspace === 'purchases' && can('PURCHASE_ON_BEHALF', 'VIEW'))
-    return <div className="flex flex-col gap-5"><PageHeader title="Đề nghị mua hộ" /><Button variant="outline" onClick={() => setWorkspace('statements')}>Về bảng chi phí</Button><PurchaseRequests /></div>
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Đề nghị mua hộ" />
+        <Button variant="outline" onClick={() => setWorkspace('statements')}>
+          Về bảng chi phí
+        </Button>
+        <PurchaseRequests />
+      </div>
+    )
 
   if (workspace !== 'statements' && can('COST_ADJUSTMENT', 'CREATE'))
     return (
@@ -123,7 +132,11 @@ export function ChargesPage() {
       )}
     >
       <PageHeader title="Chi phí" subtitle="Kiểm tra từng khoản, duyệt và chốt bảng chi phí theo kỳ." />
-      {can('PURCHASE_ON_BEHALF', 'VIEW') && <Button variant="outline" onClick={() => setWorkspace('purchases')}>Đề nghị mua hộ</Button>}
+      {can('PURCHASE_ON_BEHALF', 'VIEW') && (
+        <Button variant="outline" onClick={() => setWorkspace('purchases')}>
+          Đề nghị mua hộ
+        </Button>
+      )}
       {can('COST_ADJUSTMENT', 'CREATE') && (
         <div className="flex gap-3">
           <Button onClick={() => setWorkspace('sources')}>Lập khoản từ nguồn</Button>
@@ -166,6 +179,7 @@ export function ChargesPage() {
           </Field>
         </FieldGroup>
       </Card>
+      {role === 'ACCOUNTANT' && can('PERIOD_CLOSING', 'CREATE') && <AccountingExport periodId={periodId} />}
       <p role="status" className="empty:hidden type-body-sm">
         {announcement}
       </p>
