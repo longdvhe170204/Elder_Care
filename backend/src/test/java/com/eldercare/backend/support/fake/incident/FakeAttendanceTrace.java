@@ -1,7 +1,7 @@
 package com.eldercare.backend.support.fake.incident;
 
-import com.eldercare.backend.incident.api.dto.ActivityAttendanceTraceView;
-import com.eldercare.backend.incident.api.spi.AttendanceTracePort;
+import com.eldercare.backend.care.api.dto.ActivityAttendanceTraceView;
+import com.eldercare.backend.care.api.spi.AttendanceTracePort;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;

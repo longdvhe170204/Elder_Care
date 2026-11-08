@@ -68,7 +68,8 @@ class BR_M05_01_EscalationIT extends MySqlIntegrationTestBase {
         assertThat(row.level()).isEqualTo(1);
         assertThat(row.deadline()).isEqualTo(NOW.plus(INTERVAL));
         assertThat(published).singleElement().isInstanceOfSatisfying(AlertEscalated.class, event -> {
-            assertThat(event.alertId()).isEqualTo(id);
+            assertThat(event.sourceType()).isEqualTo("M05.ALERT");
+            assertThat(event.sourceId()).isEqualTo(id);
             assertThat(event.escalationLevel()).isEqualTo(1);
             assertThat(event.notificationRequests()).hasSize(1);
         });

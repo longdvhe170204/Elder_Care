@@ -167,6 +167,16 @@ public class AlertStore {
         return count != null && count > 0;
     }
 
+    /** Còn cảnh báo mở mức Trung bình trở lên (014 FR-018). */
+    public boolean hasOpenAtLeastMedium(long residentId) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM alert
+                WHERE resident_id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS')
+                  AND level IN ('MEDIUM', 'CRITICAL')
+                """, Integer.class, residentId);
+        return count != null && count > 0;
+    }
+
     /** Người cao tuổi từng có cảnh báo (mục việc sau qua đời, research S-17). */
     public boolean hasAnyAlert(long residentId) {
         return !jdbc.queryForList("SELECT 1 FROM alert WHERE resident_id = ? LIMIT 1", Integer.class, residentId)

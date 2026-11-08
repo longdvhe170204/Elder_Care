@@ -13,6 +13,7 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -76,6 +77,7 @@ public class IncidentRecordService {
     private final MonitoringLock monitoringLock;
     private final Optional<AlertStaffPort> staff;
     private final Optional<ResidentApi> residents;
+    private final Optional<ActivityRegistrationAutoCancelApi> autoCancel;
     private final Optional<ResidentLocationApi> locations;
     private final FallMonitoringStore fallMonitoring;
 
@@ -91,7 +93,8 @@ public class IncidentRecordService {
             @Autowired(required = false) AlertStaffPort staff,
             @Autowired(required = false) ResidentApi residents,
             @Autowired(required = false) ResidentLocationApi locations,
-            FallMonitoringStore fallMonitoring) {
+            FallMonitoringStore fallMonitoring,
+            @Autowired(required = false) ActivityRegistrationAutoCancelApi autoCancel) {
         this.incidents = incidents;
         this.catalog = catalog;
         this.permissions = permissions;
@@ -104,6 +107,7 @@ public class IncidentRecordService {
         this.residents = Optional.ofNullable(residents);
         this.locations = Optional.ofNullable(locations);
         this.fallMonitoring = fallMonitoring;
+        this.autoCancel = Optional.ofNullable(autoCancel);
     }
 
     @Transactional
@@ -226,6 +230,8 @@ public class IncidentRecordService {
                 now,
                 IncidentNotices.contactListRequested(id, residentId, floorAreaId, actor, now)));
         events.publishEvent(new InfectionSuspicionChanged(residentId, id, true, now));
+        // 014 FR-021a: hủy đăng ký hoạt động nhóm chưa diễn ra cùng transaction của lệnh (C-02)
+        autoCancel.ifPresent(api -> api.cancelForSuspectedInfection(residentId, now));
     }
 
     /**
