@@ -22,6 +22,10 @@ public final class AccountAuditActions {
     public static final AuditAction ACCOUNT_REACTIVATED = new AuditAction("ACCOUNT_REACTIVATED", true);
     public static final AuditAction PASSWORD_CHANGED = new AuditAction("PASSWORD_CHANGED", false);
 
+    // Tự đặt lại mật khẩu bằng mã qua tin nhắn (T105; FR-052a): không có lý do, người thực hiện ẩn danh
+    public static final AuditAction PASSWORD_RESET_CODE_SENT = new AuditAction("PASSWORD_RESET_CODE_SENT", false);
+    public static final AuditAction PASSWORD_SELF_RESET = new AuditAction("PASSWORD_SELF_RESET", false);
+
     // Tài khoản người cao tuổi (US8; data-model mục 2): QR_TAO, QR_DUNG, TB_GAN, TB_GO
     public static final AuditAction LOGIN_QR_CREATED = new AuditAction("LOGIN_QR_CREATED", false);
     public static final AuditAction LOGIN_QR_USED = new AuditAction("LOGIN_QR_USED", false);

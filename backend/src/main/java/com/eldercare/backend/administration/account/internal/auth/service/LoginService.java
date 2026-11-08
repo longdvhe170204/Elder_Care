@@ -292,8 +292,11 @@ public class LoginService {
                 .build());
     }
 
-    /** CFG-M15-09 dạng {@code {minLength, requireLetter, requireDigit}}; mỗi yêu cầu không đạt là một dòng. */
-    private List<UnmetCondition> policyViolations(String password) {
+    /**
+     * CFG-M15-09 dạng {@code {minLength, requireLetter, requireDigit}}; mỗi yêu cầu không đạt là một dòng. Tự đặt lại
+     * mật khẩu dùng chung ({@link PasswordResetService}).
+     */
+    List<UnmetCondition> policyViolations(String password) {
         JsonNode policy = parameters.read(ParameterCode.CFG_M15_09).raw();
         int minLength = policy.get("minLength").intValue();
         boolean letter = policy.get("requireLetter").booleanValue();

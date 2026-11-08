@@ -101,6 +101,29 @@ class PdfDocumentTest {
         assertThat(text(pdf, pages)).contains("Trang " + pages + "/" + pages).contains("Dòng 119");
     }
 
+    /** 017 FR-032: ảnh QR VietQR in trong thân phiếu báo phí; ảnh 200×100 px vào ô 120 pt thành 120×60 pt. */
+    @Test
+    void FR_017_032_bodyImage_keepsAspectRatio_largestSideIsSizePt() throws IOException {
+        java.awt.image.BufferedImage picture =
+                new java.awt.image.BufferedImage(200, 100, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(picture, "png", png);
+
+        byte[] pdf = PdfDocument.a4(null, null, "PHIẾU BÁO PHÍ")
+                .paragraph("Quét mã để chuyển khoản")
+                .image(png.toByteArray(), 120f)
+                .toBytes();
+
+        PdfReader reader = new PdfReader(pdf);
+        try {
+            String content = new String(reader.getPageContent(1), java.nio.charset.StandardCharsets.ISO_8859_1);
+            assertThat(content).containsPattern("120(\\.0+)? 0 0 60(\\.0+)? [-\\d.]+ [-\\d.]+ cm");
+            assertThat(text(pdf, 1)).contains("Quét mã để chuyển khoản");
+        } finally {
+            reader.close();
+        }
+    }
+
     @Test
     void stamp_addsOverlay_keepsOriginalContent() throws IOException {
         byte[] original = sample();
