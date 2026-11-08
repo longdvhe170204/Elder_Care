@@ -57,6 +57,8 @@ public class M07JobService {
     private final ResidentLocationApi locations;
     private final NursingShiftPort shifts;
 
+    private final AbsenceScheduleContexts absenceContexts;
+
     public M07JobService(
             M07JobRunStore jobRunStore,
             PrescriptionRepository prescriptionRepository,
@@ -69,7 +71,9 @@ public class M07JobService {
             BusinessTime businessTime,
             ParameterApi parameters,
             ResidentLocationApi locations,
-            NursingShiftPort shifts) {
+            NursingShiftPort shifts,
+            AbsenceScheduleContexts absenceContexts) {
+        this.absenceContexts = absenceContexts;
         this.jobRunStore = jobRunStore;
         this.prescriptionRepository = prescriptionRepository;
         this.medicationRepository = medicationRepository;
@@ -148,7 +152,7 @@ public class M07JobService {
                             from,
                             shift.endsAt(),
                             now,
-                            new ScheduleContext(prescription.getResidentId(), List.of(), floorId))
+                            absenceContexts.of(prescription.getResidentId(), floorId))
                     .stream()
                     .filter(slot -> !slot.windowTo().isBefore(now))
                     .count());
@@ -209,7 +213,7 @@ public class M07JobService {
             }
             Medication med = medicationRepository.findById(p.getMedicationId()).orElse(null);
             List<CalculatedDoseSlot> slots = scheduleCalculator.calculate(
-                    p, med, now.minus(5, ChronoUnit.MINUTES), horizon, now, ScheduleContext.empty(p.getResidentId()));
+                    p, med, now.minus(5, ChronoUnit.MINUTES), horizon, now, absenceContexts.of(p.getResidentId()));
 
             for (CalculatedDoseSlot slot : slots) {
                 if (!now.isBefore(slot.windowFrom())) {

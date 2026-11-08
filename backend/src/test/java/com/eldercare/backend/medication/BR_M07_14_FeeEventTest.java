@@ -88,7 +88,8 @@ class BR_M07_14_FeeEventTest {
                 events,
                 time,
                 M07TestParameters.defaults(),
-                mock(FamilyMedicationService.class));
+                mock(FamilyMedicationService.class),
+                mock(com.eldercare.backend.medication.internal.schedule.service.AbsenceScheduleContexts.class));
         String doseKey = MedicationScheduleCalculator.doseKey(10L, scheduled);
 
         service.administerDose(doseKey, request(now, null), 77L, 11L, now);
