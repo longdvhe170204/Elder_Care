@@ -208,6 +208,30 @@ export const NAV_GROUPS = [
         functions: ['ACCOUNT_PERMISSION_PARAMETER'],
         roles: [QL, BS, DD],
       },
+      // Dòng "Ngưỡng cảnh báo", "Chỉ số sức khỏe" (007 T024)
+      {
+        key: 'measurement-schedules',
+        label: 'Lịch đo và ngưỡng',
+        icon: 'CalendarDays',
+        functions: ['ALERT_THRESHOLD', 'VITAL_SIGN'],
+        roles: [QL, TT, BS, DD],
+      },
+      // Dòng "Danh sách tiếp xúc", "Khoanh vùng" (007 T054)
+      {
+        key: 'infection-control',
+        label: 'Kiểm soát lây nhiễm',
+        icon: 'ClipboardCheck',
+        functions: ['CONTACT_LIST', 'INFECTION_CONTAINMENT'],
+        roles: [QL, TT, BS, DD, HC],
+      },
+      // Dòng "Giấy phép cơ sở", "Khám, điều trị" (007 T057)
+      {
+        key: 'facility-license',
+        label: 'Giấy phép và khám',
+        icon: 'FileSignature',
+        functions: ['EXAM_TREATMENT', 'ACCOUNT_PERMISSION_PARAMETER'],
+        roles: [QL, BS, DD],
+      },
       // Dòng "Bàn giao ca"
       {
         key: 'handovers',
