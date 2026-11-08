@@ -8,18 +8,17 @@ import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.care.api.*;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
-import com.eldercare.backend.care.api.spi.DayCareCalendarPort.CalendarView;
-import com.eldercare.backend.care.api.spi.DayCarePickupPort.PickupView;
+import com.eldercare.backend.care.internal.attendance.service.AttendanceClockWork;
 import com.eldercare.backend.care.internal.scheduling.service.*;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.fake.admission.*;
-import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
 import java.time.*;
@@ -41,11 +40,14 @@ import tools.jackson.databind.json.JsonMapper;
 @WithMockUser
 @Transactional
 @RecordApplicationEvents
+/**
+ * BR-M04-02, FR-013, FR-014 (T027, T029, T030): nguồn thật của 004 ({@code DayCareCalendarApi}, lệnh báo vắng và ngày nghỉ)
+ * và 012 ({@code DayCarePickupPort} của {@code PickupPorts}); không dùng bản giả của care cho lịch và bản ghi đón.
+ */
 @Import({
     SwitchableUserConfig.class,
     FakeM01Config.class,
     FakeM02Config.class,
-    FakeM04Config.class,
     BR_M04_02_DayCareAttendanceIT.Locations.class
 })
 class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
@@ -83,10 +85,7 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
     FakeContractSchedules schedules;
 
     @Autowired
-    FakeDayCareCalendar calendar;
-
-    @Autowired
-    FakeDayCarePickups pickups;
+    TestClockControl clock;
 
     @Autowired
     FakeLocations locations;
@@ -108,6 +107,8 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         resident = TestUsers.nextId();
         floor = TestUsers.nextId();
         date = time.today();
+        // Giữa ngày: sau giờ đến 08:00 quá CFG-M02-07, trước giờ về 17:00; không phụ thuộc giờ chạy test
+        clock.setTo(date.atTime(12, 0).atZone(BusinessTime.ZONE).toInstant());
         at = time.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         user.set(new TestUsers(jdbc, time).staff(Role.OFFICE_STAFF).user());
         residents.resident(resident, "[Người cao tuổi kiểm thử]", Gender.MALE, ResidentStatus.IN_RESIDENCE);
@@ -119,10 +120,12 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
                         resident,
                         new com.eldercare.backend.admission.api.dto.AttendanceScheduleView(
                                 date, LocalTime.of(8, 0), LocalTime.of(17, 0)));
-        calendar.reset();
-        calendar.day(resident, date, new CalendarView(false, null, null));
-        pickups.reset();
         locations.floor(floor, null).daycareRestLocation(new LocationRef("FLOOR", floor));
+    }
+
+    @AfterEach
+    void resetClock() {
+        clock.reset();
     }
 
     private org.springframework.test.web.servlet.ResultActions arrive() throws Exception {
@@ -177,12 +180,130 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
     void BR_M04_02_onlyValidPickupCanCheckOutAndItsRecordIsMarkedUsed() throws Exception {
         long id = arriveId(), pickup = TestUsers.nextId();
         leave(id, pickup, at.plusSeconds(60)).andExpect(status().isConflict());
-        pickups.valid(pickup, resident, at.plusSeconds(60), new PickupView(pickup, "SELF_RETURN"));
+        selfReturnPickup(pickup, at);
         leave(id, pickup, at.plusSeconds(60))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.attendance.checkoutType").value("SELF_RETURN"));
-        assertThat(pickups.used()).containsKey(pickup);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM record_event WHERE kind='M10.PICKUP_RECORD_EVENT' AND entity_type='M10.PICKUP_RECORD' AND entity_id=?",
+                        Integer.class,
+                        pickup))
+                .isEqualTo(1);
         assertThat(api().onDate(resident, date).orElseThrow().status()).isEqualTo(AttendanceStatus.LEFT);
+    }
+
+    /** Bản ghi đón Tự về Chưa dùng của 012 (bảng {@code pickup_record}), còn hiệu lực một giờ. */
+    private void selfReturnPickup(long id, Instant recordedAt) {
+        jdbc.update(
+                "INSERT INTO pickup_record(id,resident_id,type,basis,at,handover_staff_id,recorded_by,expires_at,created_at) VALUES(?,?,'SELF_RETURN','SELF_RETURN',?,?,?,?,?)",
+                id,
+                resident,
+                LocalDateTime.ofInstant(recordedAt, ZoneOffset.UTC),
+                user.accountId(),
+                user.accountId(),
+                LocalDateTime.ofInstant(recordedAt.plusSeconds(3600), ZoneOffset.UTC),
+                LocalDateTime.ofInstant(recordedAt, ZoneOffset.UTC));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions notice(Instant familyNotifiedAt) throws Exception {
+        return mvc.perform(post("/api/v1/day-care-absence-notices")
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"residentId\":" + resident + ",\"date\":\"" + date + "\",\"familyNotifiedAt\":\""
+                        + familyNotifiedAt + "\"}"));
+    }
+
+    private Instant timely() {
+        return date.atTime(8, 0).atZone(BusinessTime.ZONE).toInstant().minus(Duration.ofDays(2));
+    }
+
+    private AttendanceStatus attendance() {
+        return api().onDate(resident, date).orElseThrow().status();
+    }
+
+    private Long stored(String field) {
+        String value = jdbc.queryForObject(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(content, ?)) FROM simple_record WHERE unique_key=?",
+                String.class,
+                "$." + field,
+                "M04.DAY_CARE_ATTENDANCE:" + resident + ":" + date);
+        return value == null || value.equals("null") ? null : Long.valueOf(value);
+    }
+
+    private List<Long> notices() {
+        return jdbc.queryForList(
+                "SELECT id FROM absence WHERE kind='DAY_CARE_NOTICE' AND resident_id=? ORDER BY id",
+                Long.class,
+                resident);
+    }
+
+    @Test
+    void FR_013_dayStartReadsCalendarOf004_withoutNoticeNotArrived() {
+        daily("DAY_CARE_DAY_START").run(date, time.now());
+        assertThat(attendance()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
+    }
+
+    @Test
+    void FR_013_timelyNoticeRecordedBy004_makesReportedAbsentAndBlocksArrival() throws Exception {
+        notice(timely())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.withinNoticePeriod").value(true));
+        assertThat(attendance()).isEqualTo(AttendanceStatus.REPORTED_ABSENT);
+        assertThat(stored("timelyAbsenceId")).isEqualTo(notices().getFirst());
+        arrive().andExpect(status().isConflict());
+    }
+
+    @Test
+    void FR_014_lateNoticeKeepsStateAndIsStored_laterTimelyNoticeStillCounts() throws Exception {
+        daily("DAY_CARE_DAY_START").run(date, time.now());
+        notice(time.now())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.withinNoticePeriod").value(false));
+        assertThat(attendance()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
+        assertThat(stored("lateAbsenceId")).isEqualTo(notices().getFirst());
+        assertThat(stored("timelyAbsenceId")).isNull();
+        notice(timely()).andExpect(status().isCreated());
+        assertThat(attendance()).isEqualTo(AttendanceStatus.REPORTED_ABSENT);
+        assertThat(stored("timelyAbsenceId")).isEqualTo(notices().get(1));
+        assertThat(stored("lateAbsenceId")).isEqualTo(notices().getFirst());
+    }
+
+    @Test
+    void FR_013_closureDayDeclaredBy004_cancelsTodaysAttendance() throws Exception {
+        daily("DAY_CARE_DAY_START").run(date, time.now());
+        mvc.perform(post("/api/v1/day-care-closure-days")
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"date\":\"" + date + "\",\"reason\":\"Nghỉ lễ\"}"))
+                .andExpect(status().isCreated());
+        assertThat(attendance()).isEqualTo(AttendanceStatus.HOLIDAY_CANCELLED);
+        context.getBean(AttendanceClockWork.class).run(time.now());
+        assertThat(attendance()).isEqualTo(AttendanceStatus.HOLIDAY_CANCELLED);
+    }
+
+    @Test
+    void CFG_M02_07_noShowPastLimitBecomesUnreportedAbsent_withCalendarOf004() {
+        daily("DAY_CARE_DAY_START").run(date, time.now());
+        context.getBean(AttendanceClockWork.class).run(time.now());
+        assertThat(attendance()).isEqualTo(AttendanceStatus.UNREPORTED_ABSENT);
+        assertThat(events.stream(UnreportedAbsence.class)
+                        .filter(e -> e.residentId() == resident)
+                        .count())
+                .isEqualTo(1);
+    }
+
+    @Test
+    void FR_019_stillPresentAtDayEndNotifiesOnce() throws Exception {
+        arriveId();
+        Instant nextMorning =
+                date.plusDays(1).atTime(0, 5).atZone(BusinessTime.ZONE).toInstant();
+        assertThat(daily("DAY_CARE_DAY_END").run(date, nextMorning)).isEqualTo(1);
+        assertThat(daily("DAY_CARE_DAY_END").run(date, nextMorning)).isZero();
+        assertThat(events.stream(DayCarePresentAtDayEnd.class)
+                        .filter(e -> e.residentId() == resident)
+                        .count())
+                .isEqualTo(1);
+        assertThat(attendance()).isEqualTo(AttendanceStatus.PRESENT);
     }
 
     private long task(long owner, Instant planned, String state) {

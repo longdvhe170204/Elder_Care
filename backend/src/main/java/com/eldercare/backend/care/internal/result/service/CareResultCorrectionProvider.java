@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
 import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.care.api.dto.*;
+import com.eldercare.backend.care.api.events.BillableCareResultCorrected;
 import com.eldercare.backend.care.api.events.SleepResultRecorded;
 import com.eldercare.backend.care.internal.result.domain.*;
 import com.eldercare.backend.care.internal.result.persistence.CareResultStore;
@@ -121,7 +122,9 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
         if (!permissions
                 .hasPermission(user, RECORD, CareTaskService.target(task))
                 .allowed()) return false;
-        if (task.data().billable()) throw unavailable("Chờ 010 thống nhất quantity cho đính chính kết quả tính phí");
+        if (task.data().billable()
+                && !CareBillableQuantity.supported(task.data().resultType()))
+            throw unavailable("Chưa xác định được đơn vị tính phí của loại kết quả này");
         return true;
     }
 
@@ -179,11 +182,24 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
                     "Kết quả chăm sóc chỉ hỗ trợ đính chính cách A hoặc B");
         requireWriteIsolation();
         var task = tasks.get(correction.originalRecordId(), false);
-        if (task.data().billable()) throw unavailable("Chờ 010 thống nhất quantity cho đính chính kết quả tính phí");
+        if (task.data().billable()
+                && !CareBillableQuantity.supported(task.data().resultType()))
+            throw unavailable("Chưa xác định được đơn vị tính phí của loại kết quả này");
         if (task.data().resultType().equals("MEASURED_VALUE"))
             throw new BusinessException(
                     HttpStatus.FORBIDDEN, "CORRECTION_NOT_ALLOWED", "Kết quả đo chỉ số đính chính tại 007");
+        var billingContext = new CareEventContext(
+                recordType(),
+                task.id(),
+                "BILLABLE_CORRECTION:" + correction.id(),
+                correction.recordedAt(),
+                Optional.of(task.floorAreaId()),
+                List.of());
         if (correction.type() == CorrectionType.VOID) {
+            // Quyết định 05/11: VOID mang newQuantity = null, không dùng 0
+            if (task.data().billable())
+                events.publishEvent(new BillableCareResultCorrected(
+                        task.id(), correction.type().name(), null, billingContext));
             if (task.data().resultType().equals("SLEEP") && task.residentId() != null)
                 events.publishEvent(new com.eldercare.backend.care.api.events.SleepResultVoided(
                         task.id(),
@@ -202,6 +218,14 @@ public class CareResultCorrectionProvider implements CorrectableRecordProvider {
         }
         var input = input(correction.correctedContent());
         validation.validate(task.data(), input);
+        // AMEND_CONTENT: tổng mới, phát cả khi lượng không đổi
+        if (task.data().billable())
+            events.publishEvent(new BillableCareResultCorrected(
+                    task.id(),
+                    correction.type().name(),
+                    CareBillableQuantity.of(task.data().resultType(), input.numericValue())
+                            .orElseThrow(),
+                    billingContext));
         if (task.data().resultType().equals("SLEEP") && task.residentId() != null) {
             var context = new CareEventContext(
                     recordType(),

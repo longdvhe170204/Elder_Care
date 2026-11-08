@@ -47,8 +47,12 @@ public class AttendanceSources {
                 .isPresent();
     }
 
+    public boolean staying(long resident, LocalDate date) {
+        return residents.status(resident) == ResidentStatus.IN_RESIDENCE && dayCare(resident, date);
+    }
+
     public void checkResident(long resident, LocalDate date) {
-        if (residents.status(resident) != ResidentStatus.IN_RESIDENCE || !dayCare(resident, date))
+        if (!staying(resident, date))
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "DAY_CARE_NOT_STAYING",
