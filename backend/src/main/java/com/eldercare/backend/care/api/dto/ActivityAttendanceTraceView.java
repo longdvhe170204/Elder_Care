@@ -1,4 +1,4 @@
-package com.eldercare.backend.incident.api.dto;
+package com.eldercare.backend.care.api.dto;
 
 import java.time.Instant;
 import java.util.List;

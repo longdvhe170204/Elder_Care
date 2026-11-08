@@ -191,7 +191,7 @@ paths:
       summary: Danh sách người cao tuổi quá CFG-M06-01 chưa có ngưỡng cá nhân (Bác sĩ)
       x-fr: [FR-025]
       x-br: [BR-M06-02]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: Mã người cao tuổi (chủ dự án duyệt 2026-11-07), content: { application/json: { schema: { type: array, items: { type: integer, format: int64 } } } } } }
 
   # ---------------- Ngưỡng ----------------
   /thresholds:
