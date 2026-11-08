@@ -558,7 +558,7 @@ paths:
       x-fr: [FR-062]
       x-br: [BR-M05-24]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/FamilyContactToNotify' } } } } } }
   /isolations:
     get:
       tags: [infection]
@@ -1161,6 +1161,14 @@ components:
         scope: { type: object, properties: { floorIds: { type: array, items: { type: integer, format: int64 } }, areaId: { type: integer, format: int64 } }, description: 'Một hoặc nhiều tầng, hoặc đúng một khu vực (Q-69)' }
         incidentIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
         reason: { $ref: '#/components/schemas/Reason' }
+    FamilyContactToNotify:
+      type: object
+      description: Người thân không có kênh nhận thông báo hoặc người đi cùng, để Hành chính liên hệ trực tiếp (FR-062, BR-M05-24)
+      properties:
+        fullName: { type: string }
+        relationship: { type: string, nullable: true }
+        phoneNumber: { type: string, nullable: true }
+        message: { type: string }
     Isolation:
       allOf:
         - $ref: '#/components/schemas/NewIsolation'
