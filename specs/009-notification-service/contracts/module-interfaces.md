@@ -79,6 +79,7 @@ Bản cài `NhatKyThongBaoPort` của 007 (`incident.api`) ủy cho `theoNguon`.
 | `DinhChinhDuocProvider` (000) | `M13.KET_QUA_GOI`, `M13.KET_QUA_LIEN_HE` | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 9, 10 | |
 | `GanPhamViProvider` (002) | `M13.THONG_BAO`: người nhận (của tôi), tầng của yêu cầu (tra cứu Trưởng tầng) | 002 FR-034 |
+| `GuiMaDatLaiMatKhauPort` (002) *(bổ sung 2026-11-08)* | `PasswordResetSms`: gửi thẳng qua `SmsProvider`, không qua chọn kênh và nhật ký gửi (mã không được lưu); `UnconfiguredSmsProvider` thì chưa có kênh | 002 FR-052a (T105) |
 
 ### 1.4. Sự kiện 009 phát
 

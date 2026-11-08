@@ -535,6 +535,19 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | loại bảng chung của 002 | `M15.ROLE`, `M15.FIELD_VISIBILITY`, `M15.PROFESSIONAL_ACTIVITY` (danh mục); `M15.PENDING_REVIEW_RECORD`, `M15.PERMISSION_DATA_ERROR` (hồ sơ chung); `M15.LICENSE_EXPIRY_WARNING` (mốc đã nhắc); thuộc tính `TRANG_THAI` của `TAI_KHOAN` (lịch sử chung) |
 
 
+### 7.12. Tự đặt lại mật khẩu (T105, 2026-11-08)
+
+| Tên logic | Mã |
+| --- | --- |
+| `GuiMaDatLaiMatKhauPort` (`coKenh`, `gui`) | `administration.account.api.spi.PasswordResetSmsPort` (`available`, `send`); 009 cài `notification.internal.delivery.service.PasswordResetSms` |
+| sự kiện `DatLaiMatKhauTuLam` | `administration.account.api.events.PasswordSelfReset`; loại thông báo `PASSWORD_SELF_RESET`, `PASSWORD_SELF_RESET_MANAGER`; căn cứ người nhận `ACCOUNT_OWNER` |
+| dịch vụ, quy tắc, mã còn dùng được | `internal.auth.service.PasswordResetService`, `internal.auth.domain.PasswordResetRules`, `internal.auth.domain.PasswordResetCode`, `internal.auth.persistence.PasswordResetCodes` |
+| `ma_dat_lai_mat_khau` (bảng kỹ thuật) | `password_reset_code` (`code_hash`, `requested_at`, `expires_at`, `failed_attempts`, `used_at`, `revoked_at`; `V002_18`) |
+| hành động nhật ký gửi mã, tự đặt lại | `PASSWORD_RESET_CODE_SENT`, `PASSWORD_SELF_RESET` |
+| `KENH_TIN_NHAN_CHUA_CAU_HINH` (404 của `/auth/password-reset/request`, `/confirm`) | `PASSWORD_RESET_UNAVAILABLE` |
+| thân, phản hồi HTTP | `web.request.PasswordResetRequestBody`, `web.request.PasswordResetConfirmBody`, `web.response.PasswordResetAvailability` |
+| màn quên mật khẩu | web `features/auth/ForgotPassword.jsx` (trên `LoginPage`); app `lib/common/auth/forgot_password_screen.dart` (trên `LoginScreen`) |
+
 ## 8. Feature 001 (`001-elder-profile-assessment`, B)
 
 *Bổ sung 2026-10-21, khi dịch `contracts/api-001.yaml`. Tên bảng, cột, lớp nội bộ còn lại bổ sung vào mục này cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
