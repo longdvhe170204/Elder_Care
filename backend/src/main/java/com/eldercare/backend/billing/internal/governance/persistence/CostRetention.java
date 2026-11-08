@@ -60,15 +60,24 @@ public class CostRetention {
 
         @Override
         public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+            return expiredCandidates(cutoff, null, batch);
+        }
+
+        @Override
+        public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
             if (batch <= 0) return Stream.empty();
             if (kind == Kind.PERIOD) {
                 return jdbc
                         .query(
-                                "SELECT id,created_at FROM cost_statement WHERE kind='PERIOD' AND created_at<? ORDER BY created_at,id LIMIT ?",
+                                "SELECT id,created_at FROM cost_statement WHERE kind='PERIOD' AND created_at<?"
+                                        + " AND (created_at>? OR (created_at=? AND id>?)) ORDER BY created_at,id LIMIT ?",
                                 (rs, row) -> new Candidate(
                                         rs.getLong("id"),
                                         rs.getTimestamp("created_at").toInstant()),
                                 Timestamp.from(cutoff),
+                                Timestamp.from(after == null ? Instant.parse("1000-01-01T00:00:00Z") : after.at()),
+                                Timestamp.from(after == null ? Instant.parse("1000-01-01T00:00:00Z") : after.at()),
+                                after == null ? 0 : after.id(),
                                 batch)
                         .stream();
             }
@@ -81,16 +90,28 @@ public class CostRetention {
             }
             milestones.sort(Comparator.comparing(Candidate::at).thenComparingLong(Candidate::id));
             String query = kind == Kind.STATEMENT
-                    ? "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=? ORDER BY id LIMIT ?"
-                    : "SELECT id FROM cost_item WHERE resident_id=? ORDER BY id LIMIT ?";
+                    ? "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=? AND id>? ORDER BY id LIMIT ?"
+                    : "SELECT id FROM cost_item WHERE resident_id=? AND id>? ORDER BY id LIMIT ?";
             List<Candidate> result = new ArrayList<>();
             for (Candidate milestone : milestones) {
-                if (result.size() == batch) break;
-                for (long id : jdbc.queryForList(query, Long.class, milestone.id(), batch - result.size())) {
+                if (after != null && milestone.at().isBefore(after.at())) continue;
+                long afterId = after != null && milestone.at().equals(after.at()) ? after.id() : 0;
+                for (long id : jdbc.queryForList(query, Long.class, milestone.id(), afterId, batch)) {
                     result.add(new Candidate(id, milestone.at()));
                 }
             }
-            return result.stream();
+            return RetentionProvider.page(result.stream(), after, batch);
+        }
+
+        @Override
+        public Set<DataRef> referencing(DataRef target) {
+            if (kind == Kind.PERIOD || !target.dataType().equals("M01.RESIDENT")) return Set.of();
+            String sql = kind == Kind.STATEMENT
+                    ? "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=?"
+                    : "SELECT id FROM cost_item WHERE resident_id=?";
+            Set<DataRef> references = new LinkedHashSet<>();
+            jdbc.queryForList(sql, Long.class, target.id()).forEach(id -> references.add(new DataRef(dataType(), id)));
+            return references;
         }
 
         @Override

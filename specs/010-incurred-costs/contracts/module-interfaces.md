@@ -84,6 +84,8 @@ record SuKienTinhPhiNguonDaDoi(String loaiNguon, String nguonId, String donVi, O
 
 ## 2. Port nội bộ M11 (017, 019)
 
+**Bản cài 08/11/2026 (T037):** `CostForBalancePort.finalizedStatement(long statementId)` trả `Optional<FinalizedCostStatement>` (periodId, finalizedAt, statement: CostStatementView). Chỉ bảng/khoản Đã chốt, tổng đã lưu, điều chỉnh có kỳ gốc, thuốc chỉ mã; bảng chưa chốt trả rỗng. Thêm vào port E theo P-12, giữ chữ ký cũ; fake chung `FakeCostForBalance` có fixture/reset tương ứng. `CostForBalance`, `FamilyPortalCosts`, `CostStatistics` cài các chữ ký đã công bố. Consumer 016/017/012 cần review và kiểm tích hợp; không đổi API nguồn B/C/D/A.
+
 Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(Bổ sung 2026-10-22, FR-042, Q-378)* `ChiPhiChoSoDuPort.bangDaChot(bangId)` trả chi tiết khoản Đã chốt và tổng theo loại cho phiếu báo phí, bảng quyết toán của 017 (chữ ký ở research P-12). CostForBalancePort chỉ billing.internal.balance/billing.internal.procurement gọi; PurchaseBalancePort chỉ billing.internal.purchase gọi (ArchUnit theo hai chiều P-12). Khi 017 chưa có, `SoDuMuaHoPort` không có bean và đề nghị không mang dấu "số dư không đủ".
 
 ---

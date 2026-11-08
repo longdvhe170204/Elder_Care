@@ -66,6 +66,17 @@ class FinalPeriodStatusIT extends StatusTestBase {
     }
 
     @Test
+    void FR_047_deathWithoutAdmissionDetailsUsesThePublishedTransitionTime() {
+        long resident = residentIn(ResidentStatus.IN_RESIDENCE);
+        user.set(users.staff(Role.DOCTOR).user());
+        var outcome = statusService.recordDeath(target(resident), reason(), noDetails());
+        assertThat(outcome.status()).isEqualTo(ResidentStatus.DECEASED);
+        var state = states.get(BillingResidentState.KIND, resident).orElseThrow();
+        assertThat(state.deathAt()).isEqualTo(time.now());
+        assertThat(state.throughDate()).isEqualTo(time.today());
+    }
+
+    @Test
     void FR_047_failureAfterBillingDeathEffectsRollsBackResidentStatementAndState() {
         long resident = residentIn(ResidentStatus.IN_RESIDENCE);
         user.set(users.staff(Role.DOCTOR).user());

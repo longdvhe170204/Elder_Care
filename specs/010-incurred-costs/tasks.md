@@ -202,6 +202,8 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ## Phase 9: User Story 7 – Người thân xem bảng chi phí, kế toán nhận dữ liệu kỳ đã chốt (Priority: P3)
 
+**Triển khai 08/11/2026:** bản cài API người thân/016, port 017, xuất CSV/XLSX, ba endpoint, màn web và mobile độc lập đã có. Lần xuất dùng nhật ký chung, không tạo bảng riêng. T031 còn A nối điều hướng cổng; T036 còn ca phí chấm dứt sớm phụ thuộc nhập tay T025. Phạm vi và quyết định ở plan mục “Phase 9–10, 08/11/2026”; kết quả kiểm ở docs/progress.md.
+
 **Goal**: Cổng người thân (bảng, tạm tính, tổng chưa chốt) theo quyền xem chi phí; xuất kế toán XLSX/CSV toàn bộ hoặc chưa từng xuất; dữ liệu cho 016, 017 (FR-037 → FR-042).
 
 **Independent Test**: Chốt bảng tháng 10 của 3 người, 1 người chưa chốt; xuất kỳ, xuất lại; đối chiếu file; mở cổng bằng người thân có và không có quyền xem chi phí.
@@ -225,6 +227,8 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 - [ ] T037 [US7] Thêm `bangDaChot` vào `ChiPhiChoSoDuPort` (`BE/billing/cungcap/port/`) và cài trong `BE/billing/cungcap/internal/` (research P-12); cập nhật bản giả cho test của 017 (luật "Đổi api")
 
 ## Phase 10: Polish & Cross-Cutting
+
+**Triển khai 08/11/2026:** cập nhật pending Contract 010, nối `referencing(M01.RESIDENT)` và phân trang ứng viên. SPI 000 T112 đã có nên không còn chờ A mở rộng SPI cho tham chiếu hồ sơ → bảng/khoản; phần dọn chỉ mục nguồn và nghiệm thu chuỗi thật vẫn giữ mở ở T033. Không chạy verify theo yêu cầu. Không đánh hoàn tất toàn phase khi các gate liên module chưa xanh.
 
 - [ ] T032 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/010-incurred-costs/contracts/api-010.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 010. *(07/11: kéo phần đăng ký hợp đồng lên Phase 5 vì controller mới cần được kiểm ngay; file thực `common/ApiContractIT`, chỉ thêm Contract 010 và 17 operation chưa cài vào pending, giữ checkOperations=true và mọi assertion. Chưa đóng toàn task.)*
 - [ ] T033 Thay bản giả `KyCuoiPort`, `DeNghiMuaHoPort`, `MucViecSauQuaDoiPort` ở test của 004, 006 bằng bản cài của 010 và chạy lại; khi 011, 012, 014, 017 có bản thật chạy lại US1, US6. Bắt buộc nghiệm thu lưu giữ liên module theo data-model mục 10: hồ sơ thật 001 → bảng/khoản 010 và bảng chung (lịch sử/nhật ký/đính chính/marker), tham chiếu 017 khi có bản thật; chặn xóa hồ sơ khi khoản/nhật ký còn hạn, xóa đúng thứ tự và rollback nguyên tử. Chỉ mục cost_source_index phải dọn khi nguồn bị loại bỏ, có hợp đồng ánh xạ loại/ID với A và chủ nguồn; không băm ID hoặc tự đổi event. Chờ A review/cài đề xuất contracts/proposal-retention-cross-module-2026-11-06.md (mở rộng 000 T070/T071; task gốc của A đã xong); E chỉ cài phần E sau hợp đồng được duyệt. T033 giữ [ ] đến khi kiểm thật xanh; đây là gate trước hoàn tất feature, merge develop hoặc vận hành, không được thay bằng test provider dùng hồ sơ giả.

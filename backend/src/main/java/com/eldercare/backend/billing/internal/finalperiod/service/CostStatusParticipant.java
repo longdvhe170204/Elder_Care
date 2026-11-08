@@ -40,7 +40,9 @@ public class CostStatusParticipant implements StatusTransitionParticipant {
             case RECORD_DEATH ->
                 costs.death(
                         result.residentId(),
-                        Instant.parse(result.details().get("deathAt").asString()));
+                        result.details() != null && result.details().hasNonNull("deathAt")
+                                ? Instant.parse(result.details().get("deathAt").asString())
+                                : result.at());
             case CANCEL_ADMISSION ->
                 costs.cancelAfter(
                         result.residentId(),
