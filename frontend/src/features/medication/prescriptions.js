@@ -4,6 +4,7 @@ import {
   getResidentsByResidentIdPrescriptions,
   postPrescriptionsByIdChangeDosage,
   postPrescriptionsByIdDiscontinue,
+  postPrescriptionsByIdExtend,
   postPrescriptionsByIdResume,
   postPrescriptionsByIdSuspend,
   postResidentsByResidentIdPrescriptions,
@@ -47,11 +48,13 @@ const COMMANDS = {
   SUSPEND: postPrescriptionsByIdSuspend,
   RESUME: postPrescriptionsByIdResume,
   DISCONTINUE: postPrescriptionsByIdDiscontinue,
+  EXTEND: postPrescriptionsByIdExtend,
 }
 
-// command: SUSPEND | RESUME | DISCONTINUE; thân chỉ có lý do (Bác sĩ không cần căn cứ bên ngoài)
-export const runPrescriptionCommand = (command, id, reason, key) =>
-  COMMANDS[command]({ path: { id }, headers: { 'Idempotency-Key': key }, body: { reason: reason.trim() } })
+// command: SUSPEND | RESUME | DISCONTINUE | EXTEND; thân có lý do (Bác sĩ không cần căn cứ bên ngoài); extra: thân thêm,
+// ví dụ { newEndedAt } của EXTEND
+export const runPrescriptionCommand = (command, id, reason, key, extra = {}) =>
+  COMMANDS[command]({ path: { id }, headers: { 'Idempotency-Key': key }, body: { reason: reason.trim(), ...extra } })
 
 // Cùng nội dung gửi lại (sau lỗi mạng) dùng lại khóa; nội dung đổi thì khóa mới, tránh trùng khóa khác nội dung
 export function idempotencyKeys() {

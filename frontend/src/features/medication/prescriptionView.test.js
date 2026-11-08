@@ -52,9 +52,9 @@ describe('prescriptionView', () => {
 
   it('FR_005_tanSuatMoiNGioVaNgayTrongTuan', () => {
     const everyN = { type: 'EVERY_N_HOURS', everyNHours: 6, firstSlot: '2026-11-08T01:00:00Z' }
-    const days = { type: 'DAYS_OF_WEEK', daysOfWeek: [1, 3], timedSlots: ['09:00'] }
+    const days = { type: 'DAYS_OF_WEEK', daysOfWeek: [1, 3, 7], timedSlots: ['09:00'] }
     expect(prescriptionView({ prescription: { ...prescription, frequency: everyN }, medication }).frequencyText).toBe('Mỗi 6 giờ, từ 08:00')
-    expect(prescriptionView({ prescription: { ...prescription, frequency: days }, medication }).frequencyText).toBe('Theo ngày trong tuần (mã ngày 1, 3): 09:00')
+    expect(prescriptionView({ prescription: { ...prescription, frequency: days }, medication }).frequencyText).toBe('Thứ 2, Thứ 4, Chủ nhật: 09:00')
     expect(prescriptionView({ prescription: { ...prescription, prescriptionType: 'PRN', frequency: undefined, minIntervalMinutes: 240, maxDosesPer24h: 3 }, medication }).frequencyText).toBe('Khi cần: cách ít nhất 4 giờ, tối đa 3 lần trong 24 giờ')
   })
 })
@@ -106,6 +106,8 @@ describe('newPrescriptionBody', () => {
     const prn = newPrescriptionBody({ ...base, prescriptionType: 'PRN', minIntervalMinutes: '240', maxDosesPer24h: '3' }, NOW)
     expect(prn).toMatchObject({ prescriptionType: 'PRN', minIntervalMinutes: 240, maxDosesPer24h: 3 })
     expect(prn.frequency).toBeUndefined()
+    const days = newPrescriptionBody({ ...base, frequencyType: 'DAYS_OF_WEEK', daysOfWeek: [3, 1], timedSlots: '09:00' }, NOW)
+    expect(days.frequency).toEqual({ type: 'DAYS_OF_WEEK', daysOfWeek: [1, 3], timedSlots: ['09:00'] })
     const every = newPrescriptionBody({ ...base, frequencyType: 'EVERY_N_HOURS', everyNHours: '8', firstSlot: '06:00' }, NOW)
     expect(every.frequency).toEqual({ type: 'EVERY_N_HOURS', everyNHours: 8, firstSlot: '2026-11-08T06:00:00+07:00' })
   })

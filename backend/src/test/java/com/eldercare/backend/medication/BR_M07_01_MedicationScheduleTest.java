@@ -105,6 +105,25 @@ class BR_M07_01_MedicationScheduleTest {
     }
 
     @Test
+    @DisplayName("DAYS_OF_WEEK: mã ngày theo ISO, 1 là thứ hai (quyết định chủ dự án 2026-11-08)")
+    void testDaysOfWeekIsoMondayIsOne() {
+        LocalDate monday = LocalDate.of(2026, 11, 2);
+        Instant startedAt = monday.atStartOfDay(ZONE_VN).toInstant();
+        Instant to = monday.plusDays(6).atTime(23, 59, 59).atZone(ZONE_VN).toInstant();
+        Instant now = monday.atTime(7, 0).atZone(ZONE_VN).toInstant();
+
+        Prescription p =
+                createPrescription(103L, FrequencyType.DAYS_OF_WEEK, "[\"09:00\"]", null, null, "1,3", startedAt, null);
+
+        List<CalculatedDoseSlot> schedule =
+                calculator.calculate(p, createMedication(30, 30), startedAt, to, now, ScheduleContext.empty(1L));
+
+        assertThat(schedule)
+                .extracting(CalculatedDoseSlot::doseKey)
+                .containsExactly("103-202611020900", "103-202611040900");
+    }
+
+    @Test
     @DisplayName("TIMED_SLOTS: Calculates slots at 08:00, 12:00, 20:00 every day")
     void testTimedSlotsPattern() {
         LocalDate day1 = LocalDate.of(2026, 10, 25);

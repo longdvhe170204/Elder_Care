@@ -290,7 +290,7 @@ public class MedicationScheduleCalculator {
     }
 
     /**
-     * Parses days of week string ("1,2,3,4,5,6,7" where 1=Sunday, 2=Monday..).
+     * Parses days of week string ("1,2,3,4,5,6,7" ISO: 1=thứ hai … 7=chủ nhật).
      */
     public Set<Integer> parseDaysOfWeek(String days) {
         Set<Integer> result = new HashSet<>();
@@ -308,18 +308,9 @@ public class MedicationScheduleCalculator {
     }
 
     /**
-     * Maps java.time.DayOfWeek to MySQL SET('1','2','3','4','5','6','7') value:
-     * Sunday = 1, Monday = 2, Tuesday = 3, Wednesday = 4, Thursday = 5, Friday = 6, Saturday = 7.
+     * Mã ngày theo ISO-8601 (chủ dự án chốt 2026-11-08): thứ hai = 1 … chủ nhật = 7.
      */
     public int mapDayOfWeekToDbValue(DayOfWeek dow) {
-        return switch (dow) {
-            case SUNDAY -> 1;
-            case MONDAY -> 2;
-            case TUESDAY -> 3;
-            case WEDNESDAY -> 4;
-            case THURSDAY -> 5;
-            case FRIDAY -> 6;
-            case SATURDAY -> 7;
-        };
+        return dow.getValue();
     }
 }

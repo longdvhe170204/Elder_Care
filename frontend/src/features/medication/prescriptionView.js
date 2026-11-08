@@ -15,6 +15,9 @@ const STATUS = {
 }
 export const STATUS_FILTERS = ['Tất cả', ...Object.values(STATUS)]
 
+// Mã ngày theo ISO-8601: 1 = thứ hai … 7 = chủ nhật (chủ dự án chốt 2026-11-08)
+export const DAY_LABELS = { 1: 'Thứ 2', 2: 'Thứ 3', 3: 'Thứ 4', 4: 'Thứ 5', 5: 'Thứ 6', 6: 'Thứ 7', 7: 'Chủ nhật' }
+
 const SLOT = /^([01]\d|2[0-3]):[0-5]\d$/
 
 // "08:00, 20:00" → ['08:00', '20:00']; sai định dạng hoặc rỗng → null
@@ -32,8 +35,7 @@ function frequencyText(p) {
   if (!f) return 'Chưa có tần suất'
   if (f.type === 'TIMED_SLOTS') return `Các mốc giờ: ${(f.timedSlots ?? []).join(', ')}`
   if (f.type === 'EVERY_N_HOURS') return `Mỗi ${f.everyNHours} giờ${f.firstSlot ? `, từ ${hhmm(f.firstSlot)}` : ''}`
-  // Mã ngày 1 → 7 chưa được hợp đồng định nghĩa (thứ hai hay chủ nhật là ngày 1): hiện mã, không đoán
-  return `Theo ngày trong tuần (mã ngày ${(f.daysOfWeek ?? []).join(', ')}): ${(f.timedSlots ?? []).join(', ')}`
+  return `${(f.daysOfWeek ?? []).map((d) => DAY_LABELS[d]).join(', ')}: ${(f.timedSlots ?? []).join(', ')}`
 }
 
 function prescriberText(prescriber) {
@@ -82,6 +84,8 @@ const at = (day, time) => `${day}T${time}:00+07:00`
 function frequencyBody(form, day) {
   if (form.frequencyType === 'EVERY_N_HOURS')
     return { type: 'EVERY_N_HOURS', everyNHours: Number(form.everyNHours), firstSlot: at(day, form.firstSlot) }
+  if (form.frequencyType === 'DAYS_OF_WEEK')
+    return { type: 'DAYS_OF_WEEK', daysOfWeek: [...form.daysOfWeek].sort((a, b) => a - b), timedSlots: parseSlots(form.timedSlots) }
   return { type: 'TIMED_SLOTS', timedSlots: parseSlots(form.timedSlots) }
 }
 
