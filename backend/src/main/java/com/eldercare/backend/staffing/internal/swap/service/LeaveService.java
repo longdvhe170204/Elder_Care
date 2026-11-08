@@ -246,6 +246,7 @@ public class LeaveService implements ApprovedLeaveDayPort {
                         items,
                         null,
                         false,
+                        null,
                         null),
                 SwapStatus.PENDING_APPROVAL,
                 actorAccount);

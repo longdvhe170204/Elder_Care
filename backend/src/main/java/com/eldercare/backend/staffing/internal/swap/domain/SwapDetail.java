@@ -21,7 +21,8 @@ public record SwapDetail(
         Long leadForY,
         boolean selfApproved,
         Instant earliestStart,
-        Instant remindedAt) {
+        Instant remindedAt,
+        Instant decidedAt) {
 
     public static final SharedKind<SwapDetail> KIND = SharedKind.of("M09.SWAP_DETAIL", SwapDetail.class);
 
@@ -44,7 +45,8 @@ public record SwapDetail(
                 leadForY,
                 selfApproved,
                 earliestStart,
-                remindedAt);
+                remindedAt,
+                decidedAt);
     }
 
     public SwapDetail decided(long approver, Long x, Long y, boolean self) {
@@ -62,7 +64,8 @@ public record SwapDetail(
                 y,
                 self,
                 earliestStart,
-                remindedAt);
+                remindedAt,
+                decidedAt);
     }
 
     public SwapDetail reminded(Instant at) {
@@ -80,6 +83,26 @@ public record SwapDetail(
                 leadForY,
                 selfApproved,
                 earliestStart,
+                at,
+                decidedAt);
+    }
+
+    public SwapDetail closed(Instant at) {
+        return new SwapDetail(
+                requestId,
+                kind,
+                giverStaffId,
+                shiftXId,
+                recipientStaffId,
+                shiftYId,
+                reason,
+                recipientDeclineReason,
+                approverAccountId,
+                leadForX,
+                leadForY,
+                selfApproved,
+                earliestStart,
+                remindedAt,
                 at);
     }
 }

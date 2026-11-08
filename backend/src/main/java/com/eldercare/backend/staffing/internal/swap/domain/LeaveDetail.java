@@ -20,7 +20,8 @@ public record LeaveDetail(
         List<Item> items,
         Long approverAccountId,
         boolean selfApproved,
-        java.time.Instant remindedAt) {
+        java.time.Instant remindedAt,
+        java.time.Instant decidedAt) {
 
     public static final SharedKind<LeaveDetail> KIND = SharedKind.of("M09.LEAVE_DETAIL", LeaveDetail.class);
 
@@ -61,7 +62,8 @@ public record LeaveDetail(
                 List.copyOf(newItems),
                 approver == null ? approverAccountId : approver,
                 self || selfApproved,
-                remindedAt);
+                remindedAt,
+                decidedAt);
     }
 
     public LeaveDetail withKind(LeaveKind newKind, List<Item> newItems) {
@@ -77,7 +79,8 @@ public record LeaveDetail(
                 List.copyOf(newItems),
                 approverAccountId,
                 selfApproved,
-                remindedAt);
+                remindedAt,
+                decidedAt);
     }
 
     public LeaveDetail reminded(java.time.Instant at) {
@@ -93,6 +96,24 @@ public record LeaveDetail(
                 items,
                 approverAccountId,
                 selfApproved,
+                at,
+                decidedAt);
+    }
+
+    public LeaveDetail closed(java.time.Instant at) {
+        return new LeaveDetail(
+                requestId,
+                kind,
+                staffId,
+                scopeType,
+                scopeId,
+                filedByAccountId,
+                onBehalf,
+                reason,
+                items,
+                approverAccountId,
+                selfApproved,
+                remindedAt,
                 at);
     }
 }
