@@ -46,6 +46,7 @@ import { EndingsPage } from '@/features/admissions/EndingsPage'
 import { DeathsPage } from '@/features/admissions/DeathsPage'
 import { ServicesPage } from '@/features/admissions/ServicesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
+import { ShiftSwapsPage } from '@/features/shift-swaps/ShiftSwapsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
@@ -58,6 +59,7 @@ const PAGES = {
   reports: ReportsPage,
   residents: ResidentListPage,
   shifts: ShiftsPage,
+  'shift-swaps': ShiftSwapsPage,
   staff: StaffPage,
   'care-tasks': CareChecklistPage,
   'overdue-care-tasks': OverdueTasksPage,

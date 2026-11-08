@@ -197,6 +197,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
                     Set.of("GET /api/v1/assets/{id}"),
                     Set.of(),
+                    true),
+            // 015 (D, 2026-11-09, T028): hợp đồng đã dịch (glossary mục 21); đủ endpoint đổi ca và nghỉ đột xuất
+            new Contract(
+                    Path.of("..", "specs", "015-shift-rotation-swap", "contracts", "api-015.yaml"),
+                    Set.of(),
+                    Set.of(),
                     true));
 
     @Autowired

@@ -45,6 +45,7 @@ import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPort;
 import com.eldercare.backend.staffing.internal.shift.service.ShiftDepartureBasis;
 import com.eldercare.backend.staffing.internal.shift.service.ShiftEntryBasis;
 import com.eldercare.backend.staffing.internal.staff.persistence.StaffStore;
+import com.eldercare.backend.staffing.internal.swap.domain.RecipientShift;
 import com.eldercare.backend.staffing.internal.swap.domain.SwapChecks;
 import com.eldercare.backend.staffing.internal.swap.domain.SwapDetail;
 import com.eldercare.backend.staffing.internal.swap.domain.SwapKind;
@@ -544,13 +545,13 @@ public class SwapService {
 
     /** FR-020: ca của người nhận thỏa FR-019, chỉ ngày, giờ, mẫu ca. */
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> recipientShifts(long shiftXId, long recipientId) {
+    public List<RecipientShift> recipientShifts(long shiftXId, long recipientId) {
         long giver = currentStaff();
         WorkShift x = shifts.shift(shiftXId, false);
         requirePresent(x, giver, true);
         requireRecipient(giver, recipientId, x);
         Instant now = time.now();
-        List<Map<String, Object>> out = new ArrayList<>();
+        List<RecipientShift> out = new ArrayList<>();
         for (WorkShift s : shifts.staffRange(recipientId, now, now.plus(Duration.ofDays(60)), true)) {
             if (!BLOCKING_SHIFT.contains(s.status())
                     || !s.startsAt().isAfter(now)
@@ -561,12 +562,7 @@ public class SwapService {
                     || records.hasOpenLock(s.id(), recipientId)) {
                 continue;
             }
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("shiftId", s.id());
-            m.put("startsAt", s.startsAt());
-            m.put("endsAt", s.endsAt());
-            m.put("shiftTemplateId", s.shiftTemplateId());
-            out.add(m);
+            out.add(new RecipientShift(s.id(), s.startsAt(), s.endsAt(), s.shiftTemplateId()));
         }
         return out;
     }

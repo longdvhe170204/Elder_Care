@@ -239,6 +239,14 @@ export const NAV_GROUPS = [
         functions: ['SHIFT_SCHEDULE'],
         roles: [QL, TT, BS, DD, CS, BEP, HC],
       },
+      // Dòng "Yêu cầu đổi ca" (015, UC-54): nhân viên lập, Trưởng tầng duyệt, Quản lý viện duyệt ca toàn viện
+      {
+        key: 'shift-swaps',
+        label: 'Đổi ca, nghỉ',
+        icon: 'CalendarDays',
+        functions: ['SHIFT_SWAP_REQUEST'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC],
+      },
       // Dòng "Suất ăn đã chốt, phiếu bữa ăn"
       { key: 'meals', label: 'Suất ăn', icon: 'Utensils', functions: ['MEAL_COUNT_TICKET'], roles: [QL, TT, BS, BEP] },
     ],
