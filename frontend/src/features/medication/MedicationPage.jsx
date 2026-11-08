@@ -23,7 +23,8 @@ import { PrnPanel } from './PrnPanel'
 // Màn Phát thuốc (M14; spec 006 User Story 2, 6), theo DESIGN.md 5.1: lưới thẻ theo giờ dự kiến, mỗi thẻ là một
 // người cao tuổi trong giờ đó. Liều theo lịch đọc từ GET /medication-doses/rounds, ghi bằng administer, refuse, skip
 // (api-006); họ tên, dị ứng từ api-001, phòng từ api-003, ca từ api-008. Chỉ Điều dưỡng xác nhận liều (FR-026); trạng
-// thái liều do hệ thống tính (FR-021). Thuốc khi cần và đơn thuốc còn dùng dữ liệu minh họa.
+// thái liều do hệ thống tính (FR-021). Thuốc khi cần (PrnPanel) và Đơn thuốc (PrescriptionPanel) đọc, ghi api-006 theo từng
+// người cao tuổi được chọn.
 
 const RECORD_ROLE = 'NURSING_STAFF'
 const OPEN = ['Đến giờ', 'Trễ']
