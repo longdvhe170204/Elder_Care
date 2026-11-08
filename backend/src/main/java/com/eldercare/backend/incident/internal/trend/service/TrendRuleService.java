@@ -37,7 +37,7 @@ public class TrendRuleService {
     static final String WEIGHT_LOSS = "WEIGHT_LOSS";
     static final String MISSED_MEASUREMENT = "MISSED_MEASUREMENT";
     static final String MEDICATION_REFUSAL = "MEDICATION_REFUSAL";
-    static final String WEIGHT_CODE = "CAN_NANG";
+    static final String WEIGHT_CODE = "WEIGHT";
     /** Loại yêu cầu cảnh báo "từ chối liên tiếp" của 006 (module-interfaces 006, {@code YeuCauCanhBao}). */
     static final String CONSECUTIVE_REFUSAL = "TU_CHOI_LIEN_TIEP";
     /** Nguồn là liều bị từ chối ({@code dose:<lieuId>}); khóa chống trùng theo thuốc ({@code refusal:<nctId>:<thuocId>}). */

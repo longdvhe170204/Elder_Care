@@ -83,7 +83,9 @@ public class AlertRequestListener {
                 "CHI_SO",
                 event.recordId(),
                 "Chỉ số vượt ngưỡng " + event.level().name(),
-                null);
+                null,
+                null,
+                event.recordedById());
 
         alertService.requestAlert(command);
     }
