@@ -2,13 +2,13 @@ package com.eldercare.backend.billing.balance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions.Code;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions.Condition;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions.Input;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions.Reason;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions.Result;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementConditions.Status;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Code;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Condition;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Input;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Reason;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Result;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Status;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

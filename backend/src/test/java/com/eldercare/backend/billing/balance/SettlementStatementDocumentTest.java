@@ -4,11 +4,11 @@ import static com.eldercare.backend.billing.balance.BalanceEntries.entry;
 import static com.eldercare.backend.billing.balance.DocumentReaders.pdfText;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.billing.internal.balance.document.domain.PaymentNoticeData.TypeTotal;
-import com.eldercare.backend.billing.internal.balance.settlement.domain.SettlementStatementData;
-import com.eldercare.backend.billing.internal.balance.settlement.service.SettlementStatementDocument;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.Ledger;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.TransactionType;
+import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.TypeTotal;
+import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementStatementData;
+import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementStatementDocument;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionType;
 import com.eldercare.backend.common.document.FacilityInfo;
 import java.time.Instant;
 import java.time.LocalDate;

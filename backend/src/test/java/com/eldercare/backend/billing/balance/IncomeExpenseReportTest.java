@@ -4,12 +4,12 @@ import static com.eldercare.backend.billing.balance.BalanceEntries.entry;
 import static com.eldercare.backend.billing.balance.BalanceEntries.withStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.billing.internal.balance.export.domain.IncomeExpenseReport;
-import com.eldercare.backend.billing.internal.balance.export.domain.IncomeExpenseReport.Debtor;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.BalanceEntry;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.Ledger;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.TransactionStatus;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.TransactionType;
+import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport;
+import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport.Debtor;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.BalanceEntry;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionStatus;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;

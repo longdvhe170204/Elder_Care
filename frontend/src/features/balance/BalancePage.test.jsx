@@ -89,6 +89,21 @@ describe('BalancePage (017)', () => {
     expect(await screen.findByText('Chưa có phiếu báo phí')).toBeInTheDocument()
   })
 
+  it('FR_005_FR_017_ghiNhanTienNop_chiKhiCoQuyenLap_tinhTrangKhiCoQuyenXem', async () => {
+    const api = setup([...ALL, { function: 'BALANCE_LEDGER', operation: 'CREATE' }])
+    api.on('GET', '/balance-statuses', json(200, []))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận tiền nộp' }))
+    expect(await screen.findByLabelText('Mã nộp tiền')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tình trạng số dư' }))
+    expect(await screen.findByText('Không có hồ sơ Sắp hết tiền, Còn nợ')).toBeInTheDocument()
+  })
+
+  it('FR_005_hanhChinhChiXem_khongCoPhanGhiNhanTienNop', async () => {
+    setup([{ function: 'BALANCE_LEDGER', operation: 'VIEW' }])
+    expect(await screen.findByRole('button', { name: 'Tình trạng số dư' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ghi nhận tiền nộp' })).not.toBeInTheDocument()
+  })
+
   it('FR_028_khongCoQuyenXemSoDu_hienTrangThaiKhongCoQuyen', async () => {
     setup([{ function: 'PROFILE', operation: 'VIEW' }])
     expect(await screen.findByText('Bạn không có quyền xem số dư, thu chi')).toBeInTheDocument()

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
 import '../../common/widgets/status_pill.dart';
+import '../balance/family_balance_screen.dart';
 import '../visits/visit_registration_screen.dart';
 
 const _statusLabels = {
@@ -198,6 +199,20 @@ class _ResidentPortalScreenState extends State<ResidentPortalScreen> {
                   )
                 else
                   Text(_healthLock, style: theme.textTheme.bodySmall),
+                if (_right('VIEW_COSTS')) ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Số dư')),
+                          body: FamilyBalanceScreen(api: widget.api, residentId: _residentId, residentName: name),
+                        ),
+                      ),
+                    ),
+                    child: const Text('Xem số dư'),
+                  ),
+                ],
               ],
             ),
     );

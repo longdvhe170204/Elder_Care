@@ -2,8 +2,8 @@ package com.eldercare.backend.billing.balance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.billing.internal.balance.document.domain.VietQrPayload;
-import com.eldercare.backend.billing.internal.balance.document.service.QrImage;
+import com.eldercare.backend.billing.balance.internal.document.domain.VietQrPayload;
+import com.eldercare.backend.billing.balance.internal.document.service.QrImage;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.RGBLuminanceSource;

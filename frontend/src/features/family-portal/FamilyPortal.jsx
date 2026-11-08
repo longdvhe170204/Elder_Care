@@ -17,6 +17,7 @@ import { NotificationsPage } from './NotificationsPage'
 import { TodayPage } from './TodayPage'
 import { VisitsPage } from './VisitsPage'
 import { LiveContractPage, LiveHealthPage, LiveTodayPage } from './live/LivePages'
+import { LiveCostsPage } from './live/LiveCostsPage'
 import { LiveFeedbackPage } from './live/LiveFeedbackPage'
 
 // Cổng người thân, bản web (DESIGN.md 2.3): đăng nhập xong vào Trang chủ, là trang giới thiệu viện; các màn khác
@@ -49,11 +50,13 @@ const PAGES = {
   account: AccountPage,
 }
 
-// Có phiên thật: ba màn đọc API của 012 (T028); các màn khác còn bản mẫu tới task web của phần đó
+// Có phiên thật: ba màn đọc API của 012 (T028), Chi phí, số dư đọc số dư của 017 (T011); các màn khác còn bản mẫu tới
+// task web của phần đó
 const LIVE_PAGES = {
   today: LiveTodayPage,
   health: LiveHealthPage,
   contract: LiveContractPage,
+  costs: LiveCostsPage,
   feedback: LiveFeedbackPage,
 }
 
