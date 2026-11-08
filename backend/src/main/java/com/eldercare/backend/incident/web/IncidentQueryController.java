@@ -22,6 +22,9 @@ public class IncidentQueryController {
     private final IncidentQueryService queries;
     private final CurrentUser currentUser;
 
+    private static final String STORED_CANCELLED = "CANCELLED";
+    private static final String VOIDED = "VOIDED";
+
     public IncidentQueryController(IncidentQueryService queries, CurrentUser currentUser) {
         this.queries = queries;
         this.currentUser = currentUser;
@@ -33,7 +36,10 @@ public class IncidentQueryController {
             @RequestParam(required = false) List<String> status,
             @RequestParam(required = false) Long residentId,
             @RequestParam(required = false) Long floorAreaId) {
-        return queries.list(status, residentId, floorAreaId, currentUser).stream()
+        List<String> stored = status == null
+                ? null
+                : status.stream().map(IncidentQueryController::stored).toList();
+        return queries.list(stored, residentId, floorAreaId, currentUser).stream()
                 .map(IncidentQueryController::toResponse)
                 .toList();
     }
@@ -72,7 +78,7 @@ public class IncidentQueryController {
                 incident.id(),
                 content,
                 incident.currentTypeId(),
-                incident.status(),
+                published(incident.status()),
                 incident.level(),
                 incident.wasEmergency(),
                 incident.escalationLevel(),
@@ -87,5 +93,14 @@ public class IncidentQueryController {
                 incident.resolution(),
                 details.allowedCommands().stream().sorted().toList(),
                 List.of());
+    }
+
+    /** api-007 {@code IncidentStatus}: Đã hủy lưu {@code CANCELLED}, hợp đồng gọi {@code VOIDED}. */
+    private static String published(String status) {
+        return STORED_CANCELLED.equals(status) ? VOIDED : status;
+    }
+
+    private static String stored(String status) {
+        return VOIDED.equals(status) ? STORED_CANCELLED : status;
     }
 }

@@ -167,6 +167,16 @@ public class AlertStore {
         return count != null && count > 0;
     }
 
+    /** Còn cảnh báo mở mức Trung bình trở lên (014 FR-018). */
+    public boolean hasOpenAtLeastMedium(long residentId) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM alert
+                WHERE resident_id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS')
+                  AND level IN ('MEDIUM', 'CRITICAL')
+                """, Integer.class, residentId);
+        return count != null && count > 0;
+    }
+
     /** Người cao tuổi từng có cảnh báo (mục việc sau qua đời, research S-17). */
     public boolean hasAnyAlert(long residentId) {
         return !jdbc.queryForList("SELECT 1 FROM alert WHERE resident_id = ? LIMIT 1", Integer.class, residentId)
@@ -316,6 +326,15 @@ public class AlertStore {
                   escalation_stopped = TRUE, version = version + 1
                 WHERE id = ? AND status = 'IN_PROGRESS' AND version = ?
                 """, resolution, reason, closedById, Timestamp.from(at), id, expectedVersion));
+    }
+
+    /** Nguồn đã được xử lý: cảnh báo đang mở → Đã đóng, người đóng Hệ thống (FR-032, research S-09). */
+    public void closeBySystem(long id, String resolution, Instant at, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CLOSED', resolution = ?, closed_by_system = TRUE, closed_at = ?,
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
+                """, resolution, Timestamp.from(at), id, expectedVersion));
     }
 
     /** Đang xử lý → Chuyển sự cố, gắn sự cố liên kết, dừng leo thang (bảng FR-029). */
