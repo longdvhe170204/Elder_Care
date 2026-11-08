@@ -12,9 +12,11 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.api.VitalSignStatisticsApi;
+import com.eldercare.backend.incident.api.IncidentStatisticsApi;
 import com.eldercare.backend.medication.api.MedicationStatisticsApi;
 import com.eldercare.backend.reporting.TestDoseMetric.Dose;
 import com.eldercare.backend.reporting.TestDoseMetric.DoseSource;
+import com.eldercare.backend.resident.api.ResidentStatisticsApi;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
@@ -82,6 +84,12 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
 
     @MockitoBean
     VitalSignStatisticsApi vitalSignStatistics;
+
+    @MockitoBean
+    IncidentStatisticsApi incidentStatistics;
+
+    @MockitoBean
+    ResidentStatisticsApi residentStatistics;
 
     TestUsers users;
     TestUser manager;
@@ -212,7 +220,7 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
                 .containsEntry("from_date", time.today().minusDays(7).toString());
         assertThat(String.valueOf(row.get("include_identity"))).isEqualTo("true");
         // tổng, hai ca, bốn liều chi tiết; một dòng tổng cho mỗi chỉ tiêu thật nguồn rỗng (HEALTH.VITAL_SIGNS, MED.*
-        // và mười chỉ tiêu cảnh báo, sự cố, đánh giá lại của T018)
+        // và mười chỉ tiêu cảnh báo, sự cố, đánh giá lại của T018; nguồn 007, 001 giả rỗng để dữ liệu sót không thêm ô)
         assertThat(String.valueOf(row.get("row_count"))).isEqualTo("21");
         assertThat(jdbc.queryForObject("SELECT owner_type FROM file WHERE id = ?", String.class, fileId))
                 .isEqualTo("M14.REPORT_EXPORT");
