@@ -409,3 +409,7 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 - Nhật ký `PASSWORD_RESET_CODE_SENT`, `PASSWORD_SELF_RESET` ghi người thực hiện ẩn danh (yêu cầu chưa có phiên, như `LOGIN_FAILED`). Sự kiện `PasswordSelfReset` báo chủ tài khoản; Quản lý viện thì thêm nhóm Quản lý viện với `causedBy` là chính tài khoản nên người đặt lại không nhận hai lần.
 - Tin nhắn viết không dấu để vừa một tin. Lần xin mã có tài khoản thật chậm hơn (gửi tin trong yêu cầu); thân và mã phản hồi giống nhau theo FR-052a.
 - Web: nút "Quên mật khẩu" trên `LoginPage` (bước `features/auth/ForgotPassword.jsx`); app: `TextButton` trên `LoginScreen` mở `common/auth/forgot_password_screen.dart`. Cả hai chỉ hiện khi `availability.available`. Test: `FR_052a_SelfPasswordResetIT` (2 ca), `FR_052a_PasswordResetRulesTest`, `PasswordResetSmsTest`, `ForgotPassword.test.jsx`, `forgot_password_test.dart`.
+
+### Hợp đồng api-002: phạm vi SELF (2026-11-08, A)
+
+- `ApiContractIT` so sâu (2026-11-08) thấy `EffectivePermission.scope` và `executionScope` của vai trò trả `SELF` (phạm vi `BAN_THAN` của AC-16, FR-068, T090 `V002_08`) mà hợp đồng chỉ có `FACILITY`, `ASSIGNED`, `RELATIONSHIP`. Mã đúng nghiệp vụ, hợp đồng bỏ sót khi dịch: thêm `SELF` vào hai enum (chủ dự án duyệt 2026-11-08 khi giao làm hết việc còn thiếu), gỡ 22 dòng api-002 ở `known-mismatches.txt`. Client web sinh lại không đổi nội dung.

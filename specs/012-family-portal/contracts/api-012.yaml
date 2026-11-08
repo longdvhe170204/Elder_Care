@@ -582,7 +582,7 @@ components:
     FeedbackItem:
       type: object
       description: 'Mục của phản hồi (FR-065; bổ sung 2026-11-05). Người gửi chỉ thấy CONTENT, REPLY, HANDLING_DIRECTION, REOPEN'
-      properties: { id: { type: integer, format: int64 }, type: { type: string, enum: [CONTENT, REPLY, HANDLING_DIRECTION, NOTE, REASSIGNMENT, PRIORITY_CHANGE, REOPEN] }, content: { type: string }, fileIds: { type: array, items: { type: integer, format: int64 } }, byAccountId: { type: integer, format: int64 }, at: { type: string, format: date-time } }
+      properties: { id: { type: integer, format: int64 }, type: { type: string, enum: [CONTENT, REPLY, HANDLING_DIRECTION, NOTE, REASSIGNMENT, PRIORITY_CHANGE, REOPEN, TYPE_CHANGE], description: 'TYPE_CHANGE: mục DOI_LOAI (data-model, bổ sung 2026-11-08)' }, content: { type: string }, fileIds: { type: array, items: { type: integer, format: int64 } }, byAccountId: { type: integer, format: int64 }, at: { type: string, format: date-time } }
     FeedbackDetail:
       description: 'Chi tiết phản hồi (bổ sung 2026-11-05, chủ dự án duyệt). senderHealthRightEffective chỉ cho nhân viên (cảnh báo lúc soạn trả lời); healthReplyHidden chỉ cho người gửi: trả lời là thông tin sức khỏe mà quyền xem sức khỏe không có tác dụng thì không có trong items (FR-058)'
       allOf:
