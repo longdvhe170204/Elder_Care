@@ -23,7 +23,7 @@ const HHMM = new Intl.DateTimeFormat('en-GB', {
 })
 export const hhmm = (iso) => HHMM.format(new Date(iso))
 const ddmmyyyy = (date) => date.split('-').reverse().join('/')
-const number = (n) => String(n).replace('.', ',')
+export const number = (n) => String(n).replace('.', ',')
 
 const initialsOf = (name) =>
   name
@@ -33,7 +33,7 @@ const initialsOf = (name) =>
     .map((w) => w[0].toUpperCase())
     .join('')
 
-function residentView(id, profile, location) {
+export function residentView(id, profile, location) {
   const name = profile?.personalInfo?.fullName
   return {
     id,

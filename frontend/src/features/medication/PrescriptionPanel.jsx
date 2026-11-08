@@ -1,112 +1,79 @@
-import { useState } from 'react'
-import { Calendar, Clock, FileText, Pause, Play, Plus, RefreshCw, ShieldAlert, User, XCircle } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Calendar, Clock, FileText, Pause, Play, Plus, RefreshCw, ShieldAlert, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { ResidentAvatar } from '@/common/ResidentAvatar'
+import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
-import { DEMO_RESIDENTS } from '@/common/demoData'
+import { problemOf } from '@/common/problem'
+import { hhmm } from './doseRoundView'
 import { ChangeDosageSheet } from './ChangeDosageSheet'
+import { CommandSheet } from './CommandSheet'
 import { PrescriptionSheet } from './PrescriptionSheet'
-import { INITIAL_PRESCRIPTIONS } from './prescriptionData'
+import { loadPrescriptionBoard } from './prescriptions'
+import { STATUS_FILTERS } from './prescriptionView'
+import { ResidentPicker } from './ResidentPicker'
 
-const STATUS_FILTERS = ['Tất cả', 'Hiệu lực', 'Chờ hiệu lực', 'Tạm dừng', 'Đã ngừng', 'Hết hạn']
+// Màn Đơn thuốc (spec 006 User Story 1; FR-004 → FR-017): chọn người cao tuổi, danh sách và chuỗi thay thế đọc từ
+// api-006, nút lệnh theo allowedCommands của từng đơn. Bác sĩ có thẩm quyền kê đơn nội bộ, đổi liều, tạm dừng, ngừng;
+// Điều dưỡng chỉ nhập đơn bên ngoài (BR-M07-05, BR-M07-07). Thẻ không viền đỏ (DESIGN.md 6.7).
+
+const COMMAND_BUTTONS = [
+  { command: 'SUSPEND', label: 'Tạm dừng', Icon: Pause },
+  { command: 'RESUME', label: 'Tiếp tục', Icon: Play },
+  { command: 'DISCONTINUE', label: 'Ngừng', Icon: XCircle },
+]
 
 export function PrescriptionPanel({ role, onSaved }) {
-  const [prescriptions, setPrescriptions] = useState(INITIAL_PRESCRIPTIONS)
-  const [selectedResidentCode, setSelectedResidentCode] = useState('ALL')
-  const [statusFilter, setStatusFilter] = useState('Tất cả')
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [changingPrescription, setChangingPrescription] = useState(null)
-
-  // Bác sĩ là người có thẩm quyền cao nhất về kê đơn và đổi liều (BR-M07-05, BR-M07-07)
   const isDoctor = role === 'DOCTOR'
-  // Bác sĩ kê đơn nội bộ/bên ngoài; Điều dưỡng chỉ nhập đơn bên ngoài theo toa (FR-005, FR-006)
   const canPrescribe = isDoctor || role === 'NURSING_STAFF'
-  // Chỉ Bác sĩ mới có thẩm quyền đổi liều, tạm dừng, ngừng đơn (BR-M07-05, BR-M07-07)
-  const canChangeDosage = isDoctor
 
-  // Lọc theo người cao tuổi và trạng thái
-  const filteredPrescriptions = prescriptions.filter((p) => {
-    const matchResident = selectedResidentCode === 'ALL' || p.residentCode === selectedResidentCode
-    const matchStatus = statusFilter === 'Tất cả' || p.status === statusFilter
-    return matchResident && matchStatus
-  })
+  const [resident, setResident] = useState(null)
+  const [board, setBoard] = useState(null)
+  const [problem, setProblem] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('Tất cả')
+  const [creating, setCreating] = useState(false)
+  const [changing, setChanging] = useState(null)
+  const [commanding, setCommanding] = useState(null)
 
-  function handleSavePrescription(newPresc) {
-    setPrescriptions((prev) => [newPresc, ...prev])
-    if (onSaved) {
-      onSaved(`Đã thêm thành công đơn thuốc mới [${newPresc.drug}] cho ${newPresc.residentName}.`)
+  const load = useCallback(async (id) => {
+    try {
+      setBoard(await loadPrescriptionBoard(id))
+      setProblem(null)
+    } catch (error) {
+      setBoard({ prescriptions: [], medications: [], resident: null })
+      setProblem(problemOf(error))
     }
+  }, [])
+
+  function pick(r) {
+    setResident(r)
+    setBoard(null)
+    setProblem(null)
+    load(r.id)
   }
 
-  function handleChangeDosage({ oldPrescriptionId, newPrescription, reason }) {
-    setPrescriptions((prev) => {
-      const updated = prev.map((p) =>
-        p.id === oldPrescriptionId
-          ? { ...p, status: 'Đã ngừng', replacedById: newPrescription.id, replaceReason: reason }
-          : p
-      )
-      return [newPrescription, ...updated]
-    })
-    if (onSaved) {
-      onSaved(
-        `Đã đổi liều thành công cho đơn #${oldPrescriptionId}: tạo đơn mới #${newPrescription.id} (${newPrescription.dosage} ${newPrescription.dosageUnit}), đơn cũ chuyển sang Đã ngừng theo BR-M07-07.`
-      )
-    }
+  async function saved(message) {
+    onSaved?.(message)
+    await load(resident.id)
   }
 
-  function handleToggleSuspend(p) {
-    const isSuspended = p.status === 'Tạm dừng'
-    const newStatus = isSuspended ? 'Hiệu lực' : 'Tạm dừng'
-    setPrescriptions((prev) =>
-      prev.map((item) => (item.id === p.id ? { ...item, status: newStatus } : item))
-    )
-    if (onSaved) {
-      onSaved(`Đã chuyển trạng thái đơn #${p.id} (${p.drug}) sang [${newStatus}].`)
-    }
-  }
-
-  function handleDiscontinue(p) {
-    if (window.confirm(`Bạn có chắc chắn muốn ngừng đơn thuốc #${p.id} (${p.drug}) của ${p.residentName}?`)) {
-      setPrescriptions((prev) =>
-        prev.map((item) => (item.id === p.id ? { ...item, status: 'Đã ngừng' } : item))
-      )
-      if (onSaved) {
-        onSaved(`Đã ngừng đơn thuốc #${p.id} (${p.drug}) theo quyết định của Bác sĩ.`)
-      }
-    }
-  }
+  const prescriptions = (board?.prescriptions ?? []).filter((p) => statusFilter === 'Tất cả' || p.status === statusFilter)
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Thanh công cụ: Chọn người cao tuổi & Lọc trạng thái & Nút tạo đơn */}
-      <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <User className="size-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Người cao tuổi:</span>
-            <select
-              value={selectedResidentCode}
-              onChange={(e) => setSelectedResidentCode(e.target.value)}
-              className="rounded-md border bg-background px-3 py-1.5 text-sm font-medium"
-            >
-              <option value="ALL">Tất cả người cao tuổi ({DEMO_RESIDENTS.length})</option>
-              {DEMO_RESIDENTS.map((r) => (
-                <option key={r.code} value={r.code}>
-                  {r.name} ({r.code})
-                </option>
-              ))}
-            </select>
-          </div>
+      <ResidentPicker onPick={pick} selectedId={resident?.id} />
 
+      {resident && (
+        <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           <ToggleGroup
             variant="filter"
             size="sm"
             value={[statusFilter]}
             onValueChange={(val) => val[0] && setStatusFilter(val[0])}
             className="flex-wrap"
+            aria-label="Lọc theo trạng thái"
           >
             {STATUS_FILTERS.map((s) => (
               <ToggleGroupItem key={s} value={s} className="px-3">
@@ -114,178 +81,134 @@ export function PrescriptionPanel({ role, onSaved }) {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+          {canPrescribe && board && (
+            <Button onClick={() => setCreating(true)} className="shrink-0 gap-2">
+              <Plus className="size-4" aria-hidden="true" />
+              {isDoctor ? 'Nhập đơn thuốc mới' : 'Nhập đơn bên ngoài (theo toa)'}
+            </Button>
+          )}
         </div>
+      )}
 
-        {canPrescribe && (
-          <Button onClick={() => setIsSheetOpen(true)} className="gap-2 shrink-0">
-            <Plus className="size-4" />
-            {isDoctor ? 'Nhập đơn thuốc mới' : 'Nhập đơn bên ngoài (theo toa)'}
-          </Button>
-        )}
-      </div>
+      <ProblemAlert problem={problem} />
+      {resident && !board && !problem && <p className="rounded-xl border bg-card px-4 py-3 type-body-sm">Đang tải đơn thuốc…</p>}
 
-      {/* Danh sách đơn thuốc */}
-      <div className="flex flex-col gap-3">
-        {filteredPrescriptions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-10 text-center">
-            <FileText className="size-10 text-muted-foreground/60 mb-2" />
-            <p className="type-body font-medium">Không tìm thấy đơn thuốc nào</p>
-            <p className="type-caption text-muted-foreground">
-              Thử thay đổi bộ lọc trạng thái hoặc bấm "Nhập đơn thuốc mới".
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredPrescriptions.map((p) => {
-              const res = DEMO_RESIDENTS.find((r) => r.code === p.residentCode)
-              const isActive = p.status === 'Hiệu lực'
-              const isSuspended = p.status === 'Tạm dừng'
-              const canOperate = (isActive || isSuspended) && canChangeDosage
+      {board && !problem && prescriptions.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-10 text-center">
+          <FileText className="mb-2 size-10 text-muted-foreground" aria-hidden="true" />
+          <p className="type-body font-medium">Không có đơn thuốc nào</p>
+          <p className="type-caption text-muted-foreground">Đổi bộ lọc trạng thái hoặc nhập đơn mới.</p>
+        </div>
+      )}
 
-              return (
-                <Card key={p.id} className="flex flex-col justify-between overflow-hidden transition-shadow hover:shadow-md">
-                  <CardHeader className="flex flex-row items-center gap-3 border-b bg-muted/20 pb-3">
-                    {res && <ResidentAvatar name={res.name} code={res.code} initials={res.initials} className="size-10" />}
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate font-semibold type-body">{p.residentName}</span>
-                      <span className="type-caption text-muted-foreground tabular-nums">Mã: {p.residentCode} • Đơn #{p.id}</span>
-                    </div>
-                    <StatusBadge status={p.status} />
-                  </CardHeader>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {prescriptions.map((p) => {
+          const buttons = isDoctor ? COMMAND_BUTTONS.filter((b) => p.allowedCommands.includes(b.command)) : []
+          const canChange = isDoctor && p.allowedCommands.includes('CHANGE_DOSE')
+          return (
+            <Card key={p.id} className="flex flex-col justify-between overflow-hidden">
+              <CardHeader className="flex flex-row items-center gap-3 border-b pb-3">
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate type-label">{p.drug}</span>
+                  <span className="type-caption text-muted-foreground tabular-nums">Đơn #{p.id}</span>
+                </div>
+                <StatusBadge status={p.status} />
+              </CardHeader>
 
-                  <CardContent className="flex flex-1 flex-col gap-3 pt-3">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-base font-bold text-foreground">{p.drug}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {p.prescriptionType === 'PERIODIC' ? 'Định kỳ' : 'Khi cần (PRN)'}
-                        </Badge>
-                      </div>
-                      <p className="type-body-sm text-muted-foreground mt-0.5">
-                        Liều: <strong className="text-foreground">{p.dosage} {p.dosageUnit}</strong>, đường dùng: {p.route}
-                      </p>
-                    </div>
+              <CardContent className="flex flex-1 flex-col gap-3 pt-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="type-body-sm text-muted-foreground">
+                    Liều: <strong className="text-foreground">{p.dose}</strong>, đường dùng: {p.route}
+                  </p>
+                  <Badge variant="outline">{p.typeLabel}</Badge>
+                </div>
 
-                    {/* Huy hiệu chuỗi thay thế theo DBR-14 */}
-                    {p.replacesId && (
-                      <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-                        <Badge variant="secondary" className="text-[11px] px-1.5 py-0.5">
-                          Đơn thay thế #{p.replacesId}
-                        </Badge>
-                        {p.changeReason && <span className="truncate italic">"{p.changeReason}"</span>}
-                      </div>
-                    )}
+                {p.replacesId && <Badge variant="secondary">Đơn thay thế đơn #{p.replacesId}</Badge>}
+                {p.replacedById && (
+                  <span className="type-caption text-muted-foreground">
+                    Đã được thay thế bởi đơn <strong>#{p.replacedById}</strong>
+                  </span>
+                )}
+                {p.noMedicationAvailable && <span className="type-caption text-muted-foreground">Chưa có thuốc để phát (FR-009)</span>}
 
-                    {p.replacedById && (
-                      <div className="text-xs text-muted-foreground">
-                        Đã được thay thế bởi đơn <strong>#{p.replacedById}</strong>
-                      </div>
-                    )}
+                <div className="flex flex-col gap-1.5 rounded-lg border bg-muted/30 p-2.5 type-caption">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+                    {p.frequencyText}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
+                    {p.prescribedAt ? `Kê ngày ${p.prescribedAt.split('-').reverse().join('/')}, ` : `Hiệu lực từ ${hhmm(p.startedAt)}, `}
+                    {p.prescriberText}
+                  </span>
+                </div>
 
-                    <div className="flex flex-col gap-1.5 rounded-lg border bg-muted/10 p-2.5 text-xs">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Clock className="size-3.5 shrink-0" />
-                        <span>
-                          {p.prescriptionType === 'PERIODIC'
-                            ? `Tần suất: ${p.timedSlots || 'Theo mốc giờ'}`
-                            : `Cách tối thiểu ${p.minIntervalMinutes / 60}h, tối đa ${p.maxDosesPer24h} lần/24h`}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Calendar className="size-3.5 shrink-0" />
-                        <span>Kê ngày: {p.prescribedAt} bởi {p.prescriberName}</span>
-                      </div>
-                    </div>
+                {p.instructionNote && <p className="rounded-md bg-muted px-3 py-2 type-caption italic">{p.instructionNote}</p>}
 
-                    {p.instructionNote && (
-                      <div className="rounded-md bg-secondary/20 p-2 text-xs italic text-secondary-foreground">
-                        "{p.instructionNote}"
-                      </div>
-                    )}
+                {p.confirmedIssues.length > 0 && (
+                  <div className="flex flex-col gap-1 rounded-md border bg-warning p-2 text-warning-foreground">
+                    <span className="flex items-center gap-1.5 type-caption font-semibold">
+                      <ShieldAlert className="size-3.5 shrink-0" aria-hidden="true" />
+                      Đã xác nhận khi kê đơn:
+                    </span>
+                    {p.confirmedIssues.map((i) => (
+                      <span key={i.issueCode} className="pl-5 type-caption">
+                        {i.text}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
 
-                    {p.confirmedIssues && p.confirmedIssues.length > 0 && (
-                      <div className="flex flex-col gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 p-2">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
-                          <ShieldAlert className="size-3.5 shrink-0" />
-                          Đã xác nhận vấn đề chuyên môn:
-                        </div>
-                        {p.confirmedIssues.map((ci) => (
-                          <div key={ci.issueCode} className="text-xs text-muted-foreground pl-4">
-                            • <em>{ci.issueCode}</em>: {ci.reason}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-
-                  {/* Thanh nút thao tác vòng đời đơn thuốc (BR-M07-07, BR-M07-08, BR-M07-15) */}
-                  {canOperate && (
-                    <CardFooter className="flex items-center justify-between border-t bg-muted/10 px-3 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleSuspend(p)}
-                          className="h-8 px-2 text-xs"
-                          title={isSuspended ? 'Tiếp tục đơn' : 'Tạm dừng đơn'}
-                        >
-                          {isSuspended ? (
-                            <>
-                              <Play className="size-3.5 text-green-600 mr-1" />
-                              Tiếp tục
-                            </>
-                          ) : (
-                            <>
-                              <Pause className="size-3.5 text-amber-600 mr-1" />
-                              Tạm dừng
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDiscontinue(p)}
-                          className="h-8 px-2 text-xs text-destructive hover:bg-destructive/10"
-                          title="Ngừng đơn thuốc"
-                        >
-                          <XCircle className="size-3.5 mr-1" />
-                          Ngừng
-                        </Button>
-                      </div>
-
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => setChangingPrescription(p)}
-                        className="h-8 gap-1.5 px-3 text-xs"
-                      >
-                        <RefreshCw className="size-3.5" />
-                        Đổi liều
+              {(buttons.length > 0 || canChange) && (
+                <CardFooter className="flex items-center justify-between border-t px-3 py-2.5">
+                  <div className="flex items-center gap-1.5">
+                    {buttons.map(({ command, label, Icon }) => (
+                      <Button key={command} variant="ghost" size="sm" className="h-9 px-2" onClick={() => setCommanding({ command, prescription: p })}>
+                        <Icon className="mr-1 size-3.5" aria-hidden="true" />
+                        {label}
                       </Button>
-                    </CardFooter>
+                    ))}
+                  </div>
+                  {canChange && (
+                    <Button size="sm" className="h-9 gap-1.5 px-3" onClick={() => setChanging(p)}>
+                      <RefreshCw className="size-3.5" aria-hidden="true" />
+                      Đổi liều
+                    </Button>
                   )}
-                </Card>
-              )
-            })}
-          </div>
-        )}
+                </CardFooter>
+              )}
+            </Card>
+          )
+        })}
       </div>
 
-      {/* Sheet Nhập đơn thuốc mới */}
-      <PrescriptionSheet
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        onSave={handleSavePrescription}
-        existingPrescriptions={prescriptions}
-        isDoctor={isDoctor}
-      />
-
-      {/* Sheet Đổi liều thuốc theo BR-M07-07 */}
+      {resident && board && (
+        <PrescriptionSheet
+          open={creating}
+          onOpenChange={setCreating}
+          residentId={resident.id}
+          resident={board.resident ?? { name: resident.personalInfo.fullName, allergies: [] }}
+          medications={board.medications}
+          isDoctor={isDoctor}
+          onSaved={saved}
+        />
+      )}
       <ChangeDosageSheet
-        open={Boolean(changingPrescription)}
-        onOpenChange={(open) => !open && setChangingPrescription(null)}
-        prescription={changingPrescription}
-        onSave={handleChangeDosage}
+        prescription={changing}
+        onClose={() => setChanging(null)}
+        onDone={async (message) => {
+          setChanging(null)
+          await saved(message)
+        }}
+      />
+      <CommandSheet
+        target={commanding}
+        onClose={() => setCommanding(null)}
+        onDone={async (command, p) => {
+          setCommanding(null)
+          await saved(`Đã ${{ SUSPEND: 'tạm dừng', RESUME: 'tiếp tục', DISCONTINUE: 'ngừng' }[command]} đơn #${p.id} (${p.drug}).`)
+        }}
       />
     </div>
   )
