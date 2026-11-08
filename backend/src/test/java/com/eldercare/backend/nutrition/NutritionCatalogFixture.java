@@ -44,6 +44,19 @@ final class NutritionCatalogFixture {
         user.set(doctor.user());
     }
 
+    /** Quản lý viện: danh mục bữa ăn, loại đồ ăn cấm (Q-401). */
+    void asManager() {
+        user.set(users.staff(Role.NURSING_HOME_MANAGER).user());
+    }
+
+    void asNurse() {
+        user.set(users.staff(Role.NURSING_STAFF).user());
+    }
+
+    void as(Role role) {
+        user.set(users.staff(role).user());
+    }
+
     ResultActions send(MockHttpServletRequestBuilder request, String body) throws Exception {
         return mvc.perform(request.header("Idempotency-Key", "m08-" + TestUsers.nextId())
                 .contentType(MediaType.APPLICATION_JSON)

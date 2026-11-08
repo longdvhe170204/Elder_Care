@@ -21,6 +21,7 @@ import 'medication/medication_round_repository.dart';
 import 'medication/medication_round_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'nutrition/family_food_screen.dart';
+import 'nutrition/meal_slip_screen.dart';
 import 'nutrition/serving_confirmation_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'resident_login_qr/resident_login_qr_screen.dart';
@@ -181,6 +182,7 @@ class _StaffRootState extends State<StaffRoot> {
         accountId: widget.session.user!.accountId,
       ),
     ),
+    ('Phiếu bữa ăn', LucideIcons.clipboardList, () => MealSlipScreen(api: widget.session.api)),
     ('Đồ ăn gia đình', LucideIcons.apple, () => FamilyFoodScreen(api: widget.session.api)),
     if (_canRunMedicationRound)
       (

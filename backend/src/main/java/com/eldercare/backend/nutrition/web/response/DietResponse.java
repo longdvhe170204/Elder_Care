@@ -15,7 +15,8 @@ public record DietResponse(
         boolean isDefault,
         @Schema(description = "Id dị nguyên") List<Long> restrictions,
         Long safeDishId,
-        CatalogStatus status) {
+        CatalogStatus status,
+        int version) {
 
     public static DietResponse of(Diet diet) {
         var a = diet.attributes();
@@ -27,6 +28,7 @@ public record DietResponse(
                 a.isDefault(),
                 a.restrictions(),
                 a.safeDishId(),
-                diet.status());
+                diet.status(),
+                diet.version());
     }
 }
