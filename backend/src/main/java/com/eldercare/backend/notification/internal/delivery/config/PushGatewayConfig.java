@@ -3,8 +3,8 @@ package com.eldercare.backend.notification.internal.delivery.config;
 import com.eldercare.backend.notification.api.spi.SmsProvider;
 import com.eldercare.backend.notification.internal.delivery.service.FcmPushGateway;
 import com.eldercare.backend.notification.internal.delivery.service.PushGateway;
+import com.eldercare.backend.notification.internal.delivery.service.SmsProviders;
 import com.eldercare.backend.notification.internal.delivery.service.UnconfiguredPushGateway;
-import com.eldercare.backend.notification.internal.delivery.service.UnconfiguredSmsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -43,7 +43,12 @@ class PushGatewayConfig {
     }
 
     @Bean
-    SmsProvider smsProvider() {
-        return new UnconfiguredSmsProvider();
+    SmsProvider smsProvider(
+            @Value("${eldercare.notification.sms.esms.api-key:}") String apiKey,
+            @Value("${eldercare.notification.sms.esms.secret-key:}") String secretKey,
+            @Value("${eldercare.notification.sms.esms.brandname:}") String brandname,
+            @Value("${eldercare.notification.sms.esms.sandbox:false}") boolean sandbox,
+            @Value("${eldercare.notification.sms.esms.base-url:https://rest.esms.vn}") String baseUrl) {
+        return SmsProviders.from(apiKey, secretKey, brandname, sandbox, baseUrl);
     }
 }
