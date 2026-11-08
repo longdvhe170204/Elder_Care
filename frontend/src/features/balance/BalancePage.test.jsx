@@ -26,6 +26,8 @@ const PENDING_TX = [
     status: 'PENDING_APPROVAL',
     adjusted: false,
     approvalRequestId: 12,
+    residentId: 7,
+    residentName: 'Nguyễn Thị Ánh',
   },
 ]
 
@@ -75,6 +77,7 @@ describe('BalancePage (017)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Giao dịch chờ duyệt' }))
     const row = (await screen.findByText('Xin rút')).closest('tr')
     expect(within(row).getByText('Hoàn tiền')).toBeInTheDocument()
+    expect(within(row).getByText('Nguyễn Thị Ánh')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Xuất sao kê, báo cáo' }))
     expect(await screen.findByRole('button', { name: 'Xuất báo cáo thu chi' })).toBeInTheDocument()
   })
