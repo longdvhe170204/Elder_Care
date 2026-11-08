@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'yaml'
 
-const TRANSLATED = ['000', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '012', '013', '014', '016', '017', '018', '019']
+const TRANSLATED = ['000', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '012', '013', '014', '016', '017', '018', '019']
 
 const root = fileURLToPath(new URL('../..', import.meta.url))
 const specsDir = join(root, 'specs')
