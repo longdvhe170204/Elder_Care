@@ -31,7 +31,7 @@ const ACTIVE = {
   medicationSource: 'FACILITY',
   prescriber: { type: 'INTERNAL' },
   status: 'ACTIVE',
-  allowedCommands: ['SUSPEND', 'DISCONTINUE', 'CHANGE_DOSE'],
+  allowedCommands: ['SUSPEND', 'DISCONTINUE', 'CHANGE_DOSE', 'EXTEND'],
 }
 const STOPPED = { ...ACTIVE, id: 6, status: 'DISCONTINUED', allowedCommands: [] }
 
@@ -137,6 +137,43 @@ describe('PrescriptionPanel', () => {
     const body = JSON.parse(init.body)
     expect(body).toMatchObject({ reason: 'Huyết áp chưa đạt', newPrescription: { medicationId: 1, dosage: 2, prescriber: { type: 'INTERNAL' } } })
     expect(body.effectiveFrom).toMatch(/\+07:00$/)
+  })
+
+  it('FR_017_giaHan_guiNgayKetThucMoiVaLyDo', async () => {
+    api.on('POST', '/prescriptions/7/extend', json(200, {}))
+    await open()
+    fireEvent.click(screen.getByRole('button', { name: /Gia hạn/ }))
+    fireEvent.change(await screen.findByLabelText('Ngày kết thúc mới'), { target: { value: '2026-12-31' } })
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Còn cần điều trị' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gia hạn đơn' }))
+    await waitFor(() => expect(api.calls('POST', '/prescriptions/7/extend')).toHaveLength(1))
+    const [, init] = api.calls('POST', '/prescriptions/7/extend')[0]
+    expect(init.headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
+    expect(JSON.parse(init.body)).toEqual({ reason: 'Còn cần điều trị', newEndedAt: '2026-12-31' })
+  })
+
+  it('FR_017_giaHan_boNgayKetThuc_guiNull', async () => {
+    api.on('POST', '/prescriptions/7/extend', json(200, {}))
+    await open()
+    fireEvent.click(screen.getByRole('button', { name: /Gia hạn/ }))
+    fireEvent.click(await screen.findByLabelText('Bỏ ngày kết thúc'))
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Dùng lâu dài' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gia hạn đơn' }))
+    await waitFor(() => expect(api.calls('POST', '/prescriptions/7/extend')).toHaveLength(1))
+    expect(JSON.parse(api.calls('POST', '/prescriptions/7/extend')[0][1].body)).toEqual({ reason: 'Dùng lâu dài', newEndedAt: null })
+  })
+
+  it('FR_005_keDonTheoNgayTrongTuan_maNgayIso', async () => {
+    api.on('POST', '/residents/9/prescriptions', json(201, { ...ACTIVE, id: 8 }))
+    await open()
+    fireEvent.click(screen.getByRole('button', { name: /Nhập đơn thuốc mới/ }))
+    const sheet = await screen.findByRole('dialog')
+    fireEvent.change(within(sheet).getByLabelText('Kiểu tần suất'), { target: { value: 'DAYS_OF_WEEK' } })
+    fireEvent.click(within(sheet).getByLabelText('Thứ 4'))
+    fireEvent.click(within(sheet).getByLabelText('Thứ 2'))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Lưu đơn thuốc' }))
+    await waitFor(() => expect(api.calls('POST', '/residents/9/prescriptions')).toHaveLength(1))
+    expect(JSON.parse(api.calls('POST', '/residents/9/prescriptions')[0][1].body).frequency).toEqual({ type: 'DAYS_OF_WEEK', daysOfWeek: [1, 3], timedSlots: ['08:00'] })
   })
 
   it('FR_016a_403_hienLoiKhiKhongCoQuyenDocDon', async () => {

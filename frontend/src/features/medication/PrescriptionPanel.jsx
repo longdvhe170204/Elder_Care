@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Calendar, Clock, FileText, Pause, Play, Plus, RefreshCw, ShieldAlert, XCircle } from 'lucide-react'
+import { Calendar, CalendarPlus, Clock, FileText, Pause, Play, Plus, RefreshCw, ShieldAlert, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
@@ -23,6 +23,7 @@ const COMMAND_BUTTONS = [
   { command: 'SUSPEND', label: 'Tạm dừng', Icon: Pause },
   { command: 'RESUME', label: 'Tiếp tục', Icon: Play },
   { command: 'DISCONTINUE', label: 'Ngừng', Icon: XCircle },
+  { command: 'EXTEND', label: 'Gia hạn', Icon: CalendarPlus },
 ]
 
 export function PrescriptionPanel({ role, onSaved }) {
@@ -207,7 +208,7 @@ export function PrescriptionPanel({ role, onSaved }) {
         onClose={() => setCommanding(null)}
         onDone={async (command, p) => {
           setCommanding(null)
-          await saved(`Đã ${{ SUSPEND: 'tạm dừng', RESUME: 'tiếp tục', DISCONTINUE: 'ngừng' }[command]} đơn #${p.id} (${p.drug}).`)
+          await saved(`Đã ${{ SUSPEND: 'tạm dừng', RESUME: 'tiếp tục', DISCONTINUE: 'ngừng', EXTEND: 'gia hạn' }[command]} đơn #${p.id} (${p.drug}).`)
         }}
       />
     </div>

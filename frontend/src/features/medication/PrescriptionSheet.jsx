@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { todayVN } from './doseRound'
 import { IssueConfirmations } from './IssueConfirmations'
 import { checkPrescription, createPrescription, idempotencyKeys } from './prescriptions'
-import { newPrescriptionBody, parseSlots } from './prescriptionView'
+import { DAY_LABELS, newPrescriptionBody, parseSlots } from './prescriptionView'
 
 // Khung Nhập đơn thuốc (spec 006 User Story 1; FR-004 → FR-008): chọn thuốc từ danh mục, kiểm tra trùng hoạt chất và
 // dị ứng do backend tính (POST .../prescriptions/check hoặc 409 ISSUES_REQUIRE_CONFIRMATION), vấn đề phải có lý do
@@ -40,6 +40,7 @@ function PrescriptionForm({ onOpenChange, residentId, resident, medications, isD
     prescriptionType: 'PERIODIC',
     frequencyType: 'TIMED_SLOTS',
     timedSlots: '08:00',
+    daysOfWeek: [],
     everyNHours: '8',
     firstSlot: '08:00',
     minIntervalMinutes: '240',
@@ -69,6 +70,8 @@ function PrescriptionForm({ onOpenChange, residentId, resident, medications, isD
         return 'Nhập khoảng cách tối thiểu (phút) và số lần tối đa trong 24 giờ, mỗi giá trị từ 1'
     } else if (form.frequencyType === 'TIMED_SLOTS') {
       if (!parseSlots(form.timedSlots)) return 'Nhập các mốc giờ dạng HH:mm, cách nhau bằng dấu phẩy'
+    } else if (form.frequencyType === 'DAYS_OF_WEEK') {
+      if (form.daysOfWeek.length === 0 || !parseSlots(form.timedSlots)) return 'Chọn ít nhất một ngày trong tuần và nhập các mốc giờ dạng HH:mm'
     } else if (!(Number(form.everyNHours) >= 1) || !parseSlots(form.firstSlot)) {
       return 'Nhập số giờ giữa các lần (từ 1) và giờ lần đầu dạng HH:mm'
     }
@@ -199,9 +202,27 @@ function PrescriptionForm({ onOpenChange, residentId, resident, medications, isD
                 <select id="freqSelect" value={form.frequencyType} onChange={(e) => set({ frequencyType: e.target.value })} className={select}>
                   <option value="TIMED_SLOTS">Các mốc giờ cố định</option>
                   <option value="EVERY_N_HOURS">Mỗi N giờ</option>
+                  <option value="DAYS_OF_WEEK">Theo ngày trong tuần</option>
                 </select>
+                {form.frequencyType === 'DAYS_OF_WEEK' && (
+                  <fieldset className="flex flex-wrap gap-x-3 gap-y-1 pt-1">
+                    <legend className="sr-only">Ngày trong tuần</legend>
+                    {Object.entries(DAY_LABELS).map(([day, label]) => (
+                      <label key={day} className="flex cursor-pointer items-center gap-1 type-body-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.daysOfWeek.includes(Number(day))}
+                          onChange={(e) =>
+                            set({ daysOfWeek: e.target.checked ? [...form.daysOfWeek, Number(day)] : form.daysOfWeek.filter((d) => d !== Number(day)) })
+                          }
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </fieldset>
+                )}
               </div>
-              {form.frequencyType === 'TIMED_SLOTS' ? (
+              {form.frequencyType !== 'EVERY_N_HOURS' ? (
                 <div className="flex flex-col gap-1.5">
                   <FieldLabel htmlFor="timedSlotsInput">Các mốc giờ (cách nhau bằng dấu phẩy)</FieldLabel>
                   <Input id="timedSlotsInput" value={form.timedSlots} onChange={(e) => set({ timedSlots: e.target.value })} placeholder="08:00, 20:00" className="h-11" />
