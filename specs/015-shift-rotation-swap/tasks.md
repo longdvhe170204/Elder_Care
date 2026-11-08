@@ -26,7 +26,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo gói con `BE/staffing/doica/` (Q-397: bỏ `xoayca`, `phuca`); mở rộng ArchUnit `BT/staffing/M09ArchTest.java` (008 T001): chỉ `staffing.doica` dùng port nội bộ; gói `..lich..` không lập lịch, không chỉ định người phụ trách (research X-01)
+- [x] T001 Tạo gói con `BE/staffing/doica/` (Q-397: bỏ `xoayca`, `phuca`); mở rộng ArchUnit `BT/staffing/M09ArchTest.java` (008 T001): chỉ `staffing.doica` dùng port nội bộ; gói `..lich..` không lập lịch, không chỉ định người phụ trách (research X-01) *(2026-11-09, D tự chọn: gói đặt tên `staffing.swap` theo glossary mục 2 "doica → swap", không phải `doica`; luật "chỉ `swap` gọi port lệnh nội bộ" và Q-306 cho `scheduling..` đã có từ 008; thêm `Q_397_swapDoesNotCreateSchedulesOrShifts` cấm `swap..` gọi createSchedule/createShift/createHandover/addHandoverItem; `M09ArchTest` 3, `M09ArchRuleTest` 4, `ModuleBoundaryTest` 1 xanh)*
 
 ---
 
