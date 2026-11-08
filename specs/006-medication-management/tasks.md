@@ -135,7 +135,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 - [x] T035 [US4] Tạo `V006_04__medication_reconciliation.sql`: `medication_reconciliation` (`reason ENUM('ADMISSION','HOSPITAL_RETURN','PROFESSIONAL_REQUEST')`; `status ENUM('OPEN','PENDING_CONFIRMATION','CONFIRMED','CANCELLED')`; `uq_recon_open_resident`; trigger `trg_reconciliation_lock`), `reconciliation_item`, `reconciliation_correction_request`
 - [x] T036 [US4] Cài `MedicationReconciliationService.java`: lập phiếu, cập nhật dòng (`If-Match`), gửi xác nhận kiểm đủ dòng, trả lại, xác nhận áp quyết định từng dòng trong một transaction, đề nghị đính chính và xác nhận đính chính
-- [x] T037 [US4] Cài phần đối chiếu của bean `ThamGiaM07.java`: `HOAN_TAT_TIEP_NHAN`, `GHI_NHAN_TRO_VE` từ bệnh viện; việc theo phút đặt `overdue_at` và cảnh báo
+- [ ] T037 [US4] Cài phần đối chiếu của bean `ThamGiaM07.java`: `HOAN_TAT_TIEP_NHAN`, `GHI_NHAN_TRO_VE` từ bệnh viện; việc theo phút đặt `overdue_at` và cảnh báo *(2026-11-08, D rà: chưa có mã, 006 chưa có bean `StatusTransitionParticipant` nào; bỏ `[x]`)*
 - [x] T038 [US4] Tạo `MedicationReconciliationController.java`: `POST/GET /api/v1/nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `GET /api/v1/phieu-doi-chieu/{id}`, `PUT …/{id}/dong`, `POST …/gui-xac-nhan`, `/tra-lai`, `/xac-nhan`, `/de-nghi-dinh-chinh`, `POST /de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `/tra-lai`
 
 **Checkpoint**: P1 hoàn tất.
@@ -150,13 +150,13 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 ### Tests cho User Story 5
 
-- [x] T039 [P] [US5] Test `BT/medication/BR_M07_03_VangMatIT.java`, `FR_027_MangTheoBaoLaiIT.java`, `BR_M07_22_NhieuLanGiaoIT.java` (phần giao): liều trong khoảng vắng Tạm dừng/Mang theo; trở về trước cuối cửa sổ quay lại; chỉ Điều dưỡng ghi liều Mang theo theo báo lại có người báo; nhiều lần giao trong một khoảng; nhận lại ≤ số giao; trạng thái cuối hủy liều và đóng đơn
+- [ ] T039 [P] [US5] Test `BT/medication/BR_M07_03_VangMatIT.java`, `FR_027_MangTheoBaoLaiIT.java`, `BR_M07_22_NhieuLanGiaoIT.java` (phần giao): liều trong khoảng vắng Tạm dừng/Mang theo; trở về trước cuối cửa sổ quay lại; chỉ Điều dưỡng ghi liều Mang theo theo báo lại có người báo; nhiều lần giao trong một khoảng; nhận lại ≤ số giao; trạng thái cuối hủy liều và đóng đơn *(2026-11-08, D rà: ba lớp test chưa từng có trong lịch sử git; bỏ `[x]`)*
 
 ### Implementation cho User Story 5
 
 - [x] T040 [US5] Tạo `MIG/V006_05__vang_mang_theo.sql`: `khoang_vang_thuoc` (`loai` 5 giá trị ở data-model mục 9; cột sinh một khoảng mở mỗi người `UNIQUE`), `lan_giao_thuoc` (nhóm 3, chỉ cột `trang_thai` `DANG_MANG_THEO|CHO_NHAN_LAI|DA_NHAN_LAI` đổi), `lan_giao_thuoc_dong`, `lan_giao_lieu`, `lan_nhan_lai_thuoc` (`lan_giao_id UNIQUE`), `lan_nhan_lai_thuoc_dong` (`so_luong CHECK >= 0`), `lenh_khong_mang_thuoc` (`UNIQUE (nct_id, chuyen_id)`)
-- [x] T041 [US5] Cài `BE/medication/mangtheo/internal/MangTheoService.java`: thuốc cần mang, lần giao (gắn liều, vật hóa trước đầu cửa sổ), nhận lại (biến động thuốc gửi), không mang thuốc (`ChuyenDiThuocPort.danhGiaDat`); `MangThuocChuyenDiApi` (014); `DinhChinhDuocProvider` `M07.LAN_GIAO_THUOC`, `M07.LAN_NHAN_LAI_THUOC`; listener `LuotVangDaGiaHan` (research D-15)
-- [x] T042 [US5] Cài phần vắng và trạng thái cuối của `ThamGiaM07.java`: `CHO_TAM_VANG` (`chiTiet.mangThuoc`), `CHUYEN_VIEN`, `DIEM_DANH_ROI_VIEN` (khoảng đi qua `ChuyenDiThuocPort`), `GHI_NHAN_TRO_VE`, `DIEM_DANH_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI` (đơn → `DA_NGUNG`, liều → `DA_HUY`/`KHONG_THUC_HIEN` Hệ thống) (research D-16)
+- [ ] T041 [US5] Cài `BE/medication/mangtheo/internal/MangTheoService.java`: thuốc cần mang, lần giao (gắn liều, vật hóa trước đầu cửa sổ), nhận lại (biến động thuốc gửi), không mang thuốc (`ChuyenDiThuocPort.danhGiaDat`); `MangThuocChuyenDiApi` (014); `DinhChinhDuocProvider` `M07.LAN_GIAO_THUOC`, `M07.LAN_NHAN_LAI_THUOC`; listener `LuotVangDaGiaHan` (research D-15) *(2026-11-08, D rà: thuốc cần mang, lần giao, nhận lại, không mang thuốc đã có; còn thiếu bản cài `MangThuocChuyenDiApi` (`TripMedicationApi`) và listener `LuotVangDaGiaHan`; bỏ `[x]`)*
+- [ ] T042 [US5] Cài phần vắng và trạng thái cuối của `ThamGiaM07.java`: `CHO_TAM_VANG` (`chiTiet.mangThuoc`), `CHUYEN_VIEN`, `DIEM_DANH_ROI_VIEN` (khoảng đi qua `ChuyenDiThuocPort`), `GHI_NHAN_TRO_VE`, `DIEM_DANH_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI` (đơn → `DA_NGUNG`, liều → `DA_HUY`/`KHONG_THUC_HIEN` Hệ thống) (research D-16) *(2026-11-08, D rà: chưa có mã; lịch thuốc chưa đọc khoảng vắng; bỏ `[x]`)*
 - [x] T043 [US5] Tạo `BE/medication/mangtheo/web/MangTheoController.java` (`GET /nguoi-cao-tuoi/{nctId}/thuoc-can-mang`, `POST/GET …/lan-giao-thuoc`, `POST /lan-giao-thuoc/{id}/nhan-lai`, `POST /nguoi-cao-tuoi/{nctId}/khong-mang-thuoc`); màn web `frontend/src/tinh-nang/thuoc-mang-theo/`, app `mobile/lib/nhan-vien/thuoc-mang-theo/`
 
 **Checkpoint**: Vắng mặt chạy độc lập.
