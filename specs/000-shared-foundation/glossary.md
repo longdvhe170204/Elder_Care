@@ -3885,6 +3885,21 @@ Tag: `so-du → balance`, `nop-tien → payments`, `giao-dich → balance-transa
 
 Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi viết migration và test (A Phase 1–6, B Phase 7–10); không tạo bảng đã gộp theo R-15 (data-model 017 mục 0).
 
+### 23.6. Lớp của B (Phase 7–10), hàm thuần và bộ dựng file *(B bổ sung 2026-11-08)*
+
+Gói thật là `billing.internal.balance.<chức năng>.{domain, service}` (LayerArchTest chỉ cho gói cấp một `api`, `web`, `internal`, `scheduling`; tên `billing.balance.internal` ở team-plan, CODEOWNERS là tên logic).
+
+| Tên logic | Tên mã |
+| --- | --- |
+| `GioiHanHoan` (T023), `GioiHanHoanTest` | `transaction.domain.RefundLimit` (`Kind`: `REFUND`, `DEPOSIT_REFUND`; `Outcome`: `ALLOWED`, `INVALID_AMOUNT`, `EXCEEDED`; `maximum`, `check`); `RefundLimitTest` |
+| sổ, loại, trạng thái, phương thức của giao dịch | `transaction.domain.Ledger`, `TransactionType`, `TransactionStatus`, `PaymentMethod` (giá trị như mục 23.3); `BalanceEntry` (dòng giao dịch làm đầu vào cho sao kê, báo cáo thu chi). A cài bảng, DTO có thể dùng lại các enum này |
+| `DieuKienQuyetToan` (T028), `DieuKienQuyetToanTest` | `settlement.domain.SettlementConditions` (`Input`, `Result.settlement`, `Result.confirmation`, `Condition`, `Code`, `Status`, `Reason`; `Result.satisfied(exceptionApproved)`); `SettlementConditionsTest` |
+| số liệu bảng quyết toán, bộ dựng PDF (T032) | `settlement.domain.SettlementStatementData`, `settlement.service.SettlementStatementDocument.pdf`; `SettlementStatementDocumentTest` |
+| `SaoKe`, `BaoCaoThuChi` (T037) | `export.domain.BalanceStatement`, `export.domain.IncomeExpenseReport` (`Debtor`); `BalanceStatementTest`, `IncomeExpenseReportTest` |
+| bộ dựng sao kê, báo cáo thu chi (T038) | `export.service.BalanceExportDocument` (`statementPdf`, `statementExcel`, `incomeExpensePdf`, `incomeExpenseExcel`; `ResidentStatement`); `BalanceExportDocumentTest` |
+| `VietQrPayload` (T008) | `document.domain.VietQrPayload` (`of`, `crc16`); `VietQrPayloadTest` |
+| số liệu phiếu báo phí, bộ dựng (T035) | `document.domain.PaymentNoticeData` (`Line`, `TypeTotal`, `PaymentInstructions`), `StatementType` (`REGULAR`, `SUPPLEMENTARY`, `FINAL_PERIOD`), `DocumentFormat` (tiền, ngày); `document.service.PaymentNoticeDocument` (`pdf`, `excel`), `QrImage`; `PaymentNoticeDocumentTest`, `QrImageTest` |
+
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
 "Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).

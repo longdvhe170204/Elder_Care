@@ -264,6 +264,8 @@ export const NAV_GROUPS = [
       },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
+      // Dòng "Số dư, thu chi" (017): Kế toán thực hiện, Quản lý viện duyệt và xem, Hành chính xem số dư
+      { key: 'balance', label: 'Số dư, thu chi', icon: 'Banknote', functions: ['BALANCE_LEDGER'], roles: [QL, HC, KT] },
       // Dòng "Hồ sơ, quan hệ, vai trò người thân" (FR-067 của 012; Phụ lục 27 "Người thân và quyền"): Hành chính lập, Quản lý viện xem
       {
         key: 'family-members',
