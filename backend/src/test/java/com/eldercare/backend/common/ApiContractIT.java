@@ -61,7 +61,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    // Q-399 (2026-11-03): tự đặt lại mật khẩu, cài khi chốt nhà cung cấp tin nhắn (Q-06, 002 T105)
+                    // Q-399 (2026-11-03): tự đặt lại mật khẩu, cài ở 002 T105 (chủ dự án cho làm trước nhà cung cấp tin
+                    // nhắn, 2026-11-08)
                     Set.of(
                             "GET /api/v1/auth/password-reset/availability",
                             "POST /api/v1/auth/password-reset/request",
@@ -72,7 +73,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(),
-                    Set.of(),
+                    // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
+                    Set.of("GET /api/v1/me/shifts 200"),
                     true),
             // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
             new Contract(
@@ -262,7 +264,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     .filter(code -> !pendingResponses.contains(at + " " + code))
                     .forEach(code -> out.add(at + " thiếu phản hồi " + code));
             responses.getIncreased().keySet().forEach(code -> out.add(at + " thừa phản hồi " + code));
-            responses.getChanged().forEach((code, r) -> content(at + " phản hồi " + code, r.getContent(), out));
+            responses.getChanged().entrySet().stream()
+                    // phản hồi đã đổi ở hợp đồng mà mã chưa theo kịp cũng chờ như phản hồi chưa cài
+                    .filter(e -> !pendingResponses.contains(at + " " + e.getKey()))
+                    .forEach(e ->
+                            content(at + " phản hồi " + e.getKey(), e.getValue().getContent(), out));
         }
     }
 

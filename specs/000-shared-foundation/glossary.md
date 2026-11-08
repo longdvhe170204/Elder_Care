@@ -924,6 +924,12 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | Bảng giường app nhân viên (T060) | `staff/beds/BedsScreen`; quyền đọc cấu hình dùng bảng giường, Bác sĩ dùng phòng cách ly và phân bổ chờ xác nhận |
 | Xác nhận sẵn sàng / chuyển thường và chuyển theo chỉ định / cách ly và xác nhận ở lại | `BedReadinessScreen`, `BedTransferScreen`, `RoomIsolationScreen` trong `mobile/lib/staff/beds/` |
 | Khóa thử lại lệnh / hiển thị lỗi và điều kiện chưa thỏa của riêng màn giường | `bedCommandKey`, `bedProblem` trong `bed_command.dart`; dùng `ApiClient` chung, không hàng đợi riêng |
+### 9.23. Đổi api cho 016 (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| `giuongTrongChoChuyenNguoi` (id giường Trống mang dấu "chờ chuyển người" tại thời điểm; module-interfaces 1.8a) | `BedStatisticsApi.emptyAwaitingTransferBedIds(ScopeFilter scope, Instant at)` trả `Set<Long>` |
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
@@ -2559,6 +2565,13 @@ Các view là dữ liệu tính khi đọc, không phải công việc hoặc b�
 
 HandoverScreen tại staff/handover;menu SHIFT_HANDOVER/VIEW. Dùng đúng lệnh create/complete/confirm/comment/supplementAndResubmit từ allowedCommands và HTTP008 hiện có. Không có version trong HandoverBody,không suy version;client ETag và nguồn hạn cache chờ nềnA. Không thêm recordType ngoại tuyến hoặc API.
 
+
+### 14.23. Hạn phạm vi ca ở `/me/shifts` (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| ca của tôi (kèm hạn phạm vi) | schema `MyShift` (= `Shift` + `scopeEndsAt`), phản hồi của `GET /me/shifts` |
+| hết phạm vi của người dùng trong ca (002 FR-032; mốc kết thúc sớm, hoặc kết thúc phân công + CFG-M15-07) | `scopeEndsAt` |
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.
@@ -3915,6 +3928,12 @@ Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi vi
 | màn web | `features/balance/{PaymentRecording, BalanceStatuses, amounts}`, `features/family-portal/live/LiveCostsPage`; app `lib/family/balance/family_balance_screen.dart` |
 | test | `US1_BalanceIT`, `US2_PaymentIT`, `US4_StatementPaymentIT`, `US5_BalanceStatusIT`, `PaymentCodeTest`, `BalanceStatusRuleTest`, `NoticeDecisionTest`; lớp nền `BalanceTestBase` |
 
+### 23.8. Danh sách chờ duyệt (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| giao dịch Chờ duyệt kèm người cao tuổi | schema `PendingBalanceTransaction` (= `BalanceTransaction` + `residentId`, `residentName`), phản hồi của `GET /balance-transactions/pending-approval` |
+
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
 "Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).
@@ -4245,3 +4264,9 @@ Các tên mã trên đã có implementation; task chỉ đánh sau kiểm cuối
 | Đọc snapshot/interval theo lô | `BedReportingStore`, `BedReportingSnapshot` và record nội bộ `State`, `Window`, `Policy`, `Flags` trong `internal/bed/domain` |
 | Dấu chưa có giường | `BedFlagView.bedId` kiểu `Long`, null chỉ cho `WITHOUT_BED` theo duyệt chủ dự án2026-10-25 |
 | Bằng chứng kiểm cuối | `specs/003-room-bed-allocation/verification.md`, `SC_008_BedReportingIT`, `DBR_23_RecordTablesIT`, `T064_BedListPerformanceIT` |
+
+### 25.12. Id dòng yêu cầu mua sắm (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| dòng yêu cầu mua sắm, id dòng | schema `ProcurementRequestLine` (tách từ phần tử của `ProcurementRequestWrite.lines`, thêm `id` chỉ đọc; khi lập, sửa thì bỏ qua `id`); 006 gửi id này ở `requestLineId` |
