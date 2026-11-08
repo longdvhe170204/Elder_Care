@@ -282,6 +282,14 @@ public class AllocationCommandStore {
         jdbc.update("DELETE FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=?", id);
     }
 
+    /** FR-027 (e): dấu nhập bù kèm thời điểm thực hiện thật. */
+    public void backfilled(long id, Instant recordedAt) {
+        jdbc.update(
+                "UPDATE bed_allocation SET backfilled=TRUE,actual_recorded_at=? WHERE id=?",
+                Timestamp.from(recordedAt),
+                id);
+    }
+
     public void awaitingDoctor(long id) {
         jdbc.update(
                 "UPDATE bed_allocation SET doctor_confirmation_requested_at="

@@ -59,6 +59,17 @@ public class BedTransferStore {
                 .orElse(null);
     }
 
+    /** Chỉ mục yêu cầu nhập bù chờ duyệt (FR-027 (b), CHK051); ghi cùng transaction lập yêu cầu. */
+    public void backfillRequested(long requestId, long residentId, long allocationId, long newBedId, Instant at) {
+        jdbc.update(
+                "INSERT INTO bed_backfill_request(approval_request_id,resident_id,current_allocation_id,new_bed_id,transfer_at) VALUES(?,?,?,?,?)",
+                requestId,
+                residentId,
+                allocationId,
+                newBedId,
+                Timestamp.from(at));
+    }
+
     public void transferred(long previous, long next, long reasonId, boolean awaitingRequest, Instant at) {
         jdbc.update(
                 "UPDATE bed_allocation SET previous_allocation_id=?,transfer_reason_id=?,awaiting_request=? WHERE id=?",
