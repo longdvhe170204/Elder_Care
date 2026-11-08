@@ -102,10 +102,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 007 T062 (dịch đủ 2026-11-03, bản dịch contracts/api-translation.md): danh mục và đo chỉ số đã cài
             new Contract(
                     Path.of("..", "specs", "007-health-alert-incident", "contracts", "api-007.yaml"),
-                    Set.of(
-                            "GET /api/v1/incidents/{id}/family-contacts-to-notify",
-                            "GET /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/residents/{residentId}/examinations"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt

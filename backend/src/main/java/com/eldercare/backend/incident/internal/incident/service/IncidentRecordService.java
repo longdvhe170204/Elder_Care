@@ -64,7 +64,7 @@ public class IncidentRecordService {
     private static final String FALL = "FALL";
     private static final String SUSPECTED_INFECTION = "SUSPECTED_INFECTION";
     /** FR-043 (b) sửa theo spec 013 FR-022: không báo đánh giá lại ở mọi mức. */
-    private static final Set<String> NO_REASSESSMENT = Set.of("BELONGINGS_LOST", "BELONGINGS_DAMAGED");
+    static final Set<String> NO_REASSESSMENT = Set.of("BELONGINGS_LOST", "BELONGINGS_DAMAGED");
 
     private final IncidentStore incidents;
     private final IncidentCatalogService catalog;
