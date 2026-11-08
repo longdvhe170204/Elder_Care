@@ -97,6 +97,18 @@ public final class PdfDocument {
         return this;
     }
 
+    /**
+     * Ảnh PNG, JPEG canh giữa trong thân trang, giữ tỉ lệ, cạnh lớn nhất bằng {@code sizePt} điểm (ví dụ mã QR VietQR
+     * của phiếu báo phí, 017 FR-032).
+     */
+    public PdfDocument image(byte[] content, float sizePt) {
+        Image image = image(content);
+        image.scaleToFit(sizePt, sizePt);
+        image.setAlignment(Element.ALIGN_CENTER);
+        add(image);
+        return this;
+    }
+
     /** Ô ký tay đặt cạnh nhau: chức danh, dòng hướng dẫn, khoảng trống để ký. */
     public PdfDocument signatures(String... titles) {
         PdfPTable table = new PdfPTable(titles.length);
