@@ -235,6 +235,8 @@ class BR_M07_09_ReconciliationDeadlineTest {
         deadlines.complete(RESIDENT);
 
         verify(due).clear(RESIDENT);
+        verify(events)
+                .publishEvent(new com.eldercare.backend.medication.api.events.ReconciliationCompleted(RESIDENT, AT));
         assertThat(suspended.getStatus()).isEqualTo(DoseStatus.UPCOMING);
     }
 }

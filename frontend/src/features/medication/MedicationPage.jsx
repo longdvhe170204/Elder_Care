@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -8,24 +8,26 @@ import { AllergyNote } from '@/common/CareNotes'
 import { NowStrip } from '@/common/NowStrip'
 import { ClockAside, PageHeader } from '@/common/PageHeader'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
+import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
-import { DEMO_DOSES, DEMO_RESIDENTS, DEMO_SHIFT } from '@/common/demoData'
+import { problemOf } from '@/common/problem'
 import { cn } from '@/lib/utils'
 import { DoseSheet } from './DoseSheet'
 import { DoseTags } from './DoseTags'
+import { loadDoseRound, recordDoses } from './doseRound'
+import { hhmm } from './doseRoundView'
 import { windowOf } from './medicationTime'
 import { PrescriptionPanel } from './PrescriptionPanel'
 import { PrnPanel } from './PrnPanel'
 
-// Bản mẫu màn Phát thuốc (M14; spec 006 User Story 2, 6), theo DESIGN.md 5.1: lưới thẻ theo giờ dự kiến, mỗi thẻ
-// là một người cao tuổi trong giờ đó. Chỉ Điều dưỡng xác nhận liều (FR-026); Trưởng tầng, Bác sĩ, Quản lý viện
-// xem. Trạng thái liều do hệ thống tính theo giờ (FR-021); ở đây cố định theo giờ hiện tại của bản mẫu.
+// Màn Phát thuốc (M14; spec 006 User Story 2, 6), theo DESIGN.md 5.1: lưới thẻ theo giờ dự kiến, mỗi thẻ là một
+// người cao tuổi trong giờ đó. Liều theo lịch đọc từ GET /medication-doses/rounds, ghi bằng administer, refuse, skip
+// (api-006); họ tên, dị ứng từ api-001, phòng từ api-003, ca từ api-008. Chỉ Điều dưỡng xác nhận liều (FR-026); trạng
+// thái liều do hệ thống tính (FR-021). Thuốc khi cần và đơn thuốc còn dùng dữ liệu minh họa.
 
 const RECORD_ROLE = 'NURSING_STAFF'
 const OPEN = ['Đến giờ', 'Trễ']
 const FILTERS = ['Tất cả', 'Trễ', 'Đến giờ', 'Chưa đến giờ', 'Đã xong']
-
-const residentOf = (code) => DEMO_RESIDENTS.find((r) => r.code === code)
 
 // Trạng thái của thẻ theo liều gấp nhất trong thẻ
 function groupStatus(doses) {
@@ -35,11 +37,12 @@ function groupStatus(doses) {
   return 'Đã xong'
 }
 
-function groupsOf(doses) {
+function groupsOf(doses, residents) {
   const map = new Map()
   for (const d of doses) {
     const key = `${d.time}:${d.residentCode}`
-    if (!map.has(key)) map.set(key, { key, time: d.time, resident: residentOf(d.residentCode), doses: [] })
+    if (!map.has(key))
+      map.set(key, { key, time: d.time, resident: residents.find((r) => r.code === d.residentCode), doses: [] })
     map.get(key).doses.push(d)
   }
   return [...map.values()].map((g) => ({ ...g, status: groupStatus(g.doses) }))
@@ -51,7 +54,7 @@ function DoseCard({ group, canRecord, onOpen }) {
   const r = group.resident
   const showRecord = canRecord && group.doses.some((d) => OPEN.includes(d.status))
   return (
-    <Card className='gap-3'>
+    <Card className="gap-3">
       <CardHeader className="flex flex-row items-center gap-2.5">
         <ResidentAvatar name={r.name} code={r.code} initials={r.initials} />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -96,10 +99,18 @@ function Section({ label, sub, count, defaultOpen, urgent, current, children }) 
   return (
     <Collapsible defaultOpen={defaultOpen} className="flex flex-col gap-3">
       <CollapsibleTrigger className="group flex min-h-11 w-fit items-center gap-2 rounded-full pr-2">
-        <ChevronDown className="size-5 -rotate-90 text-foreground transition-transform group-data-[panel-open]:rotate-0" aria-hidden="true" />
+        <ChevronDown
+          className="size-5 -rotate-90 text-foreground transition-transform group-data-[panel-open]:rotate-0"
+          aria-hidden="true"
+        />
         <span className={cn('type-title tabular-nums', current && 'text-accent-foreground')}>{label}</span>
         {sub && <span className="type-caption text-foreground tabular-nums">{sub}</span>}
-        <span className={cn('rounded-full px-2 type-caption tabular-nums', urgent ? 'bg-destructive-subtle text-destructive' : 'bg-card text-muted-foreground')}>
+        <span
+          className={cn(
+            'rounded-full px-2 type-caption tabular-nums',
+            urgent ? 'bg-destructive-subtle text-destructive' : 'bg-card text-muted-foreground',
+          )}
+        >
           {count}
         </span>
       </CollapsibleTrigger>
@@ -112,14 +123,37 @@ function Section({ label, sub, count, defaultOpen, urgent, current, children }) 
 
 export function MedicationPage({ role }) {
   const canRecord = role === RECORD_ROLE
-  const shift = DEMO_SHIFT
   const [mode, setMode] = useState('scheduled')
   const [filter, setFilter] = useState('Tất cả')
-  const [doses, setDoses] = useState(DEMO_DOSES)
+  const [round, setRound] = useState(null)
+  const [problem, setProblem] = useState(null)
+  const [clock, setClock] = useState(() => hhmm(new Date()))
   const [opening, setOpening] = useState(null)
   const [announcement, setAnnouncement] = useState('')
 
-  const groups = groupsOf(doses)
+  const reload = useCallback(async () => {
+    try {
+      setRound(await loadDoseRound())
+      setProblem(null)
+    } catch (error) {
+      setProblem(problemOf(error))
+    }
+  }, [])
+  useEffect(() => {
+    let cancelled = false
+    loadDoseRound().then(
+      (data) => !cancelled && setRound(data),
+      (error) => !cancelled && setProblem(problemOf(error)),
+    )
+    // Giờ hiện tại theo máy; giờ máy chủ chưa có trong client (NFR-09), chỉnh khi hợp đồng công bố
+    const tick = setInterval(() => setClock(hhmm(new Date())), 30_000)
+    return () => {
+      cancelled = true
+      clearInterval(tick)
+    }
+  }, [])
+  const shift = { now: clock, start: round?.shift?.start, end: round?.shift?.end }
+  const groups = groupsOf(round?.doses ?? [], round?.residents ?? [])
   const count = (s) => (s === 'Tất cả' ? groups.length : groups.filter((g) => g.status === s).length)
   const visible = groups.filter((g) => filter === 'Tất cả' || g.status === filter)
   const active = visible.filter((g) => g.status !== 'Đã xong')
@@ -129,31 +163,37 @@ export function MedicationPage({ role }) {
   const lateGroups = groups.filter((g) => g.status === 'Trễ')
   const current = times.find((t) => windowOf(t).from <= shift.now && shift.now <= windowOf(t).to)
 
-  function save(results) {
-    setDoses((all) =>
-      all.map((d) => {
-        const r = results.find((x) => x.dose.id === d.id)
-        if (!r) return d
-        if (r.result === 'Đã dùng') {
-          const late = r.time > windowOf(d.time).to
-          return { ...d, status: 'Đã dùng', result: `Đã dùng lúc ${r.time}${late ? ', dùng trễ' : ''}${r.lot ? `, ${r.lot}` : ''}` }
-        }
-        return { ...d, status: r.result, result: `${r.result}: ${r.reason.trim()}` }
-      }),
-    )
-    setOpening(null)
-    setAnnouncement(`Đã lưu ${results.length} liều của ${opening.resident.name}. Bản mẫu: trạng thái thật do backend trả.`)
+  async function save(results) {
+    try {
+      await recordDoses(results)
+      setAnnouncement(`Đã lưu ${results.length} liều của ${opening.resident.name}.`)
+      setOpening(null)
+      setProblem(null)
+    } catch (error) {
+      setProblem(problemOf(error))
+    }
+    await reload()
   }
 
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
       <PageHeader
-        title={`Phát thuốc ${shift.floor.toLowerCase()}, ${shift.name.toLowerCase()}`}
-        subtitle={canRecord ? 'Liều của người cao tuổi bạn phụ trách và liều chung của tầng.' : 'Bạn chỉ xem; xác nhận liều do Điều dưỡng thực hiện.'}
-        aside={<ClockAside time={shift.now} caption={`Ca ${shift.start} đến ${shift.end}`} />}
+        title="Phát thuốc"
+        subtitle={
+          canRecord
+            ? 'Liều của người cao tuổi bạn phụ trách và liều chung của tầng.'
+            : 'Bạn chỉ xem; xác nhận liều do Điều dưỡng thực hiện.'
+        }
+        aside={<ClockAside time={shift.now} caption={shift.start ? `Ca ${shift.start} đến ${shift.end}` : undefined} />}
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <ToggleGroup variant="filter" size="lg" value={[mode]} onValueChange={(n) => n[0] && setMode(n[0])} aria-label="Loại thuốc">
+          <ToggleGroup
+            variant="filter"
+            size="lg"
+            value={[mode]}
+            onValueChange={(n) => n[0] && setMode(n[0])}
+            aria-label="Loại thuốc"
+          >
             <ToggleGroupItem value="scheduled" className="h-11 px-4">
               Liều theo lịch
             </ToggleGroupItem>
@@ -165,12 +205,21 @@ export function MedicationPage({ role }) {
             </ToggleGroupItem>
           </ToggleGroup>
           {mode === 'scheduled' && (
-            <ToggleGroup variant="filter" size="lg" value={[filter]} onValueChange={(n) => n[0] && setFilter(n[0])} aria-label="Lọc theo trạng thái">
+            <ToggleGroup
+              variant="filter"
+              size="lg"
+              value={[filter]}
+              onValueChange={(n) => n[0] && setFilter(n[0])}
+              aria-label="Lọc theo trạng thái"
+            >
               {FILTERS.map((f) => (
                 <ToggleGroupItem
                   key={f}
                   value={f}
-                  className={cn('h-11 px-4', f === 'Trễ' && count('Trễ') > 0 && 'bg-destructive-subtle text-destructive')}
+                  className={cn(
+                    'h-11 px-4',
+                    f === 'Trễ' && count('Trễ') > 0 && 'bg-destructive-subtle text-destructive',
+                  )}
                 >
                   {f} <span className="tabular-nums">{count(f)}</span>
                 </ToggleGroupItem>
@@ -191,6 +240,8 @@ export function MedicationPage({ role }) {
         />
       )}
 
+      <ProblemAlert problem={problem} />
+
       <p role="status" aria-live="polite" className="empty:hidden rounded-xl border bg-card px-4 py-3 type-body-sm">
         {announcement}
       </p>
@@ -199,12 +250,15 @@ export function MedicationPage({ role }) {
         <PrnPanel canRecord={canRecord} now={shift.now} onSaved={setAnnouncement} />
       ) : mode === 'prescriptions' ? (
         <PrescriptionPanel role={role} canRecord={canRecord} onSaved={setAnnouncement} />
+      ) : !round ? (
+        !problem && <p className="rounded-xl border bg-card px-4 py-3 type-body-sm">Đang tải vòng phát thuốc…</p>
       ) : (
         <div className="flex flex-col gap-6">
           {times.map((t) => {
             const inSlot = active.filter((g) => g.time === t)
             const urgent = inSlot.some((g) => g.status === 'Trễ')
-            const w = windowOf(t)
+            const first = inSlot[0].doses[0]
+            const w = { from: first.from ?? windowOf(t).from, to: first.to ?? windowOf(t).to }
             return (
               <Section
                 key={t}

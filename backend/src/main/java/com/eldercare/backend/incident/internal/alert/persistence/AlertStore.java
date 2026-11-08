@@ -318,6 +318,15 @@ public class AlertStore {
                 """, resolution, reason, closedById, Timestamp.from(at), id, expectedVersion));
     }
 
+    /** Nguồn đã được xử lý: cảnh báo đang mở → Đã đóng, người đóng Hệ thống (FR-032, research S-09). */
+    public void closeBySystem(long id, String resolution, Instant at, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CLOSED', resolution = ?, closed_by_system = TRUE, closed_at = ?,
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
+                """, resolution, Timestamp.from(at), id, expectedVersion));
+    }
+
     /** Đang xử lý → Chuyển sự cố, gắn sự cố liên kết, dừng leo thang (bảng FR-029). */
     public void convert(long id, long incidentId, int expectedVersion) {
         requireOne(jdbc.update("""
