@@ -1,11 +1,10 @@
 package com.eldercare.backend.staffing.swap;
 
-
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.admission.FakeM02Config;
 import com.eldercare.backend.support.fake.care.FakeM04Config;
@@ -121,7 +120,8 @@ abstract class SwapTestBase extends MySqlIntegrationTestBase {
                 head.staffId(),
                 floor,
                 ShiftStore.sql(time.now().minus(Duration.ofDays(30))));
-        // Phạm vi ASSIGNED của 002 chỉ tính phân công hiện tại: cho người lập, người nhận một phân công tầng trong ca đang diễn
+        // Phạm vi ASSIGNED của 002 chỉ tính phân công hiện tại: cho người lập, người nhận một phân công tầng trong ca
+        // đang diễn
         // ra để qua kiểm quyền lập của yêu cầu phê duyệt (xem team-plan mục 8, dòng 015).
         Instant now = time.now();
         long current = insert(
@@ -181,7 +181,8 @@ abstract class SwapTestBase extends MySqlIntegrationTestBase {
     }
 
     protected ResultActions fetch(String path, TestUsers.TestUser user) throws Exception {
-        return mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(path).header("Authorization", token(user)));
+        return mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(path)
+                .header("Authorization", token(user)));
     }
 
     /** Lập yêu cầu đổi hai chiều và trả mã yêu cầu. */
@@ -190,15 +191,22 @@ abstract class SwapTestBase extends MySqlIntegrationTestBase {
                         "/api/v1/shift-swaps",
                         by,
                         Map.of(
-                                "kind", "MUTUAL",
-                                "shiftXId", x,
-                                "recipientId", to.staffId(),
-                                "shiftYId", y,
-                                "reason", "[Lý do riêng tư đổi ca]"))
+                                "kind",
+                                "MUTUAL",
+                                "shiftXId",
+                                x,
+                                "recipientId",
+                                to.staffId(),
+                                "shiftYId",
+                                y,
+                                "reason",
+                                "[Lý do riêng tư đổi ca]"))
                 .andReturn()
                 .getResponse();
         String location = response.getHeader("Location");
-        if (location == null) throw new AssertionError("Lập yêu cầu thất bại: " + response.getStatus() + " " + response.getContentAsString());
+        if (location == null)
+            throw new AssertionError(
+                    "Lập yêu cầu thất bại: " + response.getStatus() + " " + response.getContentAsString());
         return Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
     }
 
@@ -207,14 +215,20 @@ abstract class SwapTestBase extends MySqlIntegrationTestBase {
                         "/api/v1/shift-swaps",
                         by,
                         Map.of(
-                                "kind", "TAKE_OVER",
-                                "shiftXId", x,
-                                "recipientId", to.staffId(),
-                                "reason", "[Lý do riêng tư nhận thay]"))
+                                "kind",
+                                "TAKE_OVER",
+                                "shiftXId",
+                                x,
+                                "recipientId",
+                                to.staffId(),
+                                "reason",
+                                "[Lý do riêng tư nhận thay]"))
                 .andReturn()
                 .getResponse();
         String location = response.getHeader("Location");
-        if (location == null) throw new AssertionError("Lập yêu cầu thất bại: " + response.getStatus() + " " + response.getContentAsString());
+        if (location == null)
+            throw new AssertionError(
+                    "Lập yêu cầu thất bại: " + response.getStatus() + " " + response.getContentAsString());
         return Long.parseLong(location.substring(location.lastIndexOf('/') + 1));
     }
 

@@ -16,7 +16,9 @@ import org.junit.jupiter.api.Test;
 class SwapRulesTest {
 
     private static Instant at(int day, int hour) {
-        return LocalDateTime.of(2026, 11, day, hour, 0).atZone(BusinessTime.ZONE).toInstant();
+        return LocalDateTime.of(2026, 11, day, hour, 0)
+                .atZone(BusinessTime.ZONE)
+                .toInstant();
     }
 
     private static Interval shift(int day, int from, int to) {

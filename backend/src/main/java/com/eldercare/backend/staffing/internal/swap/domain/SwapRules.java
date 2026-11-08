@@ -23,7 +23,8 @@ public final class SwapRules {
     /** Số giờ của các ca nằm trong tháng theo múi giờ cơ sở (DBR-25), cắt phần ngoài tháng. */
     public static Duration hoursInMonth(Collection<Interval> shifts, YearMonth month) {
         Instant from = month.atDay(1).atStartOfDay(BusinessTime.ZONE).toInstant();
-        Instant to = month.plusMonths(1).atDay(1).atStartOfDay(BusinessTime.ZONE).toInstant();
+        Instant to =
+                month.plusMonths(1).atDay(1).atStartOfDay(BusinessTime.ZONE).toInstant();
         Duration total = Duration.ZERO;
         for (Interval s : shifts) {
             Instant start = s.from().isAfter(from) ? s.from() : from;

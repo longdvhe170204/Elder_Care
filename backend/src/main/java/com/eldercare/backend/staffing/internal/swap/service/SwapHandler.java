@@ -69,7 +69,11 @@ class SwapHandler implements RequestTypeHandler {
     public Target scope(JsonNode content) {
         long shiftId = content.get("shiftXId").asLong();
         // Tầng/khu vực của ca X lấy ở SwapService.scopeOf trước khi lập; ở đây chỉ giữ mã ca.
-        return new Target("M09.SHIFT", Long.toString(shiftId), null, content.hasNonNull("floorAreaId") ? content.get("floorAreaId").asLong() : null);
+        return new Target(
+                "M09.SHIFT",
+                Long.toString(shiftId),
+                null,
+                content.hasNonNull("floorAreaId") ? content.get("floorAreaId").asLong() : null);
     }
 
     @Override

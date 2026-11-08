@@ -223,8 +223,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
         content.put("scopeType", scopeType);
         content.put("scopeId", scopeId == null ? json.nullNode() : json.valueToTree(scopeId));
         content.put("floorAreaId", floor == null ? json.nullNode() : json.valueToTree(floor));
-        ApprovalRequestView request =
-                approvals.create(new CreateRequest(TYPE, json.valueToTree(content), time.today(), input.reason(), true));
+        ApprovalRequestView request = approvals.create(
+                new CreateRequest(TYPE, json.valueToTree(content), time.today(), input.reason(), true));
         long id = request.id();
         for (Item item : items) {
             if (item.shiftId() != null) {
@@ -283,8 +283,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
         if (!"PUBLISHED".equals(s.status()) || !s.startsAt().isAfter(time.now())) {
             throw new BusinessException(HttpStatus.CONFLICT, "INVALID_SHIFT", "Ca phải Đã công bố và chưa bắt đầu");
         }
-        boolean present = shifts.members(s.id()).stream()
-                .anyMatch(m -> m.staffId() == staffId && m.presentAt(time.now()));
+        boolean present =
+                shifts.members(s.id()).stream().anyMatch(m -> m.staffId() == staffId && m.presentAt(time.now()));
         if (!present) {
             throw new BusinessException(HttpStatus.CONFLICT, "INVALID_SHIFT", "Nhân viên không có tên trong ca");
         }
@@ -328,17 +328,20 @@ public class LeaveService implements ApprovedLeaveDayPort {
                 out.add(item.with(Result.REJECTED, decision.reason(), null, null));
                 continue;
             }
-            out.add(item.shiftId() != null
-                    ? applyShift(d, item, choice == null ? null : choice.newLeadId(), id, basis, effects)
-                    : applyDay(d, item, id, basis, effects));
+            out.add(
+                    item.shiftId() != null
+                            ? applyShift(d, item, choice == null ? null : choice.newLeadId(), id, basis, effects)
+                            : applyDay(d, item, id, basis, effects));
         }
-        if ((anyRejected || self) && (decision.reason() == null || decision.reason().isBlank())) {
+        if ((anyRejected || self)
+                && (decision.reason() == null || decision.reason().isBlank())) {
             throw new ReasonRequiredException();
         }
         releaseResolved(d, out);
         boolean anyApplied = out.stream().anyMatch(i -> i.result() == Result.APPROVED);
         boolean anyRejectedFinal = out.stream().anyMatch(i -> i.result() == Result.REJECTED);
-        String transition = !anyApplied ? LeaveHandler.REJECT : anyRejectedFinal ? LeaveHandler.APPLY_PARTIAL : LeaveHandler.APPLY;
+        String transition =
+                !anyApplied ? LeaveHandler.REJECT : anyRejectedFinal ? LeaveHandler.APPLY_PARTIAL : LeaveHandler.APPLY;
         String status = !anyApplied
                 ? SwapStatus.REJECTED
                 : anyRejectedFinal ? SwapStatus.PARTIALLY_APPLIED : SwapStatus.APPLIED;
@@ -385,7 +388,10 @@ public class LeaveService implements ApprovedLeaveDayPort {
         records.updateLeave(
                 row,
                 SwapStatus.REJECTED,
-                d.withItems(out, me.accountId(), me.staffId().filter(s -> s == d.staffId()).isPresent()),
+                d.withItems(
+                        out,
+                        me.accountId(),
+                        me.staffId().filter(s -> s == d.staffId()).isPresent()),
                 true);
         notices.send(
                 "M09.LEAVE_REQUEST",
@@ -409,7 +415,11 @@ public class LeaveService implements ApprovedLeaveDayPort {
         if (!owner && me.accountId() != d.filedByAccountId()) {
             throw new PermissionDeniedException("Chỉ người nghỉ hoặc người lập thay được hủy");
         }
-        releaseResolved(d, d.items().stream().map(i -> i.with(Result.LEFT, null, null, null)).toList());
+        releaseResolved(
+                d,
+                d.items().stream()
+                        .map(i -> i.with(Result.LEFT, null, null, null))
+                        .toList());
         approvals.applyExtendedTransition(id, LeaveHandler.CANCEL, new Basis("FR-031", id, null, null));
         records.updateLeave(row, SwapStatus.CANCELLED, d, true);
     }
@@ -434,8 +444,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
     private Item applyShift(
             LeaveDetail d, Item item, Long chosenLead, long requestId, Basis basis, List<Map<String, Object>> effects) {
         WorkShift s = shifts.shift(item.shiftId(), true);
-        boolean present = shifts.members(s.id()).stream()
-                .anyMatch(m -> m.staffId() == d.staffId() && m.presentAt(time.now()));
+        boolean present =
+                shifts.members(s.id()).stream().anyMatch(m -> m.staffId() == d.staffId() && m.presentAt(time.now()));
         if (!present || !"PUBLISHED".equals(s.status()) || !s.startsAt().isAfter(time.now())) {
             return item.with(Result.LEFT, null, null, "Ca không còn thỏa lúc duyệt");
         }
@@ -457,7 +467,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
                         Map.of("shiftId", s.id()));
             }
         }
-        shiftPort.leaveShift(s.id(), d.staffId(), new ShiftDepartureBasis(ShiftDepartureBasis.Kind.APPROVED_LEAVE, requestId));
+        shiftPort.leaveShift(
+                s.id(), d.staffId(), new ShiftDepartureBasis(ShiftDepartureBasis.Kind.APPROVED_LEAVE, requestId));
         if (wasLead) {
             if (newLead != null) {
                 shiftPort.changeLead(s.id(), newLead, basis);
@@ -477,7 +488,9 @@ public class LeaveService implements ApprovedLeaveDayPort {
         Instant from = time.startOfDay(date);
         Instant to = time.startOfDay(date.plusDays(1));
         for (WorkShift s : shifts.forStaff(d.staffId(), null, true)) {
-            if (!"DRAFT".equals(s.status()) || s.startsAt().isBefore(from) || !s.startsAt().isBefore(to)) {
+            if (!"DRAFT".equals(s.status())
+                    || s.startsAt().isBefore(from)
+                    || !s.startsAt().isBefore(to)) {
                 continue;
             }
             WorkShift draft = shifts.shift(s.id(), true);
@@ -488,7 +501,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
                     .toList();
             boolean leadCleared = Objects.equals(draft.leadStaffId(), d.staffId());
             assignmentCommands.removeDraftMembers(
-                    draft.id(), remaining.stream().map(ShiftInput.Member::staffId).toList());
+                    draft.id(),
+                    remaining.stream().map(ShiftInput.Member::staffId).toList());
             shifts.updateShift(
                     draft,
                     shifts.template(draft.shiftTemplateId(), false),
@@ -505,7 +519,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
                     draft.endsAt());
             effects.add(Map.of("shiftId", draft.id(), "draft", true, "leadCleared", leadCleared));
         }
-        records.recordLeaveDay(new LeaveDay(d.staffId(), date, requestId), users.getObject().accountId());
+        records.recordLeaveDay(
+                new LeaveDay(d.staffId(), date, requestId), users.getObject().accountId());
         return item.with(Result.APPROVED, null, null, null);
     }
 
@@ -557,7 +572,9 @@ public class LeaveService implements ApprovedLeaveDayPort {
                 if (i.result() == Result.PENDING && started(i)) {
                     out.add(i.with(Result.SPLIT_OFF, null, null, "Ca bắt đầu khi chưa quyết định"));
                     changed = true;
-                } else if (i.result() == Result.PENDING && i.shiftId() == null && !i.date().isAfter(time.today())) {
+                } else if (i.result() == Result.PENDING
+                        && i.shiftId() == null
+                        && !i.date().isAfter(time.today())) {
                     out.add(i.with(Result.SPLIT_OFF, null, null, "Ngày nghỉ đã tới khi chưa quyết định"));
                     changed = true;
                 } else {
@@ -751,11 +768,14 @@ public class LeaveService implements ApprovedLeaveDayPort {
             m.put("startsAt", s.startsAt());
             m.put("endsAt", s.endsAt());
             m.put("isLead", Objects.equals(s.leadStaffId(), d.staffId()));
-            m.put("eligibleLeadCandidates", Objects.equals(s.leadStaffId(), d.staffId()) ? eligibleOthers(s, d.staffId()) : List.of());
+            m.put(
+                    "eligibleLeadCandidates",
+                    Objects.equals(s.leadStaffId(), d.staffId()) ? eligibleOthers(s, d.staffId()) : List.of());
             m.put(
                     "assignments",
                     assignments.inShift(s.id(), false).stream()
-                            .filter(a -> a.staffId() == d.staffId() && !Set.of("CANCELLED", "ENDED").contains(a.status()))
+                            .filter(a -> a.staffId() == d.staffId()
+                                    && !Set.of("CANCELLED", "ENDED").contains(a.status()))
                             .map(StaffAssignment::id)
                             .toList());
             List<Map<String, Object>> overlapping = new ArrayList<>();
@@ -805,7 +825,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
         return me.staffId().filter(s -> s == d.staffId()).isPresent() || me.accountId() == d.filedByAccountId();
     }
 
-    // ---- Quyền và tiện ích -------------------------------------------------------------------------------------------
+    // ---- Quyền và tiện ích
+    // -------------------------------------------------------------------------------------------
 
     /** FR-028: Trưởng tầng được giao của phạm vi; phạm vi toàn viện: Quản lý viện (Q-177). */
     private boolean mayApprove(CurrentUser me, String scopeType, Long scopeId) {

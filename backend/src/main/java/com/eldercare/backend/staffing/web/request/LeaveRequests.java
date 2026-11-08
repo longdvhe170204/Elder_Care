@@ -18,12 +18,16 @@ public final class LeaveRequests {
             LocalDate fromDate,
             LocalDate toDate,
             List<LocalDate> dates,
-            @Schema(allowableValues = {"FLOOR", "AREA", "FACILITY"}) String scopeType,
+
+            @Schema(allowableValues = {"FLOOR", "AREA", "FACILITY"})
+            String scopeType,
+
             Long scopeId,
             @NotNull Reason reason) {}
 
     @Schema(name = "LeaveDecisionItem")
-    public record Item(Long shiftId, LocalDate date, @NotNull Result result, Long newLeadId) {}
+    public record Item(
+            Long shiftId, LocalDate date, @NotNull Result result, Long newLeadId) {}
 
     public enum Result {
         APPROVED,

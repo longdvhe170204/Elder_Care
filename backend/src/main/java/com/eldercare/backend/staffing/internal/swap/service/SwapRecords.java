@@ -72,7 +72,8 @@ class SwapRecords {
                         SwapDetail.KIND,
                         row.id(),
                         row.version(),
-                        new RecordChange<>(status, last ? detail.closed(time.now()) : detail, null, row.uniqueKey(), last))
+                        new RecordChange<>(
+                                status, last ? detail.closed(time.now()) : detail, null, row.uniqueKey(), last))
                 .after();
     }
 
@@ -116,7 +117,8 @@ class SwapRecords {
                         LeaveDetail.KIND,
                         row.id(),
                         row.version(),
-                        new RecordChange<>(status, last ? detail.closed(time.now()) : detail, null, row.uniqueKey(), last))
+                        new RecordChange<>(
+                                status, last ? detail.closed(time.now()) : detail, null, row.uniqueKey(), last))
                 .after();
     }
 
@@ -160,15 +162,7 @@ class SwapRecords {
         records.create(
                 OpenShiftLock.KIND,
                 new NewSimpleRecord<>(
-                        null,
-                        new EntityRef(REQUEST, requestId),
-                        LOCK_OPEN,
-                        null,
-                        null,
-                        null,
-                        key,
-                        by,
-                        false));
+                        null, new EntityRef(REQUEST, requestId), LOCK_OPEN, null, null, null, key, by, false));
     }
 
     boolean hasOpenLock(long shiftId, long staffId) {

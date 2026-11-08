@@ -36,7 +36,10 @@ class FR_042_SwapStatisticsIT extends SwapTestBase {
         send("/api/v1/shift-swaps/" + id + "/approve", head, null).andExpect(status().isOk());
 
         List<StaffRequestView> rows = statistics
-                .requests(ScopeFilter.FACILITY, time.today().minusDays(1), time.today().plusDays(1))
+                .requests(
+                        ScopeFilter.FACILITY,
+                        time.today().minusDays(1),
+                        time.today().plusDays(1))
                 .filter(r -> r.requestId() == id)
                 .toList();
         assertThat(rows).hasSize(1);
@@ -78,11 +81,7 @@ class FR_042_SwapStatisticsIT extends SwapTestBase {
         send(
                         "/api/v1/shift-swaps",
                         giver,
-                        Map.of(
-                                "kind", "TAKE_OVER",
-                                "shiftXId", x,
-                                "recipientId", third.staffId(),
-                                "reason", "[Lý do]"))
+                        Map.of("kind", "TAKE_OVER", "shiftXId", x, "recipientId", third.staffId(), "reason", "[Lý do]"))
                 .andExpect(status().isConflict());
     }
 }

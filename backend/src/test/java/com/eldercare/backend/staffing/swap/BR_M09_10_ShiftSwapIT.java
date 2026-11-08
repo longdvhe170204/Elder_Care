@@ -53,10 +53,14 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
                         "/api/v1/shift-swaps",
                         giver,
                         Map.of(
-                                "kind", "TAKE_OVER",
-                                "shiftXId", x,
-                                "recipientId", recipient.staffId(),
-                                "reason", "[Lý do riêng tư]"))
+                                "kind",
+                                "TAKE_OVER",
+                                "shiftXId",
+                                x,
+                                "recipientId",
+                                recipient.staffId(),
+                                "reason",
+                                "[Lý do riêng tư]"))
                 .andExpect(status().isConflict());
     }
 
@@ -68,10 +72,14 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
                         "/api/v1/shift-swaps",
                         giver,
                         Map.of(
-                                "kind", "TAKE_OVER",
-                                "shiftXId", x,
-                                "recipientId", third.staffId(),
-                                "reason", "[Lý do riêng tư]"))
+                                "kind",
+                                "TAKE_OVER",
+                                "shiftXId",
+                                x,
+                                "recipientId",
+                                third.staffId(),
+                                "reason",
+                                "[Lý do riêng tư]"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("SHIFT_IN_ANOTHER_REQUEST"));
     }
@@ -83,10 +91,14 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
                         "/api/v1/shift-swaps",
                         giver,
                         Map.of(
-                                "kind", "TAKE_OVER",
-                                "shiftXId", x,
-                                "recipientId", recipient.staffId(),
-                                "reason", "[Lý do riêng tư]"))
+                                "kind",
+                                "TAKE_OVER",
+                                "shiftXId",
+                                x,
+                                "recipientId",
+                                recipient.staffId(),
+                                "reason",
+                                "[Lý do riêng tư]"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("INVALID_RECIPIENT"));
     }
@@ -99,10 +111,14 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
                         "/api/v1/shift-swaps",
                         giver,
                         Map.of(
-                                "kind", "TAKE_OVER",
-                                "shiftXId", x,
-                                "recipientId", chef.staffId(),
-                                "reason", "[Lý do riêng tư]"))
+                                "kind",
+                                "TAKE_OVER",
+                                "shiftXId",
+                                x,
+                                "recipientId",
+                                chef.staffId(),
+                                "reason",
+                                "[Lý do riêng tư]"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("ROLE_MISMATCH"));
     }
@@ -114,8 +130,12 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
         send("/api/v1/shift-swaps/" + id + "/decline", recipient, Map.of("reason", "[Lý do từ chối riêng tư]"))
                 .andExpect(status().isOk());
         assertThat(statusOf(id)).isEqualTo("RECIPIENT_DECLINED");
-        String forGiver = fetch("/api/v1/shift-swaps", giver).andReturn().getResponse().getContentAsString();
-        String forRecipient = fetch("/api/v1/shift-swaps", recipient).andReturn().getResponse().getContentAsString();
+        String forGiver =
+                fetch("/api/v1/shift-swaps", giver).andReturn().getResponse().getContentAsString();
+        String forRecipient = fetch("/api/v1/shift-swaps", recipient)
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         assertThat(forGiver).contains("[Lý do từ chối riêng tư]");
         assertThat(forRecipient).doesNotContain("[Lý do từ chối riêng tư]");
         // Khóa đã nhả: lập lại yêu cầu mới cho cùng ca được.

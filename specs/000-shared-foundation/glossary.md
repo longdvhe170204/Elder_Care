@@ -3691,6 +3691,62 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
+*(Dịch 2026-11-09, D tự chọn; chờ chủ dự án duyệt. Hợp đồng `contracts/api-015.yaml` đã đổi sang tên tiếng Anh tại chỗ; sau Q-397 015 chỉ còn đổi ca và nghỉ đột xuất.)*
+
+### 21.1. Đường dẫn API (tiền tố `/api/v1`)
+
+| Tên logic | Mã |
+| --- | --- |
+| `/doi-ca`, `/doi-ca/ca-cua-nguoi-nhan`, `/doi-ca/{id}/kiem-tra`, `/doi-ca/{id}/{lenh}` | `/shift-swaps`, `/shift-swaps/recipient-shifts`, `/shift-swaps/{id}/checks`, `/shift-swaps/{id}/{command}` |
+| `/nghi-dot-xuat`, `/nghi-dot-xuat/{id}/truoc-khi-duyet`, `/nghi-dot-xuat/{id}/{lenh}` | `/leave-requests`, `/leave-requests/{id}/pre-approval`, `/leave-requests/{id}/{command}` |
+| tag `doi-ca`, `nghi`; scheme `phien` | `shift-swaps`, `leave-requests`; `session` |
+| tham số `caXId`, `nguoiNhanId`, `lenh` | `shiftXId`, `recipientId`, `command` |
+
+### 21.2. Schema, trường và lệnh
+
+| Tên logic | Mã |
+| --- | --- |
+| `LapDoiCa` (`dang`, `caXId`, `nguoiNhanId`, `caYId`, `lyDo`) | `CreateShiftSwap` (`kind`, `shiftXId`, `recipientId`, `shiftYId`, `reason`) |
+| thân lệnh đổi ca (`lyDo`, `nguoiPhuTrachXId`, `nguoiPhuTrachYId`, `xacNhanCanhBao`) | `ShiftSwapCommand` (`reason`, `newLeadXId`, `newLeadYId`, `confirmWarning`) |
+| `KiemTraDoiCa` (`chongGio`, `gioLienTuc`, `phanCongKhongChuyenDuoc`, `nguoiPhuTrachSauDoi`, `tyLePhucVuTruocSau`, `gioTrongThang`, `chuyenDiChong`) | `ShiftSwapChecks` (`overlaps`, `continuousHours`, `nonTransferableAssignments`, `leadAfterSwap`, `staffingRatioBeforeAfter`, `monthlyHours`, `overlappingTrips`) |
+| `LapNghi` (`dang`, `nhanVienId`, `caIds`, `tuNgay`, `denNgay`, `ngay`, `lyDo`) | `CreateLeave` (`kind`, `staffId`, `shiftIds`, `fromDate`, `toDate`, `dates`, `reason`) **thêm `scopeType`, `scopeId`** (FR-026a cần phạm vi; hợp đồng cũ chưa có, chờ chủ dự án chốt) |
+| `QuyetDinhNghi` (`muc` {`caId`, `ngay`, `ketQua`, `nguoiPhuTrachMoiId`}, `lyDo`) | `LeaveDecision` (`items` {`shiftId`, `date`, `result`, `newLeadId`}, `reason`) |
+| phản hồi lệnh (mới, D tự chọn) | `CommandResult` (`notTransferredAssignments`, `effects`); `CreatedLeaveRequests` (`requestIds`); `RecipientShift` (`shiftId`, `startsAt`, `endsAt`, `shiftTemplateId`); lập đổi ca trả `Location` + `ShiftSwapChecks` |
+| `Loi`, response `Loi`, `LoiChan` | `Problem`, `Error`, `Blocked` (như api-008) |
+| lệnh đổi ca `dong-y`, `tu-choi`, `rut-dong-y`, `huy`, `duyet`, `tu-choi-duyet` | `accept`, `decline`, `withdraw-acceptance`, `cancel`, `approve`, `reject` |
+| lệnh nghỉ `duyet`, `tu-choi`, `huy` | `approve`, `reject`, `cancel` |
+
+### 21.3. Giá trị enum và mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| dạng đổi `HAI_CHIEU`, `NHAN_THAY` | `MUTUAL`, `TAKE_OVER` |
+| dạng nghỉ `THEO_CA`, `THEO_NGAY` | `BY_SHIFT`, `BY_DAY` |
+| trạng thái đổi ca `CHO_NGUOI_NHAN_DONG_Y`, `CHO_DUYET`, `DA_AP_DUNG`, `NGUOI_NHAN_TU_CHOI`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC` | `AWAITING_RECIPIENT`, `PENDING_APPROVAL`, `APPLIED`, `RECIPIENT_DECLINED`, `REJECTED`, `CANCELLED`, `EXPIRED` |
+| trạng thái nghỉ `DA_AP_DUNG_MOT_PHAN` | `PARTIALLY_APPLIED` |
+| kết quả mục nghỉ `CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI` | `PENDING`, `APPROVED`, `REJECTED`, `SPLIT_OFF`, `LEFT` |
+| mã lỗi `TRANG_THAI_DA_DOI`, `CA_KHONG_HOP_LE`, `KHAC_PHAM_VI`, `NGUOI_NHAN_KHONG_HOP_LE`, `VAI_TRO_KHONG_PHU_HOP`, `CA_DANG_TRONG_YEU_CAU_KHAC`, `CHONG_GIO`, `CAN_XAC_NHAN_CANH_BAO`, `CAN_NGUOI_PHU_TRACH`, `CHUA_CO_TRUONG_TANG_DUOC_GIAO`, `THANG_DA_CONG_BO` | `STATE_CHANGED`, `INVALID_SHIFT`, `DIFFERENT_SCOPE`, `INVALID_RECIPIENT`, `ROLE_MISMATCH`, `SHIFT_IN_ANOTHER_REQUEST`, `SHIFT_OVERLAP`, `WARNING_CONFIRMATION_REQUIRED`, `LEAD_REQUIRED`, (`NO_FLOOR_MANAGER_ASSIGNED`, chưa dùng), `MONTH_ALREADY_PUBLISHED`; thêm `LEAVE_DAY_EXISTS`, `USE_SHIFT_SWAP_ENDPOINT`, `USE_LEAVE_REQUEST_ENDPOINT` |
+
+### 21.4. Loại yêu cầu, bản ghi, lớp (gói `staffing.internal.swap`, `staffing.web`)
+
+| Tên logic | Mã |
+| --- | --- |
+| gói `doica` (015 cùng M09; tasks ghi `BE/staffing/doica/`) | `staffing.internal.swap.{domain, service, config}` (LayerArchTest buộc đặt trong `internal`) |
+| loại yêu cầu `M09.DOI_CA`, `M09.NGHI_DOT_XUAT` | `M09.SHIFT_SWAP`, `M09.LEAVE_REQUEST` (`SwapHandler`, `LeaveHandler`) |
+| `yeu_cau_doi_ca`, `yeu_cau_nghi` (+ `yeu_cau_nghi_muc`) → `ho_so_chung` | `simple_record` loại `M09.SWAP_DETAIL`, `M09.LEAVE_DETAIL` (mục nghỉ trong nội dung); `SwapDetail`, `LeaveDetail` |
+| `yeu_cau_ca_mo` → `khoa_duy_nhat` | `simple_record` loại `M09.OPEN_SHIFT_LOCK` (khóa duy nhất theo (ca, nhân viên) hoặc (nhân viên, ngày)); `OpenShiftLock` |
+| `nghi_theo_ngay` → `su_kien_chung` (nhóm 3) | `simple_record` loại `M09.LEAVE_DAY`, khóa dòng ngay khi tạo (D tự chọn: dùng `simple_record`, không `record_event`); `LeaveDay` |
+| `lan_chay_m09xc` → `moc_da_nhac` | không tạo: job dựa trên trạng thái nên chạy bù an toàn; mốc nhắc ở `remindedAt` của chi tiết |
+| `DoiCaHandler`, `NghiDotXuatHandler`, `DoiCaService`, `NghiService` | `SwapHandler`, `LeaveHandler`, `SwapService`, `LeaveService` |
+| `KiemTraDoiCa` (hàm thuần) | `SwapRules` (chồng giờ, giờ trong tháng) + `SwapService.evaluate` |
+| `ViecM09DoiCa` | `SwapExpiryTask` (`M09TimedTask` nhịp phút) |
+| `NghiCoDuyetPort` | `ApprovedLeaveDayPort` (`LeaveService` cài; 008 gọi khi cài) |
+| `DoiCaThongKeApi` (016) | `staffing.api.SwapStatisticsApi` (`requests`, `workingHoursByMonth`), `StaffRequestView`, `WorkingHoursView` |
+| thông báo `CoYeuCauThongBao` | sự kiện `SwapNotification` (`HasNotificationRequests`), mức Nhẹ/Trung bình theo FR-044 |
+| `GanPhamViProvider`, `PhanLoaiTruongProvider` | `ScopeAssignmentProvider` `M09.SHIFT_SWAP`, `M09.LEAVE_REQUEST`; `FieldClassificationProvider` (lý do `STAFF_REASON`) |
+| test `KiemTraDoiCaTest`, `BR_M09_10_DoiCaIT`, `FR_029_NghiTheoCaIT`, `FR_026a_NghiTheoNgayIT` | `SwapRulesTest`, `BR_M09_10_ShiftSwapIT`, `FR_029_ShiftLeaveIT` (gồm cả nghỉ theo ngày), `FR_042_SwapStatisticsIT` |
+| web `lich-ca/doi-ca`, `lich-ca/nghi` | `frontend/src/features/shift-swaps/` (`ShiftSwapsPage`, `SwapPanel`, `LeavePanel`); app `mobile/lib/staff/shift_swaps/` |
+
 ## 22. Feature 016 (`016-reports-dashboard`, A) *(bổ sung 2026-10-24, khi dịch `contracts/api-016.yaml`)*
 
 "Chỉ tiêu" dịch là `metric` như cột `metric_group` của 002 (mục 7.6). Lớp của 016 bổ sung vào mục này cùng thay đổi với mã (R-03). M14 không có bảng (data-model mục 1).
