@@ -61,7 +61,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    // Q-399 (2026-11-03): tự đặt lại mật khẩu, cài khi chốt nhà cung cấp tin nhắn (Q-06, 002 T105)
+                    // Q-399 (2026-11-03): tự đặt lại mật khẩu, cài ở 002 T105 (chủ dự án cho làm trước nhà cung cấp tin
+                    // nhắn, 2026-11-08)
                     Set.of(
                             "GET /api/v1/auth/password-reset/availability",
                             "POST /api/v1/auth/password-reset/request",
@@ -72,7 +73,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(),
-                    Set.of(),
+                    // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
+                    Set.of("GET /api/v1/me/shifts 200"),
                     true),
             // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
             new Contract(
@@ -158,17 +160,9 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "017-resident-balance-ledger", "contracts", "api-017.yaml"),
                     Set.of(
-                            "GET /api/v1/residents/{residentId}/balance",
-                            "GET /api/v1/residents/{residentId}/balance-transactions",
-                            "GET /api/v1/banks",
-                            "GET /api/v1/balances/by-payment-code",
-                            "POST /api/v1/residents/{residentId}/cash-payments",
-                            "POST /api/v1/residents/{residentId}/bank-transfer-payments",
                             "POST /api/v1/balance-transactions",
                             "GET /api/v1/balance-transactions/pending-approval",
                             "POST /api/v1/residents/{residentId}/deposit-offsets",
-                            "GET /api/v1/balance-statuses",
-                            "POST /api/v1/residents/{residentId}/balance/stop-reminders",
                             "GET /api/v1/residents/{residentId}/settlement",
                             "POST /api/v1/residents/{residentId}/settlement/confirm",
                             "POST /api/v1/settlement-statements/{id}/signed-copy",
@@ -180,7 +174,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "POST /api/v1/balance-exports/statement",
                             "POST /api/v1/balance-exports/income-expense-report",
                             "GET /api/v1/balance-exports/{id}/file",
-                            "GET /api/v1/family-portal/residents/{residentId}/balance",
                             "GET /api/v1/family-portal/residents/{residentId}/documents",
                             "GET /api/v1/family-portal/documents/{type}/{id}/file",
                             "POST /api/v1/family-portal/residents/{residentId}/balance-statement"),
@@ -271,7 +264,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     .filter(code -> !pendingResponses.contains(at + " " + code))
                     .forEach(code -> out.add(at + " thiếu phản hồi " + code));
             responses.getIncreased().keySet().forEach(code -> out.add(at + " thừa phản hồi " + code));
-            responses.getChanged().forEach((code, r) -> content(at + " phản hồi " + code, r.getContent(), out));
+            responses.getChanged().entrySet().stream()
+                    // phản hồi đã đổi ở hợp đồng mà mã chưa theo kịp cũng chờ như phản hồi chưa cài
+                    .filter(e -> !pendingResponses.contains(at + " " + e.getKey()))
+                    .forEach(e ->
+                            content(at + " phản hồi " + e.getKey(), e.getValue().getContent(), out));
         }
     }
 

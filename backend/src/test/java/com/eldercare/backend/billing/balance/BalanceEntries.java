@@ -1,10 +1,10 @@
 package com.eldercare.backend.billing.balance;
 
-import com.eldercare.backend.billing.internal.balance.transaction.domain.BalanceEntry;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.Ledger;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.PaymentMethod;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.TransactionStatus;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.TransactionType;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.BalanceEntry;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.PaymentMethod;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionStatus;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionType;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
 import java.time.LocalDate;

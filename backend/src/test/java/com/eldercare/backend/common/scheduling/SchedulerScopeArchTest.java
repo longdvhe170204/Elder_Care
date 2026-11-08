@@ -27,6 +27,9 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.billing.scheduling.M11DailyJob",
                     "khung kỳ theo lịch và nhắc chi phí; không lập khoản, bảng người, điều chỉnh hoặc đề nghị mua hộ (010 P-15)"),
             Map.entry(
+                    "com.eldercare.backend.billing.balance.scheduling.BalanceStatusJob",
+                    "tính tình trạng số dư, báo, nhắc lại; không ghi giao dịch (017 research E-07, Q-306)"),
+            Map.entry(
                     "com.eldercare.backend.billing.scheduling.M11HourlyJob",
                     "khung nhắc đề nghị chờ đồng ý; không tự lập đề nghị hay khoản (010 P-15)"),
             Map.entry(

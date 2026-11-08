@@ -4,12 +4,12 @@ import static com.eldercare.backend.billing.balance.DocumentReaders.excelCells;
 import static com.eldercare.backend.billing.balance.DocumentReaders.pdfText;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.billing.internal.balance.document.domain.PaymentNoticeData;
-import com.eldercare.backend.billing.internal.balance.document.domain.PaymentNoticeData.Line;
-import com.eldercare.backend.billing.internal.balance.document.domain.PaymentNoticeData.PaymentInstructions;
-import com.eldercare.backend.billing.internal.balance.document.domain.PaymentNoticeData.TypeTotal;
-import com.eldercare.backend.billing.internal.balance.document.domain.StatementType;
-import com.eldercare.backend.billing.internal.balance.document.service.PaymentNoticeDocument;
+import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData;
+import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.Line;
+import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.PaymentInstructions;
+import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.TypeTotal;
+import com.eldercare.backend.billing.balance.internal.document.domain.StatementType;
+import com.eldercare.backend.billing.balance.internal.document.service.PaymentNoticeDocument;
 import com.eldercare.backend.common.document.FacilityInfo;
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -2,9 +2,9 @@ package com.eldercare.backend.billing.balance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.billing.internal.balance.transaction.domain.RefundLimit;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.RefundLimit.Kind;
-import com.eldercare.backend.billing.internal.balance.transaction.domain.RefundLimit.Outcome;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.RefundLimit;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.RefundLimit.Kind;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.RefundLimit.Outcome;
 import com.eldercare.backend.support.TableRows;
 import org.junit.jupiter.api.Test;
 

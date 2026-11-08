@@ -59,6 +59,8 @@ Bỏ `chotQuy` của bản cũ (Q-385).
 | `ChungTuDaPhatHanh(nctId, loai, id)` (`PHIEU_BAO_PHI`, `BANG_QUYET_TOAN`) | 012 (làm mới danh sách chứng từ trên cổng) | FR-031, FR-034, FR-038 |
 | Thông báo (khuôn `common.notification`) | 009 | FR-030 |
 
+*(2026-11-08, A, T005)* Hai sự kiện 004 nghe khai ở `admission.api.events` (`DepositStatusChanged`, `SettlementConditionChanged`), 017 phát: billing đã gọi admission nên khai ở `billing.api.events` sẽ thành vòng module (plan "Ghi chú triển khai"). Hai sự kiện còn lại ở `billing.api.events`.
+
 ---
 
 ## 3. 017 cần từ module khác

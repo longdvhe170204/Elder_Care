@@ -924,6 +924,12 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | Bảng giường app nhân viên (T060) | `staff/beds/BedsScreen`; quyền đọc cấu hình dùng bảng giường, Bác sĩ dùng phòng cách ly và phân bổ chờ xác nhận |
 | Xác nhận sẵn sàng / chuyển thường và chuyển theo chỉ định / cách ly và xác nhận ở lại | `BedReadinessScreen`, `BedTransferScreen`, `RoomIsolationScreen` trong `mobile/lib/staff/beds/` |
 | Khóa thử lại lệnh / hiển thị lỗi và điều kiện chưa thỏa của riêng màn giường | `bedCommandKey`, `bedProblem` trong `bed_command.dart`; dùng `ApiClient` chung, không hàng đợi riêng |
+### 9.23. Đổi api cho 016 (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| `giuongTrongChoChuyenNguoi` (id giường Trống mang dấu "chờ chuyển người" tại thời điểm; module-interfaces 1.8a) | `BedStatisticsApi.emptyAwaitingTransferBedIds(ScopeFilter scope, Instant at)` trả `Set<Long>` |
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
@@ -2559,6 +2565,13 @@ Các view là dữ liệu tính khi đọc, không phải công việc hoặc b�
 
 HandoverScreen tại staff/handover;menu SHIFT_HANDOVER/VIEW. Dùng đúng lệnh create/complete/confirm/comment/supplementAndResubmit từ allowedCommands và HTTP008 hiện có. Không có version trong HandoverBody,không suy version;client ETag và nguồn hạn cache chờ nềnA. Không thêm recordType ngoại tuyến hoặc API.
 
+
+### 14.23. Hạn phạm vi ca ở `/me/shifts` (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| ca của tôi (kèm hạn phạm vi) | schema `MyShift` (= `Shift` + `scopeEndsAt`), phản hồi của `GET /me/shifts` |
+| hết phạm vi của người dùng trong ca (002 FR-032; mốc kết thúc sớm, hoặc kết thúc phân công + CFG-M15-07) | `scopeEndsAt` |
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.
@@ -3885,19 +3898,55 @@ Tag: `so-du → balance`, `nop-tien → payments`, `giao-dich → balance-transa
 
 Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi viết migration và test (A Phase 1–6, B Phase 7–10); không tạo bảng đã gộp theo R-15 (data-model 017 mục 0).
 
-### 23.6. Lớp của B (Phase 7–10), hàm thuần và bộ dựng file *(B bổ sung 2026-11-08)*
+### 23.6. Phase 1–2 (A, 2026-11-08)
 
-Gói thật là `billing.internal.balance.<chức năng>.{domain, service}` (LayerArchTest chỉ cho gói cấp một `api`, `web`, `internal`, `scheduling`; tên `billing.balance.internal` ở team-plan, CODEOWNERS là tên logic).
+| Tên logic | Tên mã |
+| --- | --- |
+| bảng `so_du` (giữ bảng, plan "Ghi chú triển khai") | `resident_balance` (`resident_id`, `opened_at`, `opening_contract_id`, `payment_code`, `balance`, `deposit_balance`, `status`, `days_covered`, `cycle_started_on`, `last_notice_on`, `in_debt_since`, `reminders_stopped`, `reminders_stopped_by`, `reminders_stopped_reason`, `deposit_refund_due_since`, `deposit_refund_reminded_at`, `final_status_reminded_at`, `version`) |
+| bảng `giao_dich` | `balance_transaction` (`ledger`, `type`, `amount`, `occurred_at`, `method`, `bank_transaction_code`, `cost_statement_id`, `original_transaction_id`, `linked_transaction_id`, `payer_name`, `recipient`, `note`, `reason`, `status`, `approval_request_id`, `approved_by`, `confirmed_at`, `adjusted`, `duplicate_code_confirmed`, `locked_at`); trigger `trg_balance_transaction_row_lock`, `trg_balance_transaction_no_delete`, lỗi `M11_BALANCE_TRANSACTION_LOCKED` |
+| loại đối tượng sổ, giao dịch | `M11.BALANCE`, `M11.BALANCE_TRANSACTION` (`ledger.domain.BalanceTypes`) |
+| hàm thuần `TrangThaiDatCoc` | `billing.balance.internal.ledger.domain.DepositStatusRule.of(requiredAmount, depositBalance)`; test `DepositStatusTest` |
+| `PhanLoaiTruongProvider`, `LuuTruProvider`, `GanPhamViProvider` của sổ, giao dịch | `ledger.config.BalanceGovernanceConfig`, `ledger.service.BalanceRetention`, `ledger.service.BalanceScopeAssignment`, `ledger.persistence.BalanceGovernanceStore`; test `T007_BalanceProvidersIT` |
+| DTO của `BalanceApi`, `BalanceStatisticsApi` | `billing.api.dto.BalanceView`, `BalanceStatus`, `SettlementConditionsView`, `SettlementConditionView`, `SettlementConditionCode`, `BalanceDocumentView`, `BalanceDocumentType`, `BalanceStatusView`, `IncomeExpenseReportView` (`Debtor`) |
+| chỗ đặt sự kiện | `admission.api.events.DepositStatusChanged`, `SettlementConditionChanged` (004 nghe); `billing.api.events.BalanceStatusChanged`, `BalanceDocumentIssued` |
+| bản giả | `support/fake/billing/FakeBalances`, `FakeBalanceStatistics`, `FakeBalanceConfig` |
+
+### 23.7. Phase 3–6 (A, 2026-11-08)
+
+| Tên logic | Tên mã |
+| --- | --- |
+| mã nộp tiền, mở sổ | `ledger.domain.PaymentCode` (`generate`, `normalize`), `ledger.service.LedgerOpening`; nhật ký `BALANCE_LEDGER_OPENED` |
+| `ngan_hang`, CFG-M11-10 | `catalog_item` loại `M11.BANK` (`ledger.domain.BankInfo`), `V017_02__banks_deposit_status.sql`; giá trị tham số `CollectionAccount(bin, accountNumber, accountHolder)`; `CollectionAccountCheck`; web `parameters/CollectionAccountEditor` |
+| đọc sổ, cổng | `ledger.service.BalanceQueries`, `ledger.domain.{BalanceDetails, BalanceTransactionView, PaymentInstructions}`, `web.BalanceController`, `web.response.{BankResponse, PortalBalanceResponse}` |
+| ghi nhận tiền nộp | `ledger.service.{PaymentService, LedgerPosting, DepositStatuses}`, `ledger.domain.{Payments, ConfirmedEntry, BalanceTransactionRow, LedgerState}`, `web.PaymentController`, `web.request.{CashPaymentRequest, BankTransferPaymentRequest}`, `web.response.DuplicateCodeProblemBody`; nhật ký `BALANCE_PAYMENT_RECORDED`; cột `resident_balance.deposit_status`, `deposit_status_contract_id` |
+| enum giao dịch (cùng nội dung của B) | `billing.balance.internal.transaction.domain.{Ledger, TransactionType, TransactionStatus, PaymentMethod}`; `document.domain.VietQrPayload` (B viết, A đặt vào gói đã chốt) |
+| thanh toán bảng | `ledger.service.StatementPayments`; nhật ký `BALANCE_STATEMENT_PAID` |
+| `TinhTrang`, `QuyetDinhBao`, lịch sử tình trạng | `status.domain.{BalanceStatusRule, StatusComputation, NoticeDecision, Decision, Cycle, Notice, Trigger, StatusSnapshot}`; `status_history` `M11.BALANCE`/`STATUS` |
+| thông báo số dư | `status.domain.{BalanceNotices, BalanceNotice}`; loại `M11_BALANCE_RUNNING_LOW`, `M11_BALANCE_IN_DEBT`, `M11_BALANCE_IN_DEBT_MANAGER`, `M11_BALANCE_PAYMENT_SUFFICIENT`, `M11_BALANCE_PAYMENT_RECORDED` |
+| tính tình trạng, dừng nhắc, mua hộ | `status.service.{BalanceStatusService, DailyBalanceStatus, BalanceStatusCommands, PurchaseBalance}`, `web.BalanceStatusController`, `web.request.StopRemindersRequest`; nhật ký `BALANCE_REMINDERS_STOPPED`; dấu `reminder_marker` loại `M11.BALANCE_STATUS_DAILY` |
+| `ViecHangNgayM11SoDu` | `billing.balance.scheduling.BalanceStatusJob` (`COMPUTE_BALANCE_STATUS`, `eldercare.jobs.balance-status.cron`, `.on-startup`) |
+| màn web | `features/balance/{PaymentRecording, BalanceStatuses, amounts}`, `features/family-portal/live/LiveCostsPage`; app `lib/family/balance/family_balance_screen.dart` |
+| test | `US1_BalanceIT`, `US2_PaymentIT`, `US4_StatementPaymentIT`, `US5_BalanceStatusIT`, `PaymentCodeTest`, `BalanceStatusRuleTest`, `NoticeDecisionTest`; lớp nền `BalanceTestBase` |
+
+### 23.8. Danh sách chờ duyệt (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| giao dịch Chờ duyệt kèm người cao tuổi | schema `PendingBalanceTransaction` (= `BalanceTransaction` + `residentId`, `residentName`), phản hồi của `GET /balance-transactions/pending-approval` |
+
+### 23.9. Lớp của B (Phase 7–10), hàm thuần và bộ dựng file *(B bổ sung 2026-11-08)*
+
+Gói `billing.balance.internal.<chức năng>.{domain, service}` (mục 23.5; chuyển từ `billing.internal.balance` khi merge `develop` 2026-11-08).
 
 | Tên logic | Tên mã |
 | --- | --- |
 | `GioiHanHoan` (T023), `GioiHanHoanTest` | `transaction.domain.RefundLimit` (`Kind`: `REFUND`, `DEPOSIT_REFUND`; `Outcome`: `ALLOWED`, `INVALID_AMOUNT`, `EXCEEDED`; `maximum`, `check`); `RefundLimitTest` |
-| sổ, loại, trạng thái, phương thức của giao dịch | `transaction.domain.Ledger`, `TransactionType`, `TransactionStatus`, `PaymentMethod` (giá trị như mục 23.3); `BalanceEntry` (dòng giao dịch làm đầu vào cho sao kê, báo cáo thu chi). A cài bảng, DTO có thể dùng lại các enum này |
+| dòng giao dịch làm đầu vào cho sao kê, báo cáo thu chi | `transaction.domain.BalanceEntry` (dùng `Ledger`, `TransactionType`, `TransactionStatus`, `PaymentMethod` của mục 23.7) |
 | `DieuKienQuyetToan` (T028), `DieuKienQuyetToanTest` | `settlement.domain.SettlementConditions` (`Input`, `Result.settlement`, `Result.confirmation`, `Condition`, `Code`, `Status`, `Reason`; `Result.satisfied(exceptionApproved)`); `SettlementConditionsTest` |
 | số liệu bảng quyết toán, bộ dựng PDF (T032) | `settlement.domain.SettlementStatementData`, `settlement.service.SettlementStatementDocument.pdf`; `SettlementStatementDocumentTest` |
 | `SaoKe`, `BaoCaoThuChi` (T037) | `export.domain.BalanceStatement`, `export.domain.IncomeExpenseReport` (`Debtor`); `BalanceStatementTest`, `IncomeExpenseReportTest` |
 | bộ dựng sao kê, báo cáo thu chi (T038) | `export.service.BalanceExportDocument` (`statementPdf`, `statementExcel`, `incomeExpensePdf`, `incomeExpenseExcel`; `ResidentStatement`); `BalanceExportDocumentTest` |
-| `VietQrPayload` (T008) | `document.domain.VietQrPayload` (`of`, `crc16`); `VietQrPayloadTest` |
+| `VietQrPayload` (T008) | `document.domain.VietQrPayload` (`of`, `crc16`; mục 23.7); `VietQrPayloadTest` |
 | số liệu phiếu báo phí, bộ dựng (T035) | `document.domain.PaymentNoticeData` (`Line`, `TypeTotal`, `PaymentInstructions`), `StatementType` (`REGULAR`, `SUPPLEMENTARY`, `FINAL_PERIOD`), `DocumentFormat` (tiền, ngày); `document.service.PaymentNoticeDocument` (`pdf`, `excel`), `QrImage`; `PaymentNoticeDocumentTest`, `QrImageTest` |
 
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
@@ -4230,3 +4279,9 @@ Các tên mã trên đã có implementation; task chỉ đánh sau kiểm cuối
 | Đọc snapshot/interval theo lô | `BedReportingStore`, `BedReportingSnapshot` và record nội bộ `State`, `Window`, `Policy`, `Flags` trong `internal/bed/domain` |
 | Dấu chưa có giường | `BedFlagView.bedId` kiểu `Long`, null chỉ cho `WITHOUT_BED` theo duyệt chủ dự án2026-10-25 |
 | Bằng chứng kiểm cuối | `specs/003-room-bed-allocation/verification.md`, `SC_008_BedReportingIT`, `DBR_23_RecordTablesIT`, `T064_BedListPerformanceIT` |
+
+### 25.12. Id dòng yêu cầu mua sắm (2026-11-08, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| dòng yêu cầu mua sắm, id dòng | schema `ProcurementRequestLine` (tách từ phần tử của `ProcurementRequestWrite.lines`, thêm `id` chỉ đọc; khi lập, sửa thì bỏ qua `id`); 006 gửi id này ở `requestLineId` |
