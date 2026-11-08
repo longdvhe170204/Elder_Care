@@ -26,10 +26,17 @@ public final class PaymentNoticeDocument {
     private static final String TITLE = "PHIẾU BÁO PHÍ";
     private static final String NO_ACCOUNT = "Liên hệ Kế toán để biết tài khoản nộp tiền";
 
+    private static final float QR_SIZE_PT = 140;
+
     private PaymentNoticeDocument() {}
 
     /** @param logo nội dung ảnh logo của viện, {@code null} nếu không có */
     public static byte[] pdf(FacilityInfo facility, byte[] logo, PaymentNoticeData notice) {
+        return pdf(facility, logo, notice, null);
+    }
+
+    /** @param qr ảnh PNG mã VietQR, chèn khi số dư sau âm và có tài khoản thu (FR-032); {@code null} thì bỏ */
+    public static byte[] pdf(FacilityInfo facility, byte[] logo, PaymentNoticeData notice, byte[] qr) {
         PdfDocument pdf = PdfDocument.a4(facility, logo, TITLE);
         pdf.paragraph("Mã phiếu: " + notice.code());
         pdf.paragraph("Ngày phát hành: " + date(notice.issuedOn()) + "    Người phát hành: " + notice.issuedBy());
@@ -68,6 +75,9 @@ public final class PaymentNoticeDocument {
                 pdf.paragraph("Ngân hàng: " + payment.bankName());
                 pdf.paragraph("Số tài khoản: " + payment.accountNumber());
                 pdf.paragraph("Chủ tài khoản: " + payment.accountHolder());
+                if (qr != null) {
+                    pdf.image(qr, QR_SIZE_PT);
+                }
             }
         }
         pdf.paragraph("Chứng từ này không thay thế hóa đơn.");
