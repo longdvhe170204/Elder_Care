@@ -57,7 +57,9 @@ class SwapStatistics implements SwapStatisticsApi {
         Instant end = time.startOfDay(to.plusDays(1));
         List<StaffRequestView> out = new ArrayList<>();
         for (SimpleRecord<SwapDetail> row : records.swaps(ALL)) {
-            Long floor = shifts.find(row.content().shiftXId()).map(WorkShift::scopeId).orElse(null);
+            Long floor = shifts.find(row.content().shiftXId())
+                    .map(WorkShift::scopeId)
+                    .orElse(null);
             if (inRange(row.createdAt(), start, end) && inScope(scope, floor)) {
                 out.add(new StaffRequestView(
                         row.content().requestId(),

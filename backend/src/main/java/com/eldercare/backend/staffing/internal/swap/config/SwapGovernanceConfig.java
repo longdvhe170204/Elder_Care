@@ -30,7 +30,8 @@ class SwapGovernanceConfig {
             @Override
             public Target assignScope(long id) {
                 var request = approvals.find(id).orElseThrow(NotFoundException::new);
-                return new Target(type, Long.toString(id), null, request.target().floorAreaId());
+                return new Target(
+                        type, Long.toString(id), null, request.target().floorAreaId());
             }
         };
     }

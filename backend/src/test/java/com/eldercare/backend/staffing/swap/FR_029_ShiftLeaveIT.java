@@ -39,9 +39,13 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
         body.put("reason", "[Lý do nghỉ riêng tư]");
         var response = send("/api/v1/leave-requests", by, body).andReturn().getResponse();
         if (response.getStatus() != 201) {
-            throw new AssertionError("Lập nghỉ thất bại: " + response.getStatus() + " " + response.getContentAsString());
+            throw new AssertionError(
+                    "Lập nghỉ thất bại: " + response.getStatus() + " " + response.getContentAsString());
         }
-        return json.readTree(response.getContentAsString()).get("requestIds").get(0).asLong();
+        return json.readTree(response.getContentAsString())
+                .get("requestIds")
+                .get(0)
+                .asLong();
     }
 
     private boolean onLeave(long shiftId, TestUsers.TestUser user) {
@@ -72,8 +76,7 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
         long x1 = shift(base.plus(Duration.ofHours(7)), 8, null, giver);
         long x2 = shift(base.plus(Duration.ofDays(1)).plus(Duration.ofHours(7)), 8, null, giver);
         long id = createByShift(giver, null, x1, x2);
-        var items = List.of(
-                Map.of("shiftId", x1, "result", "APPROVED"), Map.of("shiftId", x2, "result", "REJECTED"));
+        var items = List.of(Map.of("shiftId", x1, "result", "APPROVED"), Map.of("shiftId", x2, "result", "REJECTED"));
         send("/api/v1/leave-requests/" + id + "/approve", head, Map.of("items", items))
                 .andExpect(status().isUnprocessableEntity());
         send("/api/v1/leave-requests/" + id + "/approve", head, Map.of("items", items, "reason", "[Thiếu người]"))
@@ -93,7 +96,9 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
         send(
                         "/api/v1/leave-requests/" + id + "/approve",
                         head,
-                        Map.of("items", List.of(Map.of("shiftId", x, "result", "APPROVED", "newLeadId", recipient.staffId()))))
+                        Map.of(
+                                "items",
+                                List.of(Map.of("shiftId", x, "result", "APPROVED", "newLeadId", recipient.staffId()))))
                 .andExpect(status().isOk());
         Long lead = jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, x);
         assertThat(lead).isEqualTo(recipient.staffId());
@@ -112,17 +117,28 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
     void FR_026_floorManagerFilesOnBehalf_andStaffSeesOwnReasonOnly() throws Exception {
         long x = shift(base.plus(Duration.ofHours(7)), 8, null, giver);
         long id = createByShift(head, giver, x);
-        String forGiver = fetch("/api/v1/leave-requests", giver).andReturn().getResponse().getContentAsString();
-        String forThird = fetch("/api/v1/leave-requests", third).andReturn().getResponse().getContentAsString();
+        String forGiver =
+                fetch("/api/v1/leave-requests", giver).andReturn().getResponse().getContentAsString();
+        String forThird =
+                fetch("/api/v1/leave-requests", third).andReturn().getResponse().getContentAsString();
         assertThat(forGiver).contains("[Lý do nghỉ riêng tư]").contains("\"onBehalf\":true");
         assertThat(forThird).doesNotContain("[Lý do nghỉ riêng tư]");
         // Người không có quyền không lập thay được.
         send(
                         "/api/v1/leave-requests",
                         third,
-                        Map.of("kind", "BY_SHIFT", "staffId", giver.staffId(), "shiftIds", List.of(x), "reason", "[Lý do]"))
+                        Map.of(
+                                "kind",
+                                "BY_SHIFT",
+                                "staffId",
+                                giver.staffId(),
+                                "shiftIds",
+                                List.of(x),
+                                "reason",
+                                "[Lý do]"))
                 .andExpect(status().isForbidden());
-        send("/api/v1/leave-requests/" + id + "/cancel", head, Map.of("reason", "[Hủy]")).andExpect(status().isOk());
+        send("/api/v1/leave-requests/" + id + "/cancel", head, Map.of("reason", "[Hủy]"))
+                .andExpect(status().isOk());
         assertThat(statusOf(id)).isEqualTo("CANCELLED");
     }
 
@@ -130,10 +146,7 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
     void FR_026_shiftInAnotherOpenRequestCannotBeChosen() throws Exception {
         long x = shift(base.plus(Duration.ofHours(7)), 8, null, giver);
         createByShift(giver, null, x);
-        send(
-                        "/api/v1/leave-requests",
-                        giver,
-                        Map.of("kind", "BY_SHIFT", "shiftIds", List.of(x), "reason", "[Lý do]"))
+        send("/api/v1/leave-requests", giver, Map.of("kind", "BY_SHIFT", "shiftIds", List.of(x), "reason", "[Lý do]"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("SHIFT_IN_ANOTHER_REQUEST"));
     }
@@ -183,7 +196,10 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
                 .andReturn()
                 .getResponse();
         assertThat(response.getStatus()).as(response.getContentAsString()).isEqualTo(201);
-        long id = json.readTree(response.getContentAsString()).get("requestIds").get(0).asLong();
+        long id = json.readTree(response.getContentAsString())
+                .get("requestIds")
+                .get(0)
+                .asLong();
         send("/api/v1/leave-requests/" + id + "/approve", head, null).andExpect(status().isOk());
 
         assertThat(statusOf(id)).isEqualTo("APPLIED");
@@ -207,7 +223,8 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
 
     @Test
     void FR_026a_dayLeaveIsRefusedWhenTheMonthIsAlreadyPublished() throws Exception {
-        LocalDate day = base.atZone(com.eldercare.backend.common.time.BusinessTime.ZONE).toLocalDate();
+        LocalDate day =
+                base.atZone(com.eldercare.backend.common.time.BusinessTime.ZONE).toLocalDate();
         send(
                         "/api/v1/leave-requests",
                         giver,

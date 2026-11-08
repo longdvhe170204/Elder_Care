@@ -175,8 +175,21 @@ public class SwapService {
         requireRecipient(giver, recipientId, x);
         long actor = users.getObject().accountId();
         SwapDetail detail = new SwapDetail(
-                0, kind, giver, x.id(), recipientId, y == null ? null : y.id(), reason.value(), null, null, null, null,
-                false, earliest(x, y), null, null);
+                0,
+                kind,
+                giver,
+                x.id(),
+                recipientId,
+                y == null ? null : y.id(),
+                reason.value(),
+                null,
+                null,
+                null,
+                null,
+                false,
+                earliest(x, y),
+                null,
+                null);
         SwapChecks checks = evaluate(detail, false);
         if (checks.blocked()) {
             throw new ConditionNotMetException(overlapConditions(checks));
@@ -184,19 +197,38 @@ public class SwapService {
         ApprovalRequestView request = approvals.create(new CreateRequest(
                 TYPE,
                 json.valueToTree(Map.of(
-                        "kind", kind.name(),
-                        "shiftXId", x.id(),
-                        "recipientId", recipientId,
-                        "shiftYId", y == null ? json.nullNode() : json.valueToTree(y.id()),
-                        "giverStaffId", giver,
-                        "floorAreaId", x.scopeId() == null ? json.nullNode() : json.valueToTree(x.scopeId()))),
+                        "kind",
+                        kind.name(),
+                        "shiftXId",
+                        x.id(),
+                        "recipientId",
+                        recipientId,
+                        "shiftYId",
+                        y == null ? json.nullNode() : json.valueToTree(y.id()),
+                        "giverStaffId",
+                        giver,
+                        "floorAreaId",
+                        x.scopeId() == null ? json.nullNode() : json.valueToTree(x.scopeId()))),
                 time.today(),
                 reason,
                 true));
         long id = request.id();
         detail = new SwapDetail(
-                id, kind, giver, x.id(), recipientId, detail.shiftYId(), reason.value(), null, null, null, null, false,
-                detail.earliestStart(), null, null);
+                id,
+                kind,
+                giver,
+                x.id(),
+                recipientId,
+                detail.shiftYId(),
+                reason.value(),
+                null,
+                null,
+                null,
+                null,
+                false,
+                detail.earliestStart(),
+                null,
+                null);
         records.acquire(x.id(), giver, id, actor);
         if (y != null) {
             records.acquire(y.id(), recipientId, id, actor);
@@ -361,9 +393,11 @@ public class SwapService {
                     Map.of("warnings", checks.continuousHours()));
         }
         Long leadX = resolveLead(x, d.giverStaffId(), d.recipientStaffId(), decision.newLeadXId(), true);
-        Long leadY = y == null ? null : resolveLead(y, d.recipientStaffId(), d.giverStaffId(), decision.newLeadYId(), false);
+        Long leadY =
+                y == null ? null : resolveLead(y, d.recipientStaffId(), d.giverStaffId(), decision.newLeadYId(), false);
         Basis basis = new Basis("BR-M09-10", id, null, null);
-        Reason entryReason = decision.reason() == null || decision.reason().isBlank() ? null : new Reason(decision.reason());
+        Reason entryReason =
+                decision.reason() == null || decision.reason().isBlank() ? null : new Reason(decision.reason());
         List<Map<String, Object>> notTransferred = new ArrayList<>();
         move(x, d.giverStaffId(), d.recipientStaffId(), leadX, id, d.kind(), entryReason, notTransferred, basis);
         if (y != null) {
@@ -432,7 +466,12 @@ public class SwapService {
                 assignmentPort.create(shift.id(), input, basis);
             } else {
                 notTransferred.add(Map.of(
-                        "assignmentId", a.id(), "shiftId", shift.id(), "reason", unmet.get(0).description()));
+                        "assignmentId",
+                        a.id(),
+                        "shiftId",
+                        shift.id(),
+                        "reason",
+                        unmet.get(0).description()));
                 tasks.ifAvailable(api -> api.onAssignmentEnded(a.id(), shift.id()));
             }
         }
@@ -456,10 +495,12 @@ public class SwapService {
     @Transactional
     public int expireDue() {
         int count = 0;
-        for (SimpleRecord<SwapDetail> row : records.swaps(Set.of(SwapStatus.AWAITING_RECIPIENT, SwapStatus.PENDING_APPROVAL))) {
+        for (SimpleRecord<SwapDetail> row :
+                records.swaps(Set.of(SwapStatus.AWAITING_RECIPIENT, SwapStatus.PENDING_APPROVAL))) {
             SimpleRecord<SwapDetail> locked = records.lockSwap(row.content().requestId());
             SwapDetail d = locked.content();
-            if (!SwapStatus.isOpen(locked.status()) || stillValid(d) && time.now().isBefore(d.earliestStart())) {
+            if (!SwapStatus.isOpen(locked.status())
+                    || stillValid(d) && time.now().isBefore(d.earliestStart())) {
                 continue;
             }
             approvals.applyExtendedTransition(
@@ -485,7 +526,8 @@ public class SwapService {
     public int remindDue() {
         Duration window = parameters.read(ParameterCode.CFG_M09_11).asDuration();
         int count = 0;
-        for (SimpleRecord<SwapDetail> row : records.swaps(Set.of(SwapStatus.AWAITING_RECIPIENT, SwapStatus.PENDING_APPROVAL))) {
+        for (SimpleRecord<SwapDetail> row :
+                records.swaps(Set.of(SwapStatus.AWAITING_RECIPIENT, SwapStatus.PENDING_APPROVAL))) {
             SwapDetail d = row.content();
             if (d.remindedAt() != null || d.earliestStart().minus(window).isAfter(time.now())) {
                 continue;
@@ -536,7 +578,8 @@ public class SwapService {
         SimpleRecord<SwapDetail> row = records.swap(id);
         Long myStaff = me.staffId().orElse(null);
         boolean party = myStaff != null
-                && (myStaff == row.content().giverStaffId() || myStaff == row.content().recipientStaffId());
+                && (myStaff == row.content().giverStaffId()
+                        || myStaff == row.content().recipientStaffId());
         if (!party && !canView(me, row.content())) {
             throw new NotFoundException();
         }
@@ -625,9 +668,8 @@ public class SwapService {
             List<Map<String, Object>> overlaps,
             List<Map<String, Object>> hours) {
         Interval slot = new Interval(candidate.startsAt(), candidate.endsAt());
-        List<Interval> existing = others.stream()
-                .map(s -> new Interval(s.startsAt(), s.endsAt()))
-                .toList();
+        List<Interval> existing =
+                others.stream().map(s -> new Interval(s.startsAt(), s.endsAt())).toList();
         if (SwapRules.anyOverlap(existing, slot)) {
             overlaps.add(Map.of("staffId", staffId, "shiftId", candidate.id()));
         } else if (ContinuousShiftChain.duration(existing, slot).compareTo(threshold) > 0) {
@@ -651,7 +693,8 @@ public class SwapService {
                     a.startsAt(),
                     a.endsAt());
             for (UnmetCondition c : assignmentPort.validate(shift.id(), input)) {
-                // Người nhận chưa có tên trong ca lúc kiểm tra nên không đánh giá được mục này: chỉ báo lỗi về điều kiện.
+                // Người nhận chưa có tên trong ca lúc kiểm tra nên không đánh giá được mục này: chỉ báo lỗi về điều
+                // kiện.
                 if (!c.description().contains("không có tên trong ca")) {
                     out.add(Map.of("assignmentId", a.id(), "shiftId", shift.id(), "reason", c.description()));
                     break;
@@ -693,7 +736,11 @@ public class SwapService {
         if (joins != null) {
             after.add(new Interval(joins.startsAt(), joins.endsAt()));
         }
-        return Map.of("beforeMinutes", before, "afterMinutes", SwapRules.hoursInMonth(after, month).toMinutes());
+        return Map.of(
+                "beforeMinutes",
+                before,
+                "afterMinutes",
+                SwapRules.hoursInMonth(after, month).toMinutes());
     }
 
     private static List<Interval> intervals(Collection<WorkShift> list) {
@@ -729,10 +776,11 @@ public class SwapService {
     }
 
     private void requirePresent(WorkShift s, long staffId, boolean giver) {
-        boolean present = shifts.members(s.id()).stream()
-                .anyMatch(m -> m.staffId() == staffId && m.presentAt(time.now()));
+        boolean present =
+                shifts.members(s.id()).stream().anyMatch(m -> m.staffId() == staffId && m.presentAt(time.now()));
         if (!present) {
-            throw invalidShift(giver ? "Người nhường không có tên trong ca" : "Người nhận không có tên trong ca đã chọn");
+            throw invalidShift(
+                    giver ? "Người nhường không có tên trong ca" : "Người nhận không có tên trong ca đã chọn");
         }
     }
 
@@ -743,14 +791,15 @@ public class SwapService {
     /** FR-019: người nhận khác người nhường, Đang làm việc, tài khoản không Đã khóa, chưa có tên trong X, chung vai trò. */
     private void requireRecipient(long giver, long recipient, WorkShift x) {
         if (giver == recipient) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "INVALID_RECIPIENT", "Người nhận phải khác người nhường");
+            throw new BusinessException(HttpStatus.CONFLICT, "INVALID_RECIPIENT", "Người nhận phải khác người nhường");
         }
         var profile = staff.find(recipient).orElseThrow(NotFoundException::new);
         AccountView account = accounts.byStaff(recipient)
                 .filter(acc -> acc.status() != AccountStatus.LOCKED)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.CONFLICT, "INVALID_RECIPIENT", "Người nhận chưa có tài khoản hoặc tài khoản đã khóa"));
+                        HttpStatus.CONFLICT,
+                        "INVALID_RECIPIENT",
+                        "Người nhận chưa có tài khoản hoặc tài khoản đã khóa"));
         if (!"WORKING".equals(profile.status()) || inShift(x, recipient)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "INVALID_RECIPIENT", "Người nhận không còn làm việc hoặc đã có tên trong ca");
@@ -758,7 +807,9 @@ public class SwapService {
         Set<Role> mine = accounts.byStaff(giver).map(AccountView::roles).orElse(Set.of());
         if (mine.stream().noneMatch(account.roles()::contains)) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "ROLE_MISMATCH", "Người nhận không có vai trò hệ thống chung với người nhường");
+                    HttpStatus.CONFLICT,
+                    "ROLE_MISMATCH",
+                    "Người nhận không có vai trò hệ thống chung với người nhường");
         }
     }
 
@@ -775,7 +826,8 @@ public class SwapService {
             if (!BLOCKING_SHIFT.contains(x.status()) || !x.startsAt().isAfter(time.now())) {
                 return false;
             }
-            if (!shifts.members(x.id()).stream().anyMatch(m -> m.staffId() == d.giverStaffId() && m.presentAt(time.now()))
+            if (!shifts.members(x.id()).stream()
+                            .anyMatch(m -> m.staffId() == d.giverStaffId() && m.presentAt(time.now()))
                     || inShift(x, d.recipientStaffId())) {
                 return false;
             }
@@ -849,7 +901,9 @@ public class SwapService {
     }
 
     private boolean isParty(SwapDetail d, CurrentUser me) {
-        return me.staffId().filter(s -> s == d.giverStaffId() || s == d.recipientStaffId()).isPresent();
+        return me.staffId()
+                .filter(s -> s == d.giverStaffId() || s == d.recipientStaffId())
+                .isPresent();
     }
 
     /** FR-023: Trưởng tầng được giao của tầng/khu vực; ca toàn viện: Quản lý viện. */

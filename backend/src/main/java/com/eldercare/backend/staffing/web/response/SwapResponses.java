@@ -9,7 +9,8 @@ public final class SwapResponses {
     private SwapResponses() {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record CommandResult(List<Map<String, Object>> notTransferredAssignments, List<Map<String, Object>> effects) {}
+    public record CommandResult(
+            List<Map<String, Object>> notTransferredAssignments, List<Map<String, Object>> effects) {}
 
     public record CreatedLeaveRequests(List<Long> requestIds) {}
 }

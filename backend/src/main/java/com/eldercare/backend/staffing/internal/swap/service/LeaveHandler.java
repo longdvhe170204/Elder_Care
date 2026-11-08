@@ -63,7 +63,8 @@ class LeaveHandler implements RequestTypeHandler {
 
     @Override
     public Target scope(JsonNode content) {
-        Long floor = content.hasNonNull("floorAreaId") ? content.get("floorAreaId").asLong() : null;
+        Long floor =
+                content.hasNonNull("floorAreaId") ? content.get("floorAreaId").asLong() : null;
         return new Target("M09.LEAVE_REQUEST", content.path("staffId").asString(""), null, floor);
     }
 
