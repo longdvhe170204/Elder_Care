@@ -2,6 +2,7 @@ package com.eldercare.backend.staffing.web.request;
 
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.staffing.internal.swap.domain.LeaveDetail;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
@@ -10,17 +11,18 @@ import java.util.List;
 public final class LeaveRequests {
     private LeaveRequests() {}
 
-    public record Create(
+    public record CreateLeave(
             @NotNull LeaveDetail.LeaveKind kind,
             Long staffId,
             List<Long> shiftIds,
             LocalDate fromDate,
             LocalDate toDate,
             List<LocalDate> dates,
-            String scopeType,
+            @Schema(allowableValues = {"FLOOR", "AREA", "FACILITY"}) String scopeType,
             Long scopeId,
             @NotNull Reason reason) {}
 
+    @Schema(name = "LeaveDecisionItem")
     public record Item(Long shiftId, LocalDate date, @NotNull Result result, Long newLeadId) {}
 
     public enum Result {
@@ -28,5 +30,5 @@ public final class LeaveRequests {
         REJECTED
     }
 
-    public record Decision(List<Item> items, String reason) {}
+    public record LeaveDecision(List<Item> items, String reason) {}
 }
