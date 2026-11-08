@@ -159,11 +159,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Path.of("..", "specs", "017-resident-balance-ledger", "contracts", "api-017.yaml"),
                     Set.of(
                             "GET /api/v1/payment-notices/pending-issue",
-                            "POST /api/v1/costs/statements/{statementId}/payment-notice",
-                            "POST /api/v1/balance-exports/statement",
-                            "POST /api/v1/balance-exports/income-expense-report",
-                            "GET /api/v1/balance-exports/{id}/file",
-                            "POST /api/v1/family-portal/residents/{residentId}/balance-statement"),
+                            "POST /api/v1/costs/statements/{statementId}/payment-notice"),
                     Set.of(),
                     true),
             // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story
