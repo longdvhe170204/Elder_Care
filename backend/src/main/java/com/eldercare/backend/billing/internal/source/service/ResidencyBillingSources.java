@@ -22,6 +22,19 @@ public class ResidencyBillingSources {
     public record Source(long residentId, BillingSourceKey key, ResidencyDayView day, Long existingItemId) {}
 
     public List<Source> between(long residentId, LocalDate from, LocalDate to) {
-        throw new UnsupportedOperationException("T011: chưa cài tra ngày lưu trú");
+        var days = residency.daysBetween(residentId, from, to).stream()
+                .sorted(java.util.Comparator.comparing(ResidencyDayView::date))
+                .toList();
+        if (days.isEmpty()) return List.of();
+        var existing = index.effectiveItems(
+                residentId,
+                "RESIDENCY_DAY",
+                days.stream().map(day -> residentId + ":" + day.date()).toList());
+        return days.stream()
+                .map(day -> {
+                    var key = new BillingSourceKey(residentId + ":" + day.date(), "DAY");
+                    return new Source(residentId, key, day, existing.get(key));
+                })
+                .toList();
     }
 }

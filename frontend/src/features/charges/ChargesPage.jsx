@@ -15,6 +15,9 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { StatementDetail } from './StatementDetail'
+import { BillingSources } from './BillingSources'
+import { PostFinalizationChanges } from './PostFinalizationChanges'
+import { PurchaseRequests } from './PurchaseRequests'
 import { controlClass, money, periodLabel, STATEMENT_STATUS } from './chargeLabels'
 
 // 010 T019: chỉ đọc dữ liệu thật qua client sinh; không lập sẵn bảng, không tự chọn khoản.
@@ -32,6 +35,7 @@ export function ChargesPage() {
   const [revision, setRevision] = useState(0)
   const [periodRevision, setPeriodRevision] = useState(0)
   const [announcement, setAnnouncement] = useState('')
+  const [workspace, setWorkspace] = useState('statements')
   const deny = useCallback(() => {
     setDenied(true)
     setPeriods(null)
@@ -94,6 +98,20 @@ export function ChargesPage() {
     setRevision((value) => value + 1)
   }
 
+  if (workspace === 'purchases' && can('PURCHASE_ON_BEHALF', 'VIEW'))
+    return <div className="flex flex-col gap-5"><PageHeader title="Đề nghị mua hộ" /><Button variant="outline" onClick={() => setWorkspace('statements')}>Về bảng chi phí</Button><PurchaseRequests /></div>
+
+  if (workspace !== 'statements' && can('COST_ADJUSTMENT', 'CREATE'))
+    return (
+      <div className="space-y-4">
+        <PageHeader title={workspace === 'sources' ? 'Lập khoản từ nguồn' : 'Biến động sau chốt'} />
+        <Button variant="outline" onClick={() => setWorkspace('statements')}>
+          Về bảng chi phí
+        </Button>
+        {workspace === 'sources' ? <BillingSources onChanged={changed} /> : <PostFinalizationChanges />}
+      </div>
+    )
+
   return (
     <DetailLayout
       open={opened !== null}
@@ -105,6 +123,15 @@ export function ChargesPage() {
       )}
     >
       <PageHeader title="Chi phí" subtitle="Kiểm tra từng khoản, duyệt và chốt bảng chi phí theo kỳ." />
+      {can('PURCHASE_ON_BEHALF', 'VIEW') && <Button variant="outline" onClick={() => setWorkspace('purchases')}>Đề nghị mua hộ</Button>}
+      {can('COST_ADJUSTMENT', 'CREATE') && (
+        <div className="flex gap-3">
+          <Button onClick={() => setWorkspace('sources')}>Lập khoản từ nguồn</Button>
+          <Button variant="outline" onClick={() => setWorkspace('changes')}>
+            Biến động sau chốt
+          </Button>
+        </div>
+      )}
       <Card className="p-4">
         <FieldGroup className="sm:flex-row">
           <Field>

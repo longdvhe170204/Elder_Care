@@ -126,5 +126,20 @@ public record CostItemBody(
             BigDecimal factor,
             List<String> flags,
             Long existingItemId,
-            String billingUnit) {}
+            String billingUnit) {
+        public static Source of(BillingSourceView source) {
+            return new Source(
+                    source.sourceType(),
+                    source.sourceId(),
+                    source.unit(),
+                    source.incurredOn(),
+                    source.occurredAt(),
+                    source.description(),
+                    source.quantity(),
+                    source.factor(),
+                    source.flags(),
+                    source.existingItemId(),
+                    source.billingUnit());
+        }
+    }
 }

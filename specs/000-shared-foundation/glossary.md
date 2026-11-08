@@ -2896,7 +2896,7 @@ Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ s�
 | Tên logic | Tên triển khai / cách lưu |
 | --- | --- |
 | Thời gian tính phí | BillingPeriod; startsOn/endsOn, admittedOn, deathAt, firstSessionAt, residential |
-| Trạng thái chi phí người cao tuổi | BillingResidentState; SharedKind M11.RESIDENT_COST_STATE; finalCostCompletedFrom (Instant nullable); dùng chung payload M11 với 017 khi mở rộng |
+| Trạng thái chi phí người cao tuổi | BillingResidentState; SharedKind M11.RESIDENT_COST_STATE; finalCostCompletedFrom/deathAt (Instant nullable), finalStatementId (Long nullable), throughDate (LocalDate nullable), revision (long); dùng chung payload M11 với 017 khi mở rộng |
 | Lịch sử tính lại | CostRecalculation; HistoryTrack M11.COST_ITEM / RECALCULATION; before/after, cause, resetToDraft; snapshot quantity/unitPrice/factorPercent/amount |
 | Khóa chi phí | CostLock, CostRowLocks; khóa kỹ thuật M11.COST_RESIDENT:<residentId>, rồi trạng thái/bảng |
 | Sự kiện nguồn đã xử lý | ReminderMarkers: kind M11.SOURCE_PROCESSED, entityType M11.BILLING_SOURCE; residentId và khóa sự kiện |
@@ -2963,6 +2963,46 @@ Lịch sử lệnh khoản: CostItemHistory, track M11.COST_ITEM/COMMAND qua Sta
 | DTO HTTP chi phí | CostItemBody, CostStatementBody, CostBatchBody, CostSubmissionBody, CostProblemBody; schema có tên riêng của 010 để không ghi đè schema module khác |
 | Kiểm quyền và thông báo nội bộ | CostAccess, CostNotifications, CostNotificationEvent; không thay sự kiện công khai CostStatementFinalized |
 | Khóa đọc dữ liệu hiện hành | lockedStatement, lockedItem, lockItems; dùng locking read sau khi giữ khóa nghiệp vụ, không dùng snapshot cũ để chốt |
+
+### 16.15. Lập từ nguồn, tính lại và điều chỉnh — 2026-11-07
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| Nguồn tại lần đọc | CostSourceCandidate, SourceCostSelection, SourceCostResult; billing.internal.source.domain |
+| Tra cứu và lập nguồn | CostSourceLookup, SourceCostCommands, CostSourceController; billing.internal.source / web |
+| Kết quả tính và căn cứ | CalculatedCost, SourceCostPricing; billing.internal.pricing; dùng lại CostPricingService |
+| Bảng nhận khoản | CostDestination, CostCreationStore; billing.internal.item |
+| Tính lại khoản hiện có | StoredCostCalculation, CostRecalculationService, CostRecalculationStore; billing.internal.item |
+| Biến động nguồn sau chốt | PostFinalizationChange; SharedKind M11.POST_FINALIZATION_CHANGE; chỉ dữ liệu nguồn trước/sau, không có số chênh lệch |
+| Phản hồi tra cứu biến động | CostSourceChangeView ở internal.adjustment.domain; PostFinalizationChangeBody ở web.response; schema HTTP PostFinalizationChange, giữ id/itemId/residentId/event/before/after/reference/occurredAt |
+| Lệnh điều chỉnh | CostAdjustmentRules, CostAdjustmentService; billing.internal.adjustment; CostAdjustmentController/CostAdjustmentRequest ở web |
+| Màn nguồn và điều chỉnh | BillingSources, PostFinalizationChanges, CostAdjustmentForm; frontend/src/features/charges |
+
+Chưa nghiệm thu; phần thiếu nguồn và phương án tại specs/010-incurred-costs/implementation-note-2026-11-07.md.
+
+### 16.16. Kỳ cuối — Phase 7, 07/11/2026
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| Điều kiện chi phí kỳ cuối | FinalPeriodCondition, billing.internal.finalperiod.domain; mã dùng chung END_A_COSTS (KT_A_CHI_PHI), waivable=true theo mục 10.3 |
+| Bản cài kỳ cuối / mục sau qua đời | FinalPeriodService cài FinalPeriodPort, FinalPeriodCostApi, PostDeathItemPort; code FINAL_PERIOD_COSTS; billing.internal.finalperiod.service |
+| Tác động trạng thái chi phí | CostStatusParticipant, @Order(60); END_RESIDENCY, RECORD_DEATH, CANCEL_ADMISSION; sau nguồn, trước M10 (@Order(70)) |
+| Khoảng tính phí thực và lập trước | FinalBillingWindow; phân biệt hồ sơ Đang chuẩn bị, thời điểm qua đời và ngày qua đời |
+| Dữ liệu, sự kiện và nhắc kỳ cuối | FinalPeriodStore, FinalPeriodEvents, FinalPeriodDailyTask (COST_FINAL_PERIOD_OVERDUE); billing.internal.finalperiod; không thêm REST hoặc bảng riêng |
+| Thông báo kỳ cuối | FINAL_PERIOD_CHANGED, FINAL_PERIOD_CONDITION_UNMET, FINAL_PERIOD_OVERDUE, SUPPLEMENTARY_COSTS_PENDING; gửi Hành chính, không chứa tên thuốc |
+| Nhật ký mốc kỳ cuối | FINAL_PERIOD_CHANGED, FINAL_PERIOD_STOP_CANCELLED; căn cứ hủy/tính lại END_DATE_CHANGED, RECORD_DEATH, ADMISSION_CANCELLED; lý do hủy hiển thị tiếng Việt |
+
+### 16.17. Mua hộ — Phase 8, 08/11/2026
+
+| Tiếng Việt | Tên tiếng Anh / vị trí |
+| --- | --- |
+| Trạng thái và nội dung đề nghị mua hộ | PurchaseConsent, PurchaseDetails; billing.internal.purchase.domain; M11.PURCHASE_ASSISTANCE_REQUEST |
+| Đại diện nhận mỗi vòng và lịch sử quyết định | PurchaseRecipient, PurchaseDecision; M11.PURCHASE_RECIPIENT, M11.PURCHASE_DECISION; RecordEvent con của đề nghị |
+| Chủ tệp chứng từ mua hộ | PurchaseReceipt; M11.PURCHASE_ASSISTANCE_RECEIPT; id sự kiện con, không dùng id đề nghị làm ownerId |
+| Lệnh đề nghị và ghi đã mua | PurchaseAssistanceService, PurchaseRecordingService; PurchaseCostStore; billing.internal.purchase |
+| Quyền, phạm vi và lưu giữ mua hộ | PurchaseReceiptPermission, PurchaseGovernance, PurchaseRetention |
+| Nhắc chờ và mất tài khoản đại diện | PurchaseReminderTask; PURCHASE_CONSENT_REMINDER; marker M11.PURCHASE_REMINDER, M11.PURCHASE_NO_PORTAL |
+| Màn mua hộ web và đồng ý trên app | PurchaseRequests trong frontend/src/features/charges; PurchaseConsentScreen trong mobile/lib/family/charges |
 
 ## 17. Feature 011 (`011-nutrition-management`, D)
 

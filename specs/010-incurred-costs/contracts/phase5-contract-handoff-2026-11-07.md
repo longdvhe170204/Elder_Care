@@ -12,4 +12,4 @@ Người dùng giao E tự chọn cách triển khai hợp lý theo spec, không
 
 Public DTO CostItemView của E thêm commandHistory; đã sửa toàn bộ nơi tạo record hiện có. Mọi API nguồn C/D và common production giữ nguyên. A review phần đăng ký script/test chung; consumer review DTO và schema 010 trong PR. T032 toàn feature và gate nguồn thật T033 vẫn mở.
 
-Bằng chứng: CostWorkflowIT 20, ApiContractIT 1; 9 test màn, toàn web 610 test, lint/build xanh. Xem ../phase5-checkpoint-2026-11-07.md. Không chạy verify; chưa commit/push/PR.
+Bằng chứng: CostWorkflowIT 20, ApiContractIT 1; 9 test màn, toàn web 610 test, lint/build xanh. Xem ../plan.md#implementation-notes. Không chạy verify; chưa commit/push/PR.

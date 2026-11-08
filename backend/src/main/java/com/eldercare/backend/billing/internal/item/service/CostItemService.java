@@ -136,7 +136,9 @@ public class CostItemService {
                                         + statements
                                                 .statement(item.statementId())
                                                 .version(),
-                                "Phần vượt số đã đồng ý của khoản mua hộ đã được duyệt",
+                                "Phần vượt số đã đồng ý của khoản mua hộ đã được duyệt. Số được phép: "
+                                        + Objects.toString(store.purchaseAllowedAmount(item.id()), "chưa có căn cứ")
+                                        + "; số thực tế: " + item.amount() + " đồng. Lý do: " + excessReason,
                                 List.of(new RecipientGroup.Representative(item.residentId())),
                                 NotificationLevel.LOW,
                                 time.now(),

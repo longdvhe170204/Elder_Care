@@ -298,6 +298,10 @@ export function StatementDetail({ id, Title, Description, onChanged, onDenied })
           canApprove={approve}
           statementStatus={statement.status}
           onDenied={onDenied}
+          onAdjusted={() => {
+            setRevision((value) => value + 1)
+            onChanged('Đã lập điều chỉnh và tải lại bảng chi phí.')
+          }}
         />
       )}
       {intent && (
