@@ -25,10 +25,12 @@ public final class SettlementStatementDocument {
         if (data.representativeName() != null) {
             pdf.paragraph("Người đại diện: " + data.representativeName());
         }
-        pdf.paragraph("Loại lưu trú: " + data.stayType() + "    Hợp đồng: " + data.contractCode());
-        pdf.paragraph("Ngày bắt đầu: " + date(data.startDate()) + "    Ngày kết thúc dự kiến: "
-                + date(data.expectedEndDate()));
-        pdf.paragraph("Trường hợp kết thúc: " + data.endCase());
+        pdf.paragraph("Loại lưu trú: " + orDash(data.stayType()) + "    Hợp đồng: " + orDash(data.contractCode()));
+        // hồ sơ chưa có hợp đồng đã ký, hoặc xác nhận lại sau trạng thái cuối: 004 không trả ngày
+        pdf.paragraph("Ngày bắt đầu: " + (data.startDate() == null ? "—" : date(data.startDate()))
+                + "    Ngày kết thúc dự kiến: "
+                + (data.expectedEndDate() == null ? "—" : date(data.expectedEndDate())));
+        pdf.paragraph("Trường hợp kết thúc: " + orDash(data.endCase()));
         pdf.table(
                 List.of("Bảng kỳ cuối, theo loại", "Tổng"),
                 data.finalPeriodTotalsByType().stream()
@@ -55,5 +57,9 @@ public final class SettlementStatementDocument {
         pdf.paragraph("Chứng từ này không thay thế hóa đơn.");
         pdf.signatures("Kế toán", "Người đại diện");
         return pdf.toBytes();
+    }
+
+    private static String orDash(String text) {
+        return text == null ? "—" : text;
     }
 }

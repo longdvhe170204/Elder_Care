@@ -22,6 +22,7 @@ import com.eldercare.backend.billing.balance.internal.ledger.persistence.Balance
 import com.eldercare.backend.billing.balance.internal.ledger.persistence.LedgerStore;
 import com.eldercare.backend.billing.balance.internal.ledger.service.DepositStatuses;
 import com.eldercare.backend.billing.balance.internal.ledger.service.LedgerPosting;
+import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementChanges;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.PaymentMethod;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionChecks;
@@ -89,6 +90,7 @@ public class BalanceTransactionService {
     private final ObjectProvider<ResidencyEndingReadApi> endings;
     private final ObjectProvider<FinalPeriodCostApi> finalPeriods;
     private final ResidentApi residents;
+    private final SettlementChanges settlement;
     private final AuditLogApi audit;
     private final CurrentUser user;
     private final BusinessTime time;
@@ -105,6 +107,7 @@ public class BalanceTransactionService {
             ObjectProvider<ResidencyEndingReadApi> endings,
             ObjectProvider<FinalPeriodCostApi> finalPeriods,
             ResidentApi residents,
+            SettlementChanges settlement,
             AuditLogApi audit,
             CurrentUser user,
             BusinessTime time) {
@@ -119,6 +122,7 @@ public class BalanceTransactionService {
         this.endings = endings;
         this.finalPeriods = finalPeriods;
         this.residents = residents;
+        this.settlement = settlement;
         this.audit = audit;
         this.user = user;
         this.time = time;
@@ -199,6 +203,8 @@ public class BalanceTransactionService {
                 .getObject()
                 .create(new CreateRequest(BalanceTypes.TRANSACTION, content, time.today(), reason, true));
         pending.attachRequest(id, request.id());
+        // FR-022: giao dịch Chờ duyệt làm ý xác nhận quyết toán Chưa đạt
+        settlement.changed(residentId);
         var after = new LinkedHashMap<String, Object>();
         after.put("type", type.name());
         after.put("ledger", command.ledger().name());
@@ -289,6 +295,7 @@ public class BalanceTransactionService {
                     .build());
         }
         deposits.recheck(residentId, depositSide, by);
+        settlement.changed(residentId);
         return List.of(depositSide, balanceSide).stream()
                 .map(id -> BalanceTransactionView.of(transactions.find(id).orElseThrow()))
                 .toList();

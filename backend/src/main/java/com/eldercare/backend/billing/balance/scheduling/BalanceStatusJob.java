@@ -1,5 +1,6 @@
 package com.eldercare.backend.billing.balance.scheduling;
 
+import com.eldercare.backend.billing.balance.internal.status.service.AfterFinalStatusReminders;
 import com.eldercare.backend.billing.balance.internal.status.service.DailyBalanceStatus;
 import com.eldercare.backend.billing.balance.internal.status.service.DepositRefundReminders;
 import com.eldercare.backend.common.scheduling.ScheduledJob;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Job hằng ngày 02:00 của phần số dư (017 T021; tên logic {@code ViecHangNgayM11SoDu}; research E-07): tính tình trạng,
- * báo, nhắc lại; nhắc hoàn cọc (T026, FR-015a); chạy bù lúc khởi động. Không ghi giao dịch (Q-306, {@code M11ArchTest}).
+ * báo, nhắc lại; nhắc hoàn cọc (T026, FR-015a); nhắc sau trạng thái cuối (T031, FR-024); chạy bù lúc khởi động. Không ghi giao dịch (Q-306, {@code M11ArchTest}).
  */
 @Component
 public class BalanceStatusJob implements ScheduledJob {
@@ -24,6 +25,7 @@ public class BalanceStatusJob implements ScheduledJob {
 
     private final DailyBalanceStatus daily;
     private final DepositRefundReminders depositRefunds;
+    private final AfterFinalStatusReminders afterFinal;
     private final SchedulerRuns runs;
     private final Environment environment;
     private final boolean startup;
@@ -31,12 +33,14 @@ public class BalanceStatusJob implements ScheduledJob {
     public BalanceStatusJob(
             DailyBalanceStatus daily,
             DepositRefundReminders depositRefunds,
+            AfterFinalStatusReminders afterFinal,
             SchedulerRuns runs,
             Environment environment,
             @Value("${eldercare.jobs.balance-status.on-startup:${eldercare.scheduling.enabled:true}}")
                     boolean startup) {
         this.daily = daily;
         this.depositRefunds = depositRefunds;
+        this.afterFinal = afterFinal;
         this.runs = runs;
         this.environment = environment;
         this.startup = startup;
@@ -66,6 +70,7 @@ public class BalanceStatusJob implements ScheduledJob {
         try {
             count = daily.run();
             count += depositRefunds.remind();
+            count += afterFinal.remind();
             runs.finish(run, SchedulerRuns.Result.SUCCEEDED, count);
         } catch (RuntimeException error) {
             runs.finish(run, SchedulerRuns.Result.FAILED, count);

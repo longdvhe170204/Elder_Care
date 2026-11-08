@@ -23,6 +23,7 @@ import com.eldercare.backend.billing.balance.internal.ledger.persistence.LedgerS
 import com.eldercare.backend.billing.balance.internal.ledger.service.BalanceQueries;
 import com.eldercare.backend.billing.balance.internal.ledger.service.DepositStatuses;
 import com.eldercare.backend.billing.balance.internal.ledger.service.LedgerPosting;
+import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementChanges;
 import com.eldercare.backend.billing.balance.internal.status.domain.Trigger;
 import com.eldercare.backend.billing.balance.internal.status.service.BalanceStatusService;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
@@ -66,6 +67,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
     private final DepositStatuses deposits;
     private final BalanceStatusService statuses;
     private final BlockedApprovalNotices blocked;
+    private final SettlementChanges settlement;
     private final ResidentApi residents;
     private final AuditLogApi audit;
     private final BusinessTime time;
@@ -79,6 +81,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
             DepositStatuses deposits,
             BalanceStatusService statuses,
             BlockedApprovalNotices blocked,
+            SettlementChanges settlement,
             ResidentApi residents,
             AuditLogApi audit,
             BusinessTime time) {
@@ -90,6 +93,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
         this.deposits = deposits;
         this.statuses = statuses;
         this.blocked = blocked;
+        this.settlement = settlement;
         this.residents = residents;
         this.audit = audit;
         this.time = time;
@@ -161,6 +165,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
             // tốt lên không báo ngay (cùng quy tắc với lần tính hằng ngày)
             statuses.recalculate(row.residentId(), Trigger.DAILY, "TRANSACTION:" + row.id());
         }
+        settlement.changed(row.residentId());
         return new ResultRef(BalanceTypes.TRANSACTION, Long.toString(row.id()));
     }
 
@@ -187,6 +192,7 @@ class BalanceTransactionRequestHandler implements RequestTypeHandler {
         if (!BalanceTypes.TRANSACTION.equals(request.type())) return;
         long id = transactionId(request.content());
         pending.close(id, status, time.now());
+        settlement.changed(residentId(request.content()));
         audit.write(AuditLogEntry.builder()
                 .action(CLOSED)
                 .entity(BalanceTypes.TRANSACTION, id)
