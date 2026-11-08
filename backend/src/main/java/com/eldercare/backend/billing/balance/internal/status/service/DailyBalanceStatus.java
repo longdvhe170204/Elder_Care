@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Lần tính tình trạng hằng ngày (017 T021; FR-016, FR-018, FR-019; SC-012; research E-07): mỗi hồ sơ một transaction;
+ * Lần tính tình trạng hằng ngày và đối chiếu bất biến sổ (017 T021; FR-016, FR-018, FR-019, DBR-28; SC-012; research
+ * E-03, E-07): mỗi hồ sơ một transaction;
  * dấu {@code reminder_marker} theo ngày giữ một lần tính mỗi ngày nên chạy lại cùng ngày không báo trùng. Lỗi của một hồ
  * sơ ghi log, không dừng các hồ sơ khác. Không ghi giao dịch (Q-306).
  */
@@ -59,6 +60,10 @@ public class DailyBalanceStatus {
             } catch (RuntimeException error) {
                 LOG.warn("Không tính được tình trạng số dư của người cao tuổi {}: {}", resident, error.getMessage());
             }
+        }
+        for (long resident : ledgers.mismatches()) {
+            // E-03: lệch sổ là lỗi kỹ thuật, ghi lại để kiểm tra; không tự sửa số dư
+            LOG.error("Số dư của người cao tuổi {} khác tổng giao dịch Đã xác nhận (DBR-28)", resident);
         }
         return count;
     }
