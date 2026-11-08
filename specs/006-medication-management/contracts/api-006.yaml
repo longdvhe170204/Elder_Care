@@ -680,6 +680,10 @@ components:
         doseKey: { type: string }
         residentId: { type: integer, format: int64 }
         prescriptionId: { type: integer, format: int64 }
+        medicationName: { type: string, description: 'Thêm 2026-11-08 (chủ dự án duyệt): thẻ Phát thuốc hiện tên thuốc' }
+        dosage: { type: number, description: 'Thêm 2026-11-08: liều của đơn' }
+        dosageUnit: { type: string }
+        route: { type: string, description: 'Đường dùng' }
         scheduledTime: { type: string, format: date-time }
         windowFrom: { type: string, format: date-time }
         windowTo: { type: string, format: date-time }

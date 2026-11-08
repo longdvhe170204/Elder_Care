@@ -101,6 +101,7 @@ class BR_M07_14_FeeEventTest {
             assertThat(billed.residentId()).isEqualTo(201L);
             assertThat(billed.medicationId()).isEqualTo(301L);
             assertThat(billed.quantity()).isEqualByComparingTo("2.00");
+            assertThat(billed.usageUnit()).isEqualTo("tablet");
         });
 
         clearInvocations(events);
