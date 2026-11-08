@@ -25,6 +25,7 @@ import 'nutrition/serving_confirmation_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'resident_login_qr/resident_login_qr_screen.dart';
 import 'residents/resident_lookup_screen.dart';
+import 'shift_swaps/shift_swaps_screen.dart';
 import 'shifts/assignments_screen.dart';
 import 'shifts/my_shifts_screen.dart';
 import 'sync_results/sync_results_screen.dart';
@@ -82,6 +83,7 @@ class _StaffRootState extends State<StaffRoot> {
   bool _can(String function, String operation) => _grants.contains('$function:$operation');
 
   bool get _canViewShifts => _can('SHIFT_SCHEDULE', 'VIEW');
+  bool get _canViewShiftSwaps => _can('SHIFT_SWAP_REQUEST', 'VIEW');
   bool get _canViewHandovers => _can('SHIFT_HANDOVER', 'VIEW');
   bool get _canRunMedicationRound =>
       _can('MEDICATION_ADMINISTRATION', 'VIEW') || _can('MEDICATION_ADMINISTRATION', 'PROFESSIONAL');
@@ -165,6 +167,7 @@ class _StaffRootState extends State<StaffRoot> {
     ('Mã đăng nhập cho người cao tuổi', LucideIcons.qrCode, () => ResidentLoginQrScreen(api: widget.session.api)),
     if (_canViewShifts) ('Ca của tôi', LucideIcons.calendarDays, () => MyShiftsScreen(api: widget.session.api)),
     if (_canViewShifts) ('Phân công', LucideIcons.users, () => AssignmentsScreen(api: widget.session.api)),
+    if (_canViewShiftSwaps) ('Đổi ca, nghỉ', LucideIcons.calendarDays, () => ShiftSwapsScreen(api: widget.session.api)),
     if (_canViewHandovers) ('Bàn giao ca', LucideIcons.arrowLeftRight, () => HandoverScreen(api: widget.session.api)),
     (
       'Chăm sóc hằng ngày',
