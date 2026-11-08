@@ -4,8 +4,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
+import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.care.api.events.QualityCheckFailedNotice;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.TestUsers;
 import java.time.Instant;
 import java.util.*;
@@ -13,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 014 T023 (BR-M04-23, FR-059 → FR-062, FR-064, FR-066): người kiểm tra tự chọn công việc đã hoàn thành của ca, hệ thống
@@ -31,6 +36,9 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
 
     @org.springframework.beans.factory.annotation.Autowired
     com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckResultSource realQualityChecks;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    TestClockControl testClock;
 
     @BeforeEach
     void qualityFixture() {
@@ -159,6 +167,134 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
                 .satisfies(n -> assertThat(n.performerStaffId()).isEqualTo(caregiver.staffId()));
         assertThat(jdbc.queryForObject("SELECT status FROM care_task WHERE id=?", String.class, task))
                 .isEqualTo("COMPLETED");
+    }
+
+    @Test
+    void Q_404_checksEffectiveResultsShiftWindowAndInspectorRules() throws Exception {
+        com.eldercare.backend.support.TableRows.each(List.of("AMEND", "SHIFT_END", "INSPECTOR"), scenario -> {
+            fixture();
+            qualityFixture();
+            switch (scenario) {
+                case "AMEND" -> Q_404_amendsTheEffectiveResultAndKeepsTheReworkWhenAmendedAgain();
+                case "SHIFT_END" -> Q_404_rejectsAmendmentAfterTheShiftEnds();
+                case "INSPECTOR" -> FR_066_onlyAnEligibleInspectorCanAmendAndTheShiftLeadCannotCheckTheirOwnWork();
+            }
+        });
+    }
+
+    private void Q_404_amendsTheEffectiveResultAndKeepsTheReworkWhenAmendedAgain() throws Exception {
+        long task = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(task)).andExpect(status().isCreated());
+        long item = item(task);
+        result(item, "{\"result\":\"PASS\"}").andExpect(status().isOk());
+
+        correct(item, "AMEND_CONTENT", "{\"result\":\"FAIL\",\"note\":\"Cần làm lại\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("REWORK_TASK_REQUIRED"));
+        correct(
+                        item,
+                        "AMEND_CONTENT",
+                        "{\"result\":\"FAIL\",\"note\":\"Cần làm lại\",\"reworkTask\":{\"plannedAt\":\""
+                                + time.now().plusSeconds(600) + "\",\"sharedOnFloor\":true}}")
+                .andExpect(status().isCreated());
+        assertThat(realQualityChecks.failed(item, task)).isPresent();
+        assertThat(reworkCount(item)).isEqualTo(1);
+        assertThat(itemStatus(item)).isEqualTo("PASS");
+
+        correct(item, "AMEND_CONTENT", "{\"result\":\"NOT_CHECKABLE\",\"note\":\"Đã chuyển viện\"}")
+                .andExpect(status().isCreated());
+        assertThat(realQualityChecks.failed(item, task)).isEmpty();
+        assertThat(reworkCount(item)).isEqualTo(1);
+        mvc.perform(get("/api/v1/quality-checks/shifts/" + shift).param("floorAreaId", Long.toString(floor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].status").value("NOT_CHECKABLE"));
+        correct(item, "AMEND_CONTENT", "{\"result\":\"PASS\"}").andExpect(status().isCreated());
+        correct(item, "VOID", "null")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("CORRECTION_NOT_SUPPORTED"));
+    }
+
+    private void Q_404_rejectsAmendmentAfterTheShiftEnds() throws Exception {
+        long task = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(task)).andExpect(status().isCreated());
+        long item = item(task);
+        result(item, "{\"result\":\"PASS\"}").andExpect(status().isOk());
+        testClock.setTo(shiftEndsAt);
+        try {
+            correct(item, "AMEND_CONTENT", "{\"result\":\"NOT_CHECKABLE\",\"note\":\"Không còn dấu vết\"}")
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.errorCode").value("OUTSIDE_SHIFT_TIME"));
+        } finally {
+            testClock.reset();
+        }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void Q_404_rejectsAnInvalidReworkAndRollsBackTheCorrection() throws Exception {
+        long task = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(task)).andExpect(status().isCreated());
+        long item = item(task);
+        result(item, "{\"result\":\"PASS\"}").andExpect(status().isOk());
+        correct(
+                        item,
+                        "AMEND_CONTENT",
+                        "{\"result\":\"FAIL\",\"note\":\"Cần làm lại\",\"reworkTask\":{\"plannedAt\":\"" + shiftEndsAt
+                                + "\",\"sharedOnFloor\":true}}")
+                .andExpect(status().isUnprocessableEntity());
+        mvc.perform(get("/api/v1/corrections/M04.QUALITY_CHECK_ITEM/" + item))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentContent.result").value("PASS"))
+                .andExpect(jsonPath("$.corrections").isEmpty());
+        assertThat(reworkCount(item)).isZero();
+    }
+
+    private void FR_066_onlyAnEligibleInspectorCanAmendAndTheShiftLeadCannotCheckTheirOwnWork() throws Exception {
+        var lead = new TestUsers(jdbc, time).staff(Role.NURSING_STAFF);
+        long leadTask = completed(lead.accountId(), lead.staffId());
+        long otherTask = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(leadTask, otherTask)).andExpect(status().isCreated());
+        long ownItem = item(leadTask);
+        long otherItem = item(otherTask);
+        result(ownItem, "{\"result\":\"PASS\"}").andExpect(status().isOk());
+        result(otherItem, "{\"result\":\"PASS\"}").andExpect(status().isOk());
+
+        user.set(caregiver.user());
+        mvc.perform(get("/api/v1/corrections/M04.QUALITY_CHECK_ITEM/" + otherItem))
+                .andExpect(status().isForbidden());
+        duties.shiftLead(floor, lead.staffId());
+        assignments.assign(
+                lead.staffId(),
+                new AssignmentView(
+                        AssignmentKind.SHIFT_LEAD,
+                        floor,
+                        null,
+                        null,
+                        shift,
+                        time.now().minusSeconds(60),
+                        shiftEndsAt));
+        user.set(lead.user());
+        String amendment = "{\"result\":\"NOT_CHECKABLE\",\"note\":\"Không còn dấu vết\"}";
+        correct(otherItem, "AMEND_CONTENT", amendment).andExpect(status().isForbidden());
+
+        duties.shiftWithoutFloorManager(shift);
+        correct(ownItem, "AMEND_CONTENT", amendment)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("SELF_CHECK_NOT_ALLOWED"));
+        correct(otherItem, "AMEND_CONTENT", amendment).andExpect(status().isCreated());
+    }
+
+    private ResultActions correct(long item, String type, String correctedContent) throws Exception {
+        return mvc.perform(post("/api/v1/corrections/M04.QUALITY_CHECK_ITEM/" + item)
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"" + type + "\",\"correctedContent\":" + correctedContent
+                        + ",\"reason\":\"Đối chiếu lại kết quả\"}"));
+    }
+
+    private int reworkCount(long item) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM care_task WHERE basis_type='REWORK' AND basis_id=?", Integer.class, item);
     }
 
     java.util.List<com.eldercare.backend.care.api.events.QualityCheckManagerNotice> managerNotices(String cause) {

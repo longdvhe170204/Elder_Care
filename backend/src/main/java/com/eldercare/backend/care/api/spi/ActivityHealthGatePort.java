@@ -17,6 +17,9 @@ public interface ActivityHealthGatePort {
     /** Người cao tuổi đang mang dấu "nghi nhiễm" (007 FR-060). */
     boolean suspectedInfection(long residentId, Instant at);
 
+    /** Có dấu nghi nhiễm bất kỳ lúc nào trong khoảng [from, to); ngày nghiệp vụ dùng hai mốc 00:00 (FR-054). */
+    boolean suspectedInfectionDuring(long residentId, Instant from, Instant to);
+
     /** Có cảnh báo hoặc sự cố mức Trung bình trở lên đang mở (FR-018). */
     boolean hasOpenMediumOrHigher(long residentId);
 }

@@ -166,13 +166,39 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
                 .isEqualTo("REGISTERED");
     }
 
-    @Test
-    void FR_034_offsiteSessionRequiresTripDetails() throws Exception {
+    private void FR_034_offsiteSessionRequiresTripDetails() throws Exception {
         mvc.perform(write(
                         post("/api/v1/activity-sessions"),
                         "{\"activityId\":" + activity + ",\"startsAt\":\"" + departure + "\",\"endsAt\":\""
                                 + departure.plusSeconds(21600) + "\"}"))
                 .andExpect(status().isUnprocessableContent());
+    }
+
+    @Test
+    void FR_034_templateAppliesOneTripPlanOnEveryCreatedDateAtomically() throws Exception {
+        FR_034_offsiteSessionRequiresTripDetails();
+        var day = time.today().plusDays(1);
+        mvc.perform(write(
+                        post("/api/v1/activities/" + activity + "/change-template"),
+                        "{\"reason\":\"Lịch chuyến\",\"effectiveDate\":\"" + day
+                                + "\",\"template\":{\"daysOfWeek\":[1,2,3,4,5,6,7],\"startTime\":\"08:00\",\"endTime\":\"16:00\",\"startDate\":\""
+                                + day + "\"}}"))
+                .andExpect(status().isOk());
+        String body = "{\"fromDate\":\"" + day + "\",\"toDate\":\"" + day.plusDays(1)
+                + "\",\"trip\":{\"destination\":\"Bảo tàng\",\"plannedDepartureTime\":\"08:00\",\"plannedReturnTime\":\"16:00\",\"transport\":\"Xe thuê\",\"facilityVehicle\":false}}";
+        mvc.perform(write(post("/api/v1/activities/" + activity + "/create-sessions-from-template"), body))
+                .andExpect(status().isOk());
+        var rows = jdbc.queryForList(
+                "SELECT trip_destination,trip_planned_departure_at,trip_planned_return_at FROM activity_session WHERE activity_id=? ORDER BY starts_at",
+                activity);
+        assertThat(rows).hasSize(2);
+        for (int i = 0; i < 2; i++) {
+            assertThat(rows.get(i).get("trip_destination")).isEqualTo("Bảo tàng");
+            assertThat(rows.get(i).get("trip_planned_departure_at"))
+                    .isEqualTo(day.plusDays(i).atTime(8, 0));
+            assertThat(rows.get(i).get("trip_planned_return_at"))
+                    .isEqualTo(day.plusDays(i).atTime(16, 0));
+        }
     }
 
     void leader(long trip) throws Exception {

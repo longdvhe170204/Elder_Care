@@ -15,8 +15,10 @@ void main() {
   late ApiClient api;
   late List<http.Request> commands;
   late bool writable, offline, blocked, retired, doctorOnly, targetGone;
+  late List<Map<String, dynamic>> history;
   setUp(() {
     commands = [];
+    history = [];
     writable = true;
     offline = blocked = false;
     retired = false;
@@ -50,6 +52,14 @@ void main() {
               409,
               headers: {'content-type': 'application/problem+json; charset=utf-8'},
             );
+          }
+          if (r.url.path == '/api/v1/rooms/2/isolate') {
+            history.add({
+              'action': 'ISOLATE',
+              'occurredAt': '2026-11-08T03:00:00Z',
+              'actor': '[Bác sĩ đặt]',
+              'reason': (jsonDecode(r.body) as Map)['reason'],
+            });
           }
           return http.Response(jsonEncode({'state': 'EMPTY'}), 200);
         }
@@ -136,7 +146,7 @@ void main() {
               },
             ];
           case '/api/v1/rooms/2/isolation-history':
-            body = [];
+            body = history;
           default:
             throw StateError('Yêu cầu ngoài fixture: ${r.method} ${r.url}');
         }
@@ -226,6 +236,35 @@ void main() {
     expect(jsonDecode(commands.single.body), {'reason': 'Theo dõi lây nhiễm'});
     expect(find.text('Đang cách ly'), findsOneWidget);
     expect(find.text('Không cách ly'), findsNothing);
+  });
+
+  testWidgets('FR_008_lichSuGhiNguoiThoiDiemLyDoVaTaiLaiSauLenh', (t) async {
+    history.add({
+      'action': 'LIFT',
+      'occurredAt': '2026-11-01T03:00:00Z',
+      'actor': '[Quản lý gỡ]',
+      'reason': 'Hết theo dõi',
+    });
+    await open(t, RoomIsolationScreen(api: api, roomId: 2));
+    expect(find.textContaining('[Quản lý gỡ]'), findsOneWidget);
+    await t.enterText(find.widgetWithText(TextField, 'Lý do (bắt buộc)'), 'Nghi nhiễm cúm');
+    await t.pump();
+    await t.tap(find.widgetWithText(FilledButton, 'Đặt cách ly'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('[Bác sĩ đặt]'), findsOneWidget);
+    expect(find.descendant(of: find.byType(ListTile), matching: find.textContaining('Nghi nhiễm cúm')), findsOneWidget);
+  });
+
+  testWidgets('FR_044_cachLyNgoaiTuyenBaoLoiKhongGiaThanhCong', (t) async {
+    offline = true;
+    await open(t, RoomIsolationScreen(api: api, roomId: 2));
+    await t.enterText(find.widgetWithText(TextField, 'Lý do (bắt buộc)'), 'Theo dõi lây nhiễm');
+    await t.pump();
+    await t.tap(find.widgetWithText(FilledButton, 'Đặt cách ly'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('Kiểm tra mạng'), findsOneWidget);
+    expect(find.text('Không cách ly'), findsOneWidget);
+    expect(find.text('Đã ghi nhận.'), findsNothing);
   });
 
   testWidgets('FR_044_ngoaiTuyenBaoLoiKhongGiaThanhCong', (t) async {
@@ -327,6 +366,21 @@ void main() {
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
     await open(t, BedReadinessScreen(api: api, bedId: 3), dark: true, scale: 2);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('FR_008_cachLyManHepCheDoToiChu200PhanTramKhongTran', (t) async {
+    history.add({
+      'action': 'ISOLATE',
+      'occurredAt': '2026-11-01T03:00:00Z',
+      'actor': '[Bác sĩ đặt]',
+      'reason': 'Ho sốt',
+    });
+    t.view.physicalSize = const Size(360, 800);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    await open(t, RoomIsolationScreen(api: api, roomId: 2), dark: true, scale: 2);
     expect(t.takeException(), isNull);
   });
 }

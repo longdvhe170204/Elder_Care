@@ -420,3 +420,61 @@ Kiểm: `BR_M04_18_SuKienTinhPhiIT` 7/7, `FR_031_DinhChinhIT` 3/3, `T014_Session
 | FR-065 | `T027_ActivityStatisticsIT` (vai trò, người thực hiện) | Có test |
 | FR-067 | Ca 403 trong `BR_M04_16`, `BR_M04_17`, `BR_M04_23`, `FR_051` | Một phần (Hành chính, người thân chờ quyền) |
 | FR-068 | — | Chờ schema cổng người thân |
+
+### 08/11/2026 (C): T006
+
+FR-068: `CareGovernanceConfiguration` phân loại các trường đã duyệt của `M04.SESSION_ATTENDANCE` và `M04.QUALITY_CHECK_ITEM` là `INTERNAL_PUBLIC`, của `M04.PREFERENCE` là `WISHES`. Các trường này nằm ngoài phần thông tin chung của cổng người thân. Khôi phục ca FR-068 trong `T006_ActivityGovernanceIT` sau đợt rút gọn test: đỏ do thiếu provider rồi xanh. Kiểm cuối nhóm: 141 ca đơn vị và kiến trúc, 66 ca tích hợp, tất cả đều qua.
+
+### 08/11/2026 (C): T023, T024 một phần
+
+Q-404 dùng provider `M04.QUALITY_CHECK_ITEM` trong endpoint đính chính chung của 000. Nội dung `AMEND_CONTENT` dùng các trường kết quả, ghi chú, ảnh và công việc làm lại theo `QualityCheckResult`. Danh sách kiểm tra, nguồn công việc làm lại và thống kê dùng kết quả hiện hành; bản gốc và công việc làm lại cũ được giữ. Hạn trong ca và người ghi kiểm theo FR-066. Lượt Q-404 đỏ 2/2 vì thiếu provider rồi xanh. Hồi quy 142 ca đơn vị và kiến trúc, 70 IT, gồm rollback, FR-066 và `CorrectionIT`, đều qua.
+
+T024 giữ mở theo quyết định 08/11: công việc làm lại giao chung của tầng còn bị 005 từ chối nếu có người phù hợp trong ca. Giữ phạm vi sửa 014. T023 còn các lớp test riêng cho điều kiện công việc, người kiểm tra và đối chiếu đủ Q37–Q43.
+
+### 08/11/2026 (C): T010–T012 một phần
+
+Bốn operation đã dùng `LATE_RETURN_CONSENT` (Q-401) và `RepresentativePort`. `LateReturnConsentService` lưu `M04.LATE_RETURN_CONSENT` trong bảng chung, gắn bản ký, chuyển Đã dùng trong `CARE_MINUTE`. Khi đăng ký hoặc rút, cập nhật giờ về qua `DayCareAttendanceApi`. Chủ dự án chọn ngày có nhiều buổi thì lấy giờ về muộn nhất của các buổi còn đăng ký, hết thì trở về lịch. Test FR-016a đỏ 2/2 do thiếu endpoint rồi xanh 3/3. Hồi quy 142 ca đơn vị và kiến trúc, 73 IT đều qua.
+
+Bố cục app duyệt 08/11: từ chi tiết buổi, hiện người cao tuổi, ngày, giờ về theo lịch và dự kiến. Lệnh ghi và rút có bước xác nhận, rút nêu hệ quả hủy đăng ký và tính lại giờ về. App chờ nguồn buổi và mã đồng ý ở T026. T011 còn giờ về sau gia hạn chuyến và thông báo riêng FR-071. T010 còn đối chiếu Q6–Q12 sau đợt rút gọn test.
+
+### 08/11/2026 — Nhóm 4: danh mục và địa điểm buổi
+
+T004 dùng `ACTIVITY_CATALOG` cho danh mục. Chủ dự án duyệt phản hồi GET gồm id, name, status, groupActivity, offSite, interestGroupIds. Lệnh buổi toàn viện xét tầng địa điểm và người lập theo FR-002b; khi đổi phòng cập nhật tầng thực tế. `T004_ActivityCommandsIT` đỏ 2/2 rồi xanh 2/2; kiểm nhóm 142 đơn vị/kiến trúc, 75 IT xanh. Giữ T004 [ ] do 004 chưa có API đọc danh mục dịch vụ. Đã sinh lại client bằng gen:api.
+
+### 08/11/2026 — Nhóm 5: phần đọc hồ sơ tinh thần
+
+Dịch schema preferences/wellbeing-profile đã duyệt 07/11, thêm hai GET và sinh lại client. Sở thích giữ nguồn, người ghi và lịch sử kết thúc; hồ sơ tổng hợp điểm danh hiện hành sau đính chính, số buổi nhóm theo tuần, mức tham gia/giao tiếp, tâm trạng và hành vi từ TaskStatisticsApi. Không lưu bản tổng hợp. Sheet chỉ đọc mở từ dòng người cao tuổi trong chi tiết buổi, theo bố cục chủ dự án duyệt 08/11; tên tâm trạng/hành vi đọc từ danh mục kết quả. alerts null cho nguồn chưa được công bố, không giả là không có cảnh báo.
+
+Chủ dự án chọn không thêm SPI đọc cảnh báo và không sửa CareLockStore của 005. Khóa 005 hiện ghi đè JSON M04 bằng {version}, vì vậy chưa lưu chuỗi cô lập, chưa cài job 00:00/cảnh báo/khóa M04.HOAT_DONG_NCT; T003/T021/T022 giữ mở. suspectedInfectionDuring đã khai kèm bản giả khoảng nửa mở, D cài bean thật tại T028. Trình duyệt báo ERR_CONNECTION_TIMED_OUT khi mở http://127.0.0.1:5173; chưa kiểm trực quan ba bề rộng/chế độ tối.
+
+Kiểm nhóm 5: hai GET đỏ 405/404 rồi xanh; test khoảng nghi nhiễm đỏ thiếu chữ ký rồi xanh. 143 ca đơn vị/kiến trúc đã qua (lỗi record lồng trong persistence được chuyển về domain và LayerArchTest kiểm lại 10/10); 77 IT xanh, ApiContractIT đã bỏ hai GET khỏi danh sách chờ. Web 749 ca, lint/build xanh sau npm ci khôi phục leaflet có sẵn trong lockfile; không đổi manifest.
+
+### 08/11/2026 — Quyết định bổ sung bước 6
+
+Chủ dự án chọn: khu nghỉ theo AREA chỉ trả tầng khi xác định duy nhất; nhiều tầng thì chặn để cấu hình rõ. Duyệt thân lệnh create-sessions-from-template có trip gồm destination, plannedDepartureTime, plannedReturnTime (HH:mm, áp vào từng ngày tạo), transport, facilityVehicle như chuyến lẻ; giờ về sau giờ rời trong cùng ngày.
+
+Bản cài bước 6: AllocationQueries đọc ContractApi tại ngày của at, chỉ người DAY_CARE không có giường lấy khu nghỉ Hiệu lực; FLOOR trả trực tiếp, AREA lọc tầng Hiệu lực, duy nhất thì trả, nhiều tầng báo InvalidPermissionDataException/AMBIGUOUS_DAY_CARE_FLOOR theo FR-041b. assessmentTarget ưu tiên giường rồi khu nghỉ. Thân ActivityCommand có trip theo bộ trường duyệt 08/11; TripTemplatePlan áp giờ vào từng ngày; TripLifecycle.schedule dùng chung để tạo chuyến, nhật ký và TripChanged cùng transaction. Test đỏ: 2 unit lỗi/rỗng/404, 1 IT 503; sau cài 2 unit và 3 IT BR_M04_16 cùng ApiContractIT xanh. Client đã sinh lại, lint/build qua.
+
+TripDetail: đề xuất ở contracts/trip-detail-proposal-2026-11-08.md. Chưa đổi schema hoặc khai/cài nguồn mới cho phần đó, dừng tại bước 6 để chủ dự án trình duyệt. Giữ 503 rời viện ngoại tuyến chờ B. Chưa làm nhóm 7–10 của yêu cầu phiên này.
+
+### Truy vết cuối phiên 08/11/2026 (T030, giữ mở)
+
+| Quy tắc/phạm vi | Bằng chứng mới hoặc đã chạy lại | Phần còn thiếu |
+| --- | --- | --- |
+| FR-068 phân loại thông tin | T006_ActivityGovernanceIT, provider ba loại bản ghi, đỏ rồi xanh | T006 [x]; cổng người thân T026 chưa duyệt schema |
+| FR-064, FR-066, Q-404 | BR_M04_23_KiemTraChatLuongIT, SoMucToiThieuTest, CorrectionIT | T023 còn đủ lớp/ca điều kiện công việc và người kiểm tra; T024 còn nhánh REWORK chung bị 005 từ chối |
+| FR-016/016a | FR_016a_DongYVeMuonIT 3 ca, bốn operation đã qua ApiContractIT | T010 kiểm lại Q6–Q12; T011 gia hạn chuyến/thông báo; T012 app chờ T026 |
+| FR-001, FR-002b, Q-401 | T004_ActivityCommandsIT: quyền danh mục và phạm vi buổi toàn viện theo địa điểm | T004 còn API danh mục dịch vụ 004 |
+| FR-051, FR-053 | T022_WellbeingReadIT 2 kịch bản trong 1 IT; WellbeingSheet.test.jsx 2 ca; GET qua ApiContractIT | Nguồn lịch sử cảnh báo; localhost timeout nên còn ba bề rộng/chế độ tối |
+| FR-054–056, BR-M04-22, DBR-18, SC-007 | T021_ActivityHealthGateTest cho chữ ký và bản giả khoảng nửa mở | Chưa có chuỗi/job/khóa/cảnh báo cô lập, chưa có bộ 30 kịch bản; vướng JSON M04/khóa 005; D cài bean nghi nhiễm thật |
+| FR-034, FR-036, Q-403 | Q403_DayCareFloorTest (003), FR_036_TripAssessmentTest, BR_M04_16_RoiVienIT; ScopeByShiftIT.FR_031 | T015 còn đối chiếu Q18–Q25 sau rút gọn test; T017/T018 TripDetail và adapter thật |
+| FR-036/038/039 phần dữ liệu chi tiết chuyến | contracts/trip-detail-proposal-2026-11-08.md liệt kê trường và nguồn 006/007 | Dừng trình duyệt; chưa sửa schema TripDetail hoặc cài nguồn mới |
+| FR-031a, FR-046a ngoại tuyến chuyến | Giữ kiểm chặn 503 và các test đã có | B chưa nhận thời điểm thiết bị trong lệnh trạng thái 001 |
+| Nhóm 7–10 trong yêu cầu phiên | Chưa triển khai vì dừng tại bước 6 theo yêu cầu | API đọc cho 012/007, sở thích từ phản hồi, TripIncidentPort, app danh sách buổi, listener VehicleScheduleCorrected |
+
+### Ngân sách kiểm thử cuối phiên 08/11/2026
+
+Lượt clean verify đầu tiên với JDK 25, backend/.env và 3 JVM: 910 đơn vị/kiến trúc, 407 IT đều xanh; sáu lớp đỏ có sẵn ở team-plan mục 8 không tái hiện. 407 vượt trần 400 của AGENTS.md. Gộp bảy ca, giữ nguyên toàn bộ kịch bản và assertion: Q-404/FR-066 gộp ba ca transaction thành một TableRows (rollback ngoài transaction giữ riêng); FR-016a gộp ba kịch bản thành một TableRows; T004 gộp hai luồng quyền; T022 gộp hai GET; FR-034 ghép kiểm thiếu thông tin chuyến vào luồng tạo chuyến từ mẫu. Mỗi dòng cần fixture riêng dựng lại với id TestUsers.nextId. Số IT dự kiến 400; chạy lại clean verify đầy đủ sau gộp, không bỏ qua test hay sửa production để đối phó ngân sách.
+
+
+Lượt cuối sau gộp: `clean verify -Dit.forkCount=3` (JDK 25, nạp backend/.env, 11:06 phút) báo 910 đơn vị/kiến trúc xanh; 400 IT, 1 failure/0 error/0 skipped. Lớp đỏ duy nhất là B/018 `RegistrationSubmissionResultIT.Q7_recordingSubmitted_movesToSubmitted_keepsTheSubmission_andStopsOverdueReminders`: còn nhắc TO_CREATE cho residentId=10, on=2026-11-08. Khớp cả lớp, phương thức và triệu chứng ở team-plan mục 8; không sửa nguồn/test B. Năm lớp đỏ cũ còn lại xanh. Care 40, roombedallocation 36, administration.account 24 ca đều xanh, gồm phạm vi trưởng đoàn/người đi cùng; ApiContractIT, CorrectionIT và các RecordGroupTriggerIT xanh. Ngân sách đạt 910/400; T029 vẫn [ ] do gate toàn kho chưa xanh, T030 giữ [ ] theo bảng truy vết. Log: backend/logs/014/20261108-final-budget-clean-verify.log.
