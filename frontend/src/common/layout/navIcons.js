@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  Banknote,
   BedDouble,
   Bell,
   BookOpen,
@@ -27,6 +28,7 @@ import {
 // Icon của mục menu theo tên ở navigation.js; tên thiếu ở đây thì AppShell render undefined (màn hình trắng)
 export const ICONS = {
   ArrowLeftRight,
+  Banknote,
   BedDouble,
   Bell,
   BookOpen,

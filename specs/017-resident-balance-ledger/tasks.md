@@ -42,7 +42,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 - [ ] T005 [P] Khai báo ở `BE/billing/api/`: `SoDuApi` (`soDu`, `dieuKienQuyetToan`, `chungTu`), `SoDuThongKeApi` (`tinhTrang`, `thuChi`), sự kiện `TrangThaiDatCocDaDoi`, `DieuKienQuyetToanDaDoi`, `TinhTrangSoDuDaDoi`, `ChungTuDaPhatHanh` (module-interfaces mục 2.2 → 2.4) và bản giả `BT/support/fake/billing/` cho 004, 012, 016
 - [ ] T006 [P] Bản giả cho test của 017 trong `BT/support/`: `ChiPhiChoSoDuPort` (010, có `bangDaChot`), `HoSoKetThucDocApi` và phát sự kiện 004, `QuyenNguoiThanApi` (012) — dùng bản giả do người khai báo viết nếu đã có (docs/team-plan.md mục 3)
 - [ ] T007 Cài provider trong `BE/billing/sodu/`: `PhanLoaiTruongProvider` (`TAI_CHINH`), `LuuTruProvider` (`THEO_HO_SO`), `GanPhamViProvider`, `QuyenTepProvider` (`M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`, `M11.BAN_KY_QUYET_TOAN`, `M11.FILE_XUAT`) theo research E-12; khóa `@RequiresPermission` theo bảng E-12
-- [ ] T008 [P] *(Chia 2026-11-08: `VietQrPayloadTest` và `VietQrPayload` do B làm cùng phiếu báo phí (Phase 9), `TrangThaiDatCocTest` do A làm)* Test bảng các hàm thuần dùng chung về sau: `BT/billing/sodu/VietQrPayloadTest.java` (test vector, CRC16) và `TrangThaiDatCocTest.java` (research E-04, E-05, E-13)
+- [ ] T008 [P] *(Chia 2026-11-08: `VietQrPayloadTest` và `VietQrPayload` do B làm cùng phiếu báo phí (Phase 9), `TrangThaiDatCocTest` do A làm)* Test bảng các hàm thuần dùng chung về sau: `BT/billing/sodu/VietQrPayloadTest.java` (test vector, CRC16) và `TrangThaiDatCocTest.java` (research E-04, E-05, E-13) *(2026-11-08, B: phần `VietQrPayload` + `VietQrPayloadTest` xong, 4 test, `billing.internal.balance.document.domain`; còn `TrangThaiDatCocTest` của A, nên giữ [ ])*
 
 **Checkpoint**: Bảng, API, bản giả sẵn sàng.
 
@@ -130,14 +130,14 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Tests cho User Story 6
 
-- [ ] T023 [P] [US6] Test đơn vị `BT/billing/sodu/GioiHanHoanTest.java` (FR-014 mọi nhánh)
+- [x] T023 [P] [US6] *(Xong 2026-11-08, B: lớp thật `RefundLimitTest` ở `BT/billing/balance/`, 2 test; hàm `RefundLimit` ở `billing.internal.balance.transaction.domain`)* Test đơn vị `BT/billing/sodu/GioiHanHoanTest.java` (FR-014 mọi nhánh)
 - [ ] T024 [P] [US6] Test `BT/billing/sodu/BR_M11_14_HoanTienIT.java`, `BR_M11_10_DieuChinhIT.java`, `DBR_17_GiaoDichKhongSuaIT.java`, `FR_015_CanTruCocIT.java`, `FR_015a_NhacHoanCocIT.java` (Q11 → Q15, Q24): Chờ duyệt không đổi sổ; duyệt kiểm lại giới hạn, người nhận; từ chối, hủy; điều chỉnh trỏ gốc đặt `da_dieu_chinh`; không trỏ thanh toán bảng; không có lệnh sửa, xóa giao dịch Đã xác nhận (trigger); cặp cấn trừ cùng số tiền, ngược dấu (SC-007, SC-013)
 
 ### Implementation cho User Story 6
 
 - [ ] T025 [US6] Cài `POST /giao-dich`, `GET /giao-dich/cho-duyet` và handler `M11.GIAO_DICH_SO_DU` (`LoaiYeuCauHandler` của 000: `kiemTraKhiDuyet`, `apDung`) trong `BE/billing/sodu/giaodich/` (research E-06)
 - [ ] T026 [US6] Cài `POST /nguoi-cao-tuoi/{nctId}/can-tru-coc` (điều kiện qua `HoSoKetThucDocApi`, `DanhSachViecSauQuaDoiApi`, giao dịch thanh toán kỳ cuối) và nhắc hoàn cọc (listener hợp đồng hủy, Hủy tiếp nhận; phần nhắc của job T021)
-- [ ] T027 [P] [US6] Màn web lập hoàn tiền, điều chỉnh, cấn trừ trong `frontend/src/tinh-nang/so-du/`; giao dịch Chờ duyệt hiện trong hộp duyệt của 000 (T097 của 000) với chi tiết do 017 trả
+- [ ] T027 [P] [US6] Màn web lập hoàn tiền, điều chỉnh, cấn trừ trong `frontend/src/tinh-nang/so-du/`; giao dịch Chờ duyệt hiện trong hộp duyệt của 000 (T097 của 000) với chi tiết do 017 trả *(2026-11-08, B: xong màn `ResidentBalance` (số dư, giao dịch), `TransactionForm` (hoàn tiền, hoàn cọc, điều chỉnh), `OffsetForm` (cấn trừ), `PendingTransactions` trong `frontend/src/features/balance/` kèm 9 test Vitest `ResidentBalance.test.jsx`, `PendingTransactions` qua `BalancePage.test.jsx`; chưa chạy với API thật (chờ A); hộp duyệt của 000 hiện chi tiết giao dịch chờ A cài handler; `BalanceTransaction` thiếu `residentId` nên danh sách chờ duyệt không ghi được tên người, team-plan mục 8; giữ [ ])*
 
 **Checkpoint**: Q11 → Q15, Q24 xanh.
 
@@ -151,15 +151,15 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Tests cho User Story 7, 10
 
-- [ ] T028 [P] [US7] Test đơn vị `BT/billing/sodu/DieuKienQuyetToanTest.java`: ba ý tiền và ý xác nhận; ngoại lệ chỉ miễn ba ý tiền; còn Chờ duyệt thì ý xác nhận Chưa đạt dù có ngoại lệ (BR-M11-22, chủ dự án chọn 2026-10-22); giao dịch sau xác nhận làm ý xác nhận Chưa đạt; bảng bổ sung chưa chốt không ảnh hưởng
+- [x] T028 [P] [US7] *(Xong 2026-11-08, B: lớp thật `SettlementConditionsTest`, 5 test; hàm `SettlementConditions` ở `billing.internal.balance.settlement.domain`; ngoại lệ chỉ ảnh hưởng `Result.satisfied(exceptionApproved)`)* Test đơn vị `BT/billing/sodu/DieuKienQuyetToanTest.java`: ba ý tiền và ý xác nhận; ngoại lệ chỉ miễn ba ý tiền; còn Chờ duyệt thì ý xác nhận Chưa đạt dù có ngoại lệ (BR-M11-22, chủ dự án chọn 2026-10-22); giao dịch sau xác nhận làm ý xác nhận Chưa đạt; bảng bổ sung chưa chốt không ảnh hưởng
 - [ ] T029 [P] [US7] Test `BT/billing/sodu/FR_022_DieuKienQuyetToanIT.java`, `FR_023_ViecSauQuaDoiIT.java`, `FR_024_SauTrangThaiCuoiIT.java` (Q16, Q22, Q22a, Q23): bean trả đúng hai mã và `coTheMien`; mục `QUYET_TOAN` của người qua đời Hoàn thành khi có ngoại lệ đã duyệt và đã xác nhận (Q-387); `DieuKienQuyetToanDaDoi` phát khi đổi; mục `QUYET_TOAN` Hoàn thành, Không áp dụng; nhắc sau trạng thái cuối tới khi số dư 0 và xác nhận lại
 - [ ] T030 [P] [US10] Test `BT/billing/sodu/BR_M11_22_XacNhanQuyetToanIT.java` (Q17 → Q21): điều kiện lệnh (căn cứ, ba ý tiền hoặc ngoại lệ, không còn Chờ duyệt); phiên bản tăng, một hiện hành; nội dung bảng khớp sổ, kỳ cuối, thông tin hồ sơ kết thúc; dòng "Chứng từ này không thay thế hóa đơn"; bản ký một lần vào phiên bản hiện hành; người thân có quyền xem chi phí được báo (SC-008, SC-015)
 
 ### Implementation cho User Story 7, 10
 
 - [ ] T031 [US7] Cài `BE/billing/sodu/quyettoan/`: `DieuKienQuyetToan`, bean `ThamGiaChuyenTrangThai` (hai mã), `MucViecSauQuaDoiPort` (`QUYET_TOAN`), listener `HoSoKetThucDa*`, `QuaDoiDaGhiNhan`, `NgoaiLeKetThucDaDuyet`, phát `DieuKienQuyetToanDaDoi`; phần nhắc sau trạng thái cuối của job T021 (research E-08)
-- [ ] T032 [US10] Cài lệnh `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (chụp số liệu, dựng PDF bằng `PdfBieuMau`, `FileApi.upload` + `attach`, phiên bản), `GET /nguoi-cao-tuoi/{nctId}/quyet-toan`, `POST /bang-quyet-toan/{id}/ban-ky`, `GET /bang-quyet-toan/{id}/file` (ghi `lan_tai_chung_tu`) (research E-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_tai_chung_tu` → hành động `nhat_ky`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T033 [P] [US10] Màn web quyết toán trong `frontend/src/tinh-nang/so-du/` (hai mã điều kiện kèm lý do, nút xác nhận, phiên bản, tải PDF, đính kèm bản ký) cùng test Vitest `QuyetToan.test.jsx`
+- [ ] T032 [US10] Cài lệnh `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (chụp số liệu, dựng PDF bằng `PdfBieuMau`, `FileApi.upload` + `attach`, phiên bản), `GET /nguoi-cao-tuoi/{nctId}/quyet-toan`, `POST /bang-quyet-toan/{id}/ban-ky`, `GET /bang-quyet-toan/{id}/file` (ghi `lan_tai_chung_tu`) (research E-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_tai_chung_tu` → hành động `nhat_ky`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.** *(2026-11-08, B: xong phần dựng PDF `SettlementStatementDocument` + `SettlementStatementDocumentTest` 2 test; còn lệnh, phiên bản, lưu tệp, endpoint chờ A Phase 1–2, giữ [ ])*
+- [x] T033 [P] [US10] *(2026-11-08, B: `SettlementPanel` + `QuyetToan.test.jsx` 6 test Vitest, chạy với API giả `mockRoutes`; chạy với backend thật sau khi A cài endpoint, T032)* Màn web quyết toán trong `frontend/src/tinh-nang/so-du/` (hai mã điều kiện kèm lý do, nút xác nhận, phiên bản, tải PDF, đính kèm bản ký) cùng test Vitest `QuyetToan.test.jsx`
 
 **Checkpoint**: Q16 → Q23 xanh; 004 chạy Kết thúc lưu trú với bean thật của 017 (004 T106).
 
@@ -172,8 +172,8 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 **Independent Test**: Quickstart Q25 → Q28.
 
 - [ ] T034 [P] [US9] Test `BT/billing/sodu/BR_M11_21_PhieuBaoPhiIT.java`, `BR_M11_23_ChungTuIT.java`, `CongChungTuIT.java` (Q25 → Q28): danh sách chờ phát hành; phát hành lần hai 409; nội dung PDF (trích chữ) và Excel (đọc ô) cùng số liệu; số dư trước, sau khớp sổ; khi âm có số còn nợ, mã nộp tiền, tài khoản, ảnh QR; không có tên thuốc; tải lại cùng byte; mỗi lần tải ghi nhật ký; người thân không có quyền xem chi phí 403 (SC-014, SC-016, SC-017)
-- [ ] T035 [US9] Cài `BE/billing/sodu/chungtu/`: `GET /phieu-bao-phi/cho-phat-hanh`, `POST /bang-chi-phi/{bangId}/phieu-bao-phi` (chụp số liệu từ `ChiPhiChoSoDuPort.bangDaChot` và sổ; PDF qua `PdfBieuMau` kèm ảnh QR ZXing; Excel qua `ExcelBieuMau`; `FileApi`; thông báo, `ChungTuDaPhatHanh`), `GET /nguoi-cao-tuoi/{nctId}/phieu-bao-phi`, `GET /phieu-bao-phi/{id}/file`; cổng `GET /cong/nguoi-cao-tuoi/{nctId}/chung-tu`, `GET /cong/chung-tu/{loai}/{id}/file` (research E-10)
-- [ ] T036 [P] [US9] Màn web phiếu báo phí trong `frontend/src/tinh-nang/so-du/` (danh sách chờ phát hành, phát hành, tải) (mục chứng từ trên cổng làm ở 012 T073); test Vitest `PhieuBaoPhi.test.jsx`; app người thân tải chứng từ theo mục "Giai đoạn hiện tại"
+- [ ] T035 [US9] Cài `BE/billing/sodu/chungtu/`: `GET /phieu-bao-phi/cho-phat-hanh`, `POST /bang-chi-phi/{bangId}/phieu-bao-phi` (chụp số liệu từ `ChiPhiChoSoDuPort.bangDaChot` và sổ; PDF qua `PdfBieuMau` kèm ảnh QR ZXing; Excel qua `ExcelBieuMau`; `FileApi`; thông báo, `ChungTuDaPhatHanh`), `GET /nguoi-cao-tuoi/{nctId}/phieu-bao-phi`, `GET /phieu-bao-phi/{id}/file`; cổng `GET /cong/nguoi-cao-tuoi/{nctId}/chung-tu`, `GET /cong/chung-tu/{loai}/{id}/file` (research E-10) *(2026-11-08, B: xong phần dựng PDF, Excel `PaymentNoticeDocument` + `PaymentNoticeDocumentTest` 5 test; ảnh QR `QrImage` (ZXing, `QrImageTest`) có nhưng chưa chèn được vào thân PDF vì `PdfDocument` chưa có hàm chèn ảnh, team-plan mục 8; còn lệnh phát hành, endpoint chờ A, giữ [ ])*
+- [ ] T036 [P] [US9] Màn web phiếu báo phí trong `frontend/src/tinh-nang/so-du/` (danh sách chờ phát hành, phát hành, tải) (mục chứng từ trên cổng làm ở 012 T073); test Vitest `PhieuBaoPhi.test.jsx`; app người thân tải chứng từ theo mục "Giai đoạn hiện tại" *(2026-11-08, B: xong web `PaymentNotices` (chờ phát hành, phát hành) và `ResidentNotices` (đã phát hành, tải PDF, Excel) + `PaymentNotices.test.jsx` 5, `PhieuBaoPhi.test.jsx` 2; còn app người thân tải chứng từ, giữ [ ])*
 
 **Checkpoint**: Q25 → Q28 xanh.
 
@@ -185,9 +185,9 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 **Independent Test**: Quickstart Q29 → Q33.
 
-- [ ] T037 [P] [US8] Test đơn vị `BT/billing/sodu/SaoKeTest.java`, `BaoCaoThuChiTest.java` và tích hợp `FR_025_XuatIT.java`, `FR_026_SaoKeCongIT.java` (Q29 → Q33): đầu kỳ + tổng = cuối kỳ từng sổ; chỉ Đã xác nhận; ba tổng và danh sách còn nợ theo số dư cuối khoảng; Excel và PDF cùng số liệu; khoảng > CFG-M14-01 → 422; HC 403; mỗi lần xuất ghi `lan_xuat_so_du`, file không đổi khi dữ liệu đổi (SC-009) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_xuat_so_du` → hành động `nhat_ky`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T038 [US8] Cài `BE/billing/sodu/xuat/`: `POST /xuat/sao-ke`, `POST /xuat/bao-cao-thu-chi`, `GET /xuat/{id}/file`, `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (fastexcel, `PdfBieuMau`, `FileApi`); `SoDuThongKeApi.thuChi`, `tinhTrang` cho 016 (research E-11)
-- [ ] T039 [P] [US8] Màn web xuất trong `frontend/src/tinh-nang/so-du/` và nút tải sao kê trên cổng
+- [ ] T037 [P] [US8] Test đơn vị `BT/billing/sodu/SaoKeTest.java`, `BaoCaoThuChiTest.java` và tích hợp `FR_025_XuatIT.java`, `FR_026_SaoKeCongIT.java` (Q29 → Q33): đầu kỳ + tổng = cuối kỳ từng sổ; chỉ Đã xác nhận; ba tổng và danh sách còn nợ theo số dư cuối khoảng; Excel và PDF cùng số liệu; khoảng > CFG-M14-01 → 422; HC 403; mỗi lần xuất ghi `lan_xuat_so_du`, file không đổi khi dữ liệu đổi (SC-009) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_xuat_so_du` → hành động `nhat_ky`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.** *(2026-11-08, B: xong phần đơn vị `BalanceStatementTest` 4, `IncomeExpenseReportTest` 4 (lớp thật theo tên tiếng Anh); còn IT `FR_025_*`, `FR_026_*` chờ A, giữ [ ])*
+- [ ] T038 [US8] Cài `BE/billing/sodu/xuat/`: `POST /xuat/sao-ke`, `POST /xuat/bao-cao-thu-chi`, `GET /xuat/{id}/file`, `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (fastexcel, `PdfBieuMau`, `FileApi`); `SoDuThongKeApi.thuChi`, `tinhTrang` cho 016 (research E-11) *(2026-11-08, B: xong phần dựng file `BalanceExportDocument` + `BalanceExportDocumentTest` 2 test; còn lệnh xuất, endpoint, `BalanceStatisticsApi` chờ A, giữ [ ])*
+- [ ] T039 [P] [US8] Màn web xuất trong `frontend/src/tinh-nang/so-du/` và nút tải sao kê trên cổng *(2026-11-08, B: xong web `BalanceExports` (sao kê nhiều người, báo cáo thu chi, tải lại file) + `BalanceExports.test.jsx` 5; còn nút tải sao kê trên cổng người thân (012 T073), giữ [ ])*
 
 **Checkpoint**: Q29 → Q33 xanh.
 

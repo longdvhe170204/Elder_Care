@@ -25,6 +25,7 @@ import { PendingReviewPage } from '@/features/pending-review/PendingReviewPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
+import { BalancePage } from '@/features/balance/BalancePage'
 import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
@@ -74,6 +75,7 @@ const PAGES = {
   alerts: AlertsPage,
   handovers: HandoverPage,
   'residence-registrations': ResidenceRegistrationPage,
+  balance: BalancePage,
   relatives: RelativesPage,
   'family-members': FamilyMembersPage,
   pickups: PickupPage,
