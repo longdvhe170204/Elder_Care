@@ -175,7 +175,7 @@ public class SwapService {
         long actor = users.getObject().accountId();
         SwapDetail detail = new SwapDetail(
                 0, kind, giver, x.id(), recipientId, y == null ? null : y.id(), reason.value(), null, null, null, null,
-                false, earliest(x, y), null);
+                false, earliest(x, y), null, null);
         SwapChecks checks = evaluate(detail, false);
         if (checks.blocked()) {
             throw new ConditionNotMetException(overlapConditions(checks));
@@ -195,7 +195,7 @@ public class SwapService {
         long id = request.id();
         detail = new SwapDetail(
                 id, kind, giver, x.id(), recipientId, detail.shiftYId(), reason.value(), null, null, null, null, false,
-                detail.earliestStart(), null);
+                detail.earliestStart(), null, null);
         records.acquire(x.id(), giver, id, actor);
         if (y != null) {
             records.acquire(y.id(), recipientId, id, actor);

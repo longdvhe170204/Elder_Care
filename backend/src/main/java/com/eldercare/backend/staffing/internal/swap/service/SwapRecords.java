@@ -30,9 +30,11 @@ class SwapRecords {
     private static final String REQUEST = "M15.APPROVAL_REQUEST";
 
     private final SimpleRecordApi records;
+    private final com.eldercare.backend.common.time.BusinessTime time;
 
-    SwapRecords(SimpleRecordApi records) {
+    SwapRecords(SimpleRecordApi records, com.eldercare.backend.common.time.BusinessTime time) {
         this.records = records;
+        this.time = time;
     }
 
     // ---- Chi tiết đổi ca -------------------------------------------------------------------------------------------
@@ -70,7 +72,7 @@ class SwapRecords {
                         SwapDetail.KIND,
                         row.id(),
                         row.version(),
-                        new RecordChange<>(status, detail, null, row.uniqueKey(), last))
+                        new RecordChange<>(status, last ? detail.closed(time.now()) : detail, null, row.uniqueKey(), last))
                 .after();
     }
 
@@ -114,7 +116,7 @@ class SwapRecords {
                         LeaveDetail.KIND,
                         row.id(),
                         row.version(),
-                        new RecordChange<>(status, detail, null, row.uniqueKey(), last))
+                        new RecordChange<>(status, last ? detail.closed(time.now()) : detail, null, row.uniqueKey(), last))
                 .after();
     }
 
