@@ -63,15 +63,8 @@ abstract class IncidentHttpTestBase extends MySqlIntegrationTestBase {
         assign(floorManager, AssignmentKind.FLOOR_MANAGER, floor, null);
         nurse = users.staff(Role.NURSING_STAFF);
         assign(nurse, AssignmentKind.SHIFT_MEMBER, null, resident);
-        // T005 chưa nạp các loại này (chờ chủ dự án chốt mức mặc định); tạo trong transaction của test rồi rollback.
-        catalogItem(
-                "M05.INCIDENT_TYPE",
-                "FACILITY",
-                "{\"defaultLevel\":\"LOW\",\"nonHealth\":true,\"allowsNoResident\":true}");
-        catalogItem(
-                "M05.INCIDENT_TYPE",
-                "SUSPECTED_INFECTION",
-                "{\"defaultLevel\":\"MEDIUM\",\"nonHealth\":false,\"allowsNoResident\":false}");
+        // FACILITY, SUSPECTED_INFECTION đã nạp ở V007_13; loại diễn biến thử tạo trong transaction của test rồi
+        // rollback.
         catalogItem("M05.PROGRESSION_TYPE", "TEST_EVALUATION", "{\"group\":\"EVALUATION\",\"resuscitation\":false}");
         catalogItem("M05.PROGRESSION_TYPE", "TEST_ACTION", "{\"group\":\"ACTION\",\"resuscitation\":false}");
     }

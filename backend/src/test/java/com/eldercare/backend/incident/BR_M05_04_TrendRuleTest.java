@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.admission.api.ResidencyDayApi;
 import com.eldercare.backend.care.api.dto.CareEventContext;
 import com.eldercare.backend.care.api.dto.Importance;
 import com.eldercare.backend.care.api.events.MeasurementTaskMissed;
@@ -50,7 +51,8 @@ class BR_M05_04_TrendRuleTest {
             alerts,
             markers,
             mock(ApplicationEventPublisher.class),
-            mock(RecordEventApi.class));
+            mock(RecordEventApi.class),
+            mock(ResidencyDayApi.class));
 
     private void rules(boolean missed, boolean refusal) {
         when(catalog.trendRules())

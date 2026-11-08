@@ -1,5 +1,7 @@
 package com.eldercare.backend.incident.internal.incident.service;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
+import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.incident.api.IncidentApi;
 import com.eldercare.backend.incident.api.dto.IncidentView;
 import com.eldercare.backend.incident.api.dto.MonitoringFlagView;
@@ -29,29 +31,32 @@ public class DefaultIncidentApi implements IncidentApi {
     private final ContactPersonStore contacts;
     private final FallMonitoringStore fallMonitoring;
     private final CriticalCareStore critical;
+    private final AccountApi accounts;
 
     public DefaultIncidentApi(
             IncidentStore incidents,
             AlertStore alerts,
             ContactPersonStore contacts,
             FallMonitoringStore fallMonitoring,
-            CriticalCareStore critical) {
+            CriticalCareStore critical,
+            AccountApi accounts) {
         this.incidents = incidents;
         this.alerts = alerts;
         this.contacts = contacts;
         this.fallMonitoring = fallMonitoring;
         this.critical = critical;
+        this.accounts = accounts;
     }
 
     @Override
     public Optional<IncidentView> view(long incidentId) {
-        return incidents.sourceView(incidentId).map(DefaultIncidentApi::published);
+        return incidents.sourceView(incidentId).map(this::published);
     }
 
     @Override
     public List<IncidentView> byResident(long residentId, Instant from, Instant to, boolean excludeVoided) {
         return incidents.sourceByResident(residentId, from, to, excludeVoided).stream()
-                .map(DefaultIncidentApi::published)
+                .map(this::published)
                 .toList();
     }
 
@@ -74,10 +79,22 @@ public class DefaultIncidentApi implements IncidentApi {
                 critical.openFlag(residentId).isPresent());
     }
 
-    private static IncidentView published(IncidentView row) {
-        return STORED_CANCELLED.equals(row.status())
-                ? new IncidentView(
-                        row.id(), row.residentId(), row.type(), row.level(), VOIDED, row.createdAt(), row.floorAreaId())
-                : row;
+    /** Đã hủy lưu {@code CANCELLED} trả {@code VOIDED}; người xử lý đổi từ tài khoản sang mã nhân viên (013 FR-011a). */
+    private IncidentView published(IncidentView row) {
+        Long assigneeStaffId = incidents
+                .assignee(row.id())
+                .flatMap(accounts::byId)
+                .map(AccountView::staffId)
+                .orElse(null);
+        String status = STORED_CANCELLED.equals(row.status()) ? VOIDED : row.status();
+        return new IncidentView(
+                row.id(),
+                row.residentId(),
+                row.type(),
+                row.level(),
+                status,
+                row.createdAt(),
+                row.floorAreaId(),
+                assigneeStaffId);
     }
 }

@@ -7,6 +7,8 @@ import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
 import com.eldercare.backend.administration.shared.api.dto.RecordEvent;
 import com.eldercare.backend.administration.shared.api.dto.SharedKind;
+import com.eldercare.backend.admission.api.ResidencyDayApi;
+import com.eldercare.backend.admission.api.dto.ResidencyDayView;
 import com.eldercare.backend.care.api.dto.Importance;
 import com.eldercare.backend.care.api.events.MeasurementTaskMissed;
 import com.eldercare.backend.care.api.events.SleepResultRecorded;
@@ -63,6 +65,7 @@ public class TrendRuleService {
 
     private static final String MARKER_KIND = "M05.TREND";
     static final String PROLONGED_INSOMNIA = "PROLONGED_INSOMNIA";
+    private static final String ABSENT = "ABSENT";
     private static final SharedKind<Map> SLEEP_NIGHT = SharedKind.of("M05.SLEEP_NIGHT", Map.class);
 
     private final IncidentCatalogService catalog;
@@ -72,6 +75,7 @@ public class TrendRuleService {
     private final ReminderMarkers markers;
     private final ApplicationEventPublisher events;
     private final RecordEventApi recordEvents;
+    private final ResidencyDayApi residencyDays;
 
     public TrendRuleService(
             IncidentCatalogService catalog,
@@ -80,7 +84,8 @@ public class TrendRuleService {
             AlertService alerts,
             ReminderMarkers markers,
             ApplicationEventPublisher events,
-            RecordEventApi recordEvents) {
+            RecordEventApi recordEvents,
+            ResidencyDayApi residencyDays) {
         this.catalog = catalog;
         this.parameters = parameters;
         this.vitalSigns = vitalSigns;
@@ -88,6 +93,7 @@ public class TrendRuleService {
         this.markers = markers;
         this.events = events;
         this.recordEvents = recordEvents;
+        this.residencyDays = residencyDays;
     }
 
     /** Sụt cân (FR-039a): cân nặng mới được xác nhận so với giá trị cao nhất trong cửa sổ trước đó. */
@@ -200,8 +206,9 @@ public class TrendRuleService {
         var rule = enabled(PROLONGED_INSOMNIA);
         if (rule.isEmpty()) return;
         int needed = parameters.read(ParameterCode.CFG_M05_05).asInt();
+        var results = currentNights(event.residentId());
         int nights = ProlongedInsomniaCounter.consecutiveNights(
-                event.date(), currentNights(event.residentId()), Set.<LocalDate>of());
+                event.date(), results, absentNights(event.residentId(), results, event.date()));
         if (needed <= 0 || nights < needed) return;
         String key = "INSOMNIA:" + event.resultId() + ":" + context.milestone();
         if (!markers.mark(MARKER_KIND, "M01.RESIDENT", event.residentId(), key, null)) return;
@@ -256,6 +263,20 @@ public class TrendRuleService {
                         context.occurredAt(),
                         context.floorAreaId().orElse(null),
                         uniqueKey));
+    }
+
+    /** Đêm vắng mặt (FR-039c): ngày {@code ABSENT} theo lượt vắng của 004, từ đêm sớm nhất đã ghi tới đêm đang xét. */
+    private Set<LocalDate> absentNights(
+            long residentId, List<ProlongedInsomniaCounter.SleepResult> results, LocalDate night) {
+        LocalDate from = results.stream()
+                .map(ProlongedInsomniaCounter.SleepResult::night)
+                .min(LocalDate::compareTo)
+                .filter(first -> first.isBefore(night))
+                .orElse(night);
+        return residencyDays.daysBetween(residentId, from, night).stream()
+                .filter(day -> ABSENT.equals(day.presence()))
+                .map(ResidencyDayView::date)
+                .collect(Collectors.toSet());
     }
 
     private List<ProlongedInsomniaCounter.SleepResult> currentNights(long residentId) {
