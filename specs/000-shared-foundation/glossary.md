@@ -3885,6 +3885,19 @@ Tag: `so-du → balance`, `nop-tien → payments`, `giao-dich → balance-transa
 
 Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi viết migration và test (A Phase 1–6, B Phase 7–10); không tạo bảng đã gộp theo R-15 (data-model 017 mục 0).
 
+### 23.6. Phase 1–2 (A, 2026-11-08)
+
+| Tên logic | Tên mã |
+| --- | --- |
+| bảng `so_du` (giữ bảng, plan "Ghi chú triển khai") | `resident_balance` (`resident_id`, `opened_at`, `opening_contract_id`, `payment_code`, `balance`, `deposit_balance`, `status`, `days_covered`, `cycle_started_on`, `last_notice_on`, `in_debt_since`, `reminders_stopped`, `reminders_stopped_by`, `reminders_stopped_reason`, `deposit_refund_due_since`, `deposit_refund_reminded_at`, `final_status_reminded_at`, `version`) |
+| bảng `giao_dich` | `balance_transaction` (`ledger`, `type`, `amount`, `occurred_at`, `method`, `bank_transaction_code`, `cost_statement_id`, `original_transaction_id`, `linked_transaction_id`, `payer_name`, `recipient`, `note`, `reason`, `status`, `approval_request_id`, `approved_by`, `confirmed_at`, `adjusted`, `duplicate_code_confirmed`, `locked_at`); trigger `trg_balance_transaction_row_lock`, `trg_balance_transaction_no_delete`, lỗi `M11_BALANCE_TRANSACTION_LOCKED` |
+| loại đối tượng sổ, giao dịch | `M11.BALANCE`, `M11.BALANCE_TRANSACTION` (`ledger.domain.BalanceTypes`) |
+| hàm thuần `TrangThaiDatCoc` | `billing.balance.internal.ledger.domain.DepositStatusRule.of(requiredAmount, depositBalance)`; test `DepositStatusTest` |
+| `PhanLoaiTruongProvider`, `LuuTruProvider`, `GanPhamViProvider` của sổ, giao dịch | `ledger.config.BalanceGovernanceConfig`, `ledger.service.BalanceRetention`, `ledger.service.BalanceScopeAssignment`, `ledger.persistence.BalanceGovernanceStore`; test `T007_BalanceProvidersIT` |
+| DTO của `BalanceApi`, `BalanceStatisticsApi` | `billing.api.dto.BalanceView`, `BalanceStatus`, `SettlementConditionsView`, `SettlementConditionView`, `SettlementConditionCode`, `BalanceDocumentView`, `BalanceDocumentType`, `BalanceStatusView`, `IncomeExpenseReportView` (`Debtor`) |
+| chỗ đặt sự kiện | `admission.api.events.DepositStatusChanged`, `SettlementConditionChanged` (004 nghe); `billing.api.events.BalanceStatusChanged`, `BalanceDocumentIssued` |
+| bản giả | `support/fake/billing/FakeBalances`, `FakeBalanceStatistics`, `FakeBalanceConfig` |
+
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
 "Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).
