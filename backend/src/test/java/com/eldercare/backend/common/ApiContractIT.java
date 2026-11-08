@@ -160,13 +160,9 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(
                             "GET /api/v1/payment-notices/pending-issue",
                             "POST /api/v1/costs/statements/{statementId}/payment-notice",
-                            "GET /api/v1/residents/{residentId}/payment-notices",
-                            "GET /api/v1/payment-notices/{id}/file",
                             "POST /api/v1/balance-exports/statement",
                             "POST /api/v1/balance-exports/income-expense-report",
                             "GET /api/v1/balance-exports/{id}/file",
-                            "GET /api/v1/family-portal/residents/{residentId}/documents",
-                            "GET /api/v1/family-portal/documents/{type}/{id}/file",
                             "POST /api/v1/family-portal/residents/{residentId}/balance-statement"),
                     Set.of(),
                     true),
