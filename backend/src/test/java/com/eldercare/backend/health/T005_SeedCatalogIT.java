@@ -51,16 +51,24 @@ class T005_SeedCatalogIT extends MySqlIntegrationTestBase {
                                 + " AND code IN ('BLOOD_PRESSURE','HEART_RATE','BODY_TEMPERATURE','SPO2','BLOOD_GLUCOSE','WEIGHT')",
                         Integer.class))
                 .isEqualTo(6);
+        // code | mức mặc định | nonHealth | allowsNoResident. Đồ gửi: spec 007 dòng 51 (Trung bình); cơ sở vật chất,
+        // lây
+        // nhiễm nghi ngờ: D chốt Trung bình 2026-11-08 (team-plan mục 8); dấu "không thuộc sức khỏe" theo nghiep-vu
+        // 9.3.
         for (var row : List.of(
-                "FALL|CRITICAL",
-                "MISSING_OR_NOT_RETURNED|CRITICAL",
-                "BREATHING_OR_CONSCIOUSNESS|CRITICAL",
-                "MEDICATION|MEDIUM",
-                "CHOKING_OR_AIRWAY_OBSTRUCTION|CRITICAL",
-                "WRONG_MEAL_SERVED|MEDIUM",
-                "BEHAVIOR|MEDIUM",
-                "OTHER_INJURY|MEDIUM",
-                "OTHER_HEALTH_CARE|MEDIUM")) {
+                "FALL|CRITICAL|false|false",
+                "MISSING_OR_NOT_RETURNED|CRITICAL|false|false",
+                "BREATHING_OR_CONSCIOUSNESS|CRITICAL|false|false",
+                "MEDICATION|MEDIUM|false|false",
+                "CHOKING_OR_AIRWAY_OBSTRUCTION|CRITICAL|false|false",
+                "WRONG_MEAL_SERVED|MEDIUM|false|false",
+                "BEHAVIOR|MEDIUM|false|false",
+                "OTHER_INJURY|MEDIUM|false|false",
+                "OTHER_HEALTH_CARE|MEDIUM|false|false",
+                "BELONGINGS_LOST|MEDIUM|true|false",
+                "BELONGINGS_DAMAGED|MEDIUM|true|false",
+                "FACILITY|MEDIUM|true|true",
+                "SUSPECTED_INFECTION|MEDIUM|false|false")) {
             var f = row.split("[|]");
             var attrs = jdbc.queryForList(
                     "SELECT JSON_UNQUOTE(JSON_EXTRACT(attributes,'$.defaultLevel')) l,"
@@ -74,8 +82,8 @@ class T005_SeedCatalogIT extends MySqlIntegrationTestBase {
             }
             var r = attrs.get(0);
             if (!f[1].equals(r.get("l"))
-                    || !"false".equals(String.valueOf(r.get("n")))
-                    || !"false".equals(String.valueOf(r.get("a")))) problems.add(f[0] + ": thuộc tính " + r);
+                    || !f[2].equals(String.valueOf(r.get("n")))
+                    || !f[3].equals(String.valueOf(r.get("a")))) problems.add(f[0] + ": thuộc tính " + r);
         }
         assertThat(problems).isEmpty();
     }

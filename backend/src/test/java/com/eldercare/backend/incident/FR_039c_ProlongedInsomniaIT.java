@@ -1,8 +1,12 @@
 package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
+import com.eldercare.backend.admission.api.ResidencyDayApi;
+import com.eldercare.backend.admission.api.dto.ResidencyDayView;
 import com.eldercare.backend.care.api.dto.CareEventContext;
 import com.eldercare.backend.care.api.events.SleepResultRecorded;
 import com.eldercare.backend.care.api.events.SleepResultVoided;
@@ -25,7 +29,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 /**
  * FR-039c, BR-M05-04: CFG-M05-05 (3) đêm liên tiếp thuộc nhóm mất ngủ tạo cảnh báo "mất ngủ kéo dài"; kết quả bị hủy ghi
- * nhận không tính; đính chính sang nhóm khác làm đứt chuỗi; quy tắc tắt thì không tạo. Gọi listener trực tiếp.
+ * nhận không tính; đính chính sang nhóm khác làm đứt chuỗi; đêm vắng mặt (ngày {@code ABSENT} của 004) không tính và không
+ * làm đứt chuỗi; quy tắc tắt thì không tạo. Gọi listener trực tiếp.
  */
 class FR_039c_ProlongedInsomniaIT extends MySqlIntegrationTestBase {
     private static final LocalDate NIGHT = LocalDate.of(2026, 11, 5);
@@ -39,6 +44,9 @@ class FR_039c_ProlongedInsomniaIT extends MySqlIntegrationTestBase {
 
     @MockitoSpyBean
     IncidentCatalogService catalog;
+
+    @MockitoSpyBean
+    ResidencyDayApi residencyDays;
 
     @Test
     void FR_039c_threeInsomniaNightsCreateAlertAndVoidedNightIsNotCounted() {
@@ -80,6 +88,21 @@ class FR_039c_ProlongedInsomniaIT extends MySqlIntegrationTestBase {
             trends.onSleepResultRecorded(recorded(TestUsers.nextId(), off, NIGHT.minusDays(i), "INSOMNIA", 4 + i));
         assertThat(alerts.findOpenAlert(off, TypeLock.forTrend("PROLONGED_INSOMNIA")))
                 .isEmpty();
+    }
+
+    @Test
+    void FR_039c_absentNightIsNotCountedAndDoesNotBreakChain() {
+        rule(true);
+        long resident = TestUsers.nextId();
+        var absent = new ResidencyDayView(NIGHT.minusDays(1), 1L, 1L, "ABSENT", 9L, false, false, false, false);
+        doReturn(List.of(absent)).when(residencyDays).daysBetween(eq(resident), any(), any());
+        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT.minusDays(3), "INSOMNIA", 0));
+        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT.minusDays(2), "INSOMNIA", 1));
+        assertThat(alerts.findOpenAlert(resident, TypeLock.forTrend("PROLONGED_INSOMNIA")))
+                .isEmpty();
+        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT, "INSOMNIA", 2));
+        assertThat(alerts.findOpenAlert(resident, TypeLock.forTrend("PROLONGED_INSOMNIA")))
+                .isPresent();
     }
 
     /** Mức Trung bình để không phụ thuộc nguồn ca của 008 (cảnh báo Nhẹ cần hạn theo ca). */
