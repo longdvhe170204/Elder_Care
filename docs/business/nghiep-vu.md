@@ -717,7 +717,8 @@ Mỗi tài sản thuộc một **bộ phận quản lý** (13.1a), ví dụ: gi�
 | Sẵn sàng | Đưa vào sử dụng tại vị trí (không áp cho tài sản loại giường, Q-242) | Đang sử dụng | Phụ trách bộ phận |
 | Sẵn sàng, Đang sử dụng | Báo hỏng (BR-M03-18) | Hỏng | Phụ trách bộ phận, Trưởng tầng |
 | Sẵn sàng, Đang sử dụng, Hỏng | Đưa vào bảo trì (bảo trì thuê ngoài có chi phí thì cần yêu cầu mua sắm Đã duyệt trước khi ghi kết quả, 15.10) | Đang bảo trì | Phụ trách bộ phận, Trưởng tầng |
-| Đang bảo trì, Hỏng | Ghi kết quả bảo trì đạt | Sẵn sàng | Phụ trách bộ phận |
+| Đang bảo trì | Ghi kết quả bảo trì đạt | Sẵn sàng | Phụ trách bộ phận |
+| Đang bảo trì | Ghi kết quả bảo trì không đạt (Q-406) | Hỏng | Phụ trách bộ phận |
 | Mọi trạng thái trừ Đã thanh lý | Thanh lý, bắt buộc lý do; Phụ trách bộ phận gửi yêu cầu, Quản lý viện duyệt | Đã thanh lý | Phụ trách bộ phận (lập), Quản lý viện (duyệt) |
 
 Đã thanh lý là trạng thái cuối. Yêu cầu thanh lý đi theo vòng đời yêu cầu phê duyệt chung (6.6); tài sản chuyển Đã thanh lý khi yêu cầu được duyệt (Q-314). Chuyển vị trí tài sản ghi vị trí cũ, vị trí mới, thời điểm, người thực hiện, lý do (DBR-32). Vị trí của tài sản loại giường luôn là phòng của giường (7.1) và chỉ đổi được khi giường chưa từng có phân bổ nào; giường đã có lịch sử phân bổ thì tạo giường mới ở phòng mới và Thanh lý giường cũ. Tài sản loại giường không dùng trạng thái Đang sử dụng: việc giường có người lấy theo phân bổ (7.3). Mỗi lần bảo trì ghi: ngày, nội dung, đơn vị thực hiện, chi phí (không bắt buộc), kết quả. Mỗi hư hỏng báo trên giường đang có người ghi thêm mức ảnh hưởng (mất an toàn / không mất an toàn).
@@ -2759,6 +2760,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-403 | Người bán trú không có giường thì "tầng của người đó" là tầng nào khi Trưởng tầng đánh giá khả năng đi chuyến (feature 014 FR-036) | Chủ dự án 2026-11-07: tầng của khu nghỉ bán trú của người đó | 8.9 | 014, 002, 003 |
 | Q-404 | Đính chính kết quả kiểm tra chất lượng (feature 014 FR-061, FR-064, FR-066) | Chủ dự án 2026-11-07: đổi được giữa Đạt, Không đạt, Không kiểm tra được, chỉ trong thời gian ca; đổi thành Không đạt thì lệnh đính chính kèm công việc làm lại như FR-064; đổi khỏi Không đạt thì công việc làm lại đã lập giữ nguyên, người kiểm tra tự hủy nếu cần (Q-306); không có Hủy ghi nhận, dùng Không kiểm tra được; người đính chính như người ghi (FR-066) | BR-M04-23, 8.11 | 014 |
 | Q-405 | Khai báo tạm trú, lưu trú: ba quyết định B cài ở feature 018 (cập nhật 2026-11-06) và hai điểm còn hỏi | Chủ dự án 2026-11-07: (1) khai báo gia hạn đã lập chưa nộp là việc cần làm, có nhắc quá hạn; (2) hợp đồng nội trú mới nối tiếp hợp đồng nội trú coi như gia hạn (BR-M02-14, Q-241); (3) không báo Quản lý viện Hết hạn của người đã Kết thúc lưu trú, Qua đời; khai báo xóa áp cho cả Thông báo lưu trú; nội trú ngắn ngày qua đêm rồi về bán trú thì khai báo Đã xác nhận giữ tới Kết thúc lưu trú | 6.10 | 018, 016 |
+| Q-406 | Ghi kết quả bảo trì tài sản từ trạng thái nào, và kết quả không đạt dẫn tới đâu (7.7 từng ghi "Đang bảo trì, Hỏng" → Sẵn sàng, không có dòng không đạt; feature 019 FR-013 chỉ từ Đang bảo trì, Không đạt → Hỏng) | Chủ dự án 2026-11-08: theo feature 019 FR-013. Chỉ ghi kết quả cho lần bảo trì đang mở (tài sản Đang bảo trì): đạt → Sẵn sàng, không đạt → Hỏng; mỗi kết quả đóng lần bảo trì. Tài sản Hỏng muốn dùng lại phải Đưa vào bảo trì trước, để lần sửa nào cũng có ngày, nội dung, đơn vị thực hiện. Bảng trạng thái 7.7 sửa theo | 7.7, BR-M03-15, 18 | 019 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
