@@ -130,6 +130,22 @@ public class LedgerStore {
                 LedgerStore::row);
     }
 
+    /**
+     * Đối chiếu bất biến (FR-002, DBR-28; research E-03): hồ sơ có số dư hoặc số dư cọc khác tổng giao dịch Đã xác nhận
+     * của sổ đó. Chỉ đọc; không tự sửa.
+     */
+    public List<Long> mismatches() {
+        return jdbc.queryForList(
+                "SELECT b.resident_id FROM resident_balance b LEFT JOIN (SELECT resident_id,"
+                        + " SUM(CASE WHEN ledger = 'BALANCE' THEN amount ELSE 0 END) AS balance,"
+                        + " SUM(CASE WHEN ledger = 'DEPOSIT' THEN amount ELSE 0 END) AS deposit"
+                        + " FROM balance_transaction WHERE status = 'CONFIRMED' GROUP BY resident_id) t"
+                        + " ON t.resident_id = b.resident_id"
+                        + " WHERE b.balance <> COALESCE(t.balance, 0) OR b.deposit_balance <> COALESCE(t.deposit, 0)"
+                        + " ORDER BY b.resident_id",
+                Long.class);
+    }
+
     public List<Long> residentIds() {
         return jdbc.queryForList("SELECT resident_id FROM resident_balance ORDER BY resident_id", Long.class);
     }
