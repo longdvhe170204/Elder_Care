@@ -147,7 +147,7 @@ paths:
       tags: [balance-transactions]
       summary: Giao dịch Chờ duyệt (Quản lý viện, Kế toán) kèm kết quả kiểm tra hiện tại
       x-fr: [FR-013]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BalanceTransaction' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PendingBalanceTransaction' } } } } } }
   /residents/{residentId}/deposit-offsets:
     post:
       tags: [balance-transactions]
@@ -463,6 +463,14 @@ components:
         status: { $ref: '#/components/schemas/TransactionStatus' }
         adjusted: { type: boolean }
         approvalRequestId: { type: [integer, 'null'], format: int64 }
+    PendingBalanceTransaction:
+      description: 'Giao dịch Chờ duyệt của danh sách chung (bổ sung 2026-11-08, chủ dự án duyệt): thêm người cao tuổi vì danh sách gồm mọi hồ sơ'
+      allOf:
+        - { $ref: '#/components/schemas/BalanceTransaction' }
+        - type: object
+          properties:
+            residentId: { type: integer, format: int64 }
+            residentName: { type: string }
     PaymentResult:
       type: object
       properties:

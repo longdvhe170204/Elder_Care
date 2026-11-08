@@ -120,9 +120,12 @@ int demTrongChoChuyenNguoi(PhamViLoc phamVi, Instant t);
 Stream<TrangThaiGiuongTaiNgayView> trangThaiTaiNgay(PhamViLoc phamVi, Instant t);   // 016 FR-024 (ngày đã qua)
 Stream<KhoangChoSanSangView> choSanSang(PhamViLoc phamVi, Instant tu, Instant den); // 016 FR-033: khoảng Chờ sẵn sàng, vượt CFG-M03-04
 Stream<PhongCachLyView> phongCachLy(PhamViLoc phamVi, Instant t);                   // 016 FR-020
+Set<Long> giuongTrongChoChuyenNguoi(PhamViLoc phamVi, Instant t);                    // 016 BED.EMPTY_AWAITING_TRANSFER (FR-020, Q-235)
 ```
 
 *(Bổ sung 2026-10-27, luật "Đổi api", A làm cho 016, chủ dự án duyệt; C review)* `TrangThaiGiuongTaiNgayView` (`BedStateOnDate`) thêm `roomId` và `holdReason` (`WAITING_RECORD`, `ABSENT_RESIDENT`, suy từ sự kiện vào Đang giữ chỗ `HOLD_WAITING_RECORD`, `ABSENT_KEEP_BED`; rỗng khi không giữ chỗ) cho 016 FR-020, FR-024; `KhoangChoSanSangView` (`AwaitingReadyInterval`) thêm `startedAt`: lúc vào Chờ sẵn sàng, không cắt theo khoảng tra cứu (016 FR-033, Q-390).
+
+*(Bổ sung 2026-11-08, luật "Đổi api", chủ dự án duyệt; C cài, A review)* `giuongTrongChoChuyenNguoi` (`emptyAwaitingTransferBedIds`): id giường Trống tại `t` mà tài sản mang dấu "chờ chuyển người" tại `t` (019 FR-015), cùng nguồn với `demTrongChoChuyenNguoi` của mục 1.8; thiếu nguồn dấu thì 503. 016 lọc `trangThaiTaiNgay` theo tập này để có danh sách chi tiết (tầng, phòng). Bản giả `FakeHandoverLocations` trả tập rỗng.
 
 ### 1.9. `CanhBaoBanGiaoApi` (008)
 

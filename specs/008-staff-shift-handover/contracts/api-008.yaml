@@ -322,7 +322,7 @@ paths:
       summary: Ca và phân công của chính mình, người cùng ca, người phụ trách (mọi nhân viên có ca)
       x-fr: [FR-033, FR-054]
       parameters: [ { name: from, in: query, schema: { type: string, format: date } }, { name: to, in: query, schema: { type: string, format: date } } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MyShift' } } } } } }
   /on-duty-doctors:
     get:
       tags: [shift-schedules]
@@ -933,6 +933,13 @@ components:
         staff: { type: array, items: { type: object, properties: { staffId: { type: integer, format: int64 }, onDutyDoctor: { type: boolean }, absent: { type: boolean }, approvedLeave: { type: boolean } } } }
         staffingRatio: { $ref: '#/components/schemas/StaffingRatioCalculation' }
         allowedCommands: { type: array, items: { type: string } }
+    MyShift:
+      description: 'Ca của chính mình ở GET /me/shifts (bổ sung 2026-11-08, chủ dự án duyệt; 008 FR-060, 002 FR-032, FR-033)'
+      allOf:
+        - { $ref: '#/components/schemas/Shift' }
+        - type: object
+          properties:
+            scopeEndsAt: { type: [string, 'null'], format: date-time, readOnly: true, description: 'Hết phạm vi của người dùng trong ca: mốc muộn nhất trong các phân công của họ ở ca này; phân công kết thúc sớm thì là mốc kết thúc sớm, còn lại là kết thúc phân công cộng CFG-M15-07 (002 FR-032). Rỗng khi không có phân công trong ca. App xóa bản lưu ngoại tuyến của ca (bàn giao) khi qua mốc này (FR-060)' }
     SchedulePublicationPreview:
       type: object
       properties:
