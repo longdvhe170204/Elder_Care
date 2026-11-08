@@ -302,4 +302,69 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
                 .filter(n -> n.shiftId() == shift && n.cause().equals(cause))
                 .toList();
     }
+
+    /** Q37 (FR-059a, Q-306): nhắc một lần ở mốc CFG-M09-04 trước kết ca; hệ thống không tự lập danh sách. */
+    private void FR_059a_beforeTheShiftEndsTheInspectorIsRemindedOnceWhenThereIsNoListOrTooFewItems() throws Exception {
+        completed(caregiver.accountId(), caregiver.staffId());
+        clock.run(shiftEndsAt.minusSeconds(2400));
+        assertThat(events.stream(com.eldercare.backend.care.api.events.QualityCheckReminder.class)
+                        .filter(n -> n.shiftId() == shift))
+                .isEmpty();
+        clock.run(shiftEndsAt.minusSeconds(600));
+        clock.run(shiftEndsAt.minusSeconds(540));
+        assertThat(events.stream(com.eldercare.backend.care.api.events.QualityCheckReminder.class)
+                        .filter(n -> n.shiftId() == shift))
+                .singleElement()
+                .satisfies(n -> assertThat(n.context().recipients())
+                        .contains(new com.eldercare.backend.common.notification.RecipientGroup.Staff(
+                                baseManager.staffId(), "QUALITY_INSPECTOR")));
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM simple_record WHERE kind='M04.QUALITY_CHECKLIST' AND unique_key=?",
+                        Integer.class,
+                        shift + ":" + floor))
+                .isZero();
+    }
+
+    /**
+     * Q37 (dòng REMINDER), Q42 (FR-063): hết ca, mục chưa kiểm tra thành Quá hạn, QL nhận một lần mỗi danh sách; ca không
+     * có danh sách được ghi lại. Gộp một ca theo ngân sách IT (AGENTS.md mục 4), mỗi dòng một ca mới.
+     */
+    @Test
+    void FR_059a_FR_063_reminderBeforeShiftEndThenOverdueItemsAndShiftWithoutAList() throws Exception {
+        com.eldercare.backend.support.TableRows.each(List.of("REMINDER", "OVERDUE", "NO_CHECKLIST"), scenario -> {
+            fixture();
+            qualityFixture();
+            if (scenario.equals("REMINDER")) {
+                FR_059a_beforeTheShiftEndsTheInspectorIsRemindedOnceWhenThereIsNoListOrTooFewItems();
+                return;
+            }
+            long task = completed(caregiver.accountId(), caregiver.staffId());
+            Long item = null;
+            if (scenario.equals("OVERDUE")) {
+                select(List.of(task)).andExpect(status().isCreated());
+                item = item(task);
+            }
+            clock.run(shiftEndsAt.plusSeconds(60));
+            clock.run(shiftEndsAt.plusSeconds(120));
+            if (item != null) {
+                assertThat(itemStatus(item)).isEqualTo("OVERDUE");
+                assertThat(jdbc.queryForObject("SELECT confirmed_at FROM record_event WHERE id=?", Object.class, item))
+                        .isNotNull();
+                assertThat(managerNotices("OVERDUE_ITEMS"))
+                        .singleElement()
+                        .satisfies(n -> assertThat(n.context().recipients())
+                                .contains(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                        Role.NURSING_HOME_MANAGER)));
+                assertThat(managerNotices("NO_CHECKLIST")).isEmpty();
+            } else {
+                assertThat(managerNotices("NO_CHECKLIST")).hasSize(1);
+                assertThat(jdbc.queryForObject(
+                                "SELECT JSON_UNQUOTE(JSON_EXTRACT(details,'$.reason')) FROM reminder_marker"
+                                        + " WHERE kind='M04.QUALITY_NO_CHECKLIST' AND entity_id=?",
+                                String.class,
+                                shift))
+                        .isEqualTo("NOT_CREATED");
+            }
+        });
+    }
 }

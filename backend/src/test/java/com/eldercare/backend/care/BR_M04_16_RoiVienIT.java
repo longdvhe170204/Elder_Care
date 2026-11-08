@@ -34,7 +34,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @AutoConfigureMockMvc
 @WithMockUser
 @Import(FakeM04Config.class)
+@org.springframework.test.context.event.RecordApplicationEvents
 class BR_M04_16_RoiVienIT extends StatusTestBase {
+    @Autowired
+    org.springframework.test.context.event.ApplicationEvents recorded;
+
     @Autowired
     com.eldercare.backend.care.internal.trip.service.TripDepartureService departures;
 
@@ -211,6 +215,201 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
 
     ResultActions depart(long trip, long resident) throws Exception {
         return mvc.perform(write(post("/api/v1/trips/" + trip + "/depart"), "{\"residentIds\":[" + resident + "]}"));
+    }
+
+    ResultActions assign(long trip, long leader) throws Exception {
+        return mvc.perform(write(post("/api/v1/trips/" + trip + "/assignment"), "{\"leaderId\":" + leader + "}"));
+    }
+
+    String participantStatus(long s, long r) {
+        return jdbc.queryForObject(
+                "SELECT participant_status FROM activity_registration WHERE session_id=? AND resident_id=?",
+                String.class,
+                s,
+                r);
+    }
+
+    int departures(long r) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM record_event WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=?", Integer.class, r);
+    }
+
+    /**
+     * T015, T010 Q12; gộp một ca theo ngân sách IT (AGENTS.md mục 4). Mỗi dòng dựng lại fixture (tầng, Trưởng tầng,
+     * hoạt động mới) vì buổi cùng hoạt động và giờ bắt đầu là duy nhất.
+     */
+    @Test
+    void BR_M04_16_departureConditionsTwoDevicesAndSuspectedInfection() throws Exception {
+        com.eldercare.backend.support.TableRows.each(List.of("CONDITIONS", "TWO_DEVICES", "INFECTION"), scenario -> {
+            tripFixture();
+            switch (scenario) {
+                case "CONDITIONS" ->
+                    BR_M04_16_departureChecksLeaderVehicleAndMedicationThenChangesEveryModuleInOneCommand();
+                case "TWO_DEVICES" -> BR_M04_16_twoDevicesCanOnlyDepartTheResidentOnce();
+                case "INFECTION" ->
+                    FR_021a_suspectedInfectionMarksTheParticipantNotGoingCancelsGroupRegistrationsAndNotifiesTheTrip();
+            }
+        });
+    }
+
+    /**
+     * T015 Q18, Q19, Q21 → Q23 (BR-M04-16, FR-035, FR-038, FR-040, FR-041): rời viện bị chặn khi thiếu trưởng đoàn, lịch
+     * xe, thuốc; lỗi lệnh lịch xe của 019 hoàn tác cả 001 và điểm danh; đủ điều kiện thì 001, 019 đổi trong cùng lệnh
+     * và 006, 011 nhận {@code TripChanged}.
+     */
+    private void BR_M04_16_departureChecksLeaderVehicleAndMedicationThenChangesEveryModuleInOneCommand()
+            throws Exception {
+        long s = trip(true), r = participant(s, "ELIGIBLE");
+        depart(s, r)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("TRIP_LEADER_REQUIRED"));
+        var office = new TestUsers(jdbc, time).staff(Role.OFFICE_STAFF);
+        assign(s, office.staffId())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("ROLE_NOT_ELIGIBLE"));
+        assign(s, manager.staffId())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("NOT_ON_SHIFT"));
+        leader(s);
+        depart(s, r)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("VEHICLE_SCHEDULE_REQUIRED"));
+        long schedule = bookVehicle(s);
+        depart(s, r)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("MEDICATION_NOT_HANDLED"));
+        tripMedication.prepared(r, s);
+
+        var vehicleTarget = org.springframework.test.util.AopTestUtils
+                .<com.eldercare.backend.roombedallocation.api.VehicleScheduleCommandApi>getUltimateTargetObject(
+                        vehicles);
+        org.mockito.Mockito.doThrow(new com.eldercare.backend.common.error.BusinessException(
+                        org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
+                        "SOURCE_UNAVAILABLE",
+                        "Lỗi nguồn lịch xe"))
+                .when(vehicleTarget)
+                .followTrip(
+                        org.mockito.ArgumentMatchers.eq(s),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any());
+        depart(s, r).andExpect(status().isServiceUnavailable());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(participantStatus(s, r)).isEqualTo("ELIGIBLE");
+        assertThat(jdbc.queryForObject("SELECT trip_status FROM activity_session WHERE id=?", String.class, s))
+                .isEqualTo("SCHEDULED");
+        assertThat(departures(r)).isZero();
+
+        org.mockito.Mockito.reset(vehicleTarget);
+        depart(s, r).andExpect(status().isOk());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
+        assertThat(participantStatus(s, r)).isEqualTo("DEPARTED");
+        assertThat(departures(r)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT trip_status FROM activity_session WHERE id=?", String.class, s))
+                .isEqualTo("IN_PROGRESS");
+        assertThat(jdbc.queryForObject(
+                        "SELECT status FROM simple_record WHERE id=? AND kind='M03.VEHICLE_SCHEDULE'",
+                        String.class,
+                        schedule))
+                .isEqualTo("IN_USE");
+        assertThat(recorded.stream(com.eldercare.backend.care.api.events.TripChanged.class)
+                        .filter(e -> e.tripId() == s && e.type().equals("FIRST_DEPARTURE")))
+                .hasSize(1);
+    }
+
+    /** T015 (BR-M04-16): hai thiết bị điểm danh rời viện cùng người, chỉ một lần được ghi. */
+    private void BR_M04_16_twoDevicesCanOnlyDepartTheResidentOnce() throws Exception {
+        long s = trip(false), r = participant(s, "ELIGIBLE");
+        leader(s);
+        tripMedication.prepared(r, s);
+        var security = org.springframework.security.test.context.TestSecurityContextHolder.getContext();
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var statuses = new java.util.concurrent.ConcurrentLinkedQueue<Integer>();
+        try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var futures = new ArrayList<java.util.concurrent.Future<?>>();
+            for (int i = 0; i < 2; i++)
+                futures.add(pool.submit(() -> {
+                    org.springframework.security.test.context.TestSecurityContextHolder.setContext(security);
+                    start.await();
+                    statuses.add(depart(s, r).andReturn().getResponse().getStatus());
+                    return null;
+                }));
+            start.countDown();
+            for (var future : futures) future.get(30, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        assertThat(statuses).containsExactlyInAnyOrder(200, 409);
+        assertThat(departures(r)).isEqualTo(1);
+    }
+
+    /**
+     * T010 Q12 (FR-021a): người Được đi chưa rời viện bị gắn nghi nhiễm thì Không đi, đăng ký hoạt động nhóm khác bị hủy,
+     * hoạt động cá nhân giữ; trưởng đoàn và Trưởng tầng của chuyến được báo.
+     */
+    private void FR_021a_suspectedInfectionMarksTheParticipantNotGoingCancelsGroupRegistrationsAndNotifiesTheTrip()
+            throws Exception {
+        long s = trip(false), b = participant(s, "ELIGIBLE");
+        leader(s);
+        long group = indoorSession(true), individual = indoorSession(false);
+        long g = indoorRegistration(group, b), i = indoorRegistration(individual, b);
+        gate.suspectInfection(b);
+
+        tx.executeWithoutResult(t -> cancels.cancelForSuspectedInfection(b, time.now()));
+
+        assertThat(jdbc.queryForMap(
+                        "SELECT status,participant_status,participant_reason FROM activity_registration"
+                                + " WHERE session_id=? AND resident_id=?",
+                        s,
+                        b))
+                .containsEntry("status", "CANCELLED")
+                .containsEntry("participant_status", "NOT_GOING")
+                .containsEntry("participant_reason", "Nghi nhiễm");
+        assertThat(jdbc.queryForObject("SELECT auto_cancel FROM activity_registration WHERE id=?", String.class, g))
+                .isEqualTo("INFECTION_SUSPECTED");
+        assertThat(jdbc.queryForObject("SELECT status FROM activity_registration WHERE id=?", String.class, i))
+                .isEqualTo("REGISTERED");
+        assertThat(currentStatus(b)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(recorded.stream(com.eldercare.backend.care.api.events.ActivityRegistrationsCancelled.class)
+                        .filter(e -> e.sessionId() == s))
+                .singleElement()
+                .satisfies(e -> assertThat(e.context().recipients())
+                        .contains(
+                                new com.eldercare.backend.common.notification.RecipientGroup.TripLeader(
+                                        s, new com.eldercare.backend.common.notification.Substitution.Default()),
+                                new com.eldercare.backend.common.notification.RecipientGroup.FloorManager(
+                                        floor, new com.eldercare.backend.common.notification.Substitution.Default())));
+    }
+
+    long indoorSession(boolean group) {
+        long a = TestUsers.nextId(), s = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO simple_record(id,kind,module,status,content,created_at,created_by) VALUES(?,'M04.ACTIVITY','M04','ACTIVE',?,NOW(6),1)",
+                a,
+                "{\"name\":\"Hát\",\"typeId\":1,\"scope\":\"FLOOR\",\"floorAreaId\":" + floor
+                        + ",\"maxParticipants\":20,\"charged\":false,\"groupActivity\":" + group
+                        + ",\"createdByStaffId\":1}");
+        var day = time.today().plusDays(2);
+        jdbc.update(
+                "INSERT INTO activity_session(id,activity_id,starts_at,ends_at,source,floor_area_id,status,created_at,created_by)"
+                        + " VALUES(?,?,?,?,'SINGLE',?,'SCHEDULED',NOW(6),1)",
+                s,
+                a,
+                day.atTime(9, 0),
+                day.atTime(10, 0),
+                floor);
+        return s;
+    }
+
+    long indoorRegistration(long session, long resident) {
+        long id = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO activity_registration(id,session_id,resident_id,source,registered_by_staff_id,registered_at,status)"
+                        + " VALUES(?,?,?,'MANUAL',?,NOW(6),'REGISTERED')",
+                id,
+                session,
+                resident,
+                manager.staffId());
+        return id;
     }
 
     private long bookVehicle(long trip) throws Exception {

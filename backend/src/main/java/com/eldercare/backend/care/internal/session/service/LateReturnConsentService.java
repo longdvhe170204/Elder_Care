@@ -229,6 +229,14 @@ public class LateReturnConsentService implements CareMinuteWork {
         expire(session.id(), registration.residentId(), registration.id());
     }
 
+    /** FR-016a, FR-043: chuyến gia hạn thì giờ về của người có đồng ý dời theo giờ về dự kiến mới của chuyến. */
+    public void tripExtended(long sessionId) {
+        for (var consent : records.listByParent(CONSENTS, new EntityRef("M04.ACTIVITY_SESSION", sessionId)))
+            if (ACTIVE.equals(consent.status()) || USED.equals(consent.status()))
+                sessions.findActiveRegistration(sessionId, consent.residentId())
+                        .ifPresent(r -> updateReturnTime(consent.residentId(), consent.effectiveFrom(), r.id()));
+    }
+
     void sessionCancelled(long sessionId) {
         for (var consent : records.listByParent(CONSENTS, new EntityRef("M04.ACTIVITY_SESSION", sessionId))) {
             if (ACTIVE.equals(consent.status())) expire(sessionId, consent.residentId(), null);

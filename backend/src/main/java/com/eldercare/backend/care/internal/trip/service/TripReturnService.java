@@ -13,6 +13,7 @@ import com.eldercare.backend.care.api.dto.TripInterval;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.care.api.spi.TripMedicationPreparationPort;
+import com.eldercare.backend.care.internal.session.service.LateReturnConsentService;
 import com.eldercare.backend.care.internal.trip.domain.*;
 import com.eldercare.backend.care.internal.trip.persistence.ActivityTripStore;
 import com.eldercare.backend.common.Reason;
@@ -54,6 +55,7 @@ public class TripReturnService {
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final JsonMapper json;
+    private final LateReturnConsentService consents;
 
     public TripReturnService(
             ActivityTripStore trips,
@@ -68,7 +70,8 @@ public class TripReturnService {
             BusinessTime time,
             AuditLogApi audit,
             ApplicationEventPublisher events,
-            JsonMapper json) {
+            JsonMapper json,
+            LateReturnConsentService consents) {
         this.trips = trips;
         this.preparation = preparation;
         this.histories = histories;
@@ -82,6 +85,7 @@ public class TripReturnService {
         this.audit = audit;
         this.events = events;
         this.json = json;
+        this.consents = consents;
     }
 
     /** FR-044, FR-047, FR-050: người đã ở viện; về muộn sau khi chuyến Đã về chỉ cho người Thiếu khi về. */
@@ -178,6 +182,7 @@ public class TripReturnService {
                         trip.floorAreaId(),
                         null));
         trips.extend(id, newReturnAt);
+        consents.tripExtended(id);
         for (var p : trips.participants(id))
             if ("DEPARTED".equals(p.status()))
                 source.recalculateInterval(

@@ -386,7 +386,7 @@ Kiểm: `BR_M04_18_SuKienTinhPhiIT` 7/7, `FR_031_DinhChinhIT` 3/3, `T014_Session
 | DBR-18 | — | Gộp cảnh báo cô lập ở 007; 014 chưa phát `ISOLATION_RISK` (chờ chuỗi cô lập) |
 | DBR-23, FR-069 | `BR_M04_17` (gia hạn), `FR_051` (bỏ sở thích), `BR_M04_23` (kết quả kiểm tra): người thực hiện, thời điểm, lý do ở `audit_log` | Có test (thêm 06/11, xanh ngay vì mã đã ghi nhật ký) |
 | DBR-25 | `T014_SessionAttendanceSourcesIT` (ngoại tuyến điểm danh buổi), `FR_046a_*` (chuyến chặn `deviceAt`) | Một phần; chuyến chờ 001 nhận thời điểm thiết bị |
-| FR-021a | `BR_M04_16_RoiVienIT`, `FR_021_KhoanhVungIT` | Có test |
+| FR-021a | `BR_M04_16_RoiVienIT`, `FR_021_KhoanhVungIT` (gỡ 07/11; FR-021 viết lại trong `BR_M04_15_DangKyIT` ngày 08/11) | Có test |
 | FR-067 | Các ca 403 trong `BR_M04_16`, `BR_M04_17`, `BR_M04_23` (FR-066), `FR_051` | Một phần; Hành chính và người thân chờ quyền (đồng ý về muộn) |
 | FR-068 | — | Cổng người thân chờ schema phản hồi (team-plan mục 8) |
 | FR-070 | `T027_ActivityStatisticsIT` | Có test |
@@ -471,6 +471,31 @@ TripDetail: đề xuất ở contracts/trip-detail-proposal-2026-11-08.md. Chưa
 | FR-036/038/039 phần dữ liệu chi tiết chuyến | contracts/trip-detail-proposal-2026-11-08.md liệt kê trường và nguồn 006/007 | Dừng trình duyệt; chưa sửa schema TripDetail hoặc cài nguồn mới |
 | FR-031a, FR-046a ngoại tuyến chuyến | Giữ kiểm chặn 503 và các test đã có | B chưa nhận thời điểm thiết bị trong lệnh trạng thái 001 |
 | Nhóm 7–10 trong yêu cầu phiên | Chưa triển khai vì dừng tại bước 6 theo yêu cầu | API đọc cho 012/007, sở thích từ phản hồi, TripIncidentPort, app danh sách buổi, listener VehicleScheduleCorrected |
+
+### 08/11/2026 (C): đối chiếu T010, T015, T023 với quickstart sau đợt rút gọn test
+
+Tên lớp thực tế (lệch tên logic của tasks; theo ngân sách AGENTS.md mục 4, thêm ca vào lớp có sẵn, ca mới gộp bằng TableRows):
+
+| Tên logic trong tasks | Lớp, phương thức thực tế |
+| --- | --- |
+| `FR_021_KhoanhVungIT` (T010) | `BR_M04_15_DangKyIT#FR_018_FR_021_warningAcknowledgementAndIsolationCancellation` (Q10, Q11); `BR_M04_16_RoiVienIT#…` dòng INFECTION (Q12) |
+| `FR_035_NhiemVuIT` (T015) | `BR_M04_16_RoiVienIT#BR_M04_16_departureConditionsTwoDevicesAndSuspectedInfection` (Q18, Q19, Q21 → Q23, hai thiết bị) |
+| `FR_066_NguoiKiemTraIT` (T023) | `NguoiKiemTraTest` (unit, Mockito) và dòng INSPECTOR của `BR_M04_23_KiemTraChatLuongIT#Q_404_…` |
+| `CongViecDuDieuKienTest` (T023) | cùng tên, unit Mockito trên `QualityCheckService` (không tách hàm thuần) |
+
+- **Lệch kỹ thuật (T011, Q9).** `TripReturnService.extend` gọi `LateReturnConsentService.tripExtended(sessionId)` sau khi đổi giờ về của chuyến. Người có đồng ý Hiệu lực hoặc Đã dùng và đăng ký còn hiệu lực được tính lại bằng `updateReturnTime` có sẵn (giờ muộn nhất của các buổi còn đăng ký trong ngày). Gói `trip` vốn đã phụ thuộc `session.service` (`TripCreationService`), không tạo vòng bean. Chưa xử lý gia hạn qua nửa đêm.
+- **Q38 phần 3 lệch.** Quickstart Q38 chờ 409 `DA_CO_DANH_SACH` (`CHECKLIST_ALREADY_EXISTS`) khi lập danh sách thứ hai; bản cài Phase 9 cho POST lần sau thêm mục vào danh sách duy nhất của ca (khóa `ca:tầng`), nên mã này không trả. Chủ dự án chọn giữ cách cài (08/11): quickstart Q38 đã sửa, contracts giữ nguyên; T023 [x].
+
+| Mã | Test | Trạng thái 08/11 |
+| --- | --- | --- |
+| FR-015a, BR-M04-15 (Q6) | `DieuKienDangKyTest`, `BR_M04_15_DangKyIT` hai đăng ký đồng thời | Có test |
+| FR-016, FR-016a (Q7 → Q9) | `DieuKienDangKyTest`, `FR_016a_DongYVeMuonIT` 4 dòng (thêm TRIP_EXTENSION đỏ rồi xanh) | Có test |
+| FR-018, FR-021, FR-021a (Q10 → Q12) | `BR_M04_15_DangKyIT`, `BR_M04_16_RoiVienIT` | Có test, T010 [x] |
+| BR-M04-16, FR-035, FR-038, FR-040, FR-041 (Q18, Q19, Q21 → Q23) | `BR_M04_16_RoiVienIT` | Có test |
+| FR-036 (Q20) | `FR_036_TripAssessmentTest` 2 ca | Có test |
+| FR-046a (Q24) | — | Chờ B (001 thời điểm thiết bị); T015 [ ] |
+| FR-049, FR-049a (Q25) | `BR_M04_17_ThieuNguoiIT` | Có test |
+| FR-059, FR-059a, FR-060, FR-063, FR-064, FR-066 (Q37 → Q43) | `BR_M04_23_KiemTraChatLuongIT`, `SoMucToiThieuTest`, `CongViecDuDieuKienTest`, `NguoiKiemTraTest`, `PermissionMatrixIT` | Có test (Q38 theo quickstart sửa 08/11); T023 [x] |
 
 ### Ngân sách kiểm thử cuối phiên 08/11/2026
 
