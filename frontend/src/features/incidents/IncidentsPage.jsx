@@ -18,6 +18,7 @@ import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
+import { TransferOutPanel } from './TransferOutPanel'
 import { loadIncident, loadIncidentBoard, loadResidentChoices, recordIncident, runIncidentCommand } from './incidents'
 import {
   LEVEL_LABEL,
@@ -233,6 +234,9 @@ function IncidentDetail({ id, name, types, Title, Description, onChanged }) {
     }
   }
 
+  const canTransfer =
+    ['NEW', 'IN_PROGRESS'].includes(incident.status) && incident.content?.residentId != null && commands.includes('change-level')
+
   const messages = {
     progressions: 'Đã ghi diễn biến',
     'change-level': 'Đã đổi mức sự cố',
@@ -281,7 +285,17 @@ function IncidentDetail({ id, name, types, Title, Description, onChanged }) {
         )}
       </section>
       {problem && <ProblemAlert problem={problem} />}
-      {mode ? (
+      {mode === 'transfer-out' ? (
+        <TransferOutPanel
+          incidentId={incident.id}
+          onCancel={() => setMode(null)}
+          onDone={async () => {
+            setMode(null)
+            setState(await loadIncident(incident.id))
+            onChanged('Đã chuyển viện')
+          }}
+        />
+      ) : mode ? (
         <CommandForm
           key={mode}
           mode={mode}
@@ -327,6 +341,11 @@ function IncidentDetail({ id, name, types, Title, Description, onChanged }) {
           {commands.includes('change-level') && (
             <Button variant="outline" className="h-11" onClick={() => setMode('change-level')}>
               Đổi mức
+            </Button>
+          )}
+          {canTransfer && (
+            <Button variant="outline" className="h-11" onClick={() => setMode('transfer-out')}>
+              Chuyển viện
             </Button>
           )}
           {commands.includes('join-handling') && (

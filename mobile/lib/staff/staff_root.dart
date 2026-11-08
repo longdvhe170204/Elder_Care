@@ -10,11 +10,14 @@ import '../common/offline/offline_queue.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'activities/trip_list_screen.dart';
+import 'alerts/alerts_screen.dart';
+import 'alerts/emergency_assist_screen.dart';
 import 'approval_requests/approval_inbox_screen.dart';
 import 'beds/beds_screen.dart';
 import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'handover/handover_screen.dart';
+import 'incidents/incidents_screen.dart';
 import 'medication/medication_round_cache.dart';
 import 'medication/medication_round_gateway.dart';
 import 'medication/medication_round_repository.dart';
@@ -184,6 +187,11 @@ class _StaffRootState extends State<StaffRoot> {
     ),
     ('Phiếu bữa ăn', LucideIcons.clipboardList, () => MealSlipScreen(api: widget.session.api)),
     ('Đồ ăn gia đình', LucideIcons.apple, () => FamilyFoodScreen(api: widget.session.api)),
+    if (_can('ALERT_HANDLING', 'VIEW') || _can('ALERT_HANDLING', 'UPDATE'))
+      ('Cảnh báo', LucideIcons.bellRing, () => AlertsScreen(api: widget.session.api)),
+    ('Hỗ trợ khẩn cấp', LucideIcons.siren, () => EmergencyAssistScreen(api: widget.session.api)),
+    if (_can('INCIDENT_EMERGENCY', 'VIEW') || _can('INCIDENT_EMERGENCY', 'UPDATE'))
+      ('Sự cố', LucideIcons.siren, () => IncidentsScreen(api: widget.session.api)),
     if (_canRunMedicationRound)
       (
         'Phát thuốc',
