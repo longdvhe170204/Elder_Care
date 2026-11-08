@@ -185,8 +185,56 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
                 .toList();
     }
 
+    /**
+     * T015 Q25 (FR-049, FR-049a, CFG-M04-07): quá giờ về +30 phút báo trưởng đoàn và Trưởng tầng, +60 phút báo Quản lý
+     * viện; mức Trung bình, mỗi mốc một lần.
+     */
+    /** Gộp một ca theo ngân sách IT (AGENTS.md mục 4); mỗi dòng dựng lại fixture (buổi cùng giờ bắt đầu là duy nhất). */
     @Test
-    void FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident() throws Exception {
+    void FR_047_FR_049_overdueMilestonesAndFinishingReturn() throws Exception {
+        com.eldercare.backend.support.TableRows.each(List.of("OVERDUE", "FINISH_RETURN"), scenario -> {
+            tripFixture();
+            switch (scenario) {
+                case "OVERDUE" -> FR_049_overdueReturnNotifiesLeaderAndFloorOnceThenTheManagerAtTwiceTheThreshold();
+                case "FINISH_RETURN" ->
+                    FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident();
+            }
+        });
+    }
+
+    private void FR_049_overdueReturnNotifiesLeaderAndFloorOnceThenTheManagerAtTwiceTheThreshold() throws Exception {
+        long s = trip(), a = eligible(s);
+        assign(s);
+        departed(s, a);
+        overdue.run(plannedReturn.plusSeconds(1740));
+        assertThat(notices(s, "RETURN_OVERDUE")).isEmpty();
+        overdue.run(plannedReturn.plusSeconds(1860));
+        overdue.run(plannedReturn.plusSeconds(1920));
+        assertThat(notices(s, "RETURN_OVERDUE")).singleElement().satisfies(n -> {
+            assertThat(n.level()).isEqualTo(NotificationLevel.MEDIUM);
+            assertThat(n.context().recipients())
+                    .contains(
+                            new com.eldercare.backend.common.notification.RecipientGroup.TripLeader(
+                                    s, new com.eldercare.backend.common.notification.Substitution.Default()),
+                            new com.eldercare.backend.common.notification.RecipientGroup.FloorManager(
+                                    floor, new com.eldercare.backend.common.notification.Substitution.Default()))
+                    .noneMatch(r -> r instanceof com.eldercare.backend.common.notification.RecipientGroup.FacilityRole);
+        });
+        assertThat(jdbc.queryForObject("SELECT trip_overdue_return FROM activity_session WHERE id=?", Boolean.class, s))
+                .isTrue();
+        assertThat(participant(s, a)).isEqualTo("DEPARTED");
+        assertThat(notices(s, "RETURN_OVERDUE_MANAGER")).isEmpty();
+        overdue.run(plannedReturn.plusSeconds(3660));
+        overdue.run(plannedReturn.plusSeconds(3720));
+        assertThat(notices(s, "RETURN_OVERDUE_MANAGER"))
+                .singleElement()
+                .satisfies(n -> assertThat(n.context().recipients())
+                        .contains(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                Role.NURSING_HOME_MANAGER)));
+    }
+
+    private void FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident()
+            throws Exception {
         long s = trip(), a = eligible(s), c = eligible(s);
         assign(s);
         departed(s, a, c);

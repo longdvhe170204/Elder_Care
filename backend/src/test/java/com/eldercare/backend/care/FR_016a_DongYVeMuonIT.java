@@ -112,13 +112,14 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
     private long resident;
     private long representative;
     private long activity;
+    private long floor;
     private LocalDate date;
 
     @BeforeEach
     void fixture() throws Exception {
         date = time.today().plusDays(1);
         resident = TestUsers.nextId();
-        long floor = TestUsers.nextId();
+        floor = TestUsers.nextId();
         representative = TestUsers.nextId();
         var users = new TestUsers(jdbc, time);
         manager = users.staff(Role.FLOOR_MANAGER);
@@ -159,14 +160,59 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_016a_consentRegistrationWithdrawalAndOfficeUse() throws Exception {
-        TableRows.each(List.of("WITHDRAW", "REPRESENTATIVE", "OFFICE"), scenario -> {
+        TableRows.each(List.of("WITHDRAW", "REPRESENTATIVE", "OFFICE", "TRIP_EXTENSION"), scenario -> {
             fixture();
             switch (scenario) {
                 case "WITHDRAW" -> FR_016a_withdrawingOneConsentKeepsTheReturnTimeOfTheLatestRemainingRegistration();
                 case "REPRESENTATIVE" -> FR_016a_requiresConsentForTheExactSessionAndAnActiveRepresentative();
                 case "OFFICE" -> FR_016a_officeRecordsTheSignedFormAndRegisteredConsentIsUsedAtSessionStart();
+                case "TRIP_EXTENSION" -> FR_016a_extendingTheTripMovesTheReturnTimeOfAResidentWithConsent();
             }
         });
+    }
+
+    /** Q9 (FR-016a, FR-043; US2 kịch bản 14): giờ về dự kiến theo mọi lần gia hạn chuyến. */
+    private void FR_016a_extendingTheTripMovesTheReturnTimeOfAResidentWithConsent() throws Exception {
+        long offsite = catalogs.create(
+                        ActivityKinds.ACTIVITY_TYPES,
+                        new NewCatalogItem<>(
+                                null,
+                                "Ngoài viện " + TestUsers.nextId(),
+                                null,
+                                0,
+                                new ActivityTypeAttributes(false, true, List.of())))
+                .id();
+        long tripActivity = id(postTo(
+                "/api/v1/activities",
+                "{\"name\":\"Tham quan chùa\",\"typeId\":" + offsite + ",\"scope\":\"FLOOR\",\"floorAreaId\":" + floor
+                        + ",\"maxParticipants\":4,\"groupActivity\":false}"));
+        var departAt = date.atTime(13, 0).atZone(BusinessTime.ZONE).toInstant();
+        var returnAt = date.atTime(16, 0).atZone(BusinessTime.ZONE).toInstant();
+        long trip = id(postTo(
+                "/api/v1/activity-sessions",
+                "{\"activityId\":" + tripActivity + ",\"startsAt\":\"" + departAt + "\",\"endsAt\":\"" + returnAt
+                        + "\",\"trip\":{\"destination\":\"Chùa\",\"plannedDepartureAt\":\"" + departAt
+                        + "\",\"plannedReturnAt\":\"" + returnAt
+                        + "\",\"transport\":\"Xe thuê\",\"facilityVehicle\":false}}"));
+        user.set(family.user());
+        consent(trip).andExpect(status().isCreated());
+        user.set(manager.user());
+        register(trip).andExpect(status().isCreated());
+        assertThat(attendance.returnTimeOn(resident, date)).contains(LocalTime.of(16, 0));
+
+        // Rời viện cần 001 thật; ở đây chỉ đặt chuyến Đang đi để kiểm phần giờ về của lệnh gia hạn.
+        jdbc.update("UPDATE activity_session SET trip_status='IN_PROGRESS' WHERE id=?", trip);
+        jdbc.update(
+                "UPDATE activity_registration SET participant_status='DEPARTED' WHERE session_id=? AND resident_id=?",
+                trip,
+                resident);
+        postTo(
+                        "/api/v1/trips/" + trip + "/extend",
+                        "{\"newPlannedReturnAt\":\""
+                                + date.atTime(16, 30).atZone(BusinessTime.ZONE).toInstant()
+                                + "\",\"reason\":\"Kẹt xe\"}")
+                .andExpect(status().isOk());
+        assertThat(attendance.returnTimeOn(resident, date)).contains(LocalTime.of(16, 30));
     }
 
     private void FR_016a_withdrawingOneConsentKeepsTheReturnTimeOfTheLatestRemainingRegistration() throws Exception {
