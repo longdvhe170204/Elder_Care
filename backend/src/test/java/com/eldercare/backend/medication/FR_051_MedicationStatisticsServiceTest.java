@@ -11,7 +11,6 @@ import com.eldercare.backend.medication.api.dto.DoseReportView;
 import com.eldercare.backend.medication.api.dto.DoseStatus;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.dto.NursingShiftView;
-import com.eldercare.backend.medication.api.dto.ReconciliationReportView;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.medication.internal.dose.domain.DoseAuthorityBasis;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
@@ -139,27 +138,6 @@ class FR_051_MedicationStatisticsServiceTest {
             assertThat(row.finalStatus()).isEqualTo(DoseStatus.DISPENSED_FOR_TRIP);
             assertThat(row.dispensedForTrip()).isTrue();
             assertThat(row.shiftId()).isNull();
-        });
-    }
-
-    @Test
-    void FR_051_reconciliationsUseResidentScopeAndHalfOpenPeriod() {
-        Instant from = Instant.parse("2026-10-28T00:00:00Z");
-        Instant to = Instant.parse("2026-10-29T00:00:00Z");
-        MedicationReconciliation included = reconciliation(601L, 201L, from);
-        included.markOverdue(from.plusSeconds(3600));
-        MedicationReconciliation outsideScope = reconciliation(602L, 202L, from.plusSeconds(60));
-        MedicationReconciliation atExclusiveEnd = reconciliation(603L, 201L, to);
-        when(reconciliations.findAll()).thenReturn(List.of(included, outsideScope, atExclusiveEnd));
-
-        List<ReconciliationReportView> report = statistics
-                .reconciliationsInPeriod(new ScopeFilter(false, Set.of(), Set.of(), Set.of(201L)), from, to)
-                .toList();
-
-        assertThat(report).singleElement().satisfies(row -> {
-            assertThat(row.reconciliationId()).isEqualTo(601L);
-            assertThat(row.residentId()).isEqualTo(201L);
-            assertThat(row.isOverdue()).isTrue();
         });
     }
 

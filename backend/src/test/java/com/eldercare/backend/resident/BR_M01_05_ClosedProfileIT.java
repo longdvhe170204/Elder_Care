@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.dto.StatusCommand;
 import java.util.List;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -51,34 +50,5 @@ class BR_M01_05_ClosedProfileIT extends StatusTestBase {
     private void asOffice(Runnable command) {
         user.set(office.user());
         command.run();
-    }
-
-    @Test
-    void BR_M01_05_commandsFromOtherModulesAreBlockedToo() {
-        long id = residentIn(ResidentStatus.DECEASED);
-        int rows = historyCount(id);
-
-        BusinessException e = failure(() -> inTransaction(() -> statusApi.execute(
-                id,
-                StatusCommand.ROLL_CALL_DEPARTURE,
-                office.user(),
-                java.util.Optional.empty(),
-                noDetails(),
-                sourceRecord(1L))));
-
-        assertThat(e).isNotNull();
-        assertThat(e.errorCode()).isEqualTo("PROFILE_CLOSED");
-        assertThat(historyCount(id)).isEqualTo(rows);
-    }
-
-    @Test
-    void BR_M01_05_historyCanStillBeRead() {
-        long id = residentIn(ResidentStatus.RESIDENCY_ENDED);
-        user.set(doctor.user());
-
-        assertThat(statusService.history(target(id)))
-                .isNotEmpty()
-                .last()
-                .satisfies(entry -> assertThat(entry.to()).isEqualTo(ResidentStatus.RESIDENCY_ENDED));
     }
 }

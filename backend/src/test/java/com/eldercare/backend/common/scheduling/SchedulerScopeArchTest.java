@@ -42,6 +42,15 @@ class SchedulerScopeArchTest {
                     "com.eldercare.backend.roombedallocation.scheduling.BedReadinessReminderJob",
                     "nhắc giường Chờ sẵn sàng quá hạn một lần (003 FR-044)"),
             Map.entry(
+                    "com.eldercare.backend.roombedallocation.scheduling.VehicleScheduleReminderJob",
+                    "nhắc lịch xe Đang dùng quá giờ về một lần, báo chồng lịch kế tiếp; không tạo lịch xe (019 FR-018)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.scheduling.AssetReminderJob",
+                    "nhắc hạn bảo trì, đăng kiểm, bảo hiểm, gắn dấu quá hạn; không tạo tài sản (019 BR-M03-17)"),
+            Map.entry(
+                    "com.eldercare.backend.billing.scheduling.ProcurementReminderJob",
+                    "nhắc yêu cầu mua sắm quá CFG-M11-08, 09 một lần mỗi lần vào trạng thái, không lập yêu cầu (019 BR-M11-20)"),
+            Map.entry(
                     "com.eldercare.backend.roombedallocation.scheduling.AllocationReminderJob",
                     "nhắc dấu phân bổ còn mở theo CFG-M03-02, không lập yêu cầu (003 FR-025a/030/034)"),
             Map.entry(
@@ -113,6 +122,12 @@ class SchedulerScopeArchTest {
             Map.entry(
                     "com.eldercare.backend.medication.scheduling.M07DailyJob",
                     "việc hàng ngày m07: đối chiếu thuốc, cảnh báo hết hạn đơn (006 research D-19)"),
+            Map.entry(
+                    "com.eldercare.backend.nutrition.scheduling.M08MinuteJob",
+                    "việc theo phút m08: nhắc chốt, bản gán Chờ hiệu lực, món an toàn, suất giữ, giao trễ; không chốt suất, không lập phiếu (011 Q-306, research M-15)"),
+            Map.entry(
+                    "com.eldercare.backend.nutrition.scheduling.M08DailyJob",
+                    "việc hằng ngày m08: thực đơn Đã áp dụng, nhắc CFG-M08-07; không chốt suất, không lập phiếu (011 Q-306, research M-15)"),
             Map.entry(
                     "com.eldercare.backend.admission.scheduling.M02DailyJob",
                     "Báo Quản lý viện lượt vắng dài, dấu quá hạn hợp đồng, quá ngày dự kiến, nhắc Hành chính (004 FR-077, Q-395)"),

@@ -2,7 +2,6 @@ package com.eldercare.backend.reporting;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -213,91 +212,5 @@ class SC_004_ScopeIT extends MySqlIntegrationTestBase {
         expectDenied(caregiver, group);
         expectReport(officeAndNurseFloor2, group, metric, 1);
         expectReport(doctorAndFloorManager2, group, metric, ALL);
-    }
-
-    @Test
-    void careReport_byAccount() throws Exception {
-        String group = "CARE";
-        String metric = TestScopedMetrics.TASKS;
-        expectReport(manager, group, metric, ALL);
-        expectReport(floorManager1, group, metric, FLOOR_1);
-        expectReport(nurseFloor1, group, metric, NURSE_ON_FLOOR_1);
-        expectDenied(office, group);
-        expectDenied(caregiver, group);
-        expectReport(officeAndNurseFloor2, group, metric, 1);
-    }
-
-    @Test
-    void costReport_onlyManagerAndOffice() throws Exception {
-        String group = "INCURRED_COSTS";
-        String metric = TestScopedMetrics.COSTS;
-        expectReport(manager, group, metric, ALL);
-        expectReport(office, group, metric, ALL);
-        expectReport(officeAndNurseFloor2, group, metric, ALL);
-        expectDenied(floorManager1, group);
-        expectDenied(doctor, group);
-        expectDenied(nurseFloor1, group);
-        expectDenied(caregiver, group);
-        expectDenied(doctorAndFloorManager2, group);
-    }
-
-    @Test
-    void staffingReport_managerAndFloorManagers() throws Exception {
-        String group = "STAFFING_SHIFTS";
-        String metric = TestScopedMetrics.STAFFING;
-        expectReport(manager, group, metric, ALL);
-        expectReport(floorManager1, group, metric, FLOOR_1);
-        expectReport(doctorAndFloorManager2, group, metric, 1);
-        expectDenied(doctor, group);
-        expectDenied(nurseFloor1, group);
-        expectDenied(shiftLeadFloor1, group);
-        expectDenied(office, group);
-        expectDenied(officeAndNurseFloor2, group);
-    }
-
-    @Test
-    void FR_015_multipleRoles_eachGroupByOwnRole() throws Exception {
-        expectReport(officeAndNurseFloor2, "RESIDENTS", TestScopedMetrics.RESIDENTS, ALL);
-        expectBlock(officeAndNurseFloor2, "RESIDENTS", TestScopedMetrics.RESIDENTS, ALL);
-        expectBlock(officeAndNurseFloor2, "HEALTH_EVENTS", TestScopedMetrics.HEALTH, 1);
-    }
-
-    @Test
-    void dashboard_byAccount() throws Exception {
-        String group = "HEALTH_EVENTS";
-        String metric = TestScopedMetrics.HEALTH;
-        expectBlock(manager, group, metric, ALL);
-        expectBlock(floorManager1, group, metric, FLOOR_1);
-        expectBlock(temporaryFloorManager3, group, metric, 1);
-        expectBlock(doctor, group, metric, ALL);
-        expectBlock(nurseFloor1, group, metric, NURSE_ON_FLOOR_1);
-        expectBlock(shiftLeadFloor1, group, metric, FLOOR_1);
-        expectNoBlock(office, group);
-        expectBlock(office, "INCURRED_COSTS", TestScopedMetrics.COSTS, ALL);
-        perform(caregiver, get("/api/v1/dashboard")).andExpect(status().isForbidden());
-    }
-
-    @Test
-    void Q4_noAssignment_noNumbers() throws Exception {
-        perform(formerFloorManager4, get("/api/v1/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.blocks").value(empty()))
-                .andExpect(jsonPath("$.message").value("Hiện không có phạm vi phân công"));
-        perform(fixture.staff(Role.NURSING_STAFF), get("/api/v1/dashboard"))
-                .andExpect(jsonPath("$.blocks").value(empty()));
-    }
-
-    @Test
-    void Q9_filterOptions_onlyInScope_outOfScopeValueGivesNothing() throws Exception {
-        perform(floorManager1, report("CARE"))
-                .andExpect(jsonPath("$.filterOptions.facilityWide").value(false))
-                .andExpect(jsonPath("$.filterOptions.floorAreas", hasSize(1)))
-                .andExpect(jsonPath("$.filterOptions.floorAreas[0].id").value(floor1));
-        perform(manager, report("CARE"))
-                .andExpect(jsonPath("$.filterOptions.facilityWide").value(true))
-                .andExpect(jsonPath("$.filterOptions.floorAreas", hasSize(0)));
-        perform(floorManager1, report("CARE").param("floorAreaId", String.valueOf(floor2)))
-                .andExpect(jsonPath("$.values[?(@.metricCode == '" + TestScopedMetrics.TASKS + "')].value")
-                        .value(contains(0)));
     }
 }

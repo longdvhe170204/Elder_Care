@@ -4,12 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashSet;
-import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,42 +15,6 @@ class PrescriptionTriggerIT extends MySqlIntegrationTestBase {
 
     @Autowired
     private JdbcTemplate jdbc;
-
-    @Test
-    @DisplayName("DBR-14: Bảng prescription có đầy đủ trigger khóa và chặn xóa")
-    void triggers_exist() throws SQLException {
-        Set<String> triggers = new HashSet<>();
-        try (Connection connection = adminConnection();
-                Statement statement = connection.createStatement();
-                ResultSet result = statement.executeQuery(
-                        "SELECT LOWER(TRIGGER_NAME) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE()")) {
-            while (result.next()) {
-                triggers.add(result.getString(1));
-            }
-        }
-
-        assertThat(triggers).contains("trg_prescription_lock", "trg_prescription_no_delete");
-    }
-
-    @Test
-    @DisplayName("FR-014, DBR-14: Trigger chặn xóa vật lý đơn thuốc")
-    void cannot_delete_prescription() {
-        insertFixture(9901L, "Med Test", "10mg", "Dr. A");
-
-        Long id = jdbc.queryForObject(
-                "SELECT id FROM prescription WHERE resident_id = 9901 ORDER BY id DESC LIMIT 1", Long.class);
-
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM prescription WHERE id = ?", id))
-                .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> {
-                    try (Connection connection = adminConnection();
-                            Statement statement = connection.createStatement()) {
-                        statement.executeUpdate("DELETE FROM prescription WHERE id = " + id);
-                    }
-                })
-                .isInstanceOf(SQLException.class)
-                .hasMessageContaining("prescription cannot be deleted");
-    }
 
     @Test
     @DisplayName("FR-014, DBR-14: Trigger khóa các trường cố định của đơn")

@@ -47,6 +47,7 @@ final class Appendix27Matrix {
             Function.QUALITY_CHECK,
             Function.VITAL_SIGN,
             Function.INCIDENT_EMERGENCY,
+            Function.EXAM_TREATMENT,
             Function.MEDICATION_ADMINISTRATION,
             Function.MEDICATION_RECONCILIATION,
             Function.MEDICATION_RECEIPT,
@@ -60,7 +61,7 @@ final class Appendix27Matrix {
 
     /** Dòng chuyên môn: ô T thêm PROFESSIONAL (spec FR-020 "T³, T⁴ và T trên các dòng chuyên môn"; data-model mục 4). */
     static final Set<Function> PROFESSIONAL_FUNCTIONS =
-            EnumSet.of(Function.PRESCRIPTION, Function.MEDICATION_ADMINISTRATION);
+            EnumSet.of(Function.PRESCRIPTION, Function.MEDICATION_ADMINISTRATION, Function.EXAM_TREATMENT);
 
     /** Chú thích ghi "toàn viện" cho ô P: ¹¹ (Bác sĩ, Hành chính), ²⁹ (Kế toán) ở dòng "Dashboard, báo cáo". */
     static final Set<String> FACILITY_WIDE_FOOTNOTES = Set.of("11", "29");

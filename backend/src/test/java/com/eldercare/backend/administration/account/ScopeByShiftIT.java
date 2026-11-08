@@ -17,9 +17,11 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
+import com.eldercare.backend.support.fake.administration.FakeDuties;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,44 +83,22 @@ class ScopeByShiftIT extends MySqlIntegrationTestBase {
                 .contains(FailedLayer.SCOPE);
     }
 
-    @Test
-    void US4_9_shiftStartsIn90Minutes_inScope_in150Minutes_denied() {
-        ActiveSession early = caregiverWithShift(now.plus(Duration.ofMinutes(90)), now.plus(Duration.ofHours(9)));
-        ActiveSession tooEarly = caregiverWithShift(now.plus(Duration.ofMinutes(150)), now.plus(Duration.ofHours(10)));
-
-        assertThat(scope.inScope(early, resident())).isTrue();
-        assertThat(scope.inScope(tooEarly, resident())).isFalse();
-    }
+    @Autowired
+    FakeDuties duties;
 
     @Test
-    void FR_032_assignmentWithoutShift_noMargin_afterItEnds() {
-        long account = fixtures.staffAccount("AC-02");
-        long staffId = fixtures.staffId(account);
-        assignments.assign(
-                staffId,
-                new AssignmentView(
-                        AssignmentKind.FLOOR_MANAGER,
-                        1L,
-                        null,
-                        null,
-                        null,
-                        now.minus(Duration.ofDays(3)),
-                        now.minus(Duration.ofMinutes(5))));
+    void FR_031_groupLeaderAndCompanionsSeeTheirTrip_onAnotherFloor_othersDoNot() {
+        long trip = AccountFixtures.nextId();
+        long tripFloor = AccountFixtures.nextId();
+        long leaderAccount = fixtures.staffAccount("AC-05");
+        long companionAccount = fixtures.staffAccount("AC-04");
+        long otherAccount = fixtures.staffAccount("AC-05");
+        duties.trip(trip, fixtures.staffId(leaderAccount), List.of(fixtures.staffId(companionAccount)));
+        var target = new Target("M04.TRIP", String.valueOf(trip), null, tripFloor);
 
-        assertThat(scope.inScope(fixtures.user(account), resident())).isFalse();
-    }
-
-    @Test
-    void FR_041a_permissionAtDeviceTime_usesAssignmentAtThatTime() {
-        ActiveSession user = caregiverWithShift(now.minus(Duration.ofHours(14)), now.minus(Duration.ofHours(6)));
-        Instant deviceTime = now.minus(Duration.ofHours(7));
-
-        assertThat(permissions
-                        .hasPermissionAt(user, VIEW_PROFILE, resident(), deviceTime)
-                        .allowed())
-                .isTrue();
-        assertThat(permissions.hasPermission(user, VIEW_PROFILE, resident()).allowed())
-                .isFalse();
+        assertThat(scope.inScope(fixtures.user(leaderAccount), target)).isTrue();
+        assertThat(scope.inScope(fixtures.user(companionAccount), target)).isTrue();
+        assertThat(scope.inScope(fixtures.user(otherAccount), target)).isFalse();
     }
 
     /** Nhân viên chăm sóc có một ca trên tầng 1 trong khoảng đã cho. */

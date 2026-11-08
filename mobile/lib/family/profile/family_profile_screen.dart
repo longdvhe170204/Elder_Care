@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
+import '../../common/residents/resident_avatar.dart';
+import '../../common/residents/resident_labels.dart';
 import '../../common/widgets/status_pill.dart';
 import 'family_profile_detail_screen.dart';
-import 'family_profile_labels.dart';
-import 'family_resident_avatar.dart';
 
 /// Hồ sơ người cao tuổi trên app người thân (001 T023; US1, US2; FR-007, FR-022; Q-305: cùng chức năng với cổng người
 /// thân trên web): danh sách hồ sơ người thân được xem (GET /residents, backend lọc theo quan hệ), mỗi dòng ảnh đại
@@ -124,7 +124,7 @@ class _ProfileRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                FamilyResidentAvatar(name: name, id: profile['id'] as int),
+                ResidentAvatar(name: name, id: profile['id'] as int),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

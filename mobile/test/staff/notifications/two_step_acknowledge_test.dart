@@ -106,7 +106,7 @@ void main() {
     );
     backend.on('POST', '/notifications/2/acknowledge-and-take-charge', 200, {
       'acknowledgement': 'ACKNOWLEDGED',
-      'takeCharge': {'result': 'REJECTED', 'errorCode': 'ALREADY_TAKEN'},
+      'takeCharge': {'result': 'REJECTED', 'errorCode': 'ALREADY_RECEIVED'},
     });
     await pumpInbox(tester, backend.client());
 

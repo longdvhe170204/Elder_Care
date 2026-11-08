@@ -23,5 +23,8 @@ public interface BedStatusApi {
 
     Optional<Instant> emptyPeriodStarted(long bedId);
 
+    /** 016 `BED.EMPTY_AWAITING_TRANSFER` (019 FR-015, Q-235): số giường Trống mang dấu "chờ chuyển người" tại {@code at}. */
+    int countEmptyAwaitingTransfer(ScopeFilter scope, Instant at);
+
     List<BedView> overdueAwaitingReady(long floorId, Instant at);
 }

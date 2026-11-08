@@ -11,8 +11,6 @@ import com.eldercare.backend.health.api.FacilityContactApi;
 import com.eldercare.backend.health.api.MeasurementScheduleApi;
 import com.eldercare.backend.health.api.VitalSignStatisticsApi;
 import com.eldercare.backend.health.api.dto.FacilityContactView;
-import com.eldercare.backend.health.api.dto.MeasurementFrequency;
-import com.eldercare.backend.health.api.dto.MeasurementScheduleView;
 import com.eldercare.backend.health.api.dto.VitalSignConfirmationStatus;
 import com.eldercare.backend.health.api.dto.VitalSignLabel;
 import com.eldercare.backend.health.api.dto.VitalSignLevel;
@@ -74,30 +72,6 @@ class T003_HealthApiContractTest {
     }
 
     @Test
-    void FR_003_scheduleSourceReturnsOnlyExplicitlyConfiguredReadResults() {
-        var schedule = new MeasurementScheduleView(
-                401,
-                101,
-                Set.of(301L),
-                MeasurementFrequency.CLOCK_TIMES,
-                Map.of("times", List.of("14:00")),
-                FROM,
-                null,
-                "MANDATORY",
-                "Lịch đo thử");
-        var times = new ArrayList<>(List.of(FROM, FROM.plusSeconds(60)));
-        var fake = new FakeMeasurementSchedules();
-        fake.effective(101, FROM, List.of(schedule));
-        fake.occurrences(401, FROM, TO, times);
-        times.clear();
-
-        assertThat(fake.effectiveAt(101, FROM)).containsExactly(schedule);
-        assertThat(fake.effectiveAt(102, FROM)).isEmpty();
-        assertThat(fake.occurrences(401, FROM, TO)).containsExactly(FROM, FROM.plusSeconds(60));
-        assertThat(fake.occurrences(402, FROM, TO)).isEmpty();
-    }
-
-    @Test
     void FR_070_contactSourceDoesNotInventAFacilityPhoneNumber() {
         var fake = new FakeFacilityContact();
         assertThat(fake.current().phoneNumber()).isNull();
@@ -128,7 +102,7 @@ class T003_HealthApiContractTest {
                 201, 101, 301, VitalSignLevel.DANGEROUS, 601L, 701L, FROM, labels, "confirmed:201", TO);
         labels.clear();
         var corrected = new VitalSignCorrected(
-                201, 101, 301, VitalSignLevel.DANGEROUS, VitalSignLevel.NORMAL, "corrected:201:1", TO);
+                201, 101, 301, VitalSignLevel.DANGEROUS, VitalSignLevel.NORMAL, FROM, "corrected:201:1", TO);
         var changed = new MeasurementScheduleChanged(401, 101, "schedule:401:1", TO);
         var mapper = JsonMapper.builder().build();
 

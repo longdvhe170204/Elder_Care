@@ -44,7 +44,13 @@ class VitalSignControllerTest {
         var accounts = mock(AccountApi.class);
         when(accounts.fullName(anyLong())).thenReturn(Optional.of("Điều dưỡng A"));
 
-        controller = new VitalSignController(measurementService, currentUser, accounts);
+        controller = new VitalSignController(
+                measurementService,
+                currentUser,
+                accounts,
+                org.mockito.Mockito.mock(com.eldercare.backend.administration.correction.api.CorrectionApi.class),
+                org.mockito.Mockito.mock(
+                        com.eldercare.backend.health.internal.measurement.service.VitalSignCorrectionProvider.class));
     }
 
     @Test

@@ -5,16 +5,26 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.SQLRestriction;
 
-/** Lần tiếp nhận thuốc cung ứng (data-model mục 9a, FR-054): nhóm 3, chỉ thêm; sai sót sửa bằng đính chính. */
+/**
+ * Lần tiếp nhận thuốc cung ứng (data-model mục 9a, FR-054): nhóm 3, chỉ thêm; sai sót sửa bằng đính chính. Dòng
+ * {@code kind = SUPPLIED_INTAKE} của {@code medication_handover}, khóa khi thêm (006 T069, {@code V006_97}).
+ */
 @Entity
-@DataGroup(DataGroup.Group.RECORD)
-@Table(name = "supplied_medication_intake")
+@DataGroup(DataGroup.Group.MULTIPLE)
+@Table(name = "medication_handover")
+@SQLRestriction("kind = 'SUPPLIED_INTAKE'")
+@Immutable
 public class SuppliedMedicationIntake {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "kind", nullable = false, updatable = false, length = 20)
+    private String kind = "SUPPLIED_INTAKE";
 
     @Column(name = "procurement_line_id", nullable = false)
     private Long procurementLineId;
@@ -74,6 +84,10 @@ public class SuppliedMedicationIntake {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    /** Nhóm 3 trong bảng nhiều nhóm: khóa ngay khi thêm (data-model 006 mục 0.1). */
+    @Column(name = "locked_at")
+    private Instant lockedAt;
+
     public enum IntakeResult {
         PASSED,
         NOT_PASSED
@@ -119,6 +133,7 @@ public class SuppliedMedicationIntake {
         this.receiverId = receiverId;
         this.receivedAt = now;
         this.createdAt = now;
+        this.lockedAt = now;
     }
 
     public Long getId() {
@@ -195,6 +210,10 @@ public class SuppliedMedicationIntake {
 
     public Instant getReceivedAt() {
         return receivedAt;
+    }
+
+    public Instant getLockedAt() {
+        return lockedAt;
     }
 
     public Instant getCreatedAt() {

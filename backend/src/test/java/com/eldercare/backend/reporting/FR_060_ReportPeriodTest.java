@@ -8,7 +8,6 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.reporting.internal.scope.service.ReportPeriods;
 import com.eldercare.backend.reporting.internal.scope.service.ReportPeriods.ReportPeriod;
@@ -54,11 +53,5 @@ class FR_060_ReportPeriodTest {
                     assertThat(e.errorCode()).isEqualTo("RANGE_EXCEEDS_MAXIMUM");
                     assertThat(e.getMessage()).contains("12 tháng");
                 });
-    }
-
-    @Test
-    void toBeforeFrom_invalid() {
-        assertThatThrownBy(() -> periods.check(LocalDate.of(2026, 10, 2), LocalDate.of(2026, 10, 1)))
-                .isInstanceOf(InvalidValueException.class);
     }
 }

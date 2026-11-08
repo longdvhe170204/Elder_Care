@@ -4,11 +4,11 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
 import '../../common/format/date_time.dart';
+import '../../common/residents/resident_avatar.dart';
+import '../../common/residents/resident_labels.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/header_app_bar.dart';
 import '../../common/widgets/status_pill.dart';
-import 'family_profile_labels.dart';
-import 'family_resident_avatar.dart';
 
 /// Màn hồ sơ người cao tuổi của người thân (001 T023; FR-022): đầu màn xanh đêm có ảnh đại diện, họ tên; trạng thái, thông
 /// tin cơ bản (ngày sinh, giới tính, mức chăm sóc hiện hành), và phần "Sức khỏe" CHỈ khi backend trả `activeHealthItems`
@@ -100,7 +100,7 @@ class _Body extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
               children: [
-                FamilyResidentAvatar(name: name, id: profile['id'] as int, size: 56),
+                ResidentAvatar(name: name, id: profile['id'] as int, size: 56),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(name, style: text.titleLarge?.copyWith(color: tones.headerInkStrong)),

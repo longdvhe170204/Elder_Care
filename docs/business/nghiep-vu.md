@@ -2754,6 +2754,11 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-398 | Danh mục chỉ số sức khỏe khởi tạo và danh mục loại sự cố lâm sàng & chăm sóc (feature 005, 007) | Chốt danh mục 6 chỉ số sức khỏe (`HUYET_AP` với 2 thành phần `TAM_THU`, `TAM_TRUONG`; `NHIP_TIM`; `NHIET_DO`; `SPO2`; `DUONG_HUYET`; `CAN_NANG`) và danh mục 7 loại sự cố lâm sàng & chăm sóc (`KHO_THO_MAT_Y_THUC`, `THUOC`, `AN_UONG`, `PHUC_VU_SAI_SUAT_AN`, `HANH_VI`, `CHAN_THUONG_KHAC`, `KHAC`) cùng mức ưu tiên mặc định và các cờ phân nhóm như bảng tại 9.3 và 10.1; không tự suy diễn các ngưỡng y khoa hay tự động nâng/hạ mức khi chưa có cấu hình riêng | 9.3, 10.1 | 005, 007 |
 | Q-399 | Người dùng quên mật khẩu có tự đặt lại được không, không cần đến viện | Có, cho nhân viên (mọi vai trò, kể cả Quản lý viện) và người thân: mã một lần qua tin nhắn tới số điện thoại đã đăng ký trong hồ sơ, hết hạn CFG-M15-12, sai quá CFG-M15-13 lần thì hủy, số lần xin theo CFG-M15-14; đặt lại xong kết thúc mọi phiên, báo chủ tài khoản (Quản lý viện thì báo thêm các Quản lý viện khác); tài khoản Đã khóa, Không hoạt động không mở bằng cách này. Người cao tuổi không áp dụng (đăng nhập bằng mã QR, Q-370). Cấp lại bởi Hành chính sau khi gọi lại số đã đăng ký thì đọc mật khẩu tạm trong cuộc gọi đó. Có hiệu lực khi đã cấu hình nhà cung cấp tin nhắn (Q-06) | 19.1, BR-M15-25, Phụ lục 25 | 002, 009 |
 | Q-400 | Hồ sơ sức khỏe ban đầu của gia đình tự khai lúc đến viện do ai nhập; Hành chính nhập có làm hỏng nguyên tắc dữ liệu sức khỏe chỉ do Bác sĩ, Điều dưỡng ghi không | Hướng A (chủ dự án 2026-11-06): Hành chính được lập, sửa bản Nháp hồ sơ sức khỏe ban đầu và thêm mục dị ứng, bệnh nền, tiền sử bệnh (tự khai, nguồn mặc định Người thân hoặc Người cao tuổi) khi người cao tuổi còn Đang tiếp nhận. Mục do Hành chính thêm có hiệu lực ngay (không có trạng thái chờ duyệt, để kiểm tra thuốc BR-M07-06 và ăn BR-M08-02 vẫn bắt được) nhưng mang dấu "chưa kiểm chứng" tới khi Bác sĩ hoặc Điều dưỡng kiểm chứng (ghi người, thời điểm). Hành chính không loại trừ mục (BR-M01-07 giữ), không xác nhận hồ sơ (chỉ Bác sĩ), chỉ xem bản Nháp và mục chưa kiểm chứng do chính mình ghi. Hoàn tất tiếp nhận không bị chặn; cảnh báo khi hồ sơ chưa xác nhận hoặc còn mục chưa kiểm chứng và nhắc theo CFG-M01-06 | 5.2, 5.6, BR-M01-17, Phụ lục 27 (chú thích ⁵⁰) | 001 |
+| Q-401 | Phụ lục 27 thiếu dòng hoặc ô cho: khám và điều trị (007 FR-072, FR-073), Hành chính xem người thân cần báo của danh sách tiếp xúc (BR-M05-24), danh mục bữa ăn và loại đồ ăn cấm của Quản lý viện (011 FR-007), danh mục loại hoạt động và nhóm sở thích (014 FR-001), ghi đồng ý về muộn (014 FR-016a) | Chủ dự án 2026-11-07: thêm dòng "Khám và điều trị" theo bảng quyền của spec 007 (Quản lý viện X, Trưởng tầng P, Bác sĩ T, Điều dưỡng T, Người thân X¹); ô Hành chính của "Danh sách tiếp xúc" là X⁵¹; thêm dòng "Danh mục bữa ăn, loại đồ ăn cấm" (Quản lý viện C; Bác sĩ, Điều dưỡng, Nhân viên bếp X), "Danh mục loại hoạt động, nhóm sở thích" (Quản lý viện C; Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc X, như Q-391), "Đồng ý về muộn" (Hành chính T; người đại diện T² trên cổng; Quản lý viện, Trưởng tầng X) thay vì mở ô T của dòng "Hoạt động, ngoài viện" cho Hành chính | 007, 011, 014 |
+| Q-402 | Ai nhận thông báo gỡ khoanh vùng (feature 007 FR-085 chỉ nêu mức Nhẹ) | Chủ dự án 2026-11-07: người nhận như lúc đặt khoanh vùng (Hành chính, Trưởng tầng, Điều dưỡng trong ca của tầng thuộc vùng), mức Nhẹ | 9.6 | 007, 009 |
+| Q-403 | Người bán trú không có giường thì "tầng của người đó" là tầng nào khi Trưởng tầng đánh giá khả năng đi chuyến (feature 014 FR-036) | Chủ dự án 2026-11-07: tầng của khu nghỉ bán trú của người đó | 8.9 | 014, 002, 003 |
+| Q-404 | Đính chính kết quả kiểm tra chất lượng (feature 014 FR-061, FR-064, FR-066) | Chủ dự án 2026-11-07: đổi được giữa Đạt, Không đạt, Không kiểm tra được, chỉ trong thời gian ca; đổi thành Không đạt thì lệnh đính chính kèm công việc làm lại như FR-064; đổi khỏi Không đạt thì công việc làm lại đã lập giữ nguyên, người kiểm tra tự hủy nếu cần (Q-306); không có Hủy ghi nhận, dùng Không kiểm tra được; người đính chính như người ghi (FR-066) | BR-M04-23, 8.11 | 014 |
+| Q-405 | Khai báo tạm trú, lưu trú: ba quyết định B cài ở feature 018 (cập nhật 2026-11-06) và hai điểm còn hỏi | Chủ dự án 2026-11-07: (1) khai báo gia hạn đã lập chưa nộp là việc cần làm, có nhắc quá hạn; (2) hợp đồng nội trú mới nối tiếp hợp đồng nội trú coi như gia hạn (BR-M02-14, Q-241); (3) không báo Quản lý viện Hết hạn của người đã Kết thúc lưu trú, Qua đời; khai báo xóa áp cho cả Thông báo lưu trú; nội trú ngắn ngày qua đêm rồi về bán trú thì khai báo Đã xác nhận giữ tới Kết thúc lưu trú | 6.10 | 018, 016 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -3093,7 +3098,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Cấu hình phòng, giường | UC-19 | C³⁵ | X | — | — | — | — | X | — | — | — |
 | Đặt, gỡ cách ly phòng | UC-19, 37 | T | X | T | X | — | — | X | — | — | — |
 | Dịch vụ, đơn giá | 6.4 | C | — | — | — | — | — | X | — | — | — |
-| Phân bổ, chuyển giường | UC-20, 21 | X | T | — | — | — | — | T | — | — | — |
+| Phân bổ, chuyển giường | UC-20, 21, Q-43 | X, D | T | — | — | — | — | T | — | — | — |
 | Xử lý hư hỏng, đưa giường vào bảo trì | UC-74 | T | T | — | — | — | — | X | — | — | — |
 | Xác nhận giường sẵn sàng | UC-74 | X | T | — | T⁴⁰ | T⁴⁰ | — | X | — | — | — |
 | Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — | — |
@@ -3102,8 +3107,10 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Điểm danh bán trú đến/về | UC-28 | X | X | — | T²⁷ | T | — | T | — | — | — |
 | Xử lý việc quá hạn | UC-27 | X | T⁹ | — | — | — | — | — | — | — | — |
 | Hoạt động, ngoài viện | UC-29, 30 | X | T | — | T²⁷ | T | — | — | X | — | X⁴⁵ |
+| Đồng ý về muộn | 8.8, Q-401 | X | X | — | — | — | — | T | T² | — | — |
 | Kiểm tra chất lượng³⁶ | UC-31 | X | T | — | — | — | — | — | — | — | — |
 | Danh mục công việc chăm sóc | 8.3, 8.6, Q-391 | C | X | X | X | X | — | — | — | — | — |
+| Danh mục loại hoạt động, nhóm sở thích | 8.8, Q-401 | C | X | — | X | X | — | — | — | — | — |
 | Chỉ số sức khỏe | UC-32 | X | P | X | T | T | — | — | X¹ | — | — |
 | Ngưỡng cảnh báo | UC-33 | X | P | T | X | — | — | — | — | — | — |
 | Xử lý cảnh báo | UC-34 | X | T | T | T | X | — | — | — | — | — |
@@ -3111,13 +3118,15 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Nút hỗ trợ khẩn cấp | UC-99 | T⁴⁹ | T⁴⁹ | T⁴⁹ | T⁴⁹ | T⁴⁹ | T⁴⁹ | T⁴⁹ | — | T⁴⁹ | — |
 | Sự cố, khẩn cấp | UC-35, 36 | X, T²³ ⁴³ | T¹⁰ ⁴³ | T¹⁰ ⁴³ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹ | T¹⁰ | — |
 | Khoanh vùng lây nhiễm | UC-37 | T | X | T | X | — | — | X | — | — | — |
-| Danh sách tiếp xúc | 9.6 | X | P | T | T²⁴ | — | — | — | — | — | — |
+| Danh sách tiếp xúc | 9.6 | X | P | T | T²⁴ | — | — | X⁵¹ | — | — | — |
+| Khám và điều trị | 10.2, Q-401 | X | P | T | T | — | — | — | X¹ | — | — |
 | Đơn thuốc | UC-39, 40 | X | — | T³ | T⁴ | — | — | — | X¹ | — | — |
 | Danh mục thuốc | 11.1 | C | — | X | X | — | — | — | — | — | — |
 | Phát thuốc, thuốc khi cần | UC-41, 42 | X | X | X | T | — | — | — | — | — | — |
 | Đối chiếu thuốc, thuốc gia đình gửi | UC-43, 44 | X | — | T | T | — | — | — | X | — | — |
 | Tiếp nhận thuốc cung ứng | 11.7 | X | — | X | T⁴⁴ | — | — | — | — | X | — |
 | Chế độ ăn | UC-45 | X | — | T | X | — | X | — | X | — | — |
+| Danh mục bữa ăn, loại đồ ăn cấm | 12.1, Q-401 | C | — | X | X | — | X | — | — | — | — |
 | Món ăn, thực đơn | UC-46 | X | — | D | X | — | T | — | X | — | X⁴⁵ |
 | Suất ăn đã chốt, phiếu bữa ăn | UC-47 | X | X | X | — | — | X¹⁴ | — | — | — | — |
 | Chuẩn bị, giao phiếu, lưu mẫu | UC-75, 78 | X | X | X | — | — | T | — | — | — | — |
@@ -3202,6 +3211,7 @@ Cột KT (Kế toán): ô của các dòng không nêu ở đây là "—", tr�
 - ⁴⁸ Điều dưỡng trong phạm vi chỉ tạo mã QR đăng nhập cho người cao tuổi (19.1, Q-370); tạo, khóa tài khoản và gỡ thiết bị do Hành chính, Quản lý viện.
 - ⁴⁹ Chỉ khi đang trong ca; vai trò không xếp ca trong giờ hành chính CFG-M13-06 (BR-M05-29). Cảnh báo tạo ra được xử lý theo dòng "Xử lý cảnh báo".
 - ⁵⁰ Hành chính chỉ ghi tự khai của gia đình khi người cao tuổi còn Đang tiếp nhận (Q-400, BR-M01-17): lập, sửa bản Nháp hồ sơ sức khỏe ban đầu và thêm mục dị ứng, bệnh nền, tiền sử bệnh mang dấu "chưa kiểm chứng"; không loại trừ mục, không xác nhận hồ sơ; chỉ xem bản Nháp và các mục chưa kiểm chứng do chính mình ghi, không xem hồ sơ đã xác nhận, chỉ số đo hay dữ liệu sức khỏe khác (19.3).
+- ⁵¹ Hành chính chỉ xem phần người thân cần liên hệ của danh sách tiếp xúc (họ tên, quan hệ, số điện thoại, nội dung cần báo; BR-M05-24, 007 FR-062, Q-401); không xem người cao tuổi, nhân viên trong danh sách.
 
 ## 28. Phụ lục – Quy tắc dữ liệu (DBR)
 

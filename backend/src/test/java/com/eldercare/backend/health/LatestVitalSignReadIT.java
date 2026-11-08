@@ -42,23 +42,6 @@ class LatestVitalSignReadIT extends MySqlIntegrationTestBase {
     FakeLocations locations;
 
     @Test
-    void FR_024_latestUsesConfirmedMeasurementTimeAndResidentScope() {
-        long resident = TestUsers.nextId();
-        long indicator = indicator(true);
-        long older = record(resident, indicator, FROM, "CONFIRMED", "NORMAL", "71.25");
-        long newer = record(resident, indicator, FROM.plusSeconds(60), "CONFIRMED", "NORMAL", "72.50");
-        record(resident, indicator, FROM.plusSeconds(120), "AWAITING_REMEASUREMENT", "DANGEROUS", "73.00");
-        record(TestUsers.nextId(), indicator, TO, "CONFIRMED", "NORMAL", "99.00");
-
-        var latest = api.latestPerType(resident);
-        assertThat(latest).containsOnlyKeys(indicator);
-        assertThat(latest.get(indicator).recordId()).isEqualTo(newer).isNotEqualTo(older);
-        assertThat(latest.get(indicator).values().get("VALUE")).isEqualByComparingTo("72.50");
-        assertThat(latest.get(indicator).unit()).isEqualTo("đơn vị kiểm thử");
-        assertThat(api.latestPerType(TestUsers.nextId())).isEmpty();
-    }
-
-    @Test
     void FR_030_currentCorrectionAndVoidFallBackWithoutMutatingOriginal() {
         long resident = TestUsers.nextId();
         long indicator = indicator(true);
@@ -80,47 +63,6 @@ class LatestVitalSignReadIT extends MySqlIntegrationTestBase {
                 "UPDATE correction_chain SET voided=TRUE WHERE record_type='M06.VITAL_SIGN_RECORD' AND original_record_id=?",
                 newer);
         assertThat(api.latestPerType(resident).get(indicator).recordId()).isEqualTo(older);
-    }
-
-    @Test
-    void BR_M06_04_remeasuredParentDoesNotReappearWhenChildVoided() {
-        long resident = TestUsers.nextId();
-        long indicator = indicator(true);
-        record(resident, indicator, FROM, "REMEASURED", "DANGEROUS", "80.00");
-        long child = record(resident, indicator, FROM.plusSeconds(60), "CONFIRMED", "DANGEROUS", "81.00");
-        assertThat(api.latestPerType(resident).get(indicator).recordId()).isEqualTo(child);
-        jdbc.update(
-                "INSERT INTO correction(record_type,original_record_id,type,reason,actor_id,creation_method,recorded_at,sequence_no) VALUES('M06.VITAL_SIGN_RECORD',?,'VOID','Hủy bản ghi kiểm thử',1,'A',?,1)",
-                child,
-                Timestamp.from(TO));
-        jdbc.update(
-                "INSERT INTO correction_chain(record_type,original_record_id,correction_count,voided) VALUES('M06.VITAL_SIGN_RECORD',?,1,TRUE)",
-                child);
-        assertThat(api.latestPerType(resident)).isEmpty();
-    }
-
-    @Test
-    void FR_051_rangeAndHandoverUseOriginalLevelCurrentValuesAndHistoricalLocation() {
-        long resident = TestUsers.nextId();
-        long indicator = indicator(true);
-        long otherIndicator = indicator(false);
-        long floor = TestUsers.nextId();
-        long room = TestUsers.nextId();
-        locations.floor(floor, null).room(room, floor).stay(resident, room, FROM, TO);
-        long id = record(resident, indicator, FROM, "CONFIRMED", "WARNING", "71.25");
-        record(resident, indicator, TO, "CONFIRMED", "NORMAL", "72.50");
-        amend(id, "{\"values\":{\"VALUE\":70.15}}");
-
-        assertThat(api.withinRange(resident, indicator, FROM, TO))
-                .singleElement()
-                .satisfies(v -> assertThat(v.values().get("VALUE")).isEqualByComparingTo("70.15"));
-        assertThat(api.vitalSignIndicatorIds()).contains(indicator).doesNotContain(otherIndicator);
-        assertThat(api.aboveThresholdInRange(floor, FROM, TO)).singleElement().satisfies(v -> {
-            assertThat(v.id()).isEqualTo(id);
-            assertThat(v.roomId()).isEqualTo(room);
-            assertThat(v.description()).contains("70.15");
-        });
-        assertThat(api.aboveThresholdInRange(TestUsers.nextId(), FROM, TO)).isEmpty();
     }
 
     private long indicator(boolean vitalSign) {

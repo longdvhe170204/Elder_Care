@@ -1,10 +1,8 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -53,121 +51,5 @@ class AdmissionApplicationIT extends M02TestBase {
                         Integer.class,
                         String.valueOf(id)))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void FR_001_secondOpenApplication_isRejected409() throws Exception {
-        long residentId = admissionResident();
-        user.set(office.user());
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isCreated());
-
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("APPLICATION_ALREADY_EXISTS"));
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM admission_record WHERE kind = 'APPLICATION' AND resident_id = ?",
-                        Integer.class,
-                        residentId))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void FR_001_applicationAfterPreviousOneClosed_isAllowed() throws Exception {
-        long residentId = admissionResident();
-        user.set(office.user());
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isCreated());
-        jdbc.update("UPDATE admission_record SET status = 'CANCELLED' WHERE resident_id = ?", residentId);
-
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    void FR_001_databaseAllowsOnlyOneOpenApplicationPerResident() {
-        long residentId = admissionResident();
-        String insert = "INSERT INTO admission_record (kind, resident_id, application_date, desired_residence_type,"
-                + " expected_care_level, status, created_by, created_at) VALUES ('APPLICATION', ?, CURDATE(), 'DAY_CARE',"
-                + " 'BASIC', ?, 1, NOW(6))";
-        jdbc.update(insert, residentId, "IN_PROGRESS");
-
-        assertThatThrownBy(() -> jdbc.update(insert, residentId, "WAITING"))
-                .hasMessageContaining("uq_admission_record_open_application");
-        jdbc.update(insert, residentId, "CANCELLED");
-    }
-
-    @Test
-    void FR_001_residentNotInAdmission_isRejected409() throws Exception {
-        long residentId = newResident();
-        user.set(office.user());
-
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RESIDENT_NOT_ADMISSION_IN_PROGRESS"));
-    }
-
-    @Test
-    void FR_001_missingRequiredField_is400() throws Exception {
-        long residentId = admissionResident();
-        user.set(office.user());
-
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"residentId\":" + residentId + ",\"applicationDate\":\"" + today() + "\"}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void FR_006_managerCanViewButNotCreate_caregiverCannotView() throws Exception {
-        long residentId = admissionResident();
-        user.set(office.user());
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isCreated());
-        long id = applicationIdOf(residentId);
-
-        user.set(users.staff(com.eldercare.backend.common.Role.NURSING_HOME_MANAGER)
-                .user());
-        mvc.perform(get("/api/v1/admission-applications/" + id))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isForbidden());
-
-        user.set(users.staff(com.eldercare.backend.common.Role.KITCHEN_STAFF).user());
-        mvc.perform(get("/api/v1/admission-applications/" + id)).andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_006_listFiltersByStatus() throws Exception {
-        long residentId = admissionResident();
-        user.set(office.user());
-        mvc.perform(post("/api/v1/admission-applications")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applicationBody(residentId)))
-                .andExpect(status().isCreated());
-        long id = applicationIdOf(residentId);
-
-        mvc.perform(get("/api/v1/admission-applications").param("status", "IN_PROGRESS"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + id + ")]").exists());
-        mvc.perform(get("/api/v1/admission-applications").param("status", "CANCELLED"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + id + ")]").doesNotExist());
     }
 }

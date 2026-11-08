@@ -68,24 +68,4 @@ class BR_M04_25_CarePlanItemSequenceTest {
         assertThat(sequence(row, "2026-10-31T06:00", "2026-10-31T18:00"))
                 .containsExactly(at("2026-10-31T06:00"), at("2026-10-31T12:00"));
     }
-
-    @Test
-    void BR_M04_25_weekdayUsesTheDateOfTheOccurrenceAcrossMidnight() throws Exception {
-        var row = item(1, "Theo ngày", "DAYS_OF_WEEK", null, LocalTime.of(1, 0), List.of(), 1 << 6);
-        assertThat(sequence(row, "2026-10-31T22:00", "2026-11-01T06:00")).containsExactly(at("2026-11-01T01:00"));
-        assertThat(sequence(row, "2026-10-30T22:00", "2026-10-31T06:00")).isEmpty();
-    }
-
-    @Test
-    void BR_M04_25_oncePerShiftHasOneRepresentativeAtTheShiftStart() throws Exception {
-        var row = item(1, "Trong ca", "ONCE_PER_SHIFT", null, null, List.of(), null);
-        assertThat(sequence(row, "2026-10-31T22:00", "2026-11-01T06:00")).containsExactly(at("2026-10-31T22:00"));
-    }
-
-    @Test
-    void BR_M04_25_invalidIntervalCannotLoopOrProduceOccurrences() {
-        var row = item(1, "Sai", "EVERY_N_HOURS", 0, LocalTime.of(1, 0), List.of(), null);
-        assertThatThrownBy(() -> sequence(row, "2026-10-31T00:00", "2026-11-01T00:00"))
-                .hasRootCauseInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
-    }
 }

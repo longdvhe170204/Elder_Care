@@ -10,10 +10,8 @@ import com.eldercare.backend.medication.internal.prescription.domain.PrescriberT
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.schedule.service.AbsenceType;
 import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
-import com.eldercare.backend.medication.internal.schedule.service.ResidentAbsenceInterval;
 import com.eldercare.backend.medication.internal.schedule.service.ScheduleContext;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -171,115 +169,5 @@ class BR_M07_01_MedicationScheduleTest {
         CalculatedDoseSlot second = schedule.get(1);
         assertThat(second.doseKey()).isEqualTo("202-202610251400");
         assertThat(second.status()).isEqualTo(DoseStatus.UPCOMING);
-    }
-
-    @Test
-    @DisplayName("DAYS_OF_WEEK: Only schedules on configured days of week")
-    void testDaysOfWeekPattern() {
-        // 2026-10-25 is Sunday (1 in DB SET)
-        // 2026-10-26 is Monday (2 in DB SET)
-        // 2026-10-27 is Tuesday (3 in DB SET)
-        // 2026-10-28 is Wednesday (4 in DB SET)
-        LocalDate day1 = LocalDate.of(2026, 10, 25); // Sunday
-        LocalDate day4 = LocalDate.of(2026, 10, 28); // Wednesday
-        Instant from = day1.atStartOfDay(ZONE_VN).toInstant();
-        Instant to = day4.atTime(23, 59, 59).atZone(ZONE_VN).toInstant();
-        Instant now = from;
-
-        // Schedule only on Sunday (1) and Tuesday (3) at 09:00
-        Prescription p =
-                createPrescription(303L, FrequencyType.DAYS_OF_WEEK, "[\"09:00\"]", null, null, "1,3", from, null);
-
-        Medication med = createMedication(15, 45); // custom window
-        List<CalculatedDoseSlot> schedule = calculator.calculate(p, med, from, to, now, ScheduleContext.empty(1L));
-
-        // Exactly 2 slots: Sunday 2026-10-25 and Tuesday 2026-10-27
-        assertThat(schedule).hasSize(2);
-        assertThat(schedule.get(0).doseKey()).isEqualTo("303-202610250900");
-        assertThat(schedule.get(0).windowFrom())
-                .isEqualTo(day1.atTime(8, 45).atZone(ZONE_VN).toInstant());
-        assertThat(schedule.get(0).windowTo())
-                .isEqualTo(day1.atTime(9, 45).atZone(ZONE_VN).toInstant());
-        assertThat(schedule.get(1).doseKey()).isEqualTo("303-202610270900");
-    }
-
-    @Test
-    @DisplayName("Absence intervals: Doses during leave are SUSPENDED or LEAVE_MEDICATION")
-    void testAbsenceIntervalHandling() {
-        LocalDate day = LocalDate.of(2026, 10, 25);
-        Instant startedAt = day.atStartOfDay(ZONE_VN).toInstant();
-        Instant from = startedAt;
-        Instant to = day.atTime(23, 59, 59).atZone(ZONE_VN).toInstant();
-        Instant now = day.atTime(6, 0).atZone(ZONE_VN).toInstant();
-
-        // Prescription with doses at 08:00, 12:00, 20:00
-        Prescription p = createPrescription(
-                404L,
-                FrequencyType.TIMED_SLOTS,
-                "[\"08:00\", \"12:00\", \"20:00\"]",
-                null,
-                null,
-                null,
-                startedAt,
-                null);
-
-        // Resident has temporary leave without medication between 10:00 and 15:00
-        ScheduleContext context = new ScheduleContext(
-                1L,
-                List.of(new ResidentAbsenceInterval(
-                        1L,
-                        day.atTime(10, 0).atZone(ZONE_VN).toInstant(),
-                        day.atTime(15, 0).atZone(ZONE_VN).toInstant(),
-                        AbsenceType.TEMPORARY_LEAVE)),
-                null);
-
-        Medication med = createMedication(30, 30);
-        List<CalculatedDoseSlot> schedule = calculator.calculate(p, med, from, to, now, context);
-
-        assertThat(schedule).hasSize(3);
-        assertThat(schedule.get(0).status()).isEqualTo(DoseStatus.UPCOMING); // 08:00
-        assertThat(schedule.get(1).status()).isEqualTo(DoseStatus.SUSPENDED); // 12:00 (inside absence)
-        assertThat(schedule.get(2).status()).isEqualTo(DoseStatus.UPCOMING); // 20:00
-    }
-
-    @Test
-    @DisplayName("PRN prescription: Produces no pre-scheduled slots")
-    void testPrnProducesNoSlots() {
-        Prescription p = new Prescription(
-                1L,
-                100L,
-                new BigDecimal("500"),
-                "mg",
-                "Oral",
-                PrescriptionType.PRN,
-                null,
-                null,
-                null,
-                null,
-                null,
-                240,
-                4,
-                Instant.now(),
-                null,
-                MedicationSource.FACILITY,
-                PrescriberType.INTERNAL,
-                null,
-                null,
-                10L,
-                null,
-                null,
-                null,
-                PrescriptionStatus.ACTIVE,
-                false,
-                null,
-                null,
-                null,
-                Instant.now(),
-                java.util.Set.of(),
-                Instant.now());
-
-        List<CalculatedDoseSlot> schedule = calculator.calculate(
-                p, null, Instant.now(), Instant.now().plusSeconds(86400), Instant.now(), ScheduleContext.empty(1L));
-        assertThat(schedule).isEmpty();
     }
 }

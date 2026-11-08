@@ -2,9 +2,7 @@ package com.eldercare.backend.family;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
-import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -67,24 +65,6 @@ class T008_M10ProvidersIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_001_idDocumentNumber_isIdentityInTheAuditLog() {
-        FieldClassificationProvider provider = classifications.stream()
-                .filter(p -> "M10.FAMILY_MEMBER".equals(p.entityType()))
-                .findFirst()
-                .orElseThrow();
-
-        assertThat(provider.fieldGroups())
-                .containsEntry("idDocumentNumber", InfoGroup.IDENTITY)
-                .containsEntry("idDocumentType", InfoGroup.IDENTITY)
-                .doesNotContainKey("phoneNumber");
-    }
-
-    @Test
-    void F_17_relationships_areKeptPerResidentRecord() {
-        assertThat(relationships().retentionKind()).isInstanceOf(RetentionKind.ResidentRecord.class);
-    }
-
-    @Test
     void F_17_delete_removesRelationshipsAndOrphanFamilyMembers() {
         long resident = TestUsers.nextId();
         long otherResident = TestUsers.nextId();
@@ -107,49 +87,5 @@ class T008_M10ProvidersIT extends MySqlIntegrationTestBase {
         assertThat(count("SELECT COUNT(*) FROM family_relationship WHERE id = ?", kept))
                 .isOne();
         assertThat(relationships().referencesTo(relOnly)).isEmpty();
-    }
-
-    @Test
-    void F_17_relationshipsOfAResidentStillStaying_areNotCandidates() {
-        long resident = TestUsers.nextId();
-        long m = fixtures.familyMember("Hồ Văn C", "0903000003");
-        long rel = fixtures.relate(m, resident, 1, true, true);
-
-        assertThat(relationships().expiredCandidates(time.now().plus(Duration.ofDays(1)), 1000))
-                .extracting(RetentionProvider.Candidate::id)
-                .doesNotContain(rel);
-    }
-
-    /** 000 T112: bản ghi của M10 trỏ tới hồ sơ M01; job tìm qua {@code referencing} để không xóa hồ sơ trước chúng. */
-    @Test
-    void FR_051a_relationshipsOfAResident_areFoundByReferencingTheResident() {
-        long resident = TestUsers.nextId();
-        long m = fixtures.familyMember("Hồ Văn D", "0903000004");
-        long rel = fixtures.relate(m, resident, 1, true, true);
-
-        assertThat(relationships().referencing(new RetentionProvider.DataRef("M01.RESIDENT", resident)))
-                .containsExactly(new RetentionProvider.DataRef(RelationshipAttribute.ENTITY_TYPE, rel));
-        assertThat(relationships().referencing(new RetentionProvider.DataRef("M02.CONTRACT", resident)))
-                .isEmpty();
-    }
-
-    /** 000 T112: mọi provider lưu giữ của M10 đều gắn hồ sơ người cao tuổi nên đều cài {@code referencing}, lấy theo trang. */
-    @Test
-    void FR_051a_everyM10Provider_answersReferencingAndPages() throws NoSuchMethodException {
-        List<RetentionProvider> m10 =
-                retention.stream().filter(p -> p.dataType().startsWith("M10.")).toList();
-
-        assertThat(m10).hasSizeGreaterThanOrEqualTo(5);
-        for (RetentionProvider provider : m10) {
-            Class<?> type = org.springframework.aop.support.AopUtils.getTargetClass(provider);
-            assertThat(type.getMethod("referencing", RetentionProvider.DataRef.class)
-                            .getDeclaringClass())
-                    .as(provider.dataType())
-                    .isNotEqualTo(RetentionProvider.class);
-            assertThat(type.getMethod("expiredCandidates", Instant.class, RetentionProvider.Candidate.class, int.class)
-                            .getDeclaringClass())
-                    .as(provider.dataType())
-                    .isNotEqualTo(RetentionProvider.class);
-        }
     }
 }

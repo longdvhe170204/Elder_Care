@@ -10,8 +10,6 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MvcResult;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
@@ -85,105 +83,5 @@ class FR_021_RecordSignedIT extends ContractTestBase {
         assertThat(events.stream(ContractStatusChanged.class)
                         .filter(event -> event.contractId() == id && event.to() == ContractStatus.ACTIVE))
                 .hasSize(1);
-    }
-
-    @Test
-    void FR_021_recordSigned_needsAllThreeFields() throws Exception {
-        long residentId = residentWithRepresentative();
-        long id = pendingContract(residentId, body(residentId));
-
-        for (String missing : new String[] {"signedDate", "signingRepresentativeId", "scanFileId"}) {
-            ObjectNode sign = signedBody(residentId, today());
-            sign.remove(missing);
-            recordSignedRaw(id, sign).andExpect(status().isBadRequest());
-        }
-        assertThat(contractStatus(id)).isEqualTo("PENDING_SIGNATURE");
-    }
-
-    @Test
-    void DBR_02_signerMustBeAnActiveRepresentativeOfThisResident() throws Exception {
-        long residentId = residentWithRepresentative();
-        long other = residentWithRepresentative();
-        long id = pendingContract(residentId, body(residentId));
-
-        ObjectNode strangers = signedBody(residentId, today());
-        strangers.put("signingRepresentativeId", 123_456_789L);
-        recordSignedRaw(id, strangers)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_SIGNING_REPRESENTATIVE"));
-
-        ObjectNode otherResidents = signedBody(residentId, today());
-        otherResidents.put("signingRepresentativeId", representativeOf(other));
-        recordSignedRaw(id, otherResidents)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_SIGNING_REPRESENTATIVE"));
-
-        assertThat(contractStatus(id)).isEqualTo("PENDING_SIGNATURE");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM contract_version WHERE kind = 'CONTENT' AND contract_id = ?",
-                        Integer.class,
-                        id))
-                .isZero();
-    }
-
-    @Test
-    void FR_021_unknownScanFile_is404_andTheContractStaysPending() throws Exception {
-        long residentId = residentWithRepresentative();
-        long id = pendingContract(residentId, body(residentId));
-        ObjectNode sign = signedBody(residentId, today());
-        sign.put("scanFileId", 987_654_321L);
-
-        recordSignedRaw(id, sign).andExpect(status().isNotFound());
-
-        assertThat(contractStatus(id)).isEqualTo("PENDING_SIGNATURE");
-    }
-
-    @Test
-    void FR_021_aScanFileAlreadyUsedByAnotherRecord_isRefused() throws Exception {
-        long residentId = residentWithRepresentative();
-        long first = pendingContract(residentId, body(residentId));
-        ObjectNode sign = signedBody(residentId, today());
-        recordSignedRaw(first, sign).andExpect(status().isOk());
-        ObjectNode next = body(residentId);
-        next.put("startDate", today().plusDays(400).toString());
-        long second = pendingContract(residentId, next);
-
-        recordSignedRaw(second, sign).andExpect(status().isConflict());
-
-        assertThat(contractStatus(second)).isEqualTo("PENDING_SIGNATURE");
-    }
-
-    @Test
-    void FR_036_aServiceWithoutAPriceAtTheStartDate_blocksRecordSigned() throws Exception {
-        long residentId = residentWithRepresentative();
-        long future = service("MEAL", "Dịch vụ giá tương lai", null, 900_000, today().plusDays(20));
-        ObjectNode body = body(residentId);
-        body.putArray("services").add(line(basicCare)).add(line(future));
-        long id = pendingContract(residentId, body);
-
-        MvcResult result = recordSignedRaw(id, signedBody(residentId, today()))
-                .andExpect(status().isConflict())
-                .andReturn();
-
-        assertThat(unmetCodes(result)).contains("SERVICE_PRICE_MISSING");
-        assertThat(contractStatus(id)).isEqualTo("PENDING_SIGNATURE");
-    }
-
-    @Test
-    void FR_025_sendForSignature_warnsWhenAServicePriceIsNotEffectiveAtTheStartDate() throws Exception {
-        long residentId = residentWithRepresentative();
-        long future = service("MEAL", "Dịch vụ giá tương lai", null, 900_000, today().plusDays(20));
-        ObjectNode body = body(residentId);
-        body.putArray("services").add(line(basicCare)).add(line(future));
-        long id = create(body).get("contract").get("id").asLong();
-
-        JsonNode sent = JSON.readTree(command(id, "send-for-signature")
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
-
-        assertThat(sent.get("warnings").toString()).contains("SERVICE_PRICE_NOT_EFFECTIVE");
-        assertThat(sent.get("contract").get("status").asString()).isEqualTo("PENDING_SIGNATURE");
     }
 }

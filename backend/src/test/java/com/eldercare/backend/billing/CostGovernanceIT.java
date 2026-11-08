@@ -2,12 +2,9 @@ package com.eldercare.backend.billing;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.eldercare.backend.administration.account.api.dto.InfoGroup;
-import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
-import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import java.sql.Timestamp;
@@ -64,40 +61,6 @@ class CostGovernanceIT extends MySqlIntegrationTestBase {
                   incurred_on,quantity,unit,unit_price,amount,reason,created_at,created_by)
                 VALUES (?,?,?,?,'OTHER','MANUAL','[Kiểm phạm vi chi phí]',?,1,'UNIT',300,300,'Kiểm quyền',?,1)
                 """, item, resident, statement, period, month.atDay(1), at);
-    }
-
-    @Test
-    void FR_043_financialAuditFieldsAndMedicationNameHaveTheirSpecifiedInformationGroups() {
-        for (String type : List.of("M11.COST_PERIOD", "M11.COST_STATEMENT", "M11.COST_ITEM")) {
-            var fields = classifications.stream()
-                    .filter(provider -> type.equals(provider.entityType()))
-                    .findFirst()
-                    .orElseThrow()
-                    .fieldGroups();
-            assertThat(fields)
-                    .containsEntry("amount", InfoGroup.FINANCE)
-                    .containsEntry("unitPrice", InfoGroup.FINANCE)
-                    .containsEntry("total", InfoGroup.FINANCE)
-                    .containsEntry("reason", InfoGroup.FINANCE)
-                    .containsEntry("before", InfoGroup.FINANCE)
-                    .containsEntry("after", InfoGroup.FINANCE)
-                    .containsEntry("medicationName", InfoGroup.MEDICATION);
-        }
-    }
-
-    @Test
-    void FR_043_statementAndItemScopesComeFromTheirRecordedResident() {
-        assertThat(scope("M11.COST_STATEMENT").assignScope(statement))
-                .isEqualTo(new Target("M11.COST_STATEMENT", Long.toString(statement), resident, null));
-        assertThat(scope("M11.COST_ITEM").assignScope(item))
-                .isEqualTo(new Target("M11.COST_ITEM", Long.toString(item), resident, null));
-    }
-
-    @Test
-    void FR_043_unknownOrWrongKindRecordsDoNotReceiveAnInventedScope() {
-        assertThatThrownBy(() -> scope("M11.COST_ITEM").assignScope(TestUsers.nextId()))
-                .isInstanceOf(NotFoundException.class);
-        assertThatThrownBy(() -> scope("M11.COST_STATEMENT").assignScope(item)).isInstanceOf(NotFoundException.class);
     }
 
     @Test

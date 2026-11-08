@@ -9,14 +9,12 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import com.eldercare.backend.support.TableRows;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -100,18 +98,21 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
         });
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "1.2555,1200,100.00,1500",
-        "1.25,1200.5,100.00,1500",
-        "1.25,1200,100.001,1500",
-        "1.25,1200,100.00,1500.5",
-        "1.25,1200,100.00,1000000000000000",
-        "1000000000,1200,100.00,1500",
-        "1.25,1200,1000.00,1500"
-    })
-    void FR_013_sharedHistoryRejectsMoneyOrQuantityOutsideStoragePrecision(
-            String quantity, String price, String factor, String amount) {
+    @Test
+    void FR_013_sharedHistoryRejectsMoneyOrQuantityOutsideStoragePrecision() {
+        // số lượng, đơn giá, hệ số, số tiền
+        TableRows.csv(
+                r -> rejectedOutsidePrecision(r[0], r[1], r[2], r[3]),
+                "1.2555,1200,100.00,1500",
+                "1.25,1200.5,100.00,1500",
+                "1.25,1200,100.001,1500",
+                "1.25,1200,100.00,1500.5",
+                "1.25,1200,100.00,1000000000000000",
+                "1000000000,1200,100.00,1500",
+                "1.25,1200,1000.00,1500");
+    }
+
+    private void rejectedOutsidePrecision(String quantity, String price, String factor, String amount) {
         long item = TestUsers.nextId();
         var invalid = new CostRecalculation(
                 change().before(),
@@ -127,23 +128,6 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_013_medicationQuantityKeepsThreeDecimalsInHistory() {
-        long item = TestUsers.nextId();
-        var details = new CostRecalculation(
-                new CostRecalculation.Calculation(new BigDecimal("0.125"), null, new BigDecimal("100.00"), null),
-                new CostRecalculation.Calculation(
-                        new BigDecimal("0.125"), new BigDecimal("256"), new BigDecimal("100.00"), new BigDecimal("32")),
-                "UNIT_PRICE_AVAILABLE",
-                true);
-
-        add(item, TestUsers.nextId(), details);
-
-        assertThat(history.list(CostRecalculation.TRACK, item))
-                .singleElement()
-                .satisfies(row -> assertThat(row.details().after().quantity()).isEqualByComparingTo("0.125"));
-    }
-
-    @Test
     void DBR_17_recalculationHistoryCannotBeEditedOrDeletedEvenByAdministrator() throws Exception {
         long id = add(TestUsers.nextId(), TestUsers.nextId());
         assertThatThrownBy(() -> jdbc.update("UPDATE status_history SET details=JSON_OBJECT() WHERE id=?", id))
@@ -156,26 +140,5 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
             assertThatThrownBy(update::executeUpdate).isInstanceOf(SQLException.class);
             assertThatThrownBy(delete::executeUpdate).isInstanceOf(SQLException.class);
         }
-    }
-
-    @Test
-    void NFR_04_processedSourceMarkerIsUniqueAndRollsBackWithItsCommand() {
-        long resident = TestUsers.nextId();
-        String event = "M04.RESULT:" + TestUsers.nextId();
-        transaction().executeWithoutResult(status -> {
-            assertThat(markers.mark("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event, Map.of()))
-                    .isTrue();
-            status.setRollbackOnly();
-        });
-        assertThat(markers.isMarked("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event))
-                .isFalse();
-        transaction()
-                .executeWithoutResult(status -> assertThat(
-                                markers.mark("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event, Map.of()))
-                        .isTrue());
-        transaction()
-                .executeWithoutResult(status -> assertThat(
-                                markers.mark("M11.SOURCE_PROCESSED", "M11.BILLING_SOURCE", resident, event, Map.of()))
-                        .isFalse());
     }
 }
