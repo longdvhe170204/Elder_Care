@@ -68,7 +68,7 @@ List<ProcurementTotalView> totals(Set<Long> departmentIds, LocalDate from, Local
 
 **Xác nhận 2026-11-06 (Phase 10):** `overdue(scope, on)`, `countOverdue(scope, on)` lấy dấu và hạn **hiện tại**, chỉ gồm dấu có `dueOn < on`; không tái dựng dấu từng có trong quá khứ. Phạm vi theo tầng hiện tại; tài sản không gắn tầng chỉ có trong toàn viện. `countOverdue` đếm tại DB, không tải danh sách tài sản. `vehicleSchedules` lấy mọi trạng thái, ngày đi dự kiến theo `BusinessTime.ZONE` trong `[from, to]`. Nếu cần thống kê dấu quá khứ thì phải chốt nguồn tái dựng riêng.
 
-Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu, chờ A (016) xác nhận (team-plan mục 8). Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
+Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu (ngày nghiệp vụ, hai đầu tính vào), A (016) xác nhận 2026-11-07. Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
 
 ---
 
