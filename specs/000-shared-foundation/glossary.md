@@ -1764,6 +1764,7 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | `ket_qua_lieu` gồm lần dùng PRN | `dose_result.kind` `SCHEDULED`, `PRN` |
 | hoạt chất của `don_thuoc`; dòng của `phieu_doi_chieu`; đơn của `thuoc_gia_dinh_gui` | `prescription.active_ingredient_ids`; `medication_reconciliation.lines`; `family_medication_batch.prescription_bindings` |
 | loại bảng chung của 006 | `M07.MEDICATION` (danh mục); `M07.PRESCRIPTION_ISSUE`, `M07.PRESCRIPTION_BASIS` (sự kiện); `M07.DOSE_REVIEW`, `M07.ABSENCE_INTERVAL`, `M07.RECONCILIATION_CORRECTION_REQUEST` (hồ sơ chung); `M07` (trạng thái theo người); `M07.JOB.<jobKey>` (mốc đã nhắc) |
+| `Dose` hiển thị thẻ (2026-11-08, "Đổi api" api-006 duyệt) | `medicationName`, `dosage`, `dosageUnit`, `route`; sự kiện tính phí thuốc thêm `usageUnit` (`MedicationBilledEvent`, `MedicationBillAdjustedEvent`) |
 | bảng vật lý còn lại của 006 sau gộp (F-10, 2026-11-08) | `prescription`, `medication_dose`, `dose_result`, `medication_reconciliation`, `medication_handover`, `family_medication_batch`; các bảng khác của 12.1 đã gộp vào bảng chung hoặc vào các bảng này |
 | loại lưu giữ của 006 (F-06, data-model mục 13) | `M07.PRESCRIPTION`, `M07.MEDICATION_DOSE`, `M07.DOSE_RESULT` (kind `SCHEDULED`), `M07.PRN_ADMINISTRATION` (kind `PRN`), `M07.RECONCILIATION`, `M07.FAMILY_MEDICATION_BATCH`, `M07.MEDICATION_HANDOVER` (`HANDOVER`, `RETURN`, `NO_MEDICATION`), `M07.SUPPLIED_MEDICATION_INTAKE` (`SUPPLIED_INTAKE`); `V006_99` cấp `DELETE` cho `eldercare_retention` |
 

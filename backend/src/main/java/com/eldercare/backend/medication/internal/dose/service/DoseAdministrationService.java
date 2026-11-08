@@ -183,6 +183,7 @@ public class DoseAdministrationService {
                     dose.getResidentId(),
                     dose.getMedicationId(),
                     dose.getDosage(),
+                    dose.getDosageUnit(),
                     administeredAt));
         }
 
