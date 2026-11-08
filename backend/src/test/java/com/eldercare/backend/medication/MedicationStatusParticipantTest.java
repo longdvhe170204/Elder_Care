@@ -71,8 +71,16 @@ class MedicationStatusParticipantTest {
     private final MedicationReconciliationRepository tickets = mock(MedicationReconciliationRepository.class);
     private final FamilyMedicationBatchRepository batches = mock(FamilyMedicationBatchRepository.class);
     private final BusinessTime time = mock(BusinessTime.class);
-    private final MedicationStatusParticipant participant =
-            new MedicationStatusParticipant(absences, doses, results, prescriptions, handovers, tickets, batches, time);
+    private final MedicationStatusParticipant participant = new MedicationStatusParticipant(
+            absences,
+            doses,
+            results,
+            prescriptions,
+            handovers,
+            tickets,
+            batches,
+            time,
+            mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class));
 
     private static ObjectNode details() {
         return JsonMapper.builder().build().createObjectNode();

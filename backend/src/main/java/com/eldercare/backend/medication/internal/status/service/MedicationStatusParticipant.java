@@ -22,8 +22,10 @@ import com.eldercare.backend.medication.internal.prescription.domain.Prescriptio
 import com.eldercare.backend.medication.internal.prescription.domain.TerminationReason;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.reconciliation.domain.MedicationReconciliation;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationReason;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationStatus;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.MedicationReconciliationRepository;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines;
 import com.eldercare.backend.resident.api.dto.CommandContext;
 import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -45,7 +47,7 @@ import tools.jackson.databind.JsonNode;
  * Tác động của 006 trong lệnh trạng thái của 001 (T042, research D-15, D-16; FR-021, FR-047, FR-048, FR-048b): khoảng
  * vắng của thuốc mở và đóng theo lệnh (lịch thuốc tính Tạm dừng, Mang theo từ khoảng này), trở về khôi phục liều đã vật
  * hóa và chuyển lần giao sang chờ nhận lại, trạng thái cuối ngừng đơn và đóng liều. Chạy sau 005 ({@code @Order(30)}).
- * Phần tiếp nhận và trở về từ bệnh viện của đối chiếu thuốc (T037, research D-13) chưa cài.
+ * Hoàn tất tiếp nhận và trở về từ bệnh viện chuyển cho {@link ReconciliationDeadlines} (T037, research D-13).
  */
 @Component
 @Order(40)
@@ -62,6 +64,7 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
             StatusCommand.ROLL_CALL_DEPARTURE,
             StatusCommand.ROLL_CALL_RETURN,
             StatusCommand.CANCEL_DEPARTURE_RECORD,
+            StatusCommand.COMPLETE_ADMISSION,
             StatusCommand.END_RESIDENCY,
             StatusCommand.RECORD_DEATH,
             StatusCommand.CANCEL_ADMISSION);
@@ -86,6 +89,8 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
     private final FamilyMedicationBatchRepository batches;
     private final BusinessTime time;
 
+    private final ReconciliationDeadlines deadlines;
+
     public MedicationStatusParticipant(
             MedicationAbsenceIntervalRepository absences,
             MedicationDoseRepository doses,
@@ -94,7 +99,9 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
             MedicationHandoverRepository handovers,
             MedicationReconciliationRepository tickets,
             FamilyMedicationBatchRepository batches,
-            BusinessTime time) {
+            BusinessTime time,
+            ReconciliationDeadlines deadlines) {
+        this.deadlines = deadlines;
         this.absences = absences;
         this.doses = doses;
         this.results = results;
@@ -150,6 +157,7 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
                         null,
                         null,
                         time.now()));
+            case COMPLETE_ADMISSION -> deadlines.completeAdmission(resident, at);
             case TRANSFER_OUT -> {
                 absences.findOpenByResidentId(resident).ifPresent(interval -> close(interval, at));
                 open(new MedicationAbsenceInterval(
@@ -167,7 +175,9 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
             case RECORD_RETURN -> {
                 Instant returnedAt = instant(details, "returnedAt").orElse(at);
                 absences.findOpenByResidentId(resident).ifPresent(interval -> close(interval, returnedAt));
-                if (result.from() != ResidentStatus.HOSPITALIZED) {
+                if (result.from() == ResidentStatus.HOSPITALIZED) {
+                    deadlines.begin(resident, ReconciliationReason.HOSPITAL_RETURN, returnedAt);
+                } else {
                     resumeDoses(resident);
                     awaitReturn(handovers.findByResidentIdAndStatusIn(resident, List.of(HandoverStatus.HANDED_OVER)));
                 }
