@@ -11,7 +11,8 @@ import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { LEDGER_LABELS, TYPE_LABELS, formatMoney, labelOf } from './balanceLabels'
 
-// Giao dịch Chờ duyệt (017 T027; FR-013): hoàn tiền, hoàn cọc, điều chỉnh do Kế toán lập. Quản lý viện duyệt hoặc từ chối
+// Giao dịch Chờ duyệt của mọi hồ sơ (017 T027; FR-013; schema PendingBalanceTransaction kèm người cao tuổi): hoàn
+// tiền, hoàn cọc, điều chỉnh do Kế toán lập. Quản lý viện duyệt hoặc từ chối
 // ở màn Yêu cầu phê duyệt của 000 (mã yêu cầu ghi ở cột cuối); số dư chưa đổi cho tới khi duyệt.
 
 export function PendingTransactions() {
@@ -57,6 +58,7 @@ export function PendingTransactions() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Người cao tuổi</TableHead>
                 <TableHead>Loại</TableHead>
                 <TableHead>Sổ</TableHead>
                 <TableHead className="text-right">Số tiền</TableHead>
@@ -68,6 +70,7 @@ export function PendingTransactions() {
             <TableBody>
               {state.items.map((t) => (
                 <TableRow key={t.id}>
+                  <TableCell>{t.residentName}</TableCell>
                   <TableCell>
                     {labelOf(TYPE_LABELS, t.type)} <Badge variant="attention">Chờ duyệt</Badge>
                   </TableCell>
