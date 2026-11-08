@@ -338,11 +338,7 @@ export function BelongingsPage({ role }) {
         </Card>
       )}
       {tab === 'resident' && resident && (
-        // Khung block: DetailLayout có mx-auto, đặt thẳng trong cha flex cột thì co theo nội dung (bảng 7 cột) và làm
-        // cả trang cuộn ngang ở màn hẹp; trong div thường nó giãn đủ rộng, bảng cuộn trong khung (ca G2, team-plan cho A)
-        <div>
-          <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} role={role} />
-        </div>
+        <ResidentBelongings key={resident.id} resident={resident} catalogs={catalogs} role={role} />
       )}
       {tab === 'held' && <HeldBelongings catalogs={catalogs} />}
       {tab === 'inventory' && <InventoryChecks catalogs={catalogs} />}
