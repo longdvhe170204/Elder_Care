@@ -26,10 +26,13 @@ import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
-import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
+import { IncidentsPage } from '@/features/incidents/IncidentsPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { HealthCatalogPage } from '@/features/health-catalog/HealthCatalogPage'
+import { MonitoringSettingsPage } from '@/features/measurement-schedules/MonitoringSettingsPage'
+import { InfectionControlPage } from '@/features/infection-control/InfectionControlPage'
+import { FacilityLicensePage } from '@/features/facility-license/FacilityLicensePage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { FamilyMembersPage } from '@/features/relatives/FamilyMembersPage'
 import { PickupPage } from '@/features/relatives/pickups/PickupPage'
@@ -67,10 +70,13 @@ const PAGES = {
   'care-catalogs': CareCatalogPage,
   'activity-sessions': ActivitySessionsPage,
   'quality-checks': QualityCheckPage,
-  incidents: IncidentDetailPage,
+  incidents: IncidentsPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
   'health-catalog': HealthCatalogPage,
+  'measurement-schedules': MonitoringSettingsPage,
+  'infection-control': InfectionControlPage,
+  'facility-license': FacilityLicensePage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   'residence-registrations': ResidenceRegistrationPage,
