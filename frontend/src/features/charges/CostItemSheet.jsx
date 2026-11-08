@@ -8,10 +8,15 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { formatDate, formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { COMMAND, COST_TYPE, ITEM_STATUS, money, ORIGIN } from './chargeLabels'
+import { usePermissions } from '@/common/permissions/permissions'
+import { CostAdjustmentForm } from './CostAdjustmentForm'
 
-export function CostItemSheet({ id, onClose, onAction, canUpdate, canApprove, statementStatus, onDenied }) {
+export function CostItemSheet({ id, onClose, onAction, canUpdate, canApprove, statementStatus, onDenied, onAdjusted }) {
+  const { can } = usePermissions()
+  const [adjusting, setAdjusting] = useState(false)
   const [item, setItem] = useState(null)
   const [failure, setFailure] = useState(null)
+  const [revision, setRevision] = useState(0)
   useEffect(() => {
     let active = true
     getCostsItemsById({ path: { id } })
@@ -27,7 +32,7 @@ export function CostItemSheet({ id, onClose, onAction, canUpdate, canApprove, st
     return () => {
       active = false
     }
-  }, [id, onDenied])
+  }, [id, onDenied, revision])
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
@@ -69,6 +74,22 @@ export function CostItemSheet({ id, onClose, onAction, canUpdate, canApprove, st
               )}
             </dl>
             <h3 className="type-card-title">Lịch sử kiểm tra, duyệt</h3>
+            {can('COST_ADJUSTMENT', 'CREATE') &&
+              item.status !== 'CANCELLED' &&
+              (adjusting ? (
+                <CostAdjustmentForm
+                  key={id}
+                  itemId={id}
+                  onCreated={() => {
+                    setRevision((value) => value + 1)
+                    onAdjusted?.()
+                  }}
+                />
+              ) : (
+                <Button variant="outline" onClick={() => setAdjusting(true)}>
+                  Lập điều chỉnh
+                </Button>
+              ))}
             {item.commandHistory?.length ? (
               <ol className="flex flex-col gap-3">
                 {item.commandHistory.map((entry, index) => (

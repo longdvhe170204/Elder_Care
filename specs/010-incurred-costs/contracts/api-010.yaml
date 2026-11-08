@@ -124,7 +124,7 @@ paths:
       summary: Biến động nguồn của khoản đã chốt (Hành chính dùng để lập điều chỉnh; không có số chênh lệch tính sẵn)
       x-fr: [FR-027]
       parameters: [ { name: residentId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PostFinalizationChange' } } } } } }
 
   # ---------------- Bảng ----------------
   /costs/statements:
@@ -344,6 +344,17 @@ components:
       type: object
       required: [residentId, description, incurredOn, quantity, unit, unitPrice, reason]
       properties: { residentId: { type: integer, format: int64 }, description: { type: string }, incurredOn: { type: string, format: date }, quantity: { type: number }, unit: { type: string }, unitPrice: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' }, fileIds: { type: array, items: { type: integer, format: int64 } } }
+    PostFinalizationChange:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        itemId: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        event: { type: string }
+        before: { type: object, additionalProperties: true, description: Giá trị nguồn trước thay đổi }
+        after: { type: object, additionalProperties: true, description: Giá trị nguồn sau thay đổi }
+        reference: { type: string }
+        occurredAt: { type: string, format: date-time }
     CostAdjustment:
       type: object
       required: [amount, adjustmentType, reason]

@@ -29,6 +29,13 @@ public class CostItemStore {
                 .orElseThrow(NotFoundException::new);
     }
 
+    public Long purchaseAllowedAmount(long id) {
+        return jdbc.queryForObject(
+                "SELECT CAST(JSON_UNQUOTE(JSON_EXTRACT(source_values,'$.allowedAmount')) AS SIGNED) FROM cost_item WHERE id=?",
+                Long.class,
+                id);
+    }
+
     public List<CostItemRecord> lockItems(long statement) {
         return jdbc.query("SELECT * FROM cost_item WHERE statement_id=? ORDER BY id FOR UPDATE", this::map, statement);
     }
