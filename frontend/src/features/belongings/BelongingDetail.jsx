@@ -11,6 +11,7 @@ import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { ConsentForm } from './ConsentForm'
 import { HandoverForm } from './HandoverForm'
+import { WithdrawConsentForm } from './WithdrawConsentForm'
 import { amountText, commandsFor, GIVER_LABELS, holderLabel, kindLabel, statusLabel } from './belongingLabels'
 
 // Khung chi tiết một đồ gửi (013 T011; FR-011, FR-012; api-013 GET /belongings/{id}): thông tin đồ, lịch sử bàn giao
@@ -146,7 +147,9 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
     canUpdate && commandsFor(b.status).length > 0 && ['handover', 'Bàn giao'],
     canUpdate &&
       ['HELD', 'IN_USE'].includes(b.status) &&
-      type?.requiresConsentForUse && ['consent', 'Ghi đồng ý cho tự giữ'],
+      type?.requiresConsentForUse &&
+      !state.selfCustodyConsent && ['consent', 'Ghi đồng ý cho tự giữ'],
+    canUpdate && state.selfCustodyConsent && ['withdraw', 'Rút đồng ý'],
   ].filter(Boolean)
 
   return (
@@ -164,6 +167,12 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
         <dd className="tabular-nums">{amountText(b)}</dd>
         <dt className="text-muted-foreground">Người giữ</dt>
         <dd>{holderLabel(b.holder)}</dd>
+        {state.selfCustodyConsent && (
+          <>
+            <dt className="text-muted-foreground">Đồng ý cho tự giữ</dt>
+            <dd>Có hiệu lực, người đại diện #{state.selfCustodyConsent.representativeId}</dd>
+          </>
+        )}
         <dt className="text-muted-foreground">Vị trí</dt>
         <dd>{catalogs.locationName(b.storageLocationId)}</dd>
         {b.originalBelongingId != null && (
@@ -203,6 +212,11 @@ export function BelongingDetail({ belongingId, catalogs, onChanged, Title, Descr
             valuable={!!type?.valuable}
             onDone={done}
           />
+        </section>
+      )}
+      {action === 'withdraw' && state.selfCustodyConsent && (
+        <section className="flex flex-col gap-3 rounded-xl border p-3" aria-label="Rút đồng ý cho tự giữ">
+          <WithdrawConsentForm consent={state.selfCustodyConsent} onDone={done} />
         </section>
       )}
       {action === 'consent' && (
