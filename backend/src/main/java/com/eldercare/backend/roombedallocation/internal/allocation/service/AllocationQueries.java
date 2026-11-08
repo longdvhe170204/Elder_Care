@@ -5,8 +5,12 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationApi;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.dto.ResidenceType;
+import com.eldercare.backend.resident.api.spi.ContractApi;
 import com.eldercare.backend.roombedallocation.api.LocationApi;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
+import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationLocation;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationStatus;
@@ -30,10 +34,36 @@ import org.springframework.transaction.annotation.Transactional;
 public class AllocationQueries implements BedAllocationApi, ResidentLocationApi, LocationApi {
     private final AllocationStore store;
     private final BusinessTime time;
+    private final LocationStructureApi locations;
+    private final ContractApi contracts;
 
-    public AllocationQueries(AllocationStore store, BusinessTime time) {
+    public AllocationQueries(
+            AllocationStore store, BusinessTime time, LocationStructureApi locations, ContractApi contracts) {
         this.store = store;
         this.time = time;
+        this.locations = locations;
+        this.contracts = contracts;
+    }
+
+    /** Q-403: không chọn tùy ý một tầng khi khu nghỉ nằm trong khu vực có nhiều tầng. */
+    @Override
+    public Optional<Long> dayCareFloorAt(long residentId, Instant at) {
+        if (openAt(residentId, at).isPresent()
+                || contracts
+                        .currentResidenceType(residentId, LocalDate.ofInstant(at, BusinessTime.ZONE))
+                        .filter(t -> t == ResidenceType.DAY_CARE)
+                        .isEmpty()) return Optional.empty();
+        var location = locations.dayCareRestAreaLocation().filter(locations::active);
+        if (location.isEmpty()) return Optional.empty();
+        var ref = location.get();
+        if ("FLOOR".equals(ref.type())) return Optional.of(ref.id());
+        if (!"AREA".equals(ref.type())) return Optional.empty();
+        var floors = locations.floorsInArea(ref.id()).stream()
+                .filter(id -> locations.active(new LocationRef("FLOOR", id)))
+                .toList();
+        if (floors.size() > 1)
+            throw new InvalidPermissionDataException("M03.DAY_CARE_REST_AREA", "AMBIGUOUS_DAY_CARE_FLOOR", ref.id());
+        return floors.stream().findFirst();
     }
 
     private List<AllocationLocation> checkedAt(Instant at) {

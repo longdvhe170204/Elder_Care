@@ -191,6 +191,10 @@ public class ActivitySessionStore {
                 id);
     }
 
+    public void changeLocationFloor(long id, long floorAreaId) {
+        jdbc.update("UPDATE activity_session SET floor_area_id=?,location_area_id=NULL WHERE id=?", floorAreaId, id);
+    }
+
     public void close(long id, String status, boolean incomplete) {
         jdbc.update(
                 "UPDATE activity_session SET status=?, incomplete_attendance=?, version=version+1 WHERE id=?",
@@ -295,14 +299,34 @@ public class ActivitySessionStore {
 
     /** Đăng ký chưa hủy của người cao tuổi ở buổi, khóa dòng. */
     public Optional<Registration> activeRegistration(long sessionId, long residentId) {
+        return activeRegistration(sessionId, residentId, true);
+    }
+
+    public Optional<Registration> findActiveRegistration(long sessionId, long residentId) {
+        return activeRegistration(sessionId, residentId, false);
+    }
+
+    private Optional<Registration> activeRegistration(long sessionId, long residentId, boolean lock) {
         return jdbc
                 .query(
-                        "SELECT * FROM activity_registration WHERE session_id=? AND resident_id=? AND status<>'CANCELLED' FOR UPDATE",
+                        "SELECT * FROM activity_registration WHERE session_id=? AND resident_id=? AND status<>'CANCELLED'"
+                                + (lock ? " FOR UPDATE" : ""),
                         ActivitySessionStore::registration,
                         sessionId,
                         residentId)
                 .stream()
                 .findFirst();
+    }
+
+    public List<Long> dueLateReturnConsents(Instant now) {
+        return jdbc.queryForList(
+                "SELECT c.id FROM simple_record c JOIN activity_session s ON s.id=c.entity_id"
+                        + " JOIN activity_registration r ON r.session_id=s.id AND r.resident_id=c.resident_id"
+                        + " WHERE c.kind='M04.LATE_RETURN_CONSENT' AND c.status='ACTIVE' AND r.status<>'CANCELLED'"
+                        + " AND s.status<>'CANCELLED' AND COALESCE(s.trip_planned_departure_at,s.starts_at)<=?"
+                        + " ORDER BY s.id,c.id",
+                Long.class,
+                local(now));
     }
 
     /** FR-031, FR-032: nguồn tính phí đang hiệu lực của đăng ký; rỗng khi chưa có hoặc đã hủy. */

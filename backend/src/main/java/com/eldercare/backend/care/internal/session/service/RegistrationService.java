@@ -23,6 +23,7 @@ import java.util.*;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -43,6 +44,7 @@ public class RegistrationService {
     private final JsonMapper json;
     private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
     private final ResidentSessionReminders reminders;
+    private final LateReturnConsentService consents;
 
     public RegistrationService(
             ActivitySessionStore store,
@@ -53,7 +55,8 @@ public class RegistrationService {
             BusinessTime time,
             JsonMapper json,
             com.eldercare.backend.care.internal.trip.service.TripLifecycle trips,
-            ResidentSessionReminders reminders) {
+            ResidentSessionReminders reminders,
+            LateReturnConsentService consents) {
         this.store = store;
         this.records = records;
         this.eligibility = eligibility;
@@ -63,6 +66,7 @@ public class RegistrationService {
         this.json = json;
         this.trips = trips;
         this.reminders = reminders;
+        this.consents = consents;
     }
 
     public Target target(long sessionId, Long residentId) {
@@ -79,12 +83,13 @@ public class RegistrationService {
     /** FR-015 → FR-018: điều kiện chặn trả 409 kèm danh sách; cảnh báo cần xác nhận, lưu danh sách đã hiển thị. */
     @RequiresPermission(function = Function.ACTIVITY_OUTING, operation = Operation.CREATE)
     @BusinessCommand(requiresReason = false)
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public long register(Target target, long sessionId, long residentId, boolean acknowledgeWarnings) {
         var session = store.lock(sessionId);
         var activity = records.require(ACTIVITIES, session.activityId()).content();
         var now = time.now();
-        var result = eligibility.check(session, activity, residentId, now, false);
+        var result =
+                eligibility.check(session, activity, residentId, now, consents.hasActiveConsent(session, residentId));
         if (!result.blockers().isEmpty())
             throw new BusinessException(
                     HttpStatus.CONFLICT,
@@ -113,6 +118,7 @@ public class RegistrationService {
         }
         log(id, "REGISTRATION_CREATED", Map.of("sessionId", sessionId, "residentId", residentId), null);
         trips.registrationChanged(sessionId, residentId, false);
+        consents.registrationSaved(session, residentId, id);
         // FR-071 (Q-366): đăng ký trong ngày thì nhắc chính người cao tuổi ngay.
         reminders.registered(session, id, residentId);
         return id;
@@ -136,6 +142,7 @@ public class RegistrationService {
         if (session.tripStatus() == null && !session.startsAt().isAfter(time.now()))
             throw new BusinessException(HttpStatus.CONFLICT, "SESSION_ALREADY_STARTED", "Buổi đã bắt đầu");
         store.cancelRegistration(registrationId, null, reason.value());
+        consents.registrationCancelled(session, r);
         trips.registrationChanged(r.sessionId(), r.residentId(), true);
         log(registrationId, "REGISTRATION_CANCELLED", Map.of("status", Registration.CANCELLED), reason);
     }

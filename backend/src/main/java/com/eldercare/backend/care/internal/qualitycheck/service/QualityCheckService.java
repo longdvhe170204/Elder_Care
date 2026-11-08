@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.account.api.spi.DutyApi;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.shared.api.*;
@@ -195,7 +196,21 @@ public class QualityCheckService {
             int eligibleTaskCount,
             Optional<SimpleRecord<Checklist>> checklist,
             List<CompletedTask> eligibleTasks,
-            List<RecordEvent<Item>> items) {}
+            List<OverviewItem> items) {}
+
+    public record OverviewItem(
+            long id, long taskId, String status, String note, String inspectorRole, Instant recordedAt) {
+        static OverviewItem of(RecordEvent<Item> row, CurrentValue value) {
+            var item = row.content();
+            String result = item.status();
+            String note = item.note();
+            if (value != null && value.content() instanceof Map<?, ?> correction) {
+                result = (String) correction.get("result");
+                note = (String) correction.get("note");
+            }
+            return new OverviewItem(row.id(), item.taskId(), result, note, item.inspectorRole(), item.recordedAt());
+        }
+    }
 
     /** Chỉ người kiểm tra của ca (FR-066) và Quản lý viện; người thực hiện không xem (không báo khi được chọn). */
     @RequiresPermission(function = Function.QUALITY_CHECK, operation = Operation.VIEW)
@@ -217,6 +232,12 @@ public class QualityCheckService {
                 .map(l -> records.list(ITEMS, new EntityRef("M04.QUALITY_CHECKLIST", l.id())))
                 .orElse(List.of());
         var selected = items.stream().map(i -> i.content().taskId()).collect(java.util.stream.Collectors.toSet());
+        var amended = corrections.current(
+                ITEMS.code(),
+                items.stream()
+                        .filter(i -> i.confirmedAt() != null)
+                        .map(RecordEvent::id)
+                        .toList());
         return new ShiftOverview(
                 shiftId,
                 floorAreaId,
@@ -228,7 +249,7 @@ public class QualityCheckService {
                 eligible.values().stream()
                         .filter(t -> !selected.contains(t.id()))
                         .toList(),
-                items);
+                items.stream().map(i -> OverviewItem.of(i, amended.get(i.id()))).toList());
     }
 
     public record Rework(Instant plannedAt, Long performerId, boolean sharedOnFloor) {}
@@ -238,10 +259,7 @@ public class QualityCheckService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void record(Target target, long itemId, String result, String note, List<Long> photos, Rework rework) {
-        if (!Set.of(PASS, FAIL, NOT_CHECKABLE).contains(result == null ? "" : result))
-            throw new InvalidValueException("Kết quả phải là Đạt, Không đạt hoặc Không kiểm tra được");
-        if (!PASS.equals(result) && (note == null || note.isBlank()))
-            throw new InvalidValueException("Không đạt hoặc Không kiểm tra được cần ghi chú");
+        validateResult(result, note);
         var row = records.require(ITEMS, itemId);
         var item = row.content();
         if (row.confirmedAt() != null || !PENDING.equals(item.status()))
@@ -249,40 +267,11 @@ public class QualityCheckService {
         var shift = shift(item.shiftId(), item.floorAreaId());
         var now = time.now();
         requireWithinShift(shift, now);
-        var context = inspection(shift, now);
-        if (SHIFT_LEAD.equals(context.role())
-                && item.performerAccountId() != null
-                && item.performerAccountId() == user.accountId())
-            throw conflict("SELF_CHECK_NOT_ALLOWED", "Người phụ trách ca không ghi kết quả công việc của chính mình");
-        if (FAIL.equals(result)) {
-            if (rework == null || rework.plannedAt() == null)
-                throw conflict("REWORK_TASK_REQUIRED", "Ghi Không đạt cần kèm công việc làm lại");
-            if (rework.plannedAt().isBefore(now) || !rework.plannedAt().isBefore(shift.endsAt()))
-                throw new InvalidValueException("Công việc làm lại phải dự kiến trong ca của danh sách");
-        }
+        var context = requireResultInspector(shift, item, now);
+        if (FAIL.equals(result)) requireReworkTime(shift, now, rework);
         lists.lockForUpdate(CHECKLISTS, item.checklistId());
         records.updateDraft(ITEMS, itemId, item.result(result, note, photos, user.accountId(), context.role(), now));
-        if (FAIL.equals(result)) {
-            tasks.rework(
-                    tasks.target(item.taskId()),
-                    item.taskId(),
-                    itemId,
-                    rework.plannedAt(),
-                    rework.performerId(),
-                    rework.sharedOnFloor());
-            if (item.performerStaffId() != null)
-                events.publishEvent(new QualityCheckFailedNotice(
-                        itemId,
-                        item.taskId(),
-                        item.performerStaffId(),
-                        new CareEventContext(
-                                "M04.QUALITY_CHECK_ITEM",
-                                itemId,
-                                "QUALITY_CHECK_FAILED:" + itemId,
-                                now,
-                                Optional.of(item.floorAreaId()),
-                                List.of(new RecipientGroup.Staff(item.performerStaffId(), "TASK_PERFORMER")))));
-        }
+        if (FAIL.equals(result)) createRework(itemId, item, rework, now, "QUALITY_CHECK_FAILED:" + itemId);
         records.confirm(ITEMS, itemId, now);
         audit.write(AuditLogEntry.builder()
                 .action(new AuditAction("QUALITY_CHECK_RESULT_RECORDED", false))
@@ -290,6 +279,73 @@ public class QualityCheckService {
                 .before(Map.of("status", PENDING))
                 .after(Map.of("status", result, "inspectorRole", context.role()))
                 .build());
+    }
+
+    static void validateResult(String result, String note) {
+        if (!Set.of(PASS, FAIL, NOT_CHECKABLE).contains(result == null ? "" : result))
+            throw new InvalidValueException("Kết quả phải là Đạt, Không đạt hoặc Không kiểm tra được");
+        if (!PASS.equals(result) && (note == null || note.isBlank()))
+            throw new InvalidValueException("Không đạt hoặc Không kiểm tra được cần ghi chú");
+    }
+
+    static void requireRework(Rework rework) {
+        if (rework == null || rework.plannedAt() == null)
+            throw conflict("REWORK_TASK_REQUIRED", "Ghi Không đạt cần kèm công việc làm lại");
+    }
+
+    @RequiresPermission(function = Function.QUALITY_CHECK, operation = Operation.VIEW)
+    public void requireHistoryView(Target target, Item item) {
+        if (!user.roles().contains(Role.NURSING_HOME_MANAGER))
+            inspection(shift(item.shiftId(), item.floorAreaId()), time.now());
+    }
+
+    @RequiresPermission(function = Function.QUALITY_CHECK, operation = Operation.UPDATE)
+    public void requireAmendment(Target target, Item item, Instant now) {
+        var shift = shift(item.shiftId(), item.floorAreaId());
+        requireWithinShift(shift, now);
+        requireResultInspector(shift, item, now);
+    }
+
+    void reworkAfterAmendment(long itemId, Item item, Rework rework, Instant now, long correctionId) {
+        requireReworkTime(shift(item.shiftId(), item.floorAreaId()), now, rework);
+        createRework(itemId, item, rework, now, "QUALITY_CHECK_FAILED:" + itemId + ":C:" + correctionId);
+    }
+
+    private Inspection requireResultInspector(ShiftStaffPort.ShiftView shift, Item item, Instant now) {
+        var context = inspection(shift, now);
+        if (SHIFT_LEAD.equals(context.role())
+                && item.performerAccountId() != null
+                && item.performerAccountId() == user.accountId())
+            throw conflict("SELF_CHECK_NOT_ALLOWED", "Người phụ trách ca không ghi kết quả công việc của chính mình");
+        return context;
+    }
+
+    private static void requireReworkTime(ShiftStaffPort.ShiftView shift, Instant now, Rework rework) {
+        requireRework(rework);
+        if (rework.plannedAt().isBefore(now) || !rework.plannedAt().isBefore(shift.endsAt()))
+            throw new InvalidValueException("Công việc làm lại phải dự kiến trong ca của danh sách");
+    }
+
+    private void createRework(long itemId, Item item, Rework rework, Instant now, String eventKey) {
+        tasks.rework(
+                tasks.target(item.taskId()),
+                item.taskId(),
+                itemId,
+                rework.plannedAt(),
+                rework.performerId(),
+                rework.sharedOnFloor());
+        if (item.performerStaffId() != null)
+            events.publishEvent(new QualityCheckFailedNotice(
+                    itemId,
+                    item.taskId(),
+                    item.performerStaffId(),
+                    new CareEventContext(
+                            ITEMS.code(),
+                            itemId,
+                            eventKey,
+                            now,
+                            Optional.of(item.floorAreaId()),
+                            List.of(new RecipientGroup.Staff(item.performerStaffId(), "TASK_PERFORMER")))));
     }
 
     /** Id nhân viên của Trưởng tầng được giao; {@code noFloorManager} là ngoại lệ FR-066 của ca (DutyApi, Q-262). */

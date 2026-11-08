@@ -112,3 +112,8 @@ Mục 1.1 giữ tên logic để truy vết. Khi triển khai, care không cài 
 - Lịch xe do 019 cung cấp: tên tiếng Anh ở contracts 019 mục 2.2; care chỉ gọi `roombedallocation.api`, không khai SPI xe trong care.
 
 Thiếu bean nguồn thuốc, ca hoặc lịch xe tại nhánh cần dùng trả `503 CARE_SOURCE_UNAVAILABLE`; chưa có lịch xe Đã đặt trả `409 VEHICLE_SCHEDULE_REQUIRED`. Xe ngoài viện không gọi nguồn lịch xe của viện. Các adapter thật do D/E thực hiện và review trong PR của họ.
+## 4. Nghi nhiễm theo khoảng — duyệt 07/11/2026
+
+`care.api.spi.ActivityHealthGatePort.suspectedInfectionDuring(long residentId, Instant from, Instant to)` trả boolean: có dấu nghi nhiễm bất kỳ lúc nào trong khoảng nửa mở `[from, to)`. Ngày nghiệp vụ lấy hai mốc 00:00 tại Asia/Ho_Chi_Minh. C khai và giữ bản giả chung `FakeActivityHealthGate` (hỗ trợ nhiều khoảng, khoảng chưa kết thúc); D/007 cài bean production. Bản giả giữ công tắc nguồn 007, không thay nguồn production.
+
+08/11/2026: chủ dự án không duyệt SPI lịch sử cảnh báo mới. Hai GET sở thích/hồ sơ tinh thần dùng schema đã duyệt; `alerts = null` báo chưa có nguồn lịch sử. T003/T021/T022 còn chuỗi cô lập: JSON M04 của `resident_module_state` đang bị khóa 005 ghi đè bằng `{version}`. Chủ dự án chọn giữ phạm vi 014, không sửa `CareLockStore` 005 trong lượt này.

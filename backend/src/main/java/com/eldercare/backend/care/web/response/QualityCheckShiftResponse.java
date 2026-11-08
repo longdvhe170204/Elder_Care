@@ -49,13 +49,7 @@ public record QualityCheckShiftResponse(
                                 t.performedAt()))
                         .toList(),
                 view.items().stream()
-                        .map(i -> new Item(
-                                i.id(),
-                                i.content().taskId(),
-                                i.content().status(),
-                                i.content().note(),
-                                i.content().inspectorRole(),
-                                i.content().recordedAt()))
+                        .map(i -> new Item(i.id(), i.taskId(), i.status(), i.note(), i.inspectorRole(), i.recordedAt()))
                         .toList());
     }
 }
