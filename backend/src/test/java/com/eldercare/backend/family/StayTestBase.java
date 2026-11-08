@@ -77,6 +77,7 @@ abstract class StayTestBase extends FamilyCommandTestBase {
         }
 
         @Bean
+        @Primary
         FakeIsolation fakeIsolation() {
             return new FakeIsolation();
         }

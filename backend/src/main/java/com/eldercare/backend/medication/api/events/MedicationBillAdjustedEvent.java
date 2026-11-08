@@ -7,4 +7,4 @@ import java.math.BigDecimal;
  * Module M11 (010) listens to update billing entries.
  */
 public record MedicationBillAdjustedEvent(
-        BilledSource source, long sourceId, BigDecimal newQuantity, BillAdjustmentReason reason) {}
+        BilledSource source, long sourceId, BigDecimal newQuantity, String usageUnit, BillAdjustmentReason reason) {}

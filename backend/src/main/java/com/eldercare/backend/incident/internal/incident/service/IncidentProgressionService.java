@@ -18,6 +18,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.UnmetCondition;
+import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.ProgressionTypeView;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
@@ -121,6 +122,22 @@ public class IncidentProgressionService {
                 .after(Map.of("progressionId", id, "type", type.code(), "outOfScope", outOfScope))
                 .build());
         return id;
+    }
+
+    /**
+     * Diễn biến do Hệ thống ghi khi nguồn của cảnh báo đã chuyển sự cố được xử lý (FR-032, research S-09). Sự cố đã kết thúc
+     * thì bỏ qua. Trả yêu cầu thông báo (Nhẹ) cho người xử lý hiện tại; rỗng khi bỏ qua hoặc chưa có người xử lý.
+     */
+    @Transactional
+    public List<NotificationRequest> addBySystem(long incidentId, String typeCode, String content, Instant at) {
+        var incident = incidents.lock(incidentId).orElse(null);
+        if (incident == null || !OPEN.contains(incident.status())) return List.of();
+        progressions.addBySystem(incidentId, typeIdByCode(typeCode), typeCode, content, at, incident.floorAreaId());
+        return incidents
+                .assignee(incidentId)
+                .map(staffId -> IncidentNotices.sourceResolved(
+                        incidentId, incident.residentId(), incident.floorAreaId(), staffId, at))
+                .orElse(List.of());
     }
 
     /** Tra loại diễn biến theo mã cho lệnh từ module khác ({@code IncidentCommandApi.addProgression}). */
