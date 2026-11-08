@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
+import com.eldercare.backend.medication.api.events.ReconciliationCompleted;
 import com.eldercare.backend.medication.api.events.ReconciliationNeeded;
 import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
 import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
@@ -105,6 +106,7 @@ public class ReconciliationDeadlines {
     public void complete(long residentId) {
         Instant now = time.now();
         due.clear(residentId);
+        events.publishEvent(new ReconciliationCompleted(residentId, now));
         for (Prescription p :
                 prescriptions.findByResidentIdAndStatusIn(residentId, List.of(PrescriptionStatus.ACTIVE))) {
             for (MedicationDose dose :
