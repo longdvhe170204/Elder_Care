@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { AllergyNote } from '@/common/CareNotes'
+import { NowStrip } from '@/common/NowStrip'
 import { ClockAside, PageHeader } from '@/common/PageHeader'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -50,7 +51,7 @@ function DoseCard({ group, canRecord, onOpen }) {
   const r = group.resident
   const showRecord = canRecord && group.doses.some((d) => OPEN.includes(d.status))
   return (
-    <Card className={cn('gap-3', late && 'ring-[1.5px] ring-destructive')}>
+    <Card className='gap-3'>
       <CardHeader className="flex flex-row items-center gap-2.5">
         <ResidentAvatar name={r.name} code={r.code} initials={r.initials} />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -124,6 +125,8 @@ export function MedicationPage({ role }) {
   const active = visible.filter((g) => g.status !== 'Đã xong')
   const done = visible.filter((g) => g.status === 'Đã xong')
   const times = [...new Set(active.map((g) => g.time))].sort()
+  // Dải "Cần làm ngay" (DESIGN.md 6.7, 7.2): thẻ có liều Trễ, đã có sẵn trong dữ liệu; không tự gợi ý (Q-307)
+  const lateGroups = groups.filter((g) => g.status === 'Trễ')
   const current = times.find((t) => windowOf(t).from <= shift.now && shift.now <= windowOf(t).to)
 
   function save(results) {
@@ -176,6 +179,17 @@ export function MedicationPage({ role }) {
           )}
         </div>
       </PageHeader>
+
+      {mode === 'scheduled' && (
+        <NowStrip
+          items={lateGroups.map((g) => ({
+            key: g.key,
+            label: `${g.resident.name} ${g.time}`,
+            onSelect: () => canRecord && setOpening(g),
+          }))}
+          summary={`${count('Đến giờ')} thẻ Đến giờ`}
+        />
+      )}
 
       <p role="status" aria-live="polite" className="empty:hidden rounded-xl border bg-card px-4 py-3 type-body-sm">
         {announcement}

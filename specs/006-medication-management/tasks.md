@@ -135,7 +135,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 - [x] T035 [US4] Tạo `V006_04__medication_reconciliation.sql`: `medication_reconciliation` (`reason ENUM('ADMISSION','HOSPITAL_RETURN','PROFESSIONAL_REQUEST')`; `status ENUM('OPEN','PENDING_CONFIRMATION','CONFIRMED','CANCELLED')`; `uq_recon_open_resident`; trigger `trg_reconciliation_lock`), `reconciliation_item`, `reconciliation_correction_request`
 - [x] T036 [US4] Cài `MedicationReconciliationService.java`: lập phiếu, cập nhật dòng (`If-Match`), gửi xác nhận kiểm đủ dòng, trả lại, xác nhận áp quyết định từng dòng trong một transaction, đề nghị đính chính và xác nhận đính chính
-- [ ] T037 [US4] Cài phần đối chiếu của bean `ThamGiaM07.java`: `HOAN_TAT_TIEP_NHAN`, `GHI_NHAN_TRO_VE` từ bệnh viện; việc theo phút đặt `overdue_at` và cảnh báo *(2026-11-08, D rà: chưa có mã, 006 chưa có bean `StatusTransitionParticipant` nào; bỏ `[x]`)*
+- [x] T037 [US4] Cài phần đối chiếu của bean `ThamGiaM07.java`: `HOAN_TAT_TIEP_NHAN`, `GHI_NHAN_TRO_VE` từ bệnh viện; việc theo phút đặt `overdue_at` và cảnh báo *(2026-11-08: `ReconciliationDeadlines` (tạm dừng đơn, đặt hạn CFG-M07-05, cảnh báo quá hạn một lần, gỡ hạn khi xác nhận phiếu) nối vào `MedicationStatusParticipant`, `MedicationReconciliationService.confirm`, `M07JobService`; `BR_M07_09_ReconciliationDeadlineTest` 5, `BR_M07_09_StatusParticipantDelegationTest` 2. Chưa có: yêu cầu 007 đóng cảnh báo `CHUA_DOI_CHIEU` khi phiếu xác nhận (007 chưa có API đóng theo nguồn))*
 - [x] T038 [US4] Tạo `MedicationReconciliationController.java`: `POST/GET /api/v1/nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `GET /api/v1/phieu-doi-chieu/{id}`, `PUT …/{id}/dong`, `POST …/gui-xac-nhan`, `/tra-lai`, `/xac-nhan`, `/de-nghi-dinh-chinh`, `POST /de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `/tra-lai`
 
 **Checkpoint**: P1 hoàn tất.
@@ -150,7 +150,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 ### Tests cho User Story 5
 
-- [ ] T039 [P] [US5] Test `BT/medication/BR_M07_03_VangMatIT.java`, `FR_027_MangTheoBaoLaiIT.java`, `BR_M07_22_NhieuLanGiaoIT.java` (phần giao): liều trong khoảng vắng Tạm dừng/Mang theo; trở về trước cuối cửa sổ quay lại; chỉ Điều dưỡng ghi liều Mang theo theo báo lại có người báo; nhiều lần giao trong một khoảng; nhận lại ≤ số giao; trạng thái cuối hủy liều và đóng đơn *(2026-11-08, D rà: ba lớp test chưa từng có trong lịch sử git; bỏ `[x]`)*
+- [x] T039 [P] [US5] Test `BT/medication/BR_M07_03_VangMatIT.java`, `FR_027_MangTheoBaoLaiIT.java`, `BR_M07_22_NhieuLanGiaoIT.java` (phần giao): liều trong khoảng vắng Tạm dừng/Mang theo; trở về trước cuối cửa sổ quay lại; chỉ Điều dưỡng ghi liều Mang theo theo báo lại có người báo; nhiều lần giao trong một khoảng; nhận lại ≤ số giao; trạng thái cuối hủy liều và đóng đơn *(2026-11-08: gộp theo ngân sách test (AGENTS.md mục 4) thành một IT `BR_M07_03_AbsenceFlowIT` (Tạm vắng không mang thuốc, trở về sớm, trạng thái cuối) cùng `MedicationStatusParticipantTest`, `BR_M07_03_AbsenceScheduleContextTest`, `FR_048b_TripMedicationApiTest`; lần giao nhiều lần, nhận lại ≤ số giao có ở `MedicationHandoverTest`)*
 
 ### Implementation cho User Story 5
 

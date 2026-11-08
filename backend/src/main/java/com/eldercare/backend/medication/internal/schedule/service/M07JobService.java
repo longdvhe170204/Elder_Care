@@ -22,6 +22,7 @@ import com.eldercare.backend.medication.internal.prescription.domain.Prescriptio
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines;
 import com.eldercare.backend.medication.internal.schedule.persistence.M07JobRunStore;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.time.Instant;
@@ -59,6 +60,8 @@ public class M07JobService {
 
     private final AbsenceScheduleContexts absenceContexts;
 
+    private final ReconciliationDeadlines deadlines;
+
     public M07JobService(
             M07JobRunStore jobRunStore,
             PrescriptionRepository prescriptionRepository,
@@ -72,7 +75,9 @@ public class M07JobService {
             ParameterApi parameters,
             ResidentLocationApi locations,
             NursingShiftPort shifts,
-            AbsenceScheduleContexts absenceContexts) {
+            AbsenceScheduleContexts absenceContexts,
+            ReconciliationDeadlines deadlines) {
+        this.deadlines = deadlines;
         this.absenceContexts = absenceContexts;
         this.jobRunStore = jobRunStore;
         this.prescriptionRepository = prescriptionRepository;
@@ -107,6 +112,9 @@ public class M07JobService {
 
         // BR-M07-21: thông báo một lần mỗi tầng/ca khi không có Điều dưỡng nhưng có liều sắp tới.
         notifyFloorsWithoutNurse(now);
+
+        // BR-M07-09: tới hạn đối chiếu mà chưa có phiếu Đã xác nhận thì cảnh báo một lần
+        deadlines.warnOverdue(now);
 
         // (3) Materialize doses at window start
         materializeWindowDoses(now);
