@@ -103,8 +103,10 @@ abstract class FeedbackTestBase extends FamilyCommandTestBase {
 
     @BeforeEach
     void feedbackFamily() {
-        // Mốc riêng mỗi lần chạy để việc theo phút không gặp phản hồi đến hạn của lần chạy trước
-        Instant start = Instant.parse("2032-01-01T01:00:00Z").plus(Duration.ofDays(TestUsers.nextId() % 20_000));
+        // Mốc riêng mỗi lần chạy để việc theo phút không gặp phản hồi đến hạn của lần chạy trước. Giữ trước 2038-01-19
+        // kể cả khi test dời thêm: EVENT_PUBLICATION.PUBLICATION_DATE là TIMESTAMP (trước đây % 20_000 ngày vượt 2038
+        // khi id đã lớn, lớp family đỏ theo thứ tự chạy)
+        Instant start = Instant.parse("2032-01-01T01:00:00Z").plus(Duration.ofDays(TestUsers.nextId() % 1_500));
         clock.setTo(start);
         a = resident(ResidentStatus.IN_RESIDENCE);
         floor = TestUsers.nextId();

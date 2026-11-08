@@ -45,8 +45,8 @@ public class FakeM02PortsConfig {
     }
 
     /**
-     * Bản thật của 013 ({@code BelongingPostDeathItem}) cùng mã {@code BELONGINGS}: test 004 đặt trạng thái qua bản giả nên
-     * bản giả đứng trước ({@code orderedStream}, mục đầu thắng) — 013 T030.
+     * Bản thật cùng mã (013 {@code BelongingPostDeathItem}, 007 {@code AlertsIncidentsPostDeathItem}, sau này 006, 010,
+     * 017): test 004 đặt trạng thái qua bản giả nên năm bản giả đều đứng trước ({@code orderedStream}, mục đầu thắng).
      */
     @Bean
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
@@ -55,21 +55,25 @@ public class FakeM02PortsConfig {
     }
 
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakePostDeathItem fakeStoredMedicationItem() {
         return new FakePostDeathItem(PostDeathItemCode.STORED_MEDICATION);
     }
 
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakePostDeathItem fakeFinalPeriodCostsItem() {
         return new FakePostDeathItem(PostDeathItemCode.FINAL_PERIOD_COSTS);
     }
 
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakePostDeathItem fakeAlertsIncidentsItem() {
         return new FakePostDeathItem(PostDeathItemCode.ALERTS_INCIDENTS);
     }
 
     @Bean
+    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
     FakePostDeathItem fakeSettlementItem() {
         return new FakePostDeathItem(PostDeathItemCode.SETTLEMENT);
     }

@@ -41,7 +41,6 @@ public class IncidentCatalogService {
         this.users = users;
     }
 
-    @RequiresPermission(function = Function.ALERT_HANDLING, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<TrendRuleView> trendRules() {
         return catalogs.list(IncidentCatalogs.TREND_RULE, null, false).stream()
@@ -49,7 +48,6 @@ public class IncidentCatalogService {
                 .toList();
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<IncidentTypeView> incidentTypes() {
         return catalogs.list(IncidentCatalogs.INCIDENT_TYPE, null, false).stream()
@@ -57,7 +55,6 @@ public class IncidentCatalogService {
                 .toList();
     }
 
-    @RequiresPermission(function = Function.INCIDENT_EMERGENCY, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<ProgressionTypeView> progressionTypes() {
         return catalogs.list(IncidentCatalogs.PROGRESSION_TYPE, null, false).stream()

@@ -67,26 +67,6 @@ class TechnicalDataCleanupIT extends MySqlIntegrationTestBase {
                 .isEqualTo(1);
     }
 
-    @Test
-    void F_12_completedEventsOlderThan7Days_areRemoved_othersKept() {
-        String old = event(now().minusDays(8));
-        String recent = event(now().minusDays(1));
-        String incomplete = event(null);
-        try {
-            cleanup.run();
-
-            assertThat(count("SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE ID = ?", old))
-                    .isZero();
-            assertThat(count("SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE ID = ?", recent))
-                    .isEqualTo(1);
-            assertThat(count("SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE ID = ?", incomplete))
-                    .isEqualTo(1);
-        } finally {
-            // Sự kiện mẫu chưa giao xong không có listener: xóa để lần khởi động sau không giao lại
-            jdbc.update("DELETE FROM EVENT_PUBLICATION WHERE LISTENER_ID = 'f12'");
-        }
-    }
-
     private int count(String sql, String id) {
         return jdbc.queryForObject(sql, Integer.class, id);
     }

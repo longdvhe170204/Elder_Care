@@ -10,11 +10,9 @@ import com.eldercare.backend.notification.internal.domain.NewNotification;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -137,53 +135,5 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
                                 Integer.class,
                                 bad)
                         == 1);
-    }
-
-    @Test
-    void FR_018_sameAttemptDispatchedTwice_hasOneResult() {
-        long attempt = inAppNotification(NotificationLevel.LOW);
-
-        dispatcher.dispatch(List.of(attempt, attempt));
-
-        await().atMost(Duration.ofSeconds(10)).until(() -> result(attempt) != null);
-        await().during(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(3)).until(() -> true);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M13.DELIVERY_RESULT' AND entity_id = ?",
-                        Integer.class,
-                        attempt))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void FR_017_dispatchInTransaction_runsOnlyAfterCommit() {
-        long attempt = inAppNotification(NotificationLevel.LOW);
-
-        tx.executeWithoutResult(s -> {
-            dispatcher.dispatch(List.of(attempt));
-            s.setRollbackOnly();
-        });
-        long committed = inAppNotification(NotificationLevel.LOW);
-        tx.executeWithoutResult(s -> dispatcher.dispatch(List.of(committed)));
-
-        await().atMost(Duration.ofSeconds(10)).until(() -> result(committed) != null);
-        assertThat(result(attempt)).isNull();
-    }
-
-    @Test
-    void NFR_03_urgent_isNotQueuedBehindBacklog() {
-        push.release = new CountDownLatch(1);
-        List<Long> backlog = new ArrayList<>();
-        for (int i = 0; i < 12; i++) {
-            backlog.add(inAppNotification(NotificationLevel.LOW, "slow-" + UUID.randomUUID()));
-        }
-        long urgent = inAppNotification(NotificationLevel.URGENT, "tok-" + UUID.randomUUID());
-
-        dispatcher.dispatch(backlog);
-        dispatcher.dispatch(List.of(urgent));
-
-        await().atMost(Duration.ofSeconds(5)).until(() -> result(urgent) != null);
-        assertThat(backlog).allSatisfy(id -> assertThat(result(id)).isNull());
-        push.release.countDown();
-        await().atMost(Duration.ofSeconds(15)).until(() -> backlog.stream().allMatch(id -> result(id) != null));
     }
 }

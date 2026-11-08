@@ -34,6 +34,8 @@ const REASON_LABELS = {
 // Loại bản ghi ghi được khi mất mạng (OfflineHandler của từng module); loại chưa có nhãn thì hiện mã loại
 const TYPE_LABELS = {
   'M07.KET_QUA_LIEU': 'Kết quả liều thuốc',
+  'M07.DOSE_RESULT': 'Kết quả liều thuốc',
+  'M07.PRN_ADMINISTRATION': 'Lần dùng thuốc khi cần',
 }
 
 const typeLabel = (code) => TYPE_LABELS[code] ?? code

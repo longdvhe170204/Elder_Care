@@ -9,18 +9,28 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
- * PRN medication administration entity (FR-024, FR-025, BR-M07-04).
+ * PRN medication administration entity (FR-024, FR-025, BR-M07-04). Dòng {@code kind = PRN} của {@code dose_result}
+ * (006 T069, {@code V006_96}); bản ghi theo lịch là {@link DoseResult}.
  */
 @Entity
 @DataGroup(DataGroup.Group.RECORD)
-@Table(name = "prn_administration")
+@Table(name = "dose_result")
+@SQLRestriction("kind = 'PRN'")
 public class PrnAdministration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "kind", nullable = false, updatable = false, length = 10)
+    private String kind = "PRN";
+
+    /** Lần dùng PRN luôn là đã dùng; cột chung với kết quả liều theo lịch. */
+    @Column(name = "result_type", nullable = false, updatable = false, length = 30)
+    private String resultType = "ADMINISTERED";
 
     @Column(name = "prescription_id", nullable = false)
     private Long prescriptionId;
@@ -49,22 +59,25 @@ public class PrnAdministration {
     @Column(length = 2000)
     private String note;
 
-    @Column(name = "recorded_after_disconnect", nullable = false)
+    @Column(name = "synced_after_permission_loss", nullable = false)
     private boolean recordedAfterDisconnect;
 
-    @Column(name = "administered_by_id", nullable = false)
+    @Column(name = "recorder_id", nullable = false)
     private Long administeredById;
 
-    @Column(name = "reported_by")
+    @Column(name = "reported_by_name")
     private String reportedBy;
 
     @Column(name = "exceeded_limit", nullable = false)
     private boolean exceededLimit = false;
 
-    @Column(name = "offline_device_time")
+    @Column(name = "device_recorded_at")
     private Instant offlineDeviceTime;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "offline_flag", nullable = false)
+    private boolean offlineFlag;
+
+    @Column(name = "recorded_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     protected PrnAdministration() {}
@@ -133,6 +146,7 @@ public class PrnAdministration {
         this.exceededLimit = exceededLimit;
         this.offlineDeviceTime = offlineDeviceTime;
         this.createdAt = now;
+        this.offlineFlag = offlineDeviceTime != null;
     }
 
     public Long getId() {

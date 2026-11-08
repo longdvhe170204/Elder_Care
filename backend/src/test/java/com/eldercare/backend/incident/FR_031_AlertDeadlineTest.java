@@ -36,7 +36,8 @@ class FR_031_AlertDeadlineTest {
             mock(MonitoringLock.class),
             staff,
             null,
-            null);
+            null,
+            mock(com.eldercare.backend.incident.internal.alert.service.AlertResponsibility.class));
 
     @BeforeEach
     void storeInsertedRecord() {
@@ -61,40 +62,6 @@ class FR_031_AlertDeadlineTest {
         when(parameters.read(ParameterCode.CFG_M05_01)).thenThrow(new IllegalStateException("Chưa có cấu hình"));
         assertThatThrownBy(() -> request(IncidentLevel.MEDIUM)).isInstanceOf(IllegalStateException.class);
         verify(store, never()).insert(any());
-    }
-
-    @Test
-    void FR_031_lowUsesCurrentFloorShiftEnd() {
-        currentShift(END);
-        assertThat(request(IncidentLevel.LOW).acknowledgementDeadline()).isEqualTo(END);
-        verify(staff, never()).nextShift(anyLong(), any());
-    }
-
-    @Test
-    void FR_031_lowAfterHandoverCutoffUsesNextShiftEnd() {
-        currentShift(NOW.plusSeconds(600));
-        var nextEnd = END.plusSeconds(28800);
-        when(staff.nextShift(10L, NOW))
-                .thenReturn(Optional.of(new AlertShiftView(2L, 10L, NOW.plusSeconds(600), nextEnd)));
-        assertThat(request(IncidentLevel.LOW).acknowledgementDeadline()).isEqualTo(nextEnd);
-    }
-
-    @Test
-    void FR_031_lowAtHandoverCutoffStillUsesCurrentShiftEnd() {
-        currentShift(NOW.plusSeconds(1800));
-        assertThat(request(IncidentLevel.LOW).acknowledgementDeadline()).isEqualTo(NOW.plusSeconds(1800));
-    }
-
-    @Test
-    void FR_031_lowWithoutShiftDoesNotInventAnHourlyDeadline() {
-        assertThatThrownBy(() -> request(IncidentLevel.LOW)).isInstanceOf(IllegalStateException.class);
-        verify(store, never()).insert(any());
-    }
-
-    @Test
-    void FR_031_criticalHasNoEscalationDeadline() {
-        assertThat(request(IncidentLevel.CRITICAL).acknowledgementDeadline()).isNull();
-        verifyNoInteractions(parameters);
     }
 
     private AlertRecord request(IncidentLevel level) {

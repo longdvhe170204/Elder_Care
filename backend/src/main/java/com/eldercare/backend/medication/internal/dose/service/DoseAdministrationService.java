@@ -253,7 +253,7 @@ public class DoseAdministrationService {
         doseResultRepository.save(result);
 
         // Check consecutive refusals (BR-M07-13)
-        checkConsecutiveRefusals(dose.getResidentId(), dose.getMedicationId(), now);
+        checkConsecutiveRefusals(dose.getId(), dose.getResidentId(), dose.getMedicationId(), now);
 
         return toDetailView(dose, result, doseKey, now);
     }
@@ -371,7 +371,7 @@ public class DoseAdministrationService {
     /**
      * Kiểm tra số lần từ chối liên tiếp và phát cảnh báo nếu >= 3 (BR-M07-13).
      */
-    private void checkConsecutiveRefusals(Long residentId, Long medicationId, Instant now) {
+    private void checkConsecutiveRefusals(Long doseId, Long residentId, Long medicationId, Instant now) {
         List<MedicationDose> pastDoses =
                 doseRepository.findByResidentIdAndMedicationIdOrderByScheduledTimeDesc(residentId, medicationId);
 
@@ -387,7 +387,7 @@ public class DoseAdministrationService {
                     "TU_CHOI_LIEN_TIEP",
                     "TRUNG_BINH",
                     residentId,
-                    "resident:" + residentId + ":med:" + medicationId,
+                    "dose:" + doseId,
                     "refusal:" + residentId + ":" + medicationId,
                     now,
                     List.of()));

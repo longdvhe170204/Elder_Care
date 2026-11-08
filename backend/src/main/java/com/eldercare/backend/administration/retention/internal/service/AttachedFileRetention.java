@@ -3,6 +3,7 @@ package com.eldercare.backend.administration.retention.internal.service;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.shared.api.RecordTypeAliases;
+import com.eldercare.backend.common.file.FilePermissionProvider;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -18,7 +19,8 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 /**
  * Tệp đính kèm đi kèm bản ghi sở hữu (000 T112; FR-050, FR-051a): dòng {@code file} gắn {@code owner_type},
- * {@code owner_id} của bản ghi trong chuỗi. Tệp không có thời hạn riêng, sống theo bản ghi sở hữu, nên luôn là đã hết hạn
+ * {@code owner_id} của bản ghi trong chuỗi, kể cả loại chủ sở hữu mà {@link FilePermissionProvider#recordType()} khai
+ * thuộc loại bản ghi đó (ảnh người cao tuổi gắn hồ sơ…). Tệp không có thời hạn riêng, sống theo bản ghi sở hữu, nên luôn là đã hết hạn
  * khi bản ghi hết hạn. Xóa nội dung S3 trước rồi dòng {@code file}, trong transaction của chuỗi: S3 lỗi thì cả chuỗi
  * rollback, đợt sau thử lại; dòng còn mà đối tượng đã mất chỉ xảy ra với bản ghi đã hết hạn và được xóa ở đợt sau.
  */
@@ -31,6 +33,7 @@ class AttachedFileRetention implements AttachedRetention {
     private final RetentionDatabase database;
     private final RecordTypeAliases aliases;
     private final ObjectProvider<S3Client> s3;
+    private final ObjectProvider<FilePermissionProvider> filePermissions;
     private final String bucket;
 
     AttachedFileRetention(
@@ -38,11 +41,13 @@ class AttachedFileRetention implements AttachedRetention {
             RetentionDatabase database,
             RecordTypeAliases aliases,
             ObjectProvider<S3Client> s3,
+            ObjectProvider<FilePermissionProvider> filePermissions,
             @Value("${eldercare.file.bucket:${ELDERCARE_S3_BUCKET:}}") String bucket) {
         this.jdbc = jdbc;
         this.database = database;
         this.aliases = aliases;
         this.s3 = s3;
+        this.filePermissions = filePermissions;
         this.bucket = bucket;
     }
 
@@ -58,7 +63,14 @@ class AttachedFileRetention implements AttachedRetention {
 
     @Override
     public List<Attached> attachedTo(DataRef record, RetentionKind recordKind, Instant cutoff) {
-        var types = aliases.withLegacy(record.dataType());
+        var types = Stream.concat(
+                        aliases.withLegacy(record.dataType()).stream(),
+                        filePermissions
+                                .orderedStream()
+                                .filter(p -> record.dataType().equals(p.recordType()))
+                                .map(FilePermissionProvider::ownerType))
+                .distinct()
+                .toList();
         return jdbc.query(
                 "SELECT id, attached_at FROM file WHERE owner_type IN (" + Ids.placeholders(types.size())
                         + ") AND owner_id = ?",

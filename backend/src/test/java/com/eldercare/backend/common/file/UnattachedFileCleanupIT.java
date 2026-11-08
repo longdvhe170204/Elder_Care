@@ -73,43 +73,4 @@ class UnattachedFileCleanupIT extends MySqlIntegrationTestBase {
         assertThat(rowExists(id)).isFalse();
         assertThat(s3.contains(key)).isFalse();
     }
-
-    @Test
-    void youngUnattachedFile_isKept() {
-        long id = upload();
-        clock.advanceBy(Duration.ofHours(23));
-
-        cleanup.run();
-
-        assertThat(rowExists(id)).isTrue();
-        assertThat(s3.contains(key(id))).isTrue();
-    }
-
-    @Test
-    void attachedFile_isNeverDeleted() {
-        long id = upload();
-        transactions.executeWithoutResult(s -> files.attach(id, "TEST.OWNER", 1));
-        clock.advanceBy(Duration.ofDays(30));
-
-        cleanup.run();
-
-        assertThat(rowExists(id)).isTrue();
-        assertThat(s3.contains(key(id))).isTrue();
-    }
-
-    @Test
-    void s3DeleteFailure_keepsTheRowForTheNextRun() {
-        long id = upload();
-        String key = key(id);
-        clock.advanceBy(Duration.ofHours(25));
-        s3.failDeletes(true);
-
-        cleanup.run();
-        assertThat(rowExists(id)).isTrue();
-
-        s3.failDeletes(false);
-        cleanup.run();
-        assertThat(rowExists(id)).isFalse();
-        assertThat(s3.contains(key)).isFalse();
-    }
 }

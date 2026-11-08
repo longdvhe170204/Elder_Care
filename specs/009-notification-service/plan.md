@@ -389,3 +389,11 @@ Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017
 - Form thay nội dung ngay trong khung; 409 thì báo lỗi, tải lại và về chi tiết; 422 báo tại ô ghi chú.
 - Chưa làm: "Xác nhận và tiếp nhận" trên web (chờ 007); `callReminders` ở tab Lịch sử gửi (hợp đồng có, màn chưa hiện).
 - Đã thử trên trình duyệt với backend demo: hộp thông báo thật, ghi kết quả, lần gọi bổ sung, chế độ tối, bề rộng 375px. Lượt nhắc qua proxy tạm trả dữ liệu đúng hợp đồng, vì demo chưa có hồ sơ nhân viên.
+
+## Ghi chú "Xác nhận và tiếp nhận" (2026-11-06, T021, T022, nhánh `impl/a-followup-2026-11-06`)
+
+- `UrgentTakeCharge.acknowledgeAndTakeCharge`: không có transaction ngoài; gọi `UrgentAcknowledgement.acknowledge` (transaction riêng, commit), rồi `TransactionTemplate` gọi `AlertCommandApi.acknowledge` (nguồn `M05.ALERT`) hoặc `IncidentCommandApi.acknowledge` (`M05.INCIDENT`); bản thật của 007 dùng `MANDATORY` nên chạy trong transaction thứ hai. `BusinessException` của 007 thành `takeCharge.result = REJECTED`, `errorCode`, `details` = `properties` (ví dụ `ALREADY_RECEIVED` kèm `receivedBy`, `receivedAt`); xác nhận không hoàn tác (FR-026a, Q-102).
+- Lựa chọn kỹ thuật: nguồn không phải cảnh báo, sự cố, mã nguồn không phải số, hoặc chưa có bean lệnh của 007 (develop trước khi merge 007) thì vẫn ghi xác nhận và trả `REJECTED` với `SOURCE_UNAVAILABLE` (hợp đồng chỉ có 200); thông báo đã xác nhận thì 409 `ALREADY_ACKNOWLEDGED` như `/acknowledge`, không gọi 007.
+- `canAcknowledgeAndTakeCharge` (research B-07) tính ở cả chi tiết và danh sách (app hiện nút ngay trên danh sách): Khẩn cấp chưa xác nhận; nguồn cảnh báo `NEW`/`ESCALATED` hoặc sự cố `NEW` đọc qua `AlertApi.view`, `IncidentApi.view`; người dùng có `(ALERT_HANDLING, UPDATE)` hoặc `(INCIDENT_EMERGENCY, UPDATE)` trên đối tượng nguồn. Điều kiện riêng của 007 (vai trò tiếp nhận sự cố, Quản lý viện ở cấp leo thang 2) không lặp lại ở 009: 007 kiểm khi bấm, từ chối thì `REJECTED`. Chỉ dòng Khẩn cấp chưa xác nhận mới đọc 007, nên danh sách không thêm truy vấn cho dòng khác.
+- Bản giả chung `FakeIncidentCommands` (của D) thêm `rejectNextAcknowledge(BusinessException)` để kiểm nhánh REJECTED; team-plan mục 8 ghi D xem.
+- App (T022) đã có nút từ 2026-11-01, chỉ chờ endpoint; test widget đổi mã lỗi giả sang `ALREADY_RECEIVED` cho khớp 007.

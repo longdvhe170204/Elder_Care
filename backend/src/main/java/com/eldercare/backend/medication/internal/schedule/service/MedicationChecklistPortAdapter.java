@@ -3,6 +3,7 @@ package com.eldercare.backend.medication.internal.schedule.service;
 import com.eldercare.backend.care.api.MedicationChecklistItem;
 import com.eldercare.backend.care.api.MedicationDoseChecklistPort;
 import com.eldercare.backend.care.api.ScheduleSourcePort;
+import com.eldercare.backend.care.api.spi.MedicationChecklistPort;
 import com.eldercare.backend.medication.api.MedicationScheduleApi;
 import com.eldercare.backend.medication.api.dto.DoseDisplayView;
 import java.time.Instant;
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Component;
  * Adapter implementing SPI ports for Module M04 (005): {@link MedicationDoseChecklistPort} and {@link ScheduleSourcePort}.
  */
 @Component
-public class MedicationChecklistPortAdapter implements MedicationDoseChecklistPort, ScheduleSourcePort {
+public class MedicationChecklistPortAdapter
+        implements MedicationDoseChecklistPort, ScheduleSourcePort, MedicationChecklistPort {
 
     private final MedicationScheduleApi medicationScheduleApi;
 
@@ -47,6 +49,30 @@ public class MedicationChecklistPortAdapter implements MedicationDoseChecklistPo
                 .toInstant();
         return medicationScheduleApi.byResident(residentId, from, to).stream()
                 .map(this::toItem)
+                .toList();
+    }
+
+    @Override
+    public List<DoseView> inRange(Collection<Long> residentIds, Instant from, Instant to) {
+        return residentIds.stream()
+                .flatMap(residentId -> medicationScheduleApi.byResident(residentId, from, to).stream())
+                .filter(dose -> !dose.scheduledTime().isBefore(from)
+                        && dose.scheduledTime().isBefore(to))
+                .map(dose -> new DoseView(
+                        dose.doseKey(),
+                        dose.residentId(),
+                        dose.prescriptionId(),
+                        dose.scheduledTime(),
+                        dose.windowStart(),
+                        dose.windowEnd(),
+                        dose.status().name(),
+                        dose.floorSharedDose(),
+                        dose.pendingHandoverConfirmation(),
+                        dose.awaitingRecordAfterReturn(),
+                        dose.requiresOnline(),
+                        dose.source().name(),
+                        dose.dispenseRecordId(),
+                        dose.medication().map(medication -> new MedicationSummary(medication.name()))))
                 .toList();
     }
 

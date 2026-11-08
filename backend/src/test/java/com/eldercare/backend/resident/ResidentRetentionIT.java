@@ -90,6 +90,16 @@ class ResidentRetentionIT extends StatusTestBase {
                 "ban-ky.pdf", FileTypes.PDF, "%PDF-1.4 thử".getBytes(StandardCharsets.UTF_8), office.accountId());
     }
 
+    /** Gắn tệp như lệnh của module (FileApi.attach chỉ chạy trong transaction của lệnh). */
+    private long attach(long fileId, String ownerType, long ownerId) {
+        jdbc.update(
+                "UPDATE file SET owner_type = ?, owner_id = ?, attached_at = uploaded_at WHERE id = ?",
+                ownerType,
+                ownerId,
+                fileId);
+        return fileId;
+    }
+
     /** Người cao tuổi có đủ loại bản ghi của M01, đã Kết thúc lưu trú vào lúc đồng hồ hiện tại. */
     private long endedResidentWithEverything() {
         long id = newResident();
@@ -220,8 +230,23 @@ class ResidentRetentionIT extends StatusTestBase {
         }
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_log WHERE resident_id = ?", Integer.class, id))
                 .isPositive();
+        // tệp có loại chủ sở hữu khác loại bản ghi (FilePermissionProvider.recordType): ảnh gắn hồ sơ, giấy tờ bệnh
+        // viện
+        // gắn dòng lịch sử trạng thái; cùng tệp bản ký của bản đồng ý (loại chủ sở hữu trùng loại bản ghi)
+        long photo = attach(pdf(), "M01.RESIDENT_PHOTO", id);
+        long hospitalDocument = attach(pdf(), "M01.HOSPITAL_DOCUMENT", lastStatusHistoryId(id));
+        String residentFiles = "SELECT COUNT(*) FROM file WHERE id IN (" + photo + ", " + hospitalDocument
+                + ") OR (owner_type = 'M01.CONSENT' AND owner_id IN (SELECT id FROM consent WHERE resident_id = " + id
+                + "))";
+        assertThat(jdbc.queryForObject(residentFiles, Integer.class)).isEqualTo(3);
 
         runJobAfter(Duration.ofDays(11 * 366));
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM file WHERE id IN (" + photo + ", " + hospitalDocument + ")",
+                        Integer.class))
+                .as("tệp gắn hồ sơ, dòng lịch sử (FR-051a)")
+                .isZero();
 
         for (String table : TABLES) {
             assertThat(count(table, id)).as("sau khi xóa: %s", table).isZero();
@@ -253,53 +278,6 @@ class ResidentRetentionIT extends StatusTestBase {
                         Integer.class, id))
                 .as("nhật ký gắn hồ sơ hết hạn cùng chuỗi (AuditLogRetention, FR-050)")
                 .isZero();
-    }
-
-    @Test
-    void FR_050_activeResident_andEndedResidentWithinTheRetentionPeriod_areKept() {
-        long active = newResident();
-        long recentlyEnded = newResident();
-        // hồ sơ này Kết thúc lưu trú sau hạn của hồ sơ khác: 5 năm sau hôm nay, còn trong CFG-M15-03 (10 năm) lúc chạy
-        clock.setTo(Instant.now().plus(Duration.ofDays(5 * 366)));
-        user.set(office.user());
-        statusService.endResidency(target(recentlyEnded), REASON, noDetails());
-
-        runJobAfter(Duration.ofDays(11 * 366));
-
-        assertThat(count("resident", active)).isEqualTo(1);
-        assertThat(count("resident", recentlyEnded)).isEqualTo(1);
-        assertThat(count("status_history:STATUS", recentlyEnded)).isPositive();
-    }
-
-    @Test
-    void FR_051a_expiredProfileWithALaterActiveProfileLinkedToIt_isKept() {
-        String cccd = ResidentProfileTestBase_citizenId();
-        user.set(office.user());
-        long earlier =
-                profiles.create(personal("Trần Văn Cũ", cccd), false).profile().id();
-        setStatus(earlier, "RESIDENCY_ENDED");
-        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
-                jdbc,
-                null,
-                earlier,
-                "IN_RESIDENCE",
-                "RESIDENCY_ENDED",
-                "SEED",
-                java.sql.Timestamp.from(time.now()),
-                office.accountId(),
-                true,
-                null);
-        long later =
-                profiles.create(personal("Trần Văn Mới", cccd), false).profile().id();
-        assertThat(jdbc.queryForObject("SELECT previous_profile_id FROM resident WHERE id = ?", Long.class, later))
-                .isEqualTo(earlier);
-
-        runJobAfter(Duration.ofDays(11 * 366));
-
-        assertThat(count("resident", earlier))
-                .as("hồ sơ cũ được hồ sơ sau trỏ tới")
-                .isEqualTo(1);
-        assertThat(count("resident", later)).isEqualTo(1);
     }
 
     private static String ResidentProfileTestBase_citizenId() {

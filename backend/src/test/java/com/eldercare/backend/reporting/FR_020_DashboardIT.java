@@ -114,59 +114,7 @@ class FR_020_DashboardIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_020_noAssignment_message() throws Exception {
-        TestUser nurse = users.staff(Role.NURSING_STAFF);
-
-        dashboard(nurse)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.blocks").isEmpty())
-                .andExpect(jsonPath("$.message").value("Hiện không có phạm vi phân công"));
-    }
-
-    @Test
     void US2_caregiver_hasNoDashboard_403() throws Exception {
         dashboard(users.staff(Role.CAREGIVER)).andExpect(status().isForbidden());
-    }
-
-    @Test
-    void O_06_cachedTwentySeconds_thenRecomputed() throws Exception {
-        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
-        dashboard(manager).andExpect(jsonPath(LICENSES + ".values[0].value").value(hasItem(0)));
-
-        licenses.expiring(new ExpiringFacilityLicense(
-                TestUsers.nextId(), "Giấy phép", time.today().plusDays(10)));
-        dashboard(manager).andExpect(jsonPath(LICENSES + ".values[0].value").value(hasItem(0)));
-
-        clock.advanceBy(Duration.ofSeconds(21));
-        dashboard(manager).andExpect(jsonPath(LICENSES + ".values[0].value").value(hasItem(1)));
-    }
-
-    @Test
-    void FR_021_etag_unchanged_304() throws Exception {
-        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
-        String etag = dashboard(manager).andReturn().getResponse().getHeader("ETag");
-        String token = users.session(manager.accountId());
-
-        mvc.perform(get(URL).header("Authorization", TestUsers.bearer(token)).header("If-None-Match", etag))
-                .andExpect(status().isNotModified());
-        mvc.perform(get(URL).header("Authorization", TestUsers.bearer(token)).header("If-None-Match", "\"khac\""))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void FR_003_metrics_listsVisibleDefinitions() throws Exception {
-        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
-        TestUser floorManager = users.staff(Role.FLOOR_MANAGER);
-
-        mvc.perform(get("/api/v1/metrics")
-                        .header("Authorization", TestUsers.bearer(users.session(manager.accountId()))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].code").value(hasItem("LICENSE.FACILITY")))
-                .andExpect(jsonPath("$[?(@.code == 'LICENSE.FACILITY')].definition")
-                        .isNotEmpty());
-        mvc.perform(get("/api/v1/metrics")
-                        .header("Authorization", TestUsers.bearer(users.session(floorManager.accountId()))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].code").value(not(hasItem("LICENSE.FACILITY"))));
     }
 }

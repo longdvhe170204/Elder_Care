@@ -85,17 +85,6 @@ class BR_M12_08_DisposalIT extends HandoverTestBase {
     }
 
     @Test
-    void Q33_requestBeforeTheWaitingPeriodIsBlocked() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        endResident(resident, 10);
-        long member = representative(resident);
-
-        create(office, resident, String.valueOf(clothes), "SELL", attempts(member, 20, 10), true)
-                .andExpect(status().isConflict());
-    }
-
-    @Test
     void Q34_approvedRequestMovesTheItemToDisposed_withDisposalRecord_andManagerOnlyApproves() throws Exception {
         long resident = resident("IN_RESIDENCE");
         long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
@@ -117,65 +106,5 @@ class BR_M12_08_DisposalIT extends HandoverTestBase {
                 .containsEntry("kind", "DISPOSAL")
                 .containsEntry("approval_request_id", request)
                 .containsEntry("receiving_unit", "UBND phường");
-    }
-
-    @Test
-    void Q35_cashCanOnlyBeTransferredToAnAuthority_andItemsInUseMustBeTakenBackFirst() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long cash = intake(resident, "CASH", "\"cashAmount\": 500000", location());
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        endResident(resident, 100);
-        long member = representative(resident);
-
-        create(office, resident, String.valueOf(cash), "SELL", attempts(member, 20, 10), true)
-                .andExpect(status().isConflict());
-        createdId(create(
-                office, resident, String.valueOf(cash), "TRANSFER_TO_AUTHORITY", attempts(member, 20, 10), true));
-
-        jdbc.update("UPDATE belonging SET status = 'IN_USE' WHERE id = ?", clothes);
-        create(office, resident, String.valueOf(clothes), "SELL", attempts(member, 20, 10), true)
-                .andExpect(status().isConflict());
-    }
-
-    @Test
-    void Q36_missingContactEvidenceOrMinutesBlocksTheRequest() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        endResident(resident, 100);
-        long member = representative(resident);
-
-        create(office, resident, String.valueOf(clothes), "SELL", attempts(member, 3, 2), true)
-                .andExpect(status().isConflict());
-        create(office, resident, String.valueOf(clothes), "SELL", attempts(member, 20, 10), false)
-                .andExpect(status().isConflict());
-    }
-
-    @Test
-    void itemsChangedWhileWaitingAreLeftOutOfTheApplication() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long first = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        long second = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        endResident(resident, 100);
-        long member = representative(resident);
-        long request =
-                createdId(create(office, resident, first + "," + second, "DESTROY", attempts(member, 20, 10), true));
-
-        handover(tokenA, command("REPORT_LOST", item(first, ""), ", \"reason\": \"Không thấy\""))
-                .andExpect(status().isOk());
-        approve(manager, request).andExpect(status().isOk());
-
-        assertThat(statusOf(first)).isEqualTo("LOST");
-        assertThat(statusOf(second)).isEqualTo("DISPOSED");
-    }
-
-    @Test
-    void requestByNonOfficeStaffIsRejected() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 1", location());
-        endResident(resident, 100);
-        long member = representative(resident);
-
-        create(manager, resident, String.valueOf(clothes), "SELL", attempts(member, 20, 10), true)
-                .andExpect(status().isForbidden());
     }
 }

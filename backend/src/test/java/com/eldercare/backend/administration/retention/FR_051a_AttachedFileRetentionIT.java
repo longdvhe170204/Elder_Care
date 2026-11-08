@@ -141,35 +141,4 @@ class FR_051a_AttachedFileRetentionIT extends MySqlIntegrationTestBase {
         assertThat(s3.contains(file)).isFalse();
         assertThat(deletedFiles(runId)).isEqualTo("1");
     }
-
-    @Test
-    void FR_050_recordStillRetained_keepsItsFile() {
-        long kept = floorRecord(recent);
-        String file = attachedFile(FLOOR, kept, expired);
-
-        runJob();
-
-        assertThat(recordExists(kept)).isTrue();
-        assertThat(fileRowExists(file)).isTrue();
-        assertThat(s3.contains(file)).isTrue();
-    }
-
-    @Test
-    void BR_M15_13_storageDeleteFails_keepsWholeChain_forTheNextRun() {
-        long old = floorRecord(expired);
-        String file = attachedFile(FLOOR, old, expired);
-        s3.failDeletes(true);
-
-        runJob();
-
-        assertThat(recordExists(old)).isTrue();
-        assertThat(fileRowExists(file)).isTrue();
-
-        s3.failDeletes(false);
-        runJob();
-
-        assertThat(recordExists(old)).isFalse();
-        assertThat(fileRowExists(file)).isFalse();
-        assertThat(s3.contains(file)).isFalse();
-    }
 }

@@ -30,6 +30,14 @@
 
 - **Q-336**: mốc nghĩa vụ khi bán trú chuyển nội trú là ngày hiệu lực của phụ lục hoặc ngày bắt đầu hợp đồng nội trú mới. Sửa FR-001a, FR-002.
 
+### Cập nhật 2026-11-06 (rà soát theo luồng nghiệp vụ; chờ chủ dự án xác nhận)
+
+- **Khai báo gia hạn đã lập mà chưa nộp** (FR-002, FR-006, FR-011): vẫn là việc cần làm. Hạn là hạn của khai báo (hết ngày hết hạn của khai báo cũ); chưa quá hạn hiện "Sắp hết hạn", quá hạn hiện "Quá hạn"; Hành chính được nhắc mỗi ngày, Quản lý viện một lần; được đếm vào số liệu FR-011. Trước đây khai báo gia hạn không gắn nghĩa vụ nên nằm ngoài danh sách và nhắc.
+- **Hợp đồng nội trú mới nối tiếp hợp đồng nội trú** (FR-007, BR-M02-14, Q-241): coi như gia hạn khi hợp đồng liền trước kết thúc đúng ngày hôm trước và người đó chỉ có khai báo Thông báo lưu trú; Hành chính được nhắc lập khai báo mới như khi áp dụng phụ lục gia hạn.
+- **Hợp đồng Chấm dứt trước hạn** (FR-001, Q-241): khi hợp đồng sau bắt đầu trong khoảng đã ghi của hợp đồng cũ, hợp đồng cũ chỉ tính tới ngày liền trước hợp đồng sau, để tổng thời gian lưu trú không bị cộng thừa hay báo lỗi.
+- **Khai báo Hết hạn của người đã Kết thúc lưu trú, Qua đời** (FR-006, BR-M02-12): vẫn chuyển Hết hạn (để còn khai báo xóa) nhưng không báo Quản lý viện và không nhắc lập khai báo mới.
+- Nút "Lập khai báo gia hạn" trên màn chỉ hiện khi còn Đăng ký tạm trú Đã xác nhận (FR-005); Hết hạn thì lập khai báo thường.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 02, mục 6.10; UC-80, UC-81; nhóm chức năng "Lưu trú và tạm trú", 1.6):

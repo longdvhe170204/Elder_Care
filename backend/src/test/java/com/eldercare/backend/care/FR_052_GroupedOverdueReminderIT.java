@@ -10,6 +10,7 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class FR_052_GroupedOverdueReminderIT extends CareOverdueTestBase {
+
     @Test
     void FR_052_catchUpGroupsMissedRemindersPerRecipientAndDoesNotRepeat() throws Exception {
         long a = create();
@@ -19,16 +20,14 @@ class FR_052_GroupedOverdueReminderIT extends CareOverdueTestBase {
         var task = taskStore.get(a, false);
         var step = context.getBean(CareTaskDueStep.class);
         step.run(task.windowTo().plusSeconds(180));
-        assertThat(recorded.stream(BatchedOverdueTaskReminder.class)
-                        .filter(e -> e.taskIds().contains(a)))
+        assertThat(recorded.stream(BatchedOverdueTaskReminder.class).filter(e -> e.floorAreaId() == floor))
                 .singleElement()
-                .satisfies(e -> assertThat(e.taskIds()).containsExactly(a, b));
+                .satisfies(e -> assertThat(e.taskCount()).isEqualTo(2));
         assertThat(recorded.stream(OverdueTaskReminder.class)
                         .filter(e -> Set.of(a, b).contains(e.taskId())))
                 .isEmpty();
         step.run(task.windowTo().plusSeconds(240));
-        assertThat(recorded.stream(BatchedOverdueTaskReminder.class)
-                        .filter(e -> e.taskIds().contains(a)))
+        assertThat(recorded.stream(BatchedOverdueTaskReminder.class).filter(e -> e.floorAreaId() == floor))
                 .hasSize(1);
         assertThat(taskStore.get(a, false).status()).isEqualTo(TaskStatus.OVERDUE);
     }

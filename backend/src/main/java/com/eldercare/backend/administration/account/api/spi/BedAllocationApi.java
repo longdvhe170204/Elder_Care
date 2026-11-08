@@ -16,4 +16,12 @@ public interface BedAllocationApi {
 
     /** Người cao tuổi có phân bổ đang hiệu lực trong tập tầng/khu vực, phòng của bộ lọc tại thời điểm đã cho. */
     Set<Long> residentsIn(ScopeFilter scope, Instant at);
+
+    /**
+     * Tầng/khu vực của khu nghỉ bán trú của người cao tuổi không có phân bổ giường đang hiệu lực tại thời điểm đã cho (Q-403,
+     * 014 FR-036: "tầng của người đó" của người bán trú); rỗng khi không phải người bán trú hoặc nguồn chưa cài.
+     */
+    default Optional<Long> dayCareFloorAt(long residentId, Instant at) {
+        return Optional.empty();
+    }
 }

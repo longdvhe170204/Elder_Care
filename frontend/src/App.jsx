@@ -10,10 +10,13 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
 import { OverdueTasksPage } from '@/features/care-tasks/OverdueTasksPage'
+import { TimetablePage } from '@/features/care-tasks/TimetablePage'
 import { CarePlanPage } from '@/features/care-tasks/CarePlanPage'
 import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPage'
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
 import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
+import { ActivitySessionsPage } from '@/features/activities/ActivitySessionsPage'
+import { QualityCheckPage } from '@/features/quality-checks/QualityCheckPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
@@ -22,6 +25,7 @@ import { PendingReviewPage } from '@/features/pending-review/PendingReviewPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
+import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
@@ -56,16 +60,20 @@ const PAGES = {
   staff: StaffPage,
   'care-tasks': CareChecklistPage,
   'overdue-care-tasks': OverdueTasksPage,
+  'care-timetable': TimetablePage,
   'care-plans': CarePlanPage,
   'care-task-planning': ShiftTaskPlanningPage,
   'day-care-attendance': DayCareAttendancePage,
   'care-catalogs': CareCatalogPage,
+  'activity-sessions': ActivitySessionsPage,
+  'quality-checks': QualityCheckPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
   'health-catalog': HealthCatalogPage,
   alerts: AlertsPage,
   handovers: HandoverPage,
+  'residence-registrations': ResidenceRegistrationPage,
   relatives: RelativesPage,
   'family-members': FamilyMembersPage,
   pickups: PickupPage,

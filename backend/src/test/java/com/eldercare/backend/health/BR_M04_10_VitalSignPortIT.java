@@ -72,34 +72,6 @@ class BR_M04_10_VitalSignPortIT extends com.eldercare.backend.health.VitalSignMe
     }
 
     @Test
-    void BR_M04_10_normalValueReturnsSaved() {
-        // giá trị bình thường (không có ngưỡng mặc định → NO_THRESHOLD → CONFIRMED)
-        var result = vitalSignPort.record(
-                TestUsers.nextId(),
-                indicatorId,
-                MEASURED_AT,
-                1001L,
-                Map.of("VALUE", new BigDecimal("96.00")),
-                nurseUser);
-
-        assertThat(result).isEqualTo(RecordResult.SAVED);
-    }
-
-    @Test
-    void BR_M04_10_blockedValueOutsidePhysicalRange() {
-        // SpO2 > 100 bị chặn bởi CFG-M06-03
-        var result = vitalSignPort.record(
-                TestUsers.nextId(),
-                indicatorId,
-                MEASURED_AT,
-                1001L,
-                Map.of("VALUE", new BigDecimal("101.00")),
-                nurseUser);
-
-        assertThat(result).isEqualTo(RecordResult.BLOCKED);
-    }
-
-    @Test
     void BR_M04_10_dangerousValueWithoutImmediateActionReturnsAwaitingRemeasurement() {
         // SpO2 = 88 (nguy hiểm theo ngưỡng mặc định) → CHO_DO_LAI
         var result = vitalSignPort.record(

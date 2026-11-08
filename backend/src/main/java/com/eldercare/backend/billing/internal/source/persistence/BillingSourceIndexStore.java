@@ -1,8 +1,8 @@
 package com.eldercare.backend.billing.internal.source.persistence;
 
+import com.eldercare.backend.billing.internal.source.domain.BillingSourceKey;
 import com.eldercare.backend.billing.internal.source.domain.IndexedBillingSource;
 import com.eldercare.backend.billing.internal.source.domain.IndexedSourceMatch;
-import com.eldercare.backend.billing.internal.source.domain.BillingSourceKey;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;

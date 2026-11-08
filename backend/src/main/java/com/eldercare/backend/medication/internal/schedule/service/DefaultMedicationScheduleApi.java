@@ -7,7 +7,8 @@ import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
-import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.handover.domain.MedicationHandoverDose;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverDoseRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,17 +27,17 @@ public class DefaultMedicationScheduleApi implements MedicationScheduleApi {
 
     private final MedicationScheduleService scheduleService;
     private final MedicationRepository medicationRepository;
-    private final MedicationDoseRepository doseRepository;
+    private final MedicationHandoverDoseRepository handoverDoseRepository;
     private final DoseResultRepository doseResultRepository;
 
     public DefaultMedicationScheduleApi(
             MedicationScheduleService scheduleService,
             MedicationRepository medicationRepository,
-            MedicationDoseRepository doseRepository,
+            MedicationHandoverDoseRepository handoverDoseRepository,
             DoseResultRepository doseResultRepository) {
         this.scheduleService = scheduleService;
         this.medicationRepository = medicationRepository;
-        this.doseRepository = doseRepository;
+        this.handoverDoseRepository = handoverDoseRepository;
         this.doseResultRepository = doseResultRepository;
     }
 
@@ -71,7 +72,9 @@ public class DefaultMedicationScheduleApi implements MedicationScheduleApi {
                     false,
                     slot.specialControl(),
                     slot.medicationSource(),
-                    Optional.ofNullable(slot.materializedDoseId()),
+                    Optional.ofNullable(slot.materializedDoseId())
+                            .flatMap(handoverDoseRepository::findByDoseId)
+                            .map(MedicationHandoverDose::getHandoverId),
                     medSummary));
         }
 

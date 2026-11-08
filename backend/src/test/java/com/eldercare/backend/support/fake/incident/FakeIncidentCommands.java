@@ -1,6 +1,7 @@
 package com.eldercare.backend.support.fake.incident;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.incident.api.IncidentCommandApi;
 import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ public class FakeIncidentCommands implements IncidentCommandApi {
     private final List<Long> incidents = new ArrayList<>();
     private final List<Long> alerts = new ArrayList<>();
     private final List<String> progressions = new ArrayList<>();
+    private BusinessException nextRejection;
 
     public void nextId(long id) {
         nextId = id;
@@ -31,11 +33,24 @@ public class FakeIncidentCommands implements IncidentCommandApi {
 
     @Override
     public void acknowledge(long id, CurrentUser user) {
+        throwRejection();
         incidents.add(id);
     }
 
     public void acknowledgeAlert(long id, CurrentUser user) {
+        throwRejection();
         alerts.add(id);
+    }
+
+    /** Lần tiếp nhận kế tiếp bị từ chối như bản thật (009 FR-026a: kiểm nhánh REJECTED của "Xác nhận và tiếp nhận"). */
+    public void rejectNextAcknowledge(BusinessException rejection) {
+        nextRejection = rejection;
+    }
+
+    private void throwRejection() {
+        BusinessException rejection = nextRejection;
+        nextRejection = null;
+        if (rejection != null) throw rejection;
     }
 
     public List<RecordIncidentCommand> recorded() {

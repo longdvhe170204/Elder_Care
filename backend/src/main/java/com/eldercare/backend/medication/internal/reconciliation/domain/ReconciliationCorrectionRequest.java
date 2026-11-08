@@ -1,57 +1,33 @@
 package com.eldercare.backend.medication.internal.reconciliation.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * Medication reconciliation correction request entity (FR-039, BR-M07-17).
+ * Đề nghị đính chính phiếu đối chiếu đã xác nhận (BR-M07-17): dòng {@code simple_record} loại
+ * {@code M07.RECONCILIATION_CORRECTION_REQUEST} (006 T069, {@code V006_98}).
  */
-@Entity
-@DataGroup(DataGroup.Group.BUSINESS)
-@Table(name = "reconciliation_correction_request")
 public class ReconciliationCorrectionRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "reconciliation_id", nullable = false)
     private Long reconciliationId;
 
-    @Column(name = "corrected_content_json", columnDefinition = "json", nullable = false)
     private String correctedContentJson;
 
-    @Column(nullable = false, length = 2000)
     private String reason;
 
-    @Column(name = "created_by_id", nullable = false)
     private Long createdById;
 
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
     private ReconciliationCorrectionStatus status = ReconciliationCorrectionStatus.PENDING_CONFIRMATION;
 
-    @Column(name = "confirmed_by_id")
     private Long confirmedById;
 
-    @Column(name = "confirmed_at")
     private Instant confirmedAt;
 
-    @Column(name = "correction_id")
     private Long correctionId;
 
-    @Column(name = "return_reason", length = 2000)
     private String returnReason;
 
     protected ReconciliationCorrectionRequest() {}
@@ -83,6 +59,43 @@ public class ReconciliationCorrectionRequest {
         this.status = ReconciliationCorrectionStatus.REJECTED;
         this.confirmedById = rejectedById;
         this.confirmedAt = rejectedAt;
+    }
+
+    private int version;
+
+    /** Gán id, phiên bản của dòng bảng chung sau khi đọc hoặc ghi. */
+    public void restoreRow(long id, int version) {
+        this.id = id;
+        this.version = version;
+    }
+
+    public static ReconciliationCorrectionRequest restore(
+            ReconciliationCorrectionStatus status, Instant createdAt, ReconciliationCorrectionRequestContent c) {
+        ReconciliationCorrectionRequest r = new ReconciliationCorrectionRequest(
+                c.reconciliationId(), c.correctedContentJson(), c.reason(), c.createdById(), createdAt, createdAt);
+        r.status = status;
+        r.confirmedById = c.confirmedById();
+        r.confirmedAt = c.confirmedAt();
+        r.correctionId = c.correctionId();
+        r.returnReason = c.returnReason();
+        return r;
+    }
+
+    public ReconciliationCorrectionRequestContent content() {
+        return new ReconciliationCorrectionRequestContent(
+                reconciliationId,
+                correctedContentJson,
+                reason,
+                createdById,
+                confirmedById,
+                confirmedAt,
+                correctionId,
+                returnReason,
+                null);
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     // --- Getters ---

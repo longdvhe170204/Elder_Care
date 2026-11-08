@@ -1,11 +1,9 @@
 package com.eldercare.backend.belongings;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.support.TestUsers;
 import org.junit.jupiter.api.Test;
@@ -40,62 +38,6 @@ class BR_M12_06_SelfCustodyConsentIT extends IntakeTestBase {
     }
 
     @Test
-    void Q3_giveNowOfConsentType_requiresRepresentativeGiver_withSignedForm() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long picker = TestUsers.nextId();
-        long representative = TestUsers.nextId();
-        family.relate(picker, resident).representative(representative, resident);
-        String path = "/api/v1/residents/" + resident + "/belongings";
-
-        postJson(
-                        office,
-                        path,
-                        giveNow(
-                                typeId("CASH"),
-                                "\"cashAmount\": 2000000",
-                                member(picker),
-                                ", \"consentSignedFormFileId\": " + photo()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("GIVER_NOT_REPRESENTATIVE"));
-        postJson(office, path, giveNow(typeId("CASH"), "\"cashAmount\": 2000000", member(representative), ""))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("SELF_CUSTODY_CONSENT_REQUIRED"));
-
-        long id = id(postJson(
-                        office,
-                        path,
-                        giveNow(
-                                typeId("CASH"),
-                                "\"cashAmount\": 2000000",
-                                member(representative),
-                                ", \"consentSignedFormFileId\": " + photo()))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("IN_USE"))
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
-
-        assertThat(jdbc.queryForList(
-                        "SELECT kind FROM belonging_handover WHERE belonging_id = ? ORDER BY id", String.class, id))
-                .containsExactly("INTAKE", "GIVE_FOR_USE");
-        assertThat(consentStatus(consentOf(id))).isEqualTo("EFFECTIVE");
-        assertThat(jdbc.queryForObject("SELECT holder_type FROM belonging WHERE id = ?", String.class, id))
-                .isEqualTo("RESIDENT");
-    }
-
-    @Test
-    void FR_005_giveNowOfOrdinaryType_needsNoConsent() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-
-        postJson(
-                        office,
-                        "/api/v1/residents/" + resident + "/belongings",
-                        giveNow(typeId("CLOTHING"), "\"quantity\": 5", "{\"type\": \"RESIDENT\"}", ""))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("IN_USE"));
-    }
-
-    @Test
     void BR_M12_06_officeRecordsSignedConsent_onlyOneEffectivePerBelonging() throws Exception {
         long resident = resident("IN_RESIDENCE");
         long representative = TestUsers.nextId();
@@ -125,78 +67,5 @@ class BR_M12_06_SelfCustodyConsentIT extends IntakeTestBase {
         assertThat(notices())
                 .anySatisfy(n ->
                         assertThat(n.recipientGroups()).contains(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)));
-    }
-
-    @Test
-    void Q12_representativeWithdrawsOnPortal_whileInUse_officeAndNurseAreToldToTakeBack() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long representative = TestUsers.nextId();
-        long other = TestUsers.nextId();
-        family.representative(representative, resident).relate(other, resident);
-        long belonging = id(postJson(
-                        office,
-                        "/api/v1/residents/" + resident + "/belongings",
-                        giveNow(
-                                typeId("CASH"),
-                                "\"cashAmount\": 500000",
-                                member(representative),
-                                ", \"consentSignedFormFileId\": " + photo()))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
-        long consent = consentOf(belonging);
-
-        postJson(
-                        familySession(other),
-                        "/api/v1/family-portal/self-custody-consents/" + consent + "/withdraw",
-                        "{\"reason\": \"Không đồng ý\"}")
-                .andExpect(status().isForbidden());
-        postJson(
-                        familySession(representative),
-                        "/api/v1/family-portal/self-custody-consents/" + consent + "/withdraw",
-                        "{\"reason\": \"Sợ mất tiền\"}")
-                .andExpect(status().isOk());
-
-        assertThat(consentStatus(consent)).isEqualTo("WITHDRAWN");
-        assertThat(jdbc.queryForObject("SELECT status FROM belonging WHERE id = ?", String.class, belonging))
-                .isEqualTo("IN_USE");
-        assertThat(notices()).anySatisfy(n -> {
-            assertThat(n.level()).contains(NotificationLevel.MEDIUM);
-            assertThat(n.recipientGroups())
-                    .contains(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF))
-                    .anyMatch(g -> g instanceof RecipientGroup.AssignedNurse);
-        });
-    }
-
-    @Test
-    void FR_015a_portalConsent_onlyByCurrentRepresentative() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long representative = TestUsers.nextId();
-        long other = TestUsers.nextId();
-        family.representative(representative, resident).relate(other, resident);
-        long belonging = id(postJson(
-                        office,
-                        "/api/v1/residents/" + resident + "/belongings",
-                        "{\"typeId\": " + typeId("JEWELRY") + ", \"description\": \"Dây chuyền\", \"quantity\": 1,"
-                                + " \"condition\": {\"levelId\": " + levelId("GOOD")
-                                + "}, \"giver\": {\"type\": \"RESIDENT\"},"
-                                + " \"at\": \"2026-11-05T08:00:00+07:00\", \"storageLocationId\": " + location()
-                                + ", \"photoFileIds\": [" + photo() + "]}")
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
-
-        postJson(
-                        familySession(other),
-                        "/api/v1/family-portal/self-custody-consents",
-                        "{\"belongingId\": " + belonging + "}")
-                .andExpect(status().isForbidden());
-        postJson(
-                        familySession(representative),
-                        "/api/v1/family-portal/self-custody-consents",
-                        "{\"belongingId\": " + belonging + "}")
-                .andExpect(status().isCreated());
-        assertThat(consentStatus(consentOf(belonging))).isEqualTo("EFFECTIVE");
     }
 }

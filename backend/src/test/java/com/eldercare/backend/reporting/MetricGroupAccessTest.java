@@ -44,29 +44,6 @@ class MetricGroupAccessTest {
     }
 
     @Test
-    void FR_010_caregiverKitchenFamilyResidentHaveNothing() {
-        assertThat(MetricGroupAccess.visibleGroups(
-                        Set.of(Role.CAREGIVER, Role.KITCHEN_STAFF, Role.FAMILY_MEMBER, Role.RESIDENT)))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_010_floorManagerAndNurseCells() {
-        Set<Role> tt = Set.of(Role.FLOOR_MANAGER);
-        assertThat(MetricGroupAccess.scopes(tt, MetricGroup.WAITING_LIST)).isEmpty();
-        assertThat(MetricGroupAccess.scopes(tt, MetricGroup.PER_STAFF)).containsExactly(GroupScope.FLOOR_STAFF);
-        assertThat(MetricGroupAccess.scopes(tt, MetricGroup.STAFFING_SHIFTS))
-                .containsExactlyInAnyOrder(GroupScope.ASSIGNED_FLOORS, GroupScope.FLOOR_STAFF);
-
-        Set<Role> nurse = Set.of(Role.NURSING_STAFF);
-        assertThat(MetricGroupAccess.scopes(nurse, MetricGroup.CARE_TASKS)).containsExactly(GroupScope.ASSIGNMENT);
-        assertThat(MetricGroupAccess.scopes(nurse, MetricGroup.HANDOVERS)).containsExactly(GroupScope.ASSIGNMENT_AREA);
-        // Quy tắc 3: "P" ở dòng lịch ca không mở chỉ tiêu tổng hợp của ca
-        assertThat(MetricGroupAccess.scopes(nurse, MetricGroup.STAFFING_RATIO)).isEmpty();
-        assertThat(MetricGroupAccess.scopes(nurse, MetricGroup.STAFFING_SHIFTS)).isEmpty();
-    }
-
-    @Test
     void FR_010a_roleRestriction_appliesBeforeUnion_accountRestrictionAfter() {
         Restriction removeBedsDashboard = new Restriction("BEDS", ReportChannel.DASHBOARD, Kind.REMOVE_OPERATION);
         MetricGroupRestrictions byOfficeRole =

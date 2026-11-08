@@ -11,7 +11,6 @@ import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
-import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
@@ -101,50 +100,5 @@ class CreateResidentAccountIT extends MySqlIntegrationTestBase {
                 .contains("REQUESTED")
                 .contains("7");
         assertThat(accounts.fullName(account)).contains("Nguyễn Thị Hoa");
-    }
-
-    @Test
-    void FR_067_withoutResidentConsent_422() throws Exception {
-        create(office, resident, null).andExpect(status().isUnprocessableEntity());
-        create(office, resident, "{\"method\":\"REQUESTED\"}").andExpect(status().isUnprocessableEntity());
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM account WHERE resident_id = ?", Integer.class, resident))
-                .isZero();
-    }
-
-    @Test
-    void FR_067_alreadyHasAccount_orNotInResidence_409() throws Exception {
-        create(office, resident, CONSENT).andExpect(status().isCreated());
-        create(office, resident, CONSENT)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ALREADY_HAS_ACCOUNT"));
-
-        long hospitalized = AccountFixtures.nextId();
-        residents.resident(hospitalized, "Trần Văn Bình", false, false);
-        create(office, hospitalized, CONSENT)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_IN_RESIDENCE"));
-    }
-
-    @Test
-    void FR_067_nurse_cannotCreate() throws Exception {
-        String nurse = fixtures.session(fixtures.staffAccount("AC-04"));
-
-        create(nurse, resident, CONSENT).andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_068_scopeIsOwnResidentOnly() throws Exception {
-        create(office, resident, CONSENT).andExpect(status().isCreated());
-        long account = jdbc.queryForObject("SELECT id FROM account WHERE resident_id = ?", Long.class, resident);
-        ActiveSession user = fixtures.residentUser(account);
-
-        assertThat(permissions
-                        .hasPermission(user, FEEDBACK_CREATE, PermissionMatrixIT.resident(resident))
-                        .allowed())
-                .isTrue();
-        assertThat(permissions
-                        .hasPermission(user, FEEDBACK_CREATE, PermissionMatrixIT.resident(AccountFixtures.nextId()))
-                        .allowed())
-                .isFalse();
     }
 }

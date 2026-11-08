@@ -185,6 +185,19 @@ public class CarePlanStore {
                 id);
     }
 
+    /** FR-003 hai dòng cuối: người cao tuổi chuyển trạng thái cuối. */
+    public void endForFinalStatus(CarePlan plan, LocalDate on) {
+        if (plan.status() == CarePlanStatus.EFFECTIVE)
+            jdbc.update(
+                    "UPDATE care_plan SET status='EXPIRED',effective_to=GREATEST(effective_from,?),end_reason='FINAL_STATUS',version=version+1 WHERE id=? AND status='EFFECTIVE'",
+                    on,
+                    plan.id());
+        else
+            jdbc.update(
+                    "UPDATE care_plan SET status='CANCELLED',end_reason='FINAL_STATUS',reminded_at=NULL,escalated_at=NULL,version=version+1 WHERE id=? AND status IN('DRAFT','PENDING_APPROVAL','PENDING_EFFECT')",
+                    plan.id());
+    }
+
     public void activate(long id) {
         jdbc.update(
                 "UPDATE care_plan SET status='EFFECTIVE',version=version+1 WHERE id=? AND status='PENDING_EFFECT'", id);

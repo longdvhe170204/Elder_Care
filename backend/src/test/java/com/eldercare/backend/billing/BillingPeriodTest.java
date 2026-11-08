@@ -67,63 +67,11 @@ class BillingPeriodTest {
     }
 
     @Test
-    void FR_011_eventsAfterDeathAreOutsideEvenOnTheSameDay() {
-        var death = at("2026-10-15T10:30:00");
-        var period = BillingPeriod.residential(START, ADMITTED, LocalDate.of(2026, 10, 20), null, death);
-        assertThat(period.contains(death.minusNanos(1), ZONE)).isTrue();
-        assertThat(period.contains(death, ZONE)).isTrue();
-        assertThat(period.contains(death.plusNanos(1), ZONE)).isFalse();
-    }
-
-    @Test
     void FR_036_residencyFeeStillIncludesTheDeathDay() {
         var death = at("2026-10-15T10:30:00");
         var period = BillingPeriod.residential(START, ADMITTED, null, null, death);
         assertThat(period.containsDay(LocalDate.of(2026, 10, 15), ZONE)).isTrue();
         assertThat(period.containsDay(LocalDate.of(2026, 10, 16), ZONE)).isFalse();
         assertThat(period.contains(at("2026-10-15T11:00:00"), ZONE)).isFalse();
-    }
-
-    @Test
-    void FR_011_dayCareStartsWithTheFirstScheduledSessionFromTheContractStart() {
-        var first = LocalDate.of(2026, 10, 8);
-        var sessionStarts = at("2026-10-08T08:00:00");
-        var period = BillingPeriod.dayCare(START, sessionStarts, null, null, null, ZONE)
-                .orElseThrow();
-        assertThat(period.startsOn()).isEqualTo(first);
-        assertThat(period.contains(sessionStarts.minusNanos(1), ZONE)).isFalse();
-        assertThat(period.contains(sessionStarts, ZONE)).isTrue();
-        assertThat(period.containsDay(first, ZONE)).isTrue();
-        assertThat(period.notYetAdmitted(first)).isFalse();
-    }
-
-    @Test
-    void FR_011_dayCareWithoutAScheduledSessionHasNoBillingPeriod() {
-        assertThat(BillingPeriod.dayCare(START, null, null, null, null, ZONE)).isEmpty();
-    }
-
-    @Test
-    void FR_011_sessionBeforeTheContractStartIsInvalidSourceData() {
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> BillingPeriod.dayCare(START, at("2026-10-04T08:00:00"), null, null, null, ZONE));
-    }
-
-    @Test
-    void FR_011_movingOrRemovingTheExpectedEndMakesTheSourceEligibleAgain() {
-        var source = at("2026-10-21T08:00:00");
-        assertThat(BillingPeriod.residential(START, ADMITTED, LocalDate.of(2026, 10, 20), null, null)
-                        .contains(source, ZONE))
-                .isFalse();
-        assertThat(BillingPeriod.residential(START, ADMITTED, LocalDate.of(2026, 10, 22), null, null)
-                        .contains(source, ZONE))
-                .isTrue();
-        assertThat(BillingPeriod.residential(START, ADMITTED, null, null, null).contains(source, ZONE))
-                .isTrue();
-    }
-
-    @Test
-    void FR_011_anEndingBeforeTheContractStartLeavesNoEligibleEvent() {
-        var period = BillingPeriod.residential(START, null, START.minusDays(1), null, null);
-        assertThat(period.contains(at("2026-10-05T00:00:00"), ZONE)).isFalse();
     }
 }

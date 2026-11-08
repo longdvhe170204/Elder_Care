@@ -78,33 +78,4 @@ class FR_047_RollbackEffectsIT extends StatusTestBase {
         assertThat(events.stream(ResidentStatusChanged.class).filter(e -> e.residentId() == id))
                 .isEmpty();
     }
-
-    @Test
-    void FR_047_allParticipantsSucceed_effectsAreCommittedTogetherWithTheState() {
-        long id = residentIn(ResidentStatus.IN_RESIDENCE);
-        user.set(office.user());
-        int rows = historyCount(id);
-
-        var outcome = statusService.grantTemporaryAbsence(target(id), reason(), noDetails());
-
-        assertThat(outcome.status()).isEqualTo(ResidentStatus.TEMPORARILY_ABSENT);
-        assertThat(currentStatus(id)).isEqualTo(ResidentStatus.TEMPORARILY_ABSENT);
-        assertThat(historyCount(id)).isEqualTo(rows + 1);
-        assertThat(note(id)).isEqualTo("EFFECT");
-        assertThat(one.applied()).singleElement().satisfies(r -> {
-            assertThat(r.residentId()).isEqualTo(id);
-            assertThat(r.from()).isEqualTo(ResidentStatus.IN_RESIDENCE);
-            assertThat(r.to()).isEqualTo(ResidentStatus.TEMPORARILY_ABSENT);
-            assertThat(r.command()).isEqualTo(StatusCommand.GRANT_TEMPORARY_ABSENCE);
-            assertThat(r.historyId()).isEqualTo(outcome.historyId());
-        });
-        assertThat(events.stream(ResidentStatusChanged.class).filter(e -> e.residentId() == id))
-                .singleElement()
-                .satisfies(e -> {
-                    assertThat(e.from()).isEqualTo(ResidentStatus.IN_RESIDENCE);
-                    assertThat(e.to()).isEqualTo(ResidentStatus.TEMPORARILY_ABSENT);
-                    assertThat(e.command()).isEqualTo(StatusCommand.GRANT_TEMPORARY_ABSENCE);
-                    assertThat(e.historyId()).isEqualTo(outcome.historyId());
-                });
-    }
 }

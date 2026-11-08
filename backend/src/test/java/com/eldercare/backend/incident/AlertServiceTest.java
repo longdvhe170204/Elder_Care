@@ -63,7 +63,9 @@ class AlertServiceTest {
                 monitoringLock,
                 staffPort,
                 residentApi,
-                recordEvents);
+                recordEvents,
+                org.mockito.Mockito.mock(
+                        com.eldercare.backend.incident.internal.alert.service.AlertResponsibility.class));
     }
 
     @Test
