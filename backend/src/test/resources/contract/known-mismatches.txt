@@ -146,6 +146,11 @@ api-007.yaml: POST /api/v1/incidents/{id}/receive phản hồi 409 application/p
 # api-011 (D)
 
 # api-013 (B)
+api-013.yaml: GET /api/v1/family-portal/recipient-confirmations/{id} phản hồi 200 application/json thiếu trường signedForm
+api-013.yaml: GET /api/v1/belongings/{id} phản hồi 200 application/json.belonging.cashAmount đổi kiểu [integer] → [string]
+api-013.yaml: GET /api/v1/family-portal/recipient-confirmations/{id} phản hồi 200 application/json đổi trường bắt buộc
+api-013.yaml: GET /api/v1/family-portal/residents/{residentId}/belongings phản hồi 200 application/json[].cashAmount đổi kiểu [integer] → [string]
+api-013.yaml: GET /api/v1/family-portal/residents/{residentId}/belongings phản hồi 200 application/json[].history[].cashAmount đổi kiểu [integer] → [string]
 api-013.yaml: GET /api/v1/recipient-confirmations phản hồi 200 application/json[] thiếu trường signedForm
 api-013.yaml: GET /api/v1/recipient-confirmations phản hồi 200 application/json[] đổi trường bắt buộc
 api-013.yaml: GET /api/v1/residents/{residentId}/belongings phản hồi 200 application/json[].cashAmount đổi kiểu [integer] → [string]

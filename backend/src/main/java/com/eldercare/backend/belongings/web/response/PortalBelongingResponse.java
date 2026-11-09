@@ -3,6 +3,7 @@ package com.eldercare.backend.belongings.web.response;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverView;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingPortalQueries;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -16,19 +17,21 @@ public record PortalBelongingResponse(
         long typeId,
         String description,
         BigDecimal quantity,
-        BigDecimal cashAmount,
+        @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
         BelongingStatus status,
         String holder,
-        List<Entry> history) {
+        List<Entry> history,
+        SelfCustodyConsentResponse selfCustodyConsent) {
 
     /** Một dòng lịch sử: loại bản ghi, trạng thái đích, thời điểm, số lượng, tình trạng, ảnh. */
+    @Schema(name = "PortalBelongingHistoryEntry")
     public record Entry(
             long id,
             String kind,
             String targetStatus,
             Instant occurredAt,
             BigDecimal quantity,
-            BigDecimal cashAmount,
+            @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
             String conditionDescription,
             List<Long> photoFileIds) {
 
@@ -55,6 +58,7 @@ public record PortalBelongingResponse(
                 b.cashAmount(),
                 b.status(),
                 b.holderType() == null ? null : b.holderType().name(),
-                item.history().stream().map(Entry::of).toList());
+                item.history().stream().map(Entry::of).toList(),
+                SelfCustodyConsentResponse.of(item.selfCustodyConsent()));
     }
 }

@@ -3590,6 +3590,17 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | phần tách kế thừa đồng ý cho tự giữ (013-3, nhóm D 2026-11-06) | `SelfCustodyConsentService.inherit`; cách đồng ý `INHERITED`; trường `SelfCustodyConsent.rootConsentId` (bản gốc của nhóm đồng ý); test `FR_015a_ConsentInheritanceIT` |
 | sửa, ngừng mức tình trạng; đồ Tìm thấy khi kiểm kê; trả một phần (nhóm C 2026-11-05, 013-2) | `BelongingCatalogService.saveConditionLevel`, nhật ký `M12_CONDITION_LEVEL_UPDATED`; `InventoryCompletion.FoundItem`, `web.request.InventoryCheckRequests.Found`; `ReturnCommand.Item.amount` (thân `quantity`) |
 
+### 19.6. Đổi api 2026-11-07 (B, 2026-11-08)
+
+| Khái niệm | Tên trong mã |
+| --- | --- |
+| thân phản hồi 201 chỉ có mã | schema `CreatedId { id }`; Java `web.response.IdResponse` |
+| đồng ý cho tự giữ đang Hiệu lực của đồ | schema `SelfCustodyConsentSummary { id, status, method, representativeId }`; Java `web.response.SelfCustodyConsentResponse`; trường `selfCustodyConsent` của `BelongingDetail` và `PortalBelonging` |
+| chi tiết đồ gửi, một dòng lịch sử bàn giao, đồ trên cổng | schema `BelongingDetail { belonging, handovers, selfCustodyConsent }`, `HandoverEntry`, `PortalBelonging`; Java `BelongingResponse.Detail`, `HandoverView`, `PortalBelongingResponse` |
+| đọc bản đồng ý Hiệu lực | `SelfCustodyConsentService.effectiveOf(belongingId)`, `effectiveOfResident(residentId)`; `BelongingPortalQueries.Item.selfCustodyConsent` |
+| người đại diện đọc yêu cầu xác nhận người nhận khác | `GET /family-portal/recipient-confirmations/{id}` (tag `family-portal`); `ReturnController.portalGet`, `RecipientConfirmationService.viewOnPortal` |
+| nút rút đồng ý | web `WithdrawConsentForm`, `PortalBelongings` (`WithdrawConsent`); app `FamilyBelongingsScreen` (`_WithdrawDialog`) |
+
 ## 20. Feature 014 (`014-activity-care-quality`, C)
 
 *Chủ feature điền khi dịch `contracts/api-014.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
