@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
+import '../../resident/sos/sos_button.dart' show GeolocatorLocationSource, SosLocationSource;
 
 /// Mở trình quay số của máy; `false` khi máy không mở được.
 Future<bool> dialPhone(String phone) async {
@@ -28,11 +29,15 @@ class EmergencyAssistScreen extends StatefulWidget {
     required this.api,
     this.dial = dialPhone,
     this.pollInterval = const Duration(seconds: 5),
+    this.location = const GeolocatorLocationSource(),
   });
 
   final ApiClient api;
   final Future<bool> Function(String phone) dial;
   final Duration pollInterval;
+
+  /// Nguồn vị trí GPS (FR-047h): chỉ xin quyền khi đang dùng app, gửi theo chu kỳ của backend cho tới khi 409.
+  final SosLocationSource location;
 
   @override
   State<EmergencyAssistScreen> createState() => _EmergencyAssistScreenState();
@@ -61,6 +66,9 @@ String _newKey() {
 class _EmergencyAssistScreenState extends State<EmergencyAssistScreen> {
   Timer? _countdown;
   Timer? _poll;
+  Timer? _locationTimer;
+  bool? _locationGranted;
+  bool _stopLocation = false;
   int? _secondsLeft;
   bool _busy = false;
   String? _error;
@@ -77,6 +85,7 @@ class _EmergencyAssistScreenState extends State<EmergencyAssistScreen> {
   void dispose() {
     _countdown?.cancel();
     _poll?.cancel();
+    _locationTimer?.cancel();
     super.dispose();
   }
 
@@ -114,6 +123,7 @@ class _EmergencyAssistScreenState extends State<EmergencyAssistScreen> {
       if (!mounted) return;
       setState(() => _status = status);
       _poll = Timer.periodic(widget.pollInterval, (_) => _refresh());
+      unawaited(_startLocation());
     } on ApiProblem catch (problem) {
       if (!mounted) return;
       setState(() {
@@ -128,12 +138,40 @@ class _EmergencyAssistScreenState extends State<EmergencyAssistScreen> {
     }
   }
 
+  Future<void> _startLocation() async {
+    if (_status?['sendLocation'] != true) return;
+    _locationGranted ??= await widget.location.requestPermission();
+    if (_locationGranted != true || !mounted) return;
+    await _sendLocation();
+    final seconds = _status?['locationIntervalSeconds'] as int? ?? 30;
+    if (!_stopLocation && mounted) {
+      _locationTimer = Timer.periodic(Duration(seconds: seconds), (_) => _sendLocation());
+    }
+  }
+
+  Future<void> _sendLocation() async {
+    final pressId = _status?['pressId'];
+    if (_stopLocation || pressId == null) return;
+    try {
+      final position = await widget.location.current();
+      if (position == null) return;
+      await widget.api.requestJson('POST', '/emergency-assist/$pressId/location', body: position.toJson());
+    } on ApiProblem {
+      // 409 STOP_SENDING_LOCATION hoặc cảnh báo đã đóng, đã tới nơi: dừng gửi
+      _stopLocation = true;
+      _locationTimer?.cancel();
+    } on Exception {
+      // Mất kết nối: lần sau gửi lại
+    }
+  }
+
   Future<void> _refresh() async {
     try {
       final status = await widget.api.get('/emergency-assist/current');
       if (!mounted) return;
       setState(() => _status = status ?? _status);
       if (status == null) _poll?.cancel();
+      if (status != null && status['sendLocation'] != true) _locationTimer?.cancel();
     } catch (_) {
       // Giữ trạng thái cũ; lần hỏi sau thử lại.
     }

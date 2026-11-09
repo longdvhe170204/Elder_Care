@@ -30,9 +30,9 @@ import com.eldercare.backend.medication.internal.family.service.FamilyMedication
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.medication.internal.schedule.service.AbsenceScheduleContexts;
 import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
-import com.eldercare.backend.medication.internal.schedule.service.ScheduleContext;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,6 +64,8 @@ public class DoseAdministrationService {
     private final ParameterApi parameters;
     private final FamilyMedicationService familyMedications;
 
+    private final AbsenceScheduleContexts absenceContexts;
+
     public DoseAdministrationService(
             MedicationDoseRepository doseRepository,
             DoseResultRepository doseResultRepository,
@@ -76,7 +78,9 @@ public class DoseAdministrationService {
             ApplicationEventPublisher eventPublisher,
             BusinessTime businessTime,
             ParameterApi parameters,
-            FamilyMedicationService familyMedications) {
+            FamilyMedicationService familyMedications,
+            AbsenceScheduleContexts absenceContexts) {
+        this.absenceContexts = absenceContexts;
         this.doseRepository = doseRepository;
         this.doseResultRepository = doseResultRepository;
         this.doseReviewRepository = doseReviewRepository;
@@ -179,6 +183,7 @@ public class DoseAdministrationService {
                     dose.getResidentId(),
                     dose.getMedicationId(),
                     dose.getDosage(),
+                    dose.getDosageUnit(),
                     administeredAt));
         }
 
@@ -331,7 +336,7 @@ public class DoseAdministrationService {
                 parsed.scheduledTime().minusSeconds(10),
                 parsed.scheduledTime().plusSeconds(10),
                 now,
-                ScheduleContext.empty(prescription.getResidentId()));
+                absenceContexts.of(prescription.getResidentId()));
 
         if (slots.isEmpty()) {
             throw new NotFoundException();

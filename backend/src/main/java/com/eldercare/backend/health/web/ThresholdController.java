@@ -96,12 +96,8 @@ public class ThresholdController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * FR-025: api-007 chỉ khai {@code 200 OK}, chưa có schema phản hồi; trả danh sách mã người cao tuổi và không khai
-     * schema để khớp hợp đồng (đã báo chủ dự án bổ sung).
-     */
+    /** FR-025: mảng mã người cao tuổi (api-007, chủ dự án duyệt schema 2026-11-07). */
     @GetMapping("/vital-signs/missing-personal-threshold")
-    @ApiResponses({@ApiResponse(responseCode = "200", description = "OK", content = @Content)})
     public List<Long> missingPersonalThreshold() {
         return thresholds.missingPersonal();
     }

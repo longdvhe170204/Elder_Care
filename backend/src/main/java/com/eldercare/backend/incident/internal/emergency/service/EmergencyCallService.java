@@ -166,7 +166,7 @@ public class EmergencyCallService {
         Instant now = time.now();
         records.add(
                 RESULT,
-                new EntityRef(CALL.code(), attemptId),
+                attempt.parent(),
                 new NewRecordEvent<>(
                         new Call115Result(result, progressionId),
                         null,

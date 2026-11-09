@@ -6,6 +6,7 @@ import com.eldercare.backend.medication.internal.dose.service.DoseViewService.Re
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService.UsableBatch;
 import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -60,6 +61,10 @@ public final class DoseBodies {
             String doseKey,
             Long residentId,
             Long prescriptionId,
+            String medicationName,
+            BigDecimal dosage,
+            String dosageUnit,
+            String route,
             Instant scheduledTime,
             Instant windowFrom,
             Instant windowTo,
@@ -117,6 +122,10 @@ public final class DoseBodies {
                     d.doseKey(),
                     d.residentId(),
                     d.prescriptionId(),
+                    d.medicationName(),
+                    d.dosage(),
+                    d.dosageUnit(),
+                    d.route(),
                     d.scheduledTime(),
                     d.windowFrom(),
                     d.windowTo(),
@@ -142,6 +151,10 @@ public final class DoseBodies {
                     s.doseKey(),
                     s.residentId(),
                     s.prescriptionId(),
+                    s.medicationName(),
+                    s.dosage(),
+                    s.dosageUnit(),
+                    s.route(),
                     s.scheduledTime(),
                     s.windowFrom(),
                     s.windowTo(),

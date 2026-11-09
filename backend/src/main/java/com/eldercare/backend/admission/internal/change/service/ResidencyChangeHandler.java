@@ -315,12 +315,10 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (newEnd != null && !newEnd.equals(contract.currentEndDate())) {
             boolean extended = contract.currentEndDate() == null || newEnd.isAfter(contract.currentEndDate());
             contracts.setCurrentEndDate(contract.id(), newEnd, extended ? null : contract.overdueSince());
-            BedAllocationCommandApi bedApi = beds.getIfAvailable();
-            if (bedApi != null) {
-                bedApi.extendExpectedEnd(
-                        contract.residentId(),
-                        newEnd.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
-            }
+            beds.getObject()
+                    .extendExpectedEnd(
+                            contract.residentId(),
+                            newEnd.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
         }
         if (change.has(ChangeType.BED) && change.newBedId() != null) {
             beds.getObject().applyScheduledTransfer(request.id(), time.now());

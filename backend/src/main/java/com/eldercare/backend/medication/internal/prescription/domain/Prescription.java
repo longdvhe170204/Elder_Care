@@ -403,6 +403,13 @@ public class Prescription {
         this.status = PrescriptionStatus.ACTIVE;
     }
 
+    /** Đơn "chờ tiếp nhận" Hiệu lực tại lệnh Hoàn tất tiếp nhận, bắt đầu đúng thời điểm lệnh (FR-034a). */
+    public void activateAtAdmission(Instant at) {
+        this.status = PrescriptionStatus.ACTIVE;
+        this.startedAt = at;
+        this.pendingAdmission = false;
+    }
+
     public void discontinue() {
         this.discontinue(TerminationReason.DISCONTINUED);
     }

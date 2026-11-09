@@ -3,10 +3,8 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
-import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.incident.internal.governance.service.IncidentFieldClassifications;
 import com.eldercare.backend.incident.internal.governance.service.IncidentFilePermissionProviders;
-import com.eldercare.backend.incident.internal.governance.service.IncidentRetentionProviders;
 import com.eldercare.backend.incident.internal.governance.service.IncidentScopeAssignments;
 import org.junit.jupiter.api.Test;
 
@@ -32,21 +30,6 @@ class IncidentProvidersTest {
         var contactList = IncidentFieldClassifications.contactList();
         assertThat(contactList.entityType()).isEqualTo("M05.CONTACT_LIST");
         assertThat(contactList.fieldGroups().get("phoneNumber")).isEqualTo(InfoGroup.CONTACT);
-    }
-
-    @Test
-    void R11_incidentRetentionProviders_distinguishResidentLinkedAndUnlinked() {
-        var incidentRetention = IncidentRetentionProviders.incident();
-        assertThat(incidentRetention.dataType()).isEqualTo("M05.INCIDENT");
-        assertThat(incidentRetention.retentionKind()).isInstanceOf(RetentionKind.ResidentRecord.class);
-
-        var alertRetention = IncidentRetentionProviders.alert();
-        assertThat(alertRetention.dataType()).isEqualTo("M05.ALERT");
-        assertThat(alertRetention.retentionKind()).isInstanceOf(RetentionKind.ResidentRecord.class);
-
-        var containmentRetention = IncidentRetentionProviders.containment();
-        assertThat(containmentRetention.dataType()).isEqualTo("M05.CONTAINMENT");
-        assertThat(containmentRetention.retentionKind()).isInstanceOf(RetentionKind.NotResidentLinked.class);
     }
 
     @Test

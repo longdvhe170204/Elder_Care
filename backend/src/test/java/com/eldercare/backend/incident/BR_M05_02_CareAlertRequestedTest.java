@@ -67,4 +67,53 @@ class BR_M05_02_CareAlertRequestedTest {
 
         verify(alerts, times(1)).requestAlert(any());
     }
+
+    @Test
+    void FR_028_overdueMandatoryTaskLocksByTaskTypeAndMissingOnReturnIsCritical() {
+        var at = Instant.parse("2026-11-03T10:00:00Z");
+        when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
+                .thenReturn(true);
+        var overdue = new AlertRequested(
+                "OVERDUE_CARE_TASK",
+                NotificationLevel.MEDIUM,
+                12L,
+                "M04.TASK:70",
+                SourceType.CARE_PLAN_ITEM,
+                31,
+                new CareEventContext("M04.TASK", 70, "MANDATORY", at, Optional.of(8L), List.of()),
+                Optional.of(new com.eldercare.backend.care.api.dto.CareAlertSource(
+                        "BED",
+                        5L,
+                        8L,
+                        44L,
+                        "Xoay trở",
+                        at,
+                        at,
+                        at,
+                        com.eldercare.backend.care.api.dto.Importance.MANDATORY)));
+        var missing = new AlertRequested(
+                "MISSING_ON_RETURN",
+                NotificationLevel.URGENT,
+                13,
+                "M04.TRIP:9",
+                SourceType.ACTIVITY_SESSION,
+                9,
+                new CareEventContext(
+                        "M04.TRIP_PARTICIPANT", 91, "MISSING_ON_RETURN:91", at, Optional.of(8L), List.of()));
+
+        listener.onCareAlertRequested(overdue);
+        listener.onCareAlertRequested(missing);
+
+        verify(alerts)
+                .requestAlert(argThat(command -> command.residentId() == 12
+                        && command.typeLock().equals("OVERDUE_CARE_TASK:44")
+                        && command.level() == IncidentLevel.MEDIUM
+                        && command.sourceType().equals("M04.TASK")
+                        && command.sourceId() == 70));
+        verify(alerts)
+                .requestAlert(argThat(command -> command.residentId() == 13
+                        && command.typeLock().equals("MISSING_ON_RETURN")
+                        && command.level() == IncidentLevel.CRITICAL
+                        && command.sourceId() == 91));
+    }
 }
