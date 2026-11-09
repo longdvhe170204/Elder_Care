@@ -5,18 +5,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.admission.api.dto.PickupRecordView;
 import com.eldercare.backend.admission.api.events.LongAbsenceManagerNotice;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.internal.status.service.ResidentStatusService;
 import com.eldercare.backend.support.fake.admission.FakeDayCareAttendance;
-import com.eldercare.backend.support.fake.admission.FakePickupRecords;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -32,12 +33,6 @@ import tools.jackson.databind.node.ObjectNode;
  */
 abstract class AbsenceTestBase extends ContractTestBase {
 
-    private static final AtomicLong RECORD_IDS = new AtomicLong(700_000);
-    protected static final long PICKER = 7;
-
-    @Autowired
-    protected FakePickupRecords pickups;
-
     @Autowired
     protected FakeDayCareAttendance attendance;
 
@@ -45,7 +40,6 @@ abstract class AbsenceTestBase extends ContractTestBase {
 
     @BeforeEach
     void absenceSetup() {
-        pickups.reset();
         attendance.reset();
         d0 = today();
     }
@@ -59,6 +53,10 @@ abstract class AbsenceTestBase extends ContractTestBase {
         return residentId;
     }
 
+    private static LocalDateTime utc(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    }
+
     protected static Instant at(LocalDate day, int hour, int minute) {
         return day.atTime(hour, minute).atZone(BusinessTime.ZONE).toInstant();
     }
@@ -67,13 +65,30 @@ abstract class AbsenceTestBase extends ContractTestBase {
         clock.setTo(at(day, hour, minute));
     }
 
+    /** Người đón có quyền "được phép đón" và bản ghi đón Chưa dùng của 012 (bản thật), ghi lúc đồng hồ đang chỉ. */
     protected ObjectNode grantDetails(long residentId, String type, Instant expectedReturnAt) {
-        long recordId = RECORD_IDS.incrementAndGet();
-        pickups.valid(residentId, PICKER, new PickupRecordView(recordId, residentId, "FAMILY"));
+        long picker = family().familyMember("Người đón " + residentId, "0904" + residentId % 1_000_000);
+        family().relate(picker, residentId, 2, false, false, FamilyRight.PICKUP_ALLOWED);
+        Instant now = time.now();
+        jdbc.update(
+                "INSERT INTO pickup_record (resident_id, type, family_member_id, basis, picker_name, id_document_type,"
+                        + " id_document_number, at, handover_staff_id, recorded_by, expires_at, created_at) VALUES (?,"
+                        + " 'TEMPORARY_ABSENCE', ?, 'PICKUP_LIST', ?, 'CCCD', ?, ?, ?, ?, ?, ?)",
+                residentId,
+                picker,
+                "Người đón " + residentId,
+                "079" + (100_000_000L + picker % 100_000_000L),
+                utc(now.minusSeconds(60)),
+                office.staffId(),
+                office.accountId(),
+                utc(now.plus(Duration.ofDays(2))),
+                utc(now));
+        long recordId =
+                jdbc.queryForObject("SELECT MAX(id) FROM pickup_record WHERE resident_id = ?", Long.class, residentId);
         ObjectNode details = JSON.createObjectNode();
         details.put("absenceType", type);
         details.put("expectedReturnAt", expectedReturnAt.toString());
-        details.put("pickedUpById", PICKER);
+        details.put("pickedUpById", picker);
         details.put("pickupRecordId", recordId);
         details.put("handoverStaffId", office.staffId());
         details.put("takesMedication", false);

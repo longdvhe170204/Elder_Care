@@ -36,8 +36,8 @@ import tools.jackson.databind.node.ObjectNode;
  * trước và ảnh hưởng chi phí do hệ thống điền lúc lập yêu cầu (FR-038). Trả đủ mọi điều kiện vi phạm để liệt kê một lần.
  *
  * <p>Kiểm giường, phân bổ (đổi giường, nội trú từ bán trú) qua {@code BedAllocationCommandApi} và sức chứa khu nghỉ (bán trú) qua
- * {@code DayCareCapacityCheck} của 003. {@code BedAllocationCommandApi} chưa có bản cài production (team-plan mục 8): tới lúc đó loại
- * này bị chặn bằng điều kiện {@code BED_ALLOCATION_CHECK_UNAVAILABLE} thay vì cho qua mà không kiểm.
+ * {@code DayCareCapacityCheck} của 003. Thiếu giường mới thì loại đổi giường bị chặn bằng điều kiện
+ * {@code BED_ALLOCATION_CHECK_UNAVAILABLE} thay vì cho qua mà không kiểm.
  */
 @Component
 class ResidencyChangeRules {
@@ -226,14 +226,12 @@ class ResidencyChangeRules {
 
     /** Điều kiện giữ giường theo lịch của 003 (FR-041); thiếu bản cài hoặc thiếu giường thì chưa duyệt được. */
     private List<UnmetCondition> bedConditions(long residentId, Long newBedId, LocalDate effective) {
-        BedAllocationCommandApi api = beds.getIfAvailable();
-        if (api == null || newBedId == null) {
-            return List.of(
-                    new UnmetCondition(
-                            "BED_ALLOCATION_CHECK_UNAVAILABLE",
-                            "Chưa kiểm được điều kiện phân bổ giường (feature 003 chưa có lệnh chuyển theo lịch); chưa duyệt được (FR-041)"));
+        if (newBedId == null) {
+            return List.of(new UnmetCondition(
+                    "BED_ALLOCATION_CHECK_UNAVAILABLE",
+                    "Chưa có giường mới để kiểm điều kiện phân bổ; chưa duyệt được (FR-041)"));
         }
-        return api.checkScheduledReservation(residentId, newBedId, effective);
+        return beds.getObject().checkScheduledReservation(residentId, newBedId, effective);
     }
 
     private List<UnmetCondition> capacityConditions(ResidencyChangeContent change, LocalDate effective) {
