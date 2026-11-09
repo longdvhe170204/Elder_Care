@@ -150,6 +150,19 @@ Chỉ là cảnh báo chưa xử lý để 008 hiển thị trong bàn giao (1.3
 | `GanPhamViProvider` (002) | `M03.GIUONG`, `M03.PHONG`, `M03.PHAN_BO_GIUONG` | Research G-14 |
 | `PhanBoGiuongApi` (002) | Mục 1.1 | |
 
+### 1.10a. `LenhKiemSoatLayNhiemApi` (`InfectionControlCommandApi`): lệnh 007 gọi *(bổ sung 2026-11-09, chủ dự án duyệt, thay hai listener sự kiện 007)*
+
+Chiều incident → roombedallocation như `TinhTrangLayNhiemChoPhanBo` (007 cài): 003 không nghe `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc` (nghe thì incident ↔ roombedallocation thành vòng module), không dời sự kiện sang gói chung. Mọi hàm `Propagation.MANDATORY`, chạy trong transaction của lệnh 007; lỗi thì ném để lệnh 007 rollback.
+
+```java
+interface LenhKiemSoatLayNhiemApi {   // api.InfectionControlCommandApi
+  void daGoKhoanhVung(Set<Long> tangIds, Set<Long> khuVucIds, Instant t);   // cordonLifted: 007 gọi sau khi gỡ vùng; 003 đọc lại vungDangKhoanh(t), gỡ dấu "chờ bác sĩ xác nhận vùng cách ly" của phân bổ Hiệu lực ở phòng thuộc vùng vừa gỡ mà không còn chịu chặn (FR-024a (c)); gọi lặp không tác động thêm
+  void daThemVaoDanhSachTiepXuc(long nctId, Instant t);   // contactListed: người vừa rời một giường còn Chờ sẵn sàng → phát GiuongCoNguoiRoiThuocDanhSach (FormerOccupantListed) báo Trưởng tầng của tầng (FR-045, US8 #5); giường đã Trống thì không làm gì; khóa thông báo theo giường và lần Chờ sẵn sàng nên gọi lặp không báo lại
+}
+```
+
+Bản giả chung cho test của 007: `support/fake/roombedallocation/FakeInfectionControlCommands` (ghi lời gọi; `fail(error)` cho lời gọi kế tiếp ném lỗi), nhập bằng `FakeInfectionControlCommands.Config`.
+
 ### 1.11. Sự kiện 003 phát (sau commit, qua outbox của 000)
 
 | Sự kiện | Người nghe | FR |
@@ -209,7 +222,7 @@ interface ThamChieuViTri {                       // 008 cài; module khác MAY c
 }
 ```
 
-Sự kiện 003 nghe: `KhoanhVungDaGo(tangIds, khuVucIds)`, `DaThemVaoDanhSachTiepXuc(nctId, thoiDiem)` (007); `LoaiLuuTruDaDoi(nctId)` (004); `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat` (001); `ThamSoDaDoi(CFG-M03-01)` (000).
+Sự kiện 003 nghe: (007 gọi `LenhKiemSoatLayNhiemApi` mục 1.10a thay cho `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`, sửa 2026-11-09); `LoaiLuuTruDaDoi(nctId)` (004); `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat` (001); `ThamSoDaDoi(CFG-M03-01)` (000).
 
 ### 2.2. Giao diện có sẵn hoặc đã bổ sung
 
@@ -248,6 +261,7 @@ interface TaiSanGiuongPort {                     // 019 cài, 003 gọi
   boolean mangDauChoChuyenNguoi(long giuongId);  // FR-018 (i), FR-014
   Set<Long> giuongMangDau(Collection<Long> giuongIds);   // lọc danh sách giường
   Set<Long> giuongMangDauTai(Collection<Long> giuongIds, Instant t);   // dấu tại thời điểm, từ lần gắn và gỡ dấu (bổ sung 2026-11-06, chủ dự án duyệt; cho demTrongChoChuyenNguoi)
+  void doiViTriTaiSanTheoGiuong(long giuongId, long phongMoiId);   // FR-007, Q-243, 019 FR-012: lệnh sửa giường đổi phòng giường chưa từng phân bổ; tài sản giường chuyển sang phòng mới, ghi lịch sử vị trí (phòng cũ, mới, người, thời điểm) cùng transaction, lỗi thì lệnh rollback cả hai; tài sản Đã thanh lý → 409 STATE_CHANGED; giường chưa có tài sản thì không làm gì (bổ sung 2026-11-09, chủ dự án duyệt, mở lại Q-243)
 }
 ```
 

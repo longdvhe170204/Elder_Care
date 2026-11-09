@@ -103,4 +103,13 @@ public class FakeM04ApiConfig {
     PublicCareResultApi fakePublicCareResultApi(FakeM04ApiFixture fixture) {
         return fixture.api(PublicCareResultApi.class);
     }
+
+    // 005 T053 (duyệt 08/11, 09/11/2026): lệnh 007 gọi khi ghi sự cố ngã, lựa chọn chăm sóc giảm nhẹ. Test 007 đặt
+    // fixture.reply(CarePlanReviewApi.class, "fallIncidentRecorded", List.of(residentId, incidentId), () -> null);
+    // chưa đặt thì lời gọi ném lỗi (kiểm lệnh 007 rollback); không import cấu hình này thì dùng bản thật của 005.
+    @Bean
+    @Primary
+    CarePlanReviewApi fakeCarePlanReviewApi(FakeM04ApiFixture fixture) {
+        return fixture.api(CarePlanReviewApi.class);
+    }
 }

@@ -110,6 +110,70 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
         confirm("{}").andExpect(status().isConflict());
     }
 
+    /**
+     * T060 (FR-044, research G-14; GET /bed-readiness/beds duyệt 2026-11-06): Điều dưỡng giữ nhiệm vụ Người phụ trách
+     * ca thấy giường Chờ sẵn sàng của tầng đang phụ trách; hết nhiệm vụ hoặc không có nhiệm vụ thì 403; Trưởng tầng
+     * theo quyền cũ; không lộ giường tầng khác, floorId chỉ thu hẹp.
+     */
+    @Test
+    void FR_044_readinessListFollowsShiftLeadDutyAndFloor() throws Exception {
+        long otherFloor = TestUsers.nextId(), otherRoom = TestUsers.nextId(), otherBed = TestUsers.nextId();
+        long emptyBed = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)",
+                otherFloor,
+                area,
+                "O" + otherFloor,
+                "Tầng khác");
+        jdbc.update(
+                "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
+                otherRoom,
+                otherFloor,
+                type,
+                "R" + otherRoom,
+                "Phòng khác");
+        jdbc.update(
+                "INSERT INTO bed(id,room_id,code,state,awaiting_ready_since,ready_deadline) VALUES(?,?,'G1','AWAITING_READY',?,?)",
+                otherBed,
+                otherRoom,
+                Timestamp.from(time.now().minusSeconds(3600)),
+                Timestamp.from(time.now().plusSeconds(3600)));
+        jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G9')", emptyBed, room);
+
+        actor(Role.NURSING_STAFF, true, floor);
+        mvc.perform(get("/api/v1/bed-readiness/beds"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==" + bed + ")].state")
+                        .value(org.hamcrest.Matchers.contains("AWAITING_READY")))
+                .andExpect(jsonPath("$[?(@.id==" + bed + ")].location.floorId")
+                        .value(org.hamcrest.Matchers.contains((int) floor)))
+                .andExpect(jsonPath("$[?(@.id==" + bed + ")].readinessOverdue")
+                        .value(org.hamcrest.Matchers.contains(false)))
+                .andExpect(jsonPath("$[?(@.id==" + otherBed + ")]").isEmpty())
+                .andExpect(jsonPath("$[?(@.id==" + emptyBed + ")]").isEmpty());
+        mvc.perform(get("/api/v1/bed-readiness/beds").param("floorId", Long.toString(otherFloor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        duties.shiftLead(floor, TestUsers.nextId());
+        mvc.perform(get("/api/v1/bed-readiness/beds")).andExpect(status().isForbidden());
+
+        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_STAFF).user());
+        mvc.perform(get("/api/v1/bed-readiness/beds")).andExpect(status().isForbidden());
+
+        jdbc.update(
+                "UPDATE bed SET ready_deadline=? WHERE id=?",
+                Timestamp.from(time.now().minusSeconds(60)),
+                bed);
+        actor(Role.FLOOR_MANAGER, false, floor);
+        mvc.perform(get("/api/v1/bed-readiness/beds").param("floorId", Long.toString(floor)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==" + bed + ")].readinessOverdue")
+                        .value(org.hamcrest.Matchers.contains(true)))
+                .andExpect(jsonPath("$[?(@.id==" + otherBed + ")]").isEmpty());
+        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
+                .isEqualTo("AWAITING_READY");
+    }
+
     @Autowired
     com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi allocationCommands;
 

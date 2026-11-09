@@ -57,7 +57,7 @@ abstract class StructureTestSupport extends MySqlIntegrationTestBase {
                 type,
                 "R" + room,
                 "Phòng " + room);
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G1')", bed, room);
     }
 }

@@ -12,9 +12,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BedTransferStore {
     private final JdbcTemplate jdbc;
+    private final AllocationReminderMarkers reminders;
 
-    public BedTransferStore(JdbcTemplate jdbc) {
+    public BedTransferStore(JdbcTemplate jdbc, AllocationReminderMarkers reminders) {
         this.jdbc = jdbc;
+        this.reminders = reminders;
     }
 
     public boolean medicalSafety(long reasonId) {
@@ -77,10 +79,6 @@ public class BedTransferStore {
                 reasonId,
                 awaitingRequest,
                 next);
-        if (awaitingRequest)
-            jdbc.update(
-                    "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,reminder_count) VALUES('BED_ALLOCATION',?,'AWAITING_REQUEST',?,NULL,0)",
-                    next,
-                    Timestamp.from(at));
+        if (awaitingRequest) reminders.start("BED_ALLOCATION", next, "AWAITING_REQUEST", at);
     }
 }

@@ -81,6 +81,10 @@ class _StaffRootState extends State<StaffRoot> {
   /// Quyền hiện hành dạng `CHUC_NANG:THAO_TAC` từ `/me/permissions`; chưa tải được thì rỗng, mục theo quyền không hiện.
   Set<String> _grants = const {};
 
+  /// 003 T060: Trưởng tầng, Người phụ trách ca đọc được giường Chờ sẵn sàng của tầng (`GET /bed-readiness/beds` trả 200);
+  /// ô ⁴⁰ của Điều dưỡng chỉ có ở lớp nhiệm vụ nên không có trong `/me/permissions`.
+  bool _readinessDuty = false;
+
   /// Bộ nhớ đệm vòng phát thuốc trên máy (006 T028): mở một lần, đóng khi rời phần nhân viên.
   MedicationRoundCache? _medicationCache;
 
@@ -109,7 +113,21 @@ class _StaffRootState extends State<StaffRoot> {
     } on Object {
       // Chưa xác nhận được quyền thì không mở mục theo quyền.
     }
-    if (mounted) setState(() => _grants = grants);
+    var readinessDuty = false;
+    if (!grants.contains('ROOM_BED_CONFIGURATION:VIEW')) {
+      try {
+        await widget.session.api.getList('/bed-readiness/beds');
+        readinessDuty = true;
+      } on Object {
+        // 403 (không có nhiệm vụ) hoặc lỗi mạng: không hiện mục Giường.
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _grants = grants;
+        _readinessDuty = readinessDuty;
+      });
+    }
   }
 
   @override
@@ -208,7 +226,7 @@ class _StaffRootState extends State<StaffRoot> {
           accountId: widget.session.user!.accountId,
         ),
       ),
-    if (_can('ROOM_BED_CONFIGURATION', 'VIEW'))
+    if (_can('ROOM_BED_CONFIGURATION', 'VIEW') || _readinessDuty)
       ('Giường', LucideIcons.bedDouble, () => BedsScreen(api: widget.session.api)),
     if (_can('ACTIVITY_OUTING', 'VIEW'))
       ('Hoạt động ngoài viện', LucideIcons.bus, () => TripListScreen(api: widget.session.api, date: _today())),

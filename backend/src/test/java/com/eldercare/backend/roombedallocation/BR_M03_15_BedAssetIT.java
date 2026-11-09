@@ -170,4 +170,72 @@ class BR_M03_15_BedAssetIT extends AssetTestBase {
         assertThat(stateOf(asset)).isEqualTo("DAMAGED");
         assertThat(bedState()).isEqualTo("UNDER_MAINTENANCE");
     }
+
+    @Autowired
+    com.eldercare.backend.administration.shared.api.StatusHistoryApi statusHistory;
+
+    org.springframework.test.web.servlet.ResultActions moveBed(long toRoom, long version) throws Exception {
+        return mvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/beds/" + bed)
+                        .header("If-Match", com.eldercare.backend.common.web.VersionEtag.of(version))
+                        .header("Idempotency-Key", "bed-move-" + TestUsers.nextId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"roomId\":" + toRoom + ",\"code\":\"G5\"}"));
+    }
+
+    /** 003 T017 (FR-007, Q-243; 019 FR-012): giường chưa từng phân bổ đổi phòng, tài sản giường đổi vị trí theo. */
+    @Test
+    void Q_243_unallocatedBedMovesWithItsAssetAndAllocatedBedStaysBlocked() throws Exception {
+        long newRoom = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) SELECT ?,?,room_type_id,?,"
+                        + "'Phòng 105','UNRESTRICTED' FROM room WHERE id=?",
+                newRoom,
+                otherFloor,
+                "P" + newRoom,
+                room);
+        // Tài sản giường thật luôn có khoảng vị trí mở ở phòng của giường (019 FR-012).
+        statusHistory.add(
+                com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds.LOCATION,
+                asset,
+                new com.eldercare.backend.administration.shared.api.dto.HistoryEntry<>(
+                        com.eldercare.backend.administration.shared.api.dto.HistoryKind.PERIOD,
+                        null,
+                        "ROOM",
+                        room,
+                        time.now().minusSeconds(3600),
+                        "CREATE",
+                        null,
+                        true,
+                        null,
+                        null,
+                        null,
+                        new com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds.Location(
+                                "ROOM", room, null),
+                        floor,
+                        null));
+        as(manager);
+        moveBed(newRoom, 0).andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT room_id FROM bed WHERE id=?", Long.class, bed))
+                .isEqualTo(newRoom);
+        assertThat(jdbc.queryForMap("SELECT location_type, location_id, floor_area_id FROM asset WHERE id=?", asset))
+                .containsEntry("location_type", "ROOM")
+                .containsEntry("location_id", newRoom)
+                .containsEntry("floor_area_id", otherFloor);
+        var moved = statusHistory.list(
+                com.eldercare.backend.roombedallocation.internal.asset.domain.AssetKinds.LOCATION, asset);
+        assertThat(moved).hasSize(2);
+        assertThat(moved.get(0).valueId()).as("phòng cũ").isEqualTo(room);
+        assertThat(moved.get(1).valueId()).as("phòng mới").isEqualTo(newRoom);
+        assertThat(moved.get(1).actorId()).isEqualTo(manager.staffId());
+        assertThat(moved.get(1).floorAreaId()).isEqualTo(otherFloor);
+        assertThat(moved.get(0).endsAt()).isNotNull().isEqualTo(moved.get(1).startsAt());
+        assertThat(moved.get(1).endsAt()).isNull();
+
+        long resident = occupy();
+        release(resident);
+        moveBed(room, 1)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.unmetConditions[0].code").value("FR-007"));
+    }
 }

@@ -6,6 +6,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.admission.api.ResidencyDayApi;
+import com.eldercare.backend.admission.api.dto.Attendance;
+import com.eldercare.backend.admission.api.dto.DayCareSessionView;
 import com.eldercare.backend.admission.api.events.AddendumApplied;
 import com.eldercare.backend.care.api.*;
 import com.eldercare.backend.care.api.dto.*;
@@ -376,6 +379,10 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         leave(id, pickup, at.plusSeconds(60))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.attendance.checkoutType").value("SELF_RETURN"));
+        assertThat(session().attendance())
+                .as("về sớm vẫn là Có mặt, hệ số 100%")
+                .isEqualTo(Attendance.PRESENT);
+        assertThat(session().coefficientPercent()).isEqualTo(100);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM record_event WHERE kind='M10.PICKUP_RECORD_EVENT' AND entity_type='M10.PICKUP_RECORD' AND entity_id=?",
                         Integer.class,
@@ -413,6 +420,14 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         return api().onDate(resident, date).orElseThrow().status();
     }
 
+    /** Buổi hôm nay như 004 đọc qua {@code DayCareAttendancePort} của 005 (FR-060; hợp đồng có một khung mỗi ngày). */
+    private DayCareSessionView session() {
+        var sessions = context.getBean(ResidencyDayApi.class).dayCareSessions(resident, date, date);
+        assertThat(sessions).hasSize(1);
+        assertThat(sessions.getFirst().sessionId()).isEqualTo(1);
+        return sessions.getFirst();
+    }
+
     private Long stored(String field) {
         String value = jdbc.queryForObject(
                 "SELECT JSON_UNQUOTE(JSON_EXTRACT(content, ?)) FROM simple_record WHERE unique_key=?",
@@ -433,6 +448,8 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
     void FR_013_dayStartReadsCalendarOf004_withoutNoticeNotArrived() {
         daily("DAY_CARE_DAY_START").run(date, time.now());
         assertThat(attendance()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
+        assertThat(session().attendance()).as("Chưa đến: buổi chưa xác định").isNull();
+        assertThat(session().coefficientPercent()).isNull();
     }
 
     @Test
@@ -443,6 +460,7 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         assertThat(attendance()).isEqualTo(AttendanceStatus.REPORTED_ABSENT);
         assertThat(stored("timelyAbsenceId")).isEqualTo(notices().getFirst());
         arrive().andExpect(status().isConflict());
+        assertThat(session().attendance()).isEqualTo(Attendance.ABSENT_NOTIFIED);
     }
 
     @Test
@@ -478,6 +496,7 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         daily("DAY_CARE_DAY_START").run(date, time.now());
         context.getBean(AttendanceClockWork.class).run(time.now());
         assertThat(attendance()).isEqualTo(AttendanceStatus.UNREPORTED_ABSENT);
+        assertThat(session().attendance()).isEqualTo(Attendance.ABSENT_UNNOTIFIED);
         assertThat(events.stream(UnreportedAbsence.class)
                         .filter(e -> e.residentId() == resident)
                         .count())
