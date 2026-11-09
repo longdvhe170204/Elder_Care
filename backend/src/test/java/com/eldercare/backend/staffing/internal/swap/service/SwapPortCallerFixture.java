@@ -1,4 +1,4 @@
-package com.eldercare.backend.staffing.swap.internal.service;
+package com.eldercare.backend.staffing.internal.swap.service;
 
 import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPortFixture;
 
