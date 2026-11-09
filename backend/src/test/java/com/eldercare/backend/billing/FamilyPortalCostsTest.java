@@ -80,14 +80,24 @@ class FamilyPortalCostsTest {
         when(unlinked.costType()).thenReturn(CostType.MEDICATION);
         when(source.medicationId(101)).thenReturn(Optional.of(501L));
         when(source.medicationId(102)).thenReturn(Optional.empty());
-        var statement = new CostStatementView(1, "2026-11", 42, CostStatementType.REGULAR,
-                false, null, "FINALIZED", List.of(), 300L, List.of(linked, unlinked));
+        var statement = new CostStatementView(
+                1,
+                "2026-11",
+                42,
+                CostStatementType.REGULAR,
+                false,
+                null,
+                "FINALIZED",
+                List.of(),
+                300L,
+                List.of(linked, unlinked));
         when(statements.list(null, 42L, "FINALIZED")).thenReturn(List.of(row));
         when(views.statement(row)).thenReturn(statement);
         when(fields.canView(eq(family), eq(InfoGroup.MEDICATION), any())).thenReturn(Visibility.FULL);
         var prescription = mock(com.eldercare.backend.medication.api.dto.PrescriptionView.class);
-        when(prescription.medication()).thenReturn(new com.eldercare.backend.medication.api.dto.MedicationSummary(
-                501, "Thuốc được phép xem", null, null, null));
+        when(prescription.medication())
+                .thenReturn(new com.eldercare.backend.medication.api.dto.MedicationSummary(
+                        501, "Thuốc được phép xem", null, null, null));
         when(prescriptions.history(42)).thenReturn(List.of(prescription));
 
         var items = service.finalizedStatements(42, family).getFirst().items();
