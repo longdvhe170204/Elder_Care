@@ -22,6 +22,7 @@ import com.eldercare.backend.medication.internal.prescription.domain.Prescriptio
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines;
 import com.eldercare.backend.medication.internal.schedule.persistence.M07JobRunStore;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.time.Instant;
@@ -57,6 +58,10 @@ public class M07JobService {
     private final ResidentLocationApi locations;
     private final NursingShiftPort shifts;
 
+    private final AbsenceScheduleContexts absenceContexts;
+
+    private final ReconciliationDeadlines deadlines;
+
     public M07JobService(
             M07JobRunStore jobRunStore,
             PrescriptionRepository prescriptionRepository,
@@ -69,7 +74,11 @@ public class M07JobService {
             BusinessTime businessTime,
             ParameterApi parameters,
             ResidentLocationApi locations,
-            NursingShiftPort shifts) {
+            NursingShiftPort shifts,
+            AbsenceScheduleContexts absenceContexts,
+            ReconciliationDeadlines deadlines) {
+        this.deadlines = deadlines;
+        this.absenceContexts = absenceContexts;
         this.jobRunStore = jobRunStore;
         this.prescriptionRepository = prescriptionRepository;
         this.medicationRepository = medicationRepository;
@@ -103,6 +112,9 @@ public class M07JobService {
 
         // BR-M07-21: thông báo một lần mỗi tầng/ca khi không có Điều dưỡng nhưng có liều sắp tới.
         notifyFloorsWithoutNurse(now);
+
+        // BR-M07-09: tới hạn đối chiếu mà chưa có phiếu Đã xác nhận thì cảnh báo một lần
+        deadlines.warnOverdue(now);
 
         // (3) Materialize doses at window start
         materializeWindowDoses(now);
@@ -148,7 +160,7 @@ public class M07JobService {
                             from,
                             shift.endsAt(),
                             now,
-                            new ScheduleContext(prescription.getResidentId(), List.of(), floorId))
+                            absenceContexts.of(prescription.getResidentId(), floorId))
                     .stream()
                     .filter(slot -> !slot.windowTo().isBefore(now))
                     .count());
@@ -209,7 +221,7 @@ public class M07JobService {
             }
             Medication med = medicationRepository.findById(p.getMedicationId()).orElse(null);
             List<CalculatedDoseSlot> slots = scheduleCalculator.calculate(
-                    p, med, now.minus(5, ChronoUnit.MINUTES), horizon, now, ScheduleContext.empty(p.getResidentId()));
+                    p, med, now.minus(5, ChronoUnit.MINUTES), horizon, now, absenceContexts.of(p.getResidentId()));
 
             for (CalculatedDoseSlot slot : slots) {
                 if (!now.isBefore(slot.windowFrom())) {

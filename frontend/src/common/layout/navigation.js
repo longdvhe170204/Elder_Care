@@ -208,6 +208,30 @@ export const NAV_GROUPS = [
         functions: ['ACCOUNT_PERMISSION_PARAMETER'],
         roles: [QL, BS, DD],
       },
+      // Dòng "Ngưỡng cảnh báo", "Chỉ số sức khỏe" (007 T024)
+      {
+        key: 'measurement-schedules',
+        label: 'Lịch đo và ngưỡng',
+        icon: 'CalendarDays',
+        functions: ['ALERT_THRESHOLD', 'VITAL_SIGN'],
+        roles: [QL, TT, BS, DD],
+      },
+      // Dòng "Danh sách tiếp xúc", "Khoanh vùng" (007 T054)
+      {
+        key: 'infection-control',
+        label: 'Kiểm soát lây nhiễm',
+        icon: 'ClipboardCheck',
+        functions: ['CONTACT_LIST', 'INFECTION_CONTAINMENT'],
+        roles: [QL, TT, BS, DD, HC],
+      },
+      // Dòng "Giấy phép cơ sở", "Khám, điều trị" (007 T057)
+      {
+        key: 'facility-license',
+        label: 'Giấy phép và khám',
+        icon: 'FileSignature',
+        functions: ['EXAM_TREATMENT', 'ACCOUNT_PERMISSION_PARAMETER'],
+        roles: [QL, BS, DD],
+      },
       // Dòng "Bàn giao ca"
       {
         key: 'handovers',
@@ -247,8 +271,32 @@ export const NAV_GROUPS = [
         functions: ['SHIFT_SWAP_REQUEST'],
         roles: [QL, TT, BS, DD, CS, BEP, HC],
       },
-      // Dòng "Suất ăn đã chốt, phiếu bữa ăn"
-      { key: 'meals', label: 'Suất ăn', icon: 'Utensils', functions: ['MEAL_COUNT_TICKET'], roles: [QL, TT, BS, BEP] },
+      // Dòng "Món ăn, thực đơn", "Chế độ ăn", "Danh mục bữa ăn, loại đồ ăn cấm" (011 T011, T020; bố cục duyệt 2026-11-08)
+      {
+        key: 'nutrition',
+        label: 'Dinh dưỡng',
+        icon: 'Salad',
+        functions: ['DISH_MENU', 'DIET', 'NUTRITION_CATALOG'],
+        roles: [QL, BS, DD, BEP],
+      },
+      // Dòng "Đối chiếu đồ ăn gia đình" (bản gán và đồ ăn gia đình của từng người; 011 T015, T035): Nhân viên bếp có
+      // "Chế độ ăn" X nhưng không xem bản gán nên mục theo dòng này
+      {
+        key: 'resident-diets',
+        label: 'Chế độ ăn từng người',
+        icon: 'ClipboardList',
+        functions: ['FAMILY_FOOD_CHECK'],
+        roles: [QL, BS, DD],
+      },
+      // Dòng "Suất ăn đã chốt, phiếu bữa ăn", "Chuẩn bị, giao phiếu, lưu mẫu", "Nhận phiếu, báo sai lệch", "Xác nhận phục vụ suất
+      // đặc biệt" (011 T027, T031, T039)
+      {
+        key: 'meals',
+        label: 'Suất ăn',
+        icon: 'Utensils',
+        functions: ['MEAL_COUNT_TICKET', 'MEAL_PREPARATION', 'MEAL_RECEIPT', 'SPECIAL_MEAL_SERVICE'],
+        roles: [QL, TT, BS, DD, CS, BEP],
+      },
     ],
   },
   {

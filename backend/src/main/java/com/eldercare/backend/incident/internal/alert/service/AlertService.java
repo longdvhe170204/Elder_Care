@@ -70,7 +70,13 @@ public class AlertService {
 
     @Transactional
     public Optional<AlertRecord> requestAlert(CreateAlertCommand cmd) {
-        return requestAlert(cmd, created -> List.of());
+        return requestAlert(
+                cmd,
+                created -> AlertNotices.created(
+                        created,
+                        cmd.sourceStaffId(),
+                        false,
+                        cmd.occurredAt() != null ? cmd.occurredAt() : businessTime.now()));
     }
 
     /**
@@ -107,6 +113,20 @@ public class AlertService {
         }
 
         return Optional.of(createNewAlert(cmd, now, createdNotices));
+    }
+
+    /**
+     * Nguồn của cảnh báo đã được xử lý (FR-032, research S-09): cảnh báo đang mở theo người và khóa loại → Đã đóng, người
+     * đóng Hệ thống, kết quả "nguồn đã được xử lý". Không có cảnh báo mở thì không làm gì.
+     */
+    @Transactional
+    public boolean closeBySystem(long residentId, String typeLock, String resolution, Instant at) {
+        monitoringLock.lock(residentId);
+        var open = alertStore.findOpenAlert(residentId, typeLock);
+        if (open.isEmpty()) return false;
+        alertStore.closeBySystem(open.get().id(), resolution, at, open.get().version());
+        new AlertHistory(recordEvents.orElse(null)).add(open.get().id(), "CLOSED", Map.of("by", "SYSTEM"), at);
+        return true;
     }
 
     private AlertRecord mergeAlert(AlertRecord existing, CreateAlertCommand cmd, Instant now) {
@@ -173,7 +193,7 @@ public class AlertService {
                     updated.noOnDutyDoctor(),
                     updated.typeLock(),
                     now,
-                    List.of()));
+                    AlertNotices.created(updated, cmd.sourceStaffId(), true, now)));
         }
 
         return updated;

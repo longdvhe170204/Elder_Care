@@ -238,12 +238,16 @@ public class DietAssignmentService {
         if (reason != null && reason.length() > 2000) {
             throw new InvalidValueException("Lý do chuyên môn tối đa 2000 ký tự");
         }
-        List<String> warnings = menuConflicts
-                .check(current.residentId(), current.dietId(), new HashSet<>(current.personalRestrictions()))
-                .warningCodes();
+        ResidentMenuConflicts.Result check = menuConflicts.check(
+                current.residentId(), current.dietId(), new HashSet<>(current.personalRestrictions()));
+        List<String> warnings = check.warningCodes();
         if (confirmedWarnings == null || !confirmedWarnings.containsAll(warnings)) {
+            // Liệt kê từng mã cảnh báo để bản Đề xuất mở lại sau vẫn xác nhận được (chủ dự án chọn 2026-11-08)
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "WARNINGS_NOT_CONFIRMED", "Chưa xác nhận đã xem các cảnh báo (FR-016)");
+                    HttpStatus.CONFLICT,
+                    "WARNINGS_NOT_CONFIRMED",
+                    "Chưa xác nhận đã xem các cảnh báo (FR-016)",
+                    Map.of("unmetConditions", warningConditions(check)));
         }
         Instant now = time.now();
         boolean immediate = !current.requestedEffectiveFrom().isAfter(now);
@@ -437,6 +441,39 @@ public class DietAssignmentService {
 
     private static BusinessException stateChanged() {
         return new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Bản gán đã đổi trạng thái");
+    }
+
+    /** Mỗi mã cảnh báo FR-016 một điều kiện, kèm mô tả món, ngày, bữa để Bác sĩ xem trước khi xác nhận. */
+    private List<UnmetCondition> warningConditions(ResidentMenuConflicts.Result check) {
+        java.time.format.DateTimeFormatter day = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        List<UnmetCondition> out = new ArrayList<>();
+        check.conflicts().stream()
+                .filter(c -> !c.hasSuitableSubstitute())
+                .forEach(c -> out.add(new UnmetCondition(
+                        c.code(),
+                        "Món " + catalog.dish(c.dishId()).name() + ", "
+                                + c.date().format(day) + ", "
+                                + catalog.meal(c.mealId()).name() + ": " + conflictLabel(c.type())
+                                + ", chưa có món thay thế phù hợp")));
+        check.missingMeals()
+                .forEach(g -> out.add(new UnmetCondition(
+                        "NO_DISH:" + g.dietId() + ":" + g.date() + ":" + g.mealId(),
+                        "Chế độ ăn chưa có món " + g.date().format(day) + ", "
+                                + catalog.meal(g.mealId()).name())));
+        return out.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        UnmetCondition::code, u -> u, (a, b) -> a, java.util.LinkedHashMap::new))
+                .values()
+                .stream()
+                .toList();
+    }
+
+    private static String conflictLabel(com.eldercare.backend.nutrition.internal.conflict.domain.ConflictType type) {
+        return switch (type) {
+            case ALLERGY -> "có thành phần gây dị ứng";
+            case PERSONAL_RESTRICTION -> "vi phạm hạn chế riêng";
+            case DIET_RESTRICTION -> "vi phạm hạn chế của chế độ ăn";
+        };
     }
 
     private static Map<String, Object> snapshot(NewDietAssignment input) {
