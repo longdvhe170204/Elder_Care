@@ -82,7 +82,7 @@ public class BedReportingStore {
 
     public List<Policy> policies() {
         return jdbc.query(
-                "SELECT b.id,r.id room_id,r.floor_id,f.area_id,(r.status='ACTIVE' AND f.status='ACTIVE' AND a.status='ACTIVE' AND t.status='ACTIVE') active,r.gender_policy,t.serves_long_term,t.serves_short_term,r.isolated,(SELECT GROUP_CONCAT(c.care_level) FROM room_allowed_care_level c WHERE c.room_id=r.id) levels,EXISTS(SELECT 1 FROM v_current_allocation v WHERE v.bed_id=b.id AND v.status='FUTURE') reserved FROM bed b JOIN room r ON r.id=b.room_id JOIN floor f ON f.id=r.floor_id JOIN area a ON a.id=f.area_id JOIN room_type t ON t.id=r.room_type_id ORDER BY b.id",
+                "SELECT b.id,r.id room_id,r.floor_id,f.area_id,(r.status='ACTIVE' AND f.status='ACTIVE' AND a.status='ACTIVE' AND t.status='ACTIVE') active,r.gender_policy,t.serves_long_term,t.serves_short_term,r.isolated,(SELECT GROUP_CONCAT(c.care_level) FROM JSON_TABLE(r.allowed_care_levels,'$[*]' COLUMNS (care_level VARCHAR(20) PATH '$')) c) levels,EXISTS(SELECT 1 FROM v_current_allocation v WHERE v.bed_id=b.id AND v.status='FUTURE') reserved FROM bed b JOIN room r ON r.id=b.room_id JOIN floor f ON f.id=r.floor_id JOIN area a ON a.id=f.area_id JOIN room_type t ON t.id=r.room_type_id ORDER BY b.id",
                 (r, n) -> new Policy(
                         r.getLong("id"),
                         r.getLong("room_id"),
@@ -142,8 +142,10 @@ public class BedReportingStore {
     }
 
     public List<Long> withoutBed() {
+        // T066: dấu "chưa có giường" trên resident_module_state M03 (đọc dòng loại của M03, R-15 ghi nhớ (7)).
         return jdbc.queryForList(
-                "SELECT resident_id FROM resident_position WHERE without_bed_since IS NOT NULL ORDER BY resident_id",
+                "SELECT resident_id FROM resident_module_state WHERE module='M03'"
+                        + " AND JSON_TYPE(data->'$.withoutBedSince')='STRING' ORDER BY resident_id",
                 Long.class);
     }
 }

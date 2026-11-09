@@ -14,7 +14,7 @@ import 'package:mobile/staff/beds/room_isolation_screen.dart';
 void main() {
   late ApiClient api;
   late List<http.Request> commands;
-  late bool writable, offline, blocked, retired, doctorOnly, targetGone;
+  late bool writable, offline, blocked, retired, doctorOnly, targetGone, shiftLead, noDuty;
   late List<Map<String, dynamic>> history;
   setUp(() {
     commands = [];
@@ -23,10 +23,19 @@ void main() {
     offline = blocked = false;
     retired = false;
     doctorOnly = targetGone = false;
+    shiftLead = noDuty = false;
     api = ApiClient(
       baseUrl: 'http://fixture',
       httpClient: MockClient((r) async {
         Object body;
+        if ((shiftLead || noDuty) && r.url.path == '/api/v1/beds' ||
+            noDuty && r.url.path == '/api/v1/bed-readiness/beds') {
+          return http.Response(
+            jsonEncode({'detail': 'Không có quyền'}),
+            403,
+            headers: {'content-type': 'application/problem+json; charset=utf-8'},
+          );
+        }
         if (doctorOnly &&
             (r.url.path == '/api/v1/rooms/2' ||
                 r.url.path == '/api/v1/beds' ||
@@ -65,15 +74,17 @@ void main() {
         }
         switch (r.url.path) {
           case '/api/v1/me/permissions':
+            // Ô ⁴⁰ của Điều dưỡng chỉ có ở lớp nhiệm vụ nên /me/permissions không có BED_READINESS.
             body = [
-              for (final f in [
-                if (!doctorOnly) 'ROOM_BED_CONFIGURATION',
-                if (!doctorOnly) 'BED_READINESS',
-                if (!doctorOnly) 'BED_ALLOCATION',
-                'ROOM_ISOLATION',
-              ])
-                for (final op in ['VIEW', if (writable) 'CREATE', if (writable) 'UPDATE'])
-                  {'function': f, 'operation': op},
+              if (!shiftLead && !noDuty)
+                for (final f in [
+                  if (!doctorOnly) 'ROOM_BED_CONFIGURATION',
+                  if (!doctorOnly) 'BED_READINESS',
+                  if (!doctorOnly) 'BED_ALLOCATION',
+                  'ROOM_ISOLATION',
+                ])
+                  for (final op in ['VIEW', if (writable) 'CREATE', if (writable) 'UPDATE'])
+                    {'function': f, 'operation': op},
             ];
           case '/api/v1/me':
             body = {
@@ -102,6 +113,16 @@ void main() {
                 'status': 'ACTIVE',
                 'location': {'roomId': 2},
                 'flags': ['AWAITING_DOCTOR_CONFIRMATION'],
+              },
+            ];
+          case '/api/v1/bed-readiness/beds':
+            body = [
+              {
+                'id': 3,
+                'state': 'AWAITING_READY',
+                'readyDeadline': '2026-11-09T01:00:00Z',
+                'readinessOverdue': true,
+                'location': {'bedId': 3, 'roomId': 2, 'floorId': 1, 'label': 'Phòng 201, giường G1'},
               },
             ];
           case '/api/v1/beds/3/readiness-conditions':
@@ -319,6 +340,24 @@ void main() {
     expect(find.text('Đã khử khuẩn'), findsOneWidget);
     expect(commands, isEmpty);
   });
+  testWidgets('FR_044_dieuDuongPhuTrachCaThayGiuongChoSanSangCuaTangVaMoXacNhan', (t) async {
+    shiftLead = true;
+    await open(t, BedsScreen(api: api));
+    expect(find.text('Phòng 201, giường G1'), findsOneWidget);
+    expect(find.text('Chờ sẵn sàng, quá hạn'), findsOneWidget);
+    await t.tap(find.text('Phòng 201, giường G1'));
+    await t.pumpAndSettle();
+    expect(find.text('Đã khử khuẩn'), findsOneWidget);
+    expect(commands, isEmpty);
+  });
+
+  testWidgets('FR_044_khongCoNhiemVuThiKhongLoGiuong', (t) async {
+    noDuty = true;
+    await open(t, BedsScreen(api: api));
+    expect(find.text('Phòng 201, giường G1'), findsNothing);
+    expect(find.text('Chưa có giường trong phạm vi được xem.'), findsOneWidget);
+  });
+
   testWidgets('FR_008_bangGiuongLayMaPhongTuLocationDungHopDong', (t) async {
     await open(t, BedsScreen(api: api));
     await t.tap(find.text('Phòng 201, giường G1'));

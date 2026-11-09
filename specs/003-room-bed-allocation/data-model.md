@@ -10,52 +10,47 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
 
-- Giữ, gộp: `phong` (mức chăm sóc cho phép thành `JSON`); `giuong`; `lich_su_trang_thai_giuong` (`CHECK` BR-M03-10); `phan_bo_giuong`. Tài sản của 019 (M03): `tai_san`, xem data-model 019 mục 0.
-- `danh_muc_chung`: `khu_vuc`, `tang` (`cha_id` là khu vực), `loai_phong` (mức chăm sóc trong `thuoc_tinh`), `ly_do_chuyen_giuong`, `khu_nghi_ban_tru`, `buoi_ban_tru` (sức chứa trong `thuoc_tinh`).
-- `lich_su_chung`: `lich_su_cach_ly_phong` (kiểu `KHOANG`).
-- `trang_thai_nct`: `vi_tri_nct` (`resident_position`); `ho_so_chung`: `yeu_cau_nhap_bu`; `moc_da_nhac`: `nhac_phan_bo`; `khoa_ky_thuat`: `allocation_write_guard`, `day_care_capacity_guard`.
-- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `phong_muc_cho_phep` → cột `JSON` của `phong`; `loai_phong_muc` → `danh_muc_chung`. Không thêm bảng riêng.
-- Còn 4 bảng riêng của feature.
+*(Sửa 2026-11-09 theo quyết định chủ dự án: nhóm 3 giữ bảng và id; nhóm 2 gộp, id cũ ở `legacy`; không đổi id ở bảng module khác. Danh mục nhóm 1 giữ bảng và id vì module khác lưu id tầng, khu vực, loại phòng, buổi bán trú; ghi chú T066 ở tasks liệt kê tham chiếu. Các gạch đầu dòng dưới là bản đã cài ở `V003_95`.)*
+
+- Giữ bảng và id: `phong` (mức chăm sóc cho phép thành `JSON`); `giuong`; `phan_bo_giuong`; nhóm 3 `lich_su_trang_thai_giuong` (`CHECK` BR-M03-10), `lich_su_cach_ly_phong`, `yeu_cau_nhap_bu`; danh mục `khu_vuc`, `tang`, `loai_phong` (kèm `loai_phong_muc`), `ly_do_chuyen_giuong`, `khu_nghi_ban_tru`, `buoi_ban_tru` (cột và ràng buộc như `V003_01`, `V003_05`). Tài sản của 019 (M03): `tai_san`, xem data-model 019 mục 0.
+- `trang_thai_nct`: `vi_tri_nct` (`resident_position`); `moc_da_nhac`: `nhac_phan_bo`; `khoa_ky_thuat`: `allocation_write_guard`, `day_care_capacity_guard`.
+- Bảng con: `phong_muc_cho_phep` → cột `JSON` của `phong`. Không thêm bảng riêng.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V003_95`)*
 
 Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ đã bỏ ở các mục sau, 2026-10-30; mã gộp ở 003 T066); cột không nhắc lại giữ như bảng đã cài (`V003_01` → `V003_06`); `V003_07` bổ sung mốc đặt dấu chờ bác sĩ nullable trên bảng `bed_allocation` được giữ, không tạo bảng phụ.
 
-**`room`** (`phong`) – nhóm 1. Giữ mọi cột và `uq_room_code`. `floor_id` trỏ `danh_muc_chung.id` loại `M03.FLOOR`; `room_type_id` trỏ loại `M03.ROOM_TYPE` (id mới). Thêm `allowed_care_levels JSON NOT NULL` (thay `room_allowed_care_level`, mảng mã `M01.CARE_LEVEL`).
+**`room`** (`phong`) – nhóm 1. Giữ mọi cột, `uq_room_code`, khóa ngoại `floor_id` → `floor`, `room_type_id` → `room_type`. Thêm `allowed_care_levels JSON NOT NULL DEFAULT (JSON_ARRAY())` (thay `room_allowed_care_level`, mảng mã `M01.CARE_LEVEL`).
+
+**`area`, `floor`, `room_type` + `room_type_care_level`, `bed_transfer_reason`, `day_care_rest_area`, `day_care_session`** – nhóm 1, giữ bảng, id, cột, ràng buộc như `V003_01`, `V003_05` (sửa 2026-11-09).
+
+**`room_isolation_history`** (`lich_su_cach_ly_phong`), **`bed_backfill_request`** (`yeu_cau_nhap_bu`) – nhóm 3, giữ bảng, id, trigger chỉ thêm (sửa 2026-11-09); khai `DataGroup=RECORD` bằng `COMMENT`.
 
 **`bed`** (`giuong`) – giữ nguyên mọi cột, `CHECK`, `uq_bed_room_code`, khóa ngoại.
 
 **`bed_state_history`** (`lich_su_trang_thai_giuong`) – giữ nguyên (R-15: `CHECK` BR-M03-10).
 
-**`bed_allocation`** (`phan_bo_giuong`) – giữ nguyên mọi cột, ba `UNIQUE` cột sinh, `CHECK`, trigger chống chồng thời gian. `transfer_reason_id` trỏ `danh_muc_chung.id` loại `M03.BED_TRANSFER_REASON` (id mới).
+**`bed_allocation`** (`phan_bo_giuong`) – giữ nguyên mọi cột, ba `UNIQUE` cột sinh, `CHECK`, trigger chống chồng thời gian, `transfer_reason_id` → `bed_transfer_reason`.
 
-**View `v_current_allocation`** – viết lại: `JOIN catalog_item f ON f.id = r.floor_id`, `f.parent_id AS area_id` thay `JOIN floor`.
+**View `v_current_allocation`** – giữ nguyên (bảng `floor` được giữ).
 
 **Loại ở bảng chung**:
 
 | Bảng chung | `loai` | Nội dung | Ràng buộc chuyển về backend |
 | --- | --- | --- | --- |
-| `danh_muc_chung` | `M03.AREA` | `ma` = mã khu vực | `UNIQUE` mã theo `ma_khoa` |
-| `danh_muc_chung` | `M03.FLOOR` | `cha_id` = khu vực; `ma` = mã tầng; `{buildingName}` | Mã không trùng trong khu vực (`ma_khoa` gồm `cha_id`, thay `uq_floor_area_code`) |
-| `danh_muc_chung` | `M03.ROOM_TYPE` | `{standardBeds, servesLongTerm, servesShortTerm, careLevels[]}` | `standardBeds > 0`, phục vụ ít nhất một loại lưu trú (thay hai `CHECK`) |
-| `danh_muc_chung` | `M03.BED_TRANSFER_REASON` | `ma` = mã; `{medicalSafety, fixed}` | Lý do cố định không sửa, không ngừng |
-| `danh_muc_chung` | `M03.DAY_CARE_REST_AREA` | `{floorId, areaId}` (đúng một trong hai) | Một khu nghỉ Hiệu lực (thay `active_singleton`): lệnh kích hoạt khóa `khoa_ky_thuat` `M03.KHU_NGHI` rồi kiểm |
-| `danh_muc_chung` | `M03.DAY_CARE_SESSION` | `{startTime, endTime}` | `endTime > startTime` trong một ngày |
-| `lich_su_chung` | thuộc tính `CACH_LY`, đối tượng `PHONG` | kiểu `MOC`; `gia_tri` `ISOLATE`, `LIFT`; `ly_do` bắt buộc; `can_cu_loai` `INCIDENT` khi có sự cố | Lý do không rỗng (thay `chk_isolation_reason`) |
-| `ho_so_chung` | `M03.BED_BACKFILL_REQUEST` | `nct_id`; đối tượng `APPROVAL_REQUEST`; `{currentAllocationId, newBedId, transferAt}`; khóa khi thêm | Một dòng mỗi yêu cầu phê duyệt (`khoa_duy_nhat` `M03.BBR:<approvalRequestId>`); cột sinh `m03_new_bed_id`, `m03_transfer_at` có chỉ mục cho kiểm chồng thời gian |
-| `trang_thai_nct` | module `M03` | `{withoutBedSince, waitingHoldBedIds[]}` | Thay `resident_position`; khóa dòng như cũ |
-| `moc_da_nhac` | `M03.ALLOCATION_REMINDER.<flagType>` | đối tượng `target_type`, `target_id`; `moc` = `START` khi bắt đầu, số lần mỗi lần nhắc | Thay `allocation_reminder` (số lần, lần cuối tính từ các dòng; xóa cờ thành dòng `END`) |
-| `khoa_ky_thuat` | `M03.PHAN_BO`, `M03.SUC_CHUA_BAN_TRU` | | Thay `allocation_write_guard`, `day_care_capacity_guard` |
+| `trang_thai_nct` | `M03.RESIDENT_POSITION` (module `M03`) | `{withoutBedSince, waitingHoldBedIds[]}` | Thay `resident_position`; khóa tuần tự theo người là dòng `khoa_ky_thuat` `M03.RESIDENT_POSITION:<nctId>` (upsert lấy khóa X ngay như bảng cũ, research G-03), đọc, ghi dữ liệu sau khóa qua `ResidentModuleStateApi` |
+| `moc_da_nhac` | `M03.ALLOCATION_REMINDER.<flagType>` | đối tượng `target_type`, `target_id`; mỗi lần đặt dấu một chu kỳ c: `START:c`, `c:n` lần nhắc thứ n, `END:c` khi gỡ; `chi_tiet.at` là mốc nghiệp vụ | Thay `allocation_reminder` (số lần, lần cuối tính từ các dòng; đặt lại dấu = đóng chu kỳ, mở chu kỳ mới); job loại bỏ xóa dòng của phân bổ bị xóa |
+| `khoa_ky_thuat` | `M03.PHAN_BO`, `M03.SUC_CHUA_BAN_TRU` | dòng có sẵn từ `V003_95` | Thay `allocation_write_guard` (`FOR SHARE` ở RC, `FOR UPDATE` ở RR như cũ), `day_care_capacity_guard` |
 
-**Chuyển dữ liệu (`V003_95`)**: `area`, `floor`, `room_type` (kèm `room_type_care_level`), `bed_transfer_reason`, `day_care_rest_area`, `day_care_session` vào `danh_muc_chung`, đổi `room.floor_id`, `room.room_type_id`, `bed_allocation.transfer_reason_id` và tham chiếu khu nghỉ, buổi bán trú ở module khác (đọc qua `LocationStructureApi`, không có khóa ngoại ngoài 003) theo id mới; `room_allowed_care_level` vào `room.allowed_care_levels`; `room_isolation_history` vào `lich_su_chung`; `bed_backfill_request` vào `ho_so_chung`; `resident_position` vào `trang_thai_nct`; `allocation_reminder` vào `moc_da_nhac`; hai bảng khóa vào `khoa_ky_thuat`. Viết lại `v_current_allocation`. `dinh_chinh` trỏ `M03.BED_ALLOCATION` giữ id.
+**Chuyển dữ liệu (`V003_95`)**: `room_allowed_care_level` vào `room.allowed_care_levels`; `resident_position` vào `trang_thai_nct` (giữ `version`); `allocation_reminder` vào `moc_da_nhac` (chu kỳ 1; các lần nhắc 1 → n nhận lần nhắc cuối như `V001_95`); hai bảng khóa thành hai dòng `khoa_ky_thuat`; thủ tục kiểm số dòng trước khi gỡ quyền, `DROP TABLE` năm bảng cũ. Không đổi id bảng nào; `dinh_chinh`, `nhat_ky`, tệp giữ đích cũ.
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một phân bổ hiện hành mỗi giường, mỗi người và không chồng thời gian (giữ ở `bed_allocation`); BR-M03-10 (giữ `CHECK`); mã tầng không trùng trong khu vực (`ma_khoa`); một khu nghỉ bán trú Hiệu lực (kiểm dưới khóa). Test roombedallocation hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục), trừ `FR_035_LocationHistoryHttpIT` đang đỏ sẵn (team-plan mục 8).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một phân bổ hiện hành mỗi giường, mỗi người và không chồng thời gian (giữ ở `bed_allocation`); BR-M03-10 (giữ `CHECK`); mã tầng không trùng trong khu vực (giữ `uq_floor_area_code`); một khu nghỉ bán trú Hiệu lực (kiểm dưới khóa). Test roombedallocation hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục), trừ `FR_035_LocationHistoryHttpIT` đang đỏ sẵn (team-plan mục 8).
 
 **Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
 
 | Mã | Bảo đảm sau gộp | Test |
 | --- | --- | --- |
-| DBR-23 | Lịch sử cách ly chỉ thêm: `lich_su_chung` (trigger không sửa, không xóa; `den` đặt một lần) | `RecordGroupTriggerIT`, test cách ly phòng hiện có |
+| DBR-23 | Lịch sử cách ly chỉ thêm: giữ `room_isolation_history` và trigger chỉ thêm (sửa 2026-11-09) | `FR_008_RoomIsolationIT` (sửa, xóa trực tiếp bị chặn) |
 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 50 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Fixture dùng chung (`support/`, ảnh hưởng mọi module; sửa trong cùng PR, báo cả nhóm ở team-plan mục 8): `FR_018_FakeM03Test`, `FakeLocations`.

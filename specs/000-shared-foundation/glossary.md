@@ -751,8 +751,10 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `loaiLuuTru`, `mucTheoHopDong`, `mucTheoLuotDangKy`, `ketThucDuKien`, `giuGiuongKhiVang`, `khacDonGia`, `hoSoChoHetHanGiuCho`, `daPhanBo` | `residencyType`, `careLevelFromContract`, `careLevelFromRegistration`, `expectedEnd`, `holdBedWhenAbsent`, `differentUnitPrice`, `waitingRecordHoldExpired`, `allocated` |
 | `DemLichDenBanTru.demTuNgay`, `coLichTuongLai` | `api.spi.DayCareArrivalCounter.countFrom`, `hasFutureArrivals` |
 | `TinhTrangLayNhiemChoPhanBo.vungDangKhoanh`, `thuocDanhSach` | `api.spi.AllocationInfectionStatus.cordonedAt`, `listedAt` |
+| `LenhKiemSoatLayNhiemApi.daGoKhoanhVung`, `daThemVaoDanhSachTiepXuc` (bổ sung 2026-11-09); bản giả chung | `api.InfectionControlCommandApi.cordonLifted`, `contactListed`; bản cài `internal.isolation.service.InfectionControlCommands`; `support/fake/roombedallocation/FakeInfectionControlCommands` |
+| `vi_tri_nct` sau gộp R-15, `nhac_phan_bo` sau gộp, khóa kỹ thuật của 003 (T066, 2026-11-09) | `resident_module_state` loại `M03.RESIDENT_POSITION` (`ResidentPositionState`, `ResidentPositionStore`, khóa `technical_lock` `M03.RESIDENT_POSITION:<residentId>`); `reminder_marker` loại `M03.ALLOCATION_REMINDER.<flagType>` (`AllocationReminderMarkers`, `ReminderCycle`); `technical_lock` `M03.PHAN_BO`, `M03.SUC_CHUA_BAN_TRU`; cột `room.allowed_care_levels` |
 | `ThamChieuViTri.dangThamChieu`, `daTungThamChieu` | `api.spi.LocationReferences.currentReferences`, `everReferenced` |
-| `TaiSanGiuongPort.ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau`, `giuongMangDauTai` | `internal.bed.domain.BedAssetPort.recordIncreaseForBed`, `awaitingResidentTransfer`, `flaggedBeds`, `flaggedBedsAt` |
+| `TaiSanGiuongPort.ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau`, `giuongMangDauTai`, `doiViTriTaiSanTheoGiuong` (bổ sung 2026-11-09) | `internal.bed.domain.BedAssetPort.recordIncreaseForBed`, `awaitingResidentTransfer`, `flaggedBeds`, `flaggedBedsAt`, `relocateBedAsset` |
 | `BuoiNgay`, `BuoiBanTru`, `ViTriRef` | `api.dto.SessionDate` (`date`, `sessionId`), `DayCareSession` (`id`, `name`, `startTime`, `endTime`, `active`), `LocationRef` (`type`, `id`) |
 | `GiuGiuong`, `VungKhoanh`, `ThamChieuView` | `api.spi.HeldBed` (`held`, `until`), `CordonedArea` (`floorIds`, `areaIds`), `LocationReferenceView` (`type`, `id`, `label`) |
 | Mã mức `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` trong SPI phân bổ | `api.spi.CareLevelCode`: `BASIC`, `FREQUENT`, `SPECIAL` |
@@ -1691,6 +1693,16 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | Lối mở mobile005 | `CareTasksHomeScreen` | care_tasks/care_tasks_home_screen.dart; adapter requestJson/getList |
 | Ghi phát sinh trên app | `AdHocCareRecordingScreen` | Cùng CareResultForm của checklist |
 | Ghi nhận qua hàng đợi chung | `CareOfflineRecording` | Lưu phong bì trước, gửi/sync lại cùng Idempotency-Key |
+
+### 11.15. Báo xem xét kế hoạch từ 007, trạng thái có mặt cho 004 (005, duyệt 08/11 và 09/11/2026)
+
+| Tên logic | Tên tiếng Anh | Ghi chú |
+| --- | --- | --- |
+| BaoXemXetKeHoachApi | `care.api.CarePlanReviewApi` | 007 gọi, MANDATORY; module-interfaces 005 mục 1.10b |
+| suCoNgaDaGhiNhan(nctId, suCoId) | `fallIncidentRecorded(residentId, incidentId)` | Nguồn `M05.INCIDENT` |
+| luaChonChamSocGiamNheDaGhi(nctId, khoaSuKien, thoiDiem) | `palliativeCareChoiceRecorded(residentId, eventKey, occurredAt)` | Nguồn `M05.PALLIATIVE_CARE_CHOICE` |
+| Dấu đã báo xem xét kế hoạch | `M04.CARE_PLAN_REVIEW` | `reminder_marker`; đối tượng `M05.INCIDENT` (mốc `FALL`) hoặc `M01.RESIDENT` (mốc `PALLIATIVE:` + SHA-256 của khóa) |
+| Bản cài TrangThaiCoMatBanTruPort | `DayCareAttendanceStatuses` | `care.internal.attendance.service`; cài `admission.api.spi.DayCareAttendancePort` |
 
 ## 12. Feature 006 (`006-medication-management`, D)
 
@@ -4419,6 +4431,7 @@ Các tên mã trên đã có implementation; task chỉ đánh sau kiểm cuối
 | Khái niệm | Tên mã |
 | --- | --- |
 | Điều kiện/lệnh xác nhận sẵn sàng | `BedReadiness`, `BedReadinessStore`, `BedReadinessService`, `BedReadinessController`, `BedReadinessWrite`, `BedReadinessResponse`; schema HTTP `BedReadinessConditions` |
+| Danh sách giường Chờ sẵn sàng theo tầng được giao hoặc đang phụ trách ca (T060, duyệt 2026-11-06, dịch 2026-11-09) | `GET /bed-readiness/beds?floorId=`; schema HTTP `BedReadinessListItem` (`id`, `location`, `state`, `readyDeadline`, `readinessOverdue`); `BedReadinessService.awaitingReadyBeds`, `BedReadinessListController` |
 | Nhắc giường quá hạn | `BedReadinessReminderProcessor`, `BedReadinessReminderJob`, tên job `REMIND_BED_READINESS` |
 | Nhắc dấu phân bổ còn mở | `AllocationReminderStore`, `AllocationReminderProcessor`, `AllocationReminderJob`, tên job `REMIND_ALLOCATIONS` |
 | Nhật ký nhắc | `M03_REMINDER`, chi tiết `plannedAt`, `executedLate`, `flagType` (nhắc dấu) |

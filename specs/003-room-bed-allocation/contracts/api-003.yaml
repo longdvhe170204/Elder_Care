@@ -913,7 +913,7 @@ paths:
         "409":
           $ref: "#/components/responses/Problem"
       x-implementation-phase: 3
-      x-implementation-note: Đổi phòng chờ đồng bộ tài sản 019; người dùng giữ nguyên port hiện tại.
+      x-implementation-note: Đổi phòng giường chưa từng phân bổ chuyển vị trí tài sản giường cùng transaction (BedAssetPort.relocateBedAsset, 2026-11-09).
   /beds/{id}/suspend:
     post:
       tags: [beds]
@@ -975,6 +975,22 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/BlockedProblem' }
         '422': { $ref: '#/components/responses/Problem' }
+  /bed-readiness/beds:
+    get:
+      tags: [beds]
+      x-implementation-phase: 10
+      summary: Giường Chờ sẵn sàng của tầng người dùng được giao hoặc đang phụ trách ca
+      description: |
+        Chỉ giường AWAITING_READY ở tầng mà người dùng là Trưởng tầng được giao hoặc Người phụ trách ca đang trong ca
+        (cùng luật research G-14 của xác nhận sẵn sàng). floorId chỉ thu hẹp kết quả, không cấp quyền. Không ghi dữ liệu;
+        sau khi chọn giường, app gọi readiness-conditions, confirm-readiness (duyệt 2026-11-06, dịch 2026-11-09).
+      x-fr: [FR-044]
+      x-br: [BR-M03-09]
+      parameters:
+        - { name: floorId, in: query, required: false, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedReadinessListItem' } } } } }
+        '403': { $ref: '#/components/responses/Problem' }
   /beds/{id}/state-history:
     get:
       tags: [beds]
@@ -1934,6 +1950,14 @@ components:
         - UNDER_MAINTENANCE
         - SUSPENDED
         - RETIRED
+    BedReadinessListItem:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        location: { $ref: "#/components/schemas/Location" }
+        state: { $ref: "#/components/schemas/BedStatus" }
+        readyDeadline: { type: string, format: date-time }
+        readinessOverdue: { type: boolean }
     BedBoard:
       type: object
       properties:

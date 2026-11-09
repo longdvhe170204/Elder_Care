@@ -78,4 +78,20 @@ class BR_M03_01_AllocationConditionsIT extends StructureTestSupport {
                         "ALLOCATION_PROFILE_CLOSED",
                         "ALLOCATION_ASSET_FLAG");
     }
+
+    /** T053 (FR-009, research G-08): phòng không cách ly nhưng thuộc tầng đang khoanh vùng cũng chặn phân bổ. */
+    @Test
+    void BR_M03_01_cordonedFloorBlocksAllocationLikeAnIsolatedRoom() throws Exception {
+        infection.cordon(
+                time.now().minusSeconds(60),
+                new com.eldercare.backend.roombedallocation.api.spi.CordonedArea(
+                        java.util.Set.of(floor), java.util.Set.of()));
+        assertThat(check(time.now(), null, true))
+                .extracting(UnmetCondition::code)
+                .contains("ALLOCATION_ISOLATION");
+        infection.reset();
+        assertThat(check(time.now(), null, true))
+                .extracting(UnmetCondition::code)
+                .doesNotContain("ALLOCATION_ISOLATION");
+    }
 }

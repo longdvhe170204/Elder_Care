@@ -39,7 +39,9 @@ public class DayCareStore {
     }
 
     public void lock() {
-        jdbc.queryForObject("SELECT id FROM day_care_capacity_guard WHERE id=1 FOR UPDATE", Integer.class);
+        // T066: dòng technical_lock M03.SUC_CHUA_BAN_TRU do V003_95 tạo (thay day_care_capacity_guard).
+        jdbc.queryForObject(
+                "SELECT lock_key FROM technical_lock WHERE lock_key='M03.SUC_CHUA_BAN_TRU' FOR UPDATE", String.class);
     }
 
     public List<DayCareAreaState> areas(boolean current) {

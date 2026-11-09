@@ -127,6 +127,31 @@ class FR_024_AllocationStatusParticipantIT extends StructureTestSupport {
                 .isNotNull();
     }
 
+    /** T053 (FR-024a): trở về giường giữ ở phòng đang cách ly không bị chặn, phân bổ mang dấu chờ bác sĩ xác nhận. */
+    @Test
+    void FR_024a_returnToIsolatedRoomKeepsTheBedAndFlagsAwaitingDoctor() {
+        freshFixture();
+        long id = allocation("ACTIVE");
+        residency.resident(
+                resident,
+                ResidencyType.LONG_TERM,
+                null,
+                null,
+                null,
+                new HeldBed(true, Optional.of(time.now().plusSeconds(3600))));
+        apply(StatusCommand.GRANT_TEMPORARY_ABSENCE, ResidentStatus.IN_RESIDENCE, ResidentStatus.TEMPORARILY_ABSENT);
+        jdbc.update("UPDATE room SET isolated=TRUE WHERE id=?", room);
+        apply(StatusCommand.RECORD_RETURN, ResidentStatus.TEMPORARILY_ABSENT, ResidentStatus.IN_RESIDENCE);
+        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
+                .isEqualTo("OCCUPIED");
+        assertThat(jdbc.queryForMap(
+                        "SELECT status, awaiting_doctor_confirmation, doctor_confirmation_requested_at FROM bed_allocation WHERE id=?",
+                        id))
+                .containsEntry("status", "ACTIVE")
+                .containsEntry("awaiting_doctor_confirmation", true)
+                .doesNotContainEntry("doctor_confirmation_requested_at", null);
+    }
+
     @Test
     void FR_025_finalStatusClosesAllocationAndReleasesBed() {
         TableRows.each(
