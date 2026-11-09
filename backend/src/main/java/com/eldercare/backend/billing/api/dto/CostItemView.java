@@ -25,6 +25,7 @@ public record CostItemView(
         Long originalItemId,
         String originalPeriod,
         List<Map<String, Object>> recalculationHistory,
+        List<Map<String, Object>> commandHistory,
         List<Map<String, Object>> adjustments,
         Long currentTotal,
         List<String> hiddenFields) {}

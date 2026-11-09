@@ -1,82 +1,62 @@
 package com.eldercare.backend.billing.web.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
-/**
- * T012: dữ liệu chọn nguồn theo hợp đồng 010 đã được duyệt ({@code CreateCostsFromEvents}): chọn đúng một kiểu
- * {@code sourceIds}, {@code sourceUnits} hoặc {@code dateRange}; mảng ít nhất một phần tử, không trùng, không phần tử
- * rỗng; {@code dateRange} đủ hai đầu, không ngược, chỉ cho phí lưu trú. Các hàm kiểm không vào thân JSON (FR-013).
- */
+/** T012: dữ liệu chọn nguồn theo hợp đồng 010 đã được duyệt. */
+@Schema(name = "CreateCostsFromEvents")
 public record CreateCostsFromEventsRequest(
-        @NotNull Long residentId,
-        @NotNull String sourceType,
-        List<String> sourceIds,
-        List<SourceUnit> sourceUnits,
-        DateRange dateRange) {
+        @NotNull @Positive Long residentId,
 
-    /** {@code BillingSourceType} của api-010. */
-    static final Set<String> SOURCE_TYPES = Set.of(
-            "RESIDENCY_DAY",
-            "DAY_CARE_SESSION",
-            "CARE_TASK_RESULT",
-            "DOSE",
-            "PRN_ADMINISTRATION",
-            "DISPENSE_RECORD",
-            "FAMILY_MEAL",
-            "OVERNIGHT_STAY",
-            "ACTIVITY_ATTENDANCE");
+        @NotNull
+        @Schema(
+                allowableValues = {
+                    "RESIDENCY_DAY",
+                    "DAY_CARE_SESSION",
+                    "CARE_TASK_RESULT",
+                    "DOSE",
+                    "PRN_ADMINISTRATION",
+                    "DISPENSE_RECORD",
+                    "FAMILY_MEAL",
+                    "OVERNIGHT_STAY",
+                    "ACTIVITY_ATTENDANCE"
+                })
+        @Pattern(
+                regexp =
+                        "RESIDENCY_DAY|DAY_CARE_SESSION|CARE_TASK_RESULT|DOSE|PRN_ADMINISTRATION|DISPENSE_RECORD|FAMILY_MEAL|OVERNIGHT_STAY|ACTIVITY_ATTENDANCE")
+        String sourceType,
 
-    public record SourceUnit(String sourceId, String billingUnit) {}
-
-    public record DateRange(LocalDate from, LocalDate to) {}
-
+        @Size(min = 1) List<@NotBlank String> sourceIds,
+        @Size(min = 1) List<@NotNull @Valid SourceUnit> sourceUnits,
+        @Valid DateRange dateRange) {
     @JsonIgnore
-    @AssertTrue(message = "Loại nguồn không thuộc danh sách")
-    public boolean isKnownSourceType() {
-        return sourceType == null || SOURCE_TYPES.contains(sourceType);
+    @Schema(hidden = true)
+    @AssertTrue(message = "Chọn đúng một kiểu nguồn, không lặp đơn vị; khoảng ngày chỉ dùng cho phí lưu trú")
+    public boolean isSelectionValid() {
+        int choices = (sourceIds == null ? 0 : 1) + (sourceUnits == null ? 0 : 1) + (dateRange == null ? 0 : 1);
+        return choices == 1
+                && (sourceIds == null || new HashSet<>(sourceIds).size() == sourceIds.size())
+                && (sourceUnits == null || new HashSet<>(sourceUnits).size() == sourceUnits.size())
+                && (dateRange == null || "RESIDENCY_DAY".equals(sourceType));
     }
 
-    @JsonIgnore
-    @AssertTrue(message = "Chọn đúng một kiểu sourceIds, sourceUnits hoặc dateRange")
-    public boolean isExactlyOneSelection() {
-        int chosen = (sourceIds != null ? 1 : 0) + (sourceUnits != null ? 1 : 0) + (dateRange != null ? 1 : 0);
-        return chosen == 1;
-    }
+    @Schema(name = "CostSourceUnit")
+    public record SourceUnit(
+            @NotBlank String sourceId, @NotBlank String billingUnit) {}
 
-    @JsonIgnore
-    @AssertTrue(message = "sourceIds cần ít nhất một id, không trùng, không rỗng")
-    public boolean isSourceIdsValid() {
-        return sourceIds == null
-                || distinctNonEmpty(sourceIds) && sourceIds.stream().allMatch(Objects::nonNull);
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "sourceUnits cần ít nhất một đơn vị, không trùng, đủ sourceId và billingUnit")
-    public boolean isSourceUnitsValid() {
-        return sourceUnits == null
-                || distinctNonEmpty(sourceUnits)
-                        && sourceUnits.stream()
-                                .allMatch(u -> u != null && u.sourceId() != null && u.billingUnit() != null);
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "dateRange cần from, to, không ngược và chỉ dùng cho phí lưu trú")
-    public boolean isDateRangeValid() {
-        return dateRange == null
-                || dateRange.from() != null
-                        && dateRange.to() != null
-                        && !dateRange.to().isBefore(dateRange.from())
-                        && "RESIDENCY_DAY".equals(sourceType);
-    }
-
-    private static boolean distinctNonEmpty(List<?> values) {
-        return !values.isEmpty() && new HashSet<>(values).size() == values.size();
+    @Schema(name = "CostSourceDateRange")
+    public record DateRange(
+            @NotNull LocalDate from, @NotNull LocalDate to) {
+        @JsonIgnore
+        @Schema(hidden = true)
+        @AssertTrue(message = "Ngày bắt đầu phải không sau ngày kết thúc")
+        public boolean isOrdered() {
+            return from == null || to == null || !from.isAfter(to);
+        }
     }
 }

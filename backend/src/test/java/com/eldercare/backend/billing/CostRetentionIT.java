@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.retention.api.spi.RetentionProvider.DataRef;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
@@ -43,6 +44,25 @@ class CostRetentionIT extends MySqlIntegrationTestBase {
                 .filter(p -> p.dataType().equals(type))
                 .findFirst()
                 .orElseThrow();
+    }
+
+    @Test
+    void FR_051a_residentReferencesIncludeUnexpiredCostRecordsAndPaginationAdvances() {
+        long resident = person(ResidentStatus.RESIDENCY_ENDED, OLD);
+        long period = period(OLD);
+        long first = statement(period, resident);
+        long item = item(period, first, resident);
+        assertThat(provider("M11.COST_STATEMENT").referencing(new DataRef("M01.RESIDENT", resident)))
+                .containsExactly(new DataRef("M11.COST_STATEMENT", first));
+        assertThat(provider("M11.COST_ITEM").referencing(new DataRef("M01.RESIDENT", resident)))
+                .containsExactly(new DataRef("M11.COST_ITEM", item));
+        assertThat(provider("M11.COST_PERIOD").referencing(new DataRef("M01.RESIDENT", resident)))
+                .isEmpty();
+        var marker = new RetentionProvider.Candidate(first, OLD);
+        assertThat(provider("M11.COST_STATEMENT")
+                        .expiredCandidates(CUTOFF, marker, 100)
+                        .toList())
+                .noneMatch(candidate -> candidate.id() == first);
     }
 
     @BeforeEach
