@@ -5,6 +5,7 @@ import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
 import '../../common/format/date_time.dart';
 import '../../common/widgets/page_body.dart';
+import 'family_documents_screen.dart';
 
 // Nhãn cùng chữ với web `features/family-portal/live/LiveCostsPage.jsx`; mobile/README luật 1 cấm import từ `staff/`.
 const _types = {
@@ -156,6 +157,22 @@ class _FamilyBalanceScreenState extends State<FamilyBalanceScreen> {
                   ],
                 ),
               ),
+          const SizedBox(height: 24),
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(title: const Text('Chứng từ và sao kê')),
+                  body: FamilyDocumentsScreen(
+                    api: widget.api,
+                    residentId: widget.residentId,
+                    residentName: widget.residentName,
+                  ),
+                ),
+              ),
+            ),
+            child: const Text('Chứng từ và sao kê'),
+          ),
         ],
       ),
     );

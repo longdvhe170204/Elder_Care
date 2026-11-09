@@ -125,6 +125,17 @@ class ApiClient {
     return (await _send(request, binary: true)).$1.bodyBytes;
   }
 
+  /// Gửi thân JSON và nhận nội dung nhị phân (017 T039: `POST /family-portal/residents/{id}/balance-statement` trả tệp
+  /// Excel hoặc PDF). Lỗi và mất mạng như [getBytes].
+  Future<Uint8List> postBytes(String path, Map<String, dynamic> body, {Map<String, String>? headers}) async {
+    final request = http.Request('POST', Uri.parse('$baseUrl/api/v1$path'));
+    _prepare(request, headers);
+    request.headers['Accept'] = '*/*, application/problem+json';
+    request.headers['Content-Type'] = 'application/json';
+    request.body = jsonEncode(body);
+    return (await _send(request, binary: true)).$1.bodyBytes;
+  }
+
   Future<ApiResponse> _dispatch(http.BaseRequest request) async {
     final (response, decoded) = await _send(request);
     return ApiResponse(decoded, response.headers);
