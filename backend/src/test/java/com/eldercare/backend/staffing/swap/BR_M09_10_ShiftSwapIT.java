@@ -36,6 +36,28 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
     }
 
     @Test
+    void FR_041_approvedMutualSwapRemovesTripDutiesOfBothLeavingStaff() throws Exception {
+        long x = shift(base.plus(Duration.ofHours(7)), 8, null, giver);
+        long y = shift(base.plus(Duration.ofDays(1)).plus(Duration.ofHours(7)), 8, null, recipient);
+        long id = createMutual(giver, x, recipient, y);
+        send("/api/v1/shift-swaps/" + id + "/accept", recipient, null).andExpect(status().isOk());
+        org.mockito.Mockito.verifyNoInteractions(tripDuties);
+
+        send("/api/v1/shift-swaps/" + id + "/approve", head, null).andExpect(status().isOk());
+        org.mockito.Mockito.verify(tripDuties)
+                .removeDuty(
+                        org.mockito.ArgumentMatchers.eq(giver.staffId()),
+                        org.mockito.ArgumentMatchers.eq(x),
+                        org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.verify(tripDuties)
+                .removeDuty(
+                        org.mockito.ArgumentMatchers.eq(recipient.staffId()),
+                        org.mockito.ArgumentMatchers.eq(y),
+                        org.mockito.ArgumentMatchers.any());
+        org.mockito.Mockito.verifyNoMoreInteractions(tripDuties);
+    }
+
+    @Test
     void FR_024_takeOverMovesOnlyTheGiverShift() throws Exception {
         long x = shift(base.plus(Duration.ofHours(7)), 8, null, giver);
         long id = createTakeOver(giver, x, recipient);

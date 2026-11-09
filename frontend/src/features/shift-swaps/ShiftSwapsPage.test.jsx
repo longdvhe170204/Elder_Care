@@ -153,3 +153,37 @@ it('FR_028_nghiTheoCaDuyetMotPhanBatBuocLyDo', async () => {
     ],
   })
 })
+
+it('FR_026a_nghiTheoNgayChonTangTuDanhSach_vaLapThayChonNguoi', async () => {
+  api.on('GET', '/shift-swaps', json(200, []))
+  api.on('GET', '/leave-requests', json(200, []))
+  api.on('GET', '/floors', json(200, [{ id: 5, name: 'Tầng 2' }]))
+  api.on('GET', '/areas', json(200, [{ id: 3, name: 'Khu A' }]))
+  api.on('POST', '/leave-requests', json(201, { requestIds: [11] }))
+  render(<ShiftSwapsPage />)
+  fireEvent.click(await screen.findByRole('tab', { name: 'Nghỉ đột xuất' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Lập yêu cầu nghỉ' }))
+  const form = await screen.findByRole('form', { name: 'Lập yêu cầu nghỉ' })
+  fireEvent.change(within(form).getByLabelText('Dạng'), { target: { value: 'BY_DAY' } })
+  await waitFor(() => expect(within(form).getByRole('option', { name: 'Tầng 2' })).toBeInTheDocument())
+  fireEvent.change(within(form).getByLabelText(/Ngày nghỉ/), { target: { value: '2026-12-10' } })
+  fireEvent.change(within(form).getByLabelText('Lý do'), { target: { value: '[Việc gia đình]' } })
+  // Chưa chọn tầng thì không gửi
+  fireEvent.submit(form)
+  expect(api.calls('POST', '/leave-requests')).toHaveLength(0)
+  fireEvent.change(within(form).getByLabelText('Tầng'), { target: { value: '5' } })
+  await waitFor(() =>
+    expect(within(form).getByRole('option', { name: 'Lập thay cho [Điều dưỡng 2]' })).toBeInTheDocument(),
+  )
+  fireEvent.change(within(form).getByLabelText('Người nghỉ'), { target: { value: '2' } })
+  fireEvent.submit(form)
+  await waitFor(() => expect(api.calls('POST', '/leave-requests')).toHaveLength(1))
+  expect(JSON.parse(api.calls('POST', '/leave-requests')[0][1].body)).toEqual({
+    kind: 'BY_DAY',
+    staffId: 2,
+    dates: ['2026-12-10'],
+    scopeType: 'FLOOR',
+    scopeId: 5,
+    reason: '[Việc gia đình]',
+  })
+})

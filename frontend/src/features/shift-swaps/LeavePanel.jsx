@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
+  getAreas,
+  getFloors,
   getLeaveRequests,
   getLeaveRequestsByIdPreApproval,
   getMeShifts,
+  getStaff,
   postLeaveRequests,
   postLeaveRequestsByIdByCommand,
 } from '@/api'
@@ -136,6 +139,8 @@ function LeaveForm({ onDone, onCancel }) {
   const [scopeType, setScopeType] = useState('FLOOR')
   const [scopeId, setScopeId] = useState('')
   const [staffId, setStaffId] = useState('')
+  const [staff, setStaff] = useState([])
+  const [places, setPlaces] = useState({ FLOOR: [], AREA: [] })
   const [reason, setReason] = useState('')
   const [tried, setTried] = useState(false)
   const [failure, setFailure] = useState(null)
@@ -147,6 +152,13 @@ function LeaveForm({ onDone, onCancel }) {
     getMeShifts({ query: { from, to } })
       .then(({ data }) => setMine(data.filter((s) => s.status === 'PUBLISHED')))
       .catch(() => setMine([]))
+    // Không đọc được danh sách nhân viên, tầng, khu thì nhập mã (null)
+    getStaff()
+      .then(({ data }) => setStaff(data.filter((p) => p.status === 'WORKING')))
+      .catch(() => setStaff(null))
+    Promise.all([getFloors(), getAreas()])
+      .then(([floors, areas]) => setPlaces({ FLOOR: floors.data, AREA: areas.data }))
+      .catch(() => setPlaces(null))
   }, [])
 
   const toggle = (id) => setChosen((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))
@@ -158,7 +170,11 @@ function LeaveForm({ onDone, onCancel }) {
       .split(/[\s,;]+/)
       .map((d) => d.trim())
       .filter(Boolean)
-    if (!reason.trim() || (kind === 'BY_SHIFT' && !chosen.length && !staffId) || (kind === 'BY_DAY' && !days.length))
+    if (
+      !reason.trim() ||
+      (kind === 'BY_SHIFT' && !chosen.length && !staffId) ||
+      (kind === 'BY_DAY' && (!days.length || (scopeType !== 'FACILITY' && !scopeId)))
+    )
       return
     setBusy(true)
     const body = { kind, reason: reason.trim() }
@@ -191,8 +207,30 @@ function LeaveForm({ onDone, onCancel }) {
           </select>
         </Field>
         <Field>
-          <FieldLabel htmlFor="leave-staff">Mã nhân viên nghỉ (chỉ khi lập thay)</FieldLabel>
-          <Input id="leave-staff" inputMode="numeric" value={staffId} onChange={(e) => setStaffId(e.target.value)} />
+          <FieldLabel htmlFor="leave-staff">Người nghỉ</FieldLabel>
+          {staff ? (
+            <select
+              id="leave-staff"
+              className={selectClass}
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
+            >
+              <option value="">Tôi xin nghỉ</option>
+              {staff.map((p) => (
+                <option key={p.id} value={p.id}>
+                  Lập thay cho {p.fullName}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <Input
+              id="leave-staff"
+              inputMode="numeric"
+              value={staffId}
+              onChange={(e) => setStaffId(e.target.value)}
+              placeholder="Mã nhân viên, chỉ khi lập thay"
+            />
+          )}
         </Field>
         {kind === 'BY_SHIFT' ? (
           <fieldset className="flex flex-col gap-2">
@@ -216,7 +254,10 @@ function LeaveForm({ onDone, onCancel }) {
                 id="leave-scope"
                 className={selectClass}
                 value={scopeType}
-                onChange={(e) => setScopeType(e.target.value)}
+                onChange={(e) => {
+                  setScopeType(e.target.value)
+                  setScopeId('')
+                }}
               >
                 {Object.entries(SCOPE_TYPES).map(([code, label]) => (
                   <option key={code} value={code}>
@@ -226,14 +267,33 @@ function LeaveForm({ onDone, onCancel }) {
               </select>
             </Field>
             {scopeType !== 'FACILITY' && (
-              <Field>
-                <FieldLabel htmlFor="leave-scope-id">Mã tầng hoặc khu vực</FieldLabel>
-                <Input
-                  id="leave-scope-id"
-                  inputMode="numeric"
-                  value={scopeId}
-                  onChange={(e) => setScopeId(e.target.value)}
-                />
+              <Field data-invalid={tried && !scopeId}>
+                <FieldLabel htmlFor="leave-scope-id">{scopeType === 'FLOOR' ? 'Tầng' : 'Khu vực'}</FieldLabel>
+                {places ? (
+                  <select
+                    id="leave-scope-id"
+                    className={selectClass}
+                    value={scopeId}
+                    aria-invalid={tried && !scopeId}
+                    onChange={(e) => setScopeId(e.target.value)}
+                  >
+                    <option value="">{scopeType === 'FLOOR' ? 'Chọn tầng' : 'Chọn khu vực'}</option>
+                    {places[scopeType].map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    id="leave-scope-id"
+                    inputMode="numeric"
+                    value={scopeId}
+                    aria-invalid={tried && !scopeId}
+                    onChange={(e) => setScopeId(e.target.value)}
+                    placeholder="Mã tầng hoặc khu vực"
+                  />
+                )}
               </Field>
             )}
           </>
