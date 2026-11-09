@@ -392,6 +392,8 @@ export const NAV_GROUPS = [
       },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
+      // Dòng "Số dư, thu chi" (017): Kế toán thực hiện, Quản lý viện duyệt và xem, Hành chính xem số dư
+      { key: 'balance', label: 'Số dư, thu chi', icon: 'Banknote', functions: ['BALANCE_LEDGER'], roles: [QL, HC, KT] },
       // Dòng "Dịch vụ, đơn giá" (004 T068)
       { key: 'services', label: 'Dịch vụ, đơn giá', icon: 'Receipt', functions: ['SERVICE_PRICE'], roles: [QL, HC] },
     ],
