@@ -6,12 +6,14 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 
 /**
  * 001 T044 (FR-045, SC-002; research H-02 mục 3, 6): lệnh chưa đủ điều kiện liệt kê mọi điều kiện chưa thỏa của mọi
  * module trong một lần và giữ nguyên trạng thái; xem trước dùng cùng bộ kiểm tra mà không đổi dữ liệu.
  */
+@Import(CostParticipantOff.class)
 class FR_045_ListConditionsIT extends StatusTestBase {
 
     private static final Condition BELONGINGS =
