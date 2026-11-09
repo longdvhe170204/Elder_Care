@@ -8,10 +8,13 @@ import com.eldercare.backend.nutrition.internal.catalog.service.DietService;
 import com.eldercare.backend.nutrition.internal.catalog.service.DietService.DietInput;
 import com.eldercare.backend.nutrition.internal.catalog.service.DishService;
 import com.eldercare.backend.nutrition.internal.catalog.service.DishService.DishInput;
+import com.eldercare.backend.nutrition.internal.catalog.service.MealService;
+import com.eldercare.backend.nutrition.internal.catalog.service.MealService.MealInput;
 import com.eldercare.backend.nutrition.web.request.DietRequest;
 import com.eldercare.backend.nutrition.web.request.DishCommandBody;
 import com.eldercare.backend.nutrition.web.request.DishRequest;
 import com.eldercare.backend.nutrition.web.request.FoodIngredientRequest;
+import com.eldercare.backend.nutrition.web.request.MealBody;
 import com.eldercare.backend.nutrition.web.request.NutritionReason;
 import com.eldercare.backend.nutrition.web.response.DietResponse;
 import com.eldercare.backend.nutrition.web.response.DishResponse;
@@ -48,10 +51,51 @@ public class NutritionCatalogController {
 
     private final DietService diets;
     private final DishService dishes;
+    private final MealService meals;
 
-    public NutritionCatalogController(DietService diets, DishService dishes) {
+    public NutritionCatalogController(DietService diets, DishService dishes, MealService meals) {
         this.diets = diets;
         this.dishes = dishes;
+        this.meals = meals;
+    }
+
+    @GetMapping("/meals")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<MealBody> meals() {
+        return meals.list().stream().map(MealBody::of).toList();
+    }
+
+    @PostMapping("/meals")
+    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    public ResponseEntity<Void> createMeal(
+            @RequestHeader("Idempotency-Key") String idempotencyKey, @RequestBody MealBody body) {
+        long id = meals.create(input(body));
+        return ResponseEntity.created(URI.create("/api/v1/nutrition/meals/" + id))
+                .build();
+    }
+
+    @PutMapping("/meals/{id}")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "409",
+            description = "Bị chặn",
+            content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = NutritionProblem.class)))
+    public ResponseEntity<Void> updateMeal(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @PathVariable long id,
+            @RequestBody MealBody body) {
+        meals.update(id, input(body));
+        return ResponseEntity.ok().build();
+    }
+
+    private static MealInput input(MealBody body) {
+        return new MealInput(
+                body.code(),
+                body.name(),
+                Boolean.TRUE.equals(body.servesResidential()),
+                Boolean.TRUE.equals(body.servesDayCare()),
+                body.sortOrder() == null ? 0 : body.sortOrder(),
+                body.status());
     }
 
     @GetMapping("/diets")

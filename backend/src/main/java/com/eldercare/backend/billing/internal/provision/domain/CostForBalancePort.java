@@ -8,4 +8,6 @@ public interface CostForBalancePort {
     long unfinalizedTotal(long residentId);
 
     Optional<Long> baseDailyFee(long residentId, LocalDate date);
+
+    Optional<FinalizedCostStatement> finalizedStatement(long statementId);
 }

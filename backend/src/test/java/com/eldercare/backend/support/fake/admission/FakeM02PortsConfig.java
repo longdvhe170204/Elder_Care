@@ -16,18 +16,6 @@ public class FakeM02PortsConfig {
 
     @Bean
     @Primary
-    FakeRepresentatives fakeRepresentatives() {
-        return new FakeRepresentatives();
-    }
-
-    @Bean
-    @Primary
-    FakePickupRecords fakePickupRecords() {
-        return new FakePickupRecords();
-    }
-
-    @Bean
-    @Primary
     FakeDepositStatuses fakeDepositStatuses() {
         return new FakeDepositStatuses();
     }

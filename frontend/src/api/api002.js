@@ -24,6 +24,9 @@ export const postAuthPasswordResetConfirm = (params) => request('POST', '/auth/p
 /** Thông tin người dùng hiện tại */
 export const getMe = (params) => request('GET', '/me', params)
 
+/** Nhân viên tự bổ sung, sửa số điện thoại và email trên hồ sơ nhân viên của mình (bổ sung 2026-11-09, chủ dự án duyệt) (FR-042) */
+export const putMeContact = (params) => request('PUT', '/me/contact', params)
+
 /** Tập khóa quyền hiện hành của người dùng, để client ẩn hiện chức năng (FR-042) */
 export const getMePermissions = (params) => request('GET', '/me/permissions', params)
 

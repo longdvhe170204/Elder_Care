@@ -21,8 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Danh mục loại đồ ăn bị cấm theo chính sách của cơ sở (FR-007): thêm loại mới, hoặc ngừng loại đang Hiệu lực (gửi lại tên
  * với trạng thái {@code INACTIVE}, vì hợp đồng chỉ có GET và POST). Đồ ăn gia đình đối chiếu theo tên loại (FR-053).
  *
- * <p>Quyền: Phụ lục 27 chưa có dòng quyền riêng cho danh mục này; tạm dùng "Chế độ ăn" (đọc: "Đối chiếu đồ ăn gia đình")
- * cho tới khi A thêm Function (team-plan mục 8).
+ * <p>Quyền: dòng "Danh mục bữa ăn, loại đồ ăn cấm" (Q-401): Quản lý viện tạo, ngừng; Bác sĩ, Điều dưỡng, Nhân viên bếp xem.
  */
 @Service
 public class ForbiddenFoodTypeService {
@@ -39,13 +38,13 @@ public class ForbiddenFoodTypeService {
         this.audit = audit;
     }
 
-    @RequiresPermission(function = Function.FAMILY_FOOD_CHECK, operation = Operation.VIEW)
+    @RequiresPermission(function = Function.NUTRITION_CATALOG, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<CatalogItem<ForbiddenFoodType>> list() {
         return store.forbiddenTypes();
     }
 
-    @RequiresPermission(function = Function.DIET, operation = Operation.CREATE)
+    @RequiresPermission(function = Function.NUTRITION_CATALOG, operation = Operation.CREATE)
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void upsert(String name, String description, boolean active) {

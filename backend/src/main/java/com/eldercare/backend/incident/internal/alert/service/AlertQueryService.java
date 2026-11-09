@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlertQueryService {
     private static final PermissionKey VIEW = new PermissionKey(Function.ALERT_HANDLING, Operation.VIEW);
     private static final PermissionKey HANDLING = new PermissionKey(Function.ALERT_HANDLING, Operation.UPDATE);
-    private static final SharedKind<Map> SOURCE = SharedKind.of("M05.ALERT_SOURCE", Map.class);
+    static final SharedKind<Map> SOURCE = SharedKind.of("M05.ALERT_SOURCE", Map.class);
 
     private final AlertStore alerts;
     private final PermissionApi permissions;

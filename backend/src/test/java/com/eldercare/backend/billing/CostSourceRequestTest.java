@@ -38,6 +38,13 @@ class CostSourceRequestTest {
                         42L, "RESIDENCY_DAY", null, null, new DateRange(DAY, DAY.plusDays(1))));
     }
 
+    @Test
+    void FR_005_eachApprovedSelectionModeIsAccepted() {
+        TableRows.each(
+                validSelections(),
+                request -> assertThat(VALIDATOR.validate(request)).isEmpty());
+    }
+
     static Stream<CreateCostsFromEventsRequest> invalidSelections() {
         return Stream.of(
                 new CreateCostsFromEventsRequest(null, "DOSE", List.of("17"), null, null),
@@ -47,6 +54,8 @@ class CostSourceRequestTest {
                 new CreateCostsFromEventsRequest(
                         42L, "DOSE", List.of("17"), List.of(new SourceUnit("17", "drug")), null),
                 new CreateCostsFromEventsRequest(42L, "DOSE", List.of("17"), null, new DateRange(DAY, DAY)),
+                new CreateCostsFromEventsRequest(42L, "DOSE", List.of("17"), null, new DateRange(null, null)),
+                new CreateCostsFromEventsRequest(42L, "DOSE", null, null, new DateRange(DAY, DAY)),
                 new CreateCostsFromEventsRequest(42L, "DOSE", List.of(), null, null),
                 new CreateCostsFromEventsRequest(42L, "DOSE", List.of("17", "17"), null, null),
                 new CreateCostsFromEventsRequest(42L, "DOSE", Arrays.asList((String) null), null, null),

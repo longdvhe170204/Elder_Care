@@ -116,9 +116,53 @@ const KEY_LABELS = {
   // phiếu đối chiếu thuốc (006)
   OPEN: 'Mở',
   PENDING_CONFIRMATION: 'Chờ xác nhận',
+  // mức cảnh báo, sự cố; nguồn nút; loại theo dõi (007)
+  LOW: 'Nhẹ',
+  MEDIUM: 'Trung bình',
+  CRITICAL: 'Khẩn cấp',
+  SOS: 'Nút SOS',
+  EMERGENCY_ASSIST: 'Nút hỗ trợ khẩn cấp',
+  POST_FALL: 'Theo dõi sau ngã',
+  CONTACT: 'Theo dõi tiếp xúc',
+  // dấu quá hạn của tài sản (003, 019)
+  MAINTENANCE_OVERDUE: 'Quá hạn bảo trì',
+  VEHICLE_INSPECTION_OVERDUE: 'Quá hạn đăng kiểm',
+  INSURANCE_OVERDUE: 'Quá hạn bảo hiểm',
+  // trạng thái hồ sơ 5.5, loại lưu trú chưa xác định, biến động (001, 004)
+  IN_RESIDENCE: 'Đang lưu trú',
+  TEMPORARILY_ABSENT: 'Tạm vắng',
+  OFF_SITE_ACTIVITY: 'Hoạt động bên ngoài',
+  HOSPITALIZED: 'Điều trị tại bệnh viện',
+  UNDETERMINED: 'Chưa xác định',
+  COMPLETE_ADMISSION: 'Hoàn tất tiếp nhận',
+  CANCEL_ADMISSION: 'Hủy tiếp nhận',
+  GRANT_TEMPORARY_ABSENCE: 'Bắt đầu tạm vắng',
+  'RECORD_RETURN:TEMPORARILY_ABSENT': 'Kết thúc tạm vắng',
+  'RECORD_RETURN:HOSPITALIZED': 'Về viện sau điều trị',
+  TRANSFER_OUT: 'Chuyển điều trị tại bệnh viện',
+  END_RESIDENCY: 'Kết thúc lưu trú',
+  RECORD_DEATH: 'Qua đời',
+  CARE_LEVEL_CHANGE: 'Đổi mức chăm sóc',
+  // trạng thái công việc 8.3, mức quan trọng (005)
+  NOT_YET_DUE: 'Chưa đến hạn',
+  DUE: 'Đến hạn',
+  OVERDUE: 'Quá hạn',
+  COMPLETED: 'Hoàn thành',
+  COMPLETED_LATE: 'Hoàn thành trễ',
+  NOT_PERFORMED: 'Không thực hiện',
+  CANCELLED: 'Hủy',
+  IMPORTANT: 'Quan trọng',
+  MANDATORY: 'Bắt buộc',
+  COMMON: 'Việc chung của tầng',
+  UNASSIGNED: 'Chưa có người thực hiện',
+  // vai trò kiểm tra chất lượng (014)
+  FLOOR_MANAGER: 'Trưởng tầng',
+  SHIFT_LEAD: 'Người phụ trách ca',
 }
 const FLOOR_KEYED = ['BED.AWAITING_READY', 'BED.AWAITING_READY_MAX', 'BED.AWAITING_READY_OVERDUE', 'BED.OCCUPANTS']
 const SHIFT_KEYED = ['MED.MISSED_RATE', 'MED.REFUSED_RATE']
+const STAFF_KEYED = ['TASK.BY_STAFF', 'TASK.LATE_RECORDINGS', 'QC.PASS_RATE']
+const TRIP_OVERDUE = { OVERDUE: 'Quá giờ về', OVERDUE_DOUBLE: 'Tới mốc gấp đôi' }
 
 // Chữ của một ô chia nhóm; khóa chưa biết giữ nguyên
 export function breakdownLabel(metricCode, key, floors = []) {
@@ -128,6 +172,13 @@ export function breakdownLabel(metricCode, key, floors = []) {
   }
   if (SHIFT_KEYED.includes(metricCode)) {
     return key === 'NO_SHIFT' ? 'Không xác định ca' : `Ca ${key}`
+  }
+  if (metricCode === 'ACT.OVERDUE_TRIPS') return TRIP_OVERDUE[key] ?? key
+  if (metricCode === 'MEAL.LATE_TICKETS' || metricCode === 'MEAL.DISCREPANCY_TICKETS') return `Bữa ${key}`
+  if (STAFF_KEYED.includes(metricCode) && /^\d+$/.test(key)) return `Nhân viên ${key}`
+  if (metricCode === 'TASK.BY_STATUS' && key.includes(':SYSTEM:')) {
+    const [status, rule] = key.split(':SYSTEM:')
+    return `${KEY_LABELS[status] ?? status} (Hệ thống, ${rule})`
   }
   if (metricCode === 'BED.STATUS') {
     const [state, ...reason] = key.startsWith('HELD_') ? ['HELD', key.slice(5)] : [key]

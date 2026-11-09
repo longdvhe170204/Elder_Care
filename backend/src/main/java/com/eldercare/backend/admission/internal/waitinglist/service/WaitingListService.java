@@ -52,7 +52,7 @@ import tools.jackson.databind.node.ObjectNode;
  * dấu Ưu tiên, ghi nhận đã liên hệ, từ chối giường, xác nhận còn nhu cầu, ghi nhận Từ chối và Hủy chờ. Quản lý viện chỉ xem. Mọi
  * lệnh khóa theo người trước, rồi dòng hồ sơ chờ (research T-03). Từ chối và Hủy chờ không tự đổi trạng thái: đi qua lệnh Hủy
  * tiếp nhận của 001, 001 khóa người cao tuổi rồi gọi {@link WaitingListTransition}. Giữ chỗ giường qua {@link
- * BedAllocationCommandApi} của 003; chưa có bản cài thì lệnh trả 503, không ghi gì.
+ * BedAllocationCommandApi} của 003.
  */
 @Service
 public class WaitingListService {
@@ -240,10 +240,7 @@ public class WaitingListService {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "WAITING_ENTRY_NOT_WAITING", "Chỉ liên hệ hồ sơ Đang chờ (FR-014)");
         }
-        BedAllocationCommandApi api = beds.getIfAvailable();
-        if (api == null) {
-            throw bedSourceUnavailable();
-        }
+        BedAllocationCommandApi api = beds.getObject();
         MatchingEntryService.Result result = matching.matching(bedId);
         if (result.vacancyStart() == null) {
             throw new BusinessException(
@@ -301,12 +298,8 @@ public class WaitingListService {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "WAITING_ENTRY_NOT_CONTACTED", "Chỉ từ chối giường của hồ sơ Đã liên hệ");
         }
-        BedAllocationCommandApi api = beds.getIfAvailable();
-        if (api == null) {
-            throw bedSourceUnavailable();
-        }
         long bedId = entry.heldBedId();
-        api.cancelHold(entryId, new HoldCancellationReason(WaitingListTransition.BED_DECLINED_REASON));
+        beds.getObject().cancelHold(entryId, new HoldCancellationReason(WaitingListTransition.BED_DECLINED_REASON));
         store.updateStatus(entryId, WaitingListStatus.WAITING, null);
         contacts.add(
                 entryId,
@@ -389,13 +382,6 @@ public class WaitingListService {
     private static BusinessException closed() {
         return new BusinessException(
                 HttpStatus.CONFLICT, "WAITING_ENTRY_CLOSED", "Hồ sơ chờ đã ở trạng thái cuối (FR-007)");
-    }
-
-    static BusinessException bedSourceUnavailable() {
-        return new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "BED_COMMAND_UNAVAILABLE",
-                "Module phòng giường chưa sẵn sàng thực hiện lệnh giữ giường (003)");
     }
 
     private View view(WaitingListEntry entry) {

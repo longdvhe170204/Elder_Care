@@ -18,7 +18,7 @@ Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)`
 
 | SPI (gói khai báo) | Bản cài của 008 | Dùng bởi |
 | --- | --- | --- |
-| `HoSoNhanVienApi` (`administration.taikhoan.api`; khai báo dạng SPI theo plan này, chữ ký giữ đúng 002) | `trangThai(nhanVienId, ngay)`, `chucDanhCoVaiTro(nhanVienId)`; `taoHoSoToiThieu(...)` cho lệnh khởi tạo Quản lý viện đầu tiên (002 A-03) | 002 FR-004, FR-004a, FR-011 |
+| `HoSoNhanVienApi` (`administration.taikhoan.api`; khai báo dạng SPI theo plan này, chữ ký giữ đúng 002) | `trangThai(nhanVienId, ngay)`, `chucDanhCoVaiTro(nhanVienId)`; `taoHoSoToiThieu(...)` cho lệnh khởi tạo Quản lý viện đầu tiên (002 A-03); *(bổ sung 2026-11-09, chủ dự án duyệt)* `email(nhanVienId)`, `suaLienHe(nhanVienId, soDienThoai, email)` cho `PUT /me/contact` của 002 | 002 FR-004, FR-004a, FR-011 |
 | `GiayPhepApi` (`administration.taikhoan.api`) | `hieuLuc(nhanVienId, loai, ngay)` theo `HieuLucChungChi` (tới hết ngày hết hạn); `sapHetHan(trongVong)` cho cảnh báo giấy phép hành nghề của 002 (CFG-M06-02) | 002 FR-037, FR-038, FR-039 |
 | `DanhMucPhamViHanhNgheApi` (`administration.taikhoan.api`) | Danh mục `pham_vi_hanh_nghe` | 002 FR-037, 007 FR-070 *(R-15: `pham_vi_hanh_nghe` → `danh_muc_chung`)* |
 | `PhanCongApi` (`administration.taikhoan.api`) | `dangHieuLuc(nhanVienId, t)`, `lichSu(nhanVienId, tu, den)` (FR-037a; gồm giao trưởng tầng, thành viên ca, người phụ trách ca) | 002 FR-028 → FR-035a |
