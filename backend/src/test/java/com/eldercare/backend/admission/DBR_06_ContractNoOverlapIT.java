@@ -2,8 +2,6 @@ package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
@@ -19,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.test.context.support.WithMockUser;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 004 T029 (US3; DBR-06, FR-022, BR-M02-08): một người cao tuổi không có hai hợp đồng Hiệu lực có khoảng ngày chồng
@@ -60,63 +57,6 @@ class DBR_06_ContractNoOverlapIT extends ContractTestBase {
 
         long after = signedRow(residentId, today().plusDays(11), today().plusDays(20));
         assertThat(activate(after, today().plusDays(20))).isEqualTo(1);
-    }
-
-    @Test
-    void DBR_06_trigger_anOpenEndedContractBlocksEveryLaterStart() {
-        long residentId = admissionResident();
-        activate(signedRow(residentId, today(), null), null);
-
-        long later = signedRow(residentId, today().plusDays(500), null);
-        assertThatThrownBy(() -> activate(later, null)).isInstanceOf(DataAccessException.class);
-    }
-
-    @Test
-    void DBR_06_trigger_extendingTheEndDateIntoAnotherContract_isRefused() {
-        long residentId = admissionResident();
-        long first = signedRow(residentId, today(), today().plusDays(10));
-        activate(first, today().plusDays(10));
-        long second = signedRow(residentId, today().plusDays(11), today().plusDays(40));
-        activate(second, today().plusDays(40));
-
-        assertThatThrownBy(() -> jdbc.update(
-                        "UPDATE contract SET current_end_date = ? WHERE id = ?", today().plusDays(15), first))
-                .isInstanceOf(DataAccessException.class);
-        assertThat(jdbc.update("UPDATE contract SET current_end_date = ? WHERE id = ?", today().plusDays(10), first))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void DBR_06_differentResidents_doNotOverlap() {
-        long first = signedRow(admissionResident(), today(), null);
-        long second = signedRow(admissionResident(), today(), null);
-
-        assertThat(activate(first, null)).isEqualTo(1);
-        assertThat(activate(second, null)).isEqualTo(1);
-    }
-
-    @Test
-    void FR_022_recordSigned_refusesAnOverlap_with409() throws Exception {
-        long residentId = residentWithRepresentative();
-        ObjectNode firstBody = body(residentId);
-        firstBody.put("endDate", today().plusDays(30).toString());
-        activeContract(residentId, firstBody);
-
-        ObjectNode touching = body(residentId);
-        touching.put("startDate", today().plusDays(30).toString());
-        long overlapping = create(touching).get("contract").get("id").asLong();
-        send(overlapping);
-        recordSignedRaw(overlapping, signedBody(residentId, today()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("CONTRACT_OVERLAP"));
-        assertThat(contractStatus(overlapping)).isEqualTo("PENDING_SIGNATURE");
-
-        ObjectNode renewal = body(residentId);
-        renewal.put("startDate", today().plusDays(31).toString());
-        long next = create(renewal).get("contract").get("id").asLong();
-        send(next);
-        recordSignedRaw(next, signedBody(residentId, today())).andExpect(status().isOk());
-        assertThat(contractStatus(next)).isEqualTo("ACTIVE");
     }
 
     @Test

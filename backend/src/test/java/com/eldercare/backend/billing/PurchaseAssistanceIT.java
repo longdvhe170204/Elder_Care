@@ -23,8 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 @Import({
     CostWorkflowIT.Users.class,
-    com.eldercare.backend.support.fake.administration.FakeFamilyRelationshipsConfig.class,
-    com.eldercare.backend.support.fake.billing.FakePurchaseBalance.class
+    com.eldercare.backend.support.fake.administration.FakeFamilyRelationshipsConfig.class
 })
 class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
     @Autowired

@@ -4,10 +4,12 @@ import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.billing.internal.purchase.domain.*;
 import com.eldercare.backend.billing.web.request.NewPurchaseRequest.Requester;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(requiredProperties = {"residentId", "quantity", "estimatedAmount", "reason", "requester"})
 public record PurchaseRequestBody(
         long residentId,
         Long catalogItemId,

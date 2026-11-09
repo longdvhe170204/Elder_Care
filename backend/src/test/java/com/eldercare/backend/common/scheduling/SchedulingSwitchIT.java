@@ -2,15 +2,14 @@ package com.eldercare.backend.common.scheduling;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eldercare.backend.common.time.web.TestClockController.TestJob;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.config.ScheduledTaskHolder;
-import org.springframework.test.util.AopTestUtils;
 
 /**
  * Công tắc chung {@code eldercare.scheduling.enabled} (profile test đặt {@code false}): không job nào chạy theo lịch hay
@@ -33,21 +32,13 @@ class SchedulingSwitchIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void R_10_testProfile_noJobRunsOnStartup() throws IllegalAccessException {
-        List<String> runsOnStartup = new ArrayList<>();
-        for (ScheduledJob bean : context.getBeansOfType(ScheduledJob.class).values()) {
-            Object job = AopTestUtils.getUltimateTargetObject(bean);
-            for (Field field : job.getClass().getDeclaredFields()) {
-                if (field.getType() == boolean.class
-                        && field.getName().toLowerCase().endsWith("startup")) {
-                    field.setAccessible(true);
-                    if (field.getBoolean(job)) {
-                        runsOnStartup.add(job.getClass().getSimpleName());
-                    }
-                }
-            }
-        }
+    void NFR_13_everyRunJobsValue_hasARegisteredJob() {
+        List<String> registered = context.getBeansOfType(ScheduledJob.class).values().stream()
+                .map(ScheduledJob::name)
+                .toList();
 
-        assertThat(runsOnStartup).as("job chạy lúc khởi động trong test").isEmpty();
+        assertThat(registered)
+                .as("giá trị runJobs của api-000 phải có job cài")
+                .containsAll(Arrays.stream(TestJob.values()).map(Enum::name).toList());
     }
 }

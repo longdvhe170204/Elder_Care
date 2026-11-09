@@ -5,7 +5,10 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.correction.api.CorrectionApi;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.health.internal.measurement.domain.VitalSignRecord;
+import com.eldercare.backend.health.internal.measurement.service.VitalSignCorrectionProvider;
 import com.eldercare.backend.health.internal.measurement.service.VitalSignMeasurementService;
 import com.eldercare.backend.health.web.request.RecordVitalSignRequest;
 import com.eldercare.backend.health.web.request.RemeasureVitalSignRequest;
@@ -33,12 +36,20 @@ public class VitalSignController {
     private final VitalSignMeasurementService measurementService;
     private final CurrentUser currentUser;
     private final AccountApi accounts;
+    private final CorrectionApi corrections;
+    private final VitalSignCorrectionProvider correctionProvider;
 
     public VitalSignController(
-            VitalSignMeasurementService measurementService, CurrentUser currentUser, AccountApi accounts) {
+            VitalSignMeasurementService measurementService,
+            CurrentUser currentUser,
+            AccountApi accounts,
+            CorrectionApi corrections,
+            VitalSignCorrectionProvider correctionProvider) {
         this.measurementService = measurementService;
         this.currentUser = currentUser;
         this.accounts = accounts;
+        this.corrections = corrections;
+        this.correctionProvider = correctionProvider;
     }
 
     @GetMapping("/residents/{residentId}/vital-signs")
@@ -55,7 +66,14 @@ public class VitalSignController {
             @RequestParam(value = "from", required = false) Instant from,
             @RequestParam(value = "to", required = false) Instant to) {
         List<VitalSignRecord> records = measurementService.getHistory(residentId, indicatorId, from, to);
-        return records.stream().map(this::response).toList();
+        var current = corrections.current(
+                VitalSignCorrectionProvider.RECORD_TYPE,
+                records.stream().map(VitalSignRecord::id).toList());
+        return records.stream()
+                .filter(record -> current.get(record.id()) == null
+                        || !current.get(record.id()).voided())
+                .map(record -> corrected(record, current.get(record.id())))
+                .toList();
     }
 
     @PostMapping("/residents/{residentId}/vital-signs")
@@ -109,6 +127,14 @@ public class VitalSignController {
         var command = request.toCommand(draftId, currentUser.accountId());
         var record = measurementService.remeasure(command, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(response(record));
+    }
+
+    /** Lịch sử dùng giá trị hiện hành sau đính chính, kèm giá trị gốc và mức tính lại (BR-M06-06). */
+    private VitalSignRecordResponse corrected(VitalSignRecord record, CurrentValue current) {
+        var base = response(record);
+        if (current == null || current.content() == null) return base;
+        var values = VitalSignCorrectionProvider.values(current.content());
+        return base.corrected(values, correctionProvider.levelOf(record, values));
     }
 
     private VitalSignRecordResponse response(VitalSignRecord record) {

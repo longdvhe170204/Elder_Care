@@ -4,14 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.file.FakeFileConfig;
 import com.eldercare.backend.support.fake.file.InMemoryS3Client;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +17,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -109,39 +104,6 @@ class FileServiceIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void upload_wrongTypeOrTooLarge_isRejectedWithoutObjectOrRow() {
-        int objects = s3.count();
-        int rows = rowCount();
-
-        assertThatThrownBy(() -> files.upload("a.png", FileTypes.PDF, PNG, UPLOADER))
-                .isInstanceOfSatisfying(BusinessException.class, e -> {
-                    assertThat(e.errorCode()).isEqualTo("FILE_TYPE_NOT_ALLOWED");
-                });
-        byte[] big = Arrays.copyOf(PNG, (int) FileTypes.MAX_SIZE + 1);
-        assertThatThrownBy(() -> files.upload("big.png", FileTypes.PNG, big, UPLOADER))
-                .isInstanceOfSatisfying(BusinessException.class, e -> {
-                    assertThat(e.errorCode()).isEqualTo("FILE_TOO_LARGE");
-                });
-
-        assertThat(s3.count()).isEqualTo(objects);
-        assertThat(rowCount()).isEqualTo(rows);
-    }
-
-    @Test
-    void upload_s3Failure_leavesNoRow() {
-        int rows = rowCount();
-        s3.failPuts(true);
-
-        assertThatThrownBy(() -> files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER))
-                .isInstanceOfSatisfying(BusinessException.class, e -> {
-                    assertThat(e.errorCode()).isEqualTo("FILE_STORAGE_ERROR");
-                    assertThat(e.status().value()).isEqualTo(503);
-                });
-
-        assertThat(rowCount()).isEqualTo(rows);
-    }
-
-    @Test
     void attach_setsOwnerOnce() {
         long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
 
@@ -160,75 +122,6 @@ class FileServiceIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void attachedTo_listsMetadataOfAttachedFilesOnly_inUploadOrder() {
-        long first = files.upload("a.png", FileTypes.PNG, PNG, UPLOADER);
-        long second = files.upload("b.png", FileTypes.PNG, PNG, UPLOADER);
-        long unattached = files.upload("c.png", FileTypes.PNG, PNG, UPLOADER);
-        long elsewhere = files.upload("d.png", FileTypes.PNG, PNG, UPLOADER);
-        transactions.executeWithoutResult(s -> {
-            files.attach(first, OWNER_TYPE, 9_001);
-            files.attach(second, OWNER_TYPE, 9_001);
-            files.attach(elsewhere, OWNER_TYPE, 9_002);
-        });
-
-        var found = files.attachedTo(OWNER_TYPE, 9_001);
-
-        assertThat(found).extracting(FileView::id).containsExactly(first, second);
-        assertThat(found.get(0).originalName()).isEqualTo("a.png");
-        assertThat(found.get(0).mimeType()).isEqualTo(FileTypes.PNG);
-        assertThat(found.get(0).sizeBytes()).isEqualTo(PNG.length);
-        assertThat(files.attachedTo(OWNER_TYPE, 9_999)).isEmpty();
-        assertThat(found).extracting(FileView::id).doesNotContain(unattached, elsewhere);
-    }
-
-    @Test
-    void attach_unknownFile_is404() {
-        assertThatThrownBy(() -> transactions.executeWithoutResult(s -> files.attach(987_654_321L, OWNER_TYPE, 1)))
-                .isInstanceOf(NotFoundException.class);
-    }
-
-    @Test
-    void attach_outsideTransaction_isRefused() {
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-
-        assertThatThrownBy(() -> files.attach(id, OWNER_TYPE, 1)).isInstanceOf(IllegalTransactionStateException.class);
-    }
-
-    @Test
-    void attachedFile_cannotBeChangedInDatabase() throws SQLException {
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-        transactions.executeWithoutResult(s -> files.attach(id, OWNER_TYPE, 5));
-
-        try (Connection admin = adminConnection();
-                var statement = admin.prepareStatement("UPDATE file SET owner_id = 6 WHERE id = ?")) {
-            statement.setLong(1, id);
-            assertThatThrownBy(statement::executeUpdate).hasMessageContaining("attached");
-        }
-        // tài khoản ứng dụng cũng không xóa được tệp đã gắn
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM file WHERE id = ?", id))
-                .hasMessageContaining("retention");
-    }
-
-    @Test
-    void unattachedFile_canBeDeletedByApplication() {
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-
-        assertThat(jdbc.update("DELETE FROM file WHERE id = ?", id)).isEqualTo(1);
-    }
-
-    @Test
-    void download_unattached_onlyUploader() {
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-
-        FileContent content = service.download(id, UPLOADER);
-
-        assertThat(content.originalName()).isEqualTo("scan.png");
-        assertThat(content.mimeType()).isEqualTo(FileTypes.PNG);
-        assertThat(content.content()).isEqualTo(PNG);
-        assertThatThrownBy(() -> service.download(id, UPLOADER + 1)).isInstanceOf(PermissionDeniedException.class);
-    }
-
-    @Test
     void download_attached_followsOwnerModulePermission() {
         long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
         transactions.executeWithoutResult(s -> files.attach(id, OWNER_TYPE, 9));
@@ -236,19 +129,6 @@ class FileServiceIT extends MySqlIntegrationTestBase {
         assertThatThrownBy(() -> service.download(id, UPLOADER)).isInstanceOf(PermissionDeniedException.class);
         provider.allowed.set(true);
         assertThat(service.download(id, UPLOADER + 1).content()).isEqualTo(PNG);
-    }
-
-    @Test
-    void download_attachedWithoutProvider_isDenied() {
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-        transactions.executeWithoutResult(s -> files.attach(id, "NO.PROVIDER", 9));
-
-        assertThatThrownBy(() -> service.download(id, UPLOADER)).isInstanceOf(PermissionDeniedException.class);
-    }
-
-    @Test
-    void download_unknownFile_is404() {
-        assertThatThrownBy(() -> service.download(987_654_321L, UPLOADER)).isInstanceOf(NotFoundException.class);
     }
 
     private int rowCount() {

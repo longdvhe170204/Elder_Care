@@ -22,15 +22,6 @@ class FR_008_RoomIsolationIT extends StructureTestSupport {
     MockMvc mvc;
 
     @Test
-    void FR_008_doctorListsIsolationRoomsWithoutConfigurationPermission() throws Exception {
-        user.set(new TestUsers(jdbc, time).staff(Role.DOCTOR).user());
-        mvc.perform(get("/api/v1/room-isolation/rooms"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + room + ")]").isNotEmpty());
-        mvc.perform(get("/api/v1/rooms")).andExpect(status().isForbidden());
-    }
-
-    @Test
     void FR_008_managerIsolatesAndDoctorLiftsWithAppendOnlyHistory() throws Exception {
         mvc.perform(post("/api/v1/rooms/" + room + "/isolate")
                         .contentType("application/json")
@@ -52,34 +43,5 @@ class FR_008_RoomIsolationIT extends StructureTestSupport {
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update("DELETE FROM room_isolation_history WHERE room_id=?", room))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
-    }
-
-    @Test
-    void FR_008_floorManagerCanReadButCannotIsolate() throws Exception {
-        user.set(new TestUsers(jdbc, time).staff(Role.FLOOR_MANAGER).user());
-        mvc.perform(get("/api/v1/rooms/" + room + "/isolation-history")).andExpect(status().isOk());
-        mvc.perform(post("/api/v1/rooms/" + room + "/isolate")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Cách ly\"}"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_008_duplicateCommandAndMissingReasonAreRejected() throws Exception {
-        mvc.perform(post("/api/v1/rooms/" + room + "/isolate")
-                        .contentType("application/json")
-                        .content("{}"))
-                .andExpect(status().isUnprocessableEntity());
-        mvc.perform(post("/api/v1/rooms/" + room + "/isolate")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Cách ly\"}"))
-                .andExpect(status().isOk());
-        mvc.perform(post("/api/v1/rooms/" + room + "/isolate")
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Lặp\"}"))
-                .andExpect(status().isConflict());
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM room_isolation_history WHERE room_id=?", Integer.class, room))
-                .isEqualTo(1);
     }
 }

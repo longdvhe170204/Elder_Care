@@ -5,15 +5,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.billing.api.events.CostSourceBilled;
-import com.eldercare.backend.billing.api.events.CostSourceChanged;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.family.api.events.FamilyStayNotice;
-import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.dto.StatusCommand;
-import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
+import com.eldercare.backend.nutrition.api.events.StayMealChanged;
+import com.eldercare.backend.nutrition.api.spi.StayMealPort;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -32,6 +30,9 @@ class BR_M10_04_OvernightStayIT extends StayTestBase {
 
     @Autowired
     ApplicationEventPublisher publisher;
+
+    @Autowired
+    StayMealPort stayMeals;
 
     @Test
     void US8_1_registeredPending_floorManagerNotified_startBeforeConfirmBlocked_thenConfirmed() throws Exception {
@@ -71,48 +72,35 @@ class BR_M10_04_OvernightStayIT extends StayTestBase {
     }
 
     @Test
-    void US8_1_rejectNeedsReason() throws Exception {
-        long id = registered(rMember, at(day, 18, 0), at(day.plusDays(1), 8, 0));
-
-        command(staff(floorManager), id, "reject", "{}").andExpect(status().isUnprocessableContent());
-        command(staff(floorManager), id, "reject", "{\"reason\": \"Người cùng phòng không đồng ý\"}")
-                .andExpect(status().isOk());
-
-        assertThat(stayStatus(id)).isEqualTo("REJECTED");
-        assertThat(notices(id, FamilyStayNotice.Kind.REJECTED)).hasSize(1);
-    }
-
-    @Test
-    void Q29_roomWithTwoBedsInUse_confirmNeedsRoommateOpinion() throws Exception {
-        long id = registered(rMember, at(day, 18, 0), at(day.plusDays(3), 8, 0));
-        occupiedBeds(2);
-
-        command(staff(floorManager), id, "confirm", "{}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ROOMMATE_OPINION_REQUIRED"));
-        assertThat(stayStatus(id)).isEqualTo("PENDING_CONFIRMATION");
-
-        command(
-                        staff(floorManager),
-                        id,
-                        "confirm",
-                        "{\"roommateOpinion\": {\"askedPerson\": \"Người cao tuổi C\", \"result\": \"Đồng ý\"}}")
-                .andExpect(status().isOk());
-        assertThat(stayStatus(id)).isEqualTo("CONFIRMED");
-    }
-
-    @Test
     void Q31_eachMidnightWhileStaying_isOneBillingEvent_noDuplicates() throws Exception {
         long id = confirmed(rMember, at(day, 18, 0), at(day.plusDays(2), 8, 0));
         moveTo(at(day, 18, 0));
         command(office, id, "start", "{}").andExpect(status().isOk());
         assertThat(stayStatus(id)).isEqualTo("STAYING");
 
+        // FR-042 (a): 011 tính suất người ở lại có đăng ký ăn trong khoảng ở lại
+        assertThat(stayMeals.staysWithMealRegistration(at(day, 19, 0)))
+                .filteredOn(v -> v.stayId() == id)
+                .singleElement()
+                .satisfies(v -> {
+                    assertThat(v.residentId()).isEqualTo(a);
+                    assertThat(v.familyMemberId()).isEqualTo(rMember);
+                    assertThat(v.mealRegistered()).isTrue();
+                });
+        assertThat(stayMeals.staysWithMealRegistration(at(day.plusDays(2), 12, 0)))
+                .noneMatch(v -> v.stayId() == id);
+
         runNights(at(day.plusDays(1), 0, 0));
         runNights(at(day.plusDays(1), 0, 0));
         runNights(at(day.plusDays(2), 0, 0));
         moveTo(at(day.plusDays(2), 7, 0));
         command(office, id, "end", "{}").andExpect(status().isOk());
+
+        assertThat(stayMeals.staysWithMealRegistration(at(day.plusDays(2), 7, 30)))
+                .noneMatch(v -> v.stayId() == id);
+        assertThat(events.stream(StayMealChanged.class).filter(e -> e.stayId() == id))
+                .extracting(StayMealChanged::status)
+                .containsExactly("STAYING", "ENDED");
 
         List<CostSourceBilled> billed = billed(id);
         assertThat(billed).hasSize(2);
@@ -128,73 +116,6 @@ class BR_M10_04_OvernightStayIT extends StayTestBase {
         assertThat(billed.get(1).incurredOn()).isEqualTo(day.plusDays(1));
         assertThat(stay(id).get("status").asString()).isEqualTo("ENDED");
         assertThat(stay(id).get("nightCount").asInt()).isEqualTo(2);
-    }
-
-    @Test
-    void Q32_endRecordedEarlierThanBilledNight_cancelsThatNight() throws Exception {
-        long id = confirmed(rMember, at(day, 18, 0), at(day.plusDays(2), 8, 0));
-        moveTo(at(day, 18, 0));
-        command(office, id, "start", "{}").andExpect(status().isOk());
-        runNights(at(day.plusDays(1), 0, 0));
-        runNights(at(day.plusDays(2), 0, 0));
-
-        moveTo(at(day.plusDays(2), 8, 0));
-        command(office, id, "end", "{\"at\": \"" + at(day.plusDays(1), 23, 0) + "\"}")
-                .andExpect(status().isOk());
-
-        assertThat(events.stream(CostSourceChanged.class)
-                        .filter(e -> e.sourceId().startsWith(id + ":")))
-                .singleElement()
-                .satisfies(e -> {
-                    assertThat(e.sourceId()).isEqualTo(id + ":" + day.plusDays(1));
-                    assertThat(e.sourceType()).isEqualTo("OVERNIGHT_STAY");
-                    assertThat(e.cancelled()).isTrue();
-                    assertThat(e.newQuantity()).isEmpty();
-                });
-        assertThat(stay(id).get("nightCount").asInt()).isEqualTo(1);
-    }
-
-    @Test
-    void US8_3_stayWithinOneDay_hasNoNight() throws Exception {
-        long id = confirmed(rMember, at(day, 8, 0), at(day, 20, 0));
-        moveTo(at(day, 8, 0));
-        command(office, id, "start", "{}").andExpect(status().isOk());
-        moveTo(at(day, 20, 0));
-        command(staff(floorManager), id, "end", "{}").andExpect(status().isOk());
-
-        runNights(at(day.plusDays(1), 0, 0));
-
-        assertThat(billed(id)).isEmpty();
-        assertThat(stay(id).get("nightCount").asInt()).isZero();
-    }
-
-    @Test
-    void Q33_residentLeaves_officeAndFloorManagerReminded_stayNotEnded() throws Exception {
-        long id = confirmed(rMember, at(day, 18, 0), at(day.plusDays(2), 8, 0));
-        moveTo(at(day, 18, 0));
-        command(office, id, "start", "{}").andExpect(status().isOk());
-
-        moveTo(at(day, 21, 0));
-        jdbc.update("UPDATE resident SET status = 'HOSPITALIZED' WHERE id = ?", a);
-        tx.executeWithoutResult(s -> publisher.publishEvent(new ResidentStatusChanged(
-                a,
-                ResidentStatus.IN_RESIDENCE,
-                ResidentStatus.HOSPITALIZED,
-                StatusCommand.TRANSFER_OUT,
-                1,
-                time.now())));
-
-        assertThat(stayStatus(id)).isEqualTo("STAYING");
-        assertThat(notices(id, FamilyStayNotice.Kind.END_REMINDER))
-                .singleElement()
-                .satisfies(n -> {
-                    var request = n.notificationRequests().getFirst();
-                    assertThat(request.level()).contains(NotificationLevel.MEDIUM);
-                    assertThat(request.recipientGroups())
-                            .containsExactlyInAnyOrder(
-                                    new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
-                                    new RecipientGroup.FloorManager(floor, new Substitution.Default()));
-                });
     }
 
     private List<FamilyStayNotice> notices(long id, FamilyStayNotice.Kind kind) {

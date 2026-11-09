@@ -33,7 +33,6 @@ import com.eldercare.backend.medication.internal.handover.persistence.Medication
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverDoseRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverItemRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverRepository;
-import com.eldercare.backend.medication.internal.handover.persistence.MedicationReturnItemRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationReturnRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.NoMedicationOrderRepository;
 import com.eldercare.backend.medication.internal.handover.service.MedicationHandoverService;
@@ -57,6 +56,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.http.HttpStatus;
 
@@ -72,7 +72,6 @@ class MedicationHandoverTest {
     private MedicationHandoverItemRepository handoverItemRepo;
     private MedicationHandoverDoseRepository handoverDoseRepo;
     private MedicationReturnRepository returnRepo;
-    private MedicationReturnItemRepository returnItemRepo;
     private NoMedicationOrderRepository noMedOrderRepo;
     private PrescriptionRepository prescriptionRepo;
     private MedicationRepository medicationRepo;
@@ -88,7 +87,6 @@ class MedicationHandoverTest {
         handoverItemRepo = mock(MedicationHandoverItemRepository.class);
         handoverDoseRepo = mock(MedicationHandoverDoseRepository.class);
         returnRepo = mock(MedicationReturnRepository.class);
-        returnItemRepo = mock(MedicationReturnItemRepository.class);
         noMedOrderRepo = mock(NoMedicationOrderRepository.class);
         prescriptionRepo = mock(PrescriptionRepository.class);
         medicationRepo = mock(MedicationRepository.class);
@@ -101,7 +99,6 @@ class MedicationHandoverTest {
                 handoverItemRepo,
                 handoverDoseRepo,
                 returnRepo,
-                returnItemRepo,
                 noMedOrderRepo,
                 prescriptionRepo,
                 medicationRepo,
@@ -357,7 +354,15 @@ class MedicationHandoverTest {
 
         assertThat(response.getStatus()).isEqualTo("RETURNED");
         verify(handoverRepo).save(handover);
-        verify(returnRepo).save(any(MedicationReturn.class));
+        // 006 T069: dòng nhận lại khóa ngay khi thêm nên phải lưu cùng lúc với dòng RETURN
+        ArgumentCaptor<MedicationReturn> saved = ArgumentCaptor.forClass(MedicationReturn.class);
+        verify(returnRepo).save(saved.capture());
+        assertThat(saved.getValue().getResidentId()).isEqualTo(100L);
+        assertThat(saved.getValue().getLockedAt()).isNotNull();
+        assertThat(saved.getValue().getItems()).singleElement().satisfies(item -> {
+            assertThat(item.getPrescriptionId()).isEqualTo(201L);
+            assertThat(item.getQuantity()).isEqualByComparingTo("2.0");
+        });
     }
 
     @Test

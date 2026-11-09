@@ -12,5 +12,4 @@ public record PrnOfflineContent(
         String reportedBy,
         Instant administeredAt,
         String adverseReaction,
-        String note,
-        Long recorderId) {}
+        String note) {}

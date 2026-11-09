@@ -89,15 +89,61 @@ public class AdHocCareRecordingService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public AdHocCareRecording record(
             Target target, long resident, long taskType, CareResultInput input, boolean reviewed, Long originalTaskId) {
-        locks.lock(List.of(resident));
-        var performed = input.performedAt() == null ? time.now() : input.performedAt();
-        if (performed.isAfter(time.now())) throw new InvalidValueException("Không thực hiện sau thời điểm ghi");
         if (originalTaskId != null)
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "INVALID_BASIS",
-                    "Liên kết công việc gốc chỉ dùng cho nhánh ngoại tuyến trạng thái cuối chưa tích hợp");
-        if (residents.status(resident) != ResidentStatus.IN_RESIDENCE
+                    "Liên kết công việc gốc chỉ dùng cho bản ghi đồng bộ của công việc đóng vì trạng thái cuối");
+        return record(resident, taskType, input, reviewed, null, null, false);
+    }
+
+    /**
+     * 005 T037 (C-14, FR-035, CHK056): Ghi nhận phát sinh đồng bộ sau mất kết nối; thời điểm thiết bị là "thời điểm ghi".
+     * {@code originalTaskId} chỉ cho công việc bị hệ thống đóng vì người cao tuổi chuyển trạng thái cuối: thời điểm thực
+     * hiện phải trước lúc chuyển trạng thái cuối, khi đó người cao tuổi còn Đang lưu trú.
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public AdHocCareRecording recordOffline(
+            long resident,
+            long taskType,
+            CareResultInput input,
+            boolean reviewed,
+            Long originalTaskId,
+            Instant deviceAt,
+            boolean permissionLost) {
+        return record(resident, taskType, input, reviewed, originalTaskId, deviceAt, permissionLost);
+    }
+
+    private AdHocCareRecording record(
+            long resident,
+            long taskType,
+            CareResultInput input,
+            boolean reviewed,
+            Long originalTaskId,
+            Instant deviceAt,
+            boolean permissionLost) {
+        locks.lock(List.of(resident));
+        var recordedAt = deviceAt == null ? time.now() : deviceAt;
+        var performed = input.performedAt() == null ? recordedAt : input.performedAt();
+        if (performed.isAfter(recordedAt)) throw new InvalidValueException("Không thực hiện sau thời điểm ghi");
+        boolean residing;
+        if (originalTaskId != null) {
+            var original = tasks.get(originalTaskId, false);
+            var finalAt = residents.finalStatusAt(resident);
+            if (!Objects.equals(original.residentId(), resident)
+                    || !"FR_010_FINAL_STATE"
+                            .equals(tasks.closure(originalTaskId).rule())
+                    || finalAt.isEmpty())
+                throw new BusinessException(
+                        HttpStatus.CONFLICT, "INVALID_BASIS", "Công việc gốc không bị đóng vì trạng thái cuối");
+            if (!performed.isBefore(finalAt.get()))
+                throw new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "AFTER_FINAL_STATUS",
+                        "Thời điểm thực hiện sau lúc người cao tuổi chuyển trạng thái cuối (CHK056)");
+            residing = true;
+        } else residing = residents.status(resident) == ResidentStatus.IN_RESIDENCE;
+        if (!residing
                 || !statuses.statusPeriods(
                                 resident,
                                 Set.of(
@@ -178,7 +224,7 @@ public class AdHocCareRecordingService {
                 SourceType.AD_HOC_RECORDING,
                 null,
                 null,
-                null,
+                originalTaskId,
                 shift.id(),
                 shift.floorAreaId(),
                 performed,
@@ -196,7 +242,8 @@ public class AdHocCareRecordingService {
                 null);
         var saved = tasks.insert(draft);
         // DUE chỉ tồn tại trong transaction chưa commit; history/outbox chỉ ghi trạng thái Hoàn thành.
-        results.record(CareTaskService.target(saved), saved.id(), input);
+        if (deviceAt == null) results.record(CareTaskService.target(saved), saved.id(), input);
+        else results.recordOffline(saved.id(), input, deviceAt, permissionLost);
         return new AdHocCareRecording(saved.id(), List.of());
     }
 

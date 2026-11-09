@@ -5,7 +5,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
@@ -61,24 +64,21 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    // Q-399 (2026-11-03): tự đặt lại mật khẩu, cài khi chốt nhà cung cấp tin nhắn (Q-06, 002 T105)
-                    Set.of(
-                            "GET /api/v1/auth/password-reset/availability",
-                            "POST /api/v1/auth/password-reset/request",
-                            "POST /api/v1/auth/password-reset/confirm"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 008 T006: kiểm ngay các controller nền; giảm PENDING khi cài từng story (phần T042 lấy sớm).
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(),
-                    Set.of(),
+                    // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
+                    Set.of("GET /api/v1/me/shifts 200"),
                     true),
-            // 003 (A review 2026-10-26): còn chuyển giường trực tiếp (FR-028) chưa có controller
+            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
-                    Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
+                    Set.of("POST /api/v1/bed-allocations/{id}/transfer 202"),
                     true),
             // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); sửa yêu cầu Nháp xong 2026-11-04
             // (T043, T047)
@@ -87,14 +87,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 005 T060 (2026-11-03): 38/41 operation đã cài khớp hợp đồng; còn hai đường dẫn tiếng Việt chưa dịch và
-            // /testing/fakes chưa cài
+            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu; còn /testing/fakes
             new Contract(
                     Path.of("..", "specs", "005-daily-care-tasks", "contracts", "api-005.yaml"),
-                    Set.of(
-                            "GET /api/v1/nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu",
-                            "POST /api/v1/cong-viec/{id}/phan-lai",
-                            "PUT /api/v1/testing/fakes/{module}"),
+                    Set.of("PUT /api/v1/testing/fakes/{module}"),
                     Set.of(),
                     true),
             // 006 (dịch 2026-10-26 sau PR #34)
@@ -107,89 +103,16 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "007-health-alert-incident", "contracts", "api-007.yaml"),
                     Set.of(
-                            "GET /api/v1/residents/{residentId}/measurement-schedules",
-                            "POST /api/v1/residents/{residentId}/measurement-schedules",
-                            "GET /api/v1/measurement-schedules/{id}/measurement-times",
-                            "POST /api/v1/measurement-schedules/{id}/change",
-                            "POST /api/v1/measurement-schedules/{id}/stop",
-                            "GET /api/v1/vital-signs/missing-personal-threshold",
-                            "GET /api/v1/thresholds",
-                            "POST /api/v1/thresholds",
-                            "POST /api/v1/thresholds/{id}/cancel",
-                            "POST /api/v1/thresholds/{id}/stop",
-                            "GET /api/v1/alerts",
-                            "POST /api/v1/alerts",
-                            "GET /api/v1/alerts/{id}",
-                            "POST /api/v1/alerts/{id}/receive",
-                            "POST /api/v1/alerts/{id}/assign",
-                            "POST /api/v1/alerts/{id}/start-handling",
-                            "POST /api/v1/alerts/{id}/change-level",
-                            "POST /api/v1/alerts/{id}/close",
-                            "POST /api/v1/alerts/{id}/convert-to-incident",
-                            "POST /api/v1/alerts/{id}/activate-emergency",
-                            "GET /api/v1/incidents",
-                            "POST /api/v1/incidents",
-                            "GET /api/v1/incidents/{id}",
-                            "POST /api/v1/incidents/{id}/receive",
-                            "POST /api/v1/incidents/{id}/assign-handler",
-                            "POST /api/v1/incidents/{id}/join-handling",
-                            "POST /api/v1/incidents/{id}/progressions",
-                            "POST /api/v1/incidents/{id}/change-level",
-                            "POST /api/v1/incidents/{id}/move-to-monitoring",
-                            "POST /api/v1/incidents/{id}/reopen",
-                            "POST /api/v1/incidents/{id}/close",
-                            "POST /api/v1/incidents/{id}/end-post-fall-monitoring",
-                            "GET /api/v1/incidents/{id}/emergency-card",
-                            "POST /api/v1/incidents/{id}/confirm-wish-check",
-                            "POST /api/v1/incidents/{id}/transfer-out",
-                            "GET /api/v1/transfer-summaries/{id}",
-                            "POST /api/v1/residents/{residentId}/critical-flags",
-                            "POST /api/v1/critical-flags/{id}/confirm",
-                            "POST /api/v1/critical-flags/{id}/remove",
-                            "POST /api/v1/alerts/{id}/wish-reconfirmation",
-                            "POST /api/v1/alerts/{id}/execute-choice",
-                            "GET /api/v1/incidents/{id}/contact-lookup",
-                            "GET /api/v1/incidents/{id}/contact-list",
-                            "POST /api/v1/incidents/{id}/contact-list",
-                            "POST /api/v1/contact-lists/{id}/contacts",
-                            "POST /api/v1/contact-lists/{id}/contacts/{contactId}/remove",
-                            "POST /api/v1/contact-lists/{id}/contacts/{contactId}/exclude",
-                            "POST /api/v1/contact-lists/{id}/confirm",
                             "GET /api/v1/incidents/{id}/family-contacts-to-notify",
-                            "GET /api/v1/isolations",
-                            "POST /api/v1/isolations",
-                            "POST /api/v1/isolations/{id}/attach-incident",
-                            "POST /api/v1/isolations/{id}/lift",
-                            "GET /api/v1/facility-licenses",
-                            "POST /api/v1/facility-licenses",
-                            "GET /api/v1/facility-contact",
-                            "PUT /api/v1/facility-contact",
                             "GET /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/sos",
-                            "GET /api/v1/sos/current",
-                            "POST /api/v1/sos/{id}/place",
-                            "POST /api/v1/sos/{id}/location",
-                            "POST /api/v1/emergency-assist",
-                            "GET /api/v1/emergency-assist/current",
-                            "POST /api/v1/emergency-assist/{id}/details",
-                            "POST /api/v1/emergency-assist/{id}/location",
-                            "POST /api/v1/alerts/{id}/mark-arrived",
-                            "GET /api/v1/alerts/{id}/call-115-info",
-                            "POST /api/v1/alerts/{id}/call-115",
-                            "GET /api/v1/incidents/{id}/call-115-info",
-                            "POST /api/v1/incidents/{id}/call-115",
-                            "POST /api/v1/call-115-attempts/{id}/result",
-                            "GET /api/v1/incidents/{id}/transfer-out/info",
-                            "GET /api/v1/transfer-summaries/{id}/document",
-                            "POST /api/v1/transfer-summaries/{id}/reprint"),
+                            "POST /api/v1/residents/{residentId}/examinations"),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt
-            // nhắc gọi US1 xong 2026-10-26; còn "Xác nhận và tiếp nhận" chờ lệnh tiếp nhận của 007
+            // nhắc gọi US1 xong 2026-10-26; "Xác nhận và tiếp nhận" xong 2026-11-06 (T021)
             new Contract(
                     Path.of("..", "specs", "009-notification-service", "contracts", "api-009.yaml"),
-                    Set.of("POST /api/v1/notifications/{id}/acknowledge-and-take-charge"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 010 T032: đăng ký khi cài endpoint Phase 5; story khác giữ pending, không nới phép so operation.
@@ -204,11 +127,81 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
+            // 013 (B, 2026-11-05): đủ endpoint sau Phase 8; chủ dự án duyệt api-013 2026-11-05 (013-1), so chi tiết
+            // operation bật trong PR 013 (T029). Phản hồi lỗi khai bằng ProblemBody chung sau khi đổi Problem của
+            // api-013 theo api-004 (2026-11-06, phương án (a), A review xong 2026-11-07; plan 013 điểm 21).
+            new Contract(
+                    Path.of("..", "specs", "013-personal-belongings", "contracts", "api-013.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
             // 012 (2026-11-03): hợp đồng đã dịch; xóa dòng khi cài controller của từng story (US1, US3 xong 2026-11-04;
             // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(
-                    Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"),
+                    Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"), Set.of(), Set.of(), true),
+            // 011 (2026-11-06, D): hợp đồng đã dịch; xóa dòng khi cài controller của từng story. Bữa ăn, loại đồ ăn bị
+            // cấm
+            // chờ chức năng quyền của Quản lý viện (A, team-plan mục 8)
+            new Contract(
+                    Path.of("..", "specs", "011-nutrition-management", "contracts", "api-011.yaml"),
+                    Set.of(
+                            "GET /api/v1/nutrition/meals",
+                            "POST /api/v1/nutrition/meals",
+                            "PUT /api/v1/nutrition/meals/{id}"),
                     Set.of(),
+                    true),
+            // 018 (R-15, 2026-11-04; A xem xong 2026-11-07, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài
+            // enum trả 422
+            // INVALID_COMMAND (ngoài hợp đồng, BL-95)
+            new Contract(
+                    Path.of("..", "specs", "018-residence-registration", "contracts", "api-018.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
+            // 017 (2026-11-08, A): hợp đồng đã dịch (glossary mục 23); xóa dòng khi cài controller của từng story (A
+            // Phase 1–6,
+            // B Phase 7–10)
+            new Contract(
+                    Path.of("..", "specs", "017-resident-balance-ledger", "contracts", "api-017.yaml"),
+                    Set.of(
+                            "POST /api/v1/balance-transactions",
+                            "GET /api/v1/balance-transactions/pending-approval",
+                            "POST /api/v1/residents/{residentId}/deposit-offsets",
+                            "GET /api/v1/residents/{residentId}/settlement",
+                            "POST /api/v1/residents/{residentId}/settlement/confirm",
+                            "POST /api/v1/settlement-statements/{id}/signed-copy",
+                            "GET /api/v1/settlement-statements/{id}/file",
+                            "GET /api/v1/payment-notices/pending-issue",
+                            "POST /api/v1/costs/statements/{statementId}/payment-notice",
+                            "GET /api/v1/residents/{residentId}/payment-notices",
+                            "GET /api/v1/payment-notices/{id}/file",
+                            "POST /api/v1/balance-exports/statement",
+                            "POST /api/v1/balance-exports/income-expense-report",
+                            "GET /api/v1/balance-exports/{id}/file",
+                            "GET /api/v1/family-portal/residents/{residentId}/documents",
+                            "GET /api/v1/family-portal/documents/{type}/{id}/file",
+                            "POST /api/v1/family-portal/residents/{residentId}/balance-statement"),
+                    Set.of(),
+                    true),
+            // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story
+            new Contract(
+                    Path.of("..", "specs", "014-activity-care-quality", "contracts", "api-014.yaml"),
+                    Set.of(
+                            "GET /api/v1/activity-types",
+                            "POST /api/v1/activity-types",
+                            "POST /api/v1/late-return-consents",
+                            "POST /api/v1/late-return-consents/{id}/withdraw",
+                            "GET /api/v1/residents/{residentId}/preferences",
+                            "GET /api/v1/residents/{residentId}/wellbeing-profile",
+                            "GET /api/v1/family-portal/residents/{residentId}/activities",
+                            "POST /api/v1/family-portal/late-return-consents",
+                            "POST /api/v1/family-portal/late-return-consents/{id}/withdraw"),
+                    Set.of(),
+                    true),
+            // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story
+            new Contract(
+                    Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
+                    Set.of("GET /api/v1/assets/{id}"),
                     Set.of(),
                     true));
 
@@ -227,6 +220,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         assertThat(new TreeSet<>(parse(generated).getPaths().keySet()))
                 .as("đường dẫn có trong mã nhưng không có trong hợp đồng nào")
                 .isSubsetOf(contractPaths);
+        List<String> mismatched = new ArrayList<>();
         for (Contract c : CONTRACTS) {
             OpenAPI expected = contract(c.file());
             OpenAPI actual = parse(generated);
@@ -247,10 +241,155 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             if (!c.checkOperations()) {
                 continue;
             }
-            List<String> mismatched = new ArrayList<>();
-            diff.getChangedOperations().forEach(op -> structuralChanges(op, c.pendingResponses(), mismatched));
-            assertThat(mismatched).as(name + ": operation lệch hợp đồng").isEmpty();
+            List<String> found = new ArrayList<>();
+            diff.getChangedOperations().forEach(op -> structuralChanges(op, c.pendingResponses(), found));
+            bodies(expected, actual, c.pendingResponses(), found);
+            found.forEach(m -> mismatched.add(name + ": " + m));
         }
+        Set<String> known = knownMismatches();
+        assertThat(mismatched.stream().filter(m -> !known.contains(m)).toList())
+                .as("operation lệch hợp đồng")
+                .isEmpty();
+        assertThat(known.stream().filter(k -> !mismatched.contains(k)).toList())
+                .as("lệch đã hết nhưng còn ở contract/known-mismatches.txt: xóa dòng")
+                .isEmpty();
+    }
+
+    /** Lệch có sẵn khi bắt đầu so sâu (2026-11-08), mỗi chủ hợp đồng gỡ dần; dòng {@code #} là chú thích. */
+    private static Set<String> knownMismatches() throws IOException {
+        try (var in = ApiContractIT.class.getResourceAsStream("/contract/known-mismatches.txt")) {
+            Set<String> known = new TreeSet<>();
+            new String(in.readAllBytes(), StandardCharsets.UTF_8)
+                    .lines()
+                    .map(String::strip)
+                    .filter(l -> !l.isEmpty() && !l.startsWith("#"))
+                    .forEach(known::add);
+            return known;
+        }
+    }
+
+    /**
+     * So schema thân yêu cầu, phản hồi theo trường, phần tử mảng, kiểu, enum, trường bắt buộc (đệ quy). Không dùng
+     * openapi-diff ở tầng này: với OpenAPI 3.1 nó bỏ qua {@code items} (danh sách trả về, trường mảng) và schema đã gộp
+     * {@code allOf} (phát hiện 2026-11-08: trường thừa trong {@code ProcurementRequest.lines[]} vẫn xanh). Trường
+     * {@code readOnly} không xét ở thân yêu cầu, {@code writeOnly} không xét ở phản hồi.
+     */
+    private static void bodies(OpenAPI expected, OpenAPI actual, Set<String> pendingResponses, List<String> out) {
+        expected.getPaths().forEach((path, item) -> {
+            PathItem other = actual.getPaths().get(path);
+            if (other == null) {
+                return;
+            }
+            item.readOperationsMap().forEach((method, op) -> {
+                Operation code = other.readOperationsMap().get(method);
+                if (code == null) {
+                    return;
+                }
+                String at = method + " " + path;
+                if (op.getRequestBody() != null && code.getRequestBody() != null) {
+                    media(
+                            at + " request",
+                            op.getRequestBody().getContent(),
+                            code.getRequestBody().getContent(),
+                            true,
+                            out);
+                }
+                if (op.getResponses() == null || code.getResponses() == null) {
+                    return;
+                }
+                op.getResponses().forEach((status, response) -> {
+                    var codeResponse = code.getResponses().get(status);
+                    if (codeResponse != null && !pendingResponses.contains(at + " " + status)) {
+                        media(at + " phản hồi " + status, response.getContent(), codeResponse.getContent(), false, out);
+                    }
+                });
+            });
+        });
+    }
+
+    private static void media(String at, Content expected, Content actual, boolean request, List<String> out) {
+        if (expected == null || actual == null) {
+            return;
+        }
+        expected.forEach((type, m) -> {
+            var other = actual.get(type);
+            if (other != null) {
+                compare(at + " " + type, m.getSchema(), other.getSchema(), request, 0, out);
+            }
+        });
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void compare(
+            String at, Schema expected, Schema actual, boolean request, int depth, List<String> out) {
+        if (expected == null || actual == null || depth > 20) {
+            return;
+        }
+        // springdoc không ghi type: object cho object; chỉ so khi cả hai bên ghi kiểu, enum
+        Set<String> te = baseType(expected);
+        Set<String> ta = baseType(actual);
+        if (!te.isEmpty() && !ta.isEmpty() && !te.equals(ta)) {
+            out.add(at + " đổi kiểu " + te + " → " + ta);
+        }
+        Set<String> ve = values(expected.getEnum());
+        Set<String> va = values(actual.getEnum());
+        if (!ve.isEmpty() && !va.isEmpty() && !ve.equals(va)) {
+            out.add(at + " đổi enum");
+        }
+        java.util.Map<String, Schema> e = fields(expected, request);
+        java.util.Map<String, Schema> a = fields(actual, request);
+        if (e.isEmpty()) {
+            // hợp đồng để object tự do (không liệt kê trường): không so trường
+            compare(at + "[]", expected.getItems(), actual.getItems(), request, depth + 1, out);
+            return;
+        }
+        if (!required(expected, e).equals(required(actual, a))) {
+            out.add(at + " đổi trường bắt buộc");
+        }
+        e.keySet().stream().filter(k -> !a.containsKey(k)).forEach(k -> out.add(at + " thiếu trường " + k));
+        a.keySet().stream().filter(k -> !e.containsKey(k)).forEach(k -> out.add(at + " thừa trường " + k));
+        e.forEach((k, p) -> {
+            if (a.containsKey(k)) {
+                compare(at + "." + k, p, a.get(k), request, depth + 1, out);
+            }
+        });
+        compare(at + "[]", expected.getItems(), actual.getItems(), request, depth + 1, out);
+    }
+
+    /** Trường có ở thân này: bỏ {@code readOnly} ở yêu cầu, {@code writeOnly} ở phản hồi. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static java.util.Map<String, Schema> fields(Schema schema, boolean request) {
+        java.util.Map<String, Schema> result = new java.util.TreeMap<>();
+        if (schema.getProperties() != null) {
+            ((java.util.Map<String, Schema>) schema.getProperties()).forEach((k, p) -> {
+                boolean hidden = request ? Boolean.TRUE.equals(p.getReadOnly()) : Boolean.TRUE.equals(p.getWriteOnly());
+                if (!hidden) {
+                    result.put(k, p);
+                }
+            });
+        }
+        return result;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Set<String> required(Schema schema, java.util.Map<String, Schema> fields) {
+        Set<String> result = new TreeSet<>();
+        if (schema.getRequired() != null) {
+            for (Object name : schema.getRequired()) {
+                if (fields.containsKey(name)) {
+                    result.add((String) name);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Set<String> values(List<?> values) {
+        Set<String> result = new TreeSet<>();
+        if (values != null) {
+            values.stream().filter(java.util.Objects::nonNull).forEach(v -> result.add(v.toString()));
+        }
+        return result;
     }
 
     /**
@@ -275,7 +414,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     .filter(code -> !pendingResponses.contains(at + " " + code))
                     .forEach(code -> out.add(at + " thiếu phản hồi " + code));
             responses.getIncreased().keySet().forEach(code -> out.add(at + " thừa phản hồi " + code));
-            responses.getChanged().forEach((code, r) -> content(at + " phản hồi " + code, r.getContent(), out));
+            responses.getChanged().entrySet().stream()
+                    // phản hồi đã đổi ở hợp đồng mà mã chưa theo kịp cũng chờ như phản hồi chưa cài
+                    .filter(e -> !pendingResponses.contains(at + " " + e.getKey()))
+                    .forEach(e ->
+                            content(at + " phản hồi " + e.getKey(), e.getValue().getContent(), out));
         }
     }
 
@@ -285,7 +428,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         }
         content.getMissing().keySet().forEach(type -> out.add(at + " thiếu kiểu nội dung " + type));
         content.getIncreased().keySet().forEach(type -> out.add(at + " thừa kiểu nội dung " + type));
-        content.getChanged().forEach((type, media) -> schema(at + " " + type, media.getSchema(), out));
+        // schema trong nội dung so ở bodies()
     }
 
     private static void schema(String at, ChangedSchema s, List<String> out) {

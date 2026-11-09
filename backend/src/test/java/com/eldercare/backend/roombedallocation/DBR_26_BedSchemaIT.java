@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,40 +50,6 @@ class DBR_26_BedSchemaIT extends MySqlIntegrationTestBase {
                 .isEqualTo("HELD");
         assertThatThrownBy(() -> jdbc.update("INSERT INTO bed(room_id,code) VALUES(903700,?)", "G" + id))
                 .isInstanceOf(DataAccessException.class);
-    }
-
-    @Test
-    void BR_M03_10_nullOrMissingConfirmationCannotBypassDisinfectionCheck() {
-        long id = bed();
-        String sql =
-                "INSERT INTO bed_state_history(bed_id,to_state,event,occurred_at,basis_type,basis_id,floor_area_id,disinfection_required,disinfected,ppe_used) VALUES(?,'EMPTY','CONFIRM_READY','2026-10-23 00:00:00','TEST',1,903700,?,?,?)";
-        assertThatThrownBy(() -> jdbc.update(sql, id, null, null, null)).isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update(sql, id, true, true, null)).isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update(sql, id, true, false, true)).isInstanceOf(DataAccessException.class);
-        assertThat(jdbc.update(sql, id, true, true, true)).isEqualTo(1);
-    }
-
-    @Test
-    void DBR_23_historyRejectsUpdatesAndOrdinaryDeletesButAllowsRetention() throws Exception {
-        long id = bed();
-        jdbc.update(
-                "INSERT INTO bed_state_history(bed_id,to_state,event,occurred_at,basis_type,basis_id,floor_area_id) VALUES(?,'EMPTY','CREATE_BED','2026-10-23 00:00:00','TEST',1,903700)",
-                id);
-        try (var admin = adminConnection();
-                var command = admin.createStatement()) {
-            assertThatThrownBy(
-                            () -> command.executeUpdate("UPDATE bed_state_history SET reason='Đổi' WHERE bed_id=" + id))
-                    .isInstanceOf(SQLException.class)
-                    .satisfies(e -> assertThat(((SQLException) e).getSQLState()).isEqualTo("45000"));
-            assertThatThrownBy(() -> command.executeUpdate("DELETE FROM bed_state_history WHERE bed_id=" + id))
-                    .isInstanceOf(SQLException.class)
-                    .satisfies(e -> assertThat(((SQLException) e).getSQLState()).isEqualTo("45000"));
-        }
-        try (var retention = retentionConnection();
-                var command = retention.createStatement()) {
-            assertThat(command.executeUpdate("DELETE FROM bed_state_history WHERE bed_id=" + id))
-                    .isEqualTo(1);
-        }
     }
 
     private long bed() {

@@ -3,10 +3,14 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/common/api/api_client.dart';
+import 'package:mobile/common/offline/offline_database.dart';
+import 'package:mobile/common/offline/offline_queue.dart';
 import 'package:mobile/common/theme/app_theme.dart';
 import 'package:mobile/staff/care_tasks/care_checklist_cache.dart';
 import 'package:mobile/staff/care_tasks/care_checklist_repository.dart';
 import 'package:mobile/staff/care_tasks/care_checklist_screen.dart';
+import 'package:mobile/staff/care_tasks/care_offline_recording.dart';
+import '../../support/fake_backend.dart';
 import 'care_checklist_cache_test.dart' show FixtureChecklistGateway;
 
 void main() {
@@ -63,6 +67,30 @@ void main() {
     expect(tester.getTopLeft(find.text('Việc quá hạn')).dy, lessThan(tester.getTopLeft(find.text('Việc đến hạn')).dy));
     expect(find.text('Lựa chọn đã trao đổi'), findsNWidgets(2));
   });
+  testWidgets('FR_034_sleepFormUsesResultCatalogAndStoresMinutesWithQuality', (tester) async {
+    gateway.body['tasks'] = [
+      {
+        'id': 1,
+        'taskType': 'Giấc ngủ',
+        'status': 'DUE',
+        'resultType': 'SLEEP',
+        'allowedCommands': ['record'],
+      },
+    ];
+    gateway.body['resultValues'] = [
+      {'type': 'SLEEP_QUALITY', 'code': 'QUIET', 'name': 'Ngủ yên', 'status': 'ACTIVE'},
+    ];
+    await view(tester);
+    await tester.tap(find.text('Ghi nhận kết quả'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Thời gian ngủ (phút)'), '60');
+    await tester.tap(find.text('Ngủ yên'));
+    await tester.ensureVisible(find.text('Lưu kết quả'));
+    await tester.tap(find.text('Lưu kết quả'));
+    await tester.pumpAndSettle();
+    expect(gateway.recordings.single['numericValue'], 60);
+    expect(gateway.recordings.single['codeValue'], 'QUIET');
+  });
   testWidgets('FR_035_matMangHienChuaCapNhatVaKhongGuiLenh', (tester) async {
     await repository.load(1, 9);
     gateway.failure = ApiUnreachable();
@@ -70,6 +98,35 @@ void main() {
     expect(find.textContaining('Chưa cập nhật'), findsOneWidget);
     expect(find.text('Nhận công việc'), findsNothing);
     expect(find.text('Không thực hiện được…'), findsNothing);
+  });
+  testWidgets('BR_M15_20_offlineChecklistRecordsIntoSharedQueueAndShowsUnsynced', (tester) async {
+    final backend = FakeBackend()..down = true;
+    final api = backend.client();
+    final db = OfflineDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final queue = OfflineQueue(db, api);
+    repository = CareChecklistRepository(gateway, cache, recorder: CareOfflineRecording(api, queue, 1));
+    gateway.body['tasks'] = [
+      {
+        'id': 1,
+        'taskType': 'Uống nước',
+        'status': 'DUE',
+        'resultType': 'ML',
+        'allowedCommands': ['record'],
+        'residentId': 77,
+      },
+    ];
+    await repository.load(1, 9);
+    gateway.failure = ApiUnreachable();
+    await view(tester);
+    await tester.tap(find.text('Ghi nhận kết quả'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Lượng nước (ml)'), '200');
+    await tester.ensureVisible(find.text('Lưu kết quả'));
+    await tester.tap(find.text('Lưu kết quả'));
+    await tester.pumpAndSettle();
+    expect(await queue.unsynced(1), hasLength(1));
+    expect(find.textContaining('Chưa đồng bộ'), findsWidgets);
   });
   testWidgets('FR_028a_phaiChonLoaiLyDoTruocKhiLuu', (tester) async {
     await view(tester);

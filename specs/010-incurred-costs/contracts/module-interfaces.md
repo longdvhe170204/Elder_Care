@@ -137,8 +137,9 @@ Port là nội bộ M11, đặt ở provision/internal/domain và purchase/inter
 
 | Sự kiện | Thành phần tiếng Anh | Ai phát sau này |
 | --- | --- | --- |
-| CostSourceBilled | sourceType, sourceId, unit, residentId, Optional<Long> serviceId, BigDecimal quantity, incurredOn, occurredAt, eventKey | D/011, E/012, C/014 |
+| CostSourceBilled | sourceType, sourceId, unit, residentId, Optional<Long> serviceId, BigDecimal quantity, incurredOn, occurredAt, eventKey | D/011, E/012 |
 | CostSourceChanged | sourceType, sourceId, unit, Optional<BigDecimal> newQuantity, cancelled, basis, eventKey | Cùng chủ nguồn khi sửa/hủy |
+| `care.api.events.ActivityCostSourceBilled`, `ActivityCostSourceChanged` (C/014 phát, 010 nghe) | Cùng trường với hai sự kiện trên | *(2026-11-07, A, nhánh `fix/care-409`)* 014 không phát sự kiện của billing nữa: billing đã nghe care (`BillableCareResultRecorded`), care phụ thuộc billing tạo vòng billing ↔ care và billing → medication → care → billing (`ModuleBoundaryTest`). 010 nghe `ActivityCostSourceBilled` và ghi chỉ mục như `CostSourceBilled`; `ActivityCostSourceChanged` chưa có bên nghe (như `CostSourceChanged`). Nghiệp vụ không đổi. |
 | CostStatementFinalized | statementId, statementType, periodId, residentId, total, finalizedAt, notificationRequests | E/010 T017 |
 | PurchaseAssistanceSent/Decided/Cancelled/Purchased | requestId, residentId, estimatedAmount, status, notificationRequests | E/010 T027 |
 | CostItemChanged | residentId, periodId | E/010 khi khoản đổi/chốt |

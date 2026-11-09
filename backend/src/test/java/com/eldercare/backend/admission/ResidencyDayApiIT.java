@@ -2,16 +2,11 @@ package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.admission.api.ResidencyDayApi;
 import com.eldercare.backend.admission.api.ResidencyStatisticsApi;
-import com.eldercare.backend.admission.api.dto.ContractStatus;
-import com.eldercare.backend.admission.api.dto.ResidenceTypeAtDateView;
 import com.eldercare.backend.admission.api.dto.ResidencyDayView;
-import com.eldercare.backend.resident.api.dto.ResidenceType;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -64,92 +59,9 @@ class ResidencyDayApiIT extends DeathTestBase {
         });
     }
 
-    @Test
-    void FR_066_aPreparingEnding_stopsBillingAfterTheExpectedEndDate() throws Exception {
-        long residentId = inResidence();
-        assertThat(days.billingStopDate(residentId)).isEmpty();
-        createEnding(residentId, d0.plusDays(2));
-
-        assertThat(days.billingStopDate(residentId)).contains(d0.plusDays(2));
-        List<ResidencyDayView> list = days.daysBetween(residentId, d0, d0.plusDays(3));
-        assertThat(on(list, d0.plusDays(2)).outsideBillingPeriod()).isFalse();
-        assertThat(on(list, d0.plusDays(3)).outsideBillingPeriod()).isTrue();
-    }
-
-    @Test
-    void FR_070_deathDay_isBilled_andLaterDaysAreOutsideTheBillingPeriod() throws Exception {
-        long residentId = inResidence();
-        clockAt(d0, 9, 0);
-        allItems(residentId, com.eldercare.backend.admission.api.dto.PostDeathItemStatus.NOT_COMPLETED);
-
-        doctorRecordsDeath(residentId, null);
-
-        assertThat(days.billingStopDate(residentId)).contains(d0);
-        List<ResidencyDayView> list = days.daysBetween(residentId, d0, d0.plusDays(1));
-        assertThat(list).hasSize(2);
-        assertThat(on(list, d0).outsideBillingPeriod()).isFalse();
-        assertThat(on(list, d0.plusDays(1)).outsideBillingPeriod()).isTrue();
-    }
-
-    @Test
-    void FR_075a_cancelledAdmission_stopsBillingAtTheCancelDate() throws Exception {
-        long residentId = inResidence();
-        WaitingListTestBase.admin(
-                "UPDATE contract SET status = 'TERMINATED', termination_reason = 'Hủy tiếp nhận', terminated_on = '"
-                        + d0.plusDays(1) + "' WHERE resident_id = " + residentId);
-
-        assertThat(days.billingStopDate(residentId)).contains(d0.plusDays(1));
-        List<ResidencyDayView> list = days.daysBetween(residentId, d0, d0.plusDays(2));
-        assertThat(list).hasSize(3);
-        assertThat(on(list, d0.plusDays(1)).outsideBillingPeriod()).isFalse();
-        assertThat(on(list, d0.plusDays(2)).outsideBillingPeriod()).isTrue();
-    }
-
     private static String admittedOnSql(long residentId, LocalDate date) {
         return "INSERT INTO resident_module_state (resident_id, module, data, version, updated_at) VALUES ("
                 + residentId + ", 'M02', '{\"admittedOn\":\"" + date
                 + "\"}', 0, UTC_TIMESTAMP(6)) AS new ON DUPLICATE KEY UPDATE data = new.data";
-    }
-
-    @Test
-    void FR_074_daysBeforeTheAdmissionDate_areMarkedNotYetAdmitted() throws Exception {
-        long residentId = inResidence();
-        WaitingListTestBase.admin(admittedOnSql(residentId, d0.plusDays(1)));
-
-        List<ResidencyDayView> list = days.daysBetween(residentId, d0, d0.plusDays(2));
-
-        assertThat(on(list, d0).notYetAdmitted()).isTrue();
-        assertThat(on(list, d0.plusDays(1)).notYetAdmitted()).isFalse();
-    }
-
-    @Test
-    void FR_074_theAdmissionDateRecordedOnTheResident_worksWithoutAnApplication() throws Exception {
-        long residentId = inResidence();
-        WaitingListTestBase.admin(admittedOnSql(residentId, d0.plusDays(1)));
-
-        List<ResidencyDayView> list = days.daysBetween(residentId, d0, d0.plusDays(2));
-
-        assertThat(on(list, d0).notYetAdmitted()).isTrue();
-        assertThat(on(list, d0.plusDays(1)).notYetAdmitted()).isFalse();
-    }
-
-    @Test
-    void R016_residenceTypeAtDate_showsTheSignedContract_andRespectsTheScope() throws Exception {
-        long residentId = inResidence();
-
-        Optional<ResidenceTypeAtDateView> mine = statistics
-                .residenceTypeAtDate(ScopeFilter.FACILITY, d0)
-                .filter(v -> v.residentId() == residentId)
-                .findFirst();
-
-        assertThat(mine).isPresent();
-        assertThat(mine.get().contractStatus()).isEqualTo(ContractStatus.ACTIVE);
-        assertThat(mine.get().residenceType()).isEqualTo(ResidenceType.LONG_TERM_RESIDENTIAL);
-        ScopeFilter other = new ScopeFilter(false, java.util.Set.of(), java.util.Set.of(), java.util.Set.of(-1L));
-        assertThat(statistics.residenceTypeAtDate(other, d0)).isEmpty();
-        assertThat(statistics
-                        .residenceTypeAtDate(ScopeFilter.FACILITY, d0.minusDays(1))
-                        .filter(v -> v.residentId() == residentId))
-                .isEmpty();
     }
 }

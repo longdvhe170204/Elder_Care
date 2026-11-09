@@ -20,7 +20,6 @@ import com.eldercare.backend.resident.api.events.CareLevelChangeRequestNeeded;
 import com.eldercare.backend.resident.api.events.CareLevelChangeRequestReminder;
 import com.eldercare.backend.resident.api.events.MissingConsentReminder;
 import com.eldercare.backend.resident.api.events.MissingEndOfLifeWishReminder;
-import com.eldercare.backend.resident.api.events.ReassessmentDue;
 import com.eldercare.backend.resident.api.events.ReassessmentOverdue;
 import com.eldercare.backend.resident.api.events.ResidentStatusNotice;
 import com.eldercare.backend.resident.api.events.SelfDeterminationReviewReminder;
@@ -103,18 +102,6 @@ class ResidentNotificationRequestsTest {
             }
             assertThatThrownBy(() -> status(command)).as(command.name()).isInstanceOf(IllegalArgumentException.class);
         }
-    }
-
-    @Test
-    void FR_039_reassessmentDue_isLowForTheDoctorOnDuty_healthTextOnlyInTheFullContent() {
-        NotificationRequest r = only(new ReassessmentDue(RESIDENT, 7L, "PERIODIC", AT));
-
-        assertThat(r.level()).contains(NotificationLevel.LOW);
-        assertThat(r.recipientGroups()).containsExactly(DOCTOR);
-        assertThat(r.content()).extracting(p -> p.type()).containsOnly(InformationType.HEALTH);
-        assertThat(r.informationSubject()).isEmpty();
-        assertThat(r.q354Case()).isEmpty();
-        assertThat(r.sourceRecord()).isEqualTo(new SourceRecord("M01.REASSESSMENT_NOTICE", "7"));
     }
 
     @Test

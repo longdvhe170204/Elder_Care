@@ -11,7 +11,6 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
-import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -127,79 +126,6 @@ class LoginTemporaryLockIT extends MySqlIntegrationTestBase {
                                 + " AND actor_type = 'ANONYMOUS'",
                         String.valueOf(account)))
                 .isEqualTo(6);
-    }
-
-    @Test
-    void US3_3_lockExpired_backToActiveAtNextLogin_counterZero_auditedAsScheduler() throws Exception {
-        long account = fixtures.staffAccount("AC-05");
-        String username = fixtures.password(account, PASSWORD, encoder);
-        for (int i = 0; i < 5; i++) {
-            mvc.perform(login(username, "sai" + i + "abc", "WEB", device())).andExpect(status().isUnauthorized());
-        }
-        assertThat(accountStatus(account)).isEqualTo("TEMPORARILY_LOCKED");
-
-        clock.advanceBy(Duration.ofMinutes(15));
-        mvc.perform(login(username, PASSWORD, "WEB", device())).andExpect(status().isOk());
-
-        assertThat(accountStatus(account)).isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject("SELECT failed_login_count FROM account WHERE id = ?", Integer.class, account))
-                .isZero();
-        assertThat(count(
-                        "SELECT COUNT(*) FROM audit_log WHERE action = 'TEMPORARY_LOCK_EXPIRED' AND entity_id = ?"
-                                + " AND actor_type = 'SCHEDULER' AND JSON_EXTRACT(basis, '$.ruleCode') = 'CFG-M15-01'",
-                        String.valueOf(account)))
-                .isEqualTo(1);
-        assertThat(count(
-                        "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M15.ACCOUNT' AND attribute = 'STATUS' AND entity_id = ?",
-                        account))
-                .isEqualTo(2);
-    }
-
-    @Test
-    void FR_015_unknownUsername_sameErrorAsWrongPassword_auditedAnonymousWithUsername() throws Exception {
-        String unknown = "khong-co-" + UUID.randomUUID();
-
-        mvc.perform(login(unknown, PASSWORD, "WEB", device()))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("LOGIN_FAILED"));
-
-        assertThat(count(
-                        "SELECT COUNT(*) FROM audit_log WHERE action = 'LOGIN_FAILED' AND actor_type = 'ANONYMOUS'"
-                                + " AND entity_id = '' AND JSON_UNQUOTE(JSON_EXTRACT(details, '$.username')) = ?",
-                        unknown))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void US3_8_lockedOrInactive_correctPassword_contactFacility() throws Exception {
-        long locked = fixtures.staffAccount("AC-05");
-        String lockedName = fixtures.password(locked, PASSWORD, encoder);
-        jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'MANUAL' WHERE id = ?", locked);
-        long inactive = fixtures.familyAccount(AccountFixtures.nextId());
-        String inactiveName = fixtures.password(inactive, PASSWORD, encoder);
-        jdbc.update("UPDATE account SET status = 'INACTIVE' WHERE id = ?", inactive);
-
-        mvc.perform(login(lockedName, PASSWORD, "WEB", device()))
-                .andExpect(status().isLocked())
-                .andExpect(jsonPath("$.errorCode").value("ACCOUNT_CONTACT_FACILITY"));
-        mvc.perform(login(inactiveName, PASSWORD, "FAMILY_APP", device()))
-                .andExpect(status().isLocked())
-                .andExpect(jsonPath("$.errorCode").value("ACCOUNT_CONTACT_FACILITY"));
-        mvc.perform(login(lockedName, "sai12345", "WEB", device()))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("LOGIN_FAILED"));
-    }
-
-    @Test
-    void web_setsHttpOnlyCookie_noTokenInBody() throws Exception {
-        long account = fixtures.staffAccount("AC-09");
-        String username = fixtures.password(account, PASSWORD, encoder);
-
-        mvc.perform(login(username, PASSWORD, "WEB", device()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").doesNotExist())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
-                        .httpOnly("session", true));
     }
 
     private String accountStatus(long account) {

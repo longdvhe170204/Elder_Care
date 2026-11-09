@@ -1,51 +1,92 @@
 package com.eldercare.backend.reporting;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
-import com.eldercare.backend.reporting.TestScopedMetrics.Event;
-import com.eldercare.backend.reporting.TestScopedMetrics.EventSource;
+import com.eldercare.backend.incident.api.IncidentStatisticsApi;
+import com.eldercare.backend.incident.api.dto.AlertReportView;
+import com.eldercare.backend.incident.api.dto.IncidentReportView;
+import com.eldercare.backend.incident.api.dto.MonitoringView;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * FR-042a, US2 #1, #9 (016 T011, {@code FR_042a_SuCoHanhChinhIT}; quickstart Q6): Hành chính chỉ thấy nhóm sự cố "không
- * thuộc sức khỏe", ở báo cáo và dashboard, không có kết quả (mô tả, diễn biến), không có gì về sự cố khác. Quản lý viện
- * thấy sự cố ở nhóm sức khỏe, không có khối riêng. Dùng chỉ tiêu giả tới khi 007 có phần đọc sự cố; Q7 (đổi loại sự cố)
- * chờ 007.
+ * FR-042a, US2 #1, #9 (016 T011, {@code FR_042a_SuCoHanhChinhIT}; quickstart Q6, Q7): Hành chính chỉ thấy chỉ tiêu
+ * {@code HEALTH.NON_HEALTH_INCIDENTS} (sự cố thuộc loại mang dấu "không thuộc sức khỏe"), không có kết quả, không có gì
+ * về sự cố khác; sự cố đổi sang loại không mang dấu rời khỏi số từ lần lấy kế tiếp. Quản lý viện thấy mọi sự cố ở
+ * {@code HEALTH.INCIDENTS}. Chỉ tiêu thật trên nguồn 007 giả (dấu theo danh mục hiện hành là phần của 007).
  */
 @AutoConfigureMockMvc
-@Import(TestScopedMetrics.class)
+@Import(FR_042a_AdminIncidentIT.Source.class)
 class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
 
     private static final String REPORT = "/api/v1/reports/HEALTH_MEDICATION";
-    private static final String NON_HEALTH_BLOCK = "$.blocks[?(@.group == 'NON_HEALTH_INCIDENTS')]";
-    private static final String HEALTH_BLOCK = "$.blocks[?(@.group == 'HEALTH_EVENTS')]";
+    private static final String NON_HEALTH = "HEALTH.NON_HEALTH_INCIDENTS";
+    private static final String INCIDENTS = "HEALTH.INCIDENTS";
 
-    // mỗi test một mốc cách nhau 1 phút để bộ đệm 20 giây của dashboard không còn hiệu lực
-    private static int step;
+    /** Nguồn sự cố của 007 thay bằng danh sách sửa được trong test; mọi người xem ở đây toàn viện. */
+    static class Incidents implements IncidentStatisticsApi {
+
+        final List<IncidentReportView> rows = new CopyOnWriteArrayList<>();
+
+        @Override
+        public Stream<AlertReportView> alerts(ScopeFilter scope, Instant from, Instant to) {
+            return Stream.empty();
+        }
+
+        @Override
+        public Stream<IncidentReportView> incidents(ScopeFilter scope, Instant from, Instant to) {
+            return rows.stream()
+                    .filter(r -> !r.createdAt().isBefore(from) && r.createdAt().isBefore(to));
+        }
+
+        @Override
+        public List<MonitoringView> underMonitoring(ScopeFilter scope) {
+            return List.of();
+        }
+
+        @Override
+        public List<Long> criticalResidentIds(ScopeFilter scope) {
+            return List.of();
+        }
+    }
+
+    @TestConfiguration
+    static class Source {
+        @Bean
+        @Primary
+        Incidents testIncidents() {
+            return new Incidents();
+        }
+    }
 
     @Autowired
     MockMvc mvc;
@@ -60,34 +101,38 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
     TestClockControl clock;
 
     @Autowired
-    EventSource testNonHealthIncidents;
+    Incidents incidents;
 
-    @Autowired
-    EventSource testHealth;
+    // mỗi test một mốc cách nhau 1 phút để bộ đệm 20 giây của dashboard không còn hiệu lực
+    private static int step;
 
     TestUsers users;
     TestUser office;
+    Instant at;
+    long floor;
 
     @BeforeEach
     void setUp() {
         clock.setTo(time.startOfDay(time.today()).plus(Duration.ofHours(10)).plus(Duration.ofMinutes(++step)));
         users = new TestUsers(jdbc, time);
         office = users.staff(Role.OFFICE_STAFF);
-        Instant at = time.now().minus(Duration.ofHours(1));
-        long floor = TestUsers.nextId();
-        for (int i = 0; i < 3; i++) {
-            testNonHealthIncidents.events.add(new Event("lost-" + TestUsers.nextId(), at, floor, TestUsers.nextId()));
-        }
-        for (int i = 0; i < 2; i++) {
-            testHealth.events.add(new Event("fall-" + TestUsers.nextId(), at, floor, TestUsers.nextId()));
-        }
+        at = time.now().minus(Duration.ofHours(1));
+        floor = TestUsers.nextId();
+        incidents.rows.add(incident(1, "LOST_BELONGING", true));
+        incidents.rows.add(incident(2, "LOST_BELONGING", true));
+        incidents.rows.add(incident(3, "FACILITY", true));
+        incidents.rows.add(incident(4, "FALL", false));
+        incidents.rows.add(incident(5, "FALL", false));
     }
 
     @AfterEach
     void reset() {
-        testNonHealthIncidents.events.clear();
-        testHealth.events.clear();
+        incidents.rows.clear();
         clock.reset();
+    }
+
+    private IncidentReportView incident(long id, String type, boolean nonHealth) {
+        return new IncidentReportView(id, TestUsers.nextId(), "MINOR", type, nonHealth, floor, at, null, 0);
     }
 
     private ResultActions perform(TestUser user, MockHttpServletRequestBuilder request) throws Exception {
@@ -96,43 +141,51 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
 
     private MockHttpServletRequestBuilder ranged(String url) {
         LocalDate today = time.today();
-        return get(url).param("from", today.minusDays(7).toString()).param("to", today.toString());
+        return get(url).param("from", today.minusDays(7).toString())
+                .param("to", today.plusDays(1).toString());
+    }
+
+    private static String value(String code) {
+        return "$.values[?(@.metricCode == '" + code + "')].value";
     }
 
     @Test
-    void office_report_onlyNonHealthIncidents() throws Exception {
+    void office_report_onlyNonHealthIncidents_detailWithoutResult() throws Exception {
         perform(office, ranged(REPORT))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.values[?(@.metricCode == '" + TestScopedMetrics.NON_HEALTH + "')].value")
-                        .value(contains(3)))
-                .andExpect(jsonPath("$.values[?(@.metricCode == '" + TestScopedMetrics.HEALTH + "')]")
+                .andExpect(jsonPath(value(NON_HEALTH)).value(contains(3)))
+                .andExpect(jsonPath("$.values[?(@.metricCode == '" + INCIDENTS + "')]")
                         .value(empty()));
+
+        String body = perform(office, ranged("/api/v1/metric-details/" + NON_HEALTH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rows.length()").value(3))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThat(body).doesNotContain("FALL").doesNotContain("escalationCount");
+
+        // không có nhóm sức khỏe: 403 hoặc danh sách rỗng, không lộ sự cố khác
+        assertThat(perform(office, ranged("/api/v1/metric-details/" + INCIDENTS))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString())
+                .doesNotContain("FALL");
     }
 
     @Test
-    void office_details_noDescription_otherIncidentsDenied() throws Exception {
-        perform(office, ranged("/api/v1/metric-details/" + TestScopedMetrics.NON_HEALTH))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(3))
-                .andExpect(jsonPath("$.rows", hasSize(3)))
-                .andExpect(jsonPath("$.rows[0].result.item").doesNotExist());
-        perform(office, ranged("/api/v1/metric-details/" + TestScopedMetrics.HEALTH))
-                .andExpect(status().isForbidden());
+    void Q7_typeChangedToHealthType_leavesOfficeNumbersOnNextRead() throws Exception {
+        perform(office, ranged(REPORT)).andExpect(jsonPath(value(NON_HEALTH)).value(contains(3)));
+
+        incidents.rows.replaceAll(r -> r.incidentId() == 3 ? incident(3, "FALL", false) : r);
+
+        perform(office, ranged(REPORT)).andExpect(jsonPath(value(NON_HEALTH)).value(contains(2)));
     }
 
     @Test
-    void US2_1_office_dashboard_ownBlockOnly() throws Exception {
-        perform(office, get("/api/v1/dashboard"))
+    void manager_seesAllIncidentsInHealthGroup() throws Exception {
+        perform(users.staff(Role.NURSING_HOME_MANAGER), ranged(REPORT))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(NON_HEALTH_BLOCK + ".values[0].value").value(contains(3)))
-                .andExpect(jsonPath(HEALTH_BLOCK).value(empty()));
-    }
-
-    @Test
-    void manager_dashboard_incidentsInHealthBlock_noSeparateBlock() throws Exception {
-        perform(users.staff(Role.NURSING_HOME_MANAGER), get("/api/v1/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(HEALTH_BLOCK).value(not(empty())))
-                .andExpect(jsonPath(NON_HEALTH_BLOCK).value(empty()));
+                .andExpect(jsonPath(value(INCIDENTS)).value(contains(5)));
     }
 }
