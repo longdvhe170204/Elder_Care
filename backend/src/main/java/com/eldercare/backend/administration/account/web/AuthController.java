@@ -236,6 +236,8 @@ class AuthController {
                 accounts.fullName(success.accountId()).orElse(null),
                 success.roles().stream().map(Role::code).sorted().toList(),
                 success.mustChangePassword(),
+                null,
+                null,
                 null);
     }
 
