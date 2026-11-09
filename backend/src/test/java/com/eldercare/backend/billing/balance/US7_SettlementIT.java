@@ -16,11 +16,15 @@ import com.eldercare.backend.admission.api.events.SettlementConditionChanged;
 import com.eldercare.backend.admission.api.spi.PostDeathItemPort;
 import com.eldercare.backend.billing.api.dto.BalanceDocumentType;
 import com.eldercare.backend.billing.api.dto.CostStatementType;
+import com.eldercare.backend.billing.api.dto.CostStatementView;
+import com.eldercare.backend.billing.api.dto.CostType;
+import com.eldercare.backend.billing.api.dto.CostTypeTotal;
 import com.eldercare.backend.billing.api.dto.FinalPeriodConditionView;
 import com.eldercare.backend.billing.api.events.BalanceDocumentIssued;
 import com.eldercare.backend.billing.api.events.CostStatementFinalized;
 import com.eldercare.backend.billing.balance.internal.status.domain.BalanceNotice;
 import com.eldercare.backend.billing.balance.internal.status.service.AfterFinalStatusReminders;
+import com.eldercare.backend.billing.internal.provision.domain.FinalizedCostStatement;
 import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.notification.RecipientGroup;
@@ -155,7 +159,9 @@ class US7_SettlementIT extends BalanceTestBase {
         assertThat(text)
                 .contains("Phiên bản 1", "Tổng bảng kỳ cuối: 9.000.000", "Số dư trước quyết toán: 4.000.000")
                 .contains("Tiền cọc đã thu: 20.000.000", "đã cấn trừ: 5.000.000", "đã hoàn: 15.000.000")
-                .contains("Chứng từ này không thay thế hóa đơn");
+                .contains("Chứng từ này không thay thế hóa đơn")
+                .containsPattern("Phí lưu trú\\s*8\\.000\\.000")
+                .containsPattern("Thuốc\\s*1\\.000\\.000");
         assertThat(download(v1)).isEqualTo(first);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE action = 'BALANCE_DOCUMENT_DOWNLOADED' AND entity_id = ?",
@@ -317,14 +323,26 @@ class US7_SettlementIT extends BalanceTestBase {
 
     private void finalized(long resident, long total) {
         as(accountant);
-        tx.executeWithoutResult(s -> publisher.publishEvent(new CostStatementFinalized(
-                TestUsers.nextId(),
-                CostStatementType.REGULAR,
-                TestUsers.nextId(),
-                resident,
-                total,
+        long statement = TestUsers.nextId();
+        // 010 trả bảng Đã chốt theo mã bảng: tổng theo loại là chi tiết của bảng kỳ cuối trên bảng quyết toán (FR-034)
+        costs.statement(new FinalizedCostStatement(
+                1,
                 time.now(),
-                List.of())));
+                new CostStatementView(
+                        statement,
+                        "2026-10",
+                        resident,
+                        CostStatementType.REGULAR,
+                        true,
+                        java.time.LocalDate.of(2026, 10, 31),
+                        "FINALIZED",
+                        List.of(
+                                new CostTypeTotal(CostType.RESIDENCY_FEE, total - 1_000_000),
+                                new CostTypeTotal(CostType.MEDICATION, 1_000_000)),
+                        total,
+                        List.of())));
+        tx.executeWithoutResult(s -> publisher.publishEvent(new CostStatementFinalized(
+                statement, CostStatementType.REGULAR, TestUsers.nextId(), resident, total, time.now(), List.of())));
     }
 
     private ResultActions approve(long request) throws Exception {

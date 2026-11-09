@@ -17,6 +17,7 @@ import java.util.Optional;
  * @param lastConfirmedId giao dịch Đã xác nhận mới nhất, rỗng khi chưa có (tên logic {@code giao_dich_cuoi_id})
  * @param balanceBeforeSettlement số dư ngay trước giao dịch thanh toán bảng kỳ cuối
  * @param sinceFinalPeriod giao dịch Đã xác nhận sau thanh toán bảng kỳ cuối, theo thứ tự
+ * @param finalPeriodStatementId mã bảng chi phí của thanh toán bảng kỳ cuối, rỗng khi chưa có
  */
 public record SettlementLedger(
         int pending,
@@ -28,7 +29,8 @@ public record SettlementLedger(
         long depositOffset,
         long depositRefunded,
         List<BalanceEntry> sinceFinalPeriod,
-        List<Long> confirmedIds) {
+        List<Long> confirmedIds,
+        Long finalPeriodStatementId) {
 
     public static SettlementLedger of(List<BalanceTransactionRow> rows) {
         List<BalanceTransactionRow> confirmed = rows.stream()
@@ -58,7 +60,8 @@ public record SettlementLedger(
                         .filter(r -> r.id() > finalPaymentId)
                         .map(SettlementLedger::entry)
                         .toList(),
-                confirmed.stream().map(BalanceTransactionRow::id).toList());
+                confirmed.stream().map(BalanceTransactionRow::id).toList(),
+                finalPayment.map(BalanceTransactionRow::costStatementId).orElse(null));
     }
 
     /** Có giao dịch Đã xác nhận sau giao dịch {@code transactionId} (rỗng: có giao dịch Đã xác nhận nào không). */

@@ -2,11 +2,13 @@ package com.eldercare.backend.billing.balance.web;
 
 import com.eldercare.backend.billing.api.dto.BalanceDocumentType;
 import com.eldercare.backend.billing.balance.internal.document.service.FamilyCostsRight;
+import com.eldercare.backend.billing.balance.internal.document.service.PaymentNoticeIssuance;
 import com.eldercare.backend.billing.balance.internal.document.service.PaymentNoticeService;
 import com.eldercare.backend.billing.balance.internal.ledger.service.BalanceQueries;
 import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementService;
 import com.eldercare.backend.billing.balance.web.response.BalanceDocumentResponse;
 import com.eldercare.backend.billing.balance.web.response.PaymentNoticeResponse;
+import com.eldercare.backend.billing.balance.web.response.StatementPendingNoticeResponse;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.file.FileContent;
@@ -17,11 +19,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,13 +45,44 @@ class PaymentNoticeController {
             MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     private final PaymentNoticeService service;
+    private final PaymentNoticeIssuance issuance;
     private final SettlementService settlements;
     private final FamilyCostsRight familyRight;
 
-    PaymentNoticeController(PaymentNoticeService service, SettlementService settlements, FamilyCostsRight familyRight) {
+    PaymentNoticeController(
+            PaymentNoticeService service,
+            PaymentNoticeIssuance issuance,
+            SettlementService settlements,
+            FamilyCostsRight familyRight) {
         this.familyRight = familyRight;
         this.service = service;
+        this.issuance = issuance;
         this.settlements = settlements;
+    }
+
+    @GetMapping("/payment-notices/pending-issue")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "OK")})
+    List<StatementPendingNoticeResponse> pendingIssue() {
+        return issuance.pendingIssue().stream()
+                .map(StatementPendingNoticeResponse::of)
+                .toList();
+    }
+
+    @PostMapping("/costs/statements/{statementId}/payment-notice")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Phiếu"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "PERMISSION_DENIED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "ALREADY_ISSUED, STATEMENT_NOT_PAID",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResponseEntity<PaymentNoticeResponse> issue(
+            @PathVariable long statementId, @RequestHeader("Idempotency-Key") UUID idempotencyKey) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(PaymentNoticeResponse.of(issuance.issue(statementId)));
     }
 
     @GetMapping("/residents/{residentId}/payment-notices")
