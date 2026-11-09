@@ -147,7 +147,7 @@ class BR_M05_04_TrendRuleIT extends MySqlIntegrationTestBase {
                         new LatestVitalSignView(
                                 latestId,
                                 indicator,
-                                "CAN_NANG",
+                                "WEIGHT",
                                 "Cân nặng",
                                 "kg",
                                 Map.of("value", new BigDecimal(latest)),
