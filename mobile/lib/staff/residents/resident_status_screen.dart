@@ -365,7 +365,7 @@ class _CommandSheetState extends State<_CommandSheet> {
     for (final document in _documents) {
       if (_uploaded.containsKey(document)) continue;
       final result = await widget.api.uploadFile('/files', 'file', document.bytes, document.name, document.contentType);
-      _uploaded[document] = result!['id'] as int;
+      _uploaded[document] = result!['fileId'] as int;
     }
     return [for (final document in _documents) _uploaded[document]!];
   }

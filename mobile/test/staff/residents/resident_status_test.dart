@@ -139,7 +139,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(800, 1800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     backend.on('GET', '/residents/7', 200, profile(status: 'HOSPITALIZED', commands: ['RECORD_RETURN']));
-    backend.on('POST', '/files', 201, {'id': 91});
+    backend.on('POST', '/files', 201, {'fileId': 91});
     final picker = FakePicker();
     await pumpScreen(tester, backend, picker: picker);
 
@@ -175,7 +175,7 @@ void main() {
   testWidgets('FR_047b_recordDeath_uploadsEvidenceAsDetailsEvidenceFileId', (tester) async {
     await tester.binding.setSurfaceSize(const Size(800, 1800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    backend.on('POST', '/files', 201, {'id': 55});
+    backend.on('POST', '/files', 201, {'fileId': 55});
     await pumpScreen(tester, backend, picker: FakePicker());
 
     await tapButton(tester, 'Ghi nhận qua đời');
