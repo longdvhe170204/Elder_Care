@@ -16,6 +16,7 @@ public class FakeStaffProfiles implements StaffProfileApi {
     private final Map<Long, String> createdMinimal = new HashMap<>();
     private final Map<Long, String> names = new HashMap<>();
     private final Map<Long, String> phones = new HashMap<>();
+    private final Map<Long, String> emails = new HashMap<>();
     // Dải riêng, không trùng support/TestUsers (từ 5.000.000) vì hai bên cùng ghi staff_id vào bảng account
     private long nextStaffId = 6_000_000;
 
@@ -68,6 +69,26 @@ public class FakeStaffProfiles implements StaffProfileApi {
     @Override
     public Optional<String> phoneNumber(long staffId) {
         return Optional.ofNullable(phones.get(staffId));
+    }
+
+    public FakeStaffProfiles email(long staffId, String email) {
+        emails.put(staffId, email);
+        return this;
+    }
+
+    /** Email đặt bằng {@link #email} hoặc {@link #updateContact}; mặc định không có. */
+    @Override
+    public Optional<String> email(long staffId) {
+        return Optional.ofNullable(emails.get(staffId));
+    }
+
+    /** Ghi liên hệ như bản thật (không ghi nhật ký); null là xóa. */
+    @Override
+    public void updateContact(long staffId, String phoneNumber, String email) {
+        if (phoneNumber == null) phones.remove(staffId);
+        else phones.put(staffId, phoneNumber);
+        if (email == null) emails.remove(staffId);
+        else emails.put(staffId, email);
     }
 
     /** Hồ sơ đã tạo bằng {@link #createMinimal}: id → họ tên. */
