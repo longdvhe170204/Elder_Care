@@ -442,8 +442,13 @@ class LeaveCreateSheet extends StatefulWidget {
 class _LeaveCreateSheetState extends State<LeaveCreateSheet> {
   final _reason = TextEditingController();
   final _key = newIdempotencyKey();
+  String _kind = 'BY_SHIFT';
   List<Map<String, dynamic>> _mine = const [];
   final _chosen = <int>{};
+  final _dates = <String>{};
+  String _scopeType = 'FLOOR';
+  int? _scopeId;
+  Map<String, List<Map<String, dynamic>>>? _places;
   bool _busy = false;
   String? _message;
 
@@ -453,12 +458,15 @@ class _LeaveCreateSheetState extends State<LeaveCreateSheet> {
     _loadMine();
   }
 
+  static String _day(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   Future<void> _loadMine() async {
     final now = DateTime.now();
-    String day(DateTime d) =>
-        '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     try {
-      final rows = await widget.api.getList('/me/shifts?from=${day(now)}&to=${day(now.add(const Duration(days: 60)))}');
+      final rows = await widget.api.getList(
+        '/me/shifts?from=${_day(now)}&to=${_day(now.add(const Duration(days: 60)))}',
+      );
       if (mounted) {
         setState(() => _mine = rows.cast<Map<String, dynamic>>().where((s) => s['status'] == 'PUBLISHED').toList());
       }
@@ -467,22 +475,62 @@ class _LeaveCreateSheetState extends State<LeaveCreateSheet> {
     }
   }
 
+  /// Tầng, khu vực để chọn phạm vi của nghỉ theo ngày (FR-026a); chỉ tải khi chọn dạng này.
+  Future<void> _loadPlaces() async {
+    if (_places != null) return;
+    try {
+      final floors = await widget.api.getList('/floors');
+      final areas = await widget.api.getList('/areas');
+      if (mounted) {
+        setState(
+          () => _places = {'FLOOR': floors.cast<Map<String, dynamic>>(), 'AREA': areas.cast<Map<String, dynamic>>()},
+        );
+      }
+    } on Object catch (e) {
+      if (mounted) setState(() => _message = backendMessage(e));
+    }
+  }
+
+  Future<void> _addDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(now.year, now.month + 1, 1),
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 400)),
+      helpText: 'Chọn ngày nghỉ',
+    );
+    if (picked != null && mounted) setState(() => _dates.add(_day(picked)));
+  }
+
   Future<void> _submit() async {
     if (_busy) return;
-    if (_chosen.isEmpty || _reason.text.trim().isEmpty) {
-      setState(() => _message = 'Chọn ít nhất một ca và nhập lý do.');
+    final byDay = _kind == 'BY_DAY';
+    if (_reason.text.trim().isEmpty ||
+        (!byDay && _chosen.isEmpty) ||
+        (byDay && (_dates.isEmpty || (_scopeType != 'FACILITY' && _scopeId == null)))) {
+      setState(
+        () => _message = byDay
+            ? 'Chọn ít nhất một ngày, chọn phạm vi và nhập lý do.'
+            : 'Chọn ít nhất một ca và nhập lý do.',
+      );
       return;
     }
     setState(() {
       _busy = true;
       _message = null;
     });
+    final body = <String, dynamic>{'kind': _kind};
+    if (byDay) {
+      body['dates'] = _dates.toList()..sort();
+      body['scopeType'] = _scopeType;
+      if (_scopeType != 'FACILITY') body['scopeId'] = _scopeId;
+    } else {
+      body['shiftIds'] = _chosen.toList()..sort();
+    }
+    body['reason'] = _reason.text.trim();
     try {
-      await widget.api.post(
-        '/leave-requests',
-        {'kind': 'BY_SHIFT', 'shiftIds': _chosen.toList()..sort(), 'reason': _reason.text.trim()},
-        headers: {'Idempotency-Key': _key},
-      );
+      await widget.api.post('/leave-requests', body, headers: {'Idempotency-Key': _key});
       if (mounted) Navigator.of(context).pop(true);
     } on Object catch (error) {
       if (mounted) {
@@ -492,6 +540,63 @@ class _LeaveCreateSheetState extends State<LeaveCreateSheet> {
         });
       }
     }
+  }
+
+  List<Widget> _byShift() => [
+    for (final s in _mine)
+      CheckboxListTile(
+        key: ValueKey('leave-shift-${s['id']}'),
+        value: _chosen.contains(s['id'] as int),
+        onChanged: (v) => setState(() => v == true ? _chosen.add(s['id'] as int) : _chosen.remove(s['id'] as int)),
+        title: Text(formatDateTime(DateTime.parse(s['startsAt'] as String))),
+      ),
+  ];
+
+  List<Widget> _byDay(BuildContext context) {
+    final places = _places?[_scopeType] ?? const <Map<String, dynamic>>[];
+    final days = _dates.toList()..sort();
+    return [
+      Text('Chỉ cho tháng chưa công bố lịch ca.', style: Theme.of(context).textTheme.bodySmall),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final d in days)
+            InputChip(
+              key: ValueKey('leave-date-$d'),
+              label: Text(formatDate(d)),
+              onDeleted: () => setState(() => _dates.remove(d)),
+              deleteButtonTooltipMessage: 'Bỏ ngày ${formatDate(d)}',
+            ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      OutlinedButton(key: const ValueKey('leave-add-date'), onPressed: _addDate, child: const Text('Thêm ngày nghỉ')),
+      const SizedBox(height: 16),
+      Text('Phạm vi', style: Theme.of(context).textTheme.labelLarge),
+      const SizedBox(height: 8),
+      SegmentedButton<String>(
+        key: const ValueKey('leave-scope-type'),
+        segments: [for (final e in scopeTypeLabels.entries) ButtonSegment(value: e.key, label: Text(e.value))],
+        selected: {_scopeType},
+        onSelectionChanged: (v) => setState(() {
+          _scopeType = v.first;
+          _scopeId = null;
+        }),
+      ),
+      if (_scopeType != 'FACILITY') ...[
+        const SizedBox(height: 8),
+        DropdownButtonFormField<int>(
+          key: ValueKey('leave-scope-$_scopeType'),
+          initialValue: _scopeId,
+          decoration: InputDecoration(labelText: _scopeType == 'FLOOR' ? 'Tầng' : 'Khu vực'),
+          items: [for (final p in places) DropdownMenuItem(value: p['id'] as int, child: Text('${p['name']}'))],
+          onChanged: (v) => setState(() => _scopeId = v),
+        ),
+      ],
+      const SizedBox(height: 8),
+    ];
   }
 
   @override
@@ -505,14 +610,18 @@ class _LeaveCreateSheetState extends State<LeaveCreateSheet> {
           children: [
             Text('Lập yêu cầu nghỉ', style: Theme.of(context).textTheme.titleMedium),
             if (_message != null) Text(_message!, key: const ValueKey('leave-error')),
-            for (final s in _mine)
-              CheckboxListTile(
-                key: ValueKey('leave-shift-${s['id']}'),
-                value: _chosen.contains(s['id'] as int),
-                onChanged: (v) =>
-                    setState(() => v == true ? _chosen.add(s['id'] as int) : _chosen.remove(s['id'] as int)),
-                title: Text(formatDateTime(DateTime.parse(s['startsAt'] as String))),
-              ),
+            const SizedBox(height: 8),
+            SegmentedButton<String>(
+              key: const ValueKey('leave-kind'),
+              segments: [for (final e in leaveKindLabels.entries) ButtonSegment(value: e.key, label: Text(e.value))],
+              selected: {_kind},
+              onSelectionChanged: (v) {
+                setState(() => _kind = v.first);
+                if (_kind == 'BY_DAY') _loadPlaces();
+              },
+            ),
+            const SizedBox(height: 8),
+            ...(_kind == 'BY_DAY' ? _byDay(context) : _byShift()),
             TextField(
               key: const ValueKey('leave-reason'),
               controller: _reason,

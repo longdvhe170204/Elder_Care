@@ -51,6 +51,10 @@ abstract class SwapTestBase extends MySqlIntegrationTestBase {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     protected com.eldercare.backend.care.api.ShiftTaskApi shiftTasks;
 
+    /** FR-041: lệnh gỡ nhiệm vụ chuyến đi của 014 (bản cài thật do C kiểm ở 014): ghi lại lệnh gọi. */
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    protected com.eldercare.backend.care.api.TripDutyCommandApi tripDuties;
+
     protected TestUsers users;
     protected TestUsers.TestUser manager;
     protected TestUsers.TestUser head;

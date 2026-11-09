@@ -7,7 +7,10 @@ import 'package:mobile/staff/shift_swaps/shift_swaps_screen.dart';
 
 import '../../support/fake_backend.dart';
 
-Map<String, dynamic> swap({String status = 'AWAITING_RECIPIENT', List<String> commands = const ['accept', 'decline']}) => {
+Map<String, dynamic> swap({
+  String status = 'AWAITING_RECIPIENT',
+  List<String> commands = const ['accept', 'decline'],
+}) => {
   'id': 7,
   'status': status,
   'kind': 'TAKE_OVER',
@@ -25,7 +28,12 @@ final myShifts = [
 ];
 
 Future<void> open(WidgetTester tester, FakeBackend backend) async {
-  await tester.pumpWidget(MaterialApp(theme: AppTheme.light(), home: ShiftSwapsScreen(api: backend.client())));
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.light(),
+      home: ShiftSwapsScreen(api: backend.client()),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -137,6 +145,52 @@ void main() {
       'kind': 'BY_SHIFT',
       'shiftIds': [20, 21],
       'reason': 'Ốm',
+    });
+  });
+
+  testWidgets('FR_026a_createLeaveByDayPicksDatesAndFloorFromCatalog', (tester) async {
+    backend
+      ..on('GET', '/floors', 200, [
+        {'id': 5, 'name': 'Tầng 2'},
+      ])
+      ..on('GET', '/areas', 200, [
+        {'id': 3, 'name': 'Khu A'},
+      ]);
+    await tester.binding.setSurfaceSize(const Size(800, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await open(tester, backend);
+    await tester.tap(find.text('Nghỉ đột xuất').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('create-request')).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nghỉ theo ngày'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('leave-add-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('leave-reason')), 'Việc gia đình');
+    // Chưa chọn tầng thì không gửi, báo cần chọn phạm vi
+    await tester.tap(find.widgetWithText(FilledButton, 'Gửi yêu cầu'));
+    await tester.pumpAndSettle();
+    expect(backend.calls('POST', '/leave-requests'), isEmpty);
+    expect(find.byKey(const ValueKey('leave-error')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('leave-scope-FLOOR')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tầng 2').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Gửi yêu cầu'));
+    await tester.pumpAndSettle();
+    final now = DateTime.now();
+    final first = DateTime(now.year, now.month + 1, 1);
+    final day =
+        '${first.year.toString().padLeft(4, '0')}-${first.month.toString().padLeft(2, '0')}-${first.day.toString().padLeft(2, '0')}';
+    expect(jsonDecode(backend.calls('POST', '/leave-requests').single.body), {
+      'kind': 'BY_DAY',
+      'dates': [day],
+      'scopeType': 'FLOOR',
+      'scopeId': 5,
+      'reason': 'Việc gia đình',
     });
   });
 

@@ -14,6 +14,7 @@ const swapStatusLabels = {
 
 const swapKindLabels = {'MUTUAL': 'Đổi hai chiều', 'TAKE_OVER': 'Nhận thay'};
 const leaveKindLabels = {'BY_SHIFT': 'Nghỉ theo ca', 'BY_DAY': 'Nghỉ theo ngày'};
+const scopeTypeLabels = {'FLOOR': 'Tầng', 'AREA': 'Khu vực', 'FACILITY': 'Toàn viện'};
 
 /// Lệnh → (nhãn nút, cần lý do).
 const swapCommands = {
