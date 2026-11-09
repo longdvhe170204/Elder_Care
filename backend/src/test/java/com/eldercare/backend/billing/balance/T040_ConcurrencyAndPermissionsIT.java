@@ -9,7 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.eldercare.backend.admission.api.dto.EndCase;
 import com.eldercare.backend.admission.api.dto.ResidencyEndingView;
 import com.eldercare.backend.admission.api.dto.SettlementInfoView;
+import com.eldercare.backend.billing.api.dto.CostStatementType;
 import com.eldercare.backend.billing.api.dto.FinalPeriodConditionView;
+import com.eldercare.backend.billing.api.events.CostStatementFinalized;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.PaymentInstructions;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeRecords;
@@ -48,6 +50,9 @@ class T040_ConcurrencyAndPermissionsIT extends BalanceTestBase {
 
     @Autowired
     FakeResidencyEndingReads endings;
+
+    @Autowired
+    com.eldercare.backend.support.fake.admission.FakeRepresentatives representatives;
 
     @Autowired
     FakeFinalPeriodCosts finalPeriods;
@@ -115,6 +120,106 @@ class T040_ConcurrencyAndPermissionsIT extends BalanceTestBase {
                 a);
         assertThat(versions).isNotEmpty().doesNotHaveDuplicates().startsWith(1);
         assertThat(versions.getLast()).isEqualTo(versions.size());
+    }
+
+    @Test
+    void DBR_28_approvalRacingStatementPayment_ledgerStaysConsistent() throws Exception {
+        long a = sentForSignature(TestUsers.nextId(), null);
+        long recipient = TestUsers.nextId();
+        representatives.representative(a, recipient);
+        postAs(
+                        accountant,
+                        "/api/v1/residents/" + a + "/cash-payments",
+                        "{\"ledger\":\"BALANCE\",\"amount\":1500000,\"payerName\":\"Lê Văn Hải\",\"receivedAt\":\""
+                                + time.now() + "\"}")
+                .andExpect(status().isCreated());
+        long refund = ((Number) com.jayway.jsonpath.JsonPath.read(
+                        postAs(
+                                        accountant,
+                                        "/api/v1/balance-transactions",
+                                        "{\"type\":\"REFUND\",\"residentId\":" + a
+                                                + ",\"ledger\":\"BALANCE\",\"amount\":1500000,\"recipient\":"
+                                                + "{\"familyMemberId\":" + recipient
+                                                + "},\"method\":\"BANK_TRANSFER\",\"reason\":\"Gia đình xin rút\"}")
+                                .andExpect(status().isCreated())
+                                .andReturn()
+                                .getResponse()
+                                .getContentAsString(),
+                        "$.id"))
+                .longValue();
+        long request = jdbc.queryForObject(
+                "SELECT approval_request_id FROM balance_transaction WHERE id = ?", Long.class, refund);
+        as(manager);
+        String etag = mvc.perform(get("/api/v1/approval-requests/" + request))
+                .andReturn()
+                .getResponse()
+                .getHeader("ETag");
+
+        // thanh toán bảng 1.000.000 (sự kiện hệ thống của 010) chạy cùng lúc với lệnh duyệt hoàn 1.500.000
+        java.util.concurrent.CountDownLatch go = new java.util.concurrent.CountDownLatch(1);
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> payment = pool.submit(() -> {
+                go.await();
+                tx.executeWithoutResult(s -> publisher.publishEvent(new CostStatementFinalized(
+                        TestUsers.nextId(),
+                        CostStatementType.REGULAR,
+                        TestUsers.nextId(),
+                        a,
+                        1_000_000,
+                        time.now(),
+                        List.of())));
+                return null;
+            });
+            go.countDown();
+            int approved = mvc.perform(post("/api/v1/approval-requests/" + request + "/approve")
+                            .with(org.springframework.security.test.web.servlet.request
+                                    .SecurityMockMvcRequestPostProcessors.csrf())
+                            .header("If-Match", etag)
+                            .header(
+                                    "Idempotency-Key",
+                                    java.util.UUID.randomUUID().toString())
+                            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                            .content("{\"comment\":\"Duyệt\"}"))
+                    .andReturn()
+                    .getResponse()
+                    .getStatus();
+            payment.get();
+
+            // ba kết quả hợp lệ: duyệt trước (hoàn đủ, rồi trừ bảng, số dư -1.000.000); trừ bảng trước nên duyệt bị
+            // chặn
+            // 409 và giữ Chờ duyệt; hoặc duyệt qua kiểm tra rồi áp dụng không thành (Đã hủy); số dư cuối 500.000
+            String status =
+                    jdbc.queryForObject("SELECT status FROM balance_transaction WHERE id = ?", String.class, refund);
+            long balance =
+                    jdbc.queryForObject("SELECT balance FROM resident_balance WHERE resident_id = ?", Long.class, a);
+            long ledgerSum = jdbc.queryForObject(
+                    "SELECT COALESCE(SUM(amount), 0) FROM balance_transaction WHERE resident_id = ?"
+                            + " AND ledger = 'BALANCE' AND status = 'CONFIRMED'",
+                    Long.class,
+                    a);
+            assertThat(balance).as("số dư khớp tổng giao dịch Đã xác nhận").isEqualTo(ledgerSum);
+            if (status.equals("CONFIRMED")) {
+                assertThat(approved).isEqualTo(200);
+                assertThat(balance).isEqualTo(-1_000_000);
+            } else if (status.equals("CANCELLED")) {
+                // duyệt kịp qua kiểm tra, nhưng lúc áp dụng số dư đã bị trừ bảng: Áp dụng không thành, giao dịch Đã hủy
+                assertThat(approved).isEqualTo(200);
+                assertThat(balance).isEqualTo(500_000);
+            } else {
+                assertThat(status).isEqualTo("PENDING_APPROVAL");
+                assertThat(approved).isEqualTo(409);
+                assertThat(balance).isEqualTo(500_000);
+            }
+            assertThat(jdbc.queryForObject(
+                            "SELECT COUNT(*) FROM balance_transaction WHERE resident_id = ?"
+                                    + " AND type = 'STATEMENT_PAYMENT'",
+                            Integer.class,
+                            a))
+                    .isEqualTo(1);
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test
