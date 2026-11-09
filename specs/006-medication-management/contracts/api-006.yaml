@@ -599,7 +599,7 @@ components:
         timedSlots: { type: array, items: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
         everyNHours: { type: integer, minimum: 1 }
         firstSlot: { type: string, format: date-time }
-        daysOfWeek: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
+        daysOfWeek: { type: array, items: { type: integer, minimum: 1, maximum: 7 }, description: 'Mã ngày theo ISO-8601: 1 = thứ hai … 7 = chủ nhật (chủ dự án chốt 2026-11-08)' }
     Prescriber:
       type: object
       required: [type]
@@ -680,6 +680,10 @@ components:
         doseKey: { type: string }
         residentId: { type: integer, format: int64 }
         prescriptionId: { type: integer, format: int64 }
+        medicationName: { type: string, description: 'Thêm 2026-11-08 (chủ dự án duyệt): thẻ Phát thuốc hiện tên thuốc' }
+        dosage: { type: number, description: 'Thêm 2026-11-08: liều của đơn' }
+        dosageUnit: { type: string }
+        route: { type: string, description: 'Đường dùng' }
         scheduledTime: { type: string, format: date-time }
         windowFrom: { type: string, format: date-time }
         windowTo: { type: string, format: date-time }

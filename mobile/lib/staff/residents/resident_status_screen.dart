@@ -8,8 +8,25 @@ import '../../common/notifications/notification_api.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/header_app_bar.dart';
 import '../../common/widgets/status_pill.dart';
+import '../pickups/pickup_screen.dart' show pickupTypeLabels;
 import 'document_picker.dart';
 import 'resident_labels.dart';
+
+/// Loại vắng chọn được khi Cho tạm vắng (004 FR-048); Chuyển viện mở lượt Bệnh viện qua lệnh Chuyển viện.
+const _grantAbsenceTypes = {
+  'HOME_VISIT': 'Về nhà',
+  'FAMILY_OUTING': 'Đi chơi với gia đình',
+  'SAME_DAY_MEDICAL_VISIT': 'Khám trong ngày',
+  'OTHER': 'Lý do khác',
+};
+
+Widget _fieldError(String message, TextTheme text, ColorScheme scheme) => Padding(
+  padding: const EdgeInsets.only(top: 4),
+  child: Semantics(
+    liveRegion: true,
+    child: Text(message, style: text.bodySmall?.copyWith(color: scheme.error)),
+  ),
+);
 
 /// Chữ thường của tên lệnh, dùng trong nhãn nút xác nhận: "Xác nhận cho tạm vắng".
 String _lower(String label) => label.substring(0, 1).toLowerCase() + label.substring(1);
@@ -346,6 +363,27 @@ class _CommandSheetState extends State<_CommandSheet> {
   Object? _failure;
   bool _busy = false;
 
+  // Cho tạm vắng (004 T056; FR-048, FR-049): chi tiết lượt vắng; người đón, bản ghi đón lấy từ bản ghi Chưa dùng của 012
+  String? _absenceType;
+  final _expectedReturn = TextEditingController();
+  List<Map<String, dynamic>> _pickupRecords = const [];
+  Map<String, dynamic>? _pickupRecord;
+  List<Map<String, dynamic>> _staff = const [];
+  int? _handoverStaffId;
+  bool _takesMedication = false;
+
+  bool get _isGrant => widget.command == 'GRANT_TEMPORARY_ABSENCE';
+
+  /// Giờ Việt Nam dd/MM/yyyy HH:mm thành thời điểm UTC; null khi sai khuôn dạng hoặc ngày không có thật.
+  DateTime? get _expectedReturnAt {
+    final m = RegExp(r'^(\d{2})/(\d{2})/(\d{4}) (\d{2}):(\d{2})$').firstMatch(_expectedReturn.text.trim());
+    if (m == null) return null;
+    final p = [for (var i = 1; i <= 5; i++) int.parse(m.group(i)!)];
+    final local = DateTime.utc(p[2], p[1], p[0], p[3], p[4]);
+    if (local.day != p[0] || local.month != p[1] || local.hour != p[3]) return null;
+    return local.subtract(const Duration(hours: 7));
+  }
+
   /// Giấy tờ đính kèm: Ghi nhận trở về từ Điều trị tại bệnh viện, Chuyển viện (tối đa 10, `attachmentFileIds`), bằng chứng Ghi
   /// nhận qua đời (một tệp, `details.evidenceFileId`) (001 T082, FR-047b).
   bool get _takesDocuments =>
@@ -365,7 +403,7 @@ class _CommandSheetState extends State<_CommandSheet> {
     for (final document in _documents) {
       if (_uploaded.containsKey(document)) continue;
       final result = await widget.api.uploadFile('/files', 'file', document.bytes, document.name, document.contentType);
-      _uploaded[document] = result!['id'] as int;
+      _uploaded[document] = result!['fileId'] as int;
     }
     return [for (final document in _documents) _uploaded[document]!];
   }
@@ -381,13 +419,40 @@ class _CommandSheetState extends State<_CommandSheet> {
   void initState() {
     super.initState();
     _loadConditions();
+    if (_isGrant) _loadAbsenceSources();
   }
 
   @override
   void dispose() {
     _reason.dispose();
     _basisText.dispose();
+    _expectedReturn.dispose();
     super.dispose();
+  }
+
+  /// Bản ghi đón Chưa dùng của Tạm vắng, Đi chơi với gia đình (có người đón) và nhân viên đang làm việc. Mỗi nguồn lỗi riêng
+  /// thì danh sách trống, backend vẫn kiểm lại khi gửi lệnh.
+  Future<void> _loadAbsenceSources() async {
+    try {
+      final records = (await widget.api.getList('/residents/${widget.residentId}/pickup-records'))
+          .cast<Map<String, dynamic>>()
+          .where(
+            (r) =>
+                r['status'] == 'UNUSED' &&
+                r['familyMemberId'] != null &&
+                (r['type'] == 'TEMPORARY_ABSENCE' || r['type'] == 'FAMILY_OUTING'),
+          )
+          .toList();
+      if (mounted) setState(() => _pickupRecords = records);
+    } on Exception {
+      // danh sách trống: ô bản ghi đón báo chưa chọn được
+    }
+    try {
+      final staff = (await widget.api.getList('/staff?status=WORKING')).cast<Map<String, dynamic>>();
+      if (mounted) setState(() => _staff = staff);
+    } on Exception {
+      // danh sách trống: ô nhân viên báo chưa chọn được
+    }
   }
 
   Future<void> _loadConditions() async {
@@ -415,6 +480,12 @@ class _CommandSheetState extends State<_CommandSheet> {
         (kind == null || value.isEmpty || (kind.numeric && int.tryParse(value) == null))) {
       errors['basis'] = 'Chọn và nhập căn cứ chuyển viện';
     }
+    if (_isGrant) {
+      if (_absenceType == null) errors['absenceType'] = 'Chọn loại vắng';
+      if (_expectedReturnAt == null) errors['expectedReturnAt'] = 'Nhập ngày giờ dự kiến về dạng dd/MM/yyyy HH:mm';
+      if (_pickupRecord == null) errors['pickupRecord'] = 'Chọn bản ghi đón của người đón';
+      if (_handoverStaffId == null) errors['staff'] = 'Chọn nhân viên bàn giao';
+    }
     setState(() {
       _errors = errors;
       _failure = null;
@@ -428,6 +499,14 @@ class _CommandSheetState extends State<_CommandSheet> {
         {
           'reason': _reason.text.trim(),
           'details': {
+            if (_isGrant) ...{
+              'absenceType': _absenceType,
+              'expectedReturnAt': _expectedReturnAt!.toIso8601String(),
+              'pickedUpById': _pickupRecord!['familyMemberId'],
+              'pickupRecordId': _pickupRecord!['id'],
+              'handoverStaffId': _handoverStaffId,
+              'takesMedication': _takesMedication,
+            },
             if (widget.command == 'TRANSFER_OUT') 'basis': {kind!.value: kind.numeric ? int.parse(value) : value},
             if (widget.command == 'RECORD_DEATH' && fileIds.isNotEmpty) 'evidenceFileId': fileIds.first,
           },
@@ -466,7 +545,12 @@ class _CommandSheetState extends State<_CommandSheet> {
     final scheme = Theme.of(context).colorScheme;
     final label = commandLabels[widget.command]!;
     final conditions = _conditions;
-    final unmet = conditions ?? const <Map<String, dynamic>>[];
+    // Xem trước điều kiện (GET …/conditions) không mang chi tiết lượt vắng nên luôn báo thiếu bản ghi đón của người đón; đã chọn
+    // bản ghi thì bỏ dòng đó, lệnh thật vẫn bị backend kiểm lại (FR-048).
+    final unmet = [
+      for (final c in conditions ?? const <Map<String, dynamic>>[])
+        if (!(_isGrant && _pickupRecord != null && c['code'] == 'ABS_PICKUP_RECORD')) c,
+    ];
     final blocked = conditions == null || unmet.isNotEmpty;
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).viewInsets.bottom),
@@ -525,6 +609,68 @@ class _CommandSheetState extends State<_CommandSheet> {
               maxLength: 2000,
               decoration: InputDecoration(labelText: 'Lý do của lệnh (bắt buộc)', errorText: _errors['reason']),
             ),
+            if (_isGrant) ...[
+              const SizedBox(height: 4),
+              Text('Loại vắng (bắt buộc)', style: text.labelMedium),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final t in _grantAbsenceTypes.entries)
+                    ChoiceChip(
+                      label: Text(t.value),
+                      selected: _absenceType == t.key,
+                      onSelected: (_) => setState(() => _absenceType = t.key),
+                    ),
+                ],
+              ),
+              if (_errors['absenceType'] != null) _fieldError(_errors['absenceType']!, text, scheme),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _expectedReturn,
+                keyboardType: TextInputType.datetime,
+                decoration: InputDecoration(
+                  labelText: 'Dự kiến về (dd/MM/yyyy HH:mm)',
+                  errorText: _errors['expectedReturnAt'],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text('Bản ghi đón của người đón (bắt buộc)', style: text.labelMedium),
+              if (_pickupRecords.isEmpty)
+                Text(
+                  'Chưa có bản ghi đón Chưa dùng cho Tạm vắng, Đi chơi với gia đình. Ghi đón ở mục Đón người cao tuổi trước.',
+                  style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final r in _pickupRecords)
+                      ChoiceChip(
+                        label: Text(
+                          '${pickupTypeLabels[r['type']] ?? r['type']} · ${formatDateTime(DateTime.parse(r['at'] as String))}',
+                        ),
+                        selected: identical(_pickupRecord, r),
+                        onSelected: (_) => setState(() => _pickupRecord = r),
+                      ),
+                  ],
+                ),
+              if (_errors['pickupRecord'] != null) _fieldError(_errors['pickupRecord']!, text, scheme),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<int>(
+                initialValue: _handoverStaffId,
+                decoration: InputDecoration(labelText: 'Nhân viên bàn giao (bắt buộc)', errorText: _errors['staff']),
+                items: [
+                  for (final s in _staff) DropdownMenuItem(value: s['id'] as int, child: Text(s['fullName'] as String)),
+                ],
+                onChanged: _busy ? null : (v) => setState(() => _handoverStaffId = v),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Mang theo thuốc'),
+                value: _takesMedication,
+                onChanged: _busy ? null : (v) => setState(() => _takesMedication = v),
+              ),
+            ],
             if (widget.command == 'TRANSFER_OUT') ...[
               const SizedBox(height: 4),
               Text('Căn cứ chuyển viện (bắt buộc)', style: text.labelMedium),

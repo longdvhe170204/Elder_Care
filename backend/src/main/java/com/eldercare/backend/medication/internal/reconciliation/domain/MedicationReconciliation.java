@@ -127,6 +127,11 @@ public class MedicationReconciliation {
         this.cancelReason = reason;
     }
 
+    /** Hạn CFG-M07-05 tính từ lệnh Hoàn tất tiếp nhận hoặc Ghi nhận trở về (FR-034, FR-034a). */
+    public void assignDeadline(Instant deadlineAt) {
+        this.deadlineAt = deadlineAt;
+    }
+
     public void markOverdue(Instant overdueAt) {
         this.overdueAt = overdueAt;
     }

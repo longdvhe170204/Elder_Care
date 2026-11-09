@@ -24,6 +24,7 @@ public record PortalBelongingResponse(
         SelfCustodyConsentResponse selfCustodyConsent) {
 
     /** Một dòng lịch sử: loại bản ghi, trạng thái đích, thời điểm, số lượng, tình trạng, ảnh. */
+    @Schema(name = "PortalBelongingHistoryEntry")
     public record Entry(
             long id,
             String kind,

@@ -2,6 +2,7 @@ package com.eldercare.backend.incident.internal.incident.service;
 
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.EffectiveImpactsRemain;
+import com.eldercare.backend.incident.api.events.IncidentRecorded;
 import com.eldercare.backend.incident.internal.governance.domain.ResidentItemClosed;
 import com.eldercare.backend.incident.internal.incident.domain.IncidentView;
 import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
@@ -68,6 +69,8 @@ public class IncidentCorrectionEffects {
         if (residentId == null || newTypeCode.equals(oldTypeCode)) return;
         var now = time.now();
         if (FALL.equals(newTypeCode)) {
+            events.publishEvent(new IncidentRecorded(
+                    incident.id(), residentId, FALL, incident.level().name(), true));
             records.startFallMonitoring(incident.id(), residentId, incident.floorAreaId(), now, now, actor);
         } else if (SUSPECTED_INFECTION.equals(newTypeCode)) {
             records.startInfectionSuspicion(incident.id(), residentId, incident.floorAreaId(), now, actor);

@@ -16,7 +16,7 @@ class M09ArchTest {
 
     static final ArchRule INTERNAL_COMMAND_PORTS = noClasses()
             .that()
-            .resideOutsideOfPackages("com.eldercare.backend.staffing.swap..")
+            .resideOutsideOfPackages("com.eldercare.backend.staffing.internal.swap..")
             .should()
             .callMethodWhere(new DescribedPredicate<>("gọi port lệnh nội bộ của ca hoặc phân công") {
                 @Override
@@ -47,6 +47,20 @@ class M09ArchTest {
             })
             .allowEmptyShould(true);
 
+    static final ArchRule SWAP_DOES_NOT_CREATE_SCHEDULES = noClasses()
+            .that()
+            .resideInAPackage("com.eldercare.backend.staffing.internal.swap..")
+            .should()
+            .callMethodWhere(new DescribedPredicate<>("lập lịch, ca, bàn giao hoặc mục bàn giao") {
+                @Override
+                public boolean test(JavaMethodCall call) {
+                    return call.getTarget().getOwner().getPackageName().startsWith("com.eldercare.backend.staffing.")
+                            && Set.of("createSchedule", "createShift", "createHandover", "addHandoverItem")
+                                    .contains(call.getTarget().getName());
+                }
+            })
+            .allowEmptyShould(true);
+
     private static final JavaClasses MAIN_CLASSES = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages("com.eldercare.backend");
@@ -54,6 +68,11 @@ class M09ArchTest {
     @Test
     void FR_017_onlySwapCallsInternalCommandPorts() {
         INTERNAL_COMMAND_PORTS.check(MAIN_CLASSES);
+    }
+
+    @Test
+    void Q_397_swapDoesNotCreateSchedulesOrShifts() {
+        SWAP_DOES_NOT_CREATE_SCHEDULES.check(MAIN_CLASSES);
     }
 
     @Test

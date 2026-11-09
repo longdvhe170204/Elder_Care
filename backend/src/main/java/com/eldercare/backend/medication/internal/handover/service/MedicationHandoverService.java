@@ -316,6 +316,16 @@ public class MedicationHandoverService {
                     "Resident already has a no-medication order for this trip (FR-048b)");
         }
 
+        // Chỉ người được đánh giá Đạt cho chuyến (014); liều trong khoảng đi dự kiến thành Tạm dừng (FR-048b, Q-171)
+        TripMedicationPort port = trips.getIfAvailable();
+        TimeInterval tripInterval = (port == null
+                        ? Optional.<TimeInterval>empty()
+                        : port.approvedTripInterval(residentId, body.getTripId()))
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "CONDITION_NOT_MET",
+                        "Resident is not assessed eligible for this trip (FR-048b)"));
+
         NoMedicationOrder order = new NoMedicationOrder(
                 residentId, body.getTripId(), body.getReason(), currentUserId, businessTime.now());
         NoMedicationOrder savedOrder = noMedOrderRepo.save(order);
@@ -330,9 +340,8 @@ public class MedicationHandoverService {
             MedicationAbsenceInterval interval = new MedicationAbsenceInterval(
                     residentId,
                     AbsenceIntervalType.TRIP_NO_MED,
-                    businessTime.now(),
-                    // Giờ về chưa biết thì để trống; khoảng vắng đóng khi Ghi nhận trở về
-                    null,
+                    tripInterval.from(),
+                    tripInterval.to(),
                     null,
                     body.getTripId(),
                     businessTime.now());

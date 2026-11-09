@@ -6,6 +6,7 @@ import com.eldercare.backend.incident.internal.infection.service.ContactListServ
 import com.eldercare.backend.incident.internal.infection.service.ContactTracingService;
 import com.eldercare.backend.incident.web.response.ContactListResponse;
 import com.eldercare.backend.incident.web.response.ContactLookupResponse;
+import com.eldercare.backend.incident.web.response.FamilyContactToNotifyResponse;
 import com.eldercare.backend.incident.web.response.M05ProblemBody;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -70,6 +71,13 @@ class ContactListController {
     @GetMapping("/contact-list")
     ContactListResponse view(@PathVariable long id) {
         return ContactListResponse.from(service.view(service.target(id), id));
+    }
+
+    @GetMapping("/family-contacts-to-notify")
+    List<FamilyContactToNotifyResponse> familyContactsToNotify(@PathVariable long id) {
+        return service.familyContactsToNotify(service.target(id), id).stream()
+                .map(FamilyContactToNotifyResponse::from)
+                .toList();
     }
 
     @PostMapping("/contact-list")

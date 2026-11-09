@@ -54,7 +54,7 @@ Mỗi feature chỉ ghi vào thư mục của mình. Tên dưới đây là tên
 | 014 | `activities` | C |
 | 015 | `shift-swaps` | E |
 | 016 | `dashboard`, `reports` | A |
-| 017 | `balance` | E |
+| 017 | `balance` | A, B |
 | 018 | `residence-registration` | B |
 | 019 | `inventory` | C |
 

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
+import { CollectionAccountEditor } from './CollectionAccountEditor'
 import { TableValueEditor } from './TableValueEditor'
 import { TABLE_TEMPLATES, UNIT_LABELS, formatValue, isDuration } from './parameterValue'
 
@@ -88,7 +89,11 @@ export function ParameterForm({ parameter, etag, onSaved, onStale }) {
         {isTable ? (
           <Field data-invalid={!!errors.value || undefined}>
             <FieldLabel>Giá trị mới</FieldLabel>
-            <TableValueEditor value={table} onChange={setTable} disabled={restore} />
+            {parameter.code === 'CFG-M11-10' ? (
+              <CollectionAccountEditor value={table} onChange={setTable} disabled={restore} />
+            ) : (
+              <TableValueEditor value={table} onChange={setTable} disabled={restore} />
+            )}
             {errors.value && <FieldError>{errors.value}</FieldError>}
           </Field>
         ) : (
