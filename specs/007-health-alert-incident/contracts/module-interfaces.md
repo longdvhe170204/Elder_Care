@@ -142,7 +142,7 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 | --- | --- | --- |
 | `CanhBaoDaTao`, `CanhBaoDaNangMuc` (mức, nhóm người nhận, `khongCoBacSiTruc`) | 009 | FR-035, FR-047a, FR-047b |
 | `CanhBaoDaLeoThang(canhBaoId, capMoi, nhom[] khongThay)`; `NhacLeoThangToiDa(canhBaoId, soThuTu)` | 009 (Trung bình) | FR-033, FR-034 |
-| *(bổ sung 2026-11-04, D, T035)* `IncidentEscalated(incidentId, escalationLevel, eventKey, occurredAt, notificationRequests)`; `IncidentMaximumEscalationReminder(incidentId, sequence, …)`: leo thang sự cố cùng chuỗi cảnh báo, sự cố giữ Mới | 009 (Trung bình; nhận qua `HasNotificationRequests`, không cần listener riêng) | FR-044 |
+| *(sửa 2026-11-08, chủ dự án chốt 2026-11-07, "Đổi api")* Sự cố dùng chung hai sự kiện của cảnh báo, thêm loại nguồn: `AlertEscalated(sourceType, sourceId, escalationLevel, eventKey, occurredAt, notificationRequests)`, `MaximumEscalationReminder(sourceType, sourceId, sequence, eventKey, occurredAt, notificationRequests)`; `sourceType` là `M05.ALERT` hoặc `M05.INCIDENT`; bỏ `IncidentEscalated`, `IncidentMaximumEscalationReminder` (bổ sung 2026-11-04); sự cố giữ Mới | 009 (Trung bình; nhận qua `HasNotificationRequests`, không cần listener riêng) | FR-044 |
 | `CanhBaoLapLai(canhBaoId, soLan)` | 009 | FR-038a |
 | `NguonCanhBaoDaDinhChinh(canhBaoId)`; `NguoiPhuTrachDaDoi(loai, id, nguoiMoi)` | 009 (Nhẹ) | FR-019, FR-037 |
 | `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` so với hợp đồng 001; plan, mục Đồng bộ 1) | 001, 012, 016 | FR-043 (b) |
@@ -266,7 +266,7 @@ record VisitTraceView(long visitId, Instant enteredAt, Optional<Instant> exitedA
 record VisitTracePersonView(Optional<Long> familyMemberId, String fullName,
     Optional<String> relationship, Optional<String> phoneNumber, boolean hasNotificationChannel) {}
 
-interface AttendanceTracePort { // DiemDanhTruyVetPort, 014 cài
+interface AttendanceTracePort { // DiemDanhTruyVetPort, 014 cài; *(sửa 2026-11-08)* khai ở care.api.spi, DTO care.api.dto (C-02, team-plan)
   List<ActivityAttendanceTraceView> coAttendance(long residentId, Instant from, Instant to);
 }
 record ActivityAttendanceTraceView(long sessionId, Instant from, Instant to, List<Long> residentIds) {}
@@ -348,9 +348,9 @@ Mọi sự kiện gửi 009 cài `HasNotificationRequests` và mang `List<Notifi
 
 Tên Java để 009 nối listener: `CallReminderStopRequested(String sourceRecordType, long sourceRecordId)` = `YeuCauDungNhacGoiDien`; `WishReconfirmationCompleted(long alertId)` = `DaCoKetQuaXacNhanLai`. Hai sự kiện này điều khiển lượt nhắc, không cài `HasNotificationRequests`. 003 dùng `ContactAdded(long residentId, Instant at)` và `IsolationLifted(long zoneId, List<Long> floorAreaIds, List<Long> areaIds, String eventKey, Instant occurredAt, List<NotificationRequest> notificationRequests)`. Phần phát thật vẫn ở task hạ mức, xác nhận lại, tiếp xúc và khoanh vùng.
 
-Yêu cầu module sau phát: `AlertRequested(residentId, type, level, sourceType, sourceId, Optional<String> objectKey, occurredAt, eventKey)`, `AlertSourceCloseRequested(sourceType, sourceId, reason, eventKey)`, `AlertProgressionRequested(sourceType, sourceId, progressionTypeCode, content, eventKey)`; không trực tiếp thực thi lệnh hoặc gửi tin khi khởi tạo record sự kiện.
+Yêu cầu module sau phát: `AlertRequested(residentId, type, level, sourceType, sourceId, Optional<String> objectKey, occurredAt, eventKey)`, `AlertSourceCloseRequested(sourceType, sourceId, reason, eventKey)`, `AlertProgressionRequested(sourceType, sourceId, progressionTypeCode, content, eventKey, actorId, occurredAt)` (*sửa 2026-11-08, FR-086, chủ dự án duyệt 2026-11-07*: thêm người thực hiện, thời điểm; 007 ghi diễn biến `M05.ALERT_PROGRESSION` vào cảnh báo đang mở của nguồn); không trực tiếp thực thi lệnh hoặc gửi tin khi khởi tạo record sự kiện.
 
-**DTO đọc T004:** `IncidentView(id, Long residentId, type, level, status, createdAt, Long floorAreaId)`; `AlertView(id, Long residentId, type, level, status, firstAt, Long floorAreaId)`; `MonitoringFlagView(suspectedInfection, contact, postFall, critical)`. Đây là nguồn giữa module, không thay schema phản hồi REST. `RecordIncidentCommand` dịch đủ trường của `GhiNhanSuCo` trong hợp đồng HTTP: `residentId`, `incidentTypeId`, `source`, `occurredAt`, `detectedAt`, `floorAreaId`, `location`, `ongoingActivity`, `description`, `level`, `lowerLevelReason`, `initialResponse`, `createDespiteExisting`.
+**DTO đọc T004:** `IncidentView(id, Long residentId, type, level, status, createdAt, Long floorAreaId, Long assigneeStaffId)` (*"Đổi api" 2026-11-08, D đề xuất, chờ chủ dự án duyệt trong PR:* thêm `assigneeStaffId`, mã nhân viên của người xử lý hiện tại, rỗng khi chưa giao, để 013 FR-011a báo đúng người xử lý; giữ constructor bảy tham số cũ; trạng thái Đã hủy là `VOIDED` như api-007); `AlertView(id, Long residentId, type, level, status, firstAt, Long floorAreaId)`; `MonitoringFlagView(suspectedInfection, contact, postFall, critical)`. Đây là nguồn giữa module, không thay schema phản hồi REST. `RecordIncidentCommand` dịch đủ trường của `GhiNhanSuCo` trong hợp đồng HTTP: `residentId`, `incidentTypeId`, `source`, `occurredAt`, `detectedAt`, `floorAreaId`, `location`, `ongoingActivity`, `description`, `level`, `lowerLevelReason`, `initialResponse`, `createDespiteExisting`.
 
 **Bổ sung rà T004 (2026-11-02):** `ContactAdded(residentId, at, eventKey, notificationRequests)` cũng cài `HasNotificationRequests` vì mục 1.12 có consumer 009. Giữ constructor hai tham số cho lời gọi nguồn đọc của 003; constructor này mang khóa theo người/thời điểm và danh sách yêu cầu rỗng. Publisher FR-062 phải dùng constructor đầy đủ với yêu cầu thông báo theo S-19, không coi constructor tương thích là đã gửi tin. `FakeIncidents` nhận `AlertApi` qua constructor; `FakeM05Config` nối đúng `FakeAlerts` dùng chung để `hasOpenItem` xét cả cảnh báo mở theo mục 1.7/S-17.
 

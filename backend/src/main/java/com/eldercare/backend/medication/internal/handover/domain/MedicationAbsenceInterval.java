@@ -55,6 +55,16 @@ public class MedicationAbsenceInterval {
         this.expectedToTime = newExpectedToTime;
     }
 
+    /** Khoảng đi của chuyến đổi do đính chính thời điểm rời, về (FR-048b): đã về thì đổi giờ về thực tế. */
+    public void reschedule(Instant newFromTime, Instant newToTime) {
+        this.fromTime = newFromTime;
+        if (isOpen()) {
+            this.expectedToTime = newToTime;
+        } else {
+            this.actualToTime = newToTime;
+        }
+    }
+
     public boolean isOpen() {
         return this.actualToTime == null;
     }

@@ -22,6 +22,7 @@ import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -38,6 +39,7 @@ import com.eldercare.backend.incident.internal.infection.domain.ContactListDetai
 import com.eldercare.backend.incident.internal.infection.domain.ContactMonitoringParameter;
 import com.eldercare.backend.incident.internal.infection.domain.ContactPersonContent;
 import com.eldercare.backend.incident.internal.infection.domain.ContactType;
+import com.eldercare.backend.incident.internal.infection.domain.FamilyContactToNotify;
 import com.eldercare.backend.incident.internal.infection.domain.NewContact;
 import com.eldercare.backend.incident.internal.infection.persistence.ContactListStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContactPersonStore;
@@ -139,11 +141,41 @@ public class ContactListService {
     @RequiresPermission(function = Function.CONTACT_LIST, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public ContactListDetails view(Target target, long incidentId) {
+        // Hành chính chỉ thấy người thân cần liên hệ (BR-M05-24, Phụ lục 27 chú thích 51)
+        if (access.officeOnly()) throw new PermissionDeniedException("Hành chính chỉ xem người thân cần liên hệ");
         var list = lists.findByIncident(incidentId).orElseThrow(NotFoundException::new);
         var current = people.byList(list.id()).stream()
                 .filter(row -> !REMOVED.equals(row.status()))
                 .toList();
         return new ContactListDetails(list, incidentId, current);
+    }
+
+    /**
+     * Người thân cần liên hệ trực tiếp (FR-062, BR-M05-24): người thân và người đi cùng không có kênh nhận thông báo, kèm nội
+     * dung cần báo. Chỉ họ tên, quan hệ, số điện thoại, nội dung; Hành chính không thấy người nghi nhiễm hay người khác.
+     */
+    @RequiresPermission(function = Function.CONTACT_LIST, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<FamilyContactToNotify> familyContactsToNotify(Target target, long incidentId) {
+        var list = lists.findByIncident(incidentId).orElseThrow(NotFoundException::new);
+        if ("DRAFT".equals(list.status())) return List.of();
+        var incident = incidentOf(list);
+        String place = locations
+                .current(incident.residentId())
+                .map(ContactListService::place)
+                .orElse("viện");
+        String phone = facilityContact.current().phoneNumber();
+        return people.byList(list.id()).stream()
+                .filter(row -> ACTIVE.equals(row.status()))
+                .filter(row -> row.content().type() == ContactType.FAMILY_MEMBER
+                        || row.content().type() == ContactType.COMPANION)
+                .filter(row -> !row.content().hasNotificationChannel())
+                .map(row -> new FamilyContactToNotify(
+                        row.content().fullName(),
+                        row.content().relationship(),
+                        row.content().phoneNumber(),
+                        ContactNotices.message(place, row.content(), phone)))
+                .toList();
     }
 
     /** Thêm vào Nháp, hoặc bổ sung khi Đã xác nhận (bắt buộc lý do, áp FR-062 cho người mới). */

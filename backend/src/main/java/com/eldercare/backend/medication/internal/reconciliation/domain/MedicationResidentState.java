@@ -10,6 +10,14 @@ public record MedicationResidentState(
     public static final SharedKind<MedicationResidentState> KIND =
             SharedKind.of("M07.MEDICATION_STATE", MedicationResidentState.class).notDeletable();
 
+    public static MedicationResidentState dueAt(Instant dueAt, String reason) {
+        return new MedicationResidentState(dueAt, reason, null);
+    }
+
+    public MedicationResidentState warnedAt(Instant warnedAt) {
+        return new MedicationResidentState(reconciliationDueAt, reconciliationReason, warnedAt);
+    }
+
     public static MedicationResidentState empty() {
         return new MedicationResidentState(null, null, null);
     }
