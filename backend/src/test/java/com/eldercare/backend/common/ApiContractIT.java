@@ -150,14 +150,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 017 (2026-11-08, A): hợp đồng đã dịch (glossary mục 23); xóa dòng khi cài controller của từng story (A
-            // Phase 1–6,
-            // B Phase 7–10)
+            // 017 (2026-11-08, A): hợp đồng đã dịch (glossary mục 23); đủ operation sau Phase 9 của B (2026-11-09)
             new Contract(
                     Path.of("..", "specs", "017-resident-balance-ledger", "contracts", "api-017.yaml"),
-                    Set.of(
-                            "GET /api/v1/payment-notices/pending-issue",
-                            "POST /api/v1/costs/statements/{statementId}/payment-notice"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story

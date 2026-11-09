@@ -23,6 +23,8 @@ import com.eldercare.backend.admission.api.dto.SettlementInfoView;
 import com.eldercare.backend.billing.api.FinalPeriodCostApi;
 import com.eldercare.backend.billing.api.dto.BalanceDocumentType;
 import com.eldercare.backend.billing.api.events.BalanceDocumentIssued;
+import com.eldercare.backend.billing.balance.internal.document.domain.CostTypeLabels;
+import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.TypeTotal;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceTypes;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.LedgerState;
 import com.eldercare.backend.billing.balance.internal.ledger.persistence.BalanceTransactionStore;
@@ -38,6 +40,7 @@ import com.eldercare.backend.billing.balance.internal.settlement.domain.Settleme
 import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementStatementRecord;
 import com.eldercare.backend.billing.balance.internal.settlement.domain.SignedCopyRecord;
 import com.eldercare.backend.billing.balance.internal.status.domain.BalanceNotice;
+import com.eldercare.backend.billing.internal.provision.domain.CostForBalancePort;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.document.FacilityInfo;
 import com.eldercare.backend.common.error.BusinessException;
@@ -119,6 +122,7 @@ public class SettlementService {
     private final FileApi files;
     private final FileService fileContents;
     private final ObjectProvider<FinalPeriodCostApi> finalPeriods;
+    private final ObjectProvider<CostForBalancePort> costs;
     private final ObjectProvider<ResidencyEndingReadApi> endings;
     private final ContractReadApi contracts;
     private final ResidentApi residents;
@@ -138,6 +142,7 @@ public class SettlementService {
             FileApi files,
             FileService fileContents,
             ObjectProvider<FinalPeriodCostApi> finalPeriods,
+            ObjectProvider<CostForBalancePort> costs,
             ObjectProvider<ResidencyEndingReadApi> endings,
             ContractReadApi contracts,
             ResidentApi residents,
@@ -155,6 +160,7 @@ public class SettlementService {
         this.files = files;
         this.fileContents = fileContents;
         this.finalPeriods = finalPeriods;
+        this.costs = costs;
         this.endings = endings;
         this.contracts = contracts;
         this.residents = residents;
@@ -390,8 +396,7 @@ public class SettlementService {
                 info == null ? null : info.startDate(),
                 info == null ? null : info.expectedEndDate(),
                 info == null ? "Sau trạng thái cuối" : endCase(info.endCase()),
-                // tổng theo loại chờ CostForBalancePort.finalizedStatement của 010 (T037)
-                List.of(),
+                finalPeriodTotals(ev.ledger().finalPeriodStatementId()),
                 l.finalPeriodTotal(),
                 l.balanceBeforeSettlement(),
                 l.depositReceived(),
@@ -400,6 +405,17 @@ public class SettlementService {
                 l.sinceFinalPeriod(),
                 ev.balance(),
                 ev.result().settlement().status() == SettlementConditions.Status.NOT_MET);
+    }
+
+    /** FR-034: tổng bảng kỳ cuối theo loại, lấy từ bảng Đã chốt của 010; chưa có bảng thì để trống. */
+    private List<TypeTotal> finalPeriodTotals(Long statementId) {
+        CostForBalancePort port = costs.getIfAvailable();
+        if (statementId == null || port == null) return List.of();
+        return port.finalizedStatement(statementId)
+                .map(s -> s.statement().totalsByType().stream()
+                        .map(t -> new TypeTotal(CostTypeLabels.of(t.type()), t.total()))
+                        .toList())
+                .orElse(List.of());
     }
 
     private FacilityInfo facility() {
