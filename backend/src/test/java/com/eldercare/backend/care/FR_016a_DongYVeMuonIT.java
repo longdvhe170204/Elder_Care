@@ -10,13 +10,21 @@ import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.admission.api.dto.AttendanceScheduleView;
 import com.eldercare.backend.care.api.DayCareAttendanceApi;
+import com.eldercare.backend.care.api.events.ActivityRegistrationsCancelled;
+import com.eldercare.backend.care.api.events.LateReturnConsentNotice;
 import com.eldercare.backend.care.api.spi.DayCareCalendarPort.CalendarView;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
 import com.eldercare.backend.care.internal.activity.domain.ActivityTypeAttributes;
 import com.eldercare.backend.care.internal.session.service.LateReturnConsentService;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.notification.InformationSubject;
+import com.eldercare.backend.common.notification.NotificationLevel;
+import com.eldercare.backend.common.notification.NotificationRequest;
+import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import com.eldercare.backend.support.*;
@@ -38,13 +46,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @AutoConfigureMockMvc
 @WithMockUser
 @Transactional
+@RecordApplicationEvents
 @Import({
     SwitchableUserConfig.class,
     FakeM15Config.class,
@@ -78,7 +90,13 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
     FakeFamilyRelationships relationships;
 
     @Autowired
-    FakeRepresentatives representatives;
+    TransactionTemplate tx;
+
+    @Autowired
+    RelationshipHistoryStore relationshipHistory;
+
+    @Autowired
+    ApplicationEvents events;
 
     @Autowired
     FakeContracts contracts;
@@ -120,7 +138,14 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
         date = time.today().plusDays(1);
         resident = TestUsers.nextId();
         floor = TestUsers.nextId();
-        representative = TestUsers.nextId();
+        // Người đại diện thật qua RepresentativeLookup của 012 (bản giả FakeRepresentatives không còn bean).
+        var family012 = new RelationshipFixtures(
+                jdbc,
+                tx,
+                relationshipHistory,
+                time.today().minusDays(30).atStartOfDay(BusinessTime.ZONE).toInstant());
+        representative = family012.familyMember("[Người đại diện kiểm thử]", "0901" + (resident % 1_000_000));
+        family012.relate(representative, resident, 1, true, true);
         var users = new TestUsers(jdbc, time);
         manager = users.staff(Role.FLOOR_MANAGER);
         family = users.family(representative);
@@ -142,7 +167,6 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
         calendar.day(resident, date, new CalendarView(false, null, null));
         locations.floor(floor, null).daycareRestLocation(new LocationRef("FLOOR", floor));
         relationships.representative(relationships.relate(representative, resident));
-        representatives.representative(resident, representative);
         long type = catalogs.create(
                         ActivityKinds.ACTIVITY_TYPES,
                         new NewCatalogItem<>(
@@ -213,6 +237,33 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
                                 + "\",\"reason\":\"Kẹt xe\"}")
                 .andExpect(status().isOk());
         assertThat(attendance.returnTimeOn(resident, date)).contains(LocalTime.of(16, 30));
+        // FR-071 dòng FR-016a: mỗi lần giờ về dời theo đồng ý báo thêm người đại diện; khóa theo giờ về mới.
+        var moved = events.stream(LateReturnConsentNotice.class)
+                .filter(e -> e.sessionId() == trip && LateReturnConsentNotice.RETURN_TIME_CHANGED.equals(e.change()))
+                .toList();
+        assertThat(moved)
+                .extracting(LateReturnConsentNotice::expectedReturnTime)
+                .containsExactly(LocalTime.of(16, 0), LocalTime.of(16, 30));
+        var shifted = lateReturnNotice(trip, LateReturnConsentNotice.RETURN_TIME_CHANGED);
+        assertThat(shifted.recipientGroups())
+                .contains(
+                        new RecipientGroup.Staff(manager.staffId(), "REGISTERED_BY"),
+                        new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
+                        new RecipientGroup.FamilyMember(representative, "REPRESENTATIVE"));
+        assertThat(moved.get(0).eventKey()).isNotEqualTo(moved.get(1).eventKey());
+    }
+
+    private NotificationRequest lateReturnNotice(long session, String change) {
+        var notices = events.stream(LateReturnConsentNotice.class)
+                .filter(e -> e.sessionId() == session && change.equals(e.change()))
+                .toList();
+        assertThat(notices).isNotEmpty();
+        var request = notices.getLast().notificationRequests().getFirst();
+        assertThat(request.level()).contains(NotificationLevel.LOW);
+        assertThat(request.residentId()).contains(resident);
+        assertThat(request.informationSubject()).contains(InformationSubject.ABOUT_FAMILY_MATTER);
+        assertThat(request.q354Case()).isEmpty();
+        return request;
     }
 
     private void FR_016a_withdrawingOneConsentKeepsTheReturnTimeOfTheLatestRemainingRegistration() throws Exception {
@@ -235,6 +286,16 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
         assertThat(registrationStatus(late)).isEqualTo("CANCELLED");
         assertThat(registrationStatus(early)).isEqualTo("REGISTERED");
         assertThat(attendance.returnTimeOn(resident, date)).contains(LocalTime.of(16, 0));
+        // FR-071 dòng FR-016a: rút đồng ý báo người đã đăng ký và Hành chính, về việc của chính người thân, Nhẹ; không
+        // đi theo dòng hủy tự động chung.
+        var withdrawn = lateReturnNotice(late, LateReturnConsentNotice.WITHDRAWN);
+        assertThat(withdrawn.recipientGroups())
+                .contains(
+                        new RecipientGroup.Staff(manager.staffId(), "REGISTERED_BY"),
+                        new RecipientGroup.FacilityRole(Role.OFFICE_STAFF))
+                .noneMatch(group -> group instanceof RecipientGroup.FamilyMember);
+        assertThat(events.stream(ActivityRegistrationsCancelled.class).filter(e -> e.sessionId() == late))
+                .isEmpty();
         postTo(FAMILY_CONSENTS + "/" + earlyConsent + "/withdraw", "").andExpect(status().isOk());
         assertThat(attendance.returnTimeOn(resident, date)).contains(SCHEDULED_RETURN);
     }
@@ -276,7 +337,9 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
         var startsAt = date.atTime(15, 0).atZone(BusinessTime.ZONE).toInstant();
         clock.setTo(startsAt);
         try {
-            assertThat(consentWork.run(time.now())).isEqualTo(1);
+            // Job quét toàn bảng: schema test có thể còn đồng ý sót của test khác đến hạn (CLAUDE.md, mục Lệnh), nên
+            // kiểm bản đồng ý của ca này và lần chạy lại không đổi gì.
+            assertThat(consentWork.run(time.now())).isPositive();
             assertThat(consentWork.run(time.now())).isZero();
             assertThat(jdbc.queryForObject("SELECT status FROM simple_record WHERE id=?", String.class, id))
                     .isEqualTo("USED");

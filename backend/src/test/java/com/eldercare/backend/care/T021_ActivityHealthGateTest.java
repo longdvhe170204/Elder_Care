@@ -21,5 +21,19 @@ class T021_ActivityHealthGateTest {
                 .isFalse();
         assertThat(source.suspectedInfectionDuring(1L, from.minusSeconds(10), from.plusSeconds(60)))
                 .isFalse();
+        var day = java.time.LocalDate.of(2026, 11, 9);
+        com.eldercare.backend.support.TableRows.each(
+                java.util.List.of(
+                        "NORMAL", "NEW", "AWAY", "INFECTION", "UNKNOWN", "DAY_CARE_ABSENT", "DAY_CARE_PRESENT"),
+                row -> assertThat(com.eldercare.backend.care.internal.wellbeing.domain.CountingDay.counts(
+                                day,
+                                row.equals("NEW") ? day.plusDays(1) : day,
+                                row.equals("AWAY"),
+                                row.equals("INFECTION"),
+                                row.equals("UNKNOWN"),
+                                row.startsWith("DAY_CARE"),
+                                row.equals("DAY_CARE_PRESENT")))
+                        .as(row)
+                        .isEqualTo(row.equals("NORMAL") || row.equals("DAY_CARE_PRESENT")));
     }
 }

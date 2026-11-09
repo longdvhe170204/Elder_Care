@@ -9,6 +9,7 @@ import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
 import com.eldercare.backend.administration.shared.api.dto.*;
 import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.care.api.DayCareAttendanceApi;
+import com.eldercare.backend.care.api.events.LateReturnConsentNotice;
 import com.eldercare.backend.care.internal.attendance.service.AttendanceSources;
 import com.eldercare.backend.care.internal.scheduling.service.CareMinuteWork;
 import com.eldercare.backend.care.internal.session.domain.*;
@@ -101,7 +102,11 @@ public class LateReturnConsentService implements CareMinuteWork {
         }
     }
 
-    private record ReturnTime(long registrationId, LocalTime time) {}
+    private record ReturnTime(Session session, Registration registration, long representativeId, LocalTime time) {
+        long registrationId() {
+            return registration.id();
+        }
+    }
 
     public Target target(long sessionId, long residentId) {
         var session = sessions.find(sessionId).orElseThrow(NotFoundException::new);
@@ -192,7 +197,14 @@ public class LateReturnConsentService implements CareMinuteWork {
             sessions.cancelRegistration(registration.id(), WITHDRAWAL, "Người đại diện rút đồng ý về muộn");
             tripLifecycle.registrationChanged(session.id(), row.residentId(), true);
             updateReturnTime(row.residentId(), row.effectiveFrom(), registration.id());
-            notices.cancelled(session, List.of(registration), WITHDRAWAL, time.now());
+            notices.lateReturn(
+                    session,
+                    registration,
+                    LateReturnConsentNotice.WITHDRAWN,
+                    row.effectiveFrom(),
+                    null,
+                    null,
+                    time.now());
         });
         audit(id, row.residentId(), "LATE_RETURN_CONSENT_WITHDRAWN", ACTIVE, WITHDRAWN, reason);
     }
@@ -269,14 +281,26 @@ public class LateReturnConsentService implements CareMinuteWork {
                 .orElseGet(() -> sources.day(residentId, date).departure());
         var latest = records.listByResident(CONSENTS, residentId, Set.of(ACTIVE, USED)).stream()
                 .filter(row -> date.equals(row.effectiveFrom()))
-                .flatMap(row -> sessions.findActiveRegistration(row.content().sessionId(), residentId).stream())
-                .flatMap(r -> sessions.find(r.sessionId()).stream()
-                        .map(s -> new ReturnTime(r.id(), LocalTime.ofInstant(times(s).endsAt(), BusinessTime.ZONE))))
+                .flatMap(row -> sessions.findActiveRegistration(row.content().sessionId(), residentId).stream()
+                        .flatMap(r -> sessions.find(r.sessionId()).stream()
+                                .map(s -> new ReturnTime(
+                                        s,
+                                        r,
+                                        row.content().representativeId(),
+                                        LocalTime.ofInstant(times(s).endsAt(), BusinessTime.ZONE)))))
                 .filter(candidate -> scheduled != null && candidate.time().isAfter(scheduled))
                 .max(Comparator.comparing(ReturnTime::time).thenComparingLong(ReturnTime::registrationId));
         if (latest.isPresent()) {
             var value = latest.get();
             attendance.changeReturnTime(residentId, date, value.time(), value.registrationId());
+            notices.lateReturn(
+                    value.session(),
+                    value.registration(),
+                    LateReturnConsentNotice.RETURN_TIME_CHANGED,
+                    date,
+                    value.time(),
+                    value.representativeId(),
+                    time.now());
         } else {
             attendance.restoreReturnTime(residentId, date, changedRegistrationId);
         }

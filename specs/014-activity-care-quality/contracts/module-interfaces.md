@@ -118,3 +118,22 @@ Thiếu bean nguồn thuốc, ca hoặc lịch xe tại nhánh cần dùng trả
 `care.api.spi.ActivityHealthGatePort.suspectedInfectionDuring(long residentId, Instant from, Instant to)` trả boolean: có dấu nghi nhiễm bất kỳ lúc nào trong khoảng nửa mở `[from, to)`. Ngày nghiệp vụ lấy hai mốc 00:00 tại Asia/Ho_Chi_Minh. C khai và giữ bản giả chung `FakeActivityHealthGate` (hỗ trợ nhiều khoảng, khoảng chưa kết thúc); D/007 cài bean production. Bản giả giữ công tắc nguồn 007, không thay nguồn production.
 
 08/11/2026: chủ dự án không duyệt SPI lịch sử cảnh báo mới. Hai GET sở thích/hồ sơ tinh thần dùng schema đã duyệt; `alerts = null` báo chưa có nguồn lịch sử. T003/T021/T022 còn chuỗi cô lập: JSON M04 của `resident_module_state` đang bị khóa 005 ghi đè bằng `{version}`. Chủ dự án chọn giữ phạm vi 014, không sửa `CareLockStore` 005 trong lượt này.
+
+## 5. Hướng giao diện duyệt 07/11, triển khai 09/11/2026
+
+Thay hai dòng SPI `HoatDongKenhNctPort`/`ChuyenDiSosPort` ở mục 1.1 bằng API chỉ đọc ở care để tránh vòng C-02; không cài hai SPI cũ và không sửa mã 012/007:
+
+- `care.api.ResidentActivityReadApi.upcoming(long residentId, LocalDate from, LocalDate to)` trả `List<ResidentActivitySessionView>`; hai đầu ngày tính cả. DTO ở `care.api.dto`: `(sessionId, name, startAt, endAt, facilityWide, registered)`. Chỉ buổi Đã lên lịch của tầng người cao tuổi hoặc toàn viện; không có đánh giá sức khỏe hay lý do bị chặn.
+- `care.api.ResidentTripReadApi.ongoing(long residentId)` trả `Optional<ResidentOngoingTripView>`; DTO `(tripId, Optional<Long> leaderId, List<Long> companionIds)`. Người đã rời viện chưa về; nhiệm vụ hiện hành sau chuyển trưởng đoàn. 007 gọi để xử lý SOS.
+- `care.api.FeedbackPreferenceCommandApi.recordFromFeedback(long residentId, long feedbackId, Long interestGroupId, String description, String level, OpinionSource source, boolean confirmReplacement)` trả mã mục sở thích, **MANDATORY**. Kiểm quyền và luật nguồn/nhóm/xác nhận thay Q-363 như lệnh sở thích hiện có; `feedbackId` trong JSON `M04.PREFERENCE` (tên logic `M04.SO_THICH`, không thêm cột). Phát `resident.api.events.OpinionRecordedFromFeedback` cùng transaction, giá trị `sourceModule=M04`, `itemType=INTEREST`.
+- `care.api.spi.TripIncidentPort.recordMissing(long residentId, long tripId, Long leaderId, String lastSeenPlace, Instant lastSeenAt, String description)` trả `long` mã sự cố; **MANDATORY**, adapter 007 ghi sự cố đi lạc hoặc không trở về, Khẩn cấp, nguồn hoạt động ngoài viện. `recordFoundReturned(long incidentId, long residentId, long tripId, Instant at)` **MANDATORY**, ghi diễn biến đã tìm thấy, đã trở về, không tự đóng. Thiếu bean trả 503 `CARE_SOURCE_UNAVAILABLE`; lỗi nguồn rollback lệnh chuyến. Thay việc gọi trực tiếp `SuCoLenhApi` ở mục 2.
+
+Bản giả chung cho ba API: `FakeM04ApiConfig` + `FakeM04ApiFixture`; bản giả port: `FakeTripIncidents` trong `FakeM04Config`. Caller 012/007 dùng bản giả khi chưa tích hợp, không viết bản giả thứ hai.
+
+Ngoại tuyến: loại `M04.TRIP_MISSING` có `TripMissingOfflineHandler.requiresOnline() = true`; bộ đồng bộ chung trả `REJECTED/REQUIRES_ONLINE` trước khi giải nội dung, áp dụng cho hai lệnh ghi sự cố thiếu người. Lệnh HTTP nhận `deviceAt` cũng bị chặn `409 REQUIRES_ONLINE`. Không mở ghi ngoại tuyến rời viện/về (còn chờ B/001).
+
+Khóa quyền ghi sự cố: `INCIDENT_EMERGENCY/CREATE` theo 19.3, Phụ lục 27 (mọi người đi cùng, kể cả Nhân viên bếp); kiểm nhiệm vụ chuyến ở domain vẫn bắt buộc. Các lệnh chuyến khác giữ khóa/quy tắc hiện có.
+
+## 6. Dòng trạng thái riêng — quyết định 09/11/2026
+
+Chuỗi phải ở dòng riêng `M04.HOAT_DONG_NCT`, không dùng dòng khóa M04 của 005. Kiểm mã nền hiện tại: `ResidentModuleStateApi` dùng `kind.module()` (chỉ tiền tố M04), khóa bảng `(resident_id,module)` với `module VARCHAR(8)`. Chỉ đổi SharedKind vẫn ghi chung dòng; không tự sửa nền 000 hoặc ghi JDBC vượt hợp đồng. Chủ dự án chọn chờ A mở rộng nền 000 trong phiên 09/11; lưu chuỗi/job/cảnh báo và thống kê chuỗi tiếp tục chờ. Các hàm thuần ngày tính/chuỗi/tỷ lệ có thể kiểm độc lập. Lịch sử cảnh báo hồ sơ tinh thần chưa có quyết định, giữ `alerts = null`.

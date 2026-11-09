@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
     TestUsers.TestUser caregiver;
     Instant shiftEndsAt;
+    Instant reworkAt;
 
     @org.springframework.beans.factory.annotation.Autowired
     com.eldercare.backend.support.fake.administration.FakeDuties duties;
@@ -138,6 +139,7 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
 
     @Test
     void FR_064_failNeedsANoteAndAReworkTaskCreatedInTheSameCommandAndThePerformerIsNotified() throws Exception {
+        qualifiedReworkPerformer();
         long task = completed(caregiver.accountId(), caregiver.staffId());
         select(List.of(task)).andExpect(status().isCreated());
         long item = item(task);
@@ -150,7 +152,7 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
         result(
                         item,
                         "{\"result\":\"FAIL\",\"note\":\"Chưa vệ sinh răng miệng\",\"reworkTask\":{\"plannedAt\":\""
-                                + time.now().plusSeconds(600) + "\",\"sharedOnFloor\":true}}")
+                                + reworkAt + "\",\"sharedOnFloor\":true}}")
                 .andExpect(status().isOk());
         assertThat(itemStatus(item)).isEqualTo("FAIL");
         assertThat(realQualityChecks.failed(item, task))
@@ -183,6 +185,7 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
     }
 
     private void Q_404_amendsTheEffectiveResultAndKeepsTheReworkWhenAmendedAgain() throws Exception {
+        qualifiedReworkPerformer();
         long task = completed(caregiver.accountId(), caregiver.staffId());
         select(List.of(task)).andExpect(status().isCreated());
         long item = item(task);
@@ -194,8 +197,8 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
         correct(
                         item,
                         "AMEND_CONTENT",
-                        "{\"result\":\"FAIL\",\"note\":\"Cần làm lại\",\"reworkTask\":{\"plannedAt\":\""
-                                + time.now().plusSeconds(600) + "\",\"sharedOnFloor\":true}}")
+                        "{\"result\":\"FAIL\",\"note\":\"Cần làm lại\",\"reworkTask\":{\"plannedAt\":\"" + reworkAt
+                                + "\",\"sharedOnFloor\":true}}")
                 .andExpect(status().isCreated());
         assertThat(realQualityChecks.failed(item, task)).isPresent();
         assertThat(reworkCount(item)).isEqualTo(1);
@@ -232,6 +235,7 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void Q_404_rejectsAnInvalidReworkAndRollsBackTheCorrection() throws Exception {
+        qualifiedReworkPerformer();
         long task = completed(caregiver.accountId(), caregiver.staffId());
         select(List.of(task)).andExpect(status().isCreated());
         long item = item(task);
@@ -247,6 +251,29 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
                 .andExpect(jsonPath("$.currentContent.result").value("PASS"))
                 .andExpect(jsonPath("$.corrections").isEmpty());
         assertThat(reworkCount(item)).isZero();
+
+        long pendingTask = completed(caregiver.accountId(), caregiver.staffId());
+        select(List.of(pendingTask)).andExpect(status().isCreated());
+        long pendingItem = item(pendingTask);
+        result(
+                        pendingItem,
+                        "{\"result\":\"FAIL\",\"note\":\"Cần làm lại\",\"reworkTask\":{\"plannedAt\":\""
+                                + reworkAt + "\",\"performerId\":" + TestUsers.nextId()
+                                + ",\"sharedOnFloor\":false}}")
+                .andExpect(status().isConflict());
+        assertThat(itemStatus(pendingItem)).isEqualTo("PENDING");
+        assertThat(reworkCount(pendingItem)).isZero();
+    }
+
+    private void qualifiedReworkPerformer() {
+        reworkAt = time.now().plusSeconds(600);
+        shifts.assignments(
+                resident,
+                shift,
+                List.of(new com.eldercare.backend.care.api.spi.ShiftStaffPort.CareAssignmentView(
+                        caregiver.staffId(), Role.CAREGIVER, false)));
+        shifts.onShift(caregiver.staffId(), reworkAt, true);
+        shifts.qualified(caregiver.staffId(), Set.of(), time.today(), true);
     }
 
     private void FR_066_onlyAnEligibleInspectorCanAmendAndTheShiftLeadCannotCheckTheirOwnWork() throws Exception {

@@ -272,6 +272,18 @@ public class ActivityTripStore {
                 ActivityTripStore::row);
     }
 
+    public Optional<Long> missingIncident(long registrationId) {
+        return Optional.ofNullable(jdbc.queryForObject(
+                "SELECT missing_incident_id FROM activity_registration WHERE id=?", Long.class, registrationId));
+    }
+
+    public void recordMissingIncident(long registrationId, long incidentId) {
+        jdbc.update(
+                "UPDATE activity_registration SET missing_incident_id=?,participant_status='MISSING_ON_RETURN',version=version+1 WHERE id=? AND missing_incident_id IS NULL",
+                incidentId,
+                registrationId);
+    }
+
     public Optional<Instant> firstDeparture(long tripId) {
         return Optional.ofNullable(jdbc.queryForObject(
                         "SELECT MIN(e.occurred_at) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE' AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.tripId'))=? AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",

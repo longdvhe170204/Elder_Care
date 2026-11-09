@@ -17,7 +17,20 @@ public record Preference(
         Instant recordedAt,
         Instant endedAt,
         Long endedBy,
-        String endReason) {
+        String endReason,
+        Long feedbackId) {
+    public Preference(
+            long interestGroupId,
+            String description,
+            String level,
+            OpinionSource source,
+            Instant recordedAt,
+            Instant endedAt,
+            Long endedBy,
+            String endReason) {
+        this(interestGroupId, description, level, source, recordedAt, endedAt, endedBy, endReason, null);
+    }
+
     public static final SharedKind<Preference> KIND = SharedKind.of("M04.PREFERENCE", Preference.class);
     public static final String CURRENT = "CURRENT";
     public static final String REPLACED = "REPLACED";
@@ -32,6 +45,6 @@ public record Preference(
     }
 
     public Preference ended(Instant at, long by, String reason) {
-        return new Preference(interestGroupId, description, level, source, recordedAt, at, by, reason);
+        return new Preference(interestGroupId, description, level, source, recordedAt, at, by, reason, feedbackId);
     }
 }

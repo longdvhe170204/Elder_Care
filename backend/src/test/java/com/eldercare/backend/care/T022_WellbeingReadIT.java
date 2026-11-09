@@ -16,6 +16,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class T022_WellbeingReadIT extends CareResultTestBase {
     @Autowired
+    org.springframework.context.ApplicationContext context;
+
+    @Autowired
+    com.eldercare.backend.administration.shared.api.CatalogApi catalogs;
+
+    private void FR_051_H4_recordsFeedbackIdAndEventWithTheExistingSourceAndReplacementRules() {
+        var api = context.getBean(com.eldercare.backend.care.api.FeedbackPreferenceCommandApi.class);
+        long group = catalogs.create(
+                        com.eldercare.backend.care.internal.activity.domain.ActivityKinds.INTEREST_GROUPS,
+                        new NewCatalogItem<>(null, "Sở thích " + TestUsers.nextId(), null, 0, null))
+                .id();
+        long feedback = TestUsers.nextId();
+        var source = new OpinionSource(OpinionSourceType.RESIDENT, null);
+        long id = api.recordFromFeedback(resident, feedback, group, "Thích đọc sách", "LIKE", source, false);
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                        "SELECT JSON_EXTRACT(content,'$.feedbackId') FROM simple_record WHERE id=?", Long.class, id))
+                .isEqualTo(feedback);
+        org.assertj.core.api.Assertions.assertThat(
+                        events.stream(com.eldercare.backend.resident.api.events.OpinionRecordedFromFeedback.class))
+                .singleElement()
+                .satisfies(e -> {
+                    org.assertj.core.api.Assertions.assertThat(e.itemId()).isEqualTo(id);
+                    org.assertj.core.api.Assertions.assertThat(e.feedbackId()).isEqualTo(feedback);
+                    org.assertj.core.api.Assertions.assertThat(e.source()).isEqualTo(source);
+                });
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> api.recordFromFeedback(resident, feedback, group, "Thay", "DISLIKE", source, false))
+                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
+        long replacement = api.recordFromFeedback(resident, feedback, group, "Thay", "DISLIKE", source, true);
+        org.assertj.core.api.Assertions.assertThat(
+                        records.require(Preference.KIND, id).status())
+                .isEqualTo(Preference.REPLACED);
+        org.assertj.core.api.Assertions.assertThat(
+                        records.require(Preference.KIND, replacement).status())
+                .isEqualTo(Preference.CURRENT);
+    }
+
+    @Autowired
     SimpleRecordApi records;
 
     @Autowired
@@ -29,6 +67,8 @@ class T022_WellbeingReadIT extends CareResultTestBase {
                 FR_051_readsCurrentAndHistoricalPreferencesWithTheirSourcesAndRecorders();
             else FR_053_readsWeeklyParticipationAndSessionCommunicationAndLeavesUnknownAlertsUnavailable();
         });
+        fixture();
+        FR_051_H4_recordsFeedbackIdAndEventWithTheExistingSourceAndReplacementRules();
     }
 
     private void FR_051_readsCurrentAndHistoricalPreferencesWithTheirSourcesAndRecorders() throws Exception {
