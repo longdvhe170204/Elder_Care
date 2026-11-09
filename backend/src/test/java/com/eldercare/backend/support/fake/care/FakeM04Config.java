@@ -15,6 +15,12 @@ import org.springframework.context.annotation.*;
 public class FakeM04Config {
     @Bean
     @Primary
+    public FakeTripIncidents fakeTripIncidents() {
+        return new FakeTripIncidents();
+    }
+
+    @Bean
+    @Primary
     public FakeTripMedicationPreparation fakeTripMedicationPreparation() {
         return new FakeTripMedicationPreparation();
     }

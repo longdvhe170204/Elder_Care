@@ -10,6 +10,24 @@ import org.springframework.context.annotation.*;
 public class FakeM04ApiConfig {
     @Bean
     @Primary
+    ResidentActivityReadApi fakeResidentActivityReadApi(FakeM04ApiFixture fixture) {
+        return fixture.api(ResidentActivityReadApi.class);
+    }
+
+    @Bean
+    @Primary
+    ResidentTripReadApi fakeResidentTripReadApi(FakeM04ApiFixture fixture) {
+        return fixture.api(ResidentTripReadApi.class);
+    }
+
+    @Bean
+    @Primary
+    FeedbackPreferenceCommandApi fakeFeedbackPreferenceCommandApi(FakeM04ApiFixture fixture) {
+        return fixture.api(FeedbackPreferenceCommandApi.class);
+    }
+
+    @Bean
+    @Primary
     TripMedicationReadApi fakeTripMedicationReadApi(FakeM04ApiFixture fixture) {
         return fixture.api(TripMedicationReadApi.class);
     }

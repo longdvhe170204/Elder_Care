@@ -3698,6 +3698,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | nguồn 007 cho đăng ký (`KhoanhVungApi`, `SuCoApi.dau`, sự kiện `KhoanhVungDaTao`, `DauNghiNhiemDaDoi`) | SPI `care.api.spi.ActivityHealthGatePort` (`residentIsolated`, `locationIsolated`, `suspectedInfection`, `suspectedInfectionDuring` (khoảng [from,to), FR-054), `hasOpenMediumOrHigher`); API lệnh `care.api.ActivityRegistrationAutoCancelApi` (`cancelForIsolation`, `cancelForSuspectedInfection`) |
 | `ThamGiaChuyenTrangThai` của 014 | `care.internal.session.service.ActivityStatusParticipant` (`@Order(31)`) |
 | thông báo buổi bị hủy, dời; đăng ký bị hủy tự động | `care.api.events.ActivityRegistrationsCancelled` (`sessionId`, `registrationIds`, `cause`) |
+| thông báo rút đồng ý về muộn; giờ về bán trú dời theo đồng ý (FR-071 dòng FR-016a) | `care.api.events.LateReturnConsentNotice` (`sessionId`, `residentId`, `change` `WITHDRAWN`, `RETURN_TIME_CHANGED`, `date`, `expectedReturnTime`), `RegistrationNotices.lateReturn` (2026-11-10) |
 | thân đăng ký; thân lý do | `ActivityRegistrationWrite` (`residentId`, `acknowledgeWarnings`); `ActivityReasonWrite` |
 | `DiemDanhBuoiService`; kết quả `CO_MAT`, `VANG`; lý do vắng `TU_CHOI`, `SUC_KHOE`, `DANG_VANG_MAT`, `KHONG_DEN`, `KHAC`; mức tham gia `TICH_CUC`, `BINH_THUONG`, `THU_DONG`, `BO_GIUA_CHUNG`; mức giao tiếp `CHU_DONG`, `KHI_DUOC_HOI`, `IT_GIAO_TIEP`; `ghi_nhan_muon` | `SessionAttendanceService` (`Item`); `PRESENT`, `ABSENT`; `REFUSED`, `HEALTH`, `AWAY`, `NO_SHOW`, `OTHER`; `ACTIVE`, `NORMAL`, `PASSIVE`, `LEFT_EARLY`; `PROACTIVE`, `WHEN_ASKED`, `MINIMAL`; `lateRecorded` |
 | sự kiện tính phí `DIEM_DANH_HOAT_DONG`, đơn vị `LUOT` | `CostSourceBilled` `sourceType` `ACTIVITY_ATTENDANCE`, `unit` `OCCURRENCE` (chờ E xác nhận); cột `activity_registration.billed_source_id` (`V014_03__activity_registration_billing.sql`) |
@@ -3796,6 +3797,17 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | --- | --- |
 | Nhắc buổi trong ngày cho người cao tuổi (FR-071, Q-366) | `ResidentSessionReminders` (bước `CARE_DAILY` `M04HD_RESIDENT_SESSION_REMINDER`, và khi đăng ký trong ngày); sự kiện `care.api.events.ActivityResidentReminder` (LOW, người nhận `RecipientGroup.Resident`) |
 | Khóa `(dang_ky_id, NHAC_NCT)` | `reminder_marker` kind `M04.RESIDENT_SESSION_REMINDER`, entity `M04.ACTIVITY_REGISTRATION`, marker `NHAC_NCT` |
+
+### 20.14. Giao diện và hàm thuần bổ sung (duyệt 07/11, 09/11/2026)
+
+| Tên logic / mục đích | Tên mã |
+| --- | --- |
+| Buổi sắp tới kênh người cao tuổi, thay SPI 012 (FR-068a) | `care.api.ResidentActivityReadApi.upcoming`, `care.api.dto.ResidentActivitySessionView` |
+| Chuyến đang diễn ra cho SOS, thay SPI 007 (FR-068a) | `care.api.ResidentTripReadApi.ongoing`, `care.api.dto.ResidentOngoingTripView` |
+| Lệnh ghi sở thích từ phản hồi (Q-363, T033) | `care.api.FeedbackPreferenceCommandApi.recordFromFeedback`; `Preference.feedbackId` trong JSON `M04.PREFERENCE`; sự kiện `resident.api.events.OpinionRecordedFromFeedback` |
+| Port ghi sự cố thiếu người; đã tìm thấy, đã trở về | `care.api.spi.TripIncidentPort.recordMissing`, `recordFoundReturned`; bản giả `FakeTripIncidents` |
+| Bắt buộc trực tuyến khi báo thiếu người (FR-046a) | `TripMissingOfflineHandler`, loại `M04.TRIP_MISSING`; `TripMissingOfflineContent` chỉ là tham chiếu chuyến, bộ đồng bộ từ chối trước khi giải nội dung |
+| Ngày tính, cập nhật chuỗi, tỷ lệ tham gia (FR-054–056, FR-070) | `CountingDay.counts`, `IsolationStreak.advance`, `ParticipationRate.calculate` trong `care.internal.wellbeing.domain` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
