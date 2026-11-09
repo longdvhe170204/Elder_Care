@@ -1,5 +1,18 @@
 # Giao diện giữa module: Feature 005
 
+### Bổ sung chủ dự án duyệt 06/11/2026 — T024/T019
+
+- `ShiftStaffPort.ongoingShifts(Instant at): List<ShiftView>` trả mọi ca đã công bố chứa `at` theo `[startsAt, endsAt)`, không giới hạn bởi tầng có task/giường. E/008 cài nguồn thật; `FakeShiftStaff` hiện có cài cùng hợp đồng, không tạo fake thứ hai. Thay quyết định hoãn ngày01/11 ở riêng điểm này; không đổi `CareShiftPort` hoặc tự sửa staffing.
+- `AlertRequested.residentId` chuyển `long` → `Long`, vắng khi task gắn vị trí; thêm `Optional<CareAlertSource> sourceDetails`. `CareAlertSource(locationType, locationId, floorAreaId, taskTypeId, taskTypeName, plannedAt, windowFrom, windowTo, importance)` mô tả đích và công việc nguồn; `source`, `basisType`, `basisId`, `context` giữ đủ tham chiếu task/căn cứ. Giữ constructor bảy tham số cũ với residentId kiểu long; payload cũ thiếu sourceDetails đọc thành rỗng. D/007 review và nối consumer, không gán id0 hoặc người cao tuổi giả.
+- Chủ dự án chọn theo BR-M04-06: công việc Quan trọng quá hạn chỉ thông báo Trưởng tầng. Đã cho phép đồng bộ đúng FR-044(b); không đổi quy tắc Thường/Bắt buộc.
+
+### Payload và bàn giao đã cài trong lượt tiếp tục 06–07/11/2026
+
+- Theo quyết định03/11: `BatchedOverdueTaskReminder(floorAreaId,taskCount,from,to,catchUpAt,context)` thay danh sách `taskIds`; from/to là min/max thời điểm dự kiến của các task mới nhắc trong nhóm. Thông báo có `displayParams.path=/care-tasks/overdue?floorAreaId=…`. Giữ constructor cũ và `JsonCreator` đọc payload outbox cũ; không serialize lại danh sách id vào payload mới.
+- `ProlongedPoorEating(residentId,firstMealAt,lastMealAt,mealCount,at,context)` theo quyết định03/11: khoảng từ bữa đầu tới bữa cuối của chuỗi hiện hành (thứ tự plannedAt), gồm ghi nhận EATING phát sinh; không giả mealId. 011 đọc chi tiết qua API kết quả hiện hành theo khoảng, cần D nối consumer. Giữ constructor cũ và đọc outbox mealIds cũ; khoảng không có trên payload cũ dùng at của chính sự kiện cũ khi replay.
+- Chủ dự án duyệt06/11: `TaskHandoverView` giữ id/roomId/description/plannedAt/status/level, `residentId` thành `Long`, thêm `locationType`, `locationId`, `floorAreaId` nullable để payload cũ vẫn đọc được. Constructor bảy tham số cũ giữ nguyên. Producer care trả task vị trí không dùng người cao tuổi giả. E/008 phải xử lý residentId vắng trước nghiệm thu nguồn thật.
+- Chủ dự án duyệt06/11: `SleepResultVoided(resultId,residentId,date,context)` phát cùng transaction của VOID kết quả ngủ, milestone `CORRECTION:<id>`; date theo ngày dự kiến của task (như SleepResultRecorded). Giữ bản gốc và trạng thái task, vẫn phát CorrectionMade cho quy tắc F. D/007 nối consumer để bỏ giá trị bị hủy khi tính quy tắc ngủ; không dùng valueGroup rỗng/null của SleepResultRecorded làm tín hiệu hủy.
+
 ### Ghi chú triển khai Phase 9 (02/11/2026)
 
 - Chủ dự án duyệt bản dịch HTTP `POST /care-results/{id}/correct`, `type/correctedContent/reason`, `AMEND_CONTENT/VOID`, giữ Idempotency-Key và201khôngbody. Không thêm signature API/SPI/event Java. `CareResultCorrectionProvider` cài SPI hiện có cho `M04.CARE_RESULT`; bản gốc vẫn ở care_task, không thay trạng thái hoặc giá trị gốc.
@@ -9,7 +22,7 @@
 
 ### Ghi chú triển khai Phase 6 (01/11/2026)
 
-- Sáu operation HTTP đã dịch tại phase6-contract-proposal.md mục1–3; mục5 CareTask.resultType chỉ đọc từ snapshot được chủ dự án duyệt bổ sung. CareTaskResponse/Checklist/CareTaskDetail cùng dùng trường này; không thêm chữ ký Java API/SPI.
+- Sáu operation HTTP đã dịch tại plan.md#quyet-dinh-hop-dong-phase-6 mục1–3; mục5 CareTask.resultType chỉ đọc từ snapshot được chủ dự án duyệt bổ sung. CareTaskResponse/Checklist/CareTaskDetail cùng dùng trường này; không thêm chữ ký Java API/SPI.
 - CareVitalSignTasks cài VitalSignTaskApi hiện có, callback MANDATORY. Pending giữ mở; callback cùng người/giờ gốc đóng bằng vitalSignRecordId, không chép giá trị đo đầu thành giá trị đã xác nhận. Callback khác người/giờ và phát sinh đo chỉ số chờ D/007 theo lựa chọn chủ dự án; không tự thêm metadata/hợp đồng.
 - PublicCareResults cài PublicCareResultApi.results: đọc theo lô, overlay CorrectionApi.current, bỏ VOID, chỉ chia sẻ numericValue/codeValue/jsonValue. 012 chịu trách nhiệm quyền/đồng ý/nhật ký xem. summary trả CARE_SOURCE_UNAVAILABLE khi chưa có công thức đã thống nhất E/012.
 - M04.KET_QUA_CONG_VIEC/M04.GHI_NHAN_PHAT_SINH chưa có handler vì payload mục4 chưa duyệt, chờ A. BillableCareResultRecorded.quantity chờ E/010; lệnh billable tạm chặn trước lưu, không phát số lượng tự suy đoán. Không coi các provider/consumer này đã tích hợp nguồn thật.
@@ -298,7 +311,7 @@ HTTP ba danh mục TaskType/ResultValue/NonPerformanceReasonType thêm version c
 
 ## Bổ sung đã duyệt Phase 4 — 2026-11-01
 
-Chủ dự án trả lời “1” duyệt `phase4-contract-proposal.md` mục 1–3. Bảy operation HTTP T025 và các schema đã dịch sang tiếng Anh trong api-005.yaml, giữ method/status/required/header; lỗi theo dòng từ 1.
+Chủ dự án trả lời “1” duyệt `plan.md#quyet-dinh-hop-dong-phase-4` mục 1–3. Bảy operation HTTP T025 và các schema đã dịch sang tiếng Anh trong api-005.yaml, giữ method/status/required/header; lỗi theo dòng từ 1.
 
 Bổ sung không đổi chữ ký cũ:
 
@@ -321,7 +334,7 @@ Ngoài phần đã duyệt, ongoingShifts (mục 5) và sửa ApiClient mobile c
 
 ## Cập nhật đã duyệt Phase 5 — 2026-11-01
 
-Chủ dự án chọn “1” cho toàn bộ phase5-contract-proposal.md mục1–3. Đã thêm `DayCareCalendarPort.onDate(residentId,date): CalendarView(holiday,timelyAbsenceId,lateAbsenceId)` và `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY; giữ chữ ký cũ. FakeDayCareCalendar trong support/fake/care là fixture duy nhất, chưa đặt ngày thì báo lỗi; FakeM04Config đăng ký opt-in, không production fake. HTTP bốn operation/schema/request riêng đã dịch và sinh client bằng npm run gen:api (34operation005 tổng cộng).
+Chủ dự án chọn “1” cho toàn bộ plan.md#quyet-dinh-hop-dong-phase-5 mục1–3. Đã thêm `DayCareCalendarPort.onDate(residentId,date): CalendarView(holiday,timelyAbsenceId,lateAbsenceId)` và `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY; giữ chữ ký cũ. FakeDayCareCalendar trong support/fake/care là fixture duy nhất, chưa đặt ngày thì báo lỗi; FakeM04Config đăng ký opt-in, không production fake. HTTP bốn operation/schema/request riêng đã dịch và sinh client bằng npm run gen:api (34operation005 tổng cộng).
 
 Provider thực hiện DayCareAttendanceApi là AttendanceQueries @Fallback; dữ liệu nhóm2 qua SimpleRecordApi, nhóm3 qua RecordEventApi; callback giờ về/checkout/calendar giữ transaction của caller. `inRange` gồm hai ngày biên theo khoảng LocalDate; `returnTimeOn` đọc giờ về hiện hành sau014 thay đổi/khôi phục theo đúng registrationId. Callback checkout012 kiểm bản ghi đón và loại đối chiếu với nguồn012, không nhận loại từ HTTPclient.
 

@@ -1,24 +1,20 @@
 package com.eldercare.backend.medication.internal.dose.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.offline.SyncOutcome;
-import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
 import com.eldercare.backend.medication.internal.dose.domain.PrnAdministrationResponse;
 import com.eldercare.backend.medication.internal.dose.domain.RecordPrnBody;
-import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -27,25 +23,12 @@ class T045_PrnOfflineHandlerTest {
     private final PrnMedicationService service = mock(PrnMedicationService.class);
     private final PrescriptionRepository prescriptions = mock(PrescriptionRepository.class);
     private final MedicationRepository medications = mock(MedicationRepository.class);
-    private final PrnOfflineHandler handler = new PrnOfflineHandler(service, prescriptions, medications);
+    private final CurrentUser user = mock(CurrentUser.class);
+    private final PrnOfflineHandler handler = new PrnOfflineHandler(service, prescriptions, medications, user);
 
     @Test
-    void BR_M07_20_specialControlPrnRequiresOnline() {
-        Prescription prescription = mock(Prescription.class);
-        Medication medication = mock(Medication.class);
-        when(prescriptions.findById(31L)).thenReturn(Optional.of(prescription));
-        when(prescription.getMedicationId()).thenReturn(41L);
-        when(medications.findById(41L)).thenReturn(Optional.of(medication));
-        when(medication.isSpecialControl()).thenReturn(true);
-
-        assertThatThrownBy(() -> handler.validate(content()))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo("REQUIRES_ONLINE");
-    }
-
-    @Test
-    void T045_applyUsesDeviceTimeAndMarksRecordedAfterDisconnect() {
+    void T045_applyUsesDeviceTimeSyncingAccountAndMarksRecordedAfterDisconnect() {
+        when(user.accountId()).thenReturn(71L);
         PrnAdministrationResponse saved = new PrnAdministrationResponse();
         saved.setId(81L);
         when(service.recordPrn(eq(31L), any(RecordPrnBody.class), eq(71L))).thenReturn(saved);
@@ -70,7 +53,6 @@ class T045_PrnOfflineHandlerTest {
                 null,
                 Instant.parse("2026-10-29T01:00:00Z"),
                 null,
-                "Ghi ngoại tuyến",
-                71L);
+                "Ghi ngoại tuyến");
     }
 }

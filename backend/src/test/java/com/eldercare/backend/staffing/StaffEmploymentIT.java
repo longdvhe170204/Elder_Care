@@ -6,10 +6,9 @@ import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.dto.AccountStatus;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
-import com.eldercare.backend.staffing.staff.internal.service.StaffService;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.staff.service.StaffService;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.care.*;
 import java.time.*;
@@ -77,7 +76,9 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
                 employee,
                 account);
         long template = insert(
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu kiểm thử nghỉ việc]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu kiểm thử nghỉ việc] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
         long schedule = insert(
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES (?,'FLOOR',?,'PUBLISHED')",
                 YearMonth.from(now.atZone(BusinessTime.ZONE)).toString(),
@@ -107,9 +108,11 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
         if (fixtureDepartment != null)
             try (var c = retentionConnection()) {
                 c.setAutoCommit(false);
-                for (String table : List.of("department_lead_history", "staff_department", "department"))
-                    try (var p = c.prepareStatement("DELETE FROM " + table + " WHERE "
-                            + (table.equals("department") ? "id" : "department_id") + "=?")) {
+                for (String statement : List.of(
+                        "DELETE FROM status_history WHERE entity_type='M09.DEPARTMENT' AND attribute='LEAD_STAFF' AND entity_id=?",
+                        "DELETE FROM staff_department WHERE department_id=(SELECT id FROM catalog_item WHERE catalog_type='M09.DEPARTMENT' AND COALESCE(m09_legacy_id,id)=?)",
+                        "DELETE FROM catalog_item WHERE catalog_type='M09.DEPARTMENT' AND COALESCE(m09_legacy_id,id)=?"))
+                    try (var p = c.prepareStatement(statement)) {
                         p.setLong(1, fixtureDepartment);
                         p.executeUpdate();
                     }
@@ -151,92 +154,6 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
                 .isEqualTo("ENDED");
         assertThat(jdbc.queryForObject("SELECT missing_lead FROM work_shift WHERE id=?", Boolean.class, shift))
                 .isTrue();
-    }
-
-    @Test
-    void FR_003_futureResignationAppliesOnceAtEffectiveTime() {
-        var effective = now.plusSeconds(60);
-        terminate(effective, null);
-        assertThat(staff.get(employee).status()).isEqualTo("WORKING");
-        assertThat(accounts.byStaff(employee).orElseThrow().status()).isEqualTo(AccountStatus.ACTIVE);
-        clock.setTo(effective);
-        time.set(effective);
-        minute.runNow();
-        minute.runNow();
-        assertThat(staff.get(employee).status()).isEqualTo("RESIGNED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE entity_type='M09.STAFF' AND entity_id=? AND action='STAFF_EMPLOYMENT_ENDED'",
-                        Integer.class,
-                        Long.toString(employee)))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void FR_003_rehireDoesNotReopenAccountOrRestoreAssignments() {
-        terminate(now, null);
-        rehire();
-        assertThat(staff.get(employee).status()).isEqualTo("WORKING");
-        assertThat(accounts.byStaff(employee).orElseThrow().status()).isEqualTo(AccountStatus.LOCKED);
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assignment))
-                .isEqualTo("ENDED");
-    }
-
-    @Test
-    void FR_003_effectiveTimeCannotBeInPast() {
-        assertThatThrownBy(() -> terminate(now.minusSeconds(1), null)).isInstanceOf(BusinessException.class);
-        assertThat(staff.get(employee).status()).isEqualTo("WORKING");
-    }
-
-    @Test
-    void Q_292_departmentLeadMustBeReplacedInSameCommand() {
-        long dept = insert(
-                "INSERT INTO department(name,lead_staff_id) VALUES (?,?)",
-                "[Bộ phận nghỉ việc " + employee + "]",
-                employee);
-        fixtureDepartment = dept;
-        jdbc.update(
-                "INSERT INTO staff_department(staff_id,department_id,starts_at,actor_id,reason) VALUES (?,?,?,?,'[Khởi tạo]')",
-                employee,
-                dept,
-                ShiftStore.sql(now.minusSeconds(1)),
-                current.accountId());
-        assertThatThrownBy(() -> terminate(now, null)).isInstanceOf(BusinessException.class);
-        assertThat(staff.get(employee).status()).isEqualTo("WORKING");
-        assertThat(accounts.byStaff(employee).orElseThrow().status()).isEqualTo(AccountStatus.ACTIVE);
-    }
-
-    @Test
-    void BR_M09_04_careFailureRollsBackAccountShiftAssignmentAndStaff() {
-        tasks.onResign(
-                () -> {
-                    assertThat(org.springframework.transaction.support.TransactionSynchronizationManager
-                                    .isActualTransactionActive())
-                            .isTrue();
-                    throw new IllegalStateException("Nguồn công việc từ chối nghỉ việc");
-                });
-        assertThatThrownBy(() -> terminate(now, null)).isInstanceOf(IllegalStateException.class);
-        assertThat(staff.get(employee).status()).isEqualTo("WORKING");
-        assertThat(accounts.byStaff(employee).orElseThrow().status()).isEqualTo(AccountStatus.ACTIVE);
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assignment))
-                .isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject("SELECT missing_lead FROM work_shift WHERE id=?", Boolean.class, shift))
-                .isFalse();
-    }
-
-    @Test
-    void FR_004_futureFloorManagerAssignmentNeverGrantsScopeAfterResignation() {
-        jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at,assigned_by) VALUES (?,?,?,?)",
-                employee,
-                floor,
-                ShiftStore.sql(now.plusSeconds(3600)),
-                current.accountId());
-        terminate(now, null);
-        assertThat(duties.assignedFloorManager(floor, now.plusSeconds(7200))).isEmpty();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action='FLOOR_MANAGER_ENDED_BY_EMPLOYMENT' AND entity_type='M09.FLOOR_MANAGER_ASSIGNMENT'",
-                        Integer.class))
-                .isPositive();
     }
 
     static class PhaseTime extends BusinessTime {

@@ -46,6 +46,12 @@ public class FakeM05Config {
 
     @Bean
     @Primary
+    public FakeIncidentTypes fakeIncidentTypes() {
+        return new FakeIncidentTypes();
+    }
+
+    @Bean
+    @Primary
     public com.eldercare.backend.incident.api.AlertCommandApi fakeAlertCommands(FakeIncidentCommands commands) {
         return commands::acknowledgeAlert;
     }
@@ -60,6 +66,12 @@ public class FakeM05Config {
     @Primary
     public FakeAttendanceTrace fakeAttendanceTrace() {
         return new FakeAttendanceTrace();
+    }
+
+    @Bean
+    @Primary
+    public FakeSosTrip fakeSosTrip() {
+        return new FakeSosTrip();
     }
 
     @Bean

@@ -11,6 +11,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.support.*;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.fake.administration.*;
 import com.eldercare.backend.support.fake.care.*;
 import com.eldercare.backend.support.fake.resident.*;
@@ -32,7 +33,7 @@ import tools.jackson.databind.json.JsonMapper;
 @WithMockUser
 @Transactional
 @org.springframework.test.context.event.RecordApplicationEvents
-@Import({FR_028a_ReasonCatalogHttpIT.Users.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
+@Import({SwitchableUserConfig.class, FakeM15Config.class, FakeM01Config.class, FakeM04Config.class})
 abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
     @Autowired
     org.springframework.context.ApplicationContext context;
@@ -48,6 +49,9 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
 
     @Autowired
     BusinessTime time;
+
+    @Autowired
+    com.eldercare.backend.common.time.TestClockControl clock;
 
     @Autowired
     SwitchableUser user;
@@ -83,6 +87,7 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
 
     @BeforeEach
     void fixture() {
+        clock.setTo(time.today().atTime(8, 0).atZone(BusinessTime.ZONE).toInstant());
         org.mockito.Mockito.doAnswer(
                         invocation -> ((java.util.List<com.eldercare.backend.care.internal.task.domain.CareTask>)
                                         invocation.callRealMethod())
@@ -122,13 +127,19 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
                 residentId, shiftId, List.of(new CareAssignmentView(caregiver.staffId(), Role.CAREGIVER, true)));
         shifts.members(shiftId, List.of(new ShiftMemberView(caregiver.staffId(), Role.CAREGIVER)));
         shifts.onShift(caregiver.staffId(), planned, true);
-        shifts.qualified(caregiver.staffId(), Set.of(), time.today(), true);
+        shifts.qualified(
+                caregiver.staffId(), Set.of(), planned.atZone(BusinessTime.ZONE).toLocalDate(), true);
         meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
                 typeId,
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+    }
+
+    @AfterEach
+    void restoreClock() {
+        clock.reset();
     }
 
     String row(long resident, long source, Instant at) {
@@ -143,6 +154,23 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
                 .header("Idempotency-Key", "task-" + TestUsers.nextId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
+    }
+
+    /** Công việc thứ hai cùng người, căn cứ khác (tránh trùng DBR-12). */
+    long createAnother() throws Exception {
+        long other = TestUsers.nextId();
+        var at = planned.plusSeconds(600);
+        meals.validation(SourceType.MEAL, other, residentId, at, new SourceValidation(true, true, true, false));
+        shifts.onShift(caregiver.staffId(), at, true);
+        shifts.qualified(
+                caregiver.staffId(), Set.of(), at.atZone(BusinessTime.ZONE).toLocalDate(), true);
+        var result = plan("[" + row(residentId, other, at) + "]")
+                .andExpect(status().isCreated())
+                .andReturn();
+        return json.readTree(result.getResponse().getContentAsString())
+                .get(0)
+                .get("id")
+                .asLong();
     }
 
     long create() throws Exception {

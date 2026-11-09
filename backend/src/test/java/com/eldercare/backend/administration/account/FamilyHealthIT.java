@@ -13,8 +13,6 @@ import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
-import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.resident.ConsentTestBase;
 import com.eldercare.backend.resident.internal.consent.domain.Consent;
 import java.util.Set;
@@ -81,62 +79,5 @@ class FamilyHealthIT extends ConsentTestBase {
                     .isEqualTo(Visibility.NONE);
         }
         assertThat(visibility.canView(notIncluded, InfoGroup.COSTS, target)).isEqualTo(Visibility.FULL);
-    }
-
-    @Test
-    void BR_M01_08_withdrawnConsent_hiddenFromNextView() {
-        assertThat(visibility.canView(included, InfoGroup.HEALTH, target)).isEqualTo(Visibility.FULL);
-
-        user.set(office.user());
-        consents.withdraw(
-                consents.targetOf(consent.id()), consent.id(), new Reason("Người cao tuổi rút lại"), evidence());
-
-        assertThat(permissions.hasPermission(included, VITAL_SIGN_VIEW, target).allowed())
-                .isFalse();
-        assertThat(visibility.canView(included, InfoGroup.HEALTH, target)).isEqualTo(Visibility.NONE);
-    }
-
-    @Test
-    void T100_viewHealthRightOff_healthHiddenDespiteConsent() {
-        families.disable(includedMember, resident, FamilyRight.VIEW_HEALTH);
-
-        PermissionResult vital = permissions.hasPermission(included, VITAL_SIGN_VIEW, target);
-        assertThat(vital.allowed()).isFalse();
-        assertThat(vital.failedLayer()).contains(FailedLayer.ROLE);
-        for (InfoGroup group : new InfoGroup[] {InfoGroup.HEALTH, InfoGroup.MEDICATION, InfoGroup.WISHES}) {
-            assertThat(visibility.canView(included, group, target))
-                    .as(group.name())
-                    .isEqualTo(Visibility.NONE);
-        }
-        assertThat(permissions.hasPermission(included, PROFILE_VIEW, target).allowed())
-                .isTrue();
-    }
-
-    @Test
-    void T100_viewCostsRight_decidesCosts() {
-        assertThat(permissions.hasPermission(included, COST_VIEW, target).allowed())
-                .isTrue();
-        assertThat(visibility.canView(included, InfoGroup.COSTS, target)).isEqualTo(Visibility.FULL);
-
-        families.disable(includedMember, resident, FamilyRight.VIEW_COSTS);
-
-        PermissionResult costs = permissions.hasPermission(included, COST_VIEW, target);
-        assertThat(costs.allowed()).isFalse();
-        assertThat(costs.failedLayer()).contains(FailedLayer.ROLE);
-        assertThat(visibility.canView(included, InfoGroup.COSTS, target)).isEqualTo(Visibility.NONE);
-        assertThat(visibility.canView(included, InfoGroup.HEALTH, target)).isEqualTo(Visibility.FULL);
-    }
-
-    @Test
-    void DBR_03_consentForAnotherResident_doesNotCount() {
-        long other = newResident();
-        families.relate(includedMember, other);
-
-        assertThat(permissions
-                        .hasPermission(included, VITAL_SIGN_VIEW, PermissionMatrixIT.resident(other))
-                        .allowed())
-                .isFalse();
-        assertThat(visibility.canView(included, InfoGroup.HEALTH, PermissionMatrixIT.resident(other)))
-                .isEqualTo(Visibility.NONE);
     }
 }

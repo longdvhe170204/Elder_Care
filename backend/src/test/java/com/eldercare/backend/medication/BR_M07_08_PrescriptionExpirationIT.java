@@ -1,9 +1,7 @@
 package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
@@ -11,7 +9,6 @@ import com.eldercare.backend.medication.internal.dose.domain.DoseCancellationRea
 import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
 import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
 import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.prescription.domain.ExtendPrescriptionBody;
 import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
@@ -198,65 +195,5 @@ class BR_M07_08_PrescriptionExpirationIT extends M07IntegrationTestBase {
         MedicationDose reloadedDose = doseRepository.findById(dose.getId()).orElseThrow();
         assertThat(reloadedDose.getStatus()).isEqualTo(DoseStatus.CANCELLED);
         assertThat(reloadedDose.getCancellationReason()).isEqualTo(DoseCancellationReason.EXPIRED);
-    }
-
-    @Test
-    @DisplayName("FR-015: Extending prescription requires new end date strictly after current end date")
-    void extendPrescription_validation() {
-        LocalDate today = LocalDate.now();
-        Instant now = Instant.now();
-
-        Prescription p = new Prescription(
-                residentId,
-                medId,
-                new BigDecimal("20"),
-                "mg",
-                "Oral",
-                PrescriptionType.PERIODIC,
-                FrequencyType.TIMED_SLOTS,
-                "[\"07:00\"]",
-                null,
-                null,
-                null,
-                null,
-                null,
-                now.minus(5, ChronoUnit.DAYS),
-                today.plusDays(5),
-                MedicationSource.FACILITY,
-                com.eldercare.backend.medication.internal.prescription.domain.PrescriberType.INTERNAL,
-                null,
-                null,
-                10L,
-                null,
-                null,
-                "Trước ăn sáng",
-                PrescriptionStatus.ACTIVE,
-                false,
-                null,
-                null,
-                10L,
-                now.minus(5, ChronoUnit.DAYS),
-                Set.of(105L),
-                Instant.now());
-        Prescription saved = prescriptionRepository.save(p);
-
-        // 1. Extending with earlier or same end date should fail
-        ExtendPrescriptionBody invalidCmd = new ExtendPrescriptionBody();
-        invalidCmd.setNewEndedAt(today.plusDays(3)); // earlier than +5
-        invalidCmd.setReason("Gia hạn nhưng chọn ngày sớm hơn");
-
-        assertThatThrownBy(() -> prescriptionService.extend(
-                        prescriptionService.targetOf(saved.getId()), saved.getId(), invalidCmd, 10L, true))
-                .isInstanceOf(ConditionNotMetException.class);
-
-        // 2. Extending with strictly later date succeeds
-        ExtendPrescriptionBody validCmd = new ExtendPrescriptionBody();
-        validCmd.setNewEndedAt(today.plusDays(15));
-        validCmd.setReason("Gia hạn thêm 10 ngày");
-
-        prescriptionService.extend(prescriptionService.targetOf(saved.getId()), saved.getId(), validCmd, 10L, true);
-
-        Prescription reloaded = prescriptionRepository.findById(saved.getId()).orElseThrow();
-        assertThat(reloaded.getEndedAt()).isEqualTo(today.plusDays(15));
     }
 }

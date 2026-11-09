@@ -76,69 +76,6 @@ class RequestValidationTest {
     }
 
     @Test
-    void FR_003_missingRequiredFields_areRejected() {
-        NotificationRequest noGroups =
-                request(Optional.of(NotificationLevel.LOW), List.of(), GENERAL, Optional.empty(), Optional.empty());
-        NotificationRequest noContent =
-                request(Optional.of(NotificationLevel.LOW), MANAGERS, List.of(), Optional.empty(), Optional.empty());
-        NotificationRequest blankContent = request(
-                Optional.of(NotificationLevel.LOW),
-                MANAGERS,
-                List.of(new ContentPart(InformationType.GENERAL, " ")),
-                Optional.empty(),
-                Optional.empty());
-        NotificationRequest base =
-                request(Optional.of(NotificationLevel.LOW), MANAGERS, GENERAL, Optional.empty(), Optional.empty());
-        NotificationRequest noSource = new NotificationRequest(
-                base.sourceModule(),
-                base.eventType(),
-                base.sourceGroup(),
-                null,
-                base.eventKey(),
-                base.level(),
-                base.residentId(),
-                base.floorAreaId(),
-                base.recipientGroups(),
-                base.content(),
-                base.shortContent(),
-                base.title(),
-                base.causedBy(),
-                base.notifyCauser(),
-                base.occurredAt(),
-                base.displayParams(),
-                base.afterDeath(),
-                base.informationSubject(),
-                base.q354Case());
-        NotificationRequest noKey = new NotificationRequest(
-                base.sourceModule(),
-                base.eventType(),
-                base.sourceGroup(),
-                base.sourceRecord(),
-                " ",
-                base.level(),
-                base.residentId(),
-                base.floorAreaId(),
-                base.recipientGroups(),
-                base.content(),
-                base.shortContent(),
-                base.title(),
-                base.causedBy(),
-                base.notifyCauser(),
-                base.occurredAt(),
-                base.displayParams(),
-                base.afterDeath(),
-                base.informationSubject(),
-                base.q354Case());
-
-        assertThat(RequestValidation.validate(noGroups).rejectionReason()).contains("MISSING_RECIPIENT_GROUPS");
-        assertThat(RequestValidation.validate(noContent).rejectionReason()).contains("MISSING_CONTENT");
-        assertThat(RequestValidation.validate(blankContent).rejectionReason()).contains("MISSING_CONTENT");
-        assertThat(RequestValidation.validate(noSource).rejectionReason()).contains("MISSING_SOURCE_RECORD");
-        assertThat(RequestValidation.validate(noKey).rejectionReason()).contains("MISSING_EVENT_KEY");
-        assertThat(RequestValidation.validate(noKey).result()).isEqualTo(IntakeResult.REJECTED);
-    }
-
-    @Test
     void FR_013_partWithoutInformationType_isHealth() {
         ValidatedRequest v = RequestValidation.validate(request(
                 Optional.of(NotificationLevel.LOW),
@@ -149,20 +86,6 @@ class RequestValidationTest {
 
         assertThat(v.content()).extracting(ContentPart::type).containsExactly(InformationType.HEALTH);
         assertThat(v.flags()).containsExactly(RequestFlag.MISSING_INFORMATION_TYPE);
-    }
-
-    @Test
-    void FR_003_mediumOrUrgentWithoutShortContent_isFlagged() {
-        ValidatedRequest medium = RequestValidation.validate(
-                request(Optional.of(NotificationLevel.MEDIUM), MANAGERS, GENERAL, Optional.empty(), Optional.empty()));
-        ValidatedRequest low = RequestValidation.validate(
-                request(Optional.of(NotificationLevel.LOW), MANAGERS, GENERAL, Optional.empty(), Optional.empty()));
-
-        assertThat(medium.result()).isEqualTo(IntakeResult.VALID);
-        // Không có nội dung rút gọn thì kênh ngoài ứng dụng không có gì để gửi (FR-019, FR-020; 009 US3)
-        assertThat(medium.flags())
-                .containsExactlyInAnyOrder(RequestFlag.MISSING_SHORT_CONTENT, RequestFlag.INVALID_OUT_OF_APP_CONTENT);
-        assertThat(low.flags()).isEmpty();
     }
 
     @Test

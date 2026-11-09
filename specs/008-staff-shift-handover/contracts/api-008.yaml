@@ -322,7 +322,7 @@ paths:
       summary: Ca và phân công của chính mình, người cùng ca, người phụ trách (mọi nhân viên có ca)
       x-fr: [FR-033, FR-054]
       parameters: [ { name: from, in: query, schema: { type: string, format: date } }, { name: to, in: query, schema: { type: string, format: date } } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MyShift' } } } } } }
   /on-duty-doctors:
     get:
       tags: [shift-schedules]
@@ -380,6 +380,34 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewAssignment' } } } }
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResultWithWarnings' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/BlockingProblem' } }
   /assignments/{id}:
+    get:
+      operationId: getAssignmentDetail
+      tags: [assignments]
+      summary: Đọc một phân công và phiên bản hiện hành
+      description: |
+        Cùng quyền/phạm vi đọc phân công hiện có (SHIFT_SCHEDULE/VIEW,
+        FR-033/054, BR-M15-01); không cấp quyền vì chỉ biết id.
+        Trả chi tiết ở các trạng thái để người đang sửa thấy dữ liệu mới khi 412.
+        Không thay phản hồi GET /shifts/{id}/assignments.
+      x-fr: [FR-025, FR-033, FR-054]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Phân công hiện hành; ETag là version trong dấu ngoặc kép
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentDetail'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
     delete:
       tags: [assignments]
       summary: Xóa phân công Nháp (chỉ khi lịch Nháp)
@@ -491,7 +519,7 @@ paths:
   /handovers/{id}/confirm:
     post:
       tags: [handovers]
-      summary: Xác nhận bàn giao (người phụ trách ca sau trong phạm vi ca sau; Trưởng tầng)
+      summary: Xác nhận bàn giao (người phụ trách ca sau hoặc Trưởng tầng; bắt buộc thuộc đúng ca sau đã xếp)
       description: 'Một lần: công việc tồn sang ca mới (005), người phụ trách cảnh báo, sự cố chuyển (007), khóa nội dung, nhật ký. Một phần lỗi thì không gì thay đổi (FR-044).'
       x-fr: [FR-042, FR-044, FR-060]
       x-br: [BR-M09-08, BR-M05-05]
@@ -500,7 +528,7 @@ paths:
   /handovers/{id}/comments:
     post:
       tags: [handovers]
-      summary: Gửi ý kiến (nội dung bắt buộc)
+      summary: Gửi ý kiến (nội dung bắt buộc; người gửi đủ quyền và thuộc đúng ca sau đã xếp)
       x-fr: [FR-042]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [content], properties: { content: { type: string, minLength: 1 } } } } } }
@@ -521,6 +549,225 @@ paths:
       parameters: [ { name: floorAreaId, in: query, schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
       responses: { '200': { description: OK } }
 
+  /assignments/{id}/draft-update-preview:
+    post:
+      operationId: previewDraftAssignmentUpdate
+      tags: [assignments]
+      summary: Kiểm tra và cảnh báo trước khi sửa một phân công Nháp
+      description: |
+        Chỉ đọc, không UPDATE/DELETE/INSERT, không nhật ký hoặc sự kiện.
+        Cần SHIFT_SCHEDULE/UPDATE trong phạm vi ca; phân công và ca vẫn DRAFT.
+        So If-Match với phiên bản đang đọc; kiểm FR-025/028/028a/030/031
+        trên dữ liệu đề nghị, loại chính id đang sửa khỏi phép kiểm trùng.
+        Không gọi preview tạo mới vốn cần CREATE và không loại bản cũ.
+        Trả mọi cảnh báo; kết quả không bảo đảm lệnh lưu sau sẽ thành công.
+      x-fr: [FR-025, FR-028, FR-028a, FR-030, FR-031]
+      x-br: [BR-M09-01]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAssignment'
+      responses:
+        '200':
+          description: Cảnh báo trước lưu; không có id mới
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftAssignmentPreview'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/BlockingProblem'
+        '412':
+          $ref: '#/components/responses/VersionMismatch'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /assignments/{id}/update-draft:
+    post:
+      operationId: updateDraftAssignment
+      tags: [assignments]
+      summary: Cập nhật nguyên tử nội dung của một phân công Nháp
+      description: |
+        Cần SHIFT_SCHEDULE/UPDATE trong phạm vi ca. Phân công và ca phải DRAFT;
+        khóa/đọc lại lịch, ca, phân công và dữ liệu kiểm trước khi ghi.
+        So If-Match; kiểm lại toàn bộ FR-025/028/028a/030/031, loại id đang sửa
+        khỏi phép kiểm trùng. Cập nhật đúng bản ghi, giữ id/shiftId/source/
+        createdAt/createdBy/status, tăng version; lỗi hoàn tác toàn bộ.
+        Không DELETE rồi POST tạo thay. Thiếu startsAt/endsAt dùng giờ ca;
+        thiếu taskTypeId bỏ giới hạn loại công việc, assignedNurse mặc định false,
+        cùng cách hiểu NewAssignment hiện có; đây là thay toàn bộ nội dung.
+        Body chỉ khai báo NewAssignment, không cho đổi status/source/shiftId/
+        version hoặc dùng confirmWarnings để bỏ qua kiểm nghiệp vụ.
+        Nháp không tạo phạm vi/công việc/liều, không ghi nhật ký từng lần
+        theo ngoại lệ FR-055; công bố sau vẫn kiểm và lưu bản gốc như hiện có.
+        Chủ dự án đã xác nhận ngày 2026-10-29: FR-025 cho đổi staffId khi
+        phân công và ca còn Nháp; sau công bố dùng quy trình FR-027.
+      x-fr: [FR-025, FR-028, FR-028a, FR-030, FR-031, FR-055]
+      x-br: [BR-M09-01, BR-M09-15]
+      x-owner-decision:
+        staffIdInDraft: approved-editable-while-assignment-and-shift-draft
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IfMatch'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAssignment'
+      responses:
+        '200':
+          description: Nội dung sau sửa cùng cảnh báo; ETag là version mới
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftAssignmentUpdateResult'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/BlockingProblem'
+        '412':
+          $ref: '#/components/responses/VersionMismatch'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /shifts/{id}/assignment-resolution:
+    get:
+      operationId: getShiftAssignmentResolution
+      tags: [assignments]
+      summary: Người chính và Điều dưỡng phụ trách của một người cao tuổi tại thời điểm
+      description: |
+        Kiểm SHIFT_SCHEDULE/VIEW cùng phạm vi ca và người cao tuổi qua ba lớp
+        BR-M15-01; không cấp quyền đọc cả tầng vì người gọi có tên trong ca.
+        residentId phải thuộc phạm vi ca tại at và người gọi được phép đọc.
+        at bắt buộc, nằm trong [giờ bắt đầu, giờ kết thúc) của ca.
+        Chỉ dữ liệu ca đã công bố, không đếm DRAFT/CANCELLED; DRAFT/CANCELLED
+        của ca trả 409 STATE_CHANGED thay vì giả kết quả chưa có người.
+        primaryStaffId được xác định theo role/taskTypeId tại at, từ phân công
+        có hiệu lực trong ca và nguồn vị trí tại at; cùng mức mâu thuẫn thì lỗi.
+        assignedNurseStaffIds là kết quả Điều dưỡng phụ trách không giới hạn
+        loại công việc theo quy tắc hiện có, không phụ thuộc role/taskTypeId hỏi.
+        Thiếu nguồn hoặc không xác định được kết quả thì 422
+        ASSIGNMENT_SOURCE_UNAVAILABLE, không trả null/[] như dữ liệu thật.
+        Không có lệnh ghi, nhật ký nghiệp vụ, thông báo hoặc bản ghi tự sinh.
+      x-fr: [FR-025, FR-026, FR-028, FR-028a, FR-030, FR-033, FR-054]
+      x-br: [BR-M09-01, BR-M09-15, BR-M15-01]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: residentId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: at
+          in: query
+          required: true
+          description: Mốc ISO-8601 trong ca, không có mặc định ngầm theo đồng hồ app
+          schema:
+            type: string
+            format: date-time
+        - name: role
+          in: query
+          required: true
+          description: Tên vai trò tiếng Anh như NewAssignment.role, ví dụ CAREGIVER hoặc NURSING_STAFF
+          schema:
+            type: string
+        - name: taskTypeId
+          in: query
+          required: false
+          description: Bỏ tham số thì tra phân công chính không giới hạn loại công việc
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Kết quả đủ nguồn tại đúng mốc hỏi; không có người thì id null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentResolution'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/BlockingProblem'
+        '422':
+          $ref: '#/components/responses/Problem'
+
+  /shifts/{id}/unassigned-residents:
+    get:
+      operationId: getShiftUnassignedResidents
+      tags: [assignments]
+      summary: Người cao tuổi chưa đủ nhân viên phụ trách tại giờ bắt đầu ca
+      description: |
+        FR-029: từ khi công bố lịch, Trưởng tầng và Người phụ trách ca được xem
+        trong phạm vi được phép; Quản lý viện theo quyền xem hiện có.
+        Kiểm ba lớp BR-M15-01; VIEW lịch cá nhân không tự cấp quyền danh sách này.
+        Mốc evaluatedAt luôn là giờ bắt đầu ca, không nhận tham số at khác.
+        Lấy người dự kiến/có mặt tại mốc đó theo nguồn vị trí/trạng thái/lịch đến
+        có liên quan; xét lịch sử tại mốc, không lấy vị trí/trạng thái hôm nay
+        để thay mốc đã qua. Không có nguồn cần thiết thì 422
+        ASSIGNMENT_SOURCE_UNAVAILABLE, không trả danh sách rỗng.
+        items chỉ gồm người thiếu ít nhất một trong hai: Điều dưỡng phụ trách,
+        nhân viên chăm sóc chính không giới hạn loại công việc.
+        Hai cờ do backend tính, app không tự xếp ưu tiên hoặc so bảng phân công.
+        DRAFT/CANCELLED của ca trả 409 STATE_CHANGED. Sau công bố đọc kết quả
+        theo dữ liệu hiện hành cho mốc ca, không hứa snapshot bất biến lúc công bố.
+        Chỉ đọc; không phát lại lời nhắc hoặc tạo bản ghi khi người dùng làm mới.
+      x-fr: [FR-025, FR-026, FR-028, FR-029, FR-033, FR-054]
+      x-br: [BR-M04-13, BR-M09-15, BR-M15-01]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Danh sách đủ nguồn; items rỗng chỉ khi không ai thiếu người phụ trách
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnassignedResidents'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/BlockingProblem'
+        '422':
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
@@ -541,6 +788,15 @@ components:
     BlockingProblem:
       description: 'CONDITION_NOT_MET, SHIFT_OVERLAP, WARNING_CONFIRMATION_REQUIRED, SHIFT_LEAD_REQUIRED, FLOOR_MANAGER_REQUIRED, INVALID_ASSIGNMENTS, PRIMARY_STAFF_OVERLAP, REQUIRED_CREDENTIAL_MISSING, FLOOR_MANAGER_ASSIGNMENT_OVERLAP, OUTSIDE_ABSENCE_REPORTING_WINDOW, SHIFT_ALREADY_STARTED, HANDOVER_ALREADY_EXISTS, BEFORE_HANDOVER_PREPARATION_WINDOW, HANDOVER_ITEM_REMOVAL_NOT_ALLOWED, CRITICAL_ITEM_NOTE_REQUIRED, STATE_CHANGED, OUTSIDE_SHIFT_SCOPE, REPLACEMENT_LEAD_REQUIRED…'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    VersionMismatch:
+      description: |
+        412 khi If-Match khác phiên bản hiện hành. currentValue là AssignmentDetail
+        hiện tại đã được kiểm quyền, gồm trạng thái mới nếu lịch đã công bố.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
   schemas:
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     Problem:
@@ -677,6 +933,13 @@ components:
         staff: { type: array, items: { type: object, properties: { staffId: { type: integer, format: int64 }, onDutyDoctor: { type: boolean }, absent: { type: boolean }, approvedLeave: { type: boolean } } } }
         staffingRatio: { $ref: '#/components/schemas/StaffingRatioCalculation' }
         allowedCommands: { type: array, items: { type: string } }
+    MyShift:
+      description: 'Ca của chính mình ở GET /me/shifts (bổ sung 2026-11-08, chủ dự án duyệt; 008 FR-060, 002 FR-032, FR-033)'
+      allOf:
+        - { $ref: '#/components/schemas/Shift' }
+        - type: object
+          properties:
+            scopeEndsAt: { type: [string, 'null'], format: date-time, readOnly: true, description: 'Hết phạm vi của người dùng trong ca: mốc muộn nhất trong các phân công của họ ở ca này; phân công kết thúc sớm thì là mốc kết thúc sớm, còn lại là kết thúc phân công cộng CFG-M15-07 (002 FR-032). Rỗng khi không có phân công trong ca. App xóa bản lưu ngoại tuyến của ca (bàn giao) khi qua mốc này (FR-060)' }
     SchedulePublicationPreview:
       type: object
       properties:
@@ -755,3 +1018,105 @@ components:
         comments: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, content: { type: string }, sender: { type: string }, at: { type: string, format: date-time }, replies: { type: array, items: { type: object } } } } }
         allowedCommands: { type: array, items: { type: string } }
         hiddenFields: { type: array, items: { type: string } }
+
+    AssignmentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Assignment'
+        - type: object
+          required: [id, shiftId, status, version]
+          properties:
+            id: { type: integer, format: int64 }
+            status: { type: string, enum: [DRAFT, SCHEDULED, ACTIVE, ENDED, CANCELLED] }
+            shiftId:
+              type: integer
+              format: int64
+              readOnly: true
+            version:
+              type: integer
+              format: int64
+              minimum: 0
+              readOnly: true
+
+    DraftAssignmentPreview:
+      type: object
+      required: [warnings]
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+
+    DraftAssignmentUpdateResult:
+      type: object
+      required: [assignment, warnings]
+      properties:
+        assignment:
+          $ref: '#/components/schemas/AssignmentDetail'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+
+    AssignmentResolution:
+      type: object
+      required: [shiftId, residentId, at, role, taskTypeId, primaryStaffId, assignedNurseStaffIds]
+      properties:
+        shiftId:
+          type: integer
+          format: int64
+        residentId:
+          type: integer
+          format: int64
+        at:
+          type: string
+          format: date-time
+        role:
+          type: string
+        taskTypeId:
+          type: [integer, 'null']
+          format: int64
+        primaryStaffId:
+          type: [integer, 'null']
+          format: int64
+          description: null chỉ khi đủ nguồn và không có người chính phù hợp
+        assignedNurseStaffIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: integer
+            format: int64
+
+    UnassignedResidents:
+      type: object
+      required: [shiftId, evaluatedAt, items]
+      properties:
+        shiftId:
+          type: integer
+          format: int64
+        evaluatedAt:
+          type: string
+          format: date-time
+          description: Giờ bắt đầu ca theo backend
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnassignedResident'
+
+    UnassignedResident:
+      type: object
+      required: [residentId, missingAssignedNurse, missingPrimaryCaregiver]
+      anyOf:
+        - properties:
+            missingAssignedNurse:
+              const: true
+        - properties:
+            missingPrimaryCaregiver:
+              const: true
+      properties:
+        residentId:
+          type: integer
+          format: int64
+        missingAssignedNurse:
+          type: boolean
+        missingPrimaryCaregiver:
+          type: boolean

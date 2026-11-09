@@ -7,6 +7,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
@@ -15,8 +16,6 @@ import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -25,17 +24,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * dùng người dùng thật của 002 ({@link TestUsers}) như {@code HealthTestBase} của 001. Mặc định là Bác sĩ; test của
  * điều dưỡng gọi {@code user.set(nurse.user())}.
  */
-@Import({FakeM15Config.class, M07IntegrationTestBase.Fixtures.class})
+@Import({FakeM15Config.class, SwitchableUserConfig.class})
 abstract class M07IntegrationTestBase extends MySqlIntegrationTestBase {
-
-    @TestConfiguration
-    static class Fixtures {
-
-        @Bean
-        SwitchableUser currentUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     protected SwitchableUser user;

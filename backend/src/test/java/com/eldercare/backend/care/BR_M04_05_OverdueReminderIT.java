@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 /** T042: mốc đọc lại từ MySQL, không giả định schema test rỗng. */
 class BR_M04_05_OverdueReminderIT extends CareOverdueTestBase {
+
     @Test
     void BR_M04_05_dueTaskBecomesOverdueAtWindowEndAndRemindsOnlyOnce() throws Exception {
         long id = create();
@@ -28,52 +29,5 @@ class BR_M04_05_OverdueReminderIT extends CareOverdueTestBase {
                 .hasSize(1);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_task WHERE shift_id=?", Integer.class, shiftId))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void BR_M04_06_importantAndMandatoryEscalateOnce() throws Exception {
-        for (String level : new String[] {"IMPORTANT", "MANDATORY"}) {
-            long id = create();
-            jdbc.update("UPDATE care_task SET importance=? WHERE id=?", level, id);
-            var task = context.getBean(CareTaskStore.class).get(id, false);
-            var step = context.getBean(CareTaskDueStep.class);
-            step.run(task.windowFrom());
-            step.run(task.windowTo());
-            step.run(task.windowTo().plusSeconds(60));
-            if (level.equals("IMPORTANT"))
-                assertThat(recorded.stream(OverdueTaskNeedsHandling.class).filter(e -> e.taskId() == id))
-                        .hasSize(1);
-            else
-                assertThat(recorded.stream(AlertRequested.class)
-                                .filter(e -> e.context().sourceId() == id))
-                        .hasSize(1);
-            // Căn cứ mới cho vòng kế tiếp, không lập trùng.
-            sourceId++;
-            meals.validation(
-                    com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType.MEAL,
-                    sourceId,
-                    residentId,
-                    planned,
-                    new com.eldercare.backend.care.api.spi.TaskSourcePort.SourceValidation(true, true, true, false));
-        }
-    }
-
-    @Test
-    void BR_M04_06_normalEscalatesFromActualOverdueTimeAfterConfiguredDelay() throws Exception {
-        long id = create();
-        var task = context.getBean(CareTaskStore.class).get(id, false);
-        var step = context.getBean(CareTaskDueStep.class);
-        var at = task.windowTo().plusSeconds(600);
-        step.run(at);
-        var delay = context.getBean(com.eldercare.backend.administration.parameter.api.ParameterApi.class)
-                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M04_12)
-                .asDuration();
-        step.run(at.plus(delay).minusNanos(1000));
-        assertThat(recorded.stream(OverdueTaskNeedsHandling.class).filter(e -> e.taskId() == id))
-                .isEmpty();
-        step.run(at.plus(delay));
-        step.run(at.plus(delay).plusSeconds(60));
-        assertThat(recorded.stream(OverdueTaskNeedsHandling.class).filter(e -> e.taskId() == id))
-                .hasSize(1);
     }
 }

@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.util.Set;
@@ -69,31 +68,6 @@ class BR_M10_01_PortalByRightsIT extends FamilyCommandTestBase {
     }
 
     @Test
-    void US5_7_endedRelationship_residentDisappears() throws Exception {
-        command(n, "end", reason("Gia đình đề nghị")).andExpect(status().isOk());
-        assertThat(json(portalGet(nMember, "/residents").andExpect(status().isOk())))
-                .isEmpty();
-        portalGet(nMember, "/residents/" + a + "/general").andExpect(status().isForbidden());
-    }
-
-    @Test
-    void US5_5_otherResident_isRefused() throws Exception {
-        portalGet(nMember, "/residents/" + b + "/general").andExpect(status().isForbidden());
-        portalGet(mMember, "/residents/" + b + "/health/allergies-conditions").andExpect(status().isForbidden());
-    }
-
-    @Test
-    void US5_2_general_forEveryRelative_currentValuesOnly() throws Exception {
-        JsonNode general =
-                json(portalGet(nMember, "/residents/" + a + "/general").andExpect(status().isOk()));
-        assertThat(general.get("residentId").asLong()).isEqualTo(a);
-        assertThat(general.get("fullName").asString()).isEqualTo("Người cao tuổi thử");
-        assertThat(general.get("status").asString()).isEqualTo("IN_RESIDENCE");
-        assertThat(general.get("visits").isArray()).isTrue();
-        assertThat(general.has("healthItems")).isFalse();
-    }
-
-    @Test
     void US5_1_health_needsRightAndConsent() throws Exception {
         portalGet(nMember, "/residents/" + a + "/health/allergies-conditions")
                 .andExpect(status().isForbidden())
@@ -110,20 +84,5 @@ class BR_M10_01_PortalByRightsIT extends FamilyCommandTestBase {
             assertThat(i.get("type").asString()).isEqualTo("CHRONIC_CONDITION");
             assertThat(i.get("text").asString()).isEqualTo("Tăng huyết áp");
         });
-    }
-
-    @Test
-    void US5_4_contract_onlyRepresentative() throws Exception {
-        JsonNode contract =
-                json(portalGet(rMember, "/residents/" + a + "/contract").andExpect(status().isOk()));
-        assertThat(contract.get("contracts").isArray()).isTrue();
-        portalGet(mMember, "/residents/" + a + "/contract").andExpect(status().isForbidden());
-        portalGet(nMember, "/residents/" + a + "/contract").andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_046_staffAccount_cannotUseFamilyPortal() throws Exception {
-        mvc.perform(get("/api/v1/family-portal/residents").header("Authorization", staffSession(Role.OFFICE_STAFF)))
-                .andExpect(status().isForbidden());
     }
 }

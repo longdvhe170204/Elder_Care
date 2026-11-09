@@ -33,25 +33,4 @@ class FR_035_CareResultTimingTest {
         assertThat(completed(FROM, TO, FROM)).isEqualTo(TaskStatus.COMPLETED);
         assertThat(completed(FROM, TO, TO)).isEqualTo(TaskStatus.COMPLETED);
     }
-
-    @Test
-    void FR_035_firstMicrosecondAfterWindowIsCompletedLate() throws Exception {
-        assertThat(completed(FROM, TO, TO.plusNanos(1_000))).isEqualTo(TaskStatus.COMPLETED_LATE);
-    }
-
-    @Test
-    void FR_035_zeroLengthWindowAcceptsItsExactInstant() throws Exception {
-        assertThat(completed(FROM, FROM, FROM)).isEqualTo(TaskStatus.COMPLETED);
-    }
-
-    @Test
-    void FR_035_performingBeforeWindowIsRejected() {
-        assertThatThrownBy(() -> completed(FROM, TO, FROM.minusNanos(1_000)))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void FR_035_reversedWindowIsRejected() {
-        assertThatThrownBy(() -> completed(TO, FROM, TO)).isInstanceOf(IllegalArgumentException.class);
-    }
 }

@@ -463,7 +463,7 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_DONG','DA_HUY')`, trừ
 | `MOI`, `DANG_XU_LY` | Chuyển viện | Giữ | ĐD, BS | FR-049 |
 | `DANG_XU_LY`, `DANG_THEO_DOI` | Đóng | `DA_DONG` | Nhẹ: ĐD, TT, BS; khác: ĐD, BS | Kết quả; FR-066 |
 | Mọi trạng thái trừ `DA_HUY` | Đính chính Hủy ghi nhận | `DA_HUY` | FR-046 | Lý do; FR-066 |
-| Mọi trạng thái trừ `DA_HUY` | Nguồn đồ gửi bị hủy | `DA_HUY` | Hệ thống (013) | FR-046b |
+| *(sửa 2026-11-08 theo FR-046b, Q-307; chủ dự án chốt 2026-11-07)* Mọi trạng thái trừ `DA_HUY` | Nguồn đồ gửi bị Hủy ghi nhận | Giữ (không tự chuyển `DA_HUY`; báo người xử lý kèm tham chiếu bản đính chính của 013) | Hệ thống (013) | FR-046b |
 
 Bảng FR-045 có dòng "Hệ thống tạo (thiếu người khi trở về, phục vụ suất có thành phần gây dị ứng)"; theo FR-040 và Q-307 thiết kế không có đường này (plan điểm báo lại 1).
 

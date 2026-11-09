@@ -1,6 +1,7 @@
 package com.eldercare.backend.incident.internal.alert.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
@@ -8,11 +9,14 @@ import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.AlertCreated;
 import com.eldercare.backend.incident.api.events.AlertLevelRaised;
+import com.eldercare.backend.incident.api.events.AlertRepeated;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.CreateAlertCommand;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
+import com.eldercare.backend.incident.internal.alert.domain.RepeatNotificationSetting;
+import com.eldercare.backend.incident.internal.alert.domain.RepeatWithin24HoursCounter;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
 import com.eldercare.backend.resident.api.ResidentApi;
@@ -21,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -40,6 +45,7 @@ public class AlertService {
     private final Optional<AlertStaffPort> staffPort;
     private final Optional<ResidentApi> residentApi;
     private final Optional<RecordEventApi> recordEvents;
+    private final AlertResponsibility responsibility;
 
     public AlertService(
             AlertStore alertStore,
@@ -49,7 +55,8 @@ public class AlertService {
             MonitoringLock monitoringLock,
             @Autowired(required = false) AlertStaffPort staffPort,
             @Autowired(required = false) ResidentApi residentApi,
-            @Autowired(required = false) RecordEventApi recordEvents) {
+            @Autowired(required = false) RecordEventApi recordEvents,
+            AlertResponsibility responsibility) {
         this.alertStore = alertStore;
         this.eventPublisher = eventPublisher;
         this.parameterApi = parameterApi;
@@ -58,10 +65,28 @@ public class AlertService {
         this.staffPort = Optional.ofNullable(staffPort);
         this.residentApi = Optional.ofNullable(residentApi);
         this.recordEvents = Optional.ofNullable(recordEvents);
+        this.responsibility = responsibility;
     }
 
     @Transactional
     public Optional<AlertRecord> requestAlert(CreateAlertCommand cmd) {
+        return requestAlert(
+                cmd,
+                created -> AlertNotices.created(
+                        created,
+                        cmd.sourceStaffId(),
+                        false,
+                        cmd.occurredAt() != null ? cmd.occurredAt() : businessTime.now()));
+    }
+
+    /**
+     * Như {@link #requestAlert(CreateAlertCommand)}; {@code createdNotices} dựng yêu cầu thông báo gắn vào
+     * {@link AlertCreated} khi tạo mới (cảnh báo SOS, FR-047e). Gộp thì theo quy tắc gộp hiện có (S-19).
+     */
+    @Transactional
+    public Optional<AlertRecord> requestAlert(
+            CreateAlertCommand cmd,
+            Function<AlertRecord, List<com.eldercare.backend.common.notification.NotificationRequest>> createdNotices) {
         if (cmd.residentId() != null) {
             // Bỏ qua khi người cao tuổi ở trạng thái cuối (research S-08, S-09, FR-029)
             if (residentApi.isPresent() && residentApi.get().isFinalStatus(cmd.residentId())) {
@@ -79,9 +104,29 @@ public class AlertService {
             if (openAlert.isPresent()) {
                 return Optional.of(mergeAlert(openAlert.get(), cmd, now));
             }
+        } else if (cmd.requesterId() != null) {
+            // Nút hỗ trợ khẩn cấp: gộp theo người bấm (open_assist_lock, FR-028, S-24)
+            var openAlert = alertStore.findOpenAssist(cmd.requesterId());
+            if (openAlert.isPresent()) {
+                return Optional.of(mergeAlert(openAlert.get(), cmd, now));
+            }
         }
 
-        return Optional.of(createNewAlert(cmd, now));
+        return Optional.of(createNewAlert(cmd, now, createdNotices));
+    }
+
+    /**
+     * Nguồn của cảnh báo đã được xử lý (FR-032, research S-09): cảnh báo đang mở theo người và khóa loại → Đã đóng, người
+     * đóng Hệ thống, kết quả "nguồn đã được xử lý". Không có cảnh báo mở thì không làm gì.
+     */
+    @Transactional
+    public boolean closeBySystem(long residentId, String typeLock, String resolution, Instant at) {
+        monitoringLock.lock(residentId);
+        var open = alertStore.findOpenAlert(residentId, typeLock);
+        if (open.isEmpty()) return false;
+        alertStore.closeBySystem(open.get().id(), resolution, at, open.get().version());
+        new AlertHistory(recordEvents.orElse(null)).add(open.get().id(), "CLOSED", Map.of("by", "SYSTEM"), at);
+        return true;
     }
 
     private AlertRecord mergeAlert(AlertRecord existing, CreateAlertCommand cmd, Instant now) {
@@ -100,7 +145,7 @@ public class AlertService {
 
         alertStore.updateMerged(existing.id(), newCount, now, newLevel, newDeadline, existing.version());
 
-        recordSource(existing.id(), cmd, now);
+        String sourceKey = recordSource(existing.id(), cmd, now);
 
         var updated = new AlertRecord(
                 existing.id(),
@@ -139,6 +184,8 @@ public class AlertService {
                 existing.skipArrivalTime(),
                 existing.version() + 1);
 
+        if (sourceKey != null && cmd.level() == IncidentLevel.MEDIUM) notifyIfRepeated(updated, sourceKey, now);
+
         if (levelRaised) {
             eventPublisher.publishEvent(new AlertLevelRaised(
                     updated.id(),
@@ -146,23 +193,30 @@ public class AlertService {
                     updated.noOnDutyDoctor(),
                     updated.typeLock(),
                     now,
-                    List.of()));
+                    AlertNotices.created(updated, cmd.sourceStaffId(), true, now)));
         }
 
         return updated;
     }
 
-    private AlertRecord createNewAlert(CreateAlertCommand cmd, Instant now) {
-        Instant deadline = calculateDeadline(cmd.level(), now, cmd.floorAreaId());
-        Long assigneeId = null;
-        if (cmd.residentId() != null && staffPort.isPresent()) {
-            assigneeId = staffPort.get().assignedNurse(cmd.residentId(), now).orElse(null);
+    private AlertRecord createNewAlert(
+            CreateAlertCommand cmd,
+            Instant now,
+            Function<AlertRecord, List<com.eldercare.backend.common.notification.NotificationRequest>> createdNotices) {
+        // Tầng của người cao tuổi kể cả khi vắng mặt; người phụ trách ban đầu theo FR-031 (BR-M05-19)
+        Long floorAreaId = cmd.floorAreaId();
+        if (floorAreaId == null && cmd.residentId() != null) {
+            floorAreaId = responsibility.floorOf(cmd.residentId(), now).orElse(null);
         }
+        Instant deadline = calculateDeadline(cmd.level(), now, floorAreaId);
+        Long assigneeId = responsibility
+                .initialAssignee(cmd.residentId(), floorAreaId, now)
+                .orElse(null);
 
         var newRecord = new AlertRecord(
                 0L,
                 cmd.residentId(),
-                cmd.floorAreaId(),
+                floorAreaId,
                 cmd.type(),
                 cmd.typeLock(),
                 cmd.level(),
@@ -190,7 +244,7 @@ public class AlertService {
                 false,
                 cmd.createdById(),
                 cmd.description(),
-                null,
+                cmd.requesterId(),
                 null,
                 null,
                 false,
@@ -207,14 +261,15 @@ public class AlertService {
                 created.noOnDutyDoctor(),
                 created.typeLock(),
                 now,
-                List.of()));
+                createdNotices.apply(created)));
 
         return created;
     }
 
-    private void recordSource(long alertId, CreateAlertCommand cmd, Instant now) {
+    /** Ghi dòng nguồn; trả khóa dòng vừa ghi, rỗng khi không ghi (không có nguồn hoặc đã có). */
+    private String recordSource(long alertId, CreateAlertCommand cmd, Instant now) {
         if (recordEvents.isEmpty() || cmd.sourceType() == null || cmd.sourceId() == null) {
-            return;
+            return null;
         }
         var kind = SharedKind.of("M05.ALERT_SOURCE", Map.class);
         var parent = new EntityRef("M05.ALERT", alertId);
@@ -244,34 +299,40 @@ public class AlertService {
                                     now,
                                     cmd.floorAreaId(),
                                     uniqueKey));
+            return uniqueKey;
         } catch (Exception ignored) {
             // Đã lưu hoặc trùng uniqueKey
+            return null;
         }
     }
 
+    /**
+     * Báo lặp lại (FR-038a, research S-08): sau mỗi lần gộp phát sinh mức Trung bình, đếm dòng nguồn Trung bình trong
+     * (t − 24 giờ, t]; đạt CFG-M05-02 thì báo người phụ trách và Bác sĩ trực, khóa theo dòng nguồn nên gửi lại ở mỗi lần
+     * phát sinh tiếp theo.
+     */
+    private void notifyIfRepeated(AlertRecord alert, String sourceKey, Instant now) {
+        var times = recordEvents
+                .get()
+                .list(SharedKind.of("M05.ALERT_SOURCE", Map.class), new EntityRef("M05.ALERT", alert.id()))
+                .stream()
+                .filter(event ->
+                        IncidentLevel.MEDIUM.name().equals(event.content().get("level")))
+                .map(event -> event.occurredAt())
+                .toList();
+        var setting = parameterApi.read(ParameterCode.CFG_M05_02).asTable(RepeatNotificationSetting.class);
+        int count =
+                RepeatWithin24HoursCounter.count(times, now, setting.window().toDuration());
+        if (!RepeatWithin24HoursCounter.reached(count, setting.count())) return;
+        eventPublisher.publishEvent(new AlertRepeated(
+                alert.id(),
+                count,
+                AlertNotices.SOURCE_TYPE + ":" + alert.id() + ":REPEATED:" + sourceKey,
+                now,
+                AlertNotices.repeated(alert, count, sourceKey, now)));
+    }
+
     private Instant calculateDeadline(IncidentLevel level, Instant now, Long floorAreaId) {
-        if (level == IncidentLevel.CRITICAL) {
-            return null; // Khẩn cấp không có hạn tiếp nhận, phát báo động ngay (FR-031)
-        }
-        if (level == IncidentLevel.MEDIUM) {
-            return now.plus(parameterApi
-                    .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M05_01)
-                    .asDuration());
-        }
-        if (floorAreaId == null || staffPort.isEmpty()) {
-            throw new IllegalStateException("Chưa có nguồn ca để tính hạn cảnh báo Nhẹ");
-        }
-        var shifts = staffPort.get();
-        var current = shifts.shiftAt(floorAreaId, now)
-                .orElseThrow(() -> new IllegalStateException("Chưa có ca hiện tại của tầng"));
-        var handoverLead = parameterApi
-                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M09_04)
-                .asDuration();
-        if (now.isAfter(current.endsAt().minus(handoverLead))) {
-            return shifts.nextShift(floorAreaId, now)
-                    .orElseThrow(() -> new IllegalStateException("Chưa có ca kế tiếp của tầng"))
-                    .endsAt();
-        }
-        return current.endsAt();
+        return AcknowledgementDeadlines.of(level, now, floorAreaId, parameterApi, staffPort);
     }
 }

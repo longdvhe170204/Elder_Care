@@ -105,7 +105,14 @@ class _CareChecklistScreenState extends State<CareChecklistScreen> {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => CareResultForm(task: task, repository: widget.repository, newKey: careCommandKey),
+      builder: (_) => CareResultForm(
+        task: task,
+        repository: widget.repository,
+        newKey: careCommandKey,
+        resultValues: (loaded!.snapshot.content['resultValues'] as List? ?? [])
+            .map((v) => Map<String, dynamic>.from(v as Map))
+            .toList(),
+      ),
     );
     if (saved == true && mounted) await load();
   }
@@ -125,10 +132,20 @@ class _CareChecklistScreenState extends State<CareChecklistScreen> {
         child: ListView(
           children: [
             if (busy) const LinearProgressIndicator(),
+            if (widget.repository.lastQueued)
+              Semantics(
+                liveRegion: true,
+                child: const Text('Chưa đồng bộ. Bản ghi đã lưu trên máy, sẽ đồng bộ khi có mạng.'),
+              ),
             if (error != null) Text(error!, semanticsLabel: error),
             if (loaded != null)
               Text('${loaded!.offline ? 'Chưa cập nhật · ' : 'Cập nhật '}${formatDateTime(loaded!.snapshot.loadedAt)}'),
-            if (loaded?.offline == true) const Text('Đang xem bản đã tải. Kết nối lại và tải mới trước khi ghi nhận.'),
+            if (loaded?.offline == true)
+              Text(
+                widget.repository.recorder == null
+                    ? 'Đang xem bản đã tải. Kết nối lại và tải mới trước khi ghi nhận.'
+                    : 'Đang ngoại tuyến. Bản ghi sẽ đồng bộ khi có mạng.',
+              ),
             TextButton(onPressed: busy ? null : load, child: const Text('Tải lại checklist')),
             if (loaded != null && tasks.isEmpty) const Text('Chưa có công việc trong phạm vi được giao.'),
             for (final dose in (data?['medicationDoses'] as List? ?? []).map(
@@ -158,6 +175,7 @@ class _CareChecklistScreenState extends State<CareChecklistScreen> {
                         tone: task['status'] == 'OVERDUE' ? StatusTone.urgent : StatusTone.neutral,
                       ),
                       Text(task['taskType'] as String? ?? '', style: Theme.of(context).textTheme.titleMedium),
+                      if (widget.repository.pendingTaskIds.contains(task['id'])) const Text('Chưa đồng bộ'),
                       Text(
                         (task['residentCard'] as Map?)?['fullName'] as String? ??
                             task['location'] as String? ??
@@ -165,9 +183,12 @@ class _CareChecklistScreenState extends State<CareChecklistScreen> {
                       ),
                       if (task['content'] != null) Text(task['content'] as String),
                       if (task['awaitingRemeasurementConfirmation'] == true) const Text('Chờ xác nhận đo lại'),
-                      if (loaded?.offline == false && (task['allowedCommands'] as List? ?? []).contains('record'))
+                      if ((loaded?.offline == false || widget.repository.recorder != null) &&
+                          (task['allowedCommands'] as List? ?? []).contains('record'))
                         FilledButton(
-                          onPressed: busy ? null : () => record(task),
+                          onPressed: busy || widget.repository.pendingTaskIds.contains(task['id'])
+                              ? null
+                              : () => record(task),
                           child: const Text('Ghi nhận kết quả'),
                         ),
                       for (final entry in agreements.where((a) => a['residentId'] == task['residentId']))
@@ -179,9 +200,12 @@ class _CareChecklistScreenState extends State<CareChecklistScreen> {
                         Text((task['residentCard'] as Map)['careNotes'] as String),
                       if (loaded?.offline == false && (task['allowedCommands'] as List? ?? []).contains('claim'))
                         OutlinedButton(onPressed: busy ? null : () => claim(task), child: const Text('Nhận công việc')),
-                      if (loaded?.offline == false && (task['allowedCommands'] as List? ?? []).contains('notPerform'))
+                      if ((loaded?.offline == false || widget.repository.recorder != null) &&
+                          (task['allowedCommands'] as List? ?? []).contains('notPerform'))
                         OutlinedButton(
-                          onPressed: busy ? null : () => notPerform(task),
+                          onPressed: busy || widget.repository.pendingTaskIds.contains(task['id'])
+                              ? null
+                              : () => notPerform(task),
                           child: const Text('Không thực hiện được…'),
                         ),
                     ],
@@ -245,7 +269,7 @@ class _NotPerformedFormState extends State<_NotPerformedForm> {
       error = null;
     });
     try {
-      await widget.repository.gateway.notPerform(widget.taskId, reason!, note.text, retryKey!);
+      await widget.repository.notPerform(widget.taskId, reason!, note.text, retryKey!);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {

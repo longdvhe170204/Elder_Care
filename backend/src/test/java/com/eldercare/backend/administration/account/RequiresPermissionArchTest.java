@@ -28,6 +28,41 @@ class RequiresPermissionArchTest {
     /** Lệnh tự kiểm quyền: {@code Lớp.phươngThức} → cách kiểm. Thêm dòng thì người xem lại kiểm lệnh có tự kiểm thật. */
     static final Map<String, String> SELF_CHECKED = Map.ofEntries(
             Map.entry(
+                    "com.eldercare.backend.nutrition.internal.catalog.service.DishService.command",
+                    "PermissionApi.hasPermission DISH_MENU: UPDATE cho lệnh của Nhân viên bếp, APPROVE cho lệnh của Bác sĩ,"
+                            + " ngừng hiệu lực một trong hai (bảng trạng thái món, Q-308); 011 FR-004a"),
+            Map.entry(
+                    "com.eldercare.backend.nutrition.internal.slip.service.MealSlipService.floorCommand",
+                    "PermissionApi.hasPermission MEAL_RECEIPT (CONFIRM nhận, CREATE báo sai lệch) theo tầng/khu của phiếu;"
+                            + " ngoài phạm vi trả 403 OUT_OF_RECEIVING_SCOPE (quickstart Q33); 011 FR-048"),
+            Map.entry(
+                    "com.eldercare.backend.nutrition.internal.slip.service.MealSlipService.supplementFloorCommand",
+                    "như floorCommand, trên phần bổ sung của phiếu; 011 FR-048b"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.book",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.reschedule",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.cancel",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.recordDeparture",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.vehicle.service.VehicleScheduleService.recordReturn",
+                    "Lệnh lịch xe"
+                            + " tự kiểm vai trò (Trưởng tầng, Hành chính, Quản lý viện; người đặt) và khóa ASSET_VEHICLE qua PermissionApi.permissions: lịch xe toàn viện không gắn tầng nên Trưởng tầng phạm vi ASSIGNED bị chặn ở lớp quyền (019 FR-017, FR-018, FR-020)"),
+            Map.entry(
+                    "com.eldercare.backend.billing.internal.procurement.service.ProcurementRequestService.create",
+                    "PermissionApi.hasPermission (PURCHASE_REQUEST, CREATE) không gắn đối tượng, hoặc với loại thuốc trên từng"
+                            + " người cao tuổi của dòng (Phụ lục 27 ⁴⁴); 019 FR-008d"),
+            Map.entry(
                     "com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.editContent",
                     "khóa Lập theo loại yêu cầu (RequestTypeHandler.createPermission), chỉ người yêu cầu; 000 FR-034"),
             Map.entry(

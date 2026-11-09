@@ -18,9 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class FacilitySources implements FacilityLicenseApi, FacilityContactApi {
-    private static final SharedKind<Map> LICENSE =
+    static final SharedKind<Map> LICENSE =
             SharedKind.of("M06.FACILITY_LICENSE", Map.class).notDeletable();
-    private static final SharedKind<Map> CONTACT =
+    static final SharedKind<Map> CONTACT =
             SharedKind.of("M06.FACILITY_CONTACT", Map.class).notDeletable();
     private final CatalogApi catalogs;
     private final BusinessTime time;

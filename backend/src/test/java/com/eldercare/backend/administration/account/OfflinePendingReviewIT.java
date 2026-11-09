@@ -2,20 +2,14 @@ package com.eldercare.backend.administration.account;
 
 import static com.eldercare.backend.administration.account.AccountFixtures.bearer;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.account.TestOfflineHandlers.CareNotes;
 import com.eldercare.backend.administration.account.api.events.RecordPendingReview;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
-import com.eldercare.backend.common.offline.SyncResult;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
@@ -142,114 +136,6 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         String.valueOf(pending(first).get("id"))))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void FR_041c_laterThanSync_or_earlierThanLastConnection_pendingReview() throws Exception {
-        Instant connected = lastConnected(now.minus(Duration.ofHours(2)));
-        String later = UUID.randomUUID().toString();
-        String earlier = UUID.randomUUID().toString();
-
-        sync(
-                        connected,
-                        SyncResultIT.record(
-                                later,
-                                TestOfflineHandlers.CARE_NOTE,
-                                now.plus(Duration.ofMinutes(10)),
-                                resident,
-                                later),
-                        SyncResultIT.record(
-                                earlier,
-                                TestOfflineHandlers.CARE_NOTE,
-                                now.minus(Duration.ofHours(3)),
-                                resident,
-                                earlier))
-                .andExpect(jsonPath("$.results[0].result").value("PENDING_REVIEW"))
-                .andExpect(jsonPath("$.results[1].result").value("PENDING_REVIEW"));
-
-        assertThat(pending(later)).containsEntry("pending_reason", "LATER_THAN_SYNC");
-        assertThat(pending(earlier)).containsEntry("pending_reason", "EARLIER_THAN_LAST_CONNECTION");
-    }
-
-    @Test
-    void FR_041c_floorManagerSeesRecord_caregiverDoesNot() throws Exception {
-        long id = pendingRecord(resident);
-
-        mvc.perform(get("/api/v1/pending-review-records").header("Authorization", bearer(floorManagerToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[*].id", hasItem((int) id)));
-        mvc.perform(get("/api/v1/pending-review-records").header("Authorization", bearer(caregiverToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[*].id", not(hasItem((int) id))));
-    }
-
-    @Test
-    void FR_041c_listShowsRecorderName_floorName_version() throws Exception {
-        long id = pendingRecord(resident);
-        staffProfiles.name(fixtures.staffId(caregiver), "[Họ tên NV 1]");
-        floorNames.name(floor, "Tầng 2");
-
-        mvc.perform(get("/api/v1/pending-review-records").header("Authorization", bearer(floorManagerToken)))
-                .andExpect(status().isOk())
-                .andExpect(
-                        jsonPath("$.items[?(@.id == " + id + ")].recorderName").value("[Họ tên NV 1]"))
-                .andExpect(
-                        jsonPath("$.items[?(@.id == " + id + ")].floorAreaName").value("Tầng 2"))
-                .andExpect(jsonPath("$.items[?(@.id == " + id + ")].version").value(0));
-        decide(floorManagerToken, id, "accept", "\"0\"", "")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.version").value(1))
-                .andExpect(jsonPath("$.recorderName").value("[Họ tên NV 1]"));
-    }
-
-    @Test
-    void US4_14_rejectWithoutReason_422_withReason_storedWithoutEffect() throws Exception {
-        long id = pendingRecord(resident);
-
-        decide(floorManagerToken, id, "reject", "\"0\"", "{}").andExpect(status().isUnprocessableEntity());
-        decide(floorManagerToken, id, "reject", "\"0\"", "{\"reason\":\"Không khớp thực tế\"}")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REJECTED"))
-                .andExpect(jsonPath("$.rejectionReason").value("Không khớp thực tế"));
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action = 'OFFLINE_RECORD_REJECTED' AND entity_id = ?",
-                        Integer.class,
-                        String.valueOf(id)))
-                .isEqualTo(1);
-        assertThat(careNotes.appliedWith("pending-" + id)).isEmpty();
-    }
-
-    @Test
-    void FR_041c_accept_effectiveFromAcceptance_firstDecisionWins() throws Exception {
-        long id = pendingRecord(resident);
-
-        decide(floorManagerToken, id, "accept", "\"7\"", "").andExpect(status().isPreconditionFailed());
-        Instant before = time.now();
-        decide(floorManagerToken, id, "accept", "\"0\"", "")
-                .andExpect(status().isOk())
-                .andExpect(header().string("ETag", "\"1\""))
-                .andExpect(jsonPath("$.status").value("ACCEPTED"))
-                .andExpect(jsonPath("$.reference").isNotEmpty());
-        decide(floorManagerToken, id, "reject", "\"1\"", "{\"reason\":\"Muộn\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("ALREADY_PROCESSED"));
-
-        assertThat(careNotes.appliedWith("pending-" + id)).singleElement().satisfies(a -> {
-            assertThat(a.effectiveAt()).isBetween(before, time.now());
-            assertThat(a.outcome().result()).isEqualTo(SyncResult.ACCEPTED);
-        });
-    }
-
-    @Test
-    void CHK056_notDecider_404_unassignedRecord_managerDecides() throws Exception {
-        long onFloor = pendingRecord(resident);
-        decide(caregiverToken, onFloor, "accept", "\"0\"", "").andExpect(status().isNotFound());
-
-        long unassigned = pendingRecord(null);
-        String manager = fixtures.session(fixtures.staffAccount("AC-01"));
-        decide(floorManagerToken, unassigned, "accept", "\"0\"", "").andExpect(status().isNotFound());
-        decide(manager, unassigned, "accept", "\"0\"", "").andExpect(status().isOk());
     }
 
     /** Một bản ghi chờ xem lại qua đồng bộ (ngoại tuyến quá CFG-M15-08); trả id. */

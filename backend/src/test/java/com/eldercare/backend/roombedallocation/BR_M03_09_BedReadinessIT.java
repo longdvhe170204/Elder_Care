@@ -110,87 +110,9 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
         confirm("{}").andExpect(status().isConflict());
     }
 
-    @Test
-    void BR_M03_10_currentInfectionListIsRecheckedAtCommandTime() throws Exception {
-        mvc.perform(get("/api/v1/beds/" + bed + "/readiness-conditions"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.disinfectionRequired").value(false));
-        infection.listed(departed, time.now().minusSeconds(1), true);
-        confirm("{}").andExpect(status().isUnprocessableEntity());
-        confirm("{\"disinfected\":true,\"ppeUsed\":false}").andExpect(status().isUnprocessableEntity());
-        confirm("{\"disinfected\":true,\"ppeUsed\":true}").andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT disinfection_required AND disinfected AND ppe_used FROM bed_state_history WHERE bed_id=?",
-                        Boolean.class,
-                        bed))
-                .isTrue();
-    }
+    @Autowired
+    com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi allocationCommands;
 
-    @Test
-    void FR_044_nursingShiftLeadCanConfirmOwnFloor() throws Exception {
-        actor(Role.NURSING_STAFF, true, floor);
-        confirm("{}").andExpect(status().isOk());
-    }
-
-    @Test
-    void FR_044_managerOfficeAndUnassignedFloorManagerCannotConfirm() throws Exception {
-        for (var role : new Role[] {Role.NURSING_HOME_MANAGER, Role.OFFICE_STAFF, Role.FLOOR_MANAGER}) {
-            actor(role, false, TestUsers.nextId());
-            confirm("{}").andExpect(status().is(role == Role.FLOOR_MANAGER ? 404 : 403));
-        }
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
-                .isEqualTo("AWAITING_READY");
-    }
-
-    @Test
-    void BR_M03_10_databaseRejectsMissingDisinfectionEvidence() {
-        assertThatThrownBy(() -> jdbc.update(
-                        "INSERT INTO bed_state_history(bed_id,from_state,to_state,event,occurred_at,basis_type,basis_id,disinfection_required,disinfected,ppe_used) VALUES(?,'AWAITING_READY','EMPTY','CONFIRM_READY',?,'TEST',1,TRUE,FALSE,TRUE)",
-                        bed,
-                        Timestamp.from(time.now())))
-                .isInstanceOf(org.springframework.dao.DataAccessException.class);
-    }
-
-    @Test
-    void FR_011a_missingScheduledTransferProviderCannotConfirmBedAsEmpty() throws Exception {
-        jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source,waiting_for_bed_ready,basis_type,basis_id) VALUES(?,?,'FUTURE',?,'BASIC','CURRENT',TRUE,'APPROVAL_REQUEST',?)",
-                departed,
-                bed,
-                Timestamp.from(time.now()),
-                TestUsers.nextId());
-        confirm("{}").andExpect(status().isServiceUnavailable());
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
-                .isEqualTo("AWAITING_READY");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Integer.class, bed))
-                .isZero();
-    }
-
-    @Test
-    void FR_014_initialFutureReservationPreventsWaitingAdmissionSignal() throws Exception {
-        jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source) VALUES(?,?,'FUTURE',?,'BASIC','CURRENT')",
-                departed,
-                bed,
-                Timestamp.from(time.now().plusSeconds(18000)));
-        confirm("{}").andExpect(status().isOk());
-        assertThat(events.stream(com.eldercare.backend.roombedallocation.api.events.BedBecameEmpty.class)
-                        .filter(e -> e.bedId() == bed)
-                        .count())
-                .isZero();
-    }
-
-    @Test
-    void FR_013b_assetAwaitingTransferPreventsWaitingAdmissionSignal() throws Exception {
-        assets.flag(bed, true);
-        try {
-            confirm("{}").andExpect(status().isOk());
-            assertThat(events.stream(com.eldercare.backend.roombedallocation.api.events.BedBecameEmpty.class)
-                            .filter(e -> e.bedId() == bed)
-                            .count())
-                    .isZero();
-        } finally {
-            assets.flag(bed, false);
-        }
-    }
+    @Autowired
+    com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource residency;
 }

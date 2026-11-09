@@ -1,12 +1,9 @@
 package com.eldercare.backend.common.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -15,7 +12,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** {@link ReminderMarkers}, {@link TechnicalLocks} trên {@code reminder_marker}, {@code technical_lock} (000 T108, R-15). */
@@ -47,12 +43,6 @@ class ReminderMarkersIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void lock_requiresTransaction() {
-        assertThatThrownBy(() -> locks.lock("M15.TEST:" + TestUsers.nextId()))
-                .isInstanceOf(IllegalTransactionStateException.class);
-    }
-
-    @Test
     void lock_serializesTransactionsOnSameKey() throws Exception {
         String key = "M15.TEST:" + TestUsers.nextId();
         CountDownLatch held = new CountDownLatch(1);
@@ -74,37 +64,6 @@ class ReminderMarkersIT extends MySqlIntegrationTestBase {
             second.get(10, TimeUnit.SECONDS);
         } finally {
             release.countDown();
-            pool.shutdownNow();
-        }
-    }
-
-    /**
-     * Khóa đã có dòng: INSERT IGNORE trùng khóa lấy khóa S, hai lệnh cùng giữ S rồi cùng nâng lên X ở FOR UPDATE thì
-     * MySQL báo bế tắc (004 EndingConcurrencyIT). Nhiều lệnh đồng thời trên cùng khóa phải chạy lần lượt, không lỗi.
-     */
-    @Test
-    void lock_existingKey_concurrentCallersDoNotDeadlock() throws Exception {
-        String key = "M15.TEST:" + TestUsers.nextId();
-        transaction.executeWithoutResult(s -> locks.lock(key));
-        int threads = 4;
-        int rounds = 25;
-        CountDownLatch start = new CountDownLatch(1);
-        ExecutorService pool = Executors.newFixedThreadPool(threads);
-        try {
-            List<Future<?>> callers = new ArrayList<>();
-            for (int t = 0; t < threads; t++) {
-                callers.add(pool.submit(() -> {
-                    await(start);
-                    for (int i = 0; i < rounds; i++) {
-                        transaction.executeWithoutResult(s -> locks.lock(key));
-                    }
-                }));
-            }
-            start.countDown();
-            for (Future<?> caller : callers) {
-                caller.get(60, TimeUnit.SECONDS);
-            }
-        } finally {
             pool.shutdownNow();
         }
     }

@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationApi;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.roombedallocation.api.LocationApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationLocation;
@@ -26,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** T026: bản thật nguồn vị trí cho M03/002, bất nhất phải báo lỗi nguồn FR-041b. */
 @Service
 @Transactional(readOnly = true)
-public class AllocationQueries implements BedAllocationApi, ResidentLocationApi {
+public class AllocationQueries implements BedAllocationApi, ResidentLocationApi, LocationApi {
     private final AllocationStore store;
     private final BusinessTime time;
 

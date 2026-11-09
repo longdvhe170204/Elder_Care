@@ -3,7 +3,7 @@ package com.eldercare.backend.staffing.internal.service;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.common.error.NotFoundException;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 
 /** T009/T012: phạm vi lấy từ lịch/ca thật; không suy phạm vi từ mã nhân viên. */
 public class ShiftScopeAssignment implements ScopeAssignmentProvider {

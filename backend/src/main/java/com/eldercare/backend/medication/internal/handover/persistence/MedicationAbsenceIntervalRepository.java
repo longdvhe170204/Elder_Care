@@ -1,26 +1,91 @@
 package com.eldercare.backend.medication.internal.handover.persistence;
 
+import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
+import com.eldercare.backend.administration.shared.api.dto.RecordChange;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
+import com.eldercare.backend.medication.internal.governance.persistence.RecordActor;
+import com.eldercare.backend.medication.internal.handover.domain.AbsenceIntervalContent;
 import com.eldercare.backend.medication.internal.handover.domain.MedicationAbsenceInterval;
-import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import java.util.Set;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface MedicationAbsenceIntervalRepository extends JpaRepository<MedicationAbsenceInterval, Long> {
+/**
+ * Khoảng vắng trên {@code simple_record} loại {@code M07.ABSENCE_INTERVAL} (006 T069, {@code V006_98}). Trạng thái
+ * {@code OPEN}, {@code CLOSED}; khoảng mở giữ {@code unique_key} {@code M07.AI:<residentId>} (thay
+ * {@code uq_open_absence_resident}), khi đóng thì nhả.
+ */
+@Repository
+@Transactional
+public class MedicationAbsenceIntervalRepository {
 
-    List<MedicationAbsenceInterval> findByResidentId(Long residentId);
+    private static final Set<String> ALL = Set.of("OPEN", "CLOSED");
 
-    @Query("SELECT a FROM MedicationAbsenceInterval a WHERE a.residentId = :residentId AND a.actualToTime IS NULL")
-    Optional<MedicationAbsenceInterval> findOpenByResidentId(@Param("residentId") Long residentId);
+    private final SimpleRecordApi rows;
+    private final RecordActor actor;
 
-    @Query("SELECT a FROM MedicationAbsenceInterval a WHERE a.residentId = :residentId "
-            + "AND a.fromTime <= :toTime AND (a.expectedToTime IS NULL OR a.expectedToTime >= :fromTime)")
-    List<MedicationAbsenceInterval> findOverlapping(
-            @Param("residentId") Long residentId, @Param("fromTime") Instant fromTime, @Param("toTime") Instant toTime);
+    public MedicationAbsenceIntervalRepository(SimpleRecordApi rows, RecordActor actor) {
+        this.rows = rows;
+        this.actor = actor;
+    }
 
-    Optional<MedicationAbsenceInterval> findByAbsenceSessionId(Long absenceSessionId);
+    private static String openKey(long residentId) {
+        return "M07.AI:" + residentId;
+    }
 
-    Optional<MedicationAbsenceInterval> findByTripId(Long tripId);
+    private static MedicationAbsenceInterval toDomain(SimpleRecord<AbsenceIntervalContent> row) {
+        MedicationAbsenceInterval interval = MedicationAbsenceInterval.restore(row.residentId(), row.content());
+        interval.restoreRow(row.id(), row.version(), row.createdAt());
+        return interval;
+    }
+
+    public MedicationAbsenceInterval save(MedicationAbsenceInterval interval) {
+        String status = interval.isOpen() ? "OPEN" : "CLOSED";
+        String key = interval.isOpen() ? openKey(interval.getResidentId()) : null;
+        SimpleRecord<AbsenceIntervalContent> row = interval.getId() == null
+                ? rows.create(
+                        AbsenceIntervalContent.KIND,
+                        new NewSimpleRecord<>(
+                                interval.getResidentId(),
+                                new EntityRef("M01.RESIDENT", interval.getResidentId()),
+                                status,
+                                interval.content(),
+                                null,
+                                null,
+                                key,
+                                actor.accountId(),
+                                false))
+                : rows.change(
+                                AbsenceIntervalContent.KIND,
+                                interval.getId(),
+                                interval.getVersion(),
+                                new RecordChange<>(status, interval.content(), null, key, false))
+                        .after();
+        interval.restoreRow(row.id(), row.version(), row.createdAt());
+        return interval;
+    }
+
+    public Optional<MedicationAbsenceInterval> findOpenByResidentId(Long residentId) {
+        return rows.findByUniqueKey(AbsenceIntervalContent.KIND, openKey(residentId))
+                .map(MedicationAbsenceIntervalRepository::toDomain);
+    }
+
+    /** Mọi khoảng vắng của người cao tuổi, mở và đã đóng (đầu vào lịch thuốc, research D-06). */
+    public List<MedicationAbsenceInterval> findByResidentId(Long residentId) {
+        return rows.listByResident(AbsenceIntervalContent.KIND, residentId, ALL).stream()
+                .map(MedicationAbsenceIntervalRepository::toDomain)
+                .toList();
+    }
+
+    public Optional<MedicationAbsenceInterval> findByTripId(Long tripId) {
+        return rows.listByStatus(AbsenceIntervalContent.KIND, ALL).stream()
+                .filter(row -> Objects.equals(row.content().tripId(), tripId))
+                .map(MedicationAbsenceIntervalRepository::toDomain)
+                .findFirst();
+    }
 }

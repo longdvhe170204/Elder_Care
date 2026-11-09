@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
@@ -115,7 +116,22 @@ class ApiClient {
     if (headers != null) request.headers.addAll(headers);
   }
 
+  /// Tải nội dung nhị phân (001: `GET /files/{id}`, ảnh thật ở thẻ người cao tuổi; 2026-11-07). Lỗi vẫn là
+  /// [ApiProblem] theo Problem Details, mất mạng là [ApiUnreachable] như yêu cầu JSON.
+  Future<Uint8List> getBytes(String path, {Map<String, String>? headers}) async {
+    final request = http.Request('GET', Uri.parse('$baseUrl/api/v1$path'));
+    _prepare(request, headers);
+    request.headers['Accept'] = '*/*, application/problem+json';
+    return (await _send(request, binary: true)).$1.bodyBytes;
+  }
+
   Future<ApiResponse> _dispatch(http.BaseRequest request) async {
+    final (response, decoded) = await _send(request);
+    return ApiResponse(decoded, response.headers);
+  }
+
+  /// Gửi, báo người nghe, ném lỗi theo Problem Details. `binary`: thân thành công không phải JSON, chỉ giải mã khi lỗi.
+  Future<(http.Response, Object?)> _send(http.BaseRequest request, {bool binary = false}) async {
     final http.Response response;
     try {
       response = await http.Response.fromStream(await _http.send(request));
@@ -123,8 +139,11 @@ class ApiClient {
       throw ApiUnreachable();
     }
     lastConnectedAt = DateTime.now().toUtc();
-    final text = utf8.decode(response.bodyBytes);
-    final decoded = text.isEmpty ? null : jsonDecode(text);
+    Object? decoded;
+    if (!binary || response.statusCode >= 400) {
+      final text = utf8.decode(response.bodyBytes, allowMalformed: binary);
+      decoded = text.isEmpty ? null : (binary ? _tryJson(text) : jsonDecode(text));
+    }
     final errorCode = decoded is Map<String, dynamic> ? decoded['errorCode'] as String? : null;
     final background = request.headers['X-Background-Refresh'] == 'true';
     for (final listener in List.of(_listeners)) {
@@ -134,6 +153,14 @@ class ApiClient {
       final problem = decoded is Map<String, dynamic> ? decoded : const <String, dynamic>{};
       throw ApiProblem(response.statusCode, problem['errorCode'] as String?, problem['detail'] as String?, problem);
     }
-    return ApiResponse(decoded, response.headers);
+    return (response, decoded);
+  }
+
+  static Object? _tryJson(String text) {
+    try {
+      return jsonDecode(text);
+    } on FormatException {
+      return null;
+    }
   }
 }

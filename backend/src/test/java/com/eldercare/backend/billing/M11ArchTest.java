@@ -33,7 +33,7 @@ class M11ArchTest {
         noClasses()
                 .that()
                 .resideOutsideOfPackages(
-                        "com.eldercare.backend.billing.internal.balance..",
+                        "com.eldercare.backend.billing.balance..",
                         "com.eldercare.backend.billing.internal.procurement..")
                 .should()
                 .callMethodWhere(port("CostForBalancePort"))
@@ -64,6 +64,34 @@ class M11ArchTest {
                     public boolean test(JavaMethodCall call) {
                         return call.getTarget().getOwner().getPackageName().startsWith("com.eldercare.backend.billing.")
                                 && forbidden.contains(call.getTarget().getName());
+                    }
+                })
+                .allowEmptyShould(true)
+                .check(MAIN);
+    }
+
+    /**
+     * 017 T001 (research E-01, Q-306): job của phần số dư chỉ tính tình trạng, nhắc, đối chiếu; không ghi giao dịch.
+     * Giao dịch chỉ ghi qua lệnh của Kế toán, lệnh duyệt hoặc listener chốt bảng ({@code internal.transaction},
+     * {@code internal.ledger} hàm {@code post…}).
+     */
+    @Test
+    void Q_306_balanceSchedulersDoNotPostTransactions() {
+        noClasses()
+                .that()
+                .resideInAPackage("com.eldercare.backend.billing.balance.scheduling..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage("com.eldercare.backend.billing.balance.internal.transaction..")
+                .orShould()
+                .callMethodWhere(new DescribedPredicate<>("ghi giao dịch số dư") {
+                    @Override
+                    public boolean test(JavaMethodCall call) {
+                        return call.getTarget()
+                                        .getOwner()
+                                        .getPackageName()
+                                        .startsWith("com.eldercare.backend.billing.balance.")
+                                && call.getTarget().getName().startsWith("post");
                     }
                 })
                 .allowEmptyShould(true)

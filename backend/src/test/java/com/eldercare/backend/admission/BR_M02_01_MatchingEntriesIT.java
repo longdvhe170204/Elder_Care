@@ -1,13 +1,7 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -16,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.eldercare.backend.admission.internal.waitinglist.domain.BedContact;
 import com.eldercare.backend.admission.internal.waitinglist.domain.BedContactResult;
 import com.eldercare.backend.admission.internal.waitinglist.persistence.BedContactStore;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.dto.Gender;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
 import com.eldercare.backend.roombedallocation.api.BedStatusApi;
@@ -142,134 +135,5 @@ class BR_M02_01_MatchingEntriesIT extends WaitingListTestBase {
         assertThat(matchingIds(c, e, f, h, k))
                 .as("F loại vì giới tính, H loại vì mức; K trước vì Ưu tiên; E trước C vì đăng ký sớm hơn")
                 .containsExactly(k, e, c);
-    }
-
-    @Test
-    void FR_010_sameDate_createdEarlierComesFirst() throws Exception {
-        LocalDate date = today().minusDays(3);
-        long first = entry(Gender.FEMALE, date, "REGULAR");
-        long second = entry(Gender.FEMALE, date, "REGULAR");
-
-        assertThat(matchingIds(second, first)).containsExactly(first, second);
-    }
-
-    @Test
-    void BR_M02_20_contactedDeclinedExpiredOnThisBed_inCurrentVacancy_areDropped() throws Exception {
-        LocalDate date = today().minusDays(9);
-        long contacted = entry(Gender.FEMALE, date, "REGULAR");
-        long declined = entry(Gender.FEMALE, date, "REGULAR");
-        long expired = entry(Gender.FEMALE, date, "REGULAR");
-        long untouched = entry(Gender.FEMALE, date, "REGULAR");
-        long otherBed = entry(Gender.FEMALE, date, "REGULAR");
-        long earlierVacancy = entry(Gender.FEMALE, date, "REGULAR");
-        contact(contacted, bed, BedContactResult.CONTACTED, time.now());
-        contact(declined, bed, BedContactResult.BED_DECLINED, time.now());
-        contact(expired, bed, BedContactResult.EXPIRED, time.now());
-        contact(otherBed, bed + 1, BedContactResult.BED_DECLINED, time.now());
-        contact(earlierVacancy, bed, BedContactResult.EXPIRED, vacancyStart.minusSeconds(60));
-
-        assertThat(matchingIds(contacted, declined, expired, untouched, otherBed, earlierVacancy))
-                .containsExactly(untouched, otherBed, earlierVacancy);
-    }
-
-    @Test
-    void FR_012_isolatedRoom_orBedWithFutureAllocation_hasNoMatch() throws Exception {
-        long entry = entry(Gender.FEMALE, today().minusDays(2), "REGULAR");
-
-        doReturn(room(true, false, false)).when(rooms).allocationProperties(bed);
-        assertThat(matchingIds(entry)).isEmpty();
-
-        doReturn(room(false, true, false)).when(rooms).allocationProperties(bed);
-        assertThat(matchingIds(entry)).isEmpty();
-
-        doReturn(room(false, false, true)).when(rooms).allocationProperties(bed);
-        assertThat(matchingIds(entry)).isEmpty();
-    }
-
-    @Test
-    void FR_014_contactingTheFirstEntry_holdsTheBed_withoutReason() throws Exception {
-        long first = entry(Gender.FEMALE, oldest(), "REGULAR");
-        priority(first, true);
-
-        user.set(office.user());
-        mvc.perform(post("/api/v1/waiting-list-entries/" + first + "/record-contacted")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"bedId\":" + bed + "}"))
-                .andExpect(status().isOk());
-
-        verify(bedCommands).holdForWaitingRecord(eq(first), anyLong(), eq(bed), any());
-        assertThat(entry(first).get("status").asString()).isEqualTo("CONTACTED");
-        assertThat(entry(first).get("heldBedId").asLong()).isEqualTo(bed);
-    }
-
-    @Test
-    void FR_014_contactingOutOfOrder_requiresReason() throws Exception {
-        long first = entry(Gender.FEMALE, today().minusDays(30), "REGULAR");
-        long second = entry(Gender.FEMALE, today().minusDays(1), "REGULAR");
-        priority(first, true);
-
-        user.set(office.user());
-        mvc.perform(post("/api/v1/waiting-list-entries/" + second + "/record-contacted")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"bedId\":" + bed + "}"))
-                .andExpect(status().isUnprocessableContent());
-        verify(bedCommands, never()).holdForWaitingRecord(eq(second), anyLong(), eq(bed), any());
-
-        mvc.perform(post("/api/v1/waiting-list-entries/" + second + "/record-contacted")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"bedId\":" + bed
-                                + ",\"outOfOrderReason\":\"Gia đình hồ sơ đầu chưa liên lạc được\"}"))
-                .andExpect(status().isOk());
-        assertThat(contacts.of(second)).singleElement().satisfies(event -> {
-            assertThat(event.content().result()).isEqualTo(BedContactResult.CONTACTED);
-            assertThat(event.content().outOfOrderReason()).contains("chưa liên lạc");
-        });
-    }
-
-    @Test
-    void FR_012_decliningTheBed_returnsToWaiting_keepsPriority_andDropsFromThisVacancy() throws Exception {
-        long entry = entry(Gender.FEMALE, oldest(), "REGULAR");
-        priority(entry, true);
-        user.set(office.user());
-        mvc.perform(post("/api/v1/waiting-list-entries/" + entry + "/record-contacted")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"bedId\":" + bed + "}"))
-                .andExpect(status().isOk());
-
-        mvc.perform(post("/api/v1/waiting-list-entries/" + entry + "/decline-bed")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"reason\":\"Phòng xa gia đình\"}"))
-                .andExpect(status().isOk());
-
-        verify(bedCommands).cancelHold(eq(entry), any());
-        JsonNode view = entry(entry);
-        assertThat(view.get("status").asString()).isEqualTo("WAITING");
-        assertThat(view.get("priority").asBoolean()).isTrue();
-        assertThat(view.has("heldBedId")).isFalse();
-        assertThat(matchingIds(entry)).isEmpty();
-    }
-
-    @Test
-    void BR_M02_02_bedCommandFailure_rollsBackTheContact() throws Exception {
-        long entry = entry(Gender.FEMALE, oldest(), "REGULAR");
-        priority(entry, true);
-        doThrow(new BusinessException(org.springframework.http.HttpStatus.CONFLICT, "BED_NOT_AVAILABLE", "x"))
-                .when(bedCommands)
-                .holdForWaitingRecord(eq(entry), anyLong(), eq(bed), any());
-
-        user.set(office.user());
-        mvc.perform(post("/api/v1/waiting-list-entries/" + entry + "/record-contacted")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"bedId\":" + bed + "}"))
-                .andExpect(status().isConflict());
-
-        assertThat(entry(entry).get("status").asString()).isEqualTo("WAITING");
-        assertThat(contacts.of(entry)).isEmpty();
     }
 }

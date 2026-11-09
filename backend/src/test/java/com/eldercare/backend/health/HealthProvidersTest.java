@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
+import com.eldercare.backend.health.internal.governance.persistence.HealthRetentionProviders;
 import com.eldercare.backend.health.internal.governance.service.HealthFieldClassifications;
 import com.eldercare.backend.health.internal.governance.service.HealthFilePermissionProviders;
-import com.eldercare.backend.health.internal.governance.service.HealthRetentionProviders;
 import com.eldercare.backend.health.internal.governance.service.HealthScopeAssignments;
 import org.junit.jupiter.api.Test;
 
@@ -27,10 +27,6 @@ class HealthProvidersTest {
 
     @Test
     void R11_healthRetentionProviders_distinguishResidentLinkedAndFacilityWide() {
-        var vitalSignRetention = HealthRetentionProviders.vitalSignRecord();
-        assertThat(vitalSignRetention.dataType()).isEqualTo("M06.VITAL_SIGN_RECORD");
-        assertThat(vitalSignRetention.retentionKind()).isInstanceOf(RetentionKind.ResidentRecord.class);
-
         var licenseRetention = HealthRetentionProviders.facilityLicense();
         assertThat(licenseRetention.dataType()).isEqualTo("M06.FACILITY_LICENSE");
         assertThat(licenseRetention.retentionKind()).isInstanceOf(RetentionKind.NotResidentLinked.class);

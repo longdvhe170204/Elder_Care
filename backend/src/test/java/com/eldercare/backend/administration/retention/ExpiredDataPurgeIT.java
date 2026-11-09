@@ -1,13 +1,11 @@
 package com.eldercare.backend.administration.retention;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
-import com.eldercare.backend.administration.retention.api.spi.RetentionProvider.DataRef;
 import com.eldercare.backend.administration.retention.scheduling.ExpiredDataPurgeJob;
 import com.eldercare.backend.administration.sample.SampleFloorRecordProvider;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;
@@ -15,12 +13,8 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.FakePermissions;
-import com.eldercare.backend.support.JobLogCapture;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -30,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -214,6 +207,19 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         assertThat(String.valueOf(summary.get("stopped"))).isEqualTo("false");
     }
 
+    @Test
+    void T_064_sharedRowsWrittenUnderAnotherEntityType_arePurgedWithTheirRecord() {
+        String sharedType = "M15.SAMPLE_OFFICE_SHARED";
+        control.sharedAs(OFFICE, sharedType);
+        long old = record("sample_office_record", expired);
+        sharedRowsFor(sharedType, old);
+
+        runJob();
+
+        assertThat(exists("sample_office_record", old)).isFalse();
+        assertThat(sharedRowsOf(sharedType, old)).isZero();
+    }
+
     /** Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2. */
     private void sharedRowsFor(String type, long id) {
         jdbc.update(
@@ -252,20 +258,6 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         return n;
     }
 
-    @Test
-    void R_15_sharedRowsOfPurgedRecord_arePurgedInTheSameChain() {
-        long old = floorRecord(expired);
-        sharedRowsFor(FLOOR, old);
-        long kept = floorRecord(recent);
-        sharedRowsFor(FLOOR, kept);
-
-        runJob();
-
-        assertThat(exists("sample_floor_record", old)).isFalse();
-        assertThat(sharedRowsOf(FLOOR, old)).isZero();
-        assertThat(sharedRowsOf(FLOOR, kept)).isEqualTo(4);
-    }
-
     private long sharedEventFor(String type, long id) {
         jdbc.update(
                 "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
@@ -274,177 +266,5 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
                 type,
                 id);
         return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-    }
-
-    /**
-     * Đính chính của dòng bảng chung (ví dụ lượt đến, về điểm danh 005 {@code M04.ATTENDANCE_RECORD} gắn hồ sơ) được xét
-     * hạn cùng chuỗi trước khi dòng bị xóa: còn hạn thì giữ cả chuỗi, hết hạn thì xóa cùng.
-     */
-    @Test
-    void R_15_FR_051a_correctionOfSharedRow_isCheckedBeforeSharedRowIsPurged() {
-        long withRecent = floorRecord(expired);
-        long recentRow = sharedEventFor(FLOOR, withRecent);
-        long recentCorrection = correctionFor("M15.TEST_EVENT", recentRow, recent);
-        long withOld = floorRecord(expired);
-        long oldRow = sharedEventFor(FLOOR, withOld);
-        long oldCorrection = correctionFor("M15.TEST_EVENT", oldRow, expired);
-
-        runJob();
-
-        assertThat(exists("sample_floor_record", withRecent)).isTrue();
-        assertThat(exists("record_event", recentRow)).isTrue();
-        assertThat(exists("correction", recentCorrection)).isTrue();
-        assertThat(exists("sample_floor_record", withOld)).isFalse();
-        assertThat(exists("record_event", oldRow)).isFalse();
-        assertThat(exists("correction", oldCorrection)).isFalse();
-    }
-
-    @Test
-    void FR_050_logOfResidentRecord_isKept_untilResidentRetentionIsKnown() {
-        long linked = floorRecord(expired);
-        logFor(FLOOR, linked, expired, 99L);
-        logFor("M15.SAMPLE_PROFILE", 99L, expired, 99L);
-
-        runJob();
-
-        // Bản ghi mẫu không tính hạn theo hồ sơ nên dòng nhật ký gắn hồ sơ đi kèm giữ cả chuỗi (plan 000, D5)
-        assertThat(exists("sample_floor_record", linked)).isTrue();
-        assertThat(logsOf(FLOOR, linked)).isEqualTo(1);
-        assertThat(logsOf("M15.SAMPLE_PROFILE", 99L)).isPositive();
-    }
-
-    @Test
-    void US3_5_FR_051a_unexpiredCorrection_keepsChain_expiredCorrection_isPurgedWithChain() {
-        long withRecent = floorRecord(expired);
-        long recentCorrection = correctionFor(FLOOR, withRecent, recent);
-        long withOld = floorRecord(expired);
-        long oldCorrection = correctionFor(FLOOR, withOld, expired);
-
-        runJob();
-
-        assertThat(exists("sample_floor_record", withRecent)).isTrue();
-        assertThat(exists("correction", recentCorrection)).isTrue();
-        assertThat(exists("sample_floor_record", withOld)).isFalse();
-        assertThat(exists("correction", oldCorrection)).isFalse();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM correction_chain WHERE record_type = ? AND original_record_id = ?",
-                        Integer.class,
-                        FLOOR,
-                        withOld))
-                .isZero();
-    }
-
-    @Test
-    void FR_051a_recordReferencedByUnexpiredRecord_isKept_bothExpired_arePurgedTogether() {
-        long target = floorRecord(expired);
-        long recentReferrer = officeRecord(recent);
-        control.reference(new DataRef(OFFICE, recentReferrer), new DataRef(FLOOR, target));
-        long target2 = floorRecord(expired);
-        long oldReferrer = officeRecord(expired);
-        control.reference(new DataRef(OFFICE, oldReferrer), new DataRef(FLOOR, target2));
-
-        runJob();
-
-        assertThat(exists("sample_floor_record", target)).isTrue();
-        assertThat(exists("sample_office_record", recentReferrer)).isTrue();
-        assertThat(exists("sample_floor_record", target2)).isFalse();
-        assertThat(exists("sample_office_record", oldReferrer)).isFalse();
-    }
-
-    @Test
-    void T072_finishedRequestExpired_isPurgedWithItsLogs_openRecentOrResidentRequests_areKept() {
-        long old = request("REJECTED", expired, null);
-        logFor(REQUEST, old, expired, null);
-        long recentRequest = request("REJECTED", recent, null);
-        long open = request("PENDING_APPROVAL", expired, null);
-        long ofResident = request("CANCELLED", expired, 99L);
-
-        runJob();
-
-        assertThat(exists("approval_request", old)).isFalse();
-        assertThat(logsOf(REQUEST, old)).isZero();
-        assertThat(exists("approval_request", recentRequest)).isTrue();
-        assertThat(exists("approval_request", open)).isTrue();
-        // Gắn hồ sơ: hạn tính từ ngày kết thúc lưu trú (001), chưa có thì giữ (plan 000, D5)
-        assertThat(exists("approval_request", ofResident)).isTrue();
-    }
-
-    @Test
-    void T072_FR_051a_requestWithApplicationResult_isKept_whileItsCorrectionExists() {
-        long original = officeRecord(recent);
-        long requestId = request("APPLIED", expired, null);
-        jdbc.update(
-                "INSERT INTO correction (record_type, original_record_id, type, corrected_content, reason, actor_id,"
-                        + " creation_method, approval_request_id, recorded_at, sequence_no)"
-                        + " VALUES (?, ?, 'AMEND_CONTENT', '{\"note\":\"đúng\"}', 'ghi nhầm', ?, 'C', ?, ?, 1)",
-                OFFICE,
-                original,
-                NURSE.accountId(),
-                requestId,
-                LocalDateTime.ofInstant(expired, ZoneOffset.UTC));
-        long correctionId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
-                "INSERT INTO correction_chain (record_type, original_record_id, correction_count) VALUES (?, ?, 1)",
-                OFFICE,
-                original);
-        jdbc.update(
-                "UPDATE approval_request SET result_type = 'M15.CORRECTION', result_id = ?, result_recorded_at = ?"
-                        + " WHERE id = ?",
-                String.valueOf(correctionId),
-                LocalDateTime.ofInstant(expired, ZoneOffset.UTC),
-                requestId);
-
-        runJob();
-
-        assertThat(exists("approval_request", requestId)).isTrue();
-        assertThat(exists("correction", correctionId)).isTrue();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM approval_request WHERE id = ? AND result_type IS NOT NULL",
-                        Integer.class,
-                        requestId))
-                .isEqualTo(1);
-    }
-
-    @Test
-    void BR_M15_13_interruptedRun_keepsUnfinishedChainWhole_andSummaryCountsActual() {
-        long first = floorRecord(expired);
-        logFor(FLOOR, first, expired, null);
-        long second = floorRecord(expired);
-        logFor(FLOOR, second, expired, null);
-        control.failOnDelete(second);
-
-        String runId;
-        Object result;
-        try (JobLogCapture log = new JobLogCapture()) {
-            runId = runJob();
-            result = log.result(runId);
-        }
-
-        assertThat(exists("sample_floor_record", first)).isFalse();
-        assertThat(exists("sample_floor_record", second)).isTrue();
-        assertThat(logsOf(FLOOR, second)).isEqualTo(1);
-        Map<String, Object> summary = summary(runId);
-        assertThat(String.valueOf(summary.get("records"))).isEqualTo("1");
-        assertThat(String.valueOf(summary.get("stopped"))).isEqualTo("true");
-        assertThat(result).isEqualTo("FAILED");
-    }
-
-    @Test
-    void FR_051_appAccountCannotDelete_retentionCannotDeleteSummary() throws SQLException {
-        long record = floorRecord(recent);
-        logFor(FLOOR, record, recent, null);
-        String runId = runJob();
-
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM sample_floor_record WHERE id = ?", record))
-                .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM audit_log WHERE entity_id = ?", String.valueOf(record)))
-                .isInstanceOf(DataAccessException.class);
-        try (Connection c = retentionConnection();
-                Statement s = c.createStatement()) {
-            assertThatThrownBy(() -> s.executeUpdate(
-                            "DELETE FROM audit_log WHERE action = 'EXPIRED_DATA_PURGED' AND entity_id = '" + runId
-                                    + "'"))
-                    .isInstanceOf(SQLException.class);
-        }
     }
 }

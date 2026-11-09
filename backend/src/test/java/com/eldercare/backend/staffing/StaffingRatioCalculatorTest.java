@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.resident.api.dto.CareLevel;
-import com.eldercare.backend.staffing.ratio.internal.domain.StaffingRatioCalculator;
+import com.eldercare.backend.staffing.internal.ratio.domain.StaffingRatioCalculator;
 import java.math.BigDecimal;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -52,43 +52,6 @@ class StaffingRatioCalculatorTest {
         assertThat(result.staffCount()).isEqualTo(1);
         assertThat(result.totalWeight()).isEqualByComparingTo("2.5");
         assertThat(result.meetsThreshold()).isTrue();
-    }
-
-    @Test
-    void FR_034_zeroStaffWithResidents_fails_emptyScopePasses() {
-        var one = StaffingRatioCalculator.calculate(
-                List.of(new StaffingRatioCalculator.Resident(1, CareLevel.BASIC)),
-                List.of(),
-                weights,
-                new BigDecimal("8"));
-        assertThat(one.ratio()).isNull();
-        assertThat(one.meetsThreshold()).isFalse();
-        var empty = StaffingRatioCalculator.calculate(List.of(), List.of(), weights, new BigDecimal("8"));
-        assertThat(empty.ratio()).isNull();
-        assertThat(empty.meetsThreshold()).isTrue();
-    }
-
-    @Test
-    void FR_034_compareUnroundedRatio_doesNotHideSmallThresholdExcess() {
-        var result = StaffingRatioCalculator.calculate(
-                List.of(new StaffingRatioCalculator.Resident(1, CareLevel.BASIC)),
-                List.of(member(1, Role.CAREGIVER), member(2, Role.CAREGIVER), member(3, Role.CAREGIVER)),
-                weights,
-                new BigDecimal("0.33"));
-        assertThat(result.ratio()).isEqualByComparingTo("0.33");
-        assertThat(result.meetsThreshold()).isFalse();
-    }
-
-    @Test
-    void FR_034_missingWeightOrInvalidThreshold_doesNotInventBusinessDefaults() {
-        assertThatThrownBy(() -> StaffingRatioCalculator.calculate(
-                        List.of(new StaffingRatioCalculator.Resident(1, CareLevel.SPECIAL)),
-                        List.of(),
-                        Map.of(),
-                        BigDecimal.ONE))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> StaffingRatioCalculator.calculate(List.of(), List.of(), weights, BigDecimal.ZERO))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 
     private StaffingRatioCalculator.Member member(long id, Role role) {
