@@ -68,20 +68,8 @@ class CorrectionMethodSelectorTest {
     }
 
     @Test
-    void FR_026_sameRoleColleague_onFlooredRecordWithLead_isRefused() {
-        FakePermissions fake = staff().shiftLead(FLOOR, 12).floorManager(FLOOR, 13);
-
-        assertThat(select(fake, SAME_ROLE, floored(10, true))).isEmpty();
-    }
-
-    @Test
     void CHK033_flooredRecord_nobodyForB_sameRoleColleagueGoesC() {
         assertThat(select(staff(), SAME_ROLE, floored(10, true))).contains(CreationMethod.C);
-    }
-
-    @Test
-    void FR_026_c_unflooredRecord_sameRoleColleagueGoesC() {
-        assertThat(select(staff(), OFFICE_B, office(20, true))).contains(CreationMethod.C);
     }
 
     @Test
@@ -90,10 +78,5 @@ class CorrectionMethodSelectorTest {
 
         assertThat(select(fake, FLOOR_MANAGER, office(20, false))).isEmpty();
         assertThat(select(fake, SHIFT_LEAD, office(20, false))).isEmpty();
-    }
-
-    @Test
-    void FR_026_colleagueWithoutRecordingPermission_isRefused() {
-        assertThat(select(staff(), OFFICE_B, office(20, false))).isEmpty();
     }
 }

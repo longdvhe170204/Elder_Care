@@ -68,6 +68,38 @@ export const NAV_GROUPS = [
         functions: ['RESIDENT_PROFILE'],
         roles: [QL, TT, BS, DD, CS, HC, NT, KT],
       },
+      // Dòng "Tiếp nhận, hợp đồng, đặt cọc" (004 T019, T038; Hành chính lập, Quản lý viện xem và duyệt, Kế toán đặt cọc)
+      {
+        key: 'admission-applications',
+        label: 'Đăng ký tiếp nhận',
+        icon: 'ClipboardCheck',
+        functions: ['ADMISSION_CONTRACT_DEPOSIT'],
+        roles: [QL, HC, KT],
+      },
+      // Dòng "Danh sách chờ, dấu ưu tiên" (004 T028)
+      { key: 'waiting-list', label: 'Danh sách chờ', icon: 'ListChecks', functions: ['WAITING_LIST'], roles: [QL, HC] },
+      { key: 'contracts', label: 'Hợp đồng', icon: 'FileSignature', functions: ['ADMISSION_CONTRACT_DEPOSIT'], roles: [QL, HC, KT] },
+      // Dòng "Yêu cầu thay đổi lưu trú" (004 T047)
+      {
+        key: 'residency-changes',
+        label: 'Thay đổi lưu trú',
+        icon: 'ArrowLeftRight',
+        functions: ['RESIDENCY_CHANGE_REQUEST'],
+        roles: [QL, BS, HC],
+      },
+      // Dòng "Tạm vắng, trở về" (004 T056)
+      { key: 'absences', label: 'Tạm vắng, bán trú', icon: 'DoorOpen', functions: ['ABSENCE_RETURN'], roles: [QL, TT, DD, HC] },
+      // Dòng "Kết thúc lưu trú, qua đời" (004 T061, T065)
+      {
+        key: 'residency-endings',
+        label: 'Kết thúc lưu trú',
+        icon: 'History',
+        functions: ['RESIDENCY_END_DEATH'],
+        roles: [QL, BS, HC, KT],
+      },
+      { key: 'deaths', label: 'Qua đời', icon: 'HeartHandshake', functions: ['RESIDENCY_END_DEATH'], roles: [QL, BS, HC, KT] },
+      // Dòng "Dịch vụ, đơn giá" (004 T068)
+      { key: 'services', label: 'Dịch vụ, đơn giá', icon: 'Receipt', functions: ['SERVICE_PRICE'], roles: [QL, HC] },
     ],
   },
   {
@@ -89,6 +121,14 @@ export const NAV_GROUPS = [
         functions: ['OVERDUE_TASK_HANDLING'],
         roles: [QL, TT],
       },
+      // FR-048 (005 T058): Trưởng tầng, Điều dưỡng xem thời khóa biểu theo ngày.
+      {
+        key: 'care-timetable',
+        label: 'Thời khóa biểu',
+        icon: 'CalendarDays',
+        functions: ['CARE_PLAN'],
+        roles: [TT, DD],
+      },
       {
         key: 'care-task-planning',
         label: 'Lập công việc ca',
@@ -102,6 +142,22 @@ export const NAV_GROUPS = [
         icon: 'ClipboardCheck',
         functions: ['DAY_CARE_ATTENDANCE'],
         roles: [QL, TT, DD, CS, HC],
+      },
+      // Dòng "Hoạt động, ngoài viện", Phụ lục 27 (014 T009).
+      {
+        key: 'activity-sessions',
+        label: 'Buổi hoạt động',
+        icon: 'CalendarDays',
+        functions: ['ACTIVITY_OUTING'],
+        roles: [QL, TT, DD, CS],
+      },
+      // Dòng "Kiểm tra chất lượng", Phụ lục 27 (014 T025, bố cục duyệt 2026-11-07); Người phụ trách ca theo nhiệm vụ.
+      {
+        key: 'quality-checks',
+        label: 'Kiểm tra chất lượng',
+        icon: 'ClipboardCheck',
+        functions: ['QUALITY_CHECK'],
+        roles: [QL, TT],
       },
       // Dòng "Kế hoạch chăm sóc" và "Danh mục loại công việc chăm sóc" (005 T017, Phụ lục 27).
       {
@@ -152,6 +208,30 @@ export const NAV_GROUPS = [
         functions: ['ACCOUNT_PERMISSION_PARAMETER'],
         roles: [QL, BS, DD],
       },
+      // Dòng "Ngưỡng cảnh báo", "Chỉ số sức khỏe" (007 T024)
+      {
+        key: 'measurement-schedules',
+        label: 'Lịch đo và ngưỡng',
+        icon: 'CalendarDays',
+        functions: ['ALERT_THRESHOLD', 'VITAL_SIGN'],
+        roles: [QL, TT, BS, DD],
+      },
+      // Dòng "Danh sách tiếp xúc", "Khoanh vùng" (007 T054)
+      {
+        key: 'infection-control',
+        label: 'Kiểm soát lây nhiễm',
+        icon: 'ClipboardCheck',
+        functions: ['CONTACT_LIST', 'INFECTION_CONTAINMENT'],
+        roles: [QL, TT, BS, DD, HC],
+      },
+      // Dòng "Giấy phép cơ sở", "Khám, điều trị" (007 T057)
+      {
+        key: 'facility-license',
+        label: 'Giấy phép và khám',
+        icon: 'FileSignature',
+        functions: ['EXAM_TREATMENT', 'ACCOUNT_PERMISSION_PARAMETER'],
+        roles: [QL, BS, DD],
+      },
       // Dòng "Bàn giao ca"
       {
         key: 'handovers',
@@ -183,8 +263,32 @@ export const NAV_GROUPS = [
         functions: ['SHIFT_SCHEDULE'],
         roles: [QL, TT, BS, DD, CS, BEP, HC],
       },
-      // Dòng "Suất ăn đã chốt, phiếu bữa ăn"
-      { key: 'meals', label: 'Suất ăn', icon: 'Utensils', functions: ['MEAL_COUNT_TICKET'], roles: [QL, TT, BS, BEP] },
+      // Dòng "Món ăn, thực đơn", "Chế độ ăn", "Danh mục bữa ăn, loại đồ ăn cấm" (011 T011, T020; bố cục duyệt 2026-11-08)
+      {
+        key: 'nutrition',
+        label: 'Dinh dưỡng',
+        icon: 'Salad',
+        functions: ['DISH_MENU', 'DIET', 'NUTRITION_CATALOG'],
+        roles: [QL, BS, DD, BEP],
+      },
+      // Dòng "Đối chiếu đồ ăn gia đình" (bản gán và đồ ăn gia đình của từng người; 011 T015, T035): Nhân viên bếp có
+      // "Chế độ ăn" X nhưng không xem bản gán nên mục theo dòng này
+      {
+        key: 'resident-diets',
+        label: 'Chế độ ăn từng người',
+        icon: 'ClipboardList',
+        functions: ['FAMILY_FOOD_CHECK'],
+        roles: [QL, BS, DD],
+      },
+      // Dòng "Suất ăn đã chốt, phiếu bữa ăn", "Chuẩn bị, giao phiếu, lưu mẫu", "Nhận phiếu, báo sai lệch", "Xác nhận phục vụ suất
+      // đặc biệt" (011 T027, T031, T039)
+      {
+        key: 'meals',
+        label: 'Suất ăn',
+        icon: 'Utensils',
+        functions: ['MEAL_COUNT_TICKET', 'MEAL_PREPARATION', 'MEAL_RECEIPT', 'SPECIAL_MEAL_SERVICE'],
+        roles: [QL, TT, BS, DD, CS, BEP],
+      },
     ],
   },
   {
@@ -197,6 +301,14 @@ export const NAV_GROUPS = [
         icon: 'FileSignature',
         functions: ['ADMISSION_CONTRACT_DEPOSIT'],
         roles: [QL, HC, NT, KT],
+      },
+      // Dòng "Khai báo tạm trú, lưu trú" (018 K1): Hành chính thao tác, Quản lý viện xem
+      {
+        key: 'residence-registrations',
+        label: 'Khai báo cư trú',
+        icon: 'ClipboardCheck',
+        functions: ['RESIDENCE_REGISTRATION'],
+        roles: [QL, HC],
       },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
@@ -232,6 +344,8 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Đồ gửi" (013): Hành chính, Điều dưỡng thực hiện; Quản lý viện, Trưởng tầng xem; người thân xem ở cổng
+      { key: 'belongings', label: 'Đồ gửi', icon: 'ClipboardCheck', functions: ['BELONGINGS'], roles: [QL, TT, DD, HC] },
       // Dòng "Người thân ở lại" (012 T035; chú thích 20: Hành chính đăng ký, Trưởng tầng xác nhận, Quản lý viện xác nhận thay)
       {
         key: 'family-stays',

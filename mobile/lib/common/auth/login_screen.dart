@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../api/api_client.dart';
 import '../api/problem_message.dart';
 import '../widgets/page_body.dart';
+import 'forgot_password_screen.dart';
 
 /// Màn đầu khi chưa đăng nhập (000 T006; 002 T046, T047; sửa 2026-10-28, chủ dự án duyệt): một form tên đăng nhập, mật
 /// khẩu cho nhân viên và người thân (kênh `MOBILE_APP`, backend gán kênh phiên theo loại tài khoản nên thời gian tự đăng
 /// xuất theo kênh giữ nguyên, FR-013a), kèm câu máy dùng chung (FR-014a); nút phụ mở màn quét mã của người cao tuổi
 /// (FR-069). Máy đã gắn với tài khoản người cao tuổi không qua màn này. Màn quét mã do `ElderCareApp` truyền vào để
 /// `common/` không phụ thuộc `resident/` (mobile/README.md luật 1). Lỗi theo câu backend trả (không lộ tài khoản có hay
-/// không, FR-014).
+/// không, FR-014). Có `api` và kênh tin nhắn đã cấu hình thì có nút "Quên mật khẩu" (002 T105, FR-052a, Q-06).
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.onSubmit, required this.residentLogin, this.notice});
+  const LoginScreen({super.key, required this.onSubmit, required this.residentLogin, this.notice, this.api});
 
   final Future<void> Function(String username, String password) onSubmit;
   final WidgetBuilder residentLogin;
 
   /// Câu báo, ví dụ sau khi phiên bị kết thúc.
   final String? notice;
+
+  /// Client hỏi `/auth/password-reset/availability` và dùng cho màn quên mật khẩu; `null` thì ẩn chức năng.
+  final ApiClient? api;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -27,6 +32,33 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _error;
+  bool _resetAvailable = false;
+  bool _resetDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkReset();
+  }
+
+  // Không gọi được máy chủ thì ẩn chức năng (FR-052a: chưa cấu hình kênh tin nhắn thì không hiện)
+  Future<void> _checkReset() async {
+    final api = widget.api;
+    if (api == null) return;
+    try {
+      final body = await api.get('/auth/password-reset/availability');
+      if (mounted) setState(() => _resetAvailable = body?['available'] == true);
+    } on Exception {
+      return;
+    }
+  }
+
+  Future<void> _forgot() async {
+    final done = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => ForgotPasswordScreen(api: widget.api!)));
+    if (mounted && done == true) setState(() => _resetDone = true);
+  }
 
   @override
   void dispose() {
@@ -74,6 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 12),
                     Text(widget.notice!, style: text.bodyMedium),
                   ],
+                  if (_resetDone) ...[
+                    const SizedBox(height: 12),
+                    Text('Đã đặt mật khẩu mới. Đăng nhập bằng mật khẩu mới.', style: text.bodyMedium),
+                  ],
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     Text(_error!, style: text.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error)),
@@ -101,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   FilledButton(onPressed: _busy ? null : _submit, child: const Text('Đăng nhập')),
+                  if (_resetAvailable) TextButton(onPressed: _forgot, child: const Text('Quên mật khẩu')),
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: widget.residentLogin)),

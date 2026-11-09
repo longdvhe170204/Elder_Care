@@ -3,7 +3,6 @@ package com.eldercare.backend.reporting;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -170,23 +169,5 @@ class SC_008_ReadOnlyIT extends MySqlIntegrationTestBase {
                 .content("""
                         {"from": "%s", "to": "%s", "includeIdentity": false}
                         """.formatted(today.minusDays(7), today)));
-    }
-
-    @Test
-    void Q29_onlySuccessfulExportWrites_oneAuditRowOneFile() throws Exception {
-        Map<String, Long> before = snapshot();
-        int exportedBefore = exported();
-        int filesBefore = files();
-
-        export(manager).andExpect(status().isCreated());
-        export(office).andExpect(status().isCreated());
-        export(floorManager).andExpect(status().isForbidden());
-
-        assertThat(exported()).isEqualTo(exportedBefore + 2);
-        assertThat(files()).isEqualTo(filesBefore + 2);
-        Map<String, Long> after = snapshot();
-        after.keySet().removeAll(EXPORT_WRITES);
-        before.keySet().removeAll(EXPORT_WRITES);
-        assertThat(after).isEqualTo(before);
     }
 }

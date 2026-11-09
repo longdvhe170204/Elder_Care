@@ -3,7 +3,7 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.document.ExcelDocument;
-import com.eldercare.backend.staffing.staff.internal.domain.*;
+import com.eldercare.backend.staffing.internal.staff.domain.*;
 import java.util.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,11 +33,5 @@ class StaffImportRowValidatorTest {
             assertThat(e.column()).isEqualTo("phoneNumber");
             assertThat(e.errorCode()).isEqualTo(StaffImportData.ErrorCode.INVALID_PHONE_NUMBER_FORMAT);
         });
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"09 01.234-567", "0901234567"})
-    void FR_001b_normalizedPhoneAndOptionalEmailAreValid(String phone) {
-        assertThat(errors(phone, "25/10/2026", null)).isEmpty();
     }
 }

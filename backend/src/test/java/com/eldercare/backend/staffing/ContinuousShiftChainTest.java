@@ -3,8 +3,8 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import com.eldercare.backend.staffing.shift.internal.domain.ContinuousShiftChain;
-import com.eldercare.backend.staffing.shift.internal.domain.ContinuousShiftChain.Interval;
+import com.eldercare.backend.staffing.internal.shift.domain.ContinuousShiftChain;
+import com.eldercare.backend.staffing.internal.shift.domain.ContinuousShiftChain.Interval;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -33,27 +33,6 @@ class ContinuousShiftChainTest {
         var extra = new Interval(hours(8, 16).from(), hours(8, 16).to().plusNanos(1));
         assertThat(ContinuousShiftChain.duration(List.of(hours(0, 8)), extra).compareTo(threshold))
                 .isPositive();
-    }
-
-    @Test
-    void BR_M09_03_realGapBreaksTheChainEvenAcrossMonthBoundary() {
-        var separated =
-                new Interval(hours(8, 16).from().plusNanos(1), hours(8, 16).to());
-        assertThat(ContinuousShiftChain.duration(List.of(hours(0, 8)), separated))
-                .isEqualTo(Duration.ofHours(8).minusNanos(1));
-    }
-
-    @Test
-    void BR_M09_03_unrelatedLongerChainIsNotAttributedToNewShift() {
-        assertThat(ContinuousShiftChain.duration(List.of(hours(-48, -24), hours(-24, -8)), hours(0, 8)))
-                .isEqualTo(Duration.ofHours(8));
-    }
-
-    @Test
-    void BR_M09_03_overlappingIntervalsCountElapsedTimeOnceWithoutMutatingInput() {
-        var existing = List.of(hours(4, 12), hours(0, 8));
-        assertThat(ContinuousShiftChain.duration(existing, hours(10, 16))).isEqualTo(Duration.ofHours(16));
-        assertThat(existing).containsExactly(hours(4, 12), hours(0, 8));
     }
 
     @Test

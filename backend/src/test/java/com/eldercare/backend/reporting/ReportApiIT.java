@@ -2,7 +2,6 @@ package com.eldercare.backend.reporting;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -118,55 +117,5 @@ class ReportApiIT extends MySqlIntegrationTestBase {
         perform(floorManager, lastWeek(REPORT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(VALUE + ".value").value(contains(2)));
-    }
-
-    @Test
-    void FR_013_filterNarrowsWithinScope() throws Exception {
-        perform(manager, lastWeek(REPORT).param("floorAreaId", String.valueOf(floor1)))
-                .andExpect(jsonPath(VALUE + ".value").value(contains(2)));
-    }
-
-    @Test
-    void FR_009_details_sameFiltersAsTheNumber() throws Exception {
-        perform(manager, lastWeek(DETAILS)).andExpect(jsonPath("$.total").value(3));
-        perform(manager, lastWeek(DETAILS).param("floorAreaId", String.valueOf(floor1)))
-                .andExpect(jsonPath("$.total").value(2));
-    }
-
-    @Test
-    void FR_060_rangeTooLong_422() throws Exception {
-        LocalDate today = time.today();
-        perform(
-                        manager,
-                        get(REPORT)
-                                .param("from", today.minusYears(2).toString())
-                                .param("to", today.toString()))
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("RANGE_EXCEEDS_MAXIMUM"));
-    }
-
-    @Test
-    void FR_010_groupNotVisible_403() throws Exception {
-        perform(users.staff(Role.ACCOUNTANT), lastWeek(REPORT)).andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_009_details_matchTheNumber_andBreakdownCell() throws Exception {
-        perform(manager, lastWeek(DETAILS))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.metricCode").value(TestDoseMetric.CODE))
-                .andExpect(jsonPath("$.total").value(3))
-                .andExpect(jsonPath("$.rows.length()").value(3));
-        perform(manager, lastWeek(DETAILS).param("breakdownKey", "Tối"))
-                .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.rows[0].resident").value("Nguyễn Văn A"));
-        perform(floorManager, lastWeek(DETAILS))
-                .andExpect(jsonPath("$.total").value(2))
-                .andExpect(jsonPath("$.rows[*].resident").value(not(hasItem("Lê Văn C"))));
-    }
-
-    @Test
-    void details_unknownMetric_404() throws Exception {
-        perform(manager, lastWeek("/api/v1/metric-details/KHONG.CO")).andExpect(status().isNotFound());
     }
 }

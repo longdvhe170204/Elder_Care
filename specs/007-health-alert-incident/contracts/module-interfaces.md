@@ -76,13 +76,13 @@ void themDienBien(long suCoId, String maLoaiDienBien, String noiDung, NguoiDungH
     // người xử lý đóng hoặc đính chính sự cố bằng lệnh (FR-045, FR-046)
 void tiepNhan(long suCoId, NguoiDungHienTai nd);
     // bổ sung theo plan 009 (009 FR-026a "Xác nhận và tiếp nhận"): cùng kiểm tra quyền, trạng thái và tác động
-    // như POST /su-co/{id}/tiep-nhan; transaction riêng của 009; từ chối thì ném lỗi có maLoi (DA_CO_NGUOI_TIEP_NHAN…)
+    // như POST /incidents/{id}/receive; transaction riêng của 009; từ chối thì ném lỗi có maLoi (DA_CO_NGUOI_TIEP_NHAN…)
 ```
 
 `incident.api.CanhBaoLenhApi` (009; bổ sung theo plan 009):
 
 ```java
-void tiepNhan(long canhBaoId, NguoiDungHienTai nd);   // như POST /canh-bao/{id}/tiep-nhan (FR-029, FR-036)
+void tiepNhan(long canhBaoId, NguoiDungHienTai nd);   // như POST /alerts/{id}/receive (FR-029, FR-036)
 ```
 
 ### 1.7. `incident.api.SuCoApi`, `CanhBaoApi` (đọc; 012, 013, 016)
@@ -142,6 +142,7 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 | --- | --- | --- |
 | `CanhBaoDaTao`, `CanhBaoDaNangMuc` (mức, nhóm người nhận, `khongCoBacSiTruc`) | 009 | FR-035, FR-047a, FR-047b |
 | `CanhBaoDaLeoThang(canhBaoId, capMoi, nhom[] khongThay)`; `NhacLeoThangToiDa(canhBaoId, soThuTu)` | 009 (Trung bình) | FR-033, FR-034 |
+| *(sửa 2026-11-08, chủ dự án chốt 2026-11-07, "Đổi api")* Sự cố dùng chung hai sự kiện của cảnh báo, thêm loại nguồn: `AlertEscalated(sourceType, sourceId, escalationLevel, eventKey, occurredAt, notificationRequests)`, `MaximumEscalationReminder(sourceType, sourceId, sequence, eventKey, occurredAt, notificationRequests)`; `sourceType` là `M05.ALERT` hoặc `M05.INCIDENT`; bỏ `IncidentEscalated`, `IncidentMaximumEscalationReminder` (bổ sung 2026-11-04); sự cố giữ Mới | 009 (Trung bình; nhận qua `HasNotificationRequests`, không cần listener riêng) | FR-044 |
 | `CanhBaoLapLai(canhBaoId, soLan)` | 009 | FR-038a |
 | `NguonCanhBaoDaDinhChinh(canhBaoId)`; `NguoiPhuTrachDaDoi(loai, id, nguoiMoi)` | 009 (Nhẹ) | FR-019, FR-037 |
 | `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` so với hợp đồng 001; plan, mục Đồng bộ 1) | 001, 012, 016 | FR-043 (b) |
@@ -265,21 +266,31 @@ record VisitTraceView(long visitId, Instant enteredAt, Optional<Instant> exitedA
 record VisitTracePersonView(Optional<Long> familyMemberId, String fullName,
     Optional<String> relationship, Optional<String> phoneNumber, boolean hasNotificationChannel) {}
 
-interface AttendanceTracePort { // DiemDanhTruyVetPort, 014 cài
+interface AttendanceTracePort { // DiemDanhTruyVetPort, 014 cài; *(sửa 2026-11-08)* khai ở care.api.spi, DTO care.api.dto (C-02, team-plan)
   List<ActivityAttendanceTraceView> coAttendance(long residentId, Instant from, Instant to);
 }
 record ActivityAttendanceTraceView(long sessionId, Instant from, Instant to, List<Long> residentIds) {}
+
+interface SosTripPort { // ChuyenDiSosPort, 014 cài (bổ sung 2026-11-06, T073)
+  Optional<SosTripView> ongoing(long residentId);
+}
+record SosTripView(long tripId, List<Long> companionStaffIds) {} // trưởng đoàn nhận qua RecipientGroup.TripLeader(tripId)
 
 interface NotificationLogPort { // NhatKyThongBaoPort, 009 cài
   List<IncidentNotificationView> bySource(String sourceRecordType, long sourceRecordId);
 }
 record IncidentNotificationView(String recipientType, long recipientId, String channel,
-    Optional<Instant> sentAt, Optional<Instant> viewedAt) {}
+    Optional<Instant> sentAt, Optional<Instant> viewedAt, List<CallReminderSummary> callReminders) {}
+// Kiểu lồng trong IncidentNotificationView
+record CallReminderSummary(long callReminderId, String personToCallType, long personToCallId,
+    String status, List<CallOutcome> results) {}
+record CallOutcome(String result, Instant calledAt) {}
 ```
 
 - Liên hệ: chỉ mã người thân, họ tên và điện thoại phục vụ FR-047/048; danh sách người đại diện giữ thứ tự gọi do 012 cung cấp (FR-050b). Lượt thăm gồm người thân và người đi cùng thực tế, không đưa lượt chưa vào vào nguồn truy vết (FR-060); `familyMemberId` có thể rỗng cho người đi cùng, `exitedAt` rỗng khi chưa ra.
 - Buổi hoạt động trả nguồn buổi, khoảng thời gian và mã những người cao tuổi cùng Có mặt với người được truy vấn, kể cả chuyến (FR-060, module-interfaces 014). Truy vấn khoảng dùng chồng thời gian `[from, to)`, không tính hai khoảng chỉ chạm biên; không cắt mất khoảng gốc của nguồn.
 - Nhật ký trả đúng cặp loại/mã nguồn, giữ mốc gửi/xem nếu có; một dòng cho một người nhận trên một kênh (FR-040, FR-048b). Loại người nhận và kênh giữ mã của 009; không phụ thuộc DTO của 009 để tránh chiều phụ thuộc ngược.
+- Q-388: mỗi dòng mang đầy đủ các lượt của chuỗi nhắc gọi, kể cả lượt gọi người thân kế tiếp. Giữ mã người cần gọi, trạng thái và kết quả của 009. Kết quả gọi được người kế tiếp không xác nhận thông báo của người nhận ban đầu. A nối bản thật bằng `NotificationLookupApi.bySource`, đổi mã nguồn từ `long` sang `String`.
 - Bộ fake duy nhất ở `support/fake/incident/`: `FakeAlertStaff` có sẵn; bổ sung `FakeEmergencyFamily`, `FakeAttendanceTrace`, `FakeNotificationLog`, cùng nạp qua `FakeM05Config`. Các hàm đặt dữ liệu chỉ dành cho test; chưa đặt thì trả rỗng, không tự sinh bản ghi, không gửi thông báo. Đây không phải bản cài nghiệp vụ thật hay endpoint giả lập HTTP.
 
 ### 2.5. API chỉ số gần nhất: phần T003 cho 001 (2026-10-31)
@@ -313,7 +324,7 @@ Stream<VitalSignReportView> VitalSignStatisticsApi.readings(ScopeFilter scope, I
 - `MeasurementScheduleView(id, residentId, indicatorIds, frequencyType, frequencyParameters, startsAt, endsAt, importance, note)`; `MeasurementFrequency`: `CLOCK_TIMES`, `EVERY_N_HOURS`, `WEEKDAYS`. Đọc lịch không sinh công việc. `FacilityContactView(phoneNumber, note, version)`; chưa có số cấu hình thì phone/note `null`, version 0 trong fake.
 - `VitalSignReportView(recordId, residentId, indicatorId, floorAreaId, measuredAt, level)`; `ScopeFilter` dùng bản công khai 002 hiện có. Chưa cài thuật toán thống kê trong T003.
 - `VitalSignLevel`: `NORMAL`, `WARNING`, `DANGEROUS`, `NO_THRESHOLD`; `VitalSignConfirmationStatus`: `AWAITING_REMEASUREMENT`, `CONFIRMED`, `REMEASURED`; `VitalSignLabel`: `IMMEDIATE_ACTION`, `NOT_REMEASURED`, `LATE_RECORDED`, `OFFLINE_RECORDED`.
-- Sự kiện ở `health.api.events`, công khai NamedInterface `events`: `VitalSignConfirmed(recordId, residentId, indicatorId, level, thresholdVersionId, taskId, measuredAt, labels, eventKey, occurredAt)`; `VitalSignCorrected(originalRecordId, residentId, indicatorId, originalLevel, currentLevel, eventKey, occurredAt)`; `MeasurementScheduleChanged(scheduleId, residentId, eventKey, occurredAt)`; `MissingPersonalThresholdReminder(residentId, eventKey, occurredAt)`. Hai trường cuối theo phong bì sự kiện của 000; chưa thêm publisher nghiệp vụ trước khi có lệnh ghi.
+- Sự kiện ở `health.api.events`, công khai NamedInterface `events`: `VitalSignConfirmed(recordId, residentId, indicatorId, level, thresholdVersionId, taskId, measuredAt, labels, eventKey, occurredAt)`; `VitalSignCorrected(originalRecordId, residentId, indicatorId, originalLevel, currentLevel, measuredAt, eventKey, occurredAt)` (`measuredAt` thêm 2026-11-06 cho sụt cân khi đính chính, FR-039a); `MeasurementScheduleChanged(scheduleId, residentId, eventKey, occurredAt)`; `MissingPersonalThresholdReminder(residentId, eventKey, occurredAt)`. Hai trường cuối theo phong bì sự kiện của 000; chưa thêm publisher nghiệp vụ trước khi có lệnh ghi.
 - Nhắc thiếu ngưỡng dùng `HasNotificationRequests`, mức LOW, nhóm vai trò DOCTOR toàn viện theo FR-023; nội dung chỉ số xếp HEALTH, thông báo ngoài ứng dụng dùng câu trung tính. Không nhét danh sách người nhận vào outbox.
 - Bản giả chung: mở rộng `FakeVitalSigns.history`/`vitalSignIndicators`; `FakeMeasurementSchedules`, `FakeFacilityContact`, `FakeVitalSignStatistics`, `FakeHealthEvents`, lắp bằng `FakeHealthConfig` (import cấu hình FakeVitalSigns có sẵn). Không thêm bean giả vào ứng dụng thật. Bộ giả lịch chỉ trả dữ liệu test đặt theo truy vấn, không cài lịch sinh mốc; thống kê dùng đúng phạm vi đã đặt và lọc thời gian.
 
@@ -337,9 +348,9 @@ Mọi sự kiện gửi 009 cài `HasNotificationRequests` và mang `List<Notifi
 
 Tên Java để 009 nối listener: `CallReminderStopRequested(String sourceRecordType, long sourceRecordId)` = `YeuCauDungNhacGoiDien`; `WishReconfirmationCompleted(long alertId)` = `DaCoKetQuaXacNhanLai`. Hai sự kiện này điều khiển lượt nhắc, không cài `HasNotificationRequests`. 003 dùng `ContactAdded(long residentId, Instant at)` và `IsolationLifted(long zoneId, List<Long> floorAreaIds, List<Long> areaIds, String eventKey, Instant occurredAt, List<NotificationRequest> notificationRequests)`. Phần phát thật vẫn ở task hạ mức, xác nhận lại, tiếp xúc và khoanh vùng.
 
-Yêu cầu module sau phát: `AlertRequested(residentId, type, level, sourceType, sourceId, Optional<String> objectKey, occurredAt, eventKey)`, `AlertSourceCloseRequested(sourceType, sourceId, reason, eventKey)`, `AlertProgressionRequested(sourceType, sourceId, progressionTypeCode, content, eventKey)`; không trực tiếp thực thi lệnh hoặc gửi tin khi khởi tạo record sự kiện.
+Yêu cầu module sau phát: `AlertRequested(residentId, type, level, sourceType, sourceId, Optional<String> objectKey, occurredAt, eventKey)`, `AlertSourceCloseRequested(sourceType, sourceId, reason, eventKey)`, `AlertProgressionRequested(sourceType, sourceId, progressionTypeCode, content, eventKey, actorId, occurredAt)` (*sửa 2026-11-08, FR-086, chủ dự án duyệt 2026-11-07*: thêm người thực hiện, thời điểm; 007 ghi diễn biến `M05.ALERT_PROGRESSION` vào cảnh báo đang mở của nguồn); không trực tiếp thực thi lệnh hoặc gửi tin khi khởi tạo record sự kiện.
 
-**DTO đọc T004:** `IncidentView(id, Long residentId, type, level, status, createdAt, Long floorAreaId)`; `AlertView(id, Long residentId, type, level, status, firstAt, Long floorAreaId)`; `MonitoringFlagView(suspectedInfection, contact, postFall, critical)`. Đây là nguồn giữa module, không thay schema phản hồi REST. `RecordIncidentCommand` dịch đủ trường của `GhiNhanSuCo` trong hợp đồng HTTP: `residentId`, `incidentTypeId`, `source`, `occurredAt`, `detectedAt`, `floorAreaId`, `location`, `ongoingActivity`, `description`, `level`, `lowerLevelReason`, `initialResponse`, `createDespiteExisting`.
+**DTO đọc T004:** `IncidentView(id, Long residentId, type, level, status, createdAt, Long floorAreaId, Long assigneeStaffId)` (*"Đổi api" 2026-11-08, D đề xuất, chờ chủ dự án duyệt trong PR:* thêm `assigneeStaffId`, mã nhân viên của người xử lý hiện tại, rỗng khi chưa giao, để 013 FR-011a báo đúng người xử lý; giữ constructor bảy tham số cũ; trạng thái Đã hủy là `VOIDED` như api-007); `AlertView(id, Long residentId, type, level, status, firstAt, Long floorAreaId)`; `MonitoringFlagView(suspectedInfection, contact, postFall, critical)`. Đây là nguồn giữa module, không thay schema phản hồi REST. `RecordIncidentCommand` dịch đủ trường của `GhiNhanSuCo` trong hợp đồng HTTP: `residentId`, `incidentTypeId`, `source`, `occurredAt`, `detectedAt`, `floorAreaId`, `location`, `ongoingActivity`, `description`, `level`, `lowerLevelReason`, `initialResponse`, `createDespiteExisting`.
 
 **Bổ sung rà T004 (2026-11-02):** `ContactAdded(residentId, at, eventKey, notificationRequests)` cũng cài `HasNotificationRequests` vì mục 1.12 có consumer 009. Giữ constructor hai tham số cho lời gọi nguồn đọc của 003; constructor này mang khóa theo người/thời điểm và danh sách yêu cầu rỗng. Publisher FR-062 phải dùng constructor đầy đủ với yêu cầu thông báo theo S-19, không coi constructor tương thích là đã gửi tin. `FakeIncidents` nhận `AlertApi` qua constructor; `FakeM05Config` nối đúng `FakeAlerts` dùng chung để `hasOpenItem` xét cả cảnh báo mở theo mục 1.7/S-17.
 

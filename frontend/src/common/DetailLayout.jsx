@@ -30,7 +30,7 @@ export function DetailLayout({ open, detailKey, onClose, label, renderDetail, ch
   return (
     <div
       className={cn(
-        'mx-auto flex max-w-[1600px] flex-col gap-5',
+        'mx-auto flex w-full max-w-[1600px] flex-col gap-5',
         panelOpen && 'grid grid-cols-[minmax(0,1fr)_420px] items-start gap-0',
       )}
     >

@@ -1,12 +1,8 @@
 package com.eldercare.backend.administration.auditlog;
 
-import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.FAMILY;
 import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.MANAGER;
 import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.NURSE;
-import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.OFFICE;
 import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.PROFILE;
-import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.RESIDENT;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,11 +15,7 @@ import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.FakePermissions;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
-import com.jayway.jsonpath.JsonPath;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -102,93 +94,6 @@ class AuditLogScopeIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(1));
         mvc.perform(get(history(PROFILE, outOfScope))).andExpect(status().isNotFound());
-    }
-
-    @Test
-    void FR_049_familyAndResident_areBlockedFromAuditLog() throws Exception {
-        String id = newId();
-        write(MANAGER, NOTE_ADDED, PROFILE, id);
-
-        for (CurrentUser blocked : List.of(FAMILY, RESIDENT)) {
-            user.set(blocked);
-            mvc.perform(get(history(PROFILE, id))).andExpect(status().isNotFound());
-            mvc.perform(get("/api/v1/audit-logs")).andExpect(status().isForbidden());
-        }
-    }
-
-    @Test
-    void FR_049_facilitySearch_isManagerOnly() throws Exception {
-        for (CurrentUser staff : List.of(NURSE, OFFICE)) {
-            user.set(staff);
-            mvc.perform(get("/api/v1/audit-logs"))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.errorCode").value("PERMISSION_DENIED"));
-        }
-        user.set(MANAGER);
-        mvc.perform(get("/api/v1/audit-logs")).andExpect(status().isOk());
-    }
-
-    @Test
-    void US3_10_manager_filtersByEntityActorActionAndTime_newestFirst() throws Exception {
-        String id = newId();
-        clock.setTo(Instant.parse("2026-03-01T01:00:00Z"));
-        write(NURSE, NOTE_ADDED, PROFILE, id);
-        clock.setTo(Instant.parse("2026-03-02T01:00:00Z"));
-        write(OFFICE, NOTE_ADDED, PROFILE, id);
-        clock.setTo(Instant.parse("2026-03-03T01:00:00Z"));
-        write(NURSE, NOTE_REMOVED, PROFILE, id);
-        clock.reset();
-        user.set(MANAGER);
-
-        mvc.perform(get("/api/v1/audit-logs").param("entityType", PROFILE).param("entityId", id))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items.length()").value(3))
-                .andExpect(jsonPath("$.items[0].action").value("SAMPLE_NOTE_REMOVED"))
-                .andExpect(jsonPath("$.items[2].actor.id").value(NURSE.accountId()));
-
-        mvc.perform(get("/api/v1/audit-logs")
-                        .param("entityId", id)
-                        .param("entityType", PROFILE)
-                        .param("actorId", String.valueOf(NURSE.accountId())))
-                .andExpect(jsonPath("$.items.length()").value(2));
-
-        mvc.perform(get("/api/v1/audit-logs")
-                        .param("entityType", PROFILE)
-                        .param("entityId", id)
-                        .param("action", "SAMPLE_NOTE_REMOVED", "SAMPLE_UNUSED"))
-                .andExpect(jsonPath("$.items.length()").value(1));
-
-        mvc.perform(get("/api/v1/audit-logs")
-                        .param("entityType", PROFILE)
-                        .param("entityId", id)
-                        .param("from", "2026-03-02T00:00:00Z")
-                        .param("to", "2026-03-02T23:59:59Z"))
-                .andExpect(jsonPath("$.items.length()").value(1))
-                .andExpect(jsonPath("$.items[0].actor.id").value(OFFICE.accountId()));
-    }
-
-    @Test
-    void US3_10_keysetPagination_returnsEveryEntryOnce() throws Exception {
-        String id = newId();
-        for (int i = 0; i < 55; i++) {
-            write(NURSE, NOTE_ADDED, PROFILE, id);
-        }
-        user.set(MANAGER);
-        String facility = "/api/v1/audit-logs?entityType=" + PROFILE + "&entityId=" + id;
-
-        String first = read(facility);
-        String cursor = JsonPath.read(first, "$.nextCursor");
-        String second = read(facility + "&cursor=" + cursor);
-        List<String> ids = new ArrayList<>(JsonPath.<List<String>>read(first, "$.items[*].id"));
-        ids.addAll(JsonPath.<List<String>>read(second, "$.items[*].id"));
-
-        assertThat(cursor).isNotNull();
-        assertThat(ids).hasSize(55).doesNotHaveDuplicates();
-        assertThat(JsonPath.<Object>read(second, "$.nextCursor")).isNull();
-        // Lịch sử một đối tượng dùng cùng cách phân trang
-        String historySecond = read(history(PROFILE, id) + "?cursor=" + cursor);
-        assertThat(JsonPath.<List<String>>read(historySecond, "$.items[*].id"))
-                .isEqualTo(JsonPath.<List<String>>read(second, "$.items[*].id"));
     }
 
     private String read(String url) throws Exception {

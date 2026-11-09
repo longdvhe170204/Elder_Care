@@ -1,7 +1,7 @@
 package com.eldercare.backend.support.fake.staffing;
 
-import com.eldercare.backend.staffing.shift.internal.service.port.ExtendedPublicationCheck;
-import com.eldercare.backend.staffing.shift.internal.service.port.PublicationWarning;
+import com.eldercare.backend.staffing.internal.shift.service.ExtendedPublicationCheck;
+import com.eldercare.backend.staffing.internal.shift.service.PublicationWarning;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

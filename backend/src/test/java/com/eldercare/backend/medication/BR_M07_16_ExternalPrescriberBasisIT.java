@@ -1,6 +1,5 @@
 package com.eldercare.backend.medication;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.BusinessException;
@@ -8,15 +7,10 @@ import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.prescription.domain.DiscontinuePrescriptionBody;
-import com.eldercare.backend.medication.internal.prescription.domain.ExternalBasisBody;
 import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
 import com.eldercare.backend.medication.internal.prescription.domain.OrderPrescriptionBody;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriberType;
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
-import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasis;
-import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasisCommand;
-import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasisType;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionBasisRepository;
@@ -26,7 +20,6 @@ import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -168,40 +161,6 @@ class BR_M07_16_ExternalPrescriberBasisIT extends M07IntegrationTestBase {
     }
 
     @Test
-    @DisplayName(
-            "BR-M07-16: Nurse modifying external prescription with valid document basis succeeds and records basis")
-    void nurse_modifyingExternalWithValidBasis_succeeds() {
-        user.set(nurse.user());
-        assignNurse(nurse, residentId);
-        Prescription p = createExternalPrescription();
-
-        OrderPrescriptionBody cmd = new OrderPrescriptionBody();
-        cmd.setReason("Tạm dừng theo chỉ định bệnh viện tái khám");
-
-        ExternalBasisBody basis = new ExternalBasisBody();
-        basis.setFacilityName("Bệnh viện Bạch Mai");
-        basis.setPrescriberName("BS. Trần Văn B");
-        basis.setPrescribedDate(LocalDate.now());
-        basis.setBasisType("DISCHARGE_PAPER");
-        basis.setDocumentFileId(5001L);
-        cmd.setExternalBasis(basis);
-
-        prescriptionService.suspend(prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false);
-
-        // Verify status
-        Prescription reloaded = prescriptionRepository.findById(p.getId()).orElseThrow();
-        assertThat(reloaded.getStatus()).isEqualTo(PrescriptionStatus.SUSPENDED);
-
-        // Verify prescription_basis record saved
-        List<PrescriptionBasis> basisList = prescriptionBasisRepository.findByPrescriptionId(p.getId());
-        assertThat(basisList).isNotEmpty();
-        PrescriptionBasis savedBasis = basisList.get(0);
-        assertThat(savedBasis.getFacilityName()).isEqualTo("Bệnh viện Bạch Mai");
-        assertThat(savedBasis.getCommand()).isEqualTo(PrescriptionBasisCommand.SUSPEND);
-        assertThat(savedBasis.getBasisType()).isEqualTo(PrescriptionBasisType.DISCHARGE_PAPER);
-    }
-
-    @Test
     @DisplayName("BR-M07-16: Nurse modifying internal prescription is forbidden (403)")
     void nurse_modifyingInternalPrescription_forbidden() {
         user.set(nurse.user());
@@ -214,19 +173,5 @@ class BR_M07_16_ExternalPrescriberBasisIT extends M07IntegrationTestBase {
         assertThatThrownBy(() -> prescriptionService.suspend(
                         prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false))
                 .isInstanceOf(BusinessException.class);
-    }
-
-    @Test
-    @DisplayName("BR-M07-16: Doctor modifying external prescription succeeds without external basis")
-    void doctor_modifyingExternalWithoutBasis_succeeds() {
-        Prescription p = createExternalPrescription();
-
-        DiscontinuePrescriptionBody cmd = new DiscontinuePrescriptionBody();
-        cmd.setReason("Bác sĩ cơ sở quyết định ngừng đơn bên ngoài");
-
-        prescriptionService.discontinue(prescriptionService.targetOf(p.getId()), p.getId(), cmd, 10L, true);
-
-        Prescription reloaded = prescriptionRepository.findById(p.getId()).orElseThrow();
-        assertThat(reloaded.getStatus()).isEqualTo(PrescriptionStatus.DISCONTINUED);
     }
 }

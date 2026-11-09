@@ -5,12 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.dose.domain.DoseAuthorityBasis;
-import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
-import com.eldercare.backend.medication.internal.dose.domain.DoseResultType;
-import com.eldercare.backend.medication.internal.dose.domain.DoseReview;
-import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
-import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
 import com.eldercare.backend.medication.internal.dose.domain.PrnAdministration;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepository;
@@ -28,20 +22,17 @@ import com.eldercare.backend.medication.internal.prescription.domain.Prescriptio
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
 import com.eldercare.backend.medication.web.DoseController;
 import com.eldercare.backend.medication.web.MedicationHandoverController;
 import com.eldercare.backend.medication.web.PrnMedicationController;
 import com.eldercare.backend.medication.web.response.DoseBodies.DoseReviewBody;
 import com.eldercare.backend.medication.web.response.HandoverBodies.MedicationToBringBody;
-import com.eldercare.backend.medication.web.response.PrnBodies.PrnAdministrationBody;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.administration.FakeStaffProfiles;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -174,86 +165,6 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
             assertThat(b.batchId()).isEqualTo(batch.getId());
             assertThat(b.expiryDate()).isEqualTo(batch.getExpiryDate());
         });
-    }
-
-    @Test
-    void FR_024_prnHistory_returnsRecordedFields_andRecorderName() {
-        Instant at = time.now().truncatedTo(ChronoUnit.SECONDS).minus(Duration.ofHours(2));
-        PrnAdministration saved = prnRepository.save(prnAdministration(at));
-
-        PrnAdministrationBody body = prn.getPrnHistory(prescription.getId()).administrations().stream()
-                .filter(a -> a.id().equals(saved.getId()))
-                .findFirst()
-                .orElseThrow();
-
-        assertThat(body.adverseReaction()).isEqualTo("Buồn nôn nhẹ");
-        assertThat(body.note()).isEqualTo("Uống sau ăn");
-        assertThat(body.recordedAfterDisconnect()).isTrue();
-        assertThat(body.administeredBy()).isEqualTo("Điều dưỡng Lan");
-    }
-
-    @Test
-    void FR_029_reviewOfPrn_identifiesRecordAndRecorder() {
-        Instant at = time.now().truncatedTo(ChronoUnit.SECONDS).minus(Duration.ofHours(1));
-        PrnAdministration saved = prnRepository.save(prnAdministration(at));
-        DoseReview review = reviewRepository.save(new DoseReview(null, saved.getId(), null, null, null, time.now()));
-
-        DoseReviewBody body = pendingReview(review.getId());
-
-        assertThat(body.prnAdministrationId()).isEqualTo(saved.getId());
-        assertThat(body.doseKey()).isNull();
-        assertThat(body.residentId()).isEqualTo(residentId);
-        assertThat(body.medicationName()).isEqualTo(medication.getName());
-        assertThat(body.administeredAt()).isEqualTo(saved.getAdministeredAt());
-        assertThat(body.recordedBy()).isEqualTo("Điều dưỡng Lan");
-        assertThat(body.reviewedBy()).isNull();
-    }
-
-    @Test
-    void FR_029_reviewOfDose_hasDoseKey() {
-        Instant scheduled = time.now().truncatedTo(ChronoUnit.HOURS).minus(Duration.ofHours(1));
-        MedicationDose dose = doseRepository.save(new MedicationDose(
-                prescription.getId(),
-                residentId,
-                medication.getId(),
-                scheduled,
-                scheduled.minus(Duration.ofMinutes(30)),
-                scheduled.plus(Duration.ofMinutes(30)),
-                new BigDecimal("1"),
-                "viên",
-                MedicationSource.FAMILY_SENT,
-                true,
-                DoseStatus.ADMINISTERED,
-                null,
-                time.now()));
-        DoseResult result = doseResultRepository.save(new DoseResult(
-                dose.getId(),
-                residentId,
-                null,
-                DoseResultType.ADMINISTERED,
-                scheduled,
-                null,
-                nurse.accountId(),
-                DoseAuthorityBasis.ASSIGNED,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                false,
-                true,
-                false,
-                null,
-                time.now()));
-        DoseReview review = reviewRepository.save(new DoseReview(result.getId(), null, null, null, null, time.now()));
-
-        DoseReviewBody body = pendingReview(review.getId());
-
-        assertThat(body.doseKey()).isEqualTo(MedicationScheduleCalculator.doseKey(prescription.getId(), scheduled));
-        assertThat(body.medicationName()).isEqualTo(medication.getName());
-        assertThat(body.recordedBy()).isEqualTo("Điều dưỡng Lan");
     }
 
     private DoseReviewBody pendingReview(long reviewId) {

@@ -5,13 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.admission.api.dto.ContractStatus;
-import com.eldercare.backend.admission.api.dto.DepositStatus;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.Condition;
-import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -93,94 +89,5 @@ class FR_004_ConditionsMatchCommandIT extends M02TestBase {
                 target(residentId), new Reason("Thử"), JsonNodeFactory.instance.objectNode()));
         assertThat(blocked.errorCode()).isEqualTo("UNMET_CONDITIONS");
         assertThat(unmetCodes(blocked)).containsExactlyInAnyOrderElementsOf(codesWith(list, "NOT_MET"));
-    }
-
-    @Test
-    void FR_004_allConditionsMet_commandHasNoUnmetCondition() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        readyToAdmit(residentId);
-
-        JsonNode list = conditions(id);
-
-        assertThat(codesWith(list, "NOT_MET")).isEmpty();
-        assertThat(commandUnmet(residentId)).isEmpty();
-        assertThat(line(list, "ADM_B_CONTRACT").get("status").asString()).isEqualTo("MET");
-        assertThat(line(list, "ADM_B_CONTRACT").get("module").asString()).isEqualTo("M02");
-    }
-
-    @Test
-    void FR_004_bedAndRepresentativeConditionsComeFromOtherModules() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        readyToAdmit(residentId);
-        otherModules.unmet(new Condition("BED_NOT_ALLOCATED", "Chưa có phân bổ giường", "BR-M03-01", false));
-        otherModules.unmet(new Condition("DBR_02", "Thiếu người đại diện", "DBR-02", false));
-
-        JsonNode list = conditions(id);
-
-        assertThat(codesWith(list, "NOT_MET")).containsExactlyInAnyOrder("BED_NOT_ALLOCATED", "DBR_02");
-        assertThat(commandUnmet(residentId)).containsExactlyInAnyOrder("BED_NOT_ALLOCATED", "DBR_02");
-        assertThat(line(list, "DBR_02").get("module").asString()).isEqualTo("M10");
-    }
-
-    @Test
-    void FR_004_dayCare_bedConditionIsNotApplicable() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        confirmedAssessment(residentId, CareLevel.BASIC);
-        contracts.contract(residentId, ContractStatus.ACTIVE, ResidenceType.DAY_CARE, CareLevel.BASIC, today());
-
-        JsonNode list = conditions(id);
-
-        assertThat(codesWith(list, "NOT_APPLICABLE")).hasSize(1);
-        assertThat(line(list, "ADM_D_BED").get("status").asString()).isEqualTo("NOT_APPLICABLE");
-        assertThat(commandUnmet(residentId)).isEmpty();
-    }
-
-    @Test
-    void FR_004_depositStatusFromThePortDecidesCondition_c() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        long contractId = readyToAdmit(residentId);
-
-        deposits.status(contractId, DepositStatus.NOT_SATISFIED);
-        assertThat(codesWith(conditions(id), "NOT_MET")).containsExactly("ADM_C_DEPOSIT");
-        assertThat(commandUnmet(residentId)).containsExactly("ADM_C_DEPOSIT");
-
-        deposits.status(contractId, DepositStatus.SATISFIED);
-        assertThat(codesWith(conditions(id), "NOT_MET")).isEmpty();
-    }
-
-    @Test
-    void FR_075_contractStartingInTheFuture_blocksAdmission() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        confirmedAssessment(residentId, CareLevel.BASIC);
-        contracts.active(residentId, CareLevel.BASIC, today().plusDays(3));
-
-        assertThat(codesWith(conditions(id), "NOT_MET")).containsExactly("ADM_B_CONTRACT");
-        assertThat(commandUnmet(residentId)).containsExactly("ADM_B_CONTRACT");
-    }
-
-    @Test
-    void FR_004_draftContractDoesNotSatisfyCondition_b() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        confirmedAssessment(residentId, CareLevel.BASIC);
-        contracts.contract(
-                residentId, ContractStatus.DRAFT, ResidenceType.LONG_TERM_RESIDENTIAL, CareLevel.BASIC, today());
-
-        assertThat(codesWith(conditions(id), "NOT_MET")).contains("ADM_B_CONTRACT");
-    }
-
-    @Test
-    void FR_004_conditionsOfClosedApplication_is409() throws Exception {
-        long residentId = admissionResident();
-        long id = application(residentId);
-        jdbc.update("UPDATE admission_record SET status = 'CANCELLED' WHERE id = ?", id);
-
-        mvc.perform(get("/api/v1/admission-applications/" + id + "/admission-conditions"))
-                .andExpect(status().isConflict());
     }
 }

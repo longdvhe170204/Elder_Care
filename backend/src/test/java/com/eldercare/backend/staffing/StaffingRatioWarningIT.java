@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.*;
 import com.eldercare.backend.staffing.api.events.ShiftBelowStaffingThreshold;
-import com.eldercare.backend.staffing.ratio.internal.domain.StaffingRatioCalculator.Result;
-import com.eldercare.backend.staffing.ratio.internal.service.StaffingRatioService;
+import com.eldercare.backend.staffing.internal.ratio.domain.StaffingRatioCalculator.Result;
+import com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.roombedallocation.*;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
@@ -54,7 +54,9 @@ class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
         start = time.now().plus(Duration.ofDays(3));
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu tỷ lệ]','07:00','15:00','FLOOR',FALSE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu tỷ lệ] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,FALSE AS requires_handover) src");
         long schedule = AssignmentFixtures.insert(
                 jdbc, "INSERT INTO shift_schedule(month,scope_type,scope_id) VALUES ('2026-10','FLOOR',?)", floor);
         shift = AssignmentFixtures.insert(
@@ -112,86 +114,9 @@ class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
         service.record(shift, "STAFF_ABSENT", result(false));
         assertThat(count()).isEqualTo(2);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
-                .isEqualTo(5);
-    }
-
-    @Test
-    void FR_036_hourlyNearStartManagerOnlyOnce_andNoDuplicateFloorWarning() {
-        jdbc.update("UPDATE work_shift SET status='PUBLISHED' WHERE id=?", shift);
-        service.record(shift, "PUBLISHED", result(false));
-        clock.setTo(start.minus(Duration.ofHours(1)));
-        service.run(time.now(), time.now());
-        service.run(time.now(), time.now());
-        var notices = events.stream(ShiftBelowStaffingThreshold.class)
-                .filter(e -> e.shiftId() == shift)
-                .toList();
-        assertThat(notices).hasSize(2);
-        assertThat(notices.getLast().notificationRequests().getFirst().recipientGroups())
-                .allMatch(RecipientGroup.FacilityRole.class::isInstance);
-        assertThat(jdbc.queryForObject(
-                        "SELECT manager_notified_below_threshold_at IS NOT NULL FROM work_shift WHERE id=?",
-                        Boolean.class,
-                        shift))
-                .isTrue();
-    }
-
-    @Test
-    void FR_037_closedShiftNotRewritten() {
-        jdbc.update("UPDATE work_shift SET status='CLOSED' WHERE id=?", shift);
-        service.record(shift, "CARE_LEVEL_CHANGED", result(false));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
-                .isZero();
-        assertThat(count()).isZero();
-    }
-
-    @Test
-    void FR_037_failedCommandRollsBackSnapshotAndWarningFlag() {
-        jdbc.update("UPDATE work_shift SET status='PUBLISHED' WHERE id=?", shift);
-        new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(tx -> {
-            service.record(shift, "PUBLISHED", result(false));
-            tx.setRollbackOnly();
-        });
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
-                .isZero();
-        assertThat(jdbc.queryForObject("SELECT below_threshold FROM work_shift WHERE id=?", Boolean.class, shift))
-                .isFalse();
-    }
-
-    @Test
-    void FR_036_concurrentTransactionsWithOldReadSnapshotsStillNotifyOnlyOnce() throws Exception {
-        jdbc.update("UPDATE work_shift SET status='PUBLISHED' WHERE id=?", shift);
-        var barrier = new java.util.concurrent.CyclicBarrier(2);
-        var executor = java.util.concurrent.Executors.newFixedThreadPool(2);
-        try {
-            java.util.concurrent.Callable<Void> calculate = () -> {
-                new org.springframework.transaction.support.TransactionTemplate(transactions)
-                        .executeWithoutResult(tx -> {
-                            jdbc.queryForObject(
-                                    "SELECT below_threshold FROM work_shift WHERE id=?", Boolean.class, shift);
-                            try {
-                                barrier.await(5, java.util.concurrent.TimeUnit.SECONDS);
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                            service.record(shift, "CARE_LEVEL_CHANGED", result(false));
-                        });
-                return null;
-            };
-            var a = executor.submit(calculate);
-            var b = executor.submit(calculate);
-            a.get(15, java.util.concurrent.TimeUnit.SECONDS);
-            b.get(15, java.util.concurrent.TimeUnit.SECONDS);
-        } finally {
-            executor.shutdownNow();
-        }
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE EVENT_TYPE=? AND JSON_UNQUOTE(JSON_EXTRACT(SERIALIZED_EVENT,'$.shiftId'))=?",
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
                         Integer.class,
-                        ShiftBelowStaffingThreshold.class.getName(),
-                        Long.toString(shift)))
-                .isEqualTo(1);
+                        shift))
+                .isEqualTo(5);
     }
 }

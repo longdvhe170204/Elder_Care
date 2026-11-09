@@ -1,28 +1,34 @@
 package com.eldercare.backend.staffing.internal.service;
 
+import com.eldercare.backend.common.data.ReminderMarkers;
+import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.staffing.internal.persistence.M09JobRuns;
 import com.eldercare.backend.staffing.internal.service.M09TimedTask.Cadence;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** T008, N-13: chạy bù mốc gần nhất; từng tác vụ xét các dòng nguồn quá hạn và chống lặp theo nguồn. */
+/** T050: marker và tác động commit cùng transaction; thất bại rollback để retry, lần chạy ghi log UUID. */
 @Service
 public class M09Jobs {
-    private final M09JobRuns runs;
+    private final ReminderMarkers markers;
+    private final SchedulerRuns runs;
     private final BusinessTime time;
     private final ObjectProvider<M09TimedTask> tasks;
     private final TransactionTemplate transaction;
 
     public M09Jobs(
-            M09JobRuns runs,
+            ReminderMarkers markers,
+            SchedulerRuns runs,
             BusinessTime time,
             ObjectProvider<M09TimedTask> tasks,
             PlatformTransactionManager manager) {
+        this.markers = markers;
         this.runs = runs;
         this.time = time;
         this.tasks = tasks;
@@ -33,15 +39,29 @@ public class M09Jobs {
         Instant actual = time.now();
         Instant scheduled = scheduledAt(cadence, actual);
         String job = "M09_" + cadence.name();
+        String previous = MDC.get(SchedulerRuns.MDC_KEY);
+        String runId = runs.start(job);
         try {
-            transaction.executeWithoutResult(status -> {
-                if (!runs.claim(job, scheduled, actual)) return;
-                tasks.orderedStream().filter(t -> t.cadence() == cadence).forEach(t -> t.run(scheduled, actual));
-                runs.succeed(job, scheduled, time.now());
+            int processed = transaction.execute(status -> {
+                if (!markers.mark(
+                        "M09.JOB." + job,
+                        "M09.JOB",
+                        0,
+                        scheduled.toString(),
+                        Map.of("scheduledAt", scheduled, "actualAt", actual, "schedulerRunId", runId))) return 0;
+                int count = 0;
+                for (var task : tasks.orderedStream()
+                        .filter(t -> t.cadence() == cadence)
+                        .toList()) count += task.run(scheduled, actual);
+                return count;
             });
+            runs.finish(runId, SchedulerRuns.Result.SUCCEEDED, processed);
         } catch (RuntimeException exception) {
-            transaction.executeWithoutResult(status -> runs.fail(job, scheduled, actual, time.now()));
+            runs.finish(runId, SchedulerRuns.Result.FAILED, 0);
             throw exception;
+        } finally {
+            if (previous == null) MDC.remove(SchedulerRuns.MDC_KEY);
+            else MDC.put(SchedulerRuns.MDC_KEY, previous);
         }
     }
 

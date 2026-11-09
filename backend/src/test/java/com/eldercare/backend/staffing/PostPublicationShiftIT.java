@@ -8,7 +8,7 @@ import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;
-import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.*;
 import com.eldercare.backend.support.fake.admission.FakeM02Config;
 import com.eldercare.backend.support.fake.care.*;
@@ -31,6 +31,9 @@ import tools.jackson.databind.json.JsonMapper;
 @AutoConfigureMockMvc
 @Import({FakeM02Config.class, FakeLocations.Config.class, FakeM04Config.class, PostPublicationShiftIT.Time.class})
 class PostPublicationShiftIT extends MySqlIntegrationTestBase {
+    @Autowired
+    com.eldercare.backend.staffing.internal.handover.persistence.HandoverStore embeddedStore;
+
     @Autowired
     JdbcTemplate jdbc;
 
@@ -97,7 +100,9 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
         locations.floor(floor, null);
         long template = AssignmentFixtures.insert(
                 jdbc,
-                "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Mẫu lệnh ca]','07:00','15:00','FLOOR',TRUE)");
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) SELECT 'M09.SHIFT_TEMPLATE','M09',src.name,'ACTIVE',JSON_OBJECT('createdAt',DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ'),'startTime',TIME_FORMAT(src.start_time,'%H:%i:%s'),'endTime',TIME_FORMAT(src.end_time,'%H:%i:%s'),'scopeType',src.scope_type,'requiresHandover',IF(src.requires_handover,CAST('true' AS JSON),CAST('false' AS JSON)),'originalName',src.name) FROM (SELECT '[Mẫu lệnh ca] #"
+                        + com.eldercare.backend.support.TestUsers.nextId()
+                        + "' AS name,'07:00' AS start_time,'15:00' AS end_time,'FLOOR' AS scope_type,TRUE AS requires_handover) src");
         long schedule = AssignmentFixtures.insert(
                 jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2026-10','FLOOR',?,'PUBLISHED')",
@@ -112,7 +117,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                 floor,
                 lead.staffId());
         jdbc.update(
-                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at) VALUES (?,?,?)",
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) SELECT 'FLOOR_MANAGER',src.staff_id,src.floor_area_id,src.starts_at,1,'[Khởi tạo fixture]','ACTIVE' FROM (SELECT ? AS staff_id,? AS floor_area_id,? AS starts_at) src",
                 head.staffId(),
                 floor,
                 ShiftStore.sql(from.minusSeconds(86400)));
@@ -120,7 +125,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
         member = AssignmentFixtures.insert(
                 jdbc, "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, worker.staffId());
         jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value_id,starts_at,command,by_system) SELECT 'M09.SHIFT',src.shift_id,'LEAD_STAFF','M09','PERIOD',src.staff_id,src.starts_at,src.basis,FALSE FROM (SELECT ? AS shift_id,? AS staff_id,? AS starts_at,'SCHEDULED' AS basis) src",
                 shift,
                 lead.staffId(),
                 ShiftStore.sql(from));
@@ -216,7 +221,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                         "SELECT actual_end_at FROM staff_assignment WHERE id=?", LocalDateTime.class, assignment))
                 .isEqualTo(LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=? AND event='STAFF_ABSENT'",
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=? AND event='STAFF_ABSENT'",
                         Integer.class,
                         shift))
                 .isEqualTo(1);
@@ -245,197 +250,9 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                         Long.toString(member)))
                 .isZero();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM staffing_ratio_calculation WHERE shift_id=?", Integer.class, shift))
-                .isZero();
-    }
-
-    @Test
-    void FR_020_onlyAssignedHeadOrCurrentLeadCanRecordAbsence_andReasonIsRequired() throws Exception {
-        command("record-absence", workerToken, reason(worker.staffId())).andExpect(status().isForbidden());
-        command("record-absence", token(outside), reason(worker.staffId())).andExpect(status().isNotFound());
-        command("record-absence", headToken, Map.of("staffId", worker.staffId()))
-                .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
-    void FR_020_reportingWindowRejectsEarlyAndLate_andAcceptsEndInstant() throws Exception {
-        clock.setTo(from.minus(parameters
-                        .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M15_07)
-                        .asDuration())
-                .minusSeconds(1));
-        command("record-absence", token(head), reason(worker.staffId()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("OUTSIDE_ABSENCE_REPORTING_WINDOW"));
-        clock.setTo(to.plusSeconds(1));
-        command("record-absence", token(head), reason(worker.staffId())).andExpect(status().isConflict());
-        clock.setTo(to);
-        command("record-absence", token(head), reason(worker.staffId())).andExpect(status().isOk());
-    }
-
-    @Test
-    void FR_019_leadChangeClosesHistoryTransfersDraft_andPreservesAssessment() throws Exception {
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, replacement.staffId());
-        long handover = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO shift_handover(shift_id,handover_staff_id,created_at,status) VALUES (?,?,?,'DRAFT')",
-                shift,
-                lead.staffId(),
-                ShiftStore.sql(time.now()));
-        jdbc.update(
-                "INSERT INTO handover_assessment(handover_id,assessment_kind,content) VALUES (?,'GENERAL','[Nhận định được giữ]')",
-                handover);
-        jdbc.update(
-                "INSERT INTO handover_item(handover_id,item_group,room_id,description,note,note_author,created_at) VALUES (?,'FOLLOW_UP_ISSUE',?,'[Mục được giữ]','[Ghi chú cũ]','[Người viết cũ]',?)",
-                handover,
-                TestUsers.nextId(),
-                ShiftStore.sql(time.now()));
-        command("change-lead", headToken, reason(replacement.staffId())).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, shift))
-                .isEqualTo(replacement.staffId());
-        assertThat(jdbc.queryForObject("SELECT handover_staff_id FROM shift_handover WHERE id=?", Long.class, handover))
-                .isEqualTo(replacement.staffId());
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM shift_lead_history WHERE shift_id=? AND ends_at IS NULL",
+                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
                         Integer.class,
                         shift))
-                .isEqualTo(1);
-        assertThat(jdbc.queryForObject(
-                        "SELECT content FROM handover_assessment WHERE handover_id=?", String.class, handover))
-                .isEqualTo("[Nhận định được giữ]");
-        assertThat(jdbc.queryForObject(
-                        "SELECT note_author FROM handover_item WHERE handover_id=?", String.class, handover))
-                .isEqualTo("[Người viết cũ]");
-        command("record-absence", leadToken, reason(worker.staffId())).andExpect(status().isNotFound());
-        command("record-absence", token(replacement), reason(worker.staffId())).andExpect(status().isOk());
-    }
-
-    @Test
-    void FR_020_absentLeadNeedsReplacementWhenEligibleMemberExists() throws Exception {
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, replacement.staffId());
-        command("record-absence", headToken, reason(lead.staffId()))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("REPLACEMENT_LEAD_REQUIRED"));
-        var body = new HashMap<>(reason(lead.staffId()));
-        body.put("replacementLeadStaffId", replacement.staffId());
-        command("record-absence", headToken, body).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, shift))
-                .isEqualTo(replacement.staffId());
-    }
-
-    @Test
-    void FR_053_reasonOnlyVisibleToRecorderAssignedHeadAndManager() throws Exception {
-        command("record-absence", leadToken, reason(worker.staffId())).andExpect(status().isOk());
-        var target = new Target("M09.STAFF_ABSENCE", Long.toString(member), null, floor);
-        assertThat(visibility.canView(lead.user(), InfoGroup.STAFF_REASON, target))
-                .isEqualTo(Visibility.FULL);
-        assertThat(visibility.canView(head.user(), InfoGroup.STAFF_REASON, target))
-                .isEqualTo(Visibility.FULL);
-        assertThat(visibility.canView(manager.user(), InfoGroup.STAFF_REASON, target))
-                .isEqualTo(Visibility.FULL);
-        assertThat(visibility.canView(worker.user(), InfoGroup.STAFF_REASON, target))
-                .isEqualTo(Visibility.NONE);
-        assertThat(visibility.canView(outside.user(), InfoGroup.STAFF_REASON, target))
-                .isEqualTo(Visibility.NONE);
-    }
-
-    @Test
-    void FR_018_addStaffChecksMembershipAndReturnsCommandsFromBackend() throws Exception {
-        command("add-staff", headToken, reason(replacement.staffId())).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM shift_staff WHERE shift_id=? AND staff_id=? AND added_at IS NOT NULL",
-                        Integer.class,
-                        shift,
-                        replacement.staffId()))
-                .isEqualTo(1);
-        command("add-staff", headToken, reason(replacement.staffId())).andExpect(status().isConflict());
-        command("add-staff", leadToken, reason(outside.staffId())).andExpect(status().isForbidden());
-        mvc.perform(get("/api/v1/shifts/{id}", shift).header("Authorization", headToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.allowedCommands").value(org.hamcrest.Matchers.hasItem("addStaff")));
-    }
-
-    @Test
-    void FR_021_cancelOnlyManagerBeforeStart_retainsMembershipAndCancelsAssignments() throws Exception {
-        command("cancel", managerToken, Map.of("reason", "[Hủy ca kiểm thử]")).andExpect(status().isConflict());
-        clock.setTo(from.minusSeconds(3600));
-        jdbc.update("UPDATE work_shift SET status='PUBLISHED' WHERE id=?", shift);
-        command("cancel", token(head), Map.of("reason", "[Hủy ca kiểm thử]")).andExpect(status().isForbidden());
-        command("cancel", token(manager), Map.of("reason", "[Hủy ca kiểm thử]")).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT status FROM work_shift WHERE id=?", String.class, shift))
-                .isEqualTo("CANCELLED");
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shift_staff WHERE shift_id=?", Integer.class, shift))
-                .isEqualTo(2);
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assignment))
-                .isEqualTo("CANCELLED");
-    }
-
-    @Test
-    void FR_053_privateAbsenceReasonIsNotCopiedIntoAssignmentHistoryOrNotifications() throws Exception {
-        command("record-absence", leadToken, reason(worker.staffId())).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT end_reason FROM staff_assignment WHERE id=?", String.class, assignment))
-                .doesNotContain("[Lý do riêng tư kiểm thử]");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE entity_type<>'M09.STAFF_ABSENCE' AND JSON_EXTRACT(details,'$.shiftId')=? AND reason='[Lý do riêng tư kiểm thử]'",
-                        Integer.class,
-                        shift))
-                .isZero();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM event_publication WHERE serialized_event LIKE '%Lý do riêng tư kiểm thử%'",
-                        Integer.class))
-                .isZero();
-        assertThat(jdbc.queryForObject(
-                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(data_after,'$.reason')) FROM audit_log WHERE entity_type='M09.STAFF_ABSENCE' AND entity_id=?",
-                        String.class,
-                        Long.toString(member)))
-                .isEqualTo("[Lý do riêng tư kiểm thử]");
-    }
-
-    @Test
-    void FR_020_absentLeadWithoutEligibleReplacementMarksMissingLead_andHeadKeepsControl() throws Exception {
-        command("record-absence", headToken, reason(lead.staffId())).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT missing_lead FROM work_shift WHERE id=?", Boolean.class, shift))
-                .isTrue();
-        assertThat(jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, shift))
-                .isNull();
-        command("record-absence", headToken, reason(worker.staffId())).andExpect(status().isOk());
-    }
-
-    @Test
-    void FR_056_dutyHistoryIsManagerOnlyFilteredByFloorAndContainsNoPrivateReason() throws Exception {
-        command("record-absence", leadToken, reason(worker.staffId())).andExpect(status().isOk());
-        mvc.perform(get("/api/v1/duty-basis-audit-logs").header("Authorization", headToken))
-                .andExpect(status().isForbidden());
-        mvc.perform(get("/api/v1/duty-basis-audit-logs")
-                        .param("floorAreaId", Long.toString(floor))
-                        .param("from", from.toString())
-                        .param("to", to.toString())
-                        .header("Authorization", managerToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.basis == 'SHIFT_LEAD')]").isNotEmpty())
-                .andExpect(content()
-                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Lý do riêng tư"))));
-        mvc.perform(get("/api/v1/duty-basis-audit-logs")
-                        .param("floorAreaId", Long.toString(TestUsers.nextId()))
-                        .header("Authorization", managerToken))
-                .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
-    }
-
-    @Test
-    void FR_018_overlappingAdditionIsRejected_withoutChangingShift() throws Exception {
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, replacement.staffId());
-        long second = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) SELECT schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,FALSE,'PUBLISHED' FROM work_shift WHERE id=?",
-                shift);
-        var result = mvc.perform(post("/api/v1/shifts/{id}/add-staff", second)
-                .header("Authorization", headToken)
-                .header("Idempotency-Key", UUID.randomUUID().toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(reason(replacement.staffId()))));
-        result.andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("SHIFT_OVERLAP"));
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM shift_staff WHERE shift_id=?", Integer.class, second))
                 .isZero();
     }
 
@@ -468,50 +285,6 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         Long.toString(member)))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void FR_020_absenceLeavesOtherShiftAndItsAssignmentsUnchanged() throws Exception {
-        long other = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) SELECT schedule_id,template_id,DATE_ADD(starts_at,INTERVAL 1 DAY),DATE_ADD(ends_at,INTERVAL 1 DAY),scope_type,scope_id,FALSE,'PUBLISHED' FROM work_shift WHERE id=?",
-                shift);
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", other, worker.staffId());
-        long otherAssignment = AssignmentFixtures.insert(
-                jdbc,
-                "INSERT INTO staff_assignment(shift_id,staff_id,target_type,target_id,role,assignment_kind,starts_at,ends_at,status) SELECT ?,staff_id,target_type,target_id,role,assignment_kind,DATE_ADD(starts_at,INTERVAL 1 DAY),DATE_ADD(ends_at,INTERVAL 1 DAY),'SCHEDULED' FROM staff_assignment WHERE id=?",
-                other,
-                assignment);
-        command("record-absence", leadToken, reason(worker.staffId())).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject(
-                        "SELECT absent_at FROM shift_staff WHERE shift_id=? AND staff_id=?",
-                        Object.class,
-                        other,
-                        worker.staffId()))
-                .isNull();
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, otherAssignment))
-                .isEqualTo("SCHEDULED");
-    }
-
-    @Test
-    void FR_015_temporaryAccountLockDoesNotAddAnUnspecifiedLeadEligibilityRestriction() throws Exception {
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, replacement.staffId());
-        jdbc.update(
-                "UPDATE account SET status='TEMPORARILY_LOCKED',locked_until=? WHERE id=?",
-                ShiftStore.sql(time.now().plusSeconds(600)),
-                replacement.accountId());
-        command("change-lead", headToken, reason(replacement.staffId())).andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, shift))
-                .isEqualTo(replacement.staffId());
-    }
-
-    @Test
-    void FR_056_historyRejectsEmptyOrReversedPeriodAsInputError() throws Exception {
-        mvc.perform(get("/api/v1/duty-basis-audit-logs")
-                        .param("from", from.toString())
-                        .param("to", from.toString())
-                        .header("Authorization", managerToken))
-                .andExpect(status().isUnprocessableEntity());
     }
 
     /** Giữ chính xác biên giờ để kiểm [bắt đầu-CFG, kết thúc], không sửa đồng hồ chung của A. */

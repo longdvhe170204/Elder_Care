@@ -9,6 +9,7 @@ import com.eldercare.backend.care.internal.task.persistence.CareTaskStore;
 import com.eldercare.backend.care.internal.task.service.CareTaskNotices;
 import com.eldercare.backend.care.internal.task.service.CareTaskService;
 import com.eldercare.backend.care.internal.task.service.CareTaskValidator;
+import com.eldercare.backend.care.internal.task.service.SharedCareTasks;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.error.BusinessException;
@@ -29,6 +30,7 @@ public class CareTaskHandover implements ShiftTaskApi {
     private final CareTaskNotices notices;
     private final CareLockStore locks;
     private final CareCatalogStore catalogs;
+    private final SharedCareTasks shared;
 
     public CareTaskHandover(
             CareTaskStore tasks,
@@ -36,13 +38,15 @@ public class CareTaskHandover implements ShiftTaskApi {
             ReminderMarkers markers,
             CareTaskNotices notices,
             CareLockStore locks,
-            CareCatalogStore catalogs) {
+            CareCatalogStore catalogs,
+            SharedCareTasks shared) {
         this.tasks = tasks;
         this.commands = commands;
         this.markers = markers;
         this.notices = notices;
         this.locks = locks;
         this.catalogs = catalogs;
+        this.shared = shared;
     }
 
     @Override
@@ -116,36 +120,34 @@ public class CareTaskHandover implements ShiftTaskApi {
         return new HandoverTransferResult(closed, transferred);
     }
 
-    // Các callback vắng/đổi phân công còn thiếu ở T038; không bỏ qua tác động bằng no-op.
-    private BusinessException pending() {
-        return new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "CARE_SOURCE_UNAVAILABLE",
-                "Callback vắng/đổi phân công chưa được triển khai trong Phase 7");
-    }
-
+    // T056: tác động kèm lệnh của 008, 015 (MANDATORY), không tự tạo công việc.
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void onAbsence(long staffId, long shiftId) {
-        throw pending();
+        shared.shareInShifts(staffId, List.of(shiftId), "SHARED_ON_ABSENCE");
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void onApprovedLeave(long staffId, Set<Long> ids) {
-        throw pending();
+        shared.shareInShifts(staffId, ids, "SHARED_ON_LEAVE");
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void onResignation(long staffId, Instant at) {
-        throw pending();
+        shared.shareFrom(staffId, at);
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void onAssignmentChanged(long residentId, long shiftId) {
-        throw pending();
+        shared.reassignResident(residentId, shiftId);
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void onAssignmentEnded(long assignmentId, long shiftId) {
-        throw pending();
+        shared.reassignShift(shiftId);
     }
 }

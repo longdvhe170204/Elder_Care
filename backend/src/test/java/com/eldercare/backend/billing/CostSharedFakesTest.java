@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.*;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.billing.api.*;
 import com.eldercare.backend.billing.api.dto.*;
-import com.eldercare.backend.billing.internal.provision.domain.CostForBalancePort;
-import com.eldercare.backend.billing.internal.purchase.domain.PurchaseBalancePort;
 import com.eldercare.backend.support.fake.billing.*;
 import java.math.BigDecimal;
 import java.time.*;
@@ -15,6 +13,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 class CostSharedFakesTest {
+    @Test
+    void FR_023a_costFixtureReusesTheAdmissionOwnersRepresentativeFake() {
+        try (var context = new AnnotationConfigApplicationContext(FakeM11Config.class)) {
+            var source = context.getBean(com.eldercare.backend.admission.api.spi.RepresentativePort.class);
+            assertThat(source).isInstanceOf(com.eldercare.backend.support.fake.admission.FakeRepresentatives.class);
+            var fixture = (com.eldercare.backend.support.fake.admission.FakeRepresentatives) source;
+            var day = LocalDate.of(2026, 11, 4);
+            assertThat(source.isActiveRepresentative(10, 20, day)).isFalse();
+            fixture.representative(20, 10);
+            assertThat(source.isActiveRepresentative(10, 20, day)).isTrue();
+            assertThat(source.isActiveRepresentative(11, 20, day)).isFalse();
+            fixture.reset();
+            assertThat(source.hasRepresentative(20)).isFalse();
+        }
+    }
+
     @Test
     void FR_009_sharedPriceFakeDistinguishesZeroFromUnknownAndKeepsSignedTotal() {
         var fake = new FakeCostForBalance();
@@ -83,16 +97,5 @@ class CostSharedFakesTest {
                 "DRAFT",
                 null,
                 null);
-    }
-
-    @Test
-    void FR_042_oneOwnerProvidesAllSharedCostFakesOnlyInTestConfiguration() {
-        try (var context = new AnnotationConfigApplicationContext(FakeM11Config.class)) {
-            assertThat(context.getBean(FamilyPortalCostApi.class)).isInstanceOf(FakeFamilyPortalCosts.class);
-            assertThat(context.getBean(FinalPeriodCostApi.class)).isInstanceOf(FakeFinalPeriodCosts.class);
-            assertThat(context.getBean(CostStatisticsApi.class)).isInstanceOf(FakeCostStatistics.class);
-            assertThat(context.getBean(CostForBalancePort.class)).isInstanceOf(FakeCostForBalance.class);
-            assertThat(context.getBean(PurchaseBalancePort.class)).isInstanceOf(FakePurchaseBalance.class);
-        }
     }
 }

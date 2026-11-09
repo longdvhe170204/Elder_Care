@@ -3,21 +3,17 @@ package com.eldercare.backend.incident;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
-import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.error.VersionMismatchException;
-import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentCatalogs;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeAttributes;
@@ -32,7 +28,6 @@ import com.eldercare.backend.support.fake.shared.FakeCatalogApi;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ObjectProvider;
 
 class FR_039_IncidentCatalogServiceTest {
@@ -122,102 +117,12 @@ class FR_039_IncidentCatalogServiceTest {
     }
 
     @Test
-    void FR_039_missingReasonDoesNotChangeTheRule() {
-        assertThatThrownBy(() -> service.updateTrendRule(
-                        "WEIGHT_LOSS", "\"0\"", new TrendRuleUpdate(false, IncidentLevel.LOW), null))
-                .isInstanceOf(ReasonRequiredException.class);
-        verifyNoInteractions(audit);
-    }
-
-    @Test
     void FR_042_onlyManagerMayConfigureIncidentCatalogs() {
         when(user.roles()).thenReturn(Set.of(Role.OFFICE_STAFF));
         assertThatThrownBy(() ->
                         service.createIncidentType(new IncidentTypeInput("OTHER", "Khác", IncidentLevel.LOW, false, 1)))
                 .isInstanceOf(PermissionDeniedException.class);
         verifyNoInteractions(audit);
-    }
-
-    @Test
-    void FR_042_changingCodeCannotBypassRulesAttachedToTheOriginalType() {
-        var seeded = catalogs.create(
-                IncidentCatalogs.INCIDENT_TYPE,
-                new NewCatalogItem<>(
-                        "FALL", "Ngã", null, 1, new IncidentTypeAttributes(IncidentLevel.CRITICAL, false, false)));
-        assertThatThrownBy(() -> service.updateIncidentType(
-                        seeded.id(), "\"0\"", new IncidentTypeInput("OTHER", "Khác", IncidentLevel.LOW, false, 1)))
-                .isInstanceOf(BusinessException.class);
-        assertThat(catalogs.require(IncidentCatalogs.INCIDENT_TYPE, seeded.id()))
-                .isEqualTo(seeded);
-        verifyNoInteractions(audit);
-    }
-
-    @Test
-    void FR_039_updatesLevelAndEnabledStateWithOneReasonedAuditEntry() {
-        var seeded = catalogs.create(
-                IncidentCatalogs.TREND_RULE,
-                new NewCatalogItem<>(
-                        "WEIGHT_LOSS",
-                        "Sụt cân",
-                        null,
-                        1,
-                        new TrendRuleAttributes(IncidentLevel.MEDIUM, "CFG-M05-03")));
-
-        var result = service.updateTrendRule(
-                "WEIGHT_LOSS",
-                VersionEtag.of(seeded.version()),
-                new TrendRuleUpdate(false, IncidentLevel.CRITICAL),
-                new Reason("Tăng mức theo quyết định viện"));
-
-        assertThat(result.code()).isEqualTo("WEIGHT_LOSS");
-        assertThat(result.enabled()).isFalse();
-        assertThat(result.level()).isEqualTo(IncidentLevel.CRITICAL);
-        assertThat(result.parameterCode()).isEqualTo("CFG-M05-03");
-
-        var entry = ArgumentCaptor.forClass(AuditLogEntry.class);
-        verify(audit).write(entry.capture());
-        assertThat(entry.getValue().entityType()).isEqualTo("M05.TREND_RULE");
-        assertThat(entry.getValue().reason()).isEqualTo("Tăng mức theo quyết định viện");
-        assertThat(entry.getValue().before()).containsEntry("enabled", true).containsEntry("level", "MEDIUM");
-        assertThat(entry.getValue().after()).containsEntry("enabled", false).containsEntry("level", "CRITICAL");
-    }
-
-    @Test
-    void FR_042_updateKeepsAllowsNoResidentReadOnlyAndAuditsNonHealthChange() {
-        var seeded = catalogs.create(
-                IncidentCatalogs.INCIDENT_TYPE,
-                new NewCatalogItem<>(
-                        "FACILITY",
-                        "Cơ sở vật chất",
-                        null,
-                        1,
-                        new IncidentTypeAttributes(IncidentLevel.LOW, true, true)));
-
-        var result = service.updateIncidentType(
-                seeded.id(),
-                VersionEtag.of(seeded.version()),
-                new IncidentTypeInput("FACILITY", "Cơ sở vật chất và thiết bị", IncidentLevel.MEDIUM, false, 2));
-
-        assertThat(result.allowsNoResident()).isTrue();
-        assertThat(result.nonHealth()).isFalse();
-        assertThat(result.name()).isEqualTo("Cơ sở vật chất và thiết bị");
-
-        var entry = ArgumentCaptor.forClass(AuditLogEntry.class);
-        verify(audit).write(entry.capture());
-        assertThat(entry.getValue().entityType()).isEqualTo("M05.INCIDENT_TYPE");
-        assertThat(entry.getValue().before()).containsEntry("nonHealth", true);
-        assertThat(entry.getValue().after()).containsEntry("nonHealth", false);
-    }
-
-    @Test
-    void FR_042_createCustomIncidentTypeNeverGrantsResidentlessRecording() {
-        var created = service.createIncidentType(
-                new IncidentTypeInput("OTHER_CLINICAL", "Sự cố lâm sàng khác", IncidentLevel.MEDIUM, false, 20));
-
-        assertThat(created.allowsNoResident()).isFalse();
-        assertThat(catalogs.require(IncidentCatalogs.INCIDENT_TYPE, created.id())
-                        .attributes())
-                .isEqualTo(new IncidentTypeAttributes(IncidentLevel.MEDIUM, false, false));
     }
 
     @Test

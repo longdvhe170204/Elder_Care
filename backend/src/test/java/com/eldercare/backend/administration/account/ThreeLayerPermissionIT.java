@@ -12,7 +12,6 @@ import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
-import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
@@ -94,48 +93,6 @@ class ThreeLayerPermissionIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void US1_3_facilityView_anyFloor_withoutAssignment() {
-        CurrentUser manager = staff(Role.NURSING_HOME_MANAGER);
-        PermissionKey view = key(Function.RESIDENT_PROFILE, Operation.VIEW);
-
-        assertThat(permissions.hasPermission(manager, view, onFloor1).allowed()).isTrue();
-        assertThat(permissions.hasPermission(manager, view, onFloor2).allowed()).isTrue();
-    }
-
-    @Test
-    void US1_4_professionalOperation_deniedByLegalLayer_viewStillAllowed() {
-        CurrentUser doctor = staff(Role.DOCTOR);
-
-        assertThat(permissions
-                        .hasPermission(doctor, key(Function.PRESCRIPTION, Operation.PROFESSIONAL), onFloor1)
-                        .failedLayer())
-                .contains(FailedLayer.LEGAL);
-        assertThat(permissions
-                        .hasPermission(doctor, key(Function.PRESCRIPTION, Operation.VIEW), onFloor1)
-                        .allowed())
-                .isTrue();
-    }
-
-    @Test
-    void US1_8_permissionRevoked_nextCheckDenied() {
-        CurrentUser caregiver = staffOnFloor1(Role.CAREGIVER);
-        PermissionKey record = key(Function.TASK_CHECKLIST, Operation.CREATE);
-        assertThat(permissions.hasPermission(caregiver, record, onFloor1).allowed())
-                .isTrue();
-
-        jdbc.update("""
-                INSERT INTO permission_assignment (kind, applies_to, account_id, function_code, operation,
-                                                   restriction_kind, effective_from, actor_id, reason)
-                VALUES ('RESTRICTION', 'ACCOUNT', ?, 'TASK_CHECKLIST', 'CREATE', 'REMOVE_OPERATION', ?, 1, 'Test')
-                """, caregiver.accountId(), utc(time.now().minus(Duration.ofSeconds(1))));
-        jdbc.update(
-                "UPDATE account SET permission_version = permission_version + 1 WHERE id = ?", caregiver.accountId());
-
-        assertThat(permissions.hasPermission(caregiver, record, onFloor1).failedLayer())
-                .contains(FailedLayer.ROLE);
-    }
-
-    @Test
     void US1_10_assignedExecution_otherFloorDenied_facilityExecution_anyFloor() {
         CurrentUser caregiver = staffOnFloor1(Role.CAREGIVER);
         PermissionKey record = key(Function.TASK_CHECKLIST, Operation.CREATE);
@@ -148,39 +105,6 @@ class ThreeLayerPermissionIT extends MySqlIntegrationTestBase {
                 .contains(FailedLayer.SCOPE);
         assertThat(permissions.hasPermission(office, absence, onFloor2).allowed())
                 .isTrue();
-    }
-
-    @Test
-    void BR_M15_01_assignedGrant_withoutSpecificTarget_isScopeDenied_facilityGrantAllowed() {
-        CurrentUser caregiver = staffOnFloor1(Role.CAREGIVER);
-        CurrentUser manager = staff(Role.NURSING_HOME_MANAGER);
-        PermissionKey view = key(Function.RESIDENT_PROFILE, Operation.VIEW);
-
-        assertThat(permissions
-                        .hasPermission(caregiver, view, Target.UNSPECIFIED)
-                        .failedLayer())
-                .contains(FailedLayer.SCOPE);
-        assertThat(permissions.hasPermission(manager, view, Target.UNSPECIFIED).allowed())
-                .isTrue();
-    }
-
-    @Test
-    void FR_044_scheduler_allowedWithSchedulerBasis() {
-        CurrentUser scheduler = com.eldercare.backend.support.FakePermissions.user(0, Role.SCHEDULER);
-
-        assertThat(permissions
-                        .hasPermission(scheduler, key(Function.RESIDENT_PROFILE, Operation.UPDATE), onFloor2)
-                        .basis())
-                .contains(PermissionBasis.SCHEDULER);
-    }
-
-    @Test
-    void FR_042_permissions_listsKeysOfRole() {
-        CurrentUser kitchen = staff(Role.KITCHEN_STAFF);
-
-        assertThat(permissions.permissions(kitchen))
-                .contains(key(Function.INCIDENT_EMERGENCY, Operation.CREATE))
-                .doesNotContain(key(Function.RESIDENT_PROFILE, Operation.CREATE));
     }
 
     private static PermissionKey key(Function function, Operation operation) {

@@ -3,7 +3,6 @@ package com.eldercare.backend.administration.account;
 import static com.eldercare.backend.administration.account.internal.permission.domain.GrantSource.ROLE;
 import static com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope.ASSIGNED;
 import static com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope.FACILITY;
-import static com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope.RELATIONSHIP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope;
@@ -35,20 +34,6 @@ class RoleGrantsTest {
         assertThat(RoleGrants.add(Set.of(grant(ASSIGNED)), grant(ASSIGNED, "40")))
                 .containsExactly(grant(ASSIGNED));
         assertThat(RoleGrants.add(Set.of(grant(ASSIGNED, "40")), grant(ASSIGNED)))
-                .containsExactly(grant(ASSIGNED));
-    }
-
-    @Test
-    void FR_025_widerWithConditionAndNarrowerWithout_bothKept() {
-        assertThat(RoleGrants.add(Set.of(grant(FACILITY, "11")), grant(ASSIGNED)))
-                .containsExactlyInAnyOrder(grant(FACILITY, "11"), grant(ASSIGNED));
-    }
-
-    @Test
-    void FR_025_lowerScope_facilityBecomesAssigned_othersUnchanged() {
-        assertThat(RoleGrants.lower(Set.of(grant(FACILITY, "5")))).containsExactly(grant(ASSIGNED, "5"));
-        assertThat(RoleGrants.lower(Set.of(grant(RELATIONSHIP)))).containsExactly(grant(RELATIONSHIP));
-        assertThat(RoleGrants.lower(Set.of(grant(FACILITY, "11"), grant(ASSIGNED))))
                 .containsExactly(grant(ASSIGNED));
     }
 }

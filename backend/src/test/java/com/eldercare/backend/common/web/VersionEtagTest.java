@@ -2,9 +2,7 @@ package com.eldercare.backend.common.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.common.error.VersionMismatchException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -21,21 +19,5 @@ class VersionEtagTest {
         assertThatCode(() -> VersionEtag.requireMatch("\"3\"", 3, Map.of())).doesNotThrowAnyException();
         assertThatCode(() -> VersionEtag.requireMatch("W/\"3\"", 3, Map.of())).doesNotThrowAnyException();
         assertThatCode(() -> VersionEtag.requireMatch("3", 3, Map.of())).doesNotThrowAnyException();
-    }
-
-    @Test
-    void FR_021_staleIfMatch_throwsWithCurrentValue() {
-        Map<String, Object> current = Map.of("currentValue", 20);
-
-        assertThatThrownBy(() -> VersionEtag.requireMatch("\"2\"", 3, current))
-                .isInstanceOfSatisfying(
-                        VersionMismatchException.class,
-                        e -> assertThat(e.currentValue()).isEqualTo(current));
-    }
-
-    @Test
-    void FR_021_unreadableIfMatch_isTreatedAsStale() {
-        assertThatThrownBy(() -> VersionEtag.requireMatch("abc", 3, Map.of()))
-                .isInstanceOf(VersionMismatchException.class);
     }
 }

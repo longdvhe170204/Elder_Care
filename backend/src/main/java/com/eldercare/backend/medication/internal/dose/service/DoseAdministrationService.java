@@ -30,9 +30,9 @@ import com.eldercare.backend.medication.internal.family.service.FamilyMedication
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.medication.internal.schedule.service.AbsenceScheduleContexts;
 import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
-import com.eldercare.backend.medication.internal.schedule.service.ScheduleContext;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,6 +64,8 @@ public class DoseAdministrationService {
     private final ParameterApi parameters;
     private final FamilyMedicationService familyMedications;
 
+    private final AbsenceScheduleContexts absenceContexts;
+
     public DoseAdministrationService(
             MedicationDoseRepository doseRepository,
             DoseResultRepository doseResultRepository,
@@ -76,7 +78,9 @@ public class DoseAdministrationService {
             ApplicationEventPublisher eventPublisher,
             BusinessTime businessTime,
             ParameterApi parameters,
-            FamilyMedicationService familyMedications) {
+            FamilyMedicationService familyMedications,
+            AbsenceScheduleContexts absenceContexts) {
+        this.absenceContexts = absenceContexts;
         this.doseRepository = doseRepository;
         this.doseResultRepository = doseResultRepository;
         this.doseReviewRepository = doseReviewRepository;
@@ -179,6 +183,7 @@ public class DoseAdministrationService {
                     dose.getResidentId(),
                     dose.getMedicationId(),
                     dose.getDosage(),
+                    dose.getDosageUnit(),
                     administeredAt));
         }
 
@@ -253,7 +258,7 @@ public class DoseAdministrationService {
         doseResultRepository.save(result);
 
         // Check consecutive refusals (BR-M07-13)
-        checkConsecutiveRefusals(dose.getResidentId(), dose.getMedicationId(), now);
+        checkConsecutiveRefusals(dose.getId(), dose.getResidentId(), dose.getMedicationId(), now);
 
         return toDetailView(dose, result, doseKey, now);
     }
@@ -331,7 +336,7 @@ public class DoseAdministrationService {
                 parsed.scheduledTime().minusSeconds(10),
                 parsed.scheduledTime().plusSeconds(10),
                 now,
-                ScheduleContext.empty(prescription.getResidentId()));
+                absenceContexts.of(prescription.getResidentId()));
 
         if (slots.isEmpty()) {
             throw new NotFoundException();
@@ -371,7 +376,7 @@ public class DoseAdministrationService {
     /**
      * Kiểm tra số lần từ chối liên tiếp và phát cảnh báo nếu >= 3 (BR-M07-13).
      */
-    private void checkConsecutiveRefusals(Long residentId, Long medicationId, Instant now) {
+    private void checkConsecutiveRefusals(Long doseId, Long residentId, Long medicationId, Instant now) {
         List<MedicationDose> pastDoses =
                 doseRepository.findByResidentIdAndMedicationIdOrderByScheduledTimeDesc(residentId, medicationId);
 
@@ -387,7 +392,7 @@ public class DoseAdministrationService {
                     "TU_CHOI_LIEN_TIEP",
                     "TRUNG_BINH",
                     residentId,
-                    "resident:" + residentId + ":med:" + medicationId,
+                    "dose:" + doseId,
                     "refusal:" + residentId + ":" + medicationId,
                     now,
                     List.of()));

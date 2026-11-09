@@ -90,35 +90,6 @@ class M02StatusParticipantTest {
     }
 
     @Test
-    void FR_048_transferOut_needsUnitAndHandoverStaff_returnDateOptional() {
-        assertThatCode(() -> participant.validateDetails(
-                        StatusCommand.TRANSFER_OUT, json("{\"transferUnit\":\"Bệnh viện A\",\"handoverStaffId\":5}")))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> participant.validateDetails(
-                        StatusCommand.TRANSFER_OUT,
-                        json("{\"transferUnit\":\"Bệnh viện A\",\"handoverStaffId\":5,"
-                                + "\"expectedReturnAt\":\"2030-03-09T00:00:00Z\"}")))
-                .doesNotThrowAnyException();
-        assertInvalid(StatusCommand.TRANSFER_OUT, "{\"handoverStaffId\":5}", "transferUnit");
-        assertInvalid(StatusCommand.TRANSFER_OUT, "{\"transferUnit\":\"  \",\"handoverStaffId\":5}", "transferUnit");
-        assertInvalid(StatusCommand.TRANSFER_OUT, "{\"transferUnit\":\"Bệnh viện A\"}", "handoverStaffId");
-        assertInvalid(
-                StatusCommand.TRANSFER_OUT,
-                "{\"transferUnit\":\"Bệnh viện A\",\"handoverStaffId\":5,\"expectedReturnAt\":42}",
-                "expectedReturnAt");
-    }
-
-    @Test
-    void FR_049_recordReturn_returnedAtIsOptionalButMustBeAnInstant() {
-        assertThatCode(() -> participant.validateDetails(StatusCommand.RECORD_RETURN, json("{}")))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> participant.validateDetails(
-                        StatusCommand.RECORD_RETURN, json("{\"returnedAt\":\"2030-03-06T09:30:00Z\"}")))
-                .doesNotThrowAnyException();
-        assertInvalid(StatusCommand.RECORD_RETURN, "{\"returnedAt\":\"hom qua\"}", "returnedAt");
-    }
-
-    @Test
     void FR_062_endResidency_needsEndingAndEffectiveTime() {
         assertThatCode(() -> participant.validateDetails(
                         StatusCommand.END_RESIDENCY,

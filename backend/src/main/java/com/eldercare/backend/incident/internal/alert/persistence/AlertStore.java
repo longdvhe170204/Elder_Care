@@ -1,5 +1,6 @@
 package com.eldercare.backend.incident.internal.alert.persistence;
 
+import com.eldercare.backend.incident.internal.alert.domain.AlertReceiveState;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
@@ -101,6 +102,46 @@ public class AlertStore {
         }
     }
 
+    /** Cảnh báo nút hỗ trợ đang mở của người bấm (cột sinh {@code open_assist_lock}, FR-047i). */
+    public Optional<AlertRecord> findOpenAssist(long requesterId) {
+        return jdbc
+                .query(
+                        "SELECT * FROM alert WHERE type = 'STAFF_ASSIST_REQUEST' AND requester_id = ?"
+                                + " AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') LIMIT 1",
+                        MAPPER,
+                        requesterId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Gắn người cao tuổi cho cảnh báo chưa gắn, một lần (trigger chỉ cho NULL → giá trị với nút hỗ trợ). */
+    public void attachResident(long id, long residentId) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET resident_id = ?, version = version + 1 WHERE id = ? AND resident_id IS NULL",
+                residentId,
+                id));
+    }
+
+    /** Đặt tầng cho cảnh báo chưa có tầng (người bấm chọn sau, FR-047i); người phụ trách nếu chưa ai tiếp nhận. */
+    public void attachFloor(long id, long floorAreaId, Long assigneeId) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET floor_area_id = ?, assignee_id = COALESCE(assignee_id, ?), version = version + 1"
+                        + " WHERE id = ? AND floor_area_id IS NULL",
+                floorAreaId,
+                assigneeId,
+                id));
+    }
+
+    /** Mốc "Đã tới nơi", một lần, không đổi trạng thái (FR-047j). */
+    public void markArrived(long id, long byId, Instant at) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET arrived_at = ?, arrived_by_id = ?, version = version + 1"
+                        + " WHERE id = ? AND arrived_at IS NULL",
+                Timestamp.from(at),
+                byId,
+                id));
+    }
+
     public Optional<AlertRecord> findById(long id) {
         try {
             var record = jdbc.queryForObject("SELECT * FROM alert WHERE id = ?", MAPPER, id);
@@ -126,6 +167,22 @@ public class AlertStore {
         return count != null && count > 0;
     }
 
+    /** Còn cảnh báo mở mức Trung bình trở lên (014 FR-018). */
+    public boolean hasOpenAtLeastMedium(long residentId) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM alert
+                WHERE resident_id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS')
+                  AND level IN ('MEDIUM', 'CRITICAL')
+                """, Integer.class, residentId);
+        return count != null && count > 0;
+    }
+
+    /** Người cao tuổi từng có cảnh báo (mục việc sau qua đời, research S-17). */
+    public boolean hasAnyAlert(long residentId) {
+        return !jdbc.queryForList("SELECT 1 FROM alert WHERE resident_id = ? LIMIT 1", Integer.class, residentId)
+                .isEmpty();
+    }
+
     public void updateMerged(
             long alertId,
             int newCount,
@@ -149,6 +206,257 @@ public class AlertStore {
                 deadline != null ? Timestamp.from(deadline) : null,
                 alertId,
                 expectedVersion);
+    }
+
+    public Optional<AlertReceiveState> lockForReceive(long id) {
+        return jdbc.query(
+                """
+                SELECT id, resident_id, floor_area_id, status, escalation_level, level, receiver_id, received_at, version
+                FROM alert WHERE id = ? FOR UPDATE
+                """,
+                rs -> rs.next()
+                        ? Optional.of(new AlertReceiveState(
+                                rs.getLong("id"),
+                                (Long) rs.getObject("resident_id"),
+                                (Long) rs.getObject("floor_area_id"),
+                                AlertStatus.valueOf(rs.getString("status")),
+                                rs.getInt("escalation_level"),
+                                rs.getString("level") == null ? null : IncidentLevel.valueOf(rs.getString("level")),
+                                (Long) rs.getObject("receiver_id"),
+                                toInstant(rs.getTimestamp("received_at")),
+                                rs.getInt("version")))
+                        : Optional.empty(),
+                id);
+    }
+
+    /** Tiếp nhận: người tiếp nhận thành người phụ trách, dừng leo thang, giữ mức lúc tiếp nhận (FR-029, FR-081). */
+    public void receive(long id, long receiverId, Instant at, IncidentLevel level, int expectedVersion) {
+        int changed = jdbc.update(
+                """
+                UPDATE alert SET status = 'RECEIVED', receiver_id = ?, received_at = ?, assignee_id = ?,
+                  level_at_received = ?, escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED') AND version = ?
+                """,
+                receiverId,
+                Timestamp.from(at),
+                receiverId,
+                level == null ? null : level.name(),
+                id,
+                expectedVersion);
+        if (changed != 1) throw new IllegalStateException("Cảnh báo đã thay đổi đồng thời");
+    }
+
+    /** Cảnh báo Mới, Leo thang quá hạn tiếp nhận, chưa dừng leo thang (FR-033, research S-08, S-21). */
+    public List<Long> dueForEscalation(Instant now, int limit) {
+        return jdbc.queryForList("""
+                SELECT id FROM alert
+                WHERE status IN ('NEW', 'ESCALATED') AND escalation_stopped = FALSE
+                  AND acknowledgement_deadline IS NOT NULL AND acknowledgement_deadline <= ?
+                ORDER BY acknowledgement_deadline, id LIMIT ?
+                """, Long.class, Timestamp.from(now), limit);
+    }
+
+    public Optional<AlertRecord> lock(long id) {
+        try {
+            return Optional.ofNullable(jdbc.queryForObject("SELECT * FROM alert WHERE id = ? FOR UPDATE", MAPPER, id));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** Lên một cấp: trạng thái Leo thang, hạn tiếp nhận mới (FR-033, FR-084 a). */
+    public void escalate(long id, int level, Instant deadline, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'ESCALATED', escalation_level = ?, acknowledgement_deadline = ?,
+                  version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED') AND version = ?
+                """, level, deadline == null ? null : Timestamp.from(deadline), id, expectedVersion));
+    }
+
+    /** Cấp 2 vẫn quá hạn: mang dấu "đã leo thang tối đa", lần nhắc đầu tiên tới hạn sau một khoảng (FR-034). */
+    public void reachMaximum(long id, Instant maximumAt, Instant nextDeadline, int expectedVersion) {
+        requireOne(jdbc.update(
+                """
+                UPDATE alert SET status = 'ESCALATED', max_escalation_at = ?, acknowledgement_deadline = ?,
+                  version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED') AND version = ?
+                """,
+                Timestamp.from(maximumAt),
+                nextDeadline == null ? null : Timestamp.from(nextDeadline),
+                id,
+                expectedVersion));
+    }
+
+    /** Đã nhắc lần thứ {@code count}; lần kế tới hạn ở {@code nextDeadline} (FR-034, FR-084 d). */
+    public void reminded(long id, int count, Instant nextDeadline, int expectedVersion) {
+        requireOne(jdbc.update(
+                """
+                UPDATE alert SET max_reminder_count = ?, acknowledgement_deadline = ?, version = version + 1
+                WHERE id = ? AND status = 'ESCALATED' AND version = ?
+                """, count, nextDeadline == null ? null : Timestamp.from(nextDeadline), id, expectedVersion));
+    }
+
+    /** Đã tiếp nhận → Đang xử lý; người ra lệnh thành người phụ trách (bảng FR-029, FR-031). */
+    public void startHandling(long id, long assigneeId, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'IN_PROGRESS', assignee_id = ?, version = version + 1
+                WHERE id = ? AND status = 'RECEIVED' AND version = ?
+                """, assigneeId, id, expectedVersion));
+    }
+
+    /** Nâng, hạ mức; {@code deadline} rỗng khi không tính lại hạn (đã tiếp nhận, Khẩn cấp). */
+    public void changeLevel(long id, IncidentLevel level, Instant deadline, int expectedVersion) {
+        requireOne(jdbc.update(
+                """
+                UPDATE alert SET level = ?,
+                  acknowledgement_deadline = IF(status IN ('NEW', 'ESCALATED'), ?, acknowledgement_deadline),
+                  version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
+                """, level.name(), deadline == null ? null : Timestamp.from(deadline), id, expectedVersion));
+    }
+
+    /**
+     * Đang xử lý → Đã đóng do người (bảng FR-029). Cảnh báo từ nút SOS, nút hỗ trợ đóng mà chưa ghi đã tới nơi mang dấu
+     * "không ghi mốc tới nơi" (FR-047j).
+     */
+    public void close(long id, String resolution, String reason, long closedById, Instant at, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CLOSED', resolution = ?, close_reason = ?, closed_by_id = ?, closed_at = ?,
+                  skip_arrival_time = (type IN ('RESIDENT_HELP_REQUEST', 'STAFF_ASSIST_REQUEST') AND arrived_at IS NULL),
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status = 'IN_PROGRESS' AND version = ?
+                """, resolution, reason, closedById, Timestamp.from(at), id, expectedVersion));
+    }
+
+    /** Nguồn đã được xử lý: cảnh báo đang mở → Đã đóng, người đóng Hệ thống (FR-032, research S-09). */
+    public void closeBySystem(long id, String resolution, Instant at, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CLOSED', resolution = ?, closed_by_system = TRUE, closed_at = ?,
+                  escalation_stopped = TRUE, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
+                """, resolution, Timestamp.from(at), id, expectedVersion));
+    }
+
+    /** Đang xử lý → Chuyển sự cố, gắn sự cố liên kết, dừng leo thang (bảng FR-029). */
+    public void convert(long id, long incidentId, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET status = 'CONVERTED_TO_INCIDENT', incident_id = ?, escalation_stopped = TRUE,
+                  version = version + 1
+                WHERE id = ? AND status = 'IN_PROGRESS' AND version = ?
+                """, incidentId, id, expectedVersion));
+    }
+
+    /** Giao người phụ trách: đổi người, giữ trạng thái, cấp, hạn và dấu tạm nhận (bảng FR-029). */
+    public void reassign(long id, long assigneeId, int expectedVersion) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET assignee_id = ?, version = version + 1
+                WHERE id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS') AND version = ?
+                """, assigneeId, id, expectedVersion));
+    }
+
+    /** Cảnh báo vừa tạo lúc không có Bác sĩ trực (FR-047b); cùng lệnh tạo (cảnh báo SOS, FR-047e). */
+    public void markNoOnDutyDoctor(long id) {
+        requireOne(jdbc.update("UPDATE alert SET no_on_duty_doctor = TRUE, version = version + 1 WHERE id = ?", id));
+    }
+
+    /** Gắn dấu nguy kịch vào cảnh báo vừa tạo cho dấu đó, cùng lệnh ghi dấu (FR-050b, DBR-34). */
+    public void linkCriticalFlag(long id, long criticalFlagId) {
+        requireOne(jdbc.update("""
+                UPDATE alert SET critical_flag_id = ?, version = version + 1
+                WHERE id = ? AND critical_flag_id IS NULL
+                """, criticalFlagId, id));
+    }
+
+    /** Cảnh báo đang mở của các người cao tuổi (đọc cho 005, 008). */
+    public List<AlertRecord> openByResidents(java.util.Collection<Long> residentIds) {
+        if (residentIds.isEmpty()) return List.of();
+        String marks = String.join(",", java.util.Collections.nCopies(residentIds.size(), "?"));
+        return jdbc.query(
+                "SELECT * FROM alert WHERE status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS')"
+                        + " AND resident_id IN (" + marks + ") ORDER BY first_at, id",
+                MAPPER,
+                residentIds.toArray());
+    }
+
+    /** Cảnh báo có dòng nguồn trỏ tới bản ghi của module khác (kind {@code M05.ALERT_SOURCE}): mã nguồn → mã cảnh báo. */
+    public List<long[]> bySource(String sourceType, java.util.Collection<Long> sourceIds) {
+        if (sourceIds.isEmpty()) return List.of();
+        String marks = String.join(",", java.util.Collections.nCopies(sourceIds.size(), "?"));
+        var args = new java.util.ArrayList<Object>();
+        args.add(sourceType);
+        args.addAll(sourceIds);
+        return jdbc.query(
+                "SELECT DISTINCT JSON_VALUE(s.content, '$.sourceId' RETURNING SIGNED) AS source_id, s.entity_id"
+                        + " FROM record_event s WHERE s.kind = 'M05.ALERT_SOURCE' AND s.entity_type = 'M05.ALERT'"
+                        + " AND JSON_VALUE(s.content, '$.sourceType') = ?"
+                        + " AND JSON_VALUE(s.content, '$.sourceId' RETURNING SIGNED) IN (" + marks + ")"
+                        + " ORDER BY source_id, s.entity_id",
+                (rs, n) -> new long[] {rs.getLong(1), rs.getLong(2)},
+                args.toArray());
+    }
+
+    /** Người cao tuổi chuyển trạng thái cuối: dừng leo thang và nhắc mọi cảnh báo đang mở (FR-038). */
+    public int stopEscalation(long residentId) {
+        return jdbc.update("""
+                UPDATE alert SET escalation_stopped = TRUE, version = version + 1
+                WHERE resident_id = ? AND status IN ('NEW', 'ESCALATED', 'RECEIVED', 'IN_PROGRESS')
+                  AND escalation_stopped = FALSE
+                """, residentId);
+    }
+
+    /**
+     * Danh sách theo bộ lọc của {@code GET /alerts}. {@code scopeFloors}, {@code scopeResidents} rỗng cả hai là toàn
+     * viện; ngược lại chỉ lấy cảnh báo thuộc một trong hai tập (FR-035 của 002).
+     */
+    public List<AlertRecord> search(
+            java.util.Collection<AlertStatus> statuses,
+            Long floorAreaId,
+            Long residentId,
+            Boolean maxEscalation,
+            boolean facilityWide,
+            java.util.Set<Long> scopeFloors,
+            java.util.Set<Long> scopeResidents) {
+        var sql = new StringBuilder("SELECT * FROM alert WHERE 1 = 1");
+        var args = new java.util.ArrayList<Object>();
+        if (!facilityWide) {
+            sql.append(" AND (FALSE");
+            if (!scopeFloors.isEmpty()) {
+                sql.append(" OR floor_area_id IN (")
+                        .append(String.join(",", java.util.Collections.nCopies(scopeFloors.size(), "?")))
+                        .append(")");
+                args.addAll(scopeFloors);
+            }
+            if (!scopeResidents.isEmpty()) {
+                sql.append(" OR resident_id IN (")
+                        .append(String.join(",", java.util.Collections.nCopies(scopeResidents.size(), "?")))
+                        .append(")");
+                args.addAll(scopeResidents);
+            }
+            sql.append(")");
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            sql.append(" AND status IN (")
+                    .append(String.join(",", java.util.Collections.nCopies(statuses.size(), "?")))
+                    .append(")");
+            statuses.forEach(status -> args.add(status.name()));
+        }
+        if (floorAreaId != null) {
+            sql.append(" AND floor_area_id = ?");
+            args.add(floorAreaId);
+        }
+        if (residentId != null) {
+            sql.append(" AND resident_id = ?");
+            args.add(residentId);
+        }
+        if (maxEscalation != null) {
+            sql.append(maxEscalation ? " AND max_escalation_at IS NOT NULL" : " AND max_escalation_at IS NULL");
+        }
+        sql.append(" ORDER BY latest_at DESC, id DESC LIMIT 500");
+        return jdbc.query(sql.toString(), MAPPER, args.toArray());
+    }
+
+    private static void requireOne(int changed) {
+        if (changed != 1) throw new IllegalStateException("Cảnh báo đã thay đổi đồng thời");
     }
 
     private static AlertRecord mapRow(ResultSet rs, int rowNum) throws SQLException {

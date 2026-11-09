@@ -31,7 +31,6 @@ import com.eldercare.backend.medication.internal.handover.persistence.Medication
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverDoseRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverItemRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverRepository;
-import com.eldercare.backend.medication.internal.handover.persistence.MedicationReturnItemRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationReturnRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.NoMedicationOrderRepository;
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
@@ -66,7 +65,6 @@ public class MedicationHandoverService {
     private final MedicationHandoverItemRepository handoverItemRepo;
     private final MedicationHandoverDoseRepository handoverDoseRepo;
     private final MedicationReturnRepository returnRepo;
-    private final MedicationReturnItemRepository returnItemRepo;
     private final NoMedicationOrderRepository noMedOrderRepo;
     private final PrescriptionRepository prescriptionRepo;
     private final MedicationRepository medicationRepo;
@@ -84,7 +82,6 @@ public class MedicationHandoverService {
             MedicationHandoverItemRepository handoverItemRepo,
             MedicationHandoverDoseRepository handoverDoseRepo,
             MedicationReturnRepository returnRepo,
-            MedicationReturnItemRepository returnItemRepo,
             NoMedicationOrderRepository noMedOrderRepo,
             PrescriptionRepository prescriptionRepo,
             MedicationRepository medicationRepo,
@@ -98,7 +95,6 @@ public class MedicationHandoverService {
         this.handoverItemRepo = handoverItemRepo;
         this.handoverDoseRepo = handoverDoseRepo;
         this.returnRepo = returnRepo;
-        this.returnItemRepo = returnItemRepo;
         this.noMedOrderRepo = noMedOrderRepo;
         this.prescriptionRepo = prescriptionRepo;
         this.medicationRepo = medicationRepo;
@@ -292,14 +288,14 @@ public class MedicationHandoverService {
         }
 
         Instant now = businessTime.now();
-        MedicationReturn medReturn = new MedicationReturn(handoverId, currentUserId, now, body.getReason(), now);
-        MedicationReturn savedReturn = returnRepo.save(medReturn);
-
+        // Dòng nhận lại khóa ngay khi thêm (006 T069): dựng đủ các dòng trước khi lưu
+        List<MedicationReturnItem> returnItems = new ArrayList<>();
         for (ReturnItemBody ri : body.getItems()) {
-            MedicationReturnItem returnItem =
-                    new MedicationReturnItem(savedReturn.getId(), ri.getPrescriptionId(), ri.getQuantity());
-            returnItemRepo.save(returnItem);
+            MedicationReturnItem returnItem = new MedicationReturnItem(null, ri.getPrescriptionId(), ri.getQuantity());
+            returnItem.assignId((long) returnItems.size() + 1);
+            returnItems.add(returnItem);
         }
+        returnRepo.save(new MedicationReturn(handover, currentUserId, now, body.getReason(), returnItems, now));
 
         handover.markReturned(now);
         MedicationHandover savedHandover = handoverRepo.save(handover);
@@ -320,6 +316,16 @@ public class MedicationHandoverService {
                     "Resident already has a no-medication order for this trip (FR-048b)");
         }
 
+        // Chỉ người được đánh giá Đạt cho chuyến (014); liều trong khoảng đi dự kiến thành Tạm dừng (FR-048b, Q-171)
+        TripMedicationPort port = trips.getIfAvailable();
+        TimeInterval tripInterval = (port == null
+                        ? Optional.<TimeInterval>empty()
+                        : port.approvedTripInterval(residentId, body.getTripId()))
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "CONDITION_NOT_MET",
+                        "Resident is not assessed eligible for this trip (FR-048b)"));
+
         NoMedicationOrder order = new NoMedicationOrder(
                 residentId, body.getTripId(), body.getReason(), currentUserId, businessTime.now());
         NoMedicationOrder savedOrder = noMedOrderRepo.save(order);
@@ -334,9 +340,8 @@ public class MedicationHandoverService {
             MedicationAbsenceInterval interval = new MedicationAbsenceInterval(
                     residentId,
                     AbsenceIntervalType.TRIP_NO_MED,
-                    businessTime.now(),
-                    // Giờ về chưa biết thì để trống; khoảng vắng đóng khi Ghi nhận trở về
-                    null,
+                    tripInterval.from(),
+                    tripInterval.to(),
                     null,
                     body.getTripId(),
                     businessTime.now());

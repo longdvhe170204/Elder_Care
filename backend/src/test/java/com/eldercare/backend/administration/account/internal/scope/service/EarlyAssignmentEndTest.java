@@ -3,10 +3,12 @@ package com.eldercare.backend.administration.account.internal.scope.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.*;
 import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
+import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
 import java.time.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -61,5 +63,21 @@ class EarlyAssignmentEndTest {
         assertThat(active.during(1, cut, cut.plusSeconds(60))).isEmpty();
         assertThat(active.during(1, cut.minusSeconds(60), cut)).hasSize(1);
         assertThat(rows.activeAt(1, cut)).isEmpty();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void Q_403_dayCareResidentWithoutBed_takesTheFloorOfTheDayCareRestArea() {
+        var beds = new FakeBedAllocations()
+                .allocate(1, new BedAllocationView(5, 6, 7, 70))
+                .dayCare(2, 80);
+        ObjectProvider<BedAllocationApi> source = mock(ObjectProvider.class);
+        when(source.getIfAvailable()).thenReturn(beds);
+        var active = new ActiveAssignments(mock(ObjectProvider.class), source, mock(ParameterApi.class));
+        Instant at = Instant.parse("2026-11-07T03:00:00Z");
+
+        assertThat(active.floorOf(new Target("M04.TRIP", "9", 1L, null), at)).contains(70L);
+        assertThat(active.floorOf(new Target("M04.TRIP", "9", 2L, null), at)).contains(80L);
+        assertThat(active.floorOf(new Target("M04.TRIP", "9", 3L, null), at)).isEmpty();
     }
 }

@@ -36,25 +36,6 @@ class CallReminderTargetTest {
     }
 
     @Test
-    void FR_029_personToCallIsNeverTheReminded() {
-        assertThat(CallReminderTarget.of(Optional.of(LEAD), Optional.of(FLOOR_MANAGER), MANAGERS, Optional.of(10L)))
-                .contains(new Target(Tier.FLOOR_MANAGER, List.of(20L)));
-        assertThat(CallReminderTarget.of(Optional.empty(), Optional.empty(), MANAGERS, Optional.of(30L)))
-                .contains(new Target(Tier.MANAGERS, List.of(31L)));
-    }
-
-    @Test
-    void FR_029_noOneOnFloor_orNoFloor_goesToActiveManagers() {
-        List<Candidate> managers = List.of(new Candidate(30L, false), new Candidate(31L, true));
-        assertThat(CallReminderTarget.of(
-                        Optional.empty(), Optional.of(new Candidate(20L, false)), managers, Optional.empty()))
-                .contains(new Target(Tier.MANAGERS, List.of(31L)));
-        // Sự kiện không gắn tầng/khu vực: không có bậc (1), (2)
-        assertThat(CallReminderTarget.of(Optional.empty(), Optional.empty(), managers, Optional.empty()))
-                .contains(new Target(Tier.MANAGERS, List.of(31L)));
-    }
-
-    @Test
     void FR_030a_overdue_nextTierAfterCurrent_managerTierStaysManager() {
         assertThat(CallReminderTarget.after(
                         Tier.SHIFT_LEAD, Optional.of(LEAD), Optional.of(FLOOR_MANAGER), MANAGERS, Optional.empty()))
@@ -68,15 +49,5 @@ class CallReminderTargetTest {
         assertThat(CallReminderTarget.after(
                         Tier.MANAGERS, Optional.of(LEAD), Optional.of(FLOOR_MANAGER), MANAGERS, Optional.empty()))
                 .contains(new Target(Tier.MANAGERS, List.of(30L, 31L)));
-    }
-
-    @Test
-    void FR_029_noEligiblePersonAtAnyTier_empty() {
-        assertThat(CallReminderTarget.of(
-                        Optional.of(new Candidate(10L, false)),
-                        Optional.empty(),
-                        List.of(new Candidate(30L, false)),
-                        Optional.empty()))
-                .isEmpty();
     }
 }

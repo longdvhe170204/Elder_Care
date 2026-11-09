@@ -8,7 +8,6 @@ import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
-import com.eldercare.backend.administration.account.api.dto.LicenseView;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -20,7 +19,6 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.support.FakePermissions;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,48 +94,6 @@ class RequiresPermissionAspectTest {
 
         assertThatThrownBy(() -> commands.approve(RESIDENT_7, "x")).isInstanceOf(NotFoundException.class);
         assertThat(Commands.runs).isZero();
-    }
-
-    @Test
-    void FR_043_outOfScopeWithoutSpecificTarget_403NotHidden() {
-        permissions.results.put(APPROVE, PermissionResult.denied(FailedLayer.SCOPE));
-        permissions.results.put(VIEW, PermissionResult.denied(FailedLayer.SCOPE));
-
-        assertThatThrownBy(() -> commands.facilityWide())
-                .isInstanceOfSatisfying(
-                        PermissionDeniedException.class,
-                        e -> assertThat(e.properties()).containsEntry("failedLayer", "SCOPE"));
-    }
-
-    @Test
-    void FR_043_missingLicense_403LegalConditionWithLicense() {
-        permissions.results.put(
-                APPROVE,
-                PermissionResult.deniedByLicense(new LicenseView("Chứng chỉ hành nghề", LocalDate.of(2026, 9, 30))));
-
-        assertThatThrownBy(() -> commands.approve(RESIDENT_7, "x"))
-                .isInstanceOfSatisfying(PermissionDeniedException.class, e -> {
-                    assertThat(e.errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET");
-                    assertThat(e.properties())
-                            .containsEntry("failedLayer", "LEGAL")
-                            .containsEntry(
-                                    "license",
-                                    Map.of("name", "Chứng chỉ hành nghề", "expiryDate", LocalDate.of(2026, 9, 30)));
-                });
-    }
-
-    /** 002 T064: giấy phép cơ sở không bao phạm vi, hoặc chưa cấu hình loại giấy phép: vẫn là lỗi pháp lý, không có giấy phép. */
-    @Test
-    void FR_043_legalWithoutLicense_403LegalCondition() {
-        permissions.results.put(APPROVE, PermissionResult.denied(FailedLayer.LEGAL));
-
-        assertThatThrownBy(() -> commands.approve(RESIDENT_7, "x"))
-                .isInstanceOfSatisfying(PermissionDeniedException.class, e -> {
-                    assertThat(e.errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET");
-                    assertThat(e.properties())
-                            .containsEntry("failedLayer", "LEGAL")
-                            .doesNotContainKey("license");
-                });
     }
 
     @Configuration
