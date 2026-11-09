@@ -221,6 +221,16 @@ public class ActivityTripStore {
                 id);
     }
 
+    /** Đính chính lịch xe (019) đổi giờ rời, về dự kiến của chuyến Đã về; không đụng dấu quá giờ, mốc đã báo. */
+    public void correctPlannedTimes(long id, Instant plannedDepartureAt, Instant plannedReturnAt) {
+        jdbc.update(
+                "UPDATE activity_session SET trip_planned_departure_at=?,trip_planned_return_at=?,version=version+1"
+                        + " WHERE id=? AND trip_status='RETURNED'",
+                local(plannedDepartureAt),
+                local(plannedReturnAt),
+                id);
+    }
+
     public void finishReturn(long id, Instant at, Long staffId) {
         jdbc.update(
                 "UPDATE activity_session SET trip_status='RETURNED',trip_return_finished_at=?,"

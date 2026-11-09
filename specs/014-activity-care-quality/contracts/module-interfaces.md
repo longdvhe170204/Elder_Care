@@ -98,6 +98,7 @@ Khi 019 chưa có (bản giả), chuyến dùng xe của viện bị chặn rờ
 | `CaDaKetThuc` (008) | Mục kiểm tra Quá hạn; ca không danh sách | FR-063 |
 | Công việc bị Hủy ghi nhận (005, nội bộ) | Mục kiểm tra Không kiểm tra được | FR-062 |
 | `NguoiCaoTuoiDaChuyenTrangThai` (001) | Tạm vắng, Điều trị bệnh viện: hiển thị sẵn "Vắng – đang vắng mặt"; chuỗi cô lập bỏ qua ngày | FR-028, FR-054 |
+| `roombedallocation.api.events.VehicleScheduleCorrected` (019, *bổ sung 2026-11-09, chủ dự án chốt*) | Đồng bộ trong lệnh đính chính `M03.VEHICLE_SCHEDULE`: chuyến Đã về đổi giờ rời, về dự kiến hiện hành; giữ tác động đã xảy ra, không phát `TripChanged`, không là đính chính của 014; chuyến không có hoặc không ở Đã về thì lỗi, lệnh 019 rollback; cùng giá trị không ghi | 019 plan "Đính chính tài sản và lịch xe" |
 
 Mọi listener idempotent theo `khoaSuKien` (`su_kien_m04hd_da_xu_ly`). *(R-15: `su_kien_m04hd_da_xu_ly` → `moc_da_nhac`)*
 
