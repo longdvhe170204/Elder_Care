@@ -40,7 +40,23 @@ public class BillingSourceIndexStore {
     }
 
     public Map<BillingSourceKey, Long> effectiveItems(long residentId, String sourceType, List<String> sourceIds) {
-        throw new UnsupportedOperationException("T011: chưa cài tra khoản của nguồn tính khi đọc");
+        if (sourceIds.isEmpty()) return Map.of();
+        var parameters = new ArrayList<Object>();
+        parameters.add(residentId);
+        parameters.add(sourceType);
+        parameters.addAll(sourceIds);
+        var result = new java.util.LinkedHashMap<BillingSourceKey, Long>();
+        jdbc.query(
+                "SELECT source_id,billing_unit,id FROM cost_item WHERE resident_id=? AND source_type=?"
+                        + " AND status<>'CANCELLED' AND (origin='EVENT_BASED' OR adjustment_type='LATE_ADDITION')"
+                        + " AND source_id IN (" + String.join(",", Collections.nCopies(sourceIds.size(), "?")) + ")",
+                row -> {
+                    result.put(
+                            new BillingSourceKey(row.getString("source_id"), row.getString("billing_unit")),
+                            row.getLong("id"));
+                },
+                parameters.toArray());
+        return result;
     }
 
     private List<IndexedSourceMatch> findMatching(String condition, Object... parameters) {
@@ -89,5 +105,31 @@ public class BillingSourceIndexStore {
         } catch (DuplicateKeyException duplicate) {
             // Khóa nguồn đã có: giữ nguyên dữ liệu hiện hành, kể cả đã hủy hoặc đã đính chính.
         }
+    }
+
+    public List<IndexedSourceMatch> byKey(String type, String id, String unit) {
+        var residents = jdbc.queryForList(
+                "SELECT DISTINCT resident_id FROM cost_source_index WHERE source_type=? AND source_id=? AND billing_unit=?",
+                Long.class,
+                type,
+                id,
+                unit);
+        return residents.stream()
+                .flatMap(resident -> findBySourceIds(resident, type, List.of(id)).stream())
+                .filter(row -> row.source().unit().equals(unit))
+                .toList();
+    }
+
+    public void change(
+            String type, String id, String unit, java.math.BigDecimal quantity, boolean cancelled, Instant at) {
+        jdbc.update(
+                "UPDATE cost_source_index SET current_quantity=COALESCE(?,current_quantity),cancelled=?,updated_at=?,version=version+1"
+                        + " WHERE source_type=? AND source_id=? AND billing_unit=?",
+                quantity,
+                cancelled,
+                Timestamp.from(at),
+                type,
+                id,
+                unit);
     }
 }

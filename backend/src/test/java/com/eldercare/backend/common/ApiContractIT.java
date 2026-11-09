@@ -112,6 +112,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
+            // 010 T032: đăng ký khi cài endpoint Phase 5; story khác giữ pending, không nới phép so operation.
+            new Contract(
+                    Path.of("..", "specs", "010-incurred-costs", "contracts", "api-010.yaml"),
+                    Set.of("POST /api/v1/costs/items/manual"),
+                    Set.of(),
+                    true),
             // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
             new Contract(
                     Path.of("..", "specs", "016-reports-dashboard", "contracts", "api-016.yaml"),

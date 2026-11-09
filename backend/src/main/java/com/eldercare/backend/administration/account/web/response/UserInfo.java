@@ -7,7 +7,8 @@ import java.util.List;
 /**
  * Schema {@code UserInfo} của {@code GET /me} và phản hồi đăng nhập; {@code fullName} theo hồ sơ liên kết (T032a).
  * {@code sessionIdleTimeoutSeconds}: CFG-M15-10 của kênh phiên, chỉ {@code GET /me} trả, null khi kênh không tự đăng xuất
- * (T047a).
+ * (T047a). {@code phoneNumber}, {@code email}: liên hệ trên hồ sơ nhân viên của tài khoản, chỉ {@code GET /me} và
+ * {@code PUT /me/contact} trả (bổ sung 2026-11-09, chủ dự án duyệt).
  */
 @Schema(name = "UserInfo")
 public record UserInfo(
@@ -16,4 +17,6 @@ public record UserInfo(
         String fullName,
         List<String> roles,
         boolean mustChangePassword,
-        Long sessionIdleTimeoutSeconds) {}
+        Long sessionIdleTimeoutSeconds,
+        @Schema(types = {"string", "null"}) String phoneNumber,
+        @Schema(types = {"string", "null"}) String email) {}
