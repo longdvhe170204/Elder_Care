@@ -177,6 +177,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
   - Một phần 05/11/2026: `return`, `extend`, `transfer-leader`, `finish-return`, bước quá giờ về, Rời đoàn đã cài với test `BR_M04_17_ThieuNguoiIT` 8/8 (plan Phase 7). Còn: hai lệnh ghi sự cố (chờ port 007), ghi khi mất mạng, đính chính FR-031a; T019, T020 chưa đánh [x].
   - Một phần 06/11/2026: đính chính FR-031a Hủy ghi nhận rời viện (`TripAttendanceCorrectionProvider`, `FR_031a_DinhChinhChuyenIT` 4/4). Còn: đổi thời điểm, Hủy ghi nhận về (chờ 001).
   - *(2026-11-07, C)* Web: khối Đang đi (điểm danh về, gia hạn, chuyển trưởng đoàn, kết thúc điểm danh về) theo bố cục duyệt 07/11. Không đánh [x] (báo thiếu người chờ port 007, app chưa có).
+  - *(2026-11-09, C)* Không gắn task riêng: listener `VehicleScheduleCorrected` đổi giờ rời, về dự kiến của chuyến Đã về khi 019 đính chính lịch xe (quyết định và test ở plan mục 09/11/2026). Không đổi trạng thái T020.
 
 **Checkpoint**: P1 hoàn tất.
 

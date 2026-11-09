@@ -470,7 +470,7 @@ TripDetail: đề xuất ở contracts/trip-detail-proposal-2026-11-08.md. Chưa
 | FR-034, FR-036, Q-403 | Q403_DayCareFloorTest (003), FR_036_TripAssessmentTest, BR_M04_16_RoiVienIT; ScopeByShiftIT.FR_031 | T015 còn đối chiếu Q18–Q25 sau rút gọn test; T017/T018 TripDetail và adapter thật |
 | FR-036/038/039 phần dữ liệu chi tiết chuyến | contracts/trip-detail-proposal-2026-11-08.md liệt kê trường và nguồn 006/007 | Dừng trình duyệt; chưa sửa schema TripDetail hoặc cài nguồn mới |
 | FR-031a, FR-046a ngoại tuyến chuyến | Giữ kiểm chặn 503 và các test đã có | B chưa nhận thời điểm thiết bị trong lệnh trạng thái 001 |
-| Nhóm 7–10 trong yêu cầu phiên | Chưa triển khai vì dừng tại bước 6 theo yêu cầu | API đọc cho 012/007, sở thích từ phản hồi, TripIncidentPort, app danh sách buổi, listener VehicleScheduleCorrected |
+| Nhóm 7–10 trong yêu cầu phiên | Chưa triển khai vì dừng tại bước 6 theo yêu cầu | API đọc cho 012/007, sở thích từ phản hồi, TripIncidentPort, app danh sách buổi |
 
 ### 08/11/2026 (C): đối chiếu T010, T015, T023 với quickstart sau đợt rút gọn test
 
@@ -503,3 +503,16 @@ Lượt clean verify đầu tiên với JDK 25, backend/.env và 3 JVM: 910 đơ
 
 
 Lượt cuối sau gộp: `clean verify -Dit.forkCount=3` (JDK 25, nạp backend/.env, 11:06 phút) báo 910 đơn vị/kiến trúc xanh; 400 IT, 1 failure/0 error/0 skipped. Lớp đỏ duy nhất là B/018 `RegistrationSubmissionResultIT.Q7_recordingSubmitted_movesToSubmitted_keepsTheSubmission_andStopsOverdueReminders`: còn nhắc TO_CREATE cho residentId=10, on=2026-11-08. Khớp cả lớp, phương thức và triệu chứng ở team-plan mục 8; không sửa nguồn/test B. Năm lớp đỏ cũ còn lại xanh. Care 40, roombedallocation 36, administration.account 24 ca đều xanh, gồm phạm vi trưởng đoàn/người đi cùng; ApiContractIT, CorrectionIT và các RecordGroupTriggerIT xanh. Ngân sách đạt 910/400; T029 vẫn [ ] do gate toàn kho chưa xanh, T030 giữ [ ] theo bảng truy vết. Log: backend/logs/014/20261108-final-budget-clean-verify.log.
+
+### 09/11/2026 (C): listener `VehicleScheduleCorrected` (019 → 014)
+
+Spec 014 (bảng trạng thái chuyến: Đã về chỉ có "Điểm danh về muộn"), data-model mục 6 và nghiep-vu mục 24 (Q-231, Q-236, Q-239, Q-240 chỉ nói chiều chuyến → lịch xe) không trả lời, chủ dự án chốt 2026-11-09 theo đề xuất:
+
+- (a) Chỉ đổi `trip_planned_departure_at`, `trip_planned_return_at` của chuyến; không đổi giờ về của người tham gia, đồng ý về muộn, không ghi `M04.TRIP_EXTENSION`.
+- (b) Chỉ chuyến Đã về (lịch xe Đã hoàn thành chỉ có sau Kết thúc điểm danh về). Giữ nguyên tác động đã xảy ra: 001, 005, đồng ý về muộn, dấu và mốc quá giờ đã báo, lịch sử gia hạn; `ActivityStatisticsApi` đọc giờ mới nếu đọc hai cột trên.
+- (c) Không phát `TripChanged` (011 sẽ tính lại suất ngày đã qua); không là đính chính của 014 (DBR-25, FR-069), nhật ký thuộc lệnh đính chính của 000.
+- (d) Lỗi để rollback cả lệnh đính chính của 019: chuyến không có thì 404 (`ActivityTripStore.lock`), không ở Đã về thì 409 `STATE_CHANGED`.
+
+Cài: `care/internal/trip/service/VehicleScheduleCorrectionListener` (`@EventListener` đồng bộ, khóa dòng chuyến, cùng giá trị thì không ghi), `ActivityTripStore.correctPlannedTimes` (tăng `version`, chỉ khi `RETURNED`). Không đổi sự kiện, API, DTO, mã 019. Giới hạn đã biết (plan 019): `VehicleScheduleApi` vẫn trả giờ gốc của lịch đã khóa, nên giờ chuyến sau đính chính lệch giờ của dòng lịch xe.
+
+Test: thêm `BR_M04_16_RoiVienIT#VehicleScheduleCorrected_syncsReturnedTripPlannedTimesInTheCorrectionCommand` (luồng chính qua `POST /corrections/M03.VEHICLE_SCHEDULE/{id}`, nhận lặp, rollback), đỏ trước cài (giờ rời không đổi), xanh sau cài; `BR_M04_16_RoiVienIT` 4/4, `BR_M03_16_VehicleScheduleIT` 2, `FR_018_FollowTripIT` 1, `ApiContractIT` 1, kiến trúc 72 (gồm ModuleBoundaryTest, M04ArchTest, LayerArchTest) xanh. Không phát `TripChanged` nên không chạy IT 011.
