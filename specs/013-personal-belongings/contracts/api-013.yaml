@@ -37,7 +37,7 @@ paths:
       x-fr: [FR-001]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BelongingType' } } } }
-      responses: { '201': { description: OK } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CreatedId' } } } } }
   /belongings/types/{id}:
     put:
       tags: [belonging-catalogs]
@@ -58,7 +58,7 @@ paths:
       x-fr: [FR-001a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name, order], properties: { id: { type: integer, format: int64 }, name: { type: string }, order: { type: integer }, unusable: { type: boolean }, status: { type: string } } } } } }
-      responses: { '201': { description: OK } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CreatedId' } } } } }
   /belongings/storage-locations:
     get:
       tags: [belonging-catalogs]
@@ -94,7 +94,7 @@ paths:
       summary: Chi tiết đồ gửi và lịch sử bàn giao (cả đồ tách cùng lần tiếp nhận)
       x-fr: [FR-011, FR-012]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BelongingDetail' } } } } }
   /belongings/handovers:
     post:
       tags: [belongings]
@@ -132,7 +132,7 @@ paths:
       x-br: [BR-M12-06]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RecordSelfCustodyConsent' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CreatedId' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
   /self-custody-consents/{id}/withdraw:
     post:
       tags: [belongings]
@@ -169,7 +169,7 @@ paths:
       x-br: [BR-M12-04]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CreateRecipientConfirmation' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CreatedId' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
   /recipient-confirmations/{id}/contact-evidence:
     post:
       tags: [belonging-returns]
@@ -213,7 +213,7 @@ paths:
       x-br: [BR-M12-07]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [storageLocationId], properties: { storageLocationId: { type: integer, format: int64 } } } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CreatedId' } } } }, '409': { $ref: '#/components/responses/Blocked' } }
   /belonging-inventory-checks/{id}:
     get:
       tags: [belonging-inventory-checks]
@@ -241,7 +241,14 @@ paths:
       x-fr: [FR-030]
       x-br: [BR-M12-09]
       parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PortalBelonging' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /family-portal/recipient-confirmations/{id}:
+    get:
+      tags: [family-portal]
+      summary: Người đại diện đọc yêu cầu xác nhận người nhận khác (họ tên, giấy tờ người nhận, đồ trong yêu cầu) trước khi quyết định
+      x-fr: [FR-017, FR-030]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RecipientConfirmation' } } } }, '403': { $ref: '#/components/responses/Problem' } }
   /family-portal/recipient-confirmations/{id}/{command}:
     post:
       tags: [family-portal]
@@ -260,7 +267,7 @@ paths:
       x-fr: [FR-015a, FR-030]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [belongingId], properties: { belongingId: { type: integer, format: int64 } } } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CreatedId' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
   /family-portal/self-custody-consents/{id}/withdraw:
     post:
       tags: [family-portal]
@@ -289,6 +296,35 @@ components:
       description: 'STATE_CHANGED, RESIDENT_FINAL_STATE, STORAGE_LOCATION_INACTIVE, PHOTO_REQUIRED, SELF_CUSTODY_CONSENT_REQUIRED, GIVER_NOT_REPRESENTATIVE, GIVER_NOT_HOLDER, HOLDER_NOT_ABSENT, CONDITION_HANDLING_REQUIRED, UNUSABLE_LEVEL_ONLY_VIA_RECORD_DAMAGE, INCIDENT_ALREADY_LINKED, INVALID_INCIDENT, RETURN_BLOCKED, INVALID_RECIPIENT_CONFIRMATION, NURSING_STAFF_VALUABLE_ITEM, ALREADY_REJECTED, ON_BEHALF_APPROVAL_NOT_ELIGIBLE, SELF_APPROVAL_NOT_ALLOWED, BELONGINGS_AT_LOCATION, NO_VALUABLE_BELONGINGS, INVENTORY_CHECK_EXISTS_FOR_PERIOD, INVENTORY_RESULT_REQUIRED, BELONGINGS_STILL_IN_CHECK'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
+    CreatedId:
+      type: object
+      description: Mã bản ghi vừa lập (không đổi hành vi, chỉ khai thân phản hồi 201 mà backend đã trả).
+      properties: { id: { type: integer, format: int64 } }
+    SelfCustodyConsentSummary:
+      type: object
+      description: Bản đồng ý cho tự giữ đang Hiệu lực của đồ (FR-015a); null khi không có.
+      properties: { id: { type: integer, format: int64 }, status: { type: string }, method: { type: string }, representativeId: { type: integer, format: int64 } }
+    HandoverEntry:
+      type: object
+      properties: { id: { type: integer, format: int64 }, belongingId: { type: integer, format: int64 }, kind: { type: string }, targetStatus: { type: string }, giverType: { type: string }, giverName: { type: string }, recipientType: { type: string }, recipientName: { type: string }, occurredAt: { type: string, format: date-time }, quantity: { type: number }, cashAmount: { type: number }, conditionLevelId: { type: integer, format: int64 }, conditionDescription: { type: string }, storageLocationId: { type: integer, format: int64 }, reason: { type: string }, photoFileIds: { type: array, items: { type: integer, format: int64 } }, incidentId: { type: integer, format: int64 }, recordedAt: { type: string, format: date-time } }
+    BelongingDetail:
+      type: object
+      properties:
+        belonging: { $ref: '#/components/schemas/Belonging' }
+        handovers: { type: array, items: { $ref: '#/components/schemas/HandoverEntry' } }
+        selfCustodyConsent: { $ref: '#/components/schemas/SelfCustodyConsentSummary' }
+    PortalBelonging:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        typeId: { type: integer, format: int64 }
+        description: { type: string }
+        quantity: { type: number }
+        cashAmount: { type: integer, format: int64 }
+        status: { type: string, enum: [HELD, IN_USE, RETURNED, LOST, DAMAGED, DISPOSED] }
+        holder: { type: string }
+        history: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, kind: { type: string }, targetStatus: { type: string }, occurredAt: { type: string, format: date-time }, quantity: { type: number }, cashAmount: { type: integer, format: int64 }, conditionDescription: { type: string }, photoFileIds: { type: array, items: { type: integer, format: int64 } } } } }
+        selfCustodyConsent: { $ref: '#/components/schemas/SelfCustodyConsentSummary' }
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     Problem:
       type: object

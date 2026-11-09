@@ -98,13 +98,19 @@ describe('BelongingsPage (013 T011, US1)', () => {
     expect(await screen.findByText('Trần Thu Hà', { exact: false })).toBeInTheDocument()
 
     expect(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007', hidden: true })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Nguyễn Thị Lan, NCT-0007', hidden: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true }))
 
     expect(await screen.findByRole('heading', { name: 'Đồ gửi của Lê Văn Minh' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Chi tiết Điện thoại Nokia' })).not.toBeInTheDocument()
     expect(screen.queryByText('Trần Thu Hà', { exact: false })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Lê Văn Minh, NCT-0008', hidden: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 
   it('FR_011_danhSachDoGui_loaiTrangThaiNguoiGiuViTri', async () => {
@@ -177,6 +183,36 @@ describe('BelongingsPage (013 T011, US1)', () => {
     const [, init] = api.calls('POST', '/self-custody-consents')[0]
     expect(JSON.parse(init.body)).toEqual({ belongingId: 90, representativeId: 33, signedFormFileId: 640 })
     expect(await screen.findByText('Đã ghi đồng ý cho tự giữ.')).toBeInTheDocument()
+  })
+
+  it('FR_015a_rutDongY_dongYDangHieuLuc_guiLyDoNguoiDaiDienVaTep', async () => {
+    const api = setup()
+    api.on(
+      'GET',
+      '/belongings/90',
+      json(200, {
+        belonging: PHONE,
+        handovers: [],
+        selfCustodyConsent: { id: 55, status: 'EFFECTIVE', method: 'SIGNED_FORM', representativeId: 33 },
+      }),
+    )
+    api.on('POST', '/files', json(201, { fileId: 641 }))
+    api.on('POST', '/self-custody-consents/55/withdraw', json(200, {}))
+    await openResident()
+    fireEvent.click(await screen.findByRole('button', { name: 'Chi tiết Điện thoại Nokia' }))
+    expect(await screen.findByText(/Có hiệu lực, người đại diện #33/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ghi đồng ý cho tự giữ' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Rút đồng ý' }))
+    fireEvent.change(screen.getByLabelText('Lý do rút đồng ý'), { target: { value: 'Người nhà đổi ý' } })
+    fireEvent.change(screen.getByLabelText('Bản ký của người đại diện'), {
+      target: { files: [new File(['p'], 'rut.pdf', { type: 'application/pdf' })] },
+    })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Rút đồng ý' }).at(-1))
+
+    await waitFor(() => expect(api.calls('POST', '/self-custody-consents/55/withdraw')).toHaveLength(1))
+    const [, init] = api.calls('POST', '/self-custody-consents/55/withdraw')[0]
+    expect(JSON.parse(init.body)).toEqual({ reason: 'Người nhà đổi ý', representativeId: 33, signedFormFileId: 641 })
+    expect(await screen.findByText('Đã rút đồng ý cho tự giữ.')).toBeInTheDocument()
   })
 
   it('FR_024_lienKetSuCoGhiSau_motLan', async () => {
