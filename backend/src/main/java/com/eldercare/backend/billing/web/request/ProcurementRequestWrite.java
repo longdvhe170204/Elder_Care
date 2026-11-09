@@ -30,6 +30,9 @@ public record ProcurementRequestWrite(
 
     @Schema(name = "ProcurementRequestLine")
     public record Line(
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+            Long id,
+
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             String name,
 
@@ -46,8 +49,9 @@ public record ProcurementRequestWrite(
             String dosageForm,
             String unit) {
 
-        public static Line of(ProcurementRequestRow.Line line) {
+        public static Line of(Long id, ProcurementRequestRow.Line line) {
             return new Line(
+                    id,
                     line.name(),
                     line.quantity(),
                     line.estimatedUnitPrice(),

@@ -180,4 +180,3 @@ api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 appli
 api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] đổi trường bắt buộc
 
 # api-019 (C)
-api-019.yaml: GET /api/v1/procurement-requests phản hồi 200 application/json[].lines[] thiếu trường id
