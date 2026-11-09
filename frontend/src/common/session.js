@@ -33,6 +33,11 @@ export function primaryRole(codes = []) {
   return ROLE_BY_CODE.find(([code]) => codes.includes(code))?.[1] ?? null
 }
 
+// Mọi vai trò nhân viên của tài khoản, theo thứ tự ưu tiên (trang Tài khoản của tôi)
+export function staffRoles(codes = []) {
+  return ROLE_BY_CODE.filter(([code]) => codes.includes(code)).map(([, role]) => role)
+}
+
 // Nơi đến sau khi đăng nhập hoặc đổi mật khẩu (FR-006): buộc đổi mật khẩu trước, rồi theo loại tài khoản
 export function homeOf(user) {
   if (user.mustChangePassword) return '/change-password'

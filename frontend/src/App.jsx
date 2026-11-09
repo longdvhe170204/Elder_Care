@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { ApiError, getMe, postAuthLogout } from '@/api'
 import { AppShell } from '@/common/layout/AppShell'
-import { NAV_GROUPS, canSee, navForRole } from '@/common/layout/navigation'
+import { ACCOUNT_PAGE, NAV_GROUPS, canSee, navForRole } from '@/common/layout/navigation'
 import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
 import { PermissionDeniedState } from '@/common/PageState'
 import { SessionGuard } from '@/common/SessionGuard'
 import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { MyAccountPage } from '@/features/permissions/MyAccountPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
 import { OverdueTasksPage } from '@/features/care-tasks/OverdueTasksPage'
@@ -111,6 +112,7 @@ const PAGES = {
   notifications: NotificationsPage,
   'pending-review-records': PendingReviewPage,
   belongings: BelongingsPage,
+  [ACCOUNT_PAGE]: MyAccountPage,
 }
 
 // Mục menu chỉ hiện khi đã có màn
@@ -132,7 +134,7 @@ function LivePermissions({ role, page, onNavigate, render }) {
   const { status, hasFunction } = usePermissions()
   const check = status === 'ready' ? hasFunction : null
   const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
-  const misplaced = status !== 'loading' && (!item || !canSee(item, role, check, BUILT))
+  const misplaced = status !== 'loading' && page !== ACCOUNT_PAGE && (!item || !canSee(item, role, check, BUILT))
   const first = misplaced ? firstPage(role, check) : null
 
   useEffect(() => {
@@ -196,7 +198,7 @@ function App() {
   function changeRole(nextRole) {
     setRole(nextRole)
     const allowed = navForRole(nextRole, null, BUILT).flatMap((g) => g.items.map((i) => i.key))
-    if (!allowed.includes(page)) navigate(firstPage(nextRole))
+    if (page !== ACCOUNT_PAGE && !allowed.includes(page)) navigate(firstPage(nextRole))
   }
 
   if (checking) return null
@@ -208,7 +210,7 @@ function App() {
 
   const shell = (hasFunction) => {
     // Chặn hiển thị khi không có quyền (quyền thật do backend trả, backend vẫn kiểm)
-    const allowed = item && canSee(item, role, hasFunction, BUILT)
+    const allowed = page === ACCOUNT_PAGE || (item && canSee(item, role, hasFunction, BUILT))
     return (
       <AppShell
         role={role}
@@ -221,7 +223,13 @@ function App() {
         onPageChange={(key) => navigate(key)}
       >
         {allowed ? (
-          <Page key={`${page}:${JSON.stringify(params)}`} role={role} onNavigate={navigate} {...params} />
+          <Page
+            key={`${page}:${JSON.stringify(params)}`}
+            role={role}
+            onNavigate={navigate}
+            {...(page === ACCOUNT_PAGE ? { session, built: BUILT } : {})}
+            {...params}
+          />
         ) : (
           <PermissionDeniedState label={item?.label ?? 'màn này'} />
         )}
