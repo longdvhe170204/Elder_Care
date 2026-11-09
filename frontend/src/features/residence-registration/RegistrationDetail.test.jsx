@@ -2,9 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { PermissionsProvider } from '@/common/permissions/permissions'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
+import { openFile } from '@/common/files'
 import { RegistrationDetail } from './RegistrationDetail'
 
 // Khung chi tiết theo người cao tuổi (018 T008, T010, T012, T014; bố cục K3, K7).
+
+vi.mock('@/common/files', async (importOriginal) => ({
+  ...(await importOriginal()),
+  openFile: vi.fn(() => Promise.resolve()),
+}))
 
 const PERMS = [
   { function: 'RESIDENCE_REGISTRATION', operation: 'VIEW' },
@@ -84,6 +90,26 @@ describe('RegistrationDetail (018)', () => {
     expect(screen.getByRole('button', { name: /Khai báo cũ \(1\)/ })).toBeInTheDocument()
   })
 
+  it('K3_khaiBaoDaXacNhan_coEvidenceFileId_nutXemBangChungMoTep', async () => {
+    const confirmed = {
+      ...toSubmit,
+      id: 8,
+      status: 'CONFIRMED',
+      allowedCommands: [],
+      expiryDate: '2027-01-01',
+      evidenceFileId: 88,
+    }
+    setup(PERMS, [confirmed], null)
+    fireEvent.click(await screen.findByRole('button', { name: 'Xem bằng chứng' }))
+    expect(openFile).toHaveBeenCalledWith(88)
+  })
+
+  it('K3_khaiBaoChuaCoKetQua_khongCoNutXemBangChung', async () => {
+    setup(PERMS, [toSubmit], null)
+    await screen.findByLabelText('Khai báo 7')
+    expect(screen.queryByRole('button', { name: 'Xem bằng chứng' })).not.toBeInTheDocument()
+  })
+
   it('FR_009_chiCoQuyenXem_anMoiNutLenh_vaNutLap', async () => {
     setup(VIEW_ONLY, [toSubmit])
     expect(await screen.findByText('Cần khai báo')).toBeInTheDocument()
@@ -147,7 +173,13 @@ describe('RegistrationDetail (018)', () => {
   })
 
   it('K7_hetHanVaKhaiBaoXoa_hienNutGhiKhaiBaoXoa_khiBackendChoPhep', async () => {
-    const expired = { ...toSubmit, id: 9, status: 'EXPIRED', allowedCommands: ['record-deregistered'], expiryDate: '2026-10-01' }
+    const expired = {
+      ...toSubmit,
+      id: 9,
+      status: 'EXPIRED',
+      allowedCommands: ['record-deregistered'],
+      expiryDate: '2026-10-01',
+    }
     setup(PERMS, [expired])
     expect(await screen.findByText('Hết hạn')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Ghi đã khai báo xóa' }))

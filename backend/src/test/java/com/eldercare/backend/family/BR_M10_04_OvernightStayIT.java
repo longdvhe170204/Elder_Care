@@ -10,6 +10,8 @@ import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.family.api.events.FamilyStayNotice;
+import com.eldercare.backend.nutrition.api.events.StayMealChanged;
+import com.eldercare.backend.nutrition.api.spi.StayMealPort;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,9 @@ class BR_M10_04_OvernightStayIT extends StayTestBase {
 
     @Autowired
     ApplicationEventPublisher publisher;
+
+    @Autowired
+    StayMealPort stayMeals;
 
     @Test
     void US8_1_registeredPending_floorManagerNotified_startBeforeConfirmBlocked_thenConfirmed() throws Exception {
@@ -73,11 +78,29 @@ class BR_M10_04_OvernightStayIT extends StayTestBase {
         command(office, id, "start", "{}").andExpect(status().isOk());
         assertThat(stayStatus(id)).isEqualTo("STAYING");
 
+        // FR-042 (a): 011 tính suất người ở lại có đăng ký ăn trong khoảng ở lại
+        assertThat(stayMeals.staysWithMealRegistration(at(day, 19, 0)))
+                .filteredOn(v -> v.stayId() == id)
+                .singleElement()
+                .satisfies(v -> {
+                    assertThat(v.residentId()).isEqualTo(a);
+                    assertThat(v.familyMemberId()).isEqualTo(rMember);
+                    assertThat(v.mealRegistered()).isTrue();
+                });
+        assertThat(stayMeals.staysWithMealRegistration(at(day.plusDays(2), 12, 0)))
+                .noneMatch(v -> v.stayId() == id);
+
         runNights(at(day.plusDays(1), 0, 0));
         runNights(at(day.plusDays(1), 0, 0));
         runNights(at(day.plusDays(2), 0, 0));
         moveTo(at(day.plusDays(2), 7, 0));
         command(office, id, "end", "{}").andExpect(status().isOk());
+
+        assertThat(stayMeals.staysWithMealRegistration(at(day.plusDays(2), 7, 30)))
+                .noneMatch(v -> v.stayId() == id);
+        assertThat(events.stream(StayMealChanged.class).filter(e -> e.stayId() == id))
+                .extracting(StayMealChanged::status)
+                .containsExactly("STAYING", "ENDED");
 
         List<CostSourceBilled> billed = billed(id);
         assertThat(billed).hasSize(2);

@@ -1,257 +1,144 @@
-import { useState } from 'react'
-import { AlertCircle, ArrowRight, RefreshCw, ShieldAlert } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ArrowRight, RefreshCw, ShieldAlert } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import { ResidentAvatar } from '@/common/ResidentAvatar'
-import { DEMO_RESIDENTS } from '@/common/demoData'
+import { ProblemAlert } from '@/common/ProblemAlert'
+import { problemOf } from '@/common/problem'
+import { todayVN } from './doseRound'
+import { hhmm } from './doseRoundView'
+import { IssueConfirmations } from './IssueConfirmations'
+import { changeDosage, idempotencyKeys } from './prescriptions'
+import { changeDosageBody, parseSlots } from './prescriptionView'
 
-/**
- * Sheet Đổi liều đơn thuốc theo nghiệp vụ BR-M07-07 & DBR-14:
- * Không sửa đè đơn cũ; tạo đơn thay thế mới trỏ về đơn cũ,
- * đơn cũ chuyển sang ĐÃ NGỪNG, kèm lý do đổi liều bắt buộc.
- */
+// Khung Đổi liều (BR-M07-07, DBR-14): không sửa đè đơn cũ; một lệnh ngừng đơn cũ và tạo đơn thay thế, bắt buộc lý do.
+// Thuốc, loại đơn, nguồn, người kê giữ nguyên theo đơn cũ. Đơn thay thế qua kiểm tra trùng hoạt chất, dị ứng (FR-007).
 export function ChangeDosageSheet(props) {
   if (!props.prescription) return null
   return <ChangeDosageForm key={props.prescription.id} {...props} />
 }
 
-function ChangeDosageForm({ open, onOpenChange, prescription, onSave }) {
-  const [newDosage, setNewDosage] = useState(String(prescription.dosage || '1'))
-  const [newDosageUnit, setNewDosageUnit] = useState(prescription.dosageUnit || 'Viên')
-  const [newRoute, setNewRoute] = useState(prescription.route || 'Uống')
-  const [newTimedSlots, setNewTimedSlots] = useState(prescription.timedSlots || '08:00, 20:00')
-  const [effectiveFrom, setEffectiveFrom] = useState('IMMEDIATE') // IMMEDIATE | NEXT_SHIFT | TOMORROW
-  const [reason, setReason] = useState('')
-  const [instructionNote, setInstructionNote] = useState(prescription.instructionNote || '')
+function ChangeDosageForm({ prescription, onClose, onDone }) {
+  const raw = prescription.raw
+  const hasSlots = raw.prescriptionType === 'PERIODIC' && raw.frequency?.type === 'TIMED_SLOTS'
+  const [form, setForm] = useState({
+    dosage: String(raw.dosage),
+    route: raw.route,
+    timedSlots: (raw.frequency?.timedSlots ?? []).join(', '),
+    instructionNote: raw.instructionNote ?? '',
+    reason: '',
+    effectiveFrom: `${todayVN()}T${hhmm(new Date())}`,
+    confirmations: {},
+  })
+  const [check, setCheck] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const keyFor = useRef(idempotencyKeys()).current
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }))
 
-  const res = DEMO_RESIDENTS.find((r) => r.code === prescription.residentCode)
-
-  function handleSubmit(e) {
-    e.preventDefault()
+  async function submit(event) {
+    event.preventDefault()
+    if (!(Number(form.dosage) > 0)) return setErrorMsg('Nhập liều mới lớn hơn 0')
+    if (!form.route.trim()) return setErrorMsg('Nhập đường dùng')
+    if (hasSlots && !parseSlots(form.timedSlots)) return setErrorMsg('Nhập các mốc giờ dạng HH:mm, cách nhau bằng dấu phẩy')
+    if (!form.effectiveFrom) return setErrorMsg('Chọn thời điểm áp dụng')
+    if (!form.reason.trim()) return setErrorMsg('Lý do đổi liều là bắt buộc (BR-M07-07, DBR-14)')
     setErrorMsg('')
-
-    if (!newDosage || Number(newDosage) <= 0) {
-      setErrorMsg('Vui lòng nhập liều lượng mới lớn hơn 0.')
-      return
+    setSaving(true)
+    setProblem(null)
+    const body = changeDosageBody(raw, form)
+    try {
+      await changeDosage(prescription.id, body, keyFor(body))
+      await onDone(`Đã đổi liều đơn #${prescription.id} (${prescription.drug}): đơn cũ ngừng, đơn thay thế có hiệu lực từ thời điểm đã chọn.`)
+    } catch (error) {
+      if (error?.problem?.errorCode === 'ISSUES_REQUIRE_CONFIRMATION') {
+        setCheck({ issues: error.problem.issues ?? [], reviewItems: [] })
+        setErrorMsg('Đơn thay thế có vấn đề cần lý do xác nhận trước khi lưu (FR-007)')
+      } else {
+        setProblem(problemOf(error))
+      }
+      setSaving(false)
     }
-
-    if (!reason.trim()) {
-      setErrorMsg('Lý do đổi liều là bắt buộc theo quy định BR-M07-07 & DBR-14.')
-      return
-    }
-
-    const nextId = Date.now() % 10000 + 200
-    const newPrescription = {
-      ...prescription,
-      id: nextId,
-      dosage: Number(newDosage),
-      dosageUnit: newDosageUnit,
-      route: newRoute,
-      timedSlots: newTimedSlots,
-      instructionNote: instructionNote.trim(),
-      status: 'Hiệu lực',
-      replacesId: prescription.id,
-      prescribedAt: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString(),
-      changeReason: reason.trim(),
-    }
-
-    onSave({
-      oldPrescriptionId: prescription.id,
-      newPrescription,
-      reason: reason.trim(),
-      effectiveFrom,
-    })
-    onOpenChange(false)
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col sm:max-w-xl md:max-w-2xl overflow-y-auto">
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-xl md:max-w-2xl">
         <SheetHeader className="border-b pb-4">
           <SheetTitle className="flex items-center gap-2 type-title">
-            <RefreshCw className="size-5 text-primary" />
-            Đổi liều đơn thuốc #{prescription.id}
+            <RefreshCw className="size-5" aria-hidden="true" />
+            Đổi liều đơn #{prescription.id}
           </SheetTitle>
           <SheetDescription>
-            Tạo đơn thuốc thay thế mới theo <strong>BR-M07-07, DBR-14</strong> (đơn cũ sẽ được ngừng, bảo lưu lịch sử liều cũ).
+            {prescription.drug}: liều hiện hành {prescription.dose}, đường dùng {prescription.route}; {prescription.frequencyText}.
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-4">
+        <form onSubmit={submit} noValidate className="flex flex-col gap-5 px-4 py-4">
           {errorMsg && (
-            <Alert variant="destructive" className="animate-in fade-in">
-              <AlertCircle className="size-4" />
-              <AlertTitle>Không thể đổi liều</AlertTitle>
+            <Alert variant="attention">
+              <AlertTitle>Chưa đổi liều được</AlertTitle>
               <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
           )}
+          <ProblemAlert problem={problem} />
 
-          {/* Thông tin người cao tuổi & thuốc hiện hành */}
-          <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3.5">
-            <div className="flex items-center gap-3">
-              {res && <ResidentAvatar name={res.name} code={res.code} initials={res.initials} className="size-10" />}
-              <div className="flex flex-1 flex-col">
-                <span className="font-semibold type-body">{prescription.residentName}</span>
-                <span className="type-caption text-muted-foreground tabular-nums">
-                  Mã: {prescription.residentCode} • Đơn hiện tại: #{prescription.id}
-                </span>
-              </div>
-              <Badge variant="outline" className="font-semibold">
-                {prescription.drug}
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-md bg-background/80 p-2.5 text-xs text-muted-foreground border">
-              <span>Liều hiện hành:</span>
-              <strong className="text-foreground text-sm">
-                {prescription.dosage} {prescription.dosageUnit}
-              </strong>
-              <span>• Đường dùng: <strong>{prescription.route}</strong></span>
-              <span>• Tần suất: <strong>{prescription.timedSlots || 'Khi cần (PRN)'}</strong></span>
-            </div>
-          </div>
-
-          {/* Nhập liều mới */}
-          <div className="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <ArrowRight className="size-4" />
-              Thông số liều thay thế mới
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
+            <span className="flex items-center gap-2 type-label">
+              <ArrowRight className="size-4" aria-hidden="true" />
+              Thông số của đơn thay thế
+            </span>
+            <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="newDosageInput">Liều mới *</FieldLabel>
-                <Input
-                  id="newDosageInput"
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  value={newDosage}
-                  onChange={(e) => setNewDosage(e.target.value)}
-                  required
-                />
+                <FieldLabel htmlFor="newDosageInput">Liều mới</FieldLabel>
+                <Input id="newDosageInput" type="number" step="0.1" min="0.1" value={form.dosage} onChange={(e) => set({ dosage: e.target.value })} className="h-11" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="newUnitInput">Đơn vị *</FieldLabel>
-                <Input
-                  id="newUnitInput"
-                  value={newDosageUnit}
-                  onChange={(e) => setNewDosageUnit(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="newRouteInput">Đường dùng *</FieldLabel>
-                <Input
-                  id="newRouteInput"
-                  value={newRoute}
-                  onChange={(e) => setNewRoute(e.target.value)}
-                  required
-                />
+                <FieldLabel htmlFor="newRouteInput">Đường dùng</FieldLabel>
+                <Input id="newRouteInput" value={form.route} onChange={(e) => set({ route: e.target.value })} className="h-11" />
               </div>
             </div>
-
-            {prescription.prescriptionType === 'PERIODIC' && (
+            {hasSlots && (
               <div className="flex flex-col gap-1.5">
-                <FieldLabel htmlFor="newSlotsInput">Mốc giờ dùng thuốc mới</FieldLabel>
-                <Input
-                  id="newSlotsInput"
-                  value={newTimedSlots}
-                  onChange={(e) => setNewTimedSlots(e.target.value)}
-                  placeholder="08:00, 20:00"
-                />
+                <FieldLabel htmlFor="newSlotsInput">Mốc giờ dùng thuốc</FieldLabel>
+                <Input id="newSlotsInput" value={form.timedSlots} onChange={(e) => set({ timedSlots: e.target.value })} placeholder="08:00, 20:00" className="h-11" />
               </div>
             )}
-          </div>
-
-          {/* Thời điểm áp dụng */}
-          <div className="flex flex-col gap-2 rounded-lg border bg-muted/20 p-3">
-            <FieldLabel>Thời điểm áp dụng đơn thay thế</FieldLabel>
-            <div className="flex flex-wrap gap-4 text-sm pt-1">
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="effectiveFromRadio"
-                  value="IMMEDIATE"
-                  checked={effectiveFrom === 'IMMEDIATE'}
-                  onChange={() => setEffectiveFrom('IMMEDIATE')}
-                />
-                Áp dụng ngay lập tức
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="effectiveFromRadio"
-                  value="NEXT_SHIFT"
-                  checked={effectiveFrom === 'NEXT_SHIFT'}
-                  onChange={() => setEffectiveFrom('NEXT_SHIFT')}
-                />
-                Áp dụng từ ca kế tiếp
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="effectiveFromRadio"
-                  value="TOMORROW"
-                  checked={effectiveFrom === 'TOMORROW'}
-                  onChange={() => setEffectiveFrom('TOMORROW')}
-                />
-                Áp dụng từ ngày mai
-              </label>
+            <div className="flex flex-col gap-1.5">
+              <FieldLabel htmlFor="effectiveFromInput">Áp dụng từ</FieldLabel>
+              <Input id="effectiveFromInput" type="datetime-local" value={form.effectiveFrom} onChange={(e) => set({ effectiveFrom: e.target.value })} className="h-11 w-fit" />
             </div>
           </div>
 
-          {/* Lý do đổi liều (Bắt buộc theo BR-M07-07) */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <FieldLabel htmlFor="changeReasonInput" className="font-semibold text-destructive">
-                Lý do đổi liều * (Bắt buộc theo BR-M07-07 & DBR-14)
-              </FieldLabel>
-              <span className="type-caption text-muted-foreground">Tối đa 2000 ký tự</span>
-            </div>
-            <Textarea
-              id="changeReasonInput"
-              rows={3}
-              placeholder="Ví dụ: Tăng liều Amlodipin từ 5mg lên 10mg do huyết áp chưa đạt mục tiêu (150/95 mmHg)..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              required
-            />
+            <FieldLabel htmlFor="changeReasonInput">Lý do đổi liều (bắt buộc, tối đa 2000 ký tự)</FieldLabel>
+            <Textarea id="changeReasonInput" rows={3} maxLength={2000} value={form.reason} onChange={(e) => set({ reason: e.target.value })} />
           </div>
 
-          {/* Ghi chú hướng dẫn mới */}
           <div className="flex flex-col gap-1.5">
             <FieldLabel htmlFor="newInstructionNote">Ghi chú hướng dẫn dùng thuốc mới</FieldLabel>
-            <Textarea
-              id="newInstructionNote"
-              rows={2}
-              placeholder="Uống sau bữa ăn sáng, theo dõi huyết áp hàng ngày..."
-              value={instructionNote}
-              onChange={(e) => setInstructionNote(e.target.value)}
-            />
+            <Textarea id="newInstructionNote" rows={2} value={form.instructionNote} onChange={(e) => set({ instructionNote: e.target.value })} />
           </div>
 
-          <div className="flex items-start gap-2 rounded-md bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300">
-            <ShieldAlert className="size-4 shrink-0 mt-0.5" />
+          <IssueConfirmations check={check} reasons={form.confirmations} onReason={(code, text) => set({ confirmations: { ...form.confirmations, [code]: text } })} />
+
+          <p className="flex items-start gap-2 rounded-md bg-warning px-3 py-2 type-body-sm text-warning-foreground">
+            <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
-              <strong>Lưu ý bất biến:</strong> Sau khi xác nhận, đơn #{prescription.id} sẽ chuyển sang trạng thái <em>Đã ngừng</em>.
-              Các liều đã phát trước đây vẫn giữ nguyên kết quả và không bị ảnh hưởng.
+              Sau khi xác nhận, đơn #{prescription.id} chuyển sang Đã ngừng; liều đã phát giữ nguyên kết quả.
             </span>
-          </div>
+          </p>
 
           <SheetFooter className="mt-2 flex gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Hủy
             </Button>
-            <Button type="submit" variant="default" className="gap-1.5">
-              <RefreshCw className="size-4" />
+            <Button type="submit" className="gap-1.5" disabled={saving}>
+              <RefreshCw className="size-4" aria-hidden="true" />
               Xác nhận đổi liều
             </Button>
           </SheetFooter>

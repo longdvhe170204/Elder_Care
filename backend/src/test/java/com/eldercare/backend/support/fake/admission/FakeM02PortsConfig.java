@@ -14,16 +14,18 @@ import org.springframework.context.annotation.Primary;
 @TestConfiguration
 public class FakeM02PortsConfig {
 
+    /**
+     * Bản thật {@code CostStatusParticipant} (010, END_A_COSTS) đứng cạnh {@link FakeFinalPeriods}: cả hai cùng báo điều kiện kỳ cuối
+     * nên danh sách điều kiện thừa {@code END_A_COSTS} và lệnh bị chặn. Test 004 đặt kỳ cuối qua bản giả; ca thật ở test của 010.
+     */
     @Bean
-    @Primary
-    FakeRepresentatives fakeRepresentatives() {
-        return new FakeRepresentatives();
-    }
-
-    @Bean
-    @Primary
-    FakePickupRecords fakePickupRecords() {
-        return new FakePickupRecords();
+    static org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
+            withoutCostStatusParticipant() {
+        return registry -> {
+            if (registry.containsBeanDefinition("costStatusParticipant")) {
+                registry.removeBeanDefinition("costStatusParticipant");
+            }
+        };
     }
 
     @Bean

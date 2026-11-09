@@ -8,6 +8,20 @@ import java.util.*;
 public class FakeCostForBalance implements CostForBalancePort {
     private final Map<Long, Long> totals = new HashMap<>();
     private final Map<Day, Long> fees = new HashMap<>();
+    private final Map<Long, com.eldercare.backend.billing.internal.provision.domain.FinalizedCostStatement> statements =
+            new HashMap<>();
+
+    public FakeCostForBalance statement(
+            com.eldercare.backend.billing.internal.provision.domain.FinalizedCostStatement value) {
+        statements.put(value.statement().id(), value);
+        return this;
+    }
+
+    @Override
+    public Optional<com.eldercare.backend.billing.internal.provision.domain.FinalizedCostStatement> finalizedStatement(
+            long id) {
+        return Optional.ofNullable(statements.get(id));
+    }
 
     private record Day(long residentId, LocalDate date) {}
 
@@ -34,5 +48,6 @@ public class FakeCostForBalance implements CostForBalancePort {
     public void reset() {
         totals.clear();
         fees.clear();
+        statements.clear();
     }
 }

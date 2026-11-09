@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
  * Cổng sang 007 cho lệnh đồ gửi ({@code SuCoDoGuiService}; 013 T021; FR-021, FR-024, FR-025, BR-M12-02, Q-307, research
  * K-07): ghi sự cố mới ({@code IncidentCommandApi.record}, MANDATORY: lỗi thì cả lệnh rollback), kiểm sự cố có sẵn
  * ({@code IncidentApi.view}), ghi diễn biến "đã tìm thấy". Hệ thống không tự tạo sự cố: chỉ làm theo lựa chọn của người
- * ghi lệnh. Production chưa có bean của 007 thì 503 {@code SOURCE_UNAVAILABLE} (plan mục "Kế hoạch triển khai R-15"
- * điểm 14).
+ * ghi lệnh. Bean của 007 là bản thật (plan mục "Kế hoạch triển khai R-15" điểm 14).
  */
 @Component
 public class BelongingIncidents {
@@ -77,11 +76,7 @@ public class BelongingIncidents {
 
     /** Sự cố có sẵn phải tồn tại, của cùng người cao tuổi, chưa Đã hủy (FR-021). */
     public void validateLink(long incidentId, long residentId) {
-        IncidentApi source = incidents.getIfAvailable();
-        if (source == null) {
-            throw unavailable();
-        }
-        IncidentView view = source.view(incidentId).orElse(null);
+        IncidentView view = incidents.getObject().view(incidentId).orElse(null);
         if (view == null || !Objects.equals(view.residentId(), residentId) || "VOIDED".equals(view.status())) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
@@ -90,25 +85,26 @@ public class BelongingIncidents {
         }
     }
 
+    /** Mã nhân viên đang xử lý sự cố; rỗng khi chưa giao hoặc không tìm thấy sự cố (FR-011a). */
+    public java.util.Optional<Long> handlerOf(long incidentId) {
+        return incidents.getObject().view(incidentId).map(IncidentView::assigneeStaffId);
+    }
+
     /**
-     * Sự cố còn mở (Mới, Đang xử lý, Đang theo dõi) cho điều kiện (b) kết thúc lưu trú (FR-025); chưa có bản thật của 007
-     * hoặc không tìm thấy sự cố thì coi như không mở (điều kiện (d) do 007 xét).
+     * Sự cố còn mở (Mới, Đang xử lý, Đang theo dõi) cho điều kiện (b) kết thúc lưu trú (FR-025); không tìm thấy sự cố thì
+     * coi như không mở (điều kiện (d) do 007 xét).
      */
     public boolean isOpen(long incidentId) {
-        IncidentApi source = incidents.getIfAvailable();
-        return source != null
-                && source.view(incidentId)
-                        .map(v -> Set.of("NEW", "IN_PROGRESS", "MONITORING").contains(v.status()))
-                        .orElse(false);
+        return incidents
+                .getObject()
+                .view(incidentId)
+                .map(v -> Set.of("NEW", "IN_PROGRESS", "MONITORING").contains(v.status()))
+                .orElse(false);
     }
 
     /** Tìm thấy: thêm diễn biến vào sự cố liên kết, không đóng sự cố (FR-025). */
     public void found(long incidentId, String content, CurrentUser user) {
-        IncidentCommandApi source = commands.getIfAvailable();
-        if (source == null) {
-            throw unavailable();
-        }
-        source.addProgression(incidentId, FOUND_PROGRESSION, content, user);
+        commands.getObject().addProgression(incidentId, FOUND_PROGRESSION, content, user);
     }
 
     private long record(
@@ -121,37 +117,29 @@ public class BelongingIncidents {
         if (choice.level() == null || !LEVELS.contains(choice.level())) {
             throw invalid("Ghi sự cố mới cần chọn mức LOW, MEDIUM hoặc CRITICAL (FR-023)");
         }
-        IncidentCommandApi source = commands.getIfAvailable();
-        if (source == null) {
-            throw unavailable();
-        }
         String description =
                 choice.description() == null || choice.description().isBlank() ? reason : choice.description();
         long typeId = types.idOf(kind == HandoverType.REPORT_LOST ? LOST_TYPE : DAMAGED_TYPE);
-        return source.record(
-                new RecordIncidentCommand(
-                        residentId,
-                        typeId,
-                        SOURCE,
-                        occurredAt,
-                        occurredAt,
-                        null,
-                        choice.place(),
-                        null,
-                        description,
-                        choice.level(),
-                        null,
-                        null,
-                        false),
-                user);
+        return commands.getObject()
+                .record(
+                        new RecordIncidentCommand(
+                                residentId,
+                                typeId,
+                                SOURCE,
+                                occurredAt,
+                                occurredAt,
+                                null,
+                                choice.place(),
+                                null,
+                                description,
+                                choice.level(),
+                                null,
+                                null,
+                                false),
+                        user);
     }
 
     private static BusinessException invalid(String message) {
         return new BusinessException(HttpStatus.UNPROCESSABLE_CONTENT, "INVALID_VALUE", message);
-    }
-
-    private static BusinessException unavailable() {
-        return new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn sự cố của feature 007");
     }
 }

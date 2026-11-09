@@ -185,6 +185,17 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                 .toList();
     }
 
+    /**
+     * Chỉ nhắc quá hạn: nhắc lập {@code TO_CREATE} do chính lệnh hoàn tất tiếp nhận phát ở lần đầu của (người, ngày), và dấu
+     * nhắc nằm trong schema test giữ qua các lần chạy nên sự kiện đó có hay không tùy dữ liệu sót, không liên quan nộp.
+     */
+    private List<ResidenceRegistrationReminder> overdueReminders(long residentId) {
+        return reminders(residentId).stream()
+                .filter(event -> event.kind() == ResidenceRegistrationReminder.Kind.OVERDUE
+                        || event.kind() == ResidenceRegistrationReminder.Kind.OVERDUE_MANAGER)
+                .toList();
+    }
+
     private static Instant utc(Object dateTime) {
         return ((LocalDateTime) dateTime).toInstant(ZoneOffset.UTC);
     }
@@ -218,13 +229,35 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                 .isEqualTo(true);
 
         overdueReminders.remind(due.plusDays(1));
-        assertThat(reminders(registration.residentId()))
+        assertThat(overdueReminders(registration.residentId()))
                 .as("đã ghi nộp thì dừng nhắc quá hạn (US2 #1)")
                 .isEmpty();
         mvc.perform(get("/api/v1/residence-registrations/to-do"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.residentId == %d)]".formatted(registration.residentId()))
                         .isEmpty());
+    }
+
+    @Test
+    void Q7_accepted_exposesEvidenceFileId_onTheRegistration() throws Exception {
+        ResidenceRegistration registration = created();
+        String path = "/api/v1/residents/" + registration.residentId() + "/residence-registrations";
+        user.set(office.user());
+        mvc.perform(get(path))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == %d)].evidenceFileId".formatted(registration.id()))
+                        .isEmpty());
+
+        submit(registration);
+        long evidence = evidence();
+        command(office, registration.id(), "record-accepted", acceptedBody(evidence, today().plusYears(1)))
+                .andExpect(status().isOk());
+
+        user.set(office.user());
+        mvc.perform(get(path))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == %d)].evidenceFileId".formatted(registration.id()))
+                        .value(org.hamcrest.Matchers.contains((int) evidence)));
     }
 
     // ---- Q8: chưa ghi nộp -------------------------------------------------------------------------------------

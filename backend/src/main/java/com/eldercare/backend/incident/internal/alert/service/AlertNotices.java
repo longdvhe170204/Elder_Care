@@ -12,9 +12,11 @@ import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Yêu cầu thông báo của vòng đời cảnh báo (FR-033, FR-034, FR-038a; research S-19). Nhóm người nhận của cấp leo thang
@@ -37,6 +39,64 @@ final class AlertNotices {
             groups.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
         }
         return groups;
+    }
+
+    /**
+     * Nhóm người nhận của cảnh báo Khẩn cấp khi tạo hoặc nâng mức (FR-047a): Điều dưỡng phụ trách, Người phụ trách ca,
+     * Trưởng tầng, Bác sĩ trực; không có Bác sĩ trực thì mọi Bác sĩ và Quản lý viện (FR-047b). Không có người liên hệ chính.
+     */
+    static Set<RecipientGroup> emergencyGroups(AlertRecord alert, boolean noOnDutyDoctor) {
+        var groups = new LinkedHashSet<RecipientGroup>();
+        groups.add(new RecipientGroup.AssignedNurse(alert.residentId(), new Substitution.Default()));
+        if (alert.floorAreaId() != null) {
+            groups.add(new RecipientGroup.ShiftLead(alert.floorAreaId(), new Substitution.Default()));
+            groups.add(new RecipientGroup.FloorManager(alert.floorAreaId(), new Substitution.Default()));
+        }
+        if (noOnDutyDoctor) {
+            groups.add(new RecipientGroup.FacilityRole(Role.DOCTOR));
+            groups.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
+        } else {
+            groups.add(new RecipientGroup.OnDutyDoctor(new Substitution.Default()));
+        }
+        return groups;
+    }
+
+    /**
+     * Thông báo khi cảnh báo được tạo hoặc nâng lên mức hiện tại (FR-035): Nhẹ — người phụ trách ban đầu; Trung bình — cộng
+     * nhân viên thực hiện công việc nguồn khi nguồn cho biết; Khẩn cấp — {@link #emergencyGroups}. Cảnh báo chưa gắn người
+     * cao tuổi (nút hỗ trợ nhân viên) có đường thông báo riêng nên không dựng ở đây. {@code raised} đổi khóa sự kiện.
+     */
+    static List<NotificationRequest> created(AlertRecord alert, Long sourceStaffId, boolean raised, Instant at) {
+        if (alert.residentId() == null || alert.level() == null) return List.of();
+        var groups = new LinkedHashSet<RecipientGroup>();
+        NotificationLevel level;
+        switch (alert.level()) {
+            case CRITICAL -> {
+                groups.addAll(emergencyGroups(alert, alert.noOnDutyDoctor()));
+                level = NotificationLevel.URGENT;
+            }
+            case MEDIUM -> {
+                groups.add(new RecipientGroup.AssignedNurse(alert.residentId(), new Substitution.Default()));
+                if (sourceStaffId != null) {
+                    groups.add(new RecipientGroup.Staff(sourceStaffId, "ALERT_SOURCE_PERFORMER"));
+                }
+                level = NotificationLevel.MEDIUM;
+            }
+            default -> {
+                groups.add(new RecipientGroup.AssignedNurse(alert.residentId(), new Substitution.Default()));
+                level = NotificationLevel.LOW;
+            }
+        }
+        return List.of(request(
+                alert,
+                raised ? "ALERT_LEVEL_RAISED" : "ALERT_CREATED",
+                SOURCE_TYPE + ":" + alert.id() + (raised ? ":RAISED:" + alert.level() : ":CREATED"),
+                List.copyOf(groups),
+                raised
+                        ? "Cảnh báo đã được nâng mức. Mở cảnh báo để xử lý."
+                        : "Có cảnh báo mới cần xử lý. Mở cảnh báo để tiếp nhận.",
+                at,
+                level));
     }
 
     static List<NotificationRequest> escalated(AlertRecord alert, int level, Instant at) {

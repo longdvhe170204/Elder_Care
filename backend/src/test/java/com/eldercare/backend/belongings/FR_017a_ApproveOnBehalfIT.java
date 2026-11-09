@@ -8,6 +8,7 @@ import com.eldercare.backend.belongings.internal.returns.service.RecipientConfir
 import com.eldercare.backend.belongings.internal.returns.service.RecipientConfirmationTimers;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
+import com.eldercare.backend.support.TestUsers;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,25 @@ class FR_017a_ApproveOnBehalfIT extends ReturnTestBase {
             assertThat(n.recipientGroups()).containsExactly(new RecipientGroup.Representative(resident));
         });
         assertThat(representative).isPositive();
+    }
+
+    @Test
+    void FR_017_representativeReadsConfirmationBeforeDeciding_othersForbidden() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
+        long representative = representative(resident, "012345");
+        long id = confirmation(resident, "Trần Thị N", "999", phone);
+        String path = "/api/v1/family-portal/recipient-confirmations/" + id;
+
+        getJson(portalSession(representative), path)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.status").value("PENDING_CONFIRMATION"))
+                .andExpect(jsonPath("$.recipientName").value("Trần Thị N"))
+                .andExpect(jsonPath("$.recipientIdDocument").value("999"))
+                .andExpect(jsonPath("$.belongingIds[0]").value(phone));
+        getJson(portalSession(TestUsers.nextId()), path).andExpect(status().isForbidden());
+        getJson(tokenA, path).andExpect(status().isForbidden());
     }
 
     /** Thông báo của đúng yêu cầu này (schema test giữ yêu cầu của test khác nên việc quét toàn bảng cũng báo chúng). */

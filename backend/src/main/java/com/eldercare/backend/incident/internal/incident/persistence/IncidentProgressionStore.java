@@ -114,6 +114,25 @@ public class IncidentProgressionStore {
                         null));
     }
 
+    /** Diễn biến do Hệ thống ghi (nguồn cảnh báo đã xử lý, FR-032): không có người ghi. */
+    public long addBySystem(
+            long incidentId, long typeId, String typeCode, String content, Instant at, Long floorAreaId) {
+        return records.add(
+                        PROGRESSION,
+                        incident(incidentId),
+                        new NewRecordEvent<>(
+                                new ProgressionContent(typeId, typeCode, content, false),
+                                null,
+                                null,
+                                true,
+                                at,
+                                at,
+                                at,
+                                floorAreaId,
+                                null))
+                .id();
+    }
+
     public boolean isHandler(long incidentId, long staffAccountId) {
         return records.findByUniqueKey(HANDLER, handlerKey(incidentId, staffAccountId))
                 .isPresent();

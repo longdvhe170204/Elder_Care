@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { AppShell } from '@/common/layout/AppShell'
 
@@ -20,6 +20,8 @@ describe('Điều hướng nhân sự sau đăng nhập', () => {
     expect(screen.getByRole('heading', { name: 'Hồ sơ nhân viên' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Nhân sự' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('button', { name: 'Lịch ca' })).toBeInTheDocument()
+    // Danh mục thuốc ở nhóm "Thuốc và sức khỏe", đóng khi trang đang mở thuộc nhóm khác
+    fireEvent.click(screen.getByRole('button', { name: 'Thuốc và sức khỏe' }))
     expect(screen.getByRole('button', { name: 'Danh mục thuốc' })).toBeInTheDocument()
   })
 

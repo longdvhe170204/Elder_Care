@@ -4,6 +4,7 @@ import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
 import '../../common/widgets/status_pill.dart';
 import '../balance/family_balance_screen.dart';
+import '../belongings/family_belongings_screen.dart';
 import '../visits/visit_registration_screen.dart';
 
 const _statusLabels = {
@@ -115,6 +116,12 @@ class _ResidentPortalScreenState extends State<ResidentPortalScreen> {
   int get _residentId => widget.resident['residentId'] as int;
   bool _right(String right) => (widget.resident['rights'] as Map)[right] == true;
 
+  // Như mục Đồ gửi của cổng web: người đại diện, người được phép đón (012 FR-046b; backend vẫn kiểm mỗi lần gọi)
+  bool get _belongings =>
+      widget.resident['representative'] == true ||
+      widget.resident['canViewBelongings'] == true ||
+      _right('PICKUP_ALLOWED');
+
   @override
   void initState() {
     super.initState();
@@ -211,6 +218,20 @@ class _ResidentPortalScreenState extends State<ResidentPortalScreen> {
                       ),
                     ),
                     child: const Text('Xem số dư'),
+                  ),
+                ],
+                if (_belongings) ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Đồ gửi')),
+                          body: FamilyBelongingsScreen(api: widget.api, residentId: _residentId),
+                        ),
+                      ),
+                    ),
+                    child: const Text('Xem đồ gửi'),
                   ),
                 ],
               ],

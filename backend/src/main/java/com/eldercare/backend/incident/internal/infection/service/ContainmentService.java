@@ -9,6 +9,7 @@ import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
+import com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.ConditionNotMetException;
@@ -44,6 +45,7 @@ public class ContainmentService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final ObjectProvider<ActivityRegistrationAutoCancelApi> autoCancel;
 
     public ContainmentService(
             ContainmentStore store,
@@ -52,7 +54,8 @@ public class ContainmentService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            ObjectProvider<ActivityRegistrationAutoCancelApi> autoCancel) {
         this.store = store;
         this.incidents = incidents;
         this.locations = locations;
@@ -60,6 +63,7 @@ public class ContainmentService {
         this.events = events;
         this.time = time;
         this.users = users;
+        this.autoCancel = autoCancel;
     }
 
     @BusinessCommand
@@ -87,6 +91,9 @@ public class ContainmentService {
                 ENTITY + ":" + created.id() + ":CREATED",
                 at,
                 notices));
+        // 014 FR-021: hủy buổi, đăng ký trong vùng cùng transaction của lệnh (thay 014 nghe IsolationCreated, C-02)
+        var cancels = autoCancel.getIfAvailable();
+        if (cancels != null) cancels.cancelForIsolation(created.id(), at);
         return created;
     }
 
@@ -112,7 +119,8 @@ public class ContainmentService {
                 List.copyOf(scope.areaIds()),
                 ENTITY + ":" + id + ":LIFTED",
                 at,
-                List.of()));
+                ContainmentNotices.lifted(
+                        id, scope, locations, users.getObject().accountId(), at)));
         return after;
     }
 

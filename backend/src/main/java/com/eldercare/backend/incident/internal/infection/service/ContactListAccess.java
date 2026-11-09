@@ -2,9 +2,11 @@ package com.eldercare.backend.incident.internal.infection.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContactListStore;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,6 +34,11 @@ class ContactListAccess {
 
     Target ofList(long listId) {
         return ofIncident(lists.require(listId).parent().entityId());
+    }
+
+    /** Người chỉ có vai trò Hành chính: chỉ xem phần người thân cần liên hệ (BR-M05-24). */
+    boolean officeOnly() {
+        return user.roles().equals(Set.of(Role.OFFICE_STAFF));
     }
 
     long accountId() {
