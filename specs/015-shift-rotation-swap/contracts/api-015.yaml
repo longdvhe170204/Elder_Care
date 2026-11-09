@@ -1,139 +1,234 @@
 openapi: 3.1.0
 info:
-  title: Elder Care – Feature 015 (lịch ca xoay vòng, phủ tối thiểu, đổi ca, nghỉ đột xuất)
+  title: Elder Care – Feature 015 (đổi ca, nghỉ đột xuất)
   version: 1.0.0-design
   description: |
-    Hợp đồng REST của feature 015 (module M09, cùng 008). Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Hợp đồng REST của feature 015 (module M09, cùng 008), đã dịch sang tên tiếng Anh theo glossary mục 21 của 000
+    (2026-11-09, D tự chọn; chờ chủ dự án duyệt). Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], Idempotency-Key cho mọi lệnh ghi.
     Mọi lệnh chỉ trực tuyến (FR-043). Hệ thống không tự lập lịch, không chỉ định người phụ trách, không gợi ý người thay (Q-306, Q-307).
-    Lệnh "Công bố lịch" là của 008 (api-008); 015 bổ sung kiểm tra phủ qua KiemTraCongBoMoRong.
-    Yêu cầu đổi ca và nghỉ đột xuất là loại yêu cầu phê duyệt của 000 (M09.DOI_CA, M09.NGHI_DOT_XUAT) với vòng đời ngoại lệ;
-    các lệnh dưới đây là lệnh của 015 trên các yêu cầu đó (không dùng endpoint duyệt chung của 000).
-    Lý do nghỉ, đổi ca và kết quả tra cứu người thay chỉ trả cho người được xem (FR-045).
+    Mẫu xoay ca, phủ tối thiểu, lời mời bỏ theo Q-397; 015 chỉ còn đổi ca và nghỉ đột xuất.
+    Yêu cầu đổi ca và nghỉ đột xuất là loại yêu cầu phê duyệt của 000 (M09.SHIFT_SWAP, M09.LEAVE_REQUEST) với vòng đời ngoại lệ;
+    các lệnh dưới đây là lệnh của 015 trên các yêu cầu đó; lệnh duyệt chung của 000 bị chặn cho hai loại này (409 USE_SHIFT_SWAP_ENDPOINT, USE_LEAVE_REQUEST_ENDPOINT).
+    Lý do nghỉ, đổi ca chỉ trả cho người được xem (FR-045).
+    Lập yêu cầu đổi ca trả 201 kèm Location /api/v1/shift-swaps/{id} và thân là kết quả kiểm tra FR-021.
     Truy vết: mỗi operation có x-fr (FR của spec 015) và x-br khi có.
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
-  - { name: doi-ca, description: 'UC-54; mục D' }
-  - { name: nghi, description: 'Mục E' }
+  - { name: shift-swaps, description: 'UC-54; mục D' }
+  - { name: leave-requests, description: 'Mục E' }
 
 paths:
-  /doi-ca:
+  /shift-swaps:
     get:
-      tags: [doi-ca]
+      tags: [shift-swaps]
       summary: Yêu cầu đổi ca của tôi (người nhường, người nhận) hoặc cần tôi duyệt
       x-fr: [FR-022]
-      responses: { '200': { description: OK } }
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ShiftSwap' } } } }
     post:
-      tags: [doi-ca]
+      tags: [shift-swaps]
       summary: Lập yêu cầu đổi hai chiều hoặc nhận thay (người nhường)
       x-fr: [FR-019, FR-021, FR-022]
       x-br: [BR-M09-10]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapDoiCa' } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KiemTraDoiCa' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /doi-ca/ca-cua-nguoi-nhan:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CreateShiftSwap' } } } }
+      responses:
+        '201': { description: "Đã lập; Location là yêu cầu mới", content: { application/json: { schema: { $ref: '#/components/schemas/ShiftSwapChecks' } } } }
+        '409': { $ref: '#/components/responses/Blocked' }
+  /shift-swaps/recipient-shifts:
     get:
-      tags: [doi-ca]
+      tags: [shift-swaps]
       summary: Ca của người nhận thỏa FR-019 để chọn Y (chỉ ngày, giờ, mẫu ca)
       x-fr: [FR-020]
-      parameters: [ { name: caXId, in: query, required: true, schema: { type: integer, format: int64 } }, { name: nguoiNhanId, in: query, required: true, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK } }
-  /doi-ca/{id}/kiem-tra:
+      parameters:
+        - { name: shiftXId, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: recipientId, in: query, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RecipientShift' } } } }
+  /shift-swaps/{id}/checks:
     get:
-      tags: [doi-ca]
+      tags: [shift-swaps]
       summary: Kết quả kiểm tra FR-021 với dữ liệu hiện tại (người nhận chỉ thấy phần của mình; mục (g) chỉ người duyệt)
       x-fr: [FR-021]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KiemTraDoiCa' } } } } }
-  /doi-ca/{id}/{lenh}:
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ShiftSwapChecks' } } } }
+  /shift-swaps/{id}/{command}:
     post:
-      tags: [doi-ca]
+      tags: [shift-swaps]
       summary: Lệnh trên yêu cầu đổi ca theo bảng FR-022
       description: |
-        dong-y, tu-choi, rut-dong-y (người nhận); huy (người nhường); duyet (người duyệt; lý do khi có cảnh báo giờ liên tục hoặc tự duyệt;
-        chọn người phụ trách khi người nhận không đạt 008 FR-015), tu-choi-duyet (người duyệt; lý do).
+        accept, decline (lý do), withdraw-acceptance (người nhận); cancel (người nhường; lý do);
+        approve (người duyệt; lý do khi có cảnh báo giờ liên tục hoặc tự duyệt; chọn người phụ trách khi người nhận không đạt 008 FR-015),
+        reject (người duyệt; lý do).
       x-fr: [FR-021, FR-022, FR-023, FR-024]
       x-br: [BR-M09-10, BR-M09-01, BR-M09-03]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [dong-y, tu-choi, rut-dong-y, huy, duyet, tu-choi-duyet] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [accept, decline, withdraw-acceptance, cancel, approve, reject] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { type: string }, nguoiPhuTrachXId: { type: integer, format: int64 }, nguoiPhuTrachYId: { type: integer, format: int64 }, xacNhanCanhBao: { type: boolean } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/ShiftSwapCommand' } } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CommandResult' } } } }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Blocked' }
 
-  /nghi-dot-xuat:
+  /leave-requests:
     get:
-      tags: [nghi]
+      tags: [leave-requests]
       summary: Yêu cầu nghỉ của tôi, hoặc cần tôi duyệt
       x-fr: [FR-031]
-      responses: { '200': { description: OK } }
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LeaveRequest' } } } }
     post:
-      tags: [nghi]
+      tags: [leave-requests]
       summary: Lập yêu cầu nghỉ (theo ca hoặc theo ngày; cho mình hoặc lập thay); tách theo phạm vi
       x-fr: [FR-026, FR-026a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapNghi' } } } }
-      responses: { '201': { description: Các yêu cầu đã tạo }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /nghi-dot-xuat/{id}/truoc-khi-duyet:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CreateLeave' } } } }
+      responses:
+        '201': { description: "Các yêu cầu đã tạo", content: { application/json: { schema: { $ref: '#/components/schemas/CreatedLeaveRequests' } } } }
+        '409': { $ref: '#/components/responses/Blocked' }
+  /leave-requests/{id}/pre-approval:
     get:
-      tags: [nghi]
-      summary: Phủ, tỷ lệ phục vụ trước/sau, người phụ trách, phân công, chuyến đi chồng của từng ca
+      tags: [leave-requests]
+      summary: Người phụ trách, phân công, chuyến đi chồng của từng ca (chỉ người duyệt)
       x-fr: [FR-027]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
-  /nghi-dot-xuat/{id}/{lenh}:
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: array, items: { type: object } } } }
+  /leave-requests/{id}/{command}:
     post:
-      tags: [nghi]
-      summary: "duyet (kết quả từng ca/ngày; người phụ trách mới nếu có), tu-choi (lý do), huy (nhân viên hoặc người lập thay)"
+      tags: [leave-requests]
+      summary: "approve (kết quả từng ca/ngày; người phụ trách mới nếu có), reject (lý do), cancel (người nghỉ hoặc người lập thay)"
       x-fr: [FR-028, FR-029, FR-031]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [duyet, tu-choi, huy] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [approve, reject, cancel] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/QuyetDinhNghi' } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/LeaveDecision' } } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CommandResult' } } } }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Blocked' }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   responses:
-    Loi:
+    Error:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiChan:
-      description: 'TRANG_THAI_DA_DOI, CA_KHONG_HOP_LE, KHAC_PHAM_VI, NGUOI_NHAN_KHONG_HOP_LE, VAI_TRO_KHONG_PHU_HOP, CA_DANG_TRONG_YEU_CAU_KHAC, CHONG_GIO, CAN_XAC_NHAN_CANH_BAO, CAN_NGUOI_PHU_TRACH, CHUA_CO_TRUONG_TANG_DUOC_GIAO, THANG_DA_CONG_BO'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Blocked:
+      description: 'STATE_CHANGED, INVALID_SHIFT, DIFFERENT_SCOPE, INVALID_RECIPIENT, ROLE_MISMATCH, SHIFT_IN_ANOTHER_REQUEST, SHIFT_OVERLAP, WARNING_CONFIRMATION_REQUIRED, LEAD_REQUIRED, MONTH_ALREADY_PUBLISHED, LEAVE_DAY_EXISTS'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
-    LyDo: { type: string, minLength: 1, maxLength: 2000 }
-    Loi:
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
+    Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
-    LapDoiCa:
+      required: [type, title, status, errorCode]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string }, module: { type: string }, waivable: { type: boolean } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành (FR-021 của 000)' }
+        candidates: { type: array, items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time }
+        warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
+    Warning:
       type: object
-      required: [dang, caXId, nguoiNhanId, lyDo]
-      properties: { dang: { type: string, enum: [HAI_CHIEU, NHAN_THAY] }, caXId: { type: integer, format: int64 }, nguoiNhanId: { type: integer, format: int64 }, caYId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } }
-    KiemTraDoiCa:
+      properties: { code: { type: string, enum: [CONTINUOUS_WORK_HOURS, REQUIRED_TRAINING_EXPIRED, BELOW_STAFFING_THRESHOLD, TASK_TYPE_REQUIREMENTS_NOT_MET, APPROVED_LEAVE_DAY] }, description: { type: string }, details: { type: object } }
+    CommandResult:
+      type: object
+      description: 'approve của đổi ca: notTransferredAssignments; approve của nghỉ: effects'
+      properties: { notTransferredAssignments: { type: array, items: { type: object } }, effects: { type: array, items: { type: object } } }
+    CreateShiftSwap:
+      type: object
+      required: [kind, shiftXId, recipientId, reason]
+      properties: { kind: { type: string, enum: [MUTUAL, TAKE_OVER] }, shiftXId: { type: integer, format: int64 }, recipientId: { type: integer, format: int64 }, shiftYId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } }
+    ShiftSwapCommand:
+      type: object
+      properties: { reason: { $ref: '#/components/schemas/Reason' }, newLeadXId: { type: integer, format: int64 }, newLeadYId: { type: integer, format: int64 }, confirmWarning: { type: boolean } }
+    ShiftSwapChecks:
       type: object
       properties:
-        chongGio: { type: array, items: { type: object } }
-        gioLienTuc: { type: array, items: { type: object } }
-        phanCongKhongChuyenDuoc: { type: array, items: { type: object } }
-        nguoiPhuTrachSauDoi: { type: object }
-        tyLePhucVuTruocSau: { type: object }
-        gioTrongThang: { type: object, description: 'Chỉ người duyệt' }
-        chuyenDiChong: { type: array, items: { type: object } }
-    LapNghi:
-      type: object
-      required: [dang, lyDo]
-      properties: { dang: { type: string, enum: [THEO_CA, THEO_NGAY] }, nhanVienId: { type: integer, format: int64, description: 'Khi lập thay' }, caIds: { type: array, items: { type: integer, format: int64 } }, tuNgay: { type: string, format: date }, denNgay: { type: string, format: date }, ngay: { type: array, items: { type: string, format: date } }, lyDo: { $ref: '#/components/schemas/LyDo' } }
-    QuyetDinhNghi:
+        overlaps: { type: array, items: { type: object } }
+        continuousHours: { type: array, items: { type: object } }
+        nonTransferableAssignments: { type: array, items: { type: object } }
+        leadAfterSwap: { type: object }
+        staffingRatioBeforeAfter: { type: object }
+        monthlyHours: { type: object, description: 'Chỉ người duyệt' }
+        overlappingTrips: { type: array, items: { type: object } }
+    ShiftSwap:
       type: object
       properties:
-        muc: { type: array, items: { type: object, required: [ketQua], properties: { caId: { type: integer, format: int64 }, ngay: { type: string, format: date }, ketQua: { type: string, enum: [DUYET, TU_CHOI] }, nguoiPhuTrachMoiId: { type: integer, format: int64 } } } }
-        lyDo: { type: string, description: 'Bắt buộc khi có phần bị từ chối hoặc tự duyệt' }
+        id: { type: integer, format: int64 }
+        status: { type: string, enum: [AWAITING_RECIPIENT, PENDING_APPROVAL, APPLIED, RECIPIENT_DECLINED, REJECTED, CANCELLED, EXPIRED] }
+        kind: { type: string, enum: [MUTUAL, TAKE_OVER] }
+        giverStaffId: { type: integer, format: int64 }
+        recipientStaffId: { type: integer, format: int64 }
+        shiftXId: { type: integer, format: int64 }
+        shiftYId: { type: integer, format: int64 }
+        reason: { type: string }
+        recipientDeclineReason: { type: string, description: 'Chỉ người nhường thấy' }
+        selfApproved: { type: boolean }
+        allowedCommands: { type: array, items: { type: string } }
+    RecipientShift:
+      type: object
+      properties: { shiftId: { type: integer, format: int64 }, startsAt: { type: string, format: date-time }, endsAt: { type: string, format: date-time }, shiftTemplateId: { type: integer, format: int64 } }
+    CreateLeave:
+      type: object
+      required: [kind, reason]
+      description: 'scopeType, scopeId bổ sung 2026-11-09 (D tự chọn; chờ chủ dự án chốt) cho nghỉ theo ngày vì FR-026a cần phạm vi mà hợp đồng cũ chưa có'
+      properties:
+        kind: { type: string, enum: [BY_SHIFT, BY_DAY] }
+        staffId: { type: integer, format: int64, description: 'Khi lập thay' }
+        shiftIds: { type: array, items: { type: integer, format: int64 } }
+        fromDate: { type: string, format: date }
+        toDate: { type: string, format: date }
+        dates: { type: array, items: { type: string, format: date } }
+        scopeType: { type: string, enum: [FLOOR, AREA, FACILITY] }
+        scopeId: { type: integer, format: int64 }
+        reason: { $ref: '#/components/schemas/Reason' }
+    CreatedLeaveRequests:
+      type: object
+      properties: { requestIds: { type: array, items: { type: integer, format: int64 } } }
+    LeaveDecision:
+      type: object
+      properties:
+        items: { type: array, items: { type: object, required: [result], properties: { shiftId: { type: integer, format: int64 }, date: { type: string, format: date }, result: { type: string, enum: [APPROVED, REJECTED] }, newLeadId: { type: integer, format: int64 } } } }
+        reason: { type: string, description: 'Bắt buộc khi có phần bị từ chối, từ chối, hủy hoặc tự duyệt' }
+    LeaveRequest:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        status: { type: string, enum: [PENDING_APPROVAL, APPLIED, PARTIALLY_APPLIED, REJECTED, CANCELLED, EXPIRED] }
+        kind: { type: string, enum: [BY_SHIFT, BY_DAY] }
+        staffId: { type: integer, format: int64 }
+        scopeType: { type: string }
+        scopeId: { type: integer, format: int64 }
+        onBehalf: { type: boolean }
+        reason: { type: string }
+        items: { type: array, items: { type: object } }
+        selfApproved: { type: boolean }
+        allowedCommands: { type: array, items: { type: string } }
