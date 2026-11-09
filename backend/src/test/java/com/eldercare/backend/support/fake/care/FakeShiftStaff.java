@@ -88,6 +88,15 @@ public class FakeShiftStaff implements ShiftStaffPort {
     }
 
     @Override
+    public List<ShiftView> ongoingShifts(Instant at) {
+        check();
+        return shifts.values().stream()
+                .filter(s -> s.published() && !at.isBefore(s.startsAt()) && at.isBefore(s.endsAt()))
+                .sorted(java.util.Comparator.comparingLong(ShiftView::id))
+                .toList();
+    }
+
+    @Override
     public Optional<ShiftView> shiftContaining(long floorAreaId, Instant at) {
         check();
         return shifts.values().stream()

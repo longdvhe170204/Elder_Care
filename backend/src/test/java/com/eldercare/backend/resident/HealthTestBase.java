@@ -11,6 +11,7 @@ import com.eldercare.backend.resident.internal.profile.domain.PersonalInfo;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
@@ -23,8 +24,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.event.RecordApplicationEvents;
@@ -35,20 +34,11 @@ import org.springframework.test.context.event.RecordApplicationEvents;
  * {@link FakeM15Config}; {@link #assignNurse} đặt phân công cho điều dưỡng. Mỗi test tạo hồ sơ người cao tuổi riêng vì cơ
  * sở dữ liệu không dọn giữa các test.
  */
-@Import({FakeM15Config.class, FakeFamilyRelationshipsConfig.class, HealthTestBase.Fixtures.class})
+@Import({FakeM15Config.class, FakeFamilyRelationshipsConfig.class, SwitchableUserConfig.class})
 @RecordApplicationEvents
 public abstract class HealthTestBase extends MySqlIntegrationTestBase {
 
     private static final AtomicLong SEQUENCE = new AtomicLong(System.nanoTime() % 1_000_000_000L);
-
-    @TestConfiguration
-    static class Fixtures {
-
-        @Bean
-        SwitchableUser currentUser() {
-            return new SwitchableUser();
-        }
-    }
 
     @Autowired
     protected SwitchableUser user;

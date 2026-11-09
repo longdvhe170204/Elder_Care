@@ -121,6 +121,14 @@ export const NAV_GROUPS = [
         functions: ['OVERDUE_TASK_HANDLING'],
         roles: [QL, TT],
       },
+      // FR-048 (005 T058): Trưởng tầng, Điều dưỡng xem thời khóa biểu theo ngày.
+      {
+        key: 'care-timetable',
+        label: 'Thời khóa biểu',
+        icon: 'CalendarDays',
+        functions: ['CARE_PLAN'],
+        roles: [TT, DD],
+      },
       {
         key: 'care-task-planning',
         label: 'Lập công việc ca',
@@ -134,6 +142,22 @@ export const NAV_GROUPS = [
         icon: 'ClipboardCheck',
         functions: ['DAY_CARE_ATTENDANCE'],
         roles: [QL, TT, DD, CS, HC],
+      },
+      // Dòng "Hoạt động, ngoài viện", Phụ lục 27 (014 T009).
+      {
+        key: 'activity-sessions',
+        label: 'Buổi hoạt động',
+        icon: 'CalendarDays',
+        functions: ['ACTIVITY_OUTING'],
+        roles: [QL, TT, DD, CS],
+      },
+      // Dòng "Kiểm tra chất lượng", Phụ lục 27 (014 T025, bố cục duyệt 2026-11-07); Người phụ trách ca theo nhiệm vụ.
+      {
+        key: 'quality-checks',
+        label: 'Kiểm tra chất lượng',
+        icon: 'ClipboardCheck',
+        functions: ['QUALITY_CHECK'],
+        roles: [QL, TT],
       },
       // Dòng "Kế hoạch chăm sóc" và "Danh mục loại công việc chăm sóc" (005 T017, Phụ lục 27).
       {
@@ -230,6 +254,14 @@ export const NAV_GROUPS = [
         functions: ['ADMISSION_CONTRACT_DEPOSIT'],
         roles: [QL, HC, NT, KT],
       },
+      // Dòng "Khai báo tạm trú, lưu trú" (018 K1): Hành chính thao tác, Quản lý viện xem
+      {
+        key: 'residence-registrations',
+        label: 'Khai báo cư trú',
+        icon: 'ClipboardCheck',
+        functions: ['RESIDENCE_REGISTRATION'],
+        roles: [QL, HC],
+      },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
       // Dòng "Hồ sơ, quan hệ, vai trò người thân" (FR-067 của 012; Phụ lục 27 "Người thân và quyền"): Hành chính lập, Quản lý viện xem
@@ -264,6 +296,8 @@ export const NAV_GROUPS = [
         functions: ['VISIT_REGISTRATION'],
         roles: [QL, TT, HC, NT],
       },
+      // Dòng "Đồ gửi" (013): Hành chính, Điều dưỡng thực hiện; Quản lý viện, Trưởng tầng xem; người thân xem ở cổng
+      { key: 'belongings', label: 'Đồ gửi', icon: 'ClipboardCheck', functions: ['BELONGINGS'], roles: [QL, TT, DD, HC] },
       // Dòng "Người thân ở lại" (012 T035; chú thích 20: Hành chính đăng ký, Trưởng tầng xác nhận, Quản lý viện xác nhận thay)
       {
         key: 'family-stays',

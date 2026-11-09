@@ -102,6 +102,40 @@ public class CareTaskStore {
                 local(at));
     }
 
+    /** FR-020a: công việc đã Hủy vì vắng mặt, dự kiến sau mốc. */
+    public List<CareTask> cancelledForAbsenceAfter(long resident, Instant at) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE resident_id=? AND status='CANCELLED' AND closure_rule='ABSENCE_CANCELLED' AND planned_at>? ORDER BY planned_at,id",
+                this::row,
+                resident,
+                local(at));
+    }
+
+    /** T059: công việc có thời điểm dự kiến trong [from, to) theo phạm vi dữ liệu của người xem 016. */
+    public List<CareTask> inRange(
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant from, Instant to) {
+        var args = new ArrayList<Object>(List.of(local(from), local(to)));
+        String sql = "SELECT * FROM care_task WHERE planned_at>=? AND planned_at<?";
+        if (!scope.facilityWide()) {
+            var terms = new ArrayList<String>();
+            if (!scope.floorAreaIds().isEmpty()) {
+                terms.add("floor_area_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.floorAreaIds().size(), "?")) + ")");
+                args.addAll(scope.floorAreaIds());
+            }
+            if (!scope.residentIds().isEmpty()) {
+                terms.add("resident_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.residentIds().size(), "?")) + ")");
+                args.addAll(scope.residentIds());
+            }
+            if (terms.isEmpty()) return List.of();
+            sql += " AND (" + String.join(" OR ", terms) + ")";
+        }
+        return jdbc.query(sql + " ORDER BY planned_at,id", this::row, args.toArray());
+    }
+
     public List<CareTask> forSource(SourceType type, long id) {
         return jdbc.query(
                 "SELECT * FROM care_task WHERE basis_type=? AND basis_id=? ORDER BY id", this::row, type.name(), id);
@@ -159,6 +193,45 @@ public class CareTaskStore {
             sql += " AND (" + String.join(" OR ", terms) + ")";
         }
         return jdbc.query(sql + " ORDER BY planned_at,id", this::row, args.toArray());
+    }
+
+    public List<CareTask> openOfPerformer(long staffId) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE performer_id=? AND status IN('NOT_YET_DUE','DUE','OVERDUE') ORDER BY id",
+                this::row,
+                staffId);
+    }
+
+    /** FR-048: công việc của người cao tuổi có thời điểm dự kiến trong [from, to). */
+    public List<CareTask> ofResidentBetween(long residentId, Instant from, Instant to) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE resident_id=? AND planned_at>=? AND planned_at<? ORDER BY planned_at,id",
+                this::row,
+                residentId,
+                local(from),
+                local(to));
+    }
+
+    public List<CareTask> openOfResident(long residentId) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE resident_id=? AND status IN('NOT_YET_DUE','DUE','OVERDUE') ORDER BY id",
+                this::row,
+                residentId);
+    }
+
+    /** Đổi tầng/khu, ca, người thực hiện của công việc chưa đóng; giữ dấu tồn và giờ dự kiến. */
+    public CareTask relocate(CareTask task, long floorAreaId, long shiftId, Long performer) {
+        int updated = jdbc.update(
+                "UPDATE care_task SET floor_area_id=?,shift_id=?,performer_id=?,version=version+1 WHERE id=? AND version=? AND status IN('NOT_YET_DUE','DUE','OVERDUE')",
+                floorAreaId,
+                shiftId,
+                performer,
+                task.id(),
+                task.version());
+        if (updated != 1)
+            throw new com.eldercare.backend.common.error.BusinessException(
+                    org.springframework.http.HttpStatus.CONFLICT, "CARE_TASK_CLOSED", "Công việc đã thay đổi");
+        return get(task.id(), false);
     }
 
     public CareTask carry(CareTask task, Long shiftId, Long performer, String carryover) {

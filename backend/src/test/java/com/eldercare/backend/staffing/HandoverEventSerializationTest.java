@@ -5,18 +5,21 @@ import static org.assertj.core.api.Assertions.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.staffing.api.events.HandoverPrepared;
+import com.eldercare.backend.support.TableRows;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Stream;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
 /** Sự kiện lưu bởi Modulith phải đọc lại được sau khởi động, kể cả nhóm nhận lồng nhau. */
 class HandoverEventSerializationTest {
-    @ParameterizedTest
-    @MethodSource("recipients")
-    void FR_057_persistedNotificationRetainsRecipientTypeOnRestart(RecipientGroup group) {
+    @Test
+    void FR_057_persistedNotificationRetainsRecipientTypeOnRestart() {
+        TableRows.each(recipients(), this::roundTrips);
+    }
+
+    private void roundTrips(RecipientGroup group) {
         var at = Instant.parse("2035-04-01T08:00:00Z");
         var request = new NotificationRequest(
                 "008",

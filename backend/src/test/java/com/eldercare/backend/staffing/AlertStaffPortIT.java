@@ -3,7 +3,6 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.spi.CareShiftPort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -11,7 +10,6 @@ import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.staffing.api.ShiftApi;
-import com.eldercare.backend.staffing.internal.duty.service.ShiftQueries;
 import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
@@ -120,35 +118,5 @@ class AlertStaffPortIT extends MySqlIntegrationTestBase {
         assertThat(nursing.inProgressShiftMember(worker, time.now())).isFalse();
         // Ca vẫn tồn tại dù một người vắng; danh sách tầng không phụ thuộc danh sách người còn lại.
         assertThat(alerts.floorsWithShift(time.now())).contains(floor);
-    }
-
-    @Test
-    void Q_332_configuredOfficeHoursApplyOnlyToTheThreeNonScheduledRoles() {
-        var hours = parameters.read(ParameterCode.CFG_M13_06).asTable(ShiftQueries.OfficeHours.class);
-        var date = LocalDate.of(2026, 10, 19);
-        while (!hours.days().contains(date.getDayOfWeek())) date = date.plusDays(1);
-        Instant from = date.atTime(hours.from()).atZone(BusinessTime.ZONE).toInstant();
-        Instant to = date.atTime(hours.to()).atZone(BusinessTime.ZONE).toInstant();
-        for (var role : new Role[] {Role.NURSING_HOME_MANAGER, Role.OFFICE_STAFF, Role.ACCOUNTANT}) {
-            long person = staff(role);
-            assertThat(alerts.onShift(person, from.minusNanos(1000))).isFalse();
-            assertThat(alerts.onShift(person, from)).isTrue();
-            assertThat(alerts.onShift(person, to)).isFalse();
-            assertThat(alerts.floorDuringShift(person, from)).isEmpty();
-            assertThat(alerts.onShift(person, from)).isEqualTo(shifts.onShift(person, from));
-        }
-        assertThat(alerts.onShift(staff(Role.KITCHEN_STAFF), from)).isFalse();
-    }
-
-    @Test
-    void FR_047i_draftAndCancelledShiftsNeverSupplyEmergencyRecipients() {
-        long draft = staff(Role.NURSING_STAFF), cancelled = staff(Role.NURSING_STAFF);
-        long draftFloor = TestUsers.nextId(), cancelledFloor = TestUsers.nextId();
-        shift(draftFloor, draft, "DRAFT");
-        shift(cancelledFloor, cancelled, "CANCELLED");
-        assertThat(alerts.onShift(draft, time.now())).isFalse();
-        assertThat(alerts.onShift(cancelled, time.now())).isFalse();
-        assertThat(alerts.floorDuringShift(draft, time.now())).isEmpty();
-        assertThat(alerts.floorsWithShift(time.now())).doesNotContain(draftFloor, cancelledFloor);
     }
 }

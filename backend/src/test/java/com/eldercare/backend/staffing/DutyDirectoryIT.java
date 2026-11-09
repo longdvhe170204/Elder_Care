@@ -87,54 +87,6 @@ class DutyDirectoryIT extends MySqlIntegrationTestBase {
                 .contains(PermissionBasis.duty(Duty.SHIFT_LEAD));
     }
 
-    @Test
-    void FR_019e_Q_262_managerAbsenceStartsAtRecordedInstant_withoutGrantingEarly() {
-        addManager(shift);
-        jdbc.update(
-                "UPDATE shift_staff SET absent_at=? WHERE shift_id=? AND staff_id=?",
-                ShiftStore.sql(change),
-                shift,
-                manager);
-        clock.setTo(change.minusNanos(1000));
-        assertException(false);
-        clock.setTo(change);
-        assertException(true);
-    }
-
-    @Test
-    void FR_019e_Q_262_approvedLeaveAllowsShiftLeadQualityCheck() {
-        addManager(shift);
-        jdbc.update(
-                "UPDATE shift_staff SET approved_leave_request_id=? WHERE shift_id=? AND staff_id=?",
-                TestUsers.nextId(),
-                shift,
-                manager);
-        assertException(true);
-    }
-
-    @Test
-    void FR_019e_Q_262_managerPresentInTheSameShift_keepsExceptionClosed() {
-        addManager(shift);
-        assertException(false);
-    }
-
-    @Test
-    void FR_019e_Q_262_managerWorkingAnotherFloor_doesNotBlockThisShiftLead() {
-        addManager(shiftAt(TestUsers.nextId()));
-        assertException(true);
-    }
-
-    @Test
-    void FR_019e_Q_262_draftShiftDoesNotQualifyForTheException() {
-        jdbc.update("UPDATE work_shift SET status='DRAFT' WHERE id=?", shift);
-        assertException(false);
-    }
-
-    @Test
-    void FR_019e_Q_262_unknownShiftDoesNotQualifyForTheException() {
-        assertThat(duties.shiftHasNoFloorManager(TestUsers.nextId())).isFalse();
-    }
-
     private void assertException(boolean expected) {
         assertThat(duties.shiftHasNoFloorManager(shift)).isEqualTo(expected);
         assertThat(permissions

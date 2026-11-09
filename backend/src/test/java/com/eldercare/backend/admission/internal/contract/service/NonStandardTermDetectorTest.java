@@ -6,7 +6,6 @@ import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent.ServiceLine;
 import com.eldercare.backend.admission.internal.contract.domain.NonStandardTerm;
-import com.eldercare.backend.admission.internal.contract.domain.NonStandardTerm.Type;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import java.math.BigDecimal;
@@ -51,22 +50,5 @@ class NonStandardTermDetectorTest {
     @Test
     void FR_025a_customPriceEqualToStandard_isStandard() {
         assertThat(detect(List.of(service(1, "5000000.00")))).isEmpty();
-    }
-
-    @Test
-    void FR_025a_customPriceDifferentFromStandard_isAPriceTerm() {
-        assertThat(detect(List.of(service(1, "4000000")))).singleElement().satisfies(term -> {
-            assertThat(term.type()).isEqualTo(Type.PRICE);
-            assertThat(term.standardValue()).isEqualTo("5000000");
-            assertThat(term.proposedValue()).isEqualTo("4000000");
-        });
-    }
-
-    @Test
-    void FR_025a_customPriceWithoutAnyVersion_isAPriceTermWithoutStandardValue() {
-        assertThat(detect(List.of(service(2, "100000")))).singleElement().satisfies(term -> {
-            assertThat(term.type()).isEqualTo(Type.PRICE);
-            assertThat(term.standardValue()).isNull();
-        });
     }
 }

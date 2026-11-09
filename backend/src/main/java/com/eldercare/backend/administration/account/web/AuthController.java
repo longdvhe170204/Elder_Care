@@ -3,11 +3,15 @@ package com.eldercare.backend.administration.account.web;
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.internal.auth.service.LoginService;
+import com.eldercare.backend.administration.account.internal.auth.service.PasswordResetService;
 import com.eldercare.backend.administration.account.internal.auth.service.SessionTokens;
 import com.eldercare.backend.administration.account.web.request.ChangePasswordBody;
 import com.eldercare.backend.administration.account.web.request.LoginBody;
+import com.eldercare.backend.administration.account.web.request.PasswordResetConfirmBody;
+import com.eldercare.backend.administration.account.web.request.PasswordResetRequestBody;
 import com.eldercare.backend.administration.account.web.request.QrLoginBody;
 import com.eldercare.backend.administration.account.web.response.LoginResponse;
+import com.eldercare.backend.administration.account.web.response.PasswordResetAvailability;
 import com.eldercare.backend.administration.account.web.response.QrLoginResponse;
 import com.eldercare.backend.administration.account.web.response.UserInfo;
 import com.eldercare.backend.common.Role;
@@ -30,6 +34,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -50,8 +55,14 @@ class AuthController {
     private final LoginService logins;
     private final AccountApi accounts;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final PasswordResetService resets;
 
-    AuthController(LoginService logins, AccountApi accounts, ObjectProvider<CurrentUser> currentUser) {
+    AuthController(
+            LoginService logins,
+            AccountApi accounts,
+            ObjectProvider<CurrentUser> currentUser,
+            PasswordResetService resets) {
+        this.resets = resets;
         this.logins = logins;
         this.accounts = accounts;
         this.currentUser = currentUser;
@@ -159,6 +170,63 @@ class AuthController {
     })
     void changePassword(@Valid @RequestBody ChangePasswordBody body) {
         logins.changePassword(currentUser.getObject(), body.currentPassword(), body.newPassword());
+    }
+
+    /** Màn đăng nhập có hiện "Quên mật khẩu" không (002 T105; FR-052a, Q-06). */
+    @GetMapping("/password-reset/availability")
+    @SecurityRequirements
+    @ApiResponse(responseCode = "200", description = "OK")
+    PasswordResetAvailability passwordResetAvailability() {
+        return new PasswordResetAvailability(resets.available());
+    }
+
+    /** Xin mã đặt lại mật khẩu; luôn 202 như nhau (FR-052a, BR-M15-25). */
+    @PostMapping("/password-reset/request")
+    @SecurityRequirements
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ApiResponses({
+        @ApiResponse(responseCode = "202", description = "Đã nhận yêu cầu"),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Kênh tin nhắn chưa cấu hình",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class)))
+    })
+    void requestPasswordReset(@Valid @RequestBody PasswordResetRequestBody body) {
+        resets.request(body.username());
+    }
+
+    /** Đặt mật khẩu mới bằng mã (FR-052a, BR-M15-25); lỗi trả sau khi transaction lưu bộ đếm sai. */
+    @PostMapping("/password-reset/confirm")
+    @SecurityRequirements
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Đã đặt mật khẩu mới"),
+        @ApiResponse(
+                responseCode = "422",
+                description = "RESET_CODE_INVALID, PASSWORD_POLICY_NOT_MET",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class)))
+    })
+    void confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmBody body) {
+        switch (resets.confirm(body.username(), body.code(), body.newPassword())) {
+            case PasswordResetService.Done done -> {}
+            case PasswordResetService.InvalidCode invalid ->
+                throw new BusinessException(
+                        HttpStatus.UNPROCESSABLE_CONTENT,
+                        "RESET_CODE_INVALID",
+                        "Mã không đúng, đã hết hạn hoặc không còn hiệu lực; hãy xin mã mới");
+            case PasswordResetService.WeakPassword weak ->
+                throw new BusinessException(
+                        HttpStatus.UNPROCESSABLE_CONTENT,
+                        "PASSWORD_POLICY_NOT_MET",
+                        "Mật khẩu mới chưa đạt yêu cầu",
+                        Map.of("unmetConditions", weak.unmet()));
+        }
     }
 
     private UserInfo user(LoginService.Success success) {

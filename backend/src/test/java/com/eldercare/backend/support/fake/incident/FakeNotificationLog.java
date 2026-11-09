@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Nhật ký thông báo do test đặt, không gửi thông báo thật. */
+/** Nhật ký thông báo và chuỗi nhắc gọi do test đặt, không gửi thông báo thật. */
 public class FakeNotificationLog implements NotificationLogPort {
     private record Source(String type, long id) {}
 

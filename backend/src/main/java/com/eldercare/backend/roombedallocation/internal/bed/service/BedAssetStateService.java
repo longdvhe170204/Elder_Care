@@ -59,8 +59,37 @@ public class BedAssetStateService {
         this.events = events;
     }
 
+    private record Evaluation(
+            BedStateSnapshot bed,
+            List<BedAssetStateStore.FutureAllocation> current,
+            List<UnmetCondition> failures,
+            boolean cancelAllowed,
+            BedEvent event) {}
+
+    /** 019 T020: điều kiện của lệnh tài sản trên giường (FR-013, FR-013a; BR-M03-05), không ghi gì. */
+    public List<UnmetCondition> check(
+            long bedId, BedAssetCommand command, boolean damageWhilePreparing, boolean repeatedDamage) {
+        return evaluate(bedId, command, damageWhilePreparing, repeatedDamage).failures();
+    }
+
     public void apply(
             long bedId, BedAssetCommand command, Basis basis, boolean damageWhilePreparing, boolean repeatedDamage) {
+        var evaluation = evaluate(bedId, command, damageWhilePreparing, repeatedDamage);
+        if (!evaluation.failures().isEmpty()) throw new ConditionNotMetException(evaluation.failures());
+        var bed = evaluation.bed();
+        var current = evaluation.current();
+        boolean cancelAllowed = evaluation.cancelAllowed();
+        var event = evaluation.event();
+        if (cancelAllowed && current.stream().anyMatch(BedAssetStateStore.FutureAllocation::hasLinkedSource))
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "SOURCE_UNAVAILABLE",
+                    "Chưa nối xử lý căn cứ hoặc yêu cầu chuyển theo lịch; giữ nguyên phân bổ");
+        applyEvaluated(bedId, basis, bed, current, cancelAllowed, event);
+    }
+
+    private Evaluation evaluate(
+            long bedId, BedAssetCommand command, boolean damageWhilePreparing, boolean repeatedDamage) {
         var initial = allocations.future(bedId, false);
         var residents = initial.stream()
                 .map(BedAssetStateStore.FutureAllocation::residentId)
@@ -103,12 +132,16 @@ public class BedAssetStateService {
         }
         if (command == BedAssetCommand.READY && !bed.roomActive())
             failures.add(new UnmetCondition("FR-013", "Phòng đã ngừng hiệu lực"));
-        if (!failures.isEmpty()) throw new ConditionNotMetException(failures);
-        if (cancelAllowed && current.stream().anyMatch(BedAssetStateStore.FutureAllocation::hasLinkedSource))
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "SOURCE_UNAVAILABLE",
-                    "Chưa nối xử lý căn cứ hoặc yêu cầu chuyển theo lịch; giữ nguyên phân bổ");
+        return new Evaluation(bed, current, List.copyOf(failures), cancelAllowed, event);
+    }
+
+    private void applyEvaluated(
+            long bedId,
+            Basis basis,
+            BedStateSnapshot bed,
+            List<BedAssetStateStore.FutureAllocation> current,
+            boolean cancelAllowed,
+            BedEvent event) {
         if (cancelAllowed) {
             for (var allocation : current) {
                 allocations.cancel(allocation.id(), user.accountId());

@@ -40,11 +40,6 @@ public class CareTaskDueStep implements CareMinuteWork {
         }
         for (var group : batches.values()) {
             try {
-                if (group.size() > CareTaskNotices.MAX_GROUPED_TASKS)
-                    throw new com.eldercare.backend.common.error.BusinessException(
-                            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                            "CARE_SOURCE_UNAVAILABLE",
-                            "Nhóm nhắc gộp lớn đang chờ hợp đồng payload an toàn của phần nền");
                 count += processor.advanceBatch(group, now);
             } catch (RuntimeException e) {
                 if (failure == null) failure = e;

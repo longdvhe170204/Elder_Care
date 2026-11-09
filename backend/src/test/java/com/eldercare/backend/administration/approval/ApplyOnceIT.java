@@ -1,14 +1,17 @@
 package com.eldercare.backend.administration.approval;
 
-import static com.eldercare.backend.administration.approval.ApprovalFixtures.MANAGER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.approval.api.ApprovalRequestApi;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
+import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.UnmetCondition;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.DataAccessException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -40,47 +43,33 @@ class ApplyOnceIT extends ApprovalTestBase {
                 .isEqualTo(String.valueOf(id));
     }
 
-    /** Constitution XII 3.2.0, R-15: yêu cầu đã áp dụng khóa theo dòng; kết quả áp dụng là cột của yêu cầu. */
+    @Autowired
+    ApprovalRequestApi requests;
+
+    @Autowired
+    TransactionTemplate transaction;
+
     @Test
-    void XII_appliedRequest_isRowLocked() throws Exception {
+    void FR_013a_failApplication_closesApprovedRequest_withConditionAndBasis_andTheJobNeverAppliesIt()
+            throws Exception {
         LocalDate due = time.today().plusDays(3);
         long id = approved(due);
+        var condition = new UnmetCondition("FR-013a", "Giường hỏng trước ngày chuyển", null, "003", false);
+        var basis = new Basis("BR-M03-13", null, 77L, null);
+
+        transaction.executeWithoutResult(tx -> requests.failApplication(id, List.of(condition), basis));
+
+        JsonNode request = read(id);
+        assertThat(request.get("status").asString()).isEqualTo("APPLY_FAILED");
+        assertThat(request.get("closingReason").asString()).isEqualTo("FR-013a: Giường hỏng trước ngày chuyển");
+        assertThat(lastAudit(id, "REQUEST_APPLY_FAILED", "JSON_EXTRACT(basis, '$.ruleCode')"))
+                .isEqualTo("\"BR-M03-13\"");
         moveTo(due);
         runApplyJob();
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT locked_at IS NOT NULL FROM approval_request WHERE id = ?", Boolean.class, id))
-                .isTrue();
-        assertThatThrownBy(() -> jdbc.update("UPDATE approval_request SET closing_reason = 'x' WHERE id = ?", id))
-                .isInstanceOf(DataAccessException.class);
-    }
-
-    @Test
-    void US5_7_beforeEffectiveDate_jobDoesNothing() throws Exception {
-        LocalDate due = time.today().plusDays(5);
-        long id = approved(due);
-
-        moveTo(due.minusDays(1));
-        runApplyJob();
-
-        assertThat(read(id).get("status").asString()).isEqualTo("APPROVED");
         assertThat(results(id)).isZero();
-    }
-
-    @Test
-    void US5_6_approvedOnOrAfterRequestedDate_appliesImmediately_actualDateIsApprovalDate() throws Exception {
-        LocalDate today = time.today();
-        long id = pending(today.minusDays(2));
-        user.set(MANAGER);
-
-        api.approve(id, "Đồng ý")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPLIED"))
-                .andExpect(jsonPath("$.requestedEffectiveDate")
-                        .value(today.minusDays(2).toString()))
-                .andExpect(jsonPath("$.actualEffectiveDate").value(today.toString()));
-
-        assertThat(results(id)).isEqualTo(1);
-        assertThat(effects(id)).isEqualTo(1);
+        assertThatThrownBy(() ->
+                        transaction.executeWithoutResult(tx -> requests.failApplication(id, List.of(condition), basis)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("APPLY_FAILED");
     }
 }

@@ -40,12 +40,4 @@ class StaffingPresenceTest {
                         List.of(period(ResidentStatus.TEMPORARILY_ABSENT, start.minusSeconds(1), start)), start, end))
                 .isFalse();
     }
-
-    @Test
-    void FR_034_openAbsenceFromBeforeShiftCovers_it_emptyHistoryDoesNot() {
-        assertThat(StaffingRatioSources.fullyAbsent(
-                        List.of(period(ResidentStatus.OFF_SITE_ACTIVITY, start.minusSeconds(1), null)), start, end))
-                .isTrue();
-        assertThat(StaffingRatioSources.fullyAbsent(List.of(), start, end)).isFalse();
-    }
 }

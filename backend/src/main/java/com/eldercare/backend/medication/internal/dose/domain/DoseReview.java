@@ -1,63 +1,35 @@
 package com.eldercare.backend.medication.internal.dose.domain;
 
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import java.time.Instant;
 
 /**
- * Dose Review Entity (Group 2 - Business with lifecycle; FR-029, Q-66; data-model section 5).
- * Table {@code dose_review}.
+ * Bản ghi chờ xem lại liều (FR-029): dòng {@code simple_record} loại {@code M07.DOSE_REVIEW} (006 T069, {@code V006_98});
+ * {@code DoseReviewRepository} đọc, ghi qua {@code SimpleRecordApi}.
  */
-@Entity
-@Table(name = "dose_review")
-@DataGroup(DataGroup.Group.BUSINESS)
 public class DoseReview {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "dose_result_id", unique = true)
     private Long doseResultId;
 
-    @Column(name = "prn_usage_id")
     private Long prnUsageId;
 
-    @Column(name = "floor_area_id")
     private Long floorAreaId;
 
-    @Column(name = "reviewer_candidate", columnDefinition = "json")
     private String reviewerCandidate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
     private DoseReviewStatus status = DoseReviewStatus.PENDING_REVIEW;
 
-    @Column(name = "reviewer_id")
     private Long reviewerId;
 
-    @Column(name = "reviewed_at")
     private Instant reviewedAt;
 
-    @Column(length = 2000)
     private String note;
 
-    @Version
-    @Column(nullable = false)
     private int version;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     protected DoseReview() {}
@@ -92,6 +64,36 @@ public class DoseReview {
             this.note = reviewNote;
         }
         this.updatedAt = now;
+    }
+
+    /** Gán id, phiên bản, thời điểm tạo của dòng bảng chung sau khi đọc hoặc ghi. */
+    public void restoreRow(long id, int version, Instant createdAt) {
+        this.id = id;
+        this.version = version;
+        this.createdAt = createdAt;
+    }
+
+    /** Dựng lại từ nội dung đã lưu. */
+    public static DoseReview restore(DoseReviewStatus status, DoseReviewContent c) {
+        DoseReview review = new DoseReview(
+                c.doseResultId(), c.prnUsageId(), c.floorAreaId(), c.reviewerCandidate(), c.note(), c.updatedAt());
+        review.status = status;
+        review.reviewerId = c.reviewerId();
+        review.reviewedAt = c.reviewedAt();
+        return review;
+    }
+
+    public DoseReviewContent content() {
+        return new DoseReviewContent(
+                doseResultId,
+                prnUsageId,
+                floorAreaId,
+                reviewerCandidate,
+                reviewerId,
+                reviewedAt,
+                note,
+                updatedAt,
+                null);
     }
 
     public Long getId() {

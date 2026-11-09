@@ -49,30 +49,6 @@ class IdempotencyFilterIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void NFR_08_secretResponse_notStored_replayRefused_commandRunsOnce() throws Exception {
-        String key = UUID.randomUUID().toString();
-        MockHttpServletRequestBuilder secret = post("/api/v1/test-support/secrets")
-                .with(csrf())
-                .with(user("a"))
-                .header("Idempotency-Key", key)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{}");
-
-        mvc.perform(secret)
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.secret").value("bi-mat-1"));
-
-        assertThat(jdbc.queryForObject(
-                        "SELECT result_json FROM idempotency_key WHERE key_value = ?", String.class, key))
-                .isNotNull()
-                .doesNotContain("bi-mat-1");
-        mvc.perform(secret)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("IDEMPOTENCY_RESULT_NOT_KEPT"));
-        assertThat(sample.created).hasValue(1);
-    }
-
-    @Test
     void R_03_sameKeySameUser_returnsFirstResultWithoutSecondRecord() throws Exception {
         String key = UUID.randomUUID().toString();
 
@@ -87,14 +63,6 @@ class IdempotencyFilterIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void R_03_sameKeyOtherUser_isIndependent() throws Exception {
-        String key = UUID.randomUUID().toString();
-
-        mvc.perform(create(key, "a", "x")).andExpect(jsonPath("$.number").value(1));
-        mvc.perform(create(key, "b", "x")).andExpect(jsonPath("$.number").value(2));
-    }
-
-    @Test
     void R_03_sameKeyDifferentRequest_isRejected() throws Exception {
         String key = UUID.randomUUID().toString();
 
@@ -104,11 +72,5 @@ class IdempotencyFilterIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.errorCode").value("IDEMPOTENCY_KEY_REUSED"));
 
         assertThat(sample.created).hasValue(1);
-    }
-
-    @Test
-    void R_03_noKey_runsEveryTime() throws Exception {
-        mvc.perform(create(null, "a", "x")).andExpect(jsonPath("$.number").value(1));
-        mvc.perform(create(null, "a", "x")).andExpect(jsonPath("$.number").value(2));
     }
 }

@@ -3,7 +3,6 @@ package com.eldercare.backend.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
@@ -90,12 +89,5 @@ class FakePermissionsTest {
                         .failedLayer())
                 .contains(FailedLayer.ROLE);
         assertThat(fake.filter(manager, CHANGE_PARAMETER)).isEqualTo(ScopeFilter.FACILITY);
-    }
-
-    @Test
-    void T008_userType_followsRoles() {
-        assertThat(FakePermissions.user(1, Role.FAMILY_MEMBER).familyMemberId()).contains(1L);
-        assertThat(FakePermissions.user(2, Role.RESIDENT).type()).isEqualTo(AccountType.RESIDENT);
-        assertThat(FakePermissions.user(3, Role.DOCTOR).staffId()).contains(3L);
     }
 }

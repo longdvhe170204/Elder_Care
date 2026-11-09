@@ -110,6 +110,13 @@ public class ShiftQueries implements ShiftApi {
         return store.floorRange(floor, from, to);
     }
 
+    /** FR-017 của005: không suy danh sách ca từ giường, công việc hoặc thành viên ca. */
+    public List<WorkShift> ongoingCareShifts(Instant at) {
+        return store.at(at, false).stream()
+                .filter(s -> Set.of("FLOOR", "AREA").contains(s.scopeType()) && s.scopeId() != null)
+                .toList();
+    }
+
     public Optional<WorkShift> find(long id) {
         return store.find(id);
     }

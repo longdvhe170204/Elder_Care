@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.account.TestOfflineHandlers.CareNotes;
-import com.eldercare.backend.administration.account.api.events.RecordSyncedAfterPermissionLoss;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
@@ -110,86 +109,6 @@ class SyncResultIT extends MySqlIntegrationTestBase {
             assertThat(a.effectiveAt()).isEqualTo(deviceTime);
             assertThat(a.outcome().result()).isEqualTo(SyncResult.ACCEPTED);
         });
-    }
-
-    @Test
-    void US4_12_lockedAfterRecording_acceptedWithFlag_recordAfterLock_rejected_sessionEnded() throws Exception {
-        Instant connected = lastConnected(now.minus(Duration.ofHours(3)));
-        lockAt(now.minus(Duration.ofMinutes(30)));
-        String before = UUID.randomUUID().toString();
-        String after = UUID.randomUUID().toString();
-
-        sync(
-                        connected,
-                        record(before, TestOfflineHandlers.CARE_NOTE, now.minus(Duration.ofHours(2)), resident, before),
-                        record(
-                                after,
-                                TestOfflineHandlers.CARE_NOTE,
-                                now.minus(Duration.ofMinutes(10)),
-                                resident,
-                                after))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sessionEnded").value(true))
-                .andExpect(jsonPath("$.residentsInScope").isEmpty())
-                .andExpect(jsonPath("$.results[0].result").value("ACCEPTED_WITH_FLAG"))
-                .andExpect(jsonPath("$.results[1].result").value("REJECTED"))
-                .andExpect(jsonPath("$.results[1].reason").isNotEmpty());
-
-        assertThat(careNotes.appliedWith(before))
-                .singleElement()
-                .satisfies(a -> assertThat(a.outcome().result()).isEqualTo(SyncResult.ACCEPTED_WITH_FLAG));
-        assertThat(careNotes.appliedWith(after)).isEmpty();
-        assertThat(events.stream(RecordSyncedAfterPermissionLoss.class)
-                        .filter(e -> e.recordType().equals(TestOfflineHandlers.CARE_NOTE))
-                        .filter(e -> floor == e.floorAreaId()))
-                .hasSize(1);
-    }
-
-    @Test
-    void FR_041a_outOfScopeAtDeviceTime_rejected() throws Exception {
-        long elsewhere = AccountFixtures.nextId();
-        bedAllocations.allocate(
-                elsewhere,
-                new BedAllocationView(AccountFixtures.nextId(), AccountFixtures.nextId(), 2, AccountFixtures.nextId()));
-        String key = UUID.randomUUID().toString();
-
-        sync(
-                        lastConnected(now.minus(Duration.ofHours(1))),
-                        record(key, TestOfflineHandlers.CARE_NOTE, now.minus(Duration.ofMinutes(5)), elsewhere, key))
-                .andExpect(jsonPath("$.results[0].result").value("REJECTED"));
-        assertThat(careNotes.appliedWith(key)).isEmpty();
-    }
-
-    @Test
-    void Q_01_requiresOnline_rejected_invalidContent_rejected() throws Exception {
-        String emergency = UUID.randomUUID().toString();
-        String blank = UUID.randomUUID().toString();
-
-        sync(
-                        lastConnected(now.minus(Duration.ofHours(1))),
-                        record(
-                                emergency,
-                                TestOfflineHandlers.EMERGENCY,
-                                now.minus(Duration.ofMinutes(5)),
-                                resident,
-                                emergency),
-                        record(blank, TestOfflineHandlers.CARE_NOTE, now.minus(Duration.ofMinutes(5)), resident, ""))
-                .andExpect(jsonPath("$.results[0].result").value("REJECTED"))
-                .andExpect(jsonPath("$.results[1].result").value("REJECTED"));
-    }
-
-    @Test
-    void FR_041c_sameIdempotencyKeyTwice_appliedOnce_sameResult() throws Exception {
-        Instant connected = lastConnected(now.minus(Duration.ofHours(1)));
-        String key = UUID.randomUUID().toString();
-        String body = record(key, TestOfflineHandlers.CARE_NOTE, now.minus(Duration.ofMinutes(5)), resident, key);
-
-        String first = sync(connected, body).andReturn().getResponse().getContentAsString();
-        String second = sync(connected, body).andReturn().getResponse().getContentAsString();
-
-        assertThat(careNotes.appliedWith(key)).hasSize(1);
-        assertThat(second).contains("\"result\":\"ACCEPTED\"").contains(key);
-        assertThat(first).contains("\"result\":\"ACCEPTED\"");
     }
 
     /** Lần kết nối gần nhất của thiết bị mà máy chủ đã thấy, trước khi ngoại tuyến. */

@@ -143,8 +143,15 @@ class LayerArchTest {
             .allowEmptyShould(true);
 
     /**
+     * Phần của feature giao cho chủ khác trong cùng module (team-plan mục 1): có {@code web}, {@code internal},
+     * {@code scheduling} riêng, hợp đồng vẫn ở {@code api} của module. 017 trong M11: {@code billing.balance}.
+     */
+    private static final String[] FEATURE_PARTS = {"billing.balance"};
+
+    /**
      * Gói cấp một của module chỉ là {@code api}, {@code web}, {@code internal}, {@code scheduling}; M15 thêm một cấp phần
-     * ({@code administration.approval.api}). Module lớn chia chức năng trong {@code internal}, không ở gốc module.
+     * ({@code administration.approval.api}), phần của feature ở {@link #FEATURE_PARTS} không có {@code api}. Module lớn
+     * chia chức năng trong {@code internal}, không ở gốc module.
      */
     @ArchTest
     static final ArchRule moduleTopLevelPackages = classes()
@@ -153,11 +160,16 @@ class LayerArchTest {
             .and()
             .doNotHaveSimpleName("package-info")
             .should()
-            .resideInAnyPackage(Stream.of(MODULES)
-                    .flatMap(module -> Stream.of("api", "web", "internal", "scheduling")
-                            .map(top -> "com.eldercare.backend." + module
-                                    + (module.equals("administration") ? ".*." : ".") + top + ".."))
-                    .toArray(String[]::new))
+            .resideInAnyPackage(concat(
+                    Stream.of(MODULES)
+                            .flatMap(module -> Stream.of("api", "web", "internal", "scheduling")
+                                    .map(top -> "com.eldercare.backend." + module
+                                            + (module.equals("administration") ? ".*." : ".") + top + ".."))
+                            .toArray(String[]::new),
+                    Stream.of(FEATURE_PARTS)
+                            .flatMap(part -> Stream.of("web", "internal", "scheduling")
+                                    .map(top -> "com.eldercare.backend." + part + "." + top + ".."))
+                            .toArray(String[]::new)))
             .allowEmptyShould(true);
 
     /**

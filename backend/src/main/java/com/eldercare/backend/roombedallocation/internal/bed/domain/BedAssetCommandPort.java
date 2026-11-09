@@ -17,11 +17,15 @@ public interface BedAssetCommandPort {
     void applyAssetCommand(long bedId, BedAssetCommand command, Basis basis);
 
     @Transactional(propagation = Propagation.MANDATORY)
-    void residentTransferFlagAdded(long bedId, List<Long> affectedResidentIds);
+    void residentTransferFlagAdded(long bedId);
 
     @Transactional(propagation = Propagation.MANDATORY)
     void residentTransferFlagRemoved(long bedId);
 
     @Transactional(propagation = Propagation.MANDATORY)
     List<LocationView> suitableEmptyBedsForOccupant(long bedId);
+
+    /** 019 FR-015: trạng thái hiện tại của giường cho nhắc CFG-M03-02 (chủ dự án duyệt 2026-11-06). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    com.eldercare.backend.roombedallocation.api.dto.BedStatus bedState(long bedId);
 }

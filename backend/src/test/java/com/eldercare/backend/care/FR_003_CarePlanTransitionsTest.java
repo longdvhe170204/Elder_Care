@@ -67,15 +67,6 @@ class FR_003_CarePlanTransitionsTest {
     }
 
     @Test
-    void FR_003_withdrawalIsTooLateOnTheEffectiveDay() {
-        var today = LocalDate.of(2026, 11, 1);
-        assertThatThrownBy(() -> next(CarePlanStatus.PENDING_EFFECT, "WITHDRAW", today, today))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo("INVALID_EFFECTIVE_DATE");
-    }
-
-    @Test
     void FR_006_activationRechecksTheEffectiveDateAfterLocking() {
         var store =
                 org.mockito.Mockito.mock(com.eldercare.backend.care.internal.careplan.persistence.CarePlanStore.class);

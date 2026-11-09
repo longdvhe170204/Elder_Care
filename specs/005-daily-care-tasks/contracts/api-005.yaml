@@ -335,15 +335,18 @@ paths:
       x-br: [BR-M04-13, BR-M09-01]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Đã nhận }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /cong-viec/{id}/phan-lai:
+  # Dịch 2026-11-05 (chủ dự án duyệt): /cong-viec/{id}/phan-lai, nguoiNhanId → recipientId, lyDo → reason.
+  /care-tasks/{id}/reassign:
     post:
+      x-implementation-phase: 11
+      operationId: reassignCareTask
       tags: [cong-viec]
       summary: Phân lại công việc chưa đóng (Trưởng tầng; Người phụ trách ca trong phạm vi ca)
       x-fr: [FR-031, FR-045]
       x-br: [BR-M09-01]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nguoiNhanId], properties: { nguoiNhanId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: Đã phân lại }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [recipientId], properties: { recipientId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: Đã phân lại }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-tasks/overdue:
     get:
       x-implementation-phase: 7
@@ -548,13 +551,16 @@ paths:
       responses: { '200': { description: OK } }
 
   # ---------------- Thời khóa biểu ----------------
-  /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu:
+  # Dịch 2026-11-05 (chủ dự án duyệt): /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu?ngay=, schema MucThoiKhoaBieu → TimetableItem.
+  /residents/{residentId}/timetable:
     get:
+      x-implementation-phase: 11
+      operationId: getResidentTimetable
       tags: [thoi-khoa-bieu]
       summary: Thời khóa biểu theo ngày (Trưởng tầng, Điều dưỡng; chỉ xem)
       x-fr: [FR-048]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { name: ngay, in: query, required: true, schema: { type: string, format: date } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MucThoiKhoaBieu' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: date, in: query, required: true, schema: { type: string, format: date } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TimetableItem' } } } } } }
 
   /shifts/{shiftId}/source-data:
     get:
@@ -1133,9 +1139,9 @@ components:
     ResultValue:
       type: object
       properties: { id: { type: integer, format: int64 }, version: { type: integer, readOnly: true, description: 'Phiên bản để gửi If-Match khi sửa; chủ dự án duyệt 2026-10-31' }, type: { type: string, enum: [SLEEP_QUALITY, MOOD, BEHAVIOR] }, code: { type: string }, name: { type: string }, ruleGroup: { type: string, enum: [INSOMNIA, NEGATIVE] }, status: { type: string } }
-    MucThoiKhoaBieu:
+    TimetableItem:
       type: object
-      properties: { thoiDiem: { type: string, format: date-time }, nguon: { type: string, enum: [CONG_VIEC, LIEU_THUOC, BUOI_HOAT_DONG, LICH_THAM, LICH_DEN_VE] }, moTa: { type: string }, trangThai: { type: string } }
+      properties: { at: { type: string, format: date-time }, source: { type: string, enum: [CARE_TASK, MEDICATION_DOSE, ACTIVITY_SESSION, VISIT, DAY_CARE_ARRIVAL_DEPARTURE] }, description: { type: string }, status: { type: string } }
 
     OpinionSource:
       type: object

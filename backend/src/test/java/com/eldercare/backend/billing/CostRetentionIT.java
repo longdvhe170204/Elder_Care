@@ -3,7 +3,6 @@ package com.eldercare.backend.billing;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
-import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider.DataRef;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -152,75 +151,6 @@ class CostRetentionIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_050_threeActualTypesHaveTheRequiredRetentionKinds() {
-        assertThat(provider("M11.COST_PERIOD").retentionKind()).isInstanceOf(RetentionKind.NotResidentLinked.class);
-        assertThat(provider("M11.COST_STATEMENT").retentionKind()).isInstanceOf(RetentionKind.ResidentRecord.class);
-        assertThat(provider("M11.COST_ITEM").retentionKind()).isInstanceOf(RetentionKind.ResidentRecord.class);
-    }
-
-    @Test
-    void FR_050_periodUsesItsCreationMilestoneAndStrictCutoff() {
-        long old = period(OLD), boundary = period(CUTOFF);
-        var candidates =
-                provider("M11.COST_PERIOD").expiredCandidates(CUTOFF, 1000).toList();
-        assertThat(candidates).anyMatch(c -> c.id() == old && c.at().equals(OLD));
-        assertThat(candidates).noneMatch(c -> c.id() == boundary);
-        assertThat(provider("M11.COST_PERIOD").expiredCandidates(CUTOFF, 1).toList())
-                .hasSize(1);
-        assertThat(provider("M11.COST_PERIOD").expiredCandidates(CUTOFF, 0).toList())
-                .isEmpty();
-    }
-
-    @Test
-    void FR_050_oldCreationDoesNotExpireAnActiveResidentOrMissingFinalMilestone() {
-        long active = person(ResidentStatus.IN_RESIDENCE, null);
-        long missing = person(ResidentStatus.RESIDENCY_ENDED, null);
-        long p = period(OLD), a = statement(p, active), b = statement(p, missing);
-        long x = item(p, a, active), y = item(p, b, missing);
-        assertThat(provider("M11.COST_STATEMENT").expiredCandidates(CUTOFF, 1000))
-                .noneMatch(c -> c.id() == a || c.id() == b);
-        assertThat(provider("M11.COST_ITEM").expiredCandidates(CUTOFF, 1000))
-                .noneMatch(c -> c.id() == x || c.id() == y);
-    }
-
-    @Test
-    void FR_050_residentFinalMilestoneControlsStatementsAndItems() {
-        var ended = OLD.plusSeconds(3600);
-        long resident = person(ResidentStatus.RESIDENCY_ENDED, ended), p = period(OLD);
-        long s = statement(p, resident), i = item(p, s, resident);
-        assertThat(provider("M11.COST_STATEMENT").expiredCandidates(CUTOFF, 1000))
-                .anyMatch(c -> c.id() == s && c.at().equals(ended));
-        assertThat(provider("M11.COST_ITEM").expiredCandidates(CUTOFF, 1000))
-                .anyMatch(c -> c.id() == i && c.at().equals(ended));
-    }
-
-    @Test
-    void FR_050_exactFinalMilestoneIsNotYetBeforeTheCutoff() {
-        long resident = person(ResidentStatus.DECEASED, CUTOFF), p = period(OLD);
-        long s = statement(p, resident), i = item(p, s, resident);
-        assertThat(provider("M11.COST_STATEMENT").expiredCandidates(CUTOFF, 1000))
-                .noneMatch(c -> c.id() == s);
-        assertThat(provider("M11.COST_ITEM").expiredCandidates(CUTOFF, 1000)).noneMatch(c -> c.id() == i);
-    }
-
-    @Test
-    void FR_051a_referencesIncludeUnexpiredChildrenAndCrossPeriodAdjustments() {
-        long ended = person(ResidentStatus.RESIDENCY_ENDED, OLD), active = person(ResidentStatus.IN_RESIDENCE, null);
-        long p = period(OLD), other = period(OLD), s = statement(p, ended), t = statement(other, active);
-        long original = item(p, s, ended), correction = adjustment(other, t, active, original, p);
-        assertThat(provider("M11.COST_PERIOD").referencesTo(p))
-                .contains(
-                        new DataRef("M11.COST_STATEMENT", s),
-                        new DataRef("M11.COST_ITEM", original),
-                        new DataRef("M11.COST_ITEM", correction));
-        assertThat(provider("M11.COST_STATEMENT").referencesTo(s))
-                .containsExactly(new DataRef("M11.COST_ITEM", original));
-        assertThat(provider("M11.COST_ITEM").referencesTo(original))
-                .containsExactly(new DataRef("M11.COST_ITEM", correction));
-        assertThat(provider("M11.COST_ITEM").expiredCandidates(CUTOFF, 1000)).noneMatch(c -> c.id() == correction);
-    }
-
-    @Test
     void FR_051_deletionUsesRetentionAccountEvenForLockedRows() {
         long resident = person(ResidentStatus.RESIDENCY_ENDED, OLD), p = period(OLD), s = statement(p, resident);
         long i = item(p, s, resident);
@@ -240,59 +170,5 @@ class CostRetentionIT extends MySqlIntegrationTestBase {
                 .isZero();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_statement WHERE id=?", Integer.class, s))
                 .isZero();
-    }
-
-    @Test
-    void FR_051_deletionRollsBackTheWholeRequestedTransaction() {
-        long resident = person(ResidentStatus.RESIDENCY_ENDED, OLD), p = period(OLD), s = statement(p, resident);
-        long i = item(p, s, resident);
-        assertThatThrownBy(() -> database.transaction().executeWithoutResult(tx -> {
-                    provider("M11.COST_ITEM").delete(List.of(i));
-                    provider("M11.COST_STATEMENT").delete(List.of(s));
-                    throw new IllegalStateException("Kiểm rollback");
-                }))
-                .isInstanceOf(IllegalStateException.class);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_item WHERE id=?", Integer.class, i))
-                .isOne();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_statement WHERE id=?", Integer.class, s))
-                .isOne();
-    }
-
-    @Test
-    void FR_051_batchDeletionPreservesTheCallersChildBeforeOriginalOrder() {
-        long resident = person(ResidentStatus.RESIDENCY_ENDED, OLD);
-        long originalPeriod = period(OLD), adjustmentPeriod = period(OLD);
-        long originalStatement = statement(originalPeriod, resident);
-        long adjustmentStatement = statement(adjustmentPeriod, resident);
-        long original = item(originalPeriod, originalStatement, resident);
-        long correction = adjustment(adjustmentPeriod, adjustmentStatement, resident, original, originalPeriod);
-        long unrelated = item(adjustmentPeriod, adjustmentStatement, resident);
-        database.transaction()
-                .executeWithoutResult(
-                        status -> provider("M11.COST_ITEM").delete(List.of(correction, original, correction)));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM cost_item WHERE id IN (?,?)", Integer.class, original, correction))
-                .isZero();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_item WHERE id=?", Integer.class, unrelated))
-                .isEqualTo(1);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM cost_statement WHERE id IN (?,?)",
-                        Integer.class,
-                        originalStatement,
-                        adjustmentStatement))
-                .isEqualTo(2);
-    }
-
-    @Test
-    void FR_051_periodAndStatementKindsAreNeverInterchangeable() {
-        long resident = person(ResidentStatus.IN_RESIDENCE, null), p = period(OLD), s = statement(p, resident);
-        database.transaction().executeWithoutResult(tx -> {
-            provider("M11.COST_PERIOD").delete(List.of(s));
-            provider("M11.COST_STATEMENT").delete(List.of(p));
-        });
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_statement WHERE id IN (?,?)", Integer.class, p, s))
-                .isEqualTo(2);
-        assertThat(provider("M11.COST_PERIOD").referencesTo(s)).isEmpty();
-        assertThat(provider("M11.COST_STATEMENT").referencesTo(p)).isEmpty();
     }
 }

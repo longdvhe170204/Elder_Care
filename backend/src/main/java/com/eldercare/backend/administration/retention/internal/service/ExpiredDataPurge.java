@@ -201,7 +201,8 @@ public class ExpiredDataPurge {
         for (DataRef record : records) {
             RetentionKind kind = byType.get(record.dataType()).retentionKind();
             owners.putIfAbsent(record, kind);
-            for (EntityRef row : sharedRows.rowsFor(new EntityRef(record.dataType(), record.id()))) {
+            for (EntityRef row : sharedRows.rowsFor(
+                    new EntityRef(byType.get(record.dataType()).sharedRowEntityType(), record.id()))) {
                 owners.putIfAbsent(new DataRef(row.entityType(), row.entityId()), kind);
             }
         }
@@ -229,7 +230,7 @@ public class ExpiredDataPurge {
             deleteParts(false);
             // Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2
             sharedRows.deleteFor(records.stream()
-                    .map(r -> new EntityRef(r.dataType(), r.id()))
+                    .map(r -> new EntityRef(byType.get(r.dataType()).sharedRowEntityType(), r.id()))
                     .toList());
             for (DataRef record : records.reversed()) {
                 byType.get(record.dataType()).delete(List.of(record.id()));

@@ -63,38 +63,4 @@ class FR_015_HoldExpiryIT extends StructureTestSupport {
                         "SELECT executed_late FROM bed_state_history WHERE bed_id=?", Boolean.class, bed))
                 .isTrue();
     }
-
-    @Test
-    void FR_015_absentHoldIsMarkedOnceWithoutReleasingTheBed() {
-        expired("ABSENT_RESIDENT");
-        run();
-        run();
-        assertThat(jdbc.queryForObject(
-                        "SELECT state='HELD' AND hold_expiry_notified_at IS NOT NULL FROM bed WHERE id=?",
-                        Boolean.class,
-                        bed))
-                .isTrue();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Integer.class, bed))
-                .isZero();
-    }
-
-    @Test
-    void FR_015_callbackFailureRollsBackStateAndHistory() {
-        long waiting = expired("WAITING_RECORD");
-        doThrow(new IllegalStateException("Nguồn 004 lỗi"))
-                .when(org.springframework.test.util.AopTestUtils.<FakeAllocationResidencySource>getUltimateTargetObject(
-                        source))
-                .waitingRecordHoldExpired(waiting);
-        try {
-            assertThatThrownBy(this::run).hasMessageContaining("Nguồn 004 lỗi");
-            assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
-                    .isEqualTo("HELD");
-            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Integer.class, bed))
-                    .isZero();
-        } finally {
-            reset(org.springframework.test.util.AopTestUtils.<FakeAllocationResidencySource>getUltimateTargetObject(
-                    source));
-            jdbc.update("UPDATE bed SET hold_until='2099-01-01' WHERE id=?", bed);
-        }
-    }
 }

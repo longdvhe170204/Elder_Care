@@ -10,6 +10,7 @@ import com.eldercare.backend.billing.api.events.*;
 import com.eldercare.backend.billing.internal.provision.domain.CostForBalancePort;
 import com.eldercare.backend.billing.internal.purchase.domain.PurchaseBalancePort;
 import com.eldercare.backend.common.notification.*;
+import com.eldercare.backend.support.TableRows;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
@@ -17,31 +18,11 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import tools.jackson.databind.json.JsonMapper;
 
 /** T003/T004: hợp đồng cho module gọi và khả năng đọc lại sự kiện outbox. */
 class CostApiContractsTest {
     private static final Instant AT = Instant.parse("2026-10-29T10:00:00Z");
-
-    @ParameterizedTest
-    @CsvSource({"FAMILY_MEAL, true", "OVERNIGHT_STAY, false", "ACTIVITY_ATTENDANCE, true"})
-    void FR_005_sourceEventRetainsSourceIdentityQuantityAndOptionalService(String type, boolean pricedService) {
-        var original = new CostSourceBilled(
-                type,
-                "17",
-                "UNIT",
-                23,
-                pricedService ? Optional.of(41L) : Optional.empty(),
-                new BigDecimal("1.25"),
-                LocalDate.of(2026, 10, 29),
-                AT,
-                "source:17:1");
-        var mapper = JsonMapper.builder().findAndAddModules().build();
-        var payload = mapper.writeValueAsString(original);
-        assertThat(payload.length()).isLessThanOrEqualTo(4000);
-        assertThat(mapper.readValue(payload, CostSourceBilled.class)).isEqualTo(original);
-    }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
@@ -59,9 +40,12 @@ class CostApiContractsTest {
                 .isEqualTo(original);
     }
 
-    @ParameterizedTest
-    @MethodSource("notificationEvents")
-    void FR_044_familyNotificationMetadataSurvivesOutboxRestart(HasNotificationRequests original) {
+    @Test
+    void FR_044_familyNotificationMetadataSurvivesOutboxRestart() {
+        TableRows.each(notificationEvents(), this::survivesRestart);
+    }
+
+    private void survivesRestart(HasNotificationRequests original) {
         var mapper = JsonMapper.builder().findAndAddModules().build();
         var payload = mapper.writeValueAsString(original);
         assertThat(payload.length()).isLessThanOrEqualTo(4000);

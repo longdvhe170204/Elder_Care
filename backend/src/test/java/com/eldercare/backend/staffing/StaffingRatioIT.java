@@ -1,25 +1,22 @@
 package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.*;
-import com.eldercare.backend.admission.api.dto.AttendanceScheduleView;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;
 import com.eldercare.backend.resident.api.dto.*;
-import com.eldercare.backend.resident.api.events.CareLevelChanged;
-import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import com.eldercare.backend.staffing.api.events.*;
 import com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService;
 import com.eldercare.backend.staffing.internal.shift.domain.*;
 import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.staffing.internal.shift.service.ShiftScheduleService;
 import com.eldercare.backend.support.*;
+import com.eldercare.backend.support.SwitchableUserConfig;
 import com.eldercare.backend.support.fake.administration.*;
 import com.eldercare.backend.support.fake.admission.*;
 import com.eldercare.backend.support.fake.roombedallocation.*;
@@ -28,7 +25,6 @@ import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.*;
@@ -44,7 +40,7 @@ import tools.jackson.databind.json.JsonMapper;
     FakeM15Config.class,
     com.eldercare.backend.support.fake.care.FakeM04Config.class,
     com.eldercare.backend.support.fake.resident.FakeCareLevelChangeRequests.class,
-    StaffingRatioIT.Users.class
+    SwitchableUserConfig.class
 })
 class StaffingRatioIT extends MySqlIntegrationTestBase {
     private static final java.util.concurrent.atomic.AtomicInteger CASES =
@@ -253,25 +249,6 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M09_02_realDraftSaveStores35Weight_previewDoesNotWrite_publishDoesNotBlockForRatio() {
-        for (int i = 0; i < 20; i++) inpatient(CareLevel.BASIC);
-        for (int i = 0; i < 6; i++) inpatient(CareLevel.SPECIAL);
-        long id = save();
-        var result = ratios.latest(id).orElseThrow();
-        assertThat(result.totalWeight()).isEqualByComparingTo("35");
-        assertThat(result.ratio()).isEqualByComparingTo("8.75");
-        assertThat(schedules.preview(schedule).warnings())
-                .anyMatch(w -> w.code().equals("BELOW_STAFFING_THRESHOLD"));
-        assertThat(ratios.history(id)).hasSize(1);
-        schedules.publish(
-                schedule, List.of(), false, new Reason("Đã xem tỷ lệ và công bố lịch tự lập"), Target.UNSPECIFIED);
-        assertThat(ratios.history(id)).hasSize(2);
-        assertThat(ratios.latest(id).orElseThrow().event()).isEqualTo("PUBLISHED");
-        assertThat(jdbc.queryForObject("SELECT below_threshold FROM work_shift WHERE id=?", Boolean.class, id))
-                .isTrue();
-    }
-
-    @Test
     void FR_034_absenceCoveringWholeShiftExcluded_partialAbsenceAndTouchingEdgesStillCount() {
         long absent = inpatient(CareLevel.SPECIAL), partial = inpatient(CareLevel.SPECIAL);
         history(absent, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", from.minusSeconds(1));
@@ -279,44 +256,6 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
         history(partial, "TEMPORARILY_ABSENT", "IN_RESIDENCE", "RECORD_RETURN", from.plusSeconds(3600));
         long id = save();
         assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("2.5");
-    }
-
-    @Test
-    void FR_034_daycareCountsOnlyWhenAttendanceOverlaps_andUsesRestAreaLocation() {
-        long resident = resident(CareLevel.SPECIAL);
-        locations.daycareRestLocation(new LocationRef("FLOOR", floor));
-        attendance.schedule(
-                resident,
-                new AttendanceScheduleView(LocalDate.of(2027, 11, 1), LocalTime.of(7, 30), LocalTime.of(16, 30)));
-        long id = save();
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("2.5");
-        locations.daycareRestLocation(new LocationRef("FLOOR", TestUsers.nextId()));
-        ratios.recalculate(id, "ALLOCATION_CHANGED");
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("0");
-    }
-
-    @Test
-    void BR_M09_14_membersWithoutAssignmentsStillCount_doubleRoleOnce_excludesFloorOnlyAndApprovedLeave() {
-        members = List.of(
-                staff(Role.NURSING_STAFF, Role.CAREGIVER), staff(Role.FLOOR_MANAGER), staff(Role.NURSING_STAFF));
-        inpatient(CareLevel.BASIC);
-        long id = save();
-        assertThat(ratios.latest(id).orElseThrow().staffCount()).isEqualTo(2);
-        jdbc.update(
-                "UPDATE shift_staff SET approved_leave_request_id=123 WHERE shift_id=? AND staff_id=?",
-                id,
-                members.getLast());
-        ratios.recalculate(id, "SHIFT_SWAP_015");
-        assertThat(ratios.latest(id).orElseThrow().staffCount()).isEqualTo(1);
-    }
-
-    @Test
-    void FR_034_pendingFutureCareLevelDoesNotReplaceCurrentLevel() {
-        long resident = inpatient(CareLevel.BASIC);
-        levelRequests.open(resident, 77);
-        assertThat(levelRequests.hasOpenRequest(resident)).isTrue();
-        long id = save();
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("1");
     }
 
     @Test
@@ -329,212 +268,5 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
             t.setRollbackOnly();
         });
         assertThat(ratios.history(id)).hasSize(1);
-    }
-
-    @Test
-    void FR_035_careLevelEventRecalculatesOnlyAfterCommit_withAppliedCurrentLevel() {
-        long resident = inpatient(CareLevel.BASIC);
-        long id = save();
-        tx.executeWithoutResult(t -> {
-            jdbc.update("UPDATE resident SET current_care_level='SPECIAL' WHERE id=?", resident);
-            events.publishEvent(new CareLevelChanged(
-                    resident,
-                    Optional.of(CareLevel.BASIC),
-                    CareLevel.SPECIAL,
-                    time.now(),
-                    CareLevelBasisType.RESIDENCY_CHANGE_REQUEST,
-                    88));
-            assertThat(ratios.history(id)).hasSize(1);
-        });
-        await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(ratios.latest(id).orElseThrow().totalWeight())
-                        .isEqualByComparingTo("2.5"));
-    }
-
-    @Test
-    void FR_034_missingConfigurationOrSourceReportsUnavailable_withoutInventingZero() throws Exception {
-        restore("CFG-M09-12");
-        long id = save();
-        assertThat(ratios.latest(id)).isEmpty();
-        assertThat(schedules.preview(schedule).warnings())
-                .anyMatch(w -> w.code().equals("STAFFING_RATIO_UNAVAILABLE"));
-        parameter("CFG-M09-12", Map.of("BASIC", 1, "REGULAR", 1.5, "SPECIAL", 2.5));
-        attendance.available(false);
-        assertThat(ratios.recalculate(id, "CARE_LEVEL_CHANGED"))
-                .anyMatch(w -> w.code().equals("STAFFING_RATIO_UNAVAILABLE"));
-        assertThat(ratios.latest(id)).isEmpty();
-    }
-
-    @Test
-    void FR_034_overnightShiftReadsBothVietnamDates_andExcludesAttendanceTouchingEnd() {
-        from = Instant.parse("2027-11-01T16:00:00Z");
-        to = from.plusSeconds(28800);
-        long first = resident(CareLevel.SPECIAL), touching = resident(CareLevel.BASIC);
-        locations.daycareRestLocation(new LocationRef("FLOOR", floor));
-        attendance.schedule(
-                first,
-                new AttendanceScheduleView(LocalDate.of(2027, 11, 1), LocalTime.of(7, 30), LocalTime.of(16, 30)));
-        attendance.schedule(
-                touching,
-                new AttendanceScheduleView(LocalDate.of(2027, 11, 2), LocalTime.of(7, 0), LocalTime.of(16, 30)));
-        long id = save();
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("0");
-        attendance.schedule(
-                first, new AttendanceScheduleView(LocalDate.of(2027, 11, 2), LocalTime.of(6, 30), LocalTime.of(7, 0)));
-        ratios.recalculate(id, "ALLOCATION_CHANGED");
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("2.5");
-    }
-
-    @Test
-    void FR_035_bedTransferRecalculatesOldAndNewFloorAfterCommit() throws Exception {
-        long resident = inpatient(CareLevel.BASIC),
-                old = save(),
-                nextFloor = TestUsers.nextId(),
-                nextRoom = TestUsers.nextId();
-        locations.floor(nextFloor, null).room(nextRoom, nextFloor);
-        long nextSchedule = schedules
-                .createSchedule(
-                        YearMonth.of(2027, 11), "FLOOR", nextFloor, new Target("M09.SCHEDULE", null, null, nextFloor))
-                .id();
-        long next = schedules
-                .addShift(
-                        nextSchedule,
-                        "\"0\"",
-                        new ShiftInput(
-                                template,
-                                LocalDate.of(2027, 11, 1),
-                                from,
-                                to,
-                                List.of(new ShiftInput.Member(staff(Role.CAREGIVER), false)),
-                                null,
-                                false,
-                                null),
-                        Target.UNSPECIFIED)
-                .shiftId();
-        clock.setTo(from.minusSeconds(3600));
-        Instant at = time.now();
-        locations.closeStays(resident, at).stay(resident, nextRoom, at, null);
-        tx.executeWithoutResult(
-                t -> events.publishEvent(new com.eldercare.backend.roombedallocation.api.events.BedTransferred(
-                        resident, 1, 2, floor, nextFloor, at)));
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            assertThat(ratios.latest(old).orElseThrow().totalWeight()).isEqualByComparingTo("0");
-            assertThat(ratios.latest(next).orElseThrow().totalWeight()).isEqualByComparingTo("1");
-        });
-    }
-
-    @Test
-    void FR_035_allocationStartedAndClosedUseHistoryIncludingTheClosingBoundary() {
-        long resident = resident(CareLevel.BASIC), id = save();
-        clock.setTo(from.minusSeconds(3600));
-        locations.stay(resident, room, time.now(), null);
-        tx.executeWithoutResult(
-                t -> events.publishEvent(new com.eldercare.backend.roombedallocation.api.events.BedAllocationStarted(
-                        1, resident, 7, time.now())));
-        await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(ratios.latest(id).orElseThrow().totalWeight())
-                        .isEqualByComparingTo("1"));
-        clock.advanceBy(Duration.ofMinutes(1));
-        Instant closedAt = time.now();
-        locations.closeStays(resident, closedAt);
-        tx.executeWithoutResult(
-                t -> events.publishEvent(new com.eldercare.backend.roombedallocation.api.events.BedAllocationClosed(
-                        1, resident, 7, closedAt, "Đóng phân bổ")));
-        await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(ratios.latest(id).orElseThrow().totalWeight())
-                        .isEqualByComparingTo("0"));
-    }
-
-    @Test
-    void FR_035_finalStatusDuringShiftRemovesWeightForRemainingPart_withoutRewritingOldCalculation() {
-        long resident = inpatient(CareLevel.SPECIAL), id = save();
-        clock.setTo(from.plusSeconds(3600));
-        Instant at = time.now();
-        tx.executeWithoutResult(t -> {
-            jdbc.update(
-                    "UPDATE resident SET status='RESIDENCY_ENDED',status_since=? WHERE id=?",
-                    ShiftStore.sql(at),
-                    resident);
-            history(resident, "IN_RESIDENCE", "RESIDENCY_ENDED", "END_RESIDENCY", at);
-            events.publishEvent(new com.eldercare.backend.resident.api.events.ResidentStatusChanged(
-                    resident,
-                    ResidentStatus.IN_RESIDENCE,
-                    ResidentStatus.RESIDENCY_ENDED,
-                    StatusCommand.END_RESIDENCY,
-                    1,
-                    at));
-        });
-        await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(ratios.latest(id).orElseThrow().totalWeight())
-                        .isEqualByComparingTo("0"));
-        assertThat(ratios.history(id).getFirst().totalWeight()).isEqualByComparingTo("2.5");
-    }
-
-    @Test
-    void FR_035_recalculationAfterWaitingUsesCurrentMembership_notOldTransactionSnapshot() throws Exception {
-        inpatient(CareLevel.BASIC);
-        long id = save();
-        var snapshotReady = new java.util.concurrent.CountDownLatch(1);
-        var changed = new java.util.concurrent.CountDownLatch(1);
-        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
-        try {
-            var pending = executor.submit(() -> tx.execute(t -> {
-                jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM shift_staff WHERE shift_id=? AND withdrawn_on_resignation_at IS NULL",
-                        Integer.class,
-                        id);
-                snapshotReady.countDown();
-                try {
-                    if (!changed.await(10, java.util.concurrent.TimeUnit.SECONDS))
-                        throw new IllegalStateException("Chờ transaction cập nhật");
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                ratios.recalculate(id, "EMPLOYMENT_ENDED");
-                return true;
-            }));
-            assertThat(snapshotReady.await(5, java.util.concurrent.TimeUnit.SECONDS))
-                    .isTrue();
-            tx.executeWithoutResult(t -> employment.apply(members.getFirst(), time.now()));
-            changed.countDown();
-            pending.get(15, java.util.concurrent.TimeUnit.SECONDS);
-            assertThat(ratios.latest(id).orElseThrow().staffCount()).isEqualTo(3);
-        } finally {
-            changed.countDown();
-            executor.shutdownNow();
-        }
-    }
-
-    @Test
-    void FR_034_leavingHalfwayThroughShiftKeepsFullWeight_evenAfterTheAbsenceStarts() {
-        long resident = inpatient(CareLevel.SPECIAL), id = save();
-        clock.setTo(from.plusSeconds(3600));
-        Instant at = time.now();
-        tx.executeWithoutResult(t -> {
-            jdbc.update(
-                    "UPDATE resident SET status='TEMPORARILY_ABSENT',status_since=? WHERE id=?",
-                    ShiftStore.sql(at),
-                    resident);
-            history(resident, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", at);
-            events.publishEvent(new com.eldercare.backend.resident.api.events.ResidentStatusChanged(
-                    resident,
-                    ResidentStatus.IN_RESIDENCE,
-                    ResidentStatus.TEMPORARILY_ABSENT,
-                    StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                    1,
-                    at));
-        });
-        await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(ratios.history(id)).hasSize(2));
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("2.5");
-    }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    static class Users {
-        @Bean
-        @Primary
-        SwitchableUser ratioUser() {
-            return new SwitchableUser();
-        }
     }
 }

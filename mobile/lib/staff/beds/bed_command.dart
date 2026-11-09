@@ -1,0 +1,22 @@
+import 'dart:math';
+
+import '../../common/api/api_client.dart';
+import '../../common/api/problem_message.dart';
+
+/// Cùng khóa khi thử lại lệnh chưa biết kết quả; đổi nội dung thì màn tạo khóa mới.
+String bedCommandKey() {
+  final random = Random.secure();
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+}
+
+String bedProblem(Object error) {
+  final details = error is ApiProblem ? error.properties['unmetConditions'] : null;
+  final conditions = details is List
+      ? details.whereType<Map<String, dynamic>>().map((c) => c['description']).whereType<String>().toList()
+      : <String>[];
+  return [backendMessage(error), ...conditions].join('\n');
+}
