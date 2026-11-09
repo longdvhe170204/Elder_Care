@@ -17,7 +17,7 @@ Feature 014 thêm gói con vào module M04 (cùng 005). Giao diện công khai �
 | `ThoiKhoaBieuNguonPort` (`care.api`, 005) | Buổi đã đăng ký, chuyến đi trong ngày | 005 FR-048 |
 | `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 005. Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: hủy đăng ký chưa diễn ra, gỡ khỏi người thường xuyên (FR-022); `CHUYEN_VIEN`, `GHI_NHAN_QUA_DOI` khi đang trong chuyến: người tham gia `ROI_DOAN` (FR-045). Không có điều kiện chặn | 001 H-02 |
 | `ChuyenDiThuocPort` (`medication.api`, 006) | `danhGiaDat(nctId, chuyenId)`, `khoangDi(chuyenId)` | 006 FR-048b |
-| `DiemDanhTruyVetPort` (`incident.api`, 007) | `cungThamGia(nctId, tu, den)`: buổi, thời điểm, người cùng Có mặt (kể cả chuyến) | 007 FR-060 (b) |
+| `DiemDanhTruyVetPort` (`care.api.spi.AttendanceTracePort`, chuyển từ `incident.api` 2026-11-08; 007 đọc) | `cungThamGia(nctId, tu, den)` (`coAttendance`): buổi, thời điểm, người cùng Có mặt (kể cả chuyến). Cài ở `ActivityAttendanceTraceSource` (2026-11-10): buổi trong viện theo kết quả hiện hành sau đính chính, khoảng giờ bắt đầu → kết thúc; chuyến theo điểm danh rời viện chưa Hủy ghi nhận, khoảng giờ rời dự kiến → lúc kết thúc điểm danh về (chưa kết thúc: giờ về dự kiến hiện hành); không gồm chính người được truy vết | 007 FR-060 (b) |
 | `ChuyenDiNhiemVuPort` (`staffing.api`, 008) | `truongDoan`, `nguoiDiCung`, `chuyenTrongCa(tang, tu, den)` | 008 FR-039 (e); 002 FR-019 |
 | `ChuyenDiBuaAnPort` (`nutrition.api`, 011) | `trungGioBua(gioBua)`: chuyến Đã lên lịch/Đang đi trùng giờ bữa, người tham gia Được đi/Đã rời viện, dự kiến trở lại | 011 FR-034 |
 | ~~`HoatDongBanTinPort`~~ | *(Bỏ theo Q-396: không còn bản tin)* | — |

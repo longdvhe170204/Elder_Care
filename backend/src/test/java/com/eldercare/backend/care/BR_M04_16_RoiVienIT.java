@@ -64,6 +64,9 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
     com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi cancels;
 
     @Autowired
+    com.eldercare.backend.care.api.spi.AttendanceTracePort trace;
+
+    @Autowired
     com.eldercare.backend.support.fake.care.FakeTripStaffSchedule tripShifts;
 
     @Autowired
@@ -316,6 +319,22 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
         assertThat(recorded.stream(com.eldercare.backend.care.api.events.TripChanged.class)
                         .filter(e -> e.tripId() == s && e.type().equals("FIRST_DEPARTURE")))
                 .hasSize(1);
+
+        // T014 (007 FR-060 (b)): chuyến là buổi cùng tham gia theo điểm danh rời viện; người Được đi chưa rời viện
+        // không
+        // có trong danh sách.
+        long r2 = participant(s, "ELIGIBLE"), stayed = participant(s, "ELIGIBLE");
+        tripMedication.prepared(r2, s);
+        depart(s, r2).andExpect(status().isOk());
+        var window = new Instant[] {departure.minusSeconds(3600), departure.plusSeconds(3600)};
+        assertThat(trace.coAttendance(r, window[0], window[1])).singleElement().satisfies(v -> {
+            assertThat(v.sessionId()).isEqualTo(s);
+            assertThat(v.residentIds()).containsExactly(r2);
+        });
+        assertThat(trace.coAttendance(r2, window[0], window[1]))
+                .singleElement()
+                .satisfies(v -> assertThat(v.residentIds()).containsExactly(r));
+        assertThat(trace.coAttendance(stayed, window[0], window[1])).isEmpty();
     }
 
     /** T015 (BR-M04-16): hai thiết bị điểm danh rời viện cùng người, chỉ một lần được ghi. */
