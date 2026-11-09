@@ -200,6 +200,7 @@ public class PrnMedicationService {
                     prescription.getResidentId(),
                     prescription.getMedicationId(),
                     saved.getDosage(),
+                    prescription.getDosageUnit(),
                     saved.getAdministeredAt()));
         }
         return toResponse(saved);

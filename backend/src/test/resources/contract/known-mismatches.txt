@@ -144,8 +144,6 @@ api-007.yaml: POST /api/v1/incidents/{id}/receive phản hồi 409 application/p
 api-007.yaml: POST /api/v1/incidents/{id}/receive phản hồi 409 application/problem+json thiếu trường receivedBy
 
 # api-011 (D)
-api-011.yaml: GET /api/v1/residents/{residentId}/family-foods phản hồi 200 application/json[] đổi trường bắt buộc
-api-011.yaml: POST /api/v1/residents/{residentId}/family-foods phản hồi 201 application/json đổi trường bắt buộc
 
 # api-013 (B)
 api-013.yaml: GET /api/v1/recipient-confirmations phản hồi 200 application/json[] thiếu trường signedForm

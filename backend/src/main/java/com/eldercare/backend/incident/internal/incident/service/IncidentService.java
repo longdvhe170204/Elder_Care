@@ -24,6 +24,7 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.CallReminderStopRequested;
+import com.eldercare.backend.incident.api.events.IncidentRecorded;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.incident.domain.EmergencyActivationRequested;
 import com.eldercare.backend.incident.internal.incident.persistence.IncidentProgressionStore;
@@ -148,6 +149,14 @@ public class IncidentService {
                 .build());
         if (loweringCritical) {
             events.publishEvent(new CallReminderStopRequested("M05.INCIDENT", incidentId));
+        }
+        // Nâng từ Nhẹ lên Trung bình trở lên: phát lại để 001 xét báo đánh giá lại (FR-043, 001 FR-024)
+        if (incident.level() == IncidentLevel.LOW && incident.residentId() != null) {
+            String typeCode = incidents.currentTypeCode(incidentId);
+            if (!IncidentRecordService.NO_REASSESSMENT.contains(typeCode)) {
+                events.publishEvent(
+                        new IncidentRecorded(incidentId, incident.residentId(), typeCode, newLevel.name(), true));
+            }
         }
         if (newLevel == IncidentLevel.CRITICAL && incident.residentId() != null) {
             events.publishEvent(new EmergencyActivationRequested(

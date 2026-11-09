@@ -16,6 +16,9 @@ import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPa
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
 import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
 import { ActivitySessionsPage } from '@/features/activities/ActivitySessionsPage'
+import { NutritionCatalogPage } from '@/features/nutrition/catalog/NutritionCatalogPage'
+import { ResidentDietPage } from '@/features/nutrition/resident/ResidentDietPage'
+import { MealsPage } from '@/features/nutrition/meals/MealsPage'
 import { QualityCheckPage } from '@/features/quality-checks/QualityCheckPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -27,10 +30,13 @@ import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { PortalBelongings } from '@/features/belongings/PortalBelongings'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
-import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
+import { IncidentsPage } from '@/features/incidents/IncidentsPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { HealthCatalogPage } from '@/features/health-catalog/HealthCatalogPage'
+import { MonitoringSettingsPage } from '@/features/measurement-schedules/MonitoringSettingsPage'
+import { InfectionControlPage } from '@/features/infection-control/InfectionControlPage'
+import { FacilityLicensePage } from '@/features/facility-license/FacilityLicensePage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { FamilyMembersPage } from '@/features/relatives/FamilyMembersPage'
 import { PickupPage } from '@/features/relatives/pickups/PickupPage'
@@ -69,11 +75,17 @@ const PAGES = {
   'day-care-attendance': DayCareAttendancePage,
   'care-catalogs': CareCatalogPage,
   'activity-sessions': ActivitySessionsPage,
+  nutrition: NutritionCatalogPage,
+  'resident-diets': ResidentDietPage,
+  meals: MealsPage,
   'quality-checks': QualityCheckPage,
-  incidents: IncidentDetailPage,
+  incidents: IncidentsPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
   'health-catalog': HealthCatalogPage,
+  'measurement-schedules': MonitoringSettingsPage,
+  'infection-control': InfectionControlPage,
+  'facility-license': FacilityLicensePage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   'residence-registrations': ResidenceRegistrationPage,
