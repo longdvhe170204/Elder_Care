@@ -61,6 +61,84 @@ class FakePicker implements DocumentPicker {
   Future<PickedDocument?> pickFromGallery() => capture();
 }
 
+/// Bản ghi đón của 012 (GET …/pickup-records): chỉ bản ghi Chưa dùng thuộc Tạm vắng, Đi chơi với gia đình được chọn.
+const pickupRecords = <Map<String, dynamic>>[
+  {
+    'id': 501,
+    'type': 'TEMPORARY_ABSENCE',
+    'familyMemberId': 31,
+    'basis': 'PICKUP_LIST',
+    'at': '2026-11-09T02:00:00Z',
+    'status': 'UNUSED',
+    'expiresAt': '2026-11-11T02:00:00Z',
+  },
+  {
+    'id': 502,
+    'type': 'FAMILY_OUTING',
+    'familyMemberId': 32,
+    'basis': 'PICKUP_LIST',
+    'at': '2026-11-09T03:00:00Z',
+    'status': 'UNUSED',
+    'expiresAt': '2026-11-11T03:00:00Z',
+  },
+  {
+    'id': 503,
+    'type': 'DAY_CARE_DEPARTURE',
+    'familyMemberId': 31,
+    'basis': 'PICKUP_LIST',
+    'at': '2026-11-09T04:00:00Z',
+    'status': 'UNUSED',
+    'expiresAt': '2026-11-11T04:00:00Z',
+  },
+  {
+    'id': 504,
+    'type': 'TEMPORARY_ABSENCE',
+    'familyMemberId': 31,
+    'basis': 'PICKUP_LIST',
+    'at': '2026-11-08T02:00:00Z',
+    'status': 'USED',
+    'expiresAt': '2026-11-10T02:00:00Z',
+  },
+];
+
+/// Nguồn chọn của form Cho tạm vắng: bản ghi đón của 012 và nhân viên bàn giao.
+void stubGrantSources(FakeBackend backend) {
+  backend.on('GET', '/residents/7/pickup-records', 200, pickupRecords);
+  backend.on('GET', '/staff', 200, [
+    {'id': 4, 'fullName': '[Họ tên 3]'},
+  ]);
+}
+
+/// Chạm chip lựa chọn hoặc công tắc có nhãn [label] (không lẫn với chữ đã nhập ở ô khác).
+Future<void> tapText(WidgetTester tester, String label) async {
+  final target = find.descendant(
+    of: find.byWidgetPredicate((w) => w is ChoiceChip || w is SwitchListTile),
+    matching: find.text(label),
+  );
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
+  await tester.tap(target);
+  await tester.pumpAndSettle();
+}
+
+/// Điền chi tiết lượt vắng của form Cho tạm vắng: Về nhà, dự kiến về, bản ghi đón đầu tiên, nhân viên [Họ tên 3].
+Future<void> fillGrantForm(
+  WidgetTester tester, {
+  String expectedReturn = '10/11/2026 17:00',
+  bool takesMedication = false,
+}) async {
+  await tapText(tester, 'Về nhà');
+  await tester.enterText(find.widgetWithText(TextField, 'Dự kiến về (dd/MM/yyyy HH:mm)'), expectedReturn);
+  await tapText(tester, 'Tạm vắng · 09/11/2026 09:00');
+  await tester.ensureVisible(find.byType(DropdownButtonFormField<int>));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byType(DropdownButtonFormField<int>));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('[Họ tên 3]').last);
+  await tester.pumpAndSettle();
+  if (takesMedication) await tapText(tester, 'Mang theo thuốc');
+}
+
 Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {DocumentPicker? picker}) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -91,6 +169,7 @@ void main() {
     backend = FakeBackend();
     backend.on('GET', '/residents/7', 200, profile());
     backend.on('GET', '/residents/7/status-history', 200, [entry()]);
+    stubGrantSources(backend);
     for (final c in ['GRANT_TEMPORARY_ABSENCE', 'RECORD_RETURN', 'TRANSFER_OUT', 'RECORD_DEATH']) {
       backend.on('GET', '/residents/7/conditions/$c', 200, <Object>[]);
     }
@@ -322,13 +401,11 @@ void main() {
 
     await tapButton(tester, 'Cho tạm vắng');
     await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), ' Về thăm nhà ');
+    await fillGrantForm(tester);
     backend.on('GET', '/residents/7', 200, profile(status: 'TEMPORARILY_ABSENT', commands: ['RECORD_RETURN']));
     await tapButton(tester, 'Xác nhận cho tạm vắng');
 
-    expect(lastBody(backend, '/residents/7/grant-temporary-absence'), {
-      'reason': 'Về thăm nhà',
-      'details': <String, dynamic>{},
-    });
+    expect(lastBody(backend, '/residents/7/grant-temporary-absence')['reason'], 'Về thăm nhà');
     expect(backend.calls('POST', '/residents/7/grant-temporary-absence').last.headers['Idempotency-Key'], isNotEmpty);
     expect(find.text('Đã chuyển sang Tạm vắng.'), findsOneWidget);
     expect(backend.calls('GET', '/residents/7/status-history'), hasLength(2));
@@ -347,6 +424,7 @@ void main() {
 
     await tapButton(tester, 'Cho tạm vắng');
     await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Về nhà');
+    await fillGrantForm(tester);
     await tapButton(tester, 'Xác nhận cho tạm vắng');
 
     expect(find.textContaining('Có liều thuốc cần bàn giao'), findsOneWidget);
@@ -412,6 +490,7 @@ void main() {
 
     await tapButton(tester, 'Cho tạm vắng');
     await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'x');
+    await fillGrantForm(tester);
     await tapButton(tester, 'Xác nhận cho tạm vắng');
 
     expect(find.text('Cần lý do rõ hơn'), findsOneWidget);
@@ -426,6 +505,7 @@ void main() {
 
     await tapButton(tester, 'Cho tạm vắng');
     await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Về nhà');
+    await fillGrantForm(tester);
     await tapButton(tester, 'Xác nhận cho tạm vắng');
 
     expect(find.text('Điều kiện vừa thay đổi'), findsOneWidget);
@@ -437,6 +517,7 @@ void main() {
 
     await tapButton(tester, 'Cho tạm vắng');
     await tester.enterText(find.widgetWithText(TextField, 'Lý do của lệnh (bắt buộc)'), 'Về nhà');
+    await fillGrantForm(tester);
     backend.down = true;
     await tapButton(tester, 'Xác nhận cho tạm vắng');
 

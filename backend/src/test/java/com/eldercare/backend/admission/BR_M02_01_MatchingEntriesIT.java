@@ -11,7 +11,6 @@ import com.eldercare.backend.admission.internal.waitinglist.domain.BedContact;
 import com.eldercare.backend.admission.internal.waitinglist.domain.BedContactResult;
 import com.eldercare.backend.admission.internal.waitinglist.persistence.BedContactStore;
 import com.eldercare.backend.resident.api.dto.Gender;
-import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
 import com.eldercare.backend.roombedallocation.api.BedStatusApi;
 import com.eldercare.backend.roombedallocation.api.RoomPolicyApi;
 import com.eldercare.backend.roombedallocation.api.dto.GenderPolicy;
@@ -29,15 +28,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 
 /**
  * 004 T021 (US2; FR-012, FR-013, FR-014, BR-M02-01, 02, 10, 20; Q-394): danh sách hồ sơ phù hợp với một giường Trống và lệnh liên hệ.
- * Dữ liệu phòng, giường là của 003, thay bằng mock vì {@code BedAllocationCommandApi} chưa có bản cài production (team-plan mục 8);
- * phần 004 chạy trên MySQL thật.
+ * Thuộc tính phòng và thời điểm giường trống của 003 đặt bằng spy ({@code RoomPolicyApi}, {@code BedStatusApi}); phần 004 chạy trên
+ * MySQL thật. Danh sách không gọi lệnh phân bổ nên không còn mock {@code BedAllocationCommandApi} (bản thật của 003 đã có, 2026-11-09).
  */
 @AutoConfigureMockMvc
 @WithMockUser
@@ -48,9 +46,6 @@ class BR_M02_01_MatchingEntriesIT extends WaitingListTestBase {
 
     @MockitoSpyBean
     BedStatusApi bedStatus;
-
-    @MockitoBean
-    BedAllocationCommandApi bedCommands;
 
     @Autowired
     BedContactStore contacts;

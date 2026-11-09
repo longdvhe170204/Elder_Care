@@ -31,8 +31,7 @@ import tools.jackson.databind.JsonNode;
  * transaction của lệnh (001 đã khóa dòng hồ sơ người cao tuổi; ở đây khóa tiếp theo người, rồi hồ sơ chờ).
  * Lệnh đến từ hồ sơ chờ mang {@code waitingListEntryId} và {@code waitingListCommand}: Từ chối thành Từ chối, Hủy chờ thành
  * Hủy chờ. Lệnh đến từ 001 không mang hai trường đó: hồ sơ chờ chưa ở trạng thái cuối của người đó chuyển Hủy chờ, không gọi
- * lại 001. Giữ chỗ giường của hồ sơ Đã liên hệ trả về cho 003 qua {@link BedAllocationCommandApi}; chưa có bản cài thì lệnh trả
- * 503 và rollback.
+ * lại 001. Giữ chỗ giường của hồ sơ Đã liên hệ trả về cho 003 qua {@link BedAllocationCommandApi}.
  */
 @Component
 public class WaitingListTransition {
@@ -93,11 +92,7 @@ public class WaitingListTransition {
                 fromEntry && DECLINE.equals(details.get("waitingListCommand").asString());
         WaitingListStatus next = declined ? WaitingListStatus.DECLINED : WaitingListStatus.WAITING_CANCELLED;
         if (entry.status() == WaitingListStatus.CONTACTED) {
-            BedAllocationCommandApi api = beds.getIfAvailable();
-            if (api == null) {
-                throw WaitingListService.bedSourceUnavailable();
-            }
-            api.cancelHold(entry.id(), new HoldCancellationReason(ADMISSION_CANCELLED_REASON));
+            beds.getObject().cancelHold(entry.id(), new HoldCancellationReason(ADMISSION_CANCELLED_REASON));
         }
         store.updateStatus(entry.id(), next, null);
         auditLog.write(AuditLogEntry.builder()

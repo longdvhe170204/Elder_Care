@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Đặt cọc về Chưa đáp ứng sau khi người cao tuổi đã Đang lưu trú (FR-032): báo Quản lý viện, không đổi trạng thái lưu
- * trú. Gọi khi 017 báo trạng thái đặt cọc của hợp đồng đổi; trạng thái luôn đọc lại qua {@link DepositStatusPort}.
- * Listener của sự kiện 017 chờ {@code m11.api} (team-plan mục 8).
+ * trú. {@link DepositStatusListener} gọi khi 017 báo trạng thái đặt cọc của hợp đồng đổi; trạng thái luôn đọc lại qua
+ * {@link DepositStatusPort}.
  */
 @Service
 public class DepositRecheckService {
