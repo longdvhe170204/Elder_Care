@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/common/theme/app_theme.dart';
@@ -42,6 +44,36 @@ void main() {
     expect(find.textContaining('Tiếp nhận'), findsOneWidget);
     expect(find.textContaining('Giao sử dụng'), findsOneWidget);
     expect(find.textContaining('Vị trí'), findsNothing);
+  });
+
+  testWidgets('FR_015a_rutDongY_guiLyDoKemIdempotencyKey', (tester) async {
+    final b = FakeBackend()
+      ..on('GET', '/family-portal/residents/7/belongings', 200, [
+        {
+          'id': 90,
+          'typeId': 2,
+          'description': 'Điện thoại Nokia',
+          'quantity': 1,
+          'status': 'IN_USE',
+          'holder': 'RESIDENT',
+          'history': [],
+          'selfCustodyConsent': {'id': 55, 'status': 'EFFECTIVE', 'method': 'PORTAL', 'representativeId': 33},
+        },
+      ])
+      ..on('POST', '/family-portal/self-custody-consents/55/withdraw', 200);
+    await pump(tester, b);
+    expect(find.text('Đã đồng ý cho người cao tuổi tự giữ'), findsOneWidget);
+
+    await tester.tap(find.text('Rút đồng ý'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('withdraw-reason')), 'Đổi ý');
+    await tester.tap(find.text('Xác nhận rút đồng ý'));
+    await tester.pumpAndSettle();
+
+    final sent = b.calls('POST', '/family-portal/self-custody-consents/55/withdraw').single;
+    expect(sent.headers['Idempotency-Key'], isNotEmpty);
+    expect(jsonDecode(sent.body), {'reason': 'Đổi ý'});
+    expect(find.text('Đã rút đồng ý. Viện sẽ thu lại đồ đang được sử dụng.'), findsOneWidget);
   });
 
   testWidgets('BR_M12_09_403_baoKhongCoQuyen', (tester) async {

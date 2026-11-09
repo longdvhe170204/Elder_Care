@@ -2,10 +2,13 @@ package com.eldercare.backend.belongings.internal.belonging.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverView;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingHandoverStore;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
+import com.eldercare.backend.belongings.internal.consent.domain.SelfCustodyConsent;
+import com.eldercare.backend.belongings.internal.consent.service.SelfCustodyConsentService;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.family.api.FamilyRightsApi;
@@ -25,10 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class BelongingPortalQueries {
 
     /** Một đồ kèm lịch sử bàn giao của riêng đồ đó. */
-    public record Item(BelongingView belonging, List<HandoverView> history) {}
+    public record Item(
+            BelongingView belonging, List<HandoverView> history, SimpleRecord<SelfCustodyConsent> selfCustodyConsent) {}
 
     private final BelongingStore belongings;
     private final BelongingHandoverStore handovers;
+    private final SelfCustodyConsentService consents;
     private final FamilyRightsApi family;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
@@ -36,11 +41,13 @@ public class BelongingPortalQueries {
     BelongingPortalQueries(
             BelongingStore belongings,
             BelongingHandoverStore handovers,
+            SelfCustodyConsentService consents,
             FamilyRightsApi family,
             BusinessTime time,
             ObjectProvider<CurrentUser> users) {
         this.belongings = belongings;
         this.handovers = handovers;
+        this.consents = consents;
         this.family = family;
         this.time = time;
         this.users = users;
@@ -56,13 +63,14 @@ public class BelongingPortalQueries {
             throw new PermissionDeniedException("Chỉ người đại diện và người được phép đón xem đồ gửi (BR-M12-09)");
         }
         Map<Long, List<HandoverView>> byIntake = new HashMap<>();
+        var effectiveConsents = consents.effectiveOfResident(residentId);
         return belongings.ofResident(residentId, null).stream()
                 .map(b -> {
                     long intake = belongings.intakeHandoverOf(b.belongingId()).orElse(-1L);
                     List<HandoverView> own = byIntake.computeIfAbsent(intake, handovers::ofIntake).stream()
                             .filter(h -> h.belongingId() == b.belongingId())
                             .toList();
-                    return new Item(b, own);
+                    return new Item(b, own, effectiveConsents.get(b.belongingId()));
                 })
                 .toList();
     }

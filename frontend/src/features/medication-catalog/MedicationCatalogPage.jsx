@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PageHeader } from '@/common/PageHeader'
 import { ProblemAlert } from '@/common/ProblemAlert'
+import { problemOf } from '@/common/problem'
 import { cn } from '@/lib/utils'
 import {
   getMedications,
@@ -31,52 +32,6 @@ import {
   postMedicationsByIdDeactivate,
   putMedicationsById,
 } from '@/api/api006'
-
-// Mock dữ liệu mẫu khởi tạo ban đầu khi chưa kết nối backend
-const INITIAL_DEMO_MEDICATIONS = [
-  {
-    id: 1,
-    name: 'Paracetamol',
-    concentration: '500mg',
-    dosageForm: 'Viên nén',
-    defaultRoute: 'Uống',
-    usageUnit: 'viên',
-    allergenIds: [101],
-    beforeWindowMinutes: 30,
-    afterWindowMinutes: 30,
-    specialControl: false,
-    active: true,
-    missingPricingItem: false,
-  },
-  {
-    id: 2,
-    name: 'Amlodipin',
-    concentration: '5mg',
-    dosageForm: 'Viên nang',
-    defaultRoute: 'Uống',
-    usageUnit: 'viên',
-    allergenIds: [201],
-    beforeWindowMinutes: 60,
-    afterWindowMinutes: 60,
-    specialControl: false,
-    active: true,
-    missingPricingItem: true, // FR-003: Chưa có mục vật phẩm viện
-  },
-  {
-    id: 3,
-    name: 'Morphin sulfat',
-    concentration: '10mg',
-    dosageForm: 'Dung dịch tiêm',
-    defaultRoute: 'Tiêm dưới da',
-    usageUnit: 'ống',
-    allergenIds: [301],
-    beforeWindowMinutes: 15,
-    afterWindowMinutes: 15,
-    specialControl: true, // Thuốc kiểm soát đặc biệt
-    active: true,
-    missingPricingItem: false,
-  },
-]
 
 export function MedicationCatalogPage({ role }) {
   const [items, setItems] = useState([])
@@ -114,7 +69,7 @@ export function MedicationCatalogPage({ role }) {
     getMedications({ query: { q: search || undefined, active: activeParam } })
       .then(({ data }) => {
         if (cancelled) return
-        let list = Array.isArray(data) && data.length > 0 ? data : INITIAL_DEMO_MEDICATIONS
+        let list = Array.isArray(data) ? data : []
         if (filterStatus === 'ACTIVE') list = list.filter((m) => m.active)
         if (filterStatus === 'INACTIVE') list = list.filter((m) => !m.active)
         if (search) {
@@ -129,21 +84,10 @@ export function MedicationCatalogPage({ role }) {
         setItems(list)
         setLoading(false)
       })
-      .catch(() => {
+      .catch((error) => {
         if (cancelled) return
-        let filtered = [...INITIAL_DEMO_MEDICATIONS]
-        if (filterStatus === 'ACTIVE') filtered = filtered.filter((m) => m.active)
-        if (filterStatus === 'INACTIVE') filtered = filtered.filter((m) => !m.active)
-        if (search) {
-          const q = search.toLowerCase()
-          filtered = filtered.filter(
-            (m) =>
-              m.name.toLowerCase().includes(q) ||
-              m.concentration.toLowerCase().includes(q) ||
-              m.dosageForm.toLowerCase().includes(q)
-          )
-        }
-        setItems(filtered)
+        setItems([])
+        setProblem(problemOf(error))
         setLoading(false)
       })
 

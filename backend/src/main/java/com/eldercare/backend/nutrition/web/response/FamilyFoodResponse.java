@@ -3,20 +3,21 @@ package com.eldercare.backend.nutrition.web.response;
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.nutrition.api.dto.FamilyFoodStatus;
 import com.eldercare.backend.nutrition.internal.familyfood.domain.FamilyFood;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
 
 /** Đồ ăn gia đình (api-011 {@code FamilyFood} = {@code FamilyFoodCommand} + {@code id}, {@code status}, {@code systemReasons}). */
 public record FamilyFoodResponse(
         long id,
-        String senderName,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String senderName,
         Long familyMemberId,
-        String type,
-        String description,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String type,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String description,
         List<Long> ingredients,
         boolean ingredientsUnknown,
-        Instant expiresAt,
-        String storageMethod,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant expiresAt,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String storageMethod,
         FamilyFoodStatus status,
         List<String> systemReasons) {
 

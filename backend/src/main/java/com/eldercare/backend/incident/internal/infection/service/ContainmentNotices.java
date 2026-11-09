@@ -18,6 +18,34 @@ final class ContainmentNotices {
 
     static List<NotificationRequest> created(
             long id, ContainmentScope scope, LocationStructureApi locations, long actorId, Instant at) {
+        return List.of(request(
+                id,
+                recipients(scope, locations),
+                "ISOLATION_CREATED",
+                "CREATED",
+                NotificationLevel.MEDIUM,
+                "Đã đặt khoanh vùng. Xem phạm vi và thực hiện theo quy trình của viện.",
+                "Đã đặt khoanh vùng",
+                actorId,
+                at));
+    }
+
+    /** Gỡ khoanh vùng (Q-402, FR-085): cùng người nhận như lúc đặt, mức Nhẹ. */
+    static List<NotificationRequest> lifted(
+            long id, ContainmentScope scope, LocationStructureApi locations, long actorId, Instant at) {
+        return List.of(request(
+                id,
+                recipients(scope, locations),
+                "ISOLATION_LIFTED",
+                "LIFTED",
+                NotificationLevel.LOW,
+                "Đã gỡ khoanh vùng. Xem phạm vi đã gỡ và thực hiện theo quy trình của viện.",
+                "Đã gỡ khoanh vùng",
+                actorId,
+                at));
+    }
+
+    private static List<RecipientGroup> recipients(ContainmentScope scope, LocationStructureApi locations) {
         var floors = new HashSet<>(scope.floorIds());
         for (long area : scope.areaIds()) floors.addAll(locations.floorsInArea(area));
         var recipients = new ArrayList<RecipientGroup>();
@@ -27,20 +55,31 @@ final class ContainmentNotices {
             recipients.add(new RecipientGroup.OnShiftStaff(
                     floor, Set.of(Role.NURSING_STAFF), Set.of(), new Substitution.NoSubstitute()));
         }
-        return List.of(new NotificationRequest(
+        return recipients;
+    }
+
+    private static NotificationRequest request(
+            long id,
+            List<RecipientGroup> recipients,
+            String eventType,
+            String milestone,
+            NotificationLevel level,
+            String content,
+            String shortContent,
+            long actorId,
+            Instant at) {
+        return new NotificationRequest(
                 "M05",
-                "ISOLATION_CREATED",
+                eventType,
                 SourceGroup.INCIDENT,
                 new SourceRecord("M05.CONTAINMENT", Long.toString(id)),
-                "M05.CONTAINMENT:" + id + ":CREATED",
-                Optional.of(NotificationLevel.MEDIUM),
+                "M05.CONTAINMENT:" + id + ":" + milestone,
+                Optional.of(level),
                 Optional.empty(),
                 Optional.empty(),
                 recipients,
-                List.of(new ContentPart(
-                        InformationType.GENERAL,
-                        "Đã đặt khoanh vùng. Xem phạm vi và thực hiện theo quy trình của viện.")),
-                Optional.of("Đã đặt khoanh vùng"),
+                List.of(new ContentPart(InformationType.GENERAL, content)),
+                Optional.of(shortContent),
                 Optional.of("Khoanh vùng lây nhiễm"),
                 Optional.of(actorId),
                 false,
@@ -48,6 +87,6 @@ final class ContainmentNotices {
                 Map.of("containmentId", id),
                 false,
                 Optional.empty(),
-                Optional.empty()));
+                Optional.empty());
     }
 }

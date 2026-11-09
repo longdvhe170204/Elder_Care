@@ -176,15 +176,8 @@ public class AbsenceService {
         if (absence.bedReleasedAt() != null) {
             throw conflict("BED_ALREADY_RELEASED", "Giường của lượt vắng này đã được giải phóng");
         }
-        BedAllocationCommandApi api = beds.getIfAvailable();
-        if (api == null) {
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "BED_COMMAND_UNAVAILABLE",
-                    "Module phòng giường chưa sẵn sàng thực hiện lệnh giải phóng giường (003)");
-        }
         Instant now = time.now();
-        api.releaseWhenAbsent(absence.residentId(), now, new Basis("BR-M02-07", null, id, null));
+        beds.getObject().releaseWhenAbsent(absence.residentId(), now, new Basis("BR-M02-07", null, id, null));
         store.markBedReleased(id, now, user.accountId(), reason.value());
         LocalDate day = now.atZone(BusinessTime.ZONE).toLocalDate();
         auditLog.write(AuditLogEntry.builder()

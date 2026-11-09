@@ -8,14 +8,14 @@ Giao diện Java công khai ở `billing.api`, port nội bộ M11 cho 017, 019,
 
 ## 0. Trạng thái nền develop 62fdb4f2 — cập nhật 2026-11-04
 
-Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực tế ở mục 4 và glossary 16.6. T003/T004 và các fake chung ở support/fake/billing đã vào develop. Nhánh impl/010-foundation-next tiếp tục nền: BillingPeriod, khóa, lịch sử/marker, khung job và provider metadata/phạm vi; chưa có bản thật các API thống kê/chi phí hoặc listener nguồn. Không có fake production. Bản dịch HTTP được duyệt 2026-10-29, nhưng còn 17 phản hồi thành công thiếu schema phải chốt trước endpoint liên quan. Xem [checkpoint hiện tại](../foundation-checkpoint-2026-11-04.md); các báo cáo chuẩn bị cũ là lịch sử.
+Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực tế ở mục 4 và glossary 16.6. T003/T004 và các fake chung ở support/fake/billing đã vào develop. Nhánh impl/010-foundation-next tiếp tục nền: BillingPeriod, khóa, lịch sử/marker, khung job và provider metadata/phạm vi; chưa có bản thật các API thống kê/chi phí hoặc listener nguồn. Không có fake production. Bản dịch HTTP được duyệt 2026-10-29, nhưng còn 17 phản hồi thành công thiếu schema phải chốt trước endpoint liên quan. Xem [checkpoint hiện tại](../plan.md#implementation-notes); các báo cáo chuẩn bị cũ là lịch sử.
 
 | Nguồn | Đã có trong mã | Còn chờ / tác động |
 | --- | --- | --- |
 | A, 000 T108 | API bảng chung, ReminderMarkers/TechnicalLocks và fake đúng chủ đã có | T005/T007 dùng API thật và kiểm MySQL; không còn chờ A khai báo. Không đổi api A; hai đăng ký job M11 trong test kiến trúc cần A review |
 | B, 001 | `resident.api.ResidentApi` (status/finalStatusAt), `resident.api.spi.StatusTransitionParticipant` | Có thể dùng phần hiện có; không sửa chữ ký |
 | B, 004 | ContractReadApi.contentAtDate/contract/ofResident, UnitPriceApi, ResidencyDayApi, ResidencyEndingReadApi, SPI kỳ cuối/việc sau qua đời/người đại diện và FakeContractSchedules/FakeRepresentatives đã có | T006 hàm thuần xong; adapter nguồn T011/T014 còn E. Cần B/E rà billingStopDate khi hồ sơ PREPARING quá ngày dự kiến so với FR-035; không sửa B hoặc suy mốc dừng |
-| C, 005 | BillableCareResultRecorded/BillableCareResultCorrected đã khai báo; mã nguồn vẫn giữ gate billable | Quantity/newQuantity đã được người dùng chốt; xem [quyết định 05/11](../care-quantity-decision-2026-11-05.md). C còn cài producer T033/T036/T050/T051, E còn consumer T010/T021; chưa nghiệm thu toàn chuỗi, không tự suy đơn vị hoặc sửa API nguồn |
+| C, 005 | BillableCareResultRecorded/BillableCareResultCorrected đã khai báo; mã nguồn vẫn giữ gate billable | Quantity/newQuantity đã được người dùng chốt; xem [quyết định 05/11](../research.md#care-quantity). C còn cài producer T033/T036/T050/T051, E còn consumer T010/T021; chưa nghiệm thu toàn chuỗi, không tự suy đơn vị hoặc sửa API nguồn |
 | D, 006 | MedicationBilledEvent phát từ dùng liều và PRN; MedicationBillAdjustedEvent phát từ đính chính liều/PRN; PurchaseAssistancePort và fake đã có | Đã có thêm producer so với rà 30/10; chưa nghiệm thu toàn chuỗi consumer 010 hoặc khẳng định đủ nhánh DISPENSE_RECORD; không sửa record/producer của D |
 | A, 012 / E, 017 | RepresentativePort đã có bản thật của A/012; DepositStatusPort/PurchaseBalancePort còn bản thật của E/017 | T002 dùng fake B hiện có; 017 là việc E làm sau 010. Không còn giao việc 012 cho E, không dùng fake production |
 
@@ -23,7 +23,7 @@ Các chữ ký ở mục 1–3 dùng tên logic thiết kế; chữ ký E thực
 
 **T033 — tích hợp retention, đề xuất 06/11 chưa áp dụng (tách khỏi gate nền T008):** [proposal-retention-cross-module-2026-11-06.md](proposal-retention-cross-module-2026-11-06.md) mô tả overload referencesTo(DataRef) ở SPI 000 và điểm gọi job để nối M01.RESIDENT → bảng → khoản của 010. Đây chưa phải API đã công bố hoặc bằng chứng toàn chuỗi đã xanh; người dùng đã chốt giữ E, bàn giao để A review/cài. Phần E đã sửa giữ thứ tự khi delete(Collection), không đổi chữ ký API.
 
-**Cập nhật nền đơn giá 06/11:** `billing.internal.pricing.service.CostPricingService` dùng `ContractReadApi.contentAtDate(...).recordedUnitPrices` và `content.services[].serviceId/inPackage` theo hợp đồng 004 hiện có; ngoài hợp đồng gọi `UnitPriceApi.unitPriceAt(..., markReferenced=true)` trong transaction MANDATORY của caller. T006a đã kiểm xanh, không phải API công khai mới hoặc bản cài ba API chi phí ở mục dưới. Không tạo khoản/bảng; adapter lưu trú/bán trú và listener tính lại/thông báo vẫn thuộc T014. Xem [checkpoint 06/11](../pricing-checkpoint-2026-11-06.md).
+**Cập nhật nền đơn giá 06/11:** `billing.internal.pricing.service.CostPricingService` dùng `ContractReadApi.contentAtDate(...).recordedUnitPrices` và `content.services[].serviceId/inPackage` theo hợp đồng 004 hiện có; ngoài hợp đồng gọi `UnitPriceApi.unitPriceAt(..., markReferenced=true)` trong transaction MANDATORY của caller. T006a đã kiểm xanh, không phải API công khai mới hoặc bản cài ba API chi phí ở mục dưới. Không tạo khoản/bảng; adapter lưu trú/bán trú và listener tính lại/thông báo vẫn thuộc T014. Xem [checkpoint 06/11](../plan.md#implementation-notes).
 
 ### 1.1. SPI khai báo ở module thấp hơn, M11 cài
 
@@ -84,6 +84,8 @@ record SuKienTinhPhiNguonDaDoi(String loaiNguon, String nguonId, String donVi, O
 
 ## 2. Port nội bộ M11 (017, 019)
 
+**Bản cài 08/11/2026 (T037):** `CostForBalancePort.finalizedStatement(long statementId)` trả `Optional<FinalizedCostStatement>` (periodId, finalizedAt, statement: CostStatementView). Chỉ bảng/khoản Đã chốt, tổng đã lưu, điều chỉnh có kỳ gốc, thuốc chỉ mã; bảng chưa chốt trả rỗng. Thêm vào port E theo P-12, giữ chữ ký cũ; fake chung `FakeCostForBalance` có fixture/reset tương ứng. `CostForBalance`, `FamilyPortalCosts`, `CostStatistics` cài các chữ ký đã công bố. Consumer 016/017/012 cần review và kiểm tích hợp; không đổi API nguồn B/C/D/A.
+
 Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(Bổ sung 2026-10-22, FR-042, Q-378)* `ChiPhiChoSoDuPort.bangDaChot(bangId)` trả chi tiết khoản Đã chốt và tổng theo loại cho phiếu báo phí, bảng quyết toán của 017 (chữ ký ở research P-12). CostForBalancePort chỉ billing.internal.balance/billing.internal.procurement gọi; PurchaseBalancePort chỉ billing.internal.purchase gọi (ArchUnit theo hai chiều P-12). Khi 017 chưa có, `SoDuMuaHoPort` không có bean và đề nghị không mang dấu "số dư không đủ".
 
 ---
@@ -119,7 +121,7 @@ Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(B
 
 ## 4. Chữ ký tiếng Anh đã khai báo ở nhánh E — T003/T004
 
-Đây là lần khai báo đầu của M11, không thay chữ ký API của B/C/D/A hoặc sửa hợp đồng REST đã duyệt. Ba gói api/api.dto/api.events có NamedInterface. DTO ở api.dto phục vụ trao đổi module; chưa có controller hoặc bộ dựng phản hồi HTTP. Trường object chưa có cấu trúc trong YAML giữ Map/List<Map>, không tự bổ sung schema cho 17 response còn thiếu. Chi tiết phạm vi kiểm ở [api-declaration-verification.md](../api-declaration-verification.md).
+Đây là lần khai báo đầu của M11, không thay chữ ký API của B/C/D/A hoặc sửa hợp đồng REST đã duyệt. Ba gói api/api.dto/api.events có NamedInterface. DTO ở api.dto phục vụ trao đổi module; chưa có controller hoặc bộ dựng phản hồi HTTP. Trường object chưa có cấu trúc trong YAML giữ Map/List<Map>, không tự bổ sung schema cho 17 response còn thiếu. Chi tiết phạm vi kiểm ở [plan.md#implementation-notes](../plan.md#implementation-notes).
 
 | Interface | Hàm thực tế | Người dùng / fake chung |
 | --- | --- | --- |
@@ -128,6 +130,8 @@ Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(B
 | CostStatisticsApi | items(ScopeFilter, from, to) → Stream<CostItemReportView>; statements(Optional<Long> periodId) → Stream<CostStatementReportView>; periods() → Stream<CostPeriodView> | 016; FakeCostStatistics |
 | CostForBalancePort | unfinalizedTotal(residentId) → long; baseDailyFee(residentId, date) → Optional<Long> | 017/019; FakeCostForBalance |
 | PurchaseBalancePort | insufficientBalance(residentId, amount, at) → boolean | 010 gọi, 017 cài; FakePurchaseBalance |
+
+**Bản cài Phase 7 (07/11/2026):** `FinalPeriodService` cài đúng chữ ký `admission.api.spi.FinalPeriodPort` (`createDraft`, `recalculate`, `cancelStop`, MANDATORY), `PostDeathItemPort` (`FINAL_PERIOD_COSTS`) và `FinalPeriodCostApi`. `CostStatusParticipant` dùng mã tiếng Anh đã công bố `END_A_COSTS`, cho phép ngoại lệ qua cơ chế 004. Không đổi API/DTO/sự kiện công khai; B review bản cài và thay các fake tương ứng trong fixture tích hợp khi nối 004. Mốc hiện hành nằm trong payload trạng thái M11; snapshot bảng đã chốt giữ nguyên.
 
 Port là nội bộ M11, đặt ở provision/internal/domain và purchase/internal/domain theo README, không xuất qua api. bangDaChot của P-12 thuộc T036/T037, chưa khai báo hoặc nghiệm thu ở T004. Chưa có caller thật nên quy tắc không có bean thì không đặt dấu còn được cài/kiểm ở T027.
 
@@ -151,3 +155,21 @@ FakeM11Config là TestConfiguration; chỉ @Import trong test. Đã thêm FakeCo
 - HTTP BillingSource thêm billingUnit (khóa đơn vị tính phí); unit giữ đơn vị sử dụng/hiển thị. CreateCostsFromEvents thêm sourceUnits gồm sourceId/billingUnit; chọn đúng một kiểu sourceIds/sourceUnits/dateRange. sourceIds cũ chỉ dùng khi xác định duy nhất một đơn vị; mơ hồ trả dòng bỏ qua CONDITION_NOT_MET, không tự lập tất cả.
 - BillingSourceView của E thêm thành phần billingUnit; rà toàn kho chưa có nơi tạo record này ngoài khai báo. Không đổi chữ ký sự kiện CostSourceBilled/CostSourceChanged hoặc API nguồn C/D. Chưa có bản cài endpoint/lệnh đầy đủ.
 - Quyết định và ví dụ: proposal-source-unit-selection-2026-11-06.md. Nguồn metadata/đăng ký client còn bàn giao ở source-metadata-handoff-2026-11-06.md; A/các consumer review thay đổi công khai trước khi tích hợp. Không tự sửa script sinh client của A hoặc frontend/src/api.
+
+## Đổi api — lịch sử lệnh Phase 5, 07/11/2026
+
+CostItemView của E thêm commandHistory: List<Map<String,Object>>, mỗi dòng operation (CHECK/UNCHECK/APPROVE/RETURN/CANCEL/FINALIZE), actorId, at, reason tùy chọn. Đã sửa mọi constructor hiện có. Dữ liệu qua StatusHistoryApi trên track M11.COST_ITEM/COMMAND, cùng transaction lệnh; không đổi API nguồn hoặc tạo bảng riêng. HTTP dùng schema CostCommandHistory; GET kỳ mô tả CostPeriod theo CostPeriodView đã công bố. Người dùng giao tự chọn cách triển khai theo spec; consumer/A review trong PR, không coi đã có review của A. Chi tiết tại phase5-contract-handoff-2026-11-07.md.
+
+## 5. Phụ thuộc Phase 8 — đối chiếu mã 08/11/2026
+
+| Phần | API đang có / phương án | Điều kiện còn thiếu |
+| --- | --- | --- |
+| Đại diện quyết định | RepresentativePort.isActiveRepresentative kiểm tại lúc quyết định; FamilyNotificationPort.activeRelationships lấy snapshot đại diện mỗi vòng qua API hiện có, tránh vòng phụ thuộc billing → family → billing | Không đổi API; cần nghiệm thu dữ liệu quan hệ thật theo T033 |
+| Nhập tay FR-021 | Cần nguồn B/D kiểm mô tả có thuộc danh mục dịch vụ/vật phẩm, gồm mục Ngừng hiệu lực; UnitPriceApi hiện không có truy vấn này | B/D công bố API đọc và fake chung; E không tự dựng SharedKind hoặc đọc bảng/attributes nội bộ nguồn |
+| Vật phẩm mua hộ, ngoại lệ Q269 | Cần tra theo catalogItemId: tồn tại/hiệu lực, loại thuốc/vật tư y tế, đơn vị; danh mục do B/D giữ. Nhân viên yêu cầu khẩn phải đang hoạt động và là Bác sĩ/Điều dưỡng | Chưa có hợp đồng đọc vật phẩm đủ dữ liệu; E chưa đổi API nguồn hoặc coi nhánh khẩn là đã cài |
+| Thuốc mua hộ Q139 | SPI medication.api.spi.PurchaseAssistancePort.purchasedDetails(requestId,residentId) đã có; kết quả cần medicationName, quantityPurchased, purchaserStaffId | Chờ phân loại/tên thuốc từ nguồn chính thức trước khi cài; không suy thuốc từ mô tả tự do hoặc trả rỗng giả làm đã tích hợp |
+| Số dư 017 | PurchaseBalancePort.insufficientBalance dùng khi gửi, đọc đề nghị đang chờ và quyết định; thiếu bean thì không đặt dấu theo P-12 | Nguồn 017 là phase riêng của E; test 010 dùng FakePurchaseBalance chung, không đăng ký fake production |
+| Chứng từ | FilePermissionProvider M11.PURCHASE_ASSISTANCE_RECEIPT kiểm ownerId là id PurchaseReceipt; đọc cha để kiểm phạm vi/quyền | SharedRowRetention tìm sự kiện con; nghiệm thu xóa blob cùng chuỗi thật thuộc T033 |
+| Điều hướng cổng/app | Màn PurchaseConsentScreen của E nhận ApiClient/residentId; các lệnh sử dụng hợp đồng api-010 hiện có | A nối vào family_root/cổng 012; E không đổi màn gốc, common hoặc tạo import chéo feature |
+
+Đây là bàn giao thiếu nguồn, không phải API mới đã được duyệt. Không đổi hợp đồng HTTP hoặc chữ ký công khai B/D trong lượt này. Các nhánh chưa đủ căn cứ trả SOURCE_UNAVAILABLE khi được gọi, không tự cho mua gấp hay xác nhận một khoản là ngoài danh mục.

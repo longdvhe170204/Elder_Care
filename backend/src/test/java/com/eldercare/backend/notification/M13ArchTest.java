@@ -26,6 +26,11 @@ class M13ArchTest {
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages("com.eldercare.backend");
 
+    /**
+     * Đúng một listener nhận chính kiểu {@link HasNotificationRequests} và nằm ở M13. Listener khác được nghe một sự kiện
+     * nghiệp vụ có mang yêu cầu thông báo (017 nghe {@code CostStatementFinalized} của 010 để trừ số dư, FR-012) nhưng
+     * không đọc yêu cầu thông báo của nó (sửa 2026-11-08, A).
+     */
     @Test
     void FR_001_exactlyOneListenerForNotificationRequests_inM13() {
         List<JavaMethod> listeners = MAIN.stream()
@@ -36,9 +41,18 @@ class M13ArchTest {
                 .filter(m -> m.getRawParameterTypes().stream()
                         .anyMatch(p -> p.isAssignableTo(HasNotificationRequests.class)))
                 .toList();
+        List<JavaMethod> notificationListeners = listeners.stream()
+                .filter(m -> m.getRawParameterTypes().stream()
+                        .anyMatch(p -> p.isEquivalentTo(HasNotificationRequests.class)))
+                .toList();
 
-        assertThat(listeners).hasSize(1);
-        assertThat(listeners.getFirst().getOwner().getPackageName()).startsWith("com.eldercare.backend.notification.");
+        assertThat(notificationListeners).hasSize(1);
+        assertThat(notificationListeners.getFirst().getOwner().getPackageName())
+                .startsWith("com.eldercare.backend.notification.");
+        assertThat(listeners)
+                .filteredOn(m -> !m.getOwner().getPackageName().startsWith("com.eldercare.backend.notification."))
+                .allSatisfy(m -> assertThat(m.getMethodCallsFromSelf())
+                        .noneMatch(call -> call.getName().equals("notificationRequests")));
     }
 
     @Test

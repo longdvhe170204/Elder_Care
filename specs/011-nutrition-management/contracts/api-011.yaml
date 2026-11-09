@@ -474,6 +474,7 @@ components:
         restrictions: { type: array, items: { type: integer, format: int64 }, description: 'Id dị nguyên' }
         safeDishId: { type: integer, format: int64 }
         status: { type: string, enum: [ACTIVE, INACTIVE] }
+        version: { type: integer, readOnly: true, description: 'Phiên bản cho If-Match của PUT (bổ sung 2026-11-08, chủ dự án chọn)' }
     DietCommand:
       type: object
       required: [name, safeDishId]

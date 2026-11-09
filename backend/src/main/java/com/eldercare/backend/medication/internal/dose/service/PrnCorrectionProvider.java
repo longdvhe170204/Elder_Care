@@ -156,6 +156,7 @@ class PrnCorrectionProvider implements CorrectableRecordProvider {
                     BilledSource.PRN_ADMINISTRATION,
                     administration.getId(),
                     after.quantity(),
+                    prescription.getDosageUnit(),
                     BillAdjustmentReason.CORRECTION));
         }
     }

@@ -135,6 +135,18 @@ describe('Cổng người thân, phiên thật', () => {
     expect(screen.getByText('01/01/2026 → 31/12/2026')).toBeInTheDocument()
   })
 
+  it('FR_046b_doGui_phienThat_hienPhanDoGuiCua013_theoNguoiCaoTuoi', async () => {
+    signedIn([resident({ canViewBelongings: true })])
+    const Belongings = ({ residentId }) => <p>Đồ gửi của người cao tuổi {residentId}</p>
+    render(<FamilyPortal belongings={Belongings} />)
+    const nav = await screen.findAllByRole('navigation', { name: 'Cổng người thân' })
+    fireEvent.click(within(nav[0]).getByRole('button', { name: 'Thêm' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Đồ gửi/ }))
+
+    expect(await screen.findByText('Đồ gửi của người cao tuổi 5')).toBeInTheDocument()
+    expect(screen.queryByText(/bản mẫu/)).not.toBeInTheDocument()
+  })
+
   it('US5_1_bi_tuChoi_hienDongKhoa_khongLoNoiDung', async () => {
     signedIn([resident({ rights: RIGHTS({ VIEW_HEALTH: true }) })])
     api.on(

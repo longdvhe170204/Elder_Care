@@ -74,6 +74,7 @@ class ElderCareApp extends StatelessWidget {
       key: ValueKey(session.notice),
       notice: session.notice,
       onSubmit: session.appLogin,
+      api: session.api,
       // Màn quét mã của người cao tuổi giữ theme chữ lớn dù mở từ màn đăng nhập chung
       residentLogin: (_) => Theme(data: AppTheme.resident(Brightness.light), child: _qrLogin()),
     ),
