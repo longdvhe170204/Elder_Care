@@ -82,6 +82,35 @@ public class NutritionCatalogStore {
                 : java.util.Set.copyOf(version(version).content().ingredients());
     }
 
+    /** Mọi bữa của danh mục (cả Ngừng hiệu lực), theo thứ tự trong ngày (FR-006). */
+    public List<CatalogItem<MealAttributes>> mealItems() {
+        return catalogs.list(MealAttributes.KIND, null, false);
+    }
+
+    public CatalogItem<MealAttributes> mealItem(long id) {
+        return catalogs.require(MealAttributes.KIND, id);
+    }
+
+    public CatalogItem<MealAttributes> createMeal(String code, String name, int sortOrder, MealAttributes attributes) {
+        return catalogs.create(MealAttributes.KIND, new NewCatalogItem<>(code, name, null, sortOrder, attributes));
+    }
+
+    public CatalogItem<MealAttributes> updateMeal(
+            CatalogItem<MealAttributes> meal, String name, int sortOrder, MealAttributes attributes) {
+        return catalogs.update(MealAttributes.KIND, meal.id(), meal.version(), name, sortOrder, attributes)
+                .after();
+    }
+
+    public CatalogItem<MealAttributes> deactivateMeal(CatalogItem<MealAttributes> meal) {
+        return catalogs.deactivate(MealAttributes.KIND, meal.id(), meal.version())
+                .after();
+    }
+
+    public CatalogItem<MealAttributes> reactivateMeal(CatalogItem<MealAttributes> meal) {
+        return catalogs.reactivate(MealAttributes.KIND, meal.id(), meal.version())
+                .after();
+    }
+
     /** Mã bữa trong danh mục (khóa của {@code mealTimes} ở CFG-M08-04). */
     public String mealCode(long id) {
         return catalogs.require(MealAttributes.KIND, id).code();

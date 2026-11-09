@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.staffing.internal.duty.service.ForbiddenPortCallerFixture;
 import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPortFixture;
+import com.eldercare.backend.staffing.internal.swap.service.SwapPortCallerFixture;
 import com.eldercare.backend.staffing.scheduling.M09SchedulingFixtures;
-import com.eldercare.backend.staffing.swap.internal.service.SwapPortCallerFixture;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.jupiter.api.Test;

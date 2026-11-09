@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { getFamilyPortalResidentsByResidentIdBelongings } from '@/api'
+import { useEffect, useRef, useState } from 'react'
+import { getFamilyPortalResidentsByResidentIdBelongings, postFamilyPortalSelfCustodyConsentsByIdWithdraw } from '@/api'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -13,9 +14,61 @@ import { amountText, kindLabel, statusLabel } from './belongingLabels'
 // belongings): chỉ xem, không có vị trí lưu giữ, không tên nhân viên; người đại diện và người được phép đón đang hiệu lực
 // (backend kiểm mỗi lần gọi, khác thì 403). Màn P9 của cổng (DESIGN.md 2.3) đặt phần này khi khung cổng có người cao
 // tuổi thật (team-plan mục 8, E).
+// Người đại diện rút đồng ý cho tự giữ của một đồ (FR-015a; api-013 POST /family-portal/self-custody-consents/{id}/withdraw).
+// Cổng không biết người xem có phải người đại diện hiện tại không; không phải thì backend trả 403 và màn hiện lỗi.
+function WithdrawConsent({ consent, onDone }) {
+  const [open, setOpen] = useState(false)
+  const [reason, setReason] = useState('')
+  const [failure, setFailure] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const key = useRef(crypto.randomUUID())
+  async function submit(event) {
+    event.preventDefault()
+    if (!reason.trim()) {
+      setFailure({ title: 'Nhập lý do', detail: 'Nhập lý do rút đồng ý.', unmetConditions: [] })
+      return
+    }
+    setBusy(true)
+    setFailure(null)
+    try {
+      await postFamilyPortalSelfCustodyConsentsByIdWithdraw({
+        path: { id: consent.id },
+        headers: { 'Idempotency-Key': key.current },
+        body: { reason: reason.trim() },
+      })
+      onDone()
+    } catch (error) {
+      setFailure(problemOf(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+  if (!open)
+    return (
+      <Button type="button" variant="outline" size="sm" className="h-10 self-start" onClick={() => setOpen(true)}>
+        Rút đồng ý
+      </Button>
+    )
+  return (
+    <form className="flex flex-col gap-2" onSubmit={submit} noValidate>
+      <Input
+        aria-label="Lý do rút đồng ý"
+        className="h-11"
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+      />
+      <ProblemAlert problem={failure} />
+      <Button type="submit" size="sm" className="h-10 self-start" disabled={busy}>
+        Xác nhận rút đồng ý
+      </Button>
+    </form>
+  )
+}
+
 export function PortalBelongings({ residentId }) {
   const [state, setState] = useState({ status: 'loading', items: [] })
   const [failure, setFailure] = useState(null)
+  const [reload, setReload] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -25,7 +78,7 @@ export function PortalBelongings({ residentId }) {
     return () => {
       cancelled = true
     }
-  }, [residentId])
+  }, [residentId, reload])
 
   if (state.status === 'loading') return <Skeleton className="h-24 w-full" />
   if (state.status === 'error')
@@ -47,6 +100,12 @@ export function PortalBelongings({ residentId }) {
               <StatusBadge status={statusLabel(b.status)} />
             </div>
             <span className="type-body-sm tabular-nums text-muted-foreground">{amountText(b)}</span>
+            {b.selfCustodyConsent && (
+              <div className="flex flex-col gap-2">
+                <span className="type-body-sm">Đã đồng ý cho người cao tuổi tự giữ</span>
+                <WithdrawConsent consent={b.selfCustodyConsent} onDone={() => setReload((n) => n + 1)} />
+              </div>
+            )}
             <ol className="flex flex-col gap-1">
               {b.history.map((h) => (
                 <li key={h.id} className="type-body-sm flex flex-wrap gap-x-2">

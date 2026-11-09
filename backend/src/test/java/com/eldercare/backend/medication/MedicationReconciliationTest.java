@@ -93,7 +93,8 @@ class MedicationReconciliationTest {
                 residentMedicationLock,
                 objectMapper,
                 new BusinessTime(Clock.systemUTC()),
-                M07TestParameters.defaults());
+                M07TestParameters.defaults(),
+                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class));
     }
 
     private void setId(Object entity, Long id) {

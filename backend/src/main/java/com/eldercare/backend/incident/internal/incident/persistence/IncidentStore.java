@@ -159,6 +159,54 @@ public class IncidentStore {
                 .isEmpty();
     }
 
+    /** Dòng đọc cho module khác (module-interfaces 007 mục 1.7): loại hiện hành, mức, trạng thái lưu trong bảng. */
+    public Optional<com.eldercare.backend.incident.api.dto.IncidentView> sourceView(long id) {
+        return jdbc.query(SOURCE_COLUMNS + " WHERE id = ?", (rs, i) -> sourceRow(rs), id).stream()
+                .findFirst();
+    }
+
+    /** Sự cố của người cao tuổi lập trong [from, to); {@code excludeCancelled} bỏ Đã hủy. */
+    public List<com.eldercare.backend.incident.api.dto.IncidentView> sourceByResident(
+            long residentId, Instant from, Instant to, boolean excludeCancelled) {
+        return jdbc.query(
+                SOURCE_COLUMNS + " WHERE resident_id = ? AND created_at >= ? AND created_at < ?"
+                        + (excludeCancelled ? " AND status <> 'CANCELLED'" : "")
+                        + " ORDER BY created_at, id",
+                (rs, i) -> sourceRow(rs),
+                residentId,
+                Timestamp.from(from),
+                Timestamp.from(to));
+    }
+
+    private static final String SOURCE_COLUMNS =
+            "SELECT id, resident_id, type_code, level, status, created_at, floor_area_id FROM incident";
+
+    private static com.eldercare.backend.incident.api.dto.IncidentView sourceRow(java.sql.ResultSet rs)
+            throws java.sql.SQLException {
+        long resident = rs.getLong("resident_id");
+        Long residentId = rs.wasNull() ? null : resident;
+        long floor = rs.getLong("floor_area_id");
+        Long floorAreaId = rs.wasNull() ? null : floor;
+        return new com.eldercare.backend.incident.api.dto.IncidentView(
+                rs.getLong("id"),
+                residentId,
+                rs.getString("type_code"),
+                rs.getString("level"),
+                rs.getString("status"),
+                rs.getTimestamp("created_at").toInstant(),
+                floorAreaId);
+    }
+
+    /** Còn sự cố mở mức Trung bình trở lên (014 FR-018). */
+    public boolean hasOpenAtLeastMedium(long residentId) {
+        return !jdbc.queryForList(
+                        "SELECT 1 FROM incident WHERE resident_id = ? AND status IN ('NEW','IN_PROGRESS','MONITORING')"
+                                + " AND level IN ('MEDIUM','CRITICAL') LIMIT 1",
+                        Integer.class,
+                        residentId)
+                .isEmpty();
+    }
+
     /** Người cao tuổi từng có sự cố (mục việc sau qua đời, research S-17). */
     public boolean hasAny(long residentId) {
         return !jdbc.queryForList("SELECT 1 FROM incident WHERE resident_id = ? LIMIT 1", Integer.class, residentId)

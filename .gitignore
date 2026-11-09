@@ -12,3 +12,6 @@ mobile/build/
 
 # Biến môi trường có mật khẩu
 .env
+
+# Ghi chú và bản lưu cục bộ của công cụ
+.local/

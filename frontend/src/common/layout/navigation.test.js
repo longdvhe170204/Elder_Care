@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { NAV_GROUPS, navForRole } from './navigation'
+import { NAV_GROUPS, groupOfPage, navForRole } from './navigation'
 
 const keys = (groups) => groups.flatMap((g) => g.items.map((i) => i.key))
 
@@ -44,6 +44,34 @@ describe('navForRole', () => {
       .map((i) => i.key)
 
     expect(withoutFunctions).toEqual(['approval-requests', 'notifications', 'pending-review-records'])
+  })
+
+  it('nhóm nghiệp vụ có id tiếng Anh riêng và tên tiếng Việt; khối đầu không có tên', () => {
+    const [first, ...rest] = NAV_GROUPS
+
+    expect(first.label).toBeNull()
+    expect(rest.every((g) => /^[a-z]+(-[a-z]+)*$/.test(g.id) && g.label)).toBe(true)
+    expect(new Set(NAV_GROUPS.map((g) => g.id)).size).toBe(NAV_GROUPS.length)
+  })
+
+  it('bản mẫu: nhóm không còn mục nào sau khi lọc theo vai trò thì ẩn cả nhóm', () => {
+    const groups = navForRole('KITCHEN_STAFF')
+
+    expect(groups.map((g) => g.label)).toContain('Dinh dưỡng, bữa ăn')
+    expect(groups.map((g) => g.label)).not.toContain('Chăm sóc hằng ngày')
+    expect(groups.every((g) => g.items.length > 0)).toBe(true)
+  })
+
+  it('có quyền thật: nhóm không có chức năng nào được cấp thì ẩn', () => {
+    const labels = navForRole('NURSING_STAFF', (fn) => fn === 'MEDICATION_ADMINISTRATION').map((g) => g.label)
+
+    expect(labels).toEqual([null, 'Thuốc và sức khỏe'])
+  })
+
+  it('groupOfPage: trả id nhóm chứa trang', () => {
+    expect(groupOfPage('medication')).toBe('medication-health')
+    expect(groupOfPage('dashboard')).toBe('general')
+    expect(groupOfPage('khong-co')).toBeUndefined()
   })
 
   it('mỗi mục menu có khóa riêng', () => {

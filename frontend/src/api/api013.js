@@ -81,6 +81,9 @@ export const postBelongingInventoryChecksByIdByCommand = (params) => request('PO
 /** Đồ gửi, trạng thái, lịch sử bàn giao, ảnh cho người đại diện và người có quyền được phép đón (FR-030, BR-M12-09) */
 export const getFamilyPortalResidentsByResidentIdBelongings = (params) => request('GET', '/family-portal/residents/{residentId}/belongings', params)
 
+/** Người đại diện đọc yêu cầu xác nhận người nhận khác (họ tên, giấy tờ người nhận, đồ trong yêu cầu) trước khi quyết định (FR-017, FR-030) */
+export const getFamilyPortalRecipientConfirmationsById = (params) => request('GET', '/family-portal/recipient-confirmations/{id}', params)
+
 /** Người đại diện xác nhận (confirm) hoặc từ chối (reject, lý do) yêu cầu xác nhận người nhận khác (FR-017, FR-030) */
 export const postFamilyPortalRecipientConfirmationsByIdByCommand = (params) => request('POST', '/family-portal/recipient-confirmations/{id}/{command}', params)
 

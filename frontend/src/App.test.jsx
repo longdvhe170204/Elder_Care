@@ -37,6 +37,8 @@ describe('App', () => {
     expect(await screen.findByText('Lê Văn Trưởng Tầng')).toBeInTheDocument()
     expect(screen.getByText('Trưởng tầng')).toBeInTheDocument()
     expect(screen.queryByLabelText('Xem với vai trò')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Thuốc và sức khỏe' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Chăm sóc hằng ngày' }))
     expect(screen.getByRole('button', { name: 'Checklist ca' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Tổng quan' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Phát thuốc' })).toBeNull()
@@ -61,6 +63,7 @@ describe('App', () => {
     window.history.replaceState(null, '', '/')
     const first = render(<App />)
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Người cao tuổi, lưu trú' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Người cao tuổi' }))
     await waitFor(() => expect(window.location.hash).toBe('#residents'))
     first.unmount()

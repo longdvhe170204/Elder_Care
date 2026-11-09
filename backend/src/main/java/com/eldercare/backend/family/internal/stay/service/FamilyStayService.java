@@ -309,6 +309,7 @@ public class FamilyStayService {
         SimpleRecord<FamilyStay> after =
                 change(current, Status.STAYING, current.content().started(startAt), false);
         audit(current, after, null);
+        events.publishEvent(StayMeals.changed(after));
         return after;
     }
 
@@ -329,6 +330,7 @@ public class FamilyStayService {
         SimpleRecord<FamilyStay> after =
                 change(current, Status.CANCELLED, current.content().cancelled(reason.value()), true);
         audit(current, after, reason);
+        events.publishEvent(StayMeals.changed(after));
         return after;
     }
 
@@ -371,6 +373,7 @@ public class FamilyStayService {
                             null));
             SimpleRecord<FamilyStay> after = change(current, Status.STAYING, content.extended(newExpectedEndAt), false);
             audit(current, after, reason);
+            events.publishEvent(StayMeals.changed(after));
             return after;
         });
     }
@@ -396,6 +399,7 @@ public class FamilyStayService {
                 change(current, Status.ENDED, current.content().ended(endAt), true);
         nights.cancelAfter(after, endAt);
         audit(current, after, null);
+        events.publishEvent(StayMeals.changed(after));
         return after;
     }
 

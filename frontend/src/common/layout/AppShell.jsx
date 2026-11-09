@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { LogOut, Menu, Moon, Sun, X } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, Moon, Sun, UserRound, X } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { applyTheme, readTheme } from '@/common/theme'
 import { cn } from '@/lib/utils'
-import { ROLES, navForRole } from './navigation'
+import { ACCOUNT_PAGE, ROLES, groupOfPage, navForRole } from './navigation'
 import { ICONS } from './navIcons'
 
 // Dấu lá giống favicon
@@ -70,7 +71,8 @@ function RoleAvatar({ label, className }) {
 
 // Khối người dùng cuối menu (DESIGN.md 5). Có phiên thật (002 T045) thì hiện họ tên, vai trò và nút Đăng xuất;
 // không có thì ô chọn vai trò của bản mẫu. Hai hàng: tên đủ chiều rộng menu, không bị cắt (6.7.2); nút ở hàng dưới.
-function UserBlock({ role, onRoleChange, session, onLogout }) {
+// Nút "Tài khoản của tôi" (bố cục duyệt 2026-11-09) cùng chỗ ở bản mẫu và phiên thật (DESIGN.md 9.3, WCAG 3.2.6).
+function UserBlock({ role, onRoleChange, session, onLogout, accountOpen, onOpenAccount }) {
   const current = ROLES.find((r) => r.code === role)
   return (
     <div className="flex flex-col gap-1 border-t border-sidebar-border px-4 pt-3">
@@ -105,6 +107,19 @@ function UserBlock({ role, onRoleChange, session, onLogout }) {
         )}
       </div>
       <div className="flex justify-end gap-1">
+        <button
+          type="button"
+          onClick={onOpenAccount}
+          aria-label="Tài khoản của tôi"
+          title="Tài khoản của tôi"
+          aria-current={accountOpen ? 'page' : undefined}
+          className={cn(
+            ICON_BUTTON,
+            accountOpen && 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent',
+          )}
+        >
+          <UserRound className="size-5" aria-hidden="true" />
+        </button>
         <ThemeToggle />
         {session && (
           <button type="button" onClick={onLogout} aria-label="Đăng xuất" title="Đăng xuất" className={ICON_BUTTON}>
@@ -116,34 +131,97 @@ function UserBlock({ role, onRoleChange, session, onLogout }) {
   )
 }
 
-function NavList({ groups, page, onSelect }) {
+// Nhóm đang mở của menu, nhớ theo trình duyệt; không đọc ghi được thì chỉ giữ trong phiên xem
+const OPEN_GROUPS_KEY = 'elder-care-nav-groups'
+
+function readOpenGroups() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(OPEN_GROUPS_KEY))
+    return Array.isArray(saved) ? saved : []
+  } catch {
+    return []
+  }
+}
+
+function writeOpenGroups(ids) {
+  try {
+    localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(ids))
+  } catch {
+    // bỏ qua: trình duyệt chặn lưu trữ
+  }
+}
+
+function withGroup(ids, id) {
+  return id && !ids.includes(id) ? [...ids, id] : ids
+}
+
+// Nhóm chứa trang đang mở thì mở sẵn (cả khi chuyển trang); người xem vẫn đóng được
+function useOpenGroups(page) {
+  const [state, setState] = useState(() => ({ page, ids: withGroup(readOpenGroups(), groupOfPage(page)) }))
+  if (state.page !== page) setState({ page, ids: withGroup(state.ids, groupOfPage(page)) })
+
+  function setOpen(id, open) {
+    const ids = open ? withGroup(state.ids, id) : state.ids.filter((x) => x !== id)
+    writeOpenGroups(ids)
+    setState({ page, ids })
+  }
+  return [state.ids, setOpen]
+}
+
+function NavItem({ item, page, onSelect }) {
+  const Icon = ICONS[item.icon]
+  const active = item.key === page
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(item.key)}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'flex min-h-10 shrink-0 items-center gap-2.5 rounded-menu px-3 text-left type-label text-sidebar-foreground hover:bg-(--sidebar-hover)',
+        active &&
+          'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+      )}
+    >
+      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      {item.label}
+    </button>
+  )
+}
+
+// Khối đầu không tên luôn hiện; nhóm nghiệp vụ là Collapsible (Base UI): nút có aria-expanded, aria-controls,
+// Enter/Space bằng bàn phím; cao 44px (DESIGN.md 9.1)
+function NavList({ groups, page, onSelect, openGroups, onGroupOpenChange }) {
   return (
     <nav aria-label="Menu chính" className="flex flex-1 flex-col gap-1 overflow-y-auto px-3">
-      {groups.map((group) => (
-        <div key={group.label ?? 'main'} className="flex flex-col gap-1">
-          {group.label && <div className="px-2.5 pt-4 pb-1 type-caption text-sidebar-muted-foreground">{group.label}</div>}
-          {group.items.map((item) => {
-            const Icon = ICONS[item.icon]
-            const active = item.key === page
-            return (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => onSelect(item.key)}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'flex min-h-10 shrink-0 items-center gap-2.5 rounded-menu px-3 text-left type-label text-sidebar-foreground hover:bg-(--sidebar-hover)',
-                  active &&
-                    'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden="true" />
-                {item.label}
-              </button>
-            )
-          })}
-        </div>
-      ))}
+      {groups.map((group) =>
+        group.label ? (
+          <Collapsible
+            key={group.id}
+            open={openGroups.includes(group.id)}
+            onOpenChange={(open) => onGroupOpenChange(group.id, open)}
+            className="flex flex-col gap-1"
+          >
+            <CollapsibleTrigger className="group mt-1 flex min-h-11 shrink-0 items-center gap-2 rounded-menu px-2.5 text-left type-label text-sidebar-muted-foreground hover:bg-(--sidebar-hover)">
+              <span className="flex-1">{group.label}</span>
+              <ChevronDown
+                className="size-4 shrink-0 -rotate-90 transition-transform duration-150 group-data-[panel-open]:rotate-0 motion-reduce:transition-none"
+                aria-hidden="true"
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="flex flex-col gap-1">
+              {group.items.map((item) => (
+                <NavItem key={item.key} item={item} page={page} onSelect={onSelect} />
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        ) : (
+          <div key={group.id} className="flex flex-col gap-1">
+            {group.items.map((item) => (
+              <NavItem key={item.key} item={item} page={page} onSelect={onSelect} />
+            ))}
+          </div>
+        ),
+      )}
     </nav>
   )
 }
@@ -153,7 +231,11 @@ const DESKTOP = '(min-width: 768px)'
 export function AppShell({ role, hasFunction, built, onRoleChange, session, onLogout, page, onPageChange, children }) {
   const groups = navForRole(role, hasFunction, built)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const pageLabel = groups.flatMap((g) => g.items).find((item) => item.key === page)?.label ?? 'Elder_Care'
+  const [openGroups, setGroupOpen] = useOpenGroups(page)
+  const pageLabel =
+    page === ACCOUNT_PAGE
+      ? 'Tài khoản của tôi'
+      : (groups.flatMap((g) => g.items).find((item) => item.key === page)?.label ?? 'Elder_Care')
   const roleLabel = ROLES.find((r) => r.code === role).label
 
   // Rộng ra từ 768px thì menu trái hiện lại, ngăn kéo đóng
@@ -165,7 +247,19 @@ export function AppShell({ role, hasFunction, built, onRoleChange, session, onLo
     return () => query.removeEventListener('change', close)
   }, [])
 
-  const userBlock = <UserBlock role={role} onRoleChange={onRoleChange} session={session} onLogout={onLogout} />
+  const userBlock = (
+    <UserBlock
+      role={role}
+      onRoleChange={onRoleChange}
+      session={session}
+      onLogout={onLogout}
+      accountOpen={page === ACCOUNT_PAGE}
+      onOpenAccount={() => {
+        setDrawerOpen(false)
+        onPageChange(ACCOUNT_PAGE)
+      }}
+    />
+  )
 
   return (
     <div className="grid min-h-screen grid-cols-1 content-start md:grid-cols-[240px_minmax(0,1fr)]">
@@ -210,6 +304,8 @@ export function AppShell({ role, hasFunction, built, onRoleChange, session, onLo
           <NavList
             groups={groups}
             page={page}
+            openGroups={openGroups}
+            onGroupOpenChange={setGroupOpen}
             onSelect={(key) => {
               setDrawerOpen(false)
               onPageChange(key)
@@ -227,7 +323,13 @@ export function AppShell({ role, hasFunction, built, onRoleChange, session, onLo
           <LeafMark />
           <span className="type-title text-sidebar-primary-foreground">Elder_Care</span>
         </div>
-        <NavList groups={groups} page={page} onSelect={onPageChange} />
+        <NavList
+          groups={groups}
+          page={page}
+          openGroups={openGroups}
+          onGroupOpenChange={setGroupOpen}
+          onSelect={onPageChange}
+        />
         {userBlock}
       </aside>
 
