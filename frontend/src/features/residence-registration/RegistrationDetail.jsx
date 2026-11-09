@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { CorrectionHistorySheet } from '@/common/correction/CorrectionHistorySheet'
 import { formatDate, formatDateTime } from '@/common/dateTime'
+import { openFile } from '@/common/files'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { RegistrationForm } from './RegistrationForms'
@@ -67,6 +68,7 @@ function Submissions({ submissions }) {
 }
 
 function RegistrationCard({ registration, canUpdate, openForm, onOpenForm, onCloseForm, onDone, onCorrect }) {
+  const [evidenceProblem, setEvidenceProblem] = useState(null)
   const allowed = canUpdate ? (registration.allowedCommands ?? []) : []
   // Ghi chấp nhận và từ chối dùng chung một form "Ghi kết quả"
   const buttons = []
@@ -108,6 +110,23 @@ function RegistrationCard({ registration, canUpdate, openForm, onOpenForm, onClo
         )}
       </dl>
       <Submissions submissions={registration.submissions} />
+      {registration.evidenceFileId != null && (
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            className="h-11 self-start"
+            onClick={() =>
+              openFile(registration.evidenceFileId).then(
+                () => setEvidenceProblem(null),
+                (error) => setEvidenceProblem(problemOf(error)),
+              )
+            }
+          >
+            Xem bằng chứng
+          </Button>
+          <ProblemAlert problem={evidenceProblem} />
+        </div>
+      )}
       {!formOpen && (buttons.length > 0 || canUpdate) && (
         <div className="flex flex-wrap gap-2">
           {buttons.map((b) => (

@@ -53,7 +53,10 @@ class BelongingCatalogController {
     }
 
     @PostMapping("/types")
-    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "201",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = IdResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse createType(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -85,7 +88,10 @@ class BelongingCatalogController {
     }
 
     @PostMapping("/condition-levels")
-    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "201",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = IdResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse saveConditionLevel(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

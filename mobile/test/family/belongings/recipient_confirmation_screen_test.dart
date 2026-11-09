@@ -21,9 +21,40 @@ Future<void> pump(WidgetTester tester, ApiClient api) async {
   await tester.pumpAndSettle();
 }
 
+const _request = {
+  'id': 61,
+  'recipientName': 'Trần Thị N',
+  'recipientIdDocument': '999',
+  'belongingIds': [90, 91],
+  'status': 'PENDING_CONFIRMATION',
+};
+
+FakeBackend backend() => FakeBackend()..on('GET', '/family-portal/recipient-confirmations/61', 200, _request);
+
 void main() {
+  testWidgets('FR_017_hienNguoiNhanVaDoTrongYeuCau_truocKhiQuyetDinh', (tester) async {
+    final b = backend();
+    await pump(tester, b.client());
+    expect(find.text('Người nhận: Trần Thị N'), findsOneWidget);
+    expect(find.text('Giấy tờ: 999'), findsOneWidget);
+    expect(find.text('Đồ trong yêu cầu: 2 đồ (mã 90, 91)'), findsOneWidget);
+    expect(find.text('Xác nhận người nhận'), findsOneWidget);
+  });
+
+  testWidgets('FR_030_khongPhaiNguoiDaiDien_403_anNutQuyetDinh', (tester) async {
+    final b = FakeBackend()
+      ..on('GET', '/family-portal/recipient-confirmations/61', 403, {
+        'status': 403,
+        'errorCode': 'FORBIDDEN',
+        'detail': 'Chỉ người đại diện hiện tại xác nhận, từ chối (FR-017)',
+      });
+    await pump(tester, b.client());
+    expect(find.text('Chỉ người đại diện hiện tại xác nhận, từ chối (FR-017)'), findsOneWidget);
+    expect(find.text('Xác nhận người nhận'), findsNothing);
+  });
+
   testWidgets('FR_017_xacNhan_guiLenhConfirm_kemIdempotencyKey', (tester) async {
-    final b = FakeBackend()..on('POST', '/family-portal/recipient-confirmations/61/confirm', 200);
+    final b = backend()..on('POST', '/family-portal/recipient-confirmations/61/confirm', 200);
     await pump(tester, b.client());
     await tester.tap(find.text('Xác nhận người nhận'));
     await tester.pumpAndSettle();
@@ -34,7 +65,7 @@ void main() {
   });
 
   testWidgets('FR_017_tuChoi_batBuocLyDo', (tester) async {
-    final b = FakeBackend()..on('POST', '/family-portal/recipient-confirmations/61/reject', 200);
+    final b = backend()..on('POST', '/family-portal/recipient-confirmations/61/reject', 200);
     await pump(tester, b.client());
     await tester.tap(find.text('Từ chối'));
     await tester.pumpAndSettle();
@@ -52,7 +83,7 @@ void main() {
   });
 
   testWidgets('FR_030_409_hienLyDo_matMangBaoCanMang', (tester) async {
-    final b = FakeBackend()
+    final b = backend()
       ..on('POST', '/family-portal/recipient-confirmations/61/confirm', 409, {
         'status': 409,
         'errorCode': 'ALREADY_REJECTED',

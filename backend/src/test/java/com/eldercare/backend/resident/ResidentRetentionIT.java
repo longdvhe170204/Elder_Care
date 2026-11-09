@@ -45,7 +45,7 @@ import org.springframework.context.annotation.Import;
  * cả chuỗi (lịch sử, đồng ý, sức khỏe, đánh giá, phiếu nguyện vọng, nhắc, đính chính, nhật ký) cùng một transaction.
  * Đồng hồ giả lập; dữ liệu tạo bằng lệnh thật rồi đẩy đồng hồ tới sau hạn.
  */
-@Import(FakeFileConfig.class)
+@Import({FakeFileConfig.class, CostParticipantOff.class})
 class ResidentRetentionIT extends StatusTestBase {
 
     private static final Reason REASON = new Reason("Kiểm thử lưu giữ");

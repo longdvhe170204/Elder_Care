@@ -3602,6 +3602,17 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | phần tách kế thừa đồng ý cho tự giữ (013-3, nhóm D 2026-11-06) | `SelfCustodyConsentService.inherit`; cách đồng ý `INHERITED`; trường `SelfCustodyConsent.rootConsentId` (bản gốc của nhóm đồng ý); test `FR_015a_ConsentInheritanceIT` |
 | sửa, ngừng mức tình trạng; đồ Tìm thấy khi kiểm kê; trả một phần (nhóm C 2026-11-05, 013-2) | `BelongingCatalogService.saveConditionLevel`, nhật ký `M12_CONDITION_LEVEL_UPDATED`; `InventoryCompletion.FoundItem`, `web.request.InventoryCheckRequests.Found`; `ReturnCommand.Item.amount` (thân `quantity`) |
 
+### 19.6. Đổi api 2026-11-07 (B, 2026-11-08)
+
+| Khái niệm | Tên trong mã |
+| --- | --- |
+| thân phản hồi 201 chỉ có mã | schema `CreatedId { id }`; Java `web.response.IdResponse` |
+| đồng ý cho tự giữ đang Hiệu lực của đồ | schema `SelfCustodyConsentSummary { id, status, method, representativeId }`; Java `web.response.SelfCustodyConsentResponse`; trường `selfCustodyConsent` của `BelongingDetail` và `PortalBelonging` |
+| chi tiết đồ gửi, một dòng lịch sử bàn giao, đồ trên cổng | schema `BelongingDetail { belonging, handovers, selfCustodyConsent }`, `HandoverEntry`, `PortalBelonging`; Java `BelongingResponse.Detail`, `HandoverView`, `PortalBelongingResponse` |
+| đọc bản đồng ý Hiệu lực | `SelfCustodyConsentService.effectiveOf(belongingId)`, `effectiveOfResident(residentId)`; `BelongingPortalQueries.Item.selfCustodyConsent` |
+| người đại diện đọc yêu cầu xác nhận người nhận khác | `GET /family-portal/recipient-confirmations/{id}` (tag `family-portal`); `ReturnController.portalGet`, `RecipientConfirmationService.viewOnPortal` |
+| nút rút đồng ý | web `WithdrawConsentForm`, `PortalBelongings` (`WithdrawConsent`); app `FamilyBelongingsScreen` (`_WithdrawDialog`) |
+
 ## 20. Feature 014 (`014-activity-care-quality`, C)
 
 *Chủ feature điền khi dịch `contracts/api-014.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
@@ -4125,6 +4136,32 @@ Tên bảng, cột, lớp test do người cài ghi thêm vào mục này khi vi
 | Tên logic / vai trò | Tên trong mã |
 | --- | --- |
 | giao dịch Chờ duyệt kèm người cao tuổi | schema `PendingBalanceTransaction` (= `BalanceTransaction` + `residentId`, `residentName`), phản hồi của `GET /balance-transactions/pending-approval` |
+
+### 23.9. Lớp của B (Phase 7–10), hàm thuần và bộ dựng file *(B bổ sung 2026-11-08)*
+
+Gói `billing.balance.internal.<chức năng>.{domain, service}` (mục 23.5; chuyển từ `billing.internal.balance` khi merge `develop` 2026-11-08).
+
+| Tên logic | Tên mã |
+| --- | --- |
+| `GioiHanHoan` (T023), `GioiHanHoanTest` | `transaction.domain.RefundLimit` (`Kind`: `REFUND`, `DEPOSIT_REFUND`; `Outcome`: `ALLOWED`, `INVALID_AMOUNT`, `EXCEEDED`; `maximum`, `check`); `RefundLimitTest` |
+| dòng giao dịch làm đầu vào cho sao kê, báo cáo thu chi | `transaction.domain.BalanceEntry` (dùng `Ledger`, `TransactionType`, `TransactionStatus`, `PaymentMethod` của mục 23.7) |
+| `DieuKienQuyetToan` (T028), `DieuKienQuyetToanTest` | `settlement.domain.SettlementConditions` (`Input`, `Result.settlement`, `Result.confirmation`, `Condition`, `Code`, `Status`, `Reason`; `Result.satisfied(exceptionApproved)`); `SettlementConditionsTest` |
+| số liệu bảng quyết toán, bộ dựng PDF (T032) | `settlement.domain.SettlementStatementData`, `settlement.service.SettlementStatementDocument.pdf`; `SettlementStatementDocumentTest` |
+| `SaoKe`, `BaoCaoThuChi` (T037) | `export.domain.BalanceStatement`, `export.domain.IncomeExpenseReport` (`Debtor`); `BalanceStatementTest`, `IncomeExpenseReportTest` |
+| giao dịch cần duyệt (T025) | `transaction.service.BalanceTransactionService` (`create`, `pendingApproval`, `NewTransaction`, `Recipient`, `Pending`), `BalanceTransactionRequestHandler` (loại `M11.BALANCE_TRANSACTION`), `BlockedApprovalNotices` (thông báo `M11_BALANCE_APPROVAL_BLOCKED`), `transaction.domain.TransactionChecks`, `transaction.persistence.PendingTransactionStore`; `web.BalanceTransactionController`, `web.request.{NewBalanceTransactionRequest, DepositOffsetRequest}`, `web.response.PendingBalanceTransactionResponse`; nhật ký `BALANCE_TRANSACTION_REQUESTED`, `BALANCE_TRANSACTION_CONFIRMED`, `BALANCE_TRANSACTION_CLOSED` |
+| cấn trừ cọc, nhắc hoàn cọc (T026) | `BalanceTransactionService.offset` (lỗi `OFFSET_CONDITIONS_NOT_MET` kèm `unmetConditions`: `ENDING_OR_POST_DEATH`, `FINAL_PERIOD_FINALIZED`, `DEPOSIT_BALANCE`, `DEBT`); nhật ký `BALANCE_DEPOSIT_OFFSET`; `status.service.DepositRefundReminders` (thông báo `M11_DEPOSIT_REFUND_DUE`), `status.persistence.DepositRefundMarks`, `status.domain.DepositRefundDue`; `V017_10__refund_transfer_without_bank_code.sql` |
+| test Phase 7 | `US6_BalanceTransactionIT`; bản giả `support/fake/admission/FakeResidencyEndingReads`, `FakeResidencyEndingReadsConfig` |
+| bộ dựng sao kê, báo cáo thu chi (T038) | `export.service.BalanceExportDocument` (`statementPdf`, `statementExcel`, `incomeExpensePdf`, `incomeExpenseExcel`; `ResidentStatement`); `BalanceExportDocumentTest` |
+| `VietQrPayload` (T008) | `document.domain.VietQrPayload` (`of`, `crc16`; mục 23.7); `VietQrPayloadTest` |
+| số liệu phiếu báo phí, bộ dựng (T035) | `document.domain.PaymentNoticeData` (`Line`, `TypeTotal`, `PaymentInstructions`), `StatementType` (`REGULAR`, `SUPPLEMENTARY`, `FINAL_PERIOD`), `DocumentFormat` (tiền, ngày); `document.service.PaymentNoticeDocument` (`pdf`, `excel`), `QrImage`; `PaymentNoticeDocumentTest`, `QrImageTest` |
+| quyết toán (T029 → T032, Phase 8) | `settlement.service.SettlementService` (`evaluate`, `view`, `confirm`, `attachSignedCopy`, `download`; `Evaluation`, `Statement`, `View`), `settlement.domain.SettlementLedger` (số liệu từ giao dịch), `SettlementRules` (`Basis`: `RESIDENCY_ENDING`, `POST_DEATH`, `AFTER_FINAL_STATUS`; `confirmationUnmet`, `postDeathItem`, `afterFinalReminderDue`, `text`); `web.SettlementController`, `web.request.SignedCopyRequest`, `web.response.{SettlementResponse, SettlementStatementResponse}`; nhật ký `BALANCE_SETTLEMENT_CONFIRMED`, `BALANCE_SETTLEMENT_SIGNED_COPY`, `BALANCE_DOCUMENT_DOWNLOADED` (`CHUNG_TU_TAI`); thông báo `M11_SETTLEMENT_CONFIRMED` |
+| `bang_quyet_toan`, bản ký (R-15 → `su_kien_chung`) | `record_event` loại `M11.SETTLEMENT_STATEMENT` (nội dung `SettlementStatementRecord`: `version`, `basis`, `hasException`, `remaining`, `lastTransactionId`, `pdfFileId`, `confirmedBy`, `data`), `M11.SETTLEMENT_SIGNED_COPY` (`SignedCopyRecord`: `statementId`, `fileId`), gắn `M11.BALANCE`; khóa duy nhất `M11.SETTLEMENT_STATEMENT:<người cao tuổi>:<phiên bản>`, `M11.SETTLEMENT_SIGNED_COPY:<bảng>`; hằng `settlement.domain.SettlementRecords` |
+| `ThamGiaChuyenTrangThai`, `MucViecSauQuaDoiPort` (`QUYET_TOAN`), `DieuKienQuyetToanDaDoi` của 017 | `settlement.service.SettlementTransitionParticipant` (`@Order(90)`), `SettlementPostDeathItem`, `SettlementChanges` (`changed`; cài `PaymentService.PaymentRecordedHook`; nghe `CostStatementFinalized`, `ResidencyEndingCreated`, `ResidencyEndingCancelled`, `DeathRecorded`, `EndingExceptionApproved`) |
+| phiếu báo phí đã phát hành (T035, Phase 9) | `document.domain.PaymentNoticeRecords` (`KIND` = `M11.PAYMENT_NOTICE`, `key`, `code`, `PaymentNoticeRecord`); `document.service.PaymentNoticeService` (`publish`, `list`, `download`, `portalDocuments`, `residentOf`, `residentOfDocument`; `Notice`, `PortalDocument`), `FamilyCostsRight` (`allowed`, `require`), `PaymentNoticeFiles` (T007); web `PaymentNoticeController`, `PaymentNoticeResponse`, `BalanceDocumentResponse`; `US9_PaymentNoticeIT` |
+| lần xuất sao kê, báo cáo thu chi (`lan_xuat_so_du`, T038, Phase 10) | `export.domain.BalanceExportRecords` (`KIND` = `M11.BALANCE_EXPORT`, `Type`: `BALANCE_STATEMENT`, `INCOME_EXPENSE`; `BalanceExportRecord`), `ExportFormat` (`XLSX`, `PDF`); `export.persistence.ConfirmedEntries`; `export.service.BalanceExportService` (`statement`, `incomeExpense`, `download`, `portalStatement`; `Export`, `Download`), `BalanceExportFiles` (T007), `BalanceStatistics` (`BalanceStatisticsApi`; `report`, `statuses`, `incomeExpense`), `status.persistence.StatusReads` (`lowOrOwing`); mobile `family/balance/family_documents_screen.dart` (`FamilyDocumentsScreen`, `FileSharer`, `shareFile`), `ApiClient.postBytes`; web `BalanceExportController`, `StatementExportRequest`, `IncomeExpenseExportRequest`, `PortalStatementRequest`, `BalanceExportResponse`; `FR_025_ExportIT` |
+| `QuyenTepProvider` bảng quyết toán, bản ký (T007 phần B) | `settlement.service.SettlementStatementFiles`, `SettlementSignedCopyFiles` |
+| nhắc sau trạng thái cuối (FR-024) | `status.service.AfterFinalStatusReminders` (thông báo `M11_SETTLEMENT_AFTER_FINAL_STATUS`), `status.persistence.AfterFinalStatusMarks`, `status.domain.AfterFinalCandidate`; cột `resident_balance.final_status_reminded_at` |
+| test Phase 8 | `US7_SettlementIT`, `SettlementRulesTest` |
 
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
