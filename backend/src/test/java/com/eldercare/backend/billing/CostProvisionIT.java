@@ -102,16 +102,21 @@ class CostProvisionIT extends CostWorkflowIT {
         long[] residents = {resident, TestUsers.nextId(), TestUsers.nextId(), TestUsers.nextId()};
         long[] statementIds = {statement, TestUsers.nextId(), TestUsers.nextId(), TestUsers.nextId()};
         for (int index = 1; index < statementIds.length; index++) {
-            jdbc.update("""
+            jdbc.update(
+                    """
                     INSERT INTO cost_statement(id,kind,period_id,resident_id,statement_type,unique_key,created_at)
                     VALUES (?,'STATEMENT',?,?,'REGULAR',?,?)
-                    """, statementIds[index], period, residents[index],
+                    """,
+                    statementIds[index],
+                    period,
+                    residents[index],
                     "STATEMENT:" + period + ":" + residents[index] + ":REGULAR",
                     java.sql.Timestamp.from(time.now()));
         }
         for (int index = 0; index < residents.length; index++) {
             doReturn(new IdentityView(residents[index], "NCT-" + index, "Người kiểm thử " + index, Optional.empty()))
-                    .when(residentApi).identity(residents[index]);
+                    .when(residentApi)
+                    .identity(residents[index]);
             if (index == 3) continue;
             resident = residents[index];
             statement = statementIds[index];
@@ -123,8 +128,9 @@ class CostProvisionIT extends CostWorkflowIT {
         current.set(accountant);
         String first = new String(exports.export(period, "ALL", "CSV").bytes(), StandardCharsets.UTF_8);
         assertThat(first).contains("3 bảng; 3 khoản; 600 đồng", "NCT-3 — Người kiểm thử 3");
-        assertThat(jdbc.queryForObject("SELECT first_export_id FROM cost_statement WHERE id=?",
-                Long.class, statementIds[3])).isNull();
+        assertThat(jdbc.queryForObject(
+                        "SELECT first_export_id FROM cost_statement WHERE id=?", Long.class, statementIds[3]))
+                .isNull();
 
         resident = residents[3];
         statement = statementIds[3];
@@ -133,7 +139,8 @@ class CostProvisionIT extends CostWorkflowIT {
         finalizeCosts();
         current.set(accountant);
         String next = new String(exports.export(period, "NEVER_EXPORTED", "CSV").bytes(), StandardCharsets.UTF_8);
-        assertThat(next).contains("1 bảng; 1 khoản; 400 đồng", "Người kiểm thử 3")
+        assertThat(next)
+                .contains("1 bảng; 1 khoản; 400 đồng", "Người kiểm thử 3")
                 .doesNotContain("Người kiểm thử 0", "Người kiểm thử 1", "Người kiểm thử 2");
     }
 }

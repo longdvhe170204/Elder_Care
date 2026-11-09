@@ -72,8 +72,10 @@ class FinalPeriodStatusIT extends StatusTestBase {
         var outcome = statusService.recordDeath(target(resident), reason(), noDetails());
         assertThat(outcome.status()).isEqualTo(ResidentStatus.DECEASED);
         var state = states.get(BillingResidentState.KIND, resident).orElseThrow();
-        assertThat(state.deathAt()).isEqualTo(time.now());
-        assertThat(state.throughDate()).isEqualTo(time.today());
+        assertThat(state.deathAt()).isEqualTo(outcome.history().at());
+        assertThat(state.throughDate())
+                .isEqualTo(java.time.LocalDate.ofInstant(
+                        outcome.history().at(), com.eldercare.backend.common.time.BusinessTime.ZONE));
     }
 
     @Test
