@@ -1,9 +1,11 @@
 package com.eldercare.backend.nutrition.internal.closing.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
@@ -15,6 +17,7 @@ import com.eldercare.backend.billing.api.events.CostSourceChanged;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.data.TechnicalLocks;
 import com.eldercare.backend.common.error.ConditionNotMetException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
@@ -73,6 +76,10 @@ public class PortionClosingService {
     public static final String FAMILY_MEAL_UNIT = "PORTION";
 
     private static final AuditAction CLOSED = new AuditAction("PORTIONS_CLOSED", false);
+    private static final List<PermissionKey> DAILY_MEAL_VIEWERS = List.of(
+            new PermissionKey(Function.MEAL_COUNT_TICKET, Operation.VIEW),
+            new PermissionKey(Function.MEAL_RECEIPT, Operation.VIEW),
+            new PermissionKey(Function.SPECIAL_MEAL_SERVICE, Operation.VIEW));
 
     private final DailyMeals dailyMeals;
     private final PortionCounter counter;
@@ -83,6 +90,7 @@ public class PortionClosingService {
     private final CurrentUser user;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
+    private final PermissionApi permissions;
 
     PortionClosingService(
             DailyMeals dailyMeals,
@@ -93,7 +101,8 @@ public class PortionClosingService {
             AuditLogApi audit,
             CurrentUser user,
             BusinessTime time,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            PermissionApi permissions) {
         this.dailyMeals = dailyMeals;
         this.counter = counter;
         this.closings = closings;
@@ -103,6 +112,7 @@ public class PortionClosingService {
         this.user = user;
         this.time = time;
         this.events = events;
+        this.permissions = permissions;
     }
 
     /** Kết quả chốt hoặc tính sẵn (api-011 {@code ClosingResult}). */
@@ -131,9 +141,16 @@ public class PortionClosingService {
         return new Target(ClosingRecordStore.DAILY_MEAL, Long.toString(dailyMealId), null, null);
     }
 
-    @RequiresPermission(function = Function.MEAL_COUNT_TICKET, operation = Operation.VIEW)
+    /**
+     * Bữa trong ngày (tên, giờ, đã chốt chưa; không có số suất): người xem số suất và người nhận tại tầng, người xác nhận
+     * phục vụ cần bữa ngày để mở phiếu (Phụ lục 27 chú thích 15; chủ dự án chọn 2026-11-08). Một trong ba quyền nên tự kiểm.
+     */
     @Transactional(readOnly = true)
     public List<DailyMealRow> dailyMeals(Target target, LocalDate date) {
+        Set<PermissionKey> held = permissions.permissions(user);
+        if (DAILY_MEAL_VIEWERS.stream().noneMatch(held::contains)) {
+            throw new PermissionDeniedException("Không có quyền xem bữa trong ngày");
+        }
         var lead = dailyMeals.closingLead();
         return dailyMeals.on(date).stream()
                 .map(m -> new DailyMealRow(m, m.closingOpensAt(lead)))

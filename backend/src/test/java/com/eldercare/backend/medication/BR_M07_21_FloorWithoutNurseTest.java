@@ -77,7 +77,9 @@ class BR_M07_21_FloorWithoutNurseTest {
                 time,
                 M07TestParameters.defaults(),
                 locations,
-                shifts);
+                shifts,
+                mock(com.eldercare.backend.medication.internal.schedule.service.AbsenceScheduleContexts.class),
+                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class));
 
         jobs.runMinuteTasks(now);
         jobs.runMinuteTasks(now);

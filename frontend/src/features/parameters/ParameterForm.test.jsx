@@ -254,4 +254,27 @@ describe('ParameterForm', () => {
       phone: '024 3999 8888',
     })
   })
+  it('T045_cfgM11_10_chonNganHangTuDanhMuc_guiBinSoTaiKhoanChuTaiKhoan', async () => {
+    api.on('GET', '/banks', json(200, [
+      { bin: '970436', shortName: 'Vietcombank', fullName: 'Ngân hàng TMCP Ngoại Thương Việt Nam' },
+      { bin: '970415', shortName: 'VietinBank', fullName: 'Ngân hàng TMCP Công thương Việt Nam' },
+    ]))
+    api.on('POST', '/parameters/CFG-M11-10/change-value', () =>
+      json(422, { type: 'about:blank', title: 'Unprocessable Content', status: 422, errorCode: 'INVALID_VALUE', detail: 'Số tài khoản gồm 6 đến 19 chữ số' }),
+    )
+    const cfg = parameter({ code: 'CFG-M11-10', type: 'TABLE', unit: null, currentValue: null, defaultValue: null })
+    render(<ParameterForm parameter={cfg} etag={'"1"'} onSaved={vi.fn()} onStale={vi.fn()} />)
+
+    const bank = await screen.findByLabelText('Ngân hàng')
+    await screen.findByRole('option', { name: 'Vietcombank (970436)' })
+    type(bank, '970436')
+    type(screen.getByLabelText('Số tài khoản'), '0011AB')
+    type(screen.getByLabelText('Chủ tài khoản'), 'Viện dưỡng lão An Bình')
+    type(screen.getByLabelText('Lý do'), 'Tài khoản thu của viện')
+    fireEvent.click(screen.getByRole('button', { name: /Lưu/ }))
+
+    expect(await screen.findByText('Số tài khoản gồm 6 đến 19 chữ số')).toBeInTheDocument()
+    const [call] = api.calls('POST', '/parameters/CFG-M11-10/change-value')
+    expect(body(call).value).toEqual({ bin: '970436', accountNumber: '0011AB', accountHolder: 'Viện dưỡng lão An Bình' })
+  })
 })

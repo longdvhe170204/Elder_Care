@@ -69,7 +69,7 @@ Mục này thay tên bảng và cách lưu của các mục 2 → 8 khi cài m�
 
 | Bảng chung/API chủ A | Loại/đối tượng của M11 | Nội dung được giữ | Ràng buộc và test ở task sau |
 | --- | --- | --- | --- |
-| ResidentModuleStateApi | SharedKind M11.RESIDENT_COST_STATE, module M11, resident_id | BillingResidentState {finalCostCompletedFrom: Instant nullable} thay chi_phi_nct | CostLock khóa kỹ thuật trước trạng thái, rồi bảng; CostLockIT xanh. Mỗi người/module chỉ một dòng: 017 phải mở rộng và dùng chung record này, không ghi một payload M11 khác làm mất trường 010; T024 còn cài nghiệp vụ kỳ cuối |
+| ResidentModuleStateApi | SharedKind M11.RESIDENT_COST_STATE, module M11, resident_id | BillingResidentState {finalCostCompletedFrom: Instant nullable, finalStatementId: Long nullable, throughDate: LocalDate nullable, deathAt: Instant nullable, revision: long} thay chi_phi_nct | T024 dùng cùng payload để giữ mốc hiện hành khi bảng đã chốt không được sửa. JSON cũ thiếu trường mới đọc được với null/0. CostLock khóa kỹ thuật trước trạng thái, rồi kỳ/bảng/khoản. Mỗi người/module chỉ một dòng: 017 phải mở rộng và dùng chung record này, không ghi payload M11 khác làm mất trường 010 |
 | StatusHistoryApi | HistoryTrack(entityType=M11.COST_ITEM, attribute=RECALCULATION) | CostRecalculation {before, after, cause, resetToDraft}; mỗi snapshot có quantity/unitPrice/factorPercent/amount; basis, thời điểm/người thực hiện ở HistoryEntry chung | CostSharedRowsIT kiểm append-only, transaction và giới hạn DECIMAL(12,3)/(15,0)/(5,2) bằng @Valid/@Digits trước ghi JSON; so giá trị BigDecimal không phụ thuộc scale JSON MySQL. Handler BR_M11_05 còn ở T020/T021 |
 | RecordEventApi | M11.POST_FINALIZATION_CHANGE, COST_ITEM | {event, before, after, reference, occurredAt} | Chỉ thêm; khoản điều chỉnh trỏ id sự kiện; FR_027 T020/T022 |
 | SimpleRecordApi | M11.PURCHASE_ASSISTANCE_REQUEST | Giữ toàn bộ cột mục 6 trong nội dung, status/locked_at/version ở cột chung | Máy trạng thái/domain M11, khóa yêu cầu khi quyết định; T025–T027 |
@@ -91,7 +91,7 @@ Tên loại/nội dung ở trên là hợp đồng dữ liệu của E theo R-15
 | FR-012/016, Q-395 | CHECK dấu/NULL tiền, tám dấu, cổng tính lại theo connection | CostSchemaIT.FR_012_*, FR_016_*, Q_395_* |
 | Nhóm dữ liệu/retention | Trigger + GRANT trên MySQL thật | CostSchemaIT.BR_M15_03_* |
 
-T005a đã có V010_01__costs.sql, 15 ca CostSchemaIT xanh; tổng M11 có 74 unit/arch xanh. Cả T005/T038 vẫn chờ phần bảng chung của A. Bằng chứng, bước đỏ và giới hạn ở r15-storage-verification.md.
+T005a đã có V010_01__costs.sql, 15 ca CostSchemaIT xanh; tổng M11 có 74 unit/arch xanh. Cả T005/T038 vẫn chờ phần bảng chung của A. Bằng chứng, bước đỏ và giới hạn ở plan.md#implementation-notes.
 
 
 ---
@@ -236,6 +236,10 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_CHOT','DA_HUY')`; chặ
 
 ## 6. Đề nghị mua hộ (mục E)
 
+**Ánh xạ triển khai Phase 8 (08/11/2026):** `PurchaseDetails` dùng `SimpleRecordApi`, loại `M11.PURCHASE_ASSISTANCE_REQUEST`; trạng thái, version và lockedAt do bảng chung bảo vệ. `PurchaseRecipient` (`M11.PURCHASE_RECIPIENT`) và `PurchaseDecision` (`M11.PURCHASE_DECISION`) là các `RecordEvent` con của đề nghị, chỉ thêm. Chứng từ dùng sự kiện con `PurchaseReceipt` (`M11.PURCHASE_ASSISTANCE_RECEIPT`): `FileApi.attach` nhận **id sự kiện chứng từ**, không phải id đề nghị, để `SharedRowRetention.rowsFor` tìm được chủ tệp khi duyệt chuỗi. Không tạo bảng riêng hoặc migration V010_04 (số này đã dùng cho version bảng chi phí).
+
+`PurchaseRetention` khai `ResidentRecord`, mốc `ResidentApi.finalStatusAt`, phân trang `(at,id)`; `referencing(M01.RESIDENT)` trả đề nghị của người đó và `referencesTo` trả khoản đang trỏ đề nghị. `delete` chỉ dùng `RetentionDatabase`; framework A phụ trách bảng chung/tệp của chuỗi. `PurchaseGovernance` khai phạm vi người và nhóm FINANCE; `PurchaseReceiptPermission` kiểm lại quyền tải mỗi lần. Chuỗi liên module thật và dọn blob vẫn thuộc nghiệm thu T033. Dấu số dư ở đề nghị đang chờ được tính lại khi đọc và khi quyết định; lịch sử giữ dấu ở thời điểm quyết định. Nhánh danh mục/thuốc chưa được nghiệm thu khi chưa có API nguồn (contracts mục 5).
+
 ### `de_nghi_mua_ho` – nhóm 2 → gộp theo R-15: `de_nghi_mua_ho` → `ho_so_chung`
 
 | Cột | Ghi chú | Nguồn |
@@ -331,7 +335,7 @@ DBR-30 (mỗi bảng Đã chốt có đúng một giao dịch thanh toán) do 01
 
 ---
 
-**Triển khai T008b — 05/11:** CostRetention cung cấp M11.COST_PERIOD theo created_at/CFG-M15-04 và M11.COST_STATEMENT/M11.COST_ITEM theo ResidentApi.finalStatusAt/CFG-M15-03. Tham chiếu ngược gồm bảng của kỳ, khoản theo statement_id/period_id/original_period_id và điều chỉnh theo original_item_id; không lọc bỏ tham chiếu chưa hết hạn. Xóa bằng RetentionDatabase; phần đi kèm qua job/bảng chung A. Chưa nghiệm thu chuỗi hồ sơ thật 001 → 010, chỉ mục nguồn hoặc liên kết 017; xem [giới hạn T008](retention-checkpoint-2026-11-05.md).
+**Triển khai T008b — 05/11:** CostRetention cung cấp M11.COST_PERIOD theo created_at/CFG-M15-04 và M11.COST_STATEMENT/M11.COST_ITEM theo ResidentApi.finalStatusAt/CFG-M15-03. Tham chiếu ngược gồm bảng của kỳ, khoản theo statement_id/period_id/original_period_id và điều chỉnh theo original_item_id; không lọc bỏ tham chiếu chưa hết hạn. Xóa bằng RetentionDatabase; phần đi kèm qua job/bảng chung A. Chưa nghiệm thu chuỗi hồ sơ thật 001 → 010, chỉ mục nguồn hoặc liên kết 017; xem [giới hạn T008](plan.md#implementation-notes).
 
 ## 11. Truy vết DBR, BR và FR
 

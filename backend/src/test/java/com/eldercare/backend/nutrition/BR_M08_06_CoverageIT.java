@@ -51,6 +51,20 @@ class BR_M08_06_CoverageIT extends MenuTestBase {
     }
 
     @Test
+    void FR_002_dietInMenuNotEnded_cannotBeDeactivated() throws Exception {
+        LocalDate week = futureWeek();
+        long soft = f.diet(false, List.of(), safe);
+        long softDish = f.activeDish(List.of(), List.of(soft));
+        long menu = createMenu(week);
+        putContent(menu, List.of(row(week, lunch, soft, softDish))).andExpect(status().isOk());
+
+        f.asDoctor();
+        send(post(NutritionCatalogFixture.BASE + "/diets/" + soft + "/deactivate"), "{\"reason\":\"Không dùng nữa\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("STILL_IN_MENU"));
+    }
+
+    @Test
     void FR_029_publish_rerunsCoverage_thenPublishesOrAppliesWhenWeekStarted() throws Exception {
         LocalDate week = futureWeek();
         long menu = createMenu(week);

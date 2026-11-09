@@ -172,6 +172,7 @@ class DoseResultCorrectionProvider implements CorrectableRecordProvider {
                     BilledSource.DOSE,
                     result.getId(),
                     after.administered() ? dose.getDosage() : BigDecimal.ZERO,
+                    dose.getDosageUnit(),
                     BillAdjustmentReason.CORRECTION));
         }
     }

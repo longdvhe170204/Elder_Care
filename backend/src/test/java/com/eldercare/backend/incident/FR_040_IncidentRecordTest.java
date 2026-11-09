@@ -74,6 +74,8 @@ class FR_040_IncidentRecordTest {
     private final ResidentLocationApi locations = mock(ResidentLocationApi.class);
     private final FallMonitoringStore fallMonitoring = mock(FallMonitoringStore.class);
     private final CurrentUser user = mock(CurrentUser.class);
+    private final com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi autoCancel =
+            mock(com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi.class);
     private final IncidentRecordService service = new IncidentRecordService(
             incidents,
             catalog,
@@ -86,7 +88,8 @@ class FR_040_IncidentRecordTest {
             staff,
             residents,
             locations,
-            fallMonitoring);
+            fallMonitoring,
+            autoCancel);
 
     @BeforeEach
     void defaults() {
@@ -291,6 +294,7 @@ class FR_040_IncidentRecordTest {
                         new RecipientGroup.AssignedNurse(RESIDENT, new Substitution.Default()),
                         new RecipientGroup.FacilityRole(Role.DOCTOR));
         verify(events).publishEvent(new InfectionSuspicionChanged(RESIDENT, 41L, true, NOW));
+        verify(autoCancel).cancelForSuspectedInfection(RESIDENT, NOW);
         verify(fallMonitoring, never()).start(anyLong(), anyLong(), any(), any(), any(), anyLong());
     }
 

@@ -9,12 +9,17 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.file.FileTypes;
 import com.eldercare.backend.common.time.TestClockControl;
+import com.eldercare.backend.family.RelationshipFixtures;
+import com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore;
 import com.eldercare.backend.support.TestUsers.TestUser;
-import com.eldercare.backend.support.fake.admission.FakeRepresentatives;
 import com.eldercare.backend.support.fake.file.FakeFileConfig;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
@@ -29,7 +35,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Nền chung cho test hợp đồng của 004 US3 (T029 → T031): hợp đồng lập qua HTTP bằng Hành chính, người đại diện lấy từ bản
- * giả 012 ({@link FakeRepresentatives}), bản scan lưu ở bản giả S3. Mỗi test dựng danh mục dịch vụ riêng vì mỗi mức chỉ có
+ * thật của 012 (quan hệ lập bằng {@link RelationshipFixtures}), bản scan lưu ở bản giả S3. Mỗi test dựng danh mục dịch vụ riêng vì mỗi mức chỉ có
  * một dịch vụ chăm sóc Hiệu lực (Q-297) và các test dùng chung schema. Lớp con khai {@code @AutoConfigureMockMvc} và
  * {@code @WithMockUser}.
  */
@@ -55,7 +61,13 @@ abstract class ContractTestBase extends M02TestBase {
     protected TestClockControl clock;
 
     @Autowired
-    protected FakeRepresentatives representatives;
+    private RelationshipHistoryStore relationshipHistory;
+
+    @Autowired
+    private TransactionTemplate transactions;
+
+    private RelationshipFixtures family;
+    private final Map<Long, Long> representatives = new HashMap<>();
 
     @Autowired
     protected FileApi files;
@@ -80,7 +92,6 @@ abstract class ContractTestBase extends M02TestBase {
     void contractSetup() throws SQLException {
         dayCareCapacity.reset();
         manager = sharedManager();
-        representatives.reset();
         clock.reset();
         cleanDailyState();
         jdbc.update(M02Sql.DEACTIVATE_CARE_SERVICES);
@@ -161,13 +172,31 @@ abstract class ContractTestBase extends M02TestBase {
     /** Người cao tuổi Đang tiếp nhận đã có người đại diện; trả mã người cao tuổi. */
     protected long residentWithRepresentative() {
         long residentId = admissionResident();
-        representatives.representative(residentId, representativeOf(residentId));
+        long member = family().familyMember("Người đại diện " + residentId, "0903" + residentId % 1_000_000);
+        family().relate(member, residentId, 1, true, true);
+        representatives.put(residentId, member);
         return residentId;
     }
 
-    /** Mã người thân dùng làm người đại diện của người cao tuổi (cố định theo người cao tuổi). */
-    protected static long representativeOf(long residentId) {
-        return 9_000_000L + residentId;
+    /** Dữ liệu người thân, quan hệ thật của 012; quan hệ bắt đầu từ lâu trước mọi ngày test dùng. */
+    protected RelationshipFixtures family() {
+        if (family == null) {
+            family = new RelationshipFixtures(
+                    jdbc,
+                    transactions,
+                    relationshipHistory,
+                    time.now().minus(Duration.ofDays(1500)).truncatedTo(ChronoUnit.MICROS));
+        }
+        return family;
+    }
+
+    /** Mã người thân là người đại diện của người cao tuổi, lập bởi {@link #residentWithRepresentative()}. */
+    protected long representativeOf(long residentId) {
+        Long member = representatives.get(residentId);
+        if (member == null) {
+            throw new IllegalStateException("Người cao tuổi " + residentId + " chưa lập người đại diện trong test");
+        }
+        return member;
     }
 
     protected ResultActions createRaw(ObjectNode body) throws Exception {

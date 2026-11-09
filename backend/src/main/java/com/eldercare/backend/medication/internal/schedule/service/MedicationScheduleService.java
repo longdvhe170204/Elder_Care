@@ -34,13 +34,17 @@ public class MedicationScheduleService {
     private final MedicationScheduleCalculator scheduleCalculator;
     private final DoseAssigneeResolver assigneeResolver;
 
+    private final AbsenceScheduleContexts absenceContexts;
+
     public MedicationScheduleService(
             PrescriptionRepository prescriptionRepository,
             MedicationRepository medicationRepository,
             MedicationDoseRepository doseRepository,
             DoseResultRepository doseResultRepository,
             MedicationScheduleCalculator scheduleCalculator,
-            DoseAssigneeResolver assigneeResolver) {
+            DoseAssigneeResolver assigneeResolver,
+            AbsenceScheduleContexts absenceContexts) {
+        this.absenceContexts = absenceContexts;
         this.prescriptionRepository = prescriptionRepository;
         this.medicationRepository = medicationRepository;
         this.doseRepository = doseRepository;
@@ -78,7 +82,7 @@ public class MedicationScheduleService {
             materializedMap.put(key, md);
         }
 
-        ScheduleContext context = ScheduleContext.empty(residentId);
+        ScheduleContext context = absenceContexts.of(residentId);
 
         for (Prescription p : unended) {
             Medication med = medicationRepository.findById(p.getMedicationId()).orElse(null);

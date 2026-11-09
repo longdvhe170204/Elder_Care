@@ -30,14 +30,16 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Xác thực mỗi yêu cầu bằng token phiên (002 research A-02, A-15; FR-013, FR-013a): app gửi {@code Authorization:
  * Bearer}, web gửi cookie {@code session} và mọi lệnh ghi phải kèm {@code X-Requested-From: web} (chặn CSRF). Có token
- * mà không còn phiên thì 401 {@code SESSION_EXPIRED}; không có token thì để Spring Security trả 401. Ba đường không
- * cần phiên và không tra phiên: đăng nhập, đăng nhập bằng mã QR, {@code /sos/**} (007 xác thực bằng token thiết bị).
+ * mà không còn phiên thì 401 {@code SESSION_EXPIRED}; không có token thì để Spring Security trả 401. Các đường không
+ * cần phiên và không tra phiên: đăng nhập, đăng nhập bằng mã QR, tự đặt lại mật khẩu (FR-052a), {@code /sos/**} (007
+ * xác thực bằng token thiết bị).
  */
 class SessionTokenFilter extends OncePerRequestFilter {
 
     static final RequestMatcher PUBLIC_PATHS = new OrRequestMatcher(
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/login"),
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/qr-login"),
+            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/password-reset/**"),
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/sos/**"));
     /**
      * Phiên buộc đổi mật khẩu chỉ gọi được đổi mật khẩu, đăng xuất (FR-006, research A-03) và đọc {@code GET /me} để

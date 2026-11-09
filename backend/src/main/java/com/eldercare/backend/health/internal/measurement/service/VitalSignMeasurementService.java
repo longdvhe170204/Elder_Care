@@ -185,7 +185,8 @@ public class VitalSignMeasurementService {
                     record.measuredAt(),
                     record.labels(),
                     eventKey,
-                    now));
+                    now,
+                    record.createdBy()));
         }
 
         return record;
@@ -287,7 +288,8 @@ public class VitalSignMeasurementService {
                 newRecord.measuredAt(),
                 newRecord.labels(),
                 eventKey,
-                now));
+                now,
+                newRecord.createdBy()));
 
         return newRecord;
     }
@@ -324,7 +326,8 @@ public class VitalSignMeasurementService {
                 original.measuredAt(),
                 labels,
                 "VITAL_SIGN:" + recordId,
-                confirmedAt));
+                confirmedAt,
+                original.createdBy()));
         return true;
     }
 

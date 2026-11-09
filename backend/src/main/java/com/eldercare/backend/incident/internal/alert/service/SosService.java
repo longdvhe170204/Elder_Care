@@ -199,7 +199,7 @@ public class SosService {
         Instant now = time.now();
         records.add(
                 PLACE,
-                new EntityRef(PRESS_SOURCE, pressId),
+                new EntityRef("M01.RESIDENT", residentId),
                 new NewRecordEvent<>(
                         new SosPlaceContent(place),
                         null,

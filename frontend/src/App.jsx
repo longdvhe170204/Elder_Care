@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { ApiError, getMe, postAuthLogout } from '@/api'
 import { AppShell } from '@/common/layout/AppShell'
-import { NAV_GROUPS, canSee, navForRole } from '@/common/layout/navigation'
+import { ACCOUNT_PAGE, NAV_GROUPS, canSee, navForRole } from '@/common/layout/navigation'
 import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
 import { PermissionDeniedState } from '@/common/PageState'
 import { SessionGuard } from '@/common/SessionGuard'
 import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
+import { MyAccountPage } from '@/features/permissions/MyAccountPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
 import { OverdueTasksPage } from '@/features/care-tasks/OverdueTasksPage'
@@ -16,6 +17,9 @@ import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPa
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
 import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
 import { ActivitySessionsPage } from '@/features/activities/ActivitySessionsPage'
+import { NutritionCatalogPage } from '@/features/nutrition/catalog/NutritionCatalogPage'
+import { ResidentDietPage } from '@/features/nutrition/resident/ResidentDietPage'
+import { MealsPage } from '@/features/nutrition/meals/MealsPage'
 import { QualityCheckPage } from '@/features/quality-checks/QualityCheckPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -24,12 +28,16 @@ import { NotificationsPage } from '@/features/notifications/NotificationsPage'
 import { PendingReviewPage } from '@/features/pending-review/PendingReviewPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
+import { PortalBelongings } from '@/features/belongings/PortalBelongings'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { ResidenceRegistrationPage } from '@/features/residence-registration/ResidenceRegistrationPage'
-import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
+import { IncidentsPage } from '@/features/incidents/IncidentsPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { HealthCatalogPage } from '@/features/health-catalog/HealthCatalogPage'
+import { MonitoringSettingsPage } from '@/features/measurement-schedules/MonitoringSettingsPage'
+import { InfectionControlPage } from '@/features/infection-control/InfectionControlPage'
+import { FacilityLicensePage } from '@/features/facility-license/FacilityLicensePage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { FamilyMembersPage } from '@/features/relatives/FamilyMembersPage'
 import { PickupPage } from '@/features/relatives/pickups/PickupPage'
@@ -45,18 +53,22 @@ import { EndingsPage } from '@/features/admissions/EndingsPage'
 import { DeathsPage } from '@/features/admissions/DeathsPage'
 import { ServicesPage } from '@/features/admissions/ServicesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
+import { ShiftSwapsPage } from '@/features/shift-swaps/ShiftSwapsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
+import { ChargesPage } from '@/features/charges/ChargesPage'
 import { BelongingsPage } from '@/features/belongings/BelongingsPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
+  charges: ChargesPage,
   beds: BedsPage,
   dashboard: DashboardPage,
   reports: ReportsPage,
   residents: ResidentListPage,
   shifts: ShiftsPage,
+  'shift-swaps': ShiftSwapsPage,
   staff: StaffPage,
   'care-tasks': CareChecklistPage,
   'overdue-care-tasks': OverdueTasksPage,
@@ -66,11 +78,17 @@ const PAGES = {
   'day-care-attendance': DayCareAttendancePage,
   'care-catalogs': CareCatalogPage,
   'activity-sessions': ActivitySessionsPage,
+  nutrition: NutritionCatalogPage,
+  'resident-diets': ResidentDietPage,
+  meals: MealsPage,
   'quality-checks': QualityCheckPage,
-  incidents: IncidentDetailPage,
+  incidents: IncidentsPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
   'health-catalog': HealthCatalogPage,
+  'measurement-schedules': MonitoringSettingsPage,
+  'infection-control': InfectionControlPage,
+  'facility-license': FacilityLicensePage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   'residence-registrations': ResidenceRegistrationPage,
@@ -94,6 +112,7 @@ const PAGES = {
   notifications: NotificationsPage,
   'pending-review-records': PendingReviewPage,
   belongings: BelongingsPage,
+  [ACCOUNT_PAGE]: MyAccountPage,
 }
 
 // Mục menu chỉ hiện khi đã có màn
@@ -115,7 +134,7 @@ function LivePermissions({ role, page, onNavigate, render }) {
   const { status, hasFunction } = usePermissions()
   const check = status === 'ready' ? hasFunction : null
   const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
-  const misplaced = status !== 'loading' && (!item || !canSee(item, role, check, BUILT))
+  const misplaced = status !== 'loading' && page !== ACCOUNT_PAGE && (!item || !canSee(item, role, check, BUILT))
   const first = misplaced ? firstPage(role, check) : null
 
   useEffect(() => {
@@ -179,18 +198,19 @@ function App() {
   function changeRole(nextRole) {
     setRole(nextRole)
     const allowed = navForRole(nextRole, null, BUILT).flatMap((g) => g.items.map((i) => i.key))
-    if (!allowed.includes(page)) navigate(firstPage(nextRole))
+    if (page !== ACCOUNT_PAGE && !allowed.includes(page)) navigate(firstPage(nextRole))
   }
 
   if (checking) return null
-  if (role === 'FAMILY_MEMBER') return <FamilyPortal onExit={() => changeRole('FLOOR_MANAGER')} />
+  if (role === 'FAMILY_MEMBER')
+    return <FamilyPortal onExit={() => changeRole('FLOOR_MANAGER')} belongings={PortalBelongings} />
 
   const Page = PAGES[page]
   const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
 
   const shell = (hasFunction) => {
     // Chặn hiển thị khi không có quyền (quyền thật do backend trả, backend vẫn kiểm)
-    const allowed = item && canSee(item, role, hasFunction, BUILT)
+    const allowed = page === ACCOUNT_PAGE || (item && canSee(item, role, hasFunction, BUILT))
     return (
       <AppShell
         role={role}
@@ -203,7 +223,13 @@ function App() {
         onPageChange={(key) => navigate(key)}
       >
         {allowed ? (
-          <Page key={`${page}:${JSON.stringify(params)}`} role={role} onNavigate={navigate} {...params} />
+          <Page
+            key={`${page}:${JSON.stringify(params)}`}
+            role={role}
+            onNavigate={navigate}
+            {...(page === ACCOUNT_PAGE ? { session, built: BUILT } : {})}
+            {...params}
+          />
         ) : (
           <PermissionDeniedState label={item?.label ?? 'màn này'} />
         )}

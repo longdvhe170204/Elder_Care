@@ -29,4 +29,14 @@ public interface StaffProfileApi {
      * 2026-10-23); rỗng khi hồ sơ không có số.
      */
     Optional<String> phoneNumber(long staffId);
+
+    /** Email trên hồ sơ nhân viên, cho trang Tài khoản của tôi ({@code GET /me}; bổ sung 2026-11-09, chủ dự án duyệt). */
+    Optional<String> email(long staffId);
+
+    /**
+     * Nhân viên tự sửa liên hệ trên hồ sơ của mình ({@code PUT /me/contact}; bổ sung 2026-11-09, chủ dự án duyệt): ghi số
+     * điện thoại, email (null là xóa) và nhật ký STAFF_UPDATED. 002 đã kiểm mật khẩu, định dạng và báo số cũ. Chạy trong
+     * transaction của lệnh gọi.
+     */
+    void updateContact(long staffId, String phoneNumber, String email);
 }

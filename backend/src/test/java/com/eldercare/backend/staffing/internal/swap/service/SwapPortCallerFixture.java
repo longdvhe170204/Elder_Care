@@ -1,0 +1,10 @@
+package com.eldercare.backend.staffing.internal.swap.service;
+
+import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPortFixture;
+
+/** Bên đổi ca được gọi port lệnh nội bộ. */
+public class SwapPortCallerFixture {
+    public void apply(ShiftCommandPortFixture port) {
+        port.createShift();
+    }
+}

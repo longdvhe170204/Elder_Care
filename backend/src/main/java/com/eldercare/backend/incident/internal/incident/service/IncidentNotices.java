@@ -222,6 +222,23 @@ public final class IncidentNotices {
     }
 
     /** FR-045a: báo người được giao theo mức hiện hành của sự cố. */
+    /** Nguồn cảnh báo của sự cố đã được xử lý: báo người xử lý, mức Nhẹ (FR-032, FR-085). */
+    public static List<NotificationRequest> sourceResolved(
+            long incidentId, Long residentId, Long floorAreaId, long staffId, Instant at) {
+        return List.of(request(
+                incidentId,
+                SOURCE_TYPE + ":" + incidentId + ":SOURCE_RESOLVED:" + at.toEpochMilli(),
+                IncidentLevel.LOW,
+                residentId,
+                floorAreaId,
+                List.of(new RecipientGroup.Staff(staffId, "INCIDENT_SOURCE_RESOLVED")),
+                "Nguồn của cảnh báo đã chuyển thành sự cố này đã được xử lý. Mở hồ sơ sự cố để xem diễn biến.",
+                0L,
+                at,
+                Optional.empty(),
+                Optional.empty()));
+    }
+
     static List<NotificationRequest> assigned(
             long incidentId,
             Long residentId,
@@ -351,7 +368,7 @@ public final class IncidentNotices {
                 List.of(new ContentPart(InformationType.GENERAL, content)),
                 Optional.of("Sự cố mới"),
                 Optional.of("Sự cố"),
-                Optional.of(actorId),
+                actorId > 0 ? Optional.of(actorId) : Optional.empty(),
                 false,
                 at,
                 Map.of("incidentId", incidentId),

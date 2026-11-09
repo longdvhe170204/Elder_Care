@@ -37,10 +37,10 @@ class AddendumClosing {
                 .ifPresent(addendum -> {
                     addenda.markNotApplied(addendum.id());
                     if (addendum.changeTypes().contains(ChangeType.BED)) {
-                        // Phân bổ theo lịch đặt lúc duyệt phải hủy cùng phụ lục (FR-045); thiếu bản cài thì không có gì
-                        // để hủy
-                        beds.ifAvailable(api -> api.cancelScheduledAllocation(
-                                approvalRequestId, new Reason("Phụ lục không áp dụng (FR-045)")));
+                        // Phân bổ theo lịch đặt lúc duyệt phải hủy cùng phụ lục (FR-045)
+                        beds.getObject()
+                                .cancelScheduledAllocation(
+                                        approvalRequestId, new Reason("Phụ lục không áp dụng (FR-045)"));
                     }
                     auditLog.write(AuditLogEntry.builder()
                             .action(ResidencyChangeHandler.ADDENDUM_NOT_APPLIED)

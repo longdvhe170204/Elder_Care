@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.medication.internal.governance.persistence.RecordActor;
 import com.eldercare.backend.medication.internal.handover.domain.AbsenceIntervalContent;
 import com.eldercare.backend.medication.internal.handover.domain.MedicationAbsenceInterval;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -72,6 +73,13 @@ public class MedicationAbsenceIntervalRepository {
     public Optional<MedicationAbsenceInterval> findOpenByResidentId(Long residentId) {
         return rows.findByUniqueKey(AbsenceIntervalContent.KIND, openKey(residentId))
                 .map(MedicationAbsenceIntervalRepository::toDomain);
+    }
+
+    /** Mọi khoảng vắng của người cao tuổi, mở và đã đóng (đầu vào lịch thuốc, research D-06). */
+    public List<MedicationAbsenceInterval> findByResidentId(Long residentId) {
+        return rows.listByResident(AbsenceIntervalContent.KIND, residentId, ALL).stream()
+                .map(MedicationAbsenceIntervalRepository::toDomain)
+                .toList();
     }
 
     public Optional<MedicationAbsenceInterval> findByTripId(Long tripId) {
