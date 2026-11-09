@@ -202,6 +202,16 @@ public class MedicationDose {
         this.updatedAt = now;
     }
 
+    /** Liều Đến giờ, Trễ khi người cao tuổi sang trạng thái cuối: Không thực hiện, người đóng Hệ thống (FR-047). */
+    public void closeByFinalStatus(Instant now) {
+        DoseTransitionTable.validateTransition(this.status, DoseStatus.NOT_ADMINISTERED);
+        this.status = DoseStatus.NOT_ADMINISTERED;
+        this.closedAt = now;
+        this.closedByType = "SYSTEM";
+        this.closureRule = "FR_047_TRANG_THAI_CUOI";
+        this.updatedAt = now;
+    }
+
     public void cancel(DoseCancellationReason reason, Instant now) {
         DoseTransitionTable.validateTransition(this.status, DoseStatus.CANCELLED);
         this.status = DoseStatus.CANCELLED;

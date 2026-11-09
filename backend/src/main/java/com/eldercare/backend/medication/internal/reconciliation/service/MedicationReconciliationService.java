@@ -67,6 +67,8 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final ParameterApi parameters;
 
     @Autowired
+    private final ReconciliationDeadlines deadlines;
+
     public MedicationReconciliationService(
             MedicationReconciliationRepository reconciliationRepo,
             ReconciliationItemRepository itemRepo,
@@ -77,7 +79,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             ResidentMedicationLock residentMedicationLock,
             @Autowired(required = false) ObjectMapper objectMapper,
             BusinessTime businessTime,
-            ParameterApi parameters) {
+            ParameterApi parameters,
+            ReconciliationDeadlines deadlines) {
+        this.deadlines = deadlines;
         this.reconciliationRepo = reconciliationRepo;
         this.itemRepo = itemRepo;
         this.correctionRepo = correctionRepo;
@@ -447,6 +451,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
         ticket.confirm(actualUserId, now);
         MedicationReconciliation saved = reconciliationRepo.save(ticket);
+        deadlines.complete(ticket.getResidentId());
         return toResponse(saved, items);
     }
 

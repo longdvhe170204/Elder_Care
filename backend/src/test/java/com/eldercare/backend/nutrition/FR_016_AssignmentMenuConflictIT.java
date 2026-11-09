@@ -62,7 +62,17 @@ class FR_016_AssignmentMenuConflictIT extends MenuTestBase {
         assertThat(codes).contains("CONFLICT:" + week + ":" + breakfast + ":" + shrimpSoup);
         long id = f.latestAssignment(resident);
 
-        f.apply(id, "Theo đánh giá").andExpect(status().isConflict());
+        // 409 liệt kê từng mã cảnh báo để mở lại bản Đề xuất vẫn xác nhận được (chủ dự án chọn 2026-11-08)
+        String blocked = f.apply(id, "Theo đánh giá")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("WARNINGS_NOT_CONFIRMED"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        List<String> listed = JsonPath.read(blocked, "$.unmetConditions[*].code");
+        assertThat(listed).containsExactlyInAnyOrderElementsOf(codes);
+        assertThat(JsonPath.<List<String>>read(blocked, "$.unmetConditions[*].description"))
+                .allSatisfy(d -> assertThat(d).isNotBlank());
         f.asDoctor();
         f.send(
                         post("/api/v1/diet-assignments/" + id + "/apply"),

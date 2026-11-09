@@ -102,10 +102,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 007 T062 (dịch đủ 2026-11-03, bản dịch contracts/api-translation.md): danh mục và đo chỉ số đã cài
             new Contract(
                     Path.of("..", "specs", "007-health-alert-incident", "contracts", "api-007.yaml"),
-                    Set.of(
-                            "GET /api/v1/incidents/{id}/family-contacts-to-notify",
-                            "GET /api/v1/residents/{residentId}/examinations",
-                            "POST /api/v1/residents/{residentId}/examinations"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt
@@ -133,15 +130,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // US2, US4, US5, US6, US9 2026-11-05; US8 2026-11-05)
             new Contract(
                     Path.of("..", "specs", "012-family-portal", "contracts", "api-012.yaml"), Set.of(), Set.of(), true),
-            // 011 (2026-11-06, D): hợp đồng đã dịch; xóa dòng khi cài controller của từng story. Bữa ăn, loại đồ ăn bị
-            // cấm
-            // chờ chức năng quyền của Quản lý viện (A, team-plan mục 8)
+            // 011 (2026-11-08, D): đủ mọi operation (bữa ăn cài sau khi A thêm NUTRITION_CATALOG, Q-401)
             new Contract(
                     Path.of("..", "specs", "011-nutrition-management", "contracts", "api-011.yaml"),
-                    Set.of(
-                            "GET /api/v1/nutrition/meals",
-                            "POST /api/v1/nutrition/meals",
-                            "PUT /api/v1/nutrition/meals/{id}"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 018 (R-15, 2026-11-04; A xem xong 2026-11-07, BL-91): đủ bốn operation, năm lệnh {command}; lệnh ngoài
