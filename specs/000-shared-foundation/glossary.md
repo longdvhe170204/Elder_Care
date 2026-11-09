@@ -548,6 +548,18 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | thân, phản hồi HTTP | `web.request.PasswordResetRequestBody`, `web.request.PasswordResetConfirmBody`, `web.response.PasswordResetAvailability` |
 | màn quên mật khẩu | web `features/auth/ForgotPassword.jsx` (trên `LoginPage`); app `lib/common/auth/forgot_password_screen.dart` (trên `LoginScreen`) |
 
+### 7.13. Liên hệ của chính mình (trang Tài khoản của tôi, 2026-11-09, chủ dự án duyệt)
+
+| Tên logic | Mã |
+| --- | --- |
+| sửa liên hệ của mình | `PUT /me/contact`; thân `web.request.MyContactBody` (`currentPassword`, `phoneNumber`, `email`); trả `UserInfo` |
+| số điện thoại, email trong thông tin người dùng | `UserInfo.phoneNumber`, `UserInfo.email` |
+| `HoSoNhanVienApi.email`, `suaLienHe` | `StaffProfileApi.email(staffId)`, `StaffProfileApi.updateContact(staffId, phoneNumber, email)`; 008 cài ở `StaffDirectory` |
+| `LIEN_HE_KHONG_HOP_LE` (422, `unmetConditions[].code` là `phoneNumber` hoặc `email`) | `CONTACT_INVALID` |
+| dịch vụ sửa liên hệ của mình | `internal.auth.service.MyContactService` |
+| tin báo đổi số tới số cũ | gửi bằng `PasswordResetSmsPort.send`; không có loại thông báo riêng |
+| trang web | `features/permissions/MyAccountPage.jsx` (`#my-account`) |
+
 ## 8. Feature 001 (`001-elder-profile-assessment`, B)
 
 *Bổ sung 2026-10-21, khi dịch `contracts/api-001.yaml`. Tên bảng, cột, lớp nội bộ còn lại bổ sung vào mục này cùng thay đổi với mã (R-03). Chỉ sửa mục này.*

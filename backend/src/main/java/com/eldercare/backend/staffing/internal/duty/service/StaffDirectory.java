@@ -74,6 +74,39 @@ class StaffDirectory implements StaffProfileApi {
         return staff.find(staffId).map(s -> s.phoneNumber());
     }
 
+    public Optional<String> email(long staffId) {
+        return staff.find(staffId).map(s -> s.email());
+    }
+
+    /** Nhân viên tự sửa liên hệ (PUT /me/contact của 002): giữ các trường khác, nhật ký ghi trước và sau. */
+    @Transactional
+    public void updateContact(long staffId, String phoneNumber, String email) {
+        var before = staff.lock(staffId);
+        staff.update(
+                staffId,
+                new StaffInput(
+                        before.fullName(),
+                        before.position(),
+                        before.specialty(),
+                        before.startDate(),
+                        phoneNumber,
+                        email,
+                        null));
+        Map<String, Object> was = new LinkedHashMap<>();
+        was.put("phoneNumber", before.phoneNumber());
+        was.put("email", before.email());
+        Map<String, Object> now = new LinkedHashMap<>();
+        now.put("phoneNumber", phoneNumber);
+        now.put("email", email);
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("STAFF_UPDATED", false))
+                .entity("M09.STAFF", staffId)
+                .before(was)
+                .after(now)
+                .details(Map.of("permissionBasis", "SELF"))
+                .build());
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public long createMinimal(String fullName, Role positionRole) {
         if (!STAFF_ROLES.contains(positionRole) || fullName == null || fullName.isBlank())
