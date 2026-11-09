@@ -75,7 +75,13 @@ class T045_PrnEffectsTest {
         verify(events).publishEvent(event.capture());
         assertThat(event.getValue())
                 .isEqualTo(new MedicationBilledEvent(
-                        BilledSource.PRN_ADMINISTRATION, 81L, 41L, 51L, new BigDecimal("1.50"), ADMINISTERED_AT));
+                        BilledSource.PRN_ADMINISTRATION,
+                        81L,
+                        41L,
+                        51L,
+                        new BigDecimal("1.50"),
+                        "viên",
+                        ADMINISTERED_AT));
         ArgumentCaptor<PrnAdministration> saved = ArgumentCaptor.forClass(PrnAdministration.class);
         verify(administrations).save(saved.capture());
         assertThat(saved.getValue().getFloorAreaId()).isEqualTo(9L);

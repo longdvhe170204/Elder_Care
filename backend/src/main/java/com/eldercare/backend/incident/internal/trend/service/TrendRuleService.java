@@ -2,8 +2,17 @@ package com.eldercare.backend.incident.internal.trend.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
+import com.eldercare.backend.administration.shared.api.dto.RecordEvent;
+import com.eldercare.backend.administration.shared.api.dto.SharedKind;
+import com.eldercare.backend.admission.api.ResidencyDayApi;
+import com.eldercare.backend.admission.api.dto.ResidencyDayView;
 import com.eldercare.backend.care.api.dto.Importance;
 import com.eldercare.backend.care.api.events.MeasurementTaskMissed;
+import com.eldercare.backend.care.api.events.SleepResultRecorded;
+import com.eldercare.backend.care.api.events.SleepResultVoided;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.health.api.VitalSignApi;
 import com.eldercare.backend.health.api.dto.VitalSignReadingView;
@@ -16,20 +25,29 @@ import com.eldercare.backend.incident.internal.alert.domain.TrendRuleView;
 import com.eldercare.backend.incident.internal.alert.domain.TypeLock;
 import com.eldercare.backend.incident.internal.alert.service.AlertService;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
+import com.eldercare.backend.incident.internal.trend.domain.ProlongedInsomniaCounter;
 import com.eldercare.backend.incident.internal.trend.domain.WeightLoss;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Cảnh báo theo xu hướng (FR-039 → FR-039b, BR-M05-04; research S-10): chạy khi dữ liệu nguồn đổi, không quét. Quy tắc
- * tắt thì không tạo; bật lại không xét bù. Mất ngủ kéo dài (FR-039c) chờ API đọc kết quả ngủ theo khoảng của 005; từ chối
+ * tắt thì không tạo; bật lại không xét bù. Mất ngủ kéo dài (FR-039c) dựng từ các sự kiện kết quả ngủ của 005, giữ mỗi lần ghi, đính chính, hủy thành một dòng
+ * {@code M05.SLEEP_NIGHT}; từ chối
  * thuốc do 006 đếm và gửi yêu cầu cảnh báo, ở đây chỉ áp bật/tắt và mức của quy tắc.
  */
 @Component
@@ -37,7 +55,7 @@ public class TrendRuleService {
     static final String WEIGHT_LOSS = "WEIGHT_LOSS";
     static final String MISSED_MEASUREMENT = "MISSED_MEASUREMENT";
     static final String MEDICATION_REFUSAL = "MEDICATION_REFUSAL";
-    static final String WEIGHT_CODE = "CAN_NANG";
+    static final String WEIGHT_CODE = "WEIGHT";
     /** Loại yêu cầu cảnh báo "từ chối liên tiếp" của 006 (module-interfaces 006, {@code YeuCauCanhBao}). */
     static final String CONSECUTIVE_REFUSAL = "TU_CHOI_LIEN_TIEP";
     /** Nguồn là liều bị từ chối ({@code dose:<lieuId>}); khóa chống trùng theo thuốc ({@code refusal:<nctId>:<thuocId>}). */
@@ -46,6 +64,9 @@ public class TrendRuleService {
     private static final Pattern REFUSAL_KEY = Pattern.compile("refusal:\\d+:(\\d+)");
 
     private static final String MARKER_KIND = "M05.TREND";
+    static final String PROLONGED_INSOMNIA = "PROLONGED_INSOMNIA";
+    private static final String ABSENT = "ABSENT";
+    private static final SharedKind<Map> SLEEP_NIGHT = SharedKind.of("M05.SLEEP_NIGHT", Map.class);
 
     private final IncidentCatalogService catalog;
     private final ParameterApi parameters;
@@ -53,6 +74,8 @@ public class TrendRuleService {
     private final AlertService alerts;
     private final ReminderMarkers markers;
     private final ApplicationEventPublisher events;
+    private final RecordEventApi recordEvents;
+    private final ResidencyDayApi residencyDays;
 
     public TrendRuleService(
             IncidentCatalogService catalog,
@@ -60,13 +83,17 @@ public class TrendRuleService {
             VitalSignApi vitalSigns,
             AlertService alerts,
             ReminderMarkers markers,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            RecordEventApi recordEvents,
+            ResidencyDayApi residencyDays) {
         this.catalog = catalog;
         this.parameters = parameters;
         this.vitalSigns = vitalSigns;
         this.alerts = alerts;
         this.markers = markers;
         this.events = events;
+        this.recordEvents = recordEvents;
+        this.residencyDays = residencyDays;
     }
 
     /** Sụt cân (FR-039a): cân nặng mới được xác nhận so với giá trị cao nhất trong cửa sổ trước đó. */
@@ -160,6 +187,111 @@ public class TrendRuleService {
             events.publishEvent(
                     new WeightLossDetected(residentId, detection.highest().recordId(), recordId, key, at));
         });
+    }
+
+    /**
+     * Mất ngủ kéo dài (FR-039c): ghi đêm của kết quả ngủ rồi đếm đêm liên tiếp thuộc nhóm mất ngủ lùi từ đêm này. Đính chính
+     * của 005 phát lại sự kiện cùng mã kết quả nên dòng mới nhất của mỗi kết quả thắng.
+     */
+    @ApplicationModuleListener
+    void onSleepResultRecordedEvent(SleepResultRecorded event) {
+        onSleepResultRecorded(event);
+    }
+
+    /** Phần xử lý đồng bộ của {@link #onSleepResultRecordedEvent} (test gọi tuần tự). */
+    @Transactional
+    public void onSleepResultRecorded(SleepResultRecorded event) {
+        var context = event.context();
+        saveNight(event.resultId(), event.residentId(), event.date(), event.valueGroup(), false, context);
+        var rule = enabled(PROLONGED_INSOMNIA);
+        if (rule.isEmpty()) return;
+        int needed = parameters.read(ParameterCode.CFG_M05_05).asInt();
+        var results = currentNights(event.residentId());
+        int nights = ProlongedInsomniaCounter.consecutiveNights(
+                event.date(), results, absentNights(event.residentId(), results, event.date()));
+        if (needed <= 0 || nights < needed) return;
+        String key = "INSOMNIA:" + event.resultId() + ":" + context.milestone();
+        if (!markers.mark(MARKER_KIND, "M01.RESIDENT", event.residentId(), key, null)) return;
+        alerts.requestAlert(new CreateAlertCommand(
+                event.residentId(),
+                context.floorAreaId().orElse(null),
+                PROLONGED_INSOMNIA,
+                TypeLock.forTrend(PROLONGED_INSOMNIA),
+                rule.get().level(),
+                context.occurredAt(),
+                context.sourceType(),
+                context.sourceId(),
+                "Mất ngủ kéo dài " + nights + " đêm liên tiếp",
+                null));
+    }
+
+    /** Kết quả ngủ bị Hủy ghi nhận không còn được tính (FR-037 của 005); không tạo cảnh báo. */
+    @ApplicationModuleListener
+    void onSleepResultVoidedEvent(SleepResultVoided event) {
+        onSleepResultVoided(event);
+    }
+
+    @Transactional
+    public void onSleepResultVoided(SleepResultVoided event) {
+        saveNight(event.resultId(), event.residentId(), event.date(), "", true, event.context());
+    }
+
+    private void saveNight(
+            long resultId,
+            long residentId,
+            LocalDate night,
+            String group,
+            boolean voided,
+            com.eldercare.backend.care.api.dto.CareEventContext context) {
+        String uniqueKey = "SLEEP_NIGHT:" + resultId + ":" + context.milestone();
+        if (recordEvents.findByUniqueKey(SLEEP_NIGHT, uniqueKey).isPresent()) return;
+        Map<String, Object> content = new HashMap<>();
+        content.put("resultId", resultId);
+        content.put("night", night.toString());
+        content.put("group", group == null ? "" : group);
+        content.put("voided", voided);
+        recordEvents.add(
+                SLEEP_NIGHT,
+                new EntityRef("M01.RESIDENT", residentId),
+                new NewRecordEvent<>(
+                        content,
+                        null,
+                        null,
+                        true,
+                        context.occurredAt(),
+                        context.occurredAt(),
+                        context.occurredAt(),
+                        context.floorAreaId().orElse(null),
+                        uniqueKey));
+    }
+
+    /** Đêm vắng mặt (FR-039c): ngày {@code ABSENT} theo lượt vắng của 004, từ đêm sớm nhất đã ghi tới đêm đang xét. */
+    private Set<LocalDate> absentNights(
+            long residentId, List<ProlongedInsomniaCounter.SleepResult> results, LocalDate night) {
+        LocalDate from = results.stream()
+                .map(ProlongedInsomniaCounter.SleepResult::night)
+                .min(LocalDate::compareTo)
+                .filter(first -> first.isBefore(night))
+                .orElse(night);
+        return residencyDays.daysBetween(residentId, from, night).stream()
+                .filter(day -> ABSENT.equals(day.presence()))
+                .map(ResidencyDayView::date)
+                .collect(Collectors.toSet());
+    }
+
+    private List<ProlongedInsomniaCounter.SleepResult> currentNights(long residentId) {
+        Map<Long, RecordEvent<Map>> latest =
+                recordEvents.list(SLEEP_NIGHT, new EntityRef("M01.RESIDENT", residentId)).stream()
+                        .collect(Collectors.toMap(
+                                e -> ((Number) e.content().get("resultId")).longValue(),
+                                e -> e,
+                                (a, b) -> b.occurredAt().isBefore(a.occurredAt()) ? a : b));
+        return latest.values().stream()
+                .filter(e -> !Boolean.TRUE.equals(e.content().get("voided")))
+                .map(e -> new ProlongedInsomniaCounter.SleepResult(
+                        LocalDate.parse((String) e.content().get("night")), e.occurredAt(), (String)
+                                e.content().get("group")))
+                .toList();
     }
 
     /** Bỏ lỡ lần đo theo lịch (FR-039b): khóa {@code BO_LO_LAN_DO:<chiSo>}; Bắt buộc thì Trung bình trở lên. */

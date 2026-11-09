@@ -2,8 +2,8 @@ package com.eldercare.backend.incident.internal.incident.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
-import com.eldercare.backend.incident.api.events.IncidentEscalated;
-import com.eldercare.backend.incident.api.events.IncidentMaximumEscalationReminder;
+import com.eldercare.backend.incident.api.events.AlertEscalated;
+import com.eldercare.backend.incident.api.events.MaximumEscalationReminder;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.AlertEscalationChain;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
@@ -86,7 +86,8 @@ public class IncidentEscalationService {
                         sequence,
                         nextReminder(incident, incident.acknowledgementDeadline(), now),
                         incident.version());
-                events.publishEvent(new IncidentMaximumEscalationReminder(
+                events.publishEvent(new MaximumEscalationReminder(
+                        "M05.INCIDENT",
                         id,
                         sequence,
                         "M05.INCIDENT:" + id + ":MAX_REMINDER:" + sequence,
@@ -104,7 +105,8 @@ public class IncidentEscalationService {
         }
         int level = next.getAsInt();
         incidents.escalate(id, level, deadline(incident, now), incident.version());
-        events.publishEvent(new IncidentEscalated(
+        events.publishEvent(new AlertEscalated(
+                "M05.INCIDENT",
                 id,
                 level,
                 "M05.INCIDENT:" + id + ":ESCALATED:" + level,

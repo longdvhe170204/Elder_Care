@@ -110,6 +110,7 @@ public class AlertEscalationService {
                                 .toList()),
                 now);
         events.publishEvent(new AlertEscalated(
+                AlertNotices.SOURCE_TYPE,
                 alert.id(),
                 level,
                 AlertNotices.SOURCE_TYPE + ":" + alert.id() + ":ESCALATED:" + level,
@@ -129,6 +130,7 @@ public class AlertEscalationService {
         alerts.reminded(
                 alert.id(), sequence, nextReminder(alert, alert.acknowledgementDeadline(), now), alert.version());
         events.publishEvent(new MaximumEscalationReminder(
+                AlertNotices.SOURCE_TYPE,
                 alert.id(),
                 sequence,
                 AlertNotices.SOURCE_TYPE + ":" + alert.id() + ":MAX_REMINDER:" + sequence,

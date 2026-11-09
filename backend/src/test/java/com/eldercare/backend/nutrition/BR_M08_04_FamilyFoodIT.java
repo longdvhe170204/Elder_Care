@@ -117,7 +117,7 @@ class BR_M08_04_FamilyFoodIT extends MenuTestBase {
     }
 
     private void forbiddenType(String name) throws Exception {
-        f.asDoctor();
+        f.asManager();
         f.send(
                         post("/api/v1/nutrition/forbidden-food-types"),
                         "{\"name\":\"" + name + "\",\"description\":\"Chính sách viện\",\"status\":\"ACTIVE\"}")
