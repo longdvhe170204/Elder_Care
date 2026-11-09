@@ -150,6 +150,27 @@ paths:
       summary: Thông tin người dùng hiện tại
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserInfo' } } } }
+  /me/contact:
+    put:
+      tags: [auth]
+      summary: Nhân viên tự bổ sung, sửa số điện thoại và email trên hồ sơ nhân viên của mình (bổ sung 2026-11-09, chủ dự án duyệt)
+      description: 'Chỉ tài khoản nhân viên có hồ sơ liên kết. Bắt buộc mật khẩu hiện tại vì số điện thoại dùng nhận mã tự đặt lại mật khẩu (BR-M15-25, Q-399). Ghi nhật ký STAFF_UPDATED (trước, sau) ở hồ sơ nhân viên. Đổi số điện thoại thì gửi tin báo tới số cũ qua kênh tin nhắn (kênh chưa cấu hình thì không gửi, vẫn lưu); đổi email không gửi tin. Không If-Match: chỉ chủ tài khoản sửa liên hệ của mình. Gửi null hoặc chuỗi rỗng là xóa giá trị.'
+      x-fr: [FR-042]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword]
+              properties:
+                currentPassword: { type: string, format: password }
+                phoneNumber: { type: [string, 'null'], description: 'Số di động 0 và 9 chữ số; cho phép dấu cách, chấm, gạch ngang' }
+                email: { type: [string, 'null'] }
+      responses:
+        '200': { description: Đã lưu; trả thông tin người dùng mới, content: { application/json: { schema: { $ref: '#/components/schemas/UserInfo' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_VALUE khi mật khẩu hiện tại không đúng; CONTACT_INVALID khi sai định dạng, mỗi ô sai một dòng unmetConditions với code là tên trường (phoneNumber, email)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /me/permissions:
     get:
       tags: [auth]
@@ -797,6 +818,8 @@ components:
         roles: { type: array, items: { type: string } }
         mustChangePassword: { type: boolean }
         sessionIdleTimeoutSeconds: { type: integer, format: int64, description: 'CFG-M15-10 của kênh phiên hiện tại, tính bằng giây; null khi kênh không tự đăng xuất (BR-M15-24). Chỉ GET /me trả; phản hồi đăng nhập để null. Web dùng để báo trước khi hết phiên (bổ sung 2026-10-29, chủ dự án duyệt)' }
+        phoneNumber: { type: [string, 'null'], description: 'Số điện thoại trên hồ sơ nhân viên của tài khoản; chỉ GET /me, PUT /me/contact trả, chỉ tài khoản nhân viên; phản hồi đăng nhập để null (bổ sung 2026-11-09, chủ dự án duyệt)' }
+        email: { type: [string, 'null'], description: 'Email trên hồ sơ nhân viên của tài khoản; như phoneNumber (bổ sung 2026-11-09, chủ dự án duyệt)' }
     Account:
       type: object
       properties:
@@ -829,13 +852,13 @@ components:
         code: { type: string }
         name: { type: string }
         accountType: { type: string }
-        executionScope: { type: string, enum: [ASSIGNED, FACILITY, RELATIONSHIP] }
+        executionScope: { type: string, enum: [ASSIGNED, FACILITY, RELATIONSHIP, SELF], description: 'SELF: chính người cao tuổi của tài khoản (AC-16, FR-068; bổ sung 2026-11-08)' }
     EffectivePermission:
       type: object
       properties:
         function: { type: string }
         operation: { $ref: '#/components/schemas/Operation' }
-        scope: { type: string, enum: [FACILITY, ASSIGNED, RELATIONSHIP] }
+        scope: { type: string, enum: [FACILITY, ASSIGNED, RELATIONSHIP, SELF], description: 'SELF: chính người cao tuổi của tài khoản (AC-16, FR-068; bổ sung 2026-11-08)' }
         footnoteCodes: { type: array, items: { type: string } }
         source: { type: string, enum: [ROLE, DUTY, ADDITIONAL_GRANT] }
     RolePermissions:

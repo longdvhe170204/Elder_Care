@@ -190,6 +190,23 @@ export function LiveHealthPage({ viewer }) {
   )
 }
 
+// P9 Đồ gửi với phiên thật (012 FR-046b; 013 FR-030): phần đồ gửi của 013 theo người cao tuổi đang xem; backend kiểm
+// người đại diện, người được phép đón đang hiệu lực
+export function LiveDepositsPage({ viewer, belongings: Belongings }) {
+  return (
+    <>
+      <PageHeader title="Đồ gửi" subtitle="Đồ dùng gia đình gửi viện giữ hộ và lần bàn giao gần nhất." />
+      <PortalCard>
+        {Belongings ? (
+          <Belongings residentId={viewer.residentId} />
+        ) : (
+          <p className="text-muted-foreground">Chưa có dữ liệu đồ gửi.</p>
+        )}
+      </PortalCard>
+    </>
+  )
+}
+
 export function LiveContractPage({ viewer }) {
   const { data, failure } = useLoad(
     () => getFamilyPortalResidentsByResidentIdContract({ path: { residentId: viewer.residentId } }),

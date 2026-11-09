@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { json, mockRoutes } from '@/test/fetchRoutes'
+import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { MedicationCatalogPage } from './MedicationCatalogPage'
 
 // 006 màn Danh mục thuốc theo api-006 đã dịch: tra danh mục (FR-001, FR-003), sửa kèm If-Match, Ngừng hiệu lực kèm lý do
@@ -44,6 +44,22 @@ describe('MedicationCatalogPage', () => {
     await screen.findByText('Amlodipin')
     const [url] = api.calls('GET', '/medications').at(-1)
     expect(new URL(url, 'http://localhost').searchParams.get('active')).toBe('true')
+  })
+
+  it('FR_001_403_hienLoiVaKhongHienThuocMau', async () => {
+    api.on('GET', '/medications', problem(403, 'FORBIDDEN'))
+    render(<MedicationCatalogPage role="DOCTOR" />)
+    expect(await screen.findByText('Không có quyền thực hiện')).toBeInTheDocument()
+    expect(screen.queryByText('Paracetamol')).toBeNull()
+    expect(screen.queryByText('Morphin sulfat')).toBeNull()
+  })
+
+  it('FR_001_danhMucRong_khongHienThuocMau', async () => {
+    api.on('GET', '/medications', json(200, []))
+    render(<MedicationCatalogPage role="DOCTOR" />)
+    await vi.waitFor(() => expect(api.calls('GET', '/medications')).toHaveLength(1))
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.queryByText('Paracetamol')).toBeNull()
   })
 
   it('FR_002_sua_layETagCuaThuocTruocKhiGui', async () => {

@@ -14,8 +14,9 @@ String _idempotencyKey() {
 
 /// Người đại diện quyết định yêu cầu xác nhận người nhận khác (013 T019; FR-017, FR-030; api-013
 /// `POST /family-portal/recipient-confirmations/{id}/{confirm|reject}`), mở từ thông báo
-/// `RECIPIENT_CONFIRMATION_REQUESTED` có mã yêu cầu là nguồn. api-013 chưa có cách để người đại diện đọc tên người nhận,
-/// đồ trong yêu cầu (team-plan mục 8), nên màn chỉ nêu mã. Từ chối bắt buộc lý do (DESIGN.md 2.3). Chỉ trực tuyến.
+/// `RECIPIENT_CONFIRMATION_REQUESTED` có mã yêu cầu là nguồn. Màn đọc yêu cầu bằng `GET /family-portal/
+/// recipient-confirmations/{id}` (Đổi api duyệt 2026-11-07) để người đại diện thấy họ tên, giấy tờ người nhận và đồ trong
+/// yêu cầu trước khi quyết định. Từ chối bắt buộc lý do (DESIGN.md 2.3). Chỉ trực tuyến.
 class RecipientConfirmationScreen extends StatefulWidget {
   const RecipientConfirmationScreen({super.key, required this.api, required this.confirmationId});
 
@@ -34,6 +35,27 @@ class _RecipientConfirmationScreenState extends State<RecipientConfirmationScree
   String? _reasonError;
   String? _message;
   bool _decided = false;
+  Map<String, dynamic>? _request;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final request = await widget.api.get('/family-portal/recipient-confirmations/${widget.confirmationId}');
+      if (mounted) setState(() => _request = request);
+    } on ApiUnreachable {
+      if (mounted) {
+        setState(() => _loadError = 'Cần có mạng để xem yêu cầu. Kiểm tra kết nối rồi thử lại.');
+      }
+    } on Exception catch (e) {
+      if (mounted) setState(() => _loadError = backendMessage(e));
+    }
+  }
 
   @override
   void dispose() {
@@ -73,6 +95,11 @@ class _RecipientConfirmationScreenState extends State<RecipientConfirmationScree
     }
   }
 
+  static String _belongings(Object? ids) {
+    final list = (ids as List<dynamic>? ?? const []).cast<num>();
+    return list.isEmpty ? 'không còn đồ' : '${list.length} đồ (mã ${list.join(', ')})';
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -85,6 +112,17 @@ class _RecipientConfirmationScreenState extends State<RecipientConfirmationScree
             children: [
               Text('Yêu cầu mã ${widget.confirmationId}', style: text.titleMedium),
               const SizedBox(height: 8),
+              if (_request != null) ...[
+                Text('Người nhận: ${_request!['recipientName']}', style: text.titleSmall),
+                Text('Giấy tờ: ${_request!['recipientIdDocument']}'),
+                Text('Đồ trong yêu cầu: ${_belongings(_request!['belongingIds'])}'),
+                const SizedBox(height: 8),
+              ],
+              if (_loadError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Semantics(liveRegion: true, child: Text(_loadError!)),
+                ),
               const Text(
                 'Viện cần trả đồ gửi cho một người không thuộc danh sách được phép đón. '
                 'Bạn là người đại diện nên quyết định có đồng ý hay không.',
@@ -94,7 +132,7 @@ class _RecipientConfirmationScreenState extends State<RecipientConfirmationScree
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Semantics(liveRegion: true, child: Text(_message!)),
                 ),
-              if (!_decided) ...[
+              if (!_decided && _loadError == null) ...[
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _busy ? null : () => _send('confirm'),

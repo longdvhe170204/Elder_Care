@@ -360,6 +360,15 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Còn của T035: phần cho 011 (FR-042 (a)), dòng chờ D ở team-plan mục 8.
 - Ghi chú quy trình: `FamilyStaysPage.test.jsx` (6) viết trước, 6/6 đỏ rồi xanh (sửa truy vấn nút chọn từ `radio` sang `button` theo component dự án). npm run lint, build qua, npm test 537/92 file; `FR_040_StayLimitIT` 10, `BR_M10_04_OvernightStayIT` 7 xanh. Xem trên trình duyệt với backend demo: Hành chính đăng ký, chỉ thấy "Hủy lượt…"; Quản lý viện xác nhận (người cao tuổi chưa có giường nên tầng không có Trưởng tầng).
 
+### Phase 10, US8 – phần cho 011 (2026-11-08, A)
+
+- 011 khai `StayMealPort.staysWithMealRegistration(t)` và `StayMealChanged` (tên tiếng Anh của `LuotOLaiAnPort`, `LuotOLaiDaDoi`). `family.internal.stay.service.StayMeals` cài cổng: lượt Đang ở lại có đăng ký ăn, đã bắt đầu tại `t` (bắt đầu thực tế không sau `t`) và kết thúc dự kiến sau `t`; `from` là bắt đầu thực tế, `to` là kết thúc dự kiến. Chỉ xét Đang ở lại vì FR-042 (a) tính từ khi lượt chuyển Đang ở lại và 011 chốt theo dữ liệu tại thời điểm chốt (FR-034).
+- `FamilyStayService` phát `StayMealChanged` sau Bắt đầu, Gia hạn, Kết thúc, Hủy (research F-09) cùng transaction lệnh; khóa sự kiện `id:trạng thái:phiên bản` nên mỗi lần đổi một khóa (011 nghe idempotent theo khóa). Hủy phát cả với lượt chưa bắt đầu; 011 tính lại không đổi số.
+- Test: thêm vào `BR_M10_04_OvernightStayIT.Q31` (không thêm lớp IT, giữ ngân sách): lượt Đang ở lại có trong cổng lúc 19:00, không có sau kết thúc dự kiến và sau Kết thúc; sự kiện `STAYING`, `ENDED`. Đỏ (chưa có bean `StayMealPort`) rồi xanh 2/2. `ClosingTestBase` của 011 vẫn dùng bản giả `@Primary`; D chạy lại 011 T042 với bean thật.
+- Đồ gửi trên cổng (013 T028, chủ dự án chọn 2026-11-07): `App.jsx` truyền `PortalBelongings` vào `FamilyPortal` (prop `belongings`), mục "Đồ gửi" với phiên thật dùng `LiveDepositsPage` theo người cao tuổi đang xem; bản mẫu `DepositsPage` giữ nguyên. App người thân: nút "Xem đồ gửi" ở màn người cao tuổi của cổng (người đại diện, người được phép đón, `canViewBelongings`), mở `FamilyBelongingsScreen` của 013. Test viết trước, đỏ rồi xanh: `LivePortal.test.jsx` (1), `portal_screen_test.dart` (2).
+- Truy vết 007 (`NguoiThanKhanCapPort.luotThamTrongKhoang`): đã có bản thật `EmergencyFamilyLookup.visitsInRange` từ trước (rà 2026-11-08), sửa dòng team-plan.
+- Hợp đồng api-012: `FeedbackItem.type` thêm `TYPE_CHANGE` (mục `DOI_LOAI` của data-model, bổ sung 2026-10-18, mã đã có); gỡ 2 dòng ở `known-mismatches.txt`.
+
 ### Phase 11, T075 – rà R-15 (2026-11-06, A)
 
 - Bảng riêng: đúng 4 bảng "Giữ" của data-model mục 0 (`V012_01` `family_member` `DataGroup=CATALOG`, `family_relationship` `BUSINESS`; `V012_04` `pickup_record` `RECORD` có `trg_pickup_record_no_update`, `trg_pickup_record_no_delete`; `V012_07`, `V012_10` `feedback` `BUSINESS`); không có bảng đã gộp. Entity là lớp JDBC, nhóm dữ liệu khai bằng `COMMENT` của bảng.

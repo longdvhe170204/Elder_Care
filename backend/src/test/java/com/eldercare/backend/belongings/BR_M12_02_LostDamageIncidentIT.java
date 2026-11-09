@@ -161,6 +161,31 @@ class BR_M12_02_LostDamageIncidentIT extends HandoverTestBase {
         assertThat(notices()).noneMatch(n -> "BELONGING_LOST".equals(n.eventType()));
     }
 
+    @Test
+    void Q26_FR_011a_voidingARecordWithALinkedIncident_notifiesTheIncidentHandler() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
+        long incident = TestUsers.nextId();
+        long handlerStaff = TestUsers.nextId();
+        incidents.put(new IncidentView(
+                incident, resident, "BELONGINGS_LOST", "MEDIUM", "IN_PROGRESS", Instant.now(), null, handlerStaff));
+        reportLost(phone, linkIncident(incident)).andExpect(status().isOk());
+        events.clear();
+
+        postJson(
+                        tokenA,
+                        "/api/v1/corrections/M12.BELONGING_HANDOVER/" + latestHandover(phone),
+                        "{\"type\": \"VOID\", \"reason\": \"Ghi nhầm\"}")
+                .andExpect(status().isCreated());
+
+        assertThat(notices())
+                .filteredOn(n -> "BELONGING_INCIDENT_LINK_VOIDED".equals(n.eventType()))
+                .singleElement()
+                .satisfies(n -> assertThat(n.recipientGroups())
+                        .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.Staff(
+                                handlerStaff, "INCIDENT_ASSIGNEE")));
+    }
+
     private static String body(long incidentId) {
         return "{\"incidentId\": " + incidentId + "}";
     }

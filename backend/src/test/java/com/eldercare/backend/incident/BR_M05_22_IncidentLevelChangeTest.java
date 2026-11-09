@@ -83,6 +83,35 @@ class BR_M05_22_IncidentLevelChangeTest {
     }
 
     @Test
+    void FR_043_raisingFromLowReEmitsIncidentRecordedForReassessmentOnce() {
+        when(incidents.lock(41))
+                .thenReturn(Optional.of(new IncidentState(41, 101L, 7L, "NEW", IncidentLevel.LOW, false, 3)));
+        when(incidents.currentTypeCode(41)).thenReturn("OTHER_INJURY");
+
+        service.changeLevel(null, 41, IncidentLevel.MEDIUM, new Reason("Nặng hơn"), user);
+
+        verify(events)
+                .publishEvent(new com.eldercare.backend.incident.api.events.IncidentRecorded(
+                        41, 101L, "OTHER_INJURY", "MEDIUM", true));
+    }
+
+    @Test
+    void FR_043_raisingBelongingsIncidentOrFromMediumDoesNotReEmit() {
+        when(incidents.lock(41))
+                .thenReturn(Optional.of(new IncidentState(41, 101L, 7L, "NEW", IncidentLevel.LOW, false, 3)));
+        when(incidents.currentTypeCode(41)).thenReturn("BELONGINGS_LOST");
+        service.changeLevel(null, 41, IncidentLevel.MEDIUM, new Reason("Nặng hơn"), user);
+        when(incidents.lock(42))
+                .thenReturn(Optional.of(new IncidentState(42, 101L, 7L, "NEW", IncidentLevel.MEDIUM, false, 3)));
+        when(incidents.currentTypeCode(42)).thenReturn("OTHER_INJURY");
+        service.changeLevel(null, 42, IncidentLevel.CRITICAL, new Reason("Nặng hơn"), user);
+
+        verify(events, never())
+                .publishEvent(org.mockito.ArgumentMatchers.any(
+                        com.eldercare.backend.incident.api.events.IncidentRecorded.class));
+    }
+
+    @Test
     void FR_044_raisingToCriticalKeepsEmergencyHistoryWithoutStopEvent() {
         when(incidents.lock(41))
                 .thenReturn(
