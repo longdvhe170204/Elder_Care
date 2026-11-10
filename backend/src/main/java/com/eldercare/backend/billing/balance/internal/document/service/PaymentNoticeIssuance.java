@@ -68,6 +68,7 @@ public class PaymentNoticeIssuance {
     private final AccountApi accountNames;
     private final CurrentUser user;
     private final BusinessTime time;
+    private final RepresentativeNames representativeNames;
 
     PaymentNoticeIssuance(
             ObjectProvider<CostForBalancePort> costs,
@@ -79,7 +80,9 @@ public class PaymentNoticeIssuance {
             ResidentApi residents,
             AccountApi accountNames,
             CurrentUser user,
-            BusinessTime time) {
+            BusinessTime time,
+            RepresentativeNames representativeNames) {
+        this.representativeNames = representativeNames;
         this.costs = costs;
         this.store = store;
         this.transactions = transactions;
@@ -146,7 +149,7 @@ public class PaymentNoticeIssuance {
                 time.now().atZone(BusinessTime.ZONE).toLocalDate(),
                 accountNames.fullName(user.accountId()).orElse(""),
                 residents.identity(residentId).fullName(),
-                null,
+                representativeNames.of(residentId),
                 period(statement),
                 type(statement),
                 statement.items().stream().map(PaymentNoticeIssuance::line).toList(),
