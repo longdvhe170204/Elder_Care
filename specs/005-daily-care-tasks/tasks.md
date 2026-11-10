@@ -383,3 +383,8 @@ T007a đã có service/HTTP và23test xanh trên bảng riêng ngày2026-10-28; 
 **Checkpoint trước duyệt API Phase5 2026-11-01 (lịch sử):** T027 có `FR_013_AttendanceTransitionsTest`/`AttendanceTransitions` thuần; T028 có `FR_012_AttendanceSchemaIT` và migration `V005_94__shared_day_care_attendance.sql` trên `simple_record` theo R-15. Chưa cài luồng T029–T031; đề xuất API ở `plan.md#quyet-dinh-hop-dong-phase-5` đang chờ duyệt, không áp dụng mặc định. Các checkbox T027–T031 giữ `[ ]`; kết quả test/việc chờ ghi trong plan và Working-history.md. Chưa đến gate clean verify cuối phase.
 
 Kết quả kiểm ngày01/11/2026: scoped61unit/kiến trúc+67IT xanh; web389test/lint/build qua; mobile64test/analyzer qua. Clean verify nền exit1/20:54phút:772unit/kiến trúc xanh,1713IT còn8failure+10error đã đối chiếu18tên lỗi với lịch sửPhase4;Spotless2387file sạch. Không có tên test Phase6 đỏ nhưng còn các gate đã chọn chờ và kiểm trực quan chưa đạt; giữ[] toànphase, chi tiết Working-history/plan/progress. Chưa tiếp nhậnT042.
+
+## Phase 13: Convergence
+
+- [ ] T065 Sửa 76 lệch hợp đồng `api-005.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+- [ ] T066 Cài `PUT /api/v1/testing/fakes/{module}` (body `{ "enabled": boolean }`, 204; chỉ profile test/demo, module 006/007/008/011/012/014) đã có trong api-005 và được chủ dự án duyệt 2026-10-26, rồi bỏ dòng này khỏi `pending` của `ApiContractIT`; hoặc xin chủ dự án bỏ operation khỏi hợp đồng nếu không còn cần per plan: mục duyệt 2026-10-26 (missing)

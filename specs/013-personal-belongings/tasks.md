@@ -210,3 +210,7 @@ US1 → US2 → US3 → US4 → US5 → US6; mỗi bước chạy `./mvnw verify
 - 013 không tạo sự cố, phiếu kiểm kê, không gợi ý vị trí kiểm kê (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M12-*, CFG-M10-08)
 - Thao tác đồ gửi trên app chỉ trực tuyến
+
+## Phase 10: Convergence
+
+- [ ] T035 Sửa 17 lệch hợp đồng `api-013.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)

@@ -269,3 +269,8 @@ US2 → US3 → US1 → US4 → US5 → US6; mỗi bước chạy `./mvnw verify
 - 008 không lập ca, lịch, phân công, bàn giao thay actor; không gợi ý người phụ trách ca (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M09-*)
 - Lệnh bàn giao chỉ trực tuyến; app chỉ xem ngoại tuyến
+
+## Phase 10: Convergence
+
+- [ ] T056 Cài `GET /me/shifts` trả `MyShift` (`Shift` + `scopeEndsAt` chỉ đọc, rỗng khi không có phân công trong ca; chủ dự án duyệt "Đổi hợp đồng" api-008 2026-11-08), xóa `GET /api/v1/me/shifts 200` khỏi `pendingResponses` của `ApiContractIT`; app dùng `scopeEndsAt` để xóa bàn giao ngoại tuyến khi hết phạm vi (T030) per FR-060 (missing)
+- [ ] T057 Cô lập `M09JobCatchUpIT` (`FR_022_failedTickCanBeRetriedThenBecomesIdempotent`, `Q_306_minuteCatchUpRunsOncePerTickWithoutCreatingStaff`) khỏi người dùng hiện tại của test chạy trước (đỏ ở `clean verify -Dit.forkCount=3`, chạy riêng xanh) per FR-022, Q-306 (partial)

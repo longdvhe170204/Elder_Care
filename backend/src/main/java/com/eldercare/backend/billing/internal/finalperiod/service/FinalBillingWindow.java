@@ -16,18 +16,21 @@ public class FinalBillingWindow {
     private final ResidencyEndingReadApi endings;
     private final ResidencyDayApi days;
     private final BusinessTime time;
+    private final ContractReadApi contracts;
 
     public FinalBillingWindow(
             ResidentModuleStateApi states,
             ResidentApi residents,
             ResidencyEndingReadApi endings,
             ResidencyDayApi days,
-            BusinessTime time) {
+            BusinessTime time,
+            ContractReadApi contracts) {
         this.states = states;
         this.residents = residents;
         this.endings = endings;
         this.days = days;
         this.time = time;
+        this.contracts = contracts;
     }
 
     public boolean overdueBillable(long resident, LocalDate date) {
@@ -38,6 +41,16 @@ public class FinalBillingWindow {
                         .filter(e.expectedEndDate()::equals)
                         .isPresent())
                 .isPresent();
+    }
+
+    /**
+     * FR-011: ngày phát sinh của nguồn sự kiện nằm ngoài thời gian tính phí khi chưa có nội dung hợp đồng hiệu lực tại ngày
+     * (trước ngày bắt đầu hợp đồng) hoặc sau mốc dừng tính phí của 004 (ngày kết thúc dự kiến, Hủy tiếp nhận, ngày qua
+     * đời); ngày mốc dừng vẫn tính. Hồ sơ kết thúc quá ngày dự kiến mà người chưa ở trạng thái cuối giữ như FR-035.
+     */
+    public boolean outsideEventPeriod(long resident, LocalDate date) {
+        if (contracts.contentAtDate(resident, date).isEmpty()) return true;
+        return days.billingStopDate(resident).filter(date::isAfter).isPresent() && !overdueBillable(resident, date);
     }
 
     public boolean afterDeath(long resident, LocalDate date, Instant occurred, boolean dayOnly) {

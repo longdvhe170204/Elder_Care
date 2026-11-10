@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @Import(CostWorkflowIT.Users.class)
+@org.springframework.test.context.event.RecordApplicationEvents
 class FinalPeriodIT extends MySqlIntegrationTestBase {
     @Autowired
     FinalPeriodPort port;
@@ -100,6 +101,36 @@ class FinalPeriodIT extends MySqlIntegrationTestBase {
         assertThat(conditions.finalPeriodCondition(resident).satisfied()).isFalse();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_item WHERE resident_id=?", Long.class, resident))
                 .isZero();
+    }
+
+    @Autowired
+    org.springframework.test.context.event.ApplicationEvents events;
+
+    @Test
+    void FR_044_endDateChangeNotifiesOfficeStaff() {
+        port.createDraft(resident, end);
+        port.recalculate(resident, end.plusDays(3));
+        assertThat(events.stream(com.eldercare.backend.billing.internal.period.domain.CostNotificationEvent.class)
+                        .flatMap(e -> e.notificationRequests().stream())
+                        .filter(n -> n.eventType().equals("FINAL_PERIOD_CHANGED")))
+                .isNotEmpty()
+                .allSatisfy(n -> assertThat(n.recipientGroups())
+                        .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                Role.OFFICE_STAFF)));
+    }
+
+    @Test
+    void FR_044_recheckWithUnmetCondition_notifiesOfficeStaffOncePerDay() {
+        port.createDraft(resident, end);
+        service.recheck(resident);
+        service.recheck(resident);
+        assertThat(events.stream(com.eldercare.backend.billing.internal.period.domain.CostNotificationEvent.class)
+                        .flatMap(e -> e.notificationRequests().stream())
+                        .filter(n -> n.eventType().equals("FINAL_PERIOD_CONDITION_UNMET")))
+                .singleElement()
+                .satisfies(n -> assertThat(n.recipientGroups())
+                        .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                Role.OFFICE_STAFF)));
     }
 
     @Test

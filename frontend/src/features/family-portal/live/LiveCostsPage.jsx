@@ -7,10 +7,13 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { formatDate } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { PortalCard } from '../PortalParts'
+import { LiveCostStatements } from './LiveCostStatements'
+import { LivePurchaseConsent } from './LivePurchaseConsent'
 
 // P7 Chi phí, số dư, phần số dư (017 T011; FR-003; Phụ lục 27 chú thích 16): số dư, cọc, giao dịch Đã xác nhận, tài
 // khoản thu của viện (CFG-M11-10), mã nộp tiền và mã QR VietQR không kèm số tiền (người thân tự nhập số tiền). Thanh toán
-// bảng chỉ hiện tổng (Q-133). Không có thanh toán trực tuyến (Q-285). Bảng chi phí từng tháng (010) chưa nối API.
+// bảng chỉ hiện tổng (Q-133). Không có thanh toán trực tuyến (Q-285). Bảng chi phí từng tháng, tạm tính (010 FR-037,
+// FR-038) và đề nghị mua hộ chờ người đại diện (BR-M10-10) nối 2026-11-10.
 
 const MONEY = new Intl.NumberFormat('vi-VN')
 const money = (n) => `${MONEY.format(n ?? 0)} đồng`
@@ -137,6 +140,8 @@ export function LiveCostsPage({ viewer }) {
           </ul>
         )}
       </PortalCard>
+      <LiveCostStatements residentId={viewer.residentId} />
+      {viewer.representative && <LivePurchaseConsent residentId={viewer.residentId} />}
     </>
   )
 }

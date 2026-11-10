@@ -320,3 +320,7 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7; mỗi bước chạy `./mvn
 - 014 không tạo buổi, danh sách kiểm tra, mục, công việc làm lại, sự cố, khoản chi phí; không gợi ý (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M04-*)
 - Báo thiếu người, kết thúc điểm danh về bắt buộc trực tuyến
+
+## Phase 11: Convergence
+
+- [ ] T035 Cài `ActivityStatisticsApi.isolationRisks()` trả người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi (hiện `ActivityStatistics.isolationRisks()` trả `Stream.empty()` dù T027 đã đánh dấu xong), test viết trước per FR-058, BR-M04-22, 016 FR-036 (partial)

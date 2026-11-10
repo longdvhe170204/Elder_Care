@@ -18,6 +18,7 @@ import { StatementDetail } from './StatementDetail'
 import { BillingSources } from './BillingSources'
 import { PostFinalizationChanges } from './PostFinalizationChanges'
 import { PurchaseRequests } from './PurchaseRequests'
+import { ManualCostForm } from './ManualCostForm'
 import { AccountingExport } from './AccountingExport'
 import { controlClass, money, periodLabel, STATEMENT_STATUS } from './chargeLabels'
 
@@ -113,11 +114,25 @@ export function ChargesPage({ role }) {
   if (workspace !== 'statements' && can('COST_ADJUSTMENT', 'CREATE'))
     return (
       <div className="space-y-4">
-        <PageHeader title={workspace === 'sources' ? 'Lập khoản từ nguồn' : 'Biến động sau chốt'} />
+        <PageHeader
+          title={
+            workspace === 'sources'
+              ? 'Lập khoản từ nguồn'
+              : workspace === 'manual'
+                ? 'Lập khoản nhập tay'
+                : 'Biến động sau chốt'
+          }
+        />
         <Button variant="outline" onClick={() => setWorkspace('statements')}>
           Về bảng chi phí
         </Button>
-        {workspace === 'sources' ? <BillingSources onChanged={changed} /> : <PostFinalizationChanges />}
+        {workspace === 'sources' ? (
+          <BillingSources onChanged={changed} />
+        ) : workspace === 'manual' ? (
+          <ManualCostForm onCreated={() => changed('Đã lập khoản nhập tay nháp.')} />
+        ) : (
+          <PostFinalizationChanges />
+        )}
       </div>
     )
 
@@ -140,6 +155,9 @@ export function ChargesPage({ role }) {
       {can('COST_ADJUSTMENT', 'CREATE') && (
         <div className="flex gap-3">
           <Button onClick={() => setWorkspace('sources')}>Lập khoản từ nguồn</Button>
+          <Button variant="outline" onClick={() => setWorkspace('manual')}>
+            Lập khoản nhập tay
+          </Button>
           <Button variant="outline" onClick={() => setWorkspace('changes')}>
             Biến động sau chốt
           </Button>
