@@ -22,9 +22,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -81,6 +84,24 @@ public class ResidencyEndingStore {
 
     public Optional<ResidencyEnding> find(long id) {
         return jdbc.query(SELECT + " AND id = ?", this::map, id).stream().findFirst();
+    }
+
+    /** Hồ sơ theo người, trạng thái; mã giảm dần. Tham số {@code null} hoặc rỗng là không lọc. */
+    public List<ResidencyEnding> list(Long residentId, Set<EndingStatus> statuses) {
+        StringBuilder sql = new StringBuilder(SELECT);
+        List<Object> args = new ArrayList<>();
+        if (residentId != null) {
+            sql.append(" AND resident_id = ?");
+            args.add(residentId);
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+            sql.append(" AND status IN (")
+                    .append(statuses.stream().map(s -> "?").collect(Collectors.joining(", ")))
+                    .append(")");
+            statuses.forEach(s -> args.add(s.name()));
+        }
+        sql.append(" ORDER BY id DESC");
+        return jdbc.query(sql.toString(), this::map, args.toArray());
     }
 
     /** Khóa dòng hồ sơ (sau khi đã khóa theo người). */

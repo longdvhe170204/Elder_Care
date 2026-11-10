@@ -15,6 +15,7 @@ import com.eldercare.backend.medication.api.dto.MedicationSummary;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.AssessmentApi;
 import com.eldercare.backend.resident.api.HealthItemApi;
+import com.eldercare.backend.resident.api.ReassessmentApi;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.AllergenGroup;
 import com.eldercare.backend.resident.api.dto.AllergenView;
@@ -58,6 +59,9 @@ abstract class EmergencyTestBase extends CriticalCareTestBase {
 
     @MockitoSpyBean
     FieldVisibilityApi visibility;
+
+    @MockitoSpyBean
+    ReassessmentApi reassessments;
 
     long penicillin;
 

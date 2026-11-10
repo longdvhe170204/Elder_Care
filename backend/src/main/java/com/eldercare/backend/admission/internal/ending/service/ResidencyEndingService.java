@@ -18,6 +18,7 @@ import com.eldercare.backend.admission.api.events.ResidencyEndingDateChanged;
 import com.eldercare.backend.admission.api.spi.FinalPeriodPort;
 import com.eldercare.backend.admission.api.spi.PickupRecordPort;
 import com.eldercare.backend.admission.internal.ending.domain.EndingConditionCode;
+import com.eldercare.backend.admission.internal.ending.domain.EndingStatus;
 import com.eldercare.backend.admission.internal.ending.domain.Handover;
 import com.eldercare.backend.admission.internal.ending.domain.NewEnding;
 import com.eldercare.backend.admission.internal.ending.domain.RecipientType;
@@ -159,6 +160,15 @@ public class ResidencyEndingService {
     public Detail get(Target target, long id) {
         ResidencyEnding ending = store.find(id).orElseThrow(NotFoundException::new);
         return new Detail(ending, handovers.latest(id));
+    }
+
+    /** Danh sách hồ sơ lọc theo người, trạng thái ("Đổi api" 004, A duyệt 2026-11-07); cùng quyền xem như hợp đồng. */
+    @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<Detail> list(Target target, Long residentId, Set<EndingStatus> statuses) {
+        return store.list(residentId, statuses).stream()
+                .map(ending -> new Detail(ending, handovers.latest(ending.id())))
+                .toList();
     }
 
     // ---- Lệnh -----------------------------------------------------------------------------------------------------

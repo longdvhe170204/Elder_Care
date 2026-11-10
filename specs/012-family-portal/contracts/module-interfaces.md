@@ -72,7 +72,8 @@ Stream<PhanHoiBaoCaoView> phanHoi(PhamViLoc phamVi, LocalDate tu, LocalDate den)
 ```
 
 ```java
-interface HoatDongKenhNctPort {    // 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (c), 014 FR-068a)
+// 2026-11-10: bỏ HoatDongKenhNctPort; 012 gọi thẳng care.api.ResidentActivityReadApi.upcoming (đổi hướng duyệt 07/11, 014 module-interfaces mục 5)
+interface HoatDongKenhNctPort {    // (đã bỏ) 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (c), 014 FR-068a)
   List<BuoiSapToiView> sapToi(long nctId, LocalDate tu, LocalDate den);     // buổi của tầng người cao tuổi và toàn viện; coTen; không có đánh giá khả năng tham gia
 }
 interface DoGuiKenhNctPort {       // 013 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (e), 013 FR-030a)
