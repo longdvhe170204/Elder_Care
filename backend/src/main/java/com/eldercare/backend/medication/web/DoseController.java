@@ -15,6 +15,7 @@ import com.eldercare.backend.medication.web.request.DoseRequests.DoseReviewResul
 import com.eldercare.backend.medication.web.request.DoseRequests.ReviewResult;
 import com.eldercare.backend.medication.web.response.DoseBodies.DoseBody;
 import com.eldercare.backend.medication.web.response.DoseBodies.DoseReviewBody;
+import com.eldercare.backend.medication.web.response.M07Problems;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,7 +66,10 @@ public class DoseController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+                content =
+                        @Content(
+                                mediaType = PROBLEM,
+                                schema = @Schema(implementation = M07Problems.DoseAlreadyClosed.class))),
         @ApiResponse(
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
@@ -97,7 +101,10 @@ public class DoseController {
         @ApiResponse(responseCode = "200", description = "Từ chối", content = @Content),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+                content =
+                        @Content(
+                                mediaType = PROBLEM,
+                                schema = @Schema(implementation = M07Problems.DoseAlreadyClosed.class))),
         @ApiResponse(
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
@@ -121,7 +128,10 @@ public class DoseController {
         @ApiResponse(responseCode = "200", description = "Không thực hiện", content = @Content),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+                content =
+                        @Content(
+                                mediaType = PROBLEM,
+                                schema = @Schema(implementation = M07Problems.DoseAlreadyClosed.class))),
         @ApiResponse(
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
