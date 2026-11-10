@@ -30,6 +30,11 @@ public class ContainmentStatusParticipant implements StatusTransitionParticipant
     }
 
     @Override
+    public String module() {
+        return "007";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.GRANT_TEMPORARY_ABSENCE, StatusCommand.TRANSFER_OUT);
     }

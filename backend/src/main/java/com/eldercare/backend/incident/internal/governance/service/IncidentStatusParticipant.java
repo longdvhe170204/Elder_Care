@@ -45,6 +45,11 @@ public class IncidentStatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "007";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.END_RESIDENCY, StatusCommand.RECORD_DEATH, StatusCommand.CANCEL_ADMISSION);
     }

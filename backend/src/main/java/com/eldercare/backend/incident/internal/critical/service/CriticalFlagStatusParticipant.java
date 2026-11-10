@@ -31,6 +31,11 @@ public class CriticalFlagStatusParticipant implements StatusTransitionParticipan
     }
 
     @Override
+    public String module() {
+        return "007";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.TRANSFER_OUT, StatusCommand.END_RESIDENCY, StatusCommand.RECORD_DEATH);
     }

@@ -314,4 +314,5 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7; mỗi bước chạy `./mvn
 
 ## Phase 12: Convergence
 
-- [ ] T108 Sửa 8 lệch hợp đồng `api-001.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+- [x] T108 Sửa 8 lệch hợp đồng `api-001.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+  - *(2026-11-10, A)* Hết 8 dòng api-001: `Condition` có tên schema riêng `StatusCondition` (trùng tên `Condition` của module khác làm springdoc gộp) và trường `module`; `StatusTransitionParticipant.module()` (mặc định rỗng), mỗi participant khai mã feature, `ResidentStatusService` gắn vào điều kiện; `PreferredHospital` bắt buộc `name`, `address`; ý kiến khác của phiếu nguyện vọng bắt buộc `source`, `content` (`@NotBlank`). `./mvnw clean verify -Dit.forkCount=3` 2026-11-10: unit 1099, IT 662 xanh (21 phút 37 giây).

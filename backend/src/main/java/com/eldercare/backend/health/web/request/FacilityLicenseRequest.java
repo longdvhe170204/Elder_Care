@@ -6,7 +6,7 @@ import java.util.List;
 
 /** Thân {@code POST /facility-licenses} (schema {@code FacilityLicense} của api-007). */
 public record FacilityLicenseRequest(
-        @Schema(accessMode = Schema.AccessMode.READ_ONLY) Long id,
+        @Schema(description = "Bỏ qua khi lập; máy chủ cấp") Long id,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String number,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String issuer,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) LocalDate issuedOn,

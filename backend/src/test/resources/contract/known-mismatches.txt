@@ -3,118 +3,12 @@
 # test đỏ khi có lệch mới, và khi một dòng ở đây không còn lệch. Không thêm dòng mới để test xanh.
 
 # api-001 (B)
-api-001.yaml: GET /api/v1/residents/{id}/conditions/{command} phản hồi 200 application/json[] thiếu trường module
-api-001.yaml: GET /api/v1/residents/{id}/conditions/{command} phản hồi 200 application/json[] thiếu trường waivable
-api-001.yaml: GET /api/v1/residents/{id}/treatment-wishes phản hồi 200 application/json.active.preferredHospitals[] đổi trường bắt buộc
-api-001.yaml: GET /api/v1/residents/{id}/treatment-wishes phản hồi 200 application/json.history[].preferredHospitals[] đổi trường bắt buộc
-api-001.yaml: POST /api/v1/residents/{id}/end-of-life-wishes request application/json.otherOpinions[] đổi trường bắt buộc
-api-001.yaml: POST /api/v1/residents/{id}/treatment-wishes phản hồi 201 application/json.wish.preferredHospitals[] đổi trường bắt buộc
-api-001.yaml: POST /api/v1/residents/{id}/treatment-wishes request application/json.otherOpinions[] đổi trường bắt buộc
-api-001.yaml: POST /api/v1/residents/{id}/treatment-wishes request application/json.preferredHospitals[] đổi trường bắt buộc
 
 # api-003 (C)
-api-003.yaml: GET /api/v1/beds/{id}/readiness-conditions phản hồi 200 application/json.unmetConditions[] thừa trường module
-api-003.yaml: GET /api/v1/beds/{id}/readiness-conditions phản hồi 200 application/json.unmetConditions[] thừa trường waivable
 
 # api-004 (B)
-api-004.yaml: GET /api/v1/admission-applications phản hồi 200 application/json[] đổi trường bắt buộc
-api-004.yaml: GET /api/v1/admission-applications/{id} phản hồi 200 application/json đổi trường bắt buộc
-api-004.yaml: GET /api/v1/contracts/{id}/addenda phản hồi 200 application/json[] thừa trường hiddenFields
-api-004.yaml: GET /api/v1/contracts/{id}/non-standard-terms phản hồi 200 application/json[].type đổi enum
-api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json thừa trường hiddenFields
-api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json.costImpact đổi kiểu [array] → [object]
-api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json.reference thiếu trường id
-api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json.reference thiếu trường type
-api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[] thừa trường hiddenFields
-api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[].costImpact đổi kiểu [array] → [object]
-api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[].reference thiếu trường id
-api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[].reference thiếu trường type
-api-004.yaml: GET /api/v1/services phản hồi 200 application/json[] đổi trường bắt buộc
-api-004.yaml: POST /api/v1/admission-applications phản hồi 201 application/json đổi trường bắt buộc
-api-004.yaml: POST /api/v1/admission-applications/{id}/update request application/json đổi trường bắt buộc
-api-004.yaml: POST /api/v1/residency-change-requests phản hồi 201 application/json thừa trường hiddenFields
-api-004.yaml: POST /api/v1/residency-change-requests phản hồi 201 application/json.costImpact đổi kiểu [array] → [object]
-api-004.yaml: POST /api/v1/residency-change-requests phản hồi 201 application/json.reference thiếu trường id
-api-004.yaml: POST /api/v1/residency-change-requests phản hồi 201 application/json.reference thiếu trường type
-api-004.yaml: POST /api/v1/services phản hồi 201 application/json đổi trường bắt buộc
 
 # api-005 (C)
-api-005.yaml: GET /api/v1/care-plans/compare phản hồi 200 application/json.added[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/compare phản hồi 200 application/json.changed[].after đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/compare phản hồi 200 application/json.changed[].before đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/compare phản hồi 200 application/json.removed[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/{id} phản hồi 200 application/json.items[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/{id} phản hồi 200 application/json.riskAgreements[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/{id} phản hồi 200 application/json.riskAgreements[].decisionMaker đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/{id} phản hồi 200 application/json.riskAgreements[].opinions[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/{id} phản hồi 200 application/json.riskAgreements[].participants[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-plans/{id} phản hồi 200 application/json.riskAgreements[].selfDeterminationAssessment đổi trường bắt buộc
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường corrected
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường currentValue
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường deviceAt
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường id
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường lateRecording
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường performedAt
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường performer
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường permissionBasis
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường recordedAt
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường recordingCancelled
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường resultType
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường taskId
-api-005.yaml: GET /api/v1/care-tasks/{id} phản hồi 200 application/json.result thiếu trường vitalSignRecordId
-api-005.yaml: GET /api/v1/checklist phản hồi 200 application/json.riskAgreements[].agreements[] thiếu trường opinions
-api-005.yaml: GET /api/v1/checklist phản hồi 200 application/json.riskAgreements[].agreements[] thiếu trường participants
-api-005.yaml: GET /api/v1/checklist phản hồi 200 application/json.riskAgreements[].agreements[] thiếu trường sourceAgreementId
-api-005.yaml: GET /api/v1/checklist phản hồi 200 application/json.riskAgreements[].agreements[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/checklist phản hồi 200 application/json.riskAgreements[].agreements[].decisionMaker đổi trường bắt buộc
-api-005.yaml: GET /api/v1/checklist phản hồi 200 application/json.riskAgreements[].agreements[].selfDeterminationAssessment đổi trường bắt buộc
-api-005.yaml: GET /api/v1/residents/{residentId}/care-plans phản hồi 200 application/json[].items[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/residents/{residentId}/care-plans phản hồi 200 application/json[].riskAgreements[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/residents/{residentId}/care-plans phản hồi 200 application/json[].riskAgreements[].decisionMaker đổi trường bắt buộc
-api-005.yaml: GET /api/v1/residents/{residentId}/care-plans phản hồi 200 application/json[].riskAgreements[].opinions[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/residents/{residentId}/care-plans phản hồi 200 application/json[].riskAgreements[].participants[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/residents/{residentId}/care-plans phản hồi 200 application/json[].riskAgreements[].selfDeterminationAssessment đổi trường bắt buộc
-api-005.yaml: GET /api/v1/result-values phản hồi 200 application/json[] thiếu trường version
-api-005.yaml: GET /api/v1/shifts/{shiftId}/source-data phản hồi 200 application/json.residents[].planItems[] đổi trường bắt buộc
-api-005.yaml: GET /api/v1/task-types phản hồi 200 application/json[] thiếu trường version
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường corrected
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường currentValue
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường deviceAt
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường id
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường lateRecording
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường performedAt
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường performer
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường permissionBasis
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường recordedAt
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường recordingCancelled
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường resultType
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường taskId
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings phản hồi 201 application/json.result thiếu trường vitalSignRecordId
-api-005.yaml: POST /api/v1/ad-hoc-care-recordings request application/json đổi trường bắt buộc
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường corrected
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường currentValue
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường deviceAt
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường id
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường lateRecording
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường performedAt
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường performer
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường permissionBasis
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường recordedAt
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường recordingCancelled
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường resultType
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường taskId
-api-005.yaml: POST /api/v1/care-tasks/{id}/record phản hồi 200 application/json.result thiếu trường vitalSignRecordId
-api-005.yaml: POST /api/v1/residents/{residentId}/care-plans phản hồi 201 application/json.items[] đổi trường bắt buộc
-api-005.yaml: POST /api/v1/residents/{residentId}/care-plans phản hồi 201 application/json.riskAgreements[] đổi trường bắt buộc
-api-005.yaml: POST /api/v1/residents/{residentId}/care-plans phản hồi 201 application/json.riskAgreements[].decisionMaker đổi trường bắt buộc
-api-005.yaml: POST /api/v1/residents/{residentId}/care-plans phản hồi 201 application/json.riskAgreements[].opinions[] đổi trường bắt buộc
-api-005.yaml: POST /api/v1/residents/{residentId}/care-plans phản hồi 201 application/json.riskAgreements[].participants[] đổi trường bắt buộc
-api-005.yaml: POST /api/v1/residents/{residentId}/care-plans phản hồi 201 application/json.riskAgreements[].selfDeterminationAssessment đổi trường bắt buộc
-api-005.yaml: PUT /api/v1/care-plans/{id}/items request application/json[] đổi trường bắt buộc
-api-005.yaml: PUT /api/v1/care-plans/{id}/risk-agreements request application/json[] đổi trường bắt buộc
-api-005.yaml: PUT /api/v1/care-plans/{id}/risk-agreements request application/json[].decisionMaker đổi trường bắt buộc
-api-005.yaml: PUT /api/v1/care-plans/{id}/risk-agreements request application/json[].opinions[] đổi trường bắt buộc
-api-005.yaml: PUT /api/v1/care-plans/{id}/risk-agreements request application/json[].participants[] đổi trường bắt buộc
 
 # api-006 (D)
 api-006.yaml: POST /api/v1/medication-doses/{doseKey}/administer phản hồi 409 application/problem+json thiếu trường closedAt
@@ -129,44 +23,12 @@ api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 appl
 api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json thiếu trường closedBy
 api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json thiếu trường rejectedContent
 api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json.status đổi kiểu [string] → [integer]
-api-006.yaml: POST /api/v1/prescriptions/{id}/change-dosage phản hồi 409 application/problem+json thiếu trường issues
-api-006.yaml: POST /api/v1/prescriptions/{id}/prn-administrations phản hồi 409 application/problem+json thiếu trường earliestAllowedAt
-api-006.yaml: POST /api/v1/prescriptions/{id}/prn-administrations phản hồi 409 application/problem+json thiếu trường violations
-api-006.yaml: POST /api/v1/residents/{residentId}/prescriptions phản hồi 409 application/problem+json thiếu trường issues
-api-006.yaml: PUT /api/v1/medication-reconciliations/{id}/items phản hồi 409 application/problem+json thiếu trường issues
 
 # api-007 (D)
-api-007.yaml: GET /api/v1/facility-licenses phản hồi 200 application/json[] đổi trường bắt buộc
-api-007.yaml: GET /api/v1/incident-types phản hồi 200 application/json[] đổi trường bắt buộc
-api-007.yaml: GET /api/v1/vital-sign-catalog phản hồi 200 application/json[] đổi trường bắt buộc
-api-007.yaml: POST /api/v1/alerts/{id}/receive phản hồi 409 application/problem+json thiếu trường receivedAt
-api-007.yaml: POST /api/v1/alerts/{id}/receive phản hồi 409 application/problem+json thiếu trường receivedBy
-api-007.yaml: POST /api/v1/emergency-assist/{id}/details request application/json.floorAreaId đổi kiểu [integer] → [string]
-api-007.yaml: POST /api/v1/emergency-assist/{id}/details request application/json.residentId đổi kiểu [integer] → [string]
-api-007.yaml: POST /api/v1/facility-licenses request application/json thiếu trường id
-api-007.yaml: POST /api/v1/incidents/{id}/receive phản hồi 409 application/problem+json thiếu trường receivedAt
-api-007.yaml: POST /api/v1/incidents/{id}/receive phản hồi 409 application/problem+json thiếu trường receivedBy
 
 # api-011 (D)
 
 # api-013 (B)
-api-013.yaml: GET /api/v1/family-portal/recipient-confirmations/{id} phản hồi 200 application/json thiếu trường signedForm
-api-013.yaml: GET /api/v1/belongings/{id} phản hồi 200 application/json.belonging.cashAmount đổi kiểu [integer] → [string]
-api-013.yaml: GET /api/v1/family-portal/recipient-confirmations/{id} phản hồi 200 application/json đổi trường bắt buộc
-api-013.yaml: GET /api/v1/family-portal/residents/{residentId}/belongings phản hồi 200 application/json[].cashAmount đổi kiểu [integer] → [string]
-api-013.yaml: GET /api/v1/family-portal/residents/{residentId}/belongings phản hồi 200 application/json[].history[].cashAmount đổi kiểu [integer] → [string]
-api-013.yaml: GET /api/v1/recipient-confirmations phản hồi 200 application/json[] thiếu trường signedForm
-api-013.yaml: GET /api/v1/recipient-confirmations phản hồi 200 application/json[] đổi trường bắt buộc
-api-013.yaml: GET /api/v1/residents/{residentId}/belongings phản hồi 200 application/json[].cashAmount đổi kiểu [integer] → [string]
-api-013.yaml: POST /api/v1/belonging-inventory-checks/{id}/{command} request application/json.lines[] đổi trường bắt buộc
-api-013.yaml: POST /api/v1/belonging-inventory-checks/{id}/{command} request application/json.lines[].incident đổi trường bắt buộc
-api-013.yaml: POST /api/v1/belonging-inventory-checks/{id}/{command} request application/json.lines[].newCondition đổi trường bắt buộc
-api-013.yaml: POST /api/v1/belongings/handovers request application/json.items[] thiếu trường countedQuantity
-api-013.yaml: POST /api/v1/belongings/handovers request application/json.items[] thiếu trường incident
-api-013.yaml: POST /api/v1/belongings/handovers request application/json.items[] đổi trường bắt buộc
-api-013.yaml: POST /api/v1/belongings/returns request application/json.items[] đổi trường bắt buộc
-api-013.yaml: POST /api/v1/residents/{residentId}/belongings phản hồi 201 application/json.cashAmount đổi kiểu [integer] → [string]
-api-013.yaml: POST /api/v1/residents/{residentId}/belongings request application/json.cashAmount đổi kiểu [integer] → [string]
 
 
 # api-019 (C)

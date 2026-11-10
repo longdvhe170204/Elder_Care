@@ -2,7 +2,7 @@ package com.eldercare.backend.administration.parameter.api.dto;
 
 /**
  * Mã tham số cấu hình: các mã còn hiệu lực của Phụ lục 25 (docs/business/nghiep-vu.md), sinh từ phụ lục (000 T030).
- * Không có lệnh tạo hay xóa mã (FR-011); thêm mã khi tài liệu nghiệp vụ bổ sung. Mã "Bỏ theo Q-…" (Q-392 → Q-397) không có
+ * Không có lệnh tạo hay xóa mã (FR-011); thêm mã khi tài liệu nghiệp vụ bổ sung. Mã "Bỏ theo Q-…" (Q-392 → Q-397, Q-407) không có
  * trong enum; dòng của mã đó còn trong {@code parameter} vì lịch sử chỉ thêm, không hiện qua API.
  */
 public enum ParameterCode {
@@ -64,11 +64,6 @@ public enum ParameterCode {
     CFG_M04_06,
     /** Quá giờ về của hoạt động ngoài viện (mặc định: 30 phút) */
     CFG_M04_07,
-    /**
-     * Số ngày không tham gia hoạt động nhóm để cảnh báo cô lập (mặc định: 7 ngày). Không dùng theo Q-407 (2026-11-10, bỏ
-     * BR-M04-22); giữ mã vì tham số đã nạp ở V000_04.
-     */
-    CFG_M04_10,
     /** Tỷ lệ tối thiểu công việc người kiểm tra chọn để kiểm tra chất lượng (mặc định: 5% mỗi ca) */
     CFG_M04_11,
     /** Khoảng chờ từ lúc công việc Thường Quá hạn tới khi báo người phụ trách ca (mặc định: 30 phút) */

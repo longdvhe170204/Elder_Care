@@ -40,8 +40,12 @@ public record RecordTreatmentWishBody(
 
         @Schema(description = "Không bắt buộc") Long signedCopyFileId) {
 
-    @Schema(name = "RecordTreatmentWishOpinion")
-    public record OtherOpinionBody(@NotNull OpinionSource source, String content) {}
+    @Schema(
+            name = "RecordTreatmentWishOpinion",
+            requiredProperties = {"source", "content"})
+    public record OtherOpinionBody(
+            @NotNull OpinionSource source,
+            @jakarta.validation.constraints.NotBlank String content) {}
 
     public RecordCommand command() {
         List<WishOpinion> opinions = otherOpinions == null

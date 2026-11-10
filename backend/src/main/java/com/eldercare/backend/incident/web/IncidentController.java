@@ -38,7 +38,8 @@ public class IncidentController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.class)))
+                content =
+                        @Content(mediaType = PROBLEM, schema = @Schema(implementation = M05ProblemBody.Received.class)))
     })
     public ResponseEntity<Void> receive(
             @PathVariable long id, @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {

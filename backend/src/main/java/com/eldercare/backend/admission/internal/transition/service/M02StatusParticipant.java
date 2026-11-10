@@ -44,6 +44,11 @@ class M02StatusParticipant implements StatusTransitionParticipant {
     private static final Set<String> WAITING_LIST_COMMANDS = Set.of("DECLINE", "CANCEL_WAITING");
 
     @Override
+    public String module() {
+        return "004";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(
                 StatusCommand.COMPLETE_ADMISSION,

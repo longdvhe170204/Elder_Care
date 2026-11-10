@@ -113,6 +113,11 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
     }
 
     @Override
+    public String module() {
+        return "006";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return COMMANDS;
     }

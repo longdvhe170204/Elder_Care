@@ -12,7 +12,12 @@ public record BelongingIntakeRequest(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long typeId,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String description,
         BigDecimal quantity,
-        @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
+
+        @Schema(
+                types = {"integer"},
+                format = "int64")
+        BigDecimal cashAmount,
+
         String unit,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) ItemConditionRequest condition,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) GiverRequest giver,

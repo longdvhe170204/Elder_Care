@@ -213,4 +213,5 @@ US1 → US2 → US3 → US4 → US5 → US6; mỗi bước chạy `./mvnw verify
 
 ## Phase 10: Convergence
 
-- [ ] T035 Sửa 17 lệch hợp đồng `api-013.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+- [x] T035 Sửa 17 lệch hợp đồng `api-013.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+  - *(2026-11-10, A)* Hết 17 dòng api-013: tiền `@Schema(types = {"integer"})` (springdoc bỏ qua `type`); tên schema riêng `HandoverCommandItem`, `ReturnCommandItem`, `InventoryItemCondition`, `InventoryCheckResult`, `IncidentOption` kèm trường bắt buộc (hai `ItemRequest` trùng tên làm mất `countedQuantity`, `incident`); `RecipientConfirmation` bắt buộc theo hợp đồng và có `signedForm` (người đại diện, tệp phiếu ký đã lưu). `./mvnw clean verify -Dit.forkCount=3` 2026-11-10: unit 1099, IT 662 xanh (21 phút 37 giây).
