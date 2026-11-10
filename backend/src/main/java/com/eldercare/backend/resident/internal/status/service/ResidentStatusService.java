@@ -462,7 +462,8 @@ public class ResidentStatusService {
                 .filter(p -> p.interestedCommands().contains(context.command()))
                 .toList();
         List<Condition> unmet = new ArrayList<>();
-        interested.forEach(p -> unmet.addAll(p.checkConditions(context)));
+        interested.forEach(p ->
+                p.checkConditions(context).forEach(c -> unmet.add(c.module() == null ? c.withModule(p.module()) : c)));
         if (unmet.isEmpty()) {
             return new Evaluation(List.of(), null);
         }

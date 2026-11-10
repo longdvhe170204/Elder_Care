@@ -289,4 +289,38 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         jdbc.update("UPDATE care_plan SET status=?,effective_to=? WHERE id=?", state, to, p);
         return i;
     }
+
+    @Autowired
+    FakeM04Switches fakeSwitches;
+
+    /**
+     * 005 T066 (api-005 {@code PUT /testing/fakes/{module}}, duyệt 2026-10-26): chỉ có khi import {@code FakeM04Config};
+     * tắt nguồn giả của module thì SPI báo lỗi rõ, bật lại thì dùng được; module ngoài danh sách, thiếu {@code enabled}
+     * trả 400.
+     */
+    @Test
+    void T066_testingFakesSwitch_turnsAFakeSourceOffAndOn_andRejectsBadInput() throws Exception {
+        try {
+            mvc.perform(put("/api/v1/testing/fakes/{module}", "007")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"enabled\":false}"))
+                    .andExpect(status().isNoContent());
+            assertThatThrownBy(() -> fakeSwitches.requireEnabled("007")).isInstanceOf(IllegalStateException.class);
+            mvc.perform(put("/api/v1/testing/fakes/{module}", "007")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"enabled\":true}"))
+                    .andExpect(status().isNoContent());
+            assertThatCode(() -> fakeSwitches.requireEnabled("007")).doesNotThrowAnyException();
+            mvc.perform(put("/api/v1/testing/fakes/{module}", "999")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"enabled\":true}"))
+                    .andExpect(status().isBadRequest());
+            mvc.perform(put("/api/v1/testing/fakes/{module}", "007")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isBadRequest());
+        } finally {
+            fakeSwitches.enabled("007", true);
+        }
+    }
 }

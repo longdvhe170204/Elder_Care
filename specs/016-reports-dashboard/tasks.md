@@ -258,4 +258,5 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 
 ## Phase 14: Convergence
 
-- [ ] T111 Cô lập `FR_020_DashboardIT`, `SC_008_ReadOnlyIT`, `FR_009_DetailMatchIT` khỏi dữ liệu sót của test khác (đỏ ở IT 3 JVM vì `CareTaskData.publicTaskTypeId` null; chạy riêng xanh) theo mẫu `CallReminderTestBase` per FR-020, SC-008, FR-009 (partial)
+- [x] T111 Cô lập `FR_020_DashboardIT`, `SC_008_ReadOnlyIT`, `FR_009_DetailMatchIT` khỏi dữ liệu sót của test khác (đỏ ở IT 3 JVM vì `CareTaskData.publicTaskTypeId` null; chạy riêng xanh) theo mẫu `CallReminderTestBase` per FR-020, SC-008, FR-009 (partial)
+  - *(2026-11-10, A)* Nguyên nhân: `T064_LocationTaskRetentionIT` (005) chèn `care_task` năm 2010 với `data='{}'`, chỉ tiêu công việc quá hạn đọc từ `Instant.EPOCH` gặp dòng này (`CareTaskData.publicTaskTypeId` null). Sửa fixture cho đủ nội dung; xóa một dòng sót ở `eldercare_test_1` bằng tài khoản `eldercare_retention`. `./mvnw clean verify -Dit.forkCount=3` 2026-11-10: unit 1099, IT 662 xanh (21 phút 37 giây).

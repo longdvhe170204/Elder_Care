@@ -28,6 +28,9 @@ public final class ReturnRequests {
             String conditionOpinion) {
 
         /** {@code quantity}: số lượng trả, số tiền với tiền mặt; trống là toàn bộ (013-2 a, FR-012). */
+        @Schema(
+                name = "ReturnCommandItem",
+                requiredProperties = {"belongingId", "version", "condition"})
         public record ItemRequest(
                 Long belongingId,
                 Integer version,

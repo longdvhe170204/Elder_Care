@@ -14,7 +14,7 @@ import java.time.LocalDate;
  * khi lập cộng lý do. {@code residentId} theo hợp đồng nhưng bị bỏ qua, lượt không đổi người cao tuổi (FR-001).
  */
 public record UpdateAdmissionApplicationBody(
-        Long residentId,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long residentId,
 
         @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         LocalDate applicationDate,

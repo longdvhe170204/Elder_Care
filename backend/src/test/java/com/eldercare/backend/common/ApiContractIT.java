@@ -87,7 +87,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu; còn /testing/fakes
+            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu. /testing/fakes giữ
+            // pending:
+            // FakeM04Controller chỉ đăng ký khi import FakeM04Config (test classpath), context này không import; kiểm
+            // bằng
+            // BR_M04_01_ShiftTaskPlanningIT.T066 (005 T066, 2026-11-10)
             new Contract(
                     Path.of("..", "specs", "005-daily-care-tasks", "contracts", "api-005.yaml"),
                     Set.of("PUT /api/v1/testing/fakes/{module}"),
