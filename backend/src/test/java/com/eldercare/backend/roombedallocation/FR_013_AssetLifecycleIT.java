@@ -22,6 +22,42 @@ class FR_013_AssetLifecycleIT extends AssetTestBase {
                 .andExpect(jsonPath("$[?(@.id==" + equipmentType + ")].status").value("ACTIVE"));
     }
 
+    /**
+     * FR-012 (api-019 chủ dự án duyệt 2026-11-10): chi tiết tài sản có phiên bản cho If-Match, lệnh người xem làm được
+     * (chỉ để hiện nút) và lịch sử vị trí, bảo trì.
+     */
+    @Test
+    void FR_012_detailCarriesVersionAllowedCommandsAndHistory() throws Exception {
+        long id = created(donated("Hội người cao tuổi phường tặng"));
+        command(id, "put-into-use", "{\"location\":{\"type\":\"FLOOR\",\"id\":" + floor + "}}")
+                .andExpect(status().isOk());
+        command(id, "start-maintenance", "{}").andExpect(status().isOk());
+        command(
+                        id,
+                        "record-maintenance-result",
+                        "{\"result\":\"PASS\",\"date\":\"" + time.today()
+                                + "\",\"content\":\"Thay bánh xe\",\"performedBy\":\"Tổ kỹ thuật\"}")
+                .andExpect(status().isOk());
+
+        mvc.perform(get(URL + "/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("READY"))
+                .andExpect(jsonPath("$.version").isNumber())
+                .andExpect(
+                        jsonPath("$.locations[*].type").value(org.hamcrest.Matchers.contains("ASSET_STORAGE", "FLOOR")))
+                .andExpect(jsonPath("$.maintenances[0].result").value("PASS"))
+                .andExpect(jsonPath("$.maintenances[0].content").value("Thay bánh xe"))
+                .andExpect(jsonPath("$.maintenances[0].voided").value(false))
+                .andExpect(jsonPath("$.allowedCommands")
+                        .value(org.hamcrest.Matchers.hasItems(
+                                "update", "relocate", "report-damage", "start-maintenance", "request-disposal")))
+                .andExpect(jsonPath("$.allowedCommands")
+                        .value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("transfer-department"))));
+        as(manager);
+        mvc.perform(get(URL + "/" + id))
+                .andExpect(jsonPath("$.allowedCommands").value(org.hamcrest.Matchers.hasItem("transfer-department")));
+    }
+
     @Test
     void Q18_Q294_purchasedAssetNeedsApprovedRequestOfSameDepartmentAndAcquisitionCost() throws Exception {
         long request = approvedRequest(medical, "ASSET");

@@ -16,9 +16,15 @@ public record AssetResponse(
         AssetStatus status,
         String location,
         Long bedId,
-        List<String> flags) {
+        List<String> flags,
 
-    public static AssetResponse of(AssetRow row, String location) {
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Phiên bản cho If-Match của PUT")
+        Integer version,
+
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Chỉ để hiện nút")
+        List<String> allowedCommands) {
+
+    public static AssetResponse of(AssetRow row, String location, List<String> allowedCommands) {
         return new AssetResponse(
                 row.id(),
                 row.code(),
@@ -28,6 +34,8 @@ public record AssetResponse(
                 row.status(),
                 location,
                 row.bedId(),
-                row.flags().stream().map(Enum::name).toList());
+                row.flags().stream().map(Enum::name).toList(),
+                row.version(),
+                allowedCommands);
     }
 }

@@ -77,7 +77,7 @@ paths:
   /asset-types:
     get:
       tags: [assets]
-      summary: 'Danh mục loại tài sản, gồm loại đã ngừng (bổ sung 2026-11-10, C chọn cho màn web M35: tên loại, chọn loại khi ghi tăng, lọc xe; chờ chủ dự án duyệt)'
+      summary: 'Danh mục loại tài sản, gồm loại đã ngừng (bổ sung 2026-11-10, chủ dự án duyệt: tên loại, chọn loại khi ghi tăng, lọc xe)'
       x-fr: [FR-011]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/AssetType' } } } } } }
     post:
@@ -93,7 +93,7 @@ paths:
       summary: Chi tiết tài sản và lịch sử (vị trí, bộ phận, bảo trì, hư hỏng)
       x-fr: [FR-012]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AssetDetail' } } } }, '403': { $ref: '#/components/responses/Problem' }, '404': { $ref: '#/components/responses/Problem' } }
     put:
       tags: [assets]
       summary: Sửa thông tin mô tả (nhóm 1); Phụ trách bộ phận Chăm sóc bổ sung trường của tài sản giường
@@ -175,13 +175,23 @@ components:
       allOf:
         - { $ref: '#/components/schemas/ProcurementRequestWrite' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, estimatedTotal: { type: integer, format: int64 }, approvedAmount: { type: integer, format: int64 }, actualAmount: { type: integer, format: int64 }, status: { type: string, enum: [DRAFT, PENDING_APPROVAL, APPROVED, PENDING_RECONCILIATION, DISCREPANCY, RECONCILED, REJECTED, CANCELLED] }, linkedSourceTotal: { type: integer, format: int64 }, received: { type: [boolean, 'null'], readOnly: true, description: 'Chỉ loại MEDICATION: mọi dòng có lần tiếp nhận Đạt, đọc từ billing.api.spi.ProcurementIntakePort do 006 cài, sửa 2026-11-08; thiếu nguồn thì null (FR-008d, 11.7)' } }
+          properties: { id: { type: integer, format: int64 }, estimatedTotal: { type: integer, format: int64 }, approvedAmount: { type: integer, format: int64 }, actualAmount: { type: integer, format: int64 }, status: { type: string, enum: [DRAFT, PENDING_APPROVAL, APPROVED, PENDING_RECONCILIATION, DISCREPANCY, RECONCILED, REJECTED, CANCELLED] }, linkedSourceTotal: { type: integer, format: int64 }, received: { type: [boolean, 'null'], readOnly: true, description: 'Chỉ loại MEDICATION: mọi dòng có lần tiếp nhận Đạt, đọc từ billing.api.spi.ProcurementIntakePort do 006 cài, sửa 2026-11-08; thiếu nguồn thì null (FR-008d, 11.7)' }, version: { type: integer, readOnly: true, description: 'Phiên bản cho If-Match của PUT (bổ sung 2026-11-10, chủ dự án duyệt)' }, createdByStaffId: { type: integer, format: int64, readOnly: true, description: 'Người lập (bổ sung 2026-11-10)' }, allowedCommands: { type: array, readOnly: true, items: { type: string }, description: 'Lệnh người xem làm được, chỉ để hiện nút (constitution XI); update là sửa Nháp (bổ sung 2026-11-10)' } }
     ProcurementRequestCommand:
       type: object
       properties: { reason: { type: string }, approvedAmount: { type: integer, format: int64 }, actualAmount: { type: integer, format: int64 }, purchasedOn: { type: string, format: date }, supplier: { type: string }, receiptFileIds: { type: array, items: { type: integer, format: int64 } }, discrepancyAmount: { type: integer, format: int64 }, resolution: { type: string, enum: [ACCEPT_DISCREPANCY, REQUEST_REFUND] } }
     Asset:
       type: object
-      properties: { id: { type: integer, format: int64 }, code: { type: string }, typeId: { type: integer, format: int64 }, name: { type: string }, departmentId: { type: integer, format: int64 }, status: { type: string, enum: [READY, IN_USE, DAMAGED, UNDER_MAINTENANCE, DISPOSED] }, location: { type: string }, bedId: { type: integer, format: int64 }, flags: { type: array, items: { type: string } } }
+      properties: { id: { type: integer, format: int64 }, code: { type: string }, typeId: { type: integer, format: int64 }, name: { type: string }, departmentId: { type: integer, format: int64 }, status: { type: string, enum: [READY, IN_USE, DAMAGED, UNDER_MAINTENANCE, DISPOSED] }, location: { type: string }, bedId: { type: integer, format: int64 }, flags: { type: array, items: { type: string } }, version: { type: integer, readOnly: true, description: 'Phiên bản cho If-Match của PUT (bổ sung 2026-11-10, chủ dự án duyệt)' }, allowedCommands: { type: array, readOnly: true, items: { type: string }, description: 'Lệnh người xem làm được, chỉ để hiện nút (constitution XI); update là sửa mô tả (bổ sung 2026-11-10)' } }
+    AssetDetail:
+      description: 'Chi tiết tài sản (FR-012; bổ sung 2026-11-10, chủ dự án duyệt): trường của Asset cộng lịch sử; lần bảo trì, hư hỏng kèm dấu đã đính chính, đã Hủy ghi nhận (đính chính chỉ ghi chú)'
+      allOf:
+        - { $ref: '#/components/schemas/Asset' }
+        - type: object
+          properties:
+            locations: { type: array, items: { type: object, properties: { type: { type: string, enum: [AREA, FLOOR, ROOM, PARKING_LOT, ASSET_STORAGE] }, id: { type: integer, format: int64 }, from: { type: string, format: date-time }, to: { type: string, format: date-time }, command: { type: string }, actorStaffId: { type: integer, format: int64 }, reason: { type: string } } } }
+            departmentTransfers: { type: array, items: { type: object, properties: { fromDepartmentId: { type: integer, format: int64 }, toDepartmentId: { type: integer, format: int64 }, at: { type: string, format: date-time }, actorStaffId: { type: integer, format: int64 }, reason: { type: string } } } }
+            maintenances: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, kind: { type: string, enum: [MAINTENANCE, INSPECTION, VEHICLE_INSPECTION, INSURANCE] }, result: { type: string, enum: [PASS, FAIL] }, date: { type: string, format: date }, content: { type: string }, performedBy: { type: string }, outsourced: { type: boolean }, cost: { type: integer, format: int64 }, procurementRequestId: { type: integer, format: int64 }, startedAt: { type: string, format: date-time }, confirmedAt: { type: string, format: date-time }, corrected: { type: boolean }, voided: { type: boolean } } } }
+            damages: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, description: { type: string }, source: { type: string, enum: [DAMAGE_REPORT, BED_PREPARATION] }, impactLevel: { type: string, enum: [UNSAFE, STILL_SAFE] }, awaitingTransfer: { type: boolean }, removalReason: { type: string }, repairDescription: { type: string }, repairedBy: { type: string }, reportedAt: { type: string, format: date-time }, confirmedAt: { type: string, format: date-time }, corrected: { type: boolean }, voided: { type: boolean } } } }
     AssetWrite:
       type: object
       required: [code, typeId, name, departmentId, source]
