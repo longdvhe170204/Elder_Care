@@ -119,11 +119,14 @@ List<ChiSoNguoiThanView> chiSo(long nctId, long nguoiThanId, Instant tu, Instant
 Stream<CanhBaoBaoCaoView> canhBao(PhamViLoc phamVi, Instant tu, Instant den);
     // mức hiện hành, mức lúc tiếp nhận, lan_dau_luc, tiep_nhan_luc, số lần leo thang, dấu leo thang tối đa, loại, tầng; nguon (SOS / KHAC, bổ sung 2026-10-18, FR-081)
     // bổ sung 2026-10-22 (Q-374, Q-375): nguon thêm NUT_HO_TRO; daToiNoiLuc, khongGhiMocToiNoi (thời gian tới nơi, 18.3)
+    // bổ sung 2026-11-10 ("Đổi api" duyệt 2026-11-08): trạng thái hiện hành (status) để dashboard đếm cảnh báo đang mở
 Stream<SuCoBaoCaoView> suCo(PhamViLoc phamVi, Instant tu, Instant den);
     // mức, loại (kèm dấu khong_thuoc_suc_khoe), tầng, thời điểm tạo, tiếp nhận xử lý (Q-199), số lần leo thang; bỏ Đã hủy
     // bổ sung 2026-11-10 (007 T108, "Đổi api" duyệt 2026-11-08): mức lúc tiếp nhận (levelAtAcknowledgement, rỗng khi chưa tiếp nhận), trạng thái hiện hành (status)
 List<TheoDoiView> dangTheoDoi(PhamViLoc phamVi);        // sau ngã, tiếp xúc
 List<Long> dangNguyKich(PhamViLoc phamVi);              // dấu Đang mở, Tạm, kèm tầng
+int soSuCoDaHuy(PhamViLoc phamVi, Instant tu, Instant den);   // cancelledCount: dòng tham khảo "số sự cố đã hủy ghi nhận" của 016 FR-042, không vào chỉ tiêu (bổ sung 2026-11-10, "Đổi api" duyệt 2026-11-08)
+List<VungView> vungDangKhoanh(PhamViLoc phamVi);            // containmentZones: dangKhoanh (mục 1.8) có tầng hoặc khu trong phạm vi; 016 FR-020 (bổ sung 2026-11-10)
 Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
     // lần đo đã xác nhận (lần đo lại thay bản ghi đầu; "chưa đo lại" được tính), mức vượt ngưỡng lúc đo theo thành phần nặng nhất
 ```

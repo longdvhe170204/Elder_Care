@@ -77,6 +77,16 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
         public List<Long> criticalResidentIds(ScopeFilter scope) {
             return List.of();
         }
+
+        @Override
+        public int cancelledCount(ScopeFilter scope, Instant from, Instant to) {
+            return 0;
+        }
+
+        @Override
+        public List<com.eldercare.backend.incident.api.dto.IsolationZoneView> containmentZones(ScopeFilter scope) {
+            return List.of();
+        }
     }
 
     @TestConfiguration
