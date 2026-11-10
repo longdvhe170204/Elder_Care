@@ -35,12 +35,18 @@ public class IncidentReportStore {
 
     /** Sự cố chưa hủy (FR-081 bỏ Đã hủy) kèm mã loại hiện hành để bên gọi lấy dấu "không thuộc sức khỏe". */
     public List<IncidentReportRow> incidents(Instant from, Instant to) {
+        return incidents(from, to, "status <> 'CANCELLED'");
+    }
+
+    /** Sự cố Đã hủy, chỉ để đếm dòng tham khảo của 016 FR-042 (007 T108). */
+    public List<IncidentReportRow> cancelledIncidents(Instant from, Instant to) {
+        return incidents(from, to, "status = 'CANCELLED'");
+    }
+
+    private List<IncidentReportRow> incidents(Instant from, Instant to, String statusCondition) {
         return jdbc.query(
-                """
-                SELECT * FROM incident
-                WHERE created_at >= ? AND created_at < ? AND status <> 'CANCELLED'
-                ORDER BY created_at, id
-                """,
+                "SELECT * FROM incident WHERE created_at >= ? AND created_at < ? AND " + statusCondition
+                        + " ORDER BY created_at, id",
                 (rs, i) -> new IncidentReportRow(
                         rs.getLong("id"),
                         nullableLong(rs, "resident_id"),
@@ -72,7 +78,8 @@ public class IncidentReportStore {
                 nullableLong(rs, "floor_area_id"),
                 SOS_TYPE.equals(type) ? "SOS" : ASSIST_TYPE.equals(type) ? "EMERGENCY_ASSIST" : "OTHER",
                 instant(rs, "arrived_at"),
-                rs.getBoolean("skip_arrival_time"));
+                rs.getBoolean("skip_arrival_time"),
+                rs.getString("status"));
     }
 
     private static Long nullableLong(ResultSet rs, String column) throws SQLException {

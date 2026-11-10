@@ -77,7 +77,8 @@ class MetricHealthEventsTest {
                 101L,
                 source,
                 null,
-                false);
+                false,
+                "RECEIVED");
     }
 
     private static IncidentReportView incident(
@@ -163,7 +164,8 @@ class MetricHealthEventsTest {
                                 103L,
                                 "EMERGENCY_ASSIST",
                                 at(9),
-                                false),
+                                false,
+                                "RECEIVED"),
                         new AlertReportView(
                                 3,
                                 null,
@@ -177,7 +179,8 @@ class MetricHealthEventsTest {
                                 null,
                                 "EMERGENCY_ASSIST",
                                 null,
-                                true),
+                                true,
+                                "RECEIVED"),
                         alert(4, "WARNING", "WARNING", 0, 1, 0, "OTHER")));
 
         SosAssistanceAlertsMetric sos = new SosAssistanceAlertsMetric(alerts);
