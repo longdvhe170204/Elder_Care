@@ -25,8 +25,8 @@ import {
 
 // Yêu cầu mua sắm (019 T008 màn web; US7, FR-008 → FR-008d; bố cục duyệt 2026-11-09 mục (8): danh sách, DetailLayout,
 // lệnh trong khung). Backend trả yêu cầu người xem được thấy (Quản lý viện, Kế toán mọi yêu cầu; Phụ trách bộ phận của
-// bộ phận mình; người khác yêu cầu mình lập). api-019 chưa có allowedCommands nên nút theo trạng thái và quyền ở
-// /me/permissions; backend kiểm lại người lập, Phụ trách bộ phận, Kế toán khác người ghi đã mua. Tên bộ phận đọc từ
+// bộ phận mình; người khác yêu cầu mình lập). Nút lệnh trong khung theo allowedCommands backend trả (api-019 bổ sung
+// 2026-11-10, DESIGN.md 7.4); sửa Nháp gửi If-Match theo version. Nút "Lập yêu cầu" theo quyền Lập. Tên bộ phận đọc từ
 // GET /departments (008), họ tên người cao tuổi từ hồ sơ (001); không đọc được thì hiện mã (người dùng chọn 2026-11-10).
 
 export function ProcurementRequestsPage({ role }) {
@@ -36,6 +36,7 @@ export function ProcurementRequestsPage({ role }) {
   const [failure, setFailure] = useState(null)
   const [opened, setOpened] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState(null)
   const [announcement, setAnnouncement] = useState('')
   const [departments, setDepartments] = useState(null)
   const [residents, setResidents] = useState({})
@@ -100,10 +101,10 @@ export function ProcurementRequestsPage({ role }) {
         <ProcurementDetail
           key={opened}
           request={current}
-          role={role}
           departmentName={departmentName(current.departmentId)}
           residentName={residentName}
           onChanged={changed}
+          onEdit={() => setEditing(current)}
           {...titles}
         />
       )}
@@ -119,12 +120,18 @@ export function ProcurementRequestsPage({ role }) {
           )
         }
       />
-      {creating && (
+      {(creating || editing) && (
         <CreateProcurementSheet
+          key={editing?.id ?? 'new'}
           departments={departments}
-          onClose={() => setCreating(false)}
+          editing={editing}
+          onClose={() => {
+            setCreating(false)
+            setEditing(null)
+          }}
           onDone={(message) => {
             setCreating(false)
+            setEditing(null)
             changed(message)
           }}
         />

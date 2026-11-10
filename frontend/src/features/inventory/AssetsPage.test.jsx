@@ -5,7 +5,7 @@ import { PermissionsProvider } from '@/common/permissions/permissions'
 import { AssetsPage } from './AssetsPage'
 
 // 019 T018 màn web (US4; FR-011 → FR-016; bố cục duyệt 2026-11-09 mục (8)): bảng tài sản lọc theo trạng thái kèm số
-// đếm, dấu quá hạn; khung chi tiết có lệnh theo trạng thái và quyền (api-019 chưa có allowedCommands); ghi tăng bằng
+// đếm, dấu quá hạn; khung chi tiết có nút theo allowedCommands của backend và lịch sử (GET /assets/{id}, api-019 bổ sung 2026-11-10); ghi tăng bằng
 // Sheet; tài sản giường chỉ có lệnh của giường (Q-238, Q-242).
 
 let api
@@ -20,6 +20,8 @@ const WHEELCHAIR = {
   location: 'Kho tài sản',
   bedId: null,
   flags: [],
+  version: 4,
+  allowedCommands: ['update', 'put-into-use', 'relocate', 'report-damage', 'start-maintenance', 'request-disposal'],
 }
 const VAN = {
   id: 12,
@@ -31,6 +33,7 @@ const VAN = {
   location: 'Bãi xe',
   bedId: null,
   flags: ['VEHICLE_INSPECTION_OVERDUE'],
+  allowedCommands: ['relocate', 'report-damage', 'start-maintenance', 'request-disposal'],
 }
 const BED = {
   id: 13,
@@ -42,8 +45,16 @@ const BED = {
   location: 'Phòng 203',
   bedId: 7,
   flags: ['AWAITING_RESIDENT_TRANSFER'],
+  allowedCommands: ['remove-transfer-flag', 'start-maintenance'],
 }
-const MAINTENANCE = { ...WHEELCHAIR, id: 14, code: 'TS-0014', name: 'Máy hút đờm', status: 'UNDER_MAINTENANCE' }
+const MAINTENANCE = {
+  ...WHEELCHAIR,
+  id: 14,
+  code: 'TS-0014',
+  name: 'Máy hút đờm',
+  status: 'UNDER_MAINTENANCE',
+  allowedCommands: ['record-maintenance-result', 'relocate', 'request-disposal'],
+}
 
 const TYPES = [
   { id: 1, code: 'VEHICLE', name: 'Xe', status: 'ACTIVE' },
@@ -147,7 +158,14 @@ describe('Tài sản', () => {
 
   it('FR_015_giuongCoNguoi_baoHongCanMucAnhHuong_goDauCanNoiDungSuaKhiMatAnToan', async () => {
     permissions(LEAD)
-    const goodBed = { ...BED, id: 15, code: 'BED-8', status: 'READY', flags: [] }
+    const goodBed = {
+      ...BED,
+      id: 15,
+      code: 'BED-8',
+      status: 'READY',
+      flags: [],
+      allowedCommands: ['report-damage', 'start-maintenance', 'link-bed-preparation-damage'],
+    }
     api.on('GET', '/assets', json(200, [goodBed, BED]))
     const table = await renderPage('FLOOR_MANAGER')
     api.on(
@@ -264,5 +282,48 @@ describe('Tài sản', () => {
       </PermissionsProvider>,
     )
     expect(await screen.findByText(/không có quyền/i)).toBeInTheDocument()
+  })
+
+  it('FR_012_khungChiTiet_lichSuViTriBaoTri_nutTheoAllowedCommands', async () => {
+    permissions(VIEW)
+    api.on('GET', '/assets', json(200, [{ ...WHEELCHAIR, allowedCommands: [] }]))
+    api.on(
+      'GET',
+      '/assets/11',
+      json(200, {
+        ...WHEELCHAIR,
+        allowedCommands: [],
+        locations: [
+          { type: 'ASSET_STORAGE', from: '2026-10-01T01:00:00Z', to: '2026-10-05T01:00:00Z', command: 'CREATE' },
+          { type: 'FLOOR', id: 5, from: '2026-10-05T01:00:00Z', command: 'PUT_INTO_USE' },
+        ],
+        departmentTransfers: [],
+        maintenances: [
+          {
+            id: 81,
+            kind: 'MAINTENANCE',
+            result: 'PASS',
+            date: '2026-11-02',
+            content: 'Thay bánh xe',
+            performedBy: 'Tổ kỹ thuật',
+            corrected: true,
+            voided: false,
+          },
+        ],
+        damages: [],
+      }),
+    )
+    const table = await renderPage('OFFICE_STAFF')
+    const panel = await openAsset(table, 'TS-0011')
+    // Không có lệnh được phép: không có nút lệnh nào
+    expect(within(panel).queryByRole('button', { name: 'Báo hỏng…' })).not.toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Đưa vào sử dụng…' })).not.toBeInTheDocument()
+    const history = await within(panel).findByRole('region', { name: 'Lịch sử vị trí' })
+    expect(within(history).getByText('Kho tài sản')).toBeInTheDocument()
+    expect(within(history).getByText('Tầng 2')).toBeInTheDocument()
+    const maintenance = within(panel).getByRole('region', { name: 'Bảo trì, kiểm định' })
+    expect(within(maintenance).getByText('Bảo trì, Đạt, 02/11/2026')).toBeInTheDocument()
+    expect(within(maintenance).getByText('Thay bánh xe, Tổ kỹ thuật')).toBeInTheDocument()
+    expect(within(maintenance).getByText('Đã đính chính')).toBeInTheDocument()
   })
 })
