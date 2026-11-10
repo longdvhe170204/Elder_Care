@@ -88,6 +88,10 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
         assertThat(relationships.familyMemberName(r)).contains("Nguyễn Văn R");
         assertThat(relationships.isActiveRepresentative(r, resident, now)).isTrue();
         assertThat(relationships.isActiveRepresentative(r, other, now)).isFalse();
+        assertThat(representatives.activeRepresentative(resident))
+                .as("017 FR-034")
+                .contains(r);
+        assertThat(representatives.activeRepresentative(other)).isEmpty();
         assertThat(relationships.rightEnabled(r, resident, FamilyRight.VIEW_COSTS, now))
                 .isTrue();
         assertThat(relationships.rightEnabled(r, resident, FamilyRight.VIEW_HEALTH, now))

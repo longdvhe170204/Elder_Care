@@ -25,6 +25,7 @@ import com.eldercare.backend.billing.api.dto.BalanceDocumentType;
 import com.eldercare.backend.billing.api.events.BalanceDocumentIssued;
 import com.eldercare.backend.billing.balance.internal.document.domain.CostTypeLabels;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.TypeTotal;
+import com.eldercare.backend.billing.balance.internal.document.service.RepresentativeNames;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceTypes;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.LedgerState;
 import com.eldercare.backend.billing.balance.internal.ledger.persistence.BalanceTransactionStore;
@@ -133,6 +134,7 @@ public class SettlementService {
     private final ApplicationEventPublisher events;
     private final CurrentUser user;
     private final BusinessTime time;
+    private final RepresentativeNames representativeNames;
 
     SettlementService(
             LedgerPosting posting,
@@ -152,7 +154,9 @@ public class SettlementService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             CurrentUser user,
-            BusinessTime time) {
+            BusinessTime time,
+            RepresentativeNames representativeNames) {
+        this.representativeNames = representativeNames;
         this.posting = posting;
         this.ledgers = ledgers;
         this.transactions = transactions;
@@ -389,8 +393,7 @@ public class SettlementService {
                 now,
                 by,
                 residents.identity(residentId).fullName(),
-                // chưa có cổng đọc người đại diện hiện tại (team-plan mục 8); bộ dựng bỏ dòng khi rỗng
-                null,
+                representativeNames.of(residentId),
                 info == null ? null : stayType(info.residenceType()),
                 contractCode,
                 info == null ? null : info.startDate(),

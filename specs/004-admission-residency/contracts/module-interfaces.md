@@ -172,6 +172,7 @@ record DayCareAbsenceNoticeView(long noticeId, Long sessionId, Instant familyNot
 interface NguoiDaiDienPort {          // 012 cài
   boolean laNguoiDaiDienHieuLuc(long nguoiThanId, long nctId, LocalDate ngay);   // DBR-02, FR-021, FR-039
   boolean coNguoiDaiDien(long nctId);                                            // lập hợp đồng
+  Optional<Long> nguoiDaiDienHieuLuc(long nctId);  // bổ sung 2026-11-10 (chủ dự án duyệt): mã người thân đại diện hiện tại, họ tên qua FamilyRelationshipApi.familyMemberName; 017 FR-034, BR-M11-22
 }
 interface BanGhiDonPort {             // 012 cài
   Optional<BanGhiDonView> banGhiDonHopLe(long nctId, long nguoiDonId, Instant thoiDiem); // FR-048; 012 FR-021, FR-024, FR-026
