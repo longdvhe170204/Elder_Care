@@ -434,6 +434,15 @@ paths:
 
   # ---------------- Thay đổi lưu trú ----------------
   /residency-change-requests:
+    get:
+      tags: [change-requests]
+      summary: Danh sách yêu cầu thay đổi lưu trú
+      description: 'Bổ sung 2026-11-10 ("Đổi api" 004, A duyệt 2026-11-07): lọc theo hợp đồng và trạng thái của yêu cầu phê duyệt, mới nhất trước; yêu cầu người dùng không xem được bị bỏ qua (api-000 FR-042).'
+      x-fr: [FR-038]
+      parameters:
+        - { name: contractId, in: query, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, schema: { type: array, items: { type: string } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidencyChangeRequest' } } } } } }
     post:
       tags: [change-requests]
       summary: Lập yêu cầu thay đổi lưu trú ở Nháp
@@ -571,6 +580,15 @@ paths:
 
   # ---------------- Kết thúc ----------------
   /residency-endings:
+    get:
+      tags: [residency-ending]
+      summary: Danh sách hồ sơ kết thúc lưu trú
+      description: 'Bổ sung 2026-11-10 ("Đổi api" 004, A duyệt 2026-11-07): lọc theo người cao tuổi và trạng thái, mã giảm dần.'
+      x-fr: [FR-062, FR-067]
+      parameters:
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, schema: { type: array, items: { type: string, enum: [PREPARING, COMPLETED, CANCELLED] } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidencyEnding' } } } } } }
     post:
       tags: [residency-ending]
       summary: Lập hồ sơ kết thúc lưu trú (Hành chính; Bác sĩ với Xuất viện, Chuyển cơ sở vì lý do y tế)

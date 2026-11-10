@@ -40,6 +40,7 @@ import com.eldercare.backend.incident.internal.incident.service.IncidentProgress
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.time.Instant;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -226,7 +227,10 @@ public class EmergencyCallService {
             room = location.map(l -> l.roomName()).orElse(null);
             resident = new Call115Info.Resident(
                     residents.map(api -> api.identity(id).fullName()).orElse(null),
-                    null,
+                    residents
+                            .flatMap(api -> api.dateOfBirth(id))
+                            .map(born -> Period.between(born, time.today()).getYears())
+                            .orElse(null),
                     residents.flatMap(api -> api.gender(id)).map(Enum::name).orElse(null));
             if (visibility.canView(user, InfoGroup.HEALTH, subject.target()) == Visibility.FULL) {
                 var card = cards.build(id, time.now());

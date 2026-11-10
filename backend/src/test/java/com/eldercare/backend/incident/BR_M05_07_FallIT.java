@@ -1,6 +1,7 @@
 package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.incident.api.events.FallIncidentRecorded;
@@ -48,6 +49,8 @@ class BR_M05_07_FallIT extends EmergencyTestBase {
         assertThat(events.stream(PostFallFollowUpRequested.class).toList()).hasSize(1);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_task WHERE resident_id = ?", Integer.class, resident))
                 .isZero();
+        // ngã báo đánh giá lại qua ReassessmentApi (001 FR-024, 007 FR-043); 001 tự bỏ lần gọi lại cùng sự cố
+        verify(reassessments).notifyAfterIncident(resident, incident);
     }
 
     /** Ghi sự cố Ngã mức mặc định Khẩn cấp qua HTTP; trả mã sự cố vừa tạo. */

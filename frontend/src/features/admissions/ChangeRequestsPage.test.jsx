@@ -6,12 +6,11 @@ import { ChangeRequestsPage } from './ChangeRequestsPage'
 
 // 004 T047 (US5; FR-037 → FR-047): lập yêu cầu thay đổi lưu trú ở Nháp (loại thay đổi, giá trị mới, ngày hiệu lực mong muốn,
 // lý do), xem giá trị trước và ảnh hưởng chi phí, sửa Nháp kèm If-Match. Gửi duyệt, duyệt, từ chối dùng màn Yêu cầu phê duyệt
-// (api-000). Hợp đồng chưa có danh sách yêu cầu nên mở theo mã yêu cầu.
+// (api-000). Bảng yêu cầu lọc theo trạng thái (GET /residency-change-requests), chọn dòng để mở; mã yêu cầu là approvalRequestId.
 
 let api
 
 const REQUEST = {
-  id: 12,
   contractId: 31,
   changeTypes: ['CARE_LEVEL'],
   newValue: { careLevel: 'SPECIAL' },
@@ -20,7 +19,7 @@ const REQUEST = {
   reason: 'Sau đợt đánh giá mới',
   costImpact: [{ item: 'Chăm sóc', previousUnitPrice: 5000000, newUnitPrice: 8000000 }],
   minorChange: false,
-  approvalRequestId: 90,
+  approvalRequestId: 12,
   status: 'DRAFT',
   requestedBy: 'Hoàng Thu Hà',
 }
@@ -34,8 +33,7 @@ function renderPage() {
 }
 
 async function openRequest() {
-  fireEvent.change(await screen.findByLabelText('Mã yêu cầu'), { target: { value: '12' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Mở yêu cầu' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Yêu cầu mã 12' }))
   await screen.findByText('Sau đợt đánh giá mới')
 }
 
@@ -49,6 +47,7 @@ beforeEach(() => {
       ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'RESIDENCY_CHANGE_REQUEST', operation })),
     ),
   )
+  api.on('GET', '/residency-change-requests', json(200, [REQUEST]))
   api.on('GET', '/residency-change-requests/12', json(200, REQUEST, { ETag: '"2"' }))
   api.on(
     'GET',
@@ -73,7 +72,8 @@ describe('ChangeRequestsPage', () => {
     renderPage()
     await openRequest()
 
-    expect(screen.getByText('Mức chăm sóc')).toBeInTheDocument()
+    // một ở cột "Thay đổi" của bảng, một ở chi tiết
+    expect(screen.getAllByText('Mức chăm sóc')).toHaveLength(2)
     expect(screen.getByText(/Thường xuyên/)).toBeInTheDocument()
     expect(screen.getByText(/Đặc biệt/)).toBeInTheDocument()
     expect(screen.getByText(/5\.000\.000/)).toBeInTheDocument()

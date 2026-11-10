@@ -2,6 +2,7 @@ package com.eldercare.backend.admission.web;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.admission.internal.absence.service.AbsenceNames;
+import com.eldercare.backend.admission.internal.ending.domain.EndingStatus;
 import com.eldercare.backend.admission.internal.ending.service.EndingConditionService;
 import com.eldercare.backend.admission.internal.ending.service.ResidencyEndingService;
 import com.eldercare.backend.admission.internal.ending.service.ResidencyEndingService.HandoverInput;
@@ -21,6 +22,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -84,6 +88,15 @@ class ResidencyEndingController {
                         body.requestedBy()),
                 body.reason());
         return ResponseEntity.status(HttpStatus.CREATED).body(ResidencyEndingBody.of(ending, names));
+    }
+
+    @GetMapping("/residency-endings")
+    List<ResidencyEndingBody> list(
+            @RequestParam(name = "residentId", required = false) Long residentId,
+            @RequestParam(name = "status", required = false) Set<EndingStatus> status) {
+        return endings.list(Target.UNSPECIFIED, residentId, status).stream()
+                .map(detail -> ResidencyEndingBody.of(detail, names))
+                .toList();
     }
 
     @GetMapping("/residency-endings/{id}")

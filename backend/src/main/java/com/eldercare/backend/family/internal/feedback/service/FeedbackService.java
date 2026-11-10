@@ -21,6 +21,7 @@ import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
 import com.eldercare.backend.administration.shared.api.dto.RecordEvent;
+import com.eldercare.backend.care.api.FeedbackPreferenceCommandApi;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
@@ -51,6 +52,7 @@ import com.eldercare.backend.family.internal.feedback.domain.FeedbackOpinion;
 import com.eldercare.backend.family.internal.feedback.persistence.FeedbackStore;
 import com.eldercare.backend.family.internal.relationship.service.RelationshipQueries;
 import com.eldercare.backend.family.internal.right.service.VisitPickupWishService;
+import com.eldercare.backend.resident.api.dto.OpinionSource;
 import com.eldercare.backend.resident.api.dto.OpinionSourceType;
 import com.eldercare.backend.resident.api.events.OpinionRecordedFromFeedback;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
@@ -119,7 +121,11 @@ public class FeedbackService {
             Priority priority,
             Type newType,
             Long opinionItemId,
+            Interest interest,
             List<Long> fileIds) {}
+
+    /** Mục sở thích mới ghi ở 014 từ phản hồi Mong muốn ({@code link-opinion} loại INTEREST, A duyệt 2026-11-10). */
+    public record Interest(Long interestGroupId, String level, String description, boolean confirmReplacement) {}
 
     /** Một mục cho người xem: loại, nội dung, người ghi, thời điểm. */
     public record ItemView(long id, FeedbackItem.Type type, String content, List<Long> fileIds, Long by, Instant at) {}
@@ -162,6 +168,7 @@ public class FeedbackService {
     private final ObjectProvider<CurrentUser> currentUser;
     private final ApplicationEventPublisher events;
     private final VisitPickupWishService wishes;
+    private final FeedbackPreferenceCommandApi preferences;
 
     FeedbackService(
             FeedbackStore store,
@@ -179,7 +186,8 @@ public class FeedbackService {
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
             ApplicationEventPublisher events,
-            VisitPickupWishService wishes) {
+            VisitPickupWishService wishes,
+            FeedbackPreferenceCommandApi preferences) {
         this.store = store;
         this.recordEvents = recordEvents;
         this.rules = rules;
@@ -196,6 +204,7 @@ public class FeedbackService {
         this.currentUser = currentUser;
         this.events = events;
         this.wishes = wishes;
+        this.preferences = preferences;
     }
 
     /** Gửi (FR-058, FR-059, FR-061, FR-062): Mới, đặt người phụ trách, mức, hạn; báo người phụ trách. */
@@ -447,6 +456,21 @@ public class FeedbackService {
         Feedback current = lockAsAssignee(user, id);
         requireStatus(current, Status.NEW, Status.IN_PROGRESS, Status.REOPENED);
         requireWish(current);
+        if (body.interest() != null) {
+            // 014 ghi mục sở thích nguồn người cao tuổi kèm mã phản hồi và phát OpinionRecordedFromFeedback cùng
+            // transaction;
+            // onOpinionRecorded gắn mục vào phản hồi (FR-023g của 001, Q-363)
+            Interest i = body.interest();
+            preferences.recordFromFeedback(
+                    current.residentId(),
+                    current.id(),
+                    i.interestGroupId(),
+                    i.description(),
+                    i.level(),
+                    new OpinionSource(OpinionSourceType.RESIDENT, null),
+                    i.confirmReplacement());
+            return view(current, user, true, time.now());
+        }
         if (body.opinionItemId() == null) {
             throw new InvalidValueException("Chọn mục mong muốn cần gắn (opinion.itemId)");
         }

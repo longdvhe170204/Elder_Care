@@ -1,6 +1,7 @@
 package com.eldercare.backend.administration.shared;
 
 import static com.eldercare.backend.administration.shared.SharedTestKinds.OTHER_MODULE_STATE;
+import static com.eldercare.backend.administration.shared.SharedTestKinds.OWN_ROW_STATE;
 import static com.eldercare.backend.administration.shared.SharedTestKinds.STATE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,5 +35,24 @@ public interface ResidentModuleStateApiContract {
 
         assertThat(tx(() -> states().get(STATE, resident))).contains(new Attributes("xanh", 2));
         assertThat(tx(() -> states().get(OTHER_MODULE_STATE, resident))).isEmpty();
+    }
+
+    /** Dòng riêng theo mã loại (014 FR-051, quyết định 09/11 (6)): không đè dòng chung của module, dòng chung không đè nó. */
+    @Test
+    default void ownRow_isKeyedByKindCode_besideTheModuleRow() {
+        long resident = TestUsers.nextId();
+        tx(() -> {
+            states().save(STATE, resident, new Attributes("chung", 1));
+            states().saveOwnRow(OWN_ROW_STATE, resident, new Attributes("riêng", 2));
+            return null;
+        });
+        tx(() -> {
+            assertThat(states().lockOwnRowForUpdate(OWN_ROW_STATE, resident)).contains(new Attributes("riêng", 2));
+            states().saveOwnRow(OWN_ROW_STATE, resident, new Attributes("riêng", 3));
+            return null;
+        });
+
+        assertThat(tx(() -> states().getOwnRow(OWN_ROW_STATE, resident))).contains(new Attributes("riêng", 3));
+        assertThat(tx(() -> states().get(STATE, resident))).contains(new Attributes("chung", 1));
     }
 }

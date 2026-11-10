@@ -18,6 +18,7 @@ NhanDangView nhanDang(long nctId);                      // họ tên, ảnh, mã
 Optional<Instant> thoiDiemTrangThaiCuoi(long nctId);    // 002 job khóa tài khoản người thân (CFG-M01-04), lưu giữ
 boolean laTrangThaiCuoi(long nctId);
 Optional<GioiTinh> gioiTinh(long nctId);                // 003 (BR-M03-01)
+Optional<LocalDate> ngaySinh(long nctId);               // 007: tuổi khi gọi 115 (FR-047k), thẻ khẩn cấp (FR-048); bổ sung 2026-11-10, Đổi api A duyệt (`ResidentApi.dateOfBirth`)
 List<Long> theoTrangThai(Set<TrangThaiNct> tt);         // job của module khác
 ```
 
@@ -82,6 +83,7 @@ Dùng bởi 003 (phòng – mức), 004 (hợp đồng, BR-M02-22), 008 (tỷ l�
 Map<Long, Optional<String>> luuYHienHanh(Collection<Long> nctIds);  // 005, 007: thẻ người cao tuổi, thẻ khẩn cấp (FR-038)
 Optional<DanhGiaTomTat> xacNhanGanNhat(long nctId);                 // 004 FR-004 (a)
 Map<Long, TrangThaiDanhGiaLai> trangThai(Collection<Long> nctIds);  // CAN | QUA_HAN (kèm thời điểm) | KHONG; 016 FR-044
+boolean baoSauSuCo(long nctId, long suCoId);                       // 007 gọi khi sự cố cần đánh giá lại (FR-024; research H-11), cùng transaction; gọi lại cùng sự cố không báo thêm; bổ sung 2026-11-10 (`ReassessmentApi.notifyAfterIncident`, A duyệt 2026-11-05)
 ```
 
 ### 1.6. `MucSucKhoeApi`, `HoSoSucKhoeApi`, `DiNguyenApi`

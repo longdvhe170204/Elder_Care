@@ -272,6 +272,10 @@ record SimpleRecord<T>(long id, Long residentId, EntityRef parent, String status
 <T> Optional<T> get(SharedKind<T> kind, long residentId);
 <T> Optional<T> lockForUpdate(SharedKind<T> kind, long residentId);              // SELECT … FOR UPDATE
 <T> void save(SharedKind<T> kind, long residentId, T data);                       // thêm hoặc thay, sau lockForUpdate
+// Bổ sung 2026-11-10 (014 M04.HOAT_DONG_NCT, quyết định 09/11 (6)): dòng riêng khóa (resident_id, kind.code()), không đụng dòng chung của module; cột module nới VARCHAR(40) (V000_18)
+<T> Optional<T> getOwnRow(SharedKind<T> kind, long residentId);
+<T> Optional<T> lockOwnRowForUpdate(SharedKind<T> kind, long residentId);
+<T> void saveOwnRow(SharedKind<T> kind, long residentId, T data);
 ```
 
 `common.data.ReminderMarkers`, `common.data.TechnicalLocks` (`reminder_marker`, `technical_lock`):
