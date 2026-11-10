@@ -1,5 +1,6 @@
 package com.eldercare.backend.staffing.internal.swap.service;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -15,6 +16,7 @@ import com.eldercare.backend.staffing.internal.swap.domain.SwapStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
@@ -54,6 +56,16 @@ class LeaveHandler implements RequestTypeHandler {
     @Override
     public PermissionKey createPermission() {
         return new PermissionKey(Function.SHIFT_SWAP_REQUEST, Operation.CREATE);
+    }
+
+    /**
+     * FR-026 (015 T033): nhân viên lập yêu cầu nghỉ cho chính mình không cần phân công hiện tại; lập thay (Trưởng tầng)
+     * vẫn kiểm quyền theo phạm vi.
+     */
+    @Override
+    public Optional<Boolean> creatorInOwnScope(CurrentUser user, JsonNode content) {
+        long target = content.path("staffId").asLong();
+        return user.staffId().filter(id -> id == target).map(id -> true);
     }
 
     @Override

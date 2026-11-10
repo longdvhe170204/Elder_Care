@@ -126,10 +126,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         RequestTypeHandler handler = directory.handler(command.type());
         handler.validateContent(command.content());
         Target target = handler.scope(command.content());
-        if (!permissions
-                .getObject()
-                .hasPermission(user, handler.createPermission(), target)
-                .allowed()) {
+        if (!mayCreate(user, handler, command.content(), target)) {
             throw new PermissionDeniedException("Không có quyền lập loại yêu cầu " + command.type());
         }
         Instant now = time.now();
@@ -507,13 +504,23 @@ public class ApprovalRequestService implements ApprovalRequestApi {
 
     // ---- Phần chung ---------------------------------------------------------------------------------------------
 
+    /**
+     * Quyền lập theo phạm vi; loại tự kiểm phạm vi người lập ({@link RequestTypeHandler#creatorInOwnScope}; 015 FR-019,
+     * FR-026) thì chỉ cần giữ khóa quyền tạo.
+     */
+    private boolean mayCreate(CurrentUser user, RequestTypeHandler handler, JsonNode content, Target target) {
+        PermissionApi permission = permissions.getObject();
+        return handler.creatorInOwnScope(user, content)
+                .map(own -> own && permission.permissions(user).contains(handler.createPermission()))
+                .orElseGet(() -> permission
+                        .hasPermission(user, handler.createPermission(), target)
+                        .allowed());
+    }
+
     private ApprovalRequestView submitLocked(
             CurrentUser user, ApprovalRequestView request, RequestTypeHandler handler) {
         // FR-034a: người yêu cầu mất quyền tạo thì Nháp không gửi duyệt được nữa
-        if (!permissions
-                .getObject()
-                .hasPermission(user, handler.createPermission(), request.target())
-                .allowed()) {
+        if (!mayCreate(user, handler, request.content(), request.target())) {
             throw new PermissionDeniedException("Không còn quyền lập loại yêu cầu " + request.type());
         }
         Instant now = time.now();
