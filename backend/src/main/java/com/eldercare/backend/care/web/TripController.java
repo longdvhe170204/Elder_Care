@@ -14,12 +14,15 @@ public class TripController {
     private final TripDepartureService departure;
     private final TripReturnService returns;
     private final TripMissingService missing;
+    private final com.eldercare.backend.care.internal.trip.service.TripParticipantInfo participantInfo;
 
     public TripController(
             TripPreparationService preparation,
             TripDepartureService departure,
             TripReturnService returns,
-            TripMissingService missing) {
+            TripMissingService missing,
+            com.eldercare.backend.care.internal.trip.service.TripParticipantInfo participantInfo) {
+        this.participantInfo = participantInfo;
         this.preparation = preparation;
         this.departure = departure;
         this.returns = returns;
@@ -29,8 +32,8 @@ public class TripController {
     @GetMapping("/{id}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
     public com.eldercare.backend.care.web.response.TripDetailResponse detail(@PathVariable long id) {
-        return com.eldercare.backend.care.web.response.TripDetailResponse.of(
-                preparation.detail(preparation.target(id), id));
+        var detail = preparation.detail(preparation.target(id), id);
+        return com.eldercare.backend.care.web.response.TripDetailResponse.of(detail, participantInfo.of(detail));
     }
 
     @PostMapping("/{id}/assignment")
