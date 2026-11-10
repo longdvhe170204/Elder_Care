@@ -11,18 +11,6 @@
 # api-005 (C)
 
 # api-006 (D)
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/administer phản hồi 409 application/problem+json thiếu trường closedAt
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/administer phản hồi 409 application/problem+json thiếu trường closedBy
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/administer phản hồi 409 application/problem+json thiếu trường rejectedContent
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/administer phản hồi 409 application/problem+json.status đổi kiểu [string] → [integer]
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/refuse phản hồi 409 application/problem+json thiếu trường closedAt
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/refuse phản hồi 409 application/problem+json thiếu trường closedBy
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/refuse phản hồi 409 application/problem+json thiếu trường rejectedContent
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/refuse phản hồi 409 application/problem+json.status đổi kiểu [string] → [integer]
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json thiếu trường closedAt
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json thiếu trường closedBy
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json thiếu trường rejectedContent
-api-006.yaml: POST /api/v1/medication-doses/{doseKey}/skip phản hồi 409 application/problem+json.status đổi kiểu [string] → [integer]
 
 # api-007 (D)
 

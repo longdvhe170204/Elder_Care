@@ -550,7 +550,7 @@ components:
       content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { issues: { type: array, items: { $ref: '#/components/schemas/Issue' } } } } ] } } }
     DoseAlreadyClosed:
       description: 'DOSE_ALREADY_CLOSED (DBR-13): kèm người đóng, thời điểm và nội dung bị từ chối để chuyển thành đính chính'
-      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { closedBy: { type: string }, closedAt: { type: string, format: date-time }, status: { $ref: '#/components/schemas/DoseStatus' }, rejectedContent: { $ref: '#/components/schemas/DoseResult' } } } ] } } }
+      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { closedBy: { type: string }, closedAt: { type: string, format: date-time }, currentStatus: { $ref: '#/components/schemas/DoseStatus' }, rejectedContent: { $ref: '#/components/schemas/DoseResult' } } } ] } } }
     PrnProblem:
       description: 'PRN_LIMIT_EXCEEDED (BR-M07-04): kèm earliestAllowedAt và điều kiện vi phạm'
       content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { earliestAllowedAt: { type: string, format: date-time }, violations: { type: array, items: { type: string, enum: [MIN_INTERVAL, MAX_PER_24H] } } } } ] } } }
