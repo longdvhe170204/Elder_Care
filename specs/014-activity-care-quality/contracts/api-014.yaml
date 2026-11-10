@@ -326,6 +326,19 @@ components:
               residentId: { type: integer, format: int64 }
               status: { type: string, enum: [REGISTERED, ELIGIBLE, NOT_GOING, DEPARTED, RETURNED, LEFT_GROUP, MISSING_ON_RETURN] }
               reason: { type: [string, 'null'] }
+              info: { $ref: '#/components/schemas/TripParticipantInfo' }
+    TripParticipantInfo:
+      type: object
+      description: 'Sáu phần của người tham gia (FR-036, FR-038, FR-039; trip-detail-proposal-2026-11-08.md, chủ dự án duyệt 2026-11-10). Mỗi phần có availability: AVAILABLE có dữ liệu, NO_DATA nguồn không có dữ liệu, SOURCE_UNAVAILABLE nguồn chưa kết nối hoặc lỗi, NOT_PERMITTED người xem không có quyền (nhóm sức khỏe); chỉ AVAILABLE kèm dữ liệu'
+      properties:
+        medicationDoses: { type: object, properties: { availability: { $ref: '#/components/schemas/TripAvailability' }, items: { type: array, items: { type: object, properties: { doseKey: { type: string }, prescriptionId: { type: integer, format: int64 }, medicationName: { type: string }, strength: { type: string }, scheduledTime: { type: string, format: date-time }, status: { type: string } } } } } }
+        carriedMedication: { type: object, properties: { availability: { $ref: '#/components/schemas/TripAvailability' }, handedAt: { type: string, format: date-time }, recipientName: { type: string }, items: { type: array, items: { type: object, properties: { medicationName: { type: string }, strength: { type: string }, quantity: { type: number }, unit: { type: string } } } }, notCarriedReason: { type: string, description: 'Quyết định không mang thuốc' } } }
+        health: { type: object, properties: { availability: { $ref: '#/components/schemas/TripAvailability' }, suspectedInfection: { type: boolean }, openAlerts: { type: array, items: { $ref: '#/components/schemas/TripOpenEvent' } }, openIncidents: { type: array, items: { $ref: '#/components/schemas/TripOpenEvent' } } } }
+        careNotes: { type: object, properties: { availability: { $ref: '#/components/schemas/TripAvailability' }, text: { type: string } } }
+        primaryContact: { type: object, properties: { availability: { $ref: '#/components/schemas/TripAvailability' }, fullName: { type: string }, phoneNumber: { type: string, description: 'Chỉ Trưởng tầng và trưởng đoàn (FR-039)' } } }
+        emergencyCard: { type: object, properties: { availability: { $ref: '#/components/schemas/TripAvailability' }, identificationOnly: { type: boolean, description: 'Người xem không xem đủ nhóm sức khỏe chỉ thấy nhận dạng (007 FR-048)' }, fullName: { type: string }, dateOfBirth: { type: string, format: date }, roomBed: { type: string }, endOfLifeWish: { type: string, description: 'Lựa chọn hiện hành hoặc NOT_RECORDED' }, criticalFlag: { type: boolean }, allergies: { type: array, items: { type: string } }, currentMedications: { type: array, items: { type: string } }, chronicConditions: { type: array, items: { type: string } }, unavailable: { type: array, items: { type: string } }, snapshotAt: { type: string, format: date-time } } }
+    TripAvailability: { type: string, enum: [AVAILABLE, NO_DATA, SOURCE_UNAVAILABLE, NOT_PERMITTED] }
+    TripOpenEvent: { type: object, properties: { id: { type: integer, format: int64 }, type: { type: string }, level: { type: string }, status: { type: string } } }
     OpinionSource:
       type: object
       description: Như api-001.yaml OpinionSource (001 FR-023g); bổ sung 2026-10-18, Q-363
