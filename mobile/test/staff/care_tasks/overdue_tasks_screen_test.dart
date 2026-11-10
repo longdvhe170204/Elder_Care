@@ -17,12 +17,20 @@ void main() {
             load: (account, floor) async => [
               {
                 'id': 7,
-                'residentCard': {'fullName': '[Người kiểm thử]'},
+                'residentCard': {
+                  'fullName': '[Người kiểm thử]',
+                  'roomBed': 'Phòng A · Giường 1',
+                  'careNotes': 'Ngồi thẳng',
+                },
                 'taskType': 'Hỗ trợ uống nước',
                 'plannedAt': '2026-11-02T03:00:00Z',
                 'status': 'OVERDUE',
                 'importance': 'IMPORTANT',
                 'reminderCount': 2,
+                'windowFrom': '2026-11-02T02:45:00Z',
+                'windowTo': '2026-11-02T03:15:00Z',
+                'basis': {'type': 'CARE_PLAN_ITEM', 'id': 8},
+                'carryover': 'AWAITING_CONFIRMATION',
               },
             ],
           ),
@@ -33,6 +41,10 @@ void main() {
     expect(find.text('Hỗ trợ uống nước'), findsOneWidget);
     expect(find.text('[Người kiểm thử]'), findsOneWidget);
     expect(find.text('Đã nhắc và báo: 2'), findsOneWidget);
+    expect(find.text('Phòng A · Giường 1'), findsOneWidget);
+    expect(find.text('Khung giờ: 09:45–10:15'), findsOneWidget);
+    expect(find.text('Nguồn: Kế hoạch chăm sóc'), findsOneWidget);
+    expect(find.text('Tồn, chờ xác nhận bàn giao'), findsOneWidget);
     expect(find.text('Ghi nhận hoàn thành'), findsNothing);
   });
 

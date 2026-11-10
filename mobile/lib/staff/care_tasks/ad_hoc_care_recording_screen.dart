@@ -78,7 +78,12 @@ class _AdHocCareRecordingScreenState extends State<AdHocCareRecordingScreen> {
                 decoration: const InputDecoration(labelText: 'Người cao tuổi'),
                 items: [
                   for (final r in residents!)
-                    DropdownMenuItem(value: r['id'] as int, child: Text(r['fullName'] as String? ?? '${r['id']}')),
+                    DropdownMenuItem(
+                      value: r['id'] as int,
+                      child: Text(
+                        (r['personalInfo'] as Map?)?['fullName'] as String? ?? 'Người cao tuổi · mã ${r['id']}',
+                      ),
+                    ),
                 ],
                 onChanged: (v) => setState(() {
                   resident = v;

@@ -164,19 +164,5 @@ api-013.yaml: POST /api/v1/belongings/returns request application/json.items[] �
 api-013.yaml: POST /api/v1/residents/{residentId}/belongings phản hồi 201 application/json.cashAmount đổi kiểu [integer] → [string]
 api-013.yaml: POST /api/v1/residents/{residentId}/belongings request application/json.cashAmount đổi kiểu [integer] → [string]
 
-# api-014 (C)
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thiếu trường id
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thiếu trường inspectorRole
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thiếu trường recordedAt
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thiếu trường status
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thiếu trường taskId
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường description
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường group
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường residentId
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường resolved
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường roomId
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường sourceId
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] thừa trường sourceType
-api-014.yaml: GET /api/v1/quality-checks/shifts/{shiftId} phản hồi 200 application/json.items[] đổi trường bắt buộc
 
 # api-019 (C)
