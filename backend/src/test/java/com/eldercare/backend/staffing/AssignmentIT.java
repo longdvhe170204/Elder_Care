@@ -269,6 +269,35 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         assertThat(assignments.activeAt(worker, time.now())).isEmpty();
     }
 
+    @Autowired
+    com.eldercare.backend.staffing.internal.assignment.service.AssignmentQueries queries;
+
+    @Autowired
+    com.eldercare.backend.administration.parameter.api.ParameterApi parameters;
+
+    /**
+     * 008 T056 (FR-060; api-008 {@code MyShift.scopeEndsAt}, duyệt 2026-11-08): hết phạm vi trong ca là kết thúc phân
+     * công cộng CFG-M15-07 (002 FR-032); kết thúc sớm thì là mốc kết thúc sớm; không có phân công trong ca thì rỗng.
+     */
+    @Test
+    void FR_060_scopeEndsAt_assignmentEndPlusMargin_earlyEndCutsIt_noAssignmentIsEmpty() {
+        published();
+        long id = create(usual());
+        var margin = parameters
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M15_07)
+                .asDuration();
+        assertThat(queries.scopeEndsAt(worker, shift)).contains(to.plus(margin));
+        assertThat(queries.scopeEndsAt(staff(Role.CAREGIVER), shift)).isEmpty();
+
+        clock.setTo(from.plusSeconds(60));
+        lifecycle.run(time.now(), time.now());
+        service.end(id, new Reason("Đổi nhân viên"), target());
+        var cut = jdbc.queryForObject(
+                        "SELECT actual_end_at FROM staff_assignment WHERE id=?", java.time.LocalDateTime.class, id)
+                .toInstant(ZoneOffset.UTC);
+        assertThat(queries.scopeEndsAt(worker, shift)).contains(cut);
+    }
+
     private boolean floorRace(long staff, CyclicBarrier barrier) throws Exception {
         barrier.await();
         try {

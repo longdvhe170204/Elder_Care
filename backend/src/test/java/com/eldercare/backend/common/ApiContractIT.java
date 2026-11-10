@@ -71,8 +71,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(),
-                    // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
-                    Set.of("GET /api/v1/me/shifts 200"),
+                    Set.of(),
                     true),
             // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù 202 xong 2026-11-08
             // (T034).

@@ -1,6 +1,8 @@
 package com.eldercare.backend.staffing.internal.assignment.service;
 
 import com.eldercare.backend.administration.account.api.spi.*;
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.staffing.internal.assignment.domain.*;
 import com.eldercare.backend.staffing.internal.assignment.domain.PrimaryAssigneeResolver.TargetRef;
@@ -18,11 +20,14 @@ public class AssignmentQueries implements AssignmentApi {
     private final AssignmentStore store;
     private final ShiftStore shifts;
     private final AssignmentSources sources;
+    private final ParameterApi parameters;
 
-    public AssignmentQueries(AssignmentStore store, ShiftStore shifts, AssignmentSources sources) {
+    public AssignmentQueries(
+            AssignmentStore store, ShiftStore shifts, AssignmentSources sources, ParameterApi parameters) {
         this.store = store;
         this.shifts = shifts;
         this.sources = sources;
+        this.parameters = parameters;
     }
 
     public List<AssignmentView> history(long staff, Instant from, Instant to) {
@@ -52,6 +57,20 @@ public class AssignmentQueries implements AssignmentApi {
                     period.shiftEndsAt(),
                     period.endsAt().isBefore(period.shiftEndsAt()) ? period.endsAt() : null));
         return List.copyOf(views);
+    }
+
+    /**
+     * Hết phạm vi của nhân viên trong ca (008 T056, FR-060; api-008 {@code MyShift.scopeEndsAt}): mốc muộn nhất trong các
+     * phân công của họ ở ca, phân công kết thúc sớm thì là mốc kết thúc sớm, còn lại là kết thúc phân công cộng
+     * CFG-M15-07 (002 FR-032); rỗng khi không có phân công trong ca.
+     */
+    public Optional<Instant> scopeEndsAt(long staff, long shiftId) {
+        var shift = shifts.shift(shiftId, false);
+        Duration margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
+        return history(staff, shift.startsAt(), shift.endsAt()).stream()
+                .filter(a -> Objects.equals(a.shiftId(), shiftId))
+                .map(a -> a.scopeEndsAt() != null ? a.scopeEndsAt() : a.to().plus(margin))
+                .max(Comparator.naturalOrder());
     }
 
     public List<AssignmentView> activeAt(long staff, Instant at) {
