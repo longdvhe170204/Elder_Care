@@ -115,7 +115,7 @@ public class CareResultService {
     private void open(CareTask task, Object rejected) {
         if (Set.of(TaskStatus.DUE, TaskStatus.OVERDUE).contains(task.status())) return;
         var properties = new LinkedHashMap<String, Object>();
-        properties.put("status", task.status());
+        properties.put("currentStatus", task.status());
         properties.put("rejectedContent", rejected);
         var closure = tasks.closure(task.id());
         if (closure.at() != null) properties.put("closedAt", closure.at());
