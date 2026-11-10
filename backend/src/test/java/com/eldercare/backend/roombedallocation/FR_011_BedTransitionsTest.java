@@ -52,6 +52,15 @@ class FR_011_BedTransitionsTest {
                         .isEqualTo(row.to()));
     }
 
+    @Test
+    void FR_011_undeclaredTransitionsAreRejected() {
+        TableRows.each(
+                rejected(),
+                row -> assertThatThrownBy(() -> BedTransitions.next(
+                                row.from(), row.hold(), row.event(), row.maintenance(), row.reserved()))
+                        .isInstanceOf(IllegalStateException.class));
+    }
+
     static Stream<Row> rejected() {
         var contexts = new ArrayList<BedStatus>(Arrays.asList(BedStatus.values()));
         contexts.add(null);

@@ -34,6 +34,16 @@ public class CareRetention implements RetentionProvider {
         return type.dataType();
     }
 
+    /** T064: task vị trí tính hạn riêng nhưng lịch sử, dấu nhắc ghi M04.TASK; đính chính, sự kiện ghi M04.CARE_RESULT. */
+    @Override
+    public String sharedRowEntityType() {
+        return switch (type) {
+            case LOCATION_TASK -> CareRetentionType.TASK.dataType();
+            case LOCATION_CARE_RESULT -> CareRetentionType.CARE_RESULT.dataType();
+            default -> type.dataType();
+        };
+    }
+
     @Override
     public RetentionKind retentionKind() {
         return type.profile() ? new RetentionKind.ResidentRecord() : new RetentionKind.NotResidentLinked();

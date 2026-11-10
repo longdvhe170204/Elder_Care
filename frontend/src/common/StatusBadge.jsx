@@ -59,6 +59,15 @@ const STATUS_TONE = {
   // Buổi hoạt động (014 T009; DESIGN.md 6.8.2): Đã lên lịch, Đã hủy giữ neutral
   'Đã điểm danh': 'settled',
   'Không điểm danh': 'attention',
+  // Yêu cầu mua sắm (019 T008; DESIGN.md 6.11.0): Nháp, Từ chối, Đã hủy giữ neutral; Đã duyệt dùng tông có sẵn
+  'Chờ đối chiếu': 'attention',
+  'Lệch': 'attention',
+  'Đã đối chiếu': 'settled',
+  // Tài sản (019 T018; DESIGN.md 6.12.0): Sẵn sàng, Đang bảo trì, Đã thanh lý giữ neutral; Đang sử dụng dùng tông có sẵn
+  'Hỏng': 'attention',
+  // Lịch xe (019 T022; DESIGN.md 6.13.0): Đã đặt, Đã hủy giữ neutral
+  'Đang dùng': 'occupied',
+  'Đã hoàn thành': 'settled',
 }
 
 function statusTone(status) {

@@ -22,6 +22,10 @@ public class FakeBedAssets implements BedAssetPort {
     @Override
     public void recordIncreaseForBed(long bedId) {}
 
+    /** Không có dữ liệu tài sản; vị trí tài sản kiểm ở test dùng {@code BedAssets} thật. */
+    @Override
+    public void relocateBedAsset(long bedId, long toRoomId) {}
+
     @Override
     public boolean awaitingResidentTransfer(long bedId) {
         return flagged.contains(bedId);

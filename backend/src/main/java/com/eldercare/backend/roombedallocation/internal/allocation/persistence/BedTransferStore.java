@@ -12,9 +12,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BedTransferStore {
     private final JdbcTemplate jdbc;
+    private final AllocationReminderMarkers reminders;
 
-    public BedTransferStore(JdbcTemplate jdbc) {
+    public BedTransferStore(JdbcTemplate jdbc, AllocationReminderMarkers reminders) {
         this.jdbc = jdbc;
+        this.reminders = reminders;
     }
 
     public boolean medicalSafety(long reasonId) {
@@ -59,6 +61,17 @@ public class BedTransferStore {
                 .orElse(null);
     }
 
+    /** Chỉ mục yêu cầu nhập bù chờ duyệt (FR-027 (b), CHK051); ghi cùng transaction lập yêu cầu. */
+    public void backfillRequested(long requestId, long residentId, long allocationId, long newBedId, Instant at) {
+        jdbc.update(
+                "INSERT INTO bed_backfill_request(approval_request_id,resident_id,current_allocation_id,new_bed_id,transfer_at) VALUES(?,?,?,?,?)",
+                requestId,
+                residentId,
+                allocationId,
+                newBedId,
+                Timestamp.from(at));
+    }
+
     public void transferred(long previous, long next, long reasonId, boolean awaitingRequest, Instant at) {
         jdbc.update(
                 "UPDATE bed_allocation SET previous_allocation_id=?,transfer_reason_id=?,awaiting_request=? WHERE id=?",
@@ -66,10 +79,6 @@ public class BedTransferStore {
                 reasonId,
                 awaitingRequest,
                 next);
-        if (awaitingRequest)
-            jdbc.update(
-                    "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,reminder_count) VALUES('BED_ALLOCATION',?,'AWAITING_REQUEST',?,NULL,0)",
-                    next,
-                    Timestamp.from(at));
+        if (awaitingRequest) reminders.start("BED_ALLOCATION", next, "AWAITING_REQUEST", at);
     }
 }

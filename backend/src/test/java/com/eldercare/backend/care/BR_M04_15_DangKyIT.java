@@ -192,4 +192,68 @@ class BR_M04_15_DangKyIT extends MySqlIntegrationTestBase {
                         s))
                 .isEqualTo(1);
     }
+
+    /** T010 Q10, Q11; gộp một ca theo ngân sách IT (AGENTS.md mục 4), mỗi dòng dùng buổi và người cao tuổi riêng. */
+    @Test
+    void FR_018_FR_021_warningAcknowledgementAndIsolationCancellation() throws Exception {
+        com.eldercare.backend.support.TableRows.each(List.of("WARNING_ACKNOWLEDGEMENT", "ISOLATION"), scenario -> {
+            switch (scenario) {
+                case "WARNING_ACKNOWLEDGEMENT" -> FR_018_warningsNeedAcknowledgementAndAreStored();
+                case "ISOLATION" -> FR_021_isolationCancelsSessionsInTheZoneAndRegistrationsOfIsolatedResidents();
+            }
+        });
+    }
+
+    /** Q10 (FR-018, FR-019): cảnh báo chỉ cần xác nhận; xác nhận thì đăng ký lưu dấu cảnh báo đã xác nhận. */
+    private void FR_018_warningsNeedAcknowledgementAndAreStored() throws Exception {
+        long s = session(20, true);
+        long r = resident();
+        gate.openMediumItem(r);
+        register(s, r, false)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("WARNING_ACKNOWLEDGEMENT_REQUIRED"))
+                .andExpect(jsonPath("$.unmetConditions[0].code").value("OPEN_ALERT_OR_INCIDENT"));
+        register(s, r, true).andExpect(status().isCreated());
+        assertThat(jdbc.queryForObject(
+                        "SELECT acknowledged_warnings FROM activity_registration WHERE session_id=? AND resident_id=?",
+                        String.class,
+                        s,
+                        r))
+                .contains("OPEN_ALERT_OR_INCIDENT");
+    }
+
+    /**
+     * Q11 (FR-021): 007 gọi trong lệnh khoanh vùng; buổi chưa điểm danh ở địa điểm trong vùng bị hủy kèm đăng ký, đăng ký
+     * của người trong vùng ở buổi khác bị hủy. Gỡ vùng không khôi phục: API không có hàm gỡ, bản ghi giữ Đã hủy.
+     */
+    private void FR_021_isolationCancelsSessionsInTheZoneAndRegistrationsOfIsolatedResidents() throws Exception {
+        long room = TestUsers.nextId();
+        long inZone = session(20, true), elsewhere = session(20, true);
+        jdbc.update("UPDATE activity_session SET location_room_id=? WHERE id=?", room, inZone);
+        long isolated = resident(), other = resident(), third = resident();
+        long r1 = id(register(inZone, other, false));
+        long r2 = id(register(elsewhere, isolated, false));
+        long r3 = id(register(elsewhere, third, false));
+        gate.isolateRoom(room);
+        gate.isolateResident(isolated);
+
+        new org.springframework.transaction.support.TransactionTemplate(transactions)
+                .executeWithoutResult(tx -> autoCancel.cancelForIsolation(TestUsers.nextId(), time.now()));
+
+        assertThat(jdbc.queryForMap("SELECT status,cancelled_by FROM activity_session WHERE id=?", inZone))
+                .containsEntry("status", "CANCELLED")
+                .containsEntry("cancelled_by", "ISOLATION");
+        assertThat(registration(r1)).containsEntry("status", "CANCELLED");
+        assertThat(jdbc.queryForObject("SELECT status FROM activity_session WHERE id=?", String.class, elsewhere))
+                .isEqualTo("SCHEDULED");
+        assertThat(registration(r2)).containsEntry("status", "CANCELLED").containsEntry("auto_cancel", "ISOLATION");
+        assertThat(registration(r3)).containsEntry("status", "REGISTERED");
+    }
+
+    @Autowired
+    com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi autoCancel;
+
+    Map<String, Object> registration(long id) {
+        return jdbc.queryForMap("SELECT status,auto_cancel FROM activity_registration WHERE id=?", id);
+    }
 }

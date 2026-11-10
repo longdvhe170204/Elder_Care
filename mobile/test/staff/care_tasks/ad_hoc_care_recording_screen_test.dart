@@ -12,7 +12,10 @@ void main() {
     final backend = FakeBackend();
     backend.on('GET', '/residents', 200, {
       'items': [
-        {'id': 9, 'fullName': 'Người kiểm thử'},
+        {
+          'id': 9,
+          'personalInfo': {'fullName': 'Người kiểm thử'},
+        },
       ],
     });
     backend.on('GET', '/task-types', 200, [
@@ -68,7 +71,10 @@ void main() {
     final backend = FakeBackend();
     backend.on('GET', '/residents', 200, {
       'items': [
-        {'id': 9, 'fullName': 'Người kiểm thử'},
+        {
+          'id': 9,
+          'personalInfo': {'fullName': 'Người kiểm thử'},
+        },
       ],
     });
     backend.on('GET', '/task-types', 200, [

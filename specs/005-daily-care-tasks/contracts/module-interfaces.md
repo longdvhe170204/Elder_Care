@@ -167,6 +167,21 @@ TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lư�
 
 012 kiểm quyền xem sức khỏe và ghi nhật ký lượt xem (012 FR-048) trước khi gọi.
 
+### 1.10b. `BaoXemXetKeHoachApi` (007; MANDATORY; chủ dự án duyệt 08/11, xác nhận 09/11/2026)
+
+Tiếng Anh: `care.api.CarePlanReviewApi`. Thay cho việc 005 nghe `SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi` của 007: chiều mã là 007 → 005 (research C-02; nghe sự kiện 007 tạo vòng care → incident → health → care, thử ngày 05/11).
+
+```java
+void suCoNgaDaGhiNhan(long nctId, long suCoId);                                      // fallIncidentRecorded
+void luaChonChamSocGiamNheDaGhi(long nctId, String khoaSuKien, Instant thoiDiem);    // palliativeCareChoiceRecorded
+```
+
+- 007 gọi trong transaction của lệnh ghi sự cố ngã, lệnh ghi lựa chọn ở lại chăm sóc giảm nhẹ; lỗi ném ra làm lệnh 007 rollback.
+- Mỗi lần gọi phát `CanXemXetKeHoach` (mục 1.11) cho điều dưỡng phụ trách (`AssignedNurse`, 009 phân giải) và từng người có quyền duyệt kế hoạch (`ApproverApi`, mỗi sự kiện một tài khoản); không tạo bản ghi nghiệp vụ (Q35). Nguồn `M05.INCIDENT` (id sự cố) và `M05.PALLIATIVE_CARE_CHOICE` (`sourceId` là người cao tuổi, `khoaSuKien` vào mốc và tham chiếu).
+- Gọi lặp cùng sự cố, cùng `khoaSuKien` không báo lần hai (`reminder_marker` loại `M04.CARE_PLAN_REVIEW`); hai khóa khác nhau cho hai bộ thông báo khác khóa.
+- Không có `LichDoDaDoi`: đổi lịch đo đã đi qua `NguonCongViecApi.nguonDaDoi` (mục 1.6, `TaskSourceApi.sourceChanged`).
+- Bản giả chung: bean `CarePlanReviewApi` trong `support/fake/care/FakeM04ApiConfig` (đặt `FakeM04ApiFixture.reply`, chưa đặt thì ném lỗi); test 007 không import cấu hình này thì chạy với bản thật.
+
 ### 1.11. Sự kiện 005 phát (sau commit, qua outbox của 000)
 
 | Sự kiện | Người nghe | FR |
@@ -280,8 +295,9 @@ Bean `NguonCongViecPort` thiếu cho một loại căn cứ thì lệnh lập c�
 | `DaChuyenGiuong` | 003 | Gán lại công việc chưa đóng theo phân công khu mới (idempotent theo `phanBoMoiId`) | FR-032 |
 | `PhuLucDaApDung` | 004 | Có `MUC_CHAM_SOC`: `CanXemXetKeHoach`; có `LICH_DEN`, `LOAI_LUU_TRU`: cập nhật dòng có mặt từ ngày hiệu lực | FR-011, FR-012 |
 | `BaoVangBanTruDaGhi`, `NgayNghiBanTruDaDoi` | 004 | Bảng FR-013 | FR-013, FR-014 |
-| `SuCoNgaDaGhiNhan(nctId, suCoId)`; `LuaChonChamSocGiamNheDaGhi(nctId)`; `LichDoDaDoi(lichDoId, nctId)` | 007 (tên đề xuất; plan 007 giữ hoặc ghi thay đổi) | `CanXemXetKeHoach`; `NguonCongViecDaDoi` | FR-011, FR-022 |
 | `ThamSoDaDoi(CFG-M04-*)` | 000 | Xóa bộ đệm tham số; không tính lại kết quả cũ | Edge Case |
+
+*(2026-11-09, C, chủ dự án duyệt 08/11, xác nhận 09/11)* Bỏ dòng 007 (`SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi`): hai nguồn đầu thành lệnh 007 gọi (mục 1.10b), đổi lịch đo qua `NguonCongViecApi.nguonDaDoi` (mục 1.6).
 
 ### 2.3. Giao diện có sẵn
 

@@ -74,11 +74,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
                     Set.of("GET /api/v1/me/shifts 200"),
                     true),
-            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
+            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù 202 xong 2026-11-08
+            // (T034).
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
                     Set.of(),
-                    Set.of("POST /api/v1/bed-allocations/{id}/transfer 202"),
+                    Set.of(),
                     true),
             // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); sửa yêu cầu Nháp xong 2026-11-04
             // (T043, T047)
@@ -159,16 +160,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story
             new Contract(
                     Path.of("..", "specs", "014-activity-care-quality", "contracts", "api-014.yaml"),
-                    Set.of(
-                            "GET /api/v1/activity-types",
-                            "POST /api/v1/activity-types",
-                            "POST /api/v1/late-return-consents",
-                            "POST /api/v1/late-return-consents/{id}/withdraw",
-                            "GET /api/v1/residents/{residentId}/preferences",
-                            "GET /api/v1/residents/{residentId}/wellbeing-profile",
-                            "GET /api/v1/family-portal/residents/{residentId}/activities",
-                            "POST /api/v1/family-portal/late-return-consents",
-                            "POST /api/v1/family-portal/late-return-consents/{id}/withdraw"),
+                    Set.of("GET /api/v1/family-portal/residents/{residentId}/activities"),
                     Set.of(),
                     true),
             // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story

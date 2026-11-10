@@ -38,6 +38,14 @@ public class RoomIsolationStore {
         return room;
     }
 
+    /** Phòng trên các tầng đã cho (T053: phòng của vùng khoanh vừa gỡ). */
+    public List<Room> roomsOnFloors(java.util.Collection<Long> floorIds) {
+        if (floorIds.isEmpty()) return List.of();
+        return entities.createQuery("SELECT r FROM Room r WHERE r.floorId IN :floors ORDER BY r.id", Room.class)
+                .setParameter("floors", floorIds)
+                .getResultList();
+    }
+
     public List<Room> rooms() {
         return entities.createQuery("SELECT r FROM Room r ORDER BY r.id", Room.class).getResultList().stream()
                 .peek(r -> r.careLevels())
@@ -54,6 +62,18 @@ public class RoomIsolationStore {
                 actor,
                 reason,
                 incident);
+    }
+
+    /** Giường còn Chờ sẵn sàng mà phân bổ vừa đóng là của {@code residentId} (FR-045). */
+    public List<com.eldercare.backend.roombedallocation.internal.isolation.domain.LeftAwaitingReadyBed>
+            awaitingReadyBedsLeftBy(long residentId) {
+        return jdbc.query(
+                "SELECT b.id,r.floor_id,b.awaiting_ready_since FROM bed b JOIN room r ON r.id=b.room_id"
+                        + " JOIN bed_allocation a ON a.id=b.last_closed_allocation_id"
+                        + " WHERE b.state='AWAITING_READY' AND a.resident_id=? ORDER BY b.id",
+                (r, n) -> new com.eldercare.backend.roombedallocation.internal.isolation.domain.LeftAwaitingReadyBed(
+                        r.getLong(1), r.getLong(2), r.getTimestamp(3).toInstant()),
+                residentId);
     }
 
     public void clearDoctorFlags(long roomId) {

@@ -60,9 +60,15 @@ import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { ChargesPage } from '@/features/charges/ChargesPage'
 import { BelongingsPage } from '@/features/belongings/BelongingsPage'
+import { ProcurementRequestsPage } from '@/features/inventory/ProcurementRequestsPage'
+import { AssetsPage } from '@/features/inventory/AssetsPage'
+import { VehicleSchedulesPage } from '@/features/inventory/VehicleSchedulesPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
+  procurement: ProcurementRequestsPage,
+  assets: AssetsPage,
+  vehicles: VehicleSchedulesPage,
   charges: ChargesPage,
   beds: BedsPage,
   dashboard: DashboardPage,

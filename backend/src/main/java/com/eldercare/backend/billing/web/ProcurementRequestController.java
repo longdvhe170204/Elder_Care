@@ -33,7 +33,7 @@ public class ProcurementRequestController {
     public List<ProcurementRequestResponse> list(
             @RequestParam(required = false) String status, @RequestParam(required = false) Long departmentId) {
         return requests.list(departmentId, status(status)).stream()
-                .map(ProcurementRequestResponse::of)
+                .map(row -> ProcurementRequestResponse.of(row, requests.received(row)))
                 .toList();
     }
 

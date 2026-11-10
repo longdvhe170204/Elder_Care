@@ -12,6 +12,16 @@ import org.junit.jupiter.api.Test;
  * phận, danh mục loại có hai loại hệ thống Giường, Xe.
  */
 class FR_013_AssetLifecycleIT extends AssetTestBase {
+    /** FR-011: danh mục loại để màn web hiện tên loại, chọn loại khi ghi tăng, lọc xe (GET /asset-types, 2026-11-10). */
+    @Test
+    void FR_011_assetTypesAreListedWithSystemCodes() throws Exception {
+        mvc.perform(get("/api/v1/asset-types"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==" + bedType + ")].code").value("BED"))
+                .andExpect(jsonPath("$[?(@.code=='VEHICLE')].status").value("ACTIVE"))
+                .andExpect(jsonPath("$[?(@.id==" + equipmentType + ")].status").value("ACTIVE"));
+    }
+
     @Test
     void Q18_Q294_purchasedAssetNeedsApprovedRequestOfSameDepartmentAndAcquisitionCost() throws Exception {
         long request = approvedRequest(medical, "ASSET");

@@ -34,6 +34,7 @@ it('FR_045_hienDanhSachQuaHanTuApiVaTaiLai', async () => {
         importance: 'IMPORTANT',
         basis: { type: 'MEAL' },
         shared: true,
+        carryover: 'AWAITING_CONFIRMATION',
         reminderCount: 2,
         allowedCommands: [],
       },
@@ -48,6 +49,7 @@ it('FR_045_hienDanhSachQuaHanTuApiVaTaiLai', async () => {
   expect(screen.getByText(/\[Người kiểm thử\]/)).toBeInTheDocument()
   expect(screen.getByText(/Đã nhắc và báo: 2/)).toBeInTheDocument()
   expect(screen.getByText('Dự kiến: 02/11/2026 10:00')).toBeInTheDocument()
+  expect(screen.getByText(/tồn, chờ xác nhận/)).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Ghi nhận hoàn thành' })).not.toBeInTheDocument()
   api.on('GET', '/care-tasks/overdue', json(200, []))
   fireEvent.click(screen.getByRole('button', { name: 'Tải lại' }))

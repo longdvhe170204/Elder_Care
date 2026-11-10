@@ -15,7 +15,11 @@ beforeEach(() => {
       { function: 'SHIFT_TASK_PLANNING', operation: 'VIEW' },
     ]),
   )
-  api.on('GET', '/residents', json(200, { items: [{ id: 77, fullName: '[Họ tên kiểm thử]' }], nextCursor: null }))
+  api.on(
+    'GET',
+    '/residents',
+    json(200, { items: [{ id: 77, personalInfo: { fullName: '[Họ tên kiểm thử]' } }], nextCursor: null }),
+  )
   api.on('GET', '/task-types', json(200, [{ id: 9, name: 'Loại công việc kiểm thử', status: 'ACTIVE' }]))
   api.on(
     'GET',
@@ -54,6 +58,20 @@ it('FR_017_nguonChiDeDoiChieuVaKhongTuDienDongCongViec', async () => {
   expect(api.calls('POST', '/shifts/5/care-tasks/plan')).toHaveLength(0)
   fireEvent.click(screen.getByRole('button', { name: 'Thêm dòng công việc' }))
   expect(screen.getByLabelText('Nội dung dòng 1')).toHaveValue('')
+  expect(screen.getByRole('option', { name: '[Họ tên kiểm thử]' })).toHaveValue('77')
+})
+
+it('FR_023_doiSangPhatSinhKhongGuiKemIdCanCuCu', async () => {
+  api.on('POST', '/shifts/5/care-tasks/plan', json(201, []))
+  view()
+  await enterRow()
+  fireEvent.change(screen.getByLabelText('Loại căn cứ dòng 1'), { target: { value: 'AD_HOC' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Lập công việc của ca' }))
+  await waitFor(() => expect(api.calls('POST', '/shifts/5/care-tasks/plan')).toHaveLength(1))
+  const body = JSON.parse(api.calls('POST', '/shifts/5/care-tasks/plan')[0][1].body)[0]
+  expect(body.basis).toEqual({ type: 'AD_HOC' })
+  expect(body.performerId).toBe(22)
+  expect(body.content).toBe('Nội dung tự nhập')
 })
 
 async function enterRow() {

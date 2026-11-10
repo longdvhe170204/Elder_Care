@@ -1,8 +1,6 @@
 package com.eldercare.backend.medication.internal.schedule.service;
 
-import com.eldercare.backend.care.api.MedicationChecklistItem;
-import com.eldercare.backend.care.api.MedicationDoseChecklistPort;
-import com.eldercare.backend.care.api.ScheduleSourcePort;
+import com.eldercare.backend.care.api.dto.MedicationChecklistItem;
 import com.eldercare.backend.care.api.spi.MedicationChecklistPort;
 import com.eldercare.backend.medication.api.MedicationScheduleApi;
 import com.eldercare.backend.medication.api.dto.DoseDisplayView;
@@ -15,11 +13,10 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Adapter implementing SPI ports for Module M04 (005): {@link MedicationDoseChecklistPort} and {@link ScheduleSourcePort}.
+ * Adapter implementing SPI port for Module M04 (005): {@link MedicationChecklistPort}.
  */
 @Component
-public class MedicationChecklistPortAdapter
-        implements MedicationDoseChecklistPort, ScheduleSourcePort, MedicationChecklistPort {
+public class MedicationChecklistPortAdapter implements MedicationChecklistPort {
 
     private final MedicationScheduleApi medicationScheduleApi;
 
@@ -27,7 +24,6 @@ public class MedicationChecklistPortAdapter
         this.medicationScheduleApi = medicationScheduleApi;
     }
 
-    @Override
     public List<MedicationChecklistItem> byShift(Collection<Long> residentIds, Instant from, Instant to) {
         if (residentIds == null || residentIds.isEmpty()) {
             return List.of();
@@ -41,7 +37,6 @@ public class MedicationChecklistPortAdapter
         return results;
     }
 
-    @Override
     public List<MedicationChecklistItem> byDate(long residentId, LocalDate date) {
         Instant from = date.atStartOfDay(MedicationScheduleCalculator.ZONE_VN).toInstant();
         Instant to = date.atTime(LocalTime.MAX)

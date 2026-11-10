@@ -68,7 +68,7 @@ List<ProcurementTotalView> totals(Set<Long> departmentIds, LocalDate from, Local
 
 **Xác nhận 2026-11-06 (Phase 10):** `overdue(scope, on)`, `countOverdue(scope, on)` lấy dấu và hạn **hiện tại**, chỉ gồm dấu có `dueOn < on`; không tái dựng dấu từng có trong quá khứ. Phạm vi theo tầng hiện tại; tài sản không gắn tầng chỉ có trong toàn viện. `countOverdue` đếm tại DB, không tải danh sách tài sản. `vehicleSchedules` lấy mọi trạng thái, ngày đi dự kiến theo `BusinessTime.ZONE` trong `[from, to]`. Nếu cần thống kê dấu quá khứ thì phải chốt nguồn tái dựng riêng.
 
-Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu, chờ A (016) xác nhận (team-plan mục 8). Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
+Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu (ngày nghiệp vụ, hai đầu tính vào), A (016) xác nhận 2026-11-07. Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
 
 ---
 
@@ -122,6 +122,28 @@ interface ProcurementMedicationLineApi {                                        
 ```
 
 Thiếu bean `ProcurementPrescriptionPort` thì lệnh lập, sửa yêu cầu loại thuốc trả 503 `SOURCE_UNAVAILABLE`.
+
+**Sửa 08/11/2026 (chủ dự án duyệt), đã cài 10/11/2026 (019 T027):**
+
+1. Bỏ `ProcurementPrescriptionPort` và bản giả `FakeProcurementPrescriptions`: M11 đọc thẳng `medication.api.PrescriptionApi.unendedFacilityPrescriptions(residentId)` (đơn nguồn viện Hiệu lực, Tạm dừng, Chờ hiệu lực; dòng hợp lệ khi có `prescriptionId` của dòng). `ModuleBoundaryTest` không báo vòng sau khi đổi. Thiếu bean `PrescriptionApi` thì lập, sửa yêu cầu loại thuốc vẫn trả 503 `SOURCE_UNAVAILABLE`.
+2. Đã khai, cài:
+
+```java
+// billing.api (M11 cài: billing.internal.procurement.service.ProcurementMedicationLines; 006 đọc thay ProcurementMedicationPort)
+interface ProcurementMedicationLineApi {
+  Optional<ProcurementMedicationLineView> lineRecordedPurchased(long lineId);
+}
+// billing.api.dto — cùng trường với medication.api.spi.ProcurementMedicationLineView 006 khai trước
+record ProcurementMedicationLineView(long procurementLineId, long procurementRequestId, long residentId, long prescriptionId,
+    String medicationName, String activeIngredient, String strength, String dosageForm, BigDecimal quantity, String unit,
+    long creatorStaffId, long departmentId) {}
+// billing.api.spi (M11 khai, M07 cài); bản giả chung support/fake/billing/FakeProcurementIntakes (+ Config)
+interface ProcurementIntakePort { Set<Long> passedLineIds(long procurementRequestId); }
+```
+
+- `lineRecordedPurchased`: dòng của yêu cầu loại MEDICATION ở Chờ đối chiếu, Lệch, Đã đối chiếu; trạng thái khác (gồm Đã duyệt sau khi trả lại đối chiếu), loại khác, id không có thì rỗng. `departmentId` là bộ phận của yêu cầu (không đổi khi người lập chuyển bộ phận), `medicationName` là tên dòng.
+- Id dòng (`ProcurementRequestLine.id` của api-019, 006 gửi ở `requestLineId`): `requestId × 1.000.000 + thứ tự dòng (từ 1)`, tính khi đọc, không lưu trong cột `lines` nên không cần migration; nội dung khóa ngoài Nháp nên id ổn định từ khi gửi duyệt (sửa dòng trong Nháp thì id đổi theo thứ tự mới). Một yêu cầu tối đa 999.999 dòng (quá thì 422).
+- "Đã nhận" (`received` của `ProcurementRequest`, `GET /procurement-requests`; api-019 không có `GET /{id}`): loại MEDICATION là `true` khi mọi id dòng nằm trong `passedLineIds`, `false` khi còn dòng chưa có lần Đạt; loại khác `null`; thiếu bean `ProcurementIntakePort` thì `null` (chưa biết), danh sách không trả 503. Thay hướng `medication.api.ProcurementIntakeApi.byProcurementRequest` (019 không đọc nữa).
 
 
 ### Đính chính tài sản và lịch xe (07/11/2026, chủ dự án chốt)

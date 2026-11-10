@@ -68,7 +68,7 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                 type,
                 "R" + targetRoom,
                 "Phòng đích");
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", targetRoom);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", targetRoom);
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'T1')", target, targetRoom);
         jdbc.update("UPDATE bed SET state='OCCUPIED' WHERE id=?", bed);
         jdbc.update(
@@ -117,7 +117,7 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                         resident))
                 .isEqualTo(1);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM allocation_reminder WHERE target_id=? AND flag_type='AWAITING_REQUEST'",
+                        "SELECT COUNT(*) FROM reminder_marker WHERE kind='M03.ALLOCATION_REMINDER.AWAITING_REQUEST' AND entity_type='BED_ALLOCATION' AND entity_id=?",
                         Integer.class,
                         next))
                 .isZero();

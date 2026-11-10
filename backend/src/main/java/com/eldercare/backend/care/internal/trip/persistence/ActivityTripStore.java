@@ -221,6 +221,16 @@ public class ActivityTripStore {
                 id);
     }
 
+    /** Đính chính lịch xe (019) đổi giờ rời, về dự kiến của chuyến Đã về; không đụng dấu quá giờ, mốc đã báo. */
+    public void correctPlannedTimes(long id, Instant plannedDepartureAt, Instant plannedReturnAt) {
+        jdbc.update(
+                "UPDATE activity_session SET trip_planned_departure_at=?,trip_planned_return_at=?,version=version+1"
+                        + " WHERE id=? AND trip_status='RETURNED'",
+                local(plannedDepartureAt),
+                local(plannedReturnAt),
+                id);
+    }
+
     public void finishReturn(long id, Instant at, Long staffId) {
         jdbc.update(
                 "UPDATE activity_session SET trip_status='RETURNED',trip_return_finished_at=?,"
@@ -260,6 +270,18 @@ public class ActivityTripStore {
         return jdbc.query(
                 "SELECT * FROM activity_session WHERE trip_status IN ('SCHEDULED','IN_PROGRESS') ORDER BY id",
                 ActivityTripStore::row);
+    }
+
+    public Optional<Long> missingIncident(long registrationId) {
+        return Optional.ofNullable(jdbc.queryForObject(
+                "SELECT missing_incident_id FROM activity_registration WHERE id=?", Long.class, registrationId));
+    }
+
+    public void recordMissingIncident(long registrationId, long incidentId) {
+        jdbc.update(
+                "UPDATE activity_registration SET missing_incident_id=?,participant_status='MISSING_ON_RETURN',version=version+1 WHERE id=? AND missing_incident_id IS NULL",
+                incidentId,
+                registrationId);
     }
 
     public Optional<Instant> firstDeparture(long tripId) {

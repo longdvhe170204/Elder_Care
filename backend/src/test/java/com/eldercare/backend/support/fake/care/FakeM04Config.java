@@ -1,7 +1,9 @@
 package com.eldercare.backend.support.fake.care;
 
+import com.eldercare.backend.care.api.spi.TaskSourcePort;
 import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import java.util.Set;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.*;
 
@@ -11,6 +13,12 @@ import org.springframework.context.annotation.*;
 @TestConfiguration
 @Profile({"test", "demo"})
 public class FakeM04Config {
+    @Bean
+    @Primary
+    public FakeTripIncidents fakeTripIncidents() {
+        return new FakeTripIncidents();
+    }
+
     @Bean
     @Primary
     public FakeTripMedicationPreparation fakeTripMedicationPreparation() {
@@ -64,16 +72,15 @@ public class FakeM04Config {
         return new FakeAlertReader(switches);
     }
 
-    @Bean
-    @Primary
-    FakeDayCarePickups fakeDayCarePickups(FakeM04Switches switches) {
-        return new FakeDayCarePickups(switches);
-    }
+    // 012 T038: DayCarePickupPort dùng bản thật PickupPorts của 012, không còn bean giả trong cấu hình.
 
     // 014 T028: QualityCheckPort dùng nguồn thật QualityCheckResultSource của 014, không còn bean giả trong cấu hình.
 
     @Bean
-    FakeTaskSource fakeHealthTaskSource(FakeM04Switches switches) {
+    FakeTaskSource fakeHealthTaskSource(FakeM04Switches switches, ObjectProvider<TaskSourcePort> sources) {
+        // Loại nào 007 có bean thật (đã có POST_FALL_MONITORING, CONTACT_MONITORING; MEASUREMENT khi D thêm) thì bản
+        // giả
+        // tự nhường, không cần sửa cấu hình này.
         return new FakeTaskSource(
                 switches,
                 "007",
@@ -81,14 +88,15 @@ public class FakeM04Config {
                         SourceType.MEASUREMENT,
                         SourceType.POST_FALL_MONITORING,
                         SourceType.CONTACT_MONITORING,
-                        SourceType.WATER_INTAKE_ALERT));
+                        SourceType.WATER_INTAKE_ALERT),
+                sources);
     }
 
     /** Thay bản thật {@code MealTaskSource} của 011 trong context này: test 005 điều khiển được xác nhận phục vụ. */
     @Bean
     @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    FakeTaskSource fakeMealTaskSource(FakeM04Switches switches) {
-        return new FakeTaskSource(switches, "011", Set.of(SourceType.MEAL));
+    FakeTaskSource fakeMealTaskSource(FakeM04Switches switches, ObjectProvider<TaskSourcePort> sources) {
+        return new FakeTaskSource(switches, "011", Set.of(SourceType.MEAL), sources);
     }
 
     /**
@@ -114,8 +122,8 @@ public class FakeM04Config {
     }
 
     @Bean
-    FakeTaskSource fakeActivityTaskSource(FakeM04Switches switches) {
-        return new FakeTaskSource(switches, "014", Set.of(SourceType.ACTIVITY_SESSION, SourceType.REWORK));
+    FakeTaskSource fakeActivityTaskSource(FakeM04Switches switches, ObjectProvider<TaskSourcePort> sources) {
+        return new FakeTaskSource(switches, "014", Set.of(SourceType.ACTIVITY_SESSION, SourceType.REWORK), sources);
     }
 
     @Bean

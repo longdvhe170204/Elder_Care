@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Building2 } from 'lucide-react'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -36,10 +37,35 @@ export function AssigneeLine({ task }) {
   )
 }
 
+// Lựa chọn, lưu ý tối đa 2 dòng; bị cắt thì có "Xem đủ" (bấm khối mở khung chi tiết đọc bản đủ; WCAG 1.4.12)
+function ClampedNote({ children }) {
+  const ref = useRef(null)
+  const [cut, setCut] = useState(false)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => setCut(el.scrollHeight > el.clientHeight + 1)
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [children])
+  return (
+    <span className="flex flex-col">
+      <span ref={ref} className="line-clamp-2">
+        {children}
+      </span>
+      {cut && <span className="type-caption text-accent-foreground">Xem đủ</span>}
+    </span>
+  )
+}
+
 // Khối việc trong dòng thời gian ca (DESIGN.md 7.2 task-block): đúng các trường của hợp đồng CongViec theo
 // 005 FR-030, không thêm trường ngoài hợp đồng; kết quả việc đã đóng chỉ ở khung chi tiết. Không có nút bên trong,
-// bấm khối mở khung chi tiết. Nội dung là span để hợp lệ trong button.
-export function TaskBlock({ task, selected, onSelect }) {
+// bấm khối mở khung chi tiết. Nội dung là span để hợp lệ trong button. Trong nhóm "Quá hạn (n)" không lặp chữ trạng thái
+// (hideStatus); giờ vẫn đỏ.
+export function TaskBlock({ task, selected, onSelect, hideStatus = false }) {
   const done = DONE.includes(task.status)
   const overdue = task.status === 'Quá hạn'
 
@@ -58,7 +84,7 @@ export function TaskBlock({ task, selected, onSelect }) {
         <span className={cn('type-caption tabular-nums', overdue ? 'text-destructive' : 'text-muted-foreground')}>
           {timeText(task)}
         </span>
-        <StatusBadge status={task.status} className="h-auto" />
+        {!hideStatus && <StatusBadge status={task.status} className="h-auto" />}
       </span>
       <span className="flex flex-col">
         <span className={cn('type-label', done ? 'text-muted-foreground' : 'text-foreground')}>
@@ -89,11 +115,11 @@ export function TaskBlock({ task, selected, onSelect }) {
           <span className="text-muted-foreground">{sourceText(task)}</span>
           {task.awaitingRemeasure && <span className="text-warning-foreground">Chờ đo lại</span>}
           {task.riskChoices?.map((c) => (
-            <span key={c.choice} className="line-clamp-2">
+            <ClampedNote key={c.choice}>
               Lựa chọn của người cao tuổi: {c.choice}. Đã trao đổi rủi ro, xem lại {c.reviewOn}.
-            </span>
+            </ClampedNote>
           ))}
-          {task.careNote && <span className="line-clamp-2">Lưu ý: {task.careNote}</span>}
+          {task.careNote && <ClampedNote>Lưu ý: {task.careNote}</ClampedNote>}
         </>
       )}
       <AssigneeLine task={task} />

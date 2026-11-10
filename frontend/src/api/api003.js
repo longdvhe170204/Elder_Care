@@ -129,6 +129,9 @@ export const getBedsByIdReadinessConditions = (params) => request('GET', '/beds/
 /** Xác nhận giường sẵn sàng (UC-74) (FR-011a, FR-014, FR-044, FR-045, BR-M03-09, BR-M03-10) */
 export const postBedsByIdConfirmReadiness = (params) => request('POST', '/beds/{id}/confirm-readiness', params)
 
+/** Giường Chờ sẵn sàng của tầng người dùng được giao hoặc đang phụ trách ca (FR-044, BR-M03-09) */
+export const getBedReadinessBeds = (params) => request('GET', '/bed-readiness/beds', params)
+
 /** Lịch sử trạng thái giường (FR-016, FR-016a) */
 export const getBedsByIdStateHistory = (params) => request('GET', '/beds/{id}/state-history', params)
 

@@ -19,7 +19,9 @@ const _states = {
   'RETIRED': 'Không sử dụng',
 };
 
-/// T060: bảng giường trong phạm vi backend cho xem. A gắn màn này vào StaffRoot.
+/// T060: bảng giường trong phạm vi backend cho xem. Không có quyền xem cấu hình thì đọc giường Chờ sẵn sàng của tầng
+/// đang là Trưởng tầng hoặc Người phụ trách ca (`GET /bed-readiness/beds`, ô ⁴⁰ chỉ có ở lớp nhiệm vụ nên không có trong
+/// `/me/permissions`); 403 là không có nhiệm vụ, hiện danh sách rỗng.
 class BedsScreen extends StatefulWidget {
   const BedsScreen({super.key, required this.api, this.floorId});
   final ApiClient api;
@@ -30,6 +32,7 @@ class BedsScreen extends StatefulWidget {
 
 class _BedsScreenState extends State<BedsScreen> {
   List<Map<String, dynamic>>? _beds;
+  bool _readinessOnly = false;
   List<Map<String, dynamic>> _permissions = [];
   List<Map<String, dynamic>> _isolationRooms = [], _pendingStays = [];
   String? _error;
@@ -50,6 +53,7 @@ class _BedsScreenState extends State<BedsScreen> {
       final data = canReadBeds
           ? await widget.api.get('/beds${widget.floorId == null ? '' : '?floorId=${widget.floorId}'}')
           : null;
+      final readiness = canReadBeds ? null : await _readinessBeds();
       final rooms = !canReadBeds && has('ROOM_ISOLATION', 'VIEW')
           ? (await widget.api.getList('/room-isolation/rooms')).whereType<Map<String, dynamic>>().toList()
           : <Map<String, dynamic>>[];
@@ -61,7 +65,8 @@ class _BedsScreenState extends State<BedsScreen> {
       if (mounted) {
         setState(() {
           _permissions = permissions;
-          _beds = (data?['beds'] as List<dynamic>? ?? []).whereType<Map<String, dynamic>>().toList();
+          _readinessOnly = readiness != null;
+          _beds = readiness ?? (data?['beds'] as List<dynamic>? ?? []).whereType<Map<String, dynamic>>().toList();
           _isolationRooms = rooms;
           _pendingStays = pending;
           _error = null;
@@ -70,6 +75,25 @@ class _BedsScreenState extends State<BedsScreen> {
     } catch (e) {
       if (mounted) setState(() => _error = bedProblem(e));
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _readinessBeds() async {
+    try {
+      final query = widget.floorId == null ? '' : '?floorId=${widget.floorId}';
+      return (await widget.api.getList('/bed-readiness/beds$query')).whereType<Map<String, dynamic>>().toList();
+    } on ApiProblem catch (e) {
+      if (e.status == 403) return [];
+      rethrow;
+    }
+  }
+
+  Future<void> _openReadiness(Map<String, dynamic> bed) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => BedReadinessScreen(api: widget.api, bedId: bed['id'] as int),
+      ),
+    );
+    if (mounted) await _load();
   }
 
   Future<void> _open(Map<String, dynamic> bed) async {
@@ -204,8 +228,10 @@ class _BedsScreenState extends State<BedsScreen> {
               minVerticalPadding: 16,
               leading: const Icon(LucideIcons.bed),
               title: Text((bed['location'] as Map<String, dynamic>?)?['label'] as String? ?? 'Giường ${bed['code']}'),
-              subtitle: Text(_states[bed['state']] ?? 'Chưa có trạng thái'),
-              onTap: () => _open(bed),
+              subtitle: Text(
+                '${_states[bed['state']] ?? 'Chưa có trạng thái'}${bed['readinessOverdue'] == true ? ', quá hạn' : ''}',
+              ),
+              onTap: () => _readinessOnly ? _openReadiness(bed) : _open(bed),
             ),
             const Divider(height: 1),
           ],

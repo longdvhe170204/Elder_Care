@@ -62,7 +62,7 @@ class DBR_32_BedAssetConcurrencyIT extends AssetTestBase {
         jdbc.update(
                 "INSERT INTO room_type_care_level VALUES(?,'BASIC')",
                 jdbc.queryForObject("SELECT room_type_id FROM room WHERE id=?", Long.class, room));
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         long bed = TestUsers.nextId(), asset = TestUsers.nextId(), resident = TestUsers.nextId();
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,?)", bed, room, "G-" + bed);
         jdbc.update(
@@ -144,5 +144,49 @@ class DBR_32_BedAssetConcurrencyIT extends AssetTestBase {
         } finally {
             start.countDown();
         }
+    }
+
+    /** 003 T017 (Q-243): lỗi ở phần tài sản (đã thanh lý, không đổi vị trí) làm lệnh sửa giường rollback cả hai. */
+    @Test
+    void Q_243_assetFailureRollsBackTheBedRoomChange() throws Exception {
+        long bed = TestUsers.nextId(), asset = TestUsers.nextId(), newRoom = TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code,state) VALUES(?,?,?,'RETIRED')", bed, room, "G-" + bed);
+        jdbc.update(
+                "INSERT INTO asset(id,code,type_id,name,department_id,source,bed_id,status,location_type,"
+                        + "location_id,floor_area_id,created_at,disposed_at) VALUES(?,?,?,?,?,'BED',?,'DISPOSED','ROOM',?,?,?,?)",
+                asset,
+                "BED-" + bed,
+                bedType,
+                "Giường " + bed,
+                medical,
+                bed,
+                room,
+                floor,
+                LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE),
+                LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE));
+        jdbc.update(
+                "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) SELECT ?,?,room_type_id,?,"
+                        + "'Phòng mới','UNRESTRICTED' FROM room WHERE id=?",
+                newRoom,
+                floor,
+                "P" + newRoom,
+                room);
+        as(manager);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/beds/" + bed)
+                        .with(user("bed-move"))
+                        .header("If-Match", com.eldercare.backend.common.web.VersionEtag.of(0))
+                        .header("Idempotency-Key", "bed-move-" + TestUsers.nextId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"roomId\":" + newRoom + ",\"code\":\"G-" + bed + "\"}"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                        .isConflict())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.errorCode")
+                        .value("STATE_CHANGED"));
+        assertThat(jdbc.queryForObject("SELECT room_id FROM bed WHERE id=?", Long.class, bed))
+                .isEqualTo(room);
+        assertThat(jdbc.queryForObject("SELECT version FROM bed WHERE id=?", Long.class, bed))
+                .isZero();
+        assertThat(jdbc.queryForObject("SELECT location_id FROM asset WHERE id=?", Long.class, asset))
+                .isEqualTo(room);
     }
 }

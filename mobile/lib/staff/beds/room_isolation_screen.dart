@@ -62,6 +62,16 @@ class _RoomIsolationScreenState extends State<RoomIsolationScreen> {
     }
   }
 
+  /// FR-008: lệnh đã ghi thì đọc lại lịch sử từ máy chủ; đọc lỗi vẫn giữ kết quả lệnh và báo lỗi đọc.
+  Future<void> _reloadHistory() async {
+    try {
+      final history = await widget.api.getList('/rooms/${widget.roomId}/isolation-history');
+      if (mounted) setState(() => _history = history.whereType<Map<String, dynamic>>().toList());
+    } catch (e) {
+      if (mounted) setState(() => _error = bedProblem(e));
+    }
+  }
+
   Future<void> _save() async {
     if (_busy || _done) return;
     setState(() {
@@ -86,6 +96,7 @@ class _RoomIsolationScreenState extends State<RoomIsolationScreen> {
           _message = 'Đã ghi nhận.';
         });
       }
+      await _reloadHistory();
     } catch (e) {
       if (e is ApiProblem && e.status < 500) _key = null;
       if (mounted) setState(() => _error = bedProblem(e));
@@ -131,7 +142,7 @@ class _RoomIsolationScreenState extends State<RoomIsolationScreen> {
                 ListTile(
                   title: Text(row['action'] == 'ISOLATE' ? 'Đặt cách ly' : 'Gỡ cách ly'),
                   subtitle: Text(
-                    '${formatDateTime(DateTime.parse(row['occurredAt'] as String))}\n${row['reason'] ?? ''}',
+                    '${formatDateTime(DateTime.parse(row['occurredAt'] as String))}, ${row['actor'] ?? ''}\n${row['reason'] ?? ''}',
                   ),
                 ),
             ],

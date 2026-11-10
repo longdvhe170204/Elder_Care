@@ -166,14 +166,14 @@ public class BedService {
                 ifMatch,
                 bed.version(),
                 Map.of("id", id, "roomId", bed.roomId(), "code", bed.code(), "version", bed.version()));
-        if (roomId != bed.roomId()) {
+        long fromRoom = bed.roomId();
+        boolean moved = roomId != fromRoom;
+        if (moved) {
             if (structures.bedEverAllocated(id))
                 throw new ConditionNotMetException(
                         List.of(new UnmetCondition("FR-007", "Không đổi phòng của giường đã có lịch sử phân bổ")));
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "SOURCE_UNAVAILABLE",
-                    "Chưa thể đồng bộ vị trí tài sản khi đổi phòng giường");
+            if (!((Room) structures.find(StructureKind.ROOM, roomId, true)).isActive())
+                throw new ConditionNotMetException(List.of(new UnmetCondition("FR-004", "Phòng đã ngừng hiệu lực")));
         }
         if (code == null || code.isBlank() || code.length() > 20)
             throw new BusinessException(
@@ -185,11 +185,29 @@ public class BedService {
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(HttpStatus.CONFLICT, "DUPLICATE_CODE", "Mã giường đã tồn tại trong phòng");
         }
+        // T017 (Q-243, 019 FR-012): tài sản giường đổi vị trí cùng transaction; lỗi thì rollback cả lệnh.
+        if (moved) {
+            var asset = assets.getIfAvailable();
+            if (asset == null)
+                throw new BusinessException(
+                        HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa thể đồng bộ vị trí tài sản giường");
+            asset.relocateBedAsset(id, roomId);
+        }
+        var changedBefore = new java.util.LinkedHashMap<String, Object>();
+        var changedAfter = new java.util.LinkedHashMap<String, Object>();
+        if (!before.equals(code)) {
+            changedBefore.put("code", before);
+            changedAfter.put("code", code);
+        }
+        if (moved) {
+            changedBefore.put("roomId", fromRoom);
+            changedAfter.put("roomId", roomId);
+        }
         audit.write(AuditLogEntry.builder()
                 .action(new AuditAction("M03_STRUCTURE_UPDATED", false))
                 .entity("M03.BED", id)
-                .before(before.equals(code) ? Map.of() : Map.of("code", before))
-                .after(before.equals(code) ? Map.of() : Map.of("code", code))
+                .before(changedBefore)
+                .after(changedAfter)
                 .build());
         return bed;
     }

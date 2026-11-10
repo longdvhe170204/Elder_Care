@@ -1,18 +1,26 @@
 package com.eldercare.backend.roombedallocation.internal.allocation.persistence;
 
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/** Bảng kỹ thuật nhắc; dấu thật nằm trên vị trí hoặc phân bổ. */
+/**
+ * Dấu nhắc trên {@code reminder_marker} (T066, {@link AllocationReminderMarkers}); dấu thật nằm trên vị trí người cao
+ * tuổi ({@link ResidentPositionStore}) hoặc phân bổ.
+ */
 @Repository
 public class AllocationReminderStore {
     private final JdbcTemplate jdbc;
+    private final AllocationReminderMarkers markers;
+    private final ResidentPositionStore positions;
 
-    public AllocationReminderStore(JdbcTemplate jdbc) {
+    public AllocationReminderStore(
+            JdbcTemplate jdbc, AllocationReminderMarkers markers, ResidentPositionStore positions) {
         this.jdbc = jdbc;
+        this.markers = markers;
+        this.positions = positions;
     }
 
     public record Key(String type, long id, String flag) {}
@@ -22,9 +30,13 @@ public class AllocationReminderStore {
     public record Marker(Instant started, Instant last, int count) {}
 
     public List<Key> candidates() {
-        return jdbc.query(
-                "SELECT target_type,target_id,flag_type FROM allocation_reminder UNION SELECT 'RESIDENT',resident_id,'WITHOUT_BED' FROM resident_position WHERE without_bed_since IS NOT NULL UNION SELECT 'BED_ALLOCATION',id,'AWAITING_REQUEST' FROM bed_allocation WHERE status='ACTIVE' AND awaiting_request=TRUE UNION SELECT 'BED_ALLOCATION',id,'AWAITING_SAME_PRICE' FROM bed_allocation WHERE status='ACTIVE' AND awaiting_same_price=TRUE UNION SELECT 'BED_ALLOCATION',id,'ROOM_UNSUITABLE' FROM bed_allocation WHERE status IN ('ACTIVE','FUTURE') AND room_unsuitable=TRUE",
-                (r, n) -> new Key(r.getString(1), r.getLong(2), r.getString(3)));
+        var keys = new LinkedHashSet<Key>();
+        markers.openKeys().forEach(k -> keys.add(new Key(k[0], Long.parseLong(k[1]), k[2])));
+        positions.residentsWithoutBed().forEach(id -> keys.add(new Key("RESIDENT", id, "WITHOUT_BED")));
+        keys.addAll(jdbc.query(
+                "SELECT 'BED_ALLOCATION',id,'AWAITING_REQUEST' FROM bed_allocation WHERE status='ACTIVE' AND awaiting_request=TRUE UNION SELECT 'BED_ALLOCATION',id,'AWAITING_SAME_PRICE' FROM bed_allocation WHERE status='ACTIVE' AND awaiting_same_price=TRUE UNION SELECT 'BED_ALLOCATION',id,'ROOM_UNSUITABLE' FROM bed_allocation WHERE status IN ('ACTIVE','FUTURE') AND room_unsuitable=TRUE",
+                (r, n) -> new Key(r.getString(1), r.getLong(2), r.getString(3))));
+        return List.copyOf(keys);
     }
 
     public Long resident(Key key) {
@@ -36,17 +48,14 @@ public class AllocationReminderStore {
                 .orElse(null);
     }
 
+    /** Lệnh gọi đã khóa người cao tuổi ({@code AllocationLocks}); dấu của người đọc sau khóa. */
     public Source source(Key key) {
         if (key.type().equals("RESIDENT"))
-            return jdbc
-                    .query(
-                            "SELECT resident_id,without_bed_since IS NOT NULL FROM resident_position WHERE resident_id=? FOR UPDATE",
-                            (r, n) ->
-                                    new Source(r.getLong(1), null, key.flag().equals("WITHOUT_BED") && r.getBoolean(2)),
-                            key.id())
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
+            return new Source(
+                    key.id(),
+                    null,
+                    key.flag().equals("WITHOUT_BED")
+                            && positions.locked(key.id()).withoutBedSince() != null);
         return jdbc
                 .query(
                         "SELECT a.resident_id,r.floor_id,a.status,a.awaiting_request,a.awaiting_same_price,a.room_unsuitable FROM bed_allocation a JOIN bed b ON b.id=a.bed_id JOIN room r ON r.id=b.room_id WHERE a.id=? FOR UPDATE OF a",
@@ -67,37 +76,15 @@ public class AllocationReminderStore {
     }
 
     public Marker marker(Key key, Instant at) {
-        jdbc.update(
-                "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,reminder_count) VALUES(?,?,?,?,0) ON DUPLICATE KEY UPDATE target_id=allocation_reminder.target_id",
-                key.type(),
-                key.id(),
-                key.flag(),
-                Timestamp.from(at));
-        return jdbc.queryForObject(
-                "SELECT started_at,last_reminded_at,reminder_count FROM allocation_reminder WHERE target_type=? AND target_id=? AND flag_type=? FOR UPDATE",
-                (r, n) -> new Marker(
-                        r.getTimestamp(1).toInstant(),
-                        r.getTimestamp(2) == null ? null : r.getTimestamp(2).toInstant(),
-                        r.getInt(3)),
-                key.type(),
-                key.id(),
-                key.flag());
+        var cycle = markers.start(key.type(), key.id(), key.flag(), at);
+        return new Marker(cycle.started(), cycle.last(), cycle.count());
     }
 
     public void mark(Key key, Instant at) {
-        jdbc.update(
-                "UPDATE allocation_reminder SET last_reminded_at=?,reminder_count=reminder_count+1 WHERE target_type=? AND target_id=? AND flag_type=?",
-                Timestamp.from(at),
-                key.type(),
-                key.id(),
-                key.flag());
+        markers.remind(key.type(), key.id(), key.flag(), at);
     }
 
     public void delete(Key key) {
-        jdbc.update(
-                "DELETE FROM allocation_reminder WHERE target_type=? AND target_id=? AND flag_type=?",
-                key.type(),
-                key.id(),
-                key.flag());
+        markers.end(key.type(), key.id(), key.flag());
     }
 }

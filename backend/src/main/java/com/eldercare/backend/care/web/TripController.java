@@ -6,19 +6,24 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.InvalidValueException;
 import org.springframework.web.bind.annotation.*;
 
-/** T018 (Phase 6), T020 (Phase 7): chuẩn bị, rời viện, trở về; hai lệnh ghi sự cố chờ port 007. */
+/** T018 (Phase 6), T020 (Phase 7): chuẩn bị, rời viện, trở về và báo thiếu người qua port 007. */
 @RestController
 @RequestMapping("/api/v1/trips")
 public class TripController {
     private final TripPreparationService preparation;
     private final TripDepartureService departure;
     private final TripReturnService returns;
+    private final TripMissingService missing;
 
     public TripController(
-            TripPreparationService preparation, TripDepartureService departure, TripReturnService returns) {
+            TripPreparationService preparation,
+            TripDepartureService departure,
+            TripReturnService returns,
+            TripMissingService missing) {
         this.preparation = preparation;
         this.departure = departure;
         this.returns = returns;
+        this.missing = missing;
     }
 
     @GetMapping("/{id}")
@@ -125,12 +130,17 @@ public class TripController {
             case "extend" -> returns.extend(target, id, body.newPlannedReturnAt(), reason);
             case "transfer-leader" -> returns.transferLeader(target, id, body.newLeaderId(), reason);
             case "finish-return" -> returns.finishReturn(target, id, body.deviceAt());
-            default ->
-                // FR-046, FR-047: lệnh ghi sự cố cần port do 007 cài (team-plan mục 8); không ghi tạm như thành công.
-                throw new com.eldercare.backend.common.error.BusinessException(
-                        org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                        "CARE_SOURCE_UNAVAILABLE",
-                        "Chưa có nguồn ghi sự cố thiếu người của 007");
+            case "report-missing", "record-missing-incident" ->
+                missing.report(
+                        target,
+                        id,
+                        body.residentIds(),
+                        command.equals("record-missing-incident"),
+                        body.lastSeenPlace(),
+                        body.lastSeenAt(),
+                        body.description(),
+                        body.deviceAt());
+            default -> throw new InvalidValueException("Lệnh chuyến không hợp lệ");
         }
     }
 }
