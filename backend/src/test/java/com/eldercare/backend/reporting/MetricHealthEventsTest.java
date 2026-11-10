@@ -83,7 +83,17 @@ class MetricHealthEventsTest {
     private static IncidentReportView incident(
             long id, String level, String type, boolean nonHealth, int createdMin, Integer ackMin, int escalations) {
         return new IncidentReportView(
-                id, 8L, level, type, nonHealth, 102L, at(createdMin), ackMin == null ? null : at(ackMin), escalations);
+                id,
+                8L,
+                level,
+                ackMin == null ? null : level,
+                type,
+                nonHealth,
+                102L,
+                at(createdMin),
+                ackMin == null ? null : at(ackMin),
+                escalations,
+                ackMin == null ? "NEW" : "IN_PROGRESS");
     }
 
     private static <R extends MetricRecord> MetricValue value(MetricSource<R> source) {
