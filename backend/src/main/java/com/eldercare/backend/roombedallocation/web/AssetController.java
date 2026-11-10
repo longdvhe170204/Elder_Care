@@ -11,6 +11,7 @@ import com.eldercare.backend.roombedallocation.web.request.AssetTypeWrite;
 import com.eldercare.backend.roombedallocation.web.request.AssetWrite;
 import com.eldercare.backend.roombedallocation.web.response.AssetProblem;
 import com.eldercare.backend.roombedallocation.web.response.AssetResponse;
+import com.eldercare.backend.roombedallocation.web.response.AssetTypeResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -57,6 +58,12 @@ public class AssetController {
     public ResponseEntity<Void> create(@RequestHeader("Idempotency-Key") String key, @RequestBody AssetWrite body) {
         long id = assets.create(Target.UNSPECIFIED, body.input());
         return ResponseEntity.created(URI.create("/api/v1/assets/" + id)).build();
+    }
+
+    @GetMapping("/asset-types")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<AssetTypeResponse> types() {
+        return types.list().stream().map(AssetTypeResponse::of).toList();
     }
 
     @PostMapping("/asset-types")

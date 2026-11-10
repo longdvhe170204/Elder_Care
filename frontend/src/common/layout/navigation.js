@@ -396,6 +396,31 @@ export const NAV_GROUPS = [
       { key: 'balance', label: 'Số dư, thu chi', icon: 'Banknote', functions: ['BALANCE_LEDGER'], roles: [QL, HC, KT] },
       // Dòng "Dịch vụ, đơn giá" (004 T068)
       { key: 'services', label: 'Dịch vụ, đơn giá', icon: 'Receipt', functions: ['SERVICE_PRICE'], roles: [QL, HC] },
+      // Dòng "Yêu cầu mua sắm" (019 T008): mọi nhân viên khi giữ nhiệm vụ Phụ trách bộ phận (³⁷), Điều dưỡng loại thuốc (⁴⁴),
+      // Quản lý viện duyệt, Kế toán đối chiếu (³⁸)
+      // Dòng "Tài sản, lịch xe" (019 T018): Phụ trách bộ phận (³⁷), Trưởng tầng theo tầng (³³)
+      {
+        key: 'assets',
+        label: 'Tài sản',
+        icon: 'Package',
+        functions: ['ASSET_VEHICLE'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
+      },
+      // Dòng "Tài sản, lịch xe" (019 T022): Trưởng tầng, Hành chính, Quản lý viện đặt lịch (FR-017); người khác xem
+      {
+        key: 'vehicles',
+        label: 'Lịch xe',
+        icon: 'Car',
+        functions: ['ASSET_VEHICLE'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
+      },
+      {
+        key: 'procurement',
+        label: 'Yêu cầu mua sắm',
+        icon: 'ShoppingCart',
+        functions: ['PURCHASE_REQUEST'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
+      },
     ],
   },
   {

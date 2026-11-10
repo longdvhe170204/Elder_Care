@@ -75,6 +75,11 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AssetWrite' } } } }
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
   /asset-types:
+    get:
+      tags: [assets]
+      summary: 'Danh mục loại tài sản, gồm loại đã ngừng (bổ sung 2026-11-10, C chọn cho màn web M35: tên loại, chọn loại khi ghi tăng, lọc xe; chờ chủ dự án duyệt)'
+      x-fr: [FR-011]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/AssetType' } } } } } }
     post:
       tags: [assets]
       summary: Tạo, sửa, ngừng loại tài sản (Quản lý viện)
@@ -181,6 +186,9 @@ components:
       type: object
       required: [code, typeId, name, departmentId, source]
       properties: { code: { type: string }, typeId: { type: integer, format: int64 }, name: { type: string }, departmentId: { type: integer, format: int64 }, source: { type: string, enum: [PURCHASED, DONATED, TRANSFERRED_IN] }, sourceDescription: { type: string }, procurementRequestId: { type: integer, format: int64 }, acquisitionCost: { type: integer, format: int64 }, inServiceOn: { type: string, format: date }, maintenanceIntervalDays: { type: integer }, maintenanceDueOn: { type: string, format: date }, licensePlate: { type: string }, seatCount: { type: integer }, vehicleInspectionDueOn: { type: string, format: date }, insuranceDueOn: { type: string, format: date } }
+    AssetType:
+      type: object
+      properties: { id: { type: integer, format: int64 }, code: { type: [string, 'null'], description: 'Mã loại hệ thống BED (Giường), VEHICLE (Xe), V019_05; loại do Quản lý viện tạo thì null' }, name: { type: string }, status: { type: string, enum: [ACTIVE, INACTIVE] } }
     AssetTypeWrite:
       type: object
       required: [name]

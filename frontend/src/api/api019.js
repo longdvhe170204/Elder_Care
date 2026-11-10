@@ -21,6 +21,9 @@ export const getAssets = (params) => request('GET', '/assets', params)
 /** Ghi tăng tài sản (không phải loại giường); mua mới gắn yêu cầu mua sắm Đã duyệt và nguyên giá (FR-011, FR-008c, DBR-32, DBR-36) */
 export const postAssets = (params) => request('POST', '/assets', params)
 
+/** Danh mục loại tài sản, gồm loại đã ngừng (bổ sung 2026-11-10, C chọn cho màn web M35: tên loại, chọn loại khi ghi tăng, lọc xe; chờ chủ dự án duyệt) (FR-011) */
+export const getAssetTypes = (params) => request('GET', '/asset-types', params)
+
 /** Tạo, sửa, ngừng loại tài sản (Quản lý viện) (FR-011) */
 export const postAssetTypes = (params) => request('POST', '/asset-types', params)
 
