@@ -140,6 +140,7 @@ components:
         labels: { type: array, items: { type: string, enum: [NO_DATA, NOT_CONFIGURED, DAY_NOT_ENDED, PENDING_REVIEW, PURGED_BY_RETENTION, PROVISIONAL, WITHIN_YOUR_SCOPE] } }
         pendingReviewCount: { type: integer }
         breakdown: { type: array, items: { type: object, properties: { key: { type: string }, value: { type: number }, numerator: { type: number }, denominator: { type: number } } } }
+        purgedDataTypes: { type: array, readOnly: true, items: { type: string }, description: 'Loại dữ liệu đã loại bỏ theo NFR-07 giao với khoảng báo cáo, đi cùng nhãn PURGED_BY_RETENTION (FR-007; thêm 2026-11-10, chủ dự án duyệt)' }
     Dashboard:
       type: object
       properties:

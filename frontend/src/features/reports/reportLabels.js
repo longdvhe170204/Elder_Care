@@ -66,9 +66,32 @@ export function formatValue(value) {
   return value === null || value === undefined ? '—' : NUMBER.format(value)
 }
 
+// Loại dữ liệu đã loại bỏ hiện theo module (tiền tố mã, research R-02 của 000), không hiện mã thô (016 T109)
+const PURGED_MODULES = {
+  M01: 'hồ sơ người cao tuổi',
+  M02: 'tiếp nhận, lưu trú',
+  M03: 'phòng, giường',
+  M04: 'chăm sóc hằng ngày',
+  M05: 'sự cố, cảnh báo',
+  M06: 'sức khỏe',
+  M07: 'thuốc',
+  M08: 'dinh dưỡng',
+  M09: 'nhân sự, ca trực',
+  M11: 'chi phí',
+}
+
+function purgedNote(value) {
+  const modules = [...new Set((value.purgedDataTypes ?? []).map((t) => PURGED_MODULES[t.split('.')[0]] ?? t))]
+  return modules.length ? `${VALUE_LABELS.PURGED_BY_RETENTION} (${modules.join(', ')})` : VALUE_LABELS.PURGED_BY_RETENTION
+}
+
 export function labelNotes(value) {
   return (value.labels ?? [])
-    .map((l) => (l === 'PENDING_REVIEW' ? `${VALUE_LABELS[l]} (${value.pendingReviewCount})` : VALUE_LABELS[l] ?? l))
+    .map((l) => {
+      if (l === 'PENDING_REVIEW') return `${VALUE_LABELS[l]} (${value.pendingReviewCount})`
+      if (l === 'PURGED_BY_RETENTION') return purgedNote(value)
+      return VALUE_LABELS[l] ?? l
+    })
     .join(', ')
 }
 

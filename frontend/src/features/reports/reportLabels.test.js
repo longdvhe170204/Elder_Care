@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { breakdownLabel } from './reportLabels'
+import { breakdownLabel, labelNotes } from './reportLabels'
 
 const floors = [
   { id: 101, name: 'Tầng 1' },
@@ -53,5 +53,14 @@ describe('breakdownLabel', () => {
 
   it('khóa chưa biết giữ nguyên', () => {
     expect(breakdownLabel('TEST.X', 'ABC')).toBe('ABC')
+  })
+})
+
+describe('labelNotes', () => {
+  it('nhãn dữ liệu đã loại bỏ kèm loại dữ liệu theo module (016 T109, FR-007)', () => {
+    expect(
+      labelNotes({ labels: ['PURGED_BY_RETENTION'], purgedDataTypes: ['M07.DOSE', 'M07.DOSE_RESULT', 'M04.TASK'] }),
+    ).toBe('số liệu không đầy đủ do đã loại bỏ theo lưu trữ (thuốc, chăm sóc hằng ngày)')
+    expect(labelNotes({ labels: ['PURGED_BY_RETENTION'] })).toBe('số liệu không đầy đủ do đã loại bỏ theo lưu trữ')
   })
 })
