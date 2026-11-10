@@ -11,6 +11,7 @@ import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
 import com.eldercare.backend.reporting.internal.metric.domain.ValueLabel;
 import com.eldercare.backend.reporting.internal.metric.service.MetricCatalog;
 import com.eldercare.backend.reporting.internal.metric.service.MetricEvaluator;
+import com.eldercare.backend.reporting.internal.metric.service.PurgedDataTypes;
 import com.eldercare.backend.reporting.internal.report.domain.MetricResult;
 import com.eldercare.backend.reporting.internal.report.domain.Report;
 import com.eldercare.backend.reporting.internal.report.domain.ReportFilterOptions;
@@ -46,13 +47,16 @@ public class ReportService {
     private final MetricEvaluator evaluator;
     private final LocationStructureApi structure;
     private final BusinessTime time;
+    private final PurgedDataTypes purged;
 
     public ReportService(
             MetricCatalog catalog,
             ReportScopeService scopes,
             MetricEvaluator evaluator,
             LocationStructureApi structure,
-            BusinessTime time) {
+            BusinessTime time,
+            PurgedDataTypes purged) {
+        this.purged = purged;
         this.catalog = catalog;
         this.scopes = scopes;
         this.evaluator = evaluator;
@@ -77,7 +81,9 @@ public class ReportService {
             rough.add(scope.rough());
             for (MetricSource<?> source : catalog.sourcesIn(g)) {
                 MetricResult r = evaluator.result(user, source, scope, period.start(), period.end(), filters);
-                results.add(dayNotEnded ? withDayNotEnded(r) : r);
+                MetricResult labelled =
+                        withPurged(r, purged.affecting(source.metric().source(), period.start()));
+                results.add(dayNotEnded ? withDayNotEnded(labelled) : labelled);
             }
         }
         ScopeFilter scope = union(rough);
@@ -111,7 +117,28 @@ public class ReportService {
                 v.denominator(),
                 Set.copyOf(labels),
                 v.pendingReviewCount(),
-                v.breakdown());
+                v.breakdown(),
+                v.purgedDataTypes());
+        return new MetricResult(r.metricCode(), r.metricName(), labelled, r.residents(), r.residentsByKey(), r.rows());
+    }
+
+    /** FR-007 (T109): khoảng giao với dữ liệu đã loại bỏ theo NFR-07 thì nhãn kèm loại dữ liệu bị ảnh hưởng. */
+    private static MetricResult withPurged(MetricResult r, List<String> types) {
+        if (types.isEmpty()) {
+            return r;
+        }
+        MetricValue v = r.value();
+        Set<ValueLabel> labels = EnumSet.of(ValueLabel.PURGED_BY_RETENTION);
+        labels.addAll(v.labels());
+        MetricValue labelled = new MetricValue(
+                v.metricCode(),
+                v.value(),
+                v.numerator(),
+                v.denominator(),
+                Set.copyOf(labels),
+                v.pendingReviewCount(),
+                v.breakdown(),
+                types);
         return new MetricResult(r.metricCode(), r.metricName(), labelled, r.residents(), r.residentsByKey(), r.rows());
     }
 

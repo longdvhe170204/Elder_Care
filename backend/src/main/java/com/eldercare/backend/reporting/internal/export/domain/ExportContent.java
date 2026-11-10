@@ -36,7 +36,8 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
             BigDecimal numerator,
             BigDecimal denominator,
             Set<ValueLabel> labels,
-            int pendingReviewCount) {}
+            int pendingReviewCount,
+            List<String> purgedDataTypes) {}
 
     public record DetailLine(String metricCode, DetailRow row) {}
 
@@ -74,7 +75,8 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
                         v.numerator(),
                         v.denominator(),
                         v.labels(),
-                        v.pendingReviewCount()));
+                        v.pendingReviewCount(),
+                        v.purgedDataTypes()));
             }
             for (MetricValue.Breakdown b : v.breakdown()) {
                 if (includeIdentity || !singlePerson(r.residentsByKey().getOrDefault(b.key(), Set.of()))) {
@@ -86,7 +88,8 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
                             b.numerator(),
                             b.denominator(),
                             Set.of(),
-                            0));
+                            0,
+                            List.of()));
                 }
             }
             if (includeIdentity) {

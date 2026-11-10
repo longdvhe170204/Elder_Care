@@ -39,7 +39,7 @@ class TestDoseMetric {
                 MetricGroup.MEDICATION_DOSES,
                 "Liều Bỏ lỡ (test)",
                 "Số liều Bỏ lỡ trong khoảng",
-                "006 (giả)",
+                "006 MedicationStatisticsApi (giả)",
                 new Metric.Computation.Count<>(d -> true),
                 Dose::shift,
                 d -> new DetailRow(
