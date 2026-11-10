@@ -17,15 +17,6 @@ public interface ActivityHealthGatePort {
     /** Người cao tuổi đang mang dấu "nghi nhiễm" (007 FR-060). */
     boolean suspectedInfection(long residentId, Instant at);
 
-    /**
-     * Có dấu nghi nhiễm bất kỳ lúc nào trong khoảng [from, to); ngày nghiệp vụ dùng hai mốc 00:00 (FR-054). Mặc định
-     * ném lỗi cho tới khi bean 007 cài hàm này (team-plan mục 8, chờ D); 2026-11-09 C thêm {@code default} để nhánh
-     * biên dịch được sau khi gộp bean 007 chưa có hàm.
-     */
-    default boolean suspectedInfectionDuring(long residentId, Instant from, Instant to) {
-        throw new UnsupportedOperationException("007 chưa cài suspectedInfectionDuring");
-    }
-
     /** Có cảnh báo hoặc sự cố mức Trung bình trở lên đang mở (FR-018). */
     boolean hasOpenMediumOrHigher(long residentId);
 }

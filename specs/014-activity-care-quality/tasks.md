@@ -198,15 +198,16 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ---
 
-## Phase 8: User Story 6 – Tinh thần, sở thích và cảnh báo nguy cơ cô lập (Priority: P2)
+## Phase 8: User Story 6 – Tinh thần và sở thích (Priority: P2)
 
-**Goal**: Sở thích, hồ sơ tinh thần; ngày tính và chuỗi cô lập; cảnh báo Nhẹ qua 007, không gợi ý (FR-051 → FR-056, BR-M04-22).
+**Goal**: Sở thích, hồ sơ tinh thần, không gợi ý (FR-051 → FR-053) *(sửa Q-407, 2026-11-10: bỏ ngày tính, chuỗi và cảnh báo nguy cơ cô lập, FR-054 → FR-056, BR-M04-22)*.
 
 **Independent Test**: A sở thích "âm nhạc", "cờ tướng"; 7 ngày không có mặt ở hoạt động nhóm → một cảnh báo nhẹ, không gợi ý.
 
 ### Tests cho User Story 6
 
 - [ ] T021 [P] [US6] Test đơn vị `BT/care/NgayTinhTest.java`, `CapNhatChuoiTest.java`, `TyLeThamGiaTest.java` và `BT/care/BR_M04_22_CoLapIT.java` (30 kịch bản, SC-007), `FR_051_SoThichIT.java` (Q34 → Q36; bổ sung 2026-10-18, Q-363: mục của người cao tuổi và của người thân cùng nhóm cùng hiện hành, mục mới cùng nhóm cùng nguồn cần xác nhận thay, nguồn người thân không có quan hệ Hiệu lực → 422, cảnh báo đăng ký nêu nguồn)
+  - *(2026-11-10, A, Q-407)* Bỏ `NgayTinhTest`, `CapNhatChuoiTest`, `BR_M04_22_CoLapIT` (30 kịch bản, SC-007) và ca ngày tính FR-054 của `T021_ActivityHealthGateTest`; còn `TyLeThamGiaTest`, `FR_051_SoThichIT`.
   - *(2026-11-08, C)* Đã kiểm cổng nghi nhiễm theo khoảng bằng `T021_ActivityHealthGateTest` (đỏ thiếu chữ ký rồi xanh). Chưa cài/kiểm `NgayTinhTest`, `CapNhatChuoiTest`, `TyLeThamGiaTest`, `BR_M04_22_CoLapIT` 30 kịch bản/SC-007 vì lưu chuỗi bị khóa 005 ghi đè JSON M04; chủ dự án giữ phạm vi 014, không sửa 005. Giữ [ ].
 
   - *(2026-11-09, C, T021)* Ngày tính, chuỗi, tỷ lệ: `NgayTinhTest`, `CapNhatChuoiTest`, `TyLeThamGiaTest` đỏ thiếu `CountingDay`, `IsolationStreak`, `ParticipationRate` (`20261109-domain-red.log`), sau cài xanh. Theo ngân sách, giữ nguyên assertion ngày tính nhưng ghép vào `T021_ActivityHealthGateTest#FR_054_detectsInfectionAtAnyTimeWithinTheHalfOpenDay` (không thêm ca FR-054 thứ ba); chuỗi và tỷ lệ giữ một `@Test` bảng mỗi lớp. Giữ [ ] T021: chưa có lưu chuỗi/job/cảnh báo và IT SC-007 30 kịch bản, chờ A hỗ trợ dòng trạng thái riêng (chủ dự án chọn 09/11); không tạo IT rỗng thay cho nghiệm thu chuỗi.
@@ -214,6 +215,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Implementation cho User Story 6
 
 - [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon_loai ENUM('NGUOI_CAO_TUOI','NGUOI_THAN','NHAN_VIEN_QUAN_SAT')`, `nguon_nguoi_than_id BIGINT NULL` với `CHECK ((nguon_loai = 'NGUOI_THAN') = (nguon_nguoi_than_id IS NOT NULL))` theo mẫu 001; cột sinh `khoa_hien_hanh` theo (nhóm, nguồn) `UNIQUE`; `trang_thai`; sửa 2026-10-18, Q-363), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/care/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `so_thich` → `ho_so_chung`; `chuoi_co_lap` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+  - *(2026-11-10, A, Q-407)* Bỏ `chuoi_co_lap`, việc 00:00 cập nhật chuỗi và `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP`; còn sở thích, hồ sơ tinh thần, endpoint, màn web.
   - *(2026-11-08, C)* Hai GET đã có schema và bản cài đọc; Sheet tinh thần theo bố cục duyệt 08/11. Chưa có lịch sử cảnh báo (chủ dự án không duyệt SPI mới), trả alerts null. Chuỗi cô lập bị chặn bởi cách khóa M04 của 005, không sửa 005 theo lựa chọn chủ dự án. Trình duyệt localhost timeout, chưa nghiệm thu trực quan; giữ [ ].
   - Một phần 06/11/2026: ghi, bỏ sở thích và cảnh báo "không thích" khi đăng ký (`FR_051_SoThichIT` 4/4, plan Phase 8). Còn: hai GET chờ schema, chuỗi cô lập chờ hàm nghi nhiễm theo khoảng của 007, `BR_M04_22_CoLapIT` và các test đơn vị ngày tính, web; T021, T022 chưa đánh [x].
   - *(2026-11-10, C, lượt 2)* Kiểm trực quan với backend demo chưa làm được: demo chạy trên schema mới `elder_care_demo_1110` (Flyway 158 migration, không đụng `elder_care`) nhưng seed demo chỉ có tài khoản. Đã tạo qua API thật khu K1, Tầng 2, loại phòng, Phòng 201; tạo giường trả 503 `SOURCE_UNAVAILABLE` (`BedAssets.recordIncreaseForBed`, 019 chưa lấy được bộ phận Chăm sóc, team-plan mục 8 dòng E/C 019 FR-011), nên không có người nội trú; đường bán trú cần đủ điều kiện tiếp nhận (a)–(f) của 004 (001, 012, hợp đồng ký); T025 cần thêm lịch ca 008 và công việc hoàn thành 005. Giữ [ ].
@@ -323,4 +325,4 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7; mỗi bước chạy `./mvn
 
 ## Phase 11: Convergence
 
-- [ ] T035 Cài `ActivityStatisticsApi.isolationRisks()` trả người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi (hiện `ActivityStatistics.isolationRisks()` trả `Stream.empty()` dù T027 đã đánh dấu xong), test viết trước per FR-058, BR-M04-22, 016 FR-036 (partial)
+- [ ] T035 *(Bỏ theo Q-407, 2026-11-10: không còn danh sách nguy cơ cô lập; đã gỡ `ActivityStatisticsApi.isolationRisks`, `IsolationRiskView`)* Cài `ActivityStatisticsApi.isolationRisks()` trả người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi (hiện `ActivityStatistics.isolationRisks()` trả `Stream.empty()` dù T027 đã đánh dấu xong), test viết trước per FR-058, BR-M04-22, 016 FR-036 (partial)

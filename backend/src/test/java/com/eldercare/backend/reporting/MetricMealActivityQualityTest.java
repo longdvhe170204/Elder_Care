@@ -9,7 +9,6 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.care.api.ActivityStatisticsApi;
-import com.eldercare.backend.care.api.dto.IsolationRiskView;
 import com.eldercare.backend.care.api.dto.QualityCheckStatisticsView;
 import com.eldercare.backend.care.api.dto.SessionStatisticsView;
 import com.eldercare.backend.care.api.dto.TripStatisticsView;
@@ -98,11 +97,6 @@ class MetricMealActivityQualityTest {
         @Override
         public Stream<QualityCheckStatisticsView> qualityChecks(ScopeFilter scope, LocalDate from, LocalDate to) {
             return checks.stream();
-        }
-
-        @Override
-        public Stream<IsolationRiskView> isolationRisks() {
-            return Stream.empty();
         }
     };
 

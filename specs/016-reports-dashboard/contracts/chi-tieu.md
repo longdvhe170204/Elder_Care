@@ -25,7 +25,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `CV.THEO_NHAN_VIEN` | Chỉ tiêu theo nhân viên | 005, 014 | FR-030, FR-037 |
 | `BUA.PHIEU_TRE`, `BUA.PHIEU_SAI_LECH` | Phiếu bữa ăn | 011 `DinhDuongThongKeApi.phieu` | FR-034 |
 | `HD.BUOI`, `HD.TY_LE_THAM_GIA`, `HD.CHUYEN_QUA_GIO`, `HD.THIEU_NGUOI` | Hoạt động | 014 `HoatDongThongKeApi` | FR-020, FR-035 |
-| `HD.CO_LAP` | Hoạt động | 014 `coLap` | FR-036 |
+| `HD.CO_LAP` | *(Bỏ, 2026-11-10, Q-407)* Không còn chỉ tiêu nguy cơ cô lập | — | FR-036 |
 | `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | Kiểm tra chất lượng | 014 `kiemTra` | FR-037 |
 | `SK.CHI_SO` | Chỉ số, cảnh báo, sự cố | 007 `ChiSoThongKeApi` | FR-040 |
 | `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG` | Chỉ số, cảnh báo, sự cố | 007 `CanhBaoThongKeApi` | FR-020, FR-041 |

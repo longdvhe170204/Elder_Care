@@ -546,3 +546,8 @@ Spec 014 (bảng trạng thái chuyến: Đã về chỉ có "Điểm danh về 
 Cài: `care/internal/trip/service/VehicleScheduleCorrectionListener` (`@EventListener` đồng bộ, khóa dòng chuyến, cùng giá trị thì không ghi), `ActivityTripStore.correctPlannedTimes` (tăng `version`, chỉ khi `RETURNED`). Không đổi sự kiện, API, DTO, mã 019. Giới hạn đã biết (plan 019): `VehicleScheduleApi` vẫn trả giờ gốc của lịch đã khóa, nên giờ chuyến sau đính chính lệch giờ của dòng lịch xe.
 
 Test: thêm `BR_M04_16_RoiVienIT#VehicleScheduleCorrected_syncsReturnedTripPlannedTimesInTheCorrectionCommand` (luồng chính qua `POST /corrections/M03.VEHICLE_SCHEDULE/{id}`, nhận lặp, rollback), đỏ trước cài (giờ rời không đổi), xanh sau cài; `BR_M04_16_RoiVienIT` 4/4, `BR_M03_16_VehicleScheduleIT` 2, `FR_018_FollowTripIT` 1, `ApiContractIT` 1, kiến trúc 72 (gồm ModuleBoundaryTest, M04ArchTest, LayerArchTest) xanh. Không phát `TripChanged` nên không chạy IT 011.
+
+## Cập nhật 2026-11-10 (Q-407: bỏ chuỗi và cảnh báo nguy cơ cô lập)
+
+- Chủ dự án chốt Q-407: bỏ BR-M04-22, CFG-M04-10, ngày tính; 014 không lưu chuỗi (`chuoi_co_lap`), không có việc 00:00 xét chuỗi, không phát `AlertRequested` loại `ISOLATION_RISK`, không cung cấp `isolationRisks` cho 016. Các mục ở trên nói về chuỗi cô lập, ngày tính, SC-007, job cô lập (mục tiêu, cấu trúc gói `tinhthan`, NFR-02, test bảng, rủi ro, bảng truy vết) hết hiệu lực theo Q-407.
+- Mã đã gỡ: `ActivityStatisticsApi.isolationRisks`, `IsolationRiskView`, `IsolationStreak`, `CountingDay`, `CapNhatChuoiTest`, ca ngày tính của `T021_ActivityHealthGateTest`, loại `ISOLATION_RISK` của `AlertRequested` nếu có. Giữ `ParticipationRate` (tỷ lệ tham gia, FR-070), dấu "hoạt động nhóm" (chặn nghi nhiễm, Q-165), `suspectedInfectionDuring` nếu còn nơi dùng.
