@@ -67,7 +67,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M04 không ph
 | Q35 | A 7 ngày tính liên tiếp không Có mặt hoạt động nhóm (có 1 ngày vắng xen giữa) | Ngày vắng bỏ qua; ngày thứ 7 → 007 cảnh báo Nhẹ "nguy cơ cô lập", không kèm gợi ý | US6, FR-054, FR-055, SC-007 |
 | Q36 | A Có mặt hoạt động nhóm | Chuỗi đếm lại; 007 nhận diễn biến; cảnh báo không tự đóng | FR-056 |
 | Q37 | Mốc CFG-M09-04 trước kết ca, ca có 40 công việc đủ điều kiện, chưa có danh sách | TT2 nhận nhắc | US7, FR-059a |
-| Q38 | TT2 lập danh sách 1 mục khi cần 2; lập 2 mục; lập danh sách thứ hai cho ca | 409 `CHUA_DU_TY_LE`; được; 409 `DA_CO_DANH_SACH` | US7, FR-059, SC-008 |
+| Q38 | TT2 lập danh sách 1 mục khi cần 2; lập 2 mục; gửi lệnh lập lần nữa cho ca với công việc khác | 409 `CHUA_DU_TY_LE`; được; mục được thêm vào danh sách duy nhất của ca (không tạo danh sách thứ hai, không xét lại tỷ lệ; sửa 2026-11-08, chủ dự án giữ cách cài Phase 9) | US7, FR-059, FR-059a, SC-008 |
 | Q39 | Chọn công việc do chính TT2 thực hiện; liều thuốc | 409 `CONG_VIEC_KHONG_DU_DIEU_KIEN` | FR-060, SC-014 |
 | Q40 | Ghi Không đạt không có công việc làm lại; có | 409 `THIEU_CONG_VIEC_LAM_LAI`; được, 005 có công việc làm lại trỏ kết quả; người thực hiện gốc nhận Trung bình | US7, FR-064 |
 | Q41 | Ca đêm không có TT2: Người phụ trách ca ghi kết quả cho mục mình thực hiện | 409 `TU_KIEM_TRA_CONG_VIEC_CUA_MINH` | FR-066 |

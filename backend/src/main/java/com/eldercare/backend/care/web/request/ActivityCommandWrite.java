@@ -1,5 +1,6 @@
 package com.eldercare.backend.care.web.request;
 
+import com.eldercare.backend.care.internal.trip.domain.TripTemplatePlan;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -10,7 +11,8 @@ public record ActivityCommandWrite(
         ActivityTemplate template,
         LocalDate fromDate,
         LocalDate toDate,
-        Long residentId) {
+        Long residentId,
+        TripTemplatePlan trip) {
     public record ActivityTemplate(
             List<Integer> daysOfWeek,
             Integer intervalDays,

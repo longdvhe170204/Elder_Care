@@ -15,6 +15,7 @@ import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { ActivityField } from './ActivityField'
 import { SessionAttendanceForm } from './SessionAttendanceForm'
+import { WellbeingSheet } from './WellbeingSheet'
 import { REGISTRATION_SOURCE, REGISTRATION_STATUS, SESSION_STATUS, toOffsetIso } from './sessionView'
 
 const EMPTY = { reason: '', startsAt: '', endsAt: '', residentId: '', registrationReason: '' }
@@ -41,6 +42,7 @@ export function ActivitySessionDetail({
   const [busy, setBusy] = useState(false)
   const [key, setKey] = useState(() => crypto.randomUUID())
   const [revision, setRevision] = useState(0)
+  const [wellbeingResident, setWellbeingResident] = useState(null)
   const current = result?.key === `${sessionId}:${revision}` ? result : null
   const names = new Map(residents.map((r) => [r.id, r.fullName]))
   const nameOf = (id) => names.get(id) ?? `Mã ${id}`
@@ -134,7 +136,17 @@ export function ActivitySessionDetail({
             <TableBody>
               {s.registrations.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell>{nameOf(r.residentId)}</TableCell>
+                  <TableCell>
+                    <span>{nameOf(r.residentId)}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setWellbeingResident(r.residentId)}
+                      aria-label={`Hồ sơ tinh thần của ${nameOf(r.residentId)}`}
+                    >
+                      Hồ sơ tinh thần
+                    </Button>
+                  </TableCell>
                   <TableCell>{REGISTRATION_SOURCE[r.source] ?? r.source}</TableCell>
                   <TableCell>
                     <StatusBadge status={REGISTRATION_STATUS[r.status] ?? r.status} />
@@ -366,6 +378,13 @@ export function ActivitySessionDetail({
             Hủy buổi
           </Button>
         </div>
+      )}
+      {wellbeingResident && (
+        <WellbeingSheet
+          residentId={wellbeingResident}
+          residentName={nameOf(wellbeingResident)}
+          onClose={() => setWellbeingResident(null)}
+        />
       )}
     </div>
   )

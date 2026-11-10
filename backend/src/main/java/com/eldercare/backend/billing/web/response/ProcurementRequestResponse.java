@@ -1,6 +1,7 @@
 package com.eldercare.backend.billing.web.response;
 
 import com.eldercare.backend.billing.api.dto.ProcurementStatus;
+import com.eldercare.backend.billing.internal.procurement.domain.ProcurementLineId;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementRequestRow;
 import com.eldercare.backend.billing.web.request.ProcurementRequestWrite;
 import com.eldercare.backend.roombedallocation.api.dto.ProcurementType;
@@ -9,10 +10,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 /**
- * 019 T008: phản hồi {@code ProcurementRequest} của api-019. {@code received} chỉ có ở loại MEDICATION, đọc từ 006
- * (FR-008d); cài ở lượt sau của Phase 3, hiện luôn rỗng.
+ * 019 T008, T027: phản hồi {@code ProcurementRequest} của api-019; id dòng theo {@link ProcurementLineId}.
+ * {@code received} chỉ có ở loại MEDICATION (FR-008d), dịch vụ tính từ {@code ProcurementIntakePort} của 006.
  */
 @Schema(name = "ProcurementRequest")
 public record ProcurementRequestResponse(
@@ -34,7 +36,7 @@ public record ProcurementRequestResponse(
         Long linkedSourceTotal,
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) Boolean received) {
 
-    public static ProcurementRequestResponse of(ProcurementRequestRow row) {
+    public static ProcurementRequestResponse of(ProcurementRequestRow row, Boolean received) {
         return new ProcurementRequestResponse(
                 row.id(),
                 row.departmentId(),
@@ -42,7 +44,10 @@ public record ProcurementRequestResponse(
                 row.priority(),
                 row.neededBy(),
                 row.relatedFileIds(),
-                row.lines().stream().map(ProcurementRequestWrite.Line::of).toList(),
+                IntStream.range(0, row.lines().size())
+                        .mapToObj(i -> ProcurementRequestWrite.Line.of(
+                                ProcurementLineId.of(row.id(), i), row.lines().get(i)))
+                        .toList(),
                 row.reason(),
                 row.neededOn(),
                 row.reference(),
@@ -52,6 +57,6 @@ public record ProcurementRequestResponse(
                 row.actualAmount(),
                 row.status(),
                 row.linkedSourceTotal(),
-                null);
+                received);
     }
 }

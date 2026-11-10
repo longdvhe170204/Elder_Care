@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.care.api.events.ActivityCostSourceBilled;
 import com.eldercare.backend.care.api.events.ActivitySessionEnded;
+import com.eldercare.backend.care.api.spi.AttendanceTracePort;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
@@ -63,6 +64,9 @@ class BR_M04_18_SuKienTinhPhiIT extends MySqlIntegrationTestBase {
 
     @Autowired
     ApplicationEvents events;
+
+    @Autowired
+    AttendanceTracePort trace;
 
     SessionAttendanceFixture data;
 
@@ -135,5 +139,38 @@ class BR_M04_18_SuKienTinhPhiIT extends MySqlIntegrationTestBase {
                 .isEqualTo("ATTENDANCE_TAKEN");
         assertThat(events.stream(ActivitySessionEnded.class).map(ActivitySessionEnded::sessionId))
                 .contains(session);
+
+        // T014 (007 FR-060 (b)): nguồn truy vết trả buổi chồng khoảng và người cùng Có mặt hiện hành; không có người
+        // Vắng, không có chính người được truy vết; Hủy ghi nhận qua đính chính thì không còn là người cùng Có mặt.
+        var from = time.now().minus(Duration.ofHours(2));
+        var to = time.now().plus(Duration.ofHours(2));
+        var traced = trace.coAttendance(registered.get(0), from, to);
+        assertThat(traced).singleElement().satisfies(v -> {
+            assertThat(v.sessionId()).isEqualTo(session);
+            assertThat(v.to()).isAfter(v.from());
+            assertThat(v.residentIds()).containsExactlyInAnyOrder(registered.get(1), registered.get(2), walkIn);
+        });
+        assertThat(trace.coAttendance(registered.get(3), from, to)).isEmpty();
+        assertThat(trace.coAttendance(registered.get(0), from, time.now().minus(Duration.ofMinutes(31))))
+                .isEmpty();
+        long walkInAttendance = jdbc.queryForObject(
+                "SELECT id FROM record_event WHERE kind='M04.SESSION_ATTENDANCE' AND unique_key=?",
+                Long.class,
+                "M04.SESSION_ATTENDANCE:"
+                        + jdbc.queryForObject(
+                                "SELECT id FROM activity_registration WHERE session_id=? AND resident_id=?",
+                                Long.class,
+                                session,
+                                walkIn));
+        mvc.perform(post("/api/v1/corrections/M04.SESSION_ATTENDANCE/" + walkInAttendance)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"VOID\",\"reason\":\"Ghi nhầm người\"}"))
+                .andExpect(status().is2xxSuccessful());
+        assertThat(trace.coAttendance(registered.get(0), from, to))
+                .singleElement()
+                .satisfies(v ->
+                        assertThat(v.residentIds()).containsExactlyInAnyOrder(registered.get(1), registered.get(2)));
+        assertThat(trace.coAttendance(walkIn, from, to)).isEmpty();
     }
 }

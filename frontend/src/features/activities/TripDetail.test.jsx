@@ -60,8 +60,10 @@ async function open() {
   page()
   // Chờ dữ liệu tải bằng truy vấn rẻ (aria-label): *ByRole tính lại cây trợ năng ở mỗi lần DOM đổi trong lúc tải, khi
   // chạy toàn kho (nhiều worker) ca đầu file vượt 1000 ms mặc định (log 014/20261107-web-full-durations.json).
-  fireEvent.click(await screen.findByLabelText(/Chi tiết buổi Tham quan/))
-  await screen.findByText('Điểm đến: Chùa')
+  // Ca đầu file còn tải module lúc chờ (1027 ms ngày 10/11, log 014/20261110-web-full-durations.json): chờ 4000 ms
+  // như StaffPage.test.jsx.
+  fireEvent.click(await screen.findByLabelText(/Chi tiết buổi Tham quan/, {}, { timeout: 4000 }))
+  await screen.findByText('Điểm đến: Chùa', {}, { timeout: 4000 })
 }
 
 it('FR_039_chuyenDungEndpointChuyenVaKhongCoDiemDanhBuoiTrongVien', async () => {

@@ -104,8 +104,10 @@ public class StructureStore {
 
     /** Cùng thứ tự guard → vị trí với lệnh tạo/dời khu nghỉ, tránh race và đảo khóa. */
     public void lockDayCareGuard(StructureKind kind) {
-        if ((kind == StructureKind.AREA || kind == StructureKind.FLOOR) && tableExists("day_care_capacity_guard"))
-            jdbc.queryForObject("SELECT id FROM day_care_capacity_guard WHERE id=1 FOR UPDATE", Integer.class);
+        if (kind == StructureKind.AREA || kind == StructureKind.FLOOR)
+            jdbc.queryForObject(
+                    "SELECT lock_key FROM technical_lock WHERE lock_key='M03.SUC_CHUA_BAN_TRU' FOR UPDATE",
+                    String.class);
     }
 
     public boolean hasAllocationHistory(StructureKind kind, long id) {
@@ -173,7 +175,7 @@ public class StructureStore {
             long residentId, com.eldercare.backend.roombedallocation.api.spi.CareLevelCode level) {
         if (!tableExists("bed_allocation")) return true;
         return jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_allocation a JOIN bed b ON b.id=a.bed_id WHERE a.resident_id=? AND a.status='ACTIVE' AND NOT EXISTS(SELECT 1 FROM room_allowed_care_level l WHERE l.room_id=b.room_id AND l.care_level=?)",
+                        "SELECT COUNT(*) FROM bed_allocation a JOIN bed b ON b.id=a.bed_id WHERE a.resident_id=? AND a.status='ACTIVE' AND NOT EXISTS(SELECT 1 FROM room r WHERE r.id=b.room_id AND JSON_CONTAINS(r.allowed_care_levels,JSON_QUOTE(?)))",
                         Integer.class,
                         residentId,
                         level.name())

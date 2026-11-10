@@ -134,11 +134,11 @@ public class M03GovernanceStore {
                 retention.update(
                         "DELETE FROM bed_backfill_request WHERE current_allocation_id IN (" + placeholders + ")",
                         values);
-            if (exists("allocation_reminder"))
-                retention.update(
-                        "DELETE FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id IN ("
-                                + placeholders + ")",
-                        values);
+            // T066: dấu nhắc của phân bổ trên reminder_marker (eldercare_retention có quyền DELETE, V000_10).
+            retention.update(
+                    "DELETE FROM reminder_marker WHERE kind LIKE 'M03.ALLOCATION\\_REMINDER.%'"
+                            + " AND entity_type='BED_ALLOCATION' AND entity_id IN (" + placeholders + ")",
+                    values);
         }
         retention.update("DELETE FROM " + table + " WHERE id IN (" + placeholders + ")", values);
     }

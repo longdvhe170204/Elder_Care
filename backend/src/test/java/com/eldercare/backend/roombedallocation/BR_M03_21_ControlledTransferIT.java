@@ -59,7 +59,7 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                 type,
                 "R" + targetRoom,
                 "Phòng cách ly");
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", targetRoom);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", targetRoom);
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'T1')", target, targetRoom);
         jdbc.update("UPDATE bed SET state='OCCUPIED' WHERE id=?", bed);
         jdbc.update(

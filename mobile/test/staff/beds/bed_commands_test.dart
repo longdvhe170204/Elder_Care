@@ -14,17 +14,28 @@ import 'package:mobile/staff/beds/room_isolation_screen.dart';
 void main() {
   late ApiClient api;
   late List<http.Request> commands;
-  late bool writable, offline, blocked, retired, doctorOnly, targetGone;
+  late bool writable, offline, blocked, retired, doctorOnly, targetGone, shiftLead, noDuty;
+  late List<Map<String, dynamic>> history;
   setUp(() {
     commands = [];
+    history = [];
     writable = true;
     offline = blocked = false;
     retired = false;
     doctorOnly = targetGone = false;
+    shiftLead = noDuty = false;
     api = ApiClient(
       baseUrl: 'http://fixture',
       httpClient: MockClient((r) async {
         Object body;
+        if ((shiftLead || noDuty) && r.url.path == '/api/v1/beds' ||
+            noDuty && r.url.path == '/api/v1/bed-readiness/beds') {
+          return http.Response(
+            jsonEncode({'detail': 'Không có quyền'}),
+            403,
+            headers: {'content-type': 'application/problem+json; charset=utf-8'},
+          );
+        }
         if (doctorOnly &&
             (r.url.path == '/api/v1/rooms/2' ||
                 r.url.path == '/api/v1/beds' ||
@@ -51,19 +62,29 @@ void main() {
               headers: {'content-type': 'application/problem+json; charset=utf-8'},
             );
           }
+          if (r.url.path == '/api/v1/rooms/2/isolate') {
+            history.add({
+              'action': 'ISOLATE',
+              'occurredAt': '2026-11-08T03:00:00Z',
+              'actor': '[Bác sĩ đặt]',
+              'reason': (jsonDecode(r.body) as Map)['reason'],
+            });
+          }
           return http.Response(jsonEncode({'state': 'EMPTY'}), 200);
         }
         switch (r.url.path) {
           case '/api/v1/me/permissions':
+            // Ô ⁴⁰ của Điều dưỡng chỉ có ở lớp nhiệm vụ nên /me/permissions không có BED_READINESS.
             body = [
-              for (final f in [
-                if (!doctorOnly) 'ROOM_BED_CONFIGURATION',
-                if (!doctorOnly) 'BED_READINESS',
-                if (!doctorOnly) 'BED_ALLOCATION',
-                'ROOM_ISOLATION',
-              ])
-                for (final op in ['VIEW', if (writable) 'CREATE', if (writable) 'UPDATE'])
-                  {'function': f, 'operation': op},
+              if (!shiftLead && !noDuty)
+                for (final f in [
+                  if (!doctorOnly) 'ROOM_BED_CONFIGURATION',
+                  if (!doctorOnly) 'BED_READINESS',
+                  if (!doctorOnly) 'BED_ALLOCATION',
+                  'ROOM_ISOLATION',
+                ])
+                  for (final op in ['VIEW', if (writable) 'CREATE', if (writable) 'UPDATE'])
+                    {'function': f, 'operation': op},
             ];
           case '/api/v1/me':
             body = {
@@ -92,6 +113,16 @@ void main() {
                 'status': 'ACTIVE',
                 'location': {'roomId': 2},
                 'flags': ['AWAITING_DOCTOR_CONFIRMATION'],
+              },
+            ];
+          case '/api/v1/bed-readiness/beds':
+            body = [
+              {
+                'id': 3,
+                'state': 'AWAITING_READY',
+                'readyDeadline': '2026-11-09T01:00:00Z',
+                'readinessOverdue': true,
+                'location': {'bedId': 3, 'roomId': 2, 'floorId': 1, 'label': 'Phòng 201, giường G1'},
               },
             ];
           case '/api/v1/beds/3/readiness-conditions':
@@ -136,7 +167,7 @@ void main() {
               },
             ];
           case '/api/v1/rooms/2/isolation-history':
-            body = [];
+            body = history;
           default:
             throw StateError('Yêu cầu ngoài fixture: ${r.method} ${r.url}');
         }
@@ -228,6 +259,35 @@ void main() {
     expect(find.text('Không cách ly'), findsNothing);
   });
 
+  testWidgets('FR_008_lichSuGhiNguoiThoiDiemLyDoVaTaiLaiSauLenh', (t) async {
+    history.add({
+      'action': 'LIFT',
+      'occurredAt': '2026-11-01T03:00:00Z',
+      'actor': '[Quản lý gỡ]',
+      'reason': 'Hết theo dõi',
+    });
+    await open(t, RoomIsolationScreen(api: api, roomId: 2));
+    expect(find.textContaining('[Quản lý gỡ]'), findsOneWidget);
+    await t.enterText(find.widgetWithText(TextField, 'Lý do (bắt buộc)'), 'Nghi nhiễm cúm');
+    await t.pump();
+    await t.tap(find.widgetWithText(FilledButton, 'Đặt cách ly'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('[Bác sĩ đặt]'), findsOneWidget);
+    expect(find.descendant(of: find.byType(ListTile), matching: find.textContaining('Nghi nhiễm cúm')), findsOneWidget);
+  });
+
+  testWidgets('FR_044_cachLyNgoaiTuyenBaoLoiKhongGiaThanhCong', (t) async {
+    offline = true;
+    await open(t, RoomIsolationScreen(api: api, roomId: 2));
+    await t.enterText(find.widgetWithText(TextField, 'Lý do (bắt buộc)'), 'Theo dõi lây nhiễm');
+    await t.pump();
+    await t.tap(find.widgetWithText(FilledButton, 'Đặt cách ly'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('Kiểm tra mạng'), findsOneWidget);
+    expect(find.text('Không cách ly'), findsOneWidget);
+    expect(find.text('Đã ghi nhận.'), findsNothing);
+  });
+
   testWidgets('FR_044_ngoaiTuyenBaoLoiKhongGiaThanhCong', (t) async {
     offline = true;
     await open(t, BedReadinessScreen(api: api, bedId: 3));
@@ -280,6 +340,24 @@ void main() {
     expect(find.text('Đã khử khuẩn'), findsOneWidget);
     expect(commands, isEmpty);
   });
+  testWidgets('FR_044_dieuDuongPhuTrachCaThayGiuongChoSanSangCuaTangVaMoXacNhan', (t) async {
+    shiftLead = true;
+    await open(t, BedsScreen(api: api));
+    expect(find.text('Phòng 201, giường G1'), findsOneWidget);
+    expect(find.text('Chờ sẵn sàng, quá hạn'), findsOneWidget);
+    await t.tap(find.text('Phòng 201, giường G1'));
+    await t.pumpAndSettle();
+    expect(find.text('Đã khử khuẩn'), findsOneWidget);
+    expect(commands, isEmpty);
+  });
+
+  testWidgets('FR_044_khongCoNhiemVuThiKhongLoGiuong', (t) async {
+    noDuty = true;
+    await open(t, BedsScreen(api: api));
+    expect(find.text('Phòng 201, giường G1'), findsNothing);
+    expect(find.text('Chưa có giường trong phạm vi được xem.'), findsOneWidget);
+  });
+
   testWidgets('FR_008_bangGiuongLayMaPhongTuLocationDungHopDong', (t) async {
     await open(t, BedsScreen(api: api));
     await t.tap(find.text('Phòng 201, giường G1'));
@@ -327,6 +405,21 @@ void main() {
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
     await open(t, BedReadinessScreen(api: api, bedId: 3), dark: true, scale: 2);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('FR_008_cachLyManHepCheDoToiChu200PhanTramKhongTran', (t) async {
+    history.add({
+      'action': 'ISOLATE',
+      'occurredAt': '2026-11-01T03:00:00Z',
+      'actor': '[Bác sĩ đặt]',
+      'reason': 'Ho sốt',
+    });
+    t.view.physicalSize = const Size(360, 800);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    await open(t, RoomIsolationScreen(api: api, roomId: 2), dark: true, scale: 2);
     expect(t.takeException(), isNull);
   });
 }

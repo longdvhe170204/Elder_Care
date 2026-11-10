@@ -50,7 +50,7 @@ class BR_M02_07_ReleaseBedIT extends AbsenceTestBase {
                 type,
                 "R" + room,
                 "Phòng " + room);
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         jdbc.update(
                 "INSERT INTO bed(id,room_id,code,state,hold_reason,hold_resident_id) VALUES(?,?,'G1','HELD','ABSENT_RESIDENT',?)",
                 bed,

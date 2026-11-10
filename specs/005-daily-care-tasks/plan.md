@@ -801,16 +801,17 @@ Bảng việc còn mở dưới đây cập nhật tiếp đến 07/11/2026; b�
 | --- | --- |
 | T024 | Care đã nhắc mọi ca trống và phát cảnh báo vị trí/metadata sau test đỏ→xanh; còn nguồn ShiftStaffPort thật008 và consumer007. T019 test đã xanh và đánh[x]06/11. |
 | T026, T031, T040 | Adapter requestJson/getList, đăng ký shell, form theo loại kết quả và hàng đợi drift chung đã cài/test. Còn kiểm trực quan 3 bề rộng/dark, máy ảo/thật và các nhánh đo/tính phí bị chặn nguồn. |
-| T029, T030 | Còn API004 đọc ngày nghỉ/id báo vắng để nối listener và nghiệm thu job với nguồn thật. Phần ngày đổi khỏi DAY_CARE/VOID chưa có quy tắc spec được người dùng yêu cầu lược bỏ06/11. |
-| T033, T036, T039 | Quantity/billable010, phát sinh đo/metadata đo lại007 và summary012; các guard503 không phải bản cài nhánh nghiệp vụ. |
+| T029 | *(09/11)* Adapter lịch, listener báo vắng, ngày nghỉ, phụ lục `ARRIVAL_SCHEDULE` đã nối; IT dùng hợp đồng bán trú thật của 004. `DayCareAttendancePort` cài 09/11 (`DayCareAttendanceStatuses`). Còn: luồng phụ lục thật qua job (000 áp dụng REQUIRES_NEW sau commit; chờ C chọn cách dựng dữ liệu đã commit), ngày bị bỏ khỏi lịch chờ Q mới, trạng thái 001 còn bản giả. Phần đổi khỏi DAY_CARE/VOID lược bỏ 06/11. |
+| T030 | Xong 09/11: ba việc theo lịch xanh với lịch đến thật của 004. |
+| T033, T036, T039 | Quantity/billable010, phát sinh đo/metadata đo lại007 và summary012; các guard503 không phải bản cài nhánh nghiệp vụ. *(09/11)* T039: controller đã đủ; summary chỉ còn lượng nước (012 FR-046), chưa bỏ `averageEatingRatio` vì `PortalService` (012) còn đọc. |
 
 | T038, T045 | Care đã nhận việc tồn theo ca hiện hành và trả projection task vị trí theo DTO đã duyệt; còn nguồn/consumer bàn giao008 thật và callback vắng/đổi phân công. |
 | T044, T049 | Đã bỏ giới hạn payload, nối bữa phát sinh/đính chính và payload thời gian/số lượng sau test đỏ→xanh; T042 đã[x]. Còn metadata đo bị bỏ007, nguồn ca008, consumer011 thật. |
 | T046 | Màn quá hạn web/mobile đã có; còn kiểm trực quan 3 bề rộng/dark, máy ảo/thật và nguồn thật. |
 | T050, T051 | Provider VOID ngủ và SleepResultVoided đã kiểm xanh; còn consumer007 và quantity/newQuantity/cờ tính phí010. Giữ isolation generic đã chốt03/11. |
-| T052, T053 | Nối và kiểm producer007 mới có, người nhận008 thật; hiện chỉ hai nguồn001/004 được cài/kiểm đầy đủ. |
+| T052, T053 | Xong 09/11: lệnh `CarePlanReviewApi` cho 007 gọi (ngã, chăm sóc giảm nhẹ), hai nguồn 001/004 qua sự kiện; còn D nối lời gọi, nghiệm thu với lệnh 007 thật ở T061. |
 
-| T061–T064 | Giữ T061/T062 theo yêu cầu; T063 còn DBR-15/17 (010); T064 còn định danh attachment/lưu giữ task vị trí cần A/000 review. Nhóm dữ liệu và trigger đã kiểm xanh. |
+| T061–T064 | Giữ T061/T062 theo yêu cầu; T063 còn DBR-15/17 (010); T064 xong 09/11 (chủ dự án duyệt giữ ba provider 000 theo loại đang ghi). Nhóm dữ liệu và trigger đã kiểm xanh. |
 
 Các checkpoint cũ giữ lại để truy lịch sử; câu giữ[] toàn phase ở mốc cũ không phủ định bảng rà ngày04/11 này. Nghiệm thu phase/feature và quyền commit/push/merge vẫn độc lập với checkbox từng task.
 
@@ -822,11 +823,11 @@ T052: thêm hai ca vào `BR_M04_20_CarePlanReviewIT` (ngã báo điều dưỡng
 
 T053: thêm `@EventListener` cho hai sự kiện thì `ModuleBoundaryTest` báo "Cycle detected: Slice care ->" (care → incident → health → care; health đã phụ thuộc care qua `DefaultVitalSignPort`, `TaskSourceApi`) và `M04ArchTest.C_02_sourcesOnlyThroughOwnedSpi` đỏ 7 chỗ. Đúng research C-02: 005 ↔ 007 chiều mã là 007 → 005, 005 không được nghe sự kiện của 007. Dòng 007 trong bảng "Sự kiện nhận" của contracts/module-interfaces.md (`SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi`) mâu thuẫn với C-02. Đã hoàn lại mã và test; T052, T053 giữ [ ].
 
-Muốn nối cần "Đổi api" trên `care.api` (một lệnh để 007 gọi trong transaction của lệnh ghi sự cố ngã, ghi lựa chọn chăm sóc giảm nhẹ, phát `CarePlanReviewNeeded`) và D sửa chỗ gọi: chờ chủ dự án duyệt, chưa cài.
+*(2026-11-09: chủ dự án duyệt 08/11, xác nhận 09/11 hướng lệnh `care.api`; đã cài `CarePlanReviewApi`, xem mục "Tiếp tục 005 — 09/11/2026" cuối file.)* Muốn nối cần "Đổi api" trên `care.api` (một lệnh để 007 gọi trong transaction của lệnh ghi sự cố ngã, ghi lựa chọn chăm sóc giảm nhẹ, phát `CarePlanReviewNeeded`) và D sửa chỗ gọi: chờ chủ dự án duyệt, chưa cài.
 
 Đổi lịch đo (`LichDoDaDoi` → `NguonCongViecDaDoi`): không cần listener ở 005. 007 gọi `TaskSourceApi.sourceChanged(MEASUREMENT, scheduleId)` khi thay lịch đo (`MeasurementScheduleService` nhánh 007; plan 007 mục 244), `CareTaskSources.sourceChanged` đã phát `TaskSourceChanged` và có test `BR_M04_01_ShiftTaskPlanningIT.FR_022_sourceChangeOnlyNotifiesWithoutCancellingOrCreatingTasks`. Nghe thêm `MeasurementScheduleChanged` vừa tạo vòng care → health, vừa báo trùng hai lần. Khi duyệt "Đổi api" ở trên thì sửa T053 bỏ `LichDoDaDoi` khỏi danh sách listener.
 
-Môi trường: `JAVA_HOME` của máy trỏ JDK 24 (`release version 25 not supported`); chạy test bằng JDK 25 ở `E:JAVAJDK_GEINS_25`. Không chạy `clean verify` vì không còn thay đổi mã sau khi hoàn lại.
+Môi trường: `JAVA_HOME` của máy trỏ JDK 24 (`release version 25 not supported`); chạy test bằng JDK 25 ở `E:\JAVA\JDK_GE\INS_25` (sửa đường dẫn 2026-11-09). Không chạy `clean verify` vì không còn thay đổi mã sau khi hoàn lại.
 
 ## Phase 11 — 05/11/2026
 
@@ -919,3 +920,48 @@ Bổ sung kiểm cache BR-M15-20 ngày07/11: khi API quyền xác nhận mất T
 `clean verify -Dit.forkCount=3` chạy nền sau nạp backend/.env bằng JDK25: 1.133 unit/kiến trúc xanh; 2.882 IT có3failure+4error/2skip trong22:45phút. Đối chiếu mục8: M09JobCatchUpIT2error và StaffCommandsHttpIT1failure đã có; FR076004 lệch ngày khi qua nửa đêm, BRM0412005 fixture chứng chỉ ngày thiết bị, T027014 session now−30phút nằm hôm trước, FR018003 đếm thông báo1/2 là các lỗi khác. Không gộp vào baseline staffing. XML lỗi được chép trước rerun vào logs/005/20261107-full-failures.
 
 Sửa test005 duy nhất: cấp chứng chỉ cho ngày performedAt theo BusinessTime.ZONE, không thay luật production; Spotless áp1file rồi sạch. Rerun `20261107-final-recheck.log`:58kiến trúc xanh,470IT có469xanh/1failure, riêng care444/444 xanh và ApiContractIT/RecordGroupTriggerIT xanh. FR076004,T027014,M09JobCatchUpIT,StaffCommandsHttpIT xanh trong lượt này nhưng chưa coi đã sửa nguyên nhân; FR018003 vẫn expected1/actual2, bàn giao mục8 và không sửa003. Full gate còn đỏ. Chỉ đánh thêmT019/T042; các task thiếu nguồn/thẩm định/UI giữ[ ]. T052/T053/T061/T062 giữ nguyên theo yêu cầu. Đề nghị commit phần005 đã kiểm sau review, không tự commit/push/đổi nhánh.
+
+## Tiếp tục 005 — 09/11/2026
+
+Phạm vi: các task 005 trong dòng duyệt 09/11 của team-plan mục 8 (dòng C, A ghi). Nhánh `impl/019-inventory-assets`, giữ thay đổi 003 chưa commit có sẵn; không đổi nhánh, không commit.
+
+- T064: duyệt 09/11 giữ ba provider đính chính, nhật ký, tệp của 000 theo loại đang ghi; `sharedRowEntityType()` đã cài 08/11. Chạy lại bốn lớp test lưu giữ, nhóm dữ liệu: xanh. Đánh [x].
+- T029: `DayCareAttendanceStatuses` cài `admission.api.spi.DayCareAttendancePort` (chỉ buổi 1, vì 005 giữ một khung mỗi ngày; Đã về tính Có mặt; Chưa đến, ngày nghỉ là chưa xác định). Test qua `ResidencyDayApi.dayCareSessions` trong bốn ca có sẵn của `BR_M04_02_DayCareAttendanceIT`, không thêm lớp. Chưa có IT chạy `AddendumApplied` thật: `ApplyTransaction` REQUIRES_NEW chỉ thấy dữ liệu đã commit, mà dựng bằng API công khai phải commit khu nghỉ 003 và hợp đồng bán trú vào schema test dùng chung (không gỡ được, sức chứa cộng dồn) hoặc thêm context riêng với bản giả 003; chờ C chọn. `FakeResidents` giữ (lý do ở ghi chú T029).
+- T052, T053 — lệch kỹ thuật so với tasks bản cũ (chủ dự án duyệt 08/11, xác nhận 09/11): listener 007 đổi thành lệnh `care.api.CarePlanReviewApi` vì 005 nghe sự kiện 007 tạo vòng module (thử 05/11, research C-02); bỏ `LichDoDaDoi` vì đổi lịch đo đã qua `TaskSourceApi.sourceChanged`. Cài trong `CarePlanReviewListener` (khóa thông báo của nguồn 001, 004 giữ nguyên); dấu `reminder_marker` `M04.CARE_PLAN_REVIEW` để gọi lặp không báo lại. Bản giả: bean trong `FakeM04ApiConfig`. Lớp `BR_M04_20_CarePlanReviewIT` (bỏ 07/11) dựng lại trên context nền, không `@MockitoBean`. Đánh [x] cả hai; D nối lời gọi.
+- T039: controller và hai API đã đủ từ trước. Bỏ tỷ lệ ăn (duyệt 09/11) chưa làm vì `PortalService` của 012 còn đọc `averageEatingRatio`; summary lượng nước giữ 503 vì spec chưa ghi cách tính trung bình. Giữ [ ].
+
+
+## T026/T031/T040/T046 — nghiệm thu theo checkout 10/11/2026
+
+Chủ C, nhánh `impl/019-inventory-assets`; giữ các thay đổi019/DTOcare/DESIGN/tài liệu chưa commit đã có, không đổi nhánh/commit/push. Biên bản đầy đủ, bảng đã có/thiếu/phụ thuộc, test RED/GREEN và giới hạn bằng chứng ở [ui-verification-2026-11-10.md](ui-verification-2026-11-10.md). Các ghi chú chờ adapter/shell/nguồn ca cũ không mô tả trạng thái hiện tại: `CareStaffLookup`, `DayCareCalendarAdapter`, `PickupPorts`, `requestJson`, StaffRoot/accountId/OfflineQueue đều đã có.
+
+- T026: sửa web đổi sang Phát sinh không gửi kèm ID căn cứ trước; đổi người/vị trí xóa lựa chọn căn cứ/người thực hiện cũ. Test FR023 tái hiện payload thừa trước sửa rồi xanh. Không thêm nút chép, không đổi API. Màn app đã có, không xây lại.
+- T031: web/app xóa trạng thái ngày cũ trong khi tải ngày khác; app bỏ phản hồi đến muộn, không giữ nút lệnh sau lỗi quyền, hiện detail nghiệp vụ; web dùng StatusBadge theo DESIGN. Hai test FR012 đỏ trước sửa, xanh sau sửa. Không thêm thao tác ngoài bốn endpoint hợp đồng. Nguồn004/012 đã có; chưa kiểm luồng đến/về thật vì tạo hồ sơ bán trú demo qua API bị automatic approval review từ chối trước khi chạy, đã xin xác nhận riêng. Không viết DB trực tiếp hoặc dùng mock thay nguồn thật.
+- T040: thêm `CareTaskContext` riêng feature (tên ở glossary11.9), lấy đúng trường đã có trong CareTask/cache: phòng/giường, nội dung, dự kiến/khung, mức, nguồn, người phụ trách, lưu ý/dấu tồn. Checklist dùng các dòng bề mặt trắng/ngăn đường kẻ theo DESIGN15.4. Test FR030375logicalpx/chữ200%/theme tối đỏ thiếu ngữ cảnh rồi xanh. Các test cache/offline/ghi nhận theo loại/hàng đợi/giữ nội dung bị từ chối sẵn có được chạy lại, không thêm bộ test trùng.
+- T046: app dùng cùng ngữ cảnh với checklist; web/app dùng đúng mã dấu tồn HTTP `AWAITING_CONFIRMATION` thay mã nội bộ `AWAITING_HANDOVER_CONFIRMATION`. Bổ sung assertion vào test FR045 sẵn có, thấy đỏ trước sửa rồi xanh. Không đổi HTTP/DTO/SPI backend.
+
+Tích hợp thật: demo MySQL schema riêng `elder_care_c005`, không fake production. Chuẩn bị bằng lệnh/API khu/tầngUI005, nhân viên/tài khoản demo riêng, giao Trưởng tầng và lịch ca tháng12. Công bố lịch008, source-data005200; lô hai dòng sai dòng2 trả409rowErrors và đọc lại rỗng; lô đúng201; GETchecklist/overdue trả task có nội dung và performer; POSTsync trả ACCEPTED, bản tiếp theo cho task đã đóng REJECTED kèm người/lúc đóng. API đồng hồ demo được khôi phục sau kiểm; không coi kịch bản HTTP là thao tác UI hay mất mạng trên thiết bị. Chi tiết `backend/logs/005/20261110-demo-api.json`. Dữ liệu chỉ ở schema demo riêng. Không sửa backend nên không chạy lại Maven/Spotless hoặc dùng kết quả Maven cũ làm kiểm mới.
+
+Kiểm cuối: care web59/59; `npm test` lần đầu sau sửa945/947 (timeoutApp/AssignmentPanel khi chạy song songFlutter), kiểm toàn kho lại `npm test -- --maxWorkers=2`947/947,161filexanh,212giây, giữ timeout/assertion; `npm run lint`, `npm run build` qua (cảnh báo chunk lớn). `flutter analyze` sạch, `flutter test`506/506xanh. Log `backend/logs/005/20261110-ui-*`; `git diff --check` qua. Các file Flutter sinh lại chỉ khác xuống dòng đã đưa về CRLF, không đổi nội dung/common/StaffRoot.
+
+Giữ cả bốn task[ ]: ComputerUseIAB timeoutlocalhost, Chrome dừng do không xác định URL, không có Android/iOS hoặc nguồnAVD; chưa kiểm3bề rộng375/768/1280+sáng tối với nội dung hoặc chuỗi mạng trên thiết bị. T040 còn A/C thống nhất mở nội dung bản bị từ chối và đính chính/chuyển phát sinh (`SyncResultsScreen` chỉ hiện kết quả/lý do; CareTask thiếu taskTypeId để dựng lệnh phát sinh, không suy ID theo tên); D/chủ dự án giải quyết đo phát sinh/metadata đo lại theo dòng mục8 hiện có. T029 vẫn mở vì AddendumApplied thật; không sửa spec/nghiệp vụ và không dùng gate đó để ghi nguồn lịch004 còn thiếu. Team-plan mục8 đã cập nhật dòng nghiệm thu và thêm bàn giao bản ghi bị từ chối. Không đánh hoàn thành toàn màn/phase.
+
+
+### T031 — tiếp tục sau xác nhận dữ liệu demo (10/11/2026)
+
+Người dùng trả lời1 cho tạo hồ sơ hư cấu Trần An Kiểm và lượt đăng ký trên schema riêng elder_care_c005. Đã chạy API thật: POSTresidents201 (id1), POSTadmission-applications201 (id1, DAY_CARE/BASIC), GETadmission-conditions200. Thử check-in503CARE_SOURCE_UNAVAILABLE vì chưa cấu hình vị trí khu nghỉ; danh sách điều kiện chưa đạt: đánh giá đầu vào, hợp đồng Hiệu lực, cọc/không yêu cầu cọc, mức chăm sóc hiện hành, liên hệ chính/người đại diện. Không cập nhật trạng thái bằng DB hoặc dùng fake thay nguồn.
+
+Đã chuẩn bị script API cho trọn bộ dữ liệu demo: khu nghỉ, đánh giá xác nhận bởi tài khoản demo, người thân/liên hệ chính/người đại diện, dịch vụ/giá, hợp đồng kèm tệp ghi rõ DEMO ONLY, Ghi nhận đã ký/Hoàn tất tiếp nhận, rồi đến/về/đính chính. Automatic approval review từ chối script trước khi chạy vì xác nhận trước chỉ nêu hồ sơ/lượt đăng ký, chưa nêu các thay đổi trạng thái khó hoàn tác còn lại. Đã hỏi xác nhận cụ thể cho cả bộ; chưa chạy hoặc chia nhỏ để vượt chặn. T031 giữ[ ]. Không sửa mã sản phẩm/test, không chạy lại các bộ test vì không có thay đổi mã; bằng chứng web947/947/Flutter506/506 lượt trước vẫn được dẫn đúng thời điểm. Biên bản UI10/11 và team-plan8 đã cập nhật; logHTTP `backend/logs/005/20261110-daycare-api.json`, backend `20261110-t031-demo.log`. Không commit/push/đổi nhánh.
+
+
+### T031 — hoàn tất dữ liệu demo đã duyệt và kiểm HTTP thật (10/11/2026)
+
+Người dùng xác nhận1 lần tiếp cho trọn bộ dữ liệu hư cấu và các lệnh tiếp nhận/đến/về/đính chính trên schema elder_care_c005. Hai lần automatic approval review chặn trước là lịch sử đã được giải quyết, không còn chờ phép. Qua API công khai: cấu hình khu nghỉ tầngUI005, đặt CFG-M03-01=10 với If-Match/lý do, xác nhận đánh giá đầu vào BASIC/DAY_CARE bằng tài khoản demo, tạo người thân/liên hệ chính/người đại diện, dịch vụ/giá demo, hợp đồngid1 không yêu cầu cọc kèm tệp PDF ghi rõ DEMO ONLY - NOT A REAL SIGNED DOCUMENT; gửi ký, ghi nhận ký và Hoàn tất tiếp nhận. Giữ mọi kiểm tra nguồn; không ghi DB trực tiếp, không sửa migration, không nới điều kiện. Các cảnh báo không chặn được giữ nguyên.
+
+T031 HTTP thật: check-in200/PRESENT theo lịch00407:00–18:00, không buổi phát sinh; ngoại lệ đón hư cấu do quản lý demo duyệt và bản ghi đón012201; check-out005200/LEFT/PICKUP; dùng lại bản ghi409; lấy arrivalRecordId69 từ API nhật ký, đính chính giờ đến201 và GET xác nhận giờ mới07:47:35.858, trạng thái vẫnLEFT. Kế toán demo GETtrạng thái/POSTcheck-in đều403. Chi tiết `backend/logs/005/20261110-daycare-api.json`, scripts20261110-daycare-prepare/finish.mjs, backend20261110-t031-demo-approved.log. Dữ liệu demo được giữ để dùng tiếp; không gọi đây là kiểm thao tác UI hoặc kiểm hủy công việc tương lai (hồ sơ này chưa có task tương lai).
+
+Finding khi đối chiếu phản hồi thật: Profile001 đặt tên ở personalInfo.fullName. WebT026/T031 và gatewayappT026/T031/formphátsinhT040 trước đó đọc fullName ngoài cùng, fixture cũ cũng sai nên không bắt được. Chỉnh các fixture thuộc005 theo đúng hợp đồng, thêm assertion tên vào testFR017/FR012 có sẵn (RED2/12web), thêm một testgateway dùng cho hai consumer và cập nhật hai fixture phát sinh (RED3/5mobile), sau đó mới sửa mã005. Không fallback sang trường sai hợp đồng. Hồi quy nhóm: careweb59/59, caremobile40/40. Không sửa API/common/StaffRoot hoặc test của thành viên khác; không mở rộng sang CarePlanPageT017 dù thấy cùng kiểu đọc tên ngoài phạm vi này.
+
+Thử ComputerUseChrome lại: đọc được URLGitHub và cây trợ năng, nhưng lệnh mở thẻ kiểm thử vẫn bị dừng do không đủ chắc URL để áp chính sách; đã dừng và gửi completion_summary, không né qua công cụ khác. Chưa kiểm3bề rộng/dark hay thiết bị, bốn task giữ[ ]. T031 không còn chờ dữ liệu hoặc adapter; T029AddendumApplied vẫn là việc riêng. Không đổi nhánh/commit/push; kết quả kiểm toàn kho cuối ghi ở progress/biên bản sau khi chạy xong.
+
+Kiểm cuối sau finding Profile (10/11/2026): web952/952,162filexanh bằng `npm test -- --maxWorkers=2`, lint/build qua (chunk lớn có sẵn); Flutter507/507 bằng `flutter test --concurrency=2`, analyze sạch. Nhóm00559web/40mobilexanh. Log `20261110-t031-*`; diff-check qua. Biên bản/UI/tasks/team-plan cập nhật theo trạng thái này, không còn lấy chờ phê duyệt demo hoặc thiếu nguồn004/012 làm blockerT031. Bốn task vẫn[ ] vì chưa kiểm trực quan/thiết bị; T040 còn lối xử lý từ bản ghi từ chối củaA/C và nhánh đo củaD/chủ dự án. Không commit/push/đổi nhánh.

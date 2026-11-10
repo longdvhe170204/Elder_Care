@@ -67,7 +67,11 @@ public class TripPreparationService {
 
     public Target assessmentTarget(long id, long resident) {
         trips.find(id).orElseThrow(NotFoundException::new);
-        var floor = beds.openAt(resident, time.now()).map(b -> b.floorAreaId()).orElseThrow(NotFoundException::new);
+        var at = time.now();
+        var floor = beds.openAt(resident, at)
+                .map(b -> b.floorAreaId())
+                .or(() -> beds.dayCareFloorAt(resident, at))
+                .orElseThrow(NotFoundException::new);
         return new Target("M04.TRIP", null, resident, floor);
     }
 

@@ -67,15 +67,4 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
 
     /** Nhóm được khai bằng COMMENT của bảng (research R-15; F-04). */
     private static final Set<String> COMMENT_GROUPS = Set.of("CATALOG", "BUSINESS", "RECORD", "MULTIPLE", "TECHNICAL");
-
-    /** Bảng có sẵn chưa khai nhóm (rà 2026-10-30); chủ module khai khi làm migration gộp bảng, xong thì xóa dòng. */
-    private static final Set<String> PENDING_DATA_GROUP = Set.of(
-            // C (003, T066)
-            "allocation_write_guard",
-            "bed_backfill_request",
-            "bed_state_history",
-            "day_care_capacity_guard",
-            "room_allowed_care_level",
-            "room_isolation_history",
-            "room_type_care_level");
 }

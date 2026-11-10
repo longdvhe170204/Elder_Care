@@ -28,6 +28,7 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
     private final ActivitySessionService sessions;
     private final SimpleRecordApi records;
     private final RegistrationNotices notices;
+    private final LateReturnConsentService consents;
     private final ObjectProvider<ActivityHealthGatePort> gates;
     private final BusinessTime time;
     private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
@@ -37,6 +38,7 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
             ActivitySessionService sessions,
             SimpleRecordApi records,
             RegistrationNotices notices,
+            LateReturnConsentService consents,
             ObjectProvider<ActivityHealthGatePort> gates,
             BusinessTime time,
             com.eldercare.backend.care.internal.trip.service.TripLifecycle trips) {
@@ -44,6 +46,7 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
         this.sessions = sessions;
         this.records = records;
         this.notices = notices;
+        this.consents = consents;
         this.gates = gates;
         this.time = time;
         this.trips = trips;
@@ -108,6 +111,7 @@ public class RegistrationAutoCancels implements ActivityRegistrationAutoCancelAp
         var bySession = new LinkedHashMap<Long, List<Registration>>();
         for (var r : registrations) {
             store.cancelRegistration(r.id(), auto, reason);
+            consents.registrationCancelled(store.find(r.sessionId()).orElseThrow(), r);
             trips.registrationChanged(r.sessionId(), r.residentId(), true);
             bySession.computeIfAbsent(r.sessionId(), k -> new ArrayList<>()).add(r);
         }

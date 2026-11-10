@@ -43,7 +43,7 @@ class FR_014_RealBedHoldIT extends WaitingListTestBase {
                 type,
                 "R" + room,
                 "Phòng " + room);
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G1')", bed, room);
         jdbc.update(
                 "INSERT INTO bed_state_history(bed_id,to_state,event,occurred_at,basis_type,basis_id,floor_area_id)"

@@ -34,6 +34,28 @@ void main() {
     expect(find.text('Chăm sóc hằng ngày'), findsOneWidget);
   });
 
+  // 003 T060: ô ⁴⁰ (Người phụ trách ca) không có trong `/me/permissions`; mục Giường hiện khi danh sách giường
+  // Chờ sẵn sàng theo nhiệm vụ trả 200, 403 thì không hiện.
+  testWidgets('T060_dieuDuongPhuTrachCa_hienMucGiuong_khongNhiemVu_khongHien', (tester) async {
+    await openMore(
+      tester,
+      FakeBackend()
+        ..on('GET', '/me/permissions', 200, <Object>[])
+        ..on('GET', '/bed-readiness/beds', 200, <Object>[]),
+    );
+    expect(find.text('Giường'), findsOneWidget);
+  });
+
+  testWidgets('T060_khongNhiemVuPhuTrachCa_khongHienMucGiuong', (tester) async {
+    await openMore(
+      tester,
+      FakeBackend()
+        ..on('GET', '/me/permissions', 200, <Object>[])
+        ..on('GET', '/bed-readiness/beds', 403, {'detail': 'Không có quyền'}),
+    );
+    expect(find.text('Giường'), findsNothing);
+  });
+
   testWidgets('DESIGN_15_4_mucTheoQuyen_coQuyen_hienDuBaMuc', (tester) async {
     await openMore(
       tester,

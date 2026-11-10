@@ -13,6 +13,7 @@ import com.eldercare.backend.care.api.dto.TripInterval;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.care.api.spi.TripMedicationPreparationPort;
+import com.eldercare.backend.care.internal.session.service.LateReturnConsentService;
 import com.eldercare.backend.care.internal.trip.domain.*;
 import com.eldercare.backend.care.internal.trip.persistence.ActivityTripStore;
 import com.eldercare.backend.common.Reason;
@@ -35,7 +36,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 014 T020 (US5): điểm danh về, gia hạn, chuyển trưởng đoàn, kết thúc điểm danh về (FR-035a, FR-043, FR-044, FR-047, FR-050).
- * Lệnh 001 khóa người cao tuổi trước khi khóa chuyến như rời viện (L-03). Ghi sự cố thiếu người chờ port 007 (team-plan mục 8).
+ * Lệnh 001 khóa người cao tuổi trước khi khóa chuyến như rời viện (L-03); diễn biến sự cố qua TripIncidentPort cùng transaction.
  */
 @Service
 public class TripReturnService {
@@ -54,6 +55,8 @@ public class TripReturnService {
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final JsonMapper json;
+    private final LateReturnConsentService consents;
+    private final TripMissingService missing;
 
     public TripReturnService(
             ActivityTripStore trips,
@@ -68,7 +71,9 @@ public class TripReturnService {
             BusinessTime time,
             AuditLogApi audit,
             ApplicationEventPublisher events,
-            JsonMapper json) {
+            JsonMapper json,
+            LateReturnConsentService consents,
+            TripMissingService missing) {
         this.trips = trips;
         this.preparation = preparation;
         this.histories = histories;
@@ -82,6 +87,8 @@ public class TripReturnService {
         this.audit = audit;
         this.events = events;
         this.json = json;
+        this.consents = consents;
+        this.missing = missing;
     }
 
     /** FR-044, FR-047, FR-050: người đã ở viện; về muộn sau khi chuyến Đã về chỉ cho người Thiếu khi về. */
@@ -131,7 +138,9 @@ public class TripReturnService {
             var departed =
                     trips.departedAt(p.registrationId()).orElse(locked.plan().plannedDepartureAt());
             source.recalculateInterval(id, resident, new TripInterval(departed, at));
-            if (wasMissing)
+            if (wasMissing && trips.missingIncident(p.registrationId()).isPresent())
+                missing.foundReturned(p.registrationId(), resident, id, at);
+            else if (wasMissing)
                 events.publishEvent(new AlertProgressRequested(
                         PARTICIPANT_SOURCE,
                         p.registrationId(),
@@ -178,6 +187,7 @@ public class TripReturnService {
                         trip.floorAreaId(),
                         null));
         trips.extend(id, newReturnAt);
+        consents.tripExtended(id);
         for (var p : trips.participants(id))
             if ("DEPARTED".equals(p.status()))
                 source.recalculateInterval(

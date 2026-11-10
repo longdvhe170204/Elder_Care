@@ -21,7 +21,7 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.billing.api.dto.ProcurementStatus;
 import com.eldercare.backend.billing.api.events.ProcurementRequestChanged;
-import com.eldercare.backend.billing.api.spi.ProcurementPrescriptionPort;
+import com.eldercare.backend.billing.api.spi.ProcurementIntakePort;
 import com.eldercare.backend.billing.internal.procurement.domain.*;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementRequestRow.Line;
 import com.eldercare.backend.billing.internal.procurement.persistence.ProcurementRequestStore;
@@ -34,6 +34,7 @@ import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.medication.api.PrescriptionApi;
 import com.eldercare.backend.roombedallocation.api.dto.ProcurementType;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -50,8 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
  * tả ở lớp vai trò); điều kiện Phụ trách bộ phận, người lập, Kế toán khác người ghi đã mua kiểm ở đây. Hệ thống không tự
  * lập yêu cầu (Q-306). Loại MEDICATION (FR-008d, Q-337): Điều dưỡng của bộ phận cũng lập, gửi, rút lại, hủy được với
  * người cao tuổi trong phạm vi phân công; mọi người lập phải xem được nhóm HEALTH của người cao tuổi; dòng gắn đơn nguồn
- * viện chưa kết thúc của đúng người đó, kiểm qua {@link ProcurementPrescriptionPort} (M07 cài; đảo chiều để tránh vòng
- * M11 → M07 → M04 → M11, chủ dự án duyệt 2026-11-06).
+ * viện chưa kết thúc của đúng người đó, kiểm qua {@link PrescriptionApi#unendedFacilityPrescriptions} của M07 (chủ dự án
+ * duyệt 2026-11-08 thay {@code ProcurementPrescriptionPort}).
  */
 @Service
 public class ProcurementRequestService {
@@ -70,7 +71,8 @@ public class ProcurementRequestService {
     private final PermissionApi permissions;
     private final ScopeApi scope;
     private final FieldVisibilityApi visibility;
-    private final ObjectProvider<ProcurementPrescriptionPort> prescriptions;
+    private final ObjectProvider<PrescriptionApi> prescriptions;
+    private final ObjectProvider<ProcurementIntakePort> intakes;
 
     public ProcurementRequestService(
             ProcurementRequestStore store,
@@ -85,7 +87,8 @@ public class ProcurementRequestService {
             PermissionApi permissions,
             ScopeApi scope,
             FieldVisibilityApi visibility,
-            ObjectProvider<ProcurementPrescriptionPort> prescriptions) {
+            ObjectProvider<PrescriptionApi> prescriptions,
+            ObjectProvider<ProcurementIntakePort> intakes) {
         this.store = store;
         this.duties = duties;
         this.user = user;
@@ -99,6 +102,7 @@ public class ProcurementRequestService {
         this.scope = scope;
         this.visibility = visibility;
         this.prescriptions = prescriptions;
+        this.intakes = intakes;
     }
 
     /** Đối tượng kiểm quyền; yêu cầu loại thuốc gắn người cao tuổi của dòng đầu để Điều dưỡng qua lớp phạm vi. */
@@ -381,6 +385,20 @@ public class ProcurementRequestService {
         return store.list(led, staff, departmentId, status);
     }
 
+    /**
+     * "Đã nhận" của api-019 (FR-008d, 11.7): chỉ loại MEDICATION; mọi dòng có lần tiếp nhận Đạt theo
+     * {@link ProcurementIntakePort} (006 cài); thiếu bean thì chưa biết ({@code null}).
+     */
+    public Boolean received(ProcurementRequestRow row) {
+        if (row.type() != ProcurementType.MEDICATION) return null;
+        var source = intakes.getIfAvailable();
+        if (source == null) return null;
+        var passed = source.passedLineIds(row.id());
+        for (int i = 0; i < row.lines().size(); i++)
+            if (!passed.contains(ProcurementLineId.of(row.id(), i))) return false;
+        return true;
+    }
+
     // ---- Dùng chung ----------------------------------------------------------------------------------------------
 
     /** Tổng dự kiến = tổng thành tiền các dòng, thành tiền làm tròn tới đồng (FR-008). */
@@ -388,6 +406,8 @@ public class ProcurementRequestService {
         if (draft.type() == null) throw new InvalidValueException("Cần loại yêu cầu");
         new Reason(draft.reason());
         if (draft.lines() == null || draft.lines().isEmpty()) throw new InvalidValueException("Cần ít nhất một dòng");
+        if (draft.lines().size() > ProcurementLineId.MAX_LINES)
+            throw new InvalidValueException("Tối đa " + ProcurementLineId.MAX_LINES + " dòng mỗi yêu cầu");
         if (draft.type() == ProcurementType.MEDICATION && (draft.priority() == null || draft.neededBy() == null))
             throw new InvalidValueException("Yêu cầu thuốc cần mức ưu tiên và thời điểm cần (FR-008d)");
         if (draft.priority() != null && !Set.of("NORMAL", "URGENT").contains(draft.priority()))
@@ -494,7 +514,8 @@ public class ProcurementRequestService {
                 throw new PermissionDeniedException("Người cao tuổi ngoài phạm vi phân công");
             if (visibility.canView(user, InfoGroup.HEALTH, resident) != Visibility.FULL)
                 throw new PermissionDeniedException("Người lập không xem được thông tin thuốc của người cao tuổi này");
-            if (!source.isUnendedFacilityPrescription(line.residentId(), line.prescriptionId()))
+            if (source.unendedFacilityPrescriptions(line.residentId()).stream()
+                    .noneMatch(p -> p.prescriptionId() == line.prescriptionId()))
                 throw new ConditionNotMetException(List.of(new UnmetCondition(
                         "PRESCRIPTION_NOT_FACILITY_UNENDED",
                         "Đơn không phải đơn nguồn viện Hiệu lực, Tạm dừng, Chờ hiệu lực của người cao tuổi của dòng",

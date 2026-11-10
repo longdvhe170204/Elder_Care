@@ -10,6 +10,10 @@ public class FakeActivityHealthGate implements ActivityHealthGatePort {
     private final Set<Long> isolatedResidents = new HashSet<>();
     private final Set<Long> isolatedRooms = new HashSet<>();
     private final Set<Long> suspected = new HashSet<>();
+    private final Map<Long, List<Interval>> suspectedIntervals = new HashMap<>();
+
+    private record Interval(Instant from, Instant to) {}
+
     private final Set<Long> openItems = new HashSet<>();
 
     public FakeActivityHealthGate(FakeM04Switches switches) {
@@ -26,6 +30,10 @@ public class FakeActivityHealthGate implements ActivityHealthGatePort {
 
     public synchronized void suspectInfection(long residentId) {
         suspected.add(residentId);
+    }
+
+    public synchronized void suspectInfection(long residentId, Instant from, Instant to) {
+        suspectedIntervals.computeIfAbsent(residentId, k -> new ArrayList<>()).add(new Interval(from, to));
     }
 
     public synchronized void openMediumItem(long residentId) {
@@ -47,7 +55,18 @@ public class FakeActivityHealthGate implements ActivityHealthGatePort {
     @Override
     public synchronized boolean suspectedInfection(long residentId, Instant at) {
         switches.requireEnabled("007");
-        return suspected.contains(residentId);
+        return suspected.contains(residentId)
+                || suspectedIntervals.getOrDefault(residentId, List.of()).stream()
+                        .anyMatch(i -> !at.isBefore(i.from()) && (i.to() == null || at.isBefore(i.to())));
+    }
+
+    @Override
+    public synchronized boolean suspectedInfectionDuring(long residentId, Instant from, Instant to) {
+        switches.requireEnabled("007");
+        if (!from.isBefore(to)) return false;
+        return suspected.contains(residentId)
+                || suspectedIntervals.getOrDefault(residentId, List.of()).stream()
+                        .anyMatch(i -> i.from().isBefore(to) && (i.to() == null || i.to().isAfter(from)));
     }
 
     @Override

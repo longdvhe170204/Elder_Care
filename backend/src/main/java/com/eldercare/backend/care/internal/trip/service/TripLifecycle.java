@@ -29,6 +29,7 @@ public class TripLifecycle {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final com.eldercare.backend.administration.shared.api.StatusHistoryApi histories;
+    private final com.eldercare.backend.administration.auditlog.api.AuditLogApi audit;
 
     public TripLifecycle(
             ActivityTripStore trips,
@@ -37,7 +38,8 @@ public class TripLifecycle {
             ObjectProvider<VehicleScheduleCommandApi> commands,
             ApplicationEventPublisher events,
             BusinessTime time,
-            com.eldercare.backend.administration.shared.api.StatusHistoryApi histories) {
+            com.eldercare.backend.administration.shared.api.StatusHistoryApi histories,
+            com.eldercare.backend.administration.auditlog.api.AuditLogApi audit) {
         this.trips = trips;
         this.medications = medications;
         this.vehicles = vehicles;
@@ -45,6 +47,37 @@ public class TripLifecycle {
         this.events = events;
         this.time = time;
         this.histories = histories;
+        this.audit = audit;
+    }
+
+    /** FR-034: khởi tạo chuyến cùng transaction của lệnh tạo buổi lẻ hoặc từ mẫu. */
+    public void schedule(long id, TripPlan p) {
+        p.validate();
+        trips.initialize(id, p);
+        audit.write(com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry.builder()
+                .action(new com.eldercare.backend.administration.auditlog.api.dto.AuditAction("TRIP_CREATED", false))
+                .entity("M04.TRIP", id)
+                .before(Map.of())
+                .after(Map.of(
+                        "destination",
+                        p.destination(),
+                        "plannedDepartureAt",
+                        p.plannedDepartureAt().toString(),
+                        "plannedReturnAt",
+                        p.plannedReturnAt().toString(),
+                        "transport",
+                        p.transport(),
+                        "facilityVehicle",
+                        p.facilityVehicle()))
+                .build());
+        events.publishEvent(new TripChanged(
+                id,
+                "SCHEDULED",
+                p.facilityVehicle(),
+                p.plannedDepartureAt(),
+                p.plannedReturnAt(),
+                Optional.empty(),
+                "TRIP_SCHEDULED:" + id));
     }
 
     public void reschedule(Session before, Session after) {

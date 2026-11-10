@@ -4,11 +4,13 @@ import static com.eldercare.backend.care.internal.activity.persistence.ActivityS
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.care.api.ActivityStatisticsApi;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.internal.activity.persistence.ActivityStatisticsStore;
+import com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds;
 import com.eldercare.backend.care.internal.trip.domain.TripKinds;
 import java.time.*;
 import java.util.*;
@@ -115,18 +117,28 @@ public class ActivityStatistics implements ActivityStatisticsApi {
     @Override
     @Transactional(readOnly = true)
     public Stream<QualityCheckStatisticsView> qualityChecks(ScopeFilter scope, LocalDate from, LocalDate to) {
-        return store.qualityChecks(scope, from, to).stream()
+        var rows = store.qualityChecks(scope, from, to);
+        var current = corrections.current(
+                QualityCheckKinds.ITEMS.code(),
+                rows.stream().map(r -> ((Number) r.get("id")).longValue()).toList());
+        return rows.stream()
                 .map(r -> new QualityCheckStatisticsView(
                         ((Number) r.get("id")).longValue(),
                         ((Number) r.get("shift_id")).longValue(),
                         ((Number) r.get("floor_id")).longValue(),
                         ((Number) r.get("task_id")).longValue(),
-                        (String) r.get("status"),
+                        qualityStatus(r, current.get(((Number) r.get("id")).longValue())),
                         "null".equals(r.get("role")) ? null : (String) r.get("role"),
                         r.get("performer_staff_id") == null ? null : ((Number) r.get("performer_staff_id")).longValue(),
                         r.get("recorded_at") == null || "null".equals(r.get("recorded_at"))
                                 ? null
                                 : Instant.parse((String) r.get("recorded_at"))));
+    }
+
+    private static String qualityStatus(Map<String, Object> row, CurrentValue value) {
+        return value != null && value.content() instanceof Map<?, ?> amendment
+                ? text(amendment.get("result"))
+                : text(row.get("status"));
     }
 
     @Override

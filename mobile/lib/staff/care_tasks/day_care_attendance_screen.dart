@@ -32,6 +32,7 @@ class _DayCareAttendanceScreenState extends State<DayCareAttendanceScreen> {
   DayCareAttendanceData? _data;
   int? _resident;
   bool _loading = true, _busy = false;
+  int _generation = 0;
   String? _error, _message;
   @override
   void initState() {
@@ -62,17 +63,25 @@ class _DayCareAttendanceScreenState extends State<DayCareAttendanceScreen> {
   }
 
   Future<void> _load(String date) async {
+    final generation = ++_generation;
     setState(() {
       _loading = true;
       _error = null;
+      _data = null;
     });
     try {
       final data = await widget.gateway.load(date);
-      if (mounted) setState(() => _data = data);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'Chưa tải được trạng thái. Kiểm tra kết nối rồi thử lại.');
+      if (mounted && generation == _generation) setState(() => _data = data);
+    } catch (error) {
+      if (mounted && generation == _generation) {
+        setState(
+          () => _error = error is ApiProblem
+              ? error.detail ?? 'Bạn không có quyền xem điểm danh.'
+              : 'Chưa tải được trạng thái. Kiểm tra kết nối rồi thử lại.',
+        );
+      }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && generation == _generation) setState(() => _loading = false);
     }
   }
 

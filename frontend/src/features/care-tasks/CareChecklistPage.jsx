@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { getChecklist, getCareTasksById, getMeShifts, getShiftsById } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
@@ -24,13 +25,21 @@ const FILTERS = [
   ['DUE', 'Đến hạn', (t) => t.raw.status === 'DUE'],
   ['NOT_YET_DUE', 'Chưa đến hạn', (t) => t.raw.status === 'NOT_YET_DUE'],
   ['done', 'Đã xong', (t) => DONE.includes(t.status)],
-  ['shared', 'Việc chung của tầng', (t) => t.floorTask],
 ]
 function Blocks({ children }) {
   return (
-    <div className="grid min-w-0 flex-1 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 *:max-w-[360px]">
+    <div className="grid min-w-0 flex-1 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] items-start gap-2 *:max-w-[360px]">
       {children}
     </div>
+  )
+}
+
+// Cột giờ rộng 52px (DESIGN.md 7.2 shift-timeline); nhóm Quá hạn và giờ đã xong thu gọn thụt cùng cột
+function HourColumn({ children }) {
+  return (
+    <span aria-hidden={children ? undefined : true} className="w-13 shrink-0 pt-3 type-label text-muted-foreground tabular-nums">
+      {children}
+    </span>
   )
 }
 
@@ -47,6 +56,7 @@ export function CareChecklistPage({ shiftId: initialShiftId, role }) {
   const [selectedId, setSelectedId] = useState(null)
   const [busy, setBusy] = useState(false)
   const [announcement, setAnnouncement] = useState('')
+  const [openHours, setOpenHours] = useState([])
   const selection = useRef(0)
   const generation = useRef(0)
   useEffect(() => {
@@ -255,27 +265,57 @@ export function CareChecklistPage({ shiftId: initialShiftId, role }) {
             {overdue.length > 0 && (
               <section aria-label="Công việc Quá hạn" className="flex flex-col gap-3">
                 <h2 className="type-label text-destructive">Quá hạn ({overdue.length})</h2>
-                <Blocks>
-                  {overdue.map((t) => (
-                    <TaskBlock key={t.id} task={t} selected={t.id === selectedId} onSelect={select} />
-                  ))}
-                </Blocks>
+                <div className="flex gap-4">
+                  <HourColumn />
+                  <Blocks>
+                    {overdue.map((t) => (
+                      <TaskBlock key={t.id} task={t} selected={t.id === selectedId} onSelect={select} hideStatus />
+                    ))}
+                  </Blocks>
+                </div>
               </section>
             )}
             {timeline.length > 0 && (
               <section aria-label="Dòng thời gian ca">
-                {groups.map((hour) => (
-                  <div key={hour} className="flex gap-4 border-t py-3">
-                    <span className="w-13 shrink-0 pt-3 type-label text-muted-foreground tabular-nums">{hour}:00</span>
+                {groups.map((hour) => {
+                  const inHour = timeline.filter((t) => t.plannedAt.startsWith(hour))
+                  const blocks = (
                     <Blocks>
-                      {timeline
-                        .filter((t) => t.plannedAt.startsWith(hour))
-                        .map((t) => (
-                          <TaskBlock key={t.id} task={t} selected={t.id === selectedId} onSelect={select} />
-                        ))}
+                      {inHour.map((t) => (
+                        <TaskBlock key={t.id} task={t} selected={t.id === selectedId} onSelect={select} />
+                      ))}
                     </Blocks>
-                  </div>
-                ))}
+                  )
+                  // DESIGN.md 11: thu gọn những gì đã xong; giờ chỉ còn việc đã đóng mở lại được
+                  if (!inHour.every((t) => DONE.includes(t.status)))
+                    return (
+                      <div key={hour} className="flex gap-4 border-t py-3">
+                        <HourColumn>{hour}:00</HourColumn>
+                        {blocks}
+                      </div>
+                    )
+                  const open = openHours.includes(hour)
+                  return (
+                    <div key={hour} className="flex flex-col gap-2 border-t py-1">
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        onClick={() => setOpenHours((all) => (open ? all.filter((h) => h !== hour) : [...all, hour]))}
+                        className="flex min-h-11 items-center gap-4 rounded-md text-left type-body-sm text-muted-foreground"
+                      >
+                        <span className="w-13 shrink-0 type-label tabular-nums">{hour}:00</span>
+                        <span>{inHour.length} việc đã xong</span>
+                        <ChevronDown aria-hidden="true" className={open ? 'size-4 rotate-180' : 'size-4'} />
+                      </button>
+                      {open && (
+                        <div className="flex gap-4 pb-2">
+                          <span className="w-13 shrink-0" aria-hidden="true" />
+                          {blocks}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </section>
             )}
             <CareChecklistSources data={data} />

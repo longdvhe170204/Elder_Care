@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/common/PageHeader'
 import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
+import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { usePermissions } from '@/common/permissions/permissions'
@@ -64,7 +65,10 @@ export function DayCareAttendancePage({ initialDate = '' }) {
     if (status !== 'ready' || !view || !date) return
     let current = true
     Promise.resolve().then(() => {
-      if (current) setLoading(true)
+      if (current) {
+        setLoading(true)
+        setRows([])
+      }
     })
     getDayCareAttendances({ query: { date } })
       .then(({ data }) => {
@@ -148,7 +152,9 @@ export function DayCareAttendancePage({ initialDate = '' }) {
           <h2 className="type-section md:col-span-2">Điểm danh đến</h2>
           <CareField
             label="Người cao tuổi đến"
-            options={Object.fromEntries(people.map((p) => [p.id, p.fullName]))}
+            options={Object.fromEntries(
+              people.map((p) => [p.id, p.personalInfo?.fullName || `Người cao tuổi · mã ${p.id}`]),
+            )}
             value={resident}
             onChange={setResident}
             required
@@ -174,15 +180,16 @@ export function DayCareAttendancePage({ initialDate = '' }) {
         </form>
       )}
       {!date && <p>Chọn ngày để xem trạng thái có mặt.</p>}
-      {date && !loading && !rows.length && <p>Chưa có trạng thái có mặt trong ngày đã chọn.</p>}
+      {date && !loading && !problem && !rows.length && <p>Chưa có trạng thái có mặt trong ngày đã chọn.</p>}
       <div className="grid gap-4 xl:grid-cols-2">
         {rows.map((row) => (
-          <article key={row.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border bg-card p-5">
+          <article key={row.id} className="flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <h2 className="type-section">
-                {people.find((p) => p.id === row.residentId)?.fullName || `Người cao tuổi · mã ${row.residentId}`}
+                {people.find((p) => p.id === row.residentId)?.personalInfo?.fullName ||
+                  `Người cao tuổi · mã ${row.residentId}`}
               </h2>
-              <span className="rounded-lg bg-muted px-3 py-1 font-medium">{STATUS[row.status]}</span>
+              <StatusBadge status={STATUS[row.status]} />
             </div>
             {row.adHocSession && <p>Buổi phát sinh</p>}
             {row.lateAbsenceReported && <p>Báo vắng muộn đã được lưu kèm.</p>}

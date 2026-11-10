@@ -14,7 +14,11 @@ beforeEach(() => {
       { function: 'DAY_CARE_ATTENDANCE', operation: 'CREATE' },
     ]),
   )
-  api.on('GET', '/residents', json(200, { items: [{ id: 77, fullName: '[Người kiểm thử]' }], nextCursor: null }))
+  api.on(
+    'GET',
+    '/residents',
+    json(200, { items: [{ id: 77, personalInfo: { fullName: '[Người kiểm thử]' } }], nextCursor: null }),
+  )
   api.on(
     'GET',
     '/day-care-attendances',
@@ -41,6 +45,7 @@ it('FR_012_hienTrangThaiVaBuoiPhatSinhKhongTuDiemDanh', async () => {
   view()
   expect(await screen.findByText('Có mặt')).toBeInTheDocument()
   expect(screen.getByText('Buổi phát sinh')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: '[Người kiểm thử]' })).toBeInTheDocument()
   expect(api.calls('POST', '/day-care-attendances/check-in')).toHaveLength(0)
 })
 it('FR_013_diemDanhDenGiuDuLieuKhiLoiVaGiuKhoaKhiThuLai', async () => {
@@ -101,4 +106,28 @@ it('FR_013_khoaNgayTrongKhiDangGuiLenhDeKhongTronHaiNgay', async () => {
     release(json(200, {}))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Điểm danh đến' })).not.toBeDisabled())
   }
+})
+
+it('FR_012_doiNgayAnTrangThaiCuTrongKhiTaiVaKhiLoi', async () => {
+  view()
+  await screen.findByText('Có mặt')
+  let release
+  api.on(
+    'GET',
+    '/day-care-attendances',
+    () =>
+      new Promise((resolve) => {
+        release = resolve
+      }),
+  )
+  fireEvent.change(screen.getByLabelText('Ngày xem trạng thái'), { target: { value: '2026-11-02' } })
+  await screen.findByText('Đang tải trạng thái có mặt…')
+  try {
+    expect(screen.queryByText('Có mặt')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Điểm danh về dòng 5' })).not.toBeInTheDocument()
+  } finally {
+    release(problem(503, 'SOURCE_UNAVAILABLE', { detail: 'Nguồn lịch chưa sẵn sàng.' }))
+    await screen.findByText('Nguồn lịch chưa sẵn sàng.')
+  }
+  expect(screen.queryByText('Chưa có trạng thái có mặt trong ngày đã chọn.')).not.toBeInTheDocument()
 })

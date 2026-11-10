@@ -40,14 +40,113 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * 014 T019 (US5, FR-043 → FR-050, BR-M04-17): HTTP thật, trạng thái 001 thật. Hai lệnh ghi sự cố chờ port 007 nên chỉ kiểm
- * 503; đính chính FR-031a làm ở lượt sau.
+ * 014 T019 (US5, FR-043 → FR-050, BR-M04-17): HTTP thật, trạng thái 001 thật; nguồn sự cố dùng bản giả chung,
+ * kiểm đồng thời, trực tuyến và rollback. Đính chính FR-031a còn chờ nguồn 001.
  */
 @AutoConfigureMockMvc
 @WithMockUser
 @RecordApplicationEvents
 @Import(FakeM04Config.class)
 class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
+    @Autowired
+    org.springframework.context.ApplicationContext context;
+
+    @Autowired
+    com.eldercare.backend.support.fake.care.FakeTripIncidents incidents;
+
+    @Autowired
+    com.eldercare.backend.support.fake.administration.FakeDuties duties;
+
+    @Test
+    void BR_M04_17_concurrentMissingCommandsCreateOneIncidentAndPortErrorsRollBack() throws Exception {
+        incidents.reset();
+        long s = trip(), r = eligible(s);
+        var companion = new TestUsers(jdbc, time).staff(Role.KITCHEN_STAFF);
+        assign(s, companion.staffId());
+        departed(s, r);
+        duties.trip(s, manager.staffId(), List.of(companion.staffId()));
+        user.set(companion.user());
+        String body = "{\"residentIds\":[" + r + "],\"lastSeenPlace\":\"Cổng công viên\",\"lastSeenAt\":\"" + time.now()
+                + "\",\"description\":\"Không thấy người trong đoàn\"}";
+        var security = org.springframework.security.test.context.TestSecurityContextHolder.getContext();
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var statuses = new java.util.concurrent.ConcurrentLinkedQueue<Integer>();
+        try (var pool = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var futures = new ArrayList<java.util.concurrent.Future<?>>();
+            for (int i = 0; i < 2; i++)
+                futures.add(pool.submit(() -> {
+                    org.springframework.security.test.context.TestSecurityContextHolder.setContext(security);
+                    try {
+                        start.await();
+                        statuses.add(command(s, "report-missing", body)
+                                .andReturn()
+                                .getResponse()
+                                .getStatus());
+                    } finally {
+                        org.springframework.security.test.context.TestSecurityContextHolder.clearContext();
+                    }
+                    return null;
+                }));
+            start.countDown();
+            for (var f : futures) f.get(30, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        assertThat(statuses).containsExactlyInAnyOrder(200, 409);
+        user.set(manager.user());
+        assertThat(incidents.missing()).singleElement().satisfies(m -> {
+            assertThat(m.residentId()).isEqualTo(r);
+            assertThat(m.tripId()).isEqualTo(s);
+            assertThat(m.leaderId()).isEqualTo(manager.staffId());
+            assertThat(m.place()).isEqualTo("Cổng công viên");
+        });
+        assertThat(participant(s, r)).isEqualTo("MISSING_ON_RETURN");
+        incidents.failing(true);
+        try {
+            assertThatThrownBy(() -> command(s, "return", "{\"residentIds\":[" + r + "]}"))
+                    .hasRootCauseInstanceOf(IllegalStateException.class);
+            assertThat(participant(s, r)).isEqualTo("MISSING_ON_RETURN");
+            assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
+        } finally {
+            incidents.failing(false);
+        }
+        command(s, "return", "{\"residentIds\":[" + r + "]}").andExpect(status().isOk());
+        assertThat(incidents.found())
+                .singleElement()
+                .satisfies(f -> assertThat(f.residentId()).isEqualTo(r));
+
+        tripFixture();
+        long second = trip(), other = eligible(second);
+        assign(second);
+        departed(second, other);
+        String secondBody = body.replace("\"residentIds\":[" + r + "]", "\"residentIds\":[" + other + "]");
+        incidents.failing(true);
+        try {
+            assertThatThrownBy(() -> command(second, "report-missing", secondBody))
+                    .hasRootCauseInstanceOf(IllegalStateException.class);
+            assertThat(participant(second, other)).isEqualTo("DEPARTED");
+        } finally {
+            incidents.failing(false);
+        }
+        command(
+                        second,
+                        "report-missing",
+                        secondBody.substring(0, secondBody.length() - 1) + ",\"deviceAt\":\"" + time.now() + "\"}")
+                .andExpect(status().isConflict());
+        command(second, "finish-return", "{}").andExpect(status().isOk());
+        command(second, "record-missing-incident", secondBody).andExpect(status().isOk());
+        assertThat(incidents.missing()).hasSize(2);
+        var online = context
+                .getBeansOfType(com.eldercare.backend.administration.account.api.spi.OfflineHandler.class)
+                .values()
+                .stream()
+                .filter(h -> h.recordType().equals("M04.TRIP_MISSING"))
+                .toList();
+        assertThat(online).singleElement().satisfies(h -> {
+            assertThat(h.requiresOnline()).isTrue();
+            assertThatThrownBy(() -> h.apply(null, null, time.now()))
+                    .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
+        });
+    }
+
     @Autowired
     com.eldercare.backend.support.fake.care.FakeTripStaffSchedule tripShifts;
 
@@ -185,8 +284,56 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
                 .toList();
     }
 
+    /**
+     * T015 Q25 (FR-049, FR-049a, CFG-M04-07): quá giờ về +30 phút báo trưởng đoàn và Trưởng tầng, +60 phút báo Quản lý
+     * viện; mức Trung bình, mỗi mốc một lần.
+     */
+    /** Gộp một ca theo ngân sách IT (AGENTS.md mục 4); mỗi dòng dựng lại fixture (buổi cùng giờ bắt đầu là duy nhất). */
     @Test
-    void FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident() throws Exception {
+    void FR_047_FR_049_overdueMilestonesAndFinishingReturn() throws Exception {
+        com.eldercare.backend.support.TableRows.each(List.of("OVERDUE", "FINISH_RETURN"), scenario -> {
+            tripFixture();
+            switch (scenario) {
+                case "OVERDUE" -> FR_049_overdueReturnNotifiesLeaderAndFloorOnceThenTheManagerAtTwiceTheThreshold();
+                case "FINISH_RETURN" ->
+                    FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident();
+            }
+        });
+    }
+
+    private void FR_049_overdueReturnNotifiesLeaderAndFloorOnceThenTheManagerAtTwiceTheThreshold() throws Exception {
+        long s = trip(), a = eligible(s);
+        assign(s);
+        departed(s, a);
+        overdue.run(plannedReturn.plusSeconds(1740));
+        assertThat(notices(s, "RETURN_OVERDUE")).isEmpty();
+        overdue.run(plannedReturn.plusSeconds(1860));
+        overdue.run(plannedReturn.plusSeconds(1920));
+        assertThat(notices(s, "RETURN_OVERDUE")).singleElement().satisfies(n -> {
+            assertThat(n.level()).isEqualTo(NotificationLevel.MEDIUM);
+            assertThat(n.context().recipients())
+                    .contains(
+                            new com.eldercare.backend.common.notification.RecipientGroup.TripLeader(
+                                    s, new com.eldercare.backend.common.notification.Substitution.Default()),
+                            new com.eldercare.backend.common.notification.RecipientGroup.FloorManager(
+                                    floor, new com.eldercare.backend.common.notification.Substitution.Default()))
+                    .noneMatch(r -> r instanceof com.eldercare.backend.common.notification.RecipientGroup.FacilityRole);
+        });
+        assertThat(jdbc.queryForObject("SELECT trip_overdue_return FROM activity_session WHERE id=?", Boolean.class, s))
+                .isTrue();
+        assertThat(participant(s, a)).isEqualTo("DEPARTED");
+        assertThat(notices(s, "RETURN_OVERDUE_MANAGER")).isEmpty();
+        overdue.run(plannedReturn.plusSeconds(3660));
+        overdue.run(plannedReturn.plusSeconds(3720));
+        assertThat(notices(s, "RETURN_OVERDUE_MANAGER"))
+                .singleElement()
+                .satisfies(n -> assertThat(n.context().recipients())
+                        .contains(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                Role.NURSING_HOME_MANAGER)));
+    }
+
+    private void FR_047_finishingReturnMarksAbsentResidentsMissingAndRequestsAnUrgentAlertWithoutAnIncident()
+            throws Exception {
         long s = trip(), a = eligible(s), c = eligible(s);
         assign(s);
         departed(s, a, c);

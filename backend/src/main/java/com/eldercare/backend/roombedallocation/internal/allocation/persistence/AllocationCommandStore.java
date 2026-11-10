@@ -16,10 +16,18 @@ import org.springframework.stereotype.Repository;
 public class AllocationCommandStore {
     private final JdbcTemplate jdbc;
     private final com.eldercare.backend.common.time.BusinessTime time;
+    private final AllocationReminderMarkers reminders;
+    private final ResidentPositionStore positions;
 
-    public AllocationCommandStore(JdbcTemplate jdbc, com.eldercare.backend.common.time.BusinessTime time) {
+    public AllocationCommandStore(
+            JdbcTemplate jdbc,
+            com.eldercare.backend.common.time.BusinessTime time,
+            AllocationReminderMarkers reminders,
+            ResidentPositionStore positions) {
         this.jdbc = jdbc;
         this.time = time;
+        this.reminders = reminders;
+        this.positions = positions;
     }
 
     public AllocationRecord get(long id) {
@@ -187,21 +195,13 @@ public class AllocationCommandStore {
     /** FR-030: Hành chính đã lập yêu cầu sau chuyển gấp: gỡ dấu chờ lập yêu cầu, ngừng nhắc. */
     public void requestCreated(long id) {
         jdbc.update("UPDATE bed_allocation SET awaiting_request=FALSE WHERE id=?", id);
-        jdbc.update(
-                "DELETE FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=?"
-                        + " AND flag_type='AWAITING_REQUEST'",
-                id);
+        reminders.end("BED_ALLOCATION", id, "AWAITING_REQUEST");
     }
 
     /** FR-030: yêu cầu bị từ chối: dấu "chờ chuyển về phòng cùng giá", nhắc mỗi CFG-M03-02. */
     public void awaitingSamePrice(long id, Instant at) {
         jdbc.update("UPDATE bed_allocation SET awaiting_same_price=TRUE WHERE id=?", id);
-        jdbc.update(
-                "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,"
-                        + "reminder_count) VALUES('BED_ALLOCATION',?,'AWAITING_SAME_PRICE',?,NULL,0)"
-                        + " ON DUPLICATE KEY UPDATE started_at=VALUES(started_at),last_reminded_at=NULL,reminder_count=0",
-                id,
-                Timestamp.from(at));
+        reminders.restart("BED_ALLOCATION", id, "AWAITING_SAME_PRICE", at);
     }
 
     public java.util.Optional<Long> openedBy(long id) {
@@ -210,10 +210,8 @@ public class AllocationCommandStore {
     }
 
     public void clearWithoutBed(long residentId) {
-        jdbc.update("UPDATE resident_position SET without_bed_since=NULL WHERE resident_id=?", residentId);
-        jdbc.update(
-                "DELETE FROM allocation_reminder WHERE target_type='RESIDENT' AND target_id=? AND flag_type='WITHOUT_BED'",
-                residentId);
+        positions.clearWithoutBed(residentId);
+        reminders.end("RESIDENT", residentId, "WITHOUT_BED");
     }
 
     public void cancel(long id, String reason) {
@@ -228,14 +226,9 @@ public class AllocationCommandStore {
                         unsuitable)
                 > 0;
         if (changed && unsuitable) {
-            jdbc.update(
-                    "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,reminder_count) VALUES('BED_ALLOCATION',?,'ROOM_UNSUITABLE',?,NULL,0) ON DUPLICATE KEY UPDATE started_at=VALUES(started_at),last_reminded_at=NULL,reminder_count=0",
-                    id,
-                    Timestamp.from(time.now()));
+            reminders.restart("BED_ALLOCATION", id, "ROOM_UNSUITABLE", time.now());
         } else if (!unsuitable) {
-            jdbc.update(
-                    "DELETE FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=? AND flag_type='ROOM_UNSUITABLE'",
-                    id);
+            reminders.end("BED_ALLOCATION", id, "ROOM_UNSUITABLE");
         }
         return changed;
     }
@@ -279,7 +272,15 @@ public class AllocationCommandStore {
                 reason,
                 actor,
                 id);
-        jdbc.update("DELETE FROM allocation_reminder WHERE target_type='BED_ALLOCATION' AND target_id=?", id);
+        reminders.endAll("BED_ALLOCATION", id);
+    }
+
+    /** FR-027 (e): dấu nhập bù kèm thời điểm thực hiện thật. */
+    public void backfilled(long id, Instant recordedAt) {
+        jdbc.update(
+                "UPDATE bed_allocation SET backfilled=TRUE,actual_recorded_at=? WHERE id=?",
+                Timestamp.from(recordedAt),
+                id);
     }
 
     public void awaitingDoctor(long id) {
@@ -292,16 +293,10 @@ public class AllocationCommandStore {
     }
 
     public boolean markWithoutBed(long residentId, Instant at) {
-        if (jdbc.update(
-                        "UPDATE resident_position SET without_bed_since=? WHERE resident_id=? AND without_bed_since IS NULL",
-                        Timestamp.from(at),
-                        residentId)
-                == 0) return false;
-        jdbc.update(
-                "INSERT INTO allocation_reminder(target_type,target_id,flag_type,started_at,last_reminded_at,reminder_count) VALUES('RESIDENT',?,'WITHOUT_BED',?,?,1) ON DUPLICATE KEY UPDATE target_id=allocation_reminder.target_id",
-                residentId,
-                Timestamp.from(at),
-                Timestamp.from(at));
+        if (!positions.markWithoutBed(residentId, at)) return false;
+        // Lần nhắc đầu là lúc đặt dấu (BR-M03-19), như reminder_count = 1 của bảng cũ.
+        reminders.start("RESIDENT", residentId, "WITHOUT_BED", at);
+        reminders.remind("RESIDENT", residentId, "WITHOUT_BED", at);
         return true;
     }
 }

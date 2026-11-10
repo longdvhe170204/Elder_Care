@@ -162,7 +162,7 @@ public class CareResultService {
         var now = time.now();
         var effectiveAt = deviceAt == null ? now : deviceAt;
         String basis = basis(task, deviceAt);
-        if (task.data().billable()) throw unavailable("Chờ 010 thống nhất số lượng tính phí của kết quả");
+        requireBillableQuantity(task);
         if (task.data().resultType().equals("ML")
                 && task.data().upperLimit() == null
                 && !Boolean.TRUE.equals(task.data().resultConfigurationCaptured()))
@@ -283,7 +283,7 @@ public class CareResultService {
         var task = lock(id);
         var existing = results.find(id);
         if (existing.isPresent() && Objects.equals(existing.get().vitalSignRecordId(), vitalSignRecordId)) return;
-        if (task.data().billable()) throw unavailable("Chưa có cấu hình số lượng tính phí cho loại công việc này");
+        requireBillableQuantity(task);
         open(task, Map.of("vitalSignRecordId", vitalSignRecordId));
         var pending = results.pending(id)
                 .orElseThrow(() -> new BusinessException(
@@ -327,8 +327,34 @@ public class CareResultService {
         recordedEvents(task, input, measuredAt, next, time.now());
     }
 
+    /** FR-051: chỉ loại kết quả có lượng xác định ({@link CareBillableQuantity}); có dịch vụ và người cao tuổi. */
+    private void requireBillableQuantity(CareTask task) {
+        if (!task.data().billable()) return;
+        if (!CareBillableQuantity.supported(task.data().resultType()))
+            throw unavailable(
+                    "Chưa xác định được đơn vị tính phí của loại kết quả này; không quy đổi ml, mức hay giá trị đo");
+        if (task.data().serviceId() == null || task.residentId() == null)
+            throw unavailable("Công việc có tính phí cần dịch vụ và người cao tuổi");
+    }
+
     private void recordedEvents(CareTask task, CareResultInput input, Instant performed, TaskStatus next, Instant now) {
         rules.onResult(task.id());
+        if (task.data().billable())
+            events.publishEvent(new BillableCareResultRecorded(
+                    task.id(),
+                    task.residentId(),
+                    task.data().publicTaskTypeId(),
+                    task.data().serviceId(),
+                    CareBillableQuantity.of(task.data().resultType(), input.numericValue())
+                            .orElseThrow(),
+                    performed,
+                    new CareEventContext(
+                            "M04.CARE_RESULT",
+                            task.id(),
+                            "BILLABLE_RECORDED",
+                            now,
+                            Optional.of(task.floorAreaId()),
+                            List.of())));
         var context = new CareEventContext(
                 "M04.TASK", task.id(), "RESULT_RECORDED", now, Optional.of(task.floorAreaId()), List.of());
         events.publishEvent(new AlertClosureRequested(

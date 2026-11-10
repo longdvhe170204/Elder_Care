@@ -1,6 +1,7 @@
 package com.eldercare.backend.roombedallocation.internal.bed.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.approval.api.ApprovalRequestApi;
 import com.eldercare.backend.administration.auditlog.api.*;
 import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.common.Role;
@@ -21,7 +22,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 
-/** Nhánh trạng thái độc lập T042. Adapter port nối thêm FR-013b/chuyển theo lịch khi đủ phụ thuộc. */
+/**
+ * Nhánh trạng thái độc lập T042. FR-013a (T038, T042, 2026-11-08): phân bổ tương lai của chuyển theo lịch bị hủy thì yêu
+ * cầu căn cứ thành Áp dụng không thành qua {@code ApprovalRequestApi.failApplication}, cùng transaction lệnh tài sản.
+ */
 @Service
 @Transactional(propagation = Propagation.MANDATORY)
 public class BedAssetStateService {
@@ -35,6 +39,7 @@ public class BedAssetStateService {
     private final BusinessTime time;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
+    private final ObjectProvider<ApprovalRequestApi> approvals;
 
     public BedAssetStateService(
             BedAssetStateStore allocations,
@@ -46,7 +51,8 @@ public class BedAssetStateService {
             ObjectProvider<BedAssetPort> assets,
             BusinessTime time,
             AuditLogApi audit,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            ObjectProvider<ApprovalRequestApi> approvals) {
         this.allocations = allocations;
         this.beds = beds;
         this.states = states;
@@ -57,6 +63,7 @@ public class BedAssetStateService {
         this.time = time;
         this.audit = audit;
         this.events = events;
+        this.approvals = approvals;
     }
 
     private record Evaluation(
@@ -80,11 +87,16 @@ public class BedAssetStateService {
         var current = evaluation.current();
         boolean cancelAllowed = evaluation.cancelAllowed();
         var event = evaluation.event();
-        if (cancelAllowed && current.stream().anyMatch(BedAssetStateStore.FutureAllocation::hasLinkedSource))
+        if (cancelAllowed && current.stream().anyMatch(a -> a.hasLinkedSource() && !a.scheduledTransfer()))
             throw new BusinessException(
                     HttpStatus.SERVICE_UNAVAILABLE,
                     "SOURCE_UNAVAILABLE",
-                    "Chưa nối xử lý căn cứ hoặc yêu cầu chuyển theo lịch; giữ nguyên phân bổ");
+                    "Chưa nối xử lý căn cứ của phân bổ tương lai; giữ nguyên phân bổ");
+        if (cancelAllowed
+                && current.stream().anyMatch(BedAssetStateStore.FutureAllocation::scheduledTransfer)
+                && approvals.getIfAvailable() == null)
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn yêu cầu phê duyệt");
         applyEvaluated(bedId, basis, bed, current, cancelAllowed, event);
     }
 
@@ -152,6 +164,14 @@ public class BedAssetStateService {
                         .after(Map.of("status", "CANCELLED", "cancellationReason", "Giường hỏng"))
                         .basis(basis)
                         .build());
+                if (allocation.scheduledTransfer())
+                    approvals
+                            .getObject()
+                            .failApplication(
+                                    allocation.basisId(),
+                                    List.of(new UnmetCondition(
+                                            "FR-013a", "Giường đích hỏng hoặc ngừng dùng trước ngày chuyển theo lịch")),
+                                    basis);
             }
         }
         var change =
