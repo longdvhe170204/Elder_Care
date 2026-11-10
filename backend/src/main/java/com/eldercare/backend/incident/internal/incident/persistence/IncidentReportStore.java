@@ -45,12 +45,14 @@ public class IncidentReportStore {
                         rs.getLong("id"),
                         nullableLong(rs, "resident_id"),
                         rs.getString("level"),
+                        rs.getString("level_at_received"),
                         rs.getLong("current_type_id"),
                         rs.getString("type_code"),
                         nullableLong(rs, "floor_area_id"),
                         instant(rs, "created_at"),
                         instant(rs, "received_at"),
-                        rs.getInt("escalation_level")),
+                        rs.getInt("escalation_level"),
+                        rs.getString("status")),
                 Timestamp.from(from),
                 Timestamp.from(to));
     }

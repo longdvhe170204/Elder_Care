@@ -121,6 +121,7 @@ Stream<CanhBaoBaoCaoView> canhBao(PhamViLoc phamVi, Instant tu, Instant den);
     // bổ sung 2026-10-22 (Q-374, Q-375): nguon thêm NUT_HO_TRO; daToiNoiLuc, khongGhiMocToiNoi (thời gian tới nơi, 18.3)
 Stream<SuCoBaoCaoView> suCo(PhamViLoc phamVi, Instant tu, Instant den);
     // mức, loại (kèm dấu khong_thuoc_suc_khoe), tầng, thời điểm tạo, tiếp nhận xử lý (Q-199), số lần leo thang; bỏ Đã hủy
+    // bổ sung 2026-11-10 (007 T108, "Đổi api" duyệt 2026-11-08): mức lúc tiếp nhận (levelAtAcknowledgement, rỗng khi chưa tiếp nhận), trạng thái hiện hành (status)
 List<TheoDoiView> dangTheoDoi(PhamViLoc phamVi);        // sau ngã, tiếp xúc
 List<Long> dangNguyKich(PhamViLoc phamVi);              // dấu Đang mở, Tạm, kèm tầng
 Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);

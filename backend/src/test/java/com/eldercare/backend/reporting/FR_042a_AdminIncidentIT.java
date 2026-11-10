@@ -132,7 +132,8 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
     }
 
     private IncidentReportView incident(long id, String type, boolean nonHealth) {
-        return new IncidentReportView(id, TestUsers.nextId(), "MINOR", type, nonHealth, floor, at, null, 0);
+        return new IncidentReportView(
+                id, TestUsers.nextId(), "MINOR", null, type, nonHealth, floor, at, null, 0, "NEW");
     }
 
     private ResultActions perform(TestUser user, MockHttpServletRequestBuilder request) throws Exception {
