@@ -123,16 +123,22 @@ public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedH
 
     @Override
     public int countEmptyAwaitingTransfer(ScopeFilter scope, Instant at) {
+        return emptyAwaitingTransferBedIds(scope, at).size();
+    }
+
+    /** Giường Trống tại {@code at} mà tài sản mang dấu "chờ chuyển người" tại {@code at} (019 FR-015; 003 T067). */
+    @Override
+    public Set<Long> emptyAwaitingTransferBedIds(ScopeFilter scope, Instant at) {
         var empty = states(scope, at).stream()
                 .filter(s -> s.state() == BedStatus.EMPTY)
                 .map(State::bedId)
                 .collect(Collectors.toSet());
-        if (empty.isEmpty()) return 0;
+        if (empty.isEmpty()) return Set.of();
         var asset = assets.getIfAvailable();
         if (asset == null)
             throw new BusinessException(
                     HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn dấu tài sản giường");
-        return asset.flaggedBedsAt(empty, at).size();
+        return Set.copyOf(asset.flaggedBedsAt(empty, at));
     }
 
     @Override
