@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { json, mockRoutes, problem } from '@/test/fetchRoutes'
+import { json, mockRoutes } from '@/test/fetchRoutes'
 import { PermissionsProvider } from '@/common/permissions/permissions'
 import { EndingsPage } from './EndingsPage'
 
 // 004 T061, T107 (US7; FR-062 → FR-067, BR-M02-12; Q-379): lập hồ sơ kết thúc, danh sách điều kiện (a) → (h) với (h) gồm hai
 // ý (quyết toán số dư, tiền cọc và Kế toán đã xác nhận), (e) không có ngoại lệ, ghi nhận bàn giao kèm bản ghi đón, đổi ngày,
-// hủy hồ sơ. Hợp đồng chưa có danh sách hồ sơ nên mở theo mã hồ sơ.
+// hủy hồ sơ. Bảng hồ sơ lọc theo trạng thái (GET /residency-endings), chọn dòng để mở.
 
 let api
 
@@ -43,8 +43,7 @@ function renderPage(role = 'OFFICE_STAFF') {
 }
 
 async function openEnding() {
-  fireEvent.change(await screen.findByLabelText('Mã hồ sơ kết thúc'), { target: { value: '14' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Nguyễn Thị Lan' }))
   await screen.findByText('Chi phí kỳ cuối đã chốt')
 }
 
@@ -58,6 +57,7 @@ beforeEach(() => {
       ['VIEW', 'CREATE', 'UPDATE'].map((operation) => ({ function: 'RESIDENCY_END_DEATH', operation })),
     ),
   )
+  api.on('GET', '/residency-endings', json(200, [ENDING, { ...ENDING, id: 15, status: 'CANCELLED' }]))
   api.on('GET', '/residency-endings/14', json(200, ENDING))
   api.on('GET', '/residency-endings/14/conditions', json(200, CONDITIONS))
   api.on('GET', '/residents/5', json(200, { id: 5, personalInfo: { fullName: 'Nguyễn Thị Lan' } }))
@@ -167,11 +167,12 @@ describe('EndingsPage', () => {
     expect(screen.queryByRole('button', { name: 'Xin ngoại lệ…' })).not.toBeInTheDocument()
   })
 
-  it('FR_062_404_hienLoiKhiMaKhongTonTai', async () => {
-    api.on('GET', '/residency-endings/99', problem(404, 'NOT_FOUND', { detail: 'Không tìm thấy hồ sơ kết thúc' }))
+  it('FR_062_bangHoSo_locTheoTrangThai_kemSoDem', async () => {
     renderPage()
-    fireEvent.change(await screen.findByLabelText('Mã hồ sơ kết thúc'), { target: { value: '99' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Mở hồ sơ' }))
-    expect(await screen.findByText('Không tìm thấy hồ sơ kết thúc')).toBeInTheDocument()
+    const table = await screen.findByRole('table', { name: 'Hồ sơ kết thúc lưu trú' })
+    expect(within(table).getAllByRole('row')).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Đã hủy 1' }))
+    expect(await screen.findByText('Hồ sơ mã 15')).toBeInTheDocument()
+    expect(screen.queryByText('Hồ sơ mã 14')).not.toBeInTheDocument()
   })
 })

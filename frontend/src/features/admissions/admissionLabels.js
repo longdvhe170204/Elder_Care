@@ -106,6 +106,17 @@ export const CHANGE_TYPES = [
   ['ARRIVAL_SCHEDULE', 'Lịch đến'],
 ]
 
+// Trạng thái yêu cầu thay đổi lưu trú là trạng thái yêu cầu phê duyệt (000, glossary mục 6.2)
+export const REQUEST_STATUS = {
+  DRAFT: 'Nháp',
+  PENDING_APPROVAL: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  APPLIED: 'Đã áp dụng',
+  APPLY_FAILED: 'Áp dụng không thành',
+  REJECTED: 'Từ chối',
+  CANCELLED: 'Đã hủy',
+}
+
 export const ADDENDUM_STATUS = {
   PENDING_EFFECTIVE: 'Chờ hiệu lực',
   APPLIED: 'Đã áp dụng',

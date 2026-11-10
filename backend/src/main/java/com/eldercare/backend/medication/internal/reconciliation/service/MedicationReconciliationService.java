@@ -65,8 +65,6 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final ObjectMapper objectMapper;
     private final BusinessTime businessTime;
     private final ParameterApi parameters;
-
-    @Autowired
     private final ReconciliationDeadlines deadlines;
 
     public MedicationReconciliationService(

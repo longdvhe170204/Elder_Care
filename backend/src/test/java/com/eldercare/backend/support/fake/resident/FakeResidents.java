@@ -5,6 +5,7 @@ import com.eldercare.backend.resident.api.dto.Gender;
 import com.eldercare.backend.resident.api.dto.IdentityView;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,11 @@ public class FakeResidents implements ResidentApi {
     @Override
     public Optional<Gender> gender(long residentId) {
         return entry(residentId).gender();
+    }
+
+    @Override
+    public Optional<LocalDate> dateOfBirth(long residentId) {
+        return Optional.empty();
     }
 
     @Override

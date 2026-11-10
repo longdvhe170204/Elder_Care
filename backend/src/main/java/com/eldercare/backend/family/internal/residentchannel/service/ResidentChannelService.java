@@ -7,9 +7,9 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.admission.api.ContractReadApi;
+import com.eldercare.backend.care.api.ResidentActivityReadApi;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.family.api.spi.ResidentChannelActivityPort;
 import com.eldercare.backend.family.api.spi.ResidentChannelBelongingPort;
 import com.eldercare.backend.family.internal.relationship.domain.FamilyMember;
 import com.eldercare.backend.family.internal.relationship.service.RelationshipQueries;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Kênh người cao tuổi (012 T068; US9; FR-083, FR-084, BR-M10-11; research F-18): chỉ tài khoản AC-16, người cao tuổi lấy
  * từ tài khoản đăng nhập. Năm phần dựng ở một chỗ với DTO riêng, không có trường sức khỏe, chi phí, số dư, hợp đồng:
  * hôm nay (lượt thăm Đã duyệt, buổi hoạt động trong ngày, lịch đến/về bán trú), thực đơn (011 chưa có API), buổi hoạt
- * động sắp tới (014 qua {@link ResidentChannelActivityPort}), lượt thăm Đã duyệt, đồ gửi đang giữ (013 qua
+ * động sắp tới (014 qua {@link ResidentActivityReadApi}, đổi hướng duyệt 07/11), lượt thăm Đã duyệt, đồ gửi đang giữ (013 qua
  * {@link ResidentChannelBelongingPort}). Nguồn chưa có bản cài thì phần đó báo chưa có dữ liệu.
  */
 @Service
@@ -38,7 +38,7 @@ public class ResidentChannelService {
     private static final PermissionKey VIEW = new PermissionKey(Function.RESIDENT_CHANNEL, Operation.VIEW);
     private static final DateTimeFormatter HOUR = DateTimeFormatter.ofPattern("HH:mm");
     /** Buổi hoạt động sắp tới hiện trong 14 ngày. */
-    private static final int UPCOMING_DAYS = 14;
+    static final int UPCOMING_DAYS = 14;
 
     private static final String NO_DATA = "Chưa có dữ liệu";
 
@@ -77,7 +77,7 @@ public class ResidentChannelService {
 
     private final VisitQueries visits;
     private final RelationshipQueries relationships;
-    private final ObjectProvider<ResidentChannelActivityPort> activities;
+    private final ObjectProvider<ResidentActivityReadApi> activities;
     private final ObjectProvider<ResidentChannelBelongingPort> belongings;
     private final ObjectProvider<ContractReadApi> contracts;
     private final PermissionApi permissions;
@@ -87,7 +87,7 @@ public class ResidentChannelService {
     ResidentChannelService(
             VisitQueries visits,
             RelationshipQueries relationships,
-            ObjectProvider<ResidentChannelActivityPort> activities,
+            ObjectProvider<ResidentActivityReadApi> activities,
             ObjectProvider<ResidentChannelBelongingPort> belongings,
             ObjectProvider<ContractReadApi> contracts,
             PermissionApi permissions,
@@ -124,7 +124,7 @@ public class ResidentChannelService {
                 .filter(v -> v.date().equals(today))
                 .toList();
         List<ChannelActivity> todayActivities = new ArrayList<>();
-        ResidentChannelActivityPort port = activities.getIfAvailable();
+        ResidentActivityReadApi port = activities.getIfAvailable();
         if (port == null) {
             unavailable.add("activities");
         } else {
@@ -151,7 +151,7 @@ public class ResidentChannelService {
     @Transactional(readOnly = true)
     public Section<ChannelActivity> upcomingActivities() {
         long residentId = self();
-        ResidentChannelActivityPort port = activities.getIfAvailable();
+        ResidentActivityReadApi port = activities.getIfAvailable();
         if (port == null) {
             return Section.missing();
         }
@@ -199,7 +199,7 @@ public class ResidentChannelService {
     }
 
     private static List<ChannelActivity> activityViews(
-            ResidentChannelActivityPort port, long residentId, LocalDate from, LocalDate to) {
+            ResidentActivityReadApi port, long residentId, LocalDate from, LocalDate to) {
         return port.upcoming(residentId, from, to).stream()
                 .map(s -> new ChannelActivity(
                         s.sessionId(), s.name(), s.startAt(), s.endAt(), s.facilityWide(), s.registered()))

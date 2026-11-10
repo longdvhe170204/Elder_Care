@@ -114,6 +114,9 @@ export const postServicesByIdPriceVersions = (params) => request('POST', '/servi
 /** Hợp đồng Hiệu lực có đơn giá đã ghi khác phiên bản mới nhất (FR-036) */
 export const getServicesByIdMismatchedPriceContracts = (params) => request('GET', '/services/{id}/mismatched-price-contracts', params)
 
+/** Danh sách yêu cầu thay đổi lưu trú (FR-038) */
+export const getResidencyChangeRequests = (params) => request('GET', '/residency-change-requests', params)
+
 /** Lập yêu cầu thay đổi lưu trú ở Nháp (FR-037, FR-038, FR-039, FR-040, FR-043, BR-M01-03, BR-M02-16) */
 export const postResidencyChangeRequests = (params) => request('POST', '/residency-change-requests', params)
 
@@ -149,6 +152,9 @@ export const postDayCareClosureDays = (params) => request('POST', '/day-care-clo
 
 /** Hủy khai báo ngày nghỉ (FR-060a) */
 export const postDayCareClosureDaysByIdCancel = (params) => request('POST', '/day-care-closure-days/{id}/cancel', params)
+
+/** Danh sách hồ sơ kết thúc lưu trú (FR-062, FR-067) */
+export const getResidencyEndings = (params) => request('GET', '/residency-endings', params)
 
 /** Lập hồ sơ kết thúc lưu trú (Hành chính; Bác sĩ với Xuất viện, Chuyển cơ sở vì lý do y tế) (FR-062, FR-063, FR-066) */
 export const postResidencyEndings = (params) => request('POST', '/residency-endings', params)

@@ -25,6 +25,10 @@ api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 applic
 api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json.costImpact đổi kiểu [array] → [object]
 api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json.reference thiếu trường id
 api-004.yaml: GET /api/v1/residency-change-requests/{id} phản hồi 200 application/json.reference thiếu trường type
+api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[] thừa trường hiddenFields
+api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[].costImpact đổi kiểu [array] → [object]
+api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[].reference thiếu trường id
+api-004.yaml: GET /api/v1/residency-change-requests phản hồi 200 application/json[].reference thiếu trường type
 api-004.yaml: GET /api/v1/services phản hồi 200 application/json[] đổi trường bắt buộc
 api-004.yaml: POST /api/v1/admission-applications phản hồi 201 application/json đổi trường bắt buộc
 api-004.yaml: POST /api/v1/admission-applications/{id}/update request application/json đổi trường bắt buộc
