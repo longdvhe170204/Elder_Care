@@ -20,4 +20,9 @@ class ReassessmentApiImpl implements ReassessmentApi {
     public Map<Long, ReassessmentStatus> status(Collection<Long> residentIds) {
         return notices.status(residentIds);
     }
+
+    @Override
+    public boolean notifyAfterIncident(long residentId, long incidentId) {
+        return notices.notifyAfterIncident(residentId, incidentId);
+    }
 }

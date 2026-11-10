@@ -214,6 +214,15 @@ public class AddendumStore {
                 .toList();
     }
 
+    /** Mã mọi yêu cầu đã ghi nhận, mới nhất trước. */
+    public List<Long> allRequests() {
+        return records.listByStatus(ChangeAttribute.KIND, Set.of(NOT_PENDING, PENDING)).stream()
+                .map(row -> row.content().approvalRequestId())
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .toList();
+    }
+
     /** Hợp đồng mà yêu cầu thay đổi, nếu đã được ghi nhận. */
     public Optional<Long> contractOf(long approvalRequestId) {
         return attributesOf(approvalRequestId).stream()

@@ -261,7 +261,7 @@ public class EmergencyCardService {
                 identity == null
                         ? null
                         : identity.photoFileId().map(String::valueOf).orElse(null),
-                null,
+                residents.flatMap(api -> api.dateOfBirth(residentId)).orElse(null),
                 roomBed);
     }
 

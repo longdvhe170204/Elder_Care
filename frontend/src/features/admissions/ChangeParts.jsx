@@ -14,21 +14,11 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDate } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
-import { CARE_LEVELS, CHANGE_TYPES, RESIDENCE_TYPES, SELECT, labelOf, money, newKey } from './admissionLabels'
+import { CARE_LEVELS, CHANGE_TYPES, RESIDENCE_TYPES, SELECT, labelOf, money, newKey, REQUEST_STATUS } from './admissionLabels'
 import { Choices, Info, ReasonField } from './FormParts'
 
 // Yêu cầu thay đổi lưu trú (004 T047; US5, FR-037 → FR-047). Lập, sửa ở Nháp; gửi duyệt, duyệt, từ chối ở màn Yêu cầu phê
 // duyệt (api-000). Giá trị trước và ảnh hưởng chi phí do hệ thống điền (FR-038).
-
-const REQUEST_STATUS = {
-  DRAFT: 'Nháp',
-  PENDING_APPROVAL: 'Chờ duyệt',
-  APPROVED: 'Đã duyệt',
-  APPLIED: 'Đã áp dụng',
-  APPLY_FAILED: 'Áp dụng không thành',
-  REJECTED: 'Từ chối',
-  CANCELLED: 'Đã hủy',
-}
 
 function valueText(type, value) {
   if (!value) return '—'
@@ -197,14 +187,14 @@ export function ChangeRequestSheet({ request, etag, onClose, onDone }) {
     try {
       if (editing) {
         await putResidencyChangeRequestsById({
-          path: { id: request.id },
+          path: { id: request.approvalRequestId },
           headers: { ...newKey(), 'If-Match': etag },
           body,
         })
-        onDone('Đã sửa yêu cầu nháp', request.id)
+        onDone('Đã sửa yêu cầu nháp', request.approvalRequestId)
       } else {
         const { data } = await postResidencyChangeRequests({ headers: newKey(), body })
-        onDone('Đã lập yêu cầu thay đổi lưu trú ở Nháp', data.id)
+        onDone('Đã lập yêu cầu thay đổi lưu trú ở Nháp', data.approvalRequestId)
       }
     } catch (e) {
       setFailure(problemOf(e))

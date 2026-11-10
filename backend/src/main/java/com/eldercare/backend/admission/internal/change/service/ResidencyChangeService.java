@@ -30,8 +30,11 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -198,6 +201,38 @@ public class ResidencyChangeService {
             throw new NotFoundException();
         }
         return view(details);
+    }
+
+    /**
+     * Danh sách yêu cầu lọc theo hợp đồng, trạng thái của yêu cầu phê duyệt ("Đổi api" 004, A duyệt 2026-11-07), mới nhất
+     * trước. Nguồn là chỉ mục thuộc tính (FR-046); yêu cầu người dùng không xem được ({@code detail} 404) bị bỏ qua.
+     */
+    @Transactional(readOnly = true)
+    public List<View> list(Long contractId, Set<String> statuses) {
+        Stream<Long> ids = contractId == null
+                ? addenda.allRequests().stream()
+                : contracts
+                        .find(contractId)
+                        .map(c -> addenda.requestsOf(c.residentId()).stream())
+                        .orElseGet(Stream::empty)
+                        .filter(id -> addenda.contractOf(id)
+                                .filter(contractId::equals)
+                                .isPresent());
+        List<View> views = new ArrayList<>();
+        ids.forEach(id -> {
+            try {
+                ApprovalRequestDetails details = approvals.getObject().detail(id);
+                if (ResidencyChangeHandler.TYPE.equals(details.request().type())
+                        && (statuses == null
+                                || statuses.isEmpty()
+                                || statuses.contains(details.request().status()))) {
+                    views.add(view(details));
+                }
+            } catch (NotFoundException hidden) {
+                // không xem được thì không liệt kê (FR-042 của 000)
+            }
+        });
+        return views;
     }
 
     /** Phụ lục của hợp đồng (FR-047), mới theo ngày hiệu lực. */

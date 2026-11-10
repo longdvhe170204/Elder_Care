@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,5 +57,26 @@ class ResidencyEndingIT extends EndingTestBase {
         assertThat(residentStatus(residentId))
                 .as("lập hồ sơ chưa đổi trạng thái")
                 .isEqualTo(ResidentStatus.IN_RESIDENCE);
+    }
+
+    /** "Đổi api" 004 (A duyệt 2026-11-07): danh sách hồ sơ kết thúc lọc theo người cao tuổi và trạng thái. */
+    @Test
+    void FR_062_listEndings_filtersByResidentAndStatus() throws Exception {
+        long residentId = inResidence();
+        long id = createEnding(residentId, d0.plusDays(10));
+
+        user.set(office.user());
+        mvc.perform(get("/api/v1/residency-endings")
+                        .param("residentId", String.valueOf(residentId))
+                        .param("status", "PREPARING"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(id))
+                .andExpect(jsonPath("$[0].status").value("PREPARING"));
+        mvc.perform(get("/api/v1/residency-endings")
+                        .param("residentId", String.valueOf(residentId))
+                        .param("status", "CANCELLED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }

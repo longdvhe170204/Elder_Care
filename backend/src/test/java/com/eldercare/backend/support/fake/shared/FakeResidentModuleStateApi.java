@@ -29,6 +29,22 @@ public class FakeResidentModuleStateApi implements ResidentModuleStateApi {
         states.put(key(kind, residentId), valid(data));
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getOwnRow(SharedKind<T> kind, long residentId) {
+        return Optional.ofNullable((T) states.get(kind.code() + ":" + residentId));
+    }
+
+    @Override
+    public <T> Optional<T> lockOwnRowForUpdate(SharedKind<T> kind, long residentId) {
+        return getOwnRow(kind, residentId);
+    }
+
+    @Override
+    public <T> void saveOwnRow(SharedKind<T> kind, long residentId, T data) {
+        states.put(kind.code() + ":" + residentId, valid(data));
+    }
+
     private static String key(SharedKind<?> kind, long residentId) {
         return kind.module() + ":" + residentId;
     }

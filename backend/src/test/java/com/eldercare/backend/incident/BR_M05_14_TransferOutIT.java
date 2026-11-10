@@ -5,15 +5,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
+import com.eldercare.backend.incident.internal.emergency.service.EmergencyCardService;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -23,6 +28,9 @@ import tools.jackson.databind.JsonNode;
  */
 class BR_M05_14_TransferOutIT extends EmergencyTestBase {
     static final String TRANSFER = "/api/v1/incidents/{id}/transfer-out";
+
+    @Autowired
+    EmergencyCardService cards;
 
     @Test
     void BR_M05_14_transferCallsStatusCommandAndCreatesSummary() throws Exception {
@@ -47,6 +55,15 @@ class BR_M05_14_TransferOutIT extends EmergencyTestBase {
         assertThat(details.getValue().path("basis").path("incidentId").asLong()).isEqualTo(id);
         assertThat(basis.getValue().sourceRecordId()).isEqualTo(id);
         assertThat(count("M05.TRANSFER_SUMMARY", id)).isEqualTo(1);
+    }
+
+    /** FR-048: thẻ thông tin khẩn cấp có ngày sinh từ hồ sơ 001 ({@code ResidentApi.dateOfBirth}, "Đổi api" 001). */
+    @Test
+    void FR_048_emergencyCardShowsDateOfBirth() {
+        when(residents.dateOfBirth(resident)).thenReturn(Optional.of(LocalDate.of(1940, 3, 15)));
+
+        assertThat(cards.build(resident, time.now()).identification().dateOfBirth())
+                .isEqualTo(LocalDate.of(1940, 3, 15));
     }
 
     void accepted() {
