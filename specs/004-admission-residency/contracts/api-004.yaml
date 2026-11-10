@@ -770,7 +770,7 @@ components:
     ApplicationStatus: { type: string, enum: [IN_PROGRESS, WAITING, ADMITTED, CANCELLED] }
     WaitingListStatus: { type: string, enum: [WAITING, CONTACTED, ADMITTED, DECLINED, WAITING_CANCELLED] }
     ContractStatus: { type: string, enum: [DRAFT, PENDING_SIGNATURE, ACTIVE, ENDED, TERMINATED, CANCELLED] }
-    ServiceType: { type: string, enum: [CARE, RESIDENCY_FEE, DAY_CARE_SESSION, REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION, FAMILY_STAY, MEAL, FACILITY_SUPPLIED_MEDICATION, OTHER] }
+    ServiceType: { type: string, enum: [CARE, RESIDENCY_FEE, DAY_CARE_SESSION, REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION, FAMILY_STAY, MEAL, FACILITY_SUPPLIED_MEDICATION, CONSUMABLE, MEDICAL_SUPPLY, OTHER] }
     Problem:
       type: object
       description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000. Với 403 có failedLayer, license (FR-043).

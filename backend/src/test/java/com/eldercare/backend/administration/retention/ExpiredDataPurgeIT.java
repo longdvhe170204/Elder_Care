@@ -148,10 +148,15 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
     }
 
     private long request(String status, Instant at, Long residentId) {
+        return request("M15.SAMPLE", status, at, residentId);
+    }
+
+    private long request(String type, String status, Instant at, Long residentId) {
         LocalDateTime time = LocalDateTime.ofInstant(at, ZoneOffset.UTC);
         jdbc.update(
                 "INSERT INTO approval_request (type, status, content, resident_id, requester_id, created_at, reason,"
-                        + " requested_effective_date, decided_at) VALUES ('M15.SAMPLE', ?, '{}', ?, ?, ?, 'đề nghị', ?, ?)",
+                        + " requested_effective_date, decided_at) VALUES (?, ?, '{}', ?, ?, ?, 'đề nghị', ?, ?)",
+                type,
                 status,
                 residentId,
                 NURSE.accountId(),
@@ -218,6 +223,27 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
 
         assertThat(exists("sample_office_record", old)).isFalse();
         assertThat(sharedRowsOf(sharedType, old)).isZero();
+    }
+
+    /**
+     * 000 T114 (FR-051; 015 FR-046): yêu cầu ở trạng thái cuối mở rộng của loại (như {@code EXPIRED},
+     * {@code RECIPIENT_DECLINED}, {@code PARTIALLY_APPLIED} của 015) hết hạn thì bị loại bỏ cùng dòng bảng chung ghi
+     * dưới {@code M15.APPROVAL_REQUEST} (chi tiết, khóa của 015); trạng thái mở rộng còn mở, và trạng thái mà loại của
+     * yêu cầu không khai, thì giữ.
+     */
+    @Test
+    void T_114_extendedFinalStatus_isPurgedWithItsSharedRows_openOrUndeclaredStatusIsKept() {
+        long expiredFinal = request(RetentionFixtures.EXTENDED_REQUEST, "EXPIRED", expired, null);
+        sharedRowsFor(REQUEST, expiredFinal);
+        long open = request(RetentionFixtures.EXTENDED_REQUEST, "WAITING", expired, null);
+        long undeclared = request("EXPIRED", expired, null);
+
+        runJob();
+
+        assertThat(exists("approval_request", expiredFinal)).isFalse();
+        assertThat(sharedRowsOf(REQUEST, expiredFinal)).isZero();
+        assertThat(exists("approval_request", open)).isTrue();
+        assertThat(exists("approval_request", undeclared)).isTrue();
     }
 
     /** Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2. */

@@ -58,6 +58,14 @@ Optional<DichVuView> thuocNguonVien(long thuocId);
 
 Không có phiên bản hiệu lực tại ngày thì trả rỗng; 010 ghi khoản "thiếu đơn giá" (010 FR-012).
 
+*Đổi api 2026-11-10 (A duyệt, 010 Q1, Q2, Q4):* `LoaiDichVu` thêm `VAT_PHAM_TIEU_HAO` (`CONSUMABLE`), `VAT_TU_Y_TE` (`MEDICAL_SUPPLY`) theo nghiệp vụ 6.4 và Q-269; `DichVuView` thêm `hieuLuc` (`active`), `thuocId` (`medicationId`, chỉ thuốc nguồn viện). Thêm ba hàm đọc cho 010 (tên Java ở glossary 1076):
+
+```java
+Optional<DichVuView> dichVu(long dichVuId);              // kể cả Ngừng hiệu lực; 010 lấy loại, đơn vị của nguồn
+List<DichVuView> dichVuHieuLucTheoLoai(LoaiDichVu loai); // 010 Q3: nguồn không mang mã dịch vụ, chỉ dùng khi đúng một mục
+List<DichVuView> dichVuTheoTen(String ten);              // 010 FR-021: trùng tên sau khi bỏ khoảng trắng thừa, không phân biệt hoa thường, giữ dấu; kể cả Ngừng hiệu lực
+```
+
 ### 1.4. `NgayLuuTruApi` (010; FR-052, FR-060, FR-074)
 
 ```java

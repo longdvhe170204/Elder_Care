@@ -511,3 +511,8 @@ US2 → US1 → US3 → US4 → US5 → US11 → US6 → US7 → US8 → US9 →
 
 - *(2026-11-03, D, đường dẫn tiếng Anh)* Theo duyệt của người dùng, T018 dùng `/residents/{residentId}/vital-signs` (GET/POST) và `/vital-sign-records/{id}/remeasure` (POST), đồng bộ hợp đồng/controller/client sinh và test HTTP. Đây là dịch hai đường dẫn đang cài; không đánh dấu thêm T062 hoặc các endpoint chưa triển khai.
 - *(2026-11-03, thay D, T062)* Dịch đủ `api-007.yaml` theo `contracts/api-translation.md` (chủ dự án duyệt cùng ngày, gồm năm điểm mục 7); sinh lại client; `ApiContractIT` bật so operation 007: 14 operation đã cài khớp hợp đồng, 76 operation còn ở danh sách chờ. Phần "mở rộng `NhomGhiNhanCoTriggerIT`": bảng nhóm 3 của 007 nằm trong `vital_sign_record` (MULTIPLE), đã được `RecordGroupTriggerIT.XII_everyTableWithLockedAt_hasRowLockAndNoDeleteTriggers` và F-04 kiểm, không thêm test riêng.
+
+## Phase 15: Convergence
+
+- [ ] T108 Bổ sung `IncidentReportView` mức lúc tiếp nhận và trạng thái sự cố (chủ dự án duyệt "Đổi api" `incident.api` 2026-11-08), cập nhật bản giả dùng chung, test viết trước; thiếu thì 016 không chia thời gian tiếp nhận theo mức lúc tiếp nhận, không đếm sự cố chưa đóng per FR-081, 016 FR-042, FR-042a (missing)
+- [ ] T109 Sửa 10 lệch hợp đồng `api-007.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)

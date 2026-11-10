@@ -311,3 +311,7 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7; mỗi bước chạy `./mvn
 - M01 không tự sinh bản ghi nghiệp vụ, không gợi ý mức (Q-306, Q-307); job chỉ báo, nhắc, cảnh báo
 - Mọi mốc đọc `ThamSoApi` (CFG-M01-01, 02, 03, 06, CFG-M03-02)
 - Lệnh của 001 chỉ chạy trực tuyến
+
+## Phase 12: Convergence
+
+- [ ] T108 Sửa 8 lệch hợp đồng `api-001.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)

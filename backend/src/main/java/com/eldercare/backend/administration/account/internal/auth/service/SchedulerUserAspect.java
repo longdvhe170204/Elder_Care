@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Đặt Bộ lập lịch làm người dùng hiện tại trong lúc job chạy (002 T012; contracts/module-interfaces.md mục 1.1): mọi
- * phương thức {@code @Scheduled} và {@code ScheduledJob.runNow} (chạy theo yêu cầu kiểm thử, NFR-13). Job chạy trong một
+ * phương thức {@code @Scheduled}, {@code ScheduledJob.runNow} (chạy theo yêu cầu kiểm thử, NFR-13) và lượt chạy bù
+ * {@code atStartup} của job (sửa 2026-11-10: job M11 lúc khởi động ghi nhật ký không có người dùng). Job chạy trong một
  * yêu cầu có phiên vẫn là Bộ lập lịch; xong thì trả lại như trước.
  */
 @Aspect
@@ -35,7 +36,8 @@ class SchedulerUserAspect {
     }
 
     @Around("@annotation(org.springframework.scheduling.annotation.Scheduled)"
-            + " || execution(* com.eldercare.backend.common.scheduling.ScheduledJob+.runNow())")
+            + " || execution(* com.eldercare.backend.common.scheduling.ScheduledJob+.runNow())"
+            + " || execution(* com.eldercare.backend.common.scheduling.ScheduledJob+.atStartup())")
     public Object runAsScheduler(ProceedingJoinPoint job) throws Throwable {
         boolean outer = RUNNING.get();
         RUNNING.set(true);

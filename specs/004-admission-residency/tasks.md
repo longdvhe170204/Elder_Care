@@ -317,3 +317,8 @@ US1 → US3 → US4 → US2 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - 004 không tự lập yêu cầu, chi phí, hồ sơ; không đề xuất hồ sơ chờ (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M02-02 → 10)
 - Bảng kỳ cuối nháp ở 010 là tác động kèm lệnh lập hồ sơ kết thúc (FR-066)
+
+## Phase 13: Convergence
+
+- [ ] T111 Sửa 20 lệch hợp đồng `api-004.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+- [ ] T112 Cô lập `FR_076_NotYetAdmittedWarningIT.FR_076_dailyRun_remindsOncePerDay_untilTheStartDateIsNoLongerInThePast` khỏi ngày thật và thứ tự chạy (đỏ ở `clean verify -Dit.forkCount=3` 2026-11-09 và khi chạy qua nửa đêm, chạy riêng xanh) per FR-076, plan: quy ước test R-14 của 000 (partial)

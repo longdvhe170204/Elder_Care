@@ -7,6 +7,8 @@ import com.eldercare.backend.billing.internal.source.persistence.BillingSourceIn
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.medication.api.events.MedicationBillAdjustedEvent;
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.*;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -89,6 +91,39 @@ class CostSourceChangeEvents {
                 cancelled,
                 c.sourceType() + ":" + c.sourceId(),
                 c.sourceType() + ":" + c.sourceId() + ":" + c.milestone()));
+    }
+
+    /**
+     * 006 đính chính liều/PRN hoặc nhận lại thuốc mang theo (FR-020). Lượng 0 là không còn nguồn tính phí. Sự kiện không có
+     * khóa riêng nên áp theo trạng thái (lặp lại cho cùng kết quả); nguồn chưa từng vào chỉ mục (chưa phát sinh phí) thì
+     * bỏ qua.
+     */
+    @ApplicationModuleListener
+    void medication(MedicationBillAdjustedEvent event) {
+        String type = event.source().name();
+        String id = Long.toString(event.sourceId());
+        boolean cancelled = event.newQuantity().signum() == 0;
+        BigDecimal quantity = cancelled ? null : event.newQuantity();
+        String basis = "M06." + event.reason().name();
+        for (var match : index.byTypeAndId(type, id)) {
+            var source = match.source();
+            locks.resident(source.residentId());
+            index.change(type, id, source.unit(), quantity, cancelled, time.now());
+            costs.sourceChanged(type, id, source.unit(), quantity, cancelled, basis, null);
+        }
+    }
+
+    /** 014 FR-031, FR-031a: cùng trường với {@link CostSourceChanged}. */
+    @ApplicationModuleListener
+    void activity(ActivityCostSourceChanged event) {
+        apply(new CostSourceChanged(
+                event.sourceType(),
+                event.sourceId(),
+                event.unit(),
+                event.newQuantity(),
+                event.cancelled(),
+                event.basis(),
+                event.eventKey()));
     }
 
     @ApplicationModuleListener

@@ -371,3 +371,8 @@ Ghi chú mới này cập nhật các mốc gate cũ bên dưới từng phase; 
 Bằng chứng: `backend/logs/003/20261106-backend-scoped-green.log` (58 kiến trúc xanh, 402 IT chỉ đỏ đăng ký PENDING 003); sau sửa đăng ký được duyệt, `20261106-contract-final.log` BUILD SUCCESS (58 kiến trúc +17 IT); `20261106-mobile-review-red.log` → `20261106-mobile-review-green.log` và `20261106-mobile-doctor-board-red.log` → `20261106-mobile-permissions-final.log` (15 widget xanh). Kiểm toàn kho cuối ở `20261106-clean-verify-final.log`; kết quả cuối ghi verification/progress. Không commit/push/đổi nhánh.
 
 **Kết quả full cuối lượt06/11**:1131unit/kiến trúc xanh,324IT module003/019 xanh;full2868IT có1failurebaselineStaffCommandsHttpIT và2errorM09JobCatchUpIT mới (chạy riêng3/3xanh),4skippedcó sẵn. Không gọi fullgate đạt. Web517/517với2worker,lint/build qua;Flutter171/171,analyze003sạch. Giữ23taskcònmở,các giới hạn vàbàn giao ởverification mục11/plan/team-plan8. EndpointđọcT060 đãđượcchủdựánduyệtcho lượt tiếp theo,chưa thêm vàoYAML. Chưa commit/push.
+
+## Phase 12: Convergence
+
+- [ ] T067 Cài `BedStatisticsApi.emptyAwaitingTransferBedIds(ScopeFilter scope, Instant at)` (id giường Trống tại `at` mang dấu "chờ chuyển người", cùng nguồn `countEmptyAwaitingTransfer`; chủ dự án duyệt "Đổi api" 2026-11-08) và bản giả dùng chung, test viết trước; hiện chưa có trong mã nên 016 chưa cài được chỉ tiêu giường chờ chuyển per contracts/module-interfaces.md (BedStatisticsApi), 016 T008 (missing)
+- [ ] T068 Sửa 2 lệch hợp đồng `api-003.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)

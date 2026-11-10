@@ -27,7 +27,7 @@ public class PurchaseCostStore {
             PurchaseDetails data,
             long actor,
             Instant at,
-            boolean excess) {
+            String flags) {
         var values = new LinkedHashMap<String, Object>();
         values.put("resident_id", resident);
         values.put("statement_id", statement);
@@ -45,7 +45,7 @@ public class PurchaseCostStore {
                 "source_values",
                 json.writeValueAsString(
                         Map.of("allowedAmount", data.consent().allowedAmount(), "actualAmount", data.actualAmount())));
-        values.put("flags", excess ? "EXCEEDS_CONSENT" : "");
+        values.put("flags", flags);
         values.put("created_by", actor);
         values.put("created_at", Timestamp.from(at));
         return new SimpleJdbcInsert(jdbc)

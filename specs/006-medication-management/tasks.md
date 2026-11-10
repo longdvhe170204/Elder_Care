@@ -311,3 +311,7 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - 006 không lập sẵn liều, không tự tạo phiếu hay chi phí, không chọn sẵn lô (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M07-*, CFG-M05-04)
 - Ngoại tuyến chỉ cho xác nhận liều và PRN của thuốc không kiểm soát đặc biệt (Q-01)
+
+## Phase 12: Convergence
+
+- [ ] T070 Sửa 17 lệch hợp đồng `api-006.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
