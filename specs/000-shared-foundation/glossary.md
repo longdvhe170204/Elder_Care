@@ -1367,7 +1367,7 @@ $1Feature 005 (`005-daily-care-tasks`, C)
 
 | Tên logic | Mã |
 | --- | --- |
-| schema lỗi của 005 trong mã (T060, 2026-11-03) | `care.web.response.CareProblemBody` (`CareCatalogProblem`), `.TaskClosed` (`CareTaskClosedProblem`), `.RowErrors` (`CareTaskRowProblem`) |
+| schema lỗi của 005 trong mã (T060, 2026-11-03) | `care.web.response.CareProblemBody` (`CareCatalogProblem`), `.TaskClosed` (`CareTaskClosedProblem`; trạng thái công việc ở `currentStatus`, `status` là mã HTTP, chủ dự án chốt 2026-11-10), `.RowErrors` (`CareTaskRowProblem`) |
 | nhận định tự quyết trong thân lệnh thỏa thuận rủi ro; thân lệnh Duyệt kế hoạch; phản hồi việc cùng loại đang mở | `RiskAssessmentWrite` (`CareSelfDeterminationAssessment`); `CarePlanApprovalWrite` (`CarePlanApproval`); `SameTypeTasksResponse` (`CareSameTypeTasks`) |
 
 ### 11.1. Phase 1 — khung gói và SPI (2026-10-26)
