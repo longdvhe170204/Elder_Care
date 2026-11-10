@@ -6,6 +6,12 @@ export 'care_task_planning_gateway.dart' show CareTaskPlanningError;
 
 List<Map<String, dynamic>> _rows(List<dynamic> rows) => rows.map((r) => Map<String, dynamic>.from(r as Map)).toList();
 
+/// Profile của 001 đặt họ tên trong personalInfo; gateway trả projection cho màn chăm sóc.
+List<Map<String, dynamic>> _residentRows(List<dynamic> rows) => [
+  for (final row in _rows(rows))
+    {'id': row['id'], 'fullName': (row['personalInfo'] as Map?)?['fullName'] ?? 'Người cao tuổi · mã ${row['id']}'},
+];
+
 Future<bool> _can(ApiClient api, String function, String operation) async => (await api.getList(
   '/me/permissions',
 )).any((p) => p is Map && p['function'] == function && p['operation'] == operation);
@@ -40,7 +46,7 @@ class ApiCareTaskPlanningGateway implements CareTaskPlanningGateway {
     final residents = await api.get('/residents');
     return CareTaskPlanningData(
       source: source ?? {},
-      residents: _rows(residents?['items'] as List<dynamic>? ?? []),
+      residents: _residentRows(residents?['items'] as List<dynamic>? ?? []),
       taskTypes: _rows(await api.getList('/task-types')),
       tasks: _rows(await api.getList('/shifts/$shiftId/care-tasks')),
       canCreate: await _can(api, 'SHIFT_TASK_PLANNING', 'CREATE'),
@@ -78,7 +84,7 @@ class ApiDayCareAttendanceGateway implements DayCareAttendanceGateway {
     final residents = await api.get('/residents');
     return DayCareAttendanceData(
       rows: _rows(await api.getList('/day-care-attendances?date=$date')),
-      residents: _rows(residents?['items'] as List<dynamic>? ?? []),
+      residents: _residentRows(residents?['items'] as List<dynamic>? ?? []),
       canCreate: await _can(api, 'DAY_CARE_ATTENDANCE', 'CREATE'),
     );
   }

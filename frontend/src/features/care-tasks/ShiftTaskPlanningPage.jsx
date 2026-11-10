@@ -163,7 +163,18 @@ export function ShiftTaskPlanningPage({ shiftId: initialShiftId }) {
     }
   }
   function update(key, name, value) {
-    setRows((old) => old.map((row) => (row.key === key ? { ...row, [name]: value } : row)))
+    setRows((old) =>
+      old.map((row) => {
+        if (row.key !== key) return row
+        const next = { ...row, [name]: value }
+        if (name === 'residentId' || name === 'locationType') {
+          next.basisId = ''
+          next.performerId = ''
+        }
+        if (name === 'basisType') next.basisId = ''
+        return next
+      }),
+    )
     setSuccess('')
     setRowErrors([])
   }
@@ -208,7 +219,9 @@ export function ShiftTaskPlanningPage({ shiftId: initialShiftId }) {
     }
   }
   if (status === 'ready' && !view) return <PermissionDeniedState label="Lập công việc của ca" />
-  const people = Object.fromEntries(residents.map((r) => [r.id, r.fullName]))
+  const people = Object.fromEntries(
+    residents.map((r) => [r.id, r.personalInfo?.fullName || `Người cao tuổi · mã ${r.id}`]),
+  )
   const typeOptions = Object.fromEntries(types.map((t) => [t.id, t.name]))
   return (
     <div className="flex flex-col gap-6">

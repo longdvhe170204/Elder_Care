@@ -25,7 +25,7 @@ const SOURCE = {
   AD_HOC_RECORDING: 'Ghi nhận phát sinh',
   REWORK: 'Làm lại',
 }
-const CARRY = { FROM_PREVIOUS_SHIFT: 'tồn từ ca trước', AWAITING_HANDOVER_CONFIRMATION: 'tồn, chờ xác nhận' }
+const CARRY = { FROM_PREVIOUS_SHIFT: 'tồn từ ca trước', AWAITING_CONFIRMATION: 'tồn, chờ xác nhận' }
 
 // Adapter dữ liệu thật; không ghép tên loại với danh mục hiện tại để đoán loại kết quả snapshot.
 export function careChecklistView(data) {

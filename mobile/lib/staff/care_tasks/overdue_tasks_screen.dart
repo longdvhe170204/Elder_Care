@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../common/api/api_client.dart';
-import '../../common/format/date_time.dart';
 import '../../common/widgets/page_body.dart';
 import '../../common/widgets/status_pill.dart';
+import 'care_task_context.dart';
 
 typedef OverdueTasksLoader = Future<List<Map<String, dynamic>>> Function(int accountId, int? floorAreaId);
 
-/// T046: transport mảng/shell do A cung cấp; không gắn nguồn fixture vào production.
+/// T046: danh sách quá hạn chỉ đọc, dùng transport chung qua màn chăm sóc.
 class OverdueTasksScreen extends StatefulWidget {
   const OverdueTasksScreen({
     super.key,
@@ -97,22 +97,7 @@ class _OverdueTasksScreenState extends State<OverdueTasksScreen> {
                     const Divider(),
                     Text(task['taskType'] as String? ?? 'Công việc', style: text.titleMedium),
                     const StatusPill(label: 'Quá hạn', tone: StatusTone.urgent),
-                    if (task['residentCard'] case final Map<String, dynamic> card)
-                      Text(card['fullName'] as String? ?? 'Người cao tuổi')
-                    else
-                      Text(task['location'] as String? ?? 'Việc chung của tầng'),
-                    Text(
-                      {'NORMAL': 'Thường', 'IMPORTANT': 'Quan trọng', 'MANDATORY': 'Bắt buộc'}[task['importance']] ??
-                          '',
-                    ),
-                    if (task['plannedAt'] case final String at) Text('Dự kiến: ${formatDateTime(DateTime.parse(at))}'),
-                    if (task['content'] case final String content) Text(content),
-                    if (task['performer'] case final String performer)
-                      Text('Phụ trách: $performer')
-                    else
-                      const Text('Chưa ai nhận'),
-                    if (task['carryover'] == 'FROM_PREVIOUS_SHIFT') const Text('Tồn từ ca trước'),
-                    if (task['carryover'] == 'AWAITING_HANDOVER_CONFIRMATION') const Text('Tồn, chờ xác nhận bàn giao'),
+                    CareTaskContext(task: task),
                     Text('Đã nhắc và báo: ${task['reminderCount'] ?? 0}'),
                   ],
                 ),

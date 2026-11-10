@@ -67,6 +67,47 @@ void main() {
     expect(tester.getTopLeft(find.text('Việc quá hạn')).dy, lessThan(tester.getTopLeft(find.text('Việc đến hạn')).dy));
     expect(find.text('Lựa chọn đã trao đổi'), findsNWidgets(2));
   });
+  testWidgets('FR_030_dayDuNguCanhCongViecKhiChu200PhanTram', (tester) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    gateway.body['tasks'] = [
+      {
+        'id': 1,
+        'taskType': 'Hỗ trợ uống nước',
+        'status': 'OVERDUE',
+        'residentId': 77,
+        'residentCard': {'fullName': 'Người kiểm thử', 'roomBed': 'Phòng A · Giường 1', 'careNotes': 'Ngồi thẳng'},
+        'plannedAt': '2026-11-01T03:00:00Z',
+        'windowFrom': '2026-11-01T02:45:00Z',
+        'windowTo': '2026-11-01T03:15:00Z',
+        'importance': 'IMPORTANT',
+        'basis': {'type': 'CARE_PLAN_ITEM', 'id': 8},
+        'performer': 'Nhân viên kiểm thử',
+        'carryover': 'AWAITING_CONFIRMATION',
+      },
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(2)),
+          child: child!,
+        ),
+        home: CareChecklistScreen(repository: repository, accountId: 1, shiftId: 9),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Phòng A · Giường 1'), findsOneWidget);
+    expect(find.text('Khung giờ: 09:45–10:15'), findsOneWidget);
+    expect(find.text('Dự kiến: 01/11/2026 10:00'), findsOneWidget);
+    expect(find.text('Quan trọng'), findsOneWidget);
+    expect(find.text('Nguồn: Kế hoạch chăm sóc'), findsOneWidget);
+    expect(find.text('Phụ trách: Nhân viên kiểm thử'), findsOneWidget);
+    expect(find.text('Tồn, chờ xác nhận bàn giao'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('FR_034_sleepFormUsesResultCatalogAndStoresMinutesWithQuality', (tester) async {
     gateway.body['tasks'] = [
       {

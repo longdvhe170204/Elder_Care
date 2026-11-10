@@ -4,6 +4,29 @@ import 'package:mobile/staff/care_tasks/care_api_gateways.dart';
 import '../../support/fake_backend.dart';
 
 void main() {
+  test('FR_017_FR_012_adaptersReadResidentNameFromProfilePersonalInfo', () async {
+    final backend = FakeBackend();
+    backend.on('GET', '/residents', 200, {
+      'items': [
+        {
+          'id': 7,
+          'personalInfo': {'fullName': 'Trần An Kiểm'},
+        },
+      ],
+      'nextCursor': null,
+    });
+    backend.on('GET', '/me/permissions', 200, []);
+    backend.on('GET', '/shifts/9/source-data', 200, {});
+    backend.on('GET', '/shifts/9', 200, {'staff': []});
+    backend.on('GET', '/shifts/9/care-tasks', 200, []);
+    backend.on('GET', '/task-types', 200, []);
+    backend.on('GET', '/day-care-attendances', 200, []);
+    final api = backend.client();
+    final planning = await ApiCareTaskPlanningGateway(api).load(9);
+    final attendance = await ApiDayCareAttendanceGateway(api).load('2026-11-10');
+    expect(planning.residents.single['fullName'], 'Trần An Kiểm');
+    expect(attendance.residents.single['fullName'], 'Trần An Kiểm');
+  });
   test('FR_017_adapterSendsArrayAndKeepsRowErrors', () async {
     final backend = FakeBackend();
     final gateway = ApiCareTaskPlanningGateway(backend.client());

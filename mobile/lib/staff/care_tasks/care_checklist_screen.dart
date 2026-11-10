@@ -7,6 +7,7 @@ import '../../common/widgets/page_body.dart';
 import '../../common/widgets/status_pill.dart';
 import 'care_checklist_repository.dart';
 import 'care_result_form.dart';
+import 'care_task_context.dart';
 
 String careCommandKey() {
   final random = Random.secure();
@@ -164,53 +165,56 @@ class _CareChecklistScreenState extends State<CareChecklistScreen> {
             if ((data?['handoverTasks'] as Map?)?['prepareAtEnd'] == true)
               const ListTile(title: Text('Lập bàn giao cuối ca')),
             for (final task in tasks)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StatusPill(
-                        label: _status(task['status'] as String?),
-                        tone: task['status'] == 'OVERDUE' ? StatusTone.urgent : StatusTone.neutral,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Divider(),
+                  Material(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          StatusPill(
+                            label: _status(task['status'] as String?),
+                            tone: task['status'] == 'OVERDUE' ? StatusTone.urgent : StatusTone.neutral,
+                          ),
+                          Text(task['taskType'] as String? ?? '', style: Theme.of(context).textTheme.titleMedium),
+                          if (widget.repository.pendingTaskIds.contains(task['id'])) const Text('Chưa đồng bộ'),
+                          CareTaskContext(task: task),
+                          if (task['awaitingRemeasurementConfirmation'] == true) const Text('Chờ xác nhận đo lại'),
+                          if ((loaded?.offline == false || widget.repository.recorder != null) &&
+                              (task['allowedCommands'] as List? ?? []).contains('record'))
+                            FilledButton(
+                              onPressed: busy || widget.repository.pendingTaskIds.contains(task['id'])
+                                  ? null
+                                  : () => record(task),
+                              child: const Text('Ghi nhận kết quả'),
+                            ),
+                          for (final entry in agreements.where((a) => a['residentId'] == task['residentId']))
+                            for (final agreement in (entry['agreements'] as List? ?? []).map(
+                              (a) => Map<String, dynamic>.from(a as Map),
+                            ))
+                              Text(agreement['choice'] as String? ?? ''),
+                          if (loaded?.offline == false && (task['allowedCommands'] as List? ?? []).contains('claim'))
+                            OutlinedButton(
+                              onPressed: busy ? null : () => claim(task),
+                              child: const Text('Nhận công việc'),
+                            ),
+                          if ((loaded?.offline == false || widget.repository.recorder != null) &&
+                              (task['allowedCommands'] as List? ?? []).contains('notPerform'))
+                            OutlinedButton(
+                              onPressed: busy || widget.repository.pendingTaskIds.contains(task['id'])
+                                  ? null
+                                  : () => notPerform(task),
+                              child: const Text('Không thực hiện được…'),
+                            ),
+                        ],
                       ),
-                      Text(task['taskType'] as String? ?? '', style: Theme.of(context).textTheme.titleMedium),
-                      if (widget.repository.pendingTaskIds.contains(task['id'])) const Text('Chưa đồng bộ'),
-                      Text(
-                        (task['residentCard'] as Map?)?['fullName'] as String? ??
-                            task['location'] as String? ??
-                            'Công việc tầng/khu',
-                      ),
-                      if (task['content'] != null) Text(task['content'] as String),
-                      if (task['awaitingRemeasurementConfirmation'] == true) const Text('Chờ xác nhận đo lại'),
-                      if ((loaded?.offline == false || widget.repository.recorder != null) &&
-                          (task['allowedCommands'] as List? ?? []).contains('record'))
-                        FilledButton(
-                          onPressed: busy || widget.repository.pendingTaskIds.contains(task['id'])
-                              ? null
-                              : () => record(task),
-                          child: const Text('Ghi nhận kết quả'),
-                        ),
-                      for (final entry in agreements.where((a) => a['residentId'] == task['residentId']))
-                        for (final agreement in (entry['agreements'] as List? ?? []).map(
-                          (a) => Map<String, dynamic>.from(a as Map),
-                        ))
-                          Text(agreement['choice'] as String? ?? ''),
-                      if ((task['residentCard'] as Map?)?['careNotes'] != null)
-                        Text((task['residentCard'] as Map)['careNotes'] as String),
-                      if (loaded?.offline == false && (task['allowedCommands'] as List? ?? []).contains('claim'))
-                        OutlinedButton(onPressed: busy ? null : () => claim(task), child: const Text('Nhận công việc')),
-                      if ((loaded?.offline == false || widget.repository.recorder != null) &&
-                          (task['allowedCommands'] as List? ?? []).contains('notPerform'))
-                        OutlinedButton(
-                          onPressed: busy || widget.repository.pendingTaskIds.contains(task['id'])
-                              ? null
-                              : () => notPerform(task),
-                          child: const Text('Không thực hiện được…'),
-                        ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
           ],
         ),
