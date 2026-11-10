@@ -502,7 +502,7 @@ Khởi phát: Trưởng tầng khai báo hoạt động. Luồng gồm ba phần
 | 12 | Trưởng đoàn, Trưởng tầng | Kết thúc điểm danh về | Chuyến: Đang đi → Đã về | spec 014 bảng trạng thái chuyến đi |
 | 13 | Trưởng tầng được giao của tầng (hoặc Người phụ trách ca theo bước 14); Hệ thống | Mỗi ca, lập danh sách kiểm tra chất lượng: tự chọn công việc Hoàn thành, Hoàn thành trễ, đủ ít nhất [5%] (CFG-M04-11); chưa có danh sách tại mốc CFG-M09-04 thì hệ thống nhắc | Danh sách kiểm tra chất lượng | BR-M04-23, Q-163, Q-306, Q-307 |
 | 14 | Trưởng tầng được giao của tầng; Người phụ trách ca của tầng khi Trưởng tầng được giao không có tên trong ca | Ghi Đạt / Không đạt kèm ghi chú trước hết ca. Không đạt thì lập công việc làm lại trong chính ca; không tự đổi trạng thái giường | Tỷ lệ Đạt vào báo cáo chất lượng theo nhân viên (18.2) | BR-M04-23, Q-168, Q-174, Q-254 |
-| 15 | Hệ thống | 00:00 mỗi ngày, xét chuỗi [7] ngày tính không có lượt Có mặt ở hoạt động nhóm | Cảnh báo nhẹ "nguy cơ cô lập" cho Trưởng tầng | BR-M04-22, Q-173, Q-307 |
+| 15 | — | *(Bỏ theo Q-407)* Không còn bước hệ thống xét chuỗi ngày không tham gia hoạt động nhóm; nhân viên tự theo dõi và báo cáo | — | BR-M04-22, Q-407 |
 
 **Nhánh ngoại lệ**
 

@@ -3688,10 +3688,10 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | Tên logic | Mã |
 | --- | --- |
 | `ChuyenDiNhiemVuLenhApi.goNhiemVu(nhanVienId, caId, canCu)` | `care.api.TripDutyCommandApi.removeDuty(staffId, shiftId, basis)` |
-| `HoatDongThongKeApi` (`buoi`, `chuyen`, `kiemTra`, `coLap`); `BuoiThongKeView`, `ChuyenThongKeView`, `KetQuaKiemTraView`, `CoLapView` | `care.api.ActivityStatisticsApi` (`sessions`, `trips`, `qualityChecks`, `isolationRisks`); `SessionStatisticsView`, `TripStatisticsView`, `QualityCheckStatisticsView`, `IsolationRiskView` |
+| `HoatDongThongKeApi` (`buoi`, `chuyen`, `kiemTra`; `coLap` bỏ theo Q-407); `BuoiThongKeView`, `ChuyenThongKeView`, `KetQuaKiemTraView` | `care.api.ActivityStatisticsApi` (`sessions`, `trips`, `qualityChecks`, `isolationRisks`); `SessionStatisticsView`, `TripStatisticsView`, `QualityCheckStatisticsView`, `IsolationRiskView` |
 | `ChuyenDiThayDoi` (`chuyenId`, `loai`, `xeCuaVien`, `roiDuKien`, `veDuKien`, `thoiDiemThucTe`, `khoaSuKien`); loại `LEN_LICH`, `DOI`, `HUY`, `ROI_VIEN_DAU`, `GIA_HAN`, `HUY_ROI_VIEN_CUOI`, `KET_THUC_VE`; `nutrition.api.ChuyenDiDaDoi` | `care.api.events.TripChanged` (`tripId`, `type`, `facilityVehicle`, `plannedDepartureAt`, `plannedReturnAt`, `actualAt`, `eventKey`); `SCHEDULED`, `CHANGED`, `CANCELLED`, `FIRST_DEPARTURE`, `EXTENDED`, `LAST_DEPARTURE_UNDONE`, `RETURN_FINISHED`; 011 nghe `TripChanged` (chủ dự án duyệt) |
 | `YeuCauGhiDienBienCanhBao` (`loaiNguon`, `nguonId`, `maDienBien`, `noiDung`, `khoaSuKien`) | `care.api.events.AlertProgressRequested` (`sourceType`, `sourceId`, `progressCode`, `content`, `eventKey`) |
-| `YeuCauTaoCanhBao` của 014 (`THIEU_NGUOI_KHI_VE`, `NGUY_CO_CO_LAP`) | `care.api.events.AlertRequested` loại `MISSING_ON_RETURN`, `ISOLATION_RISK` |
+| `YeuCauTaoCanhBao` của 014 (`THIEU_NGUOI_KHI_VE`; `NGUY_CO_CO_LAP` bỏ theo Q-407) | `care.api.events.AlertRequested` loại `MISSING_ON_RETURN` |
 | `SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (`DIEM_DANH_HOAT_DONG`) | `care.api.events.ActivityCostSourceBilled`, `ActivityCostSourceChanged` (nguồn `ACTIVITY_ATTENDANCE`; trước 2026-11-07 là `billing.api.events.CostSourceBilled`, `CostSourceChanged`, đổi để gỡ vòng module) |
 | `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc` | `care.api.events.ActivitySessionCancelled`, `ActivitySessionChanged`, `ActivitySessionEnded` (`sessionId`) |
 | loại bảng chung `M04.LOAI_HOAT_DONG`, `M04.NHOM_SO_THICH` (`catalog_item`); `M04.HOAT_DONG`, `M04.MAU_LAP_PHIEN_BAN`, `M04.NGUOI_THUONG_XUYEN` (`simple_record`) | `M04.ACTIVITY_TYPE` (`ActivityTypeAttributes`: `groupActivity`, `offSite`, `interestGroupIds`), `M04.INTEREST_GROUP`; `M04.ACTIVITY` (`Activity`), `M04.TEMPLATE_VERSION` (`TemplateVersion`), `M04.REGULAR_PARTICIPANT` (`RegularParticipant`); trạng thái `ACTIVE`, `INACTIVE`, `ENDED`; hằng ở `care.internal.activity.domain.ActivityKinds` |
@@ -3819,7 +3819,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | Lệnh ghi sở thích từ phản hồi (Q-363, T033) | `care.api.FeedbackPreferenceCommandApi.recordFromFeedback`; `Preference.feedbackId` trong JSON `M04.PREFERENCE`; sự kiện `resident.api.events.OpinionRecordedFromFeedback` |
 | Port ghi sự cố thiếu người; đã tìm thấy, đã trở về | `care.api.spi.TripIncidentPort.recordMissing`, `recordFoundReturned`; bản giả `FakeTripIncidents` |
 | Bắt buộc trực tuyến khi báo thiếu người (FR-046a) | `TripMissingOfflineHandler`, loại `M04.TRIP_MISSING`; `TripMissingOfflineContent` chỉ là tham chiếu chuyến, bộ đồng bộ từ chối trước khi giải nội dung |
-| Ngày tính, cập nhật chuỗi, tỷ lệ tham gia (FR-054–056, FR-070) | `CountingDay.counts`, `IsolationStreak.advance`, `ParticipationRate.calculate` trong `care.internal.wellbeing.domain` |
+| Tỷ lệ tham gia (FR-070; ngày tính, chuỗi FR-054–056 bỏ theo Q-407) | `ParticipationRate` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
 
@@ -3931,7 +3931,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | *(bổ sung 2026-10-27)* `GIUONG.CO_THE_DUNG`, `GIUONG.PHONG_CACH_LY`, `GIUONG.SO_NGUOI`, `GIUONG.TRONG_CHO_CHUYEN`, `GIUONG.CHO_SAN_SANG_DAI_NHAT`, `GIUONG.CHO_SAN_SANG_VUOT_HAN` | `BED.USABLE`, `BED.ISOLATED_ROOMS`, `BED.OCCUPANTS`, `BED.EMPTY_AWAITING_TRANSFER`, `BED.AWAITING_READY_MAX`, `BED.AWAITING_READY_OVERDUE` |
 | `CV.HOM_NAY`, `CV.QUA_HAN`, `CV.THEO_TRANG_THAI`, `CV.TY_LE_DUNG_HAN_BAT_BUOC`, `CV.GHI_NHAN_MUON`, `CV.THEO_NHAN_VIEN` | `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` |
 | `BUA.PHIEU_TRE`, `BUA.PHIEU_SAI_LECH` | `MEAL.LATE_TICKETS`, `MEAL.DISCREPANCY_TICKETS` |
-| `HD.BUOI`, `HD.TY_LE_THAM_GIA`, `HD.CHUYEN_QUA_GIO`, `HD.THIEU_NGUOI`, `HD.CO_LAP` | `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS`, `ACT.ISOLATION_RISK` |
+| `HD.BUOI`, `HD.TY_LE_THAM_GIA`, `HD.CHUYEN_QUA_GIO`, `HD.THIEU_NGUOI` (`HD.CO_LAP` bỏ theo Q-407) | `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS` |
 | `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | `QC.PASS_RATE`, `QC.BY_CHECKER_ROLE` |
 | `SK.CHI_SO`; `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG`, `SK.CANH_BAO_SOS_HO_TRO` | `HEALTH.VITAL_SIGNS`; `HEALTH.ALERTS`, `HEALTH.ALERT_RESPONSE_TIME`, `HEALTH.ALERT_ESCALATIONS`, `HEALTH.SOS_ASSISTANCE_ALERTS` |
 | `SK.SU_CO`, `SK.SU_CO_LEO_THANG`, `SK.SU_CO_THOI_GIAN_TIEP_NHAN`, `SK.THEO_DOI`, `SK.SU_CO_KHONG_THUOC_SK` | `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS` |

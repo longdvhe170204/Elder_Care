@@ -64,7 +64,10 @@ public enum ParameterCode {
     CFG_M04_06,
     /** Quá giờ về của hoạt động ngoài viện (mặc định: 30 phút) */
     CFG_M04_07,
-    /** Số ngày không tham gia hoạt động nhóm để cảnh báo cô lập (mặc định: 7 ngày) */
+    /**
+     * Số ngày không tham gia hoạt động nhóm để cảnh báo cô lập (mặc định: 7 ngày). Không dùng theo Q-407 (2026-11-10, bỏ
+     * BR-M04-22); giữ mã vì tham số đã nạp ở V000_04.
+     */
     CFG_M04_10,
     /** Tỷ lệ tối thiểu công việc người kiểm tra chọn để kiểm tra chất lượng (mặc định: 5% mỗi ca) */
     CFG_M04_11,

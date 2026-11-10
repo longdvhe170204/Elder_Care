@@ -174,7 +174,7 @@ Mỗi sự kiện mang khóa `loại + id + mốc` (NFR-04) và, với sự ki�
 ```java
 record YeuCauTaoCanhBao(long nctId, String loai, MucCanhBao muc, String loaiNguon, long nguonId,
                         Optional<String> khoaDoiTuong, Instant thoiDiem, String khoaSuKien) {}
-    // 011 (xung đột dị ứng chế độ ăn, thực đơn; phục vụ suất dị ứng bị chặn), 014 (thiếu người khi về: KHAN_CAP; nguy cơ cô lập)
+    // 011 (xung đột dị ứng chế độ ăn, thực đơn; phục vụ suất dị ứng bị chặn), 014 (thiếu người khi về: KHAN_CAP; nguy cơ cô lập bỏ theo Q-407)
 record YeuCauDongCanhBaoNguon(String loaiNguon, long nguonId, String lyDo, String khoaSuKien) {}   // FR-032
 record YeuCauGhiDienBienCanhBao(String loaiNguon, long nguonId, String maDienBien, String noiDung, String khoaSuKien) {}
     // bổ sung theo plan 014 (research L-11): ghi diễn biến vào cảnh báo đang mở của nguồn, không đổi trạng thái, không đóng;

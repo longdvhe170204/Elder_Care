@@ -141,11 +141,6 @@ public class ActivityStatistics implements ActivityStatisticsApi {
                 : text(row.get("status"));
     }
 
-    @Override
-    public Stream<IsolationRiskView> isolationRisks() {
-        return Stream.empty();
-    }
-
     private static String text(Object value) {
         return value == null ? null : value.toString();
     }

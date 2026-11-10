@@ -111,6 +111,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 4
 
 - [ ] T016 [US4] *(2026-11-08, A: xong `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` (005), `MEAL.LATE_TICKETS`, `MEAL.DISCREPANCY_TICKETS` (011), `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS`, `QC.PASS_RATE`, `QC.BY_CHECKER_ROLE` (014) trên nguồn thật; màn web dùng bảng chung, thêm nhãn ô; còn `ACT.ISOLATION_RISK` (bản cài `isolationRisks` của 014 còn trả rỗng), nhãn ghi nhận muộn của điểm danh hoạt động, xem plan)* *(2026-10-27: xong `BED.AWAITING_READY`, `_MAX`, `_OVERDUE`; nhóm khác chờ nguồn)* Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `frontend/src/tinh-nang/bao-cao/cham-soc/`, `frontend/src/tinh-nang/bao-cao/chat-luong/`
+  - *(2026-11-10, A, Q-407)* `ACT.ISOLATION_RISK` bỏ (FR-036 bỏ): không còn cài chỉ tiêu này.
 
 ---
 
