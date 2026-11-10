@@ -297,6 +297,30 @@ public class ActivitySessionStore {
                 local(from));
     }
 
+    /** 014 FR-068 (cổng người thân): đăng ký chưa hủy của người cao tuổi ở buổi chưa hủy bắt đầu trong [from, to). */
+    public List<Registration> registrationsStartingIn(long residentId, Instant from, Instant to) {
+        return jdbc.query(
+                "SELECT r.* FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
+                        + " WHERE r.resident_id=? AND r.status<>'CANCELLED' AND s.status<>'CANCELLED'"
+                        + " AND s.starts_at>=? AND s.starts_at<? ORDER BY s.starts_at, r.id",
+                ActivitySessionStore::registration,
+                residentId,
+                local(from),
+                local(to));
+    }
+
+    /** 014 FR-068: số buổi người cao tuổi đã tham gia (đăng ký Đã tham gia) bắt đầu trong [from, to). */
+    public int attendedCount(long residentId, Instant from, Instant to) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM activity_registration r JOIN activity_session s ON s.id=r.session_id"
+                        + " WHERE r.resident_id=? AND r.status='ATTENDED' AND s.starts_at>=? AND s.starts_at<?",
+                Integer.class,
+                residentId,
+                local(from),
+                local(to));
+        return count == null ? 0 : count;
+    }
+
     /** Đăng ký chưa hủy của người cao tuổi ở buổi, khóa dòng. */
     public Optional<Registration> activeRegistration(long sessionId, long residentId) {
         return activeRegistration(sessionId, residentId, true);

@@ -254,8 +254,11 @@ paths:
       tags: [family-portal]
       summary: Buổi đã đăng ký, chuyến đi, số buổi đã tham gia (loại "chung"); không có mức tham gia, cảnh báo, kết quả kiểm tra
       x-fr: [FR-068]
-      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
+      parameters:
+        - { $ref: '#/components/parameters/ResidentId' }
+        - { name: from, in: query, schema: { type: string, format: date }, description: 'Mặc định 30 ngày trước hôm nay' }
+        - { name: to, in: query, schema: { type: string, format: date }, description: 'Mặc định 30 ngày sau hôm nay; tính cả ngày to' }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyActivities' } } } }, '403': { $ref: '#/components/responses/Problem' } }
   /family-portal/late-return-consents:
     post:
       tags: [family-portal]
@@ -292,6 +295,15 @@ components:
       description: 'STATE_CHANGED, SESSION_ALREADY_EXISTS, AFTER_TEMPLATE_END_DATE, CAPACITY_FULL, ISOLATION_ACTIVE, RESIDENT_STATUS_INVALID, SESSION_ALREADY_STARTED, TIME_OVERLAP, OUTSIDE_DAY_CARE_SCHEDULE, LATE_RETURN_CONSENT_REQUIRED, INFECTION_SUSPECTED, WARNING_ACKNOWLEDGEMENT_REQUIRED, NOT_YET_STARTED, REGISTRATIONS_WITHOUT_RESULT, ATTENDANCE_ALREADY_RECORDED, TRIP_LEADER_REQUIRED, ROLE_NOT_ELIGIBLE, NOT_ON_SHIFT, ELIGIBILITY_NOT_PASSED, MEDICATION_NOT_HANDLED, VEHICLE_SCHEDULE_REQUIRED, VEHICLE_ALREADY_SCHEDULED, DEPARTURE_TOO_EARLY, MISSING_INCIDENT_ALREADY_RECORDED, REQUIRES_ONLINE, SAMPLE_RATIO_NOT_MET, CHECKLIST_ALREADY_EXISTS, TASK_NOT_ELIGIBLE, REWORK_TASK_REQUIRED, SELF_CHECK_NOT_ALLOWED, OUTSIDE_SHIFT_TIME, PREFERENCE_REPLACEMENT_CONFIRMATION_REQUIRED'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
+    FamilyActivities:
+      type: object
+      description: 'Hoạt động trên cổng người thân, loại thông tin chung (FR-068; bổ sung 2026-11-10, chủ dự án duyệt): không có mức tham gia, cảnh báo, kết quả kiểm tra'
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        registeredSessions: { type: array, items: { type: object, properties: { sessionId: { type: integer, format: int64 }, activityName: { type: string }, startsAt: { type: string, format: date-time }, endsAt: { type: string, format: date-time }, registrationStatus: { type: string, enum: [REGISTERED, ATTENDED] }, lateReturnConsentEligible: { type: boolean, description: 'Buổi còn ghi được đồng ý về muộn (FR-016a)' }, activeLateReturnConsentId: { type: [integer, 'null'], format: int64, description: 'Bản đồng ý Hiệu lực để rút' } } } }
+        trips: { type: array, items: { type: object, properties: { sessionId: { type: integer, format: int64 }, destination: { type: string }, departureAt: { type: string, format: date-time }, expectedReturnAt: { type: string, format: date-time }, status: { type: string, enum: [SCHEDULED, IN_PROGRESS, RETURNED, CANCELLED] } } } }
+        attendedSessionCount: { type: integer, description: 'Số buổi đã tham gia có giờ bắt đầu trong khoảng' }
     TripDetail:
       type: object
       properties:

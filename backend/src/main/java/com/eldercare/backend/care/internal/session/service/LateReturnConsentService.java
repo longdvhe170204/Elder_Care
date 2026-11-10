@@ -221,6 +221,26 @@ public class LateReturnConsentService implements CareMinuteWork {
                 hasConsent);
     }
 
+    /** 014 FR-068, FR-016a (cổng người thân): buổi còn ghi được đồng ý về muộn và mã bản đồng ý Hiệu lực nếu có. */
+    PortalConsent portalConsent(Session session, long residentId) {
+        boolean beforeStart = Session.SCHEDULED.equals(session.status())
+                && (session.tripStatus() == null || "SCHEDULED".equals(session.tripStatus()))
+                && times(session).startsAt().isAfter(time.now());
+        var schedule = beforeStart ? registrationSchedule(session, residentId, false) : null;
+        boolean eligible = schedule != null
+                && schedule.arrival() != null
+                && schedule.departure() != null
+                && !schedule.sessionStart().isBefore(schedule.arrival())
+                && schedule.sessionEnd().isAfter(schedule.departure());
+        Long active = records.findByUniqueKey(CONSENTS, key(session.id(), residentId))
+                .filter(row -> ACTIVE.equals(row.status()))
+                .map(row -> row.id())
+                .orElse(null);
+        return new PortalConsent(eligible, active);
+    }
+
+    record PortalConsent(boolean eligible, Long activeConsentId) {}
+
     boolean hasActiveConsent(Session session, long residentId) {
         var times = times(session);
         return records.findByUniqueKey(CONSENTS, key(session.id(), residentId))
