@@ -81,33 +81,59 @@ public final class RealCareFixture {
      * Đang hiệu lực từ {@code since}.
      */
     public long residentInBed(Place place, Instant since) {
+        long resident = resident("IN_RESIDENCE", "LONG_TERM_RESIDENTIAL", since);
+        jdbc.update(
+                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source)"
+                        + " VALUES(?,?,'ACTIVE',?,'BASIC','CURRENT')",
+                resident,
+                place.bed(),
+                Timestamp.from(since));
+        return resident;
+    }
+
+    /** Giường Trống mới trong phòng của {@code place}. */
+    public long emptyBed(Place place) {
+        long bed = TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,?)", bed, place.room(), "T" + bed);
+        return bed;
+    }
+
+    /**
+     * Người cao tuổi ở {@code status} (5.5), mức Chăm sóc cơ bản, hợp đồng Hiệu lực loại {@code residenceType} từ
+     * {@code since} (có phiên bản nội dung như hợp đồng đã ký của 004), chưa có giường.
+     */
+    public long resident(String status, String residenceType, Instant since) {
         String code = UUID.randomUUID().toString().substring(0, 20);
         jdbc.update(
                 "INSERT INTO resident (profile_code, full_name, date_of_birth, gender, status, status_since,"
                         + " current_care_level, created_at, created_by) VALUES (?, ?, '1940-05-01', 'FEMALE',"
-                        + " 'IN_RESIDENCE', ?, 'BASIC', NOW(6), 1)",
+                        + " ?, ?, 'BASIC', NOW(6), 1)",
                 code,
                 "[Người cao tuổi thật " + code.substring(0, 6) + "]",
+                status,
                 Timestamp.from(since));
         long resident = jdbc.queryForObject("SELECT id FROM resident WHERE profile_code = ?", Long.class, code);
-        ResidentHistoryRows.insertStatus(
-                jdbc,
-                null,
-                resident,
-                "ADMISSION_IN_PROGRESS",
-                "IN_RESIDENCE",
-                "SEED",
-                Timestamp.from(since),
-                1L,
-                true,
-                null);
+        if (!status.equals("ADMISSION_IN_PROGRESS"))
+            ResidentHistoryRows.insertStatus(
+                    jdbc,
+                    null,
+                    resident,
+                    "ADMISSION_IN_PROGRESS",
+                    status,
+                    "SEED",
+                    Timestamp.from(since),
+                    1L,
+                    true,
+                    null);
         LocalDate start = LocalDate.ofInstant(since, BusinessTime.ZONE);
         long contract = insert(
-                "INSERT INTO contract (resident_id, residence_type, start_date, care_level, residency_fee_billing_period,"
-                        + " status, signed_date, signing_representative_id, scan_file_id, created_by, created_at)"
-                        + " VALUES (?, 'LONG_TERM_RESIDENTIAL', ?, 'BASIC', 'MONTH', 'ACTIVE', ?, 1, 1, 1, ?)",
+                "INSERT INTO contract (resident_id, residence_type, start_date, end_date, care_level,"
+                        + " residency_fee_billing_period, status, signed_date, signing_representative_id, scan_file_id,"
+                        + " created_by, created_at) VALUES (?, ?, ?, ?, 'BASIC', 'MONTH', 'ACTIVE', ?, 1, 1, 1, ?)",
                 resident,
+                residenceType,
                 start,
+                residenceType.equals("SHORT_TERM_RESIDENTIAL") ? start.plusDays(400) : null,
                 start,
                 LocalDateTime.now());
         jdbc.update(
@@ -120,18 +146,13 @@ public final class RealCareFixture {
                 contract);
         jdbc.update(
                 "INSERT INTO contract_version (kind, contract_id, sequence_no, effective_from, content, residence_type,"
-                        + " care_level, created_at, locked_at) VALUES ('CONTENT', ?, 1, ?, ?, 'LONG_TERM_RESIDENTIAL', 'BASIC',"
+                        + " care_level, created_at, locked_at) VALUES ('CONTENT', ?, 1, ?, ?, ?, 'BASIC',"
                         + " UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))",
                 contract,
                 start,
-                "{\"residenceType\":\"LONG_TERM_RESIDENTIAL\",\"careLevel\":\"BASIC\",\"startDate\":\"" + start
-                        + "\",\"services\":[],\"arrivalSchedule\":[]}");
-        jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source)"
-                        + " VALUES(?,?,'ACTIVE',?,'BASIC','CURRENT')",
-                resident,
-                place.bed(),
-                Timestamp.from(since));
+                "{\"residenceType\":\"" + residenceType + "\",\"careLevel\":\"BASIC\",\"startDate\":\"" + start
+                        + "\",\"services\":[],\"arrivalSchedule\":[]}",
+                residenceType);
         return resident;
     }
 

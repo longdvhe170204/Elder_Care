@@ -21,10 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @org.springframework.test.context.event.RecordApplicationEvents
 @org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-@Import({
-    CostWorkflowIT.Users.class,
-    com.eldercare.backend.support.fake.administration.FakeFamilyRelationshipsConfig.class
-})
+@Import(CostWorkflowIT.Users.class)
 class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
     @Autowired
     PurchaseAssistanceService service;
@@ -71,8 +68,17 @@ class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
     @MockitoSpyBean
     com.eldercare.backend.notification.api.spi.FamilyNotificationPort familyNotifications;
 
+    /** 010 T033 (2026-11-11): quan hệ người thân, người đại diện thật của 012 thay bản giả của 002. */
     @Autowired
-    com.eldercare.backend.support.fake.administration.FakeFamilyRelationships relationships;
+    com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore relationshipHistory;
+
+    @Autowired
+    org.springframework.transaction.support.TransactionTemplate transactions;
+
+    private com.eldercare.backend.family.RelationshipFixtures relationships() {
+        return new com.eldercare.backend.family.RelationshipFixtures(
+                jdbc, transactions, relationshipHistory, time.now().minus(java.time.Duration.ofDays(10)));
+    }
 
     @Autowired
     com.eldercare.backend.billing.internal.purchase.service.PurchaseReceiptPermission receiptPermission;
@@ -217,29 +223,29 @@ class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_023a_onlySnapshottedStillActiveRepresentativeCanDecide() {
-        long member = TestUsers.nextId();
+        var family = relationships();
+        long member = family.familyMember("Người đại diện " + TestUsers.nextId(), "0902000001");
         var user = new TestUsers(jdbc, time).family(member);
-        relationships.representative(relationships.relate(member, resident));
-        doReturn(true).when(representatives).isActiveRepresentative(member, resident, time.today());
-        doReturn(java.util.List.of(new com.eldercare.backend.notification.api.spi.NotifiableRelationshipView(
-                        member,
-                        false,
-                        true,
-                        java.util.Set.of(),
-                        java.util.Optional.of(user.accountId()),
-                        true,
-                        java.util.Optional.empty())))
-                .when(familyNotifications)
-                .activeRelationships(resident);
+        long relationship = family.relate(member, resident, 1, true, false);
         long id = create(800000);
         service.send(id);
         current.set(user.user());
         assertThat(service.list(resident, null)).hasSize(1);
-        doReturn(false).when(representatives).isActiveRepresentative(member, resident, time.today());
+        // Thôi là người đại diện (vẫn là người thân): không còn quyết định được.
+        family.record(
+                relationship,
+                com.eldercare.backend.family.internal.relationship.domain.RelationshipAttribute.REPRESENTATIVE,
+                false,
+                time.now());
         assertThatThrownBy(() -> service.agree(id, service.target(id)))
                 .isInstanceOf(com.eldercare.backend.common.error.PermissionDeniedException.class);
         assertThat(service.list(resident, null)).isEmpty();
-        doReturn(true).when(representatives).isActiveRepresentative(member, resident, time.today());
+        // Lại là người đại diện Hiệu lực, vẫn trong danh sách chụp lúc gửi: quyết định được.
+        family.record(
+                relationship,
+                com.eldercare.backend.family.internal.relationship.domain.RelationshipAttribute.REPRESENTATIVE,
+                true,
+                time.now());
         service.agree(id, service.target(id));
         assertThat(records.require(PurchaseDetails.KIND, id).status()).isEqualTo("PURCHASE_ALLOWED");
     }
@@ -308,25 +314,11 @@ class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
     @Test
     void FR_023_twoRepresentativesRaceOnlyOneDecisionCommits() throws Exception {
         var users = new TestUsers(jdbc, time);
-        var first = users.family(TestUsers.nextId());
-        var second = users.family(TestUsers.nextId());
-        for (var user : java.util.List.of(first, second)) {
-            long member = user.user().familyMemberId().orElseThrow();
-            relationships.representative(relationships.relate(member, resident));
-            doReturn(true).when(representatives).isActiveRepresentative(member, resident, time.today());
-        }
-        doReturn(java.util.List.of(first, second).stream()
-                        .map(user -> new com.eldercare.backend.notification.api.spi.NotifiableRelationshipView(
-                                user.user().familyMemberId().orElseThrow(),
-                                false,
-                                true,
-                                java.util.Set.of(),
-                                java.util.Optional.of(user.accountId()),
-                                true,
-                                java.util.Optional.<String>empty()))
-                        .toList())
-                .when(familyNotifications)
-                .activeRelationships(resident);
+        var family = relationships();
+        var first = users.family(family.familyMember("Đại diện A " + TestUsers.nextId(), "0902000002"));
+        var second = users.family(family.familyMember("Đại diện B " + TestUsers.nextId(), "0902000003"));
+        for (var user : java.util.List.of(first, second))
+            family.relate(user.user().familyMemberId().orElseThrow(), resident, 1, true, false);
         long id = create(800000);
         service.send(id);
         var target = service.target(id);
