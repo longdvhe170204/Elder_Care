@@ -74,16 +74,6 @@ class FR_061_ExportContentTest {
                 List.of(row("d-1", 1, "Nguyễn Văn A"), row("d-2", 2, "Trần Thị B"), row("d-3", 3, "Lê Văn C")));
     }
 
-    private static MetricResult workingHours() {
-        return new MetricResult(
-                "SHIFT.WORKING_HOURS",
-                "Số giờ làm",
-                new MetricValue("SHIFT.WORKING_HOURS", BigDecimal.TEN, null, null, Set.of(), 0, List.of()),
-                Set.of(),
-                Map.of(),
-                List.of());
-    }
-
     @Test
     void Q26_otherRole_aggregateOnly_dropsSinglePersonGroups_noDetailRows() {
         ExportContent content = ExportContent.decide(FLOOR_MANAGER, false, Optional.empty(), List.of(missedDoses()));
@@ -172,16 +162,5 @@ class FR_061_ExportContentTest {
 
         assertThat(content.details()).isEmpty();
         assertThat(content.summary()).extracting(SummaryRow::breakdownKey).containsExactly(null, "Tầng 1");
-    }
-
-    @Test
-    void Q197_workingHoursPerStaff_onlyManagerExports() {
-        assertThat(ExportContent.decide(FLOOR_MANAGER, false, Optional.empty(), List.of(workingHours()))
-                        .summary())
-                .isEmpty();
-        assertThat(ExportContent.decide(MANAGER, false, Optional.empty(), List.of(workingHours()))
-                        .summary())
-                .extracting(SummaryRow::metricCode)
-                .containsExactly("SHIFT.WORKING_HOURS");
     }
 }

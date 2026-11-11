@@ -63,10 +63,12 @@ import { BelongingsPage } from '@/features/belongings/BelongingsPage'
 import { ProcurementRequestsPage } from '@/features/inventory/ProcurementRequestsPage'
 import { AssetsPage } from '@/features/inventory/AssetsPage'
 import { VehicleSchedulesPage } from '@/features/inventory/VehicleSchedulesPage'
+import { SuppliedMedicationIntakePage } from '@/features/medication/SuppliedMedicationIntakePage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
   procurement: ProcurementRequestsPage,
+  'medication-receipt': SuppliedMedicationIntakePage,
   assets: AssetsPage,
   vehicles: VehicleSchedulesPage,
   charges: ChargesPage,

@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Nguồn thật cho adapter 006/008; dùng trạng thái tham gia thay trạng thái đăng ký chung. */
 @Service
 @Transactional(readOnly = true)
-public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi, ResidentTripReadApi {
+public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi, ResidentTripReadApi, TripMealReadApi {
     private final ActivityTripStore trips;
     private final TripPreparationService preparation;
 
@@ -41,6 +41,22 @@ public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi, 
                     return new ResidentOngoingTripView(
                             t.id(), Optional.ofNullable(duties.leaderId()), duties.companionIds());
                 });
+    }
+
+    @Override
+    public List<TripMealOverlapView> overlappingMealTime(Instant mealTime) {
+        return trips.active().stream()
+                .filter(t -> !t.plan().plannedDepartureAt().isAfter(mealTime)
+                        && t.plan().plannedReturnAt().isAfter(mealTime))
+                .map(t -> new TripMealOverlapView(
+                        t.id(),
+                        trips.participants(t.id()).stream()
+                                .filter(p -> Set.of("ELIGIBLE", "DEPARTED").contains(p.status()))
+                                .map(p -> p.residentId())
+                                .toList(),
+                        t.plan().plannedDepartureAt(),
+                        t.plan().plannedReturnAt()))
+                .toList();
     }
 
     @Override
