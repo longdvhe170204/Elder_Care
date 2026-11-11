@@ -2,10 +2,13 @@ package com.eldercare.backend.billing.internal.source.service;
 
 import com.eldercare.backend.billing.api.events.CostSourceBilled;
 import com.eldercare.backend.billing.internal.source.domain.IndexedBillingSource;
+import com.eldercare.backend.care.api.dto.AttendanceStatus;
 import com.eldercare.backend.care.api.events.ActivityCostSourceBilled;
+import com.eldercare.backend.care.api.events.AttendanceDetermined;
 import com.eldercare.backend.care.api.events.BillableCareResultRecorded;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.events.MedicationBilledEvent;
+import java.math.BigDecimal;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
@@ -79,7 +82,28 @@ class BillingSourceEvents {
                         event.occurredAt(),
                         null,
                         event.medicationId(),
-                        event.quantity()),
+                        event.quantity(),
+                        event.usageUnit()),
                 "M06.BILLED:" + event.source().name() + ":" + event.sourceId());
+    }
+
+    /** FR-005b (a): buổi bán trú phát sinh ngoài lịch; buổi có lịch tính từ 004 lúc tra cứu, không vào chỉ mục. */
+    @ApplicationModuleListener
+    void onAttendanceDetermined(AttendanceDetermined event) {
+        if (!event.adHocSession()
+                || (event.status() != AttendanceStatus.PRESENT && event.status() != AttendanceStatus.LEFT)) return;
+        var c = event.context();
+        index.record(
+                new IndexedBillingSource(
+                        "DAY_CARE_SESSION",
+                        event.residentId() + ":" + event.date() + ":AD_HOC",
+                        DayCareBillingSources.UNIT,
+                        event.residentId(),
+                        event.date(),
+                        c.occurredAt(),
+                        null,
+                        null,
+                        BigDecimal.ONE),
+                "M04.AD_HOC:" + c.sourceType() + ":" + c.sourceId());
     }
 }

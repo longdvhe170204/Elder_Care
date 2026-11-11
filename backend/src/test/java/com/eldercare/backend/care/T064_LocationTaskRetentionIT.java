@@ -75,7 +75,7 @@ class T064_LocationTaskRetentionIT extends MySqlIntegrationTestBase {
                         + " floor_area_id, planned_at, window_from, window_to, importance, performer_role, status, data,"
                         + " closed_at, result_type, result_performed_at, result_recorded_at, result_recorded_by,"
                         + " result_permission_basis, result_values, created_by, created_at)"
-                        + " VALUES (?, ?, ?, ?, 1, 'AD_HOC', 1, 1, ?, ?, ?, 'NORMAL', 'CAREGIVER', ?, '{}', ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                        + " VALUES (?, ?, ?, ?, 1, 'AD_HOC', 1, 1, ?, ?, ?, 'NORMAL', 'CAREGIVER', ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
                 id,
                 residentId,
                 locationId == null ? null : "ROOM",
@@ -84,6 +84,9 @@ class T064_LocationTaskRetentionIT extends MySqlIntegrationTestBase {
                 "2010-01-04 09:45:00",
                 "2010-01-04 10:15:00",
                 withResult ? "COMPLETED" : "CANCELLED",
+                // Nội dung đủ như công việc thật: dòng này nằm lại tới khi job loại bỏ chạy, chỉ tiêu 016 đọc toàn bảng
+                // (016 T111)
+                "{\"publicTaskTypeId\":1,\"taskTypeName\":\"[Kiểm thử lưu giữ]\",\"content\":\"Kiểm thử\",\"resultType\":\"DONE\",\"billable\":false,\"certificates\":[]}",
                 OLD,
                 withResult ? "DONE" : null,
                 withResult ? OLD : null,

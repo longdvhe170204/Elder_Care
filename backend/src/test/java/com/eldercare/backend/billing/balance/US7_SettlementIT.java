@@ -89,6 +89,7 @@ class US7_SettlementIT extends BalanceTestBase {
         long a = sentForSignature(TestUsers.nextId(), 20_000_000L);
         long p = TestUsers.nextId();
         representatives.representative(a, p);
+        relationships.name(p, "[Người đại diện kiểm thử]");
         cash(a, "DEPOSIT", 20_000_000);
         cash(a, "BALANCE", 4_000_000);
         finalPeriods.condition(a, new FinalPeriodConditionView(false, List.of("Bảng kỳ cuối chưa chốt")));
@@ -157,6 +158,7 @@ class US7_SettlementIT extends BalanceTestBase {
         byte[] first = download(v1);
         String text = DocumentReaders.pdfText(first);
         assertThat(text)
+                .contains("Người đại diện: [Người đại diện kiểm thử]")
                 .contains("Phiên bản 1", "Tổng bảng kỳ cuối: 9.000.000", "Số dư trước quyết toán: 4.000.000")
                 .contains("Tiền cọc đã thu: 20.000.000", "đã cấn trừ: 5.000.000", "đã hoàn: 15.000.000")
                 .contains("Chứng từ này không thay thế hóa đơn")

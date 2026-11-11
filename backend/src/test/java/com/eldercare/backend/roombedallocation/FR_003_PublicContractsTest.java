@@ -45,7 +45,7 @@ class FR_003_PublicContractsTest {
                 "BedStatusApi",
                 6,
                 "BedStatisticsApi",
-                3,
+                4,
                 "BedHandoverAlertApi",
                 1);
         for (var contract : contracts.entrySet()) {

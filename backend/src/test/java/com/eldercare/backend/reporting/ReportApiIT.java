@@ -118,4 +118,37 @@ class ReportApiIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(VALUE + ".value").value(contains(2)));
     }
+
+    /** FR-051 (T020): chế độ tạm tính gắn nhãn "tạm tính, chưa chốt" cho chỉ tiêu chi phí; mặc định đã chốt không gắn. */
+    @Test
+    void FR_051_provisionalModeLabelsCostMetrics() throws Exception {
+        String summary = "$.values[?(@.metricCode == 'COST.SUMMARY')]";
+        perform(manager, lastWeek("/api/v1/reports/INCURRED_COSTS").param("costMode", "PROVISIONAL"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(summary + ".labels[*]").value(hasItem("PROVISIONAL")));
+        perform(manager, lastWeek("/api/v1/reports/INCURRED_COSTS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(summary + ".labels[*]").value(org.hamcrest.Matchers.not(hasItem("PROVISIONAL"))));
+    }
+
+    /**
+     * 016 T109 (FR-007): khoảng báo cáo giao với dữ liệu đã loại bỏ theo bản tóm tắt EXPIRED_DATA_PURGED thì chỉ tiêu đọc
+     * loại dữ liệu đó mang nhãn và tên loại. Mốc năm 2001 để không ảnh hưởng báo cáo của test khác (audit_log giữ lại).
+     */
+    @Test
+    void FR_007_purgedRangeOverlapsPeriod_labelsMetricWithDataType() throws Exception {
+        jdbc.update(
+                "INSERT INTO audit_log (occurred_at, actor_type, action, entity_type, entity_id, details, exempt_from_purge)"
+                        + " VALUES (?, 'SCHEDULER', 'EXPIRED_DATA_PURGED', 'M15.PURGE_RUN', ?, ?, 1)",
+                java.time.LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE),
+                "run-" + UUID.randomUUID(),
+                "{\"deleted\":{\"M07.TEST_DOSE\":{\"count\":2,\"from\":\"2001-01-01T00:00:00Z\",\"to\":\"2001-03-01T00:00:00Z\"}}}");
+        perform(manager, get(REPORT).param("from", "2001-02-01").param("to", "2001-02-28"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(VALUE + ".labels[*]").value(hasItem("PURGED_BY_RETENTION")))
+                .andExpect(jsonPath(VALUE + ".purgedDataTypes[*]").value(hasItem("M07.TEST_DOSE")));
+        perform(manager, get(REPORT).param("from", "2001-04-01").param("to", "2001-04-30"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(VALUE + ".purgedDataTypes[*]").isEmpty());
+    }
 }

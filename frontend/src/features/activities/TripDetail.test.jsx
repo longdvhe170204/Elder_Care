@@ -300,3 +300,37 @@ it('FR_047_ketThucDiemDanhVeNeuNguoiSeThanhThieuKhiVe', async () => {
   await screen.findByText('Đã kết thúc điểm danh về')
   expect(api.calls('POST', '/trips/41/finish-return')).toHaveLength(1)
 })
+
+it('FR_039_nguoiThamGia_sauPhanThongTin_theoQuyenVaNguon', async () => {
+  api.on(
+    'GET',
+    '/trips/41',
+    json(200, {
+      ...TRIP,
+      participants: [
+        {
+          ...TRIP.participants[0],
+          info: {
+            medicationDoses: {
+              availability: 'AVAILABLE',
+              items: [{ doseKey: 'd1', medicationName: 'Amlodipin', strength: '5 mg', scheduledTime: '2026-11-05T02:00:00Z', status: 'UPCOMING' }],
+            },
+            carriedMedication: { availability: 'NO_DATA' },
+            health: { availability: 'NOT_PERMITTED' },
+            careNotes: { availability: 'AVAILABLE', text: 'Đi chậm, cần người dìu' },
+            primaryContact: { availability: 'AVAILABLE', fullName: 'Nguyễn Văn Nam', phoneNumber: '0900000000' },
+            emergencyCard: { availability: 'SOURCE_UNAVAILABLE' },
+          },
+        },
+      ],
+    }),
+  )
+  await open()
+  const info = screen.getByRole('region', { name: 'Thông tin cho chuyến của Nguyễn Thị Lan' })
+  expect(within(info).getByText('Amlodipin 5 mg, 09:00')).toBeInTheDocument()
+  expect(within(info).getByText('Chưa giao thuốc mang theo')).toBeInTheDocument()
+  expect(within(info).getByText('Không có quyền xem')).toBeInTheDocument()
+  expect(within(info).getByText('Đi chậm, cần người dìu')).toBeInTheDocument()
+  expect(within(info).getByText('Nguyễn Văn Nam, 0900000000')).toBeInTheDocument()
+  expect(within(info).getByText('Chưa lấy được dữ liệu từ nguồn')).toBeInTheDocument()
+})

@@ -242,6 +242,38 @@ class CostWorkflowIT extends MySqlIntegrationTestBase {
         assertThat(status("cost_item", id)).isEqualTo("DRAFT");
     }
 
+    private List<com.eldercare.backend.common.notification.NotificationRequest> notices(String type) {
+        return events.stream(com.eldercare.backend.billing.internal.period.domain.CostNotificationEvent.class)
+                .flatMap(e -> e.notificationRequests().stream())
+                .filter(n -> n.eventType().equals(type))
+                .toList();
+    }
+
+    private void notifiedOnce(String type, Role role) {
+        assertThat(notices(type)).singleElement().satisfies(n -> {
+            assertThat(n.recipientGroups())
+                    .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(role));
+            assertThat(n.level()).contains(com.eldercare.backend.common.notification.NotificationLevel.LOW);
+        });
+    }
+
+    @Test
+    void FR_044_submittingAndReturningNotifyTheRolesOfTheNotificationTable() {
+        long id = item("EVENT_BASED", 300L, "");
+        items.check(selection(id));
+        statements.submit(statement);
+        notifiedOnce("COST_STATEMENT_SUBMITTED", Role.NURSING_HOME_MANAGER);
+        current.set(manager.user());
+        items.returnItem(id, new Reason("Cần đối chiếu lại nguồn"));
+        notifiedOnce("COST_ITEM_RETURNED", Role.OFFICE_STAFF);
+        current.set(office.user());
+        items.check(selection(id));
+        statements.submit(statement);
+        current.set(manager.user());
+        statements.returnStatement(statement, List.of(id), new Reason("Đối chiếu lại"));
+        notifiedOnce("COST_STATEMENT_RETURNED", Role.OFFICE_STAFF);
+    }
+
     @Test
     void FR_004_aNewDraftReopensTheStatementAndInvalidatesItsEtag() {
         long id = item("EVENT_BASED", 300L, "");

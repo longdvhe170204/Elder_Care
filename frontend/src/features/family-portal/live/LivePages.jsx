@@ -12,6 +12,7 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { formatDate, formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { HealthLock, InfoList, PortalCard } from '../PortalParts'
+import { LiveActivities } from './LiveActivities'
 
 // Màn cổng dùng dữ liệu thật (012 T028; US5, FR-046 → FR-048): Hôm nay (thông tin chung), Sức khỏe (từng phần qua 012,
 // mỗi lần mở được ghi nhật ký), Hợp đồng (chỉ người đại diện). Chỉ trường của api-012; mục nguồn chưa có ghi rõ
@@ -133,6 +134,7 @@ export function LiveTodayPage({ viewer }) {
         )}
         {!viewer.perms.health && <HealthLock />}
       </PortalCard>
+      <LiveActivities residentId={viewer.residentId} representative={!!viewer.representative} />
     </>
   )
 }

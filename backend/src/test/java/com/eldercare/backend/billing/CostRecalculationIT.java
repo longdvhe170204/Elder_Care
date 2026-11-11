@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Import(CostWorkflowIT.Users.class)
 @org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+@org.springframework.test.context.event.RecordApplicationEvents
 class CostRecalculationIT extends MySqlIntegrationTestBase {
     @Autowired
     org.springframework.test.web.servlet.MockMvc mvc;
@@ -391,6 +392,38 @@ class CostRecalculationIT extends MySqlIntegrationTestBase {
         });
         assertThat(jdbc.queryForObject("SELECT @m11_recalculating", Integer.class))
                 .isZero();
+    }
+
+    @Autowired
+    org.springframework.test.context.event.ApplicationEvents recorded;
+
+    private List<com.eldercare.backend.common.notification.NotificationRequest> notices(String type) {
+        return recorded.stream(com.eldercare.backend.billing.internal.period.domain.CostNotificationEvent.class)
+                .flatMap(e -> e.notificationRequests().stream())
+                .filter(n -> n.eventType().equals(type))
+                .toList();
+    }
+
+    @Test
+    void FR_044_recalculationThatResetsApproval_andChangeAfterFinalization_notifyOfficeStaff() {
+        jdbc.update(
+                "UPDATE cost_item SET status='CHECKED',checked_by=created_by,checked_at=? WHERE id=?",
+                Timestamp.from(time.now()),
+                item);
+        doReturn(new CostPricingService.PriceQuote(new BigDecimal("300"), new BigDecimal("600"), false, null))
+                .when(pricing)
+                .event(resident, 9, month.atDay(1), new BigDecimal("2"));
+        change(new BigDecimal("2"), false, "reset-" + item);
+        var office = new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(Role.OFFICE_STAFF);
+        assertThat(notices("COST_RECALCULATED"))
+                .singleElement()
+                .satisfies(n -> assertThat(n.recipientGroups()).containsExactly(office));
+
+        jdbc.update("UPDATE cost_item SET status='FINALIZED',locked_at=? WHERE id=?", Timestamp.from(time.now()), item);
+        change(new BigDecimal("3"), false, "after-" + item);
+        assertThat(notices("POST_FINALIZATION_CHANGE"))
+                .singleElement()
+                .satisfies(n -> assertThat(n.recipientGroups()).containsExactly(office));
     }
 
     @Test

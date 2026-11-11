@@ -770,7 +770,7 @@ components:
     ApplicationStatus: { type: string, enum: [IN_PROGRESS, WAITING, ADMITTED, CANCELLED] }
     WaitingListStatus: { type: string, enum: [WAITING, CONTACTED, ADMITTED, DECLINED, WAITING_CANCELLED] }
     ContractStatus: { type: string, enum: [DRAFT, PENDING_SIGNATURE, ACTIVE, ENDED, TERMINATED, CANCELLED] }
-    ServiceType: { type: string, enum: [CARE, RESIDENCY_FEE, DAY_CARE_SESSION, REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION, FAMILY_STAY, MEAL, FACILITY_SUPPLIED_MEDICATION, OTHER] }
+    ServiceType: { type: string, enum: [CARE, RESIDENCY_FEE, DAY_CARE_SESSION, REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION, FAMILY_STAY, MEAL, FACILITY_SUPPLIED_MEDICATION, CONSUMABLE, MEDICAL_SUPPLY, OTHER] }
     Problem:
       type: object
       description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000. Với 403 có failedLayer, license (FR-043).
@@ -919,7 +919,7 @@ components:
       properties: { contract: { $ref: '#/components/schemas/Contract' }, warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } } }
     NonStandardTerm:
       type: object
-      properties: { type: { type: string, enum: [PRICE, ABSENCE_POLICY, BED_HOLD_POLICY] }, description: { type: string }, standardValue: { type: string }, proposedValue: { type: string } }
+      properties: { type: { type: string, enum: [PRICE], description: 'Q-395 bỏ ghi đè chính sách vắng (sửa 2026-11-10)' }, description: { type: string }, standardValue: { type: string }, proposedValue: { type: string } }
     ContractContent:
       type: object
       properties:
@@ -939,6 +939,7 @@ components:
         contentAfter: { type: object }
         effectiveDate: { type: string, format: date }
         status: { type: string, enum: [PENDING_EFFECTIVE, APPLIED, NOT_APPLICABLE] }
+        hiddenFields: { type: array, items: { type: string }, description: 'Trường tài chính bị bỏ theo 002 (FINANCE), quy ước đầu file (bổ sung 2026-11-10)' }
     Deposit:
       type: object
       properties:
@@ -987,6 +988,7 @@ components:
             status: { type: string }
             addendumId: { type: integer, format: int64 }
             requestedBy: { type: string }
+            hiddenFields: { type: array, items: { type: string }, description: 'Trường tài chính bị bỏ theo 002 (FINANCE), quy ước đầu file (bổ sung 2026-11-10)' }
     Absence:
       type: object
       properties:

@@ -43,6 +43,12 @@ public class BedAssetCommands implements BedAssetCommandPort {
     private final ApplicationEventPublisher events;
     private final BedReadinessStore readiness;
     private final ScheduledTransfers scheduled;
+    private final com.eldercare.backend.roombedallocation.internal.structure.persistence.StructureStore structures;
+
+    @Override
+    public boolean everAllocated(long bedId) {
+        return structures.bedEverAllocated(bedId);
+    }
 
     public BedAssetCommands(
             BedAssetStateService states,
@@ -54,7 +60,9 @@ public class BedAssetCommands implements BedAssetCommandPort {
             BusinessTime time,
             ApplicationEventPublisher events,
             BedReadinessStore readiness,
-            ScheduledTransfers scheduled) {
+            ScheduledTransfers scheduled,
+            com.eldercare.backend.roombedallocation.internal.structure.persistence.StructureStore structures) {
+        this.structures = structures;
         this.states = states;
         this.allocations = allocations;
         this.beds = beds;

@@ -71,8 +71,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(),
-                    // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
-                    Set.of("GET /api/v1/me/shifts 200"),
+                    Set.of(),
                     true),
             // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù 202 xong 2026-11-08
             // (T034).
@@ -88,7 +87,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu; còn /testing/fakes
+            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu. /testing/fakes giữ
+            // pending:
+            // FakeM04Controller chỉ đăng ký khi import FakeM04Config (test classpath), context này không import; kiểm
+            // bằng
+            // BR_M04_01_ShiftTaskPlanningIT.T066 (005 T066, 2026-11-10)
             new Contract(
                     Path.of("..", "specs", "005-daily-care-tasks", "contracts", "api-005.yaml"),
                     Set.of("PUT /api/v1/testing/fakes/{module}"),
@@ -116,7 +119,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 010 T032: đăng ký khi cài endpoint Phase 5; story khác giữ pending, không nới phép so operation.
             new Contract(
                     Path.of("..", "specs", "010-incurred-costs", "contracts", "api-010.yaml"),
-                    Set.of("POST /api/v1/costs/items/manual"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
@@ -160,13 +163,13 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story
             new Contract(
                     Path.of("..", "specs", "014-activity-care-quality", "contracts", "api-014.yaml"),
-                    Set.of("GET /api/v1/family-portal/residents/{residentId}/activities"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story
             new Contract(
                     Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
-                    Set.of("GET /api/v1/assets/{id}"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 015 (D, 2026-11-09, T028): hợp đồng đã dịch (glossary mục 21); đủ endpoint đổi ca và nghỉ đột xuất

@@ -49,6 +49,18 @@ public class FakeDuties implements DutyApi {
         return this;
     }
 
+    private final Map<String, Long> departmentCodes = new HashMap<>();
+
+    public FakeDuties departmentCode(String code, long departmentId) {
+        departmentCodes.put(code, departmentId);
+        return this;
+    }
+
+    @Override
+    public Optional<Long> departmentByCode(String code) {
+        return Optional.ofNullable(departmentCodes.get(code));
+    }
+
     public FakeDuties department(long staffId, long departmentId) {
         departments.put(staffId, departmentId);
         return this;

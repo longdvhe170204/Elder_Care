@@ -66,9 +66,32 @@ export function formatValue(value) {
   return value === null || value === undefined ? '—' : NUMBER.format(value)
 }
 
+// Loại dữ liệu đã loại bỏ hiện theo module (tiền tố mã, research R-02 của 000), không hiện mã thô (016 T109)
+const PURGED_MODULES = {
+  M01: 'hồ sơ người cao tuổi',
+  M02: 'tiếp nhận, lưu trú',
+  M03: 'phòng, giường',
+  M04: 'chăm sóc hằng ngày',
+  M05: 'sự cố, cảnh báo',
+  M06: 'sức khỏe',
+  M07: 'thuốc',
+  M08: 'dinh dưỡng',
+  M09: 'nhân sự, ca trực',
+  M11: 'chi phí',
+}
+
+function purgedNote(value) {
+  const modules = [...new Set((value.purgedDataTypes ?? []).map((t) => PURGED_MODULES[t.split('.')[0]] ?? t))]
+  return modules.length ? `${VALUE_LABELS.PURGED_BY_RETENTION} (${modules.join(', ')})` : VALUE_LABELS.PURGED_BY_RETENTION
+}
+
 export function labelNotes(value) {
   return (value.labels ?? [])
-    .map((l) => (l === 'PENDING_REVIEW' ? `${VALUE_LABELS[l]} (${value.pendingReviewCount})` : VALUE_LABELS[l] ?? l))
+    .map((l) => {
+      if (l === 'PENDING_REVIEW') return `${VALUE_LABELS[l]} (${value.pendingReviewCount})`
+      if (l === 'PURGED_BY_RETENTION') return purgedNote(value)
+      return VALUE_LABELS[l] ?? l
+    })
     .join(', ')
 }
 
@@ -161,8 +184,71 @@ const KEY_LABELS = {
 }
 const FLOOR_KEYED = ['BED.AWAITING_READY', 'BED.AWAITING_READY_MAX', 'BED.AWAITING_READY_OVERDUE', 'BED.OCCUPANTS']
 const SHIFT_KEYED = ['MED.MISSED_RATE', 'MED.REFUSED_RATE']
-const STAFF_KEYED = ['TASK.BY_STAFF', 'TASK.LATE_RECORDINGS', 'QC.PASS_RATE']
+const STAFF_KEYED = ['TASK.BY_STAFF', 'TASK.LATE_RECORDINGS', 'QC.PASS_RATE', 'SHIFT.WORKING_HOURS']
 const TRIP_OVERDUE = { OVERDUE: 'Quá giờ về', OVERDUE_DOUBLE: 'Tới mốc gấp đôi' }
+
+// Khóa của chỉ tiêu nguồn 010, 015, 017, 018, 019 (016 T008, T014, T020, T024)
+const COST_TYPES = {
+  RESIDENCY_FEE: 'Phí lưu trú',
+  DAY_CARE_SESSION_FEE: 'Phí buổi bán trú',
+  SERVICE: 'Dịch vụ',
+  CONSUMABLE: 'Vật phẩm tiêu hao',
+  ACTIVITY: 'Hoạt động',
+  MEDICATION: 'Thuốc',
+  FAMILY_OVERNIGHT_STAY: 'Người thân ở lại',
+  FAMILY_MEAL: 'Suất ăn người thân',
+  PURCHASE_ASSISTANCE: 'Mua hộ',
+  OTHER: 'Khác',
+}
+const COST_ORIGINS = {
+  EVENT_BASED: 'Theo sự kiện',
+  MANUAL: 'Nhập tay',
+  PURCHASE_ASSISTANCE: 'Mua hộ',
+  ADJUSTMENT: 'Điều chỉnh',
+}
+const STATEMENT_STATUSES = {
+  DRAFT: 'Bản nháp',
+  CHECKED: 'Đã kiểm',
+  APPROVED: 'Đã duyệt',
+  FINALIZED: 'Đã chốt',
+}
+const PROCUREMENT_STATUSES = {
+  DRAFT: 'Nháp',
+  PENDING_APPROVAL: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  PENDING_RECONCILIATION: 'Chờ đối chiếu',
+  DISCREPANCY: 'Có lệch',
+  RECONCILED: 'Đã đối chiếu',
+  REJECTED: 'Từ chối',
+  CANCELLED: 'Đã hủy',
+}
+const BALANCE_STATUSES = { RUNNING_LOW: 'Sắp hết tiền', IN_DEBT: 'Còn nợ' }
+const REGISTRATION_TO_DO = {
+  TO_CREATE: 'Cần lập',
+  OVERDUE: 'Quá hạn',
+  EXPIRED: 'Sắp hết hạn',
+  TO_DEREGISTER: 'Cần xóa đăng ký',
+}
+const REQUEST_TYPES = { 'M09.SHIFT_SWAP': 'Đổi ca', 'M09.LEAVE_REQUEST': 'Nghỉ đột xuất' }
+const REQUEST_STATUSES = {
+  DRAFT: 'Nháp',
+  AWAITING_RECIPIENT: 'Chờ người nhận',
+  RECIPIENT_DECLINED: 'Người nhận từ chối',
+  PENDING_APPROVAL: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  PARTIALLY_APPLIED: 'Áp dụng một phần',
+  REJECTED: 'Từ chối',
+  CANCELLED: 'Đã hủy',
+  EXPIRED: 'Hết hạn',
+}
+const KEYED_BY_METRIC = {
+  'COST.SUMMARY': COST_TYPES,
+  'COST.EVENT_GENERATED_RATE': COST_ORIGINS,
+  'COST.STATEMENTS': STATEMENT_STATUSES,
+  'COST.PURCHASING': PROCUREMENT_STATUSES,
+  'BALANCE.LOW_OR_OWING': BALANCE_STATUSES,
+  'REGISTRATION.TO_DO': REGISTRATION_TO_DO,
+}
 
 // Chữ của một ô chia nhóm; khóa chưa biết giữ nguyên
 export function breakdownLabel(metricCode, key, floors = []) {
@@ -174,6 +260,16 @@ export function breakdownLabel(metricCode, key, floors = []) {
     return key === 'NO_SHIFT' ? 'Không xác định ca' : `Ca ${key}`
   }
   if (metricCode === 'ACT.OVERDUE_TRIPS') return TRIP_OVERDUE[key] ?? key
+  if (KEYED_BY_METRIC[metricCode]) return KEYED_BY_METRIC[metricCode][key] ?? key
+  if (metricCode === 'COST.POST_FINALIZATION_ADJUSTMENTS' && /^\d{4}-\d{2}$/.test(key)) {
+    const [year, month] = key.split('-')
+    return `Kỳ gốc ${month}/${year}`
+  }
+  if (metricCode === 'SHIFT.REQUESTS' && key.includes(':')) {
+    const at = key.lastIndexOf(':')
+    const [type, status] = [key.slice(0, at), key.slice(at + 1)]
+    return `${REQUEST_TYPES[type] ?? type}, ${REQUEST_STATUSES[status] ?? status}`
+  }
   if (metricCode === 'MEAL.LATE_TICKETS' || metricCode === 'MEAL.DISCREPANCY_TICKETS') return `Bữa ${key}`
   if (STAFF_KEYED.includes(metricCode) && /^\d+$/.test(key)) return `Nhân viên ${key}`
   if (metricCode === 'TASK.BY_STATUS' && key.includes(':SYSTEM:')) {

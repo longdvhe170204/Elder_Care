@@ -15,7 +15,20 @@ public record MetricValue(
         BigDecimal denominator,
         Set<ValueLabel> labels,
         int pendingReviewCount,
-        List<Breakdown> breakdown) {
+        List<Breakdown> breakdown,
+        List<String> purgedDataTypes) {
+
+    /** Chưa xét dữ liệu đã loại bỏ (FR-007): {@code purgedDataTypes} rỗng. */
+    public MetricValue(
+            String metricCode,
+            BigDecimal value,
+            BigDecimal numerator,
+            BigDecimal denominator,
+            Set<ValueLabel> labels,
+            int pendingReviewCount,
+            List<Breakdown> breakdown) {
+        this(metricCode, value, numerator, denominator, labels, pendingReviewCount, breakdown, List.of());
+    }
 
     public record Breakdown(String key, BigDecimal value, BigDecimal numerator, BigDecimal denominator) {}
 }

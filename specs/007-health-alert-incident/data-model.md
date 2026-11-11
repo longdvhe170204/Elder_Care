@@ -441,6 +441,7 @@ Sự cố lây nhiễm nghi ngờ bắt buộc `nct_id` (BR-M05-18); backend ki�
 | `cap_leo_thang`, `han_tiep_nhan`, `leo_thang_toi_da_luc`, `so_lan_nhac_toi_da` | | FR-044 |
 | `nguoi_phu_trach_id`, `tam_nhan_ban_giao` | | FR-037 |
 | `tiep_nhan_luc`, `nguoi_tiep_nhan_id` | Cho 016 (Q-199) | FR-081 |
+| `muc_luc_tiep_nhan` | `ENUM NULL`, mức lúc Tiếp nhận xử lý hoặc Giao từ Mới, ghi cùng `tiep_nhan_luc`; rỗng khi chưa tiếp nhận *(bổ sung 2026-11-10, 007 T108, "Đổi api" duyệt 2026-11-08; mã `level_at_received`, `V007_14`)* | FR-081; 016 FR-042 |
 | `ket_qua`, `ket_qua_lay_nhiem` (`XAC_NHAN_NHIEM`, `LOAI_TRU`, `KHONG_XAC_DINH`), `nguoi_dong_id`, `dong_luc` | | FR-045, FR-066 |
 | `khong_co_bac_si_truc`, `dung_leo_thang`, `phien_ban` | | FR-047b, FR-038 |
 | `khoa_khan_cap_mo` | Cột sinh `IF(muc = 'KHAN_CAP' AND trang_thai IN ('MOI','DANG_XU_LY','DANG_THEO_DOI'), 1, NULL)` cùng `nct_id` chép từ `su_co` — **không** `UNIQUE` (cho phép tạo sự cố riêng, FR-041); dùng chỉ mục để tìm | FR-041 |

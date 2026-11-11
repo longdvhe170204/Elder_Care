@@ -26,6 +26,12 @@ class BR_M05_29_EmergencyAssistButtonIT extends AssistTestBase {
         assertThat(alert.get("resident_id")).isNull();
         assertThat(((Number) alert.get("floor_area_id")).longValue()).isEqualTo(floor);
         assertThat(alert.get("level")).isEqualTo("CRITICAL");
+        // 007 T106 (chủ dự án chốt 2026-11-10): lần bấm gắn vào cảnh báo, xóa cùng cảnh báo theo hạn lưu giữ
+        assertThat(jdbc.queryForList(
+                        "SELECT entity_type FROM record_event WHERE kind='M05.ASSIST_PRESS' AND entity_id=?",
+                        String.class,
+                        assistAlert(presser)))
+                .containsExactly("M05.ALERT");
         mvc.perform(as(floorManager, MockMvcRequestBuilders.get("/api/v1/alerts/{id}", assistAlert(presser))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.origin").value("ASSIST_BUTTON"));

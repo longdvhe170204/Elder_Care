@@ -145,6 +145,8 @@ interface ProcurementIntakePort { Set<Long> passedLineIds(long procurementReques
 - Id dòng (`ProcurementRequestLine.id` của api-019, 006 gửi ở `requestLineId`): `requestId × 1.000.000 + thứ tự dòng (từ 1)`, tính khi đọc, không lưu trong cột `lines` nên không cần migration; nội dung khóa ngoài Nháp nên id ổn định từ khi gửi duyệt (sửa dòng trong Nháp thì id đổi theo thứ tự mới). Một yêu cầu tối đa 999.999 dòng (quá thì 422).
 - "Đã nhận" (`received` của `ProcurementRequest`, `GET /procurement-requests`; api-019 không có `GET /{id}`): loại MEDICATION là `true` khi mọi id dòng nằm trong `passedLineIds`, `false` khi còn dòng chưa có lần Đạt; loại khác `null`; thiếu bean `ProcurementIntakePort` thì `null` (chưa biết), danh sách không trả 503. Thay hướng `medication.api.ProcurementIntakeApi.byProcurementRequest` (019 không đọc nữa).
 
+**Sửa 11/11/2026 (A thay D, 019 T024; không đổi chữ ký):** M11 đọc `medication.api.PrescriptionApi` (mục 1 ở trên) nên M07 không phụ thuộc được `billing` (vòng `billing → medication → billing`, `ModuleBoundaryTest`). Vì vậy M11 cài cả hai đầu: `billing.internal.procurement.service.MedicationProcurementPort` cài `medication.api.spi.ProcurementMedicationPort` (ủy `ProcurementMedicationLines`), `MedicationIntakes` cài `billing.api.spi.ProcurementIntakePort` bằng `medication.api.ProcurementIntakeApi.byProcurementRequest` (dòng có ít nhất một lần `passed`). `SuppliedMedicationIntakeService` giữ `ProcurementMedicationPort`; `ProcurementMedicationLineApi` giữ, hiện chỉ test đọc.
+
 
 ### Đính chính tài sản và lịch xe (07/11/2026, chủ dự án chốt)
 

@@ -20,7 +20,19 @@ import { problemOf } from '@/common/problem'
 // Hộp xuất báo cáo (016 FR-060 → FR-062; DESIGN.md `export-dialog`). Chỉ Quản lý viện có ô định danh người cao tuổi và
 // mục đích (bắt buộc khi chọn, Q-198); vai trò khác chỉ xuất tổng hợp. Backend ghi nhật ký trước khi trả mã tệp.
 
-export function ExportDialog({ open, onOpenChange, group, groupLabel, from, to, floorAreaId, floorName, canIdentify, onExported }) {
+export function ExportDialog({
+  open,
+  onOpenChange,
+  group,
+  groupLabel,
+  from,
+  to,
+  floorAreaId,
+  floorName,
+  costMode,
+  canIdentify,
+  onExported,
+}) {
   const [includeIdentity, setIncludeIdentity] = useState(false)
   const [purpose, setPurpose] = useState('')
   const [purposeError, setPurposeError] = useState(null)
@@ -57,6 +69,7 @@ export function ExportDialog({ open, onOpenChange, group, groupLabel, from, to, 
           from,
           to,
           filters: floorAreaId ? { floorAreaId: [floorAreaId] } : undefined,
+          costMode,
           includeIdentity,
           purpose: purpose.trim() || undefined,
           format: 'XLSX',

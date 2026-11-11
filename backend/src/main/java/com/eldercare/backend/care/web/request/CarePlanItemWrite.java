@@ -8,7 +8,9 @@ import java.time.LocalTime;
 import java.util.List;
 
 /** CarePlanItem của hợp đồng; id/gốc chỉ được tham chiếu mục đã có trong cùng bản Nháp. */
-@Schema(name = "CarePlanItem")
+@Schema(
+        name = "CarePlanItemInput",
+        requiredProperties = {"taskTypeId", "content", "frequencyType", "performerRole", "importance", "billable"})
 public record CarePlanItemWrite(
         Long id,
         Long sourceItemId,

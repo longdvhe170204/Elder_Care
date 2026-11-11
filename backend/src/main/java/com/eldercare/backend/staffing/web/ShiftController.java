@@ -34,6 +34,7 @@ class ShiftController {
     private final com.eldercare.backend.staffing.internal.handover.service.HandoverService handovers;
     private final com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService ratios;
     private final com.eldercare.backend.staffing.internal.shift.service.PostPublicationService postPublication;
+    private final com.eldercare.backend.staffing.internal.assignment.service.AssignmentQueries assignments;
 
     ShiftController(
             ShiftScheduleService schedules,
@@ -43,7 +44,8 @@ class ShiftController {
             PermissionApi permissions,
             com.eldercare.backend.staffing.internal.handover.service.HandoverService handovers,
             com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService ratios,
-            com.eldercare.backend.staffing.internal.shift.service.PostPublicationService postPublication) {
+            com.eldercare.backend.staffing.internal.shift.service.PostPublicationService postPublication,
+            com.eldercare.backend.staffing.internal.assignment.service.AssignmentQueries assignments) {
         this.schedules = schedules;
         this.query = query;
         this.time = time;
@@ -52,6 +54,7 @@ class ShiftController {
         this.handovers = handovers;
         this.ratios = ratios;
         this.postPublication = postPublication;
+        this.assignments = assignments;
     }
 
     @GetMapping("/shift-templates")
@@ -261,12 +264,18 @@ class ShiftController {
     }
 
     @GetMapping("/me/shifts")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    List<ShiftResponses.Shift> mine(
+    @ApiResponse(responseCode = "200", description = "OK")
+    List<ShiftResponses.MyShift> mine(
             @RequestParam(required = false) LocalDate from, @RequestParam(required = false) LocalDate to) {
         LocalDate begin = from == null ? time.today() : from;
         LocalDate end = to == null ? begin.plusMonths(1) : to;
-        return schedules.ownShifts(begin, end).stream().map(this::body).toList();
+        var staff = users.getObject().staffId();
+        return schedules.ownShifts(begin, end).stream()
+                .map(shift -> ShiftResponses.MyShift.of(
+                        body(shift),
+                        staff.flatMap(id -> assignments.scopeEndsAt(id, shift.id()))
+                                .orElse(null)))
+                .toList();
     }
 
     @GetMapping("/on-duty-doctors")

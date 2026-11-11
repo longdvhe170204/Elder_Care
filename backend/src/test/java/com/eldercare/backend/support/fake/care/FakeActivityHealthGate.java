@@ -61,15 +61,6 @@ public class FakeActivityHealthGate implements ActivityHealthGatePort {
     }
 
     @Override
-    public synchronized boolean suspectedInfectionDuring(long residentId, Instant from, Instant to) {
-        switches.requireEnabled("007");
-        if (!from.isBefore(to)) return false;
-        return suspected.contains(residentId)
-                || suspectedIntervals.getOrDefault(residentId, List.of()).stream()
-                        .anyMatch(i -> i.from().isBefore(to) && (i.to() == null || i.to().isAfter(from)));
-    }
-
-    @Override
     public synchronized boolean hasOpenMediumOrHigher(long residentId) {
         switches.requireEnabled("007");
         return openItems.contains(residentId);

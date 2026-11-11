@@ -44,7 +44,7 @@ interface HoatDongThongKeApi {               // 016
   Stream<BuoiThongKeView> buoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);       // FR-070: đăng ký, Có mặt, Vắng theo lý do, Không ghi nhận
   Stream<ChuyenThongKeView> chuyen(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // giờ về dự kiến, gia hạn, về thực tế, thiếu người
   Stream<KetQuaKiemTraView> kiemTra(PhamViLoc phamVi, LocalDate tu, LocalDate den);  // FR-065: vai trò kiểm tra, không thuộc phạm vi
-  Stream<CoLapView> coLap();                                                         // FR-058
+  // coLap() bỏ theo Q-407 (2026-11-10)
 }
 ```
 
@@ -64,7 +64,7 @@ Khi 019 chưa có (bản giả), chuyến dùng xe của viện bị chặn rờ
 
 | Sự kiện | Người nghe | FR |
 | --- | --- | --- |
-| `incident.api.YeuCauTaoCanhBao` (`THIEU_NGUOI_KHI_VE` Khẩn cấp; `NGUY_CO_CO_LAP` Nhẹ) | 007 | FR-047, FR-055 |
+| `incident.api.YeuCauTaoCanhBao` (`THIEU_NGUOI_KHI_VE` Khẩn cấp; `NGUY_CO_CO_LAP` bỏ theo Q-407) | 007 | FR-047 |
 | `incident.api.YeuCauGhiDienBienCanhBao` (bổ sung vào hợp đồng 007 theo plan này) | 007 | FR-047, FR-056 |
 | `billing.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` (`DIEM_DANH_HOAT_DONG`) | 010 | FR-032, FR-031 |
 | `nutrition.api.ChuyenDiDaDoi` | 011 | FR-034 |
@@ -97,7 +97,7 @@ Khi 019 chưa có (bản giả), chuyến dùng xe của viện bị chặn rờ
 | `DauNghiNhiemDaDoi` (007, bổ sung theo plan này) | Gắn: hủy đăng ký nhóm và chuyến, Không đi, báo trưởng đoàn nếu đang đi | FR-021a |
 | `CaDaKetThuc` (008) | Mục kiểm tra Quá hạn; ca không danh sách | FR-063 |
 | Công việc bị Hủy ghi nhận (005, nội bộ) | Mục kiểm tra Không kiểm tra được | FR-062 |
-| `NguoiCaoTuoiDaChuyenTrangThai` (001) | Tạm vắng, Điều trị bệnh viện: hiển thị sẵn "Vắng – đang vắng mặt"; chuỗi cô lập bỏ qua ngày | FR-028, FR-054 |
+| `NguoiCaoTuoiDaChuyenTrangThai` (001) | Tạm vắng, Điều trị bệnh viện: hiển thị sẵn "Vắng – đang vắng mặt" | FR-028 |
 | `roombedallocation.api.events.VehicleScheduleCorrected` (019, *bổ sung 2026-11-09, chủ dự án chốt*) | Đồng bộ trong lệnh đính chính `M03.VEHICLE_SCHEDULE`: chuyến Đã về đổi giờ rời, về dự kiến hiện hành; giữ tác động đã xảy ra, không phát `TripChanged`, không là đính chính của 014; chuyến không có hoặc không ở Đã về thì lỗi, lệnh 019 rollback; cùng giá trị không ghi | 019 plan "Đính chính tài sản và lịch xe" |
 
 Mọi listener idempotent theo `khoaSuKien` (`su_kien_m04hd_da_xu_ly`). *(R-15: `su_kien_m04hd_da_xu_ly` → `moc_da_nhac`)*

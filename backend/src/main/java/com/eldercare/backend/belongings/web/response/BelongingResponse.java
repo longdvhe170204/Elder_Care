@@ -18,7 +18,12 @@ public record BelongingResponse(
         long typeId,
         String description,
         BigDecimal quantity,
-        @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
+
+        @Schema(
+                types = {"integer"},
+                format = "int64")
+        BigDecimal cashAmount,
+
         BelongingStatus status,
         String holder,
         Long storageLocationId,

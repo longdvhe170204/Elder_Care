@@ -11,7 +11,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - tài khoản: Trưởng tầng TT2 (tầng 2), TT3; Nhân viên chăm sóc CS1, CS2; Điều dưỡng DD; Hành chính HC; Quản lý viện QL; Nhân viên bếp B (người đi cùng); người đại diện R của L;
   - người cao tuổi: A, B, C nội trú tầng 2; D nội trú tầng 3; L bán trú 07:30–16:30 thứ 2 → 6;
   - hoạt động "Thể dục sáng" tầng 2, mẫu thứ 2, 4, 6 07:00–07:45, tối đa 10, người thường xuyên A, B; "Hát karaoke" có thu phí (dịch vụ "karaoke"); chuyến "Tham quan chùa" toàn viện, xe của viện;
-  - CFG theo mặc định Phụ lục 25: CFG-M04-06 2 giờ, CFG-M04-07 30 phút, CFG-M04-10 7 ngày, CFG-M04-11 5%, CFG-M04-13 1 giờ, CFG-M09-04 30 phút;
+  - CFG theo mặc định Phụ lục 25: CFG-M04-06 2 giờ, CFG-M04-07 30 phút, CFG-M04-11 5%, CFG-M04-13 1 giờ, CFG-M09-04 30 phút;
   - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}`: `LichXeApi`, `LichXeLenhApi` (019); `MangThuocChuyenDiApi` (006); `SuCoLenhApi` (007); sự kiện `KhoanhVungDaTao`, `DauNghiNhiemDaDoi` (007), `CaDaKetThuc` (008).
 
 ## 2. Chạy
@@ -64,8 +64,8 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M04 không ph
 | Q32 | Hủy ghi nhận bản ghi rời viện cuối cùng | Chuyến về Đã lên lịch; 001 Đang lưu trú; 010 hủy lượt; 019 nhận `theoChuyen(HUY_ROI_VIEN_CUOI)` | FR-031a |
 | Q33 | 015 gỡ nhiệm vụ trưởng đoàn khi đổi ca | Trưởng đoàn bị gỡ, TT được báo; rời viện bị chặn tới khi phân công lại | FR-035 |
 | Q34 | Ghi sở thích "không thích âm nhạc" cho A khi đã có "thích" | 409 `CAN_XAC_NHAN_THAY_SO_THICH`; xác nhận → mục cũ Đã thay | US6, FR-051 |
-| Q35 | A 7 ngày tính liên tiếp không Có mặt hoạt động nhóm (có 1 ngày vắng xen giữa) | Ngày vắng bỏ qua; ngày thứ 7 → 007 cảnh báo Nhẹ "nguy cơ cô lập", không kèm gợi ý | US6, FR-054, FR-055, SC-007 |
-| Q36 | A Có mặt hoạt động nhóm | Chuỗi đếm lại; 007 nhận diễn biến; cảnh báo không tự đóng | FR-056 |
+| Q35 | *(Bỏ theo Q-407, 2026-11-10)* | A 7 ngày tính liên tiếp không Có mặt hoạt động nhóm (có 1 ngày vắng xen giữa) | Ngày vắng bỏ qua; ngày thứ 7 → 007 cảnh báo Nhẹ "nguy cơ cô lập", không kèm gợi ý | US6, FR-054, FR-055, SC-007 |
+| Q36 | *(Bỏ theo Q-407, 2026-11-10)* | A Có mặt hoạt động nhóm | Chuỗi đếm lại; 007 nhận diễn biến; cảnh báo không tự đóng | FR-056 |
 | Q37 | Mốc CFG-M09-04 trước kết ca, ca có 40 công việc đủ điều kiện, chưa có danh sách | TT2 nhận nhắc | US7, FR-059a |
 | Q38 | TT2 lập danh sách 1 mục khi cần 2; lập 2 mục; gửi lệnh lập lần nữa cho ca với công việc khác | 409 `CHUA_DU_TY_LE`; được; mục được thêm vào danh sách duy nhất của ca (không tạo danh sách thứ hai, không xét lại tỷ lệ; sửa 2026-11-08, chủ dự án giữ cách cài Phase 9) | US7, FR-059, FR-059a, SC-008 |
 | Q39 | Chọn công việc do chính TT2 thực hiện; liều thuốc | 409 `CONG_VIEC_KHONG_DU_DIEU_KIEN` | FR-060, SC-014 |
@@ -84,7 +84,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M04 không ph
 | Buổi, đăng ký | `BR_M04_21_TaoBuoiTuMauIT`, `BR_M04_15_DangKyIT`, `FR_016a_DongYVeMuonIT`, `FR_021_KhoanhVungIT` | Q1 → Q12 |
 | Điểm danh | `BR_M04_18_SuKienTinhPhiIT`, `FR_014a_HetNgayIT`, `FR_031_DinhChinhIT` | Q13 → Q17 |
 | Chuyến đi | `BR_M04_16_RoiVienIT`, `BR_M04_17_ThieuNguoiIT`, `FR_031a_DinhChinhChuyenIT`, `FR_035_NhiemVuIT` | Q18 → Q33 |
-| Tinh thần | `BR_M04_22_CoLapIT` (30 kịch bản, SC-007), `FR_051_SoThichIT` | Q34 → Q36 |
+| Tinh thần | `FR_051_SoThichIT` | Q34 → Q36 |
 | Kiểm tra chất lượng | `BR_M04_23_KiemTraChatLuongIT`, `FR_066_NguoiKiemTraIT` | Q37 → Q43 |
 | Cổng | `FR_068_CongHoatDongIT` | Q44 |
 | Đồng thời | Hai đăng ký chỗ cuối; rời viện từ hai thiết bị; hai lệnh Báo thiếu người | Q6, Q27 |
@@ -103,7 +103,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M04 không ph
 | SC-004 | Q18 → Q22 |
 | SC-005 | Q23, Q29 |
 | SC-006 | Q27 → Q30 |
-| SC-007 | `BR_M04_22_CoLapIT` 30 kịch bản |
+| SC-007 | *(Bỏ theo Q-407, 2026-11-10)* | `BR_M04_22_CoLapIT` 30 kịch bản |
 | SC-008 | Q38 → Q40 |
 | SC-009 | Đo thao tác điểm danh trên app |
 | SC-010 | Q44 |

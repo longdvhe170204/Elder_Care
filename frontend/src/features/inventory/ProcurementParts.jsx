@@ -4,6 +4,7 @@ import {
   getResidentsByResidentIdPrescriptions,
   postProcurementRequests,
   postProcurementRequestsByIdByCommand,
+  putProcurementRequestsById,
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -13,7 +14,6 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDate, formatDateTime } from '@/common/dateTime'
 import { uploadFile } from '@/common/files'
-import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import {
   PRIORITIES,
@@ -30,15 +30,13 @@ import {
 } from './procurementLabels'
 import { Choices, Info, ReasonField, SELECT, TextField } from './FormParts'
 
-// Khung chi tiết và khung lập yêu cầu mua sắm (019 T008; bảng FR-008, FR-008a, FR-008b, FR-008d). Lệnh theo trạng
-// thái và quyền: người lập (quyền Lập) gửi, rút lại, hủy Nháp; Quản lý viện (quyền Duyệt) duyệt, từ chối, xử lý lệch;
-// Phụ trách bộ phận (quyền Sửa, không là Kế toán) ghi đã mua, hủy Đã duyệt; Kế toán đối chiếu. Backend kiểm lại người
-// lập và Phụ trách bộ phận (api-019 không trả người lập, phiên bản nên web chưa sửa được Nháp).
+// Khung chi tiết và khung lập, sửa yêu cầu mua sắm (019 T008; bảng FR-008, FR-008a, FR-008b, FR-008d). Nút lệnh chỉ
+// theo allowedCommands backend trả (api-019 bổ sung 2026-11-10; DESIGN.md 7.4), backend kiểm lại khi gọi; sửa Nháp gửi
+// If-Match theo version.
 
 const wholeNumber = (text) => (/^\d+$/.test(text.trim()) ? Number(text.trim()) : null)
 
-export function ProcurementDetail({ request, role, departmentName, residentName, onChanged, Title, Description }) {
-  const { can } = usePermissions()
+export function ProcurementDetail({ request, departmentName, residentName, onChanged, onEdit, Title, Description }) {
   const [mode, setMode] = useState(null)
   const [reason, setReason] = useState('')
   const [approved, setApproved] = useState('')
@@ -54,10 +52,7 @@ export function ProcurementDetail({ request, role, departmentName, residentName,
   const uploaded = useRef({ files: null, ids: [] })
 
   const status = request.status
-  const accountant = role === 'ACCOUNTANT'
-  const author = can('PURCHASE_REQUEST', 'CREATE') && !accountant
-  const approver = can('PURCHASE_REQUEST', 'APPROVE')
-  const lead = can('PURCHASE_REQUEST', 'UPDATE') && !accountant
+  const allowed = (command) => (request.allowedCommands ?? []).includes(command)
   const medication = request.type === 'MEDICATION'
   const label = `yêu cầu #${request.id}`
 
@@ -389,21 +384,22 @@ export function ProcurementDetail({ request, role, departmentName, residentName,
 
       {mode === null && (
         <div className="flex flex-wrap justify-end gap-2">
-          {author && status === 'DRAFT' && (
-            <>
-              <Button variant="ghost" className="h-11" onClick={() => open('cancel')}>
-                Hủy yêu cầu…
-              </Button>
-              <Button
-                className="h-11"
-                disabled={busy}
-                onClick={() => run('submit', undefined, `Đã gửi duyệt ${label}`)}
-              >
-                Gửi duyệt
-              </Button>
-            </>
+          {status === 'DRAFT' && allowed('cancel') && (
+            <Button variant="ghost" className="h-11" onClick={() => open('cancel')}>
+              Hủy yêu cầu…
+            </Button>
           )}
-          {author && status === 'PENDING_APPROVAL' && (
+          {allowed('update') && (
+            <Button variant="outline" className="h-11" onClick={onEdit}>
+              Sửa nháp…
+            </Button>
+          )}
+          {allowed('submit') && (
+            <Button className="h-11" disabled={busy} onClick={() => run('submit', undefined, `Đã gửi duyệt ${label}`)}>
+              Gửi duyệt
+            </Button>
+          )}
+          {allowed('withdraw') && (
             <Button
               variant="outline"
               className="h-11"
@@ -413,44 +409,46 @@ export function ProcurementDetail({ request, role, departmentName, residentName,
               Rút lại về Nháp
             </Button>
           )}
-          {approver && status === 'PENDING_APPROVAL' && (
-            <>
-              <Button variant="outline" className="h-11" onClick={() => open('reject')}>
-                Từ chối…
-              </Button>
-              <Button className="h-11" onClick={() => open('approve')}>
-                Duyệt…
-              </Button>
-            </>
+          {allowed('reject') && (
+            <Button variant="outline" className="h-11" onClick={() => open('reject')}>
+              Từ chối…
+            </Button>
           )}
-          {lead && status === 'APPROVED' && (
-            <>
-              <Button variant="ghost" className="h-11" onClick={() => open('cancel')}>
-                Hủy yêu cầu…
-              </Button>
-              <Button className="h-11" onClick={() => open('purchase')}>
-                Ghi đã mua…
-              </Button>
-            </>
+          {allowed('approve') && (
+            <Button className="h-11" onClick={() => open('approve')}>
+              Duyệt…
+            </Button>
           )}
-          {accountant && status === 'PENDING_RECONCILIATION' && (
-            <>
-              <Button variant="ghost" className="h-11" onClick={() => open('return')}>
-                Trả lại…
-              </Button>
-              <Button variant="outline" className="h-11" onClick={() => open('discrepancy')}>
-                Ghi lệch…
-              </Button>
-              <Button
-                className="h-11"
-                disabled={busy}
-                onClick={() => run('confirm-match', undefined, `Đã xác nhận khớp ${label}`)}
-              >
-                Xác nhận khớp
-              </Button>
-            </>
+          {status === 'APPROVED' && allowed('cancel') && (
+            <Button variant="ghost" className="h-11" onClick={() => open('cancel')}>
+              Hủy yêu cầu…
+            </Button>
           )}
-          {approver && status === 'DISCREPANCY' && (
+          {allowed('record-purchased') && (
+            <Button className="h-11" onClick={() => open('purchase')}>
+              Ghi đã mua…
+            </Button>
+          )}
+          {allowed('return-for-reconciliation') && (
+            <Button variant="ghost" className="h-11" onClick={() => open('return')}>
+              Trả lại…
+            </Button>
+          )}
+          {allowed('record-discrepancy') && (
+            <Button variant="outline" className="h-11" onClick={() => open('discrepancy')}>
+              Ghi lệch…
+            </Button>
+          )}
+          {allowed('confirm-match') && (
+            <Button
+              className="h-11"
+              disabled={busy}
+              onClick={() => run('confirm-match', undefined, `Đã xác nhận khớp ${label}`)}
+            >
+              Xác nhận khớp
+            </Button>
+          )}
+          {allowed('resolve-discrepancy') && (
             <Button className="h-11" onClick={() => open('resolve')}>
               Xử lý lệch…
             </Button>
@@ -604,17 +602,37 @@ function LineFields({ index, line, medication, residents, prescriptions, onChang
   )
 }
 
-/** Lập yêu cầu Nháp (FR-008; FR-008d với loại thuốc). Backend tính lại thành tiền, tổng và kiểm quyền người lập. */
-export function CreateProcurementSheet({ departments, onClose, onDone }) {
+const text = (value) => (value == null ? '' : String(value))
+
+// ISO có múi giờ → giá trị ô datetime-local theo giờ Việt Nam (ngược của vietnamIso)
+const vietnamLocal = (iso) => (iso ? new Date(Date.parse(iso) + 7 * 3600_000).toISOString().slice(0, 16) : '')
+
+const formLine = (line) => ({
+  name: text(line.name),
+  quantity: text(line.quantity),
+  estimatedUnitPrice: text(line.estimatedUnitPrice),
+  residentId: text(line.residentId),
+  prescriptionId: text(line.prescriptionId),
+  activeIngredient: text(line.activeIngredient),
+  strength: text(line.strength),
+  dosageForm: text(line.dosageForm),
+  unit: text(line.unit),
+})
+
+/**
+ * Lập yêu cầu Nháp (FR-008; FR-008d với loại thuốc), hoặc sửa Nháp khi có {@code editing}: điền lại nội dung đã lưu, gửi
+ * PUT kèm If-Match theo version (api-019 bổ sung 2026-11-10). Backend tính lại thành tiền, tổng và kiểm quyền người lập.
+ */
+export function CreateProcurementSheet({ departments, editing = null, onClose, onDone }) {
   const [key] = useState(() => crypto.randomUUID())
-  const [departmentId, setDepartmentId] = useState('')
-  const [type, setType] = useState('')
-  const [priority, setPriority] = useState('')
-  const [neededBy, setNeededBy] = useState('')
-  const [neededOn, setNeededOn] = useState('')
-  const [reason, setReason] = useState('')
-  const [originalRequestId, setOriginalRequestId] = useState('')
-  const [lines, setLines] = useState([EMPTY_LINE])
+  const [departmentId, setDepartmentId] = useState(text(editing?.departmentId))
+  const [type, setType] = useState(text(editing?.type))
+  const [priority, setPriority] = useState(text(editing?.priority))
+  const [neededBy, setNeededBy] = useState(vietnamLocal(editing?.neededBy))
+  const [neededOn, setNeededOn] = useState(text(editing?.neededOn))
+  const [reason, setReason] = useState(text(editing?.reason))
+  const [originalRequestId, setOriginalRequestId] = useState(text(editing?.originalRequestId))
+  const [lines, setLines] = useState(editing ? editing.lines.map(formLine) : [EMPTY_LINE])
   const [residents, setResidents] = useState(null)
   const [prescriptions, setPrescriptions] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -692,6 +710,15 @@ export function CreateProcurementSheet({ departments, onClose, onDone }) {
     })
     if (originalRequestId.trim()) body.originalRequestId = wholeNumber(originalRequestId)
     try {
+      if (editing) {
+        await putProcurementRequestsById({
+          path: { id: editing.id },
+          headers: { 'Idempotency-Key': key, 'If-Match': `"${editing.version}"` },
+          body,
+        })
+        onDone(`Đã lưu yêu cầu #${editing.id} ở Nháp`)
+        return
+      }
       await postProcurementRequests({ headers: { 'Idempotency-Key': key }, body })
       onDone('Đã lập yêu cầu ở Nháp; gửi duyệt khi đủ thông tin')
     } catch (e) {
@@ -704,7 +731,9 @@ export function CreateProcurementSheet({ departments, onClose, onDone }) {
   return (
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-2xl">
-        <SheetTitle className="type-title">Lập yêu cầu mua sắm</SheetTitle>
+        <SheetTitle className="type-title">
+          {editing ? `Sửa yêu cầu mua sắm #${editing.id}` : 'Lập yêu cầu mua sắm'}
+        </SheetTitle>
         <SheetDescription className="type-body-sm text-muted-foreground">
           Yêu cầu lưu ở Nháp; gửi duyệt rồi thì không sửa được nội dung, muốn đổi thì rút lại về Nháp.
         </SheetDescription>

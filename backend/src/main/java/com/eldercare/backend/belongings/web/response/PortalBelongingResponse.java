@@ -17,7 +17,12 @@ public record PortalBelongingResponse(
         long typeId,
         String description,
         BigDecimal quantity,
-        @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
+
+        @Schema(
+                types = {"integer"},
+                format = "int64")
+        BigDecimal cashAmount,
+
         BelongingStatus status,
         String holder,
         List<Entry> history,
@@ -31,7 +36,12 @@ public record PortalBelongingResponse(
             String targetStatus,
             Instant occurredAt,
             BigDecimal quantity,
-            @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
+
+            @Schema(
+                    types = {"integer"},
+                    format = "int64")
+            BigDecimal cashAmount,
+
             String conditionDescription,
             List<Long> photoFileIds) {
 

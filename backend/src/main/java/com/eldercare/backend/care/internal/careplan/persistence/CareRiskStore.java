@@ -40,6 +40,28 @@ public class CareRiskStore {
         return LocalDateTime.ofInstant(at, BusinessTime.ZONE);
     }
 
+    /** Thỏa thuận đang dùng của kế hoạch Hiệu lực tại {@code date}, theo người cao tuổi (checklist ca, FR-030). */
+    public java.util.Map<Long, List<CareRiskAgreement>> effectiveByResident(
+            java.util.Collection<Long> residents, LocalDate date) {
+        var result = new java.util.LinkedHashMap<Long, List<CareRiskAgreement>>();
+        if (residents.isEmpty()) return result;
+        String in = String.join(",", java.util.Collections.nCopies(residents.size(), "?"));
+        var args = new java.util.ArrayList<Object>(residents);
+        args.add(date);
+        args.add(date);
+        jdbc.query(
+                "SELECT i.*, p.resident_id FROM care_plan_item i JOIN care_plan p ON p.id = i.care_plan_id"
+                        + " WHERE p.resident_id IN (" + in + ") AND p.status = 'EFFECTIVE' AND p.effective_from <= ?"
+                        + " AND (p.effective_to IS NULL OR p.effective_to >= ?) AND i.kind = 'RISK_AGREEMENT' AND i.active"
+                        + " ORDER BY p.resident_id, i.id",
+                rs -> {
+                    result.computeIfAbsent(rs.getLong("resident_id"), k -> new java.util.ArrayList<>())
+                            .add(row(rs, 0));
+                },
+                args.toArray());
+        return result;
+    }
+
     public List<CareRiskAgreement> list(long planId) {
         return jdbc.query(
                 "SELECT * FROM care_plan_item WHERE care_plan_id=? AND kind='RISK_AGREEMENT' AND active ORDER BY id",

@@ -100,6 +100,10 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 - **Q-369**: cung cấp cho feature 007 chuyến đang diễn ra, trưởng đoàn và người đi cùng để báo cảnh báo SOS (FR-068a).
 - Kịch bản chấp nhận cho FR-068a: User Story 2 kịch bản 15, User Story 5 kịch bản 12 (bổ sung sau /speckit-analyze).
 
+### Cập nhật 2026-11-10 (Q-407: bỏ chuỗi và cảnh báo nguy cơ cô lập)
+
+Chủ dự án chốt Q-407 (docs/business/nghiep-vu.md 24.2): bỏ BR-M04-22, CFG-M04-10 và thuật ngữ "ngày tính"; nhân viên tự theo dõi người cao tuổi ít tham gia và báo cáo, hệ thống không đếm chuỗi, không tạo cảnh báo "nguy cơ cô lập". Thay đổi ở spec này: FR-054, FR-055, FR-056, FR-058 và SC-007 bỏ; User Story 6 kịch bản 2 → 4, edge case "Cảnh báo cô lập với người mới vào ở" bỏ; thuật ngữ "Ngày tính" bỏ. Giữ dấu "hoạt động nhóm" (chặn nghi nhiễm, Q-165), sở thích, hồ sơ tinh thần, tỷ lệ tham gia.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04 mục 8.8, 8.9, 8.10; UC-29, UC-30, UC-31; BR-M04-15 → 18, BR-M04-21 → 23; BR-M04-11 phần hồ sơ tinh thần):
@@ -111,7 +115,7 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 5. *(Bỏ, 2026-10-06, Q-287)* Chỉ định hạn chế hoạt động và chỉ định tạm: không còn; hạn chế hoạt động (nếu có) Bác sĩ ghi trong nhận xét đánh giá, người đăng ký tự đối chiếu (BR-M04-15).
 6. Điểm danh buổi: có mặt, vắng, mức độ tham gia, tình trạng sau; lượt Có mặt ở hoạt động có thu phí là sự kiện tính phí cho feature 010 (8.8, BR-M04-18; **sửa, 2026-10-06, Q-306**).
 7. Hoạt động ngoài viện: đánh giá khả năng tham gia, phân công trưởng đoàn và người đi cùng, kiểm tra thuốc cần mang, điểm danh rời viện, theo dõi danh sách, điểm danh về, quá giờ về, thiếu người thành sự cố khẩn cấp (8.9, BR-M04-16, BR-M04-17).
-8. Theo dõi tinh thần: sở thích, mức độ tham gia, giao tiếp; tổng hợp tinh thần theo người; cảnh báo nguy cơ cô lập (8.10, BR-M04-22; **sửa, 2026-10-06, Q-307:** bỏ gợi ý hoạt động).
+8. Theo dõi tinh thần: sở thích, mức độ tham gia, giao tiếp; tổng hợp tinh thần theo người (8.10; **sửa, 2026-10-06, Q-307:** bỏ gợi ý hoạt động; **sửa, 2026-11-10, Q-407:** bỏ cảnh báo nguy cơ cô lập).
 9. Kiểm tra chất lượng công việc đã Hoàn thành: người kiểm tra tự chọn mẫu đủ tỷ lệ CFG-M04-11, hệ thống kiểm tra tỷ lệ và nhắc; người kiểm tra lập công việc làm lại khi Không đạt (BR-M04-23; **sửa, 2026-10-06, Q-306, Q-307**; Q-282: không còn công việc vệ sinh).
 10. Các thông báo của nghiệp vụ trên, gửi qua feature 009; dữ liệu cho báo cáo chăm sóc 18.2.
 
@@ -182,7 +186,7 @@ Trưởng tầng, nhân viên chăm sóc hoặc điều dưỡng (Q-214) đăng 
 
 Người phụ trách buổi (trưởng tầng, nhân viên chăm sóc hoặc điều dưỡng, Q-214) điểm danh từng người đăng ký: có mặt hoặc vắng kèm lý do; với người có mặt ghi mức độ tham gia, giao tiếp và tình trạng sau hoạt động. Người không đăng ký trước được thêm tại lúc điểm danh nếu đủ điều kiện. Lượt có mặt ở hoạt động có thu phí là sự kiện tính phí để Hành chính lập khoản ở feature 010; hệ thống không tự tạo chi phí (Q-306). Bản ghi điểm danh không sửa, không xóa; sai sót xử lý bằng đính chính.
 
-**Why this priority**: Điểm danh là căn cứ duy nhất cho chi phí hoạt động (BR-M04-18, DBR-15), truy vết tiếp xúc khi có lây nhiễm (BR-M05-10), tỷ lệ tham gia (18.2) và phát hiện nguy cơ cô lập (BR-M04-22).
+**Why this priority**: Điểm danh là căn cứ duy nhất cho chi phí hoạt động (BR-M04-18, DBR-15), truy vết tiếp xúc khi có lây nhiễm (BR-M05-10) và tỷ lệ tham gia (18.2).
 
 **Independent Test**: Buổi "Tập đàn" có thu phí với 4 người đăng ký; điểm danh 3 có mặt, 1 vắng; thêm 1 người tại chỗ; kiểm tra 4 bản ghi nguồn ở feature 010; đính chính một người từ có mặt sang vắng; kiểm tra feature 010 nhận sự kiện hủy.
 
@@ -246,20 +250,20 @@ Trong chuyến đi, trưởng đoàn xem danh sách người đang đi, người
 
 ---
 
-### User Story 6 - Theo dõi tinh thần, sở thích và cảnh báo nguy cơ cô lập (Priority: P2)
+### User Story 6 - Theo dõi tinh thần và sở thích (Priority: P2) *(sửa 2026-11-10, Q-407: bỏ cảnh báo nguy cơ cô lập)*
 
-Nhân viên ghi nhận sở thích của người cao tuổi. Hệ thống tổng hợp tinh thần theo người từ tâm trạng, hành vi bất thường (feature 005) và mức độ tham gia, giao tiếp khi điểm danh. Người không tham gia hoạt động nhóm nào trong CFG-M04-10, không tính thời gian vắng mặt (sửa, Q-287: bỏ "hoặc có chỉ định hạn chế"), được cảnh báo nhẹ "nguy cơ cô lập" cho trưởng tầng. Hệ thống không gợi ý hoạt động (Q-307); trưởng tầng tự chọn hoạt động phù hợp từ lịch hoạt động và sở thích đã ghi.
+Nhân viên ghi nhận sở thích của người cao tuổi. Hệ thống tổng hợp tinh thần theo người từ tâm trạng, hành vi bất thường (feature 005) và mức độ tham gia, giao tiếp khi điểm danh. Hệ thống không đếm chuỗi ngày không tham gia và không cảnh báo "nguy cơ cô lập"; nhân viên tự theo dõi và báo cáo (Q-407). Hệ thống không gợi ý hoạt động (Q-307); trưởng tầng tự chọn hoạt động phù hợp từ lịch hoạt động và sở thích đã ghi.
 
-**Why this priority**: Phát hiện sớm cô lập và suy giảm tinh thần là giá trị chăm sóc quan trọng, nhưng phụ thuộc vào dữ liệu điểm danh của User Story 3.
+**Why this priority**: Theo dõi tinh thần giúp nhân viên nhận ra người ít tham gia hay suy giảm tinh thần (nhân viên tự đánh giá, Q-407), nhưng phụ thuộc vào dữ liệu điểm danh của User Story 3.
 
-**Independent Test**: Ghi sở thích "âm nhạc", "cờ tướng" cho A; để A 7 ngày không có điểm danh có mặt ở hoạt động nhóm; kiểm tra một cảnh báo nhẹ, không kèm gợi ý; cho B vắng 3 ngày trong 7 ngày và kiểm tra không cảnh báo sớm.
+**Independent Test**: Ghi sở thích "âm nhạc", "cờ tướng" cho A; điểm danh A ở vài buổi; mở hồ sơ tinh thần của A và kiểm tra số buổi có mặt theo tuần, sở thích và ghi nhận tâm trạng khớp dữ liệu nguồn (sửa 2026-11-10, Q-407: bỏ phần cảnh báo cô lập).
 
 **Acceptance Scenarios**:
 
 1. **Given** A có sở thích "âm nhạc", "cờ tướng", **When** nhân viên chăm sóc S ghi thêm "làm vườn" kèm nguồn "người cao tuổi tự nói", **Then** sở thích được thêm với người ghi, thời điểm; lịch sử sở thích xem được (FR-051).
-2. **Given** A Đang lưu trú, lần cuối có mặt ở hoạt động nhóm ngày 28/09, **When** hệ thống xét lúc 00:00 cho ngày 05/10, **Then** A đủ 7 ngày tính (CFG-M04-10 mặc định \[7 ngày\]) không tham gia; hệ thống yêu cầu feature 007 tạo cảnh báo nhẹ "nguy cơ cô lập" cho A, gửi trưởng tầng, không kèm danh sách gợi ý (BR-M04-22, FR-055, Q-307).
-3. **Given** B không tham gia hoạt động nhóm từ 28/09 nhưng Tạm vắng từ 01/10 tới 03/10, **When** kiểm tra cuối ngày 05/10, **Then** chỉ có 5 ngày tính; không cảnh báo; nếu B vẫn không tham gia thì cảnh báo vào cuối ngày 07/10 (FR-054).
-4. **Given** A đã có cảnh báo "nguy cơ cô lập" đang mở, **When** A tiếp tục không tham gia, **Then** hệ thống không tạo cảnh báo mới mà gộp vào cảnh báo cũ theo DBR-18; **When** A có mặt ở một hoạt động nhóm, **Then** chuỗi đếm lại từ đầu và feature 007 nhận diễn biến "đã tham gia hoạt động nhóm" cho cảnh báo đang mở (FR-056).
+2. *(Bỏ, 2026-11-10, Q-407)* Không còn cảnh báo "nguy cơ cô lập" khi đủ CFG-M04-10 ngày tính.
+3. *(Bỏ, 2026-11-10, Q-407)* Không còn đếm ngày tính.
+4. *(Bỏ, 2026-11-10, Q-407)* Không còn gộp cảnh báo cô lập, diễn biến "đã tham gia hoạt động nhóm".
 5. *(Bỏ, 2026-10-06, Q-287)* Không còn ngày bị loại khỏi ngày tính vì chỉ định hạn chế (BR-M04-22 đã sửa).
 6. *(Bỏ, 2026-10-06, Q-307)* Không còn danh sách hoạt động gợi ý cho cảnh báo tâm trạng tiêu cực kéo dài; trưởng tầng xem sở thích và hồ sơ tinh thần của E (FR-053) khi xử lý cảnh báo.
 7. **Given** trưởng tầng T mở hồ sơ tinh thần của A, **When** xem 30 ngày gần nhất, **Then** thấy: số buổi hoạt động nhóm có mặt theo tuần, mức độ tham gia và giao tiếp theo buổi, tâm trạng và hành vi bất thường theo ngày (feature 005), các cảnh báo cô lập, tâm trạng đã có (FR-053).
@@ -310,7 +314,7 @@ Mỗi ca, người kiểm tra (Trưởng tầng được giao, hoặc Người p
 - **Ca không có trưởng tầng trực** (ca đêm, hoặc tầng tạm chưa có trưởng tầng được giao): danh sách vẫn được lập; trưởng tầng được giao ghi được trong thời gian ca dù không có tên trong ca; không có ai ghi thì các mục thành "Quá hạn kiểm tra" và Quản lý viện được báo (FR-063, FR-066; Q-84, Q-90; điểm báo lại 8).
 - *(Bỏ, 2026-10-06, Q-287)* Tình huống chỉ định tạm hết hạn không còn.
 - **Công việc làm lại cũng Không đạt**: công việc làm lại là công việc bình thường, có thể được người kiểm tra chọn ở ca sau; không có vòng lặp làm lại tự động.
-- **Cảnh báo cô lập với người mới vào ở**: chuỗi chỉ tính từ ngày Hoàn tất tiếp nhận; người vào ở dưới CFG-M04-10 ngày không bị cảnh báo (FR-054).
+- **Cảnh báo cô lập với người mới vào ở**: *(Bỏ, 2026-11-10, Q-407)* Không còn cảnh báo cô lập.
 - **Mẫu lặp có ngày kết thúc, ngày viện nghỉ hoạt động**: lệnh "Tạo buổi từ mẫu" không tạo buổi sau ngày kết thúc; ngày viện không tổ chức hoạt động (ví dụ lễ) được xử lý bằng Hủy buổi có lý do, spec không có lịch ngày nghỉ riêng; đổi mẫu không được có ngày áp dụng trước hôm nay (FR-005, FR-009).
 - **Chuyến đi bị hủy hoặc người Không đi sau khi thuốc đã được giao mang theo**: điều dưỡng phụ trách được báo để ghi Nhận lại theo feature 006 (Q-58, FR-038a).
 - **Chuyến đi được dời sang ngày khác sau khi đã đánh giá**: mọi đánh giá quay lại chưa đánh giá, danh sách liều được lấy lại (FR-038a).
@@ -325,12 +329,12 @@ Mỗi ca, người kiểm tra (Trưởng tầng được giao, hoặc Người p
 - **Hoạt động**: một hoạt động được khai báo (danh mục, nhóm 1), có thể có mẫu lặp.
 - **Buổi**: một lần diễn ra cụ thể của hoạt động, có ngày giờ, địa điểm (nhóm 2).
 - **Chuyến đi**: buổi của hoạt động thuộc loại "ngoài viện" (8.9).
-- **Hoạt động nhóm**: hoạt động thuộc loại có dấu "hoạt động nhóm" (FR-001); là căn cứ của BR-M04-22.
+- **Hoạt động nhóm**: hoạt động thuộc loại có dấu "hoạt động nhóm" (FR-001); là căn cứ chặn người mang dấu "nghi nhiễm" (Q-165) *(sửa 2026-11-10, Q-407: không còn là căn cứ của BR-M04-22)*.
 - **Đăng ký**: việc ghi một người cao tuổi vào một buổi trước khi buổi diễn ra (nhóm 2).
 - **Điểm danh**: bản ghi kết quả tham gia của một người ở một buổi (nhóm 3); với chuyến đi gồm điểm danh rời viện và điểm danh về.
 - ~~**Chỉ định hạn chế hoạt động**~~: *(Bỏ, 2026-10-06, Q-287)* không còn cờ "không đủ điều kiện"; hạn chế hoạt động Bác sĩ ghi trong nhận xét đánh giá.
 - **Trưởng đoàn**: nhân viên được chỉ định dẫn một chuyến đi (2.4); **người đi cùng**: nhân viên khác được phân công đi theo chuyến.
-- **Ngày tính**: ngày dương lịch (00:00–24:00) mà người cao tuổi ở Đang lưu trú trong suốt ngày, không có khoảng vắng nào dù ngắn (bán trú: ngày có điểm danh đến), không mang dấu "nghi nhiễm", và không có đăng ký hoạt động nhóm mang kết quả "Không ghi nhận" (BR-M04-22, Q-165, Q-169, Q-173; sửa 2026-10-06, Q-287: bỏ điều kiện chỉ định hạn chế).
+- **Ngày tính**: *(Bỏ, 2026-11-10, Q-407)* Không còn dùng (BR-M04-22 bỏ).
 - **Không ghi nhận**: kết quả hệ thống gán cho đăng ký chưa có kết quả điểm danh khi hết ngày của buổi; không phải Có mặt, không phải Vắng (FR-014a).
 - **Danh sách kiểm tra chất lượng**: tập công việc người kiểm tra tự chọn trong một ca của một tầng, đủ ít nhất CFG-M04-11, để kiểm tra lại (BR-M04-23, Q-307).
 
@@ -516,11 +520,11 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 | Hiện hành | Bỏ sở thích | Đã bỏ | Như trên | Có lý do | — |
 | Đã thay; Đã bỏ | — | — | — | Trạng thái cuối; xem được trong lịch sử | — |
 - **FR-053**: Hệ thống MUST cho Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc (trong phạm vi) xem hồ sơ tinh thần của một người cao tuổi theo khoảng thời gian, tổng hợp: số buổi hoạt động nhóm có mặt theo tuần; mức độ tham gia và giao tiếp theo buổi (FR-029); tâm trạng và hành vi bất thường theo ngày (feature 005, chỉ đọc); sở thích; các cảnh báo cô lập, tâm trạng đã có và trạng thái của chúng (feature 007). Hồ sơ tinh thần chỉ để xem; dữ liệu MUST được ghi ở nguồn. *(Nguồn: 8.10 "Ghi nhận: tâm trạng; giao tiếp; mức độ tham gia; hành vi bất thường; sở thích")*
-- **FR-054**: Lúc 00:00 mỗi ngày, hệ thống MUST xét cho ngày vừa kết thúc, với mỗi người cao tuổi ở Đang lưu trú (bán trú: có hợp đồng hiệu lực), chuỗi ngày tính liên tiếp gần nhất không có lượt điểm danh Có mặt ở hoạt động nhóm (kể cả chuyến đi, kể cả mức "bỏ giữa chừng"). Ngày không phải ngày tính theo định nghĩa ở mục Thuật ngữ (có khoảng vắng dù ngắn, mang dấu "nghi nhiễm", có đăng ký hoạt động nhóm "Không ghi nhận", bán trú không đến) MUST được bỏ qua, không làm đứt chuỗi. Một ngày có lượt Có mặt ở hoạt động nhóm luôn làm chuỗi đếm lại, kể cả khi ngày đó không phải ngày tính. Chuỗi bắt đầu không sớm hơn ngày Hoàn tất tiếp nhận. *(Nguồn: BR-M04-22 "không tính thời gian vắng mặt" (sửa, Q-287), CFG-M04-10; nghi nhiễm: Q-165; vắng một phần ngày, "Không ghi nhận": Q-169, Q-173)*
-- **FR-055**: Khi chuỗi ở FR-054 đạt CFG-M04-10 (mặc định \[7 ngày\]) ngày tính, hệ thống MUST yêu cầu feature 007 tạo cảnh báo mức Nhẹ loại "nguy cơ cô lập" cho người cao tuổi, người nhận là trưởng tầng của tầng người đó; cảnh báo không kèm danh sách gợi ý (**sửa, 2026-10-06, Q-307**). *(Nguồn: BR-M04-22, UC-29)*
-- **FR-056**: Nếu đã có cảnh báo "nguy cơ cô lập" đang mở cho người đó, cảnh báo mới MUST được gộp vào theo DBR-18 (feature 007). Khi người đó có lượt Có mặt ở hoạt động nhóm, chuỗi MUST đếm lại từ đầu và feature 007 MUST nhận diễn biến "đã tham gia hoạt động nhóm" cho cảnh báo đang mở; cảnh báo không tự đóng. *(Nguồn: BR-M05-02, DBR-18)*
+- **FR-054**: *(Bỏ, 2026-11-10, Q-407)* Hệ thống không xét chuỗi ngày không tham gia hoạt động nhóm. *(Nguồn: Q-407)*
+- **FR-055**: *(Bỏ, 2026-11-10, Q-407)* Không yêu cầu feature 007 tạo cảnh báo "nguy cơ cô lập". *(Nguồn: Q-407)*
+- **FR-056**: *(Bỏ, 2026-11-10, Q-407)* Không có gộp cảnh báo cô lập hay diễn biến "đã tham gia hoạt động nhóm". *(Nguồn: Q-407)*
 - **FR-057**: *(Bỏ, 2026-10-06, Q-307)* Không có danh sách hoạt động gợi ý, kể cả cho cảnh báo cô lập (FR-055) và cảnh báo tâm trạng tiêu cực kéo dài của feature 005. *(Nguồn: 8.10, BR-M04-11, BR-M04-22, Q-307)*
-- **FR-058**: Danh sách người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi MUST được cung cấp cho báo cáo chăm sóc (18.2). *(Nguồn: 18.2 "(Bổ sung)")*
+- **FR-058**: *(Bỏ, 2026-11-10, Q-407)* Không cung cấp danh sách nguy cơ cô lập cho báo cáo chăm sóc. *(Nguồn: Q-407)*
 
 #### J. Kiểm tra chất lượng
 
@@ -563,7 +567,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
   - **Cách thay khi nhóm người nhận trống** (feature 009 FR-010): Trưởng tầng trống → Người phụ trách ca đang diễn ra của tầng; trưởng đoàn trống → Trưởng tầng; người phụ trách buổi trống → Trưởng tầng; các nhóm khác "không thay".
   - **Người thân**: chỉ nhận dòng về đồng ý về muộn; nội dung chỉ nêu tên buổi, ngày, giờ về dự kiến, không nêu thông tin sức khỏe, nên không cần bản đồng ý chia sẻ dữ liệu (feature 009 FR-014).
   - **Đối tượng thông tin** (bổ sung 2026-10-18, feature 009 FR-001a): dòng về đồng ý về muộn tới người đại diện và người đã đăng ký là "về việc của chính người thân" (đồng ý do người đại diện ghi, đăng ký do người đó lập); không mang mã Q-354.
-  - Cảnh báo "nguy cơ cô lập" và sự cố thiếu người được thông báo qua feature 007, không lặp ở bảng này.
+  - Sự cố thiếu người được thông báo qua feature 007, không lặp ở bảng này.
 
 | Sự kiện | Người nhận | Mức | Căn cứ |
 | --- | --- | --- | --- |
@@ -603,14 +607,14 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 | Q-170 (đính chính điểm danh rời/về) | US5 kịch bản 11 | FR-031a |
 | Q-171 (thay đổi chuyến sau chuẩn bị; không mang thuốc) | Edge Cases (chuyến bị hủy, dời) | FR-015 (e), FR-038, FR-038a, FR-040 |
 | Q-172 (an toàn chuyến: leo thang, chuyển trưởng đoàn, qua hết ca, kèm riêng — bỏ, Q-281) | US5 kịch bản 9, 10 | FR-035, FR-035a, FR-036, FR-049a |
-| Q-173 (bỏ giữa chừng, tỷ lệ tham gia, ngày tính) | US3 kịch bản 9; US6 kịch bản 3 | FR-029, FR-033, FR-054, FR-070 |
+| Q-173 (bỏ giữa chừng, tỷ lệ tham gia, ngày tính) | US3 kịch bản 9 | FR-029, FR-033, FR-070 (phần ngày tính bỏ theo Q-407) |
 | Q-174 (kiểm tra chất lượng: khu vực chung, ngoại tuyến, giường) | — (kiểm thử cùng feature 003, 005) | FR-059, FR-060, FR-064 |
 | Q-175 (địa điểm, người phụ trách, quyền trên hoạt động toàn viện, đánh giá chuyến toàn viện) | US1 kịch bản 7; US2 kịch bản 5 | FR-002a, FR-002b, FR-036 |
 | Q-176 (giờ về theo ngày của bán trú, đồng ý "Đã dùng") | US2 kịch bản 14 | FR-016a, bảng trạng thái đồng ý về muộn |
 | 8.9, UC-30 (chuẩn bị chuyến đi) | US4 kịch bản 1 → 3, 6 | FR-034 → FR-039 |
 | BR-M04-16, BR-M07-03, 5.6 (rời viện) | US4 kịch bản 4, 5 | FR-040 → FR-042 |
 | BR-M04-17, 5.5 (quá giờ, thiếu người) | US5 kịch bản 1 → 8 | FR-043 → FR-050 (Q-166: US5 kịch bản 8, FR-045) |
-| 8.10, BR-M04-22, CFG-M04-10 | US6 kịch bản 1 → 4, 7 | FR-051 → FR-056, FR-058 |
+| 8.10 (BR-M04-22, CFG-M04-10 bỏ theo Q-407) | US6 kịch bản 1, 7 | FR-051 → FR-053 |
 | BR-M04-23, CFG-M04-11, UC-31 | US7 kịch bản 1 → 10 | FR-059 → FR-066 |
 | Q-161 (trưởng đoàn, người đi cùng, người đánh giá) | US4 kịch bản 2, 8; US5 kịch bản 5 | FR-035, FR-036, FR-046, FR-067 |
 | Q-162 *(Không còn áp dụng, Q-287)* | — | — |
@@ -624,7 +628,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 
 | Hướng | Feature | Nội dung | Dữ liệu tối thiểu |
 | --- | --- | --- | --- |
-| Nhận | 000 | Đính chính, nhật ký, lý do bắt buộc, tham số CFG-M04-06, CFG-M04-07, CFG-M04-10, CFG-M04-11, CFG-M04-13, CFG-M05-07, CFG-M09-04 | — |
+| Nhận | 000 | Đính chính, nhật ký, lý do bắt buộc, tham số CFG-M04-06, CFG-M04-07, CFG-M04-11, CFG-M04-13, CFG-M05-07, CFG-M09-04 | — |
 | Nhận, Gửi | 001 | Nhận: trạng thái, lưu ý chăm sóc (sửa, Q-281), mức chăm sóc, loại hình lưu trú, ngày Hoàn tất tiếp nhận, sự kiện trạng thái cuối. Gửi: yêu cầu chuyển Đang lưu trú ↔ Hoạt động bên ngoài khi điểm danh rời/về (feature 001 bảng trạng thái) | Người cao tuổi, trạng thái, người thực hiện, căn cứ (chuyến), thời điểm |
 | Nhận | 002 | Phạm vi dữ liệu; tài khoản Hoạt động; phạm vi do nhiệm vụ Trưởng đoàn (feature 002 FR-031) | Nhân viên, người cao tuổi, chuyến |
 | Nhận, Gửi | 003 | Nhận: tầng/khu vực, giường, khu nghỉ bán trú của người cao tuổi (sửa, 2026-10-06, Q-282: bỏ công việc vệ sinh và yêu cầu làm lại) | Người cao tuổi, tầng, phòng, công việc |
@@ -640,7 +644,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 | Gửi, Nhận | 012 | Gửi: buổi đã đăng ký, chuyến đi, số hoạt động đã tham gia cho cổng (FR-033, FR-068; bản tin bỏ theo Q-396). Nhận: đồng ý về muộn và rút đồng ý của người đại diện qua cổng (FR-016a) | Người cao tuổi, buổi, số lượt, người đại diện, đồng ý |
 | Gửi | 012 | *(bổ sung 2026-10-18, Q-366)* Buổi hoạt động sắp tới và việc đã có tên cho kênh người cao tuổi (FR-068a) | Buổi, thời gian, nơi, có tên hay chưa |
 | Gửi | 007 | *(bổ sung 2026-10-18, Q-369)* Chuyến đang diễn ra, trưởng đoàn, người đi cùng của người cao tuổi ở Hoạt động bên ngoài (FR-068a) | Người cao tuổi, chuyến, trưởng đoàn, người đi cùng |
-| Gửi | Module 14 (feature 016) | Tỷ lệ tham gia, danh sách nguy cơ cô lập, tỷ lệ Đạt kiểm tra chất lượng, chuyến quá giờ (FR-058, FR-065, FR-070) | Buổi (hoạt động, phạm vi, tầng địa điểm, trạng thái); đăng ký và kết quả điểm danh (người cao tuổi, tầng lúc buổi bắt đầu, lý do vắng, nhãn "ghi nhận muộn"); chuyến đi (giờ về dự kiến, các lần gia hạn, thời điểm điểm danh về từng người); sự cố thiếu người; mục kiểm tra chất lượng (công việc gốc, người thực hiện, tầng, kết quả, dấu "ngoài phạm vi kiểm tra"); cảnh báo cô lập (người cao tuổi, số ngày tính) |
+| Gửi | Module 14 (feature 016) | Tỷ lệ tham gia, tỷ lệ Đạt kiểm tra chất lượng, chuyến quá giờ (FR-065, FR-070) | Buổi (hoạt động, phạm vi, tầng địa điểm, trạng thái); đăng ký và kết quả điểm danh (người cao tuổi, tầng lúc buổi bắt đầu, lý do vắng, nhãn "ghi nhận muộn"); chuyến đi (giờ về dự kiến, các lần gia hạn, thời điểm điểm danh về từng người); sự cố thiếu người; mục kiểm tra chất lượng (công việc gốc, người thực hiện, tầng, kết quả, dấu "ngoài phạm vi kiểm tra"); cảnh báo cô lập (người cao tuổi, số ngày tính) |
 
 ### Key Entities *(include if feature involves data)*
 
@@ -665,10 +669,10 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 - **SC-004**: 0 người cao tuổi được điểm danh rời viện mà chưa có đánh giá Đạt, chưa có trưởng đoàn, hoặc còn liều trong khoảng đi chưa có lần giao thuốc hoặc quyết định không mang thuốc.
 - **SC-005**: 100% người được điểm danh rời viện chuyển Hoạt động bên ngoài và 100% người được điểm danh về chuyển Đang lưu trú trong cùng thao tác; 0 người ở Hoạt động bên ngoài quá giờ về dự kiến + CFG-M04-07 mà không có thông báo tới trưởng đoàn và trưởng tầng.
 - **SC-006**: 100% người thiếu khi kết thúc điểm danh về có cảnh báo Khẩn cấp trong vòng 1 phút sau thao tác; 100% lệnh "Báo thiếu người" ghi nhận đúng một sự cố khẩn cấp đang mở; 0 sự cố do hệ thống tự tạo; 0 cảnh báo hay sự cố thiếu người cho người đã Rời đoàn.
-- **SC-007**: Trong 30 kịch bản kiểm thử quy tắc cô lập (đúng ngưỡng, dưới ngưỡng, có vắng mặt, bán trú, người mới vào ở, đã có cảnh báo mở), 100% cảnh báo được tạo đúng ngày và 0 cảnh báo thừa.
+- **SC-007**: *(Bỏ, 2026-11-10, Q-407)* Không còn quy tắc cô lập để kiểm thử.
 - **SC-008**: 100% lệnh lập danh sách kiểm tra dưới tỷ lệ CFG-M04-11 (làm tròn lên) bị chặn; 0 mục do hệ thống tự chọn; 100% ca chưa có danh sách hoặc thiếu tỷ lệ tại mốc CFG-M09-04 được nhắc; 100% kết quả Không đạt có công việc làm lại do người kiểm tra lập trong cùng ca; 100% mục chưa có kết quả lúc hết ca thành "Quá hạn kiểm tra"; 0 công việc gốc bị sửa.
 - **SC-009**: Khi có kết nối, với buổi 20 người đã đăng ký sẵn và tối đa 2 người thêm tại chỗ, nhân viên chăm sóc hoàn tất điểm danh trong không quá 3 phút; trưởng đoàn điểm danh rời viện hoặc về cho 15 người đã được đánh giá Đạt trong không quá 2 phút. Đây là mục tiêu nghiệm thu, đo từ lúc mở danh sách tới lúc lưu.
-- **SC-010**: 0 lần người thân thấy mức độ tham gia, cảnh báo cô lập hay kết quả kiểm tra chất lượng trên cổng.
+- **SC-010**: 0 lần người thân thấy mức độ tham gia hay kết quả kiểm tra chất lượng trên cổng.
 - **SC-011**: *(Bỏ, 2026-10-06, Q-287)*
 - **SC-012**: *(Bỏ, 2026-10-06, Q-287)*
 - **SC-013**: 0 người bán trú có đăng ký buổi kết thúc sau giờ về theo lịch mà không có đồng ý về muộn Hiệu lực hoặc Đã dùng; 100% đăng ký như vậy làm giờ về dự kiến của ngày được dời trong cùng thao tác.
@@ -688,7 +692,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 - *(Bỏ, 2026-10-06, Q-287)* Không còn chỉ định tạm.
 - Đồng ý về muộn của bán trú (FR-016a) do Hành chính ghi nhận vì Hành chính quản lý người thân và lịch bán trú (2.3); 4.4 dòng "Hoạt động, ngoài viện" chưa có quyền cho Hành chính (điểm báo lại 7). Phí của phần giờ thêm do feature 010 tính theo quy tắc buổi hiện có (Q-138, Q-140), spec này không đặt quy tắc phí riêng.
 - Mức của thông báo quá giờ về là Trung bình theo feature 009 FR-043b (cần hành động trong ca, chưa phải nguy cơ trực tiếp); khi có người thiếu, mức Khẩn cấp đi qua sự cố của feature 007.
-- Cách đếm ngày của cảnh báo cô lập (ngày tính, bỏ qua ngày có vắng mặt, FR-054) cố ý khác cách đếm tâm trạng tiêu cực của feature 005 FR-042 (ngày không có ghi nhận làm đứt chuỗi): BR-M04-22 nêu rõ "không tính thời gian vắng mặt", còn BR-M04-11 đếm "ngày liên tiếp" có ghi nhận.
+- *(Hết hiệu lực theo Q-407, 2026-11-10)* Cách đếm ngày của cảnh báo cô lập (ngày tính, bỏ qua ngày có vắng mặt, FR-054) cố ý khác cách đếm tâm trạng tiêu cực của feature 005 FR-042 (ngày không có ghi nhận làm đứt chuỗi): BR-M04-22 nêu rõ "không tính thời gian vắng mặt", còn BR-M04-11 đếm "ngày liên tiếp" có ghi nhận.
 - Kiểm tra chất lượng lấy mẫu theo ca có phạm vi tầng/khu vực (sửa, Q-282: không còn công việc vệ sinh). Người kiểm tra tự chọn công việc Hoàn thành, Hoàn thành trễ của ca, đủ ít nhất tỷ lệ CFG-M04-11; hệ thống không chọn mẫu, chỉ kiểm tra tỷ lệ và nhắc tại mốc CFG-M09-04 (Q-163, Q-307). Công việc do chính người kiểm tra thực hiện không vào danh sách; ca mà Trưởng tầng được giao không có tên trong ca thì Người phụ trách ca của tầng kiểm tra (Q-254) (sửa câu 2026-10-11).
 - Mọi dữ liệu của spec gắn người cao tuổi được lưu theo CFG-M15-03 (NFR-07).
 

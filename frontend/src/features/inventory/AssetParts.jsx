@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { getAreas, getFloors, getRooms, postAssets, postAssetsByIdByCommand } from '@/api'
+import { getAreas, getAssetsById, getFloors, getRooms, postAssets, postAssetsByIdByCommand } from '@/api'
+import { CorrectionBadge } from '@/common/correction/CorrectionBadge'
+import { formatDate, formatDateTime } from '@/common/dateTime'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
-import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { Choices, Info, ReasonField, SELECT, TextField } from './FormParts'
 import {
@@ -21,12 +22,129 @@ import {
   wholeNumber,
 } from './assetLabels'
 
-// Khung chi tiết và khung ghi tăng tài sản (019 T018; bảng FR-013). Lệnh theo trạng thái và quyền (api-019 chưa có
-// allowedCommands, chưa trả phiên bản nên chưa sửa mô tả): Phụ trách bộ phận (quyền Sửa) đưa vào sử dụng, chuyển vị trí,
-// báo hỏng, bảo trì, ghi kết quả, đề nghị thanh lý; Trưởng tầng, Quản lý viện gỡ dấu chờ chuyển người; Quản lý viện
-// chuyển bộ phận. Tài sản giường không có Đưa vào sử dụng, Chuyển vị trí (Q-242, Q-243). Backend kiểm lại người thực hiện.
+// Khung chi tiết và khung ghi tăng tài sản (019 T018; bảng FR-013). Nút lệnh chỉ theo allowedCommands backend trả
+// (api-019 bổ sung 2026-11-10; DESIGN.md 7.4), backend kiểm lại người thực hiện; lịch sử vị trí, chuyển bộ phận, bảo
+// trì, hư hỏng đọc từ GET /assets/{id} (FR-012).
 
-const MANAGER = 'NURSING_HOME_MANAGER'
+const KIND_LABELS = Object.fromEntries(MAINTENANCE_KINDS)
+const RESULT_LABELS = Object.fromEntries(MAINTENANCE_RESULTS)
+const LOCATION_LABELS = Object.fromEntries(LOCATION_TYPES)
+const IMPACT_LABELS = Object.fromEntries(IMPACT_LEVELS)
+
+// Lịch sử của tài sản (FR-012): vị trí theo khoảng, lần chuyển bộ phận, bảo trì, hư hỏng kèm dấu đính chính (000 FR-028)
+function AssetHistory({ assetId, departments }) {
+  const [detail, setDetail] = useState(null)
+  const [places, setPlaces] = useState({})
+  useEffect(() => {
+    let cancelled = false
+    getAssetsById({ path: { id: assetId } })
+      .then(({ data }) => !cancelled && setDetail(data))
+      .catch(() => !cancelled && setDetail(false))
+    Promise.all([getAreas(), getFloors(), getRooms()])
+      .then(([areas, floors, rooms]) => {
+        if (cancelled) return
+        const byId = (list) => Object.fromEntries(asList(list).map((o) => [o.id, o.name]))
+        setPlaces({ AREA: byId(areas.data), FLOOR: byId(floors.data), ROOM: byId(rooms.data) })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [assetId])
+
+  if (detail === false) return <p className="type-body-sm text-muted-foreground">Chưa tải được lịch sử tài sản.</p>
+  if (!detail) return null
+  const place = (l) =>
+    l.id != null
+      ? (places[l.type]?.[l.id] ?? `${LOCATION_LABELS[l.type] ?? l.type} mã ${l.id}`)
+      : (LOCATION_LABELS[l.type] ?? l.type)
+  const department = (id) => departments?.find((d) => d.id === id)?.name ?? `Bộ phận mã ${id}`
+  const period = (from, to) => `${formatDateTime(from)} → ${to ? formatDateTime(to) : 'nay'}`
+
+  return (
+    <div className="flex flex-col gap-4">
+      <HistorySection id="asset-history-locations" title="Lịch sử vị trí" items={detail.locations ?? []}>
+        {(l) => (
+          <>
+            <span className="type-label">{place(l)}</span>
+            <span className="type-body-sm text-muted-foreground">{period(l.from, l.to)}</span>
+            {l.reason && <span className="type-body-sm text-muted-foreground">{`Lý do: ${l.reason}`}</span>}
+          </>
+        )}
+      </HistorySection>
+      {(detail.departmentTransfers ?? []).length > 0 && (
+        <HistorySection id="asset-history-departments" title="Chuyển bộ phận" items={detail.departmentTransfers}>
+          {(t) => (
+            <>
+              <span className="type-label">{`${department(t.fromDepartmentId)} → ${department(t.toDepartmentId)}`}</span>
+              <span className="type-body-sm text-muted-foreground">
+                {`${formatDateTime(t.at)}${t.reason ? `, lý do: ${t.reason}` : ''}`}
+              </span>
+            </>
+          )}
+        </HistorySection>
+      )}
+      <HistorySection id="asset-history-maintenances" title="Bảo trì, kiểm định" items={detail.maintenances ?? []} empty="Chưa có lần bảo trì">
+        {(m) => (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="type-label">
+                {m.confirmedAt || m.result
+                  ? `${KIND_LABELS[m.kind] ?? m.kind}, ${RESULT_LABELS[m.result] ?? m.result}, ${formatDate(m.date)}`
+                  : `${KIND_LABELS[m.kind] ?? m.kind}, đang thực hiện`}
+              </span>
+              <CorrectionBadge corrected={m.corrected} voided={m.voided} />
+            </div>
+            {m.content && (
+              <span className="type-body-sm text-muted-foreground">{`${m.content}, ${m.performedBy}`}</span>
+            )}
+          </>
+        )}
+      </HistorySection>
+      <HistorySection id="asset-history-damages" title="Hư hỏng" items={detail.damages ?? []} empty="Chưa có hư hỏng">
+        {(d) => (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="type-label">{d.description}</span>
+              <CorrectionBadge corrected={d.corrected} voided={d.voided} />
+            </div>
+            <span className="type-body-sm text-muted-foreground">
+              {[
+                formatDateTime(d.reportedAt),
+                d.impactLevel && IMPACT_LABELS[d.impactLevel],
+                d.awaitingTransfer && 'chờ chuyển người',
+                d.repairDescription && `đã sửa: ${d.repairDescription}, ${d.repairedBy}`,
+              ]
+                .filter(Boolean)
+                .join(', ')}
+            </span>
+          </>
+        )}
+      </HistorySection>
+    </div>
+  )
+}
+
+function HistorySection({ id, title, items, empty, children }) {
+  return (
+    <section aria-labelledby={id} className="flex flex-col gap-2">
+      <h3 id={id} className="type-card-title">
+        {title}
+      </h3>
+      {items.length === 0 ? (
+        <p className="type-body-sm text-muted-foreground">{empty}</p>
+      ) : (
+        <ul className="flex flex-col divide-y rounded-lg border">
+          {items.map((item, index) => (
+            <li key={item.id ?? index} className="flex flex-col gap-0.5 p-3">
+              {children(item)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
 
 function asList(data) {
   return Array.isArray(data) ? data : (data?.items ?? [])
@@ -99,12 +217,10 @@ export function AssetDetail({
   departmentName,
   departments,
   typeCode,
-  role,
   onChanged,
   Title,
   Description,
 }) {
-  const { can } = usePermissions()
   const [mode, setMode] = useState(null)
   const [reason, setReason] = useState('')
   const [description, setDescription] = useState('')
@@ -129,10 +245,7 @@ export function AssetDetail({
   const bed = asset.bedId != null
   const vehicle = typeCode === VEHICLE_CODE
   const live = status !== 'DISPOSED'
-  const lead = can('ASSET_VEHICLE', 'UPDATE')
-  const manager = role === MANAGER
-  const floorOrManager = role === 'FLOOR_MANAGER' || manager
-  const flagged = (asset.flags ?? []).includes('AWAITING_RESIDENT_TRANSFER')
+  const allowed = (command) => (asset.allowedCommands ?? []).includes(command)
   const label = asset.code
 
   function open(next) {
@@ -255,6 +368,7 @@ export function AssetDetail({
         {bed && <Info label="Giường">{`Mã giường ${asset.bedId}`}</Info>}
         {(asset.flags ?? []).length > 0 && <Info label="Dấu">{flagLabels(asset.flags).join(', ')}</Info>}
       </div>
+      <AssetHistory assetId={asset.id} departmentName={departmentName} departments={departments} />
       <ProblemAlert problem={failure} />
 
       {mode === 'use' && (
@@ -468,42 +582,42 @@ export function AssetDetail({
 
       {mode === null && live && (
         <div className="flex flex-wrap justify-end gap-2">
-          {manager && (
+          {allowed('transfer-department') && (
             <Button variant="ghost" className="h-11" onClick={() => open('department')}>
               Chuyển bộ phận…
             </Button>
           )}
-          {lead && (
+          {allowed('request-disposal') && (
             <Button variant="ghost" className="h-11" onClick={() => open('disposal')}>
               Đề nghị thanh lý…
             </Button>
           )}
-          {lead && !bed && (
+          {allowed('relocate') && (
             <Button variant="outline" className="h-11" onClick={() => open('relocate')}>
               Chuyển vị trí…
             </Button>
           )}
-          {lead && ['READY', 'IN_USE'].includes(status) && (
+          {allowed('report-damage') && (
             <Button variant="outline" className="h-11" onClick={() => open('damage')}>
               Báo hỏng…
             </Button>
           )}
-          {flagged && floorOrManager && (
+          {allowed('remove-transfer-flag') && (
             <Button variant="outline" className="h-11" onClick={() => open('flag')}>
               Gỡ dấu chờ chuyển người…
             </Button>
           )}
-          {lead && ['READY', 'IN_USE', 'DAMAGED'].includes(status) && (
+          {allowed('start-maintenance') && (
             <Button variant="outline" className="h-11" onClick={() => open('maintenance')}>
               Đưa vào bảo trì…
             </Button>
           )}
-          {lead && status === 'UNDER_MAINTENANCE' && (
+          {allowed('record-maintenance-result') && (
             <Button className="h-11" onClick={() => open('result')}>
               Ghi kết quả bảo trì…
             </Button>
           )}
-          {lead && status === 'READY' && !bed && (
+          {allowed('put-into-use') && (
             <Button className="h-11" onClick={() => open('use')}>
               Đưa vào sử dụng…
             </Button>

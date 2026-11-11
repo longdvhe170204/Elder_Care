@@ -15,7 +15,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `GIUONG.CO_THE_DUNG` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `GiuongThongKeApi.trangThaiTaiNgay` | FR-020 (tổng giường có thể dùng, Q-246) |
 | `GIUONG.PHONG_CACH_LY` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `GiuongThongKeApi.phongCachLy` | FR-020 |
 | `GIUONG.SO_NGUOI` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `PhanBoGiuongApi.nguoiTrongPhamVi`, `dangHieuLuc` | FR-024 (số người theo tầng, phòng) |
-| `GIUONG.TRONG_CHO_CHUYEN` *(bổ sung 2026-10-27, chưa cài: chờ 019)* | Phòng, giường | 019 dấu chờ chuyển người | FR-020 |
+| `GIUONG.TRONG_CHO_CHUYEN` *(bổ sung 2026-10-27; cài 2026-11-11)* | Phòng, giường | 019 dấu chờ chuyển người | FR-020 |
 | `GIUONG.CHO_SAN_SANG` | Thời gian giường Chờ sẵn sàng | 003 `GiuongThongKeApi.choSanSang` | FR-033 (trung bình theo tầng; mốc xếp khoảng Q-390) |
 | `GIUONG.CHO_SAN_SANG_DAI_NHAT`, `GIUONG.CHO_SAN_SANG_VUOT_HAN` *(bổ sung 2026-10-27)* | Thời gian giường Chờ sẵn sàng | 003 `GiuongThongKeApi.choSanSang` | FR-033 (dài nhất; số lần vượt CFG-M03-04) |
 | `CV.HOM_NAY`, `CV.QUA_HAN` | Công việc | 005 `CongViecThongKeApi` | FR-020 |
@@ -25,7 +25,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `CV.THEO_NHAN_VIEN` | Chỉ tiêu theo nhân viên | 005, 014 | FR-030, FR-037 |
 | `BUA.PHIEU_TRE`, `BUA.PHIEU_SAI_LECH` | Phiếu bữa ăn | 011 `DinhDuongThongKeApi.phieu` | FR-034 |
 | `HD.BUOI`, `HD.TY_LE_THAM_GIA`, `HD.CHUYEN_QUA_GIO`, `HD.THIEU_NGUOI` | Hoạt động | 014 `HoatDongThongKeApi` | FR-020, FR-035 |
-| `HD.CO_LAP` | Hoạt động | 014 `coLap` | FR-036 |
+| `HD.CO_LAP` | *(Bỏ, 2026-11-10, Q-407)* Không còn chỉ tiêu nguy cơ cô lập | — | FR-036 |
 | `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | Kiểm tra chất lượng | 014 `kiemTra` | FR-037 |
 | `SK.CHI_SO` | Chỉ số, cảnh báo, sự cố | 007 `ChiSoThongKeApi` | FR-040 |
 | `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG` | Chỉ số, cảnh báo, sự cố | 007 `CanhBaoThongKeApi` | FR-020, FR-041 |

@@ -269,6 +269,24 @@ class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
                         Long.class,
                         id))
                 .isEqualTo(2);
+        // FR-044: quá CFG-M15-05 nhắc người quyết định và Quản lý viện, quá CFG-M15-06 chỉ Quản lý viện; mức Trung
+        // bình.
+        var overdue = events.stream(com.eldercare.backend.billing.internal.period.domain.CostNotificationEvent.class)
+                .flatMap(e -> e.notificationRequests().stream())
+                .filter(n -> n.eventType().equals("PURCHASE_CONSENT_OVERDUE")
+                        && n.sourceRecord().id().equals(Long.toString(id)))
+                .toList();
+        assertThat(overdue)
+                .hasSize(2)
+                .allSatisfy(n -> assertThat(n.level())
+                        .contains(com.eldercare.backend.common.notification.NotificationLevel.MEDIUM));
+        assertThat(overdue)
+                .anySatisfy(n -> assertThat(n.recipientGroups())
+                        .contains(
+                                new com.eldercare.backend.common.notification.RecipientGroup.Representative(resident)))
+                .anySatisfy(n -> assertThat(n.recipientGroups())
+                        .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.FacilityRole(
+                                Role.NURSING_HOME_MANAGER)));
         reminders.run(at);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM reminder_marker WHERE kind='M11.PURCHASE_REMINDER' AND entity_id=?",
@@ -476,5 +494,146 @@ class PurchaseAssistanceIT extends MySqlIntegrationTestBase {
                 retention.delete(java.util.List.of(id, kept));
             });
         }
+    }
+
+    @Autowired
+    com.eldercare.backend.billing.internal.item.service.ManualCostService manual;
+
+    @Autowired
+    com.eldercare.backend.administration.account.api.spi.StaffProfileApi staffProfiles;
+
+    private long catalog(String name, String type, boolean active) {
+        jdbc.update(
+                "INSERT INTO catalog_item (catalog_type, module, name, status, attributes)"
+                        + " VALUES ('M02.SERVICE', 'M02', ?, ?, ?)",
+                name,
+                active ? "ACTIVE" : "INACTIVE",
+                "{\"type\":\"" + type
+                        + "\",\"unit\":\"gói\",\"billingPeriod\":\"UNIT\",\"careLevelCode\":null,\"roomTypeId\":null,\"medicationId\":null}");
+        return jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type='M02.SERVICE' AND name=? ORDER BY id DESC LIMIT 1",
+                Long.class,
+                name);
+    }
+
+    private long receipt() {
+        long file = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO file(id,uuid,original_name,mime_type,size_bytes,sha256,uploaded_by,uploaded_at) VALUES (?,?,?,'application/pdf',1,?,?,?)",
+                file,
+                java.util.UUID.randomUUID().toString(),
+                "receipt.pdf",
+                "0".repeat(64),
+                office.user().accountId(),
+                java.sql.Timestamp.from(time.now()));
+        return file;
+    }
+
+    private long manualItem(String description) {
+        return manual.create(
+                resident,
+                description,
+                time.today().minusDays(1),
+                new BigDecimal("2"),
+                "lần",
+                75_000,
+                new Reason("Phí chấm dứt sớm theo hợp đồng"),
+                java.util.List.of());
+    }
+
+    @Test
+    void BR_M11_04_manualItemNamedLikeACatalogItem_isBlocked_evenWhenInactive() {
+        String suffix = java.util.UUID.randomUUID().toString();
+        catalog("Gạc vô trùng " + suffix, "MEDICAL_SUPPLY", false);
+
+        assertThatThrownBy(() -> manualItem("  GẠC   vô trùng " + suffix.toUpperCase()))
+                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class)
+                .hasMessageContaining("Gạc vô trùng " + suffix);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM cost_item WHERE resident_id=? AND origin='MANUAL'", Long.class, resident))
+                .isZero();
+    }
+
+    @Test
+    void FR_021_manualItemOutsideCatalog_isDraftWithReasonAndAmount_andCannotBeInTheFuture() {
+        long id = manualItem("Phí chấm dứt sớm " + java.util.UUID.randomUUID());
+
+        var row = jdbc.queryForMap("SELECT origin,cost_type,status,amount,reason,unit FROM cost_item WHERE id=?", id);
+        assertThat(row)
+                .containsEntry("origin", "MANUAL")
+                .containsEntry("cost_type", "OTHER")
+                .containsEntry("status", "DRAFT")
+                .containsEntry("reason", "Phí chấm dứt sớm theo hợp đồng")
+                .containsEntry("unit", "lần");
+        assertThat(((Number) row.get("amount")).longValue()).isEqualTo(150_000);
+        assertThatThrownBy(() -> manual.create(
+                        resident,
+                        "Khoản ngày mai",
+                        time.today().plusDays(1),
+                        BigDecimal.ONE,
+                        "lần",
+                        1,
+                        new Reason("Thử"),
+                        java.util.List.of()))
+                .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
+    }
+
+    private long catalogRequest(long item, long amount) {
+        return service.create(
+                resident,
+                item,
+                "Vật tư y tế",
+                BigDecimal.ONE,
+                amount,
+                "STAFF",
+                office.user().staffId().orElseThrow(),
+                new Reason("Bác sĩ chỉ định"));
+    }
+
+    @Test
+    void T025_catalogPurchase_requiresAnExistingCatalogItem() {
+        assertThatThrownBy(() -> catalogRequest(Long.MAX_VALUE, 300_000))
+                .isInstanceOf(com.eldercare.backend.common.error.InvalidValueException.class);
+        long item = catalog("Băng cuộn " + java.util.UUID.randomUUID(), "MEDICAL_SUPPLY", true);
+        long id = catalogRequest(item, 300_000);
+        assertThat(records.require(PurchaseDetails.KIND, id).content().catalogItemId())
+                .isEqualTo(item);
+    }
+
+    @Test
+    void Q_269_urgentMedicalSupply_requestedByDoctor_isRecordedWithUrgentFlag() {
+        long item = catalog("Ống hút đờm " + java.util.UUID.randomUUID(), "MEDICAL_SUPPLY", true);
+        long doctor = staffProfiles.createMinimal("Bác sĩ Thử", Role.DOCTOR);
+        long id = catalogRequest(item, 800_000);
+        service.send(id);
+        current.set(manager.user());
+        service.agree(id, service.target(id));
+        current.set(office.user());
+
+        recorder.record(id, 1_000_000, time.today(), receipt(), true, doctor);
+
+        assertThat(jdbc.queryForObject("SELECT flags FROM cost_item WHERE purchase_assistance_id=?", String.class, id))
+                .contains("URGENT_EXCESS");
+    }
+
+    @Test
+    void Q_269_urgentIsRejected_forNonMedicalItem_orNonClinicalRequester() {
+        long food = catalog("Sữa dinh dưỡng " + java.util.UUID.randomUUID(), "CONSUMABLE", true);
+        long supply = catalog("Kim tiêm " + java.util.UUID.randomUUID(), "MEDICAL_SUPPLY", true);
+        long doctor = staffProfiles.createMinimal("Bác sĩ Thử", Role.DOCTOR);
+        long caregiver = staffProfiles.createMinimal("Nhân viên chăm sóc Thử", Role.CAREGIVER);
+        long first = catalogRequest(food, 800_000), second = catalogRequest(supply, 800_000);
+        for (long id : java.util.List.of(first, second)) {
+            service.send(id);
+            current.set(manager.user());
+            service.agree(id, service.target(id));
+            current.set(office.user());
+        }
+
+        assertThatThrownBy(() -> recorder.record(first, 1_000_000, time.today(), receipt(), true, doctor))
+                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
+        assertThatThrownBy(() -> recorder.record(second, 1_000_000, time.today(), receipt(), true, caregiver))
+                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class);
+        assertThat(records.require(PurchaseDetails.KIND, second).status()).isEqualTo("PURCHASE_ALLOWED");
     }
 }

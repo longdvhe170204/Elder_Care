@@ -4,7 +4,7 @@ import com.eldercare.backend.care.internal.catalog.domain.ResultValueAttributes;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Chỉ dữ liệu sáu trường ResultValue đã duyệt. */
-@Schema(name = "ResultValue")
+@Schema(name = "ResultValueInput")
 public record ResultValueWrite(
         Long id,
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { ReportsPage } from './ReportsPage'
 
@@ -58,6 +58,16 @@ describe('ReportsPage', () => {
     render(<ReportsPage role="FLOOR_MANAGER" />)
     expect(screen.queryByRole('button', { name: 'Chi phí' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Nhân sự, ca' })).toBeInTheDocument()
+  })
+
+  it('FR_051_chiPhi_chonCheDoTamTinh_guiCostMode', async () => {
+    render(<ReportsPage role="ACCOUNTANT" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Chi phí' }))
+    await screen.findByText('Tỷ lệ liều Bỏ lỡ')
+    const reportCalls = () => api.fetchMock.mock.calls.map(([u]) => new URL(u, 'http://localhost')).filter((u) => u.pathname === '/api/v1/reports/INCURRED_COSTS')
+    expect(reportCalls().at(-1).searchParams.get('costMode')).toBe('FINALIZED')
+    fireEvent.click(screen.getByRole('button', { name: 'Tạm tính' }))
+    await waitFor(() => expect(reportCalls().at(-1).searchParams.get('costMode')).toBe('PROVISIONAL'))
   })
 
   it('FR_009_bangTongVaChiaNhom_bamGiaTriMoDanhSach', async () => {

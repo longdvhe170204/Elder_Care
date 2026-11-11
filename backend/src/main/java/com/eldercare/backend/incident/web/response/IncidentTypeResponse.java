@@ -2,8 +2,10 @@ package com.eldercare.backend.incident.web.response;
 
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeView;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Loại sự cố trả về qua HTTP. */
+@Schema(requiredProperties = {"code", "name", "defaultLevel"})
 public record IncidentTypeResponse(
         long id,
         String code,

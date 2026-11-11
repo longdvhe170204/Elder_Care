@@ -22,6 +22,7 @@ import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
 import com.eldercare.backend.medication.internal.dose.domain.DoseResultType;
 import com.eldercare.backend.medication.internal.dose.domain.DoseReview;
 import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.dose.domain.DoseTransitionTable;
 import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepository;
@@ -38,7 +39,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -106,6 +109,7 @@ public class DoseAdministrationService {
         residentMedicationLock.lock(getResidentIdForPrescription(parsed.prescriptionId()));
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
+        rejectIfClosed(dose, administeredContent(request));
 
         // Check offline restrictions for special control drugs (BR-M07-20)
         if (dose.isSpecialControl() && request.offlineFlag()) {
@@ -230,6 +234,7 @@ public class DoseAdministrationService {
         residentMedicationLock.lock(getResidentIdForPrescription(parsed.prescriptionId()));
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
+        rejectIfClosed(dose, reasonContent(request.reason(), request.note(), request.offlineFlag()));
 
         dose.closeRefused(recorderId, "EMPLOYEE", floorAreaId, now);
         doseRepository.save(dose);
@@ -279,6 +284,7 @@ public class DoseAdministrationService {
         residentMedicationLock.lock(getResidentIdForPrescription(parsed.prescriptionId()));
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
+        rejectIfClosed(dose, reasonContent(request.reason(), request.note(), request.offlineFlag()));
 
         dose.closeNotAdministered(recorderId, "EMPLOYEE", floorAreaId, now);
         doseRepository.save(dose);
@@ -307,6 +313,64 @@ public class DoseAdministrationService {
         doseResultRepository.save(result);
 
         return toDetailView(dose, result, doseKey, now);
+    }
+
+    /**
+     * DBR-13 (quickstart Q8): lệnh thứ hai trên liều đã đóng trả 409 {@code DOSE_ALREADY_CLOSED} kèm người đóng, thời
+     * điểm, trạng thái hiện hành và nội dung bị từ chối (api-006 {@code DoseAlreadyClosed}) để client chuyển thành đính
+     * chính; liều do Hệ thống đóng (Bỏ lỡ) không có người đóng.
+     */
+    private static void rejectIfClosed(MedicationDose dose, Map<String, Object> rejectedContent) {
+        if (!DoseTransitionTable.isTerminal(dose.getStatus())) {
+            return;
+        }
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("currentStatus", dose.getStatus().name());
+        if (dose.getClosedById() != null) {
+            properties.put("closedBy", dose.getClosedById().toString());
+        }
+        if (dose.getClosedAt() != null) {
+            properties.put("closedAt", dose.getClosedAt());
+        }
+        properties.put("rejectedContent", rejectedContent);
+        throw new BusinessException(
+                HttpStatus.CONFLICT,
+                "DOSE_ALREADY_CLOSED",
+                "Liều đã được xác nhận; nội dung được giữ để chuyển thành đính chính (DBR-13)",
+                properties);
+    }
+
+    /** Nội dung lệnh Đã dùng theo tên trường của api-006 {@code DoseResult}. */
+    private static Map<String, Object> administeredContent(AdministerDoseRequest request) {
+        Map<String, Object> content = new LinkedHashMap<>();
+        putIfPresent(content, "administeredAt", request.administeredAt());
+        if (request.reportedByType() != null) {
+            Map<String, Object> reportedBy = new LinkedHashMap<>();
+            putIfPresent(reportedBy, "type", request.reportedByType());
+            putIfPresent(reportedBy, "id", request.reportedById());
+            putIfPresent(reportedBy, "fullName", request.reportedByName());
+            putIfPresent(reportedBy, "relationship", request.relationship());
+            content.put("reportedBy", reportedBy);
+        }
+        putIfPresent(content, "adverseReaction", request.adverseReaction());
+        putIfPresent(content, "note", request.note());
+        content.put("recordedAfterDisconnect", request.offlineFlag());
+        return content;
+    }
+
+    /** Nội dung lệnh Từ chối, Không thực hiện theo tên trường của api-006 {@code DoseResult}. */
+    private static Map<String, Object> reasonContent(String reason, String note, boolean offlineFlag) {
+        Map<String, Object> content = new LinkedHashMap<>();
+        putIfPresent(content, "reason", reason);
+        putIfPresent(content, "note", note);
+        content.put("recordedAfterDisconnect", offlineFlag);
+        return content;
+    }
+
+    private static void putIfPresent(Map<String, Object> map, String key, Object value) {
+        if (value != null) {
+            map.put(key, value);
+        }
     }
 
     /**

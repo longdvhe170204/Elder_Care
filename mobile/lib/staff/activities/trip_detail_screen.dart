@@ -9,6 +9,7 @@ import '../../common/format/date_time.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/page_body.dart';
 import '../../common/widgets/status_pill.dart';
+import 'trip_participant_info.dart';
 
 const tripStatuses = {
   'SCHEDULED': 'Đã lên lịch',
@@ -188,9 +189,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     Text('Người đi cùng: ${(trip['companionIds'] as List<dynamic>).join(', ')}'),
                     const Divider(height: 32),
                     Text('Người tham gia', style: Theme.of(context).textTheme.titleMedium),
-                    const Text(
-                      'Chưa có dữ liệu thuốc, sức khỏe và liên hệ trên màn này. Việc đánh giá đầy đủ chờ nguồn chuyên môn.',
-                    ),
                     if (participants.isEmpty) const Text('Chưa có người tham gia.'),
                     for (final p in participants)
                       Material(
@@ -218,6 +216,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                               ),
                             if (p['reason'] != null)
                               Padding(padding: const EdgeInsets.all(16), child: Text('Lý do: ${p['reason']}')),
+                            if (p['info'] is Map<String, dynamic>)
+                              TripParticipantInfo(info: p['info'] as Map<String, dynamic>),
                             const Divider(height: 1),
                           ],
                         ),

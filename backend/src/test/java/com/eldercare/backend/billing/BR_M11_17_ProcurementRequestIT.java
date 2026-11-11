@@ -58,6 +58,35 @@ class BR_M11_17_ProcurementRequestIT extends ProcurementTestBase {
                 .andExpect(jsonPath("$[?(@.id==" + id + ")].lines.length()").value(2));
     }
 
+    /**
+     * api-019 (chủ dự án duyệt 2026-11-10): danh sách trả phiên bản cho If-Match, người lập và allowedCommands theo người
+     * xem (chỉ để hiện nút, constitution XI).
+     */
+    @Test
+    void FR_008_listCarriesVersionCreatorAndAllowedCommandsOfTheViewer() throws Exception {
+        long id = created(ingredientBody(kitchen));
+        String row = "$[?(@.id==" + id + ")]";
+        var list = get(URL).param("departmentId", Long.toString(kitchen));
+        mvc.perform(list)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(row + ".version").isNotEmpty())
+                .andExpect(jsonPath(row + ".createdByStaffId")
+                        .value(org.hamcrest.Matchers.contains((int) kitchenLead.staffId())))
+                .andExpect(jsonPath(row + ".allowedCommands[*]")
+                        .value(org.hamcrest.Matchers.containsInAnyOrder("update", "submit", "cancel")));
+        as(manager);
+        mvc.perform(list).andExpect(jsonPath(row + ".allowedCommands[*]").isEmpty());
+
+        as(kitchenLead);
+        command(id, "submit").andExpect(status().isOk());
+        mvc.perform(list)
+                .andExpect(jsonPath(row + ".allowedCommands[*]").value(org.hamcrest.Matchers.contains("withdraw")));
+        as(manager);
+        mvc.perform(list)
+                .andExpect(jsonPath(row + ".allowedCommands[*]")
+                        .value(org.hamcrest.Matchers.containsInAnyOrder("approve", "reject")));
+    }
+
     @Test
     void Q2_Q293_Q299_onlyTheDepartmentLeadCreates() throws Exception {
         as(accountant);

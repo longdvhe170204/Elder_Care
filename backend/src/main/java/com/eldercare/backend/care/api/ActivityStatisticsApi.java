@@ -15,7 +15,4 @@ public interface ActivityStatisticsApi {
 
     /** FR-065: kết quả kiểm tra kèm vai trò người kiểm tra. */
     Stream<QualityCheckStatisticsView> qualityChecks(ScopeFilter scope, LocalDate from, LocalDate to);
-
-    /** FR-058: người cao tuổi đang có nguy cơ cô lập. */
-    Stream<IsolationRiskView> isolationRisks();
 }
