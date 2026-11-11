@@ -33,9 +33,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 014 T020 (FR-031a, Q-170, Q-240; module-interfaces 014 mục 1.1 {@code DinhChinhDuocProvider} {@code M04.DIEM_DANH_CHUYEN}):
- * điểm danh chuyến chỉ Trưởng tầng của chuyến đính chính. Lượt này cài Hủy ghi nhận rời viện (b). Đổi thời điểm thực tế
- * (a) cần 001 sửa thời điểm lịch sử trạng thái, Hủy ghi nhận về (c) cần lệnh 001 đưa người về lại Hoạt động bên ngoài; hai
- * cách này bị từ chối cho tới khi 001 có (plan Phase 7).
+ * điểm danh chuyến chỉ Trưởng tầng của chuyến đính chính. Cài Hủy ghi nhận rời viện (b) và về (c, lệnh 001
+ * {@code CANCEL_RETURN_RECORD}). Đổi thời điểm thực tế (a) cần 001 sửa thời điểm lịch sử trạng thái, bị từ chối cho tới khi
+ * 001 có (plan Phase 7).
  */
 @Component
 public class TripAttendanceCorrectionProvider implements CorrectableRecordProvider {

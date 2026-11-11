@@ -255,7 +255,16 @@ class _StaffRootState extends State<StaffRoot> {
         ),
       ),
     if (_can('ACTIVITY_OUTING', 'VIEW'))
-      ('Hoạt động ngoài viện', LucideIcons.bus, () => TripListScreen(api: widget.session.api, date: _today())),
+      (
+        'Hoạt động ngoài viện',
+        LucideIcons.bus,
+        () => TripListScreen(
+          api: widget.session.api,
+          queue: widget.queue,
+          accountId: widget.session.user!.accountId,
+          date: _today(),
+        ),
+      ),
   ];
 
   @override

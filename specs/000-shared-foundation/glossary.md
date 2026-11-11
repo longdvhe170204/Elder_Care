@@ -3819,6 +3819,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | Lệnh ghi sở thích từ phản hồi (Q-363, T033) | `care.api.FeedbackPreferenceCommandApi.recordFromFeedback`; `Preference.feedbackId` trong JSON `M04.PREFERENCE`; sự kiện `resident.api.events.OpinionRecordedFromFeedback` |
 | Port ghi sự cố thiếu người; đã tìm thấy, đã trở về | `care.api.spi.TripIncidentPort.recordMissing`, `recordFoundReturned`; bản giả `FakeTripIncidents` |
 | Bắt buộc trực tuyến khi báo thiếu người (FR-046a) | `TripMissingOfflineHandler`, loại `M04.TRIP_MISSING`; `TripMissingOfflineContent` chỉ là tham chiếu chuyến, bộ đồng bộ từ chối trước khi giải nội dung |
+| *(bổ sung 2026-11-11, T020)* `NgoaiTuyenHandler` `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE` (Q-01, Q24) | `TripDepartureOfflineHandler` loại `M04.TRIP_DEPARTURE`, `TripReturnOfflineHandler` loại `M04.TRIP_RETURN`; nội dung `TripAttendanceOfflineContent(tripId, residentIds, reason)`; thân lệnh dùng chung `TripDepartureService.apply`, `TripReturnService.apply` |
 | Tỷ lệ tham gia (FR-070; ngày tính, chuỗi FR-054–056 bỏ theo Q-407) | `ParticipationRate` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)

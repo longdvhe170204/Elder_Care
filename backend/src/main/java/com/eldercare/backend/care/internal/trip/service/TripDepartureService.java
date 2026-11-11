@@ -98,6 +98,12 @@ public class TripDepartureService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void depart(Target target, long id, List<Long> selected, Reason substituteReason, Instant deviceAt) {
+        apply(id, selected, substituteReason, deviceAt);
+    }
+
+    /** Dùng chung cho lệnh trực tuyến và bản ghi ngoại tuyến {@code M04.TRIP_DEPARTURE} đã qua kiểm quyền của 002 (Q-01). */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void apply(long id, List<Long> selected, Reason substituteReason, Instant deviceAt) {
         if (selected == null
                 || selected.isEmpty()
                 || selected.stream().anyMatch(Objects::isNull)

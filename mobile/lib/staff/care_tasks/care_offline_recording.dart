@@ -30,6 +30,14 @@ class CareOfflineRecording {
   Future<bool> recordSessionAttendance(int sessionId, List<Map<String, dynamic>> results, String key) =>
       _send('M04.SESSION_ATTENDANCE', {'sessionId': sessionId, 'results': results}, key);
 
+  /// 014 T018 (Q24): điểm danh rời viện (`M04.TRIP_DEPARTURE`) hoặc về (`M04.TRIP_RETURN`) của chuyến, cùng thân lệnh.
+  Future<bool> recordTripAttendance(bool returning, int tripId, List<int> residentIds, String? reason, String key) =>
+      _send(returning ? 'M04.TRIP_RETURN' : 'M04.TRIP_DEPARTURE', {
+        'tripId': tripId,
+        'residentIds': residentIds,
+        if (!returning && reason != null && reason.isNotEmpty) 'reason': reason,
+      }, key);
+
   Future<bool> _send(String type, Map<String, dynamic> content, String key) async {
     final persisted = _persistedKeys[key] ??= await queue.enqueue(
       accountId: accountId,
