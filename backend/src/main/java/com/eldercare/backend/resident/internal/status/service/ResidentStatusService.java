@@ -16,6 +16,7 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
@@ -89,6 +90,7 @@ public class ResidentStatusService {
             StatusCommand.ROLL_CALL_DEPARTURE,
             StatusCommand.ROLL_CALL_RETURN,
             StatusCommand.CANCEL_DEPARTURE_RECORD,
+            StatusCommand.CANCEL_RETURN_RECORD,
             StatusCommand.TRANSFER_OUT,
             StatusCommand.CANCEL_ADMISSION);
 
@@ -265,6 +267,23 @@ public class ResidentStatusService {
             Optional<Reason> reason,
             JsonNode details,
             Basis basis) {
+        return executeFromModule(residentId, command, user, reason, details, basis, null);
+    }
+
+    /**
+     * Như trên, với thời điểm thực tế trên thiết bị của lệnh điểm danh ghi ngoại tuyến (Q-01; đổi api 001 chủ dự án duyệt
+     * 2026-11-11): chỉ {@code ROLL_CALL_DEPARTURE}, {@code ROLL_CALL_RETURN}; không ở tương lai, không trước lần đổi trạng
+     * thái trước (422). {@code null} là thời điểm máy chủ.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public TransitionResult executeFromModule(
+            long residentId,
+            StatusCommand command,
+            CurrentUser user,
+            Optional<Reason> reason,
+            JsonNode details,
+            Basis basis,
+            Instant occurredAt) {
         if (!MODULE_COMMANDS.contains(command)) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
@@ -273,7 +292,8 @@ public class ResidentStatusService {
         }
         Resident resident = residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
-        Outcome outcome = apply(resident, command, user, reason, details, basis);
+        if (occurredAt != null) requireDeviceTime(residentId, command, occurredAt);
+        Outcome outcome = apply(resident, command, user, reason, details, basis, occurredAt);
         return new TransitionResult(
                 residentId,
                 outcome.history().from(),
@@ -360,6 +380,16 @@ public class ResidentStatusService {
         return residents.lockById(target.residentId()).orElseThrow(NotFoundException::new);
     }
 
+    private void requireDeviceTime(long residentId, StatusCommand command, Instant occurredAt) {
+        if (command != StatusCommand.ROLL_CALL_DEPARTURE && command != StatusCommand.ROLL_CALL_RETURN)
+            throw new InvalidValueException("Chỉ lệnh điểm danh rời viện, về nhận thời điểm trên thiết bị");
+        if (occurredAt.isAfter(time.now())) throw new InvalidValueException("Thời điểm trên thiết bị ở tương lai");
+        var rows = histories.findByResidentIdOrderByIdAsc(residentId);
+        if (!rows.isEmpty() && occurredAt.isBefore(rows.getLast().getOccurredAt()))
+            throw new InvalidValueException(
+                    "Thời điểm trên thiết bị trước lần đổi trạng thái trước của người cao tuổi");
+    }
+
     private Outcome apply(
             Resident resident,
             StatusCommand command,
@@ -367,6 +397,17 @@ public class ResidentStatusService {
             Optional<Reason> reason,
             JsonNode details,
             Basis moduleBasis) {
+        return apply(resident, command, user, reason, details, moduleBasis, null);
+    }
+
+    private Outcome apply(
+            Resident resident,
+            StatusCommand command,
+            CurrentUser user,
+            Optional<Reason> reason,
+            JsonNode details,
+            Basis moduleBasis,
+            Instant occurredAt) {
         long residentId = resident.getId();
         ResidentStatus from = resident.getStatus();
         ResidentStatus to = requireTransition(from, command);
@@ -382,7 +423,7 @@ public class ResidentStatusService {
                 .filter(p -> p.interestedCommands().contains(command))
                 .forEach(p -> p.validateDetails(command, body));
 
-        Instant now = time.now();
+        Instant now = occurredAt == null ? time.now() : occurredAt;
         CommandContext context = context(resident, command, user, body);
         Evaluation evaluation = evaluate(context);
         if (!evaluation.unmet().isEmpty()) {

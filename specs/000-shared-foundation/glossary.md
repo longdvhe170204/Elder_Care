@@ -625,7 +625,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | --- | --- |
 | trạng thái `TrangThaiNct`: `DANG_TIEP_NHAN`, `DANG_LUU_TRU`, `TAM_VANG`, `HOAT_DONG_BEN_NGOAI`, `DIEU_TRI_BENH_VIEN`, `KET_THUC_LUU_TRU`, `QUA_DOI`, `HUY_TIEP_NHAN` | `ResidentStatus`: `ADMISSION_IN_PROGRESS`, `IN_RESIDENCE`, `TEMPORARILY_ABSENT`, `OFF_SITE_ACTIVITY`, `HOSPITALIZED`, `RESIDENCY_ENDED`, `DECEASED`, `ADMISSION_CANCELLED` |
 | lệnh `LenhTrangThai` (người dùng): `HOAN_TAT_TIEP_NHAN`, `HUY_TIEP_NHAN`, `CHO_TAM_VANG`, `GHI_NHAN_TRO_VE`, `CHUYEN_VIEN`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI` | `StatusCommand` (`UserCommand` trong hợp đồng): `COMPLETE_ADMISSION`, `CANCEL_ADMISSION`, `GRANT_TEMPORARY_ABSENCE`, `RECORD_RETURN`, `TRANSFER_OUT`, `END_RESIDENCY`, `RECORD_DEATH` |
-| lệnh do module khác gọi / hệ thống: `TAO_HO_SO`, `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN` | `CREATE_PROFILE`, `ROLL_CALL_DEPARTURE`, `ROLL_CALL_RETURN`, `CANCEL_DEPARTURE_RECORD` |
+| lệnh do module khác gọi / hệ thống: `TAO_HO_SO`, `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN`, `HUY_GHI_NHAN_VE` (bổ sung 2026-11-11) | `CREATE_PROFILE`, `ROLL_CALL_DEPARTURE`, `ROLL_CALL_RETURN`, `CANCEL_DEPARTURE_RECORD`, `CANCEL_RETURN_RECORD` |
 | giới tính `NAM`, `NU`; loại giấy tờ `CCCD`, `KHAC` | `MALE`, `FEMALE`; `CITIZEN_ID`, `OTHER` |
 | mức chăm sóc `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` | `BASIC`, `REGULAR`, `SPECIAL` |
 | loại lưu trú đề xuất `NOI_TRU_DAI_HAN`, `NOI_TRU_NGAN_NGAY`, `BAN_TRU` | `LONG_TERM_RESIDENTIAL`, `SHORT_TERM_RESIDENTIAL`, `DAY_CARE` |
@@ -3819,6 +3819,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | Lệnh ghi sở thích từ phản hồi (Q-363, T033) | `care.api.FeedbackPreferenceCommandApi.recordFromFeedback`; `Preference.feedbackId` trong JSON `M04.PREFERENCE`; sự kiện `resident.api.events.OpinionRecordedFromFeedback` |
 | Port ghi sự cố thiếu người; đã tìm thấy, đã trở về | `care.api.spi.TripIncidentPort.recordMissing`, `recordFoundReturned`; bản giả `FakeTripIncidents` |
 | Bắt buộc trực tuyến khi báo thiếu người (FR-046a) | `TripMissingOfflineHandler`, loại `M04.TRIP_MISSING`; `TripMissingOfflineContent` chỉ là tham chiếu chuyến, bộ đồng bộ từ chối trước khi giải nội dung |
+| *(bổ sung 2026-11-11, T020)* `NgoaiTuyenHandler` `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE` (Q-01, Q24) | `TripDepartureOfflineHandler` loại `M04.TRIP_DEPARTURE`, `TripReturnOfflineHandler` loại `M04.TRIP_RETURN`; nội dung `TripAttendanceOfflineContent(tripId, residentIds, reason)`; thân lệnh dùng chung `TripDepartureService.apply`, `TripReturnService.apply` |
 | Tỷ lệ tham gia (FR-070; ngày tính, chuỗi FR-054–056 bỏ theo Q-407) | `ParticipationRate` |
 
 ## 21. Feature 015 (`015-shift-rotation-swap`, E)
@@ -3928,6 +3929,9 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | tiền tố `NCT`, `GIUONG`, `CV`, `BUA`, `HD`, `KT`, `SK`, `THUOC`, `CA`, `GP`, `CP`, `SD`, `KB`, `TS`, `KHO` | `RES`, `BED`, `TASK`, `MEAL`, `ACT`, `QC`, `HEALTH`, `MED`, `SHIFT`, `LICENSE`, `COST`, `BALANCE`, `REGISTRATION`, `ASSET`, `INVENTORY` |
 | `NCT.DANG_LUU_TRU`, `NCT.TAI_NGAY`, `NCT.BIEN_DONG`, `NCT.DANH_SACH_CHO` | `RES.IN_RESIDENCE`, `RES.AT_DATE`, `RES.MOVEMENTS`, `RES.WAITING_LIST` |
 | *(bổ sung 2026-11-06, 016 T106)* `NCT.THOI_GIAN_CHO`, `NCT.THOI_GIAN_CHO_DAI_NHAT` | `RES.WAITING_TIME`, `RES.WAITING_TIME_MAX` |
+| *(bổ sung 2026-11-11, 016 T014)* `NCT.BAN_TRU_CO_MAT` | `RES.DAY_CARE_ATTENDANCE` |
+| *(bổ sung 2026-11-11, 016 T016)* `HD.DIEM_DANH_GHI_NHAN_MUON`; trường `soGhiNhanMuon` của `BuoiThongKeView` (014) | `ACT.LATE_ATTENDANCE`; `SessionStatisticsView.lateRecorded` |
+| *(bổ sung 2026-11-11, 016 T031, T032)* `SK.SOS_HO_TRO_THOI_GIAN_TIEP_NHAN`, `SK.SOS_HO_TRO_THOI_GIAN_TIEP_NHAN_LON_NHAT`, `SK.SOS_HO_TRO_THOI_GIAN_TOI_NOI`, `SK.SOS_HO_TRO_THOI_GIAN_TOI_NOI_LON_NHAT`, `SK.SOS_HO_TRO_KHONG_GHI_MOC_TOI_NOI`; ô "chưa rõ tầng" | `HEALTH.SOS_ASSISTANCE_RESPONSE_TIME`, `HEALTH.SOS_ASSISTANCE_RESPONSE_TIME_MAX`, `HEALTH.SOS_ASSISTANCE_ARRIVAL_TIME`, `HEALTH.SOS_ASSISTANCE_ARRIVAL_TIME_MAX`, `HEALTH.SOS_ASSISTANCE_NO_ARRIVAL`; `UNKNOWN_FLOOR` |
 | `GIUONG.TRANG_THAI`, `GIUONG.CHO_SAN_SANG` | `BED.STATUS`, `BED.AWAITING_READY` |
 | *(bổ sung 2026-10-27)* `GIUONG.CO_THE_DUNG`, `GIUONG.PHONG_CACH_LY`, `GIUONG.SO_NGUOI`, `GIUONG.TRONG_CHO_CHUYEN`, `GIUONG.CHO_SAN_SANG_DAI_NHAT`, `GIUONG.CHO_SAN_SANG_VUOT_HAN` | `BED.USABLE`, `BED.ISOLATED_ROOMS`, `BED.OCCUPANTS`, `BED.EMPTY_AWAITING_TRANSFER`, `BED.AWAITING_READY_MAX`, `BED.AWAITING_READY_OVERDUE` |
 | `CV.HOM_NAY`, `CV.QUA_HAN`, `CV.THEO_TRANG_THAI`, `CV.TY_LE_DUNG_HAN_BAT_BUOC`, `CV.GHI_NHAN_MUON`, `CV.THEO_NHAN_VIEN` | `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` |

@@ -42,7 +42,7 @@ record ChuyenDiThayDoi(long chuyenId, String loai, boolean xeCuaVien, Instant ro
     // loai: LEN_LICH | DOI | HUY | ROI_VIEN_DAU | GIA_HAN | HUY_ROI_VIEN_CUOI | KET_THUC_VE; 016
 
 interface HoatDongThongKeApi {               // 016
-  Stream<BuoiThongKeView> buoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);       // FR-070: đăng ký, Có mặt, Vắng theo lý do, Không ghi nhận
+  Stream<BuoiThongKeView> buoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);       // FR-070: đăng ký, Có mặt, Vắng theo lý do, Không ghi nhận; số điểm danh mang nhãn "ghi nhận muộn" (soGhiNhanMuon, bổ sung 2026-11-11 cho 016 FR-032 theo dòng "Gửi Module 14" của spec)
   Stream<ChuyenThongKeView> chuyen(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // giờ về dự kiến, gia hạn, về thực tế, thiếu người
   Stream<KetQuaKiemTraView> kiemTra(PhamViLoc phamVi, LocalDate tu, LocalDate den);  // FR-065: vai trò kiểm tra, không thuộc phạm vi
   // coLap() bỏ theo Q-407 (2026-11-10)

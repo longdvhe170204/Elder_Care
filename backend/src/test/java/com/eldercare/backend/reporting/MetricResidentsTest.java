@@ -8,11 +8,18 @@ import com.eldercare.backend.admission.api.ResidencyStatisticsApi;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.dto.ResidenceTypeAtDateView;
 import com.eldercare.backend.admission.api.dto.WaitingEntryView;
+import com.eldercare.backend.care.api.TaskStatisticsApi;
+import com.eldercare.backend.care.api.dto.AttendanceStatus;
+import com.eldercare.backend.care.api.dto.AttendanceView;
+import com.eldercare.backend.care.api.dto.CareResultView;
+import com.eldercare.backend.care.api.dto.ResultType;
+import com.eldercare.backend.care.api.dto.TaskReportView;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
+import com.eldercare.backend.reporting.internal.resident.service.DayCareAttendanceMetric;
 import com.eldercare.backend.reporting.internal.resident.service.InResidenceMetric;
 import com.eldercare.backend.reporting.internal.resident.service.MovementsMetric;
 import com.eldercare.backend.reporting.internal.resident.service.ResidentRecords;
@@ -31,6 +38,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
@@ -103,6 +111,64 @@ class MetricResidentsTest {
         assertThat(metric.metric().group()).isEqualTo(MetricGroup.RESIDENTS);
         assertThat(v.value()).isEqualByComparingTo("2");
         assertThat(cells(v)).containsExactly(tuple("IN_RESIDENCE", "1"), tuple("TEMPORARILY_ABSENT", "1"));
+    }
+
+    private static AttendanceView attendance(long id, long resident, AttendanceStatus status) {
+        return new AttendanceView(
+                id,
+                resident,
+                DAY,
+                status,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                false);
+    }
+
+    /** T014 (FR-020): người bán trú có lịch hôm nay chia theo trạng thái có mặt theo ngày (005, 3.4). */
+    @Test
+    void FR_020_dayCareWithScheduleToday_byAttendanceStatus() {
+        TaskStatisticsApi tasks = new TaskStatisticsApi() {
+            @Override
+            public Stream<TaskReportView> inRange(ScopeFilter scope, Instant from, Instant to) {
+                return Stream.empty();
+            }
+
+            @Override
+            public Stream<AttendanceView> attendanceInRange(ScopeFilter scope, LocalDate from, LocalDate to) {
+                return from.equals(DAY) && to.equals(DAY)
+                        ? Stream.of(
+                                attendance(11, 2, AttendanceStatus.PRESENT),
+                                attendance(12, 5, AttendanceStatus.REPORTED_ABSENT),
+                                attendance(13, 6, AttendanceStatus.PRESENT))
+                        : Stream.empty();
+            }
+
+            @Override
+            public Stream<CareResultView> resultsInRange(
+                    long residentId, Set<ResultType> types, Instant from, Instant to) {
+                return Stream.empty();
+            }
+
+            @Override
+            public Set<Long> resultRecorders(long residentId, Instant from, Instant to) {
+                return Set.of();
+            }
+        };
+        DayCareAttendanceMetric metric = new DayCareAttendanceMetric(
+                new StaticListableBeanFactory(Map.of("t", tasks)).getBeanProvider(TaskStatisticsApi.class),
+                new StaticListableBeanFactory().getBeanProvider(ResidentLocationApi.class));
+        MetricValue v = value(metric, ReportFilters.NONE);
+
+        assertThat(metric.metric().code()).isEqualTo("RES.DAY_CARE_ATTENDANCE");
+        assertThat(metric.metric().group()).isEqualTo(MetricGroup.RESIDENTS);
+        assertThat(v.value()).isEqualByComparingTo("3");
+        assertThat(cells(v)).containsExactly(tuple("PRESENT", "2"), tuple("REPORTED_ABSENT", "1"));
+        assertThat(metric.metric().details(included(metric, ReportFilters.NONE), "PRESENT"))
+                .extracting(r -> r.residentId())
+                .containsExactly(2L, 6L);
     }
 
     @Test

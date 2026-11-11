@@ -33,9 +33,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 014 T020 (FR-031a, Q-170, Q-240; module-interfaces 014 mục 1.1 {@code DinhChinhDuocProvider} {@code M04.DIEM_DANH_CHUYEN}):
- * điểm danh chuyến chỉ Trưởng tầng của chuyến đính chính. Lượt này cài Hủy ghi nhận rời viện (b). Đổi thời điểm thực tế
- * (a) cần 001 sửa thời điểm lịch sử trạng thái, Hủy ghi nhận về (c) cần lệnh 001 đưa người về lại Hoạt động bên ngoài; hai
- * cách này bị từ chối cho tới khi 001 có (plan Phase 7).
+ * điểm danh chuyến chỉ Trưởng tầng của chuyến đính chính. Cài Hủy ghi nhận rời viện (b) và về (c, lệnh 001
+ * {@code CANCEL_RETURN_RECORD}). Đổi thời điểm thực tế (a) cần 001 sửa thời điểm lịch sử trạng thái, bị từ chối cho tới khi
+ * 001 có (plan Phase 7).
  */
 @Component
 public class TripAttendanceCorrectionProvider implements CorrectableRecordProvider {
@@ -145,18 +145,47 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
     }
 
     private TripParticipant check(TripKinds.Attendance a) {
-        if (!"DEPARTURE".equals(a.type()))
-            throw unavailable("Hủy ghi nhận điểm danh về cần lệnh của 001 đưa người cao tuổi về Hoạt động bên ngoài");
+        boolean ret = "RETURN".equals(a.type());
         var trip = trips.find(a.tripId()).orElseThrow(NotFoundException::new);
         if (!"IN_PROGRESS".equals(trip.status()))
-            throw conflict("STATE_CHANGED", "Chỉ Hủy ghi nhận rời viện khi chuyến chưa Đã về");
+            throw conflict("STATE_CHANGED", "Chỉ Hủy ghi nhận điểm danh khi chuyến chưa Đã về");
         var p = trips.participants(a.tripId()).stream()
                 .filter(r -> r.registrationId() == a.registrationId())
                 .findFirst()
-                .orElseThrow(() -> conflict("STATE_CHANGED", "Đăng ký của bản ghi rời viện đã được thay"));
-        if (!Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status()))
-            throw conflict("STATE_CHANGED", "Người cao tuổi đã có bản ghi về hoặc đã rời đoàn");
+                .orElseThrow(() -> conflict("STATE_CHANGED", "Đăng ký của bản ghi điểm danh đã được thay"));
+        if (ret
+                ? !"RETURNED".equals(p.status())
+                : !Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status()))
+            throw conflict(
+                    "STATE_CHANGED",
+                    ret ? "Người cao tuổi không còn ở Đã về" : "Người cao tuổi đã có bản ghi về hoặc đã rời đoàn");
         return p;
+    }
+
+    /**
+     * FR-031a (c): ghi về nhầm người chưa về; 001 đưa người về Hoạt động bên ngoài (lệnh {@code CANCEL_RETURN_RECORD}, đổi
+     * api duyệt 2026-11-11), người tham gia về Đã rời viện; 005, 006, 011 nhận qua lệnh trạng thái và {@link TripChanged}.
+     */
+    private void voidReturn(CorrectionView correction, TripKinds.Attendance a, Optional<Reason> reason) {
+        status.execute(
+                a.residentId(),
+                StatusCommand.CANCEL_RETURN_RECORD,
+                user.getObject(),
+                reason,
+                json.createObjectNode().put("tripId", a.tripId()).put("correctionId", correction.id()),
+                new Basis(null, null, a.tripId(), null));
+        var trip = trips.lock(a.tripId());
+        check(a);
+        if (!trips.undoReturn(a.registrationId()))
+            throw conflict("STATE_CHANGED", "Người tham gia vừa thay đổi, tải lại để đính chính");
+        events.publishEvent(new TripChanged(
+                a.tripId(),
+                "CHANGED",
+                trip.plan().facilityVehicle(),
+                trip.plan().plannedDepartureAt(),
+                trip.plan().plannedReturnAt(),
+                Optional.empty(),
+                "TRIP_RETURN_VOIDED:" + correction.id()));
     }
 
     /**
@@ -172,6 +201,10 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
         var reason = correction.reason() == null || correction.reason().isBlank()
                 ? Optional.<Reason>empty()
                 : Optional.of(new Reason(correction.reason()));
+        if ("RETURN".equals(a.type())) {
+            voidReturn(correction, a, reason);
+            return;
+        }
         status.execute(
                 a.residentId(),
                 StatusCommand.CANCEL_DEPARTURE_RECORD,

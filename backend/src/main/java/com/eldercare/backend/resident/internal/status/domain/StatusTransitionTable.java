@@ -19,9 +19,12 @@ public final class StatusTransitionTable {
     public static final Set<ResidentStatus> FINAL_STATUSES = Set.copyOf(
             EnumSet.of(ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED));
 
-    /** Ba lệnh của điểm danh (014): do hệ thống, không bắt buộc lý do (FR-046, research H-03). */
+    /** Bốn lệnh của điểm danh (014): do hệ thống, không bắt buộc lý do (FR-046, research H-03; 014 FR-031a (c)). */
     public static final Set<StatusCommand> SYSTEM_COMMANDS = Set.copyOf(EnumSet.of(
-            StatusCommand.ROLL_CALL_DEPARTURE, StatusCommand.ROLL_CALL_RETURN, StatusCommand.CANCEL_DEPARTURE_RECORD));
+            StatusCommand.ROLL_CALL_DEPARTURE,
+            StatusCommand.ROLL_CALL_RETURN,
+            StatusCommand.CANCEL_DEPARTURE_RECORD,
+            StatusCommand.CANCEL_RETURN_RECORD));
 
     private static final Map<ResidentStatus, Map<StatusCommand, ResidentStatus>> TABLE =
             new EnumMap<>(ResidentStatus.class);
@@ -38,6 +41,8 @@ public final class StatusTransitionTable {
                 StatusCommand.GRANT_TEMPORARY_ABSENCE,
                 ResidentStatus.TEMPORARILY_ABSENT,
                 StatusCommand.ROLL_CALL_DEPARTURE,
+                ResidentStatus.OFF_SITE_ACTIVITY,
+                StatusCommand.CANCEL_RETURN_RECORD,
                 ResidentStatus.OFF_SITE_ACTIVITY,
                 StatusCommand.TRANSFER_OUT,
                 ResidentStatus.HOSPITALIZED,
