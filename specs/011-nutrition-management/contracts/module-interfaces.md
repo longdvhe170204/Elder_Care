@@ -73,6 +73,8 @@ record ChuyenDiDaDoi(long chuyenId, Set<Long> nctIds, Instant tu, Instant denDuK
 
 Bean thiếu: `LuotOLaiAnPort` → không tính người thân, màn tính sẵn ghi "chưa có dữ liệu ở lại"; `ChuyenDiBuaAnPort` → không trừ người đi chuyến đã lên lịch (người đã điểm danh rời viện vẫn trừ theo trạng thái của 001).
 
+*(2026-11-11, chủ dự án duyệt)* `ChuyenDiBuaAnPort` (`TripMealPort`) do 011 cài (`nutrition.internal.closing.service.TripMeals`) bằng `care.api.TripMealReadApi` của 014, không do 014 cài (nutrition đã phụ thuộc care, 014 cài thì thành vòng module).
+
 ### 1.7. Port nội bộ M08 (019) *(Bỏ theo Q-392)*
 
 Không còn `TonKhoNguyenLieuPort`: hệ thống không quản lý kho nguyên liệu.

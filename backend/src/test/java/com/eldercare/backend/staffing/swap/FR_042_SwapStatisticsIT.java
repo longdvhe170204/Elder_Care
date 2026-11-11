@@ -4,12 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
-import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.staffing.api.SwapStatisticsApi;
 import com.eldercare.backend.staffing.api.dto.StaffRequestView;
-import com.eldercare.backend.staffing.api.dto.WorkingHoursView;
 import java.time.Duration;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -55,19 +52,6 @@ class FR_042_SwapStatisticsIT extends SwapTestBase {
                                 time.today().plusDays(1))
                         .filter(r -> r.requestId() == id))
                 .isEmpty();
-    }
-
-    @Test
-    void FR_042_workingHoursCountScheduledMinutesOfTheMonth() {
-        long x = shift(base.plus(Duration.ofHours(7)), 8, null, third);
-        YearMonth month = YearMonth.from(base.atZone(BusinessTime.ZONE));
-        WorkingHoursView hours = statistics
-                .workingHoursByMonth(ScopeFilter.FACILITY, month)
-                .filter(h -> h.staffId() == third.staffId())
-                .findFirst()
-                .orElseThrow();
-        assertThat(hours.scheduledMinutes()).isGreaterThanOrEqualTo(8 * 60);
-        assertThat(x).isPositive();
     }
 
     @Test

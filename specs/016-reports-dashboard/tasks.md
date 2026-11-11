@@ -174,12 +174,14 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 8
 
-- [ ] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `DoiCaThongKeApi`; 2026-10-29 Q-397 bỏ chỉ tiêu thiếu phủ, thiếu ca, lời mời)* Test `ChiTieu_NS_*Test` trong `BT/reporting/chitieu/` (Q22, Q23)
+- [x] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `DoiCaThongKeApi`; 2026-10-29 Q-397 bỏ chỉ tiêu thiếu phủ, thiếu ca, lời mời)* Test `ChiTieu_NS_*Test` trong `BT/reporting/chitieu/` (Q22, Q23)
+  - *(2026-11-11, A)* Phần 015: `MetricRemainingSourcesTest` (`SHIFT.REQUESTS`); `SHIFT.WORKING_HOURS` bỏ theo Q-408. Đóng task.
 
 ### Implementation cho User Story 8
 
-- [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `REQUESTS`, `WORKING_HOURS` chờ 015; `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `INVITATIONS` bỏ theo Q-397)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `DoiCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
+- [x] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `REQUESTS`, `WORKING_HOURS` chờ 015; `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `INVITATIONS` bỏ theo Q-397)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `DoiCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
   - *(2026-11-11, A)* `SHIFT.REQUESTS` (theo loại và trạng thái, không lý do) và `SHIFT.WORKING_HOURS` (giờ đã làm theo nhân viên, giờ đã xếp ở chi tiết; chỉ Quản lý viện xuất) qua `SwapStatisticsApi`; nhãn ô web. Giữ [ ]: `WorkingHoursView` của 015 chưa có tầng nên trưởng tầng được giao chưa thấy nhân viên tầng mình (FR-073); cần "Đổi api" thêm tầng vào view.
+  - *(2026-11-11, A; chủ dự án chốt Q-408)* Bỏ chỉ tiêu giờ làm theo nhân viên: gỡ `WorkingHoursMetric`, `SwapStatisticsApi.workingHoursByMonth`, `WorkingHoursView`, luật chỉ Quản lý viện xuất của chỉ tiêu này (`ExportContent.MANAGER_ONLY`) và nhãn web; spec 016 FR-073, 015 FR-042, `chi-tieu.md` ghi bỏ. `Q408_NoWorkingHoursMetricTest` đỏ rồi xanh; `FR_061_ExportContentTest`, `MetricRemainingSourcesTest`, `FR_042_SwapStatisticsIT`, `ReportApiIT`, kiến trúc, Vitest reports xanh. Đóng task.
 
 ---
 
