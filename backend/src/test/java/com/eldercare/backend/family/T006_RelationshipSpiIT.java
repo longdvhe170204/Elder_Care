@@ -97,5 +97,15 @@ class T006_RelationshipSpiIT extends MySqlIntegrationTestBase {
         assertThat(relationships.rightEnabled(r, resident, FamilyRight.VIEW_HEALTH, now))
                 .as("FR-008: quyền mặc định tắt")
                 .isFalse();
+        // 007 T063, 012 T038: cổng người thân khẩn cấp của 007 đọc quan hệ thật (liên hệ chính, người đại diện theo thứ
+        // tự).
+        assertThat(emergency.primaryContact(resident)).hasValueSatisfying(c -> {
+            assertThat(c.familyMemberId()).isEqualTo(r);
+            assertThat(c.phoneNumber()).contains("0901000001");
+        });
+        assertThat(emergency.representatives(resident))
+                .extracting(c -> c.familyMemberId())
+                .containsExactly(r);
+        assertThat(emergency.primaryContact(other)).isEmpty();
     }
 }
