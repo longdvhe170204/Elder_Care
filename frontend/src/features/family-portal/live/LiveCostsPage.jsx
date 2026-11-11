@@ -8,6 +8,7 @@ import { formatDate } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
 import { PortalCard } from '../PortalParts'
 import { LiveCostStatements } from './LiveCostStatements'
+import { LiveDocuments } from './LiveDocuments'
 import { LivePurchaseConsent } from './LivePurchaseConsent'
 
 // P7 Chi phí, số dư, phần số dư (017 T011; FR-003; Phụ lục 27 chú thích 16): số dư, cọc, giao dịch Đã xác nhận, tài
@@ -141,6 +142,7 @@ export function LiveCostsPage({ viewer }) {
         )}
       </PortalCard>
       <LiveCostStatements residentId={viewer.residentId} />
+      <LiveDocuments residentId={viewer.residentId} />
       {viewer.representative && <LivePurchaseConsent residentId={viewer.residentId} />}
     </>
   )
