@@ -18,13 +18,10 @@ import com.eldercare.backend.roombedallocation.internal.allocation.service.Alloc
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.admission.FakeDepositStatuses;
 import com.eldercare.backend.support.fake.admission.FakeM02PortsConfig;
-import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationInfectionStatus;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
@@ -38,21 +35,12 @@ import tools.jackson.databind.node.ObjectNode;
 @org.springframework.test.context.bean.override.mockito.MockitoBean(
         name = "m10StatusParticipant",
         types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
-@Import({FakeM02PortsConfig.class, AdmissionRealBedIT.OtherModulePorts.class})
+@Import(FakeM02PortsConfig.class)
 class AdmissionRealBedIT extends AssessmentTestBase {
 
-    /**
-     * {@code AllocationInfectionStatus} (007, D) chưa có bản cài production: thiếu cổng này thì lệnh phân bổ giường của 003
-     * trả 503 {@code SOURCE_UNAVAILABLE} (team-plan mục 8). Nguồn lưu trú của 004 và {@code BedAssetPort} (019, cài
-     * 2026-11-06) là bean thật.
-     */
-    @TestConfiguration
-    static class OtherModulePorts {
-        @Bean
-        FakeAllocationInfectionStatus fakeAllocationInfectionStatus() {
-            return new FakeAllocationInfectionStatus();
-        }
-    }
+    // 003 T063 (2026-11-11): nguồn lưu trú của 004, {@code BedAssetPort} (019) và {@code AllocationInfectionStatus}
+    // (007
+    // {@code IncidentAllocationStatus}) đều là bean thật; trước đây cổng của 007 là bản giả.
 
     @Autowired
     ResidentStatusService statusService;
