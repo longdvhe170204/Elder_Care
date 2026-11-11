@@ -19,7 +19,7 @@ class FR_013_AssetContractsTest {
         assertThat(getClass().getClassLoader().getResource(name.replace('.', '/') + ".class"))
                 .isNotNull();
         Class<?> type = Class.forName(name);
-        assertThat(type.getDeclaredMethods()).hasSize(6);
+        assertThat(type.getDeclaredMethods()).hasSize(7);
         for (var method : type.getDeclaredMethods()) {
             assertThat(method.getAnnotation(Transactional.class))
                     .as(method.getName())

@@ -25,6 +25,12 @@ public interface DutyApi {
 
     Optional<Long> departmentLead(long departmentId);
 
+    /**
+     * Bộ phận Hiệu lực mang mã hệ thống (chủ dự án duyệt 2026-11-11: {@code CARE} là bộ phận Chăm sóc, 019 ghi tăng tài sản
+     * giường kèm lệnh Tạo giường, Q-238); rỗng khi chưa có.
+     */
+    Optional<Long> departmentByCode(String code);
+
     boolean isDepartmentLead(long staffId);
 
     /** DBR-36. */
