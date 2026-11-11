@@ -1241,6 +1241,11 @@ components:
           type: string
         taskType:
           type: string
+        taskTypeId:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Mã loại công việc (danh mục) từ snapshot lúc lập; app dùng để chuyển bản ghi bị từ chối thành Ghi nhận phát sinh (T040, BR-M15-20, FR-036). Chủ dự án duyệt 2026-11-11.
         resultType:
           type: string
           readOnly: true

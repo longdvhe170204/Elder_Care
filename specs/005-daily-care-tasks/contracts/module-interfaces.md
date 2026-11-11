@@ -125,6 +125,7 @@ Không có hàm lập sẵn mục bàn giao (Q-307).
 
 ```java
 void nguonBiHuy(LoaiCanCu loai, long canCuId, LyDo lyDo);   // FR-022: hủy công việc Chưa đến hạn có căn cứ đó (bữa hủy, bữa bỏ vì vắng, đăng ký hủy, lịch đo ngừng)
+void nguonBiHuy(LoaiCanCu loai, long canCuId, long nctId, LyDo lyDo);   // như trên, chỉ công việc của một người (bữa của người đó bỏ vì vắng, 011 FR-042); Đổi api 2026-11-12
 void nguonDaDoi(LoaiCanCu loai, long canCuId);              // FR-022: chỉ báo Người phụ trách ca, Trưởng tầng; không hủy
 ```
 

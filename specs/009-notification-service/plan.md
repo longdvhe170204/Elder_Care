@@ -404,3 +404,8 @@ Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017
 - Đổi kết quả (research B-05, FR-018): `CodeResult = 100` là `SENT` (eSMS đã nhận yêu cầu, `providerCode` là `SMSID`); lỗi kết nối, HTTP 5xx, `CodeResult = 99` là `TEMPORARY_FAILURE` để gửi lại theo CFG-M13-05; mã khác (ví dụ 101 khóa sai, 104 brandname sai, 146 mẫu tin chưa đăng ký) là `PERMANENT_FAILURE` kèm mã và `ErrorMessage`. Trạng thái cuối qua `CallbackUrl` của eSMS chưa dùng (tasks không yêu cầu).
 - `SmsProviders.from` chọn theo cấu hình `eldercare.notification.sms.esms.*` (`ESMS_API_KEY`, `ESMS_SECRET_KEY`, `ESMS_BRANDNAME`, `ESMS_SANDBOX`, `ESMS_BASE_URL` mặc định `https://rest.esms.vn`): `ESMS_API_KEY` trống thì `UnconfiguredSmsProvider` như trước, nên tự đặt lại mật khẩu (002 T105) và tin nhắn ngoài ứng dụng chỉ bật khi đã cấu hình (Q-06, BR-M15-25).
 - Chạy thật: chủ dự án mở tài khoản eSMS lấy ApiKey, SecretKey; đăng ký brandname và mẫu tin chăm sóc khách hàng (mã 146 nếu chưa đăng ký); thử với `ESMS_SANDBOX=true` trước, rồi tắt. nghiep-vu.md Q-06 đã ghi nhà cung cấp eSMS (chủ dự án cho phép sửa 2026-11-09).
+
+## Ghi chú T017, T019 (2026-11-12, A, nhánh `claude/stream-a-care-incident-2e8cf2`)
+
+- Publisher hai sự cố điều khiển lượt của 007 đã có trên develop. `BR_M05_22_RealSourceStopIT` (nền `CallReminderTestBase`): sự cố Khẩn cấp thật (bảng `incident`), lượt nhắc gọi sau CFG-M13-01, Bác sĩ hạ mức qua HTTP 007 → lượt `STOPPED`/`SOURCE_DOWNGRADED`. Đỏ khi tắt publisher.
+- Dừng lượt khi người thân hết điều kiện: thử listener `RelationshipChanged`/`FamilyRightChanged` ở `notification` → `ModuleBoundaryTest` "Cycle detected" (`family` đã phụ thuộc `notification` vì cài `FamilyNotificationPort`). Hoàn lại; cách làm chờ quyết (team-plan mục 8).

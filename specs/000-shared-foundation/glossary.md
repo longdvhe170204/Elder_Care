@@ -1412,7 +1412,7 @@ Các view được mô tả projection ở module-interfaces mục 2.1; kiểu c
 | CoMatBanTruApi | `DayCareAttendanceApi: onDate, returnTimeOn, inRange, changeReturnTime, restoreReturnTime, checkOut` |
 | CongViecCaApi | `ShiftTaskApi: onAbsence, onApprovedLeave, onResignation, onAssignmentChanged, onAssignmentEnded, onHandoverConfirmed` |
 | CongViecBanGiaoApi | `HandoverTaskApi: unclosed, currentStates, recordedInHandover` |
-| NguonCongViecApi | `TaskSourceApi: sourceCancelled, sourceChanged` |
+| NguonCongViecApi | `TaskSourceApi: sourceCancelled, sourceChanged` (`sourceCancelled` có bản theo người cao tuổi, 2026-11-12) |
 | CongViecVangMatApi | `AbsenceTaskApi.recalculate` |
 | CongViecDoChiSoApi | `VitalSignTaskApi.confirmed` |
 | CongViecThongKeApi | `TaskStatisticsApi: inRange, attendanceInRange, resultsInRange, resultRecorders` |
