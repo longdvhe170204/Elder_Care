@@ -83,6 +83,9 @@ public class ReportService {
                 MetricResult r = evaluator.result(user, source, scope, period.start(), period.end(), filters);
                 MetricResult labelled =
                         withPurged(r, purged.affecting(source.metric().source(), period.start()));
+                // FR-051: chế độ tạm tính gắn nhãn "tạm tính, chưa chốt" cho chỉ tiêu chi phí phát sinh
+                if (g == MetricGroup.INCURRED_COSTS && filters.costMode() == ReportFilters.CostMode.PROVISIONAL)
+                    labelled = withLabel(labelled, ValueLabel.PROVISIONAL);
                 results.add(dayNotEnded ? withDayNotEnded(labelled) : labelled);
             }
         }
@@ -104,6 +107,22 @@ public class ReportService {
                 .floor(floorAreaId)
                 .map(FloorView::name)
                 .or(() -> structure.area(floorAreaId).map(AreaView::name));
+    }
+
+    private static MetricResult withLabel(MetricResult r, ValueLabel label) {
+        MetricValue v = r.value();
+        Set<ValueLabel> labels = EnumSet.of(label);
+        labels.addAll(v.labels());
+        MetricValue labelled = new MetricValue(
+                v.metricCode(),
+                v.value(),
+                v.numerator(),
+                v.denominator(),
+                Set.copyOf(labels),
+                v.pendingReviewCount(),
+                v.breakdown(),
+                v.purgedDataTypes());
+        return new MetricResult(r.metricCode(), r.metricName(), labelled, r.residents(), r.residentsByKey(), r.rows());
     }
 
     private static MetricResult withDayNotEnded(MetricResult r) {
