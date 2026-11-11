@@ -8,6 +8,9 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
+import com.eldercare.backend.admission.api.dto.BillingPeriod;
+import com.eldercare.backend.admission.api.dto.ServiceType;
+import com.eldercare.backend.admission.internal.domain.ServiceAttributes;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
 import com.eldercare.backend.care.internal.activity.domain.ActivityTypeAttributes;
 import com.eldercare.backend.common.Role;
@@ -56,8 +59,9 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_001_002b_catalogAndFacilitySessionCommandsRespectTheirPermissions() throws Exception {
-        com.eldercare.backend.support.TableRows.each(List.of("CATALOG", "SESSION"), scenario -> {
+        com.eldercare.backend.support.TableRows.each(List.of("CATALOG", "SESSION", "SERVICE"), scenario -> {
             if ("CATALOG".equals(scenario)) FR_001_catalogUsesTheApprovedViewAndWritePermissions();
+            else if ("SERVICE".equals(scenario)) FR_002_chargedActivityNeedsAnActiveServiceOfTheCatalog();
             else FR_002b_facilitySessionIsManagedByTheCreatorOrTheManagerOfItsOwnLocation();
         });
     }
@@ -135,6 +139,36 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
         command(path + "/reschedule", reschedule).andExpect(status().isOk());
         user.set(creator.user());
         command(path + "/cancel", "{\"reason\":\"Đổi kế hoạch\"}").andExpect(status().isOk());
+    }
+
+    /** FR-002 (danh mục dịch vụ 004 qua UnitPriceApi.service): hoạt động thu phí cần dịch vụ có trong danh mục, Hiệu lực. */
+    private void FR_002_chargedActivityNeedsAnActiveServiceOfTheCatalog() throws Exception {
+        var users = new TestUsers(jdbc, time);
+        long floor = TestUsers.nextId(), room = TestUsers.nextId();
+        locations.floor(floor, null).room(room, floor);
+        user.set(floorManager(users, floor).user());
+        long type = catalogs.create(
+                        ActivityKinds.ACTIVITY_TYPES,
+                        new NewCatalogItem<>(
+                                null, "Loại " + room, null, 0, new ActivityTypeAttributes(false, false, List.of())))
+                .id();
+        long active = catalogs.create(
+                        ServiceAttributes.KIND,
+                        new NewCatalogItem<>(
+                                null,
+                                "Lớp đàn " + room,
+                                null,
+                                0,
+                                new ServiceAttributes(
+                                        ServiceType.ACTIVITY, "lượt", BillingPeriod.OCCURRENCE, null, null, null)))
+                .id();
+        String body = "{\"name\":\"Tập đàn\",\"typeId\":" + type + ",\"scope\":\"FLOOR\",\"floorAreaId\":" + floor
+                + ",\"maxParticipants\":6,\"defaultLocation\":{\"roomId\":" + room
+                + "},\"charged\":true,\"serviceId\":";
+        command("/api/v1/activities", body + TestUsers.nextId() + "}").andExpect(status().isUnprocessableContent());
+        command("/api/v1/activities", body + active + "}").andExpect(status().isCreated());
+        catalogs.deactivate(ServiceAttributes.KIND, active, 0);
+        command("/api/v1/activities", body + active + "}").andExpect(status().isUnprocessableContent());
     }
 
     private TestUsers.TestUser floorManager(TestUsers users, long floor) {
