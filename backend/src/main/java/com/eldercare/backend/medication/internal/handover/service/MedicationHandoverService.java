@@ -41,6 +41,7 @@ import com.eldercare.backend.medication.internal.reconciliation.persistence.Resi
 import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
 import com.eldercare.backend.medication.internal.schedule.service.ScheduleContext;
+import com.eldercare.backend.medication.internal.status.domain.StoredMedicationClosed;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,6 +76,7 @@ public class MedicationHandoverService {
     private final MedicationScheduleCalculator scheduleCalculator;
     // 014 cài khi có chuyến đi; chưa có thì giờ về chỉ lấy từ khoảng vắng
     private final ObjectProvider<TripMedicationPort> trips;
+    private final ApplicationEventPublisher events;
 
     @Autowired
     public MedicationHandoverService(
@@ -89,7 +92,8 @@ public class MedicationHandoverService {
             ResidentMedicationLock residentMedicationLock,
             BusinessTime businessTime,
             MedicationScheduleCalculator scheduleCalculator,
-            ObjectProvider<TripMedicationPort> trips) {
+            ObjectProvider<TripMedicationPort> trips,
+            ApplicationEventPublisher events) {
         this.absenceRepo = absenceRepo;
         this.handoverRepo = handoverRepo;
         this.handoverItemRepo = handoverItemRepo;
@@ -103,6 +107,7 @@ public class MedicationHandoverService {
         this.businessTime = businessTime;
         this.scheduleCalculator = scheduleCalculator;
         this.trips = trips;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -299,6 +304,7 @@ public class MedicationHandoverService {
 
         handover.markReturned(now);
         MedicationHandover savedHandover = handoverRepo.save(handover);
+        events.publishEvent(new StoredMedicationClosed(handover.getResidentId()));
 
         return toResponse(savedHandover, handedItems);
     }

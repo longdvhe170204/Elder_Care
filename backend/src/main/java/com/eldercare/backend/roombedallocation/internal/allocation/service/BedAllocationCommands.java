@@ -27,12 +27,17 @@ public class BedAllocationCommands implements BedAllocationCommandApi {
     private final BedHoldService holds;
     private final ScheduledTransfers scheduled;
     private final AllocationCommandStore allocations;
+    private final AllocationSuitabilityService suitability;
 
     public BedAllocationCommands(
-            BedHoldService holds, ScheduledTransfers scheduled, AllocationCommandStore allocations) {
+            BedHoldService holds,
+            ScheduledTransfers scheduled,
+            AllocationCommandStore allocations,
+            AllocationSuitabilityService suitability) {
         this.holds = holds;
         this.scheduled = scheduled;
         this.allocations = allocations;
+        this.suitability = suitability;
     }
 
     @Override
@@ -90,5 +95,10 @@ public class BedAllocationCommands implements BedAllocationCommandApi {
     @Override
     public void urgentTransferRequestResult(long allocationId, boolean approved) {
         scheduled.requestResult(allocationId, approved);
+    }
+
+    @Override
+    public void residenceTypeChanged(long residentId) {
+        suitability.reassess(residentId);
     }
 }

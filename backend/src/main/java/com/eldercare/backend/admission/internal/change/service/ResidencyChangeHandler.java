@@ -292,7 +292,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (base.isEmpty()) {
             return List.of(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng chưa có nội dung đã ký"));
         }
-        return rules.check(contract, base.get().content(), change, request.actualEffectiveDate(), null);
+        return rules.checkApply(contract, base.get().content(), change, request.actualEffectiveDate(), request.id());
     }
 
     @Override
@@ -321,7 +321,11 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                             newEnd.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
         }
         if (change.has(ChangeType.BED) && change.newBedId() != null) {
-            beds.getObject().applyScheduledTransfer(request.id(), time.now());
+            // Mốc dự kiến là 00:00 ngày hiệu lực; 003 ghi thời điểm thực hiện và dấu trễ (003 FR-016a)
+            beds.getObject()
+                    .applyScheduledTransfer(
+                            request.id(),
+                            effective.atStartOfDay(BusinessTime.ZONE).toInstant());
         }
         BigDecimal before = deposit(base.content());
         BigDecimal after = deposit(built.content());
@@ -341,6 +345,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         events.publishEvent(new AddendumApplied(
                 addendum.id(), contract.id(), contract.residentId(), names(change.changeTypes()), effective));
         if (names(change.changeTypes()).contains("RESIDENCE_TYPE")) {
+            beds.getObject().residenceTypeChanged(contract.residentId());
             events.publishEvent(new ResidenceTypeChanged(contract.residentId()));
         }
         return new ResultRef(ADDENDUM_ENTITY, String.valueOf(addendum.id()));
