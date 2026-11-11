@@ -59,6 +59,11 @@ public class DutyDirectory implements DutyApi {
         return departments.lead(id);
     }
 
+    @Override
+    public Optional<Long> departmentByCode(String code) {
+        return departments.byCode(code);
+    }
+
     public boolean isDepartmentLead(long id) {
         return departments.isLead(id);
     }

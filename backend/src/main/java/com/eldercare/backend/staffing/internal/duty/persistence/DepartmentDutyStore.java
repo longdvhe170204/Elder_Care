@@ -44,6 +44,11 @@ public class DepartmentDutyStore {
         return catalogs.addDepartment(name, active, at);
     }
 
+    /** Bộ phận Hiệu lực có mã hệ thống {@code code} (catalog_item.code; V008_96). */
+    public Optional<Long> byCode(String code) {
+        return catalogs.departmentByCode(code);
+    }
+
     public Optional<Long> lead(long id) {
         return catalogs.department(id)
                 .filter(r -> r.status() == CatalogStatus.ACTIVE)

@@ -16,6 +16,10 @@ public interface BedAssetCommandPort {
     @Transactional(propagation = Propagation.MANDATORY)
     void applyAssetCommand(long bedId, BedAssetCommand command, Basis basis);
 
+    /** Q-243: giường đã từng có phân bổ thì không đổi phòng; tài sản giường đi theo phòng của giường. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    boolean everAllocated(long bedId);
+
     @Transactional(propagation = Propagation.MANDATORY)
     void residentTransferFlagAdded(long bedId);
 
