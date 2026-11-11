@@ -74,6 +74,5 @@ describe('breakdownLabel chi tiêu nguồn mới (016 T008, T014, T020, T024)', 
     expect(breakdownLabel('BALANCE.LOW_OR_OWING', 'IN_DEBT')).toBe('Còn nợ')
     expect(breakdownLabel('REGISTRATION.TO_DO', 'TO_DEREGISTER')).toBe('Cần xóa đăng ký')
     expect(breakdownLabel('SHIFT.REQUESTS', 'M09.SHIFT_SWAP:APPROVED')).toBe('Đổi ca, Đã duyệt')
-    expect(breakdownLabel('SHIFT.WORKING_HOURS', '51')).toBe('Nhân viên 51')
   })
 })

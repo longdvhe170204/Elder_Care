@@ -39,18 +39,15 @@ import com.eldercare.backend.reporting.internal.other.service.CostSummaryMetric;
 import com.eldercare.backend.reporting.internal.other.service.EmptyAwaitingTransferMetric;
 import com.eldercare.backend.reporting.internal.other.service.RegistrationToDoMetric;
 import com.eldercare.backend.reporting.internal.other.service.StaffRequestsMetric;
-import com.eldercare.backend.reporting.internal.other.service.WorkingHoursMetric;
 import com.eldercare.backend.roombedallocation.api.BedStatisticsApi;
 import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.api.dto.ProcurementType;
 import com.eldercare.backend.staffing.api.SwapStatisticsApi;
 import com.eldercare.backend.staffing.api.dto.StaffRequestView;
-import com.eldercare.backend.staffing.api.dto.WorkingHoursView;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -130,14 +127,6 @@ class MetricRemainingSourcesTest {
         assertThat(breakdown(requests))
                 .containsEntry("LEAVE:REJECTED", BigDecimal.ONE)
                 .containsEntry("SWAP:APPROVED", BigDecimal.valueOf(2));
-
-        when(swaps.workingHoursByMonth(any(), any()))
-                .thenReturn(Stream.of(
-                        new WorkingHoursView(51, YearMonth.of(2026, 11), 600, 120),
-                        new WorkingHoursView(52, YearMonth.of(2026, 11), 90, 0)));
-        var hours = value(new WorkingHoursMetric(provider(swaps), TIME), ReportFilters.NONE);
-        assertThat(hours.value()).as("giờ đã làm, tổng").isEqualByComparingTo("11.5");
-        assertThat(breakdown(hours)).containsEntry("51", new BigDecimal("10.0"));
     }
 
     @Test
