@@ -5,6 +5,8 @@ const _labels = {
   'M07.DOSE_RESULT': 'Kết quả liều thuốc',
   'M07.PRN_ADMINISTRATION': 'Lần dùng thuốc khi cần',
   'M08.SERVING_CONFIRMATION': 'Xác nhận phục vụ suất ăn',
+  'M04.CARE_TASK_RESULT': 'Kết quả công việc chăm sóc',
+  'M04.AD_HOC_RECORDING': 'Ghi nhận phát sinh',
 };
 
 String recordTypeLabel(String code) => _labels[code] ?? code;

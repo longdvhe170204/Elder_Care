@@ -8,10 +8,21 @@ import 'care_result_form.dart';
 
 /// FR-025/T040: form cùng loại kết quả với checklist, phát sinh chỉ từ lệnh người dùng.
 class AdHocCareRecordingScreen extends StatefulWidget {
-  const AdHocCareRecordingScreen({super.key, required this.api, required this.queue, required this.accountId});
+  const AdHocCareRecordingScreen({
+    super.key,
+    required this.api,
+    required this.queue,
+    required this.accountId,
+    this.initialResidentId,
+    this.initialTaskTypeId,
+  });
   final ApiClient api;
   final OfflineQueue queue;
   final int accountId;
+
+  /// T040: chuyển bản ghi bị từ chối thành phát sinh thì chọn sẵn người cao tuổi, loại công việc của công việc gốc.
+  final int? initialResidentId;
+  final int? initialTaskTypeId;
   @override
   State<AdHocCareRecordingScreen> createState() => _AdHocCareRecordingScreenState();
 }
@@ -38,6 +49,8 @@ class _AdHocCareRecordingScreenState extends State<AdHocCareRecordingScreen> {
               .toList();
           values = results.map((r) => Map<String, dynamic>.from(r as Map)).toList();
           error = null;
+          if (residents!.any((r) => r['id'] == widget.initialResidentId)) resident ??= widget.initialResidentId;
+          if (types!.any((t) => t['id'] == widget.initialTaskTypeId)) type ??= widget.initialTaskTypeId;
         });
       }
     } catch (e) {
