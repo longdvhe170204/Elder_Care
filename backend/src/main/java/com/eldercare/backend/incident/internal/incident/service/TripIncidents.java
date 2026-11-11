@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Cài {@link TripIncidentPort} (014 FR-046 → 048, BR-M04-17; 007 T063, 2026-11-11, A thay D): sự cố "Đi lạc hoặc không
  * trở về", Khẩn cấp, nguồn hoạt động ngoài viện, ghi bằng người đang ra lệnh Báo thiếu người qua cùng luồng ghi nhận
- * REST (quyền, phạm vi, chặn sự cố Khẩn cấp đang mở). Tìm thấy, đã trở về ghi diễn biến Đã tìm thấy do Hệ thống (tác
+ * REST (quyền, phạm vi); đang có sự cố Khẩn cấp chưa đóng vẫn ghi sự cố riêng, không chặn, không gộp (Q-409). Tìm thấy, đã trở về ghi diễn biến Đã tìm thấy do Hệ thống (tác
  * động kèm lệnh điểm danh về), không tự đóng. Lỗi thì lệnh chuyến rollback (MANDATORY).
  */
 @Component
@@ -65,7 +65,7 @@ class TripIncidents implements TripIncidentPort {
                                 "CRITICAL",
                                 null,
                                 null,
-                                false),
+                                true),
                         user)
                 .incidentId();
     }

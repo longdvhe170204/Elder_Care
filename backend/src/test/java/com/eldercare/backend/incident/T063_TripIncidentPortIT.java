@@ -31,6 +31,20 @@ class T063_TripIncidentPortIT extends IncidentHttpTestBase {
     @Autowired
     IncidentProgressionService progressions;
 
+    /** Q-409: đang có sự cố Khẩn cấp chưa đóng thì Báo thiếu người vẫn ghi sự cố riêng, không chặn, không gộp. */
+    @Test
+    void Q409_openEmergencyIncident_missingStillRecordsSeparateIncident() {
+        user.set(nurse.user());
+        long trip = TestUsers.nextId();
+        long first = port.recordMissing(
+                resident, trip, null, "Cổng công viên", time.now().minusSeconds(900), "Lần một");
+        long second =
+                port.recordMissing(resident, trip, null, "Bến xe", time.now().minusSeconds(600), "Lần hai");
+        assertThat(second).isNotEqualTo(first);
+        assertThat(jdbc.queryForObject("SELECT type_code FROM incident WHERE id=?", String.class, second))
+                .isEqualTo("MISSING_OR_NOT_RETURNED");
+    }
+
     @Test
     void T063_missingOnTrip_recordsCriticalOffsiteIncident_foundAddsProgressionWithoutClosing() {
         user.set(nurse.user());
