@@ -57,6 +57,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 1
 
 - [ ] T008 [US1] *(2026-11-08, A: xong `ASSET.OVERDUE` (dấu quá hạn bảo trì, đăng kiểm, bảo hiểm theo `AssetStatisticsApi.overdue` của 003), `HEALTH.CRITICAL_FLAGS`; phần "tới mốc nhắc CFG-M03-09" chưa có nguồn)* *(2026-10-27: xong `BED.STATUS`, `BED.USABLE`, `BED.ISOLATED_ROOMS`; `BED.EMPTY_AWAITING_TRANSFER` chờ 019; mã khác chờ nguồn)* Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/reporting/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
+  - *(2026-11-11, A)* Thêm `BED.EMPTY_AWAITING_TRANSFER` (`EmptyAwaitingTransferMetric`, nguồn `BedStatisticsApi.emptyAwaitingTransferBedIds`, tầng theo phòng), `BALANCE.LOW_OR_OWING` (017), `REGISTRATION.TO_DO` (018); `MetricRemainingSourcesTest` xanh. Còn phần "tới mốc nhắc CFG-M03-09" của `ASSET.OVERDUE` (003 chưa trả).
 - [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/reporting/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/reporting/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
 - [x] T010 [P] [US1] *(2026-10-24: bố cục duyệt, DESIGN.md 5.21.0; `src/features/dashboard/DashboardPage.jsx` thay bản mẫu Tổng quan; test `DashboardPage.test.jsx`)* Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
@@ -128,6 +129,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 5
 
 - [ ] T018 [US5] *(2026-11-08, A: cài `HEALTH.ALERTS`, `HEALTH.ALERT_RESPONSE_TIME`, `HEALTH.ALERT_ESCALATIONS`, `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS`, `HEALTH.OVERDUE_REASSESSMENTS` trên `IncidentStatisticsApi`, `ResidentStatisticsApi` thật; màn web dùng bảng chung của `ReportsPage`, thêm nhãn ô ở `reportLabels.js`; còn `HEALTH.CONTAINMENT_ZONES`, mức lúc tiếp nhận của sự cố, dòng tham khảo "số sự cố đã hủy" (nguồn 007 chưa có, team-plan mục 8), xem plan "Chỉ tiêu sức khỏe, sự cố, tài sản")* Cài chỉ tiêu nhóm sức khỏe, thuốc (001, 006, 007); màn web `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`
+  - *(2026-11-11, A)* Thêm `HEALTH.CONTAINMENT_ZONES` (`ContainmentZonesMetric`, `IncidentStatisticsApi.containmentZones`; một khu nhiều tầng đếm một lần). `MetricRemainingSourcesTest` xanh.
 
 ---
 
@@ -143,7 +145,8 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 6
 
-- [ ] T020 [US6] Cài chỉ tiêu nhóm chi phí qua `ChiPhiThongKeApi` (010); màn web `frontend/src/tinh-nang/bao-cao/chi-phi/`
+- [x] T020 [US6] Cài chỉ tiêu nhóm chi phí qua `ChiPhiThongKeApi` (010); màn web `frontend/src/tinh-nang/bao-cao/chi-phi/`
+  - *(2026-11-11, A)* `COST.SUMMARY`, `COST.EVENT_GENERATED_RATE`, `COST.POST_FINALIZATION_ADJUSTMENTS` (qua `CostItems`: bỏ khoản Đã hủy, đã chốt chỉ khoản Đã chốt, tạm tính thêm khoản chưa hủy, khoản thiếu đơn giá không cộng), `COST.STATEMENTS`, `COST.PURCHASING` (019, tách khỏi chi phí người cao tuổi); chế độ tạm tính gắn nhãn `PROVISIONAL` (`ReportService`); web: lựa chọn "Đã chốt / Tạm tính" ở nhóm Chi phí, gửi `costMode` cho bảng và file xuất, nhãn ô (`reportLabels.js`). `MetricRemainingSourcesTest` 5, `ReportApiIT.FR_051_…` đỏ rồi xanh, `ReportsPage.test.jsx` FR_051 đỏ rồi xanh, IT báo cáo, xuất, phạm vi xanh.
 
 ---
 
@@ -176,6 +179,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 8
 
 - [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `REQUESTS`, `WORKING_HOURS` chờ 015; `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `INVITATIONS` bỏ theo Q-397)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `DoiCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
+  - *(2026-11-11, A)* `SHIFT.REQUESTS` (theo loại và trạng thái, không lý do) và `SHIFT.WORKING_HOURS` (giờ đã làm theo nhân viên, giờ đã xếp ở chi tiết; chỉ Quản lý viện xuất) qua `SwapStatisticsApi`; nhãn ô web. Giữ [ ]: `WorkingHoursView` của 015 chưa có tầng nên trưởng tầng được giao chưa thấy nhân viên tầng mình (FR-073); cần "Đổi api" thêm tầng vào view.
 
 ---
 

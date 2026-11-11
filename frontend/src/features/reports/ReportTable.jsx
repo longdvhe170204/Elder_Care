@@ -18,19 +18,19 @@ function ratio(v) {
     : `${formatValue(v.numerator)} / ${formatValue(v.denominator)}`
 }
 
-export function ReportTable({ group, from, to, floorAreaId, floors = [], metrics, onOpen, onFilterOptions }) {
+export function ReportTable({ group, from, to, floorAreaId, costMode, floors = [], metrics, onOpen, onFilterOptions }) {
   const [state, setState] = useState({ status: 'loading' })
 
   const load = useCallback(async () => {
     setState({ status: 'loading' })
     try {
-      const { data } = await getReportsByGroup({ path: { group }, query: { from, to, floorAreaId } })
+      const { data } = await getReportsByGroup({ path: { group }, query: { from, to, floorAreaId, costMode } })
       setState({ status: 'ready', report: data })
       onFilterOptions(data.filterOptions)
     } catch (error) {
       setState({ status: 'error', problem: problemOf(error) })
     }
-  }, [group, from, to, floorAreaId, onFilterOptions])
+  }, [group, from, to, floorAreaId, costMode, onFilterOptions])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- tải khi đổi báo cáo hoặc khoảng
