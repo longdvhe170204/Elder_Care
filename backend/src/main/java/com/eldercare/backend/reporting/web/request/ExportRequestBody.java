@@ -4,6 +4,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.reporting.internal.export.service.ReportExportService.ExportFormat;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters.CostMode;
+import com.eldercare.backend.resident.api.dto.CareLevel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ import java.util.Set;
 
 /**
  * Thân {@code POST /reports/{group}/export} ({@code YeuCauXuat}; FR-060 → FR-062). {@code filters} dùng tên tham số của
- * {@code GET /reports/{group}}: {@code floorAreaId} (một hoặc nhiều), {@code residenceType}, {@code careLevelId},
+ * {@code GET /reports/{group}}: {@code floorAreaId} (một hoặc nhiều), {@code residenceType}, {@code careLevel} (mã `CareLevel` của 001; chủ dự án duyệt 2026-11-11),
  * {@code residentId}, {@code staffId}, {@code shiftId}.
  */
 public record ExportRequestBody(
@@ -35,7 +36,7 @@ public record ExportRequestBody(
         ExportFormat format) {
 
     private static final Set<String> KEYS =
-            Set.of("floorAreaId", "residenceType", "careLevelId", "residentId", "staffId", "shiftId");
+            Set.of("floorAreaId", "residenceType", "careLevel", "residentId", "staffId", "shiftId");
 
     public ReportFilters toFilters() {
         Map<String, Object> f = filters == null ? Map.of() : filters;
@@ -47,7 +48,7 @@ public record ExportRequestBody(
         return new ReportFilters(
                 floors(f.get("floorAreaId")),
                 f.get("residenceType") == null ? null : f.get("residenceType").toString(),
-                id(f.get("careLevelId")),
+                careLevel(f.get("careLevel")),
                 id(f.get("residentId")),
                 id(f.get("staffId")),
                 id(f.get("shiftId")),
@@ -62,6 +63,17 @@ public record ExportRequestBody(
             result.add(id(value));
         }
         return result;
+    }
+
+    private static String careLevel(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return CareLevel.valueOf(value.toString()).name();
+        } catch (IllegalArgumentException e) {
+            throw new InvalidValueException("Bộ lọc không hợp lệ: " + value);
+        }
     }
 
     private static Long id(Object value) {

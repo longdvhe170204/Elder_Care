@@ -47,7 +47,7 @@ paths:
         - { name: date, in: query, description: 'Báo cáo tại một ngày (FR-022, FR-024)', schema: { type: string, format: date } }
         - { name: floorAreaId, in: query, schema: { type: array, items: { type: integer, format: int64 } } }
         - { name: residenceType, in: query, schema: { type: string } }
-        - { name: careLevelId, in: query, schema: { type: integer, format: int64 } }
+        - { name: careLevel, in: query, description: 'Mã mức chăm sóc CareLevel của 001 (chủ dự án duyệt 2026-11-11, thay careLevelId)', schema: { type: string, enum: [BASIC, REGULAR, SPECIAL] } }
         - { name: residentId, in: query, schema: { type: integer, format: int64 } }
         - { name: staffId, in: query, schema: { type: integer, format: int64 } }
         - { name: shiftId, in: query, schema: { type: integer, format: int64 } }
@@ -68,7 +68,7 @@ paths:
         - { name: breakdownKey, in: query, description: 'Ô cụ thể (ví dụ trạng thái, tầng, nhân viên)', schema: { type: string } }
         - { name: floorAreaId, in: query, schema: { type: array, items: { type: integer, format: int64 } } }
         - { name: residenceType, in: query, schema: { type: string } }
-        - { name: careLevelId, in: query, schema: { type: integer, format: int64 } }
+        - { name: careLevel, in: query, description: 'Mã mức chăm sóc CareLevel của 001 (chủ dự án duyệt 2026-11-11, thay careLevelId)', schema: { type: string, enum: [BASIC, REGULAR, SPECIAL] } }
         - { name: residentId, in: query, schema: { type: integer, format: int64 } }
         - { name: staffId, in: query, schema: { type: integer, format: int64 } }
         - { name: shiftId, in: query, schema: { type: integer, format: int64 } }

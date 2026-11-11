@@ -1077,7 +1077,7 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | `NgayLuuTruApi` (`theoKhoang`, `buoiBanTru`, `mocDungTinhPhi`); `NgayLuuTruView`, `BuoiBanTruView` | `ResidencyDayApi` (`daysBetween`, `dayCareSessions`, `billingStopDate`); `ResidencyDayView`, `DayCareSessionView` |
 | `DieuKienTiepNhanApi` (`dieuKienTiepNhan`, `tienTrinh`, `dieuKienKetThuc`) | `AdmissionConditionApi` (`admissionConditions`, `progress`, `endingConditions`) |
 | `HoSoKetThucDocApi` (`dangChuanBi`, `thongTinQuyetToan`, `coNgoaiLeQuyetToanDaDuyet`) | `ResidencyEndingReadApi` (`preparing`, `settlementInfo`, `hasApprovedSettlementException`) |
-| `LuuTruThongKeApi` (`loaiLuuTruTaiNgay`, `danhSachCho`) | `ResidencyStatisticsApi` (`residenceTypeAtDate`, `waitingList`) |
+| `LuuTruThongKeApi` (`loaiLuuTruTaiNgay`, `danhSachCho`; *(2026-11-11, 016 T014)* `doiLoaiLuuTru`, `LanDoiLoaiLuuTruView`) | `ResidencyStatisticsApi` (`residenceTypeAtDate`, `waitingList`, `residenceTypeChanges`, `ResidenceTypeChangeView`) |
 | `DanhSachViecSauQuaDoiApi` (`capNhat`, `xem`) | `PostDeathTaskApi` (`refresh`, `view`) |
 | SPI 004 khai báo: `NguoiDaiDienPort` (`laNguoiDaiDienHieuLuc`, `coNguoiDaiDien`, `nguoiDaiDienHieuLuc` → `activeRepresentative`, bổ sung 2026-11-10), `BanGhiDonPort` (`banGhiDonHopLe`, `daDung`), `TrangThaiDatCocPort` (`trangThai`), `KyCuoiPort` (`taoKyCuoiNhap`, `tinhLai`, `huyMocDung`), `TrangThaiCoMatBanTruPort` (`trangThai`), `MucViecSauQuaDoiPort` (`ma`, `trangThai`) | `RepresentativePort` (`isActiveRepresentative`, `hasRepresentative`), `PickupRecordPort` (`validPickupRecord`, `markUsed`), `DepositStatusPort` (`status`), `FinalPeriodPort` (`createDraft`, `recalculate`, `cancelStop`), `DayCareAttendancePort` (`status`), `PostDeathItemPort` (`code`, `status`) |
 | SPI M02 cài cho module thấp hơn: `YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi` (001); `KetThucLuuTruApi` (002) | `CareLevelChangeRequestApi`, `ContractApi`, `AbsenceApi` (đã đặt tên ở mục 8.5); `ResidencyEndApi` (`m15.account.api.spi`, như team-plan mục 8) |
@@ -3899,7 +3899,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 
 | Tên logic | Mã |
 | --- | --- |
-| tham số báo cáo `nhom`, `tu`, `den`, `ngay`, `tangKhuVucId`, `loaiLuuTru`, `mucChamSocId`, `nctId`, `nhanVienId`, `caId`, `cheDoChiPhi` | `group`, `from`, `to`, `date`, `floorAreaId`, `residenceType`, `careLevelId`, `residentId`, `staffId`, `shiftId`, `costMode` |
+| tham số báo cáo `nhom`, `tu`, `den`, `ngay`, `tangKhuVucId`, `loaiLuuTru`, `mucChamSoc` *(sửa 2026-11-11, chủ dự án duyệt: thay `mucChamSocId`)*, `nctId`, `nhanVienId`, `caId`, `cheDoChiPhi` | `group`, `from`, `to`, `date`, `floorAreaId`, `residenceType`, `careLevel` (enum `CareLevel` của 001), `residentId`, `staffId`, `shiftId`, `costMode` |
 | tham số chi tiết `nhomCon`, `tinhDen`, `trang` | `breakdownKey`, `asOf`, `page` |
 | `ChiTieu` (`ma`, `nhom`, `ten`, `dinhNghia`, `nguon`) | `Metric` (`code`, `group`, `name`, `definition`, `source`) |
 | `GiaTri` (`maChiTieu`, `giaTri`, `tuSo`, `mauSo`, `nhan`, `soChoXemLai`, `chiaNhom` {`khoa`, `giaTri`, `tuSo`, `mauSo`}) | `MetricValue` (`metricCode`, `value`, `numerator`, `denominator`, `labels`, `pendingReviewCount`, `breakdown` {`key`, `value`, `numerator`, `denominator`}) |

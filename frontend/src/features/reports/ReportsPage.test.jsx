@@ -70,6 +70,18 @@ describe('ReportsPage', () => {
     await waitFor(() => expect(reportCalls().at(-1).searchParams.get('costMode')).toBe('PROVISIONAL'))
   })
 
+  it('FR_060_nguoiCaoTuoi_locMucChamSoc_guiCareLevel', async () => {
+    render(<ReportsPage role="NURSING_HOME_MANAGER" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Người cao tuổi' }))
+    await screen.findByText('Tỷ lệ liều Bỏ lỡ')
+    const reportCalls = () => api.fetchMock.mock.calls.map(([u]) => new URL(u, 'http://localhost')).filter((u) => u.pathname === '/api/v1/reports/RESIDENTS')
+    expect(reportCalls().at(-1).searchParams.get('careLevel')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Thường xuyên' }))
+    await waitFor(() => expect(reportCalls().at(-1).searchParams.get('careLevel')).toBe('REGULAR'))
+    fireEvent.click(screen.getByRole('button', { name: 'Chăm sóc' }))
+    expect(screen.queryByRole('button', { name: 'Thường xuyên' })).toBeNull()
+  })
+
   it('FR_009_bangTongVaChiaNhom_bamGiaTriMoDanhSach', async () => {
     api.on(
       'GET',

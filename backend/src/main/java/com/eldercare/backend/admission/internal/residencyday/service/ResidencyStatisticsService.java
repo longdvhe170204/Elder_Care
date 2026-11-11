@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.admission.api.ResidencyStatisticsApi;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.dto.ResidenceTypeAtDateView;
+import com.eldercare.backend.admission.api.dto.ResidenceTypeChangeView;
 import com.eldercare.backend.admission.api.dto.WaitingEntryView;
 import com.eldercare.backend.admission.internal.contract.domain.Contract;
 import com.eldercare.backend.admission.internal.contract.domain.ContractVersion;
@@ -88,6 +89,14 @@ class ResidencyStatisticsService implements ResidencyStatisticsApi {
                 .filter(c -> c.status() == ContractStatus.PENDING_SIGNATURE)
                 .max(Comparator.comparing(Contract::id))
                 .map(c -> new ResidenceTypeAtDateView(residentId, c.content().residenceType(), c.status()));
+    }
+
+    /** Phiên bản nội dung của hợp đồng đã ký có loại lưu trú khác phiên bản liền trước (theo số thứ tự). */
+    @Override
+    @Transactional(readOnly = true)
+    public Stream<ResidenceTypeChangeView> residenceTypeChanges(ScopeFilter scope, LocalDate from, LocalDate to) {
+        return contracts.residenceTypeChanges(from, to).stream()
+                .filter(c -> scope.facilityWide() || scope.residentIds().contains(c.residentId()));
     }
 
     private LocalDate lastDay(Contract contract) {
