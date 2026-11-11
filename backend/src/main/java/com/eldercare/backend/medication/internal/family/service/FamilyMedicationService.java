@@ -18,6 +18,7 @@ import com.eldercare.backend.medication.internal.family.persistence.FamilyMedica
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.medication.internal.status.domain.StoredMedicationClosed;
 import com.eldercare.backend.medication.web.request.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -234,6 +235,7 @@ public class FamilyMedicationService {
                 actorId,
                 body.getReturnedAt() != null ? body.getReturnedAt() : businessTime.now());
         batchRepo.save(batch);
+        events.publishEvent(new StoredMedicationClosed(batch.getResidentId()));
         return getBatch(batchId);
     }
 
@@ -242,6 +244,7 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = closable(batchId, "dispose");
         batch.markDisposed(body.getReason(), body.getQuantity(), body.getWitness(), actorId, businessTime.now());
         batchRepo.save(batch);
+        events.publishEvent(new StoredMedicationClosed(batch.getResidentId()));
         return getBatch(batchId);
     }
 

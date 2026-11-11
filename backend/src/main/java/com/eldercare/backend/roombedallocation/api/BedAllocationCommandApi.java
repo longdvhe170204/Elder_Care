@@ -45,4 +45,11 @@ public interface BedAllocationCommandApi {
 
     @Transactional(propagation = Propagation.MANDATORY)
     void urgentTransferRequestResult(long allocationId, boolean approved);
+
+    /**
+     * T035 (BR-M03-23, FR-034): 004 gọi khi phụ lục đổi loại lưu trú được áp dụng, thay cho nghe {@code ResidenceTypeChanged}
+     * (nghe tạo vòng admission ↔ roombedallocation). Kiểm lại phân bổ Hiệu lực, Tương lai theo dữ liệu trong transaction.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    void residenceTypeChanged(long residentId);
 }
