@@ -19,6 +19,7 @@ import com.eldercare.backend.nutrition.api.dto.MealSlipReportView;
 import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.dto.PortionReportView;
 import com.eldercare.backend.reporting.internal.activity.service.ActivityRecords;
+import com.eldercare.backend.reporting.internal.activity.service.LateAttendanceMetric;
 import com.eldercare.backend.reporting.internal.activity.service.MissingParticipantsMetric;
 import com.eldercare.backend.reporting.internal.activity.service.OverdueTripsMetric;
 import com.eldercare.backend.reporting.internal.activity.service.ParticipationRateMetric;
@@ -167,6 +168,24 @@ class MetricMealActivityQualityTest {
                 .containsExactly(tuple("M08.MEAL_SLIP:2", 102L), tuple("M08.MEAL_SLIP:3", 101L));
     }
 
+    /** T016 (FR-032): điểm danh buổi hoạt động mang nhãn "ghi nhận muộn" tính riêng, theo hoạt động; tầng ở bộ lọc chung. */
+    @Test
+    void FR_032_lateRecordedActivityAttendance_countedSeparately() {
+        sessions.add(
+                new SessionStatisticsView(1, 5, Optional.of(101L), at(540), "COMPLETED", false, 4, 3, Map.of(), 0, 2));
+        sessions.add(
+                new SessionStatisticsView(2, 6, Optional.of(102L), at(600), "COMPLETED", false, 2, 2, Map.of(), 0, 0));
+        sessions.add(
+                new SessionStatisticsView(3, 6, Optional.of(102L), at(660), "COMPLETED", false, 2, 1, Map.of(), 0, 1));
+
+        LateAttendanceMetric late = new LateAttendanceMetric(activityRecords);
+        assertThat(late.metric().code()).isEqualTo("ACT.LATE_ATTENDANCE");
+        assertThat(late.metric().group()).isEqualTo(MetricGroup.ACTIVITIES);
+        assertThat(value(late).value()).isEqualByComparingTo("3");
+        assertThat(cells(value(late))).containsExactly(tuple("5", "2"), tuple("6", "1"));
+        assertThat(late.metric().details(included(late), "5")).hasSize(2);
+    }
+
     @Test
     void FR_035_sessions_participationRate_awayNoShowNotRecordedNotInDenominator() {
         sessions.add(new SessionStatisticsView(
@@ -179,11 +198,12 @@ class MetricMealActivityQualityTest {
                 10,
                 4,
                 Map.of("REFUSED", 1, "HEALTH", 1, "AWAY", 2, "NO_SHOW", 1),
-                1));
+                1,
+                0));
         sessions.add(
-                new SessionStatisticsView(2, 6, Optional.of(101L), at(600), "CANCELLED", false, 3, 0, Map.of(), 0));
+                new SessionStatisticsView(2, 6, Optional.of(101L), at(600), "CANCELLED", false, 3, 0, Map.of(), 0, 0));
         sessions.add(new SessionStatisticsView(
-                3, 6, Optional.of(102L), at(660), "COMPLETED", false, 2, 1, Map.of("OTHER", 1), 0));
+                3, 6, Optional.of(102L), at(660), "COMPLETED", false, 2, 1, Map.of("OTHER", 1), 0, 0));
 
         SessionsMetric count = new SessionsMetric(activityRecords);
         assertThat(count.metric().code()).isEqualTo("ACT.SESSIONS");

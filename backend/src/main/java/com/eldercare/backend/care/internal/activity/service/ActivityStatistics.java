@@ -60,17 +60,18 @@ public class ActivityStatistics implements ActivityStatisticsApi {
             }
             bySession
                     .computeIfAbsent(((Number) a.get("session_id")).longValue(), k -> new ArrayList<>())
-                    .add(new String[] {result, reason});
+                    .add(new String[] {result, reason, String.valueOf(a.get("late_recorded"))});
         }
         var views = new ArrayList<SessionStatisticsView>();
         for (var r : rows) {
             long id = ((Number) r.get("id")).longValue();
             boolean trip = r.get("trip_status") != null;
-            int present = 0, notRecorded = 0;
+            int present = 0, notRecorded = 0, late = 0;
             var absent = new TreeMap<String, Integer>();
             if (trip) present = ((Number) r.get("departed")).intValue();
             else
                 for (var a : bySession.getOrDefault(id, List.of())) {
+                    if ("true".equals(a[2])) late++;
                     if ("PRESENT".equals(a[0])) present++;
                     else if ("NOT_RECORDED".equals(a[0])) notRecorded++;
                     // Vắng luôn kèm lý do (FR-028); không suy lý do khi thiếu.
@@ -87,7 +88,8 @@ public class ActivityStatistics implements ActivityStatisticsApi {
                     ((Number) r.get("registered")).intValue(),
                     present,
                     Map.copyOf(absent),
-                    notRecorded));
+                    notRecorded,
+                    late));
         }
         return views.stream();
     }

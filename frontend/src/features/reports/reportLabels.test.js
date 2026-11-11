@@ -14,13 +14,18 @@ describe('breakdownLabel', () => {
     expect(breakdownLabel('RES.WAITING_LIST', 'WAITING_CANCELLED')).toBe('Hủy chờ')
     expect(breakdownLabel('RES.WAITING_TIME', 'DAY_CARE')).toBe('Bán trú')
     expect(breakdownLabel('SHIFT.UNCONFIRMED_HANDOVERS', 'HAS_COMMENTS')).toBe('Có ý kiến')
+    expect(breakdownLabel('RES.DAY_CARE_ATTENDANCE', 'REPORTED_ABSENT')).toBe('Vắng có báo')
+    expect(breakdownLabel('RES.DAY_CARE_ATTENDANCE', 'LEFT')).toBe('Đã về')
   })
 
   it('khóa của chỉ tiêu cảnh báo, sự cố, theo dõi, tài sản (T018, T032)', () => {
     expect(breakdownLabel('HEALTH.ALERTS', 'CRITICAL')).toBe('Khẩn cấp')
     expect(breakdownLabel('HEALTH.INCIDENTS', 'LOW')).toBe('Nhẹ')
-    expect(breakdownLabel('HEALTH.SOS_ASSISTANCE_ALERTS', 'EMERGENCY_ASSIST')).toBe('Nút hỗ trợ khẩn cấp')
-    expect(breakdownLabel('HEALTH.SOS_ASSISTANCE_ALERTS', 'SOS')).toBe('Nút SOS')
+    expect(breakdownLabel('HEALTH.SOS_ASSISTANCE_ALERTS', 'EMERGENCY_ASSIST:UNKNOWN_FLOOR', floors)).toBe(
+      'Nút hỗ trợ khẩn cấp, chưa rõ tầng',
+    )
+    expect(breakdownLabel('HEALTH.SOS_ASSISTANCE_ALERTS', 'SOS:101', floors)).toBe('Nút SOS, Tầng 1')
+    expect(breakdownLabel('HEALTH.SOS_ASSISTANCE_ARRIVAL_TIME_MAX', 'SOS:109', floors)).toBe('Nút SOS, Tầng/khu 109')
     expect(breakdownLabel('HEALTH.FOLLOW_UPS', 'POST_FALL')).toBe('Theo dõi sau ngã')
     expect(breakdownLabel('HEALTH.FOLLOW_UPS', 'CONTACT')).toBe('Theo dõi tiếp xúc')
     expect(breakdownLabel('ASSET.OVERDUE', 'VEHICLE_INSPECTION_OVERDUE')).toBe('Quá hạn đăng kiểm')
