@@ -53,11 +53,13 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Tests cho User Story 1
 
 - [ ] T007 [P] [US1] *(2026-11-08, A: thêm `MetricAssetOverdueTest` cho `ASSET.OVERDUE`)* *(2026-10-27: xong phần giường `MetricBedStatusTest`; các mã khác chờ nguồn)* Test `ChiTieu_*Test` cho các mã dashboard (`NCT.DANG_LUU_TRU`, `GIUONG.TRANG_THAI`, `CV.HOM_NAY`, `CV.QUA_HAN`, `HD.*`, `SK.CANH_BAO`, `SK.SU_CO`…) trong `BT/reporting/chitieu/` (SC-001; Q14 → Q16); test hiệu năng dashboard 60 người dùng (SC-002) trong `BT/reporting/DashboardHieuNangIT.java`
+  - *(2026-11-11, A, rà lại)* Test mã dashboard đã đủ; còn test hiệu năng dashboard 60 người dùng (SC-002), chưa có lớp test, chuyển cùng nghiệm thu đo SC.
 
 ### Implementation cho User Story 1
 
 - [ ] T008 [US1] *(2026-11-08, A: xong `ASSET.OVERDUE` (dấu quá hạn bảo trì, đăng kiểm, bảo hiểm theo `AssetStatisticsApi.overdue` của 003), `HEALTH.CRITICAL_FLAGS`; phần "tới mốc nhắc CFG-M03-09" chưa có nguồn)* *(2026-10-27: xong `BED.STATUS`, `BED.USABLE`, `BED.ISOLATED_ROOMS`; `BED.EMPTY_AWAITING_TRANSFER` chờ 019; mã khác chờ nguồn)* Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/reporting/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
   - *(2026-11-11, A)* Thêm `BED.EMPTY_AWAITING_TRANSFER` (`EmptyAwaitingTransferMetric`, nguồn `BedStatisticsApi.emptyAwaitingTransferBedIds`, tầng theo phòng), `BALANCE.LOW_OR_OWING` (017), `REGISTRATION.TO_DO` (018); `MetricRemainingSourcesTest` xanh. Còn phần "tới mốc nhắc CFG-M03-09" của `ASSET.OVERDUE` (003 chưa trả).
+  - *(2026-11-11, A, rà lại)* Còn phần "tới mốc nhắc CFG-M03-09" của `ASSET.OVERDUE`: `AssetStatisticsApi` của 019 chỉ trả dấu quá hạn; cần thêm hàm đọc tài sản sắp tới mốc nhắc (đổi api 019), chờ chủ dự án.
 - [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/reporting/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/reporting/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
 - [x] T010 [P] [US1] *(2026-10-24: bố cục duyệt, DESIGN.md 5.21.0; `src/features/dashboard/DashboardPage.jsx` thay bản mẫu Tổng quan; test `DashboardPage.test.jsx`)* Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
@@ -74,6 +76,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Tests cho User Story 2
 
 - [ ] T011 [P] [US2] *(2026-11-08, A: `FR_042a_AdminIncidentIT` chạy trên chỉ tiêu thật `HEALTH.NON_HEALTH_INCIDENTS`, `HEALTH.INCIDENTS` (nguồn 007 thay bằng danh sách trong test), thêm Q7 đổi loại sự cố; còn `FR_014_FieldRestrictionIT` (SC-005) chờ `CostStatisticsApi` của 010)* *(2026-11-01: xong `FR_012_TimeScopeIT` trên ca, phân công thật của 008, `SC_004_ScopeIT` bộ 11 tài khoản, `FR_014_FieldRestrictionIT` gồm cả `SC_005`; `FR_042a_AdminIncidentIT`, `SC_005` chỉ kiểm khung bằng chỉ tiêu giả `TestScopedMetrics`; còn chạy lại với chỉ tiêu thật khi 007 có phần đọc sự cố, 010 có `ChiPhiThongKeApi`, và Q7 đổi loại sự cố chờ 007)* Test `BT/reporting/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/reporting/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
+  - *(2026-11-11, A, rà lại)* 010 đã có nguồn chi phí thật (`COST.*`, 2026-11-11); còn chạy lại `FR_014_FieldRestrictionIT` (SC-005) trên chỉ tiêu chi phí thật thay chỉ tiêu giả, thuộc đợt chạy lại test với bean thật.
 
 ### Implementation cho User Story 2
 
@@ -91,11 +94,13 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 3
 
-- [ ] T013 [P] [US3] *(2026-11-08, A: `MetricResidentsTest` 3 ca cho `RES.IN_RESIDENCE`, `RES.AT_DATE` (loại lưu trú theo hợp đồng tại ngày, chưa có hợp đồng là "chưa xác định", lọc theo loại), `RES.MOVEMENTS`)* *(2026-10-27: xong `ChiTieu_GIUONG_*` = `MetricBedStatusTest`; `NCT` chờ 001)* Test `ChiTieu_NCT_*Test`, `ChiTieu_GIUONG_*Test` trong `BT/reporting/chitieu/`
+- [x] T013 [P] [US3] *(2026-11-08, A: `MetricResidentsTest` 3 ca cho `RES.IN_RESIDENCE`, `RES.AT_DATE` (loại lưu trú theo hợp đồng tại ngày, chưa có hợp đồng là "chưa xác định", lọc theo loại), `RES.MOVEMENTS`)* *(2026-10-27: xong `ChiTieu_GIUONG_*` = `MetricBedStatusTest`; `NCT` chờ 001)* Test `ChiTieu_NCT_*Test`, `ChiTieu_GIUONG_*Test` trong `BT/reporting/chitieu/`
+  - *(2026-11-11, A, rà lại)* `MetricResidentsTest` (RES.*), `MetricBedStatusTest` (BED.*) có và xanh. Đóng.
 
 ### Implementation cho User Story 3
 
 - [ ] T014 [US3] *(2026-11-08, A: xong `RES.IN_RESIDENCE`, `RES.AT_DATE`, `RES.MOVEMENTS` trên `ResidentStatisticsApi` (001), `ResidencyStatisticsApi.residenceTypeAtDate` (004) thật; còn phần có mặt bán trú (005) của FR-020, đổi loại lưu trú của FR-023, chia theo mức chăm sóc (bộ lọc `careLevelId` là mã số, 001 trả enum), xem plan "Chỉ tiêu người cao tuổi, công việc, bữa ăn, hoạt động, kiểm tra")* *(2026-10-27: xong `BED.STATUS`, `BED.OCCUPANTS` của FR-024 tại ngày đã qua; 2026-10-24: xong phần khung `GET /reports/{group}` (`ReportController`, `ReportService`, test `ReportApiIT`) và màn `src/features/reports/` dùng chung cho mọi nhóm; còn chỉ tiêu nhóm người cao tuổi, giường chờ `*ThongKeApi` của 001, 003, 004)* Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/reporting/baocao/internal/BaoCaoService.java` + `BE/reporting/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
+  - *(2026-11-11, A, rà lại)* Còn ba phần: (1) có mặt bán trú của 005 trong `RES.IN_RESIDENCE` (FR-020); (2) đổi loại lưu trú trong `RES.MOVEMENTS` (FR-023); (3) bộ lọc mức chăm sóc nhận mã số trong khi 001 trả enum. Chưa làm.
 
 ---
 
@@ -107,12 +112,14 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 4
 
-- [ ] T015 [P] [US4] *(2026-11-08, A: `MetricCareTasksTest` 4 ca (`TASK.*`), `MetricMealActivityQualityTest` 4 ca (`MEAL.*`, `ACT.*` trừ `ACT.ISOLATION_RISK`, `QC.*`))* *(2026-10-27: xong thời gian giường Chờ sẵn sàng `MetricBedAwaitingReadyTest`; `CV`, `BUA`, `HD`, `KT` chờ nguồn)* Test `ChiTieu_CV_*Test`, `ChiTieu_BUA_*Test`, `ChiTieu_HD_*Test`, `ChiTieu_KT_*Test` (Q17)
+- [x] T015 [P] [US4] *(2026-11-08, A: `MetricCareTasksTest` 4 ca (`TASK.*`), `MetricMealActivityQualityTest` 4 ca (`MEAL.*`, `ACT.*` trừ `ACT.ISOLATION_RISK`, `QC.*`))* *(2026-10-27: xong thời gian giường Chờ sẵn sàng `MetricBedAwaitingReadyTest`; `CV`, `BUA`, `HD`, `KT` chờ nguồn)* Test `ChiTieu_CV_*Test`, `ChiTieu_BUA_*Test`, `ChiTieu_HD_*Test`, `ChiTieu_KT_*Test` (Q17)
+  - *(2026-11-11, A, rà lại)* `MetricCareTasksTest`, `MetricMealActivityQualityTest`, `MetricBedAwaitingReadyTest` có và xanh; `ACT.ISOLATION_RISK` bỏ theo Q-407. Đóng.
 
 ### Implementation cho User Story 4
 
 - [ ] T016 [US4] *(2026-11-08, A: xong `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` (005), `MEAL.LATE_TICKETS`, `MEAL.DISCREPANCY_TICKETS` (011), `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS`, `QC.PASS_RATE`, `QC.BY_CHECKER_ROLE` (014) trên nguồn thật; màn web dùng bảng chung, thêm nhãn ô; còn `ACT.ISOLATION_RISK` (bản cài `isolationRisks` của 014 còn trả rỗng), nhãn ghi nhận muộn của điểm danh hoạt động, xem plan)* *(2026-10-27: xong `BED.AWAITING_READY`, `_MAX`, `_OVERDUE`; nhóm khác chờ nguồn)* Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `frontend/src/tinh-nang/bao-cao/cham-soc/`, `frontend/src/tinh-nang/bao-cao/chat-luong/`
   - *(2026-11-10, A, Q-407)* `ACT.ISOLATION_RISK` bỏ (FR-036 bỏ): không còn cài chỉ tiêu này.
+  - *(2026-11-11, A, rà lại)* Còn nhãn ghi nhận muộn của điểm danh hoạt động (014) trong `TASK.LATE_RECORDINGS` hoặc chỉ tiêu hoạt động; `ACT.ISOLATION_RISK` bỏ theo Q-407. Chưa làm.
 
 ---
 
@@ -124,12 +131,14 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 5
 
-- [ ] T017 [P] [US5] *(2026-11-08, A: `MetricHealthEventsTest` 5 ca: cảnh báo theo mức, thời gian tiếp nhận chỉ cảnh báo đã tiếp nhận, leo thang; nút SOS, nút hỗ trợ; sự cố, thời gian tiếp nhận, leo thang; sự cố không thuộc sức khỏe không có kết quả; theo dõi, nguy kịch, đánh giá lại quá hạn; phần thuốc ở `MetricMedicationTest` từ trước; còn `HEALTH.CONTAINMENT_ZONES` chờ 007 có nguồn khoanh vùng)* Test `ChiTieu_SK_*Test`, `ChiTieu_THUOC_*Test` (Q20, Q21)
+- [x] T017 [P] [US5] *(2026-11-08, A: `MetricHealthEventsTest` 5 ca: cảnh báo theo mức, thời gian tiếp nhận chỉ cảnh báo đã tiếp nhận, leo thang; nút SOS, nút hỗ trợ; sự cố, thời gian tiếp nhận, leo thang; sự cố không thuộc sức khỏe không có kết quả; theo dõi, nguy kịch, đánh giá lại quá hạn; phần thuốc ở `MetricMedicationTest` từ trước; còn `HEALTH.CONTAINMENT_ZONES` chờ 007 có nguồn khoanh vùng)* Test `ChiTieu_SK_*Test`, `ChiTieu_THUOC_*Test` (Q20, Q21)
+  - *(2026-11-11, A, rà lại)* `HEALTH.CONTAINMENT_ZONES` đã có test trong `MetricRemainingSourcesTest` (2026-11-11); phần còn lại ở `MetricHealthEventsTest`, `MetricMedicationTest`. Đóng.
 
 ### Implementation cho User Story 5
 
 - [ ] T018 [US5] *(2026-11-08, A: cài `HEALTH.ALERTS`, `HEALTH.ALERT_RESPONSE_TIME`, `HEALTH.ALERT_ESCALATIONS`, `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS`, `HEALTH.OVERDUE_REASSESSMENTS` trên `IncidentStatisticsApi`, `ResidentStatisticsApi` thật; màn web dùng bảng chung của `ReportsPage`, thêm nhãn ô ở `reportLabels.js`; còn `HEALTH.CONTAINMENT_ZONES`, mức lúc tiếp nhận của sự cố, dòng tham khảo "số sự cố đã hủy" (nguồn 007 chưa có, team-plan mục 8), xem plan "Chỉ tiêu sức khỏe, sự cố, tài sản")* Cài chỉ tiêu nhóm sức khỏe, thuốc (001, 006, 007); màn web `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`
   - *(2026-11-11, A)* Thêm `HEALTH.CONTAINMENT_ZONES` (`ContainmentZonesMetric`, `IncidentStatisticsApi.containmentZones`; một khu nhiều tầng đếm một lần). `MetricRemainingSourcesTest` xanh.
+  - *(2026-11-11, A, rà lại)* 007 đã có `levelAtAcknowledgement` (đã dùng) và `IncidentStatisticsApi.cancelledCount`; còn dòng tham khảo "số sự cố đã hủy" (FR-042, cũng FR-007): `MetricValue` và api-016 chưa có trường cho dòng tham khảo, cần đổi api 016, chờ chủ dự án.
 
 ---
 
@@ -142,6 +151,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Tests cho User Story 6
 
 - [ ] T019 [P] [US6] Test `BT/reporting/SC_007_KhopBangChotIT.java` (Q18, Q19)
+  - *(2026-11-11, A, rà lại)* `SC_007_KhopBangChotIT` chưa có; 010 đã có `COST.STATEMENTS`, `COST.SUMMARY` thật nên viết được. Chưa làm.
 
 ### Implementation cho User Story 6
 
@@ -159,10 +169,12 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Tests cho User Story 7
 
 - [ ] T021 [P] [US7] *(2026-11-01: xong khung `FR_009_DetailMatchIT` bằng chỉ tiêu giả: dashboard, báo cáo, chi tiết cùng số, ô chia nhóm, phân trang, dòng rút gọn; còn 20 chỉ tiêu thật của SC-006 và mở bản ghi chỉ xem ở feature sở hữu, chờ nguồn)* Test `BT/reporting/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
+  - *(2026-11-11, A, rà lại)* Còn chạy `FR_009_DetailMatchIT` trên 20 chỉ tiêu thật của SC-006 (mọi nguồn đã có từ 2026-11-11). Chưa làm.
 
 ### Implementation cho User Story 7
 
 - [ ] T022 [US7] *(2026-10-24: xong `GET /metric-details/{metricCode}` (`MetricDetailService`, phân trang 50 dòng) và khung `MetricDetailSheet`; còn test FR-012, FR-014 của US7 với nguồn thật)* Cài `BE/reporting/chitiet/internal/ChiTietService.java` và `BE/reporting/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `frontend/src/tinh-nang/bao-cao/chi-tiet/`
+  - *(2026-11-11, A, rà lại)* Còn test FR-012, FR-014 của US7 trên nguồn thật (cùng đợt T011, T021).
 
 ---
 
@@ -206,7 +218,9 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ## Phase 12: Polish & Cross-Cutting
 
 - [ ] T031 [US5] *(2026-11-08, A: số cảnh báo SOS là ô `SOS` của `HEALTH.SOS_ASSISTANCE_ALERTS` (T032); thời gian tiếp nhận trung bình, lớn nhất theo tầng chưa có ô riêng, xem plan)* *(Bổ sung 2026-10-18, Q-369)* Thêm chỉ tiêu cảnh báo SOS vào nhóm sức khỏe (research O-12) và màn `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`; test `ChiTieu_SK_CanhBaoSosTest` (quickstart B1)
+  - *(2026-11-11, A, rà lại)* Còn ô thời gian tiếp nhận trung bình, lớn nhất theo tầng của cảnh báo SOS. Chưa làm.
 - [ ] T032 [US5] *(2026-11-08, A: `HEALTH.SOS_ASSISTANCE_ALERTS` đếm theo nguồn `SOS`, `EMERGENCY_ASSIST`, vẫn đếm trong `HEALTH.ALERTS`; dòng chi tiết có phút tạo → tiếp nhận, tạo → tới nơi, dấu không ghi mốc tới nơi; còn trung bình, lớn nhất, số "không ghi mốc tới nơi" theo tầng và dòng "chưa rõ tầng", xem plan)* *(Bổ sung 2026-10-22, Q-374, Q-375)* Mở rộng chỉ tiêu của T031 thành `SK.CANH_BAO_SOS_HO_TRO` (research O-13, contracts/chi-tieu.md): dòng nút hỗ trợ khẩn cấp, thời gian tạo → tới nơi, số "không ghi mốc tới nơi", dòng "chưa rõ tầng"; test `ChiTieu_SK_CanhBaoSosHoTroTest` (quickstart B1, B2); cần 007 T096 (`daToiNoiLuc`, `NUT_HO_TRO` trong `CanhBaoThongKeApi`), bản giả trước đó
+  - *(2026-11-11, A, rà lại)* Còn trung bình, lớn nhất, số "không ghi mốc tới nơi" theo tầng và dòng "chưa rõ tầng". Chưa làm.
 
 - [ ] T027 [P] *(2026-11-01: xong `SC_008_ReadOnlyIT`, so `CHECKSUM TABLE` toàn schema; còn đo SC-003 báo cáo 12 tháng, chờ chỉ tiêu thật)* Test `BT/reporting/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
 - [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
