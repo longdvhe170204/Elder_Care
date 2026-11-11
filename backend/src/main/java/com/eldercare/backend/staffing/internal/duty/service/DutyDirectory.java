@@ -82,6 +82,11 @@ public class DutyDirectory implements DutyApi {
         return p == null ? List.of() : p.companions(id);
     }
 
+    public List<Long> tripResidents(long staffId) {
+        var p = trips.getIfAvailable();
+        return p == null ? List.of() : p.tripResidentsOf(staffId);
+    }
+
     public List<Long> floorReceivers(long floor, long shift) {
         return assignments.floorReceivers(floor, shift);
     }

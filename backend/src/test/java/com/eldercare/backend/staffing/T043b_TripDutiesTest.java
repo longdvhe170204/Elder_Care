@@ -32,6 +32,11 @@ class T043b_TripDutiesTest {
             }
 
             @Override
+            public List<Long> tripResidentsOf(long staffId) {
+                return staffId == 7 ? List.of(5L) : List.of();
+            }
+
+            @Override
             public List<TripInShiftView> inShift(long floorAreaId, Instant from, Instant to) {
                 return List.of(new TripInShiftView(41, List.of(7L, 8L), back, List.of(5L), departed));
             }
@@ -40,6 +45,7 @@ class T043b_TripDutiesTest {
         assertThat(duties.groupLeader(41)).contains(7L);
         assertThat(duties.groupLeader(42)).isEmpty();
         assertThat(duties.companions(41)).containsExactly(8L);
+        assertThat(duties.tripResidentsOf(7)).containsExactly(5L);
         assertThat(duties.inShift(3, departed, back)).singleElement().satisfies(t -> {
             assertThat(t.tripId()).isEqualTo(41);
             assertThat(t.staffIds()).containsExactly(7L, 8L);
