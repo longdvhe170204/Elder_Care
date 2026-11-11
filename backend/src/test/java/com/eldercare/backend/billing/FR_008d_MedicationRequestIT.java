@@ -138,6 +138,53 @@ class FR_008d_MedicationRequestIT extends ProcurementTestBase {
         return node == null || node.isNull() ? null : node.asBoolean();
     }
 
+    /** Q-410: người có quyền tiếp nhận thuốc thấy dòng thuốc đã ghi đã mua, chưa có lần Đạt, của người cao tuổi trong phạm vi. */
+    @Test
+    void Q410_receiverSeesPurchasedMedicationLinesInScope_withoutPrices() throws Exception {
+        long id = created(medication(medical, residentA, facilityA, true));
+        command(id, "submit").andExpect(status().isOk());
+        as(manager);
+        command(id, "approve", "{\"approvedAmount\":60000}").andExpect(status().isOk());
+        long line = lineId(id);
+        String path = "$[?(@.id==" + line + ")]";
+        var users = new TestUsers(jdbc, time);
+        var receiver = users.staff(Role.NURSING_STAFF);
+        assignments.assign(
+                receiver.staffId(),
+                new AssignmentView(
+                        AssignmentKind.SHIFT_MEMBER,
+                        null,
+                        null,
+                        residentA,
+                        null,
+                        time.now().minus(Duration.ofDays(1)),
+                        null));
+        as(receiver);
+        mvc.perform(get("/api/v1/procurement-medication-lines"))
+                .andExpect(jsonPath(path).isEmpty());
+
+        as(doctorLead);
+        command(id, "record-purchased", purchase(60000, doctorLead)).andExpect(status().isOk());
+        as(receiver);
+        mvc.perform(get("/api/v1/procurement-medication-lines"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(path + ".procurementRequestId").value((int) id))
+                .andExpect(jsonPath(path + ".residentId").value((int) residentA))
+                .andExpect(jsonPath(path + ".medicationName").value("Amlodipin"))
+                .andExpect(jsonPath(path + ".unit").value("viên"))
+                .andExpect(jsonPath(path + ".estimatedUnitPrice").isEmpty());
+
+        // Ngoài phạm vi: không thấy
+        as(users.staff(Role.NURSING_STAFF));
+        mvc.perform(get("/api/v1/procurement-medication-lines"))
+                .andExpect(jsonPath(path).isEmpty());
+        // Đã có lần tiếp nhận Đạt: không còn chờ
+        intakes.passed(id, line);
+        as(receiver);
+        mvc.perform(get("/api/v1/procurement-medication-lines"))
+                .andExpect(jsonPath(path).isEmpty());
+    }
+
     @Test
     void Q34_nurseDraftsAndSubmitsMedicationRequestForResidentInScope() throws Exception {
         long id = created(medication(medical, residentA, facilityA, true));
