@@ -54,6 +54,9 @@ function Request({ row, onDone }) {
       <p>
         Số lượng {row.quantity}, số tiền cần đồng ý {money(amount)}
       </p>
+      {row.additionalConsentPending && row.allowedAmount != null && (
+        <p>{`Đã đồng ý ${money(row.allowedAmount)}, nay cần đồng ý ${money(amount)}`}</p>
+      )}
       {row.reason && <p className="text-muted-foreground">Lý do: {row.reason}</p>}
       {row.insufficientBalance && <p>Số dư hiện không đủ cho số tiền này. Bạn vẫn có thể đồng ý hoặc từ chối.</p>}
       {command === null ? (
