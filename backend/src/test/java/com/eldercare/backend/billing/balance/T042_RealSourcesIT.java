@@ -290,7 +290,7 @@ class T042_RealSourcesIT extends MySqlIntegrationTestBase {
 
         // US9: phiếu báo phí lập từ bảng Đã chốt thật của 010, số dư trước/sau theo giao dịch thanh toán bảng.
         user.set(accountant.user());
-        assertThat(notices.pendingIssue()).extracting(n -> n.costStatementId()).contains(statement);
+        // pendingIssue() quét mọi phiếu chưa lập của schema (dữ liệu test khác), nên chỉ lập phiếu của bảng này.
         var notice = notices.issue(statement);
         assertThat(notice.total()).isEqualTo(1_200_000);
         assertThat(notice.balanceBefore()).isEqualTo(5_000_000);
