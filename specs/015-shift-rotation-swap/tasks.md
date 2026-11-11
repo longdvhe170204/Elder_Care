@@ -38,9 +38,9 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 - [ ] T002 Bổ sung port trong `BE/staffing/lichca/port/`: `LichNhapLenhPort` (chỉ `goNhanVienKhoiNhap`, `lichThang`; Q-397), `NghiCoDuyetPort`; cài ở gói `staffing.lichca.internal` của 008 (contracts mục 1.2; research X-03) *(2026-11-09, D tự chọn, làm một phần: không có gói `lichca` ở 008 và gói đó thuộc E, nên 015 không tạo `LichNhapLenhPort`; việc gỡ nhân viên khỏi ca Nháp (FR-026a) 015 làm trực tiếp qua `ShiftStore.updateShift` và `AssignmentService.removeDraftMembers` trong `LeaveService.applyDay`, đã có test `FR_026a_dayLeaveRemovesStaffFromDraftShiftAndClearsLead`; `NghiCoDuyetPort` đặt tên `ApprovedLeaveDayPort` ở `staffing.internal.swap.service`, `LeaveService` cài (`approvedLeaveDay`, `pendingLeaveDayStaff`), có test. **Chờ E (008)** gọi hai hàm này khi xếp tay lịch Nháp (FR-012) và khi công bố (FR-016): dòng team-plan mục 8)*
 - [x] T003 [P] Bổ sung `BE/staffing/api/DoiCaThongKeApi.java` (yêu cầu, giờ làm theo tháng; Q-397: bỏ phủ, lời mời) và thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1, 2.3) *(2026-11-09: `SwapStatisticsApi`, `StaffRequestView`, `WorkingHoursView` ở `staffing.api`, bản cài `SwapStatistics` (= T028); thông báo `SwapNotification` implements `HasNotificationRequests`; test `FR_042_SwapStatisticsIT` 3 ca, `FR_044_SwapNoticeAuditIT` mức, người nhận, không nêu lý do)*
-- [ ] T004 *(Bỏ theo Q-397, 2026-10-29)* Không có bảng mẫu xoay ca, nhóm, `moc_nhac_lich`; `lan_chay_m09xc` tạo ở T007 **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T005 [P] *(Bỏ theo Q-397, 2026-10-29)*
-- [ ] T006 [P] *(Bỏ theo Q-397, 2026-10-29)*
+- [x] T004 *(Bỏ theo Q-397, 2026-10-29)* Không có bảng mẫu xoay ca, nhóm, `moc_nhac_lich`; `lan_chay_m09xc` tạo ở T007 **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [x] T005 [P] *(Bỏ theo Q-397, 2026-10-29)*
+- [x] T006 [P] *(Bỏ theo Q-397, 2026-10-29)*
 - [x] T007 Cài khung job `BE/staffing/doica/lich/ViecM09DoiCa.java` (ShedLock, `lan_chay_m09xc`) cho Hết hiệu lực yêu cầu, tách ca theo giờ (Q-397: bỏ nhắc lập lịch, nhắc công bố, cảnh báo) (research X-13) *(2026-11-09, D tự chọn: `SwapExpiryTask implements M09TimedTask` nhịp phút trong khung `M09MinuteJob` (ShedLock `M09_MINUTE`, đánh dấu tick của 008) gọi `SwapService.expireDue/remindDue`, `LeaveService.expireDue/remindDue`; không tạo `lan_chay_m09xc` vì việc dựa trên trạng thái nên chạy bù an toàn, mốc nhắc lưu ở `remindedAt` của chi tiết; test `FR_025_openSwapExpiresWhenTheEarliestShiftStarts`, `FR_030_shiftThatStartsBeforeDecisionIsSplitOffAndRequestExpires`, `FR_025_reminderIsSentOnceWhenTheShiftIsWithinTheConfiguredWindow`)* **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T008 [P] Cài provider: `GanPhamViProvider` (`M09.DOI_CA`, `M09.NGHI_DOT_XUAT`), `PhanLoaiTruongProvider` (lý do `LY_DO_NHAN_SU`), `LuuTruProvider` (≥ CFG-M15-04) *(2026-11-09: xong `ScopeAssignmentProvider` và `FieldClassificationProvider` cho `M09.SHIFT_SWAP`, `M09.LEAVE_REQUEST` ở `SwapGovernanceConfig` (lý do `STAFF_REASON`). **Chờ A (000)** phần lưu giữ: `ApprovalRequestRetention.FINAL` thiếu trạng thái cuối mở rộng và chưa xóa dòng `simple_record` của 015 cùng yêu cầu; dòng team-plan mục 8)*
 
@@ -50,13 +50,13 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ## Phase 3: User Story 1 – Lập lịch từ mẫu xoay ca *(Bỏ theo Q-397, 2026-10-29)*
 
-- [ ] T009, T010, T011, T012 *(Bỏ theo Q-397, 2026-10-29)*
+- [x] T009, T010, T011, T012 *(Bỏ theo Q-397, 2026-10-29)*
 
 ---
 
 ## Phase 4: User Story 2 – Phủ tối thiểu và công bố lịch *(Bỏ theo Q-397, 2026-10-29)*
 
-- [ ] T013, T014, T015, T016 *(Bỏ theo Q-397, 2026-10-29)*
+- [x] T013, T014, T015, T016 *(Bỏ theo Q-397, 2026-10-29)*
 
 ---
 
@@ -102,14 +102,14 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ## Phase 7: User Story 5 – Thiếu phủ, lời mời *(Bỏ theo Q-397, 2026-10-29)*
 
-- [ ] T025, T026, T027 *(Bỏ theo Q-397, 2026-10-29)*
+- [x] T025, T026, T027 *(Bỏ theo Q-397, 2026-10-29)*
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting
 
 - [x] T028 [P] Cài `DoiCaThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/015-shift-rotation-swap/contracts/api-015.yaml` *(2026-11-09: `SwapStatistics` (T003); `ApiContractIT` thêm hợp đồng 015, `checkOperations` bật, không dòng `known-mismatches`; `api-015.yaml` đã dịch (glossary mục 21); `gen-api.mjs` thêm `015`)*
-- [ ] T029 *(Bỏ theo Q-397, 2026-10-29)* Không còn `KiemTraCongBoMoRong`; 008 hiển thị nghỉ theo ngày còn chờ qua `NghiCoDuyetPort`
+- [x] T029 *(Bỏ theo Q-397, 2026-10-29)* Không còn `KiemTraCongBoMoRong`; 008 hiển thị nghỉ theo ngày còn chờ qua `NghiCoDuyetPort`
 - [ ] T030 *(2026-11-09, chưa xong: `clean verify -Dit.forkCount=3` dừng ở pha test đơn vị vì OutOfMemoryError của JVM surefire sau 835 test xanh (cùng lỗi khi gom nhiều ArchTest), chưa chạy được pha IT; đã chạy riêng và xanh: `SwapRulesTest` 3, IT 015 26 ca (`BR_M09_10_ShiftSwapIT` 11, `FR_029_ShiftLeaveIT` 9, `FR_042_SwapStatisticsIT` 3, `FR_044_SwapNoticeAuditIT` 3), `ApiContractIT`, `LayerArchTest`, `SolidArchTest`, `ApiNamedInterfaceArchTest`, `RequiresPermissionArchTest`, `M09ArchTest`, `ModuleBoundaryTest`, `SharedKindArchTest`; vitest `shift-swaps` 6, flutter test 7 xanh; chưa chạy quickstart mục 3, chưa đo SC-004, SC-006)* Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-004, SC-006 theo quickstart mục 5
 - [ ] T031 *(2026-11-09, làm một phần: FR-040 (`BR_M09_10_ShiftSwapIT` duyệt chung bị chặn, người ngoài 403; `FR_029_ShiftLeaveIT` lập thay), FR-042 (`FR_042_SwapStatisticsIT`), FR-043 (flutter `FR_043_offlineShowsMessageAndKeepsInput`), FR-044, FR-046 (`FR_044_SwapNoticeAuditIT`), FR-045 (lý do từ chối, lý do nghỉ); FR-041: `FR_041_approvedMutualSwapRemovesTripDutiesOfBothLeavingStaff`, `FR_041_approvedLeaveRemovesTripDutyOnlyForApprovedShifts` (015 gọi `TripDutyCommandApi` đúng người, đúng ca; bản cài thật của 014 do C kiểm), listener `SchedulePublished` có test (T023); còn tỷ lệ phục vụ FR-021 (f) chờ E)* Rà truy vết: DBR-21 (qua 008), DBR-25 và BR-M09-10 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-040, FR-041, FR-042, FR-043, FR-044, FR-045, FR-046 — mỗi FR có task hoặc test tương ứng (constitution XV)
 - [x] T032 *(2026-11-09: không có migration và bảng riêng; mọi bản ghi ở `simple_record` (nhóm 2 theo dòng; `M09.LEAVE_DAY` khóa dòng ngay); `DataGroupArchTest`, `SharedKindArchTest` xanh)* *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp *(2026-10-30, audit cơ sở dữ liệu F-04, PR #63)* Mọi bảng tạo hoặc gộp khai nhóm dữ liệu: entity bằng `@DataGroup`, bảng JDBC bằng `COMMENT = 'DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|TECHNICAL'` (backend/README.md mục 4); bảng `RECORD` có `trg_<bảng>_no_update`, `trg_<bảng>_no_delete`; bảng chứa nhóm 2 và nhóm 3 dùng `@DataGroup(MULTIPLE)`, cột `locked_at`, trigger `trg_<bảng>_row_lock`; dòng bảng chung đặt `entity_type` trùng `RetentionProvider.dataType()` của bản ghi cha; job dùng `SchedulerRuns` (module-interfaces 000 mục 1.8). `RecordGroupTriggerIT` kiểm.
