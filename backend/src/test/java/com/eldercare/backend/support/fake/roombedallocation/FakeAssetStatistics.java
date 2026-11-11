@@ -15,6 +15,13 @@ import java.util.stream.Stream;
 public class FakeAssetStatistics implements AssetStatisticsApi {
     private final List<OverdueAssetView> overdue = new ArrayList<>();
     private final List<VehicleScheduleView> schedules = new ArrayList<>();
+    private final List<OverdueAssetView> dueSoon = new ArrayList<>();
+
+    /** Hạn tới mốc nhắc: fixture đặt sẵn dòng đã trong cửa sổ CFG-M03-09, không mô phỏng tham số. */
+    public FakeAssetStatistics dueSoon(OverdueAssetView row) {
+        dueSoon.add(row);
+        return this;
+    }
 
     public FakeAssetStatistics overdue(OverdueAssetView row) {
         overdue.add(row);
@@ -40,6 +47,14 @@ public class FakeAssetStatistics implements AssetStatisticsApi {
     }
 
     @Override
+    public Stream<OverdueAssetView> dueSoon(ScopeFilter scope, LocalDate on) {
+        return dueSoon.stream()
+                .filter(r -> !r.dueOn().isBefore(on))
+                .filter(r -> scope.facilityWide()
+                        || (r.floorAreaId() != null && scope.floorAreaIds().contains(r.floorAreaId())));
+    }
+
+    @Override
     public Stream<VehicleScheduleView> vehicleSchedules(LocalDate from, LocalDate to) {
         return schedules.stream().filter(r -> {
             var day = LocalDate.ofInstant(r.plannedDepartureAt(), com.eldercare.backend.common.time.BusinessTime.ZONE);
@@ -50,6 +65,7 @@ public class FakeAssetStatistics implements AssetStatisticsApi {
     public void reset() {
         overdue.clear();
         schedules.clear();
+        dueSoon.clear();
     }
 
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)

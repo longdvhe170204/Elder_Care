@@ -222,6 +222,12 @@ const PROCUREMENT_STATUSES = {
   REJECTED: 'Từ chối',
   CANCELLED: 'Đã hủy',
 }
+// loại hạn tới mốc nhắc CFG-M03-09 (019)
+const ASSET_DUE_KINDS = {
+  MAINTENANCE: 'Tới hạn bảo trì',
+  VEHICLE_INSPECTION: 'Tới hạn đăng kiểm',
+  INSURANCE: 'Tới hạn bảo hiểm',
+}
 const BALANCE_STATUSES = { RUNNING_LOW: 'Sắp hết tiền', IN_DEBT: 'Còn nợ' }
 const REGISTRATION_TO_DO = {
   TO_CREATE: 'Cần lập',
@@ -257,6 +263,7 @@ const KEYED_BY_METRIC = {
   'COST.STATEMENTS': STATEMENT_STATUSES,
   'COST.PURCHASING': PROCUREMENT_STATUSES,
   'BALANCE.LOW_OR_OWING': BALANCE_STATUSES,
+  'ASSET.DUE_SOON': ASSET_DUE_KINDS,
   'REGISTRATION.TO_DO': REGISTRATION_TO_DO,
 }
 

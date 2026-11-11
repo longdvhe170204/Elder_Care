@@ -125,7 +125,7 @@ public class StaffNotifications {
         if (manager) groups.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
         if (groups.isEmpty()) return List.of();
         return List.of(new NotificationRequest(
-                "008",
+                "M09",
                 event,
                 SourceGroup.OTHER,
                 new SourceRecord(type, Long.toString(id)),

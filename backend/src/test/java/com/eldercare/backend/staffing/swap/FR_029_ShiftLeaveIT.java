@@ -192,6 +192,10 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
     void FR_029_d_leadMustBeChosenWhenAnotherEligibleMemberIsPresent() throws Exception {
         long x = shift(base.plus(Duration.ofHours(7)), 8, giver.staffId(), giver, recipient);
         long id = createByShift(giver, null, x);
+        // FR-027, 015 T002: tác động trước khi duyệt có tỷ lệ phục vụ trước/sau của ca.
+        fetch("/api/v1/leave-requests/" + id + "/pre-approval", head)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].staffingRatioBeforeAfter.shiftId").value(x));
         send("/api/v1/leave-requests/" + id + "/approve", head, null)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("LEAD_REQUIRED"));
@@ -310,6 +314,35 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
         Long lead = jdbc.queryForObject("SELECT lead_staff_id FROM work_shift WHERE id=?", Long.class, draft);
         assertThat(lead).isNull();
         assertThat(leaveService.approvedLeaveDay(giver.staffId(), day)).isTrue();
+        // 008 FR-012 (015 T002): xếp tay lại vào ngày đã nghỉ có duyệt phải cảnh báo và xác nhận kèm lý do.
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                "/api/v1/shift-schedules/" + draftSchedule + "/shifts")
+                        .header("Authorization", token(head))
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .header(
+                                "If-Match",
+                                "\""
+                                        + jdbc.queryForObject(
+                                                "SELECT version FROM shift_schedule WHERE id=?",
+                                                Long.class,
+                                                draftSchedule)
+                                        + "\"")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of(
+                                "shiftTemplateId",
+                                templateId,
+                                "date",
+                                day.toString(),
+                                "startsAt",
+                                start.plus(Duration.ofHours(9)).toString(),
+                                "endsAt",
+                                start.plus(Duration.ofHours(13)).toString(),
+                                "staff",
+                                List.of(Map.of("staffId", giver.staffId()))))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("WARNING_CONFIRMATION_REQUIRED"))
+                .andExpect(jsonPath("$.warnings[?(@.code == 'APPROVED_LEAVE_DAY')].details.staffId")
+                        .value(org.hamcrest.Matchers.hasItem((int) giver.staffId())));
         // Một nghỉ theo ngày mỗi (nhân viên, ngày), DBR nhóm 3
         send(
                         "/api/v1/leave-requests",
