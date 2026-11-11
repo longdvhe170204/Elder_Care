@@ -20,6 +20,11 @@ import com.eldercare.backend.reporting.internal.incident.service.IncidentRespons
 import com.eldercare.backend.reporting.internal.incident.service.IncidentsMetric;
 import com.eldercare.backend.reporting.internal.incident.service.NonHealthIncidentsMetric;
 import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceAlertsMetric;
+import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceArrivalTimeMaxMetric;
+import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceArrivalTimeMetric;
+import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceNoArrivalMetric;
+import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceResponseTimeMaxMetric;
+import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceResponseTimeMetric;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
@@ -188,15 +193,89 @@ class MetricHealthEventsTest {
 
         assertThat(sos.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_ALERTS");
         assertThat(v.value()).isEqualByComparingTo("3");
-        assertThat(breakdown(v)).containsExactly(new Tuple2("EMERGENCY_ASSIST", "2"), new Tuple2("SOS", "1"));
-        assertThat(sos.metric().details(included(sos), "EMERGENCY_ASSIST"))
+        // research O-13: mỗi nguồn một dòng theo tầng; tầng rỗng là "chưa rõ tầng"
+        assertThat(breakdown(v))
+                .containsExactly(
+                        new Tuple2("EMERGENCY_ASSIST:103", "1"),
+                        new Tuple2("EMERGENCY_ASSIST:UNKNOWN_FLOOR", "1"),
+                        new Tuple2("SOS:101", "1"));
+        assertThat(sos.metric().details(included(sos), null))
                 .extracting(
                         r -> r.result().get("responseMinutes"),
                         r -> r.result().get("arrivalMinutes"),
                         r -> r.result().get("arrivalTimeMissing"))
-                .containsExactly(tuple(3L, 9L, false), tuple(4L, null, true));
+                .containsExactly(tuple(2L, null, false), tuple(3L, 9L, false), tuple(4L, null, true));
         // cảnh báo SOS vẫn trong tổng theo mức
         assertThat(value(new AlertsMetric(alerts)).value()).isEqualByComparingTo("4");
+    }
+
+    private static AlertReportView button(
+            long id, String source, Long floor, int ackMin, Integer arrivedMin, boolean missing) {
+        return new AlertReportView(
+                id,
+                null,
+                "DANGER",
+                "DANGER",
+                at(0),
+                at(ackMin),
+                0,
+                false,
+                "HELP",
+                floor,
+                source,
+                arrivedMin == null ? null : at(arrivedMin),
+                missing,
+                "RECEIVED");
+    }
+
+    /**
+     * T031, T032 (research O-12, O-13; quickstart B1, B2): theo nguồn và tầng, thời gian tạo → tiếp nhận trung bình, lớn
+     * nhất; tạo → tới nơi trung bình, lớn nhất chỉ cảnh báo có mốc; số "không ghi mốc tới nơi"; dòng "chưa rõ tầng".
+     */
+    @Test
+    void T032_sosAssistance_timesAndNoArrival_bySourceAndFloor() {
+        incidents.alerts(
+                ALL,
+                List.of(
+                        button(1, "SOS", 101L, 2, null, false),
+                        button(2, "EMERGENCY_ASSIST", 103L, 3, 9, false),
+                        button(3, "EMERGENCY_ASSIST", null, 4, null, true),
+                        button(5, "EMERGENCY_ASSIST", 103L, 7, 15, false),
+                        button(6, "OTHER", 103L, 1, 2, false)));
+
+        SosAssistanceResponseTimeMetric response = new SosAssistanceResponseTimeMetric(alerts);
+        assertThat(response.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_RESPONSE_TIME");
+        assertThat(value(response).value()).isEqualByComparingTo("4");
+        assertThat(breakdown(value(response)))
+                .containsExactly(
+                        new Tuple2("EMERGENCY_ASSIST:103", "5"),
+                        new Tuple2("EMERGENCY_ASSIST:UNKNOWN_FLOOR", "4"),
+                        new Tuple2("SOS:101", "2"));
+
+        SosAssistanceResponseTimeMaxMetric responseMax = new SosAssistanceResponseTimeMaxMetric(alerts);
+        assertThat(responseMax.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_RESPONSE_TIME_MAX");
+        assertThat(value(responseMax).value()).isEqualByComparingTo("7");
+        assertThat(breakdown(value(responseMax))).contains(new Tuple2("EMERGENCY_ASSIST:103", "7"));
+
+        SosAssistanceArrivalTimeMetric arrival = new SosAssistanceArrivalTimeMetric(alerts);
+        assertThat(arrival.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_ARRIVAL_TIME");
+        assertThat(value(arrival).value()).isEqualByComparingTo("12");
+        assertThat(arrival.metric().details(included(arrival), null))
+                .extracting(r -> r.sourceKey())
+                .containsExactly("M05.ALERT:2", "M05.ALERT:5");
+
+        SosAssistanceArrivalTimeMaxMetric arrivalMax = new SosAssistanceArrivalTimeMaxMetric(alerts);
+        assertThat(arrivalMax.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_ARRIVAL_TIME_MAX");
+        assertThat(value(arrivalMax).value()).isEqualByComparingTo("15");
+
+        SosAssistanceNoArrivalMetric noArrival = new SosAssistanceNoArrivalMetric(alerts);
+        assertThat(noArrival.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_NO_ARRIVAL");
+        assertThat(value(noArrival).value()).isEqualByComparingTo("1");
+        assertThat(breakdown(value(noArrival)))
+                .containsExactly(
+                        new Tuple2("EMERGENCY_ASSIST:103", "0"),
+                        new Tuple2("EMERGENCY_ASSIST:UNKNOWN_FLOOR", "1"),
+                        new Tuple2("SOS:101", "0"));
     }
 
     @Test

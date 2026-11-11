@@ -64,6 +64,7 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
             StatusCommand.ROLL_CALL_DEPARTURE,
             StatusCommand.ROLL_CALL_RETURN,
             StatusCommand.CANCEL_DEPARTURE_RECORD,
+            StatusCommand.CANCEL_RETURN_RECORD,
             StatusCommand.COMPLETE_ADMISSION,
             StatusCommand.END_RESIDENCY,
             StatusCommand.RECORD_DEATH,
@@ -209,6 +210,16 @@ public class MedicationStatusParticipant implements StatusTransitionParticipant 
                 awaitReturn(handovers.findByTripId(trip).stream()
                         .filter(h -> h.getStatus() == HandoverStatus.HANDED_OVER)
                         .toList());
+            }
+            case CANCEL_RETURN_RECORD -> {
+                // 014 FR-031a (c): ghi về nhầm, người cao tuổi vẫn ở ngoài; khoảng mang thuốc của chuyến mở lại
+                long trip = details.get("tripId").asLong();
+                absences.findByTripId(trip)
+                        .filter(i -> !i.isOpen() && i.getAbsenceType() == AbsenceIntervalType.TRIP_WITH_MED)
+                        .ifPresent(i -> {
+                            i.reopen();
+                            absences.save(i);
+                        });
             }
             case CANCEL_DEPARTURE_RECORD -> {
                 long trip = details.get("tripId").asLong();

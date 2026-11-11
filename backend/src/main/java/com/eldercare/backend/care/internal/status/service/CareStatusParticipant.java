@@ -34,7 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Order(30)
 public class CareStatusParticipant implements StatusTransitionParticipant {
     private static final Set<StatusCommand> DEPARTURE = EnumSet.of(
-            StatusCommand.GRANT_TEMPORARY_ABSENCE, StatusCommand.TRANSFER_OUT, StatusCommand.ROLL_CALL_DEPARTURE);
+            StatusCommand.GRANT_TEMPORARY_ABSENCE,
+            StatusCommand.TRANSFER_OUT,
+            StatusCommand.ROLL_CALL_DEPARTURE,
+            // 014 FR-031a (c): Hủy ghi nhận về, người cao tuổi lại ở ngoài
+            StatusCommand.CANCEL_RETURN_RECORD);
     private static final Set<StatusCommand> RETURN =
             EnumSet.of(StatusCommand.RECORD_RETURN, StatusCommand.ROLL_CALL_RETURN);
     private static final Set<StatusCommand> FINAL =

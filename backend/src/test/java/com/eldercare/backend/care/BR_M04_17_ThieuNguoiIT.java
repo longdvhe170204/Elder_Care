@@ -209,6 +209,164 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
         plannedReturn = departure.plusSeconds(21600);
     }
 
+    /**
+     * Q24, FR-031a (c) (đổi api 001 duyệt 2026-11-11): điểm danh về ghi ngoại tuyến mang thời điểm thiết bị vào lịch sử 001;
+     * Hủy ghi nhận bản ghi về đưa người về Hoạt động bên ngoài và Đã rời viện.
+     */
+    @Test
+    void Q24_FR_031a_offlineReturnThenVoidingTheReturnRecord() throws Exception {
+        tripFixture();
+        long s = trip();
+        long r = eligible(s);
+        assign(s);
+        departed(s, r);
+        var deviceAt = time.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        command(s, "return", "{\"residentIds\":[" + r + "],\"deviceAt\":\"" + deviceAt + "\"}")
+                .andExpect(status().isOk());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(participant(s, r)).isEqualTo("RETURNED");
+        assertThat(context.getBean(
+                                com.eldercare.backend.medication.internal.handover.persistence
+                                        .MedicationAbsenceIntervalRepository.class)
+                        .findByTripId(s)
+                        .orElseThrow()
+                        .isOpen())
+                .as("006 đóng khoảng mang thuốc khi về")
+                .isFalse();
+
+        long returnRecord = jdbc.queryForObject(
+                "SELECT id FROM record_event WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(content, '$.type'))='RETURN'",
+                Long.class,
+                r);
+        mvc.perform(post("/api/v1/corrections/M04.TRIP_ATTENDANCE/" + returnRecord)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"VOID\",\"reason\":\"Ghi về nhầm người chưa về\"}"))
+                .andExpect(status().is2xxSuccessful());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
+        assertThat(participant(s, r)).isEqualTo("DEPARTED");
+        assertThat(context.getBean(
+                                com.eldercare.backend.medication.internal.handover.persistence
+                                        .MedicationAbsenceIntervalRepository.class)
+                        .findByTripId(s)
+                        .orElseThrow()
+                        .isOpen())
+                .as("006 mở lại khoảng mang thuốc")
+                .isTrue();
+    }
+
+    /**
+     * Q26 → Q28, FR-031a (b), Q-240 (viết lại 2026-11-11, thay {@code FR_031a_DinhChinhChuyenIT} mất trong đợt giảm test):
+     * Hủy ghi nhận bản ghi rời viện đưa người về Đang lưu trú, người tham gia về Được đi, 006 có lại khoảng dự kiến; còn
+     * người khác đã rời viện thì chuyến vẫn Đang đi; hủy bản rời viện cuối cùng đưa chuyến về Đã lên lịch.
+     */
+    @Test
+    void Q26_FR_031a_voidingDepartureRecords_lastOneUnstartsTheTrip() throws Exception {
+        tripFixture();
+        long s = trip();
+        long first = eligible(s), second = eligible(s);
+        assign(s);
+        departed(s, first, second);
+        assertThat(tripStatus(s)).isEqualTo("IN_PROGRESS");
+
+        voidDeparture(first);
+        assertThat(currentStatus(first)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(participant(s, first)).isEqualTo("ELIGIBLE");
+        assertThat(tripStatus(s)).as("còn người đã rời viện").isEqualTo("IN_PROGRESS");
+
+        voidDeparture(second);
+        assertThat(currentStatus(second)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(tripStatus(s)).as("Q-240: hủy bản rời viện cuối cùng").isEqualTo("SCHEDULED");
+        assertThat(recorded.stream(TripChanged.class).filter(e -> e.tripId() == s))
+                .extracting(TripChanged::type)
+                .containsSubsequence("CHANGED", "LAST_DEPARTURE_UNDONE");
+        assertThat(context.getBean(
+                                com.eldercare.backend.medication.internal.handover.persistence
+                                        .MedicationAbsenceIntervalRepository.class)
+                        .findByTripId(s))
+                .as("006 vẫn giữ khoảng dự kiến của chuyến")
+                .isPresent();
+    }
+
+    /**
+     * Q24, Q-01 (T015, T018, T020): điểm danh rời viện, về ghi khi mất mạng đồng bộ qua {@code M04.TRIP_DEPARTURE},
+     * {@code M04.TRIP_RETURN} (không bắt buộc trực tuyến); thời điểm thiết bị là thời điểm của bản ghi và lịch sử 001.
+     */
+    @Test
+    void Q24_offlineDepartureAndReturn_syncThroughHandlers() throws Exception {
+        tripFixture();
+        long s = trip();
+        long r = eligible(s);
+        assign(s);
+        var departedAt = time.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        assertThat(offline("M04.TRIP_DEPARTURE").requiresOnline()).isFalse();
+        sync("M04.TRIP_DEPARTURE", "{\"tripId\":" + s + ",\"residentIds\":[" + r + "]}", departedAt);
+        assertThat(participant(s, r)).isEqualTo("DEPARTED");
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
+        assertThat(tripStatus(s)).isEqualTo("IN_PROGRESS");
+        // 007 T063 (US12, FR-047e): SOS lúc đang đi đọc chuyến thật qua cổng của 007 (TripSosSource), có trưởng đoàn.
+        assertThat(context.getBean(com.eldercare.backend.incident.api.spi.SosTripPort.class)
+                        .ongoing(r))
+                .hasValueSatisfying(v -> assertThat(v.tripId()).isEqualTo(s));
+
+        var returnedAt = time.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        sync("M04.TRIP_RETURN", "{\"tripId\":" + s + ",\"residentIds\":[" + r + "]}", returnedAt);
+        assertThat(participant(s, r)).isEqualTo("RETURNED");
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(jdbc.queryForList(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(content, '$.at')) FROM record_event"
+                                + " WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=? ORDER BY id",
+                        String.class,
+                        r))
+                .extracting(java.time.Instant::parse)
+                .containsExactly(departedAt, returnedAt);
+    }
+
+    @Autowired
+    List<com.eldercare.backend.administration.account.api.spi.OfflineHandler<?>> offlineHandlers;
+
+    @Autowired
+    tools.jackson.databind.json.JsonMapper json;
+
+    @SuppressWarnings("unchecked")
+    private com.eldercare.backend.administration.account.api.spi.OfflineHandler<Object> offline(String type) {
+        return (com.eldercare.backend.administration.account.api.spi.OfflineHandler<Object>) offlineHandlers.stream()
+                .filter(h -> h.recordType().equals(type))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Không có bộ xử lý " + type));
+    }
+
+    /** Như {@code SyncService} của 002: giải nội dung, kiểm, transaction riêng, thời điểm thiết bị là effectiveAt. */
+    private void sync(String type, String body, java.time.Instant deviceAt) {
+        var h = offline(type);
+        var contentType = org.springframework.core.ResolvableType.forClass(h.getClass())
+                .as(com.eldercare.backend.administration.account.api.spi.OfflineHandler.class)
+                .getGeneric(0)
+                .resolve(Object.class);
+        Object value = json.readValue(body, contentType);
+        h.validate(value);
+        h.target(value);
+        tx.execute(t -> h.apply(
+                value,
+                new com.eldercare.backend.common.offline.SyncOutcome(
+                        com.eldercare.backend.common.offline.SyncResult.ACCEPTED, null),
+                deviceAt));
+    }
+
+    private void voidDeparture(long resident) throws Exception {
+        long record = jdbc.queryForObject(
+                "SELECT id FROM record_event WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(content, '$.type'))='DEPARTURE'",
+                Long.class,
+                resident);
+        mvc.perform(post("/api/v1/corrections/M04.TRIP_ATTENDANCE/" + record)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"VOID\",\"reason\":\"Điểm danh rời viện nhầm, người ở lại viện\"}"))
+                .andExpect(status().is2xxSuccessful());
+    }
+
     MockHttpServletRequestBuilder write(MockHttpServletRequestBuilder request, String body) {
         return request.header("Idempotency-Key", "trip-" + TestUsers.nextId())
                 .contentType(MediaType.APPLICATION_JSON)

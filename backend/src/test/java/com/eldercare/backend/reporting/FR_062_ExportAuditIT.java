@@ -221,7 +221,7 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
         assertThat(String.valueOf(row.get("include_identity"))).isEqualTo("true");
         // tổng, hai ca, bốn liều chi tiết; một dòng tổng cho mỗi chỉ tiêu thật nguồn rỗng (HEALTH.VITAL_SIGNS, MED.*
         // và mười chỉ tiêu cảnh báo, sự cố, đánh giá lại của T018; nguồn 007, 001 giả rỗng để dữ liệu sót không thêm ô)
-        assertThat(String.valueOf(row.get("row_count"))).isEqualTo("21");
+        assertThat(String.valueOf(row.get("row_count"))).isEqualTo("26");
         assertThat(jdbc.queryForObject("SELECT owner_type FROM file WHERE id = ?", String.class, fileId))
                 .isEqualTo("M14.REPORT_EXPORT");
 

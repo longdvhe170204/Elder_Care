@@ -27,6 +27,10 @@ List<Long> theoTrangThai(Set<TrangThaiNct> tt);         // job của module khá
 ```java
 KetQuaChuyen thucHien(long nctId, LenhTrangThai lenh, NguoiDungHienTai nd,
                       Optional<LyDo> lyDo, JsonNode chiTiet, CanCu canCu);   // Propagation.MANDATORY
+KetQuaChuyen thucHien(long nctId, LenhTrangThai lenh, NguoiDungHienTai nd,
+                      Optional<LyDo> lyDo, JsonNode chiTiet, CanCu canCu, Instant thoiDiemThietBi);
+    // bổ sung 2026-11-11 (chủ dự án duyệt; Q-01, 014 Q24): điểm danh rời viện, về ghi ngoại tuyến; thoiDiemThietBi ghi vào
+    // lịch sử trạng thái; chỉ DIEM_DANH_ROI_VIEN, DIEM_DANH_VE; ở tương lai hoặc trước lần đổi trạng thái trước → 422
 List<DieuKien> xemDieuKien(long nctId, LenhTrangThai lenh);                 // 004 FR-004: danh sách điều kiện tiếp nhận
 List<KhoangTrangThai> khoangTrangThai(long nctId, Set<TrangThaiNct> tt, Instant tu, Instant den);
     // bổ sung theo plan 003 (research G-13): khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài từ lịch sử trạng thái
@@ -38,7 +42,7 @@ List<TepView> giayToDinhKem(long lichSuId);
 
 | Người gọi | Lệnh được phép |
 | --- | --- |
-| 014 | `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN` (`doHeThong = true`) |
+| 014 | `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN`, `HUY_GHI_NHAN_VE` (`CANCEL_RETURN_RECORD`, Đang lưu trú → Hoạt động bên ngoài, 014 FR-031a (c); bổ sung 2026-11-11, chủ dự án duyệt) (`doHeThong = true`) |
 | 007 | `CHUYEN_VIEN` khi ghi chuyển viện trên sự cố Khẩn cấp (BR-M05-14); *(bổ sung 2026-10-22, BR-M05-32)* `LenhTrangThai.tepDinhKemIds` mang giấy chuyển viện, tệp gắn vào dòng lịch sử (`M01.GIAY_TO_BENH_VIEN`) |
 | 004 | `HUY_TIEP_NHAN` khi hồ sơ chờ chuyển Từ chối hoặc Hủy chờ (004 FR-002); `chiTiet` mang `hoSoChoId`, `lenhHoSoCho`; người thực hiện là Hành chính ra lệnh (bổ sung theo plan 004, research T-03) |
 

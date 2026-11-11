@@ -9,6 +9,7 @@ import '../common/notifications/push_coordinator.dart';
 import '../common/offline/offline_queue.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
+import 'activities/session_list_screen.dart';
 import 'activities/trip_list_screen.dart';
 import 'alerts/alerts_screen.dart';
 import 'alerts/emergency_assist_screen.dart';
@@ -243,7 +244,27 @@ class _StaffRootState extends State<StaffRoot> {
     if (_can('ROOM_BED_CONFIGURATION', 'VIEW') || _readinessDuty)
       ('Giường', LucideIcons.bedDouble, () => BedsScreen(api: widget.session.api)),
     if (_can('ACTIVITY_OUTING', 'VIEW'))
-      ('Hoạt động ngoài viện', LucideIcons.bus, () => TripListScreen(api: widget.session.api, date: _today())),
+      (
+        'Điểm danh buổi hoạt động',
+        LucideIcons.listChecks,
+        () => SessionListScreen(
+          api: widget.session.api,
+          queue: widget.queue,
+          accountId: widget.session.user!.accountId,
+          date: _today(),
+        ),
+      ),
+    if (_can('ACTIVITY_OUTING', 'VIEW'))
+      (
+        'Hoạt động ngoài viện',
+        LucideIcons.bus,
+        () => TripListScreen(
+          api: widget.session.api,
+          queue: widget.queue,
+          accountId: widget.session.user!.accountId,
+          date: _today(),
+        ),
+      ),
   ];
 
   @override

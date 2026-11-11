@@ -241,7 +241,17 @@ const REQUEST_STATUSES = {
   CANCELLED: 'Đã hủy',
   EXPIRED: 'Hết hạn',
 }
+// trạng thái có mặt theo ngày của người bán trú (005, 3.4)
+const ATTENDANCE_STATUSES = {
+  NOT_ARRIVED: 'Chưa đến',
+  PRESENT: 'Có mặt',
+  LEFT: 'Đã về',
+  REPORTED_ABSENT: 'Vắng có báo',
+  UNREPORTED_ABSENT: 'Vắng không báo',
+  HOLIDAY_CANCELLED: 'Đã hủy do ngày nghỉ',
+}
 const KEYED_BY_METRIC = {
+  'RES.DAY_CARE_ATTENDANCE': ATTENDANCE_STATUSES,
   'COST.SUMMARY': COST_TYPES,
   'COST.EVENT_GENERATED_RATE': COST_ORIGINS,
   'COST.STATEMENTS': STATEMENT_STATUSES,
@@ -251,10 +261,17 @@ const KEYED_BY_METRIC = {
 }
 
 // Chữ của một ô chia nhóm; khóa chưa biết giữ nguyên
+function floorLabel(key, floors) {
+  const floor = floors.find((f) => String(f.id) === key)
+  return floor ? floor.name : `Tầng/khu ${key}`
+}
+
 export function breakdownLabel(metricCode, key, floors = []) {
-  if (FLOOR_KEYED.includes(metricCode)) {
-    const floor = floors.find((f) => String(f.id) === key)
-    return floor ? floor.name : `Tầng/khu ${key}`
+  if (FLOOR_KEYED.includes(metricCode)) return floorLabel(key, floors)
+  // T032: ô "<nguồn>:<tầng>" của HEALTH.SOS_ASSISTANCE_* (research O-13)
+  if (metricCode.startsWith('HEALTH.SOS_ASSISTANCE') && key.includes(':')) {
+    const [source, floor] = key.split(':')
+    return `${KEY_LABELS[source] ?? source}, ${floor === 'UNKNOWN_FLOOR' ? 'chưa rõ tầng' : floorLabel(floor, floors)}`
   }
   if (SHIFT_KEYED.includes(metricCode)) {
     return key === 'NO_SHIFT' ? 'Không xác định ca' : `Ca ${key}`
