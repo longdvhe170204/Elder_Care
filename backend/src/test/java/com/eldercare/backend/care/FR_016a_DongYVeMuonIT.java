@@ -292,6 +292,20 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
                         new RecipientGroup.FacilityRole(Role.OFFICE_STAFF),
                         new RecipientGroup.FamilyMember(representative, "REPRESENTATIVE"));
         assertThat(moved.get(0).eventKey()).isNotEqualTo(moved.get(1).eventKey());
+
+        // Q-286 (014 T011, chủ dự án chốt 2026-11-11): bán trú không ở lại qua đêm; gia hạn sang ngày sau bị chặn khi
+        // còn người bán trú đang đi, giờ về giữ nguyên.
+        postTo(
+                        "/api/v1/trips/" + trip + "/extend",
+                        "{\"newPlannedReturnAt\":\""
+                                + date.plusDays(1)
+                                        .atTime(0, 30)
+                                        .atZone(BusinessTime.ZONE)
+                                        .toInstant()
+                                + "\",\"reason\":\"Kẹt xe\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("DAY_CARE_OVERNIGHT_NOT_ALLOWED"));
+        assertThat(attendance.returnTimeOn(resident, date)).contains(LocalTime.of(16, 30));
     }
 
     private NotificationRequest lateReturnNotice(long session, String change) {

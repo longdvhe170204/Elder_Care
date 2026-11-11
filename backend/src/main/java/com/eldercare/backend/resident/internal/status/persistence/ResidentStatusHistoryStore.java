@@ -8,10 +8,13 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
 import com.eldercare.backend.resident.internal.status.domain.StatusChangeDetails;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -58,8 +61,49 @@ public class ResidentStatusHistoryStore {
         return row.withId(id);
     }
 
-    /** Theo thứ tự ghi. */
+    /**
+     * Ghi thời điểm đúng của dòng {@code target} (014 FR-031a (a)): dòng mới ở {@link ResidentStatusHistory#TIME_TRACK},
+     * dòng gốc giữ nguyên (DBR-23).
+     */
+    public void appendTimeCorrection(
+            ResidentStatusHistory target,
+            Instant correctedAt,
+            long actorId,
+            Reason reason,
+            String basisType,
+            Long basisId) {
+        histories.add(
+                ResidentStatusHistory.TIME_TRACK,
+                target.getResidentId(),
+                new HistoryEntry<Void>(
+                        HistoryKind.POINT,
+                        target.getOccurredAt().toString(),
+                        correctedAt.toString(),
+                        target.getId(),
+                        correctedAt,
+                        ResidentStatusHistory.CORRECT_TIME,
+                        actorId,
+                        false,
+                        reason,
+                        basisType,
+                        basisId,
+                        null,
+                        null,
+                        null));
+    }
+
+    /** Thời điểm đã đính chính mới nhất theo mã dòng gốc. */
+    private Map<Long, Instant> correctedTimes(long residentId) {
+        var result = new HashMap<Long, Instant>();
+        histories.list(ResidentStatusHistory.TIME_TRACK, residentId).stream()
+                .sorted(Comparator.comparingLong(HistoryRow::id))
+                .forEach(r -> result.put(r.valueId(), r.startsAt()));
+        return result;
+    }
+
+    /** Theo thứ tự ghi; thời điểm là thời điểm đã đính chính nếu có (014 FR-031a (a)). */
     public List<ResidentStatusHistory> findByResidentIdOrderByIdAsc(long residentId) {
+        var corrected = correctedTimes(residentId);
         return histories.list(ResidentStatusHistory.TRACK, residentId).stream()
                 .sorted(Comparator.comparingLong(HistoryRow::id))
                 .map(r -> new ResidentStatusHistory(
@@ -75,10 +119,18 @@ public class ResidentStatusHistoryStore {
                         r.basisType(),
                         r.basisId(),
                         r.details() == null ? null : r.details().conditionWaiver()))
+                .map(h -> corrected.containsKey(h.getId()) ? h.withOccurredAt(corrected.get(h.getId())) : h)
                 .toList();
     }
 
     public Optional<ResidentStatusHistory> findById(long id) {
+        return findOriginal(id)
+                .map(h -> Optional.ofNullable(correctedTimes(h.getResidentId()).get(id))
+                        .map(h::withOccurredAt)
+                        .orElse(h));
+    }
+
+    private Optional<ResidentStatusHistory> findOriginal(long id) {
         return jdbc
                 .query(
                         "SELECT entity_id, value_before, value, command, starts_at, actor_id, by_system, reason,"
@@ -112,6 +164,6 @@ public class ResidentStatusHistoryStore {
     }
 
     public boolean existsById(long id) {
-        return findById(id).isPresent();
+        return findOriginal(id).isPresent();
     }
 }

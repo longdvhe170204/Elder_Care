@@ -280,6 +280,58 @@ class ResidentRetentionIT extends StatusTestBase {
                 .isZero();
     }
 
+    /**
+     * 010 T033 (FR-051a, data-model 010 mục 10; 000 T112 {@code referencing}): hồ sơ thật của 001 cùng bảng chi phí, khoản và
+     * khoản điều chỉnh của 010; job chưa xóa khi hồ sơ chưa hết hạn, hết hạn thì xóa cả chuỗi (điều chỉnh trước khoản gốc,
+     * khoản trước bảng, bảng trước hồ sơ, khóa ngoại không chặn).
+     */
+    @Test
+    void T033_FR_051a_costStatementsAndItemsFollowTheRealResidentChain() {
+        long id = endedResidentWithEverything();
+        long period = TestUsers.nextId(), statement = TestUsers.nextId();
+        long item = TestUsers.nextId(), adjustment = TestUsers.nextId();
+        long seed = Math.floorMod(period, 72000);
+        var month = java.time.YearMonth.of(2000 + (int) seed / 12, 1 + (int) seed % 12);
+        var now = java.sql.Timestamp.from(time.now());
+        jdbc.update(
+                "INSERT INTO cost_statement(id,kind,period_month,period_starts_on,period_ends_on,unique_key,created_at)"
+                        + " VALUES (?,'PERIOD',?,?,?,?,?)",
+                period,
+                month.toString(),
+                month.atDay(1),
+                month.atEndOfMonth(),
+                "PERIOD:" + month,
+                now);
+        jdbc.update(
+                "INSERT INTO cost_statement(id,kind,period_id,resident_id,statement_type,unique_key,created_at)"
+                        + " VALUES (?,'STATEMENT',?,?,'REGULAR',?,?)",
+                statement,
+                period,
+                id,
+                "STATEMENT:" + period + ":" + id + ":REGULAR",
+                now);
+        String insertItem = "INSERT INTO cost_item(id,resident_id,statement_id,period_id,cost_type,origin,description,"
+                + "incurred_on,quantity,unit,amount,reason,original_item_id,original_period_id,created_at,created_by)"
+                + " VALUES (?,?,?,?,'OTHER',?,'[Khoản kiểm chuỗi lưu giữ]',?,1,'UNIT',?,'Kiểm chuỗi',?,?,?,1)";
+        jdbc.update(insertItem, item, id, statement, period, "MANUAL", month.atDay(1), 300, null, null, now);
+        jdbc.update(
+                insertItem, adjustment, id, statement, period, "ADJUSTMENT", month.atDay(1), -100, item, period, now);
+        String costRows = "SELECT (SELECT COUNT(*) FROM cost_statement WHERE id=?) + (SELECT COUNT(*) FROM cost_item"
+                + " WHERE resident_id=?)";
+
+        runJobAfter(Duration.ofDays(366));
+        assertThat(count("resident", id)).as("hồ sơ chưa hết hạn").isEqualTo(1);
+        assertThat(jdbc.queryForObject(costRows, Integer.class, statement, id))
+                .as("bảng, khoản chi phí giữ cùng hồ sơ")
+                .isEqualTo(3);
+
+        runJobAfter(Duration.ofDays(11 * 366));
+        assertThat(count("resident", id)).isZero();
+        assertThat(jdbc.queryForObject(costRows, Integer.class, statement, id))
+                .as("bảng, khoản, khoản điều chỉnh xóa cùng chuỗi hồ sơ")
+                .isZero();
+    }
+
     private static String ResidentProfileTestBase_citizenId() {
         return String.valueOf(300_000_000_000L + (System.nanoTime() % 99_999_999_999L));
     }

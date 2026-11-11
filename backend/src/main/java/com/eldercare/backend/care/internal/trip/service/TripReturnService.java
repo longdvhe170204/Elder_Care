@@ -13,6 +13,7 @@ import com.eldercare.backend.care.api.dto.TripInterval;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.care.api.spi.TripMedicationPreparationPort;
+import com.eldercare.backend.care.internal.attendance.service.AttendanceSources;
 import com.eldercare.backend.care.internal.session.service.LateReturnConsentService;
 import com.eldercare.backend.care.internal.trip.domain.*;
 import com.eldercare.backend.care.internal.trip.persistence.ActivityTripStore;
@@ -22,6 +23,7 @@ import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.roombedallocation.api.VehicleScheduleCommandApi;
@@ -57,6 +59,9 @@ public class TripReturnService {
     private final JsonMapper json;
     private final LateReturnConsentService consents;
     private final TripMissingService missing;
+    private final TripAttendanceTimes attendanceTimes;
+    private final AttendanceSources attendanceSources;
+    private final ResidentApi residents;
 
     public TripReturnService(
             ActivityTripStore trips,
@@ -73,7 +78,10 @@ public class TripReturnService {
             ApplicationEventPublisher events,
             JsonMapper json,
             LateReturnConsentService consents,
-            TripMissingService missing) {
+            TripMissingService missing,
+            TripAttendanceTimes attendanceTimes,
+            AttendanceSources attendanceSources,
+            ResidentApi residents) {
         this.trips = trips;
         this.preparation = preparation;
         this.histories = histories;
@@ -89,6 +97,9 @@ public class TripReturnService {
         this.json = json;
         this.consents = consents;
         this.missing = missing;
+        this.attendanceTimes = attendanceTimes;
+        this.attendanceSources = attendanceSources;
+        this.residents = residents;
     }
 
     /** FR-044, FR-047, FR-050: người đã ở viện; về muộn sau khi chuyến Đã về chỉ cho người Thiếu khi về. */
@@ -141,8 +152,9 @@ public class TripReturnService {
                             "TRIP_RETURN:" + p.registrationId()));
             if (!trips.markReturnedIfOut(p.registrationId()))
                 throw conflict("STATE_CHANGED", "Người tham gia vừa thay đổi, tải lại để điểm danh");
-            var departed =
-                    trips.departedAt(p.registrationId()).orElse(locked.plan().plannedDepartureAt());
+            var departed = attendanceTimes
+                    .departedAt(p.registrationId())
+                    .orElse(locked.plan().plannedDepartureAt());
             source.recalculateInterval(id, resident, new TripInterval(departed, at));
             if (wasMissing && trips.missingIncident(p.registrationId()).isPresent())
                 missing.foundReturned(p.registrationId(), resident, id, at);
@@ -165,6 +177,29 @@ public class TripReturnService {
         log(id, "TRIP_RETURNED", Map.of("residentIds", ids, "at", at.toString()), null);
     }
 
+    /**
+     * Q-286 (014 T011, chủ dự án chốt 2026-11-11): bán trú không ở lại qua đêm, nên gia hạn sang ngày sau ngày rời viện dự
+     * kiến bị từ chối khi chuyến còn người bán trú đang ở ngoài; lỗi nêu tên người đó.
+     */
+    private void requireNoDayCareOvernight(Trip trip, long id, Instant newReturnAt) {
+        var tripDay = java.time.LocalDate.ofInstant(trip.plan().plannedDepartureAt(), BusinessTime.ZONE);
+        if (!java.time.LocalDate.ofInstant(newReturnAt, BusinessTime.ZONE).isAfter(tripDay)) return;
+        var dayCare = trips.participants(id).stream()
+                .filter(p -> Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status()))
+                .map(TripParticipant::residentId)
+                .filter(resident -> attendanceSources.dayCare(resident, tripDay))
+                .toList();
+        if (dayCare.isEmpty()) return;
+        var names = dayCare.stream()
+                .map(resident -> residents.identity(resident).fullName())
+                .collect(java.util.stream.Collectors.joining(", "));
+        throw new BusinessException(
+                org.springframework.http.HttpStatus.CONFLICT,
+                "DAY_CARE_OVERNIGHT_NOT_ALLOWED",
+                "Người bán trú không ở lại qua đêm (Q-286), không gia hạn sang ngày sau: " + names,
+                Map.of("residentIds", dayCare));
+    }
+
     /** FR-043: chỉ khi Đang đi, kèm lý do; 006 nhận khoảng mới của người đang ở ngoài, 011/019 qua TripChanged. */
     @RequiresPermission(function = Function.ACTIVITY_OUTING, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
@@ -178,6 +213,7 @@ public class TripReturnService {
         var previous = trip.plan().plannedReturnAt();
         if (!newReturnAt.isAfter(previous) || !newReturnAt.isAfter(time.now()))
             throw new InvalidValueException("Giờ về mới phải sau giờ về dự kiến hiện tại và sau thời điểm hiện tại");
+        requireNoDayCareOvernight(trip, id, newReturnAt);
         var source = medication();
         records.add(
                 TripKinds.EXTENSIONS,
@@ -200,7 +236,8 @@ public class TripReturnService {
                         id,
                         p.residentId(),
                         new TripInterval(
-                                trips.departedAt(p.registrationId())
+                                attendanceTimes
+                                        .departedAt(p.registrationId())
                                         .orElse(trip.plan().plannedDepartureAt()),
                                 newReturnAt));
         if (trip.plan().facilityVehicle())
