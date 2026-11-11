@@ -11,6 +11,7 @@ import com.eldercare.backend.care.api.ActivityStatisticsApi;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.internal.activity.persistence.ActivityStatisticsStore;
 import com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds;
+import com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckService;
 import com.eldercare.backend.care.internal.trip.domain.TripKinds;
 import java.time.*;
 import java.util.*;
@@ -31,11 +32,32 @@ public class ActivityStatistics implements ActivityStatisticsApi {
     private final ActivityStatisticsStore store;
     private final CorrectionApi corrections;
     private final RecordEventApi records;
+    private final QualityCheckService qualityChecks;
 
-    public ActivityStatistics(ActivityStatisticsStore store, CorrectionApi corrections, RecordEventApi records) {
+    public ActivityStatistics(
+            ActivityStatisticsStore store,
+            CorrectionApi corrections,
+            RecordEventApi records,
+            QualityCheckService qualityChecks) {
         this.store = store;
         this.corrections = corrections;
         this.records = records;
+        this.qualityChecks = qualityChecks;
+    }
+
+    /** 016 FR-037 (Q-168, Q-254): khoảng ngày nghiệp vụ hai đầu tính cả. */
+    @Override
+    @Transactional(readOnly = true)
+    public Stream<OutOfCheckScopeView> outOfCheckScope(ScopeFilter scope, LocalDate from, LocalDate to) {
+        return qualityChecks
+                .outOfCheckScope(
+                        scope,
+                        from.atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                                .toInstant(),
+                        to.plusDays(1)
+                                .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                                .toInstant())
+                .stream();
     }
 
     @Override

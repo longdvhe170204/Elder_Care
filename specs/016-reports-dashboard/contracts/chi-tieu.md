@@ -29,6 +29,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `HD.DIEM_DANH_GHI_NHAN_MUON` *(bổ sung 2026-11-11, 016 T016)* | Hoạt động | 014 `HoatDongThongKeApi.buoi` (số điểm danh mang nhãn "ghi nhận muộn") | FR-032 (điểm danh buổi hoạt động tính riêng) |
 | `HD.CO_LAP` | *(Bỏ, 2026-11-10, Q-407)* Không còn chỉ tiêu nguy cơ cô lập | — | FR-036 |
 | `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | Kiểm tra chất lượng | 014 `kiemTra` | FR-037 |
+| `KT.NGOAI_PHAM_VI_KIEM_TRA` *(bổ sung 2026-11-12, 016 T016; người dùng duyệt sửa care)* | Kiểm tra chất lượng | 014 `ActivityStatisticsApi.outOfCheckScope` (chia theo nhân viên thực hiện) | FR-037 (Q-168, Q-254) |
 | `SK.CHI_SO` | Chỉ số, cảnh báo, sự cố | 007 `ChiSoThongKeApi` | FR-040 |
 | `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG` | Chỉ số, cảnh báo, sự cố | 007 `CanhBaoThongKeApi` | FR-020, FR-041 |
 | `SK.CANH_BAO_SOS_HO_TRO` *(bổ sung 2026-10-22; gồm chỉ tiêu SOS của 2026-10-18)* | Chỉ số, cảnh báo, sự cố | 007 `CanhBaoThongKeApi` (`nguon`, `daToiNoiLuc`, `khongGhiMocToiNoi`) | FR-041 |

@@ -32,6 +32,11 @@ public class TripDuties implements TripDutyPort {
     }
 
     @Override
+    public List<Long> tripResidentsOf(long staffId) {
+        return trips.tripResidentsOf(staffId);
+    }
+
+    @Override
     public List<TripInShiftView> inShift(long floorAreaId, Instant from, Instant to) {
         return trips.inShift(floorAreaId, from, to).stream()
                 .map(t -> new TripInShiftView(
