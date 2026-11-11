@@ -47,6 +47,22 @@ public interface ResidentStatusApi {
             Basis basis,
             Instant occurredAt);
 
+    /**
+     * 014 FR-031a (a) (đổi api chủ dự án duyệt 2026-11-11): đính chính thời điểm thực tế của dòng lịch sử {@code
+     * ROLL_CALL_DEPARTURE} hoặc {@code ROLL_CALL_RETURN} mới nhất có căn cứ là chuyến {@code tripId}. Lịch sử chỉ thêm:
+     * dòng gốc giữ nguyên, thời điểm đúng ghi thành dòng mới và mọi chỗ đọc lịch sử (khoảng trạng thái, số liệu) dùng thời
+     * điểm này. Không đổi trạng thái, không chạy lại tác động của lệnh; người gọi báo các module tính lại. Ở tương lai,
+     * không sau dòng trước hoặc không trước dòng sau của người đó thì 422; không có dòng thì 404. Trả thời điểm trước khi
+     * đính chính. {@code Propagation.MANDATORY}.
+     */
+    Instant correctRollCallTime(
+            long residentId,
+            StatusCommand command,
+            long tripId,
+            Instant correctedAt,
+            CurrentUser user,
+            Optional<Reason> reason);
+
     /** Danh sách điều kiện chưa thỏa, cho 004 FR-004. */
     List<Condition> previewConditions(long residentId, StatusCommand command);
 
