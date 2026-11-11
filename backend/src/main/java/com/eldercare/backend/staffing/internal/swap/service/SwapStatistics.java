@@ -5,23 +5,17 @@ import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.staffing.api.SwapStatisticsApi;
 import com.eldercare.backend.staffing.api.dto.StaffRequestView;
-import com.eldercare.backend.staffing.api.dto.WorkingHoursView;
-import com.eldercare.backend.staffing.internal.shift.domain.ShiftMember;
 import com.eldercare.backend.staffing.internal.shift.domain.WorkShift;
 import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.staffing.internal.swap.domain.LeaveDetail;
 import com.eldercare.backend.staffing.internal.swap.domain.SwapDetail;
 import com.eldercare.backend.staffing.internal.swap.domain.SwapStatus;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,39 +74,6 @@ class SwapStatistics implements SwapStatisticsApi {
         }
         out.sort(Comparator.comparingLong(StaffRequestView::requestId));
         return out.stream();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Stream<WorkingHoursView> workingHoursByMonth(ScopeFilter scope, YearMonth month) {
-        Instant from = time.startOfDay(month.atDay(1));
-        Instant to = time.startOfDay(month.plusMonths(1).atDay(1));
-        Instant now = time.now();
-        Map<Long, long[]> perStaff = new TreeMap<>();
-        for (WorkShift s : shifts.reportShifts(from, to)) {
-            if (!inScope(scope, s.scopeId())) {
-                continue;
-            }
-            Instant a = s.startsAt().isAfter(from) ? s.startsAt() : from;
-            Instant b = s.endsAt().isBefore(to) ? s.endsAt() : to;
-            if (!b.isAfter(a)) {
-                continue;
-            }
-            long minutes = Duration.between(a, b).toMinutes();
-            for (ShiftMember m : shifts.members(s.id())) {
-                if (m.approvedLeaveRequestId() != null || m.absentAt() != null || m.leftAt() != null) {
-                    continue;
-                }
-                long[] sums = perStaff.computeIfAbsent(m.staffId(), k -> new long[2]);
-                if (!s.endsAt().isAfter(now)) {
-                    sums[0] += minutes;
-                } else {
-                    sums[1] += minutes;
-                }
-            }
-        }
-        return perStaff.entrySet().stream()
-                .map(e -> new WorkingHoursView(e.getKey(), month, e.getValue()[0], e.getValue()[1]));
     }
 
     private static boolean inRange(Instant at, Instant from, Instant to) {

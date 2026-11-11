@@ -42,7 +42,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | ~~`CA.THIEU_PHU`, `CA.THIEU_CA`~~ | *(Bỏ theo Q-397)* | — | FR-071 |
 | `CA.YEU_CAU` | Nhân sự và ca trực | 015 `yeuCau` | FR-072 |
 | ~~`CA.LOI_MOI`~~ | *(Bỏ theo Q-397)* | — | FR-072 |
-| `CA.GIO_LAM` | Nhân sự và ca trực (QL, TT được giao) | 015 `gioLamTheoThang` | FR-073 |
+| ~~`CA.GIO_LAM`~~ | *(Bỏ theo Q-408)* | | |
 | `GP.CO_SO`, `GP.NHAN_VIEN` | Giấy phép | 007 `GiayPhepCoSoApi`; 008 `chungChiSapHetHan` | FR-020 |
 | `CP.BANG`, `CP.TONG_HOP`, `CP.DIEU_CHINH_SAU_CHOT`, `CP.TY_LE_THEO_SU_KIEN` | Chi phí phát sinh | 010 `ChiPhiThongKeApi` | FR-020, FR-050 → FR-055 |
 | `CP.MUA_SAM` | Tổng chi mua sắm | 019 `MuaSamThongKeApi` | FR-055a |

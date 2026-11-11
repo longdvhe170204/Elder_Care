@@ -41,9 +41,6 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
 
     public record DetailLine(String metricCode, DetailRow row) {}
 
-    /** Chỉ tiêu chỉ Quản lý viện xuất được (FR-061, FR-073). */
-    static final Set<String> MANAGER_ONLY = Set.of("SHIFT.WORKING_HOURS");
-
     public static ExportContent decide(
             Set<Role> roles, boolean includeIdentity, Optional<String> purpose, List<MetricResult> results) {
         boolean manager = roles.contains(Role.NURSING_HOME_MANAGER);
@@ -62,9 +59,6 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
         List<SummaryRow> summary = new ArrayList<>();
         List<DetailLine> details = new ArrayList<>();
         for (MetricResult r : results) {
-            if (!manager && MANAGER_ONLY.contains(r.metricCode())) {
-                continue;
-            }
             MetricValue v = r.value();
             if (includeIdentity || !singlePerson(r.residents())) {
                 summary.add(new SummaryRow(
