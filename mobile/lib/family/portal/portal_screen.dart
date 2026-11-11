@@ -8,6 +8,7 @@ import '../belongings/family_belongings_screen.dart';
 import '../charges/family_costs_screen.dart';
 import '../charges/purchase_consent_screen.dart';
 import '../visits/visit_registration_screen.dart';
+import 'family_activities_screen.dart';
 
 const _statusLabels = {
   'ADMISSION_IN_PROGRESS': ('Đang tiếp nhận', StatusTone.attention),
@@ -196,6 +197,19 @@ class _ResidentPortalScreenState extends State<ResidentPortalScreen> {
                     ),
                     child: const Text('Đăng ký thăm'),
                   ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => FamilyActivitiesScreen(
+                        api: widget.api,
+                        residentId: _residentId,
+                        representative: widget.resident['representative'] == true,
+                      ),
+                    ),
+                  ),
+                  child: const Text('Xem hoạt động'),
+                ),
                 const SizedBox(height: 8),
                 if (_right('VIEW_HEALTH'))
                   OutlinedButton(
