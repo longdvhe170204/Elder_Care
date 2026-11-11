@@ -9,6 +9,9 @@ export const getProcurementRequests = (params) => request('GET', '/procurement-r
 /** Lập yêu cầu mua sắm Nháp (Phụ trách bộ phận; Điều dưỡng chỉ loại MEDICATION, FR-008d); yêu cầu bổ sung tham chiếu yêu cầu gốc (FR-008, FR-008a, FR-008d, BR-M11-17) */
 export const postProcurementRequests = (params) => request('POST', '/procurement-requests', params)
 
+/** Dòng thuốc của yêu cầu mua sắm loại thuốc đã ghi đã mua, chưa có lần tiếp nhận Đạt, của người cao tuổi người xem được tiếp nhận thuốc (bổ sung 2026-11-11, Q-410, chủ dự án duyệt) (FR-008d) */
+export const getProcurementMedicationLines = (params) => request('GET', '/procurement-medication-lines', params)
+
 /** Sửa yêu cầu Nháp (FR-008) */
 export const putProcurementRequestsById = (params) => request('PUT', '/procurement-requests/{id}', params)
 
@@ -21,7 +24,7 @@ export const getAssets = (params) => request('GET', '/assets', params)
 /** Ghi tăng tài sản (không phải loại giường); mua mới gắn yêu cầu mua sắm Đã duyệt và nguyên giá (FR-011, FR-008c, DBR-32, DBR-36) */
 export const postAssets = (params) => request('POST', '/assets', params)
 
-/** Danh mục loại tài sản, gồm loại đã ngừng (bổ sung 2026-11-10, C chọn cho màn web M35: tên loại, chọn loại khi ghi tăng, lọc xe; chờ chủ dự án duyệt) (FR-011) */
+/** Danh mục loại tài sản, gồm loại đã ngừng (bổ sung 2026-11-10, chủ dự án duyệt: tên loại, chọn loại khi ghi tăng, lọc xe) (FR-011) */
 export const getAssetTypes = (params) => request('GET', '/asset-types', params)
 
 /** Tạo, sửa, ngừng loại tài sản (Quản lý viện) (FR-011) */

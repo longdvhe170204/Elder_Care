@@ -160,6 +160,14 @@ export const NAV_GROUPS = [
         functions: ['MEDICATION_CATALOG'],
         roles: [QL, BS, DD],
       },
+      // Dòng "Tiếp nhận thuốc cung ứng" (006 T065, Q-410): Điều dưỡng ghi (T); Quản lý viện, Bác sĩ chỉ xem theo yêu cầu
+      {
+        key: 'medication-receipt',
+        label: 'Tiếp nhận thuốc',
+        icon: 'PackageCheck',
+        functions: ['MEDICATION_RECEIPT'],
+        roles: [DD],
+      },
       // Dòng "Xử lý cảnh báo"
       { key: 'alerts', label: 'Cảnh báo', icon: 'Bell', functions: ['ALERT_HANDLING'], roles: [QL, TT, BS, DD, CS] },
       // Dòng "Sự cố, khẩn cấp"
