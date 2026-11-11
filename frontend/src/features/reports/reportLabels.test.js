@@ -77,6 +77,7 @@ describe('breakdownLabel chi tiêu nguồn mới (016 T008, T014, T020, T024)', 
     expect(breakdownLabel('COST.POST_FINALIZATION_ADJUSTMENTS', '2026-10')).toBe('Kỳ gốc 10/2026')
     expect(breakdownLabel('COST.PURCHASING', 'RECONCILED')).toBe('Đã đối chiếu')
     expect(breakdownLabel('BALANCE.LOW_OR_OWING', 'IN_DEBT')).toBe('Còn nợ')
+    expect(breakdownLabel('ASSET.DUE_SOON', 'VEHICLE_INSPECTION')).toBe('Tới hạn đăng kiểm')
     expect(breakdownLabel('REGISTRATION.TO_DO', 'TO_DEREGISTER')).toBe('Cần xóa đăng ký')
     expect(breakdownLabel('SHIFT.REQUESTS', 'M09.SHIFT_SWAP:APPROVED')).toBe('Đổi ca, Đã duyệt')
   })

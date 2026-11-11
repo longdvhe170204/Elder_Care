@@ -74,6 +74,14 @@ public class StaffingRatioSources {
     }
 
     public StaffingRatioCalculator.Result read(WorkShift shift, boolean lockMembers) {
+        return read(shift, lockMembers, java.util.function.UnaryOperator.identity());
+    }
+
+    /** Như {@link #read(WorkShift, boolean)} với danh sách nhân viên đã đổi (xem trước rời/vào ca, 015 FR-021 (f)). */
+    public StaffingRatioCalculator.Result read(
+            WorkShift shift,
+            boolean lockMembers,
+            java.util.function.UnaryOperator<List<StaffingRatioCalculator.Member>> change) {
         try {
             var limits = parameters.read(ParameterCode.CFG_M09_01);
             var weightsValue = parameters.read(ParameterCode.CFG_M09_12);
@@ -151,12 +159,18 @@ public class StaffingRatioSources {
                             !m.presentAt(memberAt),
                             m.approvedLeaveRequestId() != null))
                     .toList();
-            return StaffingRatioCalculator.calculate(expected, members, weights, limit.decimalValue());
+            return StaffingRatioCalculator.calculate(expected, change.apply(members), weights, limit.decimalValue());
         } catch (Unavailable e) {
             throw e;
         } catch (RuntimeException e) {
             throw new Unavailable(e);
         }
+    }
+
+    /** Nhân viên vào ca: tính như có mặt, không nghỉ có duyệt; vai trò theo tài khoản hiện hành. */
+    public StaffingRatioCalculator.Member joining(long staffId) {
+        return new StaffingRatioCalculator.Member(
+                staffId, accounts.byStaff(staffId).map(a -> a.roles()).orElse(Set.of()), false, false);
     }
 
     private boolean endedAt(ResidentApi api, long resident, Instant from) {
