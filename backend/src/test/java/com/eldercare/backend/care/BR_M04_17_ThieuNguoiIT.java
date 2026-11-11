@@ -305,6 +305,10 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
         assertThat(participant(s, r)).isEqualTo("DEPARTED");
         assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
         assertThat(tripStatus(s)).isEqualTo("IN_PROGRESS");
+        // 007 T063 (US12, FR-047e): SOS lúc đang đi đọc chuyến thật qua cổng của 007 (TripSosSource), có trưởng đoàn.
+        assertThat(context.getBean(com.eldercare.backend.incident.api.spi.SosTripPort.class)
+                        .ongoing(r))
+                .hasValueSatisfying(v -> assertThat(v.tripId()).isEqualTo(s));
 
         var returnedAt = time.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         sync("M04.TRIP_RETURN", "{\"tripId\":" + s + ",\"residentIds\":[" + r + "]}", returnedAt);
