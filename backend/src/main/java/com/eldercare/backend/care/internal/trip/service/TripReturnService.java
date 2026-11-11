@@ -96,6 +96,12 @@ public class TripReturnService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void returnResidents(Target target, long id, List<Long> selected, Instant deviceAt) {
+        apply(id, selected, deviceAt);
+    }
+
+    /** Dùng chung cho lệnh trực tuyến và bản ghi ngoại tuyến {@code M04.TRIP_RETURN} đã qua kiểm quyền của 002 (Q-01). */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void apply(long id, List<Long> selected, Instant deviceAt) {
         var ids = distinct(selected, "Cần danh sách người điểm danh về không trùng");
         var trip = trips.find(id).orElseThrow(NotFoundException::new);
         if (!Set.of("IN_PROGRESS", "RETURNED").contains(trip.status()))

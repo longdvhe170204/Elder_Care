@@ -4,14 +4,23 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../common/api/api_client.dart';
 import '../../common/api/problem_message.dart';
 import '../../common/format/date_time.dart';
+import '../../common/offline/offline_queue.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/page_body.dart';
 import 'trip_detail_screen.dart';
 
 /// T018: danh sách chuyến trực tuyến theo ngày, gắn vào điều hướng sau khi A duyệt.
 class TripListScreen extends StatefulWidget {
-  const TripListScreen({super.key, required this.api, required this.date});
+  const TripListScreen({
+    super.key,
+    required this.api,
+    required this.queue,
+    required this.accountId,
+    required this.date,
+  });
   final ApiClient api;
+  final OfflineQueue queue;
+  final int accountId;
   final String date;
   @override
   State<TripListScreen> createState() => _TripListScreenState();
@@ -126,7 +135,12 @@ class _TripListScreenState extends State<TripListScreen> {
                         trailing: Text(tripStatuses[row['status']] ?? row['status'] as String),
                         onTap: () => Navigator.of(context).push<void>(
                           MaterialPageRoute(
-                            builder: (_) => TripDetailScreen(api: widget.api, tripId: row['id'] as int),
+                            builder: (_) => TripDetailScreen(
+                              api: widget.api,
+                              queue: widget.queue,
+                              accountId: widget.accountId,
+                              tripId: row['id'] as int,
+                            ),
                           ),
                         ),
                       ),
