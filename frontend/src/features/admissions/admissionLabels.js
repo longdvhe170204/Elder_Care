@@ -86,6 +86,8 @@ export const SERVICE_TYPES = [
   ['FAMILY_STAY', 'Người thân ở lại'],
   ['MEAL', 'Bữa ăn'],
   ['FACILITY_SUPPLIED_MEDICATION', 'Thuốc viện cấp'],
+  ['CONSUMABLE', 'Vật phẩm tiêu hao'],
+  ['MEDICAL_SUPPLY', 'Vật tư y tế'],
   ['OTHER', 'Khác'],
 ]
 

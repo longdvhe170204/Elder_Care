@@ -18,18 +18,18 @@ public record CareProblemBody(
     public record Condition(String code, String description, String basis) {}
 
     /**
-     * {@code CareTaskClosed}: công việc đã đóng, giữ nội dung để chuyển thành đính chính hoặc Ghi nhận phát sinh. Hợp
-     * đồng ghép {@code CareCatalogProblem} với {@code status} là trạng thái công việc, nên {@code status} ở đây là
-     * {@link TaskStatus}.
+     * {@code CareTaskClosed}: công việc đã đóng, giữ nội dung để chuyển thành đính chính hoặc Ghi nhận phát sinh.
+     * {@code status} là mã HTTP, trạng thái công việc ở {@code currentStatus} (chủ dự án chốt 2026-11-10).
      */
     @Schema(name = "CareTaskClosedProblem")
     public record TaskClosed(
             String type,
             String title,
-            TaskStatus status,
+            Integer status,
             String detail,
             String errorCode,
             List<Condition> unmetConditions,
+            TaskStatus currentStatus,
             String closedBy,
             Instant closedAt,
             CareResultWrite rejectedContent) {}

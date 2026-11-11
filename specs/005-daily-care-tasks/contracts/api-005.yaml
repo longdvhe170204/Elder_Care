@@ -850,7 +850,7 @@ components:
                 properties:
                   closedBy: { type: string }
                   closedAt: { type: string, format: date-time }
-                  status: { $ref: '#/components/schemas/CareTaskStatus' }
+                  currentStatus: { $ref: '#/components/schemas/CareTaskStatus', description: 'Trạng thái công việc; status là mã HTTP của Problem (chủ dự án chốt 2026-11-10)' }
                   rejectedContent: { $ref: '#/components/schemas/CareResultWrite' }
   schemas:
     Importance: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY] }

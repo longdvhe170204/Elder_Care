@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 019 khai {@link ProcurementIntakePort}, chủ fake là C; bản thật do D (006) cài ở M07. Mặc định chưa có lần tiếp nhận
+ * 019 khai {@link ProcurementIntakePort}, chủ fake là C; bản thật {@code billing.internal.procurement.service.MedicationIntakes} (đọc kết quả tiếp nhận của M07). Mặc định chưa có lần tiếp nhận
  * Đạt nào; test đặt bằng {@link #passed}.
  */
 public class FakeProcurementIntakes implements ProcurementIntakePort {

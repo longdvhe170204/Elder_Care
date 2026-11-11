@@ -105,6 +105,50 @@ public final class ShiftResponses {
             @Schema(accessMode = Schema.AccessMode.READ_ONLY)
             long version) {}
 
+    /**
+     * Ca của chính mình ở {@code GET /me/shifts} (api-008 {@code MyShift}, duyệt 2026-11-08; 008 FR-060, 002 FR-032,
+     * FR-033): trường của {@link Shift} cộng {@code scopeEndsAt}, hết phạm vi của người dùng trong ca, rỗng khi không có
+     * phân công trong ca.
+     */
+    @Schema(name = "MyShift")
+    public record MyShift(
+            long id,
+            long shiftTemplateId,
+            Instant startsAt,
+            Instant endsAt,
+
+            @Schema(allowableValues = {"DRAFT", "PUBLISHED", "IN_PROGRESS", "AWAITING_HANDOVER", "CLOSED", "CANCELLED"})
+            String status,
+
+            Long leadStaffId,
+            boolean missingLead,
+            List<Staff> staff,
+            StaffingRatio staffingRatio,
+            List<String> allowedCommands,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+            long version,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+            Instant scopeEndsAt) {
+
+        public static MyShift of(Shift shift, Instant scopeEndsAt) {
+            return new MyShift(
+                    shift.id(),
+                    shift.shiftTemplateId(),
+                    shift.startsAt(),
+                    shift.endsAt(),
+                    shift.status(),
+                    shift.leadStaffId(),
+                    shift.missingLead(),
+                    shift.staff(),
+                    shift.staffingRatio(),
+                    shift.allowedCommands(),
+                    shift.version(),
+                    scopeEndsAt);
+        }
+    }
+
     @Schema(name = "ResultWithWarnings")
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Result(Long id, List<M09Warning> warnings) {}

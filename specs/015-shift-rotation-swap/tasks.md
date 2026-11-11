@@ -149,3 +149,8 @@ US1 → US2 → US3 → US4 → US5; mỗi bước chạy `./mvnw verify`.
 
 - 015 không tự lập lịch, không chỉ định người phụ trách, không gợi ý hay xếp hạng người thay, không tự mời (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M09-02, 06, 07, 10, 11, CFG-M15-04 → 06)
+
+## Phase 9: Convergence
+
+- [x] T033 Cho nhân viên chỉ có ca Đã công bố chưa bắt đầu (chưa có phân công quanh giờ hiện tại) lập được yêu cầu đổi ca, nghỉ đột xuất của chính mình: hiện `ApprovalRequestApi.create` kiểm `createPermission()` theo phạm vi ASSIGNED chỉ tính phân công hiện tại nên trả 403; A chọn cách (a) `RequestTypeHandler.selfCheckedCreatePermission()` hoặc (b) ASSIGNED tính ca tương lai của chính nhân viên cho `SHIFT_SWAP_REQUEST/CREATE` (team-plan mục 8, dòng A (000, 002)), rồi bỏ cấp phân công tạm trong test, test viết trước per FR-019, FR-026 (partial)
+  - *(2026-11-10, A chọn cách (a))* `RequestTypeHandler.creatorInOwnScope(user, content)` (mặc định rỗng): có giá trị thì 000 chỉ kiểm người lập giữ khóa quyền tạo, không xét phạm vi theo phân công hiện tại; dùng ở lệnh lập và lúc gửi duyệt (`ApprovalRequestService.mayCreate`). `SwapHandler`: người lập là người nhường và có tên trong ca X; `LeaveHandler`: lập cho chính mình (lập thay vẫn kiểm theo phạm vi). Bỏ ca đang diễn ra và phân công tầng tạm trong `SwapTestBase`: 29 IT của 015 đỏ 403 rồi xanh (`BR_M09_10_ShiftSwapIT` 12, `FR_029_ShiftLeaveIT` 11, `FR_042_SwapStatisticsIT` 3, `FR_044_SwapNoticeAuditIT` 3); `ApplyOnceIT`, `ApprovalLifecycleIT`, `ConcurrentDecisionIT`, test kiến trúc xanh.

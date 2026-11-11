@@ -30,6 +30,35 @@ public record DetailRow(
         boolean reduced,
         boolean canOpenRecord) {
 
+    /** Dòng của chỉ tiêu tổng hợp nguồn ngoài: kết quả không giới hạn nhóm, không chờ xem lại, mở được theo nguồn. */
+    public static DetailRow simple(
+            String sourceKey,
+            String feature,
+            String type,
+            String status,
+            Instant referenceTime,
+            Long floorAreaId,
+            Long residentId,
+            Map<String, Object> result) {
+        return new DetailRow(
+                sourceKey,
+                feature,
+                type,
+                status,
+                referenceTime,
+                floorAreaId,
+                null,
+                residentId,
+                null,
+                null,
+                result,
+                null,
+                Map.of(),
+                false,
+                false,
+                false);
+    }
+
     public DetailRow withResult(Map<String, Object> shown) {
         return new DetailRow(
                 sourceKey,

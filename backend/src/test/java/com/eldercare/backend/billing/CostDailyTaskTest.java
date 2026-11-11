@@ -90,6 +90,54 @@ class CostDailyTaskTest {
     }
 
     @Test
+    void FR_044_dueStatementWithUnpricedItems_remindsOfficeStaffAndManager() {
+        var store = mock(CostPeriodStore.class);
+        var coverage = mock(CostBillingCoverage.class);
+        var markers = mock(ReminderMarkers.class);
+        var notifications = mock(CostNotifications.class);
+        var statements = mock(CostStatementStore.class);
+        var items = mock(CostItemStore.class);
+        var month = YearMonth.of(2026, 10);
+        when(store.periods())
+                .thenReturn(
+                        List.of(new CostPeriodRecord(10, month, "AWAITING_FINALIZATION", LocalDate.of(2026, 11, 30))));
+        when(coverage.expected(month)).thenReturn(Set.of());
+        var open = mock(com.eldercare.backend.billing.internal.period.domain.CostStatementRecord.class);
+        when(open.id()).thenReturn(5L);
+        when(open.residentId()).thenReturn(123L);
+        when(open.status()).thenReturn("OPEN");
+        when(statements.list(10L, null, null)).thenReturn(List.of(open));
+        var unpriced = mock(com.eldercare.backend.billing.internal.item.domain.CostItemRecord.class);
+        when(unpriced.flags()).thenReturn(Set.of("MISSING_UNIT_PRICE"));
+        when(items.ofStatement(5L)).thenReturn(List.of(unpriced));
+        when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
+                .thenReturn(true);
+        var task = new CostDailyTask(
+                store,
+                coverage,
+                mock(ParameterApi.class),
+                markers,
+                notifications,
+                statements,
+                items,
+                mock(CostLock.class),
+                mock(AuditLogApi.class));
+        task.run(Instant.parse("2026-12-01T00:00:00Z"));
+        for (var role : List.of(
+                com.eldercare.backend.common.Role.OFFICE_STAFF, com.eldercare.backend.common.Role.NURSING_HOME_MANAGER))
+            verify(notifications)
+                    .staff(
+                            eq("COST_FINALIZATION_DUE"),
+                            eq(5L),
+                            eq(123L),
+                            anyString(),
+                            anyString(),
+                            eq(role),
+                            any(),
+                            isNull());
+    }
+
+    @Test
     void FR_001_finalizationDeadlineComesFromTheCurrentConfiguration() {
         var store = mock(CostPeriodStore.class);
         var coverage = mock(CostBillingCoverage.class);

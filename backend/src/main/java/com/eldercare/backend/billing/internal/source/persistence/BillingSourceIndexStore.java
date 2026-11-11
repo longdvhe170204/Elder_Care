@@ -79,7 +79,8 @@ public class BillingSourceIndexStore {
                                 row.getTimestamp("occurred_at").toInstant(),
                                 row.getObject("service_id", Long.class),
                                 row.getObject("medication_id", Long.class),
-                                row.getBigDecimal("current_quantity")),
+                                row.getBigDecimal("current_quantity"),
+                                row.getString("usage_unit")),
                         row.getBoolean("cancelled"),
                         row.getLong("version"),
                         row.getObject("existing_item_id", Long.class)),
@@ -90,8 +91,8 @@ public class BillingSourceIndexStore {
         try {
             jdbc.update(
                     "INSERT INTO cost_source_index (source_type,source_id,billing_unit,resident_id,incurred_on,"
-                            + "occurred_at,service_id,medication_id,current_quantity,cancelled,updated_at,version)"
-                            + " VALUES (?,?,?,?,?,?,?,?,?,FALSE,?,0)",
+                            + "occurred_at,service_id,medication_id,usage_unit,current_quantity,cancelled,updated_at,version)"
+                            + " VALUES (?,?,?,?,?,?,?,?,?,?,FALSE,?,0)",
                     source.sourceType(),
                     source.sourceId(),
                     source.unit(),
@@ -100,6 +101,7 @@ public class BillingSourceIndexStore {
                     Timestamp.from(source.occurredAt()),
                     source.serviceId(),
                     source.medicationId(),
+                    source.usageUnit(),
                     source.quantity(),
                     Timestamp.from(indexedAt));
         } catch (DuplicateKeyException duplicate) {
@@ -117,6 +119,18 @@ public class BillingSourceIndexStore {
         return residents.stream()
                 .flatMap(resident -> findBySourceIds(resident, type, List.of(id)).stream())
                 .filter(row -> row.source().unit().equals(unit))
+                .toList();
+    }
+
+    /** Nguồn theo loại và mã, mọi đơn vị (sự kiện điều chỉnh của 006 không mang đơn vị tính phí). */
+    public List<IndexedSourceMatch> byTypeAndId(String type, String id) {
+        var residents = jdbc.queryForList(
+                "SELECT DISTINCT resident_id FROM cost_source_index WHERE source_type=? AND source_id=?",
+                Long.class,
+                type,
+                id);
+        return residents.stream()
+                .flatMap(resident -> findBySourceIds(resident, type, List.of(id)).stream())
                 .toList();
     }
 

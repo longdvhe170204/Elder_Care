@@ -37,9 +37,12 @@ public record TripDetailResponse(
                     })
             String status,
 
-            String reason) {}
+            String reason,
+            TripParticipantInfoBody info) {}
 
-    public static TripDetailResponse of(TripPreparationService.Detail detail) {
+    public static TripDetailResponse of(
+            TripPreparationService.Detail detail,
+            java.util.Map<Long, com.eldercare.backend.care.internal.trip.service.TripParticipantInfo.Info> infos) {
         var trip = detail.trip();
         var plan = trip.plan();
         return new TripDetailResponse(
@@ -54,7 +57,14 @@ public record TripDetailResponse(
                 detail.duties().leaderId(),
                 detail.duties().companionIds(),
                 detail.participants().stream()
-                        .map(p -> new Participant(p.registrationId(), p.residentId(), p.status(), p.reason()))
+                        .map(p -> new Participant(
+                                p.registrationId(),
+                                p.residentId(),
+                                p.status(),
+                                p.reason(),
+                                infos.containsKey(p.residentId())
+                                        ? TripParticipantInfoBody.of(infos.get(p.residentId()))
+                                        : null))
                         .toList());
     }
 }

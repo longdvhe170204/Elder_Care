@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { breakdownLabel } from './reportLabels'
+import { breakdownLabel, labelNotes } from './reportLabels'
 
 const floors = [
   { id: 101, name: 'Tầng 1' },
@@ -53,5 +53,27 @@ describe('breakdownLabel', () => {
 
   it('khóa chưa biết giữ nguyên', () => {
     expect(breakdownLabel('TEST.X', 'ABC')).toBe('ABC')
+  })
+})
+
+describe('labelNotes', () => {
+  it('nhãn dữ liệu đã loại bỏ kèm loại dữ liệu theo module (016 T109, FR-007)', () => {
+    expect(
+      labelNotes({ labels: ['PURGED_BY_RETENTION'], purgedDataTypes: ['M07.DOSE', 'M07.DOSE_RESULT', 'M04.TASK'] }),
+    ).toBe('số liệu không đầy đủ do đã loại bỏ theo lưu trữ (thuốc, chăm sóc hằng ngày)')
+    expect(labelNotes({ labels: ['PURGED_BY_RETENTION'] })).toBe('số liệu không đầy đủ do đã loại bỏ theo lưu trữ')
+  })
+})
+
+describe('breakdownLabel chi tiêu nguồn mới (016 T008, T014, T020, T024)', () => {
+  it('chi phí, mua sắm, số dư, khai báo, yêu cầu ca, giờ làm', () => {
+    expect(breakdownLabel('COST.SUMMARY', 'RESIDENCY_FEE')).toBe('Phí lưu trú')
+    expect(breakdownLabel('COST.EVENT_GENERATED_RATE', 'EVENT_BASED')).toBe('Theo sự kiện')
+    expect(breakdownLabel('COST.POST_FINALIZATION_ADJUSTMENTS', '2026-10')).toBe('Kỳ gốc 10/2026')
+    expect(breakdownLabel('COST.PURCHASING', 'RECONCILED')).toBe('Đã đối chiếu')
+    expect(breakdownLabel('BALANCE.LOW_OR_OWING', 'IN_DEBT')).toBe('Còn nợ')
+    expect(breakdownLabel('REGISTRATION.TO_DO', 'TO_DEREGISTER')).toBe('Cần xóa đăng ký')
+    expect(breakdownLabel('SHIFT.REQUESTS', 'M09.SHIFT_SWAP:APPROVED')).toBe('Đổi ca, Đã duyệt')
+    expect(breakdownLabel('SHIFT.WORKING_HOURS', '51')).toBe('Nhân viên 51')
   })
 })

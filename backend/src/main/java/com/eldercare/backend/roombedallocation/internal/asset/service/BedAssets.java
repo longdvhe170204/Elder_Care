@@ -1,9 +1,11 @@
 package com.eldercare.backend.roombedallocation.internal.asset.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.account.api.spi.DutyApi;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.RecordEventApi;
 import com.eldercare.backend.administration.shared.api.StatusHistoryApi;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
@@ -20,7 +22,9 @@ import com.eldercare.backend.roombedallocation.internal.asset.persistence.AssetS
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetPort;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -41,6 +45,8 @@ public class BedAssets implements BedAssetPort {
     private final CurrentUser user;
     private final BusinessTime time;
     private final AuditLogApi audit;
+    private final CatalogApi catalog;
+    private final ObjectProvider<DutyApi> duties;
 
     public BedAssets(
             AssetStore store,
@@ -49,7 +55,11 @@ public class BedAssets implements BedAssetPort {
             LocationStructureApi structure,
             CurrentUser user,
             BusinessTime time,
-            AuditLogApi audit) {
+            AuditLogApi audit,
+            CatalogApi catalog,
+            ObjectProvider<DutyApi> duties) {
+        this.catalog = catalog;
+        this.duties = duties;
         this.store = store;
         this.records = records;
         this.history = history;
@@ -61,11 +71,56 @@ public class BedAssets implements BedAssetPort {
 
     @Override
     public void recordIncreaseForBed(long bedId) {
-        throw new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "SOURCE_UNAVAILABLE",
-                "Chưa có cách xác định bộ phận Chăm sóc cho tài sản giường (FR-011)");
+        // Q-238, FR-011: Sẵn sàng, bộ phận Chăm sóc (mã hệ thống CARE của 008, chủ dự án duyệt 2026-11-11), vị trí
+        // phòng
+        long department = Optional.ofNullable(duties.getIfAvailable())
+                .flatMap(api -> api.departmentByCode(CARE_DEPARTMENT))
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "CARE_DEPARTMENT_MISSING",
+                        "Chưa có bộ phận Chăm sóc (mã CARE) để ghi tăng tài sản giường; Quản lý viện cần tạo lại"));
+        long type = catalog.findByCode(AssetKinds.ASSET_TYPE, null, AssetKinds.BED_CODE)
+                .orElseThrow(NotFoundException::new)
+                .id();
+        var bed = structure.bed(bedId).orElseThrow(NotFoundException::new);
+        var now = time.now();
+        Long staff = user.staffId().orElse(null);
+        long assetId = store.insertBed(
+                bedId,
+                type,
+                "BED-" + bedId,
+                "Giường " + bed.bedCode() + (bed.roomName() == null ? "" : ", " + bed.roomName()),
+                department,
+                bed.roomId(),
+                bed.floorId(),
+                staff,
+                now);
+        history.add(
+                AssetKinds.LOCATION,
+                assetId,
+                new HistoryEntry<>(
+                        HistoryKind.PERIOD,
+                        null,
+                        "ROOM",
+                        bed.roomId(),
+                        now,
+                        "CREATE",
+                        staff,
+                        false,
+                        null,
+                        "M03.BED",
+                        bedId,
+                        new AssetKinds.Location("ROOM", bed.roomId(), null),
+                        bed.floorId(),
+                        null));
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("M03_ASSET_CREATE", false))
+                .entity(AssetKinds.ENTITY, assetId)
+                .after(Map.of("bedId", String.valueOf(bedId), "departmentId", String.valueOf(department)))
+                .build());
     }
+
+    static final String CARE_DEPARTMENT = "CARE";
 
     /**
      * 003 T017 (Q-243, 019 FR-012): đóng khoảng vị trí đang mở, mở khoảng mới ở phòng mới như lệnh chuyển vị trí của 019;

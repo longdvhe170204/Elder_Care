@@ -8,14 +8,16 @@ import '../../common/format/date_time.dart';
 import '../../common/notifications/notification_api.dart';
 import '../../common/widgets/page_body.dart';
 import '../../common/widgets/status_pill.dart';
+import 'handover_cache.dart';
 
-/// T030: đọc và các lệnh trực tuyến không yêu cầu If-Match trong hợp đồng008.
-/// Chưa lưu ngoại tuyến khi chưa có nguồn hạn phạm vi; không suy hạn từ giờ kết ca.
+/// T030: đọc và các lệnh trực tuyến; thêm, bỏ mục và ghi nhận định gửi If-Match theo ETag của `GET /handovers/{id}`.
+/// Bản lưu ngoại tuyến (FR-060) chỉ khi `/me/shifts` cho hạn phạm vi `scopeEndsAt`; mất mạng thì xem bản lưu, không có lệnh.
 class HandoverScreen extends StatefulWidget {
-  const HandoverScreen({super.key, required this.api, this.initialShiftId});
+  const HandoverScreen({super.key, required this.api, this.initialShiftId, this.cache});
 
   final ApiClient api;
   final int? initialShiftId;
+  final HandoverCache? cache;
 
   @override
   State<HandoverScreen> createState() => _HandoverScreenState();
@@ -50,7 +52,9 @@ class _HandoverScreenState extends State<HandoverScreen> {
   int? selected;
   int generation = 0;
   bool loading = false, busy = false;
-  String? error, sourceError;
+  String? error, sourceError, etag;
+  CachedHandover? offline;
+  final assessment = TextEditingController();
 
   @override
   void initState() {
@@ -65,6 +69,7 @@ class _HandoverScreenState extends State<HandoverScreen> {
   void dispose() {
     generation++;
     comment.dispose();
+    assessment.dispose();
     replies.clear();
     record = null;
     sources = [];
@@ -74,7 +79,13 @@ class _HandoverScreenState extends State<HandoverScreen> {
 
   List<Map<String, dynamic>> maps(Object? data) => (data as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
   String day(DateTime value) => '${value.year}-${value.month.toString().padLeft(2, '0')}-01';
-  bool allowed(String command) => (record?['allowedCommands'] as List<dynamic>? ?? []).contains(command);
+  bool allowed(String command) =>
+      offline == null && (record?['allowedCommands'] as List<dynamic>? ?? []).contains(command);
+
+  DateTime? scopeEndsAt(int? shiftId) {
+    final row = shifts.where((s) => s['id'] == shiftId).firstOrNull;
+    return row?['scopeEndsAt'] is String ? DateTime.parse(row!['scopeEndsAt'] as String) : null;
+  }
 
   Future<void> load({int move = 0, int? shiftId}) async {
     final request = ++generation;
@@ -89,8 +100,11 @@ class _HandoverScreenState extends State<HandoverScreen> {
       record = null;
       sources = [];
       names = {};
+      offline = null;
+      etag = null;
     });
     try {
+      await widget.cache?.purgeExpired();
       final grants = maps(await widget.api.getList('/me/permissions'));
       if (!grants.any((p) => p['function'] == 'SHIFT_HANDOVER' && p['operation'] == 'VIEW')) {
         throw ApiProblem(403, 'PERMISSION_DENIED', 'Bạn không có quyền xem bàn giao ca.');
@@ -118,10 +132,22 @@ class _HandoverScreenState extends State<HandoverScreen> {
       } on ApiProblem catch (p) {
         if (p.status != 404) rethrow;
       }
+      if (value != null) {
+        // ETag cho If-Match của lệnh sửa (FR-040); thân mới nhất của cùng bàn giao
+        final full = await widget.api.requestResponse('GET', '/handovers/${value['id']}');
+        if (full.body is Map<String, dynamic>) value = full.body as Map<String, dynamic>;
+        etag = full.headers['etag'];
+      }
       if (!mounted || request != generation) return;
       shift = current;
       record = value;
-      if (value == null) return;
+      assessment.text = (value?['generalAssessment'] as String?) ?? '';
+      final endsAt = scopeEndsAt(selected);
+      if (value == null) {
+        await widget.cache?.remove(selected!);
+        return;
+      }
+      if (endsAt != null) await widget.cache?.save(selected!, value, endsAt);
       List<Map<String, dynamic>> readSources = [];
       String? failedSource;
       try {
@@ -153,7 +179,17 @@ class _HandoverScreenState extends State<HandoverScreen> {
           // Backend giới hạn tên theo quyền; không lấy tên từ nguồn khác.
         }
       }
+    } on ApiUnreachable {
+      final cached = selected == null ? null : await widget.cache?.read(selected!);
+      if (mounted && request == generation) {
+        offline = cached;
+        record = cached?.record;
+        error = cached == null ? 'Không kết nối được máy chủ và máy không có bản lưu của ca này.' : null;
+      }
     } on Object catch (e) {
+      if (e is ApiProblem && [401, 403, 404].contains(e.status) && selected != null) {
+        await widget.cache?.remove(selected!);
+      }
       if (mounted && request == generation) {
         error = backendMessage(e);
         shift = null;
@@ -223,6 +259,39 @@ class _HandoverScreenState extends State<HandoverScreen> {
     }
   }
 
+  /// Lệnh sửa Bản nháp hoặc thêm phát sinh sau khi lập (FR-040, FR-041): gửi If-Match theo ETag; 412 thì tải lại.
+  Future<void> edit(String method, String path, String done, {Object? body}) async {
+    if (busy || loading || etag == null) return;
+    setState(() {
+      busy = true;
+      error = null;
+    });
+    try {
+      final key = keys.putIfAbsent(jsonEncode([method, path, body]), newIdempotencyKey);
+      await widget.api.requestJson(
+        method,
+        path,
+        body: body,
+        headers: {'If-Match': etag!, if (method != 'DELETE') 'Idempotency-Key': key},
+      );
+      keys.clear();
+      await load();
+      if (mounted) setState(() => error = done);
+    } on ApiProblem catch (e) {
+      if (!mounted) return;
+      if (e.status == 412) {
+        await load();
+        if (mounted) setState(() => error = 'Bàn giao vừa được người khác sửa; đã tải lại, hãy làm lại thao tác.');
+      } else {
+        setState(() => error = backendMessage(e));
+      }
+    } on Object catch (e) {
+      if (mounted) setState(() => error = backendMessage(e));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -267,6 +336,14 @@ class _HandoverScreenState extends State<HandoverScreen> {
               (shift?['allowedCommands'] as List<dynamic>? ?? []).contains('createHandover'))
             FilledButton(onPressed: busy ? null : () => act('create'), child: const Text('Lập bàn giao')),
           if (!loading && record != null) ...[
+            if (offline != null)
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  'Bản lưu trên máy lúc ${formatDateTime(offline!.savedAt)}, chỉ xem khi mất mạng; '
+                  'tự xóa lúc ${formatDateTime(offline!.scopeEndsAt)} khi hết phạm vi ca.',
+                ),
+              ),
             const SizedBox(height: 16),
             StatusPill(
               label: _states[record!['status']] ?? 'Chưa đọc được trạng thái',
@@ -278,7 +355,32 @@ class _HandoverScreenState extends State<HandoverScreen> {
               Text('Xác nhận lúc ${formatDateTime(DateTime.parse(record!['confirmedAt'] as String))}'),
             const SizedBox(height: 16),
             Text('Nhận định chung', style: text.titleMedium),
-            Text((record!['generalAssessment'] as String?) ?? 'Chưa có nội dung được phép xem.'),
+            if (allowed('assess')) ...[
+              TextField(
+                controller: assessment,
+                decoration: const InputDecoration(labelText: 'Nhận định chung'),
+                maxLines: 4,
+                enabled: !busy,
+              ),
+              OutlinedButton(
+                onPressed: busy
+                    ? null
+                    : () => edit(
+                        'PUT',
+                        '/handovers/${record!['id']}/assessments',
+                        'Đã lưu nhận định',
+                        body: {
+                          'general': assessment.text.trim(),
+                          'byResident': [
+                            for (final a in maps(record!['residentAssessments']))
+                              {'residentId': a['residentId'], 'content': a['content']},
+                          ],
+                        },
+                      ),
+                child: const Text('Lưu nhận định'),
+              ),
+            ] else
+              Text((record!['generalAssessment'] as String?) ?? 'Chưa có nội dung được phép xem.'),
             for (final assessment in maps(record!['residentAssessments'])) ...[
               const SizedBox(height: 16),
               Text(
@@ -306,6 +408,16 @@ class _HandoverScreenState extends State<HandoverScreen> {
                       if (item['note'] is String) Text('Ghi chú: ${item['note']}'),
                       if (item['noteAuthor'] is String) Text('Người ghi: ${item['noteAuthor']}'),
                       if (item['resolved'] == true) const Text('Đã xử lý'),
+                      if (allowed('deleteItem') && item['id'] is int)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: busy
+                                ? null
+                                : () => edit('DELETE', '/handovers/${record!['id']}/items/${item['id']}', 'Đã bỏ mục'),
+                            child: const Text('Bỏ mục'),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -315,10 +427,35 @@ class _HandoverScreenState extends State<HandoverScreen> {
               const SizedBox(height: 16),
               Text('Nguồn tham khảo hiện hành', style: text.titleMedium),
               for (final source in sources)
-                Text(
-                  source['dataUnavailable'] == true
-                      ? 'Chưa đọc được nguồn.'
-                      : (source['description'] as String?) ?? 'Nội dung giới hạn theo quyền xem.',
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        source['dataUnavailable'] == true
+                            ? 'Chưa đọc được nguồn.'
+                            : (source['description'] as String?) ?? 'Nội dung giới hạn theo quyền xem.',
+                      ),
+                    ),
+                    if (allowed('addItem') && source['dataUnavailable'] != true && source['description'] is String)
+                      TextButton(
+                        onPressed: busy
+                            ? null
+                            : () => edit(
+                                'POST',
+                                '/handovers/${record!['id']}/items',
+                                'Đã thêm mục',
+                                body: {
+                                  'group': source['group'],
+                                  'sourceType': source['sourceType'],
+                                  'sourceId': source['sourceId'],
+                                  if (source['residentId'] != null) 'residentId': source['residentId'],
+                                  if (source['roomId'] != null) 'roomId': source['roomId'],
+                                  'description': source['description'],
+                                },
+                              ),
+                        child: const Text('Thêm'),
+                      ),
+                  ],
                 ),
             ],
             for (final row in comments) ...[

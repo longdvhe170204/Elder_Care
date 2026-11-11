@@ -53,7 +53,7 @@ class BR_M07_14_FeeEventTest {
         when(dose.getScheduledTime()).thenReturn(scheduled);
         when(dose.getWindowFrom()).thenReturn(scheduled.minusSeconds(1800));
         when(dose.getWindowTo()).thenReturn(scheduled.plusSeconds(1800));
-        when(dose.getStatus()).thenReturn(DoseStatus.ADMINISTERED);
+        when(dose.getStatus()).thenReturn(DoseStatus.DUE);
         when(dose.getFloorAreaId()).thenReturn(11L);
 
         Prescription prescription = mock(Prescription.class);

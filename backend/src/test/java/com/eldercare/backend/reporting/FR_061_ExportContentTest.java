@@ -8,8 +8,10 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.reporting.internal.export.domain.ExportContent;
 import com.eldercare.backend.reporting.internal.export.domain.ExportContent.SummaryRow;
+import com.eldercare.backend.reporting.internal.export.domain.ExportWorkbook;
 import com.eldercare.backend.reporting.internal.metric.domain.DetailRow;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
+import com.eldercare.backend.reporting.internal.metric.domain.ValueLabel;
 import com.eldercare.backend.reporting.internal.report.domain.MetricResult;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -91,6 +93,32 @@ class FR_061_ExportContentTest {
         assertThat(content.summary()).extracting(SummaryRow::breakdownKey).containsExactly(null, "Tầng 1");
         assertThat(content.summary().getFirst().value()).isEqualByComparingTo("3");
         assertThat(content.rowCount()).isEqualTo(2);
+    }
+
+    /** 016 T109 (FR-007): file xuất ghi nhãn dữ liệu đã loại bỏ kèm loại dữ liệu. */
+    @Test
+    void FR_007_purgedLabel_notesListDataTypes() {
+        MetricResult purged = new MetricResult(
+                "MED.MISSED_RATE",
+                "Liều Bỏ lỡ",
+                new MetricValue(
+                        "MED.MISSED_RATE",
+                        BigDecimal.valueOf(5),
+                        null,
+                        null,
+                        Set.of(ValueLabel.PURGED_BY_RETENTION),
+                        0,
+                        List.of(),
+                        List.of("M07.DOSE")),
+                Set.of(1L, 2L),
+                Map.of(),
+                List.of());
+
+        SummaryRow total = ExportContent.decide(MANAGER, false, Optional.empty(), List.of(purged))
+                .summary()
+                .getFirst();
+        assertThat(total.purgedDataTypes()).containsExactly("M07.DOSE");
+        assertThat(ExportWorkbook.notes(total)).isEqualTo("số liệu không đầy đủ do đã loại bỏ theo lưu trữ (M07.DOSE)");
     }
 
     @Test

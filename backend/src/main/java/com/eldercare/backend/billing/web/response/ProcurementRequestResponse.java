@@ -34,9 +34,18 @@ public record ProcurementRequestResponse(
         Long actualAmount,
         ProcurementStatus status,
         Long linkedSourceTotal,
-        @Schema(accessMode = Schema.AccessMode.READ_ONLY) Boolean received) {
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) Boolean received,
 
-    public static ProcurementRequestResponse of(ProcurementRequestRow row, Boolean received) {
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Phiên bản cho If-Match của PUT")
+        Integer version,
+
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) Long createdByStaffId,
+
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Chỉ để hiện nút")
+        List<String> allowedCommands) {
+
+    public static ProcurementRequestResponse of(
+            ProcurementRequestRow row, Boolean received, List<String> allowedCommands) {
         return new ProcurementRequestResponse(
                 row.id(),
                 row.departmentId(),
@@ -57,6 +66,9 @@ public record ProcurementRequestResponse(
                 row.actualAmount(),
                 row.status(),
                 row.linkedSourceTotal(),
-                received);
+                received,
+                row.version(),
+                row.createdByStaffId(),
+                allowedCommands);
     }
 }

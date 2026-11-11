@@ -183,6 +183,8 @@ function PurchaseDetail({ row, familyMode, onChanged, onDenied }) {
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
   const [receipt, setReceipt] = useState(null)
+  const [urgent, setUrgent] = useState(false)
+  const [requester, setRequester] = useState('')
   const uploaded = useRef(new Map())
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState(null)
@@ -198,6 +200,8 @@ function PurchaseDetail({ row, familyMode, onChanged, onDenied }) {
     setAmount('')
     setDate('')
     setReceipt('')
+    setUrgent(false)
+    setRequester('')
     setFailure(null)
     nonce.current = null
   }
@@ -215,7 +219,12 @@ function PurchaseDetail({ row, familyMode, onChanged, onDenied }) {
         ...(needsReason ? { reason: reason.trim() } : {}),
         ...(command === 'additional' ? { newAmount: Number(amount) } : {}),
         ...(command === 'purchased'
-          ? { actualAmount: Number(amount), purchasedOn: date, receiptFileId: uploaded.current.get(receipt) }
+          ? {
+              actualAmount: Number(amount),
+              purchasedOn: date,
+              receiptFileId: uploaded.current.get(receipt),
+              ...(urgent ? { urgentPurchase: true, urgentPurchaseRequesterId: Number(requester) } : {}),
+            }
           : {}),
       }
       await commands[command][1]({
@@ -327,6 +336,40 @@ function PurchaseDetail({ row, familyMode, onChanged, onDenied }) {
                 />
               </label>
               {receipt && <p>Đã chọn: {receipt.name}</p>}
+              {row.catalogItemId != null && (
+                <>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="size-5"
+                      checked={urgent}
+                      disabled={pending}
+                      onChange={(e) => {
+                        setUrgent(e.target.checked)
+                        nonce.current = null
+                      }}
+                    />
+                    Mua gấp thuốc, vật tư y tế
+                  </label>
+                  {urgent && (
+                    <label>
+                      Mã hồ sơ Bác sĩ hoặc Điều dưỡng yêu cầu (bắt buộc)
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                        disabled={pending}
+                        value={requester}
+                        onChange={(e) => {
+                          setRequester(e.target.value)
+                          nonce.current = null
+                        }}
+                      />
+                    </label>
+                  )}
+                </>
+              )}
             </>
           )}
           {needsReason && (
@@ -370,6 +413,7 @@ function PurchaseDetail({ row, familyMode, onChanged, onDenied }) {
 function PurchaseCreate({ residentId, onChanged, onDenied }) {
   const [values, setValues] = useState({
     residentId: residentId ?? '',
+    catalogItemId: '',
     description: '',
     quantity: '',
     estimatedAmount: '',
@@ -396,6 +440,7 @@ function PurchaseCreate({ residentId, onChanged, onDenied }) {
         headers: { 'Idempotency-Key': nonce.current },
         body: {
           residentId: Number(values.residentId),
+          ...(values.catalogItemId ? { catalogItemId: Number(values.catalogItemId) } : {}),
           description: values.description,
           quantity: Number(values.quantity),
           estimatedAmount: Number(values.estimatedAmount),
@@ -435,6 +480,17 @@ function PurchaseCreate({ residentId, onChanged, onDenied }) {
           />
         </label>
       ))}
+      <label>
+        Mã vật phẩm trong danh mục (nếu có)
+        <Input
+          type="number"
+          min="1"
+          step="1"
+          value={values.catalogItemId}
+          onChange={(e) => update('catalogItemId', e.target.value)}
+          disabled={pending}
+        />
+      </label>
       <label>
         Người yêu cầu
         <select

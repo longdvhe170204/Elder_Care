@@ -1,3 +1,4 @@
+export { COST_TYPE } from '@/common/costLabels'
 export const STATEMENT_STATUS = { OPEN: 'Đang mở', AWAITING_FINALIZATION: 'Chờ chốt', FINALIZED: 'Đã chốt' }
 export const ITEM_STATUS = {
   DRAFT: 'Nháp',
@@ -5,18 +6,6 @@ export const ITEM_STATUS = {
   APPROVED: 'Đã duyệt',
   FINALIZED: 'Đã chốt',
   CANCELLED: 'Đã hủy',
-}
-export const COST_TYPE = {
-  RESIDENCY_FEE: 'Phí lưu trú',
-  DAY_CARE_SESSION_FEE: 'Phí buổi bán trú',
-  SERVICE: 'Dịch vụ',
-  CONSUMABLE: 'Vật phẩm tiêu hao',
-  ACTIVITY: 'Hoạt động',
-  MEDICATION: 'Thuốc',
-  FAMILY_OVERNIGHT_STAY: 'Người thân ở lại',
-  FAMILY_MEAL: 'Suất ăn người thân',
-  PURCHASE_ASSISTANCE: 'Mua hộ',
-  OTHER: 'Khoản khác',
 }
 export const ORIGIN = {
   EVENT_BASED: 'Theo sự kiện',

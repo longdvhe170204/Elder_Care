@@ -39,6 +39,10 @@ import com.eldercare.backend.roombedallocation.api.dto.ProcurementType;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -389,6 +393,55 @@ public class ProcurementRequestService {
      * "Đã nhận" của api-019 (FR-008d, 11.7): chỉ loại MEDICATION; mọi dòng có lần tiếp nhận Đạt theo
      * {@link ProcurementIntakePort} (006 cài); thiếu bean thì chưa biết ({@code null}).
      */
+    /**
+     * Lệnh người xem làm được trên yêu cầu (api-019 {@code allowedCommands}, chủ dự án duyệt 2026-11-10; chỉ để hiện nút,
+     * lệnh vẫn kiểm lại khi gọi). Theo đúng điều kiện trạng thái, quyền và người thực hiện của từng lệnh ở trên;
+     * {@code update} là sửa Nháp (PUT).
+     */
+    public List<String> allowedCommands(ProcurementRequestRow row) {
+        Long me = user.staffId().orElse(null);
+        if (me == null) return List.of();
+        var granted = permissions.allowedCommands(
+                user,
+                target(row.id()),
+                Map.of(
+                        "UPDATE", new PermissionKey(Function.PURCHASE_REQUEST, Operation.UPDATE),
+                        "APPROVE", new PermissionKey(Function.PURCHASE_REQUEST, Operation.APPROVE)));
+        boolean update = granted.contains("UPDATE");
+        boolean approve = granted.contains("APPROVE");
+        boolean creator = row.createdByStaffId() == me;
+        boolean lead = duties.getObject()
+                .departmentLead(row.departmentId())
+                .filter(l -> l.longValue() == me)
+                .isPresent();
+        boolean author = lead || nurseAuthor(row.type(), row.departmentId());
+        boolean reconciler =
+                user.roles().contains(Role.ACCOUNTANT) && !Objects.equals(row.purchaseRecordedByStaffId(), me);
+        var commands = new ArrayList<String>();
+        switch (row.status()) {
+            case DRAFT -> {
+                if (update && creator && author) commands.addAll(List.of("update", "submit"));
+                if (update && creator) commands.add("cancel");
+            }
+            case PENDING_APPROVAL -> {
+                if (update && creator) commands.add("withdraw");
+                if (approve) commands.addAll(List.of("approve", "reject"));
+            }
+            case APPROVED -> {
+                if (update && lead) commands.addAll(List.of("record-purchased", "cancel"));
+            }
+            case PENDING_RECONCILIATION -> {
+                if (update && reconciler)
+                    commands.addAll(List.of("confirm-match", "return-for-reconciliation", "record-discrepancy"));
+            }
+            case DISCREPANCY -> {
+                if (approve) commands.add("resolve-discrepancy");
+            }
+            default -> {}
+        }
+        return List.copyOf(commands);
+    }
+
     public Boolean received(ProcurementRequestRow row) {
         if (row.type() != ProcurementType.MEDICATION) return null;
         var source = intakes.getIfAvailable();

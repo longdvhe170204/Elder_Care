@@ -5,7 +5,7 @@ import { PermissionsProvider } from '@/common/permissions/permissions'
 import { ProcurementRequestsPage } from './ProcurementRequestsPage'
 
 // 019 T008 màn web (US7; FR-008 → FR-008d; bố cục duyệt 2026-11-09 mục (8)): bảng yêu cầu mua sắm lọc theo trạng thái
-// kèm số đếm; khung chi tiết có lệnh theo trạng thái và quyền (api-019 chưa có allowedCommands); lập yêu cầu bằng Sheet.
+// kèm số đếm; khung chi tiết có nút theo allowedCommands của backend (api-019 bổ sung 2026-11-10); lập, sửa Nháp bằng Sheet.
 
 let api
 
@@ -23,15 +23,24 @@ const INGREDIENT = {
   status: 'PENDING_APPROVAL',
   linkedSourceTotal: 0,
   received: null,
+  version: 2,
+  allowedCommands: ['approve', 'reject'],
 }
 
-const APPROVED = { ...INGREDIENT, id: 42, status: 'APPROVED', approvedAmount: 1800000 }
+const APPROVED = {
+  ...INGREDIENT,
+  id: 42,
+  status: 'APPROVED',
+  approvedAmount: 1800000,
+  allowedCommands: ['record-purchased', 'cancel'],
+}
 const TO_RECONCILE = {
   ...INGREDIENT,
   id: 43,
   status: 'PENDING_RECONCILIATION',
   approvedAmount: 1800000,
   actualAmount: 1850000,
+  allowedCommands: ['confirm-match', 'return-for-reconciliation', 'record-discrepancy'],
 }
 
 const MEDICATION = {
@@ -342,5 +351,35 @@ describe('Yêu cầu mua sắm', () => {
       </PermissionsProvider>,
     )
     expect(await screen.findByText(/không có quyền/i)).toBeInTheDocument()
+  })
+
+  it('FR_008_suaNhap_guiIfMatchTheoPhienBan_nutTheoAllowedCommands', async () => {
+    permissions(LEAD)
+    const draft = { ...INGREDIENT, id: 45, status: 'DRAFT', version: 3, allowedCommands: ['update', 'submit', 'cancel'] }
+    const other = { ...INGREDIENT, id: 46, status: 'DRAFT', version: 1, allowedCommands: [] }
+    api.on('GET', '/procurement-requests', json(200, [draft, other]))
+    api.on('PUT', '/procurement-requests/45', json(200, {}))
+    const table = await renderPage('KITCHEN_STAFF')
+
+    // Nháp của người khác: không có nút lệnh nào
+    let panel = await openRequest(table, 'Yêu cầu #46')
+    expect(within(panel).queryByRole('button', { name: 'Sửa nháp…' })).not.toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Gửi duyệt' })).not.toBeInTheDocument()
+    fireEvent.keyDown(panel, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    panel = await openRequest(table, 'Yêu cầu #45')
+    fireEvent.click(within(panel).getByRole('button', { name: 'Sửa nháp…' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Sửa yêu cầu mua sắm #45' })
+    expect(within(sheet).getByLabelText('Lý do')).toHaveValue('Hết gạo cho tuần sau')
+    fireEvent.change(within(sheet).getByLabelText('Lý do'), { target: { value: 'Hết gạo, thêm thịt' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Lưu nháp' }))
+    await waitFor(() => expect(api.calls('PUT', '/procurement-requests/45')).toHaveLength(1))
+    const [, init] = api.calls('PUT', '/procurement-requests/45')[0]
+    expect(new Headers(init.headers).get('If-Match')).toBe('"3"')
+    const body = JSON.parse(init.body)
+    expect(body.reason).toBe('Hết gạo, thêm thịt')
+    expect(body.lines).toHaveLength(2)
+    expect(body.departmentId).toBe(3)
   })
 })

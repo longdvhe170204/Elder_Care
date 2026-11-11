@@ -57,6 +57,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 1
 
 - [ ] T008 [US1] *(2026-11-08, A: xong `ASSET.OVERDUE` (dấu quá hạn bảo trì, đăng kiểm, bảo hiểm theo `AssetStatisticsApi.overdue` của 003), `HEALTH.CRITICAL_FLAGS`; phần "tới mốc nhắc CFG-M03-09" chưa có nguồn)* *(2026-10-27: xong `BED.STATUS`, `BED.USABLE`, `BED.ISOLATED_ROOMS`; `BED.EMPTY_AWAITING_TRANSFER` chờ 019; mã khác chờ nguồn)* Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/reporting/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
+  - *(2026-11-11, A)* Thêm `BED.EMPTY_AWAITING_TRANSFER` (`EmptyAwaitingTransferMetric`, nguồn `BedStatisticsApi.emptyAwaitingTransferBedIds`, tầng theo phòng), `BALANCE.LOW_OR_OWING` (017), `REGISTRATION.TO_DO` (018); `MetricRemainingSourcesTest` xanh. Còn phần "tới mốc nhắc CFG-M03-09" của `ASSET.OVERDUE` (003 chưa trả).
 - [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/reporting/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/reporting/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
 - [x] T010 [P] [US1] *(2026-10-24: bố cục duyệt, DESIGN.md 5.21.0; `src/features/dashboard/DashboardPage.jsx` thay bản mẫu Tổng quan; test `DashboardPage.test.jsx`)* Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
@@ -111,6 +112,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 4
 
 - [ ] T016 [US4] *(2026-11-08, A: xong `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` (005), `MEAL.LATE_TICKETS`, `MEAL.DISCREPANCY_TICKETS` (011), `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS`, `QC.PASS_RATE`, `QC.BY_CHECKER_ROLE` (014) trên nguồn thật; màn web dùng bảng chung, thêm nhãn ô; còn `ACT.ISOLATION_RISK` (bản cài `isolationRisks` của 014 còn trả rỗng), nhãn ghi nhận muộn của điểm danh hoạt động, xem plan)* *(2026-10-27: xong `BED.AWAITING_READY`, `_MAX`, `_OVERDUE`; nhóm khác chờ nguồn)* Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `frontend/src/tinh-nang/bao-cao/cham-soc/`, `frontend/src/tinh-nang/bao-cao/chat-luong/`
+  - *(2026-11-10, A, Q-407)* `ACT.ISOLATION_RISK` bỏ (FR-036 bỏ): không còn cài chỉ tiêu này.
 
 ---
 
@@ -127,6 +129,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 5
 
 - [ ] T018 [US5] *(2026-11-08, A: cài `HEALTH.ALERTS`, `HEALTH.ALERT_RESPONSE_TIME`, `HEALTH.ALERT_ESCALATIONS`, `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS`, `HEALTH.OVERDUE_REASSESSMENTS` trên `IncidentStatisticsApi`, `ResidentStatisticsApi` thật; màn web dùng bảng chung của `ReportsPage`, thêm nhãn ô ở `reportLabels.js`; còn `HEALTH.CONTAINMENT_ZONES`, mức lúc tiếp nhận của sự cố, dòng tham khảo "số sự cố đã hủy" (nguồn 007 chưa có, team-plan mục 8), xem plan "Chỉ tiêu sức khỏe, sự cố, tài sản")* Cài chỉ tiêu nhóm sức khỏe, thuốc (001, 006, 007); màn web `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`
+  - *(2026-11-11, A)* Thêm `HEALTH.CONTAINMENT_ZONES` (`ContainmentZonesMetric`, `IncidentStatisticsApi.containmentZones`; một khu nhiều tầng đếm một lần). `MetricRemainingSourcesTest` xanh.
 
 ---
 
@@ -142,7 +145,8 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 6
 
-- [ ] T020 [US6] Cài chỉ tiêu nhóm chi phí qua `ChiPhiThongKeApi` (010); màn web `frontend/src/tinh-nang/bao-cao/chi-phi/`
+- [x] T020 [US6] Cài chỉ tiêu nhóm chi phí qua `ChiPhiThongKeApi` (010); màn web `frontend/src/tinh-nang/bao-cao/chi-phi/`
+  - *(2026-11-11, A)* `COST.SUMMARY`, `COST.EVENT_GENERATED_RATE`, `COST.POST_FINALIZATION_ADJUSTMENTS` (qua `CostItems`: bỏ khoản Đã hủy, đã chốt chỉ khoản Đã chốt, tạm tính thêm khoản chưa hủy, khoản thiếu đơn giá không cộng), `COST.STATEMENTS`, `COST.PURCHASING` (019, tách khỏi chi phí người cao tuổi); chế độ tạm tính gắn nhãn `PROVISIONAL` (`ReportService`); web: lựa chọn "Đã chốt / Tạm tính" ở nhóm Chi phí, gửi `costMode` cho bảng và file xuất, nhãn ô (`reportLabels.js`). `MetricRemainingSourcesTest` 5, `ReportApiIT.FR_051_…` đỏ rồi xanh, `ReportsPage.test.jsx` FR_051 đỏ rồi xanh, IT báo cáo, xuất, phạm vi xanh.
 
 ---
 
@@ -175,6 +179,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 8
 
 - [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `REQUESTS`, `WORKING_HOURS` chờ 015; `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `INVITATIONS` bỏ theo Q-397)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `DoiCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
+  - *(2026-11-11, A)* `SHIFT.REQUESTS` (theo loại và trạng thái, không lý do) và `SHIFT.WORKING_HOURS` (giờ đã làm theo nhân viên, giờ đã xếp ở chi tiết; chỉ Quản lý viện xuất) qua `SwapStatisticsApi`; nhãn ô web. Giữ [ ]: `WorkingHoursView` của 015 chưa có tầng nên trưởng tầng được giao chưa thấy nhân viên tầng mình (FR-073); cần "Đổi api" thêm tầng vào view.
 
 ---
 
@@ -252,5 +257,10 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - [x] T106 [US3] *(2026-11-06: `WaitingListMetric` `RES.WAITING_LIST`, thêm `RES.WAITING_TIME`, `RES.WAITING_TIME_MAX` (chi-tieu.md, glossary); test `MetricResWaitingListTest` 3; còn số hồ sơ rời danh sách theo lý do chờ 004 trả `leftOn`, ghi ở plan)* Cài `NCT.DANH_SACH_CHO` qua `ResidencyStatisticsApi.waitingList` (004, bản thật `ResidencyStatisticsService`); test `ChiTieu_NCT_*Test` viết trước; một phần của T013, T014 per FR-025 (partial)
 - [x] T107 [US5] *(2026-11-06: `MissedDoseRateMetric`, `RefusedDoseRateMetric`, `OverdueReconciliationsMetric`; test `MetricMedicationTest` 2)* Cài `THUOC.TY_LE_BO_LO`, `THUOC.TY_LE_TU_CHOI` (`MedicationStatisticsApi.dosesInPeriod`) và `THUOC.DOI_CHIEU_QUA_HAN` (`reconciliationsInPeriod`) của 006 (bản thật `DefaultMedicationStatisticsService`); test `ChiTieu_THUOC_*Test` viết trước; một phần của T017, T018 per FR-043, FR-044 (partial)
 - [x] T108 [US5] *(2026-11-06: `VitalSignsMetric`; test `MetricHealthVitalSignsTest` 1; còn chuỗi giá trị theo thời gian của một người, chờ 007 thêm giá trị đo vào `VitalSignReportView`, ghi ở plan)* Cài `SK.CHI_SO` qua `VitalSignStatisticsApi.readings` (007, bản thật `DefaultVitalSignStatistics`); test `ChiTieu_SK_*Test` viết trước; một phần của T017, T018 per FR-040 (partial)
-- [ ] T109 [US7] Gắn nhãn `PURGED_BY_RETENTION` khi khoảng báo cáo giao với khoảng dữ liệu đã loại bỏ theo bản tóm tắt `EXPIRED_DATA_PURGED` của 000 (FR-051) cho loại dữ liệu mà chỉ tiêu đọc; test viết trước per FR-007 (missing) *(bổ sung 2026-11-06 khi rà T030: nhãn có trong enum, file xuất, web nhưng không chỗ nào gắn; "kèm loại dữ liệu bị ảnh hưởng" cần thêm trường vào `MetricValue` của api-016, chờ chủ dự án duyệt)*
+- [x] T109 [US7] Gắn nhãn `PURGED_BY_RETENTION` khi khoảng báo cáo giao với khoảng dữ liệu đã loại bỏ theo bản tóm tắt `EXPIRED_DATA_PURGED` của 000 (FR-051) cho loại dữ liệu mà chỉ tiêu đọc; test viết trước per FR-007 (missing) *(bổ sung 2026-11-06 khi rà T030: nhãn có trong enum, file xuất, web nhưng không chỗ nào gắn; "kèm loại dữ liệu bị ảnh hưởng" cần thêm trường vào `MetricValue` của api-016, chờ chủ dự án duyệt)* *(2026-11-10, A: chủ dự án duyệt `MetricValue.purgedDataTypes`; `PurgedDataTypes` đọc bản tóm tắt `EXPIRED_DATA_PURGED` (`AuditLogApi.recorded`, `M15.PURGE_RUN`), chỉ tiêu ứng với module qua API nguồn ở `Metric.source`, khoảng báo cáo bắt đầu trước mốc `to` muộn nhất của loại dữ liệu có bản ghi bị xóa thì gắn nhãn kèm loại; báo cáo (`ReportService`), file xuất (cột ghi chú), web (`labelNotes` hiện tên module). Test: `FR_007_PurgedByRetentionTest` 2, `ReportApiIT.FR_007_…` đỏ rồi xanh, `FR_061_ExportContentTest.FR_007_…`, `reportLabels.test.js`)*
 - [x] T110 *(Bổ sung 2026-11-06)* Web: ô chia nhóm hiện chữ thay khóa thô (`reportLabels.breakdownLabel`: trạng thái giường kèm lý do giữ chỗ, hồ sơ chờ, loại lưu trú, mức chỉ số, bàn giao, tỷ lệ phục vụ, giấy phép, phiếu đối chiếu; tầng theo `getFloors`; ca hiện "Ca {id}" vì hợp đồng chỉ trả khóa) ở bảng báo cáo, tiêu đề danh sách chi tiết, dashboard; test `reportLabels.test.js` 4 (đỏ rồi xanh), `ReportsPage.test.jsx` sửa khóa mẫu
+
+## Phase 14: Convergence
+
+- [x] T111 Cô lập `FR_020_DashboardIT`, `SC_008_ReadOnlyIT`, `FR_009_DetailMatchIT` khỏi dữ liệu sót của test khác (đỏ ở IT 3 JVM vì `CareTaskData.publicTaskTypeId` null; chạy riêng xanh) theo mẫu `CallReminderTestBase` per FR-020, SC-008, FR-009 (partial)
+  - *(2026-11-10, A)* Nguyên nhân: `T064_LocationTaskRetentionIT` (005) chèn `care_task` năm 2010 với `data='{}'`, chỉ tiêu công việc quá hạn đọc từ `Instant.EPOCH` gặp dòng này (`CareTaskData.publicTaskTypeId` null). Sửa fixture cho đủ nội dung; xóa một dòng sót ở `eldercare_test_1` bằng tài khoản `eldercare_retention`. `./mvnw clean verify -Dit.forkCount=3` 2026-11-10: unit 1099, IT 662 xanh (21 phút 37 giây).

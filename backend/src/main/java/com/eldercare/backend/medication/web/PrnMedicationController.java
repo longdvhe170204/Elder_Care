@@ -7,6 +7,7 @@ import com.eldercare.backend.medication.internal.dose.service.PrnMedicationServi
 import com.eldercare.backend.medication.internal.governance.service.ActorNames;
 import com.eldercare.backend.medication.web.request.DoseRequests.ResultBasis;
 import com.eldercare.backend.medication.web.request.NewPrnAdministrationRequest;
+import com.eldercare.backend.medication.web.response.M07Problems;
 import com.eldercare.backend.medication.web.response.PrnBodies.PrnHistoryBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -51,7 +52,7 @@ public class PrnMedicationController {
         @ApiResponse(responseCode = "201", description = "Đã dùng", content = @Content),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M07Problems.Prn.class))),
         @ApiResponse(
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))

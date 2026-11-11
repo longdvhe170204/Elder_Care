@@ -33,6 +33,11 @@ class SettlementTransitionParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "017";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.END_RESIDENCY);
     }

@@ -101,7 +101,13 @@ public class CostRecalculationService {
 
     private void refresh(
             Long resident, Long service, LocalDate from, LocalDate to, boolean missingOnly, String cause, String type) {
-        var rows = store.affected(resident, service, from, to, missingOnly).stream()
+        var found = new ArrayList<>(store.affected(resident, service, from, to, missingOnly));
+        // Q3: khoản chưa xác định được dịch vụ cũng được tính lại khi có phiên bản đơn giá mới.
+        if (service != null && missingOnly)
+            store.affected(resident, null, from, to, true).stream()
+                    .filter(row -> row.serviceId() == null)
+                    .forEach(found::add);
+        var rows = found.stream()
                 .filter(row -> type == null || type.equals(row.sourceType()))
                 .toList();
         rows.stream().map(StoredCostCalculation::residentId).distinct().sorted().forEach(locks::resident);
@@ -169,9 +175,10 @@ public class CostRecalculationService {
         }
         CalculatedCost cost = null;
         if (!cancelled) {
-            if (item.sourceType().equals("RESIDENCY_DAY")) {
+            if (Set.of("RESIDENCY_DAY", "DAY_CARE_SESSION").contains(item.sourceType())) {
                 var source = lookup.find(item.residentId(), item.sourceType(), item.date(), item.date()).stream()
-                        .filter(s -> s.sourceId().equals(item.sourceId()))
+                        .filter(s -> s.sourceId().equals(item.sourceId())
+                                && s.billingUnit().equals(item.billingUnit()))
                         .findFirst()
                         .orElseThrow();
                 cost = sourcePricing.calculate(source);
@@ -188,11 +195,12 @@ public class CostRecalculationService {
                         cost.sourceValues(),
                         flags);
             } else {
-                if (item.sourceType().equals("DAY_CARE_SESSION"))
-                    throw new IllegalStateException(
-                            "Chưa có snapshot lịch bán trú đủ để tính lại; không áp công thức tiền sự kiện");
-                if (item.serviceId() == null) throw new IllegalStateException("Nguồn chưa cung cấp dịch vụ tính phí");
-                var quote = pricing.event(item.residentId(), item.serviceId(), item.date(), quantity);
+                Long service = item.serviceId() != null
+                        ? item.serviceId()
+                        : lookup.serviceForUnresolved(item.sourceType()).orElse(null);
+                var quote = service == null
+                        ? new CostPricingService.PriceQuote(null, null, false, null)
+                        : pricing.event(item.residentId(), service, item.date(), quantity);
                 var flags = new LinkedHashSet<>(items.item(item.id()).flags());
                 flags.remove("MISSING_UNIT_PRICE");
                 flags.remove("INCLUDED_IN_PACKAGE");

@@ -70,6 +70,11 @@ public class CareStatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "005";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         var all = EnumSet.noneOf(StatusCommand.class);
         all.addAll(DEPARTURE);

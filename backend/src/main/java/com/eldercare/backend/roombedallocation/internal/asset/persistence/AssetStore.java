@@ -70,6 +70,40 @@ public class AssetStore {
         return keys.getKey().longValue();
     }
 
+    /** Q-238, FR-011: tài sản giường ghi tăng kèm lệnh Tạo giường của 003: nguồn BED, Sẵn sàng, vị trí là phòng của giường. */
+    public long insertBed(
+            long bedId,
+            long typeId,
+            String code,
+            String name,
+            long departmentId,
+            long roomId,
+            Long floorAreaId,
+            Long createdBy,
+            Instant at) {
+        var keys = new GeneratedKeyHolder();
+        jdbc.update(
+                c -> {
+                    PreparedStatement ps = c.prepareStatement(
+                            "INSERT INTO asset (code, type_id, name, department_id, source, bed_id, status, location_type,"
+                                    + " location_id, floor_area_id, created_by_staff_id, created_at)"
+                                    + " VALUES (?, ?, ?, ?, 'BED', ?, 'READY', 'ROOM', ?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, code);
+                    ps.setLong(2, typeId);
+                    ps.setString(3, name);
+                    ps.setLong(4, departmentId);
+                    ps.setLong(5, bedId);
+                    ps.setLong(6, roomId);
+                    ps.setObject(7, floorAreaId);
+                    ps.setObject(8, createdBy);
+                    ps.setObject(9, LocalDateTime.ofInstant(at, BusinessTime.ZONE));
+                    return ps;
+                },
+                keys);
+        return keys.getKey().longValue();
+    }
+
     /** FR-011: sửa thông tin mô tả (nhóm 1); trạng thái, vị trí, bộ phận chỉ qua lệnh. */
     public void updateDescription(long id, AssetInput in) {
         jdbc.update(c -> {

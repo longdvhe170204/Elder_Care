@@ -311,3 +311,9 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - 006 không lập sẵn liều, không tự tạo phiếu hay chi phí, không chọn sẵn lô (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M07-*, CFG-M05-04)
 - Ngoại tuyến chỉ cho xác nhận liều và PRN của thuốc không kiểm soát đặc biệt (Q-01)
+
+## Phase 12: Convergence
+
+- [x] T070 Sửa 17 lệch hợp đồng `api-006.yaml` ghi ở `backend/src/test/resources/contract/known-mismatches.txt` (mã sửa cho khớp hợp đồng; nếu hợp đồng sai thì hỏi chủ dự án trước khi đổi), xóa đúng từng dòng khi hết lệch, `ApiContractIT` xanh per plan: R-14 so hợp đồng (contradicts)
+  - *(2026-11-10, A)* Hết 5/17 dòng: 409 `PrnProblem` (`earliestAllowedAt`, `violations` — runtime thêm `violations` MIN_INTERVAL, MAX_PER_24H), `IssuesProblem` (`issues`; JSON vấn đề ghi `notAutoChecked` theo api-006 `Issue`). Còn 12 dòng 409 `DoseAlreadyClosed` của administer, refuse, skip: hợp đồng đặt `status` là trạng thái liều, trùng `status` số của RFC 9457, và mã chưa trả `closedBy`, `closedAt`, `rejectedContent` (DBR-13); chờ chủ dự án chốt hợp đồng.
+  - *(2026-11-10, A; chủ dự án chốt `currentStatus`)* Hết 12 dòng còn lại: api-006 `DoseAlreadyClosed` đổi trường trạng thái liều thành `currentStatus` (`status` giữ là mã HTTP của Problem); `DoseAdministrationService` chặn administer, refuse, skip trên liều ở trạng thái cuối bằng 409 `DOSE_ALREADY_CLOSED` kèm `closedBy`, `closedAt`, `currentStatus`, `rejectedContent` (DBR-13, quickstart Q8), schema `M07Problems.DoseAlreadyClosed`. `DBR_13_DoseAlreadyClosedTest` đỏ rồi xanh; `ApiContractIT` xanh.

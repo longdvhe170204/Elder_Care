@@ -8,7 +8,7 @@ import java.util.List;
 @Schema(name = "CareTaskDetail")
 public record CareTaskDetailResponse(
         @JsonUnwrapped CareTaskResponse task,
-        Object result,
+        CareResultResponse result,
         String reason,
         String closedBy,
         String closureRule,

@@ -5,7 +5,10 @@ import '../../common/api/problem_message.dart';
 import '../../common/widgets/status_pill.dart';
 import '../balance/family_balance_screen.dart';
 import '../belongings/family_belongings_screen.dart';
+import '../charges/family_costs_screen.dart';
+import '../charges/purchase_consent_screen.dart';
 import '../visits/visit_registration_screen.dart';
+import 'family_activities_screen.dart';
 
 const _statusLabels = {
   'ADMISSION_IN_PROGRESS': ('Đang tiếp nhận', StatusTone.attention),
@@ -195,6 +198,19 @@ class _ResidentPortalScreenState extends State<ResidentPortalScreen> {
                     child: const Text('Đăng ký thăm'),
                   ),
                 const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => FamilyActivitiesScreen(
+                        api: widget.api,
+                        residentId: _residentId,
+                        representative: widget.resident['representative'] == true,
+                      ),
+                    ),
+                  ),
+                  child: const Text('Xem hoạt động'),
+                ),
+                const SizedBox(height: 8),
                 if (_right('VIEW_HEALTH'))
                   OutlinedButton(
                     onPressed: () => Navigator.of(context).push(
@@ -218,6 +234,30 @@ class _ResidentPortalScreenState extends State<ResidentPortalScreen> {
                       ),
                     ),
                     child: const Text('Xem số dư'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => FamilyCostsScreen(api: widget.api, residentId: _residentId),
+                      ),
+                    ),
+                    child: const Text('Xem bảng chi phí'),
+                  ),
+                ],
+                // BR-M10-10, 010 FR-023a: người đại diện đồng ý hoặc từ chối đề nghị mua hộ.
+                if (widget.resident['representative'] == true) ...[
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Đề nghị mua hộ')),
+                          body: PurchaseConsentScreen(api: widget.api, residentId: _residentId),
+                        ),
+                      ),
+                    ),
+                    child: const Text('Đề nghị mua hộ'),
                   ),
                 ],
                 if (_belongings) ...[

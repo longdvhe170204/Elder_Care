@@ -77,13 +77,24 @@ class MetricHealthEventsTest {
                 101L,
                 source,
                 null,
-                false);
+                false,
+                "RECEIVED");
     }
 
     private static IncidentReportView incident(
             long id, String level, String type, boolean nonHealth, int createdMin, Integer ackMin, int escalations) {
         return new IncidentReportView(
-                id, 8L, level, type, nonHealth, 102L, at(createdMin), ackMin == null ? null : at(ackMin), escalations);
+                id,
+                8L,
+                level,
+                ackMin == null ? null : level,
+                type,
+                nonHealth,
+                102L,
+                at(createdMin),
+                ackMin == null ? null : at(ackMin),
+                escalations,
+                ackMin == null ? "NEW" : "IN_PROGRESS");
     }
 
     private static <R extends MetricRecord> MetricValue value(MetricSource<R> source) {
@@ -153,7 +164,8 @@ class MetricHealthEventsTest {
                                 103L,
                                 "EMERGENCY_ASSIST",
                                 at(9),
-                                false),
+                                false,
+                                "RECEIVED"),
                         new AlertReportView(
                                 3,
                                 null,
@@ -167,7 +179,8 @@ class MetricHealthEventsTest {
                                 null,
                                 "EMERGENCY_ASSIST",
                                 null,
-                                true),
+                                true,
+                                "RECEIVED"),
                         alert(4, "WARNING", "WARNING", 0, 1, 0, "OTHER")));
 
         SosAssistanceAlertsMetric sos = new SosAssistanceAlertsMetric(alerts);

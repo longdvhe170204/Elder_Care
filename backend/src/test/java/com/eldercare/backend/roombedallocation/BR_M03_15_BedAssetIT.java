@@ -164,6 +164,51 @@ class BR_M03_15_BedAssetIT extends AssetTestBase {
                 .toList();
     }
 
+    /**
+     * Q19, 019 FR-011, research ghi tăng (Q-238; chủ dự án duyệt mã bộ phận {@code CARE} 2026-11-11): Tạo giường ghi tăng tài
+     * sản giường trong cùng lệnh: Sẵn sàng, bộ phận Chăm sóc, vị trí là phòng của giường.
+     */
+    @Test
+    void Q19_creatingABedRecordsItsAssetInTheCareDepartmentInTheRoom() {
+        duties.departmentCode("CARE", care);
+        as(manager);
+        long created =
+                bedService.create(room, "G" + (TestUsers.nextId() % 1000)).bed().id();
+        assertThat(jdbc.queryForMap(
+                        "SELECT source, status, department_id, location_type, location_id, floor_area_id FROM asset WHERE bed_id=?",
+                        created))
+                .containsEntry("source", "BED")
+                .containsEntry("status", "READY")
+                .containsEntry("department_id", care)
+                .containsEntry("location_type", "ROOM")
+                .containsEntry("location_id", room)
+                .containsEntry("floor_area_id", floor);
+    }
+
+    /**
+     * Q24 (FR-012, Q-243): tài sản giường không chuyển vị trí bằng lệnh của tài sản; giường đã từng phân bổ trả 409
+     * {@code BED_HAS_ALLOCATION_HISTORY}, giường chưa từng phân bổ thì đổi phòng ở lệnh sửa giường của 003.
+     */
+    @Test
+    void Q24_relocatingABedAssetIsBlocked_historyGivesBedHasAllocationHistory() throws Exception {
+        as(careLead);
+        String body = "{\"location\":{\"type\":\"ROOM\",\"id\":" + room + "},\"reason\":\"Sắp xếp lại\"}";
+        command(asset, "relocate", body)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
+        jdbc.update(
+                "INSERT INTO bed_allocation(id,resident_id,bed_id,status,start_at,end_at,checked_care_level,care_level_source)"
+                        + " VALUES(?,?,?,'CLOSED',?,?,'BASIC','CURRENT')",
+                TestUsers.nextId(),
+                TestUsers.nextId(),
+                bed,
+                java.time.LocalDateTime.now().minusDays(3),
+                java.time.LocalDateTime.now().minusDays(2));
+        command(asset, "relocate", body)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("BED_HAS_ALLOCATION_HISTORY"));
+    }
+
     @Test
     void US5_1_damageOnAnEmptyBedMovesTheBedToMaintenanceInTheSameCommand() throws Exception {
         command(asset, "report-damage", "{\"description\":\"Gãy thanh chắn\"}").andExpect(status().isOk());

@@ -4,11 +4,13 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.roombedallocation.api.dto.AssetStatus;
+import com.eldercare.backend.roombedallocation.internal.asset.service.AssetQueries;
 import com.eldercare.backend.roombedallocation.internal.asset.service.AssetService;
 import com.eldercare.backend.roombedallocation.internal.asset.service.AssetTypeService;
 import com.eldercare.backend.roombedallocation.web.request.AssetCommandWrite;
 import com.eldercare.backend.roombedallocation.web.request.AssetTypeWrite;
 import com.eldercare.backend.roombedallocation.web.request.AssetWrite;
+import com.eldercare.backend.roombedallocation.web.response.AssetDetailResponse;
 import com.eldercare.backend.roombedallocation.web.response.AssetProblem;
 import com.eldercare.backend.roombedallocation.web.response.AssetResponse;
 import com.eldercare.backend.roombedallocation.web.response.AssetTypeResponse;
@@ -30,8 +32,10 @@ import org.springframework.web.bind.annotation.*;
 public class AssetController {
     private final AssetService assets;
     private final AssetTypeService types;
+    private final AssetQueries queries;
 
-    public AssetController(AssetService assets, AssetTypeService types) {
+    public AssetController(AssetService assets, AssetTypeService types, AssetQueries queries) {
+        this.queries = queries;
         this.assets = assets;
         this.types = types;
     }
@@ -43,8 +47,27 @@ public class AssetController {
             @RequestParam(required = false) Long typeId,
             @RequestParam(required = false) String status) {
         return assets.list(departmentId, typeId, status(status)).stream()
-                .map(row -> AssetResponse.of(row, assets.locationLabel(row)))
+                .map(row -> AssetResponse.of(row, assets.locationLabel(row), queries.allowedCommands(row)))
                 .toList();
+    }
+
+    /** FR-012: chi tiết và lịch sử vị trí, bộ phận, bảo trì, hư hỏng (api-019 {@code AssetDetail}, duyệt 2026-11-10). */
+    @GetMapping("/assets/{id}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = AssetProblem.class)))
+    @ApiResponse(
+            responseCode = "404",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = AssetProblem.class)))
+    public AssetDetailResponse detail(@PathVariable long id) {
+        return AssetDetailResponse.of(queries.detail(id));
     }
 
     @PostMapping("/assets")

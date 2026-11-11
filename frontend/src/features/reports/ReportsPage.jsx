@@ -42,6 +42,8 @@ export function ReportsPage({ role }) {
   const [exporting, setExporting] = useState(false)
   const [exports, setExports] = useState(0)
   const [floorAreaId, setFloorAreaId] = useState(null)
+  // FR-051: chi phí xem theo bảng đã chốt (mặc định) hoặc tạm tính
+  const [costMode, setCostMode] = useState('FINALIZED')
   const [filterOptions, setFilterOptions] = useState(null)
   const [catalogFloors, setCatalogFloors] = useState([])
   const facilityWide = filterOptions?.facilityWide === true
@@ -142,6 +144,22 @@ export function ReportsPage({ role }) {
                 ))}
               </ToggleGroup>
             )}
+            {current.value === 'INCURRED_COSTS' && (
+              <ToggleGroup
+                variant="outline"
+                aria-label="Chế độ chi phí"
+                value={[costMode]}
+                onValueChange={(next) => next[0] && setCostMode(next[0])}
+                className="flex-wrap"
+              >
+                <ToggleGroupItem value="FINALIZED" className="h-10 px-4">
+                  Đã chốt
+                </ToggleGroupItem>
+                <ToggleGroupItem value="PROVISIONAL" className="h-10 px-4">
+                  Tạm tính
+                </ToggleGroupItem>
+              </ToggleGroup>
+            )}
             {preset === 'CUSTOM' && (
               <>
                 <Field className="w-auto">
@@ -169,11 +187,12 @@ export function ReportsPage({ role }) {
       </PageHeader>
       {current && validRange && (
         <ReportTable
-          key={`${current.value}|${range.from}|${range.to}|${floorAreaId ?? ''}`}
+          key={`${current.value}|${range.from}|${range.to}|${floorAreaId ?? ''}|${costMode}`}
           group={current.value}
           from={range.from}
           to={range.to}
           floorAreaId={floorAreaId ?? undefined}
+          costMode={current.value === 'INCURRED_COSTS' ? costMode : undefined}
           floors={floors}
           metrics={metrics}
           onOpen={setOpened}
@@ -196,6 +215,7 @@ export function ReportsPage({ role }) {
           to={range.to}
           floorAreaId={floorAreaId ?? undefined}
           floorName={floor?.name}
+          costMode={current.value === 'INCURRED_COSTS' ? costMode : undefined}
           canIdentify={role === 'NURSING_HOME_MANAGER'}
           onExported={() => setExports((n) => n + 1)}
         />

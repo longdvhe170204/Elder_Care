@@ -108,7 +108,9 @@ public class RecipientConfirmationService {
             List<Long> belongingIds,
             String status,
             String method,
-            Instant expiresAt) {}
+            Instant expiresAt,
+            Long signedRepresentativeId,
+            Long signedFormFileId) {}
 
     private enum Ground {
         A,
@@ -760,7 +762,9 @@ public class RecipientConfirmationService {
                 content.remaining(),
                 record.status(),
                 content.method(),
-                content.expiresAt());
+                content.expiresAt(),
+                content.signedRepresentativeId(),
+                content.signedFormFileId());
     }
 
     private Duration validity() {

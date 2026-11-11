@@ -10,22 +10,28 @@ import '../../support/fake_backend.dart';
 // người cao tuổi có quan hệ Hiệu lực; thông tin chung cho mọi người thân; mục Sức khỏe chỉ khi quyền có tác dụng (phần
 // chưa có nguồn ghi rõ chưa có dữ liệu); nút đăng ký thăm khi có quyền đăng ký thăm.
 
-Map<String, dynamic> rights({bool health = false, bool visits = false}) => {
+Map<String, dynamic> rights({bool health = false, bool visits = false, bool costs = false}) => {
   'VIEW_HEALTH': health,
-  'VIEW_COSTS': false,
+  'VIEW_COSTS': costs,
   'RECEIVE_URGENT': false,
   'REGISTER_VISITS': visits,
   'PICKUP_ALLOWED': false,
   'REQUEST_SERVICES': false,
 };
 
-Map<String, dynamic> resident({bool health = false, bool visits = false, bool belongings = false}) => {
+Map<String, dynamic> resident({
+  bool health = false,
+  bool visits = false,
+  bool belongings = false,
+  bool costs = false,
+  bool representative = false,
+}) => {
   'residentId': 5,
   'fullName': 'Nguyễn Thị Lan',
   'relationship': 'CHILD',
-  'representative': false,
+  'representative': representative,
   'primaryContact': false,
-  'rights': rights(health: health, visits: visits),
+  'rights': rights(health: health, visits: visits, costs: costs),
   'canViewBelongings': belongings,
 };
 
@@ -59,6 +65,40 @@ Future<void> tapText(WidgetTester tester, String text) async {
 }
 
 void main() {
+  testWidgets('FR_037_quyenXemChiPhi_moBangChiPhiCua010', (tester) async {
+    final fake = FakeBackend()
+      ..on('GET', '/family-portal/residents', 200, [resident(costs: true)])
+      ..on('GET', '/family-portal/residents/5/general', 200, _general)
+      ..on('GET', '/residents/5/costs/statements', 200, <Object>[]);
+    await pumpScreen(tester, fake.client());
+
+    await tapText(tester, 'Nguyễn Thị Lan');
+    await tapText(tester, 'Xem bảng chi phí');
+    expect(fake.calls('GET', '/residents/5/costs/statements'), hasLength(1));
+  });
+
+  testWidgets('BR_M10_10_nguoiDaiDien_moDeNghiMuaHoCanDongY', (tester) async {
+    final fake = FakeBackend()
+      ..on('GET', '/family-portal/residents', 200, [resident(representative: true)])
+      ..on('GET', '/family-portal/residents/5/general', 200, _general)
+      ..on('GET', '/purchase-assistance-requests', 200, <Object>[]);
+    await pumpScreen(tester, fake.client());
+
+    await tapText(tester, 'Nguyễn Thị Lan');
+    await tapText(tester, 'Đề nghị mua hộ');
+    expect(fake.calls('GET', '/purchase-assistance-requests'), hasLength(1));
+  });
+
+  testWidgets('BR_M10_10_khongPhaiNguoiDaiDien_khongCoDeNghiMuaHo', (tester) async {
+    final fake = FakeBackend()
+      ..on('GET', '/family-portal/residents', 200, [resident(costs: true)])
+      ..on('GET', '/family-portal/residents/5/general', 200, _general);
+    await pumpScreen(tester, fake.client());
+
+    await tapText(tester, 'Nguyễn Thị Lan');
+    expect(find.text('Đề nghị mua hộ'), findsNothing);
+  });
+
   testWidgets('FR_046b_nguoiDuocPhepXemDoGui_moManDoGuiCua013', (tester) async {
     final fake = FakeBackend()
       ..on('GET', '/family-portal/residents', 200, [resident(belongings: true)])

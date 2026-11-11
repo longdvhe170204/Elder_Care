@@ -6,7 +6,17 @@ import java.time.*;
 import java.util.*;
 
 /** Request đúng RiskAgreement đã duyệt; metadata nhận định/ý kiến do server ghi. */
-@Schema(name = "RiskAgreementWrite")
+@Schema(
+        name = "RiskAgreementWrite",
+        requiredProperties = {
+            "choice",
+            "discussedRisks",
+            "residentParticipates",
+            "assessingDoctorId",
+            "selfDeterminationAssessment",
+            "decisionMaker",
+            "reviewDate"
+        })
 public record CareRiskAgreementWrite(
         Long id,
         Long sourceAgreementId,

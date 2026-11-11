@@ -124,28 +124,6 @@ abstract class SwapTestBase extends MySqlIntegrationTestBase {
                 head.staffId(),
                 floor,
                 ShiftStore.sql(time.now().minus(Duration.ofDays(30))));
-        // Phạm vi ASSIGNED của 002 chỉ tính phân công hiện tại: cho người lập, người nhận một phân công tầng trong ca
-        // đang diễn
-        // ra để qua kiểm quyền lập của yêu cầu phê duyệt (xem team-plan mục 8, dòng 015).
-        Instant now = time.now();
-        long current = insert(
-                jdbc,
-                "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status,lead_staff_id) VALUES (?,?,?,?,'FLOOR',?,FALSE,'IN_PROGRESS',NULL)",
-                scheduleId,
-                templateId,
-                ShiftStore.sql(now.minus(Duration.ofHours(1))),
-                ShiftStore.sql(now.plus(Duration.ofHours(1))),
-                floor);
-        for (TestUsers.TestUser u : java.util.List.of(giver, recipient, third)) {
-            jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", current, u.staffId());
-            jdbc.update(
-                    "INSERT INTO staff_assignment(shift_id,staff_id,target_type,target_id,role,assignment_kind,starts_at,ends_at,status) VALUES (?,?,'FLOOR',?,'NURSING_STAFF','PRIMARY',?,?,'ACTIVE')",
-                    current,
-                    u.staffId(),
-                    floor,
-                    ShiftStore.sql(now.minus(Duration.ofHours(1))),
-                    ShiftStore.sql(now.plus(Duration.ofHours(1))));
-        }
     }
 
     /** Ca Đã công bố của tầng; {@code hours} giờ kể từ {@code start}; thành viên vào ca từ trước. */
