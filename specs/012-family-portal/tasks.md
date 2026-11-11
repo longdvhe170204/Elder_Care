@@ -29,7 +29,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 ## Phase 1: Setup
 
 - [x] T001 Tạo khung gói `BE/family/...` với `package-info.java`; ArchUnit `BT/family/M10ArchTest.java`: gói `..lich..` không lập khoản (Q-306); DTO người thân không có trường nhật ký (research F-01)
-- [ ] T002 [P] *(Bỏ theo Q-396, 2026-10-29)* Không có bản giả `HoatDongBanTinPort`
+- [x] T002 [P] *(Bỏ theo Q-396, 2026-10-29)* Không có bản giả `HoatDongBanTinPort`
 
 ---
 
@@ -172,9 +172,9 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 9: User Story 7 – Bản tin tuần *(Bỏ theo Q-396, 2026-10-29)*
 
-- [ ] T031 *(Bỏ theo Q-396, 2026-10-29)*
-- [ ] T032 *(Bỏ theo Q-396, 2026-10-29)*
-- [ ] T033 *(Bỏ theo Q-396, 2026-10-29)*
+- [x] T031 *(Bỏ theo Q-396, 2026-10-29)*
+- [x] T032 *(Bỏ theo Q-396, 2026-10-29)*
+- [x] T033 *(Bỏ theo Q-396, 2026-10-29)*
 
 
 ---
@@ -229,7 +229,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 11: Polish & Cross-Cutting
 
-- [ ] T036 [P] Cài `NguoiThanThongKeApi` (016) *(2026-11-06: không làm ở giai đoạn này theo Q-194, 016 chưa dùng; chủ dự án duyệt)*
+- [x] T036 [P] Cài `NguoiThanThongKeApi` (016) *(2026-11-06: không làm ở giai đoạn này theo Q-194, 016 chưa dùng; chủ dự án duyệt)* *(Bỏ ở giai đoạn này, chủ dự án chốt 2026-11-11 đánh dấu [x])*
 - [x] T037 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/012-family-portal/contracts/api-012.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 012 *(2026-11-06: `ApiContractIT` so đủ api-012; nhóm 3 sau R-15 kiểm ở `RecordGroupTriggerIT` và `M10RecordGroupTriggerIT`, ghi ở plan)*
 - [x] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó *(2026-11-06: phần của A xong — test 002 dùng bản thật, 009 giữ bản giả có lý do; B (001, 004), C (005) chờ ở team-plan mục 8; 011 chờ D; chi tiết ở plan)*
   - *(2026-11-11, A)* 004, 005 dùng `PickupPorts` thật (đón người); 005 lịch thăm qua `VisitQueries` thật (`T061_RealSourcesIT`); 007 `EmergencyFamilyPort` thật kiểm ở `T006_RelationshipSpiIT`; 011 `ClosingTestBase` bỏ `FakeStayMealPort` (nhóm IT chốt suất xanh với `StayMeals` thật); 009 giữ bản giả có lý do (plan). Xong.

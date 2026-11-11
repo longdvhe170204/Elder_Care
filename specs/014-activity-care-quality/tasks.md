@@ -357,4 +357,4 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7; mỗi bước chạy `./mvn
 
 ## Phase 11: Convergence
 
-- [ ] T035 *(Bỏ theo Q-407, 2026-11-10: không còn danh sách nguy cơ cô lập; đã gỡ `ActivityStatisticsApi.isolationRisks`, `IsolationRiskView`)* Cài `ActivityStatisticsApi.isolationRisks()` trả người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi (hiện `ActivityStatistics.isolationRisks()` trả `Stream.empty()` dù T027 đã đánh dấu xong), test viết trước per FR-058, BR-M04-22, 016 FR-036 (partial)
+- [x] T035 *(Bỏ theo Q-407, 2026-11-10: không còn danh sách nguy cơ cô lập; đã gỡ `ActivityStatisticsApi.isolationRisks`, `IsolationRiskView`)* Cài `ActivityStatisticsApi.isolationRisks()` trả người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi (hiện `ActivityStatistics.isolationRisks()` trả `Stream.empty()` dù T027 đã đánh dấu xong), test viết trước per FR-058, BR-M04-22, 016 FR-036 (partial)
