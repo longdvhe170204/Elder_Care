@@ -10,6 +10,7 @@ import com.eldercare.backend.reporting.internal.report.service.ReportService;
 import com.eldercare.backend.reporting.internal.scope.service.ReportPeriods;
 import com.eldercare.backend.reporting.web.response.MetricDetailBody;
 import com.eldercare.backend.reporting.web.response.ReportBody;
+import com.eldercare.backend.resident.api.dto.CareLevel;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -70,13 +71,12 @@ public class ReportController {
             @RequestParam(required = false) LocalDate date,
             @RequestParam(required = false) List<Long> floorAreaId,
             @RequestParam(required = false) String residenceType,
-            @RequestParam(required = false) Long careLevelId,
+            @RequestParam(required = false) CareLevel careLevel,
             @RequestParam(required = false) Long residentId,
             @RequestParam(required = false) Long staffId,
             @RequestParam(required = false) Long shiftId,
             @RequestParam(required = false) CostMode costMode) {
-        ReportFilters filters =
-                filters(floorAreaId, residenceType, careLevelId, residentId, staffId, shiftId, costMode);
+        ReportFilters filters = filters(floorAreaId, residenceType, careLevel, residentId, staffId, shiftId, costMode);
         LocalDate start = date != null ? date : from;
         LocalDate end = date != null ? date : to;
         return ReportBody.of(reports.period(user, group, periods.check(start, end), filters));
@@ -99,15 +99,14 @@ public class ReportController {
             @RequestParam(required = false) String breakdownKey,
             @RequestParam(required = false) List<Long> floorAreaId,
             @RequestParam(required = false) String residenceType,
-            @RequestParam(required = false) Long careLevelId,
+            @RequestParam(required = false) CareLevel careLevel,
             @RequestParam(required = false) Long residentId,
             @RequestParam(required = false) Long staffId,
             @RequestParam(required = false) Long shiftId,
             @RequestParam(required = false) CostMode costMode,
             @RequestParam(required = false) OffsetDateTime asOf,
             @RequestParam(required = false) Integer page) {
-        ReportFilters filters =
-                filters(floorAreaId, residenceType, careLevelId, residentId, staffId, shiftId, costMode);
+        ReportFilters filters = filters(floorAreaId, residenceType, careLevel, residentId, staffId, shiftId, costMode);
         return MetricDetailBody.of(
                 details.details(user, metricCode, from, to, filters, breakdownKey, page == null ? 1 : page));
     }
@@ -115,7 +114,7 @@ public class ReportController {
     private static ReportFilters filters(
             List<Long> floorAreaId,
             String residenceType,
-            Long careLevelId,
+            CareLevel careLevel,
             Long residentId,
             Long staffId,
             Long shiftId,
@@ -123,7 +122,7 @@ public class ReportController {
         return new ReportFilters(
                 floorAreaId == null ? null : Set.copyOf(floorAreaId),
                 residenceType,
-                careLevelId,
+                careLevel == null ? null : careLevel.name(),
                 residentId,
                 staffId,
                 shiftId,

@@ -47,6 +47,13 @@ export const REPORT_GROUPS = [
   { value: 'STAFFING_SHIFTS', label: 'Nhân sự, ca', roles: [QL, TT] },
 ]
 
+// Bộ lọc mức chăm sóc (FR-060; mã CareLevel của 001, chủ dự án duyệt 2026-11-11)
+export const CARE_LEVELS = [
+  { value: 'BASIC', label: 'Cơ bản' },
+  { value: 'REGULAR', label: 'Thường xuyên' },
+  { value: 'SPECIAL', label: 'Đặc biệt' },
+]
+
 export const REPORT_GROUP_LABELS = Object.fromEntries(REPORT_GROUPS.map((g) => [g.value, g.label]))
 
 export const VALUE_LABELS = {
@@ -166,6 +173,7 @@ const KEY_LABELS = {
   END_RESIDENCY: 'Kết thúc lưu trú',
   RECORD_DEATH: 'Qua đời',
   CARE_LEVEL_CHANGE: 'Đổi mức chăm sóc',
+  RESIDENCE_TYPE_CHANGE: 'Đổi loại lưu trú',
   // trạng thái công việc 8.3, mức quan trọng (005)
   NOT_YET_DUE: 'Chưa đến hạn',
   DUE: 'Đến hạn',
