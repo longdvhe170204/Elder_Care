@@ -209,6 +209,53 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
         plannedReturn = departure.plusSeconds(21600);
     }
 
+    /**
+     * Q24, FR-031a (c) (đổi api 001 duyệt 2026-11-11): điểm danh về ghi ngoại tuyến mang thời điểm thiết bị vào lịch sử 001;
+     * Hủy ghi nhận bản ghi về đưa người về Hoạt động bên ngoài và Đã rời viện.
+     */
+    @Test
+    void Q24_FR_031a_offlineReturnThenVoidingTheReturnRecord() throws Exception {
+        tripFixture();
+        long s = trip();
+        long r = eligible(s);
+        assign(s);
+        departed(s, r);
+        var deviceAt = time.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        command(s, "return", "{\"residentIds\":[" + r + "],\"deviceAt\":\"" + deviceAt + "\"}")
+                .andExpect(status().isOk());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+        assertThat(participant(s, r)).isEqualTo("RETURNED");
+        assertThat(context.getBean(
+                                com.eldercare.backend.medication.internal.handover.persistence
+                                        .MedicationAbsenceIntervalRepository.class)
+                        .findByTripId(s)
+                        .orElseThrow()
+                        .isOpen())
+                .as("006 đóng khoảng mang thuốc khi về")
+                .isFalse();
+
+        long returnRecord = jdbc.queryForObject(
+                "SELECT id FROM record_event WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(content, '$.type'))='RETURN'",
+                Long.class,
+                r);
+        mvc.perform(post("/api/v1/corrections/M04.TRIP_ATTENDANCE/" + returnRecord)
+                        .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"VOID\",\"reason\":\"Ghi về nhầm người chưa về\"}"))
+                .andExpect(status().is2xxSuccessful());
+        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
+        assertThat(participant(s, r)).isEqualTo("DEPARTED");
+        assertThat(context.getBean(
+                                com.eldercare.backend.medication.internal.handover.persistence
+                                        .MedicationAbsenceIntervalRepository.class)
+                        .findByTripId(s)
+                        .orElseThrow()
+                        .isOpen())
+                .as("006 mở lại khoảng mang thuốc")
+                .isTrue();
+    }
+
     MockHttpServletRequestBuilder write(MockHttpServletRequestBuilder request, String body) {
         return request.header("Idempotency-Key", "trip-" + TestUsers.nextId())
                 .contentType(MediaType.APPLICATION_JSON)

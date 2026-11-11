@@ -96,8 +96,6 @@ public class TripReturnService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void returnResidents(Target target, long id, List<Long> selected, Instant deviceAt) {
-        if (deviceAt != null)
-            throw unavailable("001 chưa hỗ trợ thời điểm thiết bị cho lệnh trạng thái; chưa thể đồng bộ điểm danh về");
         var ids = distinct(selected, "Cần danh sách người điểm danh về không trùng");
         var trip = trips.find(id).orElseThrow(NotFoundException::new);
         if (!Set.of("IN_PROGRESS", "RETURNED").contains(trip.status()))
@@ -106,7 +104,8 @@ public class TripReturnService {
         var participants = trips.participants(id);
         for (long resident : ids) requireOutside(participants, resident, trip.status());
         var source = medication();
-        var at = time.now();
+        // Ghi ngoại tuyến (Q-24, Q-01): thời điểm trên thiết bị vào lịch sử trạng thái 001 (đổi api duyệt 2026-11-11)
+        var at = deviceAt == null ? time.now() : deviceAt;
         for (long resident : ids)
             status.execute(
                     resident,
@@ -114,7 +113,8 @@ public class TripReturnService {
                     user,
                     Optional.empty(),
                     json.createObjectNode().put("tripId", id).put("at", at.toString()),
-                    new Basis(null, null, id, null));
+                    new Basis(null, null, id, null),
+                    deviceAt);
         var locked = trips.lock(id);
         var current = trips.participants(id);
         for (long resident : ids) {
@@ -129,7 +129,7 @@ public class TripReturnService {
                             user.accountId(),
                             false,
                             at,
-                            null,
+                            deviceAt,
                             time.now(),
                             locked.floorAreaId(),
                             "TRIP_RETURN:" + p.registrationId()));

@@ -35,6 +35,7 @@ class BR_M01_04_TransitionTableTest {
                 Map.of(
                         StatusCommand.GRANT_TEMPORARY_ABSENCE, ABSENT,
                         StatusCommand.ROLL_CALL_DEPARTURE, OFF_SITE,
+                        StatusCommand.CANCEL_RETURN_RECORD, OFF_SITE,
                         StatusCommand.TRANSFER_OUT, HOSPITAL,
                         StatusCommand.END_RESIDENCY, ResidentStatus.RESIDENCY_ENDED,
                         StatusCommand.RECORD_DEATH, ResidentStatus.DECEASED));
@@ -99,11 +100,12 @@ class BR_M01_04_TransitionTableTest {
     }
 
     @Test
-    void FR_046_systemCommandsAreTheThreeFromAttendance() {
+    void FR_046_systemCommandsAreTheFourFromAttendance() {
         assertThat(StatusTransitionTable.SYSTEM_COMMANDS)
                 .containsExactlyInAnyOrder(
                         StatusCommand.ROLL_CALL_DEPARTURE,
                         StatusCommand.ROLL_CALL_RETURN,
-                        StatusCommand.CANCEL_DEPARTURE_RECORD);
+                        StatusCommand.CANCEL_DEPARTURE_RECORD,
+                        StatusCommand.CANCEL_RETURN_RECORD);
     }
 }

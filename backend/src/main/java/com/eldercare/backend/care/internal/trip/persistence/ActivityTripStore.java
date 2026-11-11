@@ -197,6 +197,15 @@ public class ActivityTripStore {
                 == 1;
     }
 
+    /** FR-031a (c): người bị ghi về nhầm trở lại Đã rời viện; chỉ khi đang ở Đã về. */
+    public boolean undoReturn(long registrationId) {
+        return jdbc.update(
+                        "UPDATE activity_registration SET participant_status='DEPARTED',participant_reason=NULL,"
+                                + "version=version+1 WHERE id=? AND participant_status='RETURNED'",
+                        registrationId)
+                == 1;
+    }
+
     /** Q-240: không còn ai đã rời viện thì chuyến quay về Đã lên lịch. */
     public boolean anyoneDeparted(long id) {
         return jdbc.queryForObject(

@@ -98,8 +98,6 @@ public class TripDepartureService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void depart(Target target, long id, List<Long> selected, Reason substituteReason, Instant deviceAt) {
-        if (deviceAt != null)
-            throw unavailable("001 chưa hỗ trợ thời điểm thiết bị cho lệnh trạng thái; chưa thể đồng bộ rời viện");
         if (selected == null
                 || selected.isEmpty()
                 || selected.stream().anyMatch(Objects::isNull)
@@ -161,7 +159,8 @@ public class TripDepartureService {
                     user,
                     Optional.empty(),
                     details,
-                    new Basis(null, null, id, null));
+                    new Basis(null, null, id, null),
+                    deviceAt);
         }
         var locked = trips.lock(id);
         if (locked.version() != trip.version())
