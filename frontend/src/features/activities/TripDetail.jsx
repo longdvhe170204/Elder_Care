@@ -18,6 +18,7 @@ import { problemOf } from '@/common/problem'
 import { ActivityField } from './ActivityField'
 import { TRIP_STATUS, toOffsetIso } from './sessionView'
 import { TripAssessmentSheet, TripReturnPanel } from './TripFollowUp'
+import { TripParticipantInfo } from './TripParticipantInfo'
 
 const STATUSES = {
   REGISTERED: 'Đã đăng ký',
@@ -29,7 +30,7 @@ const STATUSES = {
   MISSING_ON_RETURN: 'Thiếu khi về',
 }
 
-// T018: khung chuyến được duyệt; chưa hiển thị dữ liệu lâm sàng khi chưa có hợp đồng nguồn.
+// T018: khung chuyến được duyệt; mỗi người tham gia có 6 phần thông tin (TripParticipantInfo, duyệt 2026-11-10).
 export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChanged, Title, Description }) {
   const [trip, setTrip] = useState(null)
   const [problem, setProblem] = useState(null)
@@ -286,9 +287,6 @@ export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChang
           </Dialog>
           <section className="flex flex-col gap-3 border-t pt-4">
             <h3 className="type-card-title">Người tham gia</h3>
-            <p className="type-body-sm text-muted-foreground">
-              Chưa có dữ liệu thuốc, sức khỏe và liên hệ trên màn này. Việc đánh giá đầy đủ chờ nguồn chuyên môn.
-            </p>
             {trip.participants.length === 0 && <p className="type-body-sm">Chưa có người tham gia.</p>}
             {trip.participants.map((p) => (
               <div key={p.id} className="rounded-lg border p-3">
@@ -310,6 +308,7 @@ export function TripDetail({ sessionId, residents, canCreate, canUpdate, onChang
                 </label>
                 <StatusBadge status={STATUSES[p.status] ?? p.status} />
                 {p.reason && <p className="mt-2 type-body-sm">Lý do: {p.reason}</p>}
+                <TripParticipantInfo info={p.info} name={nameOf(p.residentId)} />
                 {canUpdate && trip.status === 'SCHEDULED' && p.status === 'REGISTERED' && (
                   <Button
                     variant="outline"

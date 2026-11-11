@@ -51,7 +51,25 @@ void main() {
               'leaderId': 21,
               'companionIds': [22],
               'participants': [
-                {'id': 91, 'residentId': 701, 'status': 'ELIGIBLE', 'reason': null},
+                {
+                  'id': 91,
+                  'residentId': 701,
+                  'status': 'ELIGIBLE',
+                  'reason': null,
+                  'info': {
+                    'medicationDoses': {
+                      'availability': 'AVAILABLE',
+                      'items': [
+                        {'doseKey': 'd1', 'medicationName': 'Amlodipin', 'strength': '5 mg', 'scheduledTime': '2026-11-05T02:00:00Z'},
+                      ],
+                    },
+                    'carriedMedication': {'availability': 'NO_DATA'},
+                    'health': {'availability': 'NOT_PERMITTED'},
+                    'careNotes': {'availability': 'AVAILABLE', 'text': 'Đi chậm, cần người dìu'},
+                    'primaryContact': {'availability': 'AVAILABLE', 'fullName': 'Nguyễn Văn Nam', 'phoneNumber': '0900000000'},
+                    'emergencyCard': {'availability': 'SOURCE_UNAVAILABLE'},
+                  },
+                },
               ],
             };
           case '/api/v1/trips/41/depart':
@@ -90,6 +108,15 @@ void main() {
     expect(find.text('Điểm đến: Chùa'), findsOneWidget);
     expect(find.text('Được đi'), findsOneWidget);
     expect(commands, isEmpty);
+  });
+  testWidgets('FR_039_nguoiThamGia_sauPhanThongTin_theoQuyenVaNguon', (t) async {
+    await open(t);
+    await t.scrollUntilVisible(find.text('Đi chậm, cần người dìu'), 200);
+    expect(find.text('Amlodipin 5 mg, 09:00'), findsOneWidget);
+    expect(find.text('Chưa giao thuốc mang theo'), findsOneWidget);
+    expect(find.text('Không có quyền xem'), findsOneWidget);
+    expect(find.text('Nguyễn Văn Nam, 0900000000'), findsOneWidget);
+    expect(find.text('Chưa lấy được dữ liệu từ nguồn'), findsOneWidget);
   });
   testWidgets('FR_040_biChanGiuLuaChonVaKhoaThuLai', (t) async {
     await open(t);
