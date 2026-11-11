@@ -23,6 +23,7 @@ import 'medication/medication_round_cache.dart';
 import 'medication/medication_round_gateway.dart';
 import 'medication/medication_round_repository.dart';
 import 'medication/medication_round_screen.dart';
+import 'medication/supplied_intake_screen.dart';
 import 'notifications/staff_inbox_screen.dart';
 import 'nutrition/family_food_screen.dart';
 import 'nutrition/meal_slip_screen.dart';
@@ -237,6 +238,8 @@ class _StaffRootState extends State<StaffRoot> {
           accountId: widget.session.user!.accountId,
         ),
       ),
+    if (_can('MEDICATION_RECEIPT', 'CREATE'))
+      ('Tiếp nhận thuốc', LucideIcons.packageCheck, () => SuppliedIntakeScreen(api: widget.session.api)),
     if (_can('ROOM_BED_CONFIGURATION', 'VIEW') || _readinessDuty)
       ('Giường', LucideIcons.bedDouble, () => BedsScreen(api: widget.session.api)),
     if (_can('ACTIVITY_OUTING', 'VIEW'))
