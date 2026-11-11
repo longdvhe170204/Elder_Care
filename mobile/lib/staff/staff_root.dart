@@ -16,6 +16,7 @@ import 'approval_requests/approval_inbox_screen.dart';
 import 'beds/beds_screen.dart';
 import 'care_tasks/care_tasks_home_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
+import 'handover/handover_cache.dart';
 import 'handover/handover_screen.dart';
 import 'incidents/incidents_screen.dart';
 import 'medication/medication_round_cache.dart';
@@ -190,7 +191,17 @@ class _StaffRootState extends State<StaffRoot> {
     if (_canViewShifts) ('Ca của tôi', LucideIcons.calendarDays, () => MyShiftsScreen(api: widget.session.api)),
     if (_canViewShifts) ('Phân công', LucideIcons.users, () => AssignmentsScreen(api: widget.session.api)),
     if (_canViewShiftSwaps) ('Đổi ca, nghỉ', LucideIcons.calendarDays, () => ShiftSwapsScreen(api: widget.session.api)),
-    if (_canViewHandovers) ('Bàn giao ca', LucideIcons.arrowLeftRight, () => HandoverScreen(api: widget.session.api)),
+    if (_canViewHandovers)
+      (
+        'Bàn giao ca',
+        LucideIcons.arrowLeftRight,
+        () => HandoverScreen(
+          api: widget.session.api,
+          cache: widget.session.user == null
+              ? null
+              : HandoverCache(widget.session.store, widget.session.user!.accountId),
+        ),
+      ),
     (
       'Chăm sóc hằng ngày',
       LucideIcons.clipboardCheck,
