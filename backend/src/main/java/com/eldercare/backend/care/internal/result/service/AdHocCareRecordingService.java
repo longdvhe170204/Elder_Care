@@ -180,8 +180,6 @@ public class AdHocCareRecordingService {
         var type = catalog.attributes();
         if (catalog.status() != CatalogStatus.ACTIVE || type.group().equals("MEDICATION"))
             throw new InvalidValueException("Loại công việc không được ghi phát sinh");
-        if (type.resultType().equals("MEASURED_VALUE"))
-            throw unavailable("Nhánh đo chỉ số phát sinh chờ thống nhất D/007 theo quyết định chủ dự án");
         long actor = user.staffId().orElseThrow(() -> new PermissionDeniedException("Chỉ nhân viên được ghi nhận"));
         if (user.roles().stream().noneMatch(role -> CareTaskValidator.roleMatches(type.defaultRole(), role)))
             throw new PermissionDeniedException("Vai trò không khớp loại công việc");

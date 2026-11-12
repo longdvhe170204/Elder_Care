@@ -981,3 +981,9 @@ Hai nhánh đo chỉ số vẫn trả 503 (`CARE_SOURCE_UNAVAILABLE`); spec khô
 2. **Callback đo lại khác người hoặc khác giờ đo đầu** (`VitalSignTaskApi.confirmed(taskId, recordId, measuredAt, measuredById)`; 007 FR-016 cho người đo lại khác người đo đầu). Hỏi: công việc ghi người thực hiện và thời điểm thực hiện là của lần đo đầu hay lần đo được xác nhận; trạng thái Hoàn thành/Hoàn thành trễ và nhãn ghi muộn (FR-035) xét theo mốc nào?
 
 Nhánh phát sinh đo không nguy hiểm (`SAVED`, `BLOCKED`) không mâu thuẫn spec nhưng chưa tách khỏi guard 503 để giữ đúng quyết định "chờ D/007" ở team-plan; làm cùng lúc khi có câu trả lời điểm 1.
+
+### Chủ dự án chốt 2026-11-12 — T033/T036/T039 (trả lời mục điểm dừng ở trên)
+
+1. Chọn (a): Ghi nhận phát sinh loại đo chỉ số mà 007 trả `AWAITING_REMEASUREMENT` tạo công việc chưa đóng (Đến hạn, dấu chờ xác nhận đo lại), đóng khi 007 gọi `VitalSignTaskApi.confirmed`, như công việc đo theo lịch; ngoại lệ của FR-025 chỉ cho loại đo. Cài: bỏ guard 503 ở `AdHocCareRecordingService`; lệnh phát sinh đi qua `CareResultService` sẵn có (`SAVED` Hoàn thành, `BLOCKED` 422 rollback, chờ đo lại giữ mở). `POST /ad-hoc-care-recordings` vẫn trả 201 `CareTaskDetail` (`status = DUE`, `awaitingRemeasurementConfirmation = true`), không thêm 202. Công việc phát sinh không có khung nên việc theo giờ không chạm tới.
+2. Lần đo lại khác người hoặc khác giờ: người thực hiện, thời điểm thực hiện, Hoàn thành/Hoàn thành trễ và nhãn ghi muộn tính theo lần đo đầu (`PendingCareResult`); kết quả trỏ bản ghi đã xác nhận của lần đo lại (`vitalSignRecordId`). `measuredAt`, `measuredById` của callback không còn dùng để chặn; giữ chữ ký.
+3. Test: `FR_034_CareResultRecordingIT` thêm `BR_M04_10_remeasuredByAnotherPersonLater_…`, `FR_025_adHocMeasurementAwaitingRemeasurement_…` (đỏ 503 rồi xanh). Bản giả chung `FakeVitalSigns` thêm `resultForAnyTask` vì mã công việc phát sinh chỉ có trong lệnh.

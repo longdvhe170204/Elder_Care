@@ -401,7 +401,7 @@ paths:
       x-implementation-phase: 6
       tags: [checklist]
       summary: Ghi nhận phát sinh (TT, ĐD, CS)
-      description: 'Tạo công việc phát sinh giao cho người ghi và ghi kết quả trong một lệnh, vào thẳng Hoàn thành (Q-36). Có công việc cùng loại Đến hạn/Quá hạn mà chưa gửi sameTypeTasksReviewed thì 200 trả sameTypeTasks, chưa ghi gì.'
+      description: 'Tạo công việc phát sinh giao cho người ghi và ghi kết quả trong một lệnh, vào thẳng Hoàn thành (Q-36); riêng loại đo chỉ số mà 007 trả chờ đo lại thì công việc chưa đóng (status DUE, awaitingRemeasurementConfirmation) tới khi 007 xác nhận (chủ dự án chốt 2026-11-12). Có công việc cùng loại Đến hạn/Quá hạn mà chưa gửi sameTypeTasksReviewed thì 200 trả sameTypeTasks, chưa ghi gì.'
       x-fr: [FR-025, FR-026, FR-035]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
