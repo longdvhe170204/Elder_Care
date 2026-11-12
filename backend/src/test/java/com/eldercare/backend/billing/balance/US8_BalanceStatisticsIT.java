@@ -11,6 +11,8 @@ import com.eldercare.backend.billing.api.events.CostStatementFinalized;
 import com.eldercare.backend.billing.balance.internal.export.service.BalanceStatistics;
 import com.eldercare.backend.billing.balance.internal.status.domain.Trigger;
 import com.eldercare.backend.billing.balance.internal.status.service.BalanceStatusService;
+import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
+import com.eldercare.backend.reporting.internal.other.service.BalanceLowOrOwingMetric;
 import com.eldercare.backend.support.TestUsers;
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +32,9 @@ class US8_BalanceStatisticsIT extends BalanceTestBase {
 
     @Autowired
     BalanceStatusService statusService;
+
+    @Autowired
+    BalanceLowOrOwingMetric lowOrOwing;
 
     @Test
     void owingResident_isInStatusesOfItsScope_andInTheIncomeExpenseDebtors() throws Exception {
@@ -67,6 +72,17 @@ class US8_BalanceStatisticsIT extends BalanceTestBase {
         assertThat(statistics.statuses(new ScopeFilter(true, Set.of(), Set.of(), Set.of())))
                 .extracting(view -> view.residentId())
                 .contains(a);
+
+        // 016 `BALANCE.LOW_OR_OWING` đọc bản thật (không có bản giả @Primary trong context này).
+        assertThat(lowOrOwing
+                        .records(
+                                new ScopeFilter(false, Set.of(), Set.of(), Set.of(a, other)),
+                                null,
+                                null,
+                                ReportFilters.NONE)
+                        .map(r -> r.view()))
+                .singleElement()
+                .satisfies(view -> assertThat(view.status()).isEqualTo(BalanceStatus.IN_DEBT));
 
         LocalDate today = time.today();
         IncomeExpenseReportView report = statistics.incomeExpense(today.minusDays(1), today);

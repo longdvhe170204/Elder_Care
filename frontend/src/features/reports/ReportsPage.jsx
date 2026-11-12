@@ -9,7 +9,7 @@ import { ExportDialog } from './ExportDialog'
 import { ExportList } from './ExportList'
 import { MetricDetailSheet } from './MetricDetailSheet'
 import { ReportTable } from './ReportTable'
-import { REPORT_GROUPS, isoDate } from './reportLabels'
+import { CARE_LEVELS, REPORT_GROUPS, isoDate } from './reportLabels'
 
 // Mục menu "Báo cáo" (016; bố cục duyệt 2026-10-24, DESIGN.md 5.21.0): tab theo nhóm báo cáo vai trò thấy (bảng FR-010)
 // và tab "Lần xuất"; chọn khoảng (FR-060, tối đa CFG-M14-01, backend từ chối khi dài hơn); nút chính "Xuất file".
@@ -17,6 +17,7 @@ import { REPORT_GROUPS, isoDate } from './reportLabels'
 
 const EXPORTS = 'EXPORTS'
 const ALL_FLOORS = 'ALL'
+const ALL_CARE_LEVELS = 'ALL'
 
 function rangeOf(preset, custom) {
   const today = new Date()
@@ -32,7 +33,7 @@ function rangeOf(preset, custom) {
   }
 }
 
-export function ReportsPage({ role }) {
+export function ReportsPage({ role, onNavigate }) {
   const groups = REPORT_GROUPS.filter((g) => g.roles.includes(role))
   const [tab, setTab] = useState(groups[0]?.value ?? EXPORTS)
   const [preset, setPreset] = useState('MONTH')
@@ -44,6 +45,8 @@ export function ReportsPage({ role }) {
   const [floorAreaId, setFloorAreaId] = useState(null)
   // FR-051: chi phí xem theo bảng đã chốt (mặc định) hoặc tạm tính
   const [costMode, setCostMode] = useState('FINALIZED')
+  // FR-060: lọc mức chăm sóc ở nhóm Người cao tuổi (mức hiệu lực tại ngày, mức dự kiến của danh sách chờ)
+  const [careLevel, setCareLevel] = useState(null)
   const [filterOptions, setFilterOptions] = useState(null)
   const [catalogFloors, setCatalogFloors] = useState([])
   const facilityWide = filterOptions?.facilityWide === true
@@ -91,6 +94,7 @@ export function ReportsPage({ role }) {
             if (next[0]) {
               setTab(next[0])
               setFloorAreaId(null)
+              setCareLevel(null)
             }
           }}
           className="flex-wrap self-start"
@@ -144,6 +148,24 @@ export function ReportsPage({ role }) {
                 ))}
               </ToggleGroup>
             )}
+            {current.value === 'RESIDENTS' && (
+              <ToggleGroup
+                variant="outline"
+                aria-label="Mức chăm sóc"
+                value={[careLevel ?? ALL_CARE_LEVELS]}
+                onValueChange={(next) => next[0] && setCareLevel(next[0] === ALL_CARE_LEVELS ? null : next[0])}
+                className="flex-wrap"
+              >
+                <ToggleGroupItem value={ALL_CARE_LEVELS} className="h-10 px-4">
+                  Mọi mức
+                </ToggleGroupItem>
+                {CARE_LEVELS.map((l) => (
+                  <ToggleGroupItem key={l.value} value={l.value} className="h-10 px-4">
+                    {l.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            )}
             {current.value === 'INCURRED_COSTS' && (
               <ToggleGroup
                 variant="outline"
@@ -187,12 +209,13 @@ export function ReportsPage({ role }) {
       </PageHeader>
       {current && validRange && (
         <ReportTable
-          key={`${current.value}|${range.from}|${range.to}|${floorAreaId ?? ''}|${costMode}`}
+          key={`${current.value}|${range.from}|${range.to}|${floorAreaId ?? ''}|${costMode}|${careLevel ?? ''}`}
           group={current.value}
           from={range.from}
           to={range.to}
           floorAreaId={floorAreaId ?? undefined}
           costMode={current.value === 'INCURRED_COSTS' ? costMode : undefined}
+          careLevel={careLevel ?? undefined}
           floors={floors}
           metrics={metrics}
           onOpen={setOpened}
@@ -216,11 +239,12 @@ export function ReportsPage({ role }) {
           floorAreaId={floorAreaId ?? undefined}
           floorName={floor?.name}
           costMode={current.value === 'INCURRED_COSTS' ? costMode : undefined}
+          careLevel={careLevel ?? undefined}
           canIdentify={role === 'NURSING_HOME_MANAGER'}
           onExported={() => setExports((n) => n + 1)}
         />
       )}
-      <MetricDetailSheet opened={opened} onClose={() => setOpened(null)} />
+      <MetricDetailSheet opened={opened} onClose={() => setOpened(null)} onNavigate={onNavigate} />
     </div>
   )
 }

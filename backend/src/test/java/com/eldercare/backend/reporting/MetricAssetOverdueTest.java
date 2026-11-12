@@ -5,6 +5,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.reporting.internal.asset.service.AssetDueSoonMetric;
 import com.eldercare.backend.reporting.internal.asset.service.AssetOverdueMetric;
 import com.eldercare.backend.reporting.internal.asset.service.AssetOverdueMetric.AssetRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
@@ -39,6 +40,32 @@ class MetricAssetOverdueTest {
 
     private static OverdueAssetView asset(long id, Long floor, AssetFlag flag, LocalDate dueOn) {
         return new OverdueAssetView(id, "TS-" + id, "Tài sản " + id, 3, floor, flag, dueOn);
+    }
+
+    /** FR-020: số tài sản tới mốc nhắc CFG-M03-09, chia theo loại hạn; mã riêng vì mỗi mã một khóa chia. */
+    @Test
+    void FR_020_dueSoon_byDueKind_detailHasDueDate() {
+        assets.dueSoon(asset(5, 101L, AssetFlag.MAINTENANCE_OVERDUE, TODAY.plusDays(3)))
+                .dueSoon(asset(5, 101L, AssetFlag.INSURANCE_OVERDUE, TODAY.plusDays(20)))
+                .dueSoon(asset(6, null, AssetFlag.VEHICLE_INSPECTION_OVERDUE, TODAY));
+        var dueSoon = new AssetDueSoonMetric(
+                new StaticListableBeanFactory(Map.of("assets", assets)).getBeanProvider(AssetStatisticsApi.class),
+                new BusinessTime(Clock.fixed(NOW, BusinessTime.ZONE)));
+
+        List<AssetDueSoonMetric.DueSoonRecord> included = dueSoon.metric()
+                .included(dueSoon.records(ScopeFilter.FACILITY, null, null, ReportFilters.NONE), r -> true);
+
+        assertThat(dueSoon.metric().code()).isEqualTo("ASSET.DUE_SOON");
+        assertThat(dueSoon.metric().group()).isEqualTo(MetricGroup.ASSETS);
+        assertThat(dueSoon.metric().compute(included).breakdown())
+                .extracting(MetricValue.Breakdown::key, b -> b.value().intValue())
+                .containsExactly(tuple("INSURANCE", 1), tuple("MAINTENANCE", 1), tuple("VEHICLE_INSPECTION", 1));
+        assertThat(dueSoon.metric().details(included, "MAINTENANCE"))
+                .extracting(
+                        r -> r.floorAreaId(),
+                        r -> r.result().get("code"),
+                        r -> r.result().get("dueOn"))
+                .containsExactly(tuple(101L, "TS-5", TODAY.plusDays(3)));
     }
 
     @Test

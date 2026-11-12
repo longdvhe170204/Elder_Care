@@ -165,6 +165,33 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                 .isEqualTo(1);
     }
 
+    /**
+     * FR-030, research G-07 (bỏ 503 theo bảng duyệt 16 điểm (3), 2026-11-09): phân bổ mang dấu chờ chuyển về phòng cùng giá
+     * so loại phòng đích với đơn giá của hợp đồng hiện hành; khác giá mà lý do không thuộc y tế/an toàn thì 409, cùng giá thì
+     * chuyển và phân bổ mới không còn dấu.
+     */
+    @Test
+    void FR_030_flaggedAllocation_comparesWithContractPrice_sameContractPriceClearsFlag() throws Exception {
+        jdbc.update("UPDATE bed_allocation SET awaiting_same_price=TRUE WHERE id=?", allocation);
+        residency.contractPriceDifference(resident, type, time.today(), true);
+        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Về phòng cũ")))
+                .isInstanceOfSatisfying(
+                        BusinessException.class,
+                        e -> assertThat(e.errorCode()).isEqualTo("RESIDENCY_CHANGE_REQUEST_REQUIRED"));
+        unchanged();
+
+        residency.contractPriceDifference(resident, type, time.today(), false);
+        long next = transfer(target, transferReason, new Reason("Về phòng cùng giá"));
+
+        assertThat(jdbc.queryForMap(
+                        "SELECT status,awaiting_request,awaiting_same_price FROM bed_allocation WHERE id=?", next))
+                .containsEntry("status", "ACTIVE")
+                .containsEntry("awaiting_request", false)
+                .containsEntry("awaiting_same_price", false);
+        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
+                .isEqualTo("CLOSED");
+    }
+
     private void differentPrice() {
         residency.priceDifference(resident, type, type, time.today(), true);
     }

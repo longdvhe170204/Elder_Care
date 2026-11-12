@@ -45,6 +45,10 @@ class FR_038_DayCareHttpIT extends StructureTestSupport {
                 .read(ParameterCode.CFG_M03_01);
         rest = TestUsers.nextId();
         morning = TestUsers.nextId();
+        // Schema test giữ dữ liệu của lớp khác (test chạy ngoài transaction có thể để lại khu nghỉ Hiệu lực); chỉ được
+        // một
+        // khu Hiệu lực, nên ngừng khu sót trong transaction của test (rollback sau ca).
+        jdbc.update("UPDATE day_care_rest_area SET status='INACTIVE' WHERE status='ACTIVE'");
         jdbc.update("INSERT INTO day_care_rest_area(id,code,name,floor_id) VALUES(?,'D1','Khu nghỉ',?)", rest, floor);
         jdbc.update(
                 "INSERT INTO day_care_session(id,name,start_time,end_time) VALUES(?,'Sáng','07:00','12:00')", morning);

@@ -18,10 +18,18 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ResidentStatisticsStore {
 
-    /** Dòng lịch sử trạng thái, mức chăm sóc của M01 ở {@code status_history} (001 T084). */
-    private static final String STATUS = "entity_type = 'M01.RESIDENT' AND attribute = 'STATUS'";
-
+    /** Dòng lịch sử mức chăm sóc của M01 ở {@code status_history} (001 T084). */
     private static final String CARE_LEVEL = "entity_type = 'M01.RESIDENT' AND attribute = 'CARE_LEVEL'";
+
+    /**
+     * Dòng trạng thái với thời điểm đã đính chính nếu có (014 FR-031a (a): dòng {@code STATUS_TIME} mới nhất có
+     * {@code value_id} là dòng gốc; lịch sử chỉ thêm nên không sửa dòng gốc).
+     */
+    private static final String STATUS_ROWS =
+            "(SELECT h.id, h.entity_id, COALESCE((SELECT c.starts_at FROM status_history c"
+                    + " WHERE c.entity_type = 'M01.RESIDENT' AND c.attribute = 'STATUS_TIME' AND c.value_id = h.id"
+                    + " ORDER BY c.id DESC LIMIT 1), h.starts_at) AS starts_at, h.command, h.value_before, h.value"
+                    + " FROM status_history h WHERE h.entity_type = 'M01.RESIDENT' AND h.attribute = 'STATUS') s";
 
     private static final RowMapper<HistoryPoint> ROW = (rs, i) -> new HistoryPoint(
             rs.getLong("resident_id"),
@@ -41,7 +49,7 @@ public class ResidentStatisticsStore {
         return latest(
                 "SELECT entity_id AS resident_id, starts_at AS at, command, value_before, value,"
                         + " ROW_NUMBER() OVER (PARTITION BY entity_id ORDER BY starts_at DESC, id DESC) AS rn"
-                        + " FROM status_history WHERE " + STATUS + " AND starts_at < :before",
+                        + " FROM " + STATUS_ROWS + " WHERE starts_at < :before",
                 before,
                 residentIds);
     }
@@ -59,8 +67,8 @@ public class ResidentStatisticsStore {
     /** Lệnh trạng thái trong {@code [from, to)}. */
     public List<HistoryPoint> statusChanges(Instant from, Instant to, Collection<Long> residentIds) {
         return between(
-                "SELECT entity_id AS resident_id, starts_at AS at, command, value_before, value FROM status_history"
-                        + " WHERE " + STATUS + " AND starts_at >= :from AND starts_at < :to",
+                "SELECT entity_id AS resident_id, starts_at AS at, command, value_before, value FROM " + STATUS_ROWS
+                        + " WHERE starts_at >= :from AND starts_at < :to",
                 from,
                 to,
                 residentIds);

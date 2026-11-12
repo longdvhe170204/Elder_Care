@@ -9,6 +9,7 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
+import { recordLink } from './reportLabels'
 
 // Danh sách bản ghi tạo nên một con số (016 FR-009; DESIGN.md `metric-detail-sheet`). Có khoảng thì như báo cáo, không
 // có thì như dashboard. Dòng người cao tuổi ngoài phạm vi hiện hành ở dạng rút gọn (Q-196), không mở được bản ghi.
@@ -21,7 +22,7 @@ function resultText(result) {
     .join(', ')
 }
 
-function DetailBody({ metric, from, to, floorAreaId, breakdownKey }) {
+function DetailBody({ metric, from, to, floorAreaId, careLevel, breakdownKey, onOpenRecord }) {
   const [page, setPage] = useState(1)
   const [state, setState] = useState({ status: 'loading' })
 
@@ -30,13 +31,13 @@ function DetailBody({ metric, from, to, floorAreaId, breakdownKey }) {
     try {
       const { data } = await getMetricDetailsByMetricCode({
         path: { metricCode: metric.code },
-        query: { from, to, floorAreaId, breakdownKey, page },
+        query: { from, to, floorAreaId, careLevel, breakdownKey, page },
       })
       setState({ status: 'ready', detail: data })
     } catch (error) {
       setState({ status: 'error', problem: problemOf(error) })
     }
-  }, [metric.code, from, to, floorAreaId, breakdownKey, page])
+  }, [metric.code, from, to, floorAreaId, careLevel, breakdownKey, page])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- tải khi mở khung hoặc đổi trang
@@ -99,6 +100,11 @@ function DetailBody({ metric, from, to, floorAreaId, breakdownKey }) {
                     {r.status && <span>{r.status}</span>}
                     {resultText(r.result) && <span>{resultText(r.result)}</span>}
                     {r.pendingReview && <StatusBadge status="Chờ xem lại" />}
+                    {onOpenRecord && recordLink(r) && (
+                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onOpenRecord(recordLink(r))}>
+                        Mở bản ghi
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -123,8 +129,9 @@ function DetailBody({ metric, from, to, floorAreaId, breakdownKey }) {
   )
 }
 
-// opened: { metric: {code, name}, from?, to?, floorAreaId?, breakdownKey?, valueText } hoặc null
-export function MetricDetailSheet({ opened, onClose }) {
+// opened: { metric: {code, name}, from?, to?, floorAreaId?, careLevel?, breakdownKey?, valueText } hoặc null
+// onNavigate(page, params): mở bản ghi gốc ở màn của feature sở hữu (Q12); không có thì không hiện nút
+export function MetricDetailSheet({ opened, onClose, onNavigate }) {
   // giữ nội dung lần mở gần nhất để khung không trống trong lúc trượt ra khi đóng
   const [shown, setShown] = useState(opened)
   if (opened && opened !== shown) setShown(opened)
@@ -141,12 +148,14 @@ export function MetricDetailSheet({ opened, onClose }) {
               </SheetDescription>
             </SheetHeader>
             <DetailBody
-              key={`${shown.metric.code}|${shown.breakdownKey ?? ''}|${shown.from ?? ''}|${shown.to ?? ''}|${shown.floorAreaId ?? ''}`}
+              key={`${shown.metric.code}|${shown.breakdownKey ?? ''}|${shown.from ?? ''}|${shown.to ?? ''}|${shown.floorAreaId ?? ''}|${shown.careLevel ?? ''}`}
               metric={shown.metric}
               from={shown.from}
               to={shown.to}
               floorAreaId={shown.floorAreaId}
+              careLevel={shown.careLevel}
               breakdownKey={shown.breakdownKey}
+              onOpenRecord={onNavigate && ((link) => onNavigate(link.page, link.params))}
             />
           </>
         )}

@@ -10,6 +10,7 @@ public class FakeVitalSigns implements VitalSignPort {
     private final FakeM04Switches switches;
     private final Map<Measurement, RecordingResult> results = new HashMap<>();
     private final List<Measurement> recordings = new ArrayList<>();
+    private RecordingResult anyTask;
 
     public FakeVitalSigns(FakeM04Switches switches) {
         this.switches = switches;
@@ -17,6 +18,11 @@ public class FakeVitalSigns implements VitalSignPort {
 
     public void result(Measurement input, RecordingResult result) {
         results.put(input, result);
+    }
+
+    /** Kết quả cho lần đo chưa đặt riêng (Ghi nhận phát sinh: mã công việc chỉ có trong lệnh). */
+    public void resultForAnyTask(RecordingResult result) {
+        anyTask = result;
     }
 
     @Override
@@ -30,7 +36,7 @@ public class FakeVitalSigns implements VitalSignPort {
             Optional<Instant> deviceAt) {
         switches.requireEnabled("007");
         var input = new Measurement(residentId, vitalSignType, value, measuredAt, measuredById, taskId, deviceAt);
-        var result = results.get(input);
+        var result = results.getOrDefault(input, anyTask);
         if (result == null) throw new IllegalStateException("Chưa đặt kết quả giả cho lần đo");
         recordings.add(input);
         return result;
@@ -42,6 +48,7 @@ public class FakeVitalSigns implements VitalSignPort {
 
     public void reset() {
         results.clear();
+        anyTask = null;
         recordings.clear();
     }
 

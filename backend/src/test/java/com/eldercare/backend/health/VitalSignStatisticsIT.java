@@ -59,6 +59,8 @@ class VitalSignStatisticsIT extends MySqlIntegrationTestBase {
         assertThat(api.readings(scope, from, to)).singleElement().satisfies(row -> {
             assertThat(row.recordId()).isEqualTo(valid);
             assertThat(row.level()).isEqualTo(VitalSignLevel.WARNING);
+            // 016 FR-040: giá trị theo thành phần cho chuỗi giá trị theo thời gian của một người.
+            assertThat(row.values().get("VALUE")).isEqualByComparingTo("1");
         });
     }
 

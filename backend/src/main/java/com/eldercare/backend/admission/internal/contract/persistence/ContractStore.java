@@ -3,6 +3,7 @@ package com.eldercare.backend.admission.internal.contract.persistence;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.admission.api.dto.BillingPeriod;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
+import com.eldercare.backend.admission.api.dto.ResidenceTypeChangeView;
 import com.eldercare.backend.admission.internal.contract.domain.Contract;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent;
 import com.eldercare.backend.admission.internal.contract.domain.ContractContent.ArrivalLine;
@@ -406,6 +407,29 @@ public class ContractStore {
                         contractId)
                 .stream()
                 .findFirst();
+    }
+
+    /**
+     * 016 FR-023: phiên bản nội dung có loại lưu trú khác phiên bản liền trước của cùng hợp đồng đã ký, ngày hiệu lực trong
+     * {@code [from, to]}; thứ tự ngày hiệu lực, mã hợp đồng.
+     */
+    public List<ResidenceTypeChangeView> residenceTypeChanges(LocalDate from, LocalDate to) {
+        return jdbc.query(
+                "SELECT resident_id, contract_id, before_type, residence_type, effective_from FROM ("
+                        + "SELECT c.resident_id, v.contract_id, v.residence_type, v.effective_from,"
+                        + " LAG(v.residence_type) OVER (PARTITION BY v.contract_id ORDER BY v.sequence_no) AS before_type"
+                        + " FROM contract_version v JOIN contract c ON c.id = v.contract_id"
+                        + " WHERE v.kind = 'CONTENT' AND c.status IN ('ACTIVE', 'ENDED', 'TERMINATED')) t"
+                        + " WHERE before_type IS NOT NULL AND before_type <> residence_type"
+                        + " AND effective_from BETWEEN ? AND ? ORDER BY effective_from, contract_id",
+                (rs, i) -> new ResidenceTypeChangeView(
+                        rs.getLong("resident_id"),
+                        rs.getLong("contract_id"),
+                        ResidenceType.valueOf(rs.getString("before_type")),
+                        ResidenceType.valueOf(rs.getString("residence_type")),
+                        rs.getObject("effective_from", LocalDate.class)),
+                from,
+                to);
     }
 
     public List<ContractVersion> versions(long contractId) {

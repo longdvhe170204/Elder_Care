@@ -34,6 +34,7 @@ import com.eldercare.backend.staffing.api.spi.TripDutyPort;
 import com.eldercare.backend.staffing.internal.assignment.domain.StaffAssignment;
 import com.eldercare.backend.staffing.internal.assignment.persistence.AssignmentStore;
 import com.eldercare.backend.staffing.internal.assignment.service.AssignmentService;
+import com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService;
 import com.eldercare.backend.staffing.internal.shift.domain.ShiftInput;
 import com.eldercare.backend.staffing.internal.shift.domain.ShiftMember;
 import com.eldercare.backend.staffing.internal.shift.domain.ShiftSchedule;
@@ -95,6 +96,7 @@ public class LeaveService implements ApprovedLeaveDayPort {
     private final AuditLogApi audit;
     private final SwapNotices notices;
     private final JsonMapper json;
+    private final StaffingRatioService ratios;
 
     public LeaveService(
             ShiftStore shifts,
@@ -114,7 +116,8 @@ public class LeaveService implements ApprovedLeaveDayPort {
             ObjectProvider<TripDutyPort> trips,
             AuditLogApi audit,
             SwapNotices notices,
-            JsonMapper json) {
+            JsonMapper json,
+            StaffingRatioService ratios) {
         this.shifts = shifts;
         this.staff = staff;
         this.assignments = assignments;
@@ -133,6 +136,7 @@ public class LeaveService implements ApprovedLeaveDayPort {
         this.audit = audit;
         this.notices = notices;
         this.json = json;
+        this.ratios = ratios;
     }
 
     /** Quyết định của người duyệt cho một mục (ca hoặc ngày). */
@@ -767,6 +771,7 @@ public class LeaveService implements ApprovedLeaveDayPort {
             m.put("shiftId", s.id());
             m.put("startsAt", s.startsAt());
             m.put("endsAt", s.endsAt());
+            m.put("staffingRatioBeforeAfter", ratios.beforeAfter(s.id(), d.staffId(), null));
             m.put("isLead", Objects.equals(s.leadStaffId(), d.staffId()));
             m.put(
                     "eligibleLeadCandidates",

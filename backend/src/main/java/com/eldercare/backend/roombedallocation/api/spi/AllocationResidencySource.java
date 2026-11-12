@@ -20,6 +20,12 @@ public interface AllocationResidencySource {
 
     boolean differentUnitPrice(long residentId, long previousRoomTypeId, long nextRoomTypeId, LocalDate date);
 
+    /**
+     * FR-030, research G-07: phí lưu trú của loại phòng khác đơn giá của hợp đồng hiện hành tại ngày; dùng khi phân bổ mang dấu
+     * chờ lập yêu cầu hoặc chờ chuyển về phòng cùng giá (bảng duyệt 16 điểm (3), 2026-11-09). Thiếu đơn giá thì coi là khác.
+     */
+    boolean differentContractUnitPrice(long residentId, long roomTypeId, LocalDate date);
+
     @Transactional(propagation = Propagation.MANDATORY)
     void waitingRecordHoldExpired(long waitingRecordId);
 

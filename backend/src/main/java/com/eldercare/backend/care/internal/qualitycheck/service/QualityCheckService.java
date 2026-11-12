@@ -400,6 +400,49 @@ public class QualityCheckService {
      * FR-060: công việc hoàn thành trong ca của tầng, trừ công việc của Trưởng tầng được giao, của Người phụ trách ca (xét
      * tại lúc hoàn thành, Q-270) khi Trưởng tầng không có tên trong ca, công việc làm lại của ca và kết quả đã Hủy ghi nhận.
      */
+    /**
+     * 016 FR-037 (Q-168, Q-254): công việc hoàn thành trong {@code [from, to)} không vào mẫu vì do Trưởng tầng được giao
+     * (tại lúc thực hiện), hoặc Người phụ trách ca của ca không có Trưởng tầng được giao, tự thực hiện; bỏ công việc làm lại
+     * và kết quả đã Hủy ghi nhận như {@link #eligible}. Chỉ đọc; thiếu nguồn ca, nhiệm vụ thì rỗng.
+     */
+    @Transactional(readOnly = true)
+    public List<com.eldercare.backend.care.api.dto.OutOfCheckScopeView> outOfCheckScope(
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant from, Instant to) {
+        var shiftSource = shifts.getIfAvailable();
+        var duty = duties.getIfAvailable();
+        if (shiftSource == null || duty == null) return List.of();
+        var out = new ArrayList<com.eldercare.backend.care.api.dto.OutOfCheckScopeView>();
+        for (long[] pair : store.shiftsCompletedIn(from, to)) {
+            long floor = pair[1];
+            if (!scope.facilityWide() && !scope.floorAreaIds().contains(floor)) continue;
+            var shift = shiftSource.shift(pair[0]).orElse(null);
+            if (shift == null) continue;
+            boolean noManager = duty.shiftHasNoFloorManager(shift.id());
+            var candidates = store.completed(shift.id(), floor, from, to);
+            var current = corrections.current(
+                    CARE_RESULT, candidates.stream().map(CompletedTask::id).toList());
+            for (var t : candidates) {
+                if ("REWORK".equals(t.basisType())) continue;
+                var value = current.get(t.id());
+                if (value != null && value.voided()) continue;
+                Long performer = staffOf(t.recordedBy());
+                if (performer == null) continue;
+                String role = null;
+                if (duty.assignedFloorManager(floor, t.performedAt())
+                        .filter(performer::equals)
+                        .isPresent()) role = FLOOR_MANAGER;
+                else if (noManager
+                        && duty.shiftLead(floor, t.performedAt())
+                                .filter(performer::equals)
+                                .isPresent()) role = SHIFT_LEAD;
+                if (role != null)
+                    out.add(new com.eldercare.backend.care.api.dto.OutOfCheckScopeView(
+                            t.id(), shift.id(), floor, performer, role, t.performedAt()));
+            }
+        }
+        return out;
+    }
+
     private Map<Long, CompletedTask> eligible(ShiftStaffPort.ShiftView shift, Inspection context) {
         var candidates = store.completed(shift.id(), shift.floorAreaId(), shift.startsAt(), shift.endsAt());
         var voided = corrections.current(

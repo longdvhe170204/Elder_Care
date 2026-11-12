@@ -68,6 +68,8 @@ List<ProcurementTotalView> totals(Set<Long> departmentIds, LocalDate from, Local
 
 **Xác nhận 2026-11-06 (Phase 10):** `overdue(scope, on)`, `countOverdue(scope, on)` lấy dấu và hạn **hiện tại**, chỉ gồm dấu có `dueOn < on`; không tái dựng dấu từng có trong quá khứ. Phạm vi theo tầng hiện tại; tài sản không gắn tầng chỉ có trong toàn viện. `countOverdue` đếm tại DB, không tải danh sách tài sản. `vehicleSchedules` lấy mọi trạng thái, ngày đi dự kiến theo `BusinessTime.ZONE` trong `[from, to]`. Nếu cần thống kê dấu quá khứ thì phải chốt nguồn tái dựng riêng.
 
+*(Đổi api 2026-11-11, 016 T008, A duyệt qua phiên chính: FR-020 "số tài sản tới mốc nhắc CFG-M03-09")* Thêm `Stream<OverdueAssetView> dueSoon(ScopeFilter scope, LocalDate on)`: tài sản chưa thanh lý có hạn bảo trì, đăng kiểm, bảo hiểm trong `[on, on + CFG-M03-09]` và chưa mang dấu quá hạn của hạn đó (cùng cửa sổ với `AssetReminders`, BR-M03-17); `flag` là dấu sẽ gắn khi qua hạn, `dueOn` là hạn; phạm vi như `overdue`. Bản giả `FakeAssetStatistics.dueSoon(row)`; test `T008_AssetDueSoonStatisticsIT`.
+
 Khoảng của `ProcurementStatisticsApi` tính theo ngày lập yêu cầu (ngày nghiệp vụ, hai đầu tính vào), A (016) xác nhận 2026-11-07. Bản giả: `support/fake/roombedallocation/FakeAssetStatistics`, `support/fake/billing/FakeProcurementStatistics` (mỗi lớp có `Config`).
 
 ---

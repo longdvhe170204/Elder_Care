@@ -63,6 +63,15 @@ public class IncidentRecords {
         this.statistics = statistics;
     }
 
+    /**
+     * Số sự cố Đã hủy tạo trong khoảng, dòng tham khảo của FR-042, FR-007 (không vào chỉ tiêu nào; 016 T018, chủ dự án duyệt
+     * 2026-11-12). Phạm vi là bộ lọc thô của nhóm, vì 007 chỉ trả số đếm.
+     */
+    public int cancelledCount(ScopeFilter rough, Instant from, Instant to) {
+        IncidentStatisticsApi api = statistics.getIfAvailable();
+        return api == null ? 0 : api.cancelledCount(rough, from, to);
+    }
+
     public Stream<IncidentRecord> in(ScopeFilter rough, Instant from, Instant to) {
         IncidentStatisticsApi api = statistics.getIfAvailable();
         if (api == null) {

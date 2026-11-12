@@ -70,6 +70,18 @@ describe('ReportsPage', () => {
     await waitFor(() => expect(reportCalls().at(-1).searchParams.get('costMode')).toBe('PROVISIONAL'))
   })
 
+  it('FR_060_nguoiCaoTuoi_locMucChamSoc_guiCareLevel', async () => {
+    render(<ReportsPage role="NURSING_HOME_MANAGER" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Người cao tuổi' }))
+    await screen.findByText('Tỷ lệ liều Bỏ lỡ')
+    const reportCalls = () => api.fetchMock.mock.calls.map(([u]) => new URL(u, 'http://localhost')).filter((u) => u.pathname === '/api/v1/reports/RESIDENTS')
+    expect(reportCalls().at(-1).searchParams.get('careLevel')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Thường xuyên' }))
+    await waitFor(() => expect(reportCalls().at(-1).searchParams.get('careLevel')).toBe('REGULAR'))
+    fireEvent.click(screen.getByRole('button', { name: 'Chăm sóc' }))
+    expect(screen.queryByRole('button', { name: 'Thường xuyên' })).toBeNull()
+  })
+
   it('FR_009_bangTongVaChiaNhom_bamGiaTriMoDanhSach', async () => {
     api.on(
       'GET',
@@ -88,6 +100,38 @@ describe('ReportsPage', () => {
     expect(await screen.findByText('Không có bản ghi')).toBeInTheDocument()
     const [url] = api.calls('GET', '/metric-details/MED.MISSED_RATE')[0]
     expect(new URL(url, 'http://localhost').searchParams.get('breakdownKey')).toBe('7')
+  })
+
+  it('FR_042_soSuCoDaHuy_dongThamKhao', async () => {
+    api.on('GET', '/reports/HEALTH_MEDICATION', json(200, { ...REPORT, cancelledIncidentCount: 3 }))
+    render(<ReportsPage role="NURSING_HOME_MANAGER" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe, thuốc' }))
+
+    expect(await screen.findByText('Số sự cố đã hủy: 3 (tham khảo, không tính vào chỉ tiêu nào)')).toBeInTheDocument()
+  })
+
+  it('FR_009_Q12_moBanGhi_chuyenSangManCuaFeatureSoHuu', async () => {
+    api.on(
+      'GET',
+      '/metric-details/MED.MISSED_RATE',
+      json(200, {
+        metricCode: 'MED.MISSED_RATE',
+        total: 2,
+        rows: [
+          { sourceKey: 'M05.INCIDENT:9', status: 'NEW', result: {}, canOpenRecord: true },
+          { sourceKey: 'M07.DOSE:x', status: 'MISSED', result: {}, canOpenRecord: true },
+        ],
+      }),
+    )
+    const onNavigate = vi.fn()
+    render(<ReportsPage role="DOCTOR" onNavigate={onNavigate} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe, thuốc' }))
+    fireEvent.click(await screen.findByRole('button', { name: '2,1' }))
+
+    const open = await screen.findAllByRole('button', { name: 'Mở bản ghi' })
+    expect(open).toHaveLength(1)
+    fireEvent.click(open[0])
+    expect(onNavigate).toHaveBeenCalledWith('incidents', { incidentId: 9 })
   })
 
   it('FR_060_khoangQuaDai_hienLoi', async () => {

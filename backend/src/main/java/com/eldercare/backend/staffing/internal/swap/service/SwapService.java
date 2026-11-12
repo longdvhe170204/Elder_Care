@@ -37,6 +37,7 @@ import com.eldercare.backend.staffing.internal.assignment.domain.AssignmentInput
 import com.eldercare.backend.staffing.internal.assignment.domain.StaffAssignment;
 import com.eldercare.backend.staffing.internal.assignment.persistence.AssignmentStore;
 import com.eldercare.backend.staffing.internal.assignment.service.AssignmentCommandPort;
+import com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService;
 import com.eldercare.backend.staffing.internal.shift.domain.ContinuousShiftChain;
 import com.eldercare.backend.staffing.internal.shift.domain.ContinuousShiftChain.Interval;
 import com.eldercare.backend.staffing.internal.shift.domain.WorkShift;
@@ -99,6 +100,7 @@ public class SwapService {
     private final AuditLogApi audit;
     private final SwapNotices notices;
     private final JsonMapper json;
+    private final StaffingRatioService ratios;
 
     public SwapService(
             ShiftStore shifts,
@@ -118,7 +120,8 @@ public class SwapService {
             ObjectProvider<TripDutyPort> trips,
             AuditLogApi audit,
             SwapNotices notices,
-            JsonMapper json) {
+            JsonMapper json,
+            StaffingRatioService ratios) {
         this.shifts = shifts;
         this.staff = staff;
         this.assignments = assignments;
@@ -137,6 +140,7 @@ public class SwapService {
         this.audit = audit;
         this.notices = notices;
         this.json = json;
+        this.ratios = ratios;
     }
 
     /** Lệnh duyệt gửi kèm: lý do, người phụ trách chọn, xác nhận cảnh báo. */
@@ -657,7 +661,13 @@ public class SwapService {
         if (forApprover) {
             monthly = monthly(a, b, x, y);
         }
-        return new SwapChecks(overlaps, hours, notTransferable, lead, null, monthly, tripOverlaps(x, y, a, b));
+        // (f) tỷ lệ phục vụ trước/sau (008 FR-034): A rời X, B vào X; đổi hai chiều thêm B rời Y, A vào Y.
+        Map<String, Object> ratio = new LinkedHashMap<>();
+        ratio.put("shiftX", ratios.beforeAfter(x.id(), a, b));
+        if (y != null) {
+            ratio.put("shiftY", ratios.beforeAfter(y.id(), b, a));
+        }
+        return new SwapChecks(overlaps, hours, notTransferable, lead, ratio, monthly, tripOverlaps(x, y, a, b));
     }
 
     private void collect(

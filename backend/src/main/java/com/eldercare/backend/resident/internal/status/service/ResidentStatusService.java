@@ -380,6 +380,40 @@ public class ResidentStatusService {
         return residents.lockById(target.residentId()).orElseThrow(NotFoundException::new);
     }
 
+    /**
+     * 014 FR-031a (a), đổi api chủ dự án duyệt 2026-11-11: đính chính thời điểm thực tế của dòng điểm danh rời viện hoặc về
+     * mới nhất do chuyến {@code tripId} ghi. Thời điểm đúng không ở tương lai, sau dòng trước và trước dòng sau của người
+     * đó; trạng thái không đổi, không chạy lại tác động của lệnh. Trả thời điểm trước khi đính chính.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Instant correctRollCallTime(
+            long residentId,
+            StatusCommand command,
+            long tripId,
+            Instant correctedAt,
+            CurrentUser user,
+            Optional<Reason> reason) {
+        if (command != StatusCommand.ROLL_CALL_DEPARTURE && command != StatusCommand.ROLL_CALL_RETURN)
+            throw new InvalidValueException("Chỉ đính chính thời điểm của điểm danh rời viện, về");
+        residents.lockById(residentId).orElseThrow(NotFoundException::new);
+        var rows = histories.findByResidentIdOrderByIdAsc(residentId);
+        int index = -1;
+        for (int i = rows.size() - 1; i >= 0 && index < 0; i--) {
+            var r = rows.get(i);
+            if (command.name().equals(r.getCommand()) && Long.valueOf(tripId).equals(r.getBasisId())) index = i;
+        }
+        if (index < 0) throw new NotFoundException();
+        var target = rows.get(index);
+        if (correctedAt.isAfter(time.now())) throw new InvalidValueException("Thời điểm đúng ở tương lai");
+        if (index > 0 && !correctedAt.isAfter(rows.get(index - 1).getOccurredAt()))
+            throw new InvalidValueException("Thời điểm đúng phải sau lần đổi trạng thái trước của người cao tuổi");
+        if (index + 1 < rows.size() && !correctedAt.isBefore(rows.get(index + 1).getOccurredAt()))
+            throw new InvalidValueException("Thời điểm đúng phải trước lần đổi trạng thái sau của người cao tuổi");
+        histories.appendTimeCorrection(
+                target, correctedAt, user.accountId(), reason.orElse(null), "SOURCE_RECORD", tripId);
+        return target.getOccurredAt();
+    }
+
     private void requireDeviceTime(long residentId, StatusCommand command, Instant occurredAt) {
         if (command != StatusCommand.ROLL_CALL_DEPARTURE && command != StatusCommand.ROLL_CALL_RETURN)
             throw new InvalidValueException("Chỉ lệnh điểm danh rời viện, về nhận thời điểm trên thiết bị");

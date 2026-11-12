@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.ReportChannel;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.reporting.internal.incident.service.IncidentRecords;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
@@ -48,6 +49,7 @@ public class ReportService {
     private final LocationStructureApi structure;
     private final BusinessTime time;
     private final PurgedDataTypes purged;
+    private final IncidentRecords incidents;
 
     public ReportService(
             MetricCatalog catalog,
@@ -55,13 +57,15 @@ public class ReportService {
             MetricEvaluator evaluator,
             LocationStructureApi structure,
             BusinessTime time,
-            PurgedDataTypes purged) {
+            PurgedDataTypes purged,
+            IncidentRecords incidents) {
         this.purged = purged;
         this.catalog = catalog;
         this.scopes = scopes;
         this.evaluator = evaluator;
         this.structure = structure;
         this.time = time;
+        this.incidents = incidents;
     }
 
     public Report period(CurrentUser user, ReportGroup group, ReportPeriod period, ReportFilters filters) {
@@ -76,9 +80,13 @@ public class ReportService {
         boolean dayNotEnded = period.end().isAfter(now);
         List<MetricResult> results = new ArrayList<>();
         List<ScopeFilter> rough = new ArrayList<>();
+        Integer cancelledIncidents = null;
         for (MetricGroup g : visible) {
             ReportScope scope = scopes.period(user, g, period.start(), period.end());
             rough.add(scope.rough());
+            if (g == MetricGroup.HEALTH_EVENTS) {
+                cancelledIncidents = incidents.cancelledCount(scope.rough(), period.start(), period.end());
+            }
             for (MetricSource<?> source : catalog.sourcesIn(g)) {
                 MetricResult r = evaluator.result(user, source, scope, period.start(), period.end(), filters);
                 MetricResult labelled =
@@ -91,7 +99,15 @@ public class ReportService {
         }
         ScopeFilter scope = union(rough);
         return new Report(
-                group, period.from(), period.to(), now, filters, scope, filterOptions(scope), List.copyOf(results));
+                group,
+                period.from(),
+                period.to(),
+                now,
+                filters,
+                scope,
+                filterOptions(scope),
+                List.copyOf(results),
+                cancelledIncidents);
     }
 
     private ReportFilterOptions filterOptions(ScopeFilter scope) {

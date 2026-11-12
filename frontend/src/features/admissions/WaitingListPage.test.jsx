@@ -151,3 +151,13 @@ describe('WaitingListPage', () => {
     expect(await screen.findByText(/Bạn không có quyền xem/)).toBeInTheDocument()
   })
 })
+
+// 016 T021 (Q12, chủ dự án duyệt 2026-11-12): mở thẳng một hồ sơ chờ từ dòng chi tiết báo cáo
+it('016_Q12_moTheoIdTuDuongDan', async () => {
+  render(
+    <PermissionsProvider>
+      <WaitingListPage entryId={22} />
+    </PermissionsProvider>,
+  )
+  expect(await screen.findByRole('dialog')).toBeInTheDocument()
+})

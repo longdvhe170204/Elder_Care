@@ -74,6 +74,43 @@ describe('App', () => {
     window.history.replaceState(null, '', '/')
   })
 
+  it('016_Q12_duongDanCoId_moThangBanGhi', async () => {
+    api.on('GET', '/me', new Response(null, { status: 500 }))
+    api.on(
+      'GET',
+      '/incidents',
+      json(200, [
+        {
+          id: 12,
+          status: 'NEW',
+          level: 'MINOR',
+          content: { discoveredAt: '2026-11-08T02:00:00Z', description: 'Ngã', level: 'MINOR' },
+          allowedCommands: [],
+          progressions: [],
+        },
+      ]),
+    )
+    api.on(
+      'GET',
+      '/incidents/12',
+      json(200, {
+        id: 12,
+        status: 'NEW',
+        level: 'MINOR',
+        content: { discoveredAt: '2026-11-08T02:00:00Z', description: 'Ngã', level: 'MINOR' },
+        allowedCommands: [],
+        progressions: [],
+      }),
+    )
+    api.on('GET', '/incident-types', json(200, []))
+    api.on('GET', '/progression-types', json(200, []))
+    window.history.replaceState(null, '', '/#incidents?incidentId=12')
+    render(<App />)
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    window.history.replaceState(null, '', '/')
+  })
+
   it('khongCoBackend_giuBanMauDoiVaiTro', async () => {
     api.on('GET', '/me', new Response(null, { status: 500 }))
     render(<App />)

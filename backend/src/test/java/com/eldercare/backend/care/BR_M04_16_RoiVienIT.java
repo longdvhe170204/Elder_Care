@@ -309,6 +309,8 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
         assertThat(currentStatus(r)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
         assertThat(participantStatus(s, r)).isEqualTo("DEPARTED");
         assertThat(departures(r)).isEqualTo(1);
+        // 002 T049 (FR-031): người đã rời viện của chuyến Đang diễn ra thuộc phạm vi trưởng đoàn
+        assertThat(dutyReads.getObject().tripResidentsOf(manager.staffId())).contains(r);
         assertThat(jdbc.queryForObject("SELECT trip_status FROM activity_session WHERE id=?", String.class, s))
                 .isEqualTo("IN_PROGRESS");
         assertThat(jdbc.queryForObject(

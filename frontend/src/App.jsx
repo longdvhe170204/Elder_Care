@@ -129,9 +129,23 @@ const PAGES = {
 const BUILT = new Set(Object.keys(PAGES))
 
 // Màn đang mở giữ ở hash của URL để tải lại trang (F5) không về Tổng quan (BUG-UI-002); hash lạ thì về màn mặc định.
+// Tham số id đi sau dấu ? (`#incidents?incidentId=9`, 016 Q12): mở thẳng bản ghi ở màn của feature sở hữu.
 function pageFromUrl() {
-  const key = window.location.hash.slice(1)
+  const key = window.location.hash.slice(1).split('?')[0]
   return Object.hasOwn(PAGES, key) ? key : 'dashboard'
+}
+
+function paramsFromUrl() {
+  const [key, query] = window.location.hash.slice(1).split('?')
+  if (!query || !Object.hasOwn(PAGES, key)) return {}
+  return Object.fromEntries(
+    [...new URLSearchParams(query)].map(([name, value]) => [name, /^\d+$/.test(value) ? Number(value) : value]),
+  )
+}
+
+function hashOf(page, params) {
+  const query = new URLSearchParams(params).toString()
+  return query ? `#${page}?${query}` : `#${page}`
 }
 
 function firstPage(role, hasFunction = null) {
@@ -158,7 +172,7 @@ function LivePermissions({ role, page, onNavigate, render }) {
 function App() {
   const [role, setRole] = useState('FLOOR_MANAGER')
   const [page, setPage] = useState(pageFromUrl)
-  const [params, setParams] = useState({})
+  const [params, setParams] = useState(paramsFromUrl)
   // Phiên thật (002 T045): có thì vai trò theo tài khoản; chưa đăng nhập thì sang /login; không có backend thì bản
   // mẫu đổi vai trò
   const [session, setSession] = useState(null)
@@ -202,7 +216,7 @@ function App() {
   function navigate(nextPage, nextParams = {}) {
     setPage(nextPage)
     setParams(nextParams)
-    window.history.replaceState(null, '', `#${nextPage}`)
+    window.history.replaceState(null, '', hashOf(nextPage, nextParams))
   }
 
   function changeRole(nextRole) {

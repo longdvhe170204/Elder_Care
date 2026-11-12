@@ -141,4 +141,52 @@ abstract class ChangeTestBase extends ContractTestBase {
                 Integer.class,
                 contractId);
     }
+    // ---- Giường, phân bổ thật của 003 (T035, T043) ------------------------------------------------------------------
+
+    /** Phòng thật (khu, tầng, loại phòng mức Cơ bản, không giới hạn giới tính); trả mã phòng. */
+    protected long realRoom(boolean servesShortTerm) {
+        long area = com.eldercare.backend.support.TestUsers.nextId();
+        long floor = com.eldercare.backend.support.TestUsers.nextId();
+        long type = com.eldercare.backend.support.TestUsers.nextId();
+        long room = com.eldercare.backend.support.TestUsers.nextId();
+        jdbc.update("INSERT INTO area(id,code,name) VALUES(?,?,?)", area, "A" + area, "Khu " + area);
+        jdbc.update(
+                "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)", floor, area, "F" + floor, "Tầng " + floor);
+        jdbc.update(
+                "INSERT INTO room_type(id,name,standard_beds,serves_long_term,serves_short_term) VALUES(?,?,2,TRUE,?)",
+                type,
+                "Loại " + type,
+                servesShortTerm);
+        jdbc.update("INSERT INTO room_type_care_level VALUES(?,'BASIC')", type);
+        jdbc.update(
+                "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
+                room,
+                floor,
+                type,
+                "R" + room,
+                "Phòng " + room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
+        return room;
+    }
+
+    /** Giường thật trong phòng, trạng thái cho trước; trả mã giường. */
+    protected long realBed(long roomId, String state) {
+        long bed = com.eldercare.backend.support.TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code,state) VALUES(?,?,?,?)", bed, roomId, "G" + bed, state);
+        return bed;
+    }
+
+    /** Phân bổ Hiệu lực thật của người này ở giường (bắt đầu 10 ngày trước); trả mã phân bổ. */
+    protected long activeAllocation(long residentId, long bedId) {
+        jdbc.update(
+                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source)"
+                        + " VALUES(?,?,'ACTIVE',?,'BASIC','CURRENT')",
+                residentId,
+                bedId,
+                java.sql.Timestamp.from(today().minusDays(10)
+                        .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                        .toInstant()));
+        return jdbc.queryForObject(
+                "SELECT id FROM bed_allocation WHERE resident_id=? AND bed_id=?", Long.class, residentId, bedId);
+    }
 }

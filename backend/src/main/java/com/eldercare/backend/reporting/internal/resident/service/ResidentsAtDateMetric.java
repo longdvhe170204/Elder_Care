@@ -44,6 +44,6 @@ public class ResidentsAtDateMetric implements MetricSource<ResidentAtDateRecord>
 
     @Override
     public Stream<ResidentAtDateRecord> records(ScopeFilter rough, Instant from, Instant to, ReportFilters filters) {
-        return records.atDate(rough, to, filters.residenceType());
+        return records.atDate(rough, to, filters);
     }
 }
