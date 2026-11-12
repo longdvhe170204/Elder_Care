@@ -39,13 +39,13 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 | Q7 | KT ghi lệch; QL chấp nhận lệch | Lệch → Đã đối chiếu; PB, KT được báo | FR-008 |
 | Q8 | PB hủy yêu cầu Đã duyệt đã có phiếu nhập gắn | 409 `DA_CO_NGUON_GAN` | Q-290 |
 | Q9 | Bộ phận Kỹ thuật (chưa có Phụ trách) lập yêu cầu | Chặn `BO_PHAN_CHUA_CO_PHU_TRACH`; QL được nhắc chỉ định | Q-292 |
-| Q10 | B2 xuất Gạo cho bữa trưa: danh sách lô hiện L1 trước L2; chọn L2 không lý do | L1 đứng đầu, không lô nào được chọn sẵn; 409 `THIEU_LY_DO_CHON_LO` | US2, FR-003, SC-002 |
-| Q11 | Xuất cho bữa từ lô quá hạn | 409 `LO_QUA_HAN`; mục đích Hủy được | FR-005 |
-| Q12 | Hai phiếu xuất đồng thời lấy hết lô L1 | Một thành công, một 409 `TON_AM` | FR-004, SC-001 |
-| Q13 | Đảo phiếu nhập sai một dòng | Phiếu đảo trỏ gốc; tồn giảm đúng | FR-006 |
-| Q14 | 05:00: L1 còn 2 ngày tới hạn; Gạo dưới tồn tối thiểu | PB, B2 nhận Nhẹ; nhắc PB lập yêu cầu mua sắm; không có yêu cầu tự tạo | US3, FR-009, SC-003 |
-| Q15 | B2 lập phiếu kiểm kê có lệch không lý do; có lý do; B2 tự duyệt | 409; Chờ duyệt; 403 `TU_DUYET`; PB duyệt → điều chỉnh tồn | US3, FR-010 |
-| Q16 | PB lập phiếu kiểm kê | Người duyệt là QL | FR-010 |
+| Q10 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* B2 xuất Gạo cho bữa trưa: danh sách lô hiện L1 trước L2; chọn L2 không lý do | L1 đứng đầu, không lô nào được chọn sẵn; 409 `THIEU_LY_DO_CHON_LO` | US2, FR-003, SC-002 |
+| Q11 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* Xuất cho bữa từ lô quá hạn | 409 `LO_QUA_HAN`; mục đích Hủy được | FR-005 |
+| Q12 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* Hai phiếu xuất đồng thời lấy hết lô L1 | Một thành công, một 409 `TON_AM` | FR-004, SC-001 |
+| Q13 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* Đảo phiếu nhập sai một dòng | Phiếu đảo trỏ gốc; tồn giảm đúng | FR-006 |
+| Q14 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* 05:00: L1 còn 2 ngày tới hạn; Gạo dưới tồn tối thiểu | PB, B2 nhận Nhẹ; nhắc PB lập yêu cầu mua sắm; không có yêu cầu tự tạo | US3, FR-009, SC-003 |
+| Q15 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* B2 lập phiếu kiểm kê có lệch không lý do; có lý do; B2 tự duyệt | 409; Chờ duyệt; 403 `TU_DUYET`; PB duyệt → điều chỉnh tồn | US3, FR-010 |
+| Q16 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không chạy)* PB lập phiếu kiểm kê | Người duyệt là QL | FR-010 |
 | ~~Q17~~ | *(Bỏ theo Q-392)* | — | — |
 | Q18 | HC ghi tăng máy lọc nước gắn yêu cầu tài sản thiếu nguyên giá | 409 `THIEU_NGUYEN_GIA`; có nguyên giá → Sẵn sàng, kho tài sản | US4, FR-011, Q-294 |
 | Q19 | 003 tạo giường G305 | Tài sản giường tạo cùng lệnh, Sẵn sàng, bộ phận Chăm sóc | US5, Q-238 |
@@ -83,10 +83,10 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 
 | SC | Cách đo |
 | --- | --- |
-| SC-001 | Bộ 200 phiếu so tính tay |
-| SC-002 | Q10, Q11 |
+| SC-001 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không đo)* Bộ 200 phiếu so tính tay |
+| SC-002 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không đo)* Q10, Q11 |
 | SC-003 | Q14, Q26 |
 | SC-004 | Bất biến giường ↔ tài sản sau mọi kịch bản |
 | SC-005 | Q27 → Q32 |
-| SC-006 | Đo phiếu xuất 10 dòng ≤ 3 phút |
+| SC-006 | *(Bỏ theo Q-392, đánh dấu 2026-11-12: không đo)* Đo phiếu xuất 10 dòng ≤ 3 phút |
 | SC-007 | Q1 → Q9, Q18 |
