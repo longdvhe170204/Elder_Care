@@ -87,10 +87,14 @@ public class BalanceRetention {
             return store.hasLedger(residentId) ? List.of(residentId) : List.of();
         }
 
-        /** Sổ, giao dịch của hồ sơ {@code target} (000 T112, FR-051a). */
+        /**
+         * Sổ của hồ sơ {@code target} (000 T112, FR-051a). Giao dịch không gắn thẳng vào hồ sơ mà theo sổ, rồi theo giao
+         * dịch được trỏ ({@link #referencesTo}): chuỗi xóa ngược thứ tự tìm thấy, nên điều chỉnh xóa trước giao dịch gốc,
+         * giao dịch trước sổ (khóa ngoại {@code fk_balance_transaction_original}, {@code fk_balance_transaction_ledger}).
+         */
         @Override
         public Set<DataRef> referencing(DataRef target) {
-            if (!SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
+            if (kind == Kind.TRANSACTION || !SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
             return ids(target.id()).stream()
                     .map(id -> new DataRef(dataType(), id))
                     .collect(Collectors.toSet());
@@ -98,7 +102,8 @@ public class BalanceRetention {
 
         @Override
         public Set<DataRef> referencesTo(long id) {
-            List<Long> children = kind == Kind.LEDGER ? store.transactionsOf(id) : store.transactionsReferencing(id);
+            List<Long> children =
+                    kind == Kind.LEDGER ? store.rootTransactionsOf(id) : store.transactionsReferencing(id);
             return children.stream()
                     .map(child -> new DataRef(BalanceTypes.TRANSACTION, child))
                     .collect(Collectors.toSet());
