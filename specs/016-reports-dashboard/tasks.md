@@ -244,6 +244,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 - [x] T105 *(bổ sung 2026-10-29, Q-392)* Bỏ nhóm chỉ tiêu kho nguyên liệu: `MetricGroup.INVENTORY`, chỉ tiêu `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` (contracts/chi-tieu.md) và các ô quyền của nhóm này; sửa test liên quan
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T030 *(2026-11-06: rà xong lượt đầu, plan "Rà T030"; mọi mã đã cài có test, 43 mã chưa cài chờ nguồn; DBR-25, FR-002, 004 (thêm `M14ArchTest.FR_004_noSourcesOutsideThisPhase`), 005, 006, 008 có mã và test; thiếu FR-007 nhãn loại bỏ theo lưu trữ (T109); FR-055, 055a chờ 010, 019 (T020); để `[ ]` tới khi các mã còn lại có test)* Rà: mọi mã ở `contracts/chi-tieu.md` có `ChiTieu_*Test` (SC-001); DBR-25 (mốc theo Asia/Ho_Chi_Minh); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-055, FR-055a — mỗi FR có task hoặc test tương ứng (constitution XV)
+  - *(2026-11-12, A, rà tự động: tìm mã quy tắc trong tên và nội dung test backend, web, app)* Có test mang mã cho mọi FR của task trừ FR-006 ("hôm nay", "ca hiện tại" với ca qua nửa đêm). Phần "mọi mã ở chi-tieu.md có test" chưa rà lại sau các chỉ tiêu luồng C thêm 2026-11-11, 12. Giữ [ ].
 
 ---
 
