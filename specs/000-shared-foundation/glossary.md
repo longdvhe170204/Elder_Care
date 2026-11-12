@@ -766,7 +766,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 
 | Tên logic | Tên trong mã |
 | --- | --- |
-| `ViTriApi` | `api.ResidentLocationApi`: `current`, `current`, `at`, `floorOn`, `hasNoBed`, `currentOrFutureAllocation` |
+| `ViTriApi` | `api.ResidentLocationApi`: `current`, `current`, `at`, `floorOn`, `hasNoBed`, `currentOrFutureAllocation`, `hasAllocationStartingBy` (`coPhanBoBatDauTruoc`, 2026-11-12) |
 | `LichSuViTriApi` | `api.LocationHistoryApi`: `byResident`, `byLocation`, `byLocationOn`, `roommates` |
 | `PhanBoGiuongLenhApi` | `api.BedAllocationCommandApi`: `holdForWaitingRecord`, `cancelHold`, `releaseWhenAbsent`, `extendExpectedEnd`, `checkScheduledReservation`, `reserveScheduledTransfer`, `checkScheduledTransfer`, `applyScheduledTransfer`, `cancelScheduledAllocation`, `requestCreatedAfterUrgentTransfer`, `urgentTransferRequestResult`, `urgentTransferRequestWithdrawn` (`yeuCauSauChuyenGapDaRut`, bổ sung 2026-11-12), `residenceTypeChanged` (`daDoiLoaiLuuTru`, bổ sung 2026-11-11) |
 | `SucChuaBanTruApi` | `api.DayCareCapacityApi`: `lock`, `occupiedSessions`, `checkCapacity` |

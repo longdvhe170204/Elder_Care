@@ -132,6 +132,12 @@ public class AllocationQueries implements BedAllocationApi, ResidentLocationApi,
     }
 
     @Override
+    public boolean hasAllocationStartingBy(long residentId, LocalDate date) {
+        return store.openOrFutureStartingBefore(
+                residentId, date.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
+    }
+
+    @Override
     public Optional<BedAllocationView> currentOrFutureAllocation(long residentId) {
         // Kiểm nguồn hiện hành cả khi ưu tiên bản ACTIVE trước bản FUTURE.
         checkedAt(time.now());

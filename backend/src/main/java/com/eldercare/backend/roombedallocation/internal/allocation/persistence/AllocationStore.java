@@ -49,6 +49,16 @@ public class AllocationStore {
                 residentId);
     }
 
+    /** Có phân bổ Hiệu lực hoặc Tương lai bắt đầu trước {@code before} (004 FR-021). */
+    public boolean openOrFutureStartingBefore(long residentId, Instant before) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM v_current_allocation WHERE resident_id=? AND status IN ('ACTIVE','FUTURE') AND start_at<?",
+                Integer.class,
+                residentId,
+                LocalDateTime.ofInstant(before, ZoneOffset.UTC));
+        return count != null && count > 0;
+    }
+
     public boolean hasNoBed(long residentId) {
         return positions.withoutBedSince(residentId).isPresent();
     }
