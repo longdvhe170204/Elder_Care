@@ -441,3 +441,8 @@ Test backend ở `backend/src/test/java/com/eldercare/backend/family/` (trừ gh
 - `SC_008_ThirtyDayStaysIT`: sáu lượt trong 30 ngày (3 đêm, trong ngày, 5 đêm qua mốc đổi đơn giá, 2 đêm, Chờ xác nhận, Từ chối), việc nửa đêm chạy mọi mốc 00:00: 10 sự kiện `OVERNIGHT_STAY`, ngày từng đêm khớp bảng; lượt chưa xác nhận Bắt đầu bị 409. Đơn giá do 010 tra theo `incurredOn`, nên phía 012 chỉ kiểm ngày. Số suất ăn chờ 011 (`LuotOLaiDaDoi`).
 - Lúc dựng dữ liệu SC-008 lần đầu, lượt trong ngày chồng giờ với lượt qua đêm nên bị chặn đúng theo CFG-M10-10 (một lượt cùng lúc mỗi người cao tuổi); đã dời ngày trong test, không đổi mã.
 - Còn nghiệm thu với người dùng: SC-004 (thao tác đăng ký của 10 người thân dùng lần đầu), SC-005 (90% hạn mức Cao sau ba tháng; T036 không làm theo Q-194).
+
+### T039 — tổng hợp lượng nước cho cổng (nguồn 005) (chủ dự án chốt 2026-11-12)
+
+- `PublicCareResultApi.summary`: lượng nước trung bình = tổng lượng nước (kết quả `ML`, giá trị hiện hành sau đính chính, bỏ bản Hủy ghi nhận) từng ngày lịch giờ Việt Nam chia số ngày có ít nhất một lần ghi; ngày không ghi (vắng, về nhà) không tính; làm tròn tới ml. `EatingDrinkingSummary(averageWaterMl, waterDays)`: bỏ `averageEatingRatio` (duyệt 09/11) cùng commit với `PortalService` của 012. Không có ngày nào thì rỗng, 0 ngày.
+- Cổng 012 mục `eating` trả `{averageWaterMl, waterDays}`; web, app người thân hiện "Lượng nước trung bình … ml/ngày, tính trên N ngày có ghi".

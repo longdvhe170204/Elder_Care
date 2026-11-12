@@ -325,7 +325,14 @@ class _HealthScreenState extends State<HealthScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final i in items)
-          Text('${i['text'] ?? i['medicationName'] ?? i['type'] ?? i['resultType'] ?? ''}', style: text.bodyMedium),
+          // Ăn uống: chủ dự án chốt 2026-11-12, trung bình theo ngày có ghi nước, kèm số ngày có dữ liệu
+          if (i['averageWaterMl'] != null)
+            Text(
+              'Lượng nước trung bình ${i['averageWaterMl']} ml/ngày, tính trên ${i['waterDays']} ngày có ghi',
+              style: text.bodyMedium,
+            )
+          else
+            Text('${i['text'] ?? i['medicationName'] ?? i['type'] ?? i['resultType'] ?? ''}', style: text.bodyMedium),
       ],
     );
   }
