@@ -79,9 +79,11 @@ public class ControlledTransferService {
         this.residency = residency;
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.CREATE)
+    /** BR-M03-20, UC-21: kiểm khóa mức vai trò rồi kiểm trên giường kèm tầng; không dùng {@code @RequiresPermission}. */
     @BusinessCommand
     public ControlledTransferResult transfer(long id, long target, long doctor, Reason reason) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.CREATE)))
+            throw new PermissionDeniedException("Không có quyền thực hiện lệnh");
         var snapshot = allocations.get(id);
         locks.lock(snapshot.residentId(), List.of(snapshot.bedId(), target));
         var old = allocations.current(id);
@@ -179,9 +181,11 @@ public class ControlledTransferService {
                 .orElseThrow(NotFoundException::new);
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.CREATE)
+    /** BR-M03-20, UC-21: kiểm khóa mức vai trò rồi kiểm trên giường kèm tầng; không dùng {@code @RequiresPermission}. */
     @Transactional(readOnly = true)
     public List<com.eldercare.backend.roombedallocation.internal.isolation.domain.PrescribingDoctor> doctors() {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.CREATE)))
+            throw new PermissionDeniedException("Không có quyền thực hiện lệnh");
         return accounts.activeWithRole(Role.DOCTOR).stream()
                 .filter(a -> a.status() == AccountStatus.ACTIVE && a.staffId() != null)
                 .map(a -> new com.eldercare.backend.roombedallocation.internal.isolation.domain.PrescribingDoctor(

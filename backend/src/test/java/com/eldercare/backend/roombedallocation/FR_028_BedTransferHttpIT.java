@@ -79,4 +79,37 @@ class FR_028_BedTransferHttpIT extends StructureTestSupport {
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, target))
                 .isEqualTo("OCCUPIED");
     }
+
+    @Autowired
+    com.eldercare.backend.support.fake.administration.FakeAssignments assignments;
+
+    @Autowired
+    com.eldercare.backend.support.fake.administration.FakeDuties duties;
+
+    private void floorManagerOf(long managedFloor) {
+        var manager = new TestUsers(jdbc, time).staff(Role.FLOOR_MANAGER);
+        user.set(manager.user());
+        assignments.assign(
+                manager.staffId(),
+                new com.eldercare.backend.administration.account.api.spi.AssignmentView(
+                        com.eldercare.backend.administration.account.api.spi.AssignmentKind.FLOOR_MANAGER,
+                        managedFloor,
+                        null,
+                        null,
+                        null,
+                        time.now().minusSeconds(60),
+                        null));
+        duties.floorManager(managedFloor, manager.staffId());
+    }
+
+    /** UC-21 (BR-M03-20 cùng cách kiểm): Trưởng tầng chuyển giường trong tầng mình, tầng khác bị chặn. */
+    @Test
+    void UC_21_floorManagerTransfersOnlyWithinOwnFloor() throws Exception {
+        floorManagerOf(TestUsers.nextId());
+        transfer("", "Chuyển theo nhu cầu").andExpect(status().isForbidden());
+        floorManagerOf(floor);
+        transfer("", "Chuyển theo nhu cầu")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.newAllocation.location.bedId").value(target));
+    }
 }

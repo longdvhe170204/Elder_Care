@@ -62,7 +62,9 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
         com.eldercare.backend.support.TableRows.each(List.of("CATALOG", "SESSION", "SERVICE"), scenario -> {
             if ("CATALOG".equals(scenario)) FR_001_catalogUsesTheApprovedViewAndWritePermissions();
             else if ("SERVICE".equals(scenario)) FR_002_chargedActivityNeedsAnActiveServiceOfTheCatalog();
-            else FR_002b_facilitySessionIsManagedByTheCreatorOrTheManagerOfItsOwnLocation();
+            else
+                FR_069_sessionCommandsAreAuditedWithActorTimeAndReason(
+                        FR_002b_facilitySessionIsManagedByTheCreatorOrTheManagerOfItsOwnLocation());
         });
     }
 
@@ -96,7 +98,7 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$[?(@.name == '" + name + "')].status").value(hasItem("INACTIVE")));
     }
 
-    private void FR_002b_facilitySessionIsManagedByTheCreatorOrTheManagerOfItsOwnLocation() throws Exception {
+    private long[] FR_002b_facilitySessionIsManagedByTheCreatorOrTheManagerOfItsOwnLocation() throws Exception {
         var users = new TestUsers(jdbc, time);
         long creatorFloor = TestUsers.nextId(), sessionFloor = TestUsers.nextId(), outsideFloor = TestUsers.nextId();
         long defaultRoom = TestUsers.nextId(), sessionRoom = TestUsers.nextId();
@@ -139,6 +141,24 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
         command(path + "/reschedule", reschedule).andExpect(status().isOk());
         user.set(creator.user());
         command(path + "/cancel", "{\"reason\":\"Đổi kế hoạch\"}").andExpect(status().isOk());
+        return new long[] {session, creator.accountId(), locationManager.accountId()};
+    }
+
+    /** FR-069 (014): mỗi lệnh của phiên ghi nhật ký với người thực hiện, thời điểm, lý do khi bắt buộc. */
+    private void FR_069_sessionCommandsAreAuditedWithActorTimeAndReason(long[] session) {
+        var rows = jdbc.queryForList(
+                "SELECT action,actor_id,reason,occurred_at FROM audit_log WHERE entity_type='M04.ACTIVITY_SESSION' AND entity_id=? ORDER BY occurred_at,id",
+                Long.toString(session[0]));
+        org.assertj.core.api.Assertions.assertThat(rows)
+                .extracting(r -> r.get("action"), r -> ((Number) r.get("actor_id")).longValue(), r -> r.get("reason"))
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("SESSION_CREATED", session[1], null),
+                        org.assertj.core.groups.Tuple.tuple(
+                                "SESSION_RESCHEDULED", session[2], "Điều chỉnh giờ sinh hoạt"),
+                        org.assertj.core.groups.Tuple.tuple("SESSION_CANCELLED", session[1], "Đổi kế hoạch"));
+        org.assertj.core.api.Assertions.assertThat(rows)
+                .allSatisfy(r -> org.assertj.core.api.Assertions.assertThat(r.get("occurred_at"))
+                        .isNotNull());
     }
 
     /** FR-002 (danh mục dịch vụ 004 qua UnitPriceApi.service): hoạt động thu phí cần dịch vụ có trong danh mục, Hiệu lực. */

@@ -46,6 +46,35 @@ class BR_M04_28_ReassignIT extends CareOverdueTestBase {
         assertThat(recorded.stream(TaskBecameShared.class)).isEmpty();
     }
 
+    /** BR-M03-04 (FR-032 câu cuối): chuyển giường sang tầng khác, việc chưa đóng theo phân công ca tầng mới. */
+    @Test
+    void BR_M03_04_bedTransferReassignsOpenTasksToNewFloorAndKeepsDoneTasks() throws Exception {
+        long open = create();
+        long done = createAnother();
+        jdbc.update("UPDATE care_task SET status='COMPLETED' WHERE id=?", done);
+        long nextFloor = TestUsers.nextId(), nextShift = TestUsers.nextId(), allocation = TestUsers.nextId();
+        shifts.shift(new ShiftView(
+                nextShift, nextFloor, time.now().minusSeconds(3600), time.now().plusSeconds(14400), true));
+        var other = second();
+        shifts.assignments(
+                residentId, nextShift, List.of(new CareAssignmentView(other.staffId(), Role.CAREGIVER, true)));
+        var event = new com.eldercare.backend.roombedallocation.api.events.BedTransferred(
+                residentId, TestUsers.nextId(), allocation, floor, nextFloor, time.now());
+        var listener = context.getBean(com.eldercare.backend.care.internal.task.service.SharedCareTasks.class);
+
+        listener.onBedTransferred(event);
+        listener.onBedTransferred(event);
+
+        var moved = store().get(open, false);
+        assertThat(moved.floorAreaId()).isEqualTo(nextFloor);
+        assertThat(moved.shiftId()).isEqualTo(nextShift);
+        assertThat(moved.performerId()).isEqualTo(other.staffId());
+        var kept = store().get(done, false);
+        assertThat(kept.floorAreaId()).isEqualTo(floor);
+        assertThat(kept.performerId()).isEqualTo(caregiver.staffId());
+        assertThat(recorded.stream(TaskBecameShared.class)).isEmpty();
+    }
+
     org.springframework.test.web.servlet.ResultActions reassign(long id, long recipient) throws Exception {
         return mvc.perform(post("/api/v1/care-tasks/" + id + "/reassign")
                 .header("Idempotency-Key", "reassign-" + TestUsers.nextId())
