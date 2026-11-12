@@ -22,6 +22,7 @@ class ContractLifecycleIT extends ContractTestBase {
     @Test
     void FR_019_create_returnsDraftWithNumber_etag_andNoWarningsWhenConsistent() throws Exception {
         long residentId = residentWithRepresentative();
+        confirmedAssessment(residentId, com.eldercare.backend.resident.api.dto.CareLevel.BASIC);
 
         MvcResult result = createRaw(body(residentId))
                 .andExpect(status().isCreated())
@@ -56,5 +57,16 @@ class ContractLifecycleIT extends ContractTestBase {
         commandWithReason(id, "return-to-draft", "Gia đình xin sửa điều khoản").andExpect(status().isOk());
         assertThat(contractStatus(id)).isEqualTo("DRAFT");
         updateRaw(id, etag(id), body(residentId)).andExpect(status().isOk());
+    }
+
+    /** FR-025 (quickstart 004 Q3): lập được hợp đồng khi chưa có đánh giá đầu vào Đã xác nhận, kèm cảnh báo "chưa đánh giá". */
+    @Test
+    void FR_025_create_withoutConfirmedAssessment_warnsNotAssessed() throws Exception {
+        long residentId = residentWithRepresentative();
+
+        createRaw(body(residentId))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.warnings[?(@.code == 'CONTRACT_NOT_ASSESSED')]")
+                        .exists());
     }
 }

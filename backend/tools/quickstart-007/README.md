@@ -68,3 +68,10 @@ Cần dữ liệu hoặc thao tác của module khác chưa có trong demo, ho�
 - 001, 004: Q57 (kết thúc lưu trú, qua đời), S4 (A Tạm vắng), Q55 (nguyện vọng mới cần tệp bản ký).
 - 012, 014: K3 (cổng người thân), S5, S11 (chuyến đi), Q44 (buổi hoạt động, lượt thăm, lượt vắng), Q46 (ba module chặn khi khoanh vùng).
 - Khác: Q23 (dấu ngoài phạm vi trong nhật ký), Q31 (phong bì ngoại tuyến tạo sự cố), Q58 (nhắc bù cần dừng backend thật), S7 (nhắc của 009), S12 (màn báo cáo thời gian tới nơi), C2 (hai tệp đính kèm cần S3; dòng chữ trong PDF), Q12, H7 (mục trên).
+
+## Kết quả 2026-11-12 sau sửa lỗi (nhánh `claude/acceptance-fixes`, schema `elder_care_qs3` dựng lại sạch)
+
+**100 ĐẠT, 0 KHÔNG ĐẠT, 25 CẦN XEM TAY** (log `D:eldercare-logsqs-007-run-fix2.log`). B1 (ghi, xem chỉ số trực tuyến), Q52 (B3, "nguồn đã được đính chính" tới người phụ trách theo mã nhân viên) và Q55 (B2) đạt; CẦN XEM TAY giữ như cũ.
+
+- B2: chủ dự án chốt 2026-11-12, lựa chọn "chuyển bệnh viện" trên cảnh báo nguy kịch chưa có sự cố thì lệnh lập sự cố loại do người xử lý chọn (`incidentTypeId` mới trong thân `execute-choice` của api-007), gắn với cảnh báo mà không đổi trạng thái, rồi Chuyển viện. Script Q55 bỏ bước kích hoạt khẩn cấp, chuyển cảnh báo sang Đang xử lý rồi ghi lựa chọn kèm `incidentTypeId`, `handoverStaffId`.
+- `transferOut.handoverStaffId` không bắt buộc trong api-007 nhưng lệnh Chuyển viện của 001/004 bắt buộc (422 `details.handoverStaffId là bắt buộc`); màn Chuyển viện của web (`TransferOutPanel`) và màn nguy kịch web, app chưa có ô người bàn giao (báo chủ dự án 2026-11-12).

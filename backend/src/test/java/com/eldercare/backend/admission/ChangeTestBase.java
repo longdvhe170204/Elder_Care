@@ -178,6 +178,7 @@ abstract class ChangeTestBase extends ContractTestBase {
 
     /** Phân bổ Hiệu lực thật của người này ở giường (bắt đầu 10 ngày trước); trả mã phân bổ. */
     protected long activeAllocation(long residentId, long bedId) {
+        cancelFixtureAllocation(residentId);
         jdbc.update(
                 "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source)"
                         + " VALUES(?,?,'ACTIVE',?,'BASIC','CURRENT')",

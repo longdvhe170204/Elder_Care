@@ -177,8 +177,10 @@ module.exports = async function part2(ctx) {
   const ids1 = (list1?.entries || list1?.items || []).map((x) => x.id ?? x.entryId);
   const hcNext = (await notices(U.HC, 'BED_AVAILABLE_FOR_WAITING_LIST')).filter((n) => n.sourceRecord?.id === String(bed.id) && n.sentAt > holdH);
   const hcNext2 = hcNext;
-  check('Q21', `E về ${eAfter?.status}; giường ${bedAfter?.state}; E không còn trong danh sách lượt này [${ids1}]; HC được báo (${hcNext2.length})`,
-    eAfter?.status === 'WAITING' && bedAfter?.state === 'EMPTY' && !ids1.includes(E.entry.id) && ids1.includes(K.entry.id) && hcNext2.length >= 1, { eAfter, bedAfter, list1, hcNext2 });
+  // FR-012: hồ sơ đã liên hệ rồi từ chối hoặc hết hạn với chính giường này trong lượt trống hiện tại không còn trong danh sách;
+  // K đã từ chối giường ở Q20 nên cũng không có (sửa kiểm 2026-11-12, trước đó script mong K còn trong danh sách)
+  check('Q21', `E về ${eAfter?.status}; giường ${bedAfter?.state}; E, K (đã từ chối) không còn trong danh sách lượt này [${ids1}]; HC được báo (${hcNext2.length})`,
+    eAfter?.status === 'WAITING' && bedAfter?.state === 'EMPTY' && !ids1.includes(E.entry.id) && !ids1.includes(K.entry.id) && hcNext2.length >= 1, { eAfter, bedAfter, list1, hcNext2 });
 
   // Q22: ghi nhận từ chối hồ sơ của F (có hợp đồng Nháp)
   const Fw = await waiting('Hồ sơ chờ F');

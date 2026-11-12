@@ -7,12 +7,22 @@ import '../../common/api/problem_message.dart';
 /// từ `Alert.criticalFlagId`) thì xác nhận hoặc gỡ dấu, ghi kết quả xác nhận lại nguyện vọng, thực hiện lựa chọn.
 /// Cần mạng (lệnh nguy kịch không vào hàng đợi ngoại tuyến). Kết quả "nguyện vọng mới" ghi ở hồ sơ trên web.
 class CriticalCareScreen extends StatelessWidget {
-  const CriticalCareScreen({super.key, required this.api, required this.residentId, this.alertId, this.criticalFlagId});
+  const CriticalCareScreen({
+    super.key,
+    required this.api,
+    required this.residentId,
+    this.alertId,
+    this.criticalFlagId,
+    this.incidentId,
+  });
 
   final ApiClient api;
   final int residentId;
   final int? alertId;
   final int? criticalFlagId;
+
+  /// Sự cố đã liên kết với cảnh báo (`Alert.incidentId`); chưa có thì lệnh "chuyển bệnh viện" hỏi loại sự cố.
+  final int? incidentId;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +47,7 @@ class CriticalCareScreen extends StatelessWidget {
           ),
           _Section(
             title: 'Thực hiện lựa chọn',
-            child: _ExecuteChoice(api: api, alertId: alert),
+            child: _ExecuteChoice(api: api, alertId: alert, needsIncident: incidentId == null),
           ),
         ],
       ],
@@ -325,10 +335,14 @@ class _ReconfirmState extends State<_Reconfirm> with _Command {
 }
 
 class _ExecuteChoice extends StatefulWidget {
-  const _ExecuteChoice({required this.api, required this.alertId});
+  const _ExecuteChoice({required this.api, required this.alertId, required this.needsIncident});
 
   final ApiClient api;
   final int alertId;
+
+  /// Cảnh báo chưa liên kết sự cố: "chuyển bệnh viện" lập sự cố kèm, người xử lý chọn loại (FR-049, FR-050d; chủ dự án
+  /// chốt 2026-11-12).
+  final bool needsIncident;
 
   @override
   State<_ExecuteChoice> createState() => _ExecuteChoiceState();
@@ -339,9 +353,40 @@ class _ExecuteChoiceState extends State<_ExecuteChoice> with _Command {
   final _unit = TextEditingController();
   final _companion = TextEditingController();
   String? _choice;
+  int? _incidentType;
+  List<Map<String, dynamic>>? _types;
+  int? _handoverStaff;
+  List<Map<String, dynamic>>? _staff;
   bool _submitted = false;
 
   bool get _transfer => _choice == 'TRANSFER_TO_HOSPITAL';
+
+  bool get _askType => _transfer && widget.needsIncident;
+
+  /// Lệnh Chuyển viện của 001/004 bắt buộc người bàn giao (quickstart 007 Q55, 2026-11-12); nhân viên đang làm việc (api-008).
+  Future<void> _loadStaff() async {
+    if (_staff != null) return;
+    _staff = const [];
+    try {
+      final list = await widget.api.getList('/staff?status=WORKING');
+      if (!mounted) return;
+      setState(() => _staff = list.whereType<Map<String, dynamic>>().toList());
+    } catch (_) {
+      // Không tải được danh sách: ô chọn rỗng, lệnh không gửi được.
+    }
+  }
+
+  Future<void> _loadTypes() async {
+    if (_types != null) return;
+    _types = const [];
+    try {
+      final list = await widget.api.getList('/incident-types');
+      if (!mounted) return;
+      setState(() => _types = list.whereType<Map<String, dynamic>>().where((type) => type['active'] != false).toList());
+    } catch (_) {
+      // Không tải được danh mục: ô chọn rỗng, lệnh không gửi được; người dùng thử lại khi mở lại màn.
+    }
+  }
 
   @override
   void dispose() {
@@ -354,7 +399,8 @@ class _ExecuteChoiceState extends State<_ExecuteChoice> with _Command {
   void _submit() {
     setState(() => _submitted = true);
     if (_choice == null) return;
-    if (_transfer && (_unit.text.trim().isEmpty || _companion.text.trim().isEmpty)) return;
+    if (_transfer && (_unit.text.trim().isEmpty || _companion.text.trim().isEmpty || _handoverStaff == null)) return;
+    if (_askType && _incidentType == null) return;
     final reason = _reason.text.trim();
     send(
       () => widget.api.post('/alerts/${widget.alertId}/execute-choice', {
@@ -365,7 +411,9 @@ class _ExecuteChoiceState extends State<_ExecuteChoice> with _Command {
             'transferUnit': _unit.text.trim(),
             'transferAt': DateTime.now().toUtc().toIso8601String(),
             'companion': _companion.text.trim(),
+            'handoverStaffId': _handoverStaff,
           },
+        if (_askType) 'incidentTypeId': _incidentType,
       }),
       'Đã ghi lựa chọn thực hiện.',
     );
@@ -383,9 +431,30 @@ class _ExecuteChoiceState extends State<_ExecuteChoice> with _Command {
           'TRANSFER_TO_HOSPITAL': 'Chuyển bệnh viện',
         },
         value: _choice,
-        onChanged: (v) => setState(() => _choice = v),
+        onChanged: (v) {
+          setState(() => _choice = v);
+          if (v == 'TRANSFER_TO_HOSPITAL') _loadStaff();
+          if (v == 'TRANSFER_TO_HOSPITAL' && widget.needsIncident) _loadTypes();
+        },
         error: _submitted && _choice == null ? 'Chọn lựa chọn thực hiện' : null,
       ),
+      if (_askType) ...[
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          key: const Key('choice-incident-type'),
+          initialValue: _incidentType,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: 'Loại sự cố (lập kèm lệnh chuyển viện)',
+            errorText: _submitted && _incidentType == null ? 'Chọn loại sự cố' : null,
+          ),
+          items: [
+            for (final type in _types ?? const <Map<String, dynamic>>[])
+              DropdownMenuItem(value: type['id'] as int, child: Text('${type['name']}')),
+          ],
+          onChanged: (v) => setState(() => _incidentType = v),
+        ),
+      ],
       if (_transfer) ...[
         const SizedBox(height: 12),
         TextField(
@@ -402,6 +471,21 @@ class _ExecuteChoiceState extends State<_ExecuteChoice> with _Command {
             labelText: 'Người đi cùng (họ tên, quan hệ hoặc chức danh)',
             errorText: _submitted && _companion.text.trim().isEmpty ? 'Nhập người đi cùng' : null,
           ),
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<int>(
+          key: const Key('choice-handover-staff'),
+          initialValue: _handoverStaff,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: 'Nhân viên bàn giao',
+            errorText: _submitted && _handoverStaff == null ? 'Chọn nhân viên bàn giao' : null,
+          ),
+          items: [
+            for (final s in _staff ?? const <Map<String, dynamic>>[])
+              DropdownMenuItem(value: s['id'] as int, child: Text('${s['fullName']}')),
+          ],
+          onChanged: (v) => setState(() => _handoverStaff = v),
         ),
       ],
       const SizedBox(height: 12),
