@@ -42,6 +42,9 @@ class FR_013_AssetLifecycleIT extends AssetTestBase {
         mvc.perform(get(URL + "/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("READY"))
+                // Trường mô tả để màn Sửa mô tả điền sẵn (chủ dự án duyệt 2026-11-12)
+                .andExpect(jsonPath("$.source").value("DONATED"))
+                .andExpect(jsonPath("$.sourceDescription").value("Hội người cao tuổi phường tặng"))
                 .andExpect(jsonPath("$.version").isNumber())
                 .andExpect(
                         jsonPath("$.locations[*].type").value(org.hamcrest.Matchers.contains("ASSET_STORAGE", "FLOOR")))

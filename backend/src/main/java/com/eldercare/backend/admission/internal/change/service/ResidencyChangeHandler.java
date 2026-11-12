@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.approval.api.ApprovalRequestApi;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
 import com.eldercare.backend.administration.approval.api.dto.ExtendedTransitions;
@@ -42,6 +43,8 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.CareLevelApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
+import com.eldercare.backend.roombedallocation.api.dto.RoomTypeRef;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -89,9 +92,13 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     private final ObjectProvider<AccountApi> accounts;
 
     private final ObjectProvider<BedAllocationCommandApi> beds;
+    private final ObjectProvider<LocationStructureApi> structure;
+    private final ObjectProvider<ApprovalRequestApi> approvals;
 
     ResidencyChangeHandler(
             ObjectProvider<BedAllocationCommandApi> beds,
+            ObjectProvider<LocationStructureApi> structure,
+            ObjectProvider<ApprovalRequestApi> approvals,
             ContractStore contracts,
             AddendumStore addenda,
             ResidencyChangeRules rules,
@@ -106,6 +113,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             ObjectProvider<RepresentativePort> representatives,
             ObjectProvider<AccountApi> accounts) {
         this.beds = beds;
+        this.structure = structure;
+        this.approvals = approvals;
         this.contracts = contracts;
         this.addenda = addenda;
         this.rules = rules;
@@ -245,7 +254,9 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
                     "DUPLICATE_PENDING_ATTRIBUTE", "Đã có yêu cầu Đã duyệt chờ hiệu lực cùng thuộc tính (FR-046)")));
         }
-        if (change.has(ChangeType.BED) && change.newBedId() != null) {
+        if (change.afterUrgentTransfer()) {
+            beds.getObject().urgentTransferRequestResult(change.urgentTransferAllocationId(), true);
+        } else if (change.has(ChangeType.BED) && change.newBedId() != null) {
             beds.getObject()
                     .reserveScheduledTransfer(
                             request.id(), contract.residentId(), change.newBedId(), actualEffectiveDate);
@@ -274,6 +285,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             long residentId = request.target().residentId();
             residencyLock.lock(residentId);
             closing.close(request.id(), residentId, new Basis(null, request.id(), null, null));
+            withdrawn(request);
         }
         return unmet;
     }
@@ -292,7 +304,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (base.isEmpty()) {
             return List.of(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng chưa có nội dung đã ký"));
         }
-        return rules.check(contract, base.get().content(), change, request.actualEffectiveDate(), null);
+        return rules.checkApply(contract, base.get().content(), change, request.actualEffectiveDate(), request.id());
     }
 
     @Override
@@ -320,8 +332,12 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                             contract.residentId(),
                             newEnd.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
         }
-        if (change.has(ChangeType.BED) && change.newBedId() != null) {
-            beds.getObject().applyScheduledTransfer(request.id(), time.now());
+        if (change.has(ChangeType.BED) && change.newBedId() != null && !change.afterUrgentTransfer()) {
+            // Mốc dự kiến là 00:00 ngày hiệu lực; 003 ghi thời điểm thực hiện và dấu trễ (003 FR-016a)
+            beds.getObject()
+                    .applyScheduledTransfer(
+                            request.id(),
+                            effective.atStartOfDay(BusinessTime.ZONE).toInstant());
         }
         BigDecimal before = deposit(base.content());
         BigDecimal after = deposit(built.content());
@@ -341,9 +357,49 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         events.publishEvent(new AddendumApplied(
                 addendum.id(), contract.id(), contract.residentId(), names(change.changeTypes()), effective));
         if (names(change.changeTypes()).contains("RESIDENCE_TYPE")) {
+            beds.getObject().residenceTypeChanged(contract.residentId());
             events.publishEvent(new ResidenceTypeChanged(contract.residentId()));
         }
         return new ResultRef(ADDENDUM_ENTITY, String.valueOf(addendum.id()));
+    }
+
+    /** 003 FR-030: Hành chính lập yêu cầu sau chuyển gấp thì 003 gỡ dấu chờ lập yêu cầu, ngừng nhắc (cùng transaction lập). */
+    void created(ResidencyChangeContent change, long requestId) {
+        if (change.afterUrgentTransfer()) {
+            beds.getObject().requestCreatedAfterUrgentTransfer(change.urgentTransferAllocationId(), requestId);
+        }
+    }
+
+    /**
+     * 003 FR-030 (chủ dự án chốt 2026-11-12): yêu cầu sau chuyển gấp bị hủy hoặc Áp dụng không thành, và không còn yêu cầu
+     * khác (Nháp, Chờ duyệt, Đã duyệt, Đã áp dụng) tham chiếu cùng lần chuyển: 003 đặt lại dấu chờ lập yêu cầu và mốc nhắc.
+     */
+    void withdrawn(ApprovalRequestView request) {
+        Long allocation = ResidencyChangeContent.parse(request.content()).urgentTransferAllocationId();
+        if (allocation == null) {
+            return;
+        }
+        boolean another = addenda.requestsOf(request.target().residentId()).stream()
+                .filter(id -> id != request.id())
+                .map(id -> approvals.getObject().find(id))
+                .flatMap(Optional::stream)
+                .filter(other -> TYPE.equals(other.type()) && LIVE.contains(other.status()))
+                .anyMatch(other -> allocation.equals(
+                        ResidencyChangeContent.parse(other.content()).urgentTransferAllocationId()));
+        if (!another) {
+            beds.getObject().urgentTransferRequestWithdrawn(allocation);
+        }
+    }
+
+    private static final Set<String> LIVE = Set.of(
+            ApprovalStatus.DRAFT, ApprovalStatus.PENDING_APPROVAL, ApprovalStatus.APPROVED, ApprovalStatus.APPLIED);
+
+    /** 003 FR-030: yêu cầu sau chuyển gấp bị từ chối thì phân bổ mang dấu chờ chuyển về phòng cùng giá. */
+    void rejected(ApprovalRequestView request) {
+        ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        if (change.afterUrgentTransfer()) {
+            beds.getObject().urgentTransferRequestResult(change.urgentTransferAllocationId(), false);
+        }
     }
 
     /** DUOC_THAY_THE khi lần đánh giá được xác nhận (FR-036a của 001), chỉ hệ thống chuyển. */
@@ -402,6 +458,11 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         @Override
         public Optional<BigDecimal> unitPrice(long serviceId) {
             return prices.unitPriceAt(serviceId, date, false).map(UnitPriceView::unitPrice);
+        }
+
+        @Override
+        public Optional<Long> roomTypeOfBed(long bedId) {
+            return structure.getObject().roomTypeOfBed(bedId).map(RoomTypeRef::id);
         }
 
         @Override

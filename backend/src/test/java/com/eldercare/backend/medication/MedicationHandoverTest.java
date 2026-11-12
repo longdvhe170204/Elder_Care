@@ -106,7 +106,8 @@ class MedicationHandoverTest {
                 residentMedicationLock,
                 new BusinessTime(Clock.systemUTC()),
                 new MedicationScheduleCalculator(M07TestParameters.defaults()),
-                new StaticListableBeanFactory().getBeanProvider(TripMedicationPort.class));
+                new StaticListableBeanFactory().getBeanProvider(TripMedicationPort.class),
+                event -> {});
     }
 
     private void setId(Object entity, Long id) {

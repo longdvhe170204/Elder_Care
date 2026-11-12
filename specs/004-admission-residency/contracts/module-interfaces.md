@@ -149,7 +149,7 @@ record DayCareAbsenceNoticeView(long noticeId, Long sessionId, Instant familyNot
 | `HopDongDaDoiTrangThai(hopDongId, nctId, tu, den, lyDo)`; `KhoanCocDaDoi(hopDongId, khoanMoi)` | 017, 018, 010, 012 | FR-033a, FR-033b |
 | `TiepNhanHoanTat(nctId, hopDongId, loaiLuuTru, ngayBatDau, ngayKetThucDuKien)` | 018 | FR-033b |
 | `PhuLucDaApDung(phuLucId, hopDongId, nctId, loaiThayDoi, ngayHieuLuc)` | 010, 018, 005 (báo điều dưỡng phụ trách xem xét kế hoạch), 011 | FR-042, FR-033b |
-| `LoaiLuuTruDaDoi(nctId)` *(bổ sung 2026-11-02: 003 contracts mục 2.2, T004, T045 đã ghi nhưng bảng này thiếu)* | 003 | FR-034 của 003 |
+| `LoaiLuuTruDaDoi(nctId)` *(bổ sung 2026-11-02: 003 contracts mục 2.2, T004, T045 đã ghi nhưng bảng này thiếu; 2026-11-11: 003 không nghe vì tạo vòng module, 004 gọi `PhanBoGiuongLenhApi.daDoiLoaiLuuTru` trong cùng lệnh áp dụng phụ lục)* | (không còn module nghe) | FR-034 của 003 |
 | `LuotVangDaMo`, `LuotVangDaGiaHan`, `LuotVangDaDong` (`luotVangId`, `nctId`, mốc) | 001, 006, 011, 010 | FR-048, FR-049 |
 | `NgayLuuTruDaDoi(nctId, tuNgay, denNgay, nguyenNhan)` | 010 | FR-052, FR-056, FR-061 |
 | `LongAbsenceManagerNotice(absenceId, residentId, absentDays, at)` (sửa 2026-11-02 theo Q-395, thay ba sự kiện cũ) | 009 (Quản lý viện, Trung bình, một lần) | FR-055 |

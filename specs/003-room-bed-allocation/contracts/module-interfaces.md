@@ -55,6 +55,8 @@ KetQuaChuyenTheoLich thucHienChuyenTheoLich(long yeuCauId, Instant thoiDiemDuKie
 void huyPhanBoTheoLich(long yeuCauId, LyDo lyDo);                                  // khi yêu cầu Áp dụng không thành; idempotent
 void daLapYeuCauSauChuyenGap(long phanBoId, long yeuCauId);                        // FR-030: gỡ dấu chờ lập yêu cầu
 void ketQuaYeuCauSauChuyenGap(long phanBoId, boolean duocDuyet);                   // FR-030: từ chối → dấu chờ chuyển về phòng cùng giá
+void yeuCauSauChuyenGapDaRut(long phanBoId);                                       // FR-030: yêu cầu bị hủy, Áp dụng không thành, không còn yêu cầu khác → đặt lại dấu chờ lập yêu cầu và mốc nhắc (chủ dự án chốt 2026-11-12)
+void daDoiLoaiLuuTru(long nctId);                                                  // BR-M03-23, FR-034: 004 gọi khi phụ lục đổi loại lưu trú áp dụng (bổ sung 2026-11-11, T035)
 ```
 
 *(Bản cài 2026-11-06, 003 T033, chủ dự án chốt)*: `giaHanKetThucDuKien` không làm gì khi người không có phân bổ đang hiệu lực (bán trú, chưa có giường). Chuyển theo lịch đang chờ giường (`cho_giuong_san_sang`) được thực hiện trong lệnh Xác nhận giường sẵn sàng hoặc gỡ dấu của 019; FR-018 không còn thỏa lúc đó thì 003 tự hủy phân bổ tương lai và báo Hành chính, Trưởng tầng, Quản lý viện (`KetQuaChuyenTheoLich` giữ hai giá trị). `ketQuaYeuCauSauChuyenGap` báo người thực hiện lệnh chuyển gấp và Hành chính.
@@ -202,6 +204,7 @@ interface NguonLuuTruChoPhanBo {                 // 004 cài
   Optional<Instant> ketThucDuKien(long nctId);             // nội trú ngắn ngày
   GiuGiuong giuGiuongKhiVang(long nctId);                  // gọi trong lệnh vắng, sau bean 004: (giu, han?)
   boolean khacDonGia(long nctId, long loaiPhongCu, long loaiPhongMoi, LocalDate ngay); // FR-030, CHK016
+  boolean khacDonGiaHopDong(long nctId, long loaiPhong, LocalDate ngay); // FR-030, G-07: phân bổ mang dấu chờ lập yêu cầu, chờ về phòng cùng giá so với loại phòng của hợp đồng Hiệu lực (bổ sung 2026-11-11, bảng duyệt 16 điểm (3); đặt ở SPI này thay cho admission.api vì roombedallocation → admission tạo vòng module)
   void hoSoChoHetHanGiuCho(long hoSoChoId);                // MANDATORY; job HetHanGiuCho
   void daPhanBo(long nctId, long phanBoId);                // MANDATORY; hồ sơ chờ Đã tiếp nhận (004 FR-016)
 }
@@ -222,7 +225,7 @@ interface ThamChieuViTri {                       // 008 cài; module khác MAY c
 }
 ```
 
-Sự kiện 003 nghe: (007 gọi `LenhKiemSoatLayNhiemApi` mục 1.10a thay cho `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`, sửa 2026-11-09); `LoaiLuuTruDaDoi(nctId)` (004); `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat` (001); `ThamSoDaDoi(CFG-M03-01)` (000).
+Sự kiện 003 nghe: (007 gọi `LenhKiemSoatLayNhiemApi` mục 1.10a thay cho `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`, sửa 2026-11-09); (004 gọi `PhanBoGiuongLenhApi.daDoiLoaiLuuTru` mục 1.4 thay cho nghe `LoaiLuuTruDaDoi`: nghe thì admission ↔ roombedallocation thành vòng module, sửa 2026-11-11); `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat` (001); `ThamSoDaDoi(CFG-M03-01)` (000).
 
 ### 2.2. Giao diện có sẵn hoặc đã bổ sung
 

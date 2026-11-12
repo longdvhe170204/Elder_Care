@@ -118,6 +118,7 @@ public class ResidencyChangeService {
                 .create(new CreateRequest(ResidencyChangeHandler.TYPE, content, requestedEffectiveDate, reason, false));
         addenda.addAttributes(
                 request.id(), contract.id(), contract.residentId(), change.changeTypes(), request.requesterId());
+        handler.created(change, request.id());
         if (currentUser.getObject().type() == AccountType.FAMILY_MEMBER) {
             events.publishEvent(
                     new RepresentativeRequestNeedsCompletion(request.id(), contract.residentId(), time.now()));
