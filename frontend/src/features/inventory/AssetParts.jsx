@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getAreas, getAssetsById, getFloors, getRooms, postAssets, postAssetsByIdByCommand } from '@/api'
+import { getAreas, getAssetsById, getFloors, getRooms, postAssets, postAssetsByIdByCommand, putAssetsById } from '@/api'
 import { CorrectionBadge } from '@/common/correction/CorrectionBadge'
 import { formatDate, formatDateTime } from '@/common/dateTime'
 import { Button } from '@/components/ui/button'
@@ -216,6 +216,7 @@ export function AssetDetail({
   typeName,
   departmentName,
   departments,
+  types,
   typeCode,
   onChanged,
   Title,
@@ -580,8 +581,26 @@ export function AssetDetail({
         </div>
       )}
 
+      {mode === 'edit' && (
+        <EditAssetSheet
+          assetId={asset.id}
+          types={types}
+          departments={departments}
+          onClose={() => setMode(null)}
+          onDone={(message) => {
+            setMode(null)
+            onChanged(message)
+          }}
+        />
+      )}
+
       {mode === null && live && (
         <div className="flex flex-wrap justify-end gap-2">
+          {allowed('update') && (
+            <Button variant="ghost" className="h-11" onClick={() => open('edit')}>
+              Sửa mô tả…
+            </Button>
+          )}
           {allowed('transfer-department') && (
             <Button variant="ghost" className="h-11" onClick={() => open('department')}>
               Chuyển bộ phận…
@@ -628,29 +647,68 @@ export function AssetDetail({
   )
 }
 
+/**
+ * Sửa mô tả (PUT /assets/{id} kèm If-Match theo version): điền sẵn từ GET /assets/{id} (trường mô tả bổ sung vào
+ * AssetDetail, chủ dự án duyệt 2026-11-12). Bộ phận, nguồn, yêu cầu mua sắm không đổi bằng lệnh sửa; nguyên giá gắn yêu
+ * cầu mua sắm không đổi (BR-M11-19).
+ */
+function EditAssetSheet({ assetId, types, departments, onClose, onDone }) {
+  const [detail, setDetail] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    getAssetsById({ path: { id: assetId } })
+      .then(({ data }) => !cancelled && setDetail(data))
+      .catch((e) => !cancelled && setDetail({ failure: problemOf(e) }))
+    return () => {
+      cancelled = true
+    }
+  }, [assetId])
+  if (!detail) return null
+  if (detail.failure)
+    return (
+      <Sheet open onOpenChange={(next) => !next && onClose()}>
+        <SheetContent className="p-6">
+          <SheetTitle className="type-title">Sửa mô tả tài sản</SheetTitle>
+          <SheetDescription className="sr-only">Chưa tải được tài sản</SheetDescription>
+          <ProblemAlert problem={detail.failure} />
+        </SheetContent>
+      </Sheet>
+    )
+  return (
+    <CreateAssetSheet types={types} departments={departments} editing={detail} onClose={onClose} onDone={onDone} />
+  )
+}
+
+const text = (v) => (v == null ? '' : String(v))
+
 /** Ghi tăng tài sản (FR-011, FR-008c): không phải loại giường; mua mới gắn yêu cầu mua sắm Đã duyệt và nguyên giá. */
-export function CreateAssetSheet({ types, departments, onClose, onDone }) {
+export function CreateAssetSheet({ types, departments, onClose, onDone, editing = null }) {
   const [key] = useState(() => crypto.randomUUID())
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [typeId, setTypeId] = useState('')
-  const [departmentId, setDepartmentId] = useState('')
-  const [source, setSource] = useState('')
-  const [sourceDescription, setSourceDescription] = useState('')
-  const [procurementRequestId, setProcurementRequestId] = useState('')
-  const [acquisitionCost, setAcquisitionCost] = useState('')
-  const [inServiceOn, setInServiceOn] = useState('')
-  const [interval, setInterval] = useState('')
-  const [dueOn, setDueOn] = useState('')
-  const [plate, setPlate] = useState('')
-  const [seats, setSeats] = useState('')
-  const [inspectionDueOn, setInspectionDueOn] = useState('')
-  const [insuranceDueOn, setInsuranceDueOn] = useState('')
+  const [code, setCode] = useState(text(editing?.code))
+  const [name, setName] = useState(text(editing?.name))
+  const [typeId, setTypeId] = useState(text(editing?.typeId))
+  const [departmentId, setDepartmentId] = useState(text(editing?.departmentId))
+  const [source, setSource] = useState(text(editing?.source))
+  const [sourceDescription, setSourceDescription] = useState(text(editing?.sourceDescription))
+  const [procurementRequestId, setProcurementRequestId] = useState(text(editing?.procurementRequestId))
+  const [acquisitionCost, setAcquisitionCost] = useState(text(editing?.acquisitionCost))
+  const [inServiceOn, setInServiceOn] = useState(text(editing?.inServiceOn))
+  const [interval, setInterval] = useState(text(editing?.maintenanceIntervalDays))
+  const [dueOn, setDueOn] = useState(text(editing?.maintenanceDueOn))
+  const [plate, setPlate] = useState(text(editing?.licensePlate))
+  const [seats, setSeats] = useState(text(editing?.seatCount))
+  const [inspectionDueOn, setInspectionDueOn] = useState(text(editing?.vehicleInspectionDueOn))
+  const [insuranceDueOn, setInsuranceDueOn] = useState(text(editing?.insuranceDueOn))
   const [submitted, setSubmitted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState(null)
 
-  const selectable = (types ?? []).filter((t) => t.status === 'ACTIVE' && t.code !== BED_CODE)
+  const bedAsset = editing?.bedId != null
+  // Tài sản giường giữ loại Giường; ghi tăng không tạo tài sản giường
+  const selectable = (types ?? []).filter((t) =>
+    bedAsset ? t.code === BED_CODE : t.status === 'ACTIVE' && t.code !== BED_CODE,
+  )
+  const costLocked = !!editing && editing.procurementRequestId != null
   const vehicle = (types ?? []).find((t) => String(t.id) === typeId)?.code === VEHICLE_CODE
   const purchased = source === 'PURCHASED'
   const errors = {
@@ -698,8 +756,17 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
     setBusy(true)
     setFailure(null)
     try {
-      await postAssets({ headers: { 'Idempotency-Key': key }, body })
-      onDone('Đã ghi tăng tài sản; vị trí mặc định là kho tài sản')
+      if (editing) {
+        await putAssetsById({
+          path: { id: editing.id },
+          headers: { 'Idempotency-Key': key, 'If-Match': `"${editing.version}"` },
+          body,
+        })
+        onDone(`Đã sửa mô tả ${body.code}`)
+      } else {
+        await postAssets({ headers: { 'Idempotency-Key': key }, body })
+        onDone('Đã ghi tăng tài sản; vị trí mặc định là kho tài sản')
+      }
     } catch (e) {
       setFailure(problemOf(e))
     } finally {
@@ -710,10 +777,13 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
   return (
     <Sheet open onOpenChange={(next) => !next && onClose()}>
       <SheetContent className="overflow-y-auto p-6 sm:max-w-2xl">
-        <SheetTitle className="type-title">Ghi tăng tài sản</SheetTitle>
+        <SheetTitle className="type-title">
+          {editing ? `Sửa mô tả tài sản ${editing.code}` : 'Ghi tăng tài sản'}
+        </SheetTitle>
         <SheetDescription className="type-body-sm text-muted-foreground">
-          Tài sản giường chỉ tạo kèm lệnh Tạo giường. Mua mới phải gắn yêu cầu mua sắm Đã duyệt của cùng bộ phận và có
-          nguyên giá; hàng được tặng hoặc chuyển tới phải ghi nguồn.
+          {editing
+            ? 'Bộ phận, nguồn và yêu cầu mua sắm không đổi ở đây; đổi bộ phận dùng lệnh Chuyển bộ phận. Nguyên giá đã gắn yêu cầu mua sắm giữ nguyên.'
+            : 'Tài sản giường chỉ tạo kèm lệnh Tạo giường. Mua mới phải gắn yêu cầu mua sắm Đã duyệt của cùng bộ phận và có nguyên giá; hàng được tặng hoặc chuyển tới phải ghi nguồn.'}
         </SheetDescription>
         <form onSubmit={submit} noValidate className="mt-4 flex flex-col gap-4">
           <FieldGroup>
@@ -725,6 +795,7 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
                 id="asset-type"
                 value={typeId}
                 onChange={(e) => setTypeId(e.target.value)}
+                disabled={bedAsset}
                 aria-invalid={!!show('type') || undefined}
                 className={SELECT}
               >
@@ -743,6 +814,7 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
                 id="asset-department"
                 value={departmentId}
                 onChange={(e) => setDepartmentId(e.target.value)}
+                disabled={!!editing}
                 aria-invalid={!!show('department') || undefined}
                 className={SELECT}
               >
@@ -757,7 +829,11 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
               </select>
               {show('department') && <FieldError>{errors.department}</FieldError>}
             </Field>
-            <Choices label="Nguồn" options={SOURCES} value={source} onChange={setSource} error={show('source')} />
+            {editing ? (
+              <Info label="Nguồn">{Object.fromEntries(SOURCES)[source] ?? source}</Info>
+            ) : (
+              <Choices label="Nguồn" options={SOURCES} value={source} onChange={setSource} error={show('source')} />
+            )}
             {purchased ? (
               <>
                 <TextField
@@ -766,6 +842,7 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
                   inputMode="numeric"
                   value={procurementRequestId}
                   onChange={setProcurementRequestId}
+                  disabled={!!editing}
                   error={show('request')}
                 />
                 <TextField
@@ -774,6 +851,7 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
                   inputMode="numeric"
                   value={acquisitionCost}
                   onChange={setAcquisitionCost}
+                  disabled={costLocked}
                   error={show('cost')}
                 />
               </>
@@ -853,7 +931,7 @@ export function CreateAssetSheet({ types, departments, onClose, onDone }) {
               Quay lại
             </Button>
             <Button type="submit" className="h-11" disabled={busy}>
-              Lưu tài sản
+              {editing ? 'Lưu mô tả' : 'Lưu tài sản'}
             </Button>
           </div>
         </form>

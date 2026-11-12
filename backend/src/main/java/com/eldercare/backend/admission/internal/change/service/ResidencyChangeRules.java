@@ -137,10 +137,13 @@ class ResidencyChangeRules {
             if (resultType == ResidenceType.DAY_CARE) {
                 unmet.add(new UnmetCondition("NOT_INPATIENT", "Người bán trú không có giường để đổi (FR-041)"));
             }
-            unmet.addAll(
-                    applyingRequestId != null && change.newBedId() != null
-                            ? beds.getObject().checkScheduledTransfer(applyingRequestId)
-                            : bedConditions(contract.residentId(), change.newBedId(), effective));
+            // Sau chuyển gấp (003 FR-030): người đã ở giường mới, không đặt trước nên không kiểm như chuyển theo lịch
+            if (!change.afterUrgentTransfer()) {
+                unmet.addAll(
+                        applyingRequestId != null && change.newBedId() != null
+                                ? beds.getObject().checkScheduledTransfer(applyingRequestId)
+                                : bedConditions(contract.residentId(), change.newBedId(), effective));
+            }
         }
         if (change.has(ChangeType.ARRIVAL_SCHEDULE)) {
             if (resultType != ResidenceType.DAY_CARE) {

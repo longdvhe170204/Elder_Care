@@ -326,4 +326,48 @@ describe('Tài sản', () => {
     expect(within(maintenance).getByText('Thay bánh xe, Tổ kỹ thuật')).toBeInTheDocument()
     expect(within(maintenance).getByText('Đã đính chính')).toBeInTheDocument()
   })
+
+  it('FR_011_suaMoTa_dienSanTuChiTiet_guiPutIfMatch_khongDoiNguonBoPhan', async () => {
+    permissions(LEAD)
+    api.on('GET', '/assets', json(200, [WHEELCHAIR]))
+    api.on(
+      'GET',
+      '/assets/11',
+      json(200, {
+        ...WHEELCHAIR,
+        source: 'DONATED',
+        sourceDescription: 'Hội người cao tuổi phường tặng',
+        acquisitionCost: 2500000,
+        maintenanceIntervalDays: 90,
+        locations: [],
+        departmentTransfers: [],
+        maintenances: [],
+        damages: [],
+      }),
+    )
+    api.on('PUT', '/assets/11', json(200, {}))
+    const table = await renderPage('DOCTOR')
+    const panel = await openAsset(table, 'TS-0011')
+    fireEvent.click(within(panel).getByRole('button', { name: 'Sửa mô tả…' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Sửa mô tả tài sản TS-0011' })
+    expect(await within(sheet).findByLabelText('Tên tài sản')).toHaveValue('Xe lăn')
+    expect(within(sheet).getByLabelText('Mô tả nguồn')).toHaveValue('Hội người cao tuổi phường tặng')
+    expect(within(sheet).getByLabelText('Bộ phận quản lý')).toBeDisabled()
+    fireEvent.change(within(sheet).getByLabelText('Tên tài sản'), { target: { value: 'Xe lăn gấp' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Lưu mô tả' }))
+    await waitFor(() => expect(api.calls('PUT', '/assets/11')).toHaveLength(1))
+    const [, init] = api.calls('PUT', '/assets/11')[0]
+    expect(new Headers(init.headers).get('If-Match')).toBe('"4"')
+    const body = JSON.parse(init.body)
+    expect(body).toMatchObject({
+      code: 'TS-0011',
+      name: 'Xe lăn gấp',
+      typeId: 2,
+      departmentId: 3,
+      source: 'DONATED',
+      sourceDescription: 'Hội người cao tuổi phường tặng',
+      acquisitionCost: 2500000,
+      maintenanceIntervalDays: 90,
+    })
+  })
 })

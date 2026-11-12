@@ -85,6 +85,7 @@ export function AssetsPage() {
           typeCode={typeOf(current.typeId)?.code}
           departmentName={departmentName(current.departmentId)}
           departments={departments}
+          types={types}
           onChanged={changed}
           {...titles}
         />
