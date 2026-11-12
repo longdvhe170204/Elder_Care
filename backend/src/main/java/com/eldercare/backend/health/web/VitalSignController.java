@@ -2,9 +2,6 @@ package com.eldercare.backend.health.web;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.account.api.RequiresPermission;
-import com.eldercare.backend.administration.account.api.dto.Function;
-import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
 import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.health.internal.measurement.domain.VitalSignRecord;
@@ -59,13 +56,13 @@ public class VitalSignController {
                 responseCode = "403",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M06ProblemBody.class)))
     })
-    @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.VIEW)
     public List<VitalSignRecordResponse> getVitalSigns(
             @PathVariable("residentId") long residentId,
             @RequestParam(value = "indicatorId", required = false) Long indicatorId,
             @RequestParam(value = "from", required = false) Instant from,
             @RequestParam(value = "to", required = false) Instant to) {
-        List<VitalSignRecord> records = measurementService.getHistory(residentId, indicatorId, from, to);
+        List<VitalSignRecord> records = measurementService.getHistory(
+                VitalSignMeasurementService.target(residentId), residentId, indicatorId, from, to);
         var current = corrections.current(
                 VitalSignCorrectionProvider.RECORD_TYPE,
                 records.stream().map(VitalSignRecord::id).toList());
@@ -94,7 +91,7 @@ public class VitalSignController {
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M06ProblemBody.class)))
     })
-    @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.CREATE)
+    // Quyền ghi kiểm trong service theo người cao tuổi (VitalSignMeasurementService.checkPermission)
     public ResponseEntity<VitalSignRecordResponse> recordVitalSign(
             @PathVariable("residentId") long residentId,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
@@ -119,7 +116,7 @@ public class VitalSignController {
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M06ProblemBody.class)))
     })
-    @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.CREATE)
+    // Quyền ghi kiểm trong service theo người cao tuổi của bản ghi gốc
     public ResponseEntity<VitalSignRecordResponse> remeasureVitalSign(
             @PathVariable("id") long draftId,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
