@@ -992,3 +992,8 @@ Nhánh phát sinh đo không nguy hiểm (`SAVED`, `BLOCKED`) không mâu thuẫ
 
 - `PublicCareResultApi.summary`: lượng nước trung bình = tổng lượng nước (kết quả `ML`, giá trị hiện hành sau đính chính, bỏ bản Hủy ghi nhận) từng ngày lịch giờ Việt Nam chia số ngày có ít nhất một lần ghi; ngày không ghi (vắng, về nhà) không tính; làm tròn tới ml. `EatingDrinkingSummary(averageWaterMl, waterDays)`: bỏ `averageEatingRatio` (duyệt 09/11) cùng commit với `PortalService` của 012. Không có ngày nào thì rỗng, 0 ngày.
 - Cổng 012 mục `eating` trả `{averageWaterMl, waterDays}`; web, app người thân hiện "Lượng nước trung bình … ml/ngày, tính trên N ngày có ghi".
+
+### T033, T036 — tính phí 005 → 010 (2026-11-12, A, luồng E)
+
+- Quyết định 05/11 mục 1, 2 cài đủ: lệnh ghi kết quả có tính phí đọc dịch vụ qua `admission.api.UnitPriceApi.service` (004, có sẵn) và chỉ phát `BillableCareResultRecorded` khi kỳ tính khớp loại kết quả (`PERFORMED` ↔ `OCCURRENCE`/`SESSION` là 1; `ITEM_QUANTITY` ↔ `UNIT` là lượng thực); không khớp hoặc không thấy dịch vụ thì 503 `CARE_SOURCE_UNAVAILABLE`, không mặc định 1. Loại kết quả khác vẫn chặn theo mục 2 cho tới khi có quyết định quy đổi riêng.
+- Nghiệm thu chuỗi bean thật `T033_RealCareBillingChainIT` (005 → chỉ mục 010 → khoản theo đơn giá 004 → đính chính, Hủy ghi nhận).
