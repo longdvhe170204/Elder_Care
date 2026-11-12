@@ -281,6 +281,22 @@ public class ScheduledTransfers {
                         recipients))));
     }
 
+    /**
+     * FR-030 (chủ dự án chốt 2026-11-12): yêu cầu sau chuyển gấp bị hủy, Áp dụng không thành: đặt lại dấu chờ lập yêu cầu và
+     * mốc nhắc; phân bổ đã đóng hoặc đang chờ về phòng cùng giá thì không làm gì.
+     */
+    public void requestWithdrawn(long allocationId) {
+        var allocation = allocations.current(allocationId);
+        if (allocations.awaitingRequestAgain(allocationId, now()))
+            record(
+                    allocationId,
+                    allocation.residentId(),
+                    "M03_URGENT_TRANSFER_REQUEST_WITHDRAWN",
+                    allocation.status().name(),
+                    null,
+                    null);
+    }
+
     // ---- Dùng chung ------------------------------------------------------------------------------------------------
 
     /** Đóng phân bổ cũ, bắt đầu phân bổ Tương lai tại thời điểm thực tế; người thực hiện là Bộ lập lịch khi job chạy. */

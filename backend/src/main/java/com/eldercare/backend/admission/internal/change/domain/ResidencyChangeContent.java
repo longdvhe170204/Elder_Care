@@ -49,6 +49,23 @@ public record ResidencyChangeContent(
         return changeTypes.contains(type);
     }
 
+    /**
+     * Mã phân bổ của lần chuyển gấp khác giá mà yêu cầu đổi giường này xác nhận sau (003 FR-030; api-004 {@code reference}
+     * loại {@code BED_TRANSFER_ORDER}, chủ dự án duyệt nối nhánh 2026-11-12); không phải thì {@code null}.
+     */
+    public Long urgentTransferAllocationId() {
+        return reference != null
+                        && has(ChangeType.BED)
+                        && "BED_TRANSFER_ORDER".equals(reference.path("type").asString(""))
+                ? reference.path("id").asLong()
+                : null;
+    }
+
+    /** Yêu cầu sau chuyển gấp: người đã ở giường mới, nên không đặt trước, không chuyển giường lần nữa. */
+    public boolean afterUrgentTransfer() {
+        return urgentTransferAllocationId() != null;
+    }
+
     /** Có đổi khoản cọc đi kèm. */
     public boolean changesDeposit() {
         return noDepositRequired != null || depositAmount != null;
