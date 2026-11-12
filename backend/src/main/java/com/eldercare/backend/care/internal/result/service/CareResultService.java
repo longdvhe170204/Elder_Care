@@ -277,7 +277,11 @@ public class CareResultService {
                 .build());
     }
 
-    /** Callback 007 trong transaction nguồn; không ghi lại giá trị đo đầu thành giá trị đã xác nhận. */
+    /**
+     * Callback 007 trong transaction nguồn; không ghi lại giá trị đo đầu thành giá trị đã xác nhận. Chủ dự án chốt
+     * 2026-11-12: lần đo lại khác người hoặc khác giờ thì người thực hiện, thời điểm thực hiện, trạng thái đóng và nhãn ghi
+     * muộn theo lần đo đầu; kết quả trỏ bản ghi đã xác nhận của 007.
+     */
     @Transactional(propagation = Propagation.MANDATORY)
     public void confirmed(long id, long vitalSignRecordId, Instant measuredAt, long measuredById) {
         var task = lock(id);
@@ -288,25 +292,23 @@ public class CareResultService {
         var pending = results.pending(id)
                 .orElseThrow(() -> new BusinessException(
                         HttpStatus.CONFLICT, "AWAITING_REMEASUREMENT", "Không có lần đo đang chờ xác nhận"));
-        if (!measuredAt
-                        .truncatedTo(java.time.temporal.ChronoUnit.MICROS)
-                        .equals(pending.performedAt().truncatedTo(java.time.temporal.ChronoUnit.MICROS))
-                || measuredById != pending.staffId())
-            throw unavailable("Chờ 007 thống nhất metadata cho lần đo lại khác thời điểm/người đo gốc");
+        var performed = pending.performedAt();
         var input = new CareResultInput(
-                measuredAt,
+                performed,
                 null,
                 null,
                 Map.of(),
                 pending.input().upperLimitConfirmed(),
                 pending.input().note(),
                 pending.input().reason());
-        var next = CareResultTiming.completedStatus(task.windowFrom(), task.windowTo(), measuredAt);
+        var next = task.basisType() == TaskSourcePort.SourceType.AD_HOC_RECORDING
+                ? TaskStatus.COMPLETED
+                : CareResultTiming.completedStatus(task.windowFrom(), task.windowTo(), performed);
         results.complete(
                 task,
                 input,
                 next,
-                measuredAt,
+                performed,
                 time.now(),
                 pending.deviceAt(),
                 pending.accountId(),
@@ -318,13 +320,13 @@ public class CareResultService {
         auditResult(
                 task,
                 input,
-                measuredAt,
+                performed,
                 time.now(),
                 pending.deviceAt(),
                 pending.permissionBasis(),
                 pending.late(),
                 pending.permissionLost());
-        recordedEvents(task, input, measuredAt, next, time.now());
+        recordedEvents(task, input, performed, next, time.now());
     }
 
     /** FR-051: chỉ loại kết quả có lượng xác định ({@link CareBillableQuantity}); có dịch vụ và người cao tuổi. */

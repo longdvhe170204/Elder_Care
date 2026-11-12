@@ -12,5 +12,8 @@ import org.springframework.transaction.annotation.*;
 public interface TaskSourceApi {
     void sourceCancelled(SourceType type, long sourceId, Reason reason);
 
+    /** Căn cứ bị hủy cho riêng một người cao tuổi (bữa của người đó bị bỏ vì vắng, 011 FR-042); như hàm trên. */
+    void sourceCancelled(SourceType type, long sourceId, long residentId, Reason reason);
+
     void sourceChanged(SourceType type, long sourceId);
 }
