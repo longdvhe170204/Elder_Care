@@ -72,10 +72,6 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     FakeShiftStaff shifts;
 
     @Autowired
-    @Qualifier("fakeMealTaskSource")
-    FakeTaskSource meals;
-
-    @Autowired
     JsonMapper json;
 
     long residentId, floor, shiftId, typeId, sourceId;
@@ -89,7 +85,6 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         floor = TestUsers.nextId();
         shiftId = TestUsers.nextId();
         typeId = TestUsers.nextId();
-        sourceId = TestUsers.nextId();
         planned = time.now().plusSeconds(1800);
         var users = new TestUsers(jdbc, time);
         manager = users.staff(Role.FLOOR_MANAGER);
@@ -120,12 +115,13 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         shifts.onShift(caregiver.staffId(), planned, true);
         shifts.qualified(
                 caregiver.staffId(), Set.of(), planned.atZone(BusinessTime.ZONE).toLocalDate(), true);
-        meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
                 typeId,
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+        // 011 T042: căn cứ là mục kế hoạch chăm sóc Hiệu lực (nguồn thật của 005), không còn bản giả MEAL.
+        sourceId = effectiveItem();
     }
 
     @AfterEach
@@ -134,7 +130,8 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
     }
 
     String row(long resident, long source, Instant at) {
-        return "{\"residentId\":" + resident + ",\"taskTypeId\":" + typeId + ",\"basis\":{\"type\":\"MEAL\",\"id\":"
+        return "{\"residentId\":" + resident + ",\"taskTypeId\":" + typeId
+                + ",\"basis\":{\"type\":\"CARE_PLAN_ITEM\",\"id\":"
                 + source + "},\"content\":\"Nội dung kiểm thử\",\"plannedAt\":\"" + at
                 + "\",\"windowBeforeMinutes\":15,\"windowAfterMinutes\":15,\"importance\":\"NORMAL\",\"performerId\":"
                 + caregiver.staffId() + ",\"shared\":false}";
