@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
+  getIncidentTypes,
   postAlertsByIdExecuteChoice,
   postAlertsByIdWishReconfirmation,
   postCriticalFlagsByIdConfirm,
@@ -262,13 +263,33 @@ function Reconfirmation({ alertId, onChanged }) {
   )
 }
 
-function ExecuteChoice({ alertId, onChanged }) {
+// Cảnh báo chưa liên kết sự cố: lệnh "chuyển bệnh viện" lập sự cố kèm, người xử lý chọn loại (FR-049, FR-050d; chủ dự
+// án chốt 2026-11-12). Chỉ liệt kê loại đang hiệu lực.
+function useIncidentTypes(enabled) {
+  const [types, setTypes] = useState([])
+  useEffect(() => {
+    if (!enabled) return
+    let live = true
+    getIncidentTypes()
+      .then((res) => live && setTypes((res.data || []).filter((type) => type.active !== false)))
+      .catch(() => live && setTypes([]))
+    return () => {
+      live = false
+    }
+  }, [enabled])
+  return types
+}
+
+function ExecuteChoice({ alertId, needsIncident, onChanged }) {
   const [choice, setChoice] = useState('')
   const [reason, setReason] = useState('')
   const [unit, setUnit] = useState('')
   const [companion, setCompanion] = useState('')
+  const [incidentType, setIncidentType] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const transfer = choice === 'TRANSFER_TO_HOSPITAL'
+  const askType = transfer && needsIncident
+  const types = useIncidentTypes(askType)
   const command = useCommand(
     (key) =>
       postAlertsByIdExecuteChoice({
@@ -280,6 +301,7 @@ function ExecuteChoice({ alertId, onChanged }) {
           transferOut: transfer
             ? { transferUnit: unit.trim(), transferAt: new Date().toISOString(), companion: companion.trim() }
             : undefined,
+          incidentTypeId: askType ? Number(incidentType) : undefined,
         },
       }),
     onChanged,
@@ -291,7 +313,7 @@ function ExecuteChoice({ alertId, onChanged }) {
       onSubmit={(e) => {
         e.preventDefault()
         setSubmitted(true)
-        if (choice && (!transfer || (unit.trim() && companion.trim()))) command.run()
+        if (choice && (!transfer || (unit.trim() && companion.trim())) && (!askType || incidentType)) command.run()
       }}
     >
       <Choice
@@ -302,6 +324,26 @@ function ExecuteChoice({ alertId, onChanged }) {
         invalid={submitted && !choice}
         error="Chọn lựa chọn thực hiện"
       />
+      {askType && (
+        <Field data-invalid={(submitted && !incidentType) || undefined}>
+          <FieldLabel htmlFor="choice-incident-type">Loại sự cố (lập kèm lệnh chuyển viện)</FieldLabel>
+          <select
+            id="choice-incident-type"
+            value={incidentType}
+            onChange={(e) => setIncidentType(e.target.value)}
+            aria-invalid={(submitted && !incidentType) || undefined}
+            className="h-11 w-full rounded-md border border-input bg-transparent px-3"
+          >
+            <option value="">Chưa chọn</option>
+            {types.map((type) => (
+              <option key={type.id} value={String(type.id)}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+          {submitted && !incidentType && <FieldError>Chọn loại sự cố</FieldError>}
+        </Field>
+      )}
       {transfer && (
         <>
           <Text
@@ -366,7 +408,7 @@ export function CriticalCarePanel({ residentId, alert, onChanged }) {
         <Reconfirmation alertId={alert.id} onChanged={onChanged} />
       </Section>
       <Section title="Thực hiện lựa chọn">
-        <ExecuteChoice alertId={alert.id} onChanged={onChanged} />
+        <ExecuteChoice alertId={alert.id} needsIncident={!alert.incidentId} onChanged={onChanged} />
       </Section>
     </div>
   )
