@@ -27,7 +27,7 @@ class FR_085_AlertNoticeLevelTest {
 
     @Test
     void FR_085_sourceCorrectedIsLow() {
-        assertThat(levels(AlertNotices.sourceCorrected(alert(), "k", NOW)))
+        assertThat(levels(AlertNotices.sourceCorrected(alert(), 8800L, "k", NOW)))
                 .containsOnly(Optional.of(NotificationLevel.LOW));
     }
 
