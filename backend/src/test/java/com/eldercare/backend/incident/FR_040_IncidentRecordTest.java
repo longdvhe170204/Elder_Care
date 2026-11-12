@@ -219,8 +219,9 @@ class FR_040_IncidentRecordTest {
                 .doesNotContain(new RecipientGroup.OnDutyDoctor(new Substitution.Default()));
     }
 
+    /** BR-M05-17: sự cố cơ sở vật chất báo Người phụ trách ca và Trưởng tầng của địa điểm. */
     @Test
-    void FR_040_facilityIncidentUsesShiftLeadAndFloorManagerOfLocation() {
+    void BR_M05_17_FR_040_facilityIncidentUsesShiftLeadAndFloorManagerOfLocation() {
         service.record(command(null, 4, "MEDIUM", null, false), user);
 
         var groups = notice().notificationRequests().getFirst().recipientGroups();
@@ -231,13 +232,22 @@ class FR_040_IncidentRecordTest {
         verify(events, never()).publishEvent(any(IncidentRecorded.class));
     }
 
+    /** BR-M05-17: sự cố cơ sở vật chất không gắn người cao tuổi nhưng bắt buộc có địa điểm. */
     @Test
-    void FR_040_residentRequiredExceptFacilityAndFacilityNeedsLocation() {
+    void BR_M05_17_FR_040_residentRequiredExceptFacilityAndFacilityNeedsLocation() {
         assertThatThrownBy(() -> service.record(command(null, 2, "MEDIUM", null, false), user))
                 .isInstanceOf(BusinessException.class);
         var noFloor = new RecordIncidentCommand(
                 null, 4, null, null, NOW, null, null, null, "Vỡ ống nước", "LOW", null, null, false);
         assertThatThrownBy(() -> service.record(noFloor, user)).isInstanceOf(BusinessException.class);
+        verify(incidents, never()).insert(any());
+    }
+
+    /** BR-M05-18: sự cố lây nhiễm nghi ngờ luôn gắn một người cao tuổi. */
+    @Test
+    void BR_M05_18_suspectedInfectionRequiresResident() {
+        assertThatThrownBy(() -> service.record(command(null, 5, "MEDIUM", null, false), user))
+                .isInstanceOf(BusinessException.class);
         verify(incidents, never()).insert(any());
     }
 
