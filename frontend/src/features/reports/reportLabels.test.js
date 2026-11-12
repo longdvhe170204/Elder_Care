@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { breakdownLabel, labelNotes } from './reportLabels'
+import { breakdownLabel, labelNotes, recordLink } from './reportLabels'
 
 const floors = [
   { id: 101, name: 'Tầng 1' },
@@ -82,5 +82,32 @@ describe('breakdownLabel chi tiêu nguồn mới (016 T008, T014, T020, T024)', 
     expect(breakdownLabel('QC.OUT_OF_CHECK_SCOPE', '51')).toBe('Nhân viên 51')
     expect(breakdownLabel('REGISTRATION.TO_DO', 'TO_DEREGISTER')).toBe('Cần xóa đăng ký')
     expect(breakdownLabel('SHIFT.REQUESTS', 'M09.SHIFT_SWAP:APPROVED')).toBe('Đổi ca, Đã duyệt')
+  })
+})
+
+describe('recordLink', () => {
+  // 016 T021, Q12 (chủ dự án duyệt 2026-11-12): chuyển sang màn của feature sở hữu bằng id trong sourceKey
+  it('FR_009_Q12_loaiDaNoi_raMangVaId', () => {
+    expect(recordLink({ sourceKey: 'M05.INCIDENT:9', canOpenRecord: true })).toEqual({
+      page: 'incidents',
+      params: { incidentId: 9 },
+    })
+    expect(recordLink({ sourceKey: 'M03.ASSET:4:MAINTENANCE', canOpenRecord: true })).toEqual({
+      page: 'assets',
+      params: { assetId: 4 },
+    })
+    expect(recordLink({ sourceKey: 'M11.PROCUREMENT_REQUEST:7', canOpenRecord: true })).toEqual({
+      page: 'procurement',
+      params: { requestId: 7 },
+    })
+    expect(recordLink({ sourceKey: 'M02.WAITING_LIST:3', canOpenRecord: true })).toEqual({
+      page: 'waiting-list',
+      params: { entryId: 3 },
+    })
+  })
+
+  it('FR_009_Q12_khongMoDuocHoacChuaNoi_null', () => {
+    expect(recordLink({ sourceKey: 'M05.INCIDENT:9', canOpenRecord: false })).toBeNull()
+    expect(recordLink({ sourceKey: 'M07.DOSE:x', canOpenRecord: true })).toBeNull()
   })
 })

@@ -141,6 +141,12 @@ class FR_029_ShiftLeaveIT extends SwapTestBase {
                 .get(0)
                 .asLong();
         assertThat(leaveService.pendingLeaveDayStaff("FLOOR", floor, month)).contains(giver.staffId());
+        // 008 FR-016 (015 T002; chủ dự án duyệt 2026-11-12): xem trước công bố nêu nghỉ theo ngày chưa quyết định,
+        // không chặn.
+        fetch("/api/v1/shift-schedules/" + draftSchedule + "/publication-preview", head)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.warnings[?(@.code == 'PENDING_LEAVE_DAY')].details.staffId")
+                        .value(org.hamcrest.Matchers.hasItem((int) giver.staffId())));
 
         // 008 công bố lịch tháng (trạng thái lịch, ca đổi trong lệnh công bố) rồi phát SchedulePublished.
         jdbc.update("UPDATE shift_schedule SET status='PUBLISHED' WHERE id=?", draftSchedule);

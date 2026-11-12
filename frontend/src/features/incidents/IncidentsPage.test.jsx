@@ -180,3 +180,9 @@ describe('IncidentsPage', () => {
     expect(await screen.findByText(/không có quyền/i)).toBeTruthy()
   })
 })
+
+// 016 T021 (Q12, chủ dự án duyệt 2026-11-12): mở thẳng một sự cố từ dòng chi tiết báo cáo
+it('016_Q12_moTheoIdTuDuongDan', async () => {
+  render(<IncidentsPage incidentId={12} />)
+  expect(await screen.findByRole('dialog')).toBeInTheDocument()
+})

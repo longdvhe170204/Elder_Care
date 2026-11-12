@@ -79,7 +79,7 @@ function DashboardBlock({ block, metrics, onOpen }) {
   )
 }
 
-export function DashboardPage({ role }) {
+export function DashboardPage({ role, onNavigate }) {
   const [state, setState] = useState({ status: 'loading' })
   const [metrics, setMetrics] = useState({})
   const [opened, setOpened] = useState(null)
@@ -183,7 +183,7 @@ export function DashboardPage({ role }) {
           ))}
         </div>
       )}
-      <MetricDetailSheet opened={opened} onClose={() => setOpened(null)} />
+      <MetricDetailSheet opened={opened} onClose={() => setOpened(null)} onNavigate={onNavigate} />
     </div>
   )
 }

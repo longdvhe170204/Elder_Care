@@ -277,3 +277,14 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 
 - *(Đổi api 014)* `ActivityStatisticsApi.outOfCheckScope(scope, from, to)` → `OutOfCheckScopeView(careTaskId, shiftId, floorAreaId, performerStaffId, performerRole, performedAt)`. Bản cài ở `QualityCheckService.outOfCheckScope` (chỉ đọc, dùng cùng luật loại khỏi mẫu của `eligible`: Trưởng tầng được giao tại lúc thực hiện; Người phụ trách ca khi ca không có Trưởng tầng được giao; bỏ công việc làm lại và kết quả đã Hủy ghi nhận), ca lấy từ cặp (ca, tầng) có công việc hoàn thành trong khoảng (`QualityCheckStore.shiftsCompletedIn`).
 - Chỉ tiêu `QC.OUT_OF_CHECK_SCOPE` (`KT.NGOAI_PHAM_VI_KIEM_TRA`, chi-tieu.md) chia theo nhân viên thực hiện, dòng chi tiết có `performerRole`; `QC.PASS_RATE` không đổi (chỉ đọc mục đã kiểm tra) nên không có tỷ lệ Đạt cho các công việc này. Web: ô theo nhân viên như `QC.PASS_RATE`.
+
+## T018 số sự cố đã hủy, T021 mở bản ghi gốc (2026-11-12, luồng C của A; chủ dự án duyệt 2026-11-12)
+
+- Hợp đồng api-016 (chủ dự án duyệt 2026-11-12): `Report.cancelledIncidentCount` (integer, chỉ đọc) là dòng tham khảo "số sự cố đã hủy" của FR-042, FR-007, không vào chỉ tiêu nào. Nguồn `IncidentStatisticsApi.cancelledCount` của 007 (`IncidentRecords.cancelledCount`), phạm vi là bộ lọc thô của nhóm `HEALTH_EVENTS` vì 007 chỉ trả số đếm (Điều dưỡng theo ca: số có thể rộng hơn phạm vi theo giờ ca của chỉ tiêu). Chỉ có khi người xem thấy nhóm `HEALTH_EVENTS`; Hành chính (chỉ `NON_HEALTH_INCIDENTS`) không có trường này để không lộ sự cố khác (FR-042a). Đặt ở `Report` thay vì `MetricValue` để không đổi ba chỗ dựng `MetricValue`. File xuất chưa có dòng này. Web: `ReportTable` hiện "Số sự cố đã hủy: N (tham khảo, không tính vào chỉ tiêu nào)". Test: `FR_042a_AdminIncidentIT.FR_042_cancelledIncidentsAreAReferenceLineOnly`, `ReportsPage.test.jsx` `FR_042_soSuCoDaHuy_dongThamKhao`.
+- Q12 (FR-009 câu cuối; chủ dự án duyệt 2026-11-12): mở bản ghi gốc bằng cách chuyển sang màn sẵn có của feature sở hữu với id trong đường dẫn (`#<màn>?<tham số>=<id>`, `App.jsx` đọc, ghi tham số sau dấu ?); quyền, trường ẩn do màn đó xét. `DetailRowPolicy.OPENABLE` đặt `canOpenRecord` theo tiền tố `sourceKey` (dòng rút gọn vẫn `false`); web `reportLabels.recordLink` giữ cùng danh sách, nút "Mở bản ghi" ở `MetricDetailSheet` (báo cáo và dashboard). Loại đã nối:
+  - `M05.INCIDENT` → `incidents` (`incidentId`), 007;
+  - `M03.ASSET` → `assets` (`assetId`), 019;
+  - `M11.PROCUREMENT_REQUEST` → `procurement` (`requestId`), 019;
+  - `M02.WAITING_LIST` → `waiting-list` (`entryId`), 004.
+  Bốn màn trên chỉ thêm prop nhận id để mở sẵn khung chi tiết (không đổi gì khác). Loại khác chưa có màn mở theo id nên không hiện nút; nối thêm khi màn đó nhận id. Test: `DetailRowPolicyTest.FR_009_Q12_onlyLinkedRecordTypesCanOpen`, `reportLabels.test.js` `recordLink`, `ReportsPage.test.jsx` `FR_009_Q12_moBanGhi_…`, `App.test.jsx` `016_Q12_duongDanCoId_…`, test `016_Q12_moTheoIdTuDuongDan` ở bốn màn đích.
+

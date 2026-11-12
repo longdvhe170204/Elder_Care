@@ -547,11 +547,12 @@ function RecordIncidentSheet({ open, types, onClose, onRecorded }) {
   )
 }
 
-export function IncidentsPage() {
+// incidentId: mở thẳng một sự cố (016 Q12, từ dòng chi tiết báo cáo)
+export function IncidentsPage({ incidentId = null } = {}) {
   const [board, setBoard] = useState(null)
   const [problem, setProblem] = useState(null)
   const [group, setGroup] = useState('open')
-  const [openId, setOpenId] = useState(null)
+  const [openId, setOpenId] = useState(incidentId)
   const [recording, setRecording] = useState(false)
   const [announcement, setAnnouncement] = useState('')
 

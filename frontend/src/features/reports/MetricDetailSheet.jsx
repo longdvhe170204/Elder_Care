@@ -9,6 +9,7 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { problemOf } from '@/common/problem'
+import { recordLink } from './reportLabels'
 
 // Danh sách bản ghi tạo nên một con số (016 FR-009; DESIGN.md `metric-detail-sheet`). Có khoảng thì như báo cáo, không
 // có thì như dashboard. Dòng người cao tuổi ngoài phạm vi hiện hành ở dạng rút gọn (Q-196), không mở được bản ghi.
@@ -21,7 +22,7 @@ function resultText(result) {
     .join(', ')
 }
 
-function DetailBody({ metric, from, to, floorAreaId, careLevel, breakdownKey }) {
+function DetailBody({ metric, from, to, floorAreaId, careLevel, breakdownKey, onOpenRecord }) {
   const [page, setPage] = useState(1)
   const [state, setState] = useState({ status: 'loading' })
 
@@ -99,6 +100,11 @@ function DetailBody({ metric, from, to, floorAreaId, careLevel, breakdownKey }) 
                     {r.status && <span>{r.status}</span>}
                     {resultText(r.result) && <span>{resultText(r.result)}</span>}
                     {r.pendingReview && <StatusBadge status="Chờ xem lại" />}
+                    {onOpenRecord && recordLink(r) && (
+                      <Button variant="link" size="sm" className="h-auto p-0" onClick={() => onOpenRecord(recordLink(r))}>
+                        Mở bản ghi
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -124,7 +130,8 @@ function DetailBody({ metric, from, to, floorAreaId, careLevel, breakdownKey }) 
 }
 
 // opened: { metric: {code, name}, from?, to?, floorAreaId?, careLevel?, breakdownKey?, valueText } hoặc null
-export function MetricDetailSheet({ opened, onClose }) {
+// onNavigate(page, params): mở bản ghi gốc ở màn của feature sở hữu (Q12); không có thì không hiện nút
+export function MetricDetailSheet({ opened, onClose, onNavigate }) {
   // giữ nội dung lần mở gần nhất để khung không trống trong lúc trượt ra khi đóng
   const [shown, setShown] = useState(opened)
   if (opened && opened !== shown) setShown(opened)
@@ -148,6 +155,7 @@ export function MetricDetailSheet({ opened, onClose }) {
               floorAreaId={shown.floorAreaId}
               careLevel={shown.careLevel}
               breakdownKey={shown.breakdownKey}
+              onOpenRecord={onNavigate && ((link) => onNavigate(link.page, link.params))}
             />
           </>
         )}

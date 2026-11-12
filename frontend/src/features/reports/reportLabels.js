@@ -315,3 +315,21 @@ export function breakdownLabel(metricCode, key, floors = []) {
   }
   return KEY_LABELS[key] ?? key
 }
+
+// FR-009 câu cuối, Q12 (016 T021; chủ dự án duyệt 2026-11-12): loại bản ghi đã nối với màn có id của feature sở hữu;
+// quyền, trường ẩn do màn đó xét. Cùng danh sách với DetailRowPolicy.OPENABLE ở backend.
+const RECORD_PAGES = {
+  'M05.INCIDENT': ['incidents', 'incidentId'],
+  'M03.ASSET': ['assets', 'assetId'],
+  'M11.PROCUREMENT_REQUEST': ['procurement', 'requestId'],
+  'M02.WAITING_LIST': ['waiting-list', 'entryId'],
+}
+
+// Màn và tham số mở bản ghi gốc của một dòng chi tiết; null khi không mở được hoặc loại chưa nối
+export function recordLink(row) {
+  if (!row.canOpenRecord) return null
+  const [prefix, id] = row.sourceKey.split(':')
+  const target = RECORD_PAGES[prefix]
+  if (!target || !/^\d+$/.test(id ?? '')) return null
+  return { page: target[0], params: { [target[1]]: Number(id) } }
+}

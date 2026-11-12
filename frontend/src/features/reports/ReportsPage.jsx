@@ -33,7 +33,7 @@ function rangeOf(preset, custom) {
   }
 }
 
-export function ReportsPage({ role }) {
+export function ReportsPage({ role, onNavigate }) {
   const groups = REPORT_GROUPS.filter((g) => g.roles.includes(role))
   const [tab, setTab] = useState(groups[0]?.value ?? EXPORTS)
   const [preset, setPreset] = useState('MONTH')
@@ -244,7 +244,7 @@ export function ReportsPage({ role }) {
           onExported={() => setExports((n) => n + 1)}
         />
       )}
-      <MetricDetailSheet opened={opened} onClose={() => setOpened(null)} />
+      <MetricDetailSheet opened={opened} onClose={() => setOpened(null)} onNavigate={onNavigate} />
     </div>
   )
 }

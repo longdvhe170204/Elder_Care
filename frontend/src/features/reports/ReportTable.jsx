@@ -81,6 +81,12 @@ export function ReportTable({
           {n}
         </p>
       ))}
+      {report.cancelledIncidentCount != null && (
+        // FR-042, FR-007: sự cố Đã hủy chỉ là dòng tham khảo, không vào chỉ tiêu nào
+        <p className="type-body-sm">
+          Số sự cố đã hủy: {formatValue(report.cancelledIncidentCount)} (tham khảo, không tính vào chỉ tiêu nào)
+        </p>
+      )}
       {report.values.length === 0 ? (
         <Empty>
           <EmptyHeader>
