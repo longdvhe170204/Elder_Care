@@ -33,8 +33,7 @@ public record ResidencyChangeContent(
         List<ArrivalChange> arrivalSchedule,
         Boolean noDepositRequired,
         Long depositAmount,
-        JsonNode reference,
-        Long urgentTransferAllocationId) {
+        JsonNode reference) {
 
     public record ServiceChange(
             long serviceId, Action action, boolean inPackage, double quantity, Long customUnitPrice) {
@@ -51,11 +50,20 @@ public record ResidencyChangeContent(
     }
 
     /**
-     * Yêu cầu lập sau lần chuyển gấp khác giá (003 FR-030; api-004 {@code urgentTransferAllocationId}, chủ dự án duyệt
-     * 2026-11-12): người đã ở giường mới, nên không đặt trước, không chuyển giường lần nữa.
+     * Mã phân bổ của lần chuyển gấp khác giá mà yêu cầu đổi giường này xác nhận sau (003 FR-030; api-004 {@code reference}
+     * loại {@code BED_TRANSFER_ORDER}, chủ dự án duyệt nối nhánh 2026-11-12); không phải thì {@code null}.
      */
+    public Long urgentTransferAllocationId() {
+        return reference != null
+                        && has(ChangeType.BED)
+                        && "BED_TRANSFER_ORDER".equals(reference.path("type").asString(""))
+                ? reference.path("id").asLong()
+                : null;
+    }
+
+    /** Yêu cầu sau chuyển gấp: người đã ở giường mới, nên không đặt trước, không chuyển giường lần nữa. */
     public boolean afterUrgentTransfer() {
-        return urgentTransferAllocationId != null;
+        return urgentTransferAllocationId() != null;
     }
 
     /** Có đổi khoản cọc đi kèm. */
@@ -135,10 +143,6 @@ public record ResidencyChangeContent(
         } else {
             reference = null;
         }
-        Long urgent = positive(content, "urgentTransferAllocationId", false);
-        if (urgent != null && !types.equals(Set.of(ChangeType.BED))) {
-            throw new InvalidValueException("urgentTransferAllocationId chỉ đi với yêu cầu đổi giường (003 FR-030)");
-        }
         return new ResidencyChangeContent(
                 contractNode.asLong(),
                 types,
@@ -150,8 +154,7 @@ public record ResidencyChangeContent(
                 schedule,
                 noDeposit,
                 deposit,
-                reference,
-                urgent);
+                reference);
     }
 
     private static <E extends Enum<E>> E enumOf(Class<E> type, JsonNode value, String field) {

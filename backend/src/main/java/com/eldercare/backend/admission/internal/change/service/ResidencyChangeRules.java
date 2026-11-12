@@ -306,6 +306,9 @@ class ResidencyChangeRules {
         }
         if (types.contains(ChangeType.BED)) {
             copy(base, previous, "bedId");
+            if (change.afterUrgentTransfer()) {
+                copy(base, previous, "roomTypeId");
+            }
         }
         if (types.contains(ChangeType.ARRIVAL_SCHEDULE)) {
             copy(base, previous, "arrivalSchedule");

@@ -13,10 +13,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * 003 FR-030 (Q-306), hợp đồng 003 mục 1.4; api-004 {@code urgentTransferAllocationId} (chủ dự án duyệt 2026-11-12): Hành
- * chính lập yêu cầu đổi giường sau lần chuyển gấp khác giá, kèm mã phân bổ của lần chuyển đó. Lập thì 003 gỡ dấu "chờ lập
- * yêu cầu"; từ chối thì phân bổ mang dấu "chờ chuyển về phòng cùng giá"; duyệt và áp dụng thì không đặt trước, không chuyển
- * giường lần nữa (người đã ở giường mới), chỉ ghi phụ lục. Giường, phân bổ là dữ liệu thật của 003.
+ * 003 FR-030 (Q-306), hợp đồng 003 mục 1.4; api-004 {@code reference} loại {@code BED_TRANSFER_ORDER} (chủ dự án duyệt nối
+ * nhánh 2026-11-12): Hành chính lập yêu cầu đổi giường sau lần chuyển gấp khác giá, tham chiếu phân bổ của lần chuyển đó. Lập
+ * thì 003 gỡ dấu "chờ lập yêu cầu"; từ chối thì phân bổ mang dấu "chờ chuyển về phòng cùng giá"; duyệt và áp dụng thì không
+ * đặt trước, không chuyển giường lần nữa (người đã ở giường mới), phụ lục đổi loại phòng theo giường mới để đơn giá mới áp
+ * dụng từ ngày hiệu lực. Giường, phân bổ là dữ liệu thật của 003.
  */
 @AutoConfigureMockMvc
 @WithMockUser
@@ -35,7 +36,7 @@ class FR_030_UrgentTransferRequestIT extends ChangeTestBase {
 
     private long createUrgentRequest(Urgent u, LocalDate effective) throws Exception {
         ObjectNode body = request(u.contractId(), "[\"BED\"]", "{\"newBedId\": %d}".formatted(u.bedId()), effective);
-        body.put("urgentTransferAllocationId", u.allocationId());
+        body.putObject("reference").put("type", "BED_TRANSFER_ORDER").put("id", u.allocationId());
         long id = createChange(body).get("approvalRequestId").asLong();
         assertThat(flags(u.allocationId()))
                 .as("lập yêu cầu gỡ dấu chờ lập yêu cầu")
@@ -83,5 +84,11 @@ class FR_030_UrgentTransferRequestIT extends ChangeTestBase {
                 .containsEntry("status", "ACTIVE")
                 .containsEntry("awaiting_same_price", false);
         assertThat(latestContent(u.contractId()).get("bedId").asLong()).isEqualTo(u.bedId());
+        assertThat(latestContent(u.contractId()).get("roomTypeId").asLong())
+                .as("đơn giá theo loại phòng của giường mới")
+                .isEqualTo(jdbc.queryForObject(
+                        "SELECT r.room_type_id FROM bed b JOIN room r ON r.id=b.room_id WHERE b.id=?",
+                        Long.class,
+                        u.bedId()));
     }
 }
