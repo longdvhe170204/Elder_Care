@@ -163,6 +163,7 @@ components:
             floorAreas: { type: array, items: { type: object, properties: { id: { type: integer, format: int64 }, name: { type: string } } } }
         values: { type: array, items: { $ref: '#/components/schemas/MetricValue' } }
         notes: { type: array, items: { type: string }, description: 'Ví dụ "chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện"' }
+        cancelledIncidentCount: { type: integer, readOnly: true, description: 'Dòng tham khảo "số sự cố đã hủy" (FR-042, FR-007): sự cố Đã hủy tạo trong khoảng, không vào chỉ tiêu nào; chỉ có khi người xem thấy nhóm sự cố sức khỏe (nguồn 007 IncidentStatisticsApi.cancelledCount; thêm 2026-11-12, chủ dự án duyệt)' }
     MetricDetail:
       type: object
       properties:

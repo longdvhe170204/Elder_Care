@@ -29,12 +29,13 @@ import {
 // 2026-11-10, DESIGN.md 7.4); sửa Nháp gửi If-Match theo version. Nút "Lập yêu cầu" theo quyền Lập. Tên bộ phận đọc từ
 // GET /departments (008), họ tên người cao tuổi từ hồ sơ (001); không đọc được thì hiện mã (người dùng chọn 2026-11-10).
 
-export function ProcurementRequestsPage({ role }) {
+// requestId: mở thẳng một yêu cầu (016 Q12, từ dòng chi tiết báo cáo)
+export function ProcurementRequestsPage({ role, requestId = null }) {
   const { can } = usePermissions()
   const [filter, setFilter] = useState('ALL')
   const [requests, setRequests] = useState(null)
   const [failure, setFailure] = useState(null)
-  const [opened, setOpened] = useState(null)
+  const [opened, setOpened] = useState(requestId)
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState(null)
   const [announcement, setAnnouncement] = useState('')

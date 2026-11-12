@@ -102,6 +102,38 @@ describe('ReportsPage', () => {
     expect(new URL(url, 'http://localhost').searchParams.get('breakdownKey')).toBe('7')
   })
 
+  it('FR_042_soSuCoDaHuy_dongThamKhao', async () => {
+    api.on('GET', '/reports/HEALTH_MEDICATION', json(200, { ...REPORT, cancelledIncidentCount: 3 }))
+    render(<ReportsPage role="NURSING_HOME_MANAGER" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe, thuốc' }))
+
+    expect(await screen.findByText('Số sự cố đã hủy: 3 (tham khảo, không tính vào chỉ tiêu nào)')).toBeInTheDocument()
+  })
+
+  it('FR_009_Q12_moBanGhi_chuyenSangManCuaFeatureSoHuu', async () => {
+    api.on(
+      'GET',
+      '/metric-details/MED.MISSED_RATE',
+      json(200, {
+        metricCode: 'MED.MISSED_RATE',
+        total: 2,
+        rows: [
+          { sourceKey: 'M05.INCIDENT:9', status: 'NEW', result: {}, canOpenRecord: true },
+          { sourceKey: 'M07.DOSE:x', status: 'MISSED', result: {}, canOpenRecord: true },
+        ],
+      }),
+    )
+    const onNavigate = vi.fn()
+    render(<ReportsPage role="DOCTOR" onNavigate={onNavigate} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe, thuốc' }))
+    fireEvent.click(await screen.findByRole('button', { name: '2,1' }))
+
+    const open = await screen.findAllByRole('button', { name: 'Mở bản ghi' })
+    expect(open).toHaveLength(1)
+    fireEvent.click(open[0])
+    expect(onNavigate).toHaveBeenCalledWith('incidents', { incidentId: 9 })
+  })
+
   it('FR_060_khoangQuaDai_hienLoi', async () => {
     api.on('GET', '/reports/RESIDENTS', problem(422, 'RANGE_EXCEEDS_MAXIMUM', { detail: 'Khoảng dài hơn 12 tháng' }))
     render(<ReportsPage role="NURSING_HOME_MANAGER" />)
