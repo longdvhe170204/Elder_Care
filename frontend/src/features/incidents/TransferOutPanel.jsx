@@ -7,13 +7,13 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { problemOf } from '@/common/problem'
+import { HandoverStaffField } from './HandoverStaffField'
 import { vietnamIso } from './incidentView'
 import { downloadTransferDocument, loadTransferInfo, submitTransferOut } from './transferOut'
 
 // Chuyển viện từ sự cố (007 T105; FR-049, FR-050; BR-M05-14, Q-383, Q-384): đơn vị nhận, thời điểm, người đi cùng; hỏi
 // người liên hệ chính trước khi phiếu điều trị có yêu cầu hỏi trước, chưa hỏi được thì ghi lý do (trừ sự cố Khẩn cấp).
 // Xong thì tải, in bản tóm tắt chuyển viện (PDF); in lại ghi nhật ký.
-
 
 export function TransferOutPanel({ incidentId, onDone, onCancel }) {
   const [info, setInfo] = useState(null)
@@ -22,6 +22,7 @@ export function TransferOutPanel({ incidentId, onDone, onCancel }) {
   const [at, setAt] = useState('')
   const [returnAt, setReturnAt] = useState('')
   const [companion, setCompanion] = useState('')
+  const [staffId, setStaffId] = useState('')
   const [reached, setReached] = useState('')
   const [reason, setReason] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -79,6 +80,7 @@ export function TransferOutPanel({ incidentId, onDone, onCancel }) {
     unit: !unit.trim(),
     at: !at,
     companion: !companion.trim(),
+    staff: !staffId,
     reached: askFirst && !reached,
     reason: askFirst && reached === 'no' && !info.isEmergency && !reason.trim(),
   }
@@ -94,6 +96,7 @@ export function TransferOutPanel({ incidentId, onDone, onCancel }) {
         transferUnit: unit.trim(),
         transferAt: vietnamIso(at),
         companion: companion.trim(),
+        handoverStaffId: Number(staffId),
         ...(returnAt ? { expectedReturnAt: vietnamIso(returnAt) } : {}),
         ...(askFirst ? { requiredContactReached: reached === 'yes' } : {}),
         ...(askFirst && reached === 'no' && reason.trim() ? { notAskedFirstReason: reason.trim() } : {}),
@@ -141,6 +144,12 @@ export function TransferOutPanel({ incidentId, onDone, onCancel }) {
         <Input id="transfer-companion" value={companion} onChange={(e) => setCompanion(e.target.value)} />
         {submitted && missing.companion && <FieldError>Nhập người đi cùng</FieldError>}
       </Field>
+      <HandoverStaffField
+        id="transfer-handover-staff"
+        value={staffId}
+        onChange={setStaffId}
+        invalid={submitted && missing.staff}
+      />
       {askFirst && (
         <>
           <Field data-invalid={(submitted && missing.reached) || undefined}>

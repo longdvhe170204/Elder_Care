@@ -28,6 +28,7 @@ Optional<ViTriView> taiThoiDiem(long nctId, Instant t);       // FR-035 (a); 007
 Optional<Long> tangTaiNgay(long nctId, LocalDate ngay);       // 011, 016
 boolean chuaCoGiuong(long nctId);                             // dấu FR-025a; 004, 016
 Optional<PhanBoView> phanBoHienHanhHoacTuongLai(long nctId);  // bổ sung theo plan 004: 004 FR-021 (giường từ ngày bắt đầu hợp đồng), FR-004 (d)
+boolean coPhanBoBatDauTruoc(long nctId, LocalDate ngay);     // bổ sung 2026-11-12 (chủ dự án duyệt): 004 FR-021, có phân bổ Hiệu lực hoặc Tương lai bắt đầu không muộn hơn ngày (PhanBoView không có ngày bắt đầu)
 ```
 
 ### 1.3. `LichSuViTriApi`: tra cứu lịch sử (FR-035, FR-036)

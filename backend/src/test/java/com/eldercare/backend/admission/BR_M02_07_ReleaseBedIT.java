@@ -56,6 +56,7 @@ class BR_M02_07_ReleaseBedIT extends AbsenceTestBase {
                 bed,
                 room,
                 residentId);
+        cancelFixtureAllocation(residentId);
         jdbc.update(
                 "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source)"
                         + " VALUES(?,?,'ACTIVE',?,'BASIC','CURRENT')",

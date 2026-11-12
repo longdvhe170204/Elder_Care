@@ -41,7 +41,9 @@ class FR_046_DuplicateAttributeIT extends ChangeTestBase {
 
         user.set(manager.user());
         generic(first, "cancel", "{\"reason\":\"Gia đình đổi ý\"}").andExpect(status().isOk());
-        awaitAddendumStatus(first, "NOT_APPLIED");
+        // Quickstart 004 Q15: đóng phụ lục trong chính lệnh hủy (người hủy là người thực hiện), không chờ listener sau
+        // commit
+        assertThat(addendumStatus(first)).isEqualTo("NOT_APPLIED");
         approveRaw(second).andExpect(status().isOk());
 
         assertThat(requestStatus(second)).isEqualTo("APPROVED");
@@ -62,13 +64,10 @@ class FR_046_DuplicateAttributeIT extends ChangeTestBase {
                 .getStatus();
     }
 
-    private void awaitAddendumStatus(long requestId, String expected) {
-        org.awaitility.Awaitility.await()
-                .atMost(java.time.Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(jdbc.queryForObject(
-                                "SELECT addendum_status FROM contract_version WHERE kind = 'ADDENDUM' AND approval_request_id = ?",
-                                String.class,
-                                requestId))
-                        .isEqualTo(expected));
+    private String addendumStatus(long requestId) {
+        return jdbc.queryForObject(
+                "SELECT addendum_status FROM contract_version WHERE kind = 'ADDENDUM' AND approval_request_id = ?",
+                String.class,
+                requestId);
     }
 }

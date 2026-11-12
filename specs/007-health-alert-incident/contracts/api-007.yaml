@@ -489,11 +489,11 @@ paths:
     post:
       tags: [critical-condition]
       summary: Ghi lựa chọn thực hiện và thực hiện lệnh tương ứng
-      description: 'TRANSFER_TO_HOSPITAL: lệnh Chuyển viện kèm bản tóm tắt (cần transferOut). RETURN_HOME: báo Hành chính, Trưởng tầng thực hiện Cho tạm vắng. STAY_PALLIATIVE: báo điều dưỡng xem xét kế hoạch (005). Thiếu lý do khi không liên lạc được và chưa có nguyện vọng: 422.'
+      description: 'TRANSFER_TO_HOSPITAL: lệnh Chuyển viện kèm bản tóm tắt (cần transferOut; cảnh báo chưa liên kết sự cố thì cần incidentTypeId, lệnh lập sự cố kèm). RETURN_HOME: báo Hành chính, Trưởng tầng thực hiện Cho tạm vắng. STAY_PALLIATIVE: báo điều dưỡng xem xét kế hoạch (005). Thiếu lý do khi không liên lạc được và chưa có nguyện vọng: 422.'
       x-fr: [FR-050c, FR-050d]
       x-br: [BR-M05-15]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [choice], properties: { choice: { type: string, enum: [TRANSFER_TO_HOSPITAL, RETURN_HOME, STAY_PALLIATIVE] }, reason: { $ref: '#/components/schemas/Reason' }, transferOut: { $ref: '#/components/schemas/TransferOut' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [choice], properties: { choice: { type: string, enum: [TRANSFER_TO_HOSPITAL, RETURN_HOME, STAY_PALLIATIVE] }, reason: { $ref: '#/components/schemas/Reason' }, transferOut: { $ref: '#/components/schemas/TransferOut' }, incidentTypeId: { type: integer, format: int64, description: 'Bắt buộc khi TRANSFER_TO_HOSPITAL mà cảnh báo chưa liên kết sự cố: lệnh lập sự cố loại này gắn với cảnh báo rồi Chuyển viện (FR-049, FR-050d; bổ sung 2026-11-12, chủ dự án duyệt)' } } } } } }
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Lây nhiễm ----------------

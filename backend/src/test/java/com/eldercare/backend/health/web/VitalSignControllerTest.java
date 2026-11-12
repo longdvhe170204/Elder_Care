@@ -145,12 +145,15 @@ class VitalSignControllerTest {
                 Set.of(),
                 NOW);
 
-        when(measurementService.getHistory(residentId, indicatorId, from, to)).thenReturn(List.of(sample));
+        when(measurementService.getHistory(
+                        VitalSignMeasurementService.target(residentId), residentId, indicatorId, from, to))
+                .thenReturn(List.of(sample));
 
         var result = controller.getVitalSigns(residentId, indicatorId, from, to);
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().id()).isEqualTo(100L);
-        verify(measurementService).getHistory(residentId, indicatorId, from, to);
+        verify(measurementService)
+                .getHistory(VitalSignMeasurementService.target(residentId), residentId, indicatorId, from, to);
     }
 }
