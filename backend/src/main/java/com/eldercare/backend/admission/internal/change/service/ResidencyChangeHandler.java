@@ -42,6 +42,8 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.CareLevelApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
+import com.eldercare.backend.roombedallocation.api.dto.RoomTypeRef;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -89,9 +91,11 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     private final ObjectProvider<AccountApi> accounts;
 
     private final ObjectProvider<BedAllocationCommandApi> beds;
+    private final ObjectProvider<LocationStructureApi> structure;
 
     ResidencyChangeHandler(
             ObjectProvider<BedAllocationCommandApi> beds,
+            ObjectProvider<LocationStructureApi> structure,
             ContractStore contracts,
             AddendumStore addenda,
             ResidencyChangeRules rules,
@@ -106,6 +110,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             ObjectProvider<RepresentativePort> representatives,
             ObjectProvider<AccountApi> accounts) {
         this.beds = beds;
+        this.structure = structure;
         this.contracts = contracts;
         this.addenda = addenda;
         this.rules = rules;
@@ -424,6 +429,11 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         @Override
         public Optional<BigDecimal> unitPrice(long serviceId) {
             return prices.unitPriceAt(serviceId, date, false).map(UnitPriceView::unitPrice);
+        }
+
+        @Override
+        public Optional<Long> roomTypeOfBed(long bedId) {
+            return structure.getObject().roomTypeOfBed(bedId).map(RoomTypeRef::id);
         }
 
         @Override
