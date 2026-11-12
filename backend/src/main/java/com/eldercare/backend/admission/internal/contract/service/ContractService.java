@@ -578,12 +578,18 @@ public class ContractService {
         return recorded;
     }
 
-    /** Cảnh báo không chặn (FR-025): mức khác mức hiện hành; dịch vụ hoặc đơn giá không hiệu lực tại ngày bắt đầu. */
+    /**
+     * Cảnh báo không chặn (FR-025): chưa có đánh giá đầu vào Đã xác nhận (chưa có mức hiện hành); mức khác mức hiện hành;
+     * dịch vụ hoặc đơn giá không hiệu lực tại ngày bắt đầu.
+     */
     List<Warning> warnings(Contract contract) {
         ContractContent content = contract.content();
         List<Warning> warnings = new ArrayList<>();
         Optional<CareLevel> current = careLevels.current(contract.residentId());
-        if (current.isPresent() && current.get() != content.careLevel()) {
+        if (current.isEmpty()) {
+            warnings.add(new Warning(
+                    "CONTRACT_NOT_ASSESSED", "Chưa đánh giá: người cao tuổi chưa có đánh giá đầu vào Đã xác nhận"));
+        } else if (current.get() != content.careLevel()) {
             warnings.add(new Warning(
                     "CONTRACT_CARE_LEVEL_MISMATCH",
                     "Mức chăm sóc hợp đồng (" + content.careLevel() + ") khác mức hiện hành (" + current.get() + ")"));
