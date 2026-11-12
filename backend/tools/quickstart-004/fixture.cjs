@@ -33,7 +33,21 @@ async function clock(body) {
   return r.body.now;
 }
 const now = async () => (await call(U.QL, 'GET', '/testing/clock')).body.now;
-const runJob = (name) => must(U.QL, 'POST', '/testing/jobs/' + name, undefined, 200);
+// Job chạy xong thì thông báo còn đi qua outbox bất đồng bộ: chờ (tối đa 10 giây) các sự kiện vừa phát xử lý xong rồi
+// mới kiểm hộp thư (lần chạy 2026-11-12 sau sửa lỗi: nhắc đã gửi nhưng script đọc trước khi outbox chuyển xong)
+const settle = async () => {
+  const db = require('./db.cjs');
+  for (let i = 0; i < 40; i++) {
+    const r = db.query("SELECT COUNT(*) FROM event_publication WHERE COMPLETION_DATE IS NULL AND (PUBLICATION_DATE > UTC_TIMESTAMP(6) - INTERVAL 1 MINUTE OR PUBLICATION_DATE > NOW(6) - INTERVAL 1 MINUTE)");
+    if (!r.ok || r.out === '0') return;
+    await new Promise((done) => setTimeout(done, 250));
+  }
+};
+const runJob = async (name) => {
+  const r = await must(U.QL, 'POST', '/testing/jobs/' + name, undefined, 200);
+  await settle();
+  return r;
+};
 // Ngày theo giờ Việt Nam (chuỗi +07:00 của /testing/clock)
 const day = (iso, plus = 0) => { const d = new Date(iso.slice(0, 10) + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + plus); return d.toISOString().slice(0, 10); };
 // Thời điểm giờ Việt Nam của ngày d, giờ hh:mm
@@ -137,9 +151,10 @@ async function readyForAdmission(o) {
   const app = (await must(U.HC, 'POST', '/admission-applications', { residentId: res.id, applicationDate: today, desiredResidenceType: type, expectedCareLevel: level, desiredAdmissionDate: start })).body;
   await confirmAssessment(res.id, level, type);
   const rep = await relative(res.id, 'Người đại diện của ' + name);
-  const contract = await activeContract({ residentId: res.id, start, end, level, type, svc, roomTypeId, signer: rep.familyMemberId, signedDate: today });
+  // FR-021: hợp đồng nội trú chỉ ghi nhận đã ký được khi đã có phân bổ giường từ ngày bắt đầu (sửa Q6 2026-11-12)
   let allocation = null;
   if (type !== 'DAY_CARE') allocation = (await must(U.HC, 'POST', '/bed-allocations', { residentId: res.id, bedId: bed.id, startAt: at(start, '08:00'), reason: 'Phân bổ ban đầu' })).body;
+  const contract = await activeContract({ residentId: res.id, start, end, level, type, svc, roomTypeId, signer: rep.familyMemberId, signedDate: today });
   await must(U.KT, 'POST', `/residents/${res.id}/cash-payments`, { ledger: 'DEPOSIT', amount: 10000000, payerName: 'Người đại diện', receivedAt: nowIso });
   return { resident: res, app, rep, contract, allocation };
 }

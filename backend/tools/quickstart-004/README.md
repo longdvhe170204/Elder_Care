@@ -47,3 +47,15 @@ Cùng gốc với Q21, Q35 (thấy trong log backend, không thuộc bước c�
 CẦN XEM TAY: Q24, Q30 (tỷ lệ phí ngày vắng chỉ có ở `ResidencyDayApi` nội bộ, xem bảng kỳ 010); Q31 (hai mục Chưa đạt cần đồ gửi 013 và cảnh báo 007 thật); Q36 (năm mục việc sau qua đời do 006, 007, 010, 013, 017 sở hữu); Q40 (demo không dừng được Bộ lập lịch); Q42' (`thongTinQuyetToan` là API Java, 017 chỉ dùng trong tệp bảng quyết toán).
 
 GHI CHÚ: Q3 lập hợp đồng khi chưa có người đại diện → 409 `REPRESENTATIVE_REQUIRED` (FR-019), script thêm người đại diện rồi lập lại; Q1c phản hồi lệnh ẩn `reason` với chính Hành chính vừa nhập (che trường của 001); Q43' không dựng khoản nợ 3.000.000 (cần bảng kỳ cuối 010 đã chốt). Q30 khai báo ngày nghỉ thiếu lý do trả 400 (api-004 ghi `reason` bắt buộc), quickstart ghi 422.
+
+## Kết quả 2026-11-12 sau sửa lỗi (nhánh `claude/acceptance-fixes`, schema `elder_care_qs2` dựng lại sạch)
+
+67 ĐẠT, 0 KHÔNG ĐẠT, 6 CẦN XEM TAY, 3 GHI CHÚ (log `D:eldercare-logsqs-004-run-fix3.log`). Các lỗi ở bảng trên đã sửa: Q6 (chặn `record-signed` hợp đồng nội trú chưa có phân bổ giường từ ngày bắt đầu, 409 `BED_ALLOCATION_REQUIRED`), Q15 (hủy yêu cầu đã duyệt đóng phụ lục trong lệnh hủy), Q21, Q35, Q39 và `ENDINGS` (nhật ký do Bộ lập lịch ghi có căn cứ), Q3 (cảnh báo `CONTRACT_NOT_ASSESSED` khi lập hợp đồng lúc chưa có đánh giá; chủ dự án chọn thêm vào `warnings`). CẦN XEM TAY giữ như cũ.
+
+Sửa script cùng đợt:
+
+- `fixture.cjs` `readyForAdmission`: phân bổ giường trước khi ký hợp đồng (FR-021, bản sửa Q6 chặn ký khi chưa có giường).
+- `fixture.cjs` `runJob`: chờ tối đa 10 giây cho sự kiện outbox vừa phát xử lý xong rồi mới kiểm hộp thư (nhắc đã gửi nhưng script đọc trước khi thông báo tới).
+- `part2.cjs` Q21: K đã từ chối giường ở Q20 nên không còn trong danh sách phù hợp của lượt trống này (FR-012); trước đó script mong K còn.
+
+Chạy lại trên schema đã dùng qua lần khởi động backend khác thì phải dựng lại schema: dấu ngày đã chạy của `M02_DAILY` (`reminder_marker` `M02.DAILY_RUN`) có thể đi trước đồng hồ giả lập vừa khởi động lại, job bỏ qua các ngày đó nên không có nhắc.
