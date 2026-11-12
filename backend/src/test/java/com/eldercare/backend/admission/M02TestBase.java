@@ -1,6 +1,6 @@
 package com.eldercare.backend.admission;
 
-import com.eldercare.backend.admission.internal.transition.service.M02DailyRunner;
+import com.eldercare.backend.admission.scheduling.M02DailyJob;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.AssessmentTestBase;
 import com.eldercare.backend.resident.api.dto.CareLevel;
@@ -74,7 +74,14 @@ public abstract class M02TestBase extends AssessmentTestBase {
     protected FakeStatusTransitionParticipant otherModules;
 
     @Autowired
-    protected M02DailyRunner dailyRunner;
+    protected M02DailyJob dailyJob;
+
+    /** Chạy job M02_DAILY như Bộ lập lịch thật: nhật ký do job ghi phải có căn cứ (000 FR-045). */
+    protected void runDailyJob() {
+        user.runAs(
+                com.eldercare.backend.support.FakePermissions.user(0, com.eldercare.backend.common.Role.SCHEDULER),
+                dailyJob::runNow);
+    }
 
     @BeforeEach
     void resetM02Fakes() {

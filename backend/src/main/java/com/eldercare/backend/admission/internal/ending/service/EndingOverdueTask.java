@@ -3,6 +3,7 @@ package com.eldercare.backend.admission.internal.ending.service;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.admission.api.events.ResidencyDaysChanged;
 import com.eldercare.backend.admission.internal.ending.domain.ResidencyEnding;
 import com.eldercare.backend.admission.internal.ending.persistence.ResidencyEndingStore;
@@ -66,6 +67,7 @@ class EndingOverdueTask implements M02DailyTask {
                         .entity(ResidencyEndingService.ENTITY_TYPE, ending.id())
                         .resident(ending.residentId())
                         .after(Map.of("overdueSince", since.toString()))
+                        .basis(new Basis("FR-066a", null, ending.id(), null))
                         .build());
                 events.publishEvent(new ResidencyDaysChanged(ending.residentId(), since, day, CAUSE));
             } else {
