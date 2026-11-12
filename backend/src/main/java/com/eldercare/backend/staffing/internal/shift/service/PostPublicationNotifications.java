@@ -55,7 +55,7 @@ public class PostPublicationNotifications {
                 : "AREA".equals(s.scopeType()) ? "khu vực #" + s.scopeId() : "toàn viện";
         String message = "Ca #" + s.id() + ", " + scope + ": " + title + ". Mở ứng dụng để kiểm tra.";
         return List.of(new NotificationRequest(
-                "008",
+                "M09",
                 event,
                 SourceGroup.SCHEDULE_CHANGE,
                 source,

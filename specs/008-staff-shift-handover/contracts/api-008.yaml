@@ -817,7 +817,7 @@ components:
         warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
     Warning:
       type: object
-      properties: { code: { type: string, enum: [CONTINUOUS_WORK_HOURS, REQUIRED_TRAINING_EXPIRED, BELOW_STAFFING_THRESHOLD, TASK_TYPE_REQUIREMENTS_NOT_MET, APPROVED_LEAVE_DAY] }, description: { type: string }, details: { type: object } }
+      properties: { code: { type: string, enum: [CONTINUOUS_WORK_HOURS, REQUIRED_TRAINING_EXPIRED, BELOW_STAFFING_THRESHOLD, TASK_TYPE_REQUIREMENTS_NOT_MET, APPROVED_LEAVE_DAY, PENDING_LEAVE_DAY], description: "PENDING_LEAVE_DAY: nghỉ theo ngày chưa quyết định khi xem trước, công bố lịch (FR-016), chỉ thông tin, không chặn; thêm 2026-11-12, chủ dự án duyệt" }, description: { type: string }, details: { type: object } }
     ResultWithWarnings:
       type: object
       properties: { id: { type: integer, format: int64 }, warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } } }

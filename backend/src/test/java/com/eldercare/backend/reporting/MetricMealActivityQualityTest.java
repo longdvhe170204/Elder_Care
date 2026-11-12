@@ -9,6 +9,7 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.care.api.ActivityStatisticsApi;
+import com.eldercare.backend.care.api.dto.OutOfCheckScopeView;
 import com.eldercare.backend.care.api.dto.QualityCheckStatisticsView;
 import com.eldercare.backend.care.api.dto.SessionStatisticsView;
 import com.eldercare.backend.care.api.dto.TripStatisticsView;
@@ -33,6 +34,7 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
 import com.eldercare.backend.reporting.internal.quality.service.ChecksByRoleMetric;
+import com.eldercare.backend.reporting.internal.quality.service.OutOfCheckScopeMetric;
 import com.eldercare.backend.reporting.internal.quality.service.PassRateMetric;
 import com.eldercare.backend.reporting.internal.quality.service.QualityCheckRecords;
 import java.time.Clock;
@@ -65,6 +67,7 @@ class MetricMealActivityQualityTest {
     private final List<SessionStatisticsView> sessions = new ArrayList<>();
     private final List<TripStatisticsView> trips = new ArrayList<>();
     private final List<QualityCheckStatisticsView> checks = new ArrayList<>();
+    private final List<OutOfCheckScopeView> outOfScope = new ArrayList<>();
 
     private final NutritionStatisticsApi nutrition = new NutritionStatisticsApi() {
         @Override
@@ -98,6 +101,11 @@ class MetricMealActivityQualityTest {
         @Override
         public Stream<QualityCheckStatisticsView> qualityChecks(ScopeFilter scope, LocalDate from, LocalDate to) {
             return checks.stream();
+        }
+
+        @Override
+        public Stream<OutOfCheckScopeView> outOfCheckScope(ScopeFilter scope, LocalDate from, LocalDate to) {
+            return outOfScope.stream();
         }
     };
 
@@ -257,5 +265,24 @@ class MetricMealActivityQualityTest {
         ChecksByRoleMetric byRole = new ChecksByRoleMetric(qualityRecords);
         assertThat(byRole.metric().code()).isEqualTo("QC.BY_CHECKER_ROLE");
         assertThat(cells(value(byRole))).containsExactly(tuple("FLOOR_MANAGER", "2"), tuple("SHIFT_LEAD", "2"));
+    }
+
+    /** FR-037 (Q-168, Q-254): công việc do chính người kiểm tra làm ghi "ngoài phạm vi kiểm tra", chia theo nhân viên. */
+    @Test
+    void Q_168_outOfCheckScope_byPerformer_notInPassRate() {
+        outOfScope.add(new OutOfCheckScopeView(81, 9, 101, 51, "FLOOR_MANAGER", at(600)));
+        outOfScope.add(new OutOfCheckScopeView(82, 9, 101, 51, "FLOOR_MANAGER", at(700)));
+        outOfScope.add(new OutOfCheckScopeView(83, 10, 101, 53, "SHIFT_LEAD", at(800)));
+
+        OutOfCheckScopeMetric metric = new OutOfCheckScopeMetric(qualityRecords);
+        List<OutOfCheckScopeMetric.OutOfScopeRecord> included = included(metric);
+
+        assertThat(metric.metric().code()).isEqualTo("QC.OUT_OF_CHECK_SCOPE");
+        assertThat(metric.metric().group()).isEqualTo(MetricGroup.QUALITY_CHECKS);
+        assertThat(cells(metric.metric().compute(included))).containsExactly(tuple("51", "2"), tuple("53", "1"));
+        assertThat(metric.metric().details(included, "53"))
+                .singleElement()
+                .satisfies(row -> assertThat(row.result()).containsEntry("performerRole", "SHIFT_LEAD"));
+        assertThat(cells(value(new PassRateMetric(qualityRecords)))).isEmpty();
     }
 }

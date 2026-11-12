@@ -371,3 +371,14 @@ describe('Tài sản', () => {
     })
   })
 })
+
+// 016 T021 (Q12, chủ dự án duyệt 2026-11-12): mở thẳng một tài sản từ dòng chi tiết báo cáo
+it('016_Q12_moTheoIdTuDuongDan', async () => {
+  permissions(VIEW)
+  render(
+    <PermissionsProvider>
+      <AssetsPage assetId={12} />
+    </PermissionsProvider>,
+  )
+  expect(await screen.findByRole('dialog')).toHaveTextContent('XE-01')
+})

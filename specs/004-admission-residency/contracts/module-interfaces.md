@@ -103,6 +103,8 @@ Stream<LoaiLuuTruTaiNgayView> loaiLuuTruTaiNgay(PhamViLoc phamVi, LocalDate ngay
 Stream<HoSoChoView> danhSachCho(LocalDate tu, LocalDate den);                       // 016 FR-025: trạng thái, loại lưu trú, mức dự kiến, thời gian chờ, lý do rời
 ```
 
+*(Đổi api 2026-11-11, 016 T014, chủ dự án duyệt 2026-11-11)* Thêm `Stream<ResidenceTypeChangeView> residenceTypeChanges(ScopeFilter scope, LocalDate from, LocalDate to)` (016 FR-023 "đổi loại lưu trú"): phiên bản nội dung của hợp đồng đã ký (Hiệu lực, Kết thúc, Chấm dứt) có loại lưu trú khác phiên bản liền trước, ngày hiệu lực trong `[from, to]`; `ResidenceTypeChangeView(residentId, contractId, from, to, effectiveOn)`; phạm vi không toàn viện chỉ lọc `residentIds`. Bản giả `support/fake/admission/FakeResidencyStatistics`; test `T014_ResidenceTypeChangeStatisticsIT`. Chỉ thêm truy vấn đọc ở `ContractStore`, không đổi lệnh phụ lục.
+
 ### 1.6. `DanhSachViecSauQuaDoiApi`
 
 ```java

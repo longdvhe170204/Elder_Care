@@ -46,6 +46,10 @@ interface HoatDongThongKeApi {               // 016
   Stream<ChuyenThongKeView> chuyen(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // giờ về dự kiến, gia hạn, về thực tế, thiếu người
   Stream<KetQuaKiemTraView> kiemTra(PhamViLoc phamVi, LocalDate tu, LocalDate den);  // FR-065: vai trò kiểm tra, không thuộc phạm vi
   // coLap() bỏ theo Q-407 (2026-11-10)
+  Stream<NgoaiPhamViKiemTraView> ngoaiPhamViKiemTra(PhamViLoc phamVi, LocalDate tu, LocalDate den);
+      // bổ sung 2026-11-12 (Đổi api, người dùng duyệt sửa care) cho 016 FR-037 (Q-168, Q-254): công việc hoàn thành không vào
+      // mẫu vì do Trưởng tầng được giao, hoặc Người phụ trách ca của ca không có Trưởng tầng được giao, tự làm;
+      // tên mã `outOfCheckScope`, `OutOfCheckScopeView(careTaskId, shiftId, floorAreaId, performerStaffId, performerRole, performedAt)`
 }
 ```
 

@@ -87,6 +87,48 @@ public class StaffingRatioService implements M09TimedTask {
         }
     }
 
+    /**
+     * 015 FR-021 (f), FR-027 (015 T002): tỷ lệ phục vụ của ca trước và sau khi {@code leaving} rời và/hoặc {@code joining}
+     * vào ca, với dữ liệu hiện hành; chỉ đọc, không ghi lần tính. Ca toàn viện, đã kết thúc, hủy hoặc thiếu nguồn, cấu hình
+     * trả {@code unavailable} kèm lý do thay cho số liệu.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> beforeAfter(long id, Long leaving, Long joining) {
+        var shift = shifts.shift(id, false);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("shiftId", id);
+        if ("FACILITY".equals(shift.scopeType())
+                || Set.of("CLOSED", "CANCELLED").contains(shift.status())) {
+            out.put("unavailable", "Ca không tính tỷ lệ phục vụ");
+            return out;
+        }
+        try {
+            out.put("before", view(sources.read(shift, false)));
+            out.put("after", view(sources.read(shift, false, members -> {
+                var changed = new ArrayList<>(members.stream()
+                        .filter(m -> leaving == null || m.id() != leaving)
+                        .toList());
+                if (joining != null && changed.stream().noneMatch(m -> m.id() == joining))
+                    changed.add(sources.joining(joining));
+                return changed;
+            })));
+        } catch (StaffingRatioSources.Unavailable e) {
+            out.remove("before");
+            out.put("unavailable", e.getMessage());
+        }
+        return out;
+    }
+
+    private static Map<String, Object> view(StaffingRatioCalculator.Result r) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("totalWeight", r.totalWeight());
+        m.put("staffCount", r.staffCount());
+        m.put("ratio", r.ratio());
+        m.put("threshold", r.threshold());
+        m.put("meetsThreshold", r.meetsThreshold());
+        return m;
+    }
+
     private List<com.eldercare.backend.staffing.internal.shift.service.PublicationWarning> warnings(
             WorkShift shift, StaffingRatioCalculator.Result result) {
         if (result.meetsThreshold()) return List.of();
@@ -180,7 +222,7 @@ public class StaffingRatioService implements M09TimedTask {
         if (manager) recipients.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
         Instant at = time.now();
         var request = new NotificationRequest(
-                "008",
+                "M09",
                 "SHIFT_BELOW_STAFFING_THRESHOLD",
                 SourceGroup.OTHER,
                 new SourceRecord("M09.SHIFT", Long.toString(shift.id())),

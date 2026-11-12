@@ -40,6 +40,12 @@ public interface DutyApi {
 
     List<Long> companions(long tripId);
 
+    /**
+     * FR-031 (Q-161, T049): người cao tuổi đang trên chuyến Đang diễn ra mà nhân viên là Trưởng đoàn hoặc Người đi cùng;
+     * góp vào phạm vi trong thời gian chuyến đi. Đổi api 2026-11-12 (người dùng duyệt).
+     */
+    List<Long> tripResidents(long staffId);
+
     /** Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc có phân công trong tầng và ca (011 UC-76). */
     List<Long> floorReceivers(long floorAreaId, long shiftId);
 

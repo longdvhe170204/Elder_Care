@@ -18,19 +18,30 @@ function ratio(v) {
     : `${formatValue(v.numerator)} / ${formatValue(v.denominator)}`
 }
 
-export function ReportTable({ group, from, to, floorAreaId, costMode, floors = [], metrics, onOpen, onFilterOptions }) {
+export function ReportTable({
+  group,
+  from,
+  to,
+  floorAreaId,
+  costMode,
+  careLevel,
+  floors = [],
+  metrics,
+  onOpen,
+  onFilterOptions,
+}) {
   const [state, setState] = useState({ status: 'loading' })
 
   const load = useCallback(async () => {
     setState({ status: 'loading' })
     try {
-      const { data } = await getReportsByGroup({ path: { group }, query: { from, to, floorAreaId, costMode } })
+      const { data } = await getReportsByGroup({ path: { group }, query: { from, to, floorAreaId, costMode, careLevel } })
       setState({ status: 'ready', report: data })
       onFilterOptions(data.filterOptions)
     } catch (error) {
       setState({ status: 'error', problem: problemOf(error) })
     }
-  }, [group, from, to, floorAreaId, costMode, onFilterOptions])
+  }, [group, from, to, floorAreaId, costMode, careLevel, onFilterOptions])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- tải khi đổi báo cáo hoặc khoảng
@@ -70,6 +81,12 @@ export function ReportTable({ group, from, to, floorAreaId, costMode, floors = [
           {n}
         </p>
       ))}
+      {report.cancelledIncidentCount != null && (
+        // FR-042, FR-007: sự cố Đã hủy chỉ là dòng tham khảo, không vào chỉ tiêu nào
+        <p className="type-body-sm">
+          Số sự cố đã hủy: {formatValue(report.cancelledIncidentCount)} (tham khảo, không tính vào chỉ tiêu nào)
+        </p>
+      )}
       {report.values.length === 0 ? (
         <Empty>
           <EmptyHeader>
@@ -97,6 +114,7 @@ export function ReportTable({ group, from, to, floorAreaId, costMode, floors = [
                   from,
                   to,
                   floorAreaId,
+                  careLevel,
                   breakdownKey,
                   breakdownText: breakdownKey && breakdownLabel(v.metricCode, breakdownKey, floors),
                   valueText: formatValue(value),

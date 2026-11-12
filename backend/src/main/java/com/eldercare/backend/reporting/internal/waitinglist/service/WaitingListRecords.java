@@ -72,7 +72,8 @@ public class WaitingListRecords {
         return records(api.waitingList(first, last))
                 .filter(r -> filters.residenceType() == null
                         || filters.residenceType()
-                                .equals(r.view().residenceType().name()));
+                                .equals(r.view().residenceType().name()))
+                .filter(r -> matchesCareLevel(r, filters));
     }
 
     /** Hồ sơ đang chờ lúc xem, mọi ngày đăng ký (số liệu "lúc xem"). */
@@ -85,7 +86,15 @@ public class WaitingListRecords {
                 .filter(WaitingRecord::open)
                 .filter(r -> filters.residenceType() == null
                         || filters.residenceType()
-                                .equals(r.view().residenceType().name()));
+                                .equals(r.view().residenceType().name()))
+                .filter(r -> matchesCareLevel(r, filters));
+    }
+
+    /** Bộ lọc mức chăm sóc (FR-060) theo mức dự kiến của hồ sơ chờ. */
+    private static boolean matchesCareLevel(WaitingRecord r, ReportFilters filters) {
+        return filters.careLevel() == null
+                || (r.view().careLevel() != null
+                        && filters.careLevel().equals(r.view().careLevel().name()));
     }
 
     private Stream<WaitingRecord> records(Stream<WaitingEntryView> views) {
