@@ -824,13 +824,14 @@ async function critical() {
   await step('Q55', async () => {
     const f = await post(U.BS1, `/residents/${F}/critical-flags`, { type: 'OFFICIAL', assessment: 'Suy hô hấp' });
     const al = L.sql(`SELECT * FROM alert WHERE resident_id = ${F} AND critical_flag_id IS NOT NULL ORDER BY id DESC LIMIT 1`)[0];
-    // Đóng khi chưa xác nhận lại kiểm ở cảnh báo của E (Q56): ở đây giữ trạng thái Đã tiếp nhận để kích hoạt khẩn cấp
-    // (FR-029: chỉ từ Mới, Leo thang, Đã tiếp nhận) rồi chuyển viện (FR-049)
+    // Đóng khi chưa xác nhận lại kiểm ở cảnh báo của E (Q56). Sửa B2 (chủ dự án chốt 2026-11-12, US11 #4): cảnh báo Đang
+    // xử lý chưa có sự cố, lệnh ghi lựa chọn "chuyển bệnh viện" lập sự cố loại do người xử lý chọn rồi Chuyển viện (FR-049)
     await post(U.B, `/alerts/${al.id}/receive`, {});
+    await post(U.B, `/alerts/${al.id}/start-handling`, {});
     const t = await nowIso();
     const rc = await post(U.B, `/alerts/${al.id}/wish-reconfirmation`, { contactedPerson: { fullName: 'Đỗ Văn F' }, channel: 'IN_PERSON', contactedAt: t, result: 'KEPT' });
-    const act = await post(U.B, `/alerts/${al.id}/activate-emergency`, { incidentTypeId: TYPE.BREATHING_OR_CONSCIOUSNESS, description: 'Suy hô hấp' });
-    const ex = await post(U.B, `/alerts/${al.id}/execute-choice`, { choice: 'TRANSFER_TO_HOSPITAL', transferOut: { transferUnit: 'Bệnh viện X', transferAt: t, companion: 'Điều dưỡng D', requiredContactReached: true } });
+    const act = { status: 200 }; // không còn bước kích hoạt khẩn cấp trước khi chuyển viện
+    const ex = await post(U.B, `/alerts/${al.id}/execute-choice`, { choice: 'TRANSFER_TO_HOSPITAL', incidentTypeId: TYPE.BREATHING_OR_CONSCIOUSNESS, transferOut: { transferUnit: 'Bệnh viện X', transferAt: t, companion: 'Điều dưỡng D', handoverStaffId: 9005, requiredContactReached: true } });
     const res = L.sql(`SELECT status FROM resident WHERE id = ${F}`)[0].status;
     const flag = L.sql(`SELECT critical_flag_id FROM alert WHERE id = ${al.id}`)[0];
     const sum = L.sql(`SELECT COUNT(*) c FROM record_event WHERE kind LIKE '%TRANSFER_SUMMARY%' AND entity_id = ${F}`)[0].c;
