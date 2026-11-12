@@ -13,6 +13,22 @@ import org.junit.jupiter.api.Test;
 /** T043: gọi bean production cụ thể, không lấy FakeCareRequirements làm bằng chứng. */
 class FR_047_TaskHandoverIT extends CareOverdueTestBase {
 
+    /** BR-M04-07: hết ca, người lập bàn giao chỉ xem được công việc chưa đóng; đọc danh sách không đóng hay ghi gì. */
+    @Test
+    void BR_M04_07_handoverWriterSeesOnlyUnclosedTasksAndReadingWritesNothing() throws Exception {
+        long open = create();
+        long done = createAnother();
+        jdbc.update("UPDATE care_task SET status='OVERDUE' WHERE id=?", open);
+        jdbc.update("UPDATE care_task SET status='COMPLETED' WHERE id=?", done);
+        var api = context.getBean(com.eldercare.backend.care.internal.overdue.service.CareHandoverQueries.class);
+
+        assertThat(api.unclosed(floor, shiftId))
+                .extracting(HandoverTaskView::id)
+                .containsExactly(open);
+        assertThat(context.getBean(CareTaskStore.class).get(open, false).status())
+                .isEqualTo(TaskStatus.OVERDUE);
+    }
+
     @Test
     void FR_047_confirmationClosesListedNormalOverdueAndIsIdempotent() throws Exception {
         long id = create();
