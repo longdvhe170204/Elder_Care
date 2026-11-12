@@ -439,3 +439,9 @@ Sửa thuộc E: cô lập truy vấn danh sách hồ sơ trong fixture CostWork
 - Lệch kỹ thuật: mã nguồn buổi bán trú có lịch đổi từ thứ tự buổi trong ngày sang `<người>:<ngày>:<buổi>` (thứ tự buổi trùng giữa các ngày); buổi phát sinh vào chỉ mục với mã `<người>:<ngày>:AD_HOC`. `V010_05` (đơn vị dùng, loại `DAY_CARE_SESSION` của chỉ mục), `V010_06` (khóa kỹ thuật `id` của chỉ mục cho provider `M11.COST_SOURCE_INDEX`). Thuốc có đơn vị dùng khác đơn vị tính giá của danh mục thì không lập (không quy đổi).
 - Sửa ngoài 010 phát hiện khi chạy demo: `SchedulerUserAspect` bọc thêm `ScheduledJob.atStartup()`; trước đó job M11 lúc khởi động ghi nhật ký lỗi "Không có người dùng hiện tại" và bỏ lượt (`StartupJobSchedulerUserIT`).
 - Cổng người thân: màn bảng chi phí chuyển về `family-portal/live` (README web điều 1), nhãn loại chi phí lên `common/costLabels.js`.
+
+### T033 — nghiệm thu lưu giữ liên module (2026-11-12, A, luồng E)
+
+- Chuỗi hồ sơ thật 001 → bảng, khoản 010 → sổ, giao dịch 017 xóa cùng nhau khi hết hạn; lỗi giữa chuỗi rollback cả chuỗi (`ResidentRetentionIT`).
+- Sửa `BalanceRetention` (017): chỉ sổ gắn vào hồ sơ (`referencing`), sổ dẫn tới giao dịch không trỏ giao dịch gốc, giao dịch dẫn tới điều chỉnh, giao dịch kia của cặp (`referencesTo`); trước đó mọi giao dịch gắn thẳng vào hồ sơ nên điều chỉnh có thể bị xóa sau giao dịch gốc (vi phạm `fk_balance_transaction_original`), đợt dừng và hồ sơ không bao giờ được xóa.
+- Chưa xử lý: cặp cấn trừ trỏ nhau hai chiều (`PendingTransactionStore.confirm` đặt `linked_transaction_id` cho bên cọc sau khi bên số dư đã trỏ) không xóa được từng dòng; cần chủ 017 chọn cách (ví dụ một chiều trỏ, hoặc retention gỡ liên kết trước khi xóa).
