@@ -33,7 +33,12 @@ Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {int? alertId,
 void main() {
   late FakeBackend backend;
 
-  setUp(() => backend = FakeBackend());
+  setUp(
+    () => backend = FakeBackend()
+      ..on('GET', '/staff', 200, [
+        {'id': 31, 'fullName': 'Trần Thu Hà'},
+      ]),
+  );
 
   testWidgets('FR_050a_thieuLoaiHoacNhanDinh_baoTaiO_khongGui', (tester) async {
     await pumpScreen(tester, backend);
@@ -99,11 +104,17 @@ void main() {
 
     await tester.enterText(find.widgetWithText(TextField, 'Bệnh viện chuyển đến'), 'Bệnh viện X');
     await tester.enterText(find.widgetWithText(TextField, 'Người đi cùng (họ tên, quan hệ hoặc chức danh)'), 'Con gái');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('choice-handover-staff')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trần Thu Hà').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Thực hiện lựa chọn'));
     await tester.pumpAndSettle();
 
     final body = jsonDecode(backend.calls('POST', '/alerts/20/execute-choice').single.body) as Map;
     expect((body['transferOut'] as Map)['transferUnit'], 'Bệnh viện X');
+    expect((body['transferOut'] as Map)['handoverStaffId'], 31);
     expect(find.text('Chưa xác nhận lại nguyện vọng'), findsOneWidget);
   });
 
@@ -118,6 +129,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Bệnh viện chuyển đến'), 'Bệnh viện X');
     await tester.enterText(find.widgetWithText(TextField, 'Người đi cùng (họ tên, quan hệ hoặc chức danh)'), 'Con gái');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('choice-handover-staff')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trần Thu Hà').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Thực hiện lựa chọn'));
     await tester.pumpAndSettle();
     expect(find.text('Chọn loại sự cố'), findsOneWidget);
@@ -133,5 +149,6 @@ void main() {
 
     final body = jsonDecode(backend.calls('POST', '/alerts/20/execute-choice').single.body) as Map;
     expect(body['incidentTypeId'], 7);
+    expect((body['transferOut'] as Map)['handoverStaffId'], 31);
   });
 }

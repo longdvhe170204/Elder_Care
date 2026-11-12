@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
+import { HandoverStaffField } from '@/features/incidents/HandoverStaffField'
 import { problemOf } from '@/common/problem'
 
 // Khối "Nguy kịch" (007 T046; US11; FR-050a → FR-050g; BR-M05-15, 16). Nhận alert (id, criticalFlagId) từ màn cảnh
@@ -286,6 +287,7 @@ function ExecuteChoice({ alertId, needsIncident, onChanged }) {
   const [unit, setUnit] = useState('')
   const [companion, setCompanion] = useState('')
   const [incidentType, setIncidentType] = useState('')
+  const [staffId, setStaffId] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const transfer = choice === 'TRANSFER_TO_HOSPITAL'
   const askType = transfer && needsIncident
@@ -299,7 +301,12 @@ function ExecuteChoice({ alertId, needsIncident, onChanged }) {
           choice,
           reason: reason.trim() || undefined,
           transferOut: transfer
-            ? { transferUnit: unit.trim(), transferAt: new Date().toISOString(), companion: companion.trim() }
+            ? {
+                transferUnit: unit.trim(),
+                transferAt: new Date().toISOString(),
+                companion: companion.trim(),
+                handoverStaffId: Number(staffId),
+              }
             : undefined,
           incidentTypeId: askType ? Number(incidentType) : undefined,
         },
@@ -313,7 +320,8 @@ function ExecuteChoice({ alertId, needsIncident, onChanged }) {
       onSubmit={(e) => {
         e.preventDefault()
         setSubmitted(true)
-        if (choice && (!transfer || (unit.trim() && companion.trim())) && (!askType || incidentType)) command.run()
+        if (choice && (!transfer || (unit.trim() && companion.trim() && staffId)) && (!askType || incidentType))
+          command.run()
       }}
     >
       <Choice
@@ -361,6 +369,12 @@ function ExecuteChoice({ alertId, needsIncident, onChanged }) {
             onChange={setCompanion}
             invalid={submitted && !companion.trim()}
             error="Nhập người đi cùng"
+          />
+          <HandoverStaffField
+            id="choice-handover-staff"
+            value={staffId}
+            onChange={setStaffId}
+            invalid={submitted && !staffId}
           />
         </>
       )}
