@@ -400,6 +400,40 @@ class ResidentRetentionIT extends StatusTestBase {
                 now);
         jdbc.update(
                 insertTransaction, id, "ADJUSTMENT", -50, now, "OTHER", null, cash, "Ghi nhầm số tiền", now, now, now);
+        // Cặp cấn trừ cọc ↔ số dư (017) trỏ nhau hai chiều qua linked_transaction_id, cả hai đã khóa: chỉ nối được vòng
+        // khi dòng đầu chưa khóa, rồi khóa.
+        jdbc.update(
+                "INSERT INTO balance_transaction(resident_id,ledger,type,amount,occurred_at,method,status,created_at,"
+                        + "created_by) VALUES (?,'DEPOSIT','DEPOSIT_OFFSET',-100,?,'INTERNAL','PENDING_APPROVAL',?,1)",
+                id,
+                now,
+                now);
+        long offset = jdbc.queryForObject(
+                "SELECT MAX(id) FROM balance_transaction WHERE resident_id=? AND type='DEPOSIT_OFFSET'",
+                Long.class,
+                id);
+        jdbc.update(
+                "INSERT INTO balance_transaction(resident_id,ledger,type,amount,occurred_at,method,linked_transaction_id,"
+                        + "status,locked_at,confirmed_at,created_at,created_by)"
+                        + " VALUES (?,'BALANCE','DEPOSIT_OFFSET',100,?,'INTERNAL',?,'CONFIRMED',?,?,?,1)",
+                id,
+                now,
+                offset,
+                now,
+                now,
+                now);
+        long credit = jdbc.queryForObject(
+                "SELECT MAX(id) FROM balance_transaction WHERE resident_id=? AND ledger='BALANCE'"
+                        + " AND type='DEPOSIT_OFFSET'",
+                Long.class,
+                id);
+        jdbc.update(
+                "UPDATE balance_transaction SET status='CONFIRMED', linked_transaction_id=?, locked_at=?, confirmed_at=?"
+                        + " WHERE id=?",
+                credit,
+                now,
+                now,
+                offset);
         return new CostAndBalance(statement, cash);
     }
 
@@ -426,13 +460,13 @@ class ResidentRetentionIT extends StatusTestBase {
     void T033_FR_051a_balanceLedgerAndTransactionsFollowTheRealResidentChainWithCosts() {
         long id = endedResidentWithEverything();
         var rows = costAndBalanceRows(id);
-        assertThat(costAndBalanceCount(id, rows)).isEqualTo(7);
+        assertThat(costAndBalanceCount(id, rows)).isEqualTo(9);
 
         runJobAfter(Duration.ofDays(366));
         assertThat(count("resident", id)).as("hồ sơ chưa hết hạn").isEqualTo(1);
         assertThat(costAndBalanceCount(id, rows))
                 .as("chi phí, sổ, giao dịch giữ cùng hồ sơ")
-                .isEqualTo(7);
+                .isEqualTo(9);
 
         runJobAfter(Duration.ofDays(11 * 366));
         assertThat(count("resident", id)).isZero();
@@ -462,7 +496,7 @@ class ResidentRetentionIT extends StatusTestBase {
             }
             assertThat(costAndBalanceCount(id, rows))
                     .as("rollback: chi phí, sổ, giao dịch")
-                    .isEqualTo(7);
+                    .isEqualTo(9);
             assertThat(jdbc.queryForObject(
                             "SELECT JSON_EXTRACT(details, '$.stopped') FROM audit_log"
                                     + " WHERE entity_type = 'M15.PURGE_RUN' ORDER BY id DESC LIMIT 1",
