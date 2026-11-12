@@ -14,6 +14,7 @@ beforeEach(() => {
   api = mockRoutes()
   api.on('GET', '/incidents/11/transfer-out/info', json(200, INFO))
   api.on('POST', '/incidents/11/transfer-out', json(201, { id: 77 }))
+  api.on('GET', '/staff', json(200, [{ id: 31, fullName: 'Trần Thu Hà' }]))
 })
 
 afterEach(() => vi.unstubAllGlobals())
@@ -22,6 +23,7 @@ function fill() {
   fireEvent.change(screen.getByLabelText('Đơn vị nhận'), { target: { value: 'Bệnh viện A' } })
   fireEvent.change(screen.getByLabelText('Thời điểm chuyển'), { target: { value: '2026-11-09T10:30' } })
   fireEvent.change(screen.getByLabelText(/^Người đi cùng/), { target: { value: 'Trần Thu Hà, điều dưỡng' } })
+  fireEvent.change(screen.getByLabelText('Nhân viên bàn giao'), { target: { value: '31' } })
 }
 
 describe('TransferOutPanel', () => {
@@ -30,12 +32,15 @@ describe('TransferOutPanel', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Xác nhận chuyển viện' }))
     expect(await screen.findByText('Nhập đơn vị nhận')).toBeTruthy()
     expect(screen.getByText('Nhập người đi cùng')).toBeTruthy()
+    // lệnh Chuyển viện của 001/004 bắt buộc người bàn giao (quickstart 007 Q55, 2026-11-12)
+    expect(screen.getByText('Chọn nhân viên bàn giao')).toBeTruthy()
     expect(api.calls('POST', '/incidents/11/transfer-out')).toHaveLength(0)
   })
 
   it('Q_383_chuaHoiDuoc_canLyDo_roiGuiKemKey', async () => {
     render(<TransferOutPanel incidentId={11} onDone={() => {}} onCancel={() => {}} />)
     await screen.findByText(/Lê Văn An/)
+    await screen.findByRole('option', { name: 'Trần Thu Hà' })
     fill()
     fireEvent.click(screen.getByRole('button', { name: 'Chưa hỏi được' }))
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận chuyển viện' }))
@@ -50,6 +55,7 @@ describe('TransferOutPanel', () => {
       transferUnit: 'Bệnh viện A',
       transferAt: '2026-11-09T10:30:00+07:00',
       companion: 'Trần Thu Hà, điều dưỡng',
+      handoverStaffId: 31,
       requiredContactReached: false,
       notAskedFirstReason: 'Không gọi được',
     })
@@ -60,6 +66,7 @@ describe('TransferOutPanel', () => {
     api.on('GET', '/incidents/11/transfer-out/info', json(200, { ...INFO, isEmergency: true }))
     render(<TransferOutPanel incidentId={11} onDone={() => {}} onCancel={() => {}} />)
     await screen.findByText(/Lê Văn An/)
+    await screen.findByRole('option', { name: 'Trần Thu Hà' })
     fill()
     fireEvent.click(screen.getByRole('button', { name: 'Chưa hỏi được' }))
     expect(screen.queryByLabelText('Lý do chưa hỏi được')).toBeNull()

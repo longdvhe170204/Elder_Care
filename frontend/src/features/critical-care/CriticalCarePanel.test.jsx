@@ -10,6 +10,7 @@ let api
 
 beforeEach(() => {
   api = mockRoutes()
+  api.on('GET', '/staff', json(200, [{ id: 31, fullName: 'Trần Thu Hà' }]))
 })
 
 afterEach(() => {
@@ -86,10 +87,12 @@ describe('CriticalCarePanel', () => {
     expect(screen.getByText('Nhập nơi chuyển đến')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Bệnh viện chuyển đến'), { target: { value: 'Bệnh viện X' } })
     fireEvent.change(screen.getByLabelText(/Người đi cùng/), { target: { value: 'Con gái' } })
+    await screen.findByRole('option', { name: 'Trần Thu Hà' })
+    fireEvent.change(screen.getByLabelText('Nhân viên bàn giao'), { target: { value: '31' } })
     fireEvent.click(screen.getByRole('button', { name: 'Thực hiện lựa chọn' }))
     await screen.findByText('Chưa xác nhận lại nguyện vọng')
     const body = JSON.parse(api.calls('POST', '/alerts/20/execute-choice')[0][1].body)
-    expect(body.transferOut).toMatchObject({ transferUnit: 'Bệnh viện X', companion: 'Con gái' })
+    expect(body.transferOut).toMatchObject({ transferUnit: 'Bệnh viện X', companion: 'Con gái', handoverStaffId: 31 })
   })
 
   it('chuyển bệnh viện khi cảnh báo chưa có sự cố: chọn loại sự cố, gửi incidentTypeId (FR-050d, chủ dự án chốt 2026-11-12)', async () => {
@@ -112,6 +115,8 @@ describe('CriticalCarePanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Chuyển bệnh viện' }))
     fireEvent.change(screen.getByLabelText('Bệnh viện chuyển đến'), { target: { value: 'Bệnh viện X' } })
     fireEvent.change(screen.getByLabelText(/Người đi cùng/), { target: { value: 'Con gái' } })
+    await screen.findByRole('option', { name: 'Trần Thu Hà' })
+    fireEvent.change(screen.getByLabelText('Nhân viên bàn giao'), { target: { value: '31' } })
     fireEvent.click(screen.getByRole('button', { name: 'Thực hiện lựa chọn' }))
     expect(screen.getByText('Chọn loại sự cố')).toBeInTheDocument()
     const select = screen.getByLabelText(/Loại sự cố/)
