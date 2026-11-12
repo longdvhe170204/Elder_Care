@@ -1,7 +1,9 @@
 package com.eldercare.backend.admission.internal.change.service;
 
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
 import com.eldercare.backend.administration.approval.api.events.RequestCancelled;
+import com.eldercare.backend.administration.approval.api.events.RequestDecided;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -19,10 +21,22 @@ class ResidencyChangeListeners {
 
     private final AddendumClosing closing;
     private final ResidencyLock residencyLock;
+    private final ResidencyChangeHandler handler;
 
-    ResidencyChangeListeners(AddendumClosing closing, ResidencyLock residencyLock) {
+    ResidencyChangeListeners(AddendumClosing closing, ResidencyLock residencyLock, ResidencyChangeHandler handler) {
         this.closing = closing;
         this.residencyLock = residencyLock;
+        this.handler = handler;
+    }
+
+    /** 003 FR-030: yêu cầu sau chuyển gấp bị từ chối (transaction riêng sau khi quyết định đã commit). */
+    @ApplicationModuleListener
+    void onDecided(RequestDecided event) {
+        ApprovalRequestView request = event.request();
+        if (ResidencyChangeHandler.TYPE.equals(request.type()) && ApprovalStatus.REJECTED.equals(event.outcome())) {
+            residencyLock.lock(request.target().residentId());
+            handler.rejected(request);
+        }
     }
 
     @ApplicationModuleListener

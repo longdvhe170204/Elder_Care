@@ -975,6 +975,7 @@ components:
         newValue: { type: object, additionalProperties: true, description: 'Theo loại: residenceType, careLevel, services[], endDate, newBedId, arrivalSchedule[]' }
         requestedEffectiveDate: { type: string, format: date }
         reference: { type: object, properties: { type: { type: string, enum: [ASSESSMENT, BED_TRANSFER_ORDER] }, id: { type: integer, format: int64 } } }
+        urgentTransferAllocationId: { type: integer, format: int64, description: 'Mã phân bổ của lần chuyển giường gấp khác giá mà yêu cầu đổi giường này xác nhận sau (003 FR-030, Q-306): lập thì 003 gỡ dấu chờ lập yêu cầu; duyệt không đặt trước, không chuyển giường lần nữa; từ chối thì phân bổ mang dấu chờ chuyển về phòng cùng giá. Chỉ đi với changeTypes [BED] (bổ sung 2026-11-12, chủ dự án duyệt)' }
         reason: { $ref: '#/components/schemas/Reason' }
     ResidencyChangeRequest:
       allOf:

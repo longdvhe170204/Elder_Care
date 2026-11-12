@@ -33,6 +33,11 @@ public record ResidencyChangeRequestInputBody(
 
         @Valid Reference reference,
 
+        @Schema(
+                description =
+                        "Mã phân bổ của lần chuyển giường gấp khác giá mà yêu cầu này xác nhận sau (003 FR-030; chủ dự án duyệt 2026-11-12)")
+        Long urgentTransferAllocationId,
+
         @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         Reason reason) {
 
@@ -59,6 +64,9 @@ public record ResidencyChangeRequestInputBody(
             // buộc)
             ref.put("type", reference.type() == null ? null : reference.type().name());
             ref.put("id", reference.id());
+        }
+        if (urgentTransferAllocationId != null) {
+            content.put("urgentTransferAllocationId", urgentTransferAllocationId);
         }
         return content;
     }

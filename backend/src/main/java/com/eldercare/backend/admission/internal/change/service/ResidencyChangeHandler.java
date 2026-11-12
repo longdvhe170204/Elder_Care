@@ -245,7 +245,9 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
                     "DUPLICATE_PENDING_ATTRIBUTE", "Đã có yêu cầu Đã duyệt chờ hiệu lực cùng thuộc tính (FR-046)")));
         }
-        if (change.has(ChangeType.BED) && change.newBedId() != null) {
+        if (change.afterUrgentTransfer()) {
+            beds.getObject().urgentTransferRequestResult(change.urgentTransferAllocationId(), true);
+        } else if (change.has(ChangeType.BED) && change.newBedId() != null) {
             beds.getObject()
                     .reserveScheduledTransfer(
                             request.id(), contract.residentId(), change.newBedId(), actualEffectiveDate);
@@ -320,7 +322,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                             contract.residentId(),
                             newEnd.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
         }
-        if (change.has(ChangeType.BED) && change.newBedId() != null) {
+        if (change.has(ChangeType.BED) && change.newBedId() != null && !change.afterUrgentTransfer()) {
             // Mốc dự kiến là 00:00 ngày hiệu lực; 003 ghi thời điểm thực hiện và dấu trễ (003 FR-016a)
             beds.getObject()
                     .applyScheduledTransfer(
@@ -349,6 +351,21 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             events.publishEvent(new ResidenceTypeChanged(contract.residentId()));
         }
         return new ResultRef(ADDENDUM_ENTITY, String.valueOf(addendum.id()));
+    }
+
+    /** 003 FR-030: Hành chính lập yêu cầu sau chuyển gấp thì 003 gỡ dấu chờ lập yêu cầu, ngừng nhắc (cùng transaction lập). */
+    void created(ResidencyChangeContent change, long requestId) {
+        if (change.afterUrgentTransfer()) {
+            beds.getObject().requestCreatedAfterUrgentTransfer(change.urgentTransferAllocationId(), requestId);
+        }
+    }
+
+    /** 003 FR-030: yêu cầu sau chuyển gấp bị từ chối thì phân bổ mang dấu chờ chuyển về phòng cùng giá. */
+    void rejected(ApprovalRequestView request) {
+        ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        if (change.afterUrgentTransfer()) {
+            beds.getObject().urgentTransferRequestResult(change.urgentTransferAllocationId(), false);
+        }
     }
 
     /** DUOC_THAY_THE khi lần đánh giá được xác nhận (FR-036a của 001), chỉ hệ thống chuyển. */

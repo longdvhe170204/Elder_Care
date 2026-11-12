@@ -33,7 +33,8 @@ public record ResidencyChangeContent(
         List<ArrivalChange> arrivalSchedule,
         Boolean noDepositRequired,
         Long depositAmount,
-        JsonNode reference) {
+        JsonNode reference,
+        Long urgentTransferAllocationId) {
 
     public record ServiceChange(
             long serviceId, Action action, boolean inPackage, double quantity, Long customUnitPrice) {
@@ -47,6 +48,14 @@ public record ResidencyChangeContent(
 
     public boolean has(ChangeType type) {
         return changeTypes.contains(type);
+    }
+
+    /**
+     * Yêu cầu lập sau lần chuyển gấp khác giá (003 FR-030; api-004 {@code urgentTransferAllocationId}, chủ dự án duyệt
+     * 2026-11-12): người đã ở giường mới, nên không đặt trước, không chuyển giường lần nữa.
+     */
+    public boolean afterUrgentTransfer() {
+        return urgentTransferAllocationId != null;
     }
 
     /** Có đổi khoản cọc đi kèm. */
@@ -126,6 +135,10 @@ public record ResidencyChangeContent(
         } else {
             reference = null;
         }
+        Long urgent = positive(content, "urgentTransferAllocationId", false);
+        if (urgent != null && !types.equals(Set.of(ChangeType.BED))) {
+            throw new InvalidValueException("urgentTransferAllocationId chỉ đi với yêu cầu đổi giường (003 FR-030)");
+        }
         return new ResidencyChangeContent(
                 contractNode.asLong(),
                 types,
@@ -137,7 +150,8 @@ public record ResidencyChangeContent(
                 schedule,
                 noDeposit,
                 deposit,
-                reference);
+                reference,
+                urgent);
     }
 
     private static <E extends Enum<E>> E enumOf(Class<E> type, JsonNode value, String field) {
