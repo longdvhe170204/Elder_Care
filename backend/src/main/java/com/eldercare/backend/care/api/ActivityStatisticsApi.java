@@ -15,4 +15,10 @@ public interface ActivityStatisticsApi {
 
     /** FR-065: kết quả kiểm tra kèm vai trò người kiểm tra. */
     Stream<QualityCheckStatisticsView> qualityChecks(ScopeFilter scope, LocalDate from, LocalDate to);
+
+    /**
+     * 016 FR-037 (Q-168, Q-254): công việc hoàn thành trong khoảng không vào mẫu kiểm tra vì do Trưởng tầng được giao, hoặc
+     * Người phụ trách ca của ca không có Trưởng tầng được giao, tự thực hiện ("ngoài phạm vi kiểm tra").
+     */
+    Stream<OutOfCheckScopeView> outOfCheckScope(ScopeFilter scope, LocalDate from, LocalDate to);
 }

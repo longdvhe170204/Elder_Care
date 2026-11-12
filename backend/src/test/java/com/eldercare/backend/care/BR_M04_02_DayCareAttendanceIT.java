@@ -300,6 +300,62 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
                 .isEqualTo(before);
     }
 
+    /**
+     * T029 (2026-11-11): luồng thật của 004 — yêu cầu thay đổi {@code ARRIVAL_SCHEDULE} lập, gửi, duyệt qua HTTP, job áp
+     * dụng của 000 ({@code ApplyDueRequestsJob}, REQUIRES_NEW) chạy {@code ResidencyChangeHandler.apply} và phát {@code
+     * AddendumApplied} thật. Job đọc dữ liệu đã commit nên ca này không chạy trong transaction của test: hợp đồng, yêu cầu
+     * và trạng thái có mặt được commit, id mới theo {@link TestUsers#nextId()}.
+     */
+    @Test
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    void FR_012_arrivalScheduleAddendumAppliedByTheRealJob_determinesEffectiveDayByNewSchedule() throws Exception {
+        LocalDate tomorrow = date.plusDays(1);
+        user.set(office.user());
+        long request = body(mvc.perform(post("/api/v1/residency-change-requests")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"contractId\":" + contract
+                                        + ",\"changeTypes\":[\"ARRIVAL_SCHEDULE\"],\"newValue\":{\"arrivalSchedule\":"
+                                        + schedule(
+                                                line(date.getDayOfWeek(), "08:00", "17:00"),
+                                                line(tomorrow.getDayOfWeek(), "09:30", "16:00"))
+                                        + "},\"requestedEffectiveDate\":\"" + tomorrow
+                                        + "\",\"reason\":\"Gia đình đề nghị đổi giờ đến\"}"))
+                        .andExpect(status().isCreated()))
+                .get("approvalRequestId")
+                .asLong();
+        approval(request, "submit", "{}");
+        user.set(manager.user());
+        approval(request, "approve", "{\"comment\":\"Đồng ý\"}");
+        assertThat(onDate(tomorrow)).isEmpty();
+
+        clock.setTo(tomorrow.atTime(12, 0).atZone(BusinessTime.ZONE).toInstant());
+        context.getBean(com.eldercare.backend.administration.approval.scheduling.ApplyDueRequestsJob.class)
+                .run();
+
+        assertThat(jdbc.queryForObject("SELECT status FROM approval_request WHERE id=?", String.class, request))
+                .isEqualTo("APPLIED");
+        var applied =
+                onDate(tomorrow).orElseThrow(() -> new AssertionError("listener 005 chưa xác định ngày hiệu lực"));
+        assertThat(applied.status()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
+        assertThat(applied.expectedArrival()).as("giờ đến theo lịch mới").contains(LocalTime.of(9, 30));
+    }
+
+    private void approval(long request, String command, String content) throws Exception {
+        String etag = mvc.perform(get("/api/v1/approval-requests/" + request))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getHeader("ETag");
+        mvc.perform(
+                        post("/api/v1/approval-requests/" + request + "/" + command)
+                                .with(org.springframework.security.test.web.servlet.request
+                                        .SecurityMockMvcRequestPostProcessors.csrf())
+                                .header("If-Match", etag)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(content))
+                .andExpect(status().isOk());
+    }
+
     @Test
     void FR_012_onlyArrivalScheduleChangesAct_andARepeatedEventChangesNothing() {
         // Mô phỏng sự kiện 004 phát trong lệnh áp dụng phụ lục: lịch hiện hành của hợp đồng đã có hôm nay

@@ -9,7 +9,8 @@ import java.util.List;
 
 /**
  * 019 FR-012: {@code AssetDetail} của api-019 (chủ dự án duyệt 2026-11-10): trường của {@code Asset} cộng lịch sử vị trí,
- * lần chuyển bộ phận, lần bảo trì, hư hỏng; lần bảo trì, hư hỏng kèm dấu đã đính chính, đã Hủy ghi nhận.
+ * lần chuyển bộ phận, lần bảo trì, hư hỏng; lần bảo trì, hư hỏng kèm dấu đã đính chính, đã Hủy ghi nhận. Trường mô tả
+ * (tập trường của {@code AssetWrite}) để màn Sửa mô tả điền sẵn (chủ dự án duyệt 2026-11-12).
  */
 @Schema(name = "AssetDetail")
 public record AssetDetailResponse(
@@ -24,6 +25,20 @@ public record AssetDetailResponse(
         List<String> flags,
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) Integer version,
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) List<String> allowedCommands,
+
+        @Schema(allowableValues = {"PURCHASED", "DONATED", "TRANSFERRED_IN"})
+        String source,
+
+        String sourceDescription,
+        Long procurementRequestId,
+        Long acquisitionCost,
+        LocalDate inServiceOn,
+        Integer maintenanceIntervalDays,
+        LocalDate maintenanceDueOn,
+        String licensePlate,
+        Integer seatCount,
+        LocalDate vehicleInspectionDueOn,
+        LocalDate insuranceDueOn,
         List<Location> locations,
         List<DepartmentTransfer> departmentTransfers,
         List<Maintenance> maintenances,
@@ -98,6 +113,17 @@ public record AssetDetailResponse(
                 row.flags().stream().map(Enum::name).toList(),
                 row.version(),
                 d.allowedCommands(),
+                row.source(),
+                row.sourceDescription(),
+                row.procurementRequestId(),
+                row.acquisitionCost(),
+                row.inServiceOn(),
+                row.maintenanceIntervalDays(),
+                row.maintenanceDueOn(),
+                row.licensePlate(),
+                row.seatCount(),
+                row.vehicleInspectionDueOn(),
+                row.insuranceDueOn(),
                 d.locations().stream()
                         .map(l -> new Location(
                                 l.type(), l.id(), l.from(), l.to(), l.command(), l.actorStaffId(), l.reason()))

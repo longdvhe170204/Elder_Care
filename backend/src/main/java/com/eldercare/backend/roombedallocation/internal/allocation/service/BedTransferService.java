@@ -203,12 +203,9 @@ public class BedTransferService {
         }
         if (old.status() != AllocationStatus.ACTIVE || old.bedId() == target)
             throw conflict("ALLOCATION_NOT_TRANSFERABLE", "Cần phân bổ đang Hiệu lực và giường đích khác");
-        // Chủ dự án giữ SPI hiện hành: chưa suy giá hợp đồng để giải quyết dấu chờ qua lần chuyển tiếp.
-        if (store.awaitingPriceResolution(id))
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "SOURCE_UNAVAILABLE",
-                    "Chưa có nguồn đối chiếu giá hợp đồng cho phân bổ đang chờ xử lý khác giá");
+        // G-07: phân bổ đang chờ xử lý khác giá so với đơn giá hợp đồng; chuyển sang phòng cùng giá hợp đồng thì hết
+        // dấu
+        boolean awaitingPrice = store.awaitingPriceResolution(id);
         var now = time.now().truncatedTo(ChronoUnit.MICROS);
         var at = backfillAt == null ? now : backfillAt;
         if (!at.isAfter(old.startAt())
@@ -229,8 +226,10 @@ public class BedTransferService {
         if (backfillAt != null) violations.addAll(absenceOverlap(old.residentId(), at));
         if (!violations.isEmpty()) throw unmet(violations);
         boolean medical = store.medicalSafety(reasonId);
-        boolean different = source.differentUnitPrice(
-                old.residentId(), store.roomType(old.bedId()), store.roomType(target), time.today());
+        boolean different = awaitingPrice
+                ? source.differentContractUnitPrice(old.residentId(), store.roomType(target), time.today())
+                : source.differentUnitPrice(
+                        old.residentId(), store.roomType(old.bedId()), store.roomType(target), time.today());
         if (different && !medical)
             throw conflict(
                     "RESIDENCY_CHANGE_REQUEST_REQUIRED", "Cần yêu cầu thay đổi lưu trú đã duyệt khi chuyển khác giá");

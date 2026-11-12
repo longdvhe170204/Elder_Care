@@ -7,12 +7,14 @@ import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.administration.correction.api.dto.*;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.administration.shared.api.*;
+import com.eldercare.backend.care.api.dto.CareTimeRange;
 import com.eldercare.backend.care.api.dto.TripInterval;
 import com.eldercare.backend.care.api.dto.TripMedicationChangeType;
 import com.eldercare.backend.care.api.events.ActivityCostSourceChanged;
 import com.eldercare.backend.care.api.events.TripChanged;
 import com.eldercare.backend.care.api.spi.TripMedicationPreparationPort;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
+import com.eldercare.backend.care.internal.task.service.CareAbsenceTasks;
 import com.eldercare.backend.care.internal.trip.domain.*;
 import com.eldercare.backend.care.internal.trip.persistence.ActivityTripStore;
 import com.eldercare.backend.common.Reason;
@@ -23,6 +25,7 @@ import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.roombedallocation.api.VehicleScheduleCommandApi;
 import com.eldercare.backend.roombedallocation.api.dto.TripVehicleChangeType;
+import java.time.Instant;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,9 +36,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 014 T020 (FR-031a, Q-170, Q-240; module-interfaces 014 mục 1.1 {@code DinhChinhDuocProvider} {@code M04.DIEM_DANH_CHUYEN}):
- * điểm danh chuyến chỉ Trưởng tầng của chuyến đính chính. Cài Hủy ghi nhận rời viện (b) và về (c, lệnh 001
- * {@code CANCEL_RETURN_RECORD}). Đổi thời điểm thực tế (a) cần 001 sửa thời điểm lịch sử trạng thái, bị từ chối cho tới khi
- * 001 có (plan Phase 7).
+ * điểm danh chuyến chỉ Trưởng tầng của chuyến đính chính. Cài đổi thời điểm thực tế (a, sửa nội dung trường {@code at}; 001
+ * {@code ResidentStatusApi.correctRollCallTime}, đổi api chủ dự án duyệt 2026-11-11), Hủy ghi nhận rời viện (b) và về (c,
+ * lệnh 001 {@code CANCEL_RETURN_RECORD}).
  */
 @Component
 public class TripAttendanceCorrectionProvider implements CorrectableRecordProvider {
@@ -49,6 +52,8 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
     private final ApplicationEventPublisher events;
     private final JsonMapper json;
     private final BusinessTime time;
+    private final TripAttendanceTimes attendanceTimes;
+    private final CareAbsenceTasks absence;
 
     public TripAttendanceCorrectionProvider(
             RecordEventApi records,
@@ -60,7 +65,9 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
             ObjectProvider<VehicleScheduleCommandApi> vehicleCommands,
             ApplicationEventPublisher events,
             JsonMapper json,
-            BusinessTime time) {
+            BusinessTime time,
+            TripAttendanceTimes attendanceTimes,
+            CareAbsenceTasks absence) {
         this.records = records;
         this.simple = simple;
         this.trips = trips;
@@ -71,6 +78,8 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
         this.events = events;
         this.json = json;
         this.time = time;
+        this.attendanceTimes = attendanceTimes;
+        this.absence = absence;
     }
 
     @Override
@@ -118,12 +127,31 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
 
     @Override
     public boolean supports(CorrectionType type) {
-        return type == CorrectionType.VOID;
+        return type == CorrectionType.VOID || type == CorrectionType.AMEND_CONTENT;
     }
 
+    /** FR-031a: không đổi người cao tuổi hay loại bản ghi, nên nội dung sửa chỉ có thời điểm thực tế {@code at}. */
     @Override
     public void validateContent(Object correctedContent) {
-        throw new InvalidValueException("Điểm danh chuyến chỉ Hủy ghi nhận được trong lượt này");
+        correctedAt(correctedContent);
+    }
+
+    private Instant correctedAt(Object content) {
+        Map<?, ?> map;
+        try {
+            map = json.convertValue(content, Map.class);
+        } catch (RuntimeException e) {
+            map = null;
+        }
+        if (map == null
+                || !map.keySet().equals(Set.of(TripAttendanceTimes.AT))
+                || map.get(TripAttendanceTimes.AT) == null)
+            throw new InvalidValueException("Đính chính điểm danh chuyến chỉ sửa được thời điểm thực tế (trường at)");
+        try {
+            return Instant.parse(map.get(TripAttendanceTimes.AT).toString());
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new InvalidValueException("Thời điểm thực tế không hợp lệ");
+        }
     }
 
     @Override
@@ -137,11 +165,91 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
         return map;
     }
 
-    /** Kiểm trước khi lập bản đính chính, để cách C không lập yêu cầu không áp dụng được. */
+    /**
+     * Kiểm trước khi lập bản đính chính, để cách C không lập yêu cầu không áp dụng được. Hàm không biết kiểu đính chính nên
+     * cho qua khi bản ghi còn đổi được thời điểm hoặc còn Hủy ghi nhận được; lúc áp dụng kiểm đúng kiểu.
+     */
     @Override
     public boolean allows(CurrentUser user, CreationMethod method, long id) {
-        check(row(id).content());
+        var a = row(id).content();
+        try {
+            checkAmendable(a, id);
+        } catch (BusinessException e) {
+            check(a);
+        }
         return true;
+    }
+
+    /**
+     * FR-031a (a): bản ghi là lần rời viện hoặc về mới nhất của đăng ký, chưa bị Hủy ghi nhận (người tham gia còn ở trạng
+     * thái của bản ghi), chuyến Đang đi hoặc Đã về.
+     */
+    private void checkAmendable(TripKinds.Attendance a, long id) {
+        boolean ret = "RETURN".equals(a.type());
+        var trip = trips.find(a.tripId()).orElseThrow(NotFoundException::new);
+        if (!Set.of("IN_PROGRESS", "RETURNED").contains(trip.status()))
+            throw conflict("STATE_CHANGED", "Chỉ đính chính thời điểm khi chuyến Đang đi hoặc Đã về");
+        var p = trips.participants(a.tripId()).stream()
+                .filter(r -> r.registrationId() == a.registrationId())
+                .findFirst()
+                .orElseThrow(() -> conflict("STATE_CHANGED", "Đăng ký của bản ghi điểm danh đã được thay"));
+        var allowed = ret ? Set.of("RETURNED") : Set.of("DEPARTED", "MISSING_ON_RETURN", "RETURNED");
+        boolean latest = trips.latestAttendanceId(a.registrationId(), a.type())
+                .map(latestId -> latestId == id)
+                .orElse(false);
+        if (!allowed.contains(p.status()) || !latest)
+            throw conflict("STATE_CHANGED", "Bản ghi điểm danh đã bị Hủy ghi nhận hoặc đã có bản ghi mới hơn");
+    }
+
+    /**
+     * FR-031a (a): 001 ghi thời điểm đúng vào lịch sử trạng thái; 006 nhận khoảng mang thuốc mới, 005 tính lại công việc
+     * trong khoảng vắng (hủy việc chưa tới hạn trong khoảng mới, báo lập lại việc đã hủy nay ngoài khoảng), 011 qua
+     * {@link TripChanged}. Trạng thái người cao tuổi và người tham gia không đổi.
+     */
+    private void amendTime(CorrectionView correction, TripKinds.Attendance a, Optional<Reason> reason) {
+        long id = correction.originalRecordId();
+        boolean ret = "RETURN".equals(a.type());
+        Instant at = correctedAt(correction.correctedContent());
+        checkAmendable(a, id);
+        Instant previous = status.correctRollCallTime(
+                a.residentId(),
+                ret ? StatusCommand.ROLL_CALL_RETURN : StatusCommand.ROLL_CALL_DEPARTURE,
+                a.tripId(),
+                at,
+                user.getObject(),
+                reason);
+        var trip = trips.lock(a.tripId());
+        checkAmendable(a, id);
+        var medication = medications.getIfAvailable();
+        if (medication == null) throw unavailable("Chưa có nguồn thuốc để tính lại khoảng mang theo");
+        Instant departed = ret
+                ? attendanceTimes
+                        .departedAt(a.registrationId())
+                        .orElse(trip.plan().plannedDepartureAt())
+                : at;
+        Optional<Instant> returned = ret ? Optional.of(at) : returnedAt(a);
+        medication.recalculateInterval(
+                a.tripId(),
+                a.residentId(),
+                new TripInterval(departed, returned.orElse(trip.plan().plannedReturnAt())));
+        var before = ret ? new CareTimeRange(departed, previous) : new CareTimeRange(previous, returned.orElse(null));
+        var after = new CareTimeRange(departed, returned.orElse(null));
+        absence.recalculate(a.residentId(), Optional.of(before), Optional.of(after));
+        events.publishEvent(new TripChanged(
+                a.tripId(),
+                "CHANGED",
+                trip.plan().facilityVehicle(),
+                trip.plan().plannedDepartureAt(),
+                trip.plan().plannedReturnAt(),
+                ret ? Optional.of(at) : Optional.empty(),
+                "TRIP_ATTENDANCE_TIME_CORRECTED:" + correction.id()));
+    }
+
+    /** Thời điểm về hiện hành khi người tham gia đã về. */
+    private Optional<Instant> returnedAt(TripKinds.Attendance a) {
+        boolean back = trips.participants(a.tripId()).stream()
+                .anyMatch(p -> p.registrationId() == a.registrationId() && "RETURNED".equals(p.status()));
+        return back ? attendanceTimes.returnedAt(a.registrationId()) : Optional.empty();
     }
 
     private TripParticipant check(TripKinds.Attendance a) {
@@ -197,10 +305,14 @@ public class TripAttendanceCorrectionProvider implements CorrectableRecordProvid
     @Transactional(propagation = Propagation.MANDATORY)
     public void afterCorrection(CorrectionView correction) {
         var a = row(correction.originalRecordId()).content();
-        check(a);
         var reason = correction.reason() == null || correction.reason().isBlank()
                 ? Optional.<Reason>empty()
                 : Optional.of(new Reason(correction.reason()));
+        if (correction.type() == CorrectionType.AMEND_CONTENT) {
+            amendTime(correction, a, reason);
+            return;
+        }
+        check(a);
         if ("RETURN".equals(a.type())) {
             voidReturn(correction, a, reason);
             return;

@@ -289,6 +289,87 @@ class BR_M04_17_ThieuNguoiIT extends StatusTestBase {
                 .isPresent();
     }
 
+    @Autowired
+    com.eldercare.backend.common.time.TestClockControl clock;
+
+    /**
+     * FR-031a (a), Q-170 (đổi api 001 chủ dự án duyệt 2026-11-11): Trưởng tầng đính chính thời điểm thực tế rời viện, về;
+     * lịch sử 001 tính khoảng Hoạt động bên ngoài theo thời điểm đúng (dòng gốc giữ nguyên), 006 nhận khoảng mang thuốc mới,
+     * 011 nhận {@link TripChanged}; thời điểm sai thứ tự với lịch sử hoặc ở tương lai bị 422, nội dung khác {@code at} bị 422.
+     */
+    @Test
+    void FR_031a_correctingDepartureAndReturnTimes_recalculatesHistoryAndMedication() throws Exception {
+        tripFixture();
+        long s = trip();
+        long r = eligible(s);
+        assign(s);
+        Instant seeded = time.now();
+        try {
+            clock.advanceBy(Duration.ofHours(1));
+            departed(s, r);
+            clock.advanceBy(Duration.ofHours(1));
+            command(s, "return", "{\"residentIds\":[" + r + "]}").andExpect(status().isOk());
+            clock.advanceBy(Duration.ofMinutes(10));
+            long departureRecord = attendance(r, "DEPARTURE"), returnRecord = attendance(r, "RETURN");
+            Instant departedAt = seeded.plus(Duration.ofMinutes(30)).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+            Instant returnedAt = seeded.plus(Duration.ofMinutes(100)).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+
+            amendTime(departureRecord, "{\"at\":\"" + departedAt + "\",\"residentId\":1}")
+                    .andExpect(status().isUnprocessableContent());
+            amendTime(departureRecord, "{\"at\":\"" + time.now().plusSeconds(3600) + "\"}")
+                    .andExpect(status().isUnprocessableContent());
+            // sau lần về của chính người đó
+            amendTime(departureRecord, "{\"at\":\"" + seeded.plus(Duration.ofHours(3)) + "\"}")
+                    .andExpect(status().isUnprocessableContent());
+
+            amendTime(departureRecord, "{\"at\":\"" + departedAt + "\"}").andExpect(status().is2xxSuccessful());
+            amendTime(returnRecord, "{\"at\":\"" + returnedAt + "\"}").andExpect(status().is2xxSuccessful());
+
+            assertThat(statusApi.statusPeriods(r, Set.of(ResidentStatus.OFF_SITE_ACTIVITY), seeded, time.now()))
+                    .singleElement()
+                    .satisfies(p -> {
+                        assertThat(p.from()).isEqualTo(departedAt);
+                        assertThat(p.to()).contains(returnedAt);
+                    });
+            assertThat(jdbc.queryForObject(
+                            "SELECT COUNT(*) FROM status_history WHERE entity_type='M01.RESIDENT' AND attribute='STATUS'"
+                                    + " AND entity_id=? AND command IN ('ROLL_CALL_DEPARTURE','ROLL_CALL_RETURN')",
+                            Integer.class,
+                            r))
+                    .as("dòng gốc giữ nguyên, không thêm dòng trạng thái")
+                    .isEqualTo(2);
+            assertThat(participant(s, r)).isEqualTo("RETURNED");
+            assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
+            // 006 nhận khoảng mang thuốc theo thời điểm đúng qua cổng (bản giả chung của lớp này)
+            assertThat(tripMedication.interval(r, s))
+                    .contains(new com.eldercare.backend.care.api.dto.TripInterval(departedAt, returnedAt));
+            assertThat(recorded.stream(TripChanged.class).filter(e -> e.tripId() == s))
+                    .filteredOn(e -> e.eventKey().startsWith("TRIP_ATTENDANCE_TIME_CORRECTED:"))
+                    .hasSize(2)
+                    .last()
+                    .satisfies(e -> assertThat(e.actualAt()).contains(returnedAt));
+        } finally {
+            clock.reset();
+        }
+    }
+
+    private long attendance(long resident, String type) {
+        return jdbc.queryForObject(
+                "SELECT MAX(id) FROM record_event WHERE kind='M04.TRIP_ATTENDANCE' AND entity_id=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(content, '$.type'))=?",
+                Long.class,
+                resident,
+                type);
+    }
+
+    private ResultActions amendTime(long record, String content) throws Exception {
+        return mvc.perform(post("/api/v1/corrections/M04.TRIP_ATTENDANCE/" + record)
+                .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"type\":\"AMEND_CONTENT\",\"correctedContent\":" + content
+                        + ",\"reason\":\"Ghi nhầm giờ\"}"));
+    }
+
     /**
      * Q24, Q-01 (T015, T018, T020): điểm danh rời viện, về ghi khi mất mạng đồng bộ qua {@code M04.TRIP_DEPARTURE},
      * {@code M04.TRIP_RETURN} (không bắt buộc trực tuyến); thời điểm thiết bị là thời điểm của bản ghi và lịch sử 001.

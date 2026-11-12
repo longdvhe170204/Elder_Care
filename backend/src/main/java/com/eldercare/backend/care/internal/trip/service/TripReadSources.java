@@ -78,6 +78,22 @@ public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi, 
     }
 
     @Override
+    public List<Long> tripResidentsOf(long staffId) {
+        return trips.active().stream()
+                .filter(t -> "IN_PROGRESS".equals(t.status()))
+                .filter(t -> {
+                    var d = preparation.duties(t.id());
+                    return Objects.equals(d.leaderId(), staffId)
+                            || d.companionIds().contains(staffId);
+                })
+                .flatMap(t -> trips.participants(t.id()).stream())
+                .filter(p -> Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status()))
+                .map(p -> p.residentId())
+                .distinct()
+                .toList();
+    }
+
+    @Override
     public List<TripInShiftView> inShift(long floor, Instant from, Instant to) {
         return trips.active().stream()
                 .filter(t -> Objects.equals(t.floorAreaId(), floor)

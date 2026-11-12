@@ -61,6 +61,17 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
     }
 
     @Override
+    public Instant correctRollCallTime(
+            long residentId,
+            StatusCommand command,
+            long tripId,
+            Instant correctedAt,
+            CurrentUser user,
+            Optional<Reason> reason) {
+        return status.correctRollCallTime(residentId, command, tripId, correctedAt, user, reason);
+    }
+
+    @Override
     public List<Condition> previewConditions(long residentId, StatusCommand command) {
         return status.preview(residentId, command);
     }

@@ -167,14 +167,15 @@ public class ActivityTripStore {
                 registrationId);
     }
 
-    public Optional<Instant> departedAt(long registrationId) {
+    /** Mã bản ghi điểm danh mới nhất loại {@code type} ({@code DEPARTURE}, {@code RETURN}) của đăng ký. */
+    public Optional<Long> latestAttendanceId(long registrationId, String type) {
         return Optional.ofNullable(jdbc.queryForObject(
-                        "SELECT MAX(e.occurred_at) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE'"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.registrationId'))=?"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",
-                        LocalDateTime.class,
-                        Long.toString(registrationId)))
-                .map(at -> at.toInstant(ZoneOffset.UTC)); // record_event lưu UTC (000 Rows)
+                "SELECT MAX(e.id) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE'"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.registrationId'))=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))=?",
+                Long.class,
+                Long.toString(registrationId),
+                type));
     }
 
     /** Số lần đã ghi rời viện của đăng ký, kể cả lần đã Hủy ghi nhận (FR-031a), để khóa chống trùng của lần sau khác. */

@@ -26,6 +26,12 @@ class BR_M09_10_ShiftSwapIT extends SwapTestBase {
 
         send("/api/v1/shift-swaps/" + id + "/accept", recipient, null).andExpect(status().isOk());
         assertThat(statusOf(id)).isEqualTo("PENDING_APPROVAL");
+        // FR-021 (f), 015 T002: tỷ lệ phục vụ trước/sau của X, Y do 008 tính (ở đây chưa cấu hình ngưỡng nên báo thiếu
+        // nguồn).
+        fetch("/api/v1/shift-swaps/" + id + "/checks", head)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.staffingRatioBeforeAfter.shiftX.shiftId").value(x))
+                .andExpect(jsonPath("$.staffingRatioBeforeAfter.shiftY.shiftId").value(y));
 
         send("/api/v1/shift-swaps/" + id + "/approve", head, null).andExpect(status().isOk());
         assertThat(statusOf(id)).isEqualTo("APPLIED");

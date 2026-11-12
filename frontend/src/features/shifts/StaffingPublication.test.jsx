@@ -54,3 +54,24 @@ it('FR_014_canhBaoGioLienTucVanCanXacNhanVaLyDo', () => {
   )
   expect(screen.getByRole('button', { name: 'Công bố lịch' })).toBeDisabled()
 })
+
+it('FR_016_nghiTheoNgayChoDuyet_chiHienThongTin_khongChanCongBo', () => {
+  render(
+    <PublicationForm
+      schedule={{ id: 7 }}
+      preview={{
+        unmetConditions: [],
+        warnings: [
+          {
+            code: 'PENDING_LEAVE_DAY',
+            description: 'Nhân viên còn yêu cầu nghỉ theo ngày chưa quyết định trong tháng',
+            details: { staffId: 5 },
+          },
+        ],
+      }}
+      onDone={vi.fn()}
+    />,
+  )
+  expect(screen.getByText('Nhân viên còn yêu cầu nghỉ theo ngày chưa quyết định trong tháng')).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Công bố lịch' })).toBeEnabled()
+})

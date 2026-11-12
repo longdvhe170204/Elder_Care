@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../common/api/api_client.dart';
@@ -8,6 +10,7 @@ import '../../common/offline/offline_queue.dart';
 import '../../common/offline/record_types.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/status_pill.dart';
+import '../care_tasks/rejected_care_record_screen.dart';
 
 /// Nhãn và tông của kết quả đồng bộ (BR-M15-20; bố cục duyệt 2026-10-27).
 (String, StatusTone) syncResultLabel(String code) => switch (code) {
@@ -84,6 +87,25 @@ class _SyncResultsScreenState extends State<SyncResultsScreen> {
     }
   }
 
+  /// T040: kết quả công việc chăm sóc bị từ chối mở được để đính chính hoặc chuyển thành Ghi nhận phát sinh (FR-036).
+  bool _opensRecord(QueuedRecord r) =>
+      r.result == 'REJECTED' &&
+      r.recordType == 'M04.CARE_TASK_RESULT' &&
+      (jsonDecode(r.content) as Map<String, dynamic>)['action'] == 'RECORD';
+
+  void _open(QueuedRecord r) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RejectedCareRecordScreen(
+          api: widget.session.api,
+          queue: widget.queue,
+          accountId: _accountId,
+          record: r,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -116,7 +138,10 @@ class _SyncResultsScreenState extends State<SyncResultsScreen> {
               child: Text('Chưa có bản ghi nào đã đồng bộ trên máy này.', style: text.bodyMedium),
             ),
           ),
-        for (final r in _done) ...[_ResultCard(record: r), const SizedBox(height: 12)],
+        for (final r in _done) ...[
+          _ResultCard(record: r, onOpen: _opensRecord(r) ? () => _open(r) : null),
+          const SizedBox(height: 12),
+        ],
       ],
     );
   }
@@ -142,9 +167,10 @@ class OfflineBand extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.record});
+  const _ResultCard({required this.record, this.onOpen});
 
   final QueuedRecord record;
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +197,10 @@ class _ResultCard extends StatelessWidget {
             if (record.reason != null) ...[
               const SizedBox(height: 4),
               Text('Lý do: ${record.reason}', style: text.bodyMedium),
+            ],
+            if (onOpen != null) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(onPressed: onOpen, child: const Text('Mở bản ghi')),
             ],
           ],
         ),

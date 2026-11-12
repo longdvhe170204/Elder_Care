@@ -383,3 +383,14 @@ describe('Yêu cầu mua sắm', () => {
     expect(body.departmentId).toBe(3)
   })
 })
+
+// 016 T021 (Q12, chủ dự án duyệt 2026-11-12): mở thẳng một yêu cầu từ dòng chi tiết báo cáo
+it('016_Q12_moTheoIdTuDuongDan', async () => {
+  permissions([['PURCHASE_REQUEST', 'VIEW']])
+  render(
+    <PermissionsProvider>
+      <ProcurementRequestsPage role="NURSING_HOME_MANAGER" requestId={41} />
+    </PermissionsProvider>,
+  )
+  expect(await screen.findByRole('dialog')).toBeInTheDocument()
+})

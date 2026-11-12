@@ -30,6 +30,7 @@ export function ExportDialog({
   floorAreaId,
   floorName,
   costMode,
+  careLevel,
   canIdentify,
   onExported,
 }) {
@@ -68,7 +69,10 @@ export function ExportDialog({
         body: {
           from,
           to,
-          filters: floorAreaId ? { floorAreaId: [floorAreaId] } : undefined,
+          filters:
+            floorAreaId || careLevel
+              ? { ...(floorAreaId ? { floorAreaId: [floorAreaId] } : {}), ...(careLevel ? { careLevel } : {}) }
+              : undefined,
           costMode,
           includeIdentity,
           purpose: purpose.trim() || undefined,

@@ -31,6 +31,13 @@ KetQuaChuyen thucHien(long nctId, LenhTrangThai lenh, NguoiDungHienTai nd,
                       Optional<LyDo> lyDo, JsonNode chiTiet, CanCu canCu, Instant thoiDiemThietBi);
     // bổ sung 2026-11-11 (chủ dự án duyệt; Q-01, 014 Q24): điểm danh rời viện, về ghi ngoại tuyến; thoiDiemThietBi ghi vào
     // lịch sử trạng thái; chỉ DIEM_DANH_ROI_VIEN, DIEM_DANH_VE; ở tương lai hoặc trước lần đổi trạng thái trước → 422
+Instant dinhChinhThoiDiemDiemDanh(long nctId, LenhTrangThai lenh, long chuyenId, Instant thoiDiemDung,
+                                  NguoiDungHienTai nd, Optional<LyDo> lyDo);                 // Propagation.MANDATORY
+    // bổ sung 2026-11-11 (chủ dự án duyệt; 014 FR-031a (a), Q-170); tên mã correctRollCallTime: đính chính thời điểm thực tế
+    // của dòng DIEM_DANH_ROI_VIEN hoặc DIEM_DANH_VE mới nhất có căn cứ là chuyến; lịch sử chỉ thêm (DBR-23) nên dòng gốc giữ
+    // nguyên, thời điểm đúng ghi thành dòng status_history thuộc tính STATUS_TIME (value_id = dòng gốc, lần mới nhất thắng),
+    // mọi chỗ đọc lịch sử (khoangTrangThai, số liệu 016) dùng thời điểm này; không đổi trạng thái, không chạy lại tác động
+    // của lệnh (014 báo 005, 006, 011); ở tương lai, không sau dòng trước hoặc không trước dòng sau → 422; trả thời điểm cũ
 List<DieuKien> xemDieuKien(long nctId, LenhTrangThai lenh);                 // 004 FR-004: danh sách điều kiện tiếp nhận
 List<KhoangTrangThai> khoangTrangThai(long nctId, Set<TrangThaiNct> tt, Instant tu, Instant den);
     // bổ sung theo plan 003 (research G-13): khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài từ lịch sử trạng thái

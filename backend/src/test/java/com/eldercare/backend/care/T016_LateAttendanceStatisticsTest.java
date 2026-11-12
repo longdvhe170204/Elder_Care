@@ -60,7 +60,11 @@ class T016_LateAttendanceStatisticsTest {
         CurrentValue voided = new CurrentValue(null, false, true);
         when(corrections.current(eq("M04.SESSION_ATTENDANCE"), anyCollection())).thenReturn(Map.of(14L, voided));
 
-        var statistics = new ActivityStatistics(store, corrections, mock(RecordEventApi.class));
+        var statistics = new ActivityStatistics(
+                store,
+                corrections,
+                mock(RecordEventApi.class),
+                mock(com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckService.class));
         List<SessionStatisticsView> views = statistics
                 .sessions(ScopeFilter.FACILITY, LocalDate.parse("2026-11-01"), LocalDate.parse("2026-11-01"))
                 .toList();
