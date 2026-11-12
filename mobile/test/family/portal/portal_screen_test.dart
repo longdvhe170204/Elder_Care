@@ -164,6 +164,28 @@ void main() {
     expect(fake.calls('GET', '/family-portal/residents/5/health/allergies-conditions'), hasLength(1));
   });
 
+  testWidgets('FR_046_anUong_luongNuocTrungBinhVaSoNgayCoDuLieu', (tester) async {
+    // Chủ dự án chốt 2026-11-12: trung bình theo ngày có ghi nước, kèm số ngày có dữ liệu
+    final fake = FakeBackend()
+      ..on('GET', '/family-portal/residents', 200, [resident(health: true, visits: true)])
+      ..on('GET', '/family-portal/residents/5/general', 200, _general)
+      ..on('GET', '/family-portal/residents/5/health/eating', 200, {
+        'section': 'eating',
+        'available': true,
+        'items': [
+          {'averageWaterMl': 1450, 'waterDays': 6},
+        ],
+      });
+    await pumpScreen(tester, fake.client());
+
+    await tapText(tester, 'Nguyễn Thị Lan');
+    await tapText(tester, 'Xem sức khỏe');
+    final water = find.text('Lượng nước trung bình 1450 ml/ngày, tính trên 6 ngày có ghi');
+    await tester.scrollUntilVisible(water, 200);
+
+    expect(water, findsOneWidget);
+  });
+
   testWidgets('US5_7_khongCoNguoiCaoTuoi_baoRo', (tester) async {
     final fake = FakeBackend()..on('GET', '/family-portal/residents', 200, <Object>[]);
     await pumpScreen(tester, fake.client());

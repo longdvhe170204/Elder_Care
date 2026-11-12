@@ -159,6 +159,14 @@ function HealthSection({ residentId, section, title }) {
         <InfoList rows={data.items.map((i) => [ITEM_TYPE[i.type] ?? i.type, i.text])} />
       ) : section === 'medications' ? (
         <InfoList rows={data.items.map((m) => [m.medicationName, m.dosageInstruction])} />
+      ) : section === 'eating' ? (
+        // Chủ dự án chốt 2026-11-12: trung bình theo ngày có ghi nước, kèm số ngày có dữ liệu
+        <InfoList
+          rows={data.items.map((e) => [
+            'Lượng nước trung bình',
+            <span className="tabular-nums">{`${Number(e.averageWaterMl).toLocaleString('vi-VN')} ml/ngày, tính trên ${e.waterDays} ngày có ghi`}</span>,
+          ])}
+        />
       ) : (
         <p>{data.items.length} mục</p>
       )}

@@ -23,4 +23,17 @@ public final class CareBillableQuantity {
     public static boolean supported(String resultType) {
         return resultType.equals("PERFORMED") || resultType.equals("ITEM_QUANTITY");
     }
+
+    /**
+     * Kỳ tính của dịch vụ khớp loại kết quả (quyết định 05/11 mục 1, 2): dịch vụ theo lần/buổi ({@code OCCURRENCE},
+     * {@code SESSION}) mới phát 1; vật phẩm phát lượng thực khi dịch vụ tính theo đơn vị ({@code UNIT}). Không mặc định 1
+     * khi không khớp.
+     */
+    public static boolean matches(String resultType, String billingPeriod) {
+        return switch (resultType) {
+            case "PERFORMED" -> billingPeriod.equals("OCCURRENCE") || billingPeriod.equals("SESSION");
+            case "ITEM_QUANTITY" -> billingPeriod.equals("UNIT");
+            default -> false;
+        };
+    }
 }

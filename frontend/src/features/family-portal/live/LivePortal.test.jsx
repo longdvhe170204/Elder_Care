@@ -111,6 +111,26 @@ describe('Cổng người thân, phiên thật', () => {
     expect(screen.getByText(/Mỗi lần xem mục này được viện ghi lại/)).toBeInTheDocument()
   })
 
+  it('FR_046_anUong_hienLuongNuocTrungBinhVaSoNgayCoDuLieu', async () => {
+    // Chủ dự án chốt 2026-11-12: trung bình theo ngày có ghi, kèm số ngày có dữ liệu
+    signedIn([resident({ rights: RIGHTS({ VIEW_HEALTH: true }) })])
+    api.on(
+      'GET',
+      (u) => u.pathname.startsWith('/api/v1/family-portal/residents/5/health/'),
+      json(200, { section: 'x', available: true, items: [] }),
+    )
+    api.on(
+      'GET',
+      '/family-portal/residents/5/health/eating',
+      json(200, { section: 'eating', available: true, items: [{ averageWaterMl: 1450, waterDays: 6 }] }),
+    )
+    await openMore()
+    fireEvent.click(await screen.findByRole('button', { name: /Sức khỏe/ }))
+
+    expect(await screen.findByText('Lượng nước trung bình')).toBeInTheDocument()
+    expect(screen.getByText('1.450 ml/ngày, tính trên 6 ngày có ghi')).toBeInTheDocument()
+  })
+
   it('US5_4_nguoiDaiDien_xemHopDong', async () => {
     signedIn([resident({ representative: true, rights: RIGHTS({ VIEW_COSTS: true }) })])
     api.on(

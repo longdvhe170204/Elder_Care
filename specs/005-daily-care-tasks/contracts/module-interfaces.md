@@ -163,7 +163,7 @@ List<MucThoiKhoaBieuView> theoNgay(long nctId, LocalDate ngay);   // FR-048
 
 ```java
 List<KetQuaNguoiThanView> ketQua(long nctId, Instant tu, Instant den);   // kết quả công việc chăm sóc đã ghi, không có ghi chú nội bộ (012 FR-046 (2))
-TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lượng nước TB (bỏ tỷ lệ ăn 2026-11-09, 012 FR-046); rỗng khi không có dữ liệu
+TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lượng nước TB (bỏ tỷ lệ ăn 2026-11-09, 012 FR-046); rỗng khi không có dữ liệu. Chủ dự án chốt 2026-11-12: TB = tổng lượng nước từng ngày / số ngày có ít nhất một lần ghi (ngày không ghi không tính), kèm số ngày có dữ liệu (`waterDays`)
 ```
 
 012 kiểm quyền xem sức khỏe và ghi nhật ký lượt xem (012 FR-048) trước khi gọi.

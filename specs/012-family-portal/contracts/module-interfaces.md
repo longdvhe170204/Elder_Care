@@ -119,7 +119,7 @@ Bean thiếu → phần tương ứng của kênh hiện "chưa có dữ liệu"
 
 ```java
 List<KetQuaNguoiThanView> ketQua(long nctId, Instant tu, Instant den);   // kết quả công việc chăm sóc đã ghi (không có ghi chú nội bộ)
-TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lượng nước TB (bỏ tỷ lệ ăn 2026-11-09, 012 FR-046); rỗng khi không có dữ liệu
+TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lượng nước TB (bỏ tỷ lệ ăn 2026-11-09, 012 FR-046); rỗng khi không có dữ liệu. Chủ dự án chốt 2026-11-12: TB = tổng lượng nước từng ngày / số ngày có ít nhất một lần ghi (ngày không ghi không tính), kèm số ngày có dữ liệu (`waterDays`)
 ```
 
 ### 2.1. Sự kiện 012 nghe
