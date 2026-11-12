@@ -141,6 +141,34 @@ public class CallResultService {
         }
     }
 
+    /** T019: bản cài {@code CallReminderCommandApi.calleeEligibilityChanged} (gọi trong transaction lệnh của 012). */
+    void stopIfNotEligible(long familyMemberId, long residentId) {
+        FamilyNotificationPort port = family.getIfAvailable();
+        if (port == null || port.callOrder(residentId).contains(familyMemberId)) {
+            return;
+        }
+        String key =
+                CallReminderCreation.calleeKey(RecipientType.FAMILY_MEMBER, familyMemberId, residentId, null, null);
+        Optional<Long> pending = store.lockPending(key);
+        if (pending.isEmpty()) {
+            return;
+        }
+        Reminder r = store.lock(pending.get()).orElseThrow();
+        if (!"AWAITING_RESULT".equals(r.status())) {
+            return;
+        }
+        Instant now = time.now();
+        store.finish(r.id(), "STOPPED", null, "CALLEE_NOT_ELIGIBLE");
+        notices.inform(
+                r,
+                List.of(r.currentStaffId()),
+                "CALL_REMINDER_STOPPED",
+                "CALLEE_NOT_ELIGIBLE",
+                "Không cần gọi: người thân không còn đủ điều kiện nhận thông báo khẩn",
+                now);
+        notReached(r, now);
+    }
+
     /** FR-029a (a): người thân kế tiếp chưa gọi trong chuỗi; không còn ai thì hết chuỗi. */
     private void notReached(Reminder r, Instant now) {
         FamilyNotificationPort port = family.getIfAvailable();

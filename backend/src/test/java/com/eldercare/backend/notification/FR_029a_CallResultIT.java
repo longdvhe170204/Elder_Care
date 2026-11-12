@@ -112,4 +112,53 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
                         first))
                 .isTrue();
     }
+
+    /**
+     * T019 (bảng trạng thái lượt nhắc gọi: Chờ kết quả → Đã dừng khi người cần gọi không còn đủ điều kiện; chủ dự án chốt
+     * 2026-11-12): lệnh của 012 kết thúc quan hệ của người liên hệ chính (phát {@code RelationshipChanged} trong
+     * transaction lệnh) thì 012 gọi {@code CallReminderCommandApi} ngay trong transaction đó; lượt của người đó dừng kèm
+     * lý do và chuỗi gọi người kế tiếp như "Không liên lạc được" (FR-029a (a)).
+     */
+    @Test
+    void FR_029a_calleeNoLongerEligible_stopsReminderAndCallsNextFamilyMember() throws Exception {
+        TestUser lead = users.staff(Role.NURSING_STAFF);
+        duties.shiftLead(floor, lead.staffId());
+        long m = TestUsers.nextId();
+        long r = TestUsers.nextId();
+        TestUser mAccount = users.family(m);
+        family.relate(
+                        resident,
+                        new NotifiableRelationshipView(
+                                m,
+                                true,
+                                false,
+                                Set.of(FamilyRight.RECEIVE_URGENT),
+                                Optional.of(mAccount.accountId()),
+                                true,
+                                Optional.of("0904444011")))
+                .callOrder(resident, List.of(m, r))
+                .contact(
+                        new FamilyContactView(r, "[Người thân R]", Optional.of("0904444012"), Optional.empty(), false));
+        send(urgent("het-dieu-kien-" + resident, new RecipientGroup.PrimaryContact(resident)));
+        advance(PAST_CFG);
+        creation.run();
+        long first = reminders("FAMILY_MEMBER", m).getFirst();
+        assertThat(state(first)).containsEntry("status", "AWAITING_RESULT");
+
+        family.callOrder(resident, List.of(r));
+        tx.executeWithoutResult(
+                t -> events.publishEvent(new com.eldercare.backend.family.api.events.RelationshipChanged(
+                        m,
+                        resident,
+                        TestUsers.nextId(),
+                        com.eldercare.backend.family.api.events.RelationshipChange.ENDED,
+                        time.now())));
+
+        assertThat(state(first)).containsEntry("status", "STOPPED").containsEntry("stop_reason", "CALLEE_NOT_ELIGIBLE");
+        long next = reminders("FAMILY_MEMBER", r).getFirst();
+        assertThat(jdbc.queryForMap("SELECT call_chain_id, creation_reason FROM call_reminder WHERE id = ?", next))
+                .containsEntry("call_chain_id", first)
+                .containsEntry("creation_reason", "PREVIOUS_NOT_REACHED");
+        assertThat(state(next)).containsEntry("current_staff_id", lead.staffId());
+    }
 }

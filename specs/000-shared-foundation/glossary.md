@@ -1412,7 +1412,7 @@ Các view được mô tả projection ở module-interfaces mục 2.1; kiểu c
 | CoMatBanTruApi | `DayCareAttendanceApi: onDate, returnTimeOn, inRange, changeReturnTime, restoreReturnTime, checkOut` |
 | CongViecCaApi | `ShiftTaskApi: onAbsence, onApprovedLeave, onResignation, onAssignmentChanged, onAssignmentEnded, onHandoverConfirmed` |
 | CongViecBanGiaoApi | `HandoverTaskApi: unclosed, currentStates, recordedInHandover` |
-| NguonCongViecApi | `TaskSourceApi: sourceCancelled, sourceChanged` |
+| NguonCongViecApi | `TaskSourceApi: sourceCancelled, sourceChanged` (`sourceCancelled` có bản theo người cao tuổi, 2026-11-12) |
 | CongViecVangMatApi | `AbsenceTaskApi.recalculate` |
 | CongViecDoChiSoApi | `VitalSignTaskApi.confirmed` |
 | CongViecThongKeApi | `TaskStatisticsApi: inRange, attendanceInRange, resultsInRange, resultRecorders` |
@@ -2686,6 +2686,7 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | --- | --- |
 | `notification.tiepnhan`, `notification.gui`, `notification.lich`; phần dùng chung; provider | `notification.internal.intake`, `notification.internal.delivery`, `notification.scheduling` + `notification.internal.job`; `notification.internal.domain`, `notification.internal.persistence`; `notification.internal.governance` |
 | `notification.nguoinhan`, `yentinh`, `khancap`, `hopthu`, `lienhe`, `tracuu`, `cauhinh` (tạo khi có lớp) | `notification.internal.recipient`, `quiethours`, `urgent`, `inbox`, `directcontact`, `lookup`, `channel` |
+| `LuotNhacGoiLenhApi` (`nguoiCanGoiDoiDieuKien`) | `CallReminderCommandApi` (`calleeEligibilityChanged`) *(2026-11-12, 009 T019)* |
 | `ThongBaoTraCuuApi` (`theoNguon`, `xemLuc`), `NguoiDaThongBaoView` | `NotificationLookupApi` (`bySource`, `viewedAt`), `NotifiedPersonView` (`ChannelResult`, `CallReminderSummary`, `CallOutcome`; `missingLevel`) *(2026-10-27, Q-388: `CallReminderSummary` thêm người cần gọi `personToCallType`, `personToCallId`)* |
 | `loai_nguoi_nhan` (`NHAN_VIEN`, `NGUOI_THAN`, `NGUOI_CAO_TUOI`); trạng thái thông báo; cách xác nhận | `RecipientType` (`STAFF`, `FAMILY_MEMBER`, `RESIDENT`); `NotificationStatus`; `AcknowledgementMethod` (giá trị ở 15.3) |
 | SPI `NguoiThanNhanThongBaoPort` (`quanHeHieuLuc`, `thuTuGoi`, `lienHe`), `QuanHeNhanThongBaoView`, `LienHeNguoiThanView` | `FamilyNotificationPort` (`activeRelationships`, `callOrder`, `contact`), `NotifiableRelationshipView` (`primaryContact`, `representative`, `rights`, `portalAccountId`, `portalAccountActive`, `phoneNumber`), `FamilyContactView` |

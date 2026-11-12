@@ -233,6 +233,7 @@ class T061_RealSourcesIT extends MySqlIntegrationTestBase {
         String body = plan(caregiver.staffId())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$[0].status").value("NOT_YET_DUE"))
+                .andExpect(jsonPath("$[0].taskTypeId").value(typeId))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

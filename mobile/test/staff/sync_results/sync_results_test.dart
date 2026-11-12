@@ -69,6 +69,44 @@ void main() {
     expect(find.text('Kết quả liều thuốc'), findsNWidgets(2));
   });
 
+  testWidgets('T040_ketQuaCongViecBiTuChoi_moBanGhiDeDinhChinhHoacPhatSinh', (tester) async {
+    backend.on('GET', '/me', 200, user('STAFF'));
+    store.values[SessionController.tokenKey] = 'staff-1';
+    final s = session(backend, store, FakeBiometric(available: false));
+    await s.start();
+    final queue = memoryQueue(s);
+    final key = await tester.runAsync(
+      () => queue.enqueue(
+        accountId: 7,
+        recordType: 'M04.CARE_TASK_RESULT',
+        content: {
+          'taskId': 41,
+          'action': 'RECORD',
+          'recording': {'numericValue': 200},
+        },
+      ),
+    );
+    await tester.pumpWidget(ElderCareApp(session: s, queue: queue));
+    await settle(tester);
+    await tester.tap(find.text('Đồng bộ'));
+    await settle(tester);
+    backend.on('POST', '/sync', 200, {
+      'sessionEnded': false,
+      'results': [
+        {'idempotencyKey': key, 'result': 'REJECTED', 'reason': 'Công việc đã được đóng'},
+      ],
+    });
+    backend.on('GET', '/care-tasks/41', 200, {'id': 41, 'residentId': 9, 'taskType': 'Uống nước', 'taskTypeId': 3});
+
+    await syncNow(tester);
+    expect(find.text('Kết quả công việc chăm sóc'), findsOneWidget);
+    await tester.tap(find.text('Mở bản ghi'));
+    await settle(tester);
+
+    expect(find.text('Bản ghi bị từ chối'), findsOneWidget);
+    expect(find.text('Chuyển thành Ghi nhận phát sinh'), findsOneWidget);
+  });
+
   testWidgets('15_5_matMang_hienDaiNgoaiTuyen_banGhiGiuNguyen', (tester) async {
     await pumpStaff(tester, backend, store);
     backend.down = true;
