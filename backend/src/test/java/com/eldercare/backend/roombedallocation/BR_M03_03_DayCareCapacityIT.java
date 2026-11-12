@@ -41,6 +41,10 @@ class BR_M03_03_DayCareCapacityIT extends StructureTestSupport {
                         JsonMapper.builder().build().readTree("3")))
                 .when(parameters)
                 .read(ParameterCode.CFG_M03_01);
+        // Schema test giữ dữ liệu của lớp khác (test chạy ngoài transaction có thể để lại khu nghỉ Hiệu lực); chỉ được
+        // một
+        // khu Hiệu lực, nên ngừng khu sót trong transaction của test (rollback sau ca).
+        jdbc.update("UPDATE day_care_rest_area SET status='INACTIVE' WHERE status='ACTIVE'");
         jdbc.update("INSERT INTO day_care_rest_area(code,name,floor_id) VALUES('D1','Khu nghỉ',?)", floor);
         morning = TestUsers.nextId();
         afternoon = TestUsers.nextId();
