@@ -37,6 +37,9 @@ class FR_022_AllocationHttpIT extends StructureTestSupport {
     org.springframework.context.ApplicationContext context;
 
     @Autowired
+    com.eldercare.backend.support.fake.administration.FakeDuties duties;
+
+    @Autowired
     com.eldercare.backend.roombedallocation.internal.allocation.service.AllocationReminderProcessor reminders;
 
     @Autowired
@@ -119,5 +122,48 @@ class FR_022_AllocationHttpIT extends StructureTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.withoutBedSince").doesNotExist())
                 .andExpect(jsonPath("$.currentAllocation.location.bedId").value(bed));
+    }
+
+    /** BR-M03-20: Trưởng tầng phân bổ ban đầu chỉ xét giường thuộc tầng mình. */
+    @Test
+    void BR_M03_20_floorManagerInitialAllocationOnlyOnOwnFloorBeds() throws Exception {
+        long otherFloor = TestUsers.nextId(), otherRoom = TestUsers.nextId(), otherBed = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)",
+                otherFloor,
+                area,
+                "O" + otherFloor,
+                "Tầng khác");
+        jdbc.update(
+                "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy,allowed_care_levels) VALUES(?,?,?,?,?,'UNRESTRICTED',JSON_ARRAY('BASIC'))",
+                otherRoom,
+                otherFloor,
+                type,
+                "R" + otherRoom,
+                "Phòng khác");
+        jdbc.update("INSERT INTO bed(id,room_id,code,state) VALUES(?,?,'G1','EMPTY')", otherBed, otherRoom);
+        var manager = new TestUsers(jdbc, time).staff(Role.FLOOR_MANAGER);
+        user.set(manager.user());
+        assignments.assign(
+                manager.staffId(),
+                new com.eldercare.backend.administration.account.api.spi.AssignmentView(
+                        com.eldercare.backend.administration.account.api.spi.AssignmentKind.FLOOR_MANAGER,
+                        floor,
+                        null,
+                        null,
+                        null,
+                        time.now().minusSeconds(60),
+                        null));
+        duties.floorManager(floor, manager.staffId());
+        mvc.perform(post("/api/v1/bed-allocations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"residentId\":" + resident + ",\"bedId\":" + otherBed
+                                + ",\"reason\":\"Bố trí giường\"}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/bed-allocations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("FUTURE"));
     }
 }

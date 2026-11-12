@@ -50,15 +50,24 @@ public class AllocationReading {
         this.permissions = permissions;
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.VIEW)
+    /**
+     * BR-M03-20: kiểm khóa Xem ở mức vai trò rồi lọc từng dòng theo giường, tầng; {@code @RequiresPermission} không có
+     * đối tượng làm phạm vi được giao (Trưởng tầng) luôn trượt.
+     */
+    private void requireView() {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.VIEW)))
+            throw new PermissionDeniedException("Không có quyền xem phân bổ giường");
+    }
+
     public List<AllocationDetails> list(Long residentId, Long bedId, AllocationStatus status) {
+        requireView();
         return store.list(residentId, bedId, status).stream()
                 .filter(this::visible)
                 .toList();
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.VIEW)
     public AllocationDetails detail(long id) {
+        requireView();
         return store.list(null, null, null).stream()
                 .filter(row -> row.id() == id && visible(row))
                 .findFirst()
@@ -78,9 +87,9 @@ public class AllocationReading {
                 .allowed();
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.VIEW)
     public List<BedDetails> suitable(
             long residentId, Instant startAt, Long fromAllocationId, boolean infectionControl) {
+        requireView();
         Instant start = startAt == null ? time.now() : startAt;
         boolean future =
                 fromAllocationId == null && residents.status(residentId) == ResidentStatus.ADMISSION_IN_PROGRESS;
