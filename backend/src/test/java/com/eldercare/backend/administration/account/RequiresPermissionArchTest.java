@@ -28,6 +28,9 @@ class RequiresPermissionArchTest {
     /** Lệnh tự kiểm quyền: {@code Lớp.phươngThức} → cách kiểm. Thêm dòng thì người xem lại kiểm lệnh có tự kiểm thật. */
     static final Map<String, String> SELF_CHECKED = Map.ofEntries(
             Map.entry(
+                    "com.eldercare.backend.roombedallocation.internal.allocation.service.AllocationCommands.create",
+                    "PermissionApi.hasPermission (BED_ALLOCATION, CREATE) trên giường kèm tầng của giường; 003 BR-M03-20"),
+            Map.entry(
                     "com.eldercare.backend.nutrition.internal.catalog.service.DishService.command",
                     "PermissionApi.hasPermission DISH_MENU: UPDATE cho lệnh của Nhân viên bếp, APPROVE cho lệnh của Bác sĩ,"
                             + " ngừng hiệu lực một trong hai (bảng trạng thái món, Q-308); 011 FR-004a"),
