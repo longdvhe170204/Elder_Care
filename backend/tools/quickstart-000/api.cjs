@@ -1,5 +1,5 @@
 // Gọi API của backend demo (QuickstartDemoApplication) bằng tài khoản mẫu của demo/V002_90 (000 T103).
-const BASE = 'http://localhost:8080/api/v1';
+const BASE = process.env.QS_BASE || 'http://localhost:8080/api/v1'; // máy chạy song song: QS_BASE=http://localhost:8081/api/v1
 const PASSWORD = process.env.DEMO_PASSWORD || 'Demo2026!'; // mật khẩu demo chung ở demo/V002_90
 const tokens = {};
 const devices = {};
