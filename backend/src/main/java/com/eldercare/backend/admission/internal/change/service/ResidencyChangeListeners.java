@@ -47,5 +47,6 @@ class ResidencyChangeListeners {
         }
         residencyLock.lock(request.target().residentId());
         closing.close(request.id(), request.target().residentId(), new Basis(null, request.id(), null, null));
+        handler.withdrawn(request);
     }
 }
