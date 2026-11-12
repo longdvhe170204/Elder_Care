@@ -45,7 +45,7 @@ class BR_M02_05_ContractReminderIT extends ContractTestBase {
 
     private void runOn(LocalDate day) {
         noonOf(day);
-        dailyRunner.catchUp();
+        runDailyJob();
     }
 
     @Test
