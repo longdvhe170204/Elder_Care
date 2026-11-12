@@ -47,6 +47,14 @@ public interface BedAllocationCommandApi {
     void urgentTransferRequestResult(long allocationId, boolean approved);
 
     /**
+     * FR-030 (chủ dự án chốt 2026-11-12): yêu cầu sau chuyển gấp bị hủy hoặc Áp dụng không thành, không còn yêu cầu khác cho
+     * lần chuyển đó: đặt lại dấu "chờ lập yêu cầu" và mở lại mốc nhắc CFG-M03-02. Phân bổ đã đóng hoặc đang chờ chuyển về
+     * phòng cùng giá thì không làm gì; gọi lặp không tác động thêm.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    void urgentTransferRequestWithdrawn(long allocationId);
+
+    /**
      * T035 (BR-M03-23, FR-034): 004 gọi khi phụ lục đổi loại lưu trú được áp dụng, thay cho nghe {@code ResidenceTypeChanged}
      * (nghe tạo vòng admission ↔ roombedallocation). Kiểm lại phân bổ Hiệu lực, Tương lai theo dữ liệu trong transaction.
      */

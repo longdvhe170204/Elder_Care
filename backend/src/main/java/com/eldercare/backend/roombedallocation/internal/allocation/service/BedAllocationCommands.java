@@ -98,6 +98,11 @@ public class BedAllocationCommands implements BedAllocationCommandApi {
     }
 
     @Override
+    public void urgentTransferRequestWithdrawn(long allocationId) {
+        scheduled.requestWithdrawn(allocationId);
+    }
+
+    @Override
     public void residenceTypeChanged(long residentId) {
         suitability.reassess(residentId);
     }

@@ -35,7 +35,7 @@ class FR_003_PublicContractsTest {
                 "LocationHistoryApi",
                 4,
                 "BedAllocationCommandApi",
-                12,
+                13,
                 "DayCareCapacityApi",
                 3,
                 "LocationStructureApi",

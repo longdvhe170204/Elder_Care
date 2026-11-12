@@ -198,6 +198,17 @@ public class AllocationCommandStore {
         reminders.end("BED_ALLOCATION", id, "AWAITING_REQUEST");
     }
 
+    /** FR-030: yêu cầu sau chuyển gấp bị hủy, Áp dụng không thành: đặt lại dấu chờ lập yêu cầu, mở lại chu kỳ nhắc. */
+    public boolean awaitingRequestAgain(long id, Instant at) {
+        boolean changed = jdbc.update(
+                        "UPDATE bed_allocation SET awaiting_request=TRUE WHERE id=? AND status='ACTIVE'"
+                                + " AND awaiting_request=FALSE AND awaiting_same_price=FALSE",
+                        id)
+                == 1;
+        if (changed) reminders.restart("BED_ALLOCATION", id, "AWAITING_REQUEST", at);
+        return changed;
+    }
+
     /** FR-030: yêu cầu bị từ chối: dấu "chờ chuyển về phòng cùng giá", nhắc mỗi CFG-M03-02. */
     public void awaitingSamePrice(long id, Instant at) {
         jdbc.update("UPDATE bed_allocation SET awaiting_same_price=TRUE WHERE id=?", id);

@@ -55,6 +55,7 @@ KetQuaChuyenTheoLich thucHienChuyenTheoLich(long yeuCauId, Instant thoiDiemDuKie
 void huyPhanBoTheoLich(long yeuCauId, LyDo lyDo);                                  // khi yêu cầu Áp dụng không thành; idempotent
 void daLapYeuCauSauChuyenGap(long phanBoId, long yeuCauId);                        // FR-030: gỡ dấu chờ lập yêu cầu
 void ketQuaYeuCauSauChuyenGap(long phanBoId, boolean duocDuyet);                   // FR-030: từ chối → dấu chờ chuyển về phòng cùng giá
+void yeuCauSauChuyenGapDaRut(long phanBoId);                                       // FR-030: yêu cầu bị hủy, Áp dụng không thành, không còn yêu cầu khác → đặt lại dấu chờ lập yêu cầu và mốc nhắc (chủ dự án chốt 2026-11-12)
 void daDoiLoaiLuuTru(long nctId);                                                  // BR-M03-23, FR-034: 004 gọi khi phụ lục đổi loại lưu trú áp dụng (bổ sung 2026-11-11, T035)
 ```
 
