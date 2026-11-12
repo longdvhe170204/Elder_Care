@@ -16,6 +16,8 @@ Khi thấy `Started QuickstartDemoApplication`, ở cửa sổ khác:
 node tools/quickstart-000/run-k1-k21.cjs
 ```
 
+- `QS_BASE` (mặc định `http://localhost:8080/api/v1`): chạy trên cổng, schema riêng của phiên nghiệm thu (`tools/quickstart-common/README.md`), ví dụ backend `--server.port=8081` với `DB_URL=jdbc:mysql://localhost:3306/elder_care_qs1`, rồi `$env:QS_BASE = 'http://localhost:8081/api/v1'` trước lệnh trên.
+
 - `-Djdk.net.unixdomain.tmpdir` (thư mục phải có sẵn): không có thì Tomcat báo "Unable to establish loopback connection" trên máy Windows của nhóm.
 - Script tua đồng hồ giả lập của demo về phía trước và đăng nhập lại sau mỗi lần tua; đổi CFG-M15-05 rồi để 24 giờ (lần chạy sau tự đưa về mặc định trước K1). K16 gán thêm vai trò Hành chính cho `demo.ketoan` rồi gỡ ở cuối.
 - Endpoint `/api/v1/testing/sample-request-control`, `/api/v1/testing/sample-data/…` chỉ có khi chạy lớp này, không thuộc hợp đồng.
@@ -24,3 +26,7 @@ node tools/quickstart-000/run-k1-k21.cjs
 ## Kết quả 2026-11-01
 
 22/22 kiểm tra đạt (K6 có hai kiểm tra), sau khi sửa K18 theo quyền thật: Hành chính xem nhật ký theo phân công (Phụ lục 27, cột P), ở demo không có phân công nên hồ sơ mẫu trả 404; Quản lý viện thấy đủ. Che trường cho người xem trong phạm vi kiểm bằng `AuditLogFieldMaskingIT`.
+
+## Kết quả 2026-11-12
+
+22/22 kiểm tra đạt trên `QS_BASE=http://localhost:8081/api/v1`, schema `elder_care_qs1` (Flyway profile demo tạo, đã có cơ cấu và hồ sơ nhân viên của `quickstart-common/smoke.cjs`); `api.cjs` đọc `QS_BASE`, không đổi gì khác.
