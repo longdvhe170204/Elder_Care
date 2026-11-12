@@ -21,14 +21,15 @@ import { ASSET_FILTERS, flagLabels, statusLabel } from './assetLabels'
 // GET /departments (008). api-019 chưa có GET /assets/{id} (lịch sử vị trí, bảo trì, hư hỏng) nên khung chi tiết chỉ có
 // trường của danh sách; lịch sử thêm khi hợp đồng có schema.
 
-export function AssetsPage() {
+// assetId: mở thẳng một tài sản (016 Q12, từ dòng chi tiết báo cáo)
+export function AssetsPage({ assetId = null } = {}) {
   const { can } = usePermissions()
   const [filter, setFilter] = useState('ALL')
   const [assets, setAssets] = useState(null)
   const [types, setTypes] = useState(null)
   const [departments, setDepartments] = useState(null)
   const [failure, setFailure] = useState(null)
-  const [opened, setOpened] = useState(null)
+  const [opened, setOpened] = useState(assetId)
   const [creating, setCreating] = useState(false)
   const [announcement, setAnnouncement] = useState('')
 

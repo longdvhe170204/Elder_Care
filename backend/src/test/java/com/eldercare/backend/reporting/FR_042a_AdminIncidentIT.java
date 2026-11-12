@@ -80,8 +80,10 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
 
         @Override
         public int cancelledCount(ScopeFilter scope, Instant from, Instant to) {
-            return 0;
+            return cancelled;
         }
+
+        volatile int cancelled;
 
         @Override
         public List<com.eldercare.backend.incident.api.dto.IsolationZoneView> containmentZones(ScopeFilter scope) {
@@ -138,6 +140,7 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
     @AfterEach
     void reset() {
         incidents.rows.clear();
+        incidents.cancelled = 0;
         clock.reset();
     }
 
@@ -198,5 +201,23 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
         perform(users.staff(Role.NURSING_HOME_MANAGER), ranged(REPORT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(value(INCIDENTS)).value(contains(5)));
+    }
+
+    /**
+     * FR-042, FR-007 (016 T018; chủ dự án duyệt 2026-11-12): số sự cố Đã hủy chỉ là dòng tham khảo
+     * {@code cancelledIncidentCount}, không vào {@code HEALTH.INCIDENTS}; người không thấy nhóm sự cố sức khỏe không có số
+     * này.
+     */
+    @Test
+    void FR_042_cancelledIncidentsAreAReferenceLineOnly() throws Exception {
+        incidents.cancelled = 2;
+
+        perform(users.staff(Role.NURSING_HOME_MANAGER), ranged(REPORT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(value(INCIDENTS)).value(contains(5)))
+                .andExpect(jsonPath("$.cancelledIncidentCount").value(2));
+        perform(office, ranged(REPORT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cancelledIncidentCount").doesNotExist());
     }
 }

@@ -171,6 +171,34 @@ class BR_M04_23_KiemTraChatLuongIT extends CareResultTestBase {
                 .isEqualTo("COMPLETED");
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    com.eldercare.backend.care.internal.activity.service.ActivityStatistics statistics;
+
+    /**
+     * 016 FR-037 (Q-168): công việc do Trưởng tầng được giao tự thực hiện không vào mẫu kiểm tra và được báo "ngoài phạm
+     * vi kiểm tra" cho 016; công việc của nhân viên khác không có trong danh sách này.
+     */
+    @Test
+    void Q_168_floorManagerOwnTask_isOutOfCheckScope() {
+        long own = completed(baseManager.accountId(), baseManager.staffId());
+        completed(caregiver.accountId(), caregiver.staffId());
+
+        var rows = statistics
+                .outOfCheckScope(
+                        new com.eldercare.backend.administration.account.api.dto.ScopeFilter(
+                                false, Set.of(floor), Set.of(), Set.of()),
+                        time.today().minusDays(1),
+                        time.today().plusDays(1))
+                .toList();
+
+        assertThat(rows).singleElement().satisfies(r -> {
+            assertThat(r.careTaskId()).isEqualTo(own);
+            assertThat(r.performerStaffId()).isEqualTo(baseManager.staffId());
+            assertThat(r.performerRole()).isEqualTo("FLOOR_MANAGER");
+            assertThat(r.floorAreaId()).isEqualTo(floor);
+        });
+    }
+
     @Test
     void Q_404_checksEffectiveResultsShiftWindowAndInspectorRules() throws Exception {
         com.eldercare.backend.support.TableRows.each(List.of("AMEND", "SHIFT_END", "INSPECTOR"), scenario -> {

@@ -26,12 +26,13 @@ const FILTERS = [
   ['DONE', 'Đã xong', ['ADMITTED', 'DECLINED', 'WAITING_CANCELLED']],
 ]
 
-export function WaitingListPage() {
+// entryId: mở thẳng một hồ sơ chờ (016 Q12, từ dòng chi tiết báo cáo)
+export function WaitingListPage({ entryId = null } = {}) {
   const { can } = usePermissions()
   const [filter, setFilter] = useState('WAITING')
   const [entries, setEntries] = useState(null)
   const [failure, setFailure] = useState(null)
-  const [opened, setOpened] = useState(null)
+  const [opened, setOpened] = useState(entryId)
   const [sheet, setSheet] = useState(null)
   const [announcement, setAnnouncement] = useState('')
 

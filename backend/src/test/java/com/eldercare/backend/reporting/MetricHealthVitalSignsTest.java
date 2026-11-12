@@ -14,6 +14,7 @@ import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
 import com.eldercare.backend.reporting.internal.vitalsign.service.VitalSignsMetric;
 import com.eldercare.backend.reporting.internal.vitalsign.service.VitalSignsMetric.VitalSignRecord;
 import com.eldercare.backend.support.fake.health.FakeVitalSignStatistics;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ class MetricHealthVitalSignsTest {
                     .getBeanProvider(VitalSignStatisticsApi.class));
 
     private static VitalSignReportView reading(long id, long indicator, VitalSignLevel level, Instant at) {
-        return new VitalSignReportView(id, 7, indicator, 101L, at, level);
+        return new VitalSignReportView(id, 7, indicator, 101L, at, level, Map.of("value", BigDecimal.ONE));
     }
 
     @Test
@@ -74,5 +75,44 @@ class MetricHealthVitalSignsTest {
                 })
                 .extracting(row -> row.result().get("indicatorId"))
                 .containsExactly(1L, 2L);
+    }
+
+    /** FR-040: cho một người cao tuổi, chuỗi giá trị theo thời gian là danh sách chi tiết lọc theo người, theo lúc đo. */
+    @Test
+    void FR_040_oneResidentSeries_detailRowsCarryValuesInMeasurementOrder() {
+        statistics.source(
+                ScopeFilter.FACILITY,
+                List.of(
+                        new VitalSignReportView(
+                                1, 7, 1, 101L, FROM, VitalSignLevel.NORMAL, Map.of("value", new BigDecimal("36.5"))),
+                        new VitalSignReportView(
+                                2,
+                                8,
+                                1,
+                                101L,
+                                FROM.plusSeconds(30),
+                                VitalSignLevel.NORMAL,
+                                Map.of("value", new BigDecimal("37.0"))),
+                        new VitalSignReportView(
+                                3,
+                                7,
+                                2,
+                                101L,
+                                FROM.plusSeconds(60),
+                                VitalSignLevel.WARNING,
+                                Map.of("systolic", new BigDecimal("150"), "diastolic", new BigDecimal("95")))));
+        Metric<VitalSignRecord> m = metric.metric();
+        var onePerson = new ReportFilters(java.util.Set.of(), null, null, 7L, null, null, null);
+
+        List<VitalSignRecord> included =
+                m.included(metric.records(ScopeFilter.FACILITY, FROM, TO, onePerson), onePerson::matches);
+
+        assertThat(m.details(included, null))
+                .extracting(row -> row.referenceTime(), row -> row.result().get("values"))
+                .containsExactly(
+                        Tuple.tuple(FROM, Map.of("value", new BigDecimal("36.5"))),
+                        Tuple.tuple(
+                                FROM.plusSeconds(60),
+                                Map.of("systolic", new BigDecimal("150"), "diastolic", new BigDecimal("95"))));
     }
 }

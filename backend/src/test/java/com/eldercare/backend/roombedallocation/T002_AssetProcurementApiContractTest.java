@@ -28,7 +28,7 @@ class T002_AssetProcurementApiContractTest {
     void T002_interfacesHaveTheirOperations() throws Exception {
         Map<String, List<String>> contracts = Map.of(
                 M03 + "spi.ProcurementRequestPort", List.of("checkUsable", "linkSource"),
-                M03 + "AssetStatisticsApi", List.of("overdue", "countOverdue", "vehicleSchedules"),
+                M03 + "AssetStatisticsApi", List.of("overdue", "countOverdue", "dueSoon", "vehicleSchedules"),
                 M11 + "ProcurementStatisticsApi", List.of("byDepartment", "totals"));
         for (var entry : contracts.entrySet()) {
             Class<?> api = Class.forName(entry.getKey());

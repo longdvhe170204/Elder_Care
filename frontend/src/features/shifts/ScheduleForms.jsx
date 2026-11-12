@@ -141,12 +141,10 @@ export function PublicationForm({ schedule, preview, onDone }) {
   const [failure, setFailure] = useState(null)
   const [warnings, setWarnings] = useState(preview.warnings ?? [])
   const [busy, setBusy] = useState(false)
-  const information = warnings.filter((w) =>
-    ['BELOW_STAFFING_THRESHOLD', 'STAFFING_RATIO_UNAVAILABLE'].includes(w.code),
-  )
-  const confirmationWarnings = warnings.filter(
-    (w) => !['BELOW_STAFFING_THRESHOLD', 'STAFFING_RATIO_UNAVAILABLE'].includes(w.code),
-  )
+  // FR-036 tỷ lệ phục vụ, FR-016 nghỉ theo ngày chờ duyệt: chỉ thông tin, không cần xác nhận
+  const informational = ['BELOW_STAFFING_THRESHOLD', 'STAFFING_RATIO_UNAVAILABLE', 'PENDING_LEAVE_DAY']
+  const information = warnings.filter((w) => informational.includes(w.code))
+  const confirmationWarnings = warnings.filter((w) => !informational.includes(w.code))
   const blocked =
     !!preview.unmetConditions?.length ||
     (preview.invalidAssignments ?? []).some((a) => !removed.includes(a.assignmentId)) ||

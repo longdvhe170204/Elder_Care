@@ -11,5 +11,8 @@ public interface TripDutyPort {
 
     List<Long> companions(long tripId);
 
+    /** 002 FR-031 (002 T049): người tham gia đã rời viện của chuyến Đang diễn ra mà nhân viên là Trưởng đoàn, Người đi cùng. */
+    List<Long> tripResidentsOf(long staffId);
+
     List<TripInShiftView> inShift(long floorAreaId, Instant from, Instant to);
 }

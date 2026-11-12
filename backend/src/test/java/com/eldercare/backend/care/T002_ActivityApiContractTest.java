@@ -20,7 +20,7 @@ class T002_ActivityApiContractTest {
 
     @Test
     void T002_newInterfacesArePublicWithTheirOperations() throws Exception {
-        Map<String, Integer> contracts = Map.of("TripDutyCommandApi", 1, "ActivityStatisticsApi", 3);
+        Map<String, Integer> contracts = Map.of("TripDutyCommandApi", 1, "ActivityStatisticsApi", 4);
         for (var entry : contracts.entrySet()) {
             Class<?> api = Class.forName(API + entry.getKey());
             assertThat(api.isInterface()).as(entry.getKey()).isTrue();
@@ -33,7 +33,7 @@ class T002_ActivityApiContractTest {
                 .containsExactly("removeDuty");
         assertThat(Arrays.stream(Class.forName(API + "ActivityStatisticsApi").getDeclaredMethods())
                         .map(m -> m.getName()))
-                .containsExactlyInAnyOrder("sessions", "trips", "qualityChecks");
+                .containsExactlyInAnyOrder("sessions", "trips", "qualityChecks", "outOfCheckScope");
     }
 
     @Test

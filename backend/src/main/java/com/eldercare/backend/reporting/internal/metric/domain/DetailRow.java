@@ -80,6 +80,27 @@ public record DetailRow(
     }
 
     /** Q-196: không mở được bản ghi từ danh sách (mở hồ sơ hiện tại cũng không). */
+    /** Mở được bản ghi gốc ở màn của feature sở hữu (FR-009, Q12). */
+    public DetailRow withCanOpenRecord(boolean open) {
+        return new DetailRow(
+                sourceKey,
+                feature,
+                type,
+                status,
+                referenceTime,
+                floorAreaId,
+                floorArea,
+                residentId,
+                resident,
+                performedBy,
+                result,
+                resultGroup,
+                restrictedResult,
+                pendingReview,
+                reduced,
+                open);
+    }
+
     public DetailRow asReduced() {
         return new DetailRow(
                 sourceKey,

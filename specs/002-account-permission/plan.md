@@ -413,3 +413,8 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 ### Hợp đồng api-002: phạm vi SELF (2026-11-08, A)
 
 - `ApiContractIT` so sâu (2026-11-08) thấy `EffectivePermission.scope` và `executionScope` của vai trò trả `SELF` (phạm vi `BAN_THAN` của AC-16, FR-068, T090 `V002_08`) mà hợp đồng chỉ có `FACILITY`, `ASSIGNED`, `RELATIONSHIP`. Mã đúng nghiệp vụ, hợp đồng bỏ sót khi dịch: thêm `SELF` vào hai enum (chủ dự án duyệt 2026-11-08 khi giao làm hết việc còn thiếu), gỡ 22 dòng api-002 ở `known-mismatches.txt`. Client web sinh lại không đổi nội dung.
+
+## Phạm vi người tham gia chuyến (2026-11-12, T049, luồng C của A; người dùng duyệt sửa `care`)
+
+- Thay dòng việc dang dở "Phạm vi người tham gia chuyến của Trưởng đoàn, Người đi cùng (FR-031)" (Phase 6). *(Đổi api)* `DutyApi.tripResidents(staffId)` (008 `DutyDirectory` cài qua `TripDutyPort.tripResidentsOf`, 014 `TripReadSources` cài `TripDutyReadApi.tripResidentsOf`): người tham gia đã rời viện, chưa về (`DEPARTED`, `MISSING_ON_RETURN`) của chuyến Đang diễn ra (`IN_PROGRESS`) mà nhân viên là Trưởng đoàn hoặc Người đi cùng. `ScopeService.inScope` cho đối tượng gắn người đó và `filter` thêm họ vào `residentIds`.
+- Giới hạn: nguồn chỉ có trạng thái hiện tại của chuyến, nên `inScope(user, target, at)` với `at` trong quá khứ (đồng bộ ngoại tuyến) và `historyFilter` không tái dựng chuyến đã kết thúc; báo cáo khoảng (016) không gồm phạm vi chuyến. 002 không gọi thẳng `care.api` vì `care` phụ thuộc `administration`.

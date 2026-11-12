@@ -99,6 +99,17 @@ class ScopeByShiftIT extends MySqlIntegrationTestBase {
         assertThat(scope.inScope(fixtures.user(leaderAccount), target)).isTrue();
         assertThat(scope.inScope(fixtures.user(companionAccount), target)).isTrue();
         assertThat(scope.inScope(fixtures.user(otherAccount), target)).isFalse();
+
+        // 002 T049 (FR-031, Q-161): người tham gia chuyến đang diễn ra thuộc phạm vi trưởng đoàn, người đi cùng
+        long participant = AccountFixtures.nextId();
+        duties.tripResidents(fixtures.staffId(leaderAccount), participant)
+                .tripResidents(fixtures.staffId(companionAccount), participant);
+        var onTrip = new Target("M01.RESIDENT", String.valueOf(participant), participant, null);
+        assertThat(scope.inScope(fixtures.user(leaderAccount), onTrip)).isTrue();
+        assertThat(scope.inScope(fixtures.user(companionAccount), onTrip)).isTrue();
+        assertThat(scope.inScope(fixtures.user(otherAccount), onTrip)).isFalse();
+        assertThat(scope.filter(fixtures.user(leaderAccount), VIEW_PROFILE).residentIds())
+                .contains(participant);
     }
 
     /** Nhân viên chăm sóc có một ca trên tầng 1 trong khoảng đã cho. */

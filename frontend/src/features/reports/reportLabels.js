@@ -47,6 +47,13 @@ export const REPORT_GROUPS = [
   { value: 'STAFFING_SHIFTS', label: 'Nhân sự, ca', roles: [QL, TT] },
 ]
 
+// Bộ lọc mức chăm sóc (FR-060; mã CareLevel của 001, chủ dự án duyệt 2026-11-11)
+export const CARE_LEVELS = [
+  { value: 'BASIC', label: 'Cơ bản' },
+  { value: 'REGULAR', label: 'Thường xuyên' },
+  { value: 'SPECIAL', label: 'Đặc biệt' },
+]
+
 export const REPORT_GROUP_LABELS = Object.fromEntries(REPORT_GROUPS.map((g) => [g.value, g.label]))
 
 export const VALUE_LABELS = {
@@ -166,6 +173,7 @@ const KEY_LABELS = {
   END_RESIDENCY: 'Kết thúc lưu trú',
   RECORD_DEATH: 'Qua đời',
   CARE_LEVEL_CHANGE: 'Đổi mức chăm sóc',
+  RESIDENCE_TYPE_CHANGE: 'Đổi loại lưu trú',
   // trạng thái công việc 8.3, mức quan trọng (005)
   NOT_YET_DUE: 'Chưa đến hạn',
   DUE: 'Đến hạn',
@@ -184,7 +192,7 @@ const KEY_LABELS = {
 }
 const FLOOR_KEYED = ['BED.AWAITING_READY', 'BED.AWAITING_READY_MAX', 'BED.AWAITING_READY_OVERDUE', 'BED.OCCUPANTS']
 const SHIFT_KEYED = ['MED.MISSED_RATE', 'MED.REFUSED_RATE']
-const STAFF_KEYED = ['TASK.BY_STAFF', 'TASK.LATE_RECORDINGS', 'QC.PASS_RATE']
+const STAFF_KEYED = ['TASK.BY_STAFF', 'TASK.LATE_RECORDINGS', 'QC.PASS_RATE', 'QC.OUT_OF_CHECK_SCOPE']
 const TRIP_OVERDUE = { OVERDUE: 'Quá giờ về', OVERDUE_DOUBLE: 'Tới mốc gấp đôi' }
 
 // Khóa của chỉ tiêu nguồn 010, 015, 017, 018, 019 (016 T008, T014, T020, T024)
@@ -222,6 +230,12 @@ const PROCUREMENT_STATUSES = {
   REJECTED: 'Từ chối',
   CANCELLED: 'Đã hủy',
 }
+// loại hạn tới mốc nhắc CFG-M03-09 (019)
+const ASSET_DUE_KINDS = {
+  MAINTENANCE: 'Tới hạn bảo trì',
+  VEHICLE_INSPECTION: 'Tới hạn đăng kiểm',
+  INSURANCE: 'Tới hạn bảo hiểm',
+}
 const BALANCE_STATUSES = { RUNNING_LOW: 'Sắp hết tiền', IN_DEBT: 'Còn nợ' }
 const REGISTRATION_TO_DO = {
   TO_CREATE: 'Cần lập',
@@ -257,6 +271,7 @@ const KEYED_BY_METRIC = {
   'COST.STATEMENTS': STATEMENT_STATUSES,
   'COST.PURCHASING': PROCUREMENT_STATUSES,
   'BALANCE.LOW_OR_OWING': BALANCE_STATUSES,
+  'ASSET.DUE_SOON': ASSET_DUE_KINDS,
   'REGISTRATION.TO_DO': REGISTRATION_TO_DO,
 }
 
@@ -299,4 +314,22 @@ export function breakdownLabel(metricCode, key, floors = []) {
     return reason.length ? `${label} (${HOLD_REASONS[reason[0]] ?? reason[0]})` : label
   }
   return KEY_LABELS[key] ?? key
+}
+
+// FR-009 câu cuối, Q12 (016 T021; chủ dự án duyệt 2026-11-12): loại bản ghi đã nối với màn có id của feature sở hữu;
+// quyền, trường ẩn do màn đó xét. Cùng danh sách với DetailRowPolicy.OPENABLE ở backend.
+const RECORD_PAGES = {
+  'M05.INCIDENT': ['incidents', 'incidentId'],
+  'M03.ASSET': ['assets', 'assetId'],
+  'M11.PROCUREMENT_REQUEST': ['procurement', 'requestId'],
+  'M02.WAITING_LIST': ['waiting-list', 'entryId'],
+}
+
+// Màn và tham số mở bản ghi gốc của một dòng chi tiết; null khi không mở được hoặc loại chưa nối
+export function recordLink(row) {
+  if (!row.canOpenRecord) return null
+  const [prefix, id] = row.sourceKey.split(':')
+  const target = RECORD_PAGES[prefix]
+  if (!target || !/^\d+$/.test(id ?? '')) return null
+  return { page: target[0], params: { [target[1]]: Number(id) } }
 }

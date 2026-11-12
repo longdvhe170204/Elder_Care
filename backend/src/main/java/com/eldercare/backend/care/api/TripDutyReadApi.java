@@ -11,5 +11,11 @@ public interface TripDutyReadApi {
 
     List<Long> companions(long tripId);
 
+    /**
+     * 002 FR-031 (Q-161, 002 T049): người cao tuổi đã rời viện (chưa về) của các chuyến Đang diễn ra mà nhân viên là Trưởng
+     * đoàn hoặc Người đi cùng.
+     */
+    List<Long> tripResidentsOf(long staffId);
+
     List<TripInShiftView> inShift(long floorAreaId, Instant from, Instant to);
 }
