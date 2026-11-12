@@ -166,7 +166,7 @@ public class AllocationCommands {
         return id;
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.UPDATE)
+    /** BR-M03-20, UC-21: kiểm khóa mức vai trò rồi kiểm trên giường kèm tầng; không dùng {@code @RequiresPermission}. */
     @BusinessCommand
     @org.springframework.resilience.annotation.Retryable(
             includes = org.springframework.dao.PessimisticLockingFailureException.class,
@@ -174,6 +174,8 @@ public class AllocationCommands {
             delay = 50)
     @Transactional
     public void cancel(long id, Reason reason) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.UPDATE)))
+            throw new PermissionDeniedException("Không có quyền hủy phân bổ giường");
         var allocation = store.get(id);
         locks.lock(allocation.residentId(), List.of(allocation.bedId()));
         allocation = store.current(id);
