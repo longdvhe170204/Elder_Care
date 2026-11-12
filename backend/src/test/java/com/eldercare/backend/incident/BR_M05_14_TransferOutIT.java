@@ -83,4 +83,37 @@ class BR_M05_14_TransferOutIT extends EmergencyTestBase {
         return "{\"transferUnit\":\"Bệnh viện X\",\"transferAt\":\"" + time.now() + "\",\"companion\":\"Con gái M\","
                 + "\"handoverStaffId\":" + nurse.staffId() + "}";
     }
+
+    /**
+     * FR-050d, FR-049 (US11 #4; quickstart 007 Q55, lỗi B2; chủ dự án chốt 2026-11-12): lựa chọn "chuyển bệnh viện" trên cảnh
+     * báo nguy kịch chưa có sự cố lập sự cố kèm lệnh với loại do người xử lý chọn, rồi Chuyển viện căn cứ sự cố đó; cảnh báo
+     * vẫn mở để đóng sau.
+     */
+    @Test
+    void FR_050d_transferChoiceOnCriticalAlert_recordsIncidentOfChosenTypeAndTransfers() throws Exception {
+        activeWish(com.eldercare.backend.resident.api.dto.WishChoice.TRANSFER_TO_HOSPITAL);
+        long alertId = flag(doctor).alertId();
+        post(nurse, RECONFIRM, alertId, reconfirmation("KEPT")).andExpect(status().isCreated());
+        accepted();
+
+        post(doctor, CHOICE, alertId, "{\"choice\":\"TRANSFER_TO_HOSPITAL\",\"transferOut\":" + body() + "}")
+                .andExpect(status().isUnprocessableContent());
+        post(
+                        doctor,
+                        CHOICE,
+                        alertId,
+                        "{\"choice\":\"TRANSFER_TO_HOSPITAL\",\"incidentTypeId\":" + typeId("OTHER_HEALTH_CARE")
+                                + ",\"transferOut\":" + body() + "}")
+                .andExpect(status().isCreated());
+
+        Long incidentId = jdbc.queryForObject("SELECT incident_id FROM alert WHERE id = ?", Long.class, alertId);
+        assertThat(incidentId).isNotNull();
+        assertThat(jdbc.queryForObject("SELECT type_code FROM incident WHERE id = ?", String.class, incidentId))
+                .isEqualTo("OTHER_HEALTH_CARE");
+        assertThat(jdbc.queryForObject("SELECT status FROM alert WHERE id = ?", String.class, alertId))
+                .isNotEqualTo("CONVERTED_TO_INCIDENT");
+        var basis = ArgumentCaptor.forClass(Basis.class);
+        verify(statuses).execute(eq(resident), eq(StatusCommand.TRANSFER_OUT), any(), any(), any(), basis.capture());
+        assertThat(basis.getValue().sourceRecordId()).isEqualTo(incidentId);
+    }
 }

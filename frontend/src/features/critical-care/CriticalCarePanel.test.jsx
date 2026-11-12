@@ -80,7 +80,7 @@ describe('CriticalCarePanel', () => {
         unmetConditions: [{ code: 'RECONFIRM', description: 'Chưa xác nhận lại nguyện vọng' }],
       }),
     )
-    render(<CriticalCarePanel residentId={5} alert={ALERT} />)
+    render(<CriticalCarePanel residentId={5} alert={{ ...ALERT, incidentId: 44 }} />)
     fireEvent.click(screen.getByRole('button', { name: 'Chuyển bệnh viện' }))
     fireEvent.click(screen.getByRole('button', { name: 'Thực hiện lựa chọn' }))
     expect(screen.getByText('Nhập nơi chuyển đến')).toBeInTheDocument()
@@ -90,5 +90,43 @@ describe('CriticalCarePanel', () => {
     await screen.findByText('Chưa xác nhận lại nguyện vọng')
     const body = JSON.parse(api.calls('POST', '/alerts/20/execute-choice')[0][1].body)
     expect(body.transferOut).toMatchObject({ transferUnit: 'Bệnh viện X', companion: 'Con gái' })
+  })
+
+  it('chuyển bệnh viện khi cảnh báo chưa có sự cố: chọn loại sự cố, gửi incidentTypeId (FR-050d, chủ dự án chốt 2026-11-12)', async () => {
+    api.on(
+      'GET',
+      '/incident-types',
+      json(200, [
+        {
+          id: 7,
+          code: 'OTHER_HEALTH_CARE',
+          name: 'Sự cố sức khỏe/chăm sóc khác',
+          defaultLevel: 'MEDIUM',
+          active: true,
+        },
+        { id: 8, code: 'OLD', name: 'Loại đã ngừng', defaultLevel: 'LOW', active: false },
+      ]),
+    )
+    api.on('POST', '/alerts/20/execute-choice', json(201, null))
+    render(<CriticalCarePanel residentId={5} alert={ALERT} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Chuyển bệnh viện' }))
+    fireEvent.change(screen.getByLabelText('Bệnh viện chuyển đến'), { target: { value: 'Bệnh viện X' } })
+    fireEvent.change(screen.getByLabelText(/Người đi cùng/), { target: { value: 'Con gái' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Thực hiện lựa chọn' }))
+    expect(screen.getByText('Chọn loại sự cố')).toBeInTheDocument()
+    const select = screen.getByLabelText(/Loại sự cố/)
+    await screen.findByRole('option', { name: 'Sự cố sức khỏe/chăm sóc khác' })
+    expect(screen.queryByRole('option', { name: 'Loại đã ngừng' })).toBeNull()
+    fireEvent.change(select, { target: { value: '7' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Thực hiện lựa chọn' }))
+    await waitFor(() => expect(api.calls('POST', '/alerts/20/execute-choice')).toHaveLength(1))
+    const body = JSON.parse(api.calls('POST', '/alerts/20/execute-choice')[0][1].body)
+    expect(body.incidentTypeId).toBe(7)
+  })
+
+  it('cảnh báo đã liên kết sự cố: không hỏi loại sự cố', () => {
+    render(<CriticalCarePanel residentId={5} alert={{ ...ALERT, incidentId: 44 }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Chuyển bệnh viện' }))
+    expect(screen.queryByLabelText(/Loại sự cố/)).toBeNull()
   })
 })

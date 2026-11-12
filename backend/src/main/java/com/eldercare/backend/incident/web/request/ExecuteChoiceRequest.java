@@ -14,4 +14,9 @@ public record ExecuteChoiceRequest(
         String choice,
 
         Reason reason,
-        TransferOutBody transferOut) {}
+        TransferOutBody transferOut,
+
+        @Schema(
+                description =
+                        "Loại sự cố của sự cố lập kèm lệnh khi chọn TRANSFER_TO_HOSPITAL mà cảnh báo chưa liên kết sự cố")
+        Long incidentTypeId) {}
