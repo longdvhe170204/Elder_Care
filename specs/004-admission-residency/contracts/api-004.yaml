@@ -249,7 +249,7 @@ paths:
     post:
       tags: [contracts]
       summary: Lập hợp đồng Nháp (Hành chính)
-      description: 'Được lập trước đánh giá đầu vào (Q-300); cảnh báo khi mức khác mức hiện hành (FR-025). Không có người đại diện: 409 REPRESENTATIVE_REQUIRED.'
+      description: 'Được lập trước đánh giá đầu vào (Q-300); chưa có đánh giá đầu vào Đã xác nhận thì warnings có CONTRACT_NOT_ASSESSED (bổ sung 2026-11-12, chủ dự án duyệt); cảnh báo CONTRACT_CARE_LEVEL_MISMATCH khi mức khác mức hiện hành (FR-025). Không có người đại diện: 409 REPRESENTATIVE_REQUIRED.'
       x-fr: [FR-019, FR-025]
       x-br: [BR-M02-22]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
