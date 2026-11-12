@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.admission.api.UnitPriceApi;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.*;
@@ -52,6 +53,7 @@ public class CareResultService {
     private final ObjectProvider<DutyApi> duties;
     private final AuditLogApi audit;
     private final com.eldercare.backend.care.internal.rules.service.CareResultRules rules;
+    private final UnitPriceApi unitPrices;
 
     public CareResultService(
             CareTaskStore tasks,
@@ -70,7 +72,8 @@ public class CareResultService {
             ApplicationEventPublisher events,
             ObjectProvider<DutyApi> duties,
             AuditLogApi audit,
-            com.eldercare.backend.care.internal.rules.service.CareResultRules rules) {
+            com.eldercare.backend.care.internal.rules.service.CareResultRules rules,
+            UnitPriceApi unitPrices) {
         this.tasks = tasks;
         this.results = results;
         this.locks = locks;
@@ -88,6 +91,7 @@ public class CareResultService {
         this.duties = duties;
         this.audit = audit;
         this.rules = rules;
+        this.unitPrices = unitPrices;
     }
 
     @RequiresPermission(function = Function.TASK_CHECKLIST, operation = Operation.CONFIRM)
@@ -337,6 +341,12 @@ public class CareResultService {
                     "Chưa xác định được đơn vị tính phí của loại kết quả này; không quy đổi ml, mức hay giá trị đo");
         if (task.data().serviceId() == null || task.residentId() == null)
             throw unavailable("Công việc có tính phí cần dịch vụ và người cao tuổi");
+        var service = unitPrices
+                .service(task.data().serviceId())
+                .orElseThrow(() -> unavailable("Không tìm thấy dịch vụ tính phí của công việc"));
+        if (!CareBillableQuantity.matches(
+                task.data().resultType(), service.billingPeriod().name()))
+            throw unavailable("Kỳ tính của dịch vụ không khớp loại kết quả; không quy đổi, không mặc định 1");
     }
 
     private void recordedEvents(CareTask task, CareResultInput input, Instant performed, TaskStatus next, Instant now) {

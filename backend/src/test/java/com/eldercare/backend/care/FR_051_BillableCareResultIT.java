@@ -113,6 +113,25 @@ class FR_051_BillableCareResultIT extends CareResultTestBase {
         assertThat(storedStatus()).isEqualTo("DUE");
     }
 
+    /** Quyết định 05/11 mục 2: không mặc định 1 khi đơn vị không khớp; dịch vụ tính theo tháng, ngày không phải theo lần. */
+    @Test
+    void FR_051_performedButServiceNotBilledPerOccurrence_blockedWithoutEvent() throws Exception {
+        data("PERFORMED", true, "MONTH");
+        record("{}").andExpect(status().isServiceUnavailable());
+        assertThat(events.stream(BillableCareResultRecorded.class).filter(e -> e.resultId() == task))
+                .isEmpty();
+        assertThat(storedStatus()).isEqualTo("DUE");
+    }
+
+    /** Vật phẩm: lượng thực dùng phải đúng đơn vị tính phí, dịch vụ tính theo đơn vị ({@code UNIT}). */
+    @Test
+    void FR_051_itemQuantityButServiceBilledPerSession_blockedWithoutEvent() throws Exception {
+        data("ITEM_QUANTITY", true, "SESSION");
+        record("{\"numericValue\":2}").andExpect(status().isServiceUnavailable());
+        assertThat(events.stream(BillableCareResultRecorded.class).filter(e -> e.resultId() == task))
+                .isEmpty();
+    }
+
     @Test
     void US7_4_amendPublishesNewTotalEvenWhenUnchanged_voidPublishesNullQuantity() throws Exception {
         data("ITEM_QUANTITY", true);
