@@ -13,7 +13,7 @@ class IncidentTriggerIT extends IncidentHttpTestBase {
 
     /** BR-M05-08: bản ghi sự cố (kể cả khẩn cấp) không sửa nội dung, không xóa; sửa sai bằng đính chính. */
     @Test
-    void BR_M05_08_T032_contentColumnsAreImmutable() {
+    void BR_43_T032_contentColumnsAreImmutable() {
         long id = incident("FALL", "MEDIUM", "NEW", null, nurse.accountId());
         for (String change : new String[] {
             "description = 'Sửa'",

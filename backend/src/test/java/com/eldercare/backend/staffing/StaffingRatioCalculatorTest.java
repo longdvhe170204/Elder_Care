@@ -16,7 +16,7 @@ class StaffingRatioCalculatorTest {
             CareLevel.SPECIAL, new BigDecimal("2.5"));
 
     @Test
-    void BR_M09_02_weightedResidentsAboveMaximum_warns() {
+    void BR_50_weightedResidentsAboveMaximum_warns() {
         var residents = new ArrayList<StaffingRatioCalculator.Resident>();
         for (int i = 1; i <= 20; i++) residents.add(new StaffingRatioCalculator.Resident(i, CareLevel.BASIC));
         for (int i = 21; i <= 26; i++) residents.add(new StaffingRatioCalculator.Resident(i, CareLevel.SPECIAL));
@@ -34,7 +34,7 @@ class StaffingRatioCalculatorTest {
     }
 
     @Test
-    void BR_M09_14_membersCountWithoutAssignments_oncePerPerson_excludesAbsenceLeaveAndOtherRoles() {
+    void BR_50_membersCountWithoutAssignments_oncePerPerson_excludesAbsenceLeaveAndOtherRoles() {
         var members = List.of(
                 new StaffingRatioCalculator.Member(1, Set.of(Role.NURSING_STAFF, Role.CAREGIVER), false, false),
                 member(1, Role.CAREGIVER),

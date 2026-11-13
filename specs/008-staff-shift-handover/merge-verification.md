@@ -42,7 +42,7 @@ Không sửa mã nghiệp vụ M07 hoặc assertion của A/D. Kiểm trên elde
 
 | Nhóm | Bằng chứng / việc cần review |
 | --- | --- |
-| B/C: năm lớp M01, 9 lỗi | BR_M01_01_TemporaryAbsenceOverdueIT, BR_M01_02_ReassessmentNoticeIT, CompleteAdmissionConsentIT, CompleteAdmissionWishWarningsIT, StatusHistoryIT: nguồn lưu trú của participant M03 chưa có / điều kiện hoàn tất chưa thỏa. Các tên test lỗi đều tái hiện trên develop gốc |
+| B/C: năm lớp M01, 9 lỗi | BR_11_TemporaryAbsenceOverdueIT, BR_05_ReassessmentNoticeIT, CompleteAdmissionConsentIT, CompleteAdmissionWishWarningsIT, StatusHistoryIT: nguồn lưu trú của participant M03 chưa có / điều kiện hoàn tất chưa thỏa. Các tên test lỗi đều tái hiện trên develop gốc |
 | B/C: FR_034a_CompleteAdmissionIT, 4 thất bại | Kết quả có thêm ALLOCATION_SOURCE_UNAVAILABLE so với fixture mong đợi; tái hiện trên develop gốc |
 | B: FR_023h_KhongDauNangLucIT và ResidentContractIT, 2 thất bại | Kiểm OpenAPI đang quét dữ liệu/đường dẫn module khác: capacity hợp lệ của M03 và các đường dẫn resident của thuốc; tái hiện trên develop gốc, không thay assertion/schema để bỏ qua |
 | C/B/E: FR_035_LocationHistoryHttpIT.FR_036_missingM01AbsenceSourceFailsClosed, 1 thất bại | Bản ghép nhận 404 thay 503, develop gốc xanh. Fixture hiện không giả lập lỗi nguồn tường minh mà dùng spy ResidentStatusApi; bản E có hàm đọc statusPeriods đã được duyệt, khác stub chưa cài trên develop. Cần rà test nguồn thiếu và nhánh dữ liệu không tồn tại; chưa sửa test hoặc nghiệp vụ C/B |

@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -32,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @AutoConfigureMockMvc
 @Import(TestScopedMetrics.class)
+@Tag("BR-77")
 class FR_012_TimeScopeIT extends MySqlIntegrationTestBase {
 
     @Autowired

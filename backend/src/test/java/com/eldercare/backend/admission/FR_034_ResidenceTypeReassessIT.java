@@ -19,7 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 class FR_034_ResidenceTypeReassessIT extends ChangeTestBase {
 
     @Test
-    void BR_M03_23_residenceTypeChangeApplied_allocationFlaggedNotClosed_notifiedOnce() throws Exception {
+    void BR_13_residenceTypeChangeApplied_allocationFlaggedNotClosed_notifiedOnce() throws Exception {
         Setup s = activeSetup();
         long allocationId = activeAllocation(s.residentId(), realBed(realRoom(false), "OCCUPIED"));
         LocalDate effective = today().plusDays(1);

@@ -30,7 +30,7 @@ class AllergyWarningRuleTest {
             Map.of(SHRIMP_SOUP, Set.of(SHRIMP), PLAIN_SOUP, Set.of(), PEANUT_SOUP, Set.of(PEANUT));
 
     @Test
-    void BR_M08_07_suitableSubstituteForEveryone_isNotWarned() {
+    void BR_34_suitableSubstituteForEveryone_isNotWarned() {
         List<MenuDish> dishes = List.of(new MenuDish(DAY, 1, DIET, SHRIMP_SOUP, List.of(PEANUT_SOUP, PLAIN_SOUP)));
 
         assertThat(AllergyWarningRule.find(

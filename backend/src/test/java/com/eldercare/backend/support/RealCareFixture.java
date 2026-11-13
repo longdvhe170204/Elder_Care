@@ -18,7 +18,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
  * Dữ liệu thật liên module cho test chạy với bean thật thay bản giả (001 T073, 005 T061, 007 T063, 008 T043b, 2026-11-11):
  * khu, tầng, phòng, giường (003), hồ sơ (001), hợp đồng Hiệu lực (004), phân bổ giường (003), hồ sơ nhân viên, ca đã công bố,
  * thành viên, phụ trách ca, phân công người cao tuổi, Trưởng tầng (008). Ghi thẳng vào bảng như các fixture của chủ module
- * ({@code ContractFixtures}, {@code ReportScopeFixture}, {@code BR_M02_07_ReleaseBedIT}); id mới theo {@link TestUsers#nextId()}.
+ * ({@code ContractFixtures}, {@code ReportScopeFixture}, {@code BR_11_ReleaseBedIT}); id mới theo {@link TestUsers#nextId()}.
  */
 public final class RealCareFixture {
 

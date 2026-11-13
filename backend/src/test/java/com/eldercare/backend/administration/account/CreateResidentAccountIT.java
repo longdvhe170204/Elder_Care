@@ -17,6 +17,7 @@ import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import com.eldercare.backend.support.fake.administration.FakeResidentProfiles;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -34,6 +35,7 @@ import org.springframework.test.web.servlet.ResultActions;
  */
 @AutoConfigureMockMvc
 @Import(FakeM15Config.class)
+@Tag("BR-78")
 class CreateResidentAccountIT extends MySqlIntegrationTestBase {
 
     private static final String CONSENT = "{\"method\":\"REQUESTED\",\"withStaffId\":7}";

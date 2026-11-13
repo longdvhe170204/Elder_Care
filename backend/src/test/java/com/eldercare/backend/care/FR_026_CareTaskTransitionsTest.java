@@ -76,7 +76,7 @@ class FR_026_CareTaskTransitionsTest {
     }
 
     @Test
-    void BR_M04_26_creationUsesTheCurrentClockAndBothWindowBoundaries() throws Exception {
+    void BR_18_creationUsesTheCurrentClockAndBothWindowBoundaries() throws Exception {
         var from = Instant.parse("2026-11-01T01:00:00Z");
         var to = from.plusSeconds(1800);
         assertThat(initial(from, to, from.minusNanos(1))).isEqualTo(TaskStatus.NOT_YET_DUE);

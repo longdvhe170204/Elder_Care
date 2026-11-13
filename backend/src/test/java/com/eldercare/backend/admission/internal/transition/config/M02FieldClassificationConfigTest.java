@@ -52,7 +52,7 @@ class M02FieldClassificationConfigTest {
     }
 
     @Test
-    void BR_M02_21_causeOfDeath_isHealth() {
+    void BR_69_causeOfDeath_isHealth() {
         assertThat(byType.get("M02.DEATH_RECORD").fieldGroups()).containsOnly(Map.entry("cause", InfoGroup.HEALTH));
     }
 }

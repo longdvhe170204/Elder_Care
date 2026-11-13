@@ -15,7 +15,7 @@ class FR_047_TaskHandoverIT extends CareOverdueTestBase {
 
     /** BR-M04-07: hết ca, người lập bàn giao chỉ xem được công việc chưa đóng; đọc danh sách không đóng hay ghi gì. */
     @Test
-    void BR_M04_07_handoverWriterSeesOnlyUnclosedTasksAndReadingWritesNothing() throws Exception {
+    void BR_21_handoverWriterSeesOnlyUnclosedTasksAndReadingWritesNothing() throws Exception {
         long open = create();
         long done = createAnother();
         jdbc.update("UPDATE care_task SET status='OVERDUE' WHERE id=?", open);
