@@ -123,7 +123,12 @@ class CorrectionService implements CorrectionApi {
                                 provider.floorArea(originalRecordId),
                                 provider.canRecord(user),
                                 time.now()))
-                .filter(m -> provider.allows(user, m, originalRecordId))
+                // Bản ghi chỉ đính chính qua phê duyệt (ví dụ hồ sơ trạng thái cuối, 001 FR-049a): người được đính
+                // chính
+                // theo FR-026 lập yêu cầu (cách C) thay vì bị chặn (quickstart 001 Q20)
+                .map(m -> provider.allows(user, m, originalRecordId)
+                        ? m
+                        : provider.allows(user, CreationMethod.C, originalRecordId) ? CreationMethod.C : null)
                 .orElseThrow(() -> new BusinessException(
                         HttpStatus.FORBIDDEN, "CORRECTION_NOT_ALLOWED", "Không được đính chính bản ghi này (FR-026)"));
         if (method == CreationMethod.C) {
