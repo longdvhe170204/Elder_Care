@@ -65,7 +65,7 @@ class FR_027_BackfillApprovalIT extends StructureTestSupport {
                 bed,
                 since);
         jdbc.update(
-                "INSERT INTO bed_transfer_reason(id,code,name,medical_safety) VALUES(?,?,?,FALSE)",
+                "INSERT INTO catalog_item(id,catalog_type,module,code,name,status,attributes) VALUES(?,'M03.BED_TRANSFER_REASON','M03',?,?,'ACTIVE',JSON_OBJECT('medicalSafety',FALSE,'fixed',FALSE))",
                 transferReason,
                 "TR" + transferReason,
                 "Theo nhu cầu " + transferReason);
@@ -115,7 +115,7 @@ class FR_027_BackfillApprovalIT extends StructureTestSupport {
 
         assertThat(approvals.find(request).orElseThrow().type()).isEqualTo("M03.NHAP_BU_PHAN_BO");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_backfill_request WHERE approval_request_id=? AND resident_id=? AND current_allocation_id=? AND new_bed_id=?",
+                        "SELECT COUNT(*) FROM record_event WHERE kind='M03.BED_BACKFILL_REQUEST' AND content->>'$.approvalRequestId'=? AND content->>'$.residentId'=? AND entity_type='M03.BED_ALLOCATION' AND entity_id=? AND content->>'$.newBedId'=?",
                         Integer.class,
                         request,
                         resident,

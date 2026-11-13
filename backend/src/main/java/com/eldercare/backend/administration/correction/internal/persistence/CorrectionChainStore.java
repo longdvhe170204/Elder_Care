@@ -1,6 +1,7 @@
 package com.eldercare.backend.administration.correction.internal.persistence;
 
 import com.eldercare.backend.administration.correction.internal.domain.ChainState;
+import com.eldercare.backend.common.data.TechnicalLocks;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,65 +12,39 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Chuỗi đính chính của từng bản gốc ({@code correction_chain}, kỹ thuật) và giá trị hiện hành ({@code
- * v_latest_correction}) (000 FR-027 → FR-030). Loại bản ghi là tập loại hiện hành cùng loại cũ ánh xạ về nó (research
- * R-15 mục 5).
+ * Chuỗi đính chính của từng bản gốc, đọc từ {@code correction} (số thứ tự, Hủy ghi nhận), khóa tuần tự bằng {@code
+ * technical_lock}, và giá trị hiện hành ({@code v_latest_correction}) (000 FR-027 → FR-030). Loại bản ghi là tập loại
+ * hiện hành cùng loại cũ ánh xạ về nó (research R-15 mục 5).
  */
 @Component
 public class CorrectionChainStore {
 
     private final JdbcTemplate jdbc;
+    private final TechnicalLocks locks;
 
-    CorrectionChainStore(JdbcTemplate jdbc) {
+    CorrectionChainStore(JdbcTemplate jdbc, TechnicalLocks locks) {
         this.jdbc = jdbc;
+        this.locks = locks;
     }
 
-    /** Chuỗi của bản gốc đã Hủy ghi nhận ở một trong các loại. */
+    /** Bản gốc đã Hủy ghi nhận ở một trong các loại. */
     public boolean isVoided(Collection<String> recordTypes, long originalRecordId) {
-        return Boolean.TRUE.equals(jdbc.query(
-                "SELECT MAX(voided) FROM correction_chain WHERE record_type IN (" + placeholders(recordTypes.size())
-                        + ") AND original_record_id = ?",
-                rs -> rs.next() ? rs.getBoolean(1) : null,
-                args(recordTypes, List.of(originalRecordId))));
+        return stateOf(recordTypes, originalRecordId).voided();
     }
 
-    /** Tạo chuỗi nếu chưa có; {@code true} khi vừa tạo. */
-    public boolean create(String recordType, long originalRecordId) {
-        return jdbc.update(
-                        "INSERT IGNORE INTO correction_chain (record_type, original_record_id) VALUES (?, ?)",
-                        recordType,
-                        originalRecordId)
-                == 1;
-    }
-
-    /** Số bản lớn nhất và Hủy ghi nhận của chuỗi ghi với các loại (cũ) đã cho. */
+    /** Số thứ tự lớn nhất và Hủy ghi nhận, đọc từ các bản đính chính ghi với các loại đã cho. */
     public ChainState stateOf(Collection<String> recordTypes, long originalRecordId) {
-        Map<String, Object> old = jdbc.queryForMap(
-                "SELECT IFNULL(MAX(correction_count), 0) AS n, IFNULL(MAX(voided), FALSE) AS v FROM correction_chain"
+        Map<String, Object> chain = jdbc.queryForMap(
+                "SELECT IFNULL(MAX(sequence_no), 0) AS n, IFNULL(MAX(type = 'VOID'), 0) AS v FROM correction"
                         + " WHERE record_type IN (" + placeholders(recordTypes.size()) + ") AND original_record_id = ?",
                 args(recordTypes, List.of(originalRecordId)));
-        return new ChainState(((Number) old.get("n")).intValue(), ((Number) old.get("v")).intValue() == 1);
+        return new ChainState(((Number) chain.get("n")).intValue(), ((Number) chain.get("v")).intValue() == 1);
     }
 
-    /** Khóa chuỗi tới hết transaction rồi đọc. */
-    public ChainState lock(String recordType, long originalRecordId) {
-        Map<String, Object> chain = jdbc.queryForMap(
-                "SELECT correction_count, voided FROM correction_chain"
-                        + " WHERE record_type = ? AND original_record_id = ? FOR UPDATE",
-                recordType,
-                originalRecordId);
-        return new ChainState(
-                ((Number) chain.get("correction_count")).intValue(), Boolean.TRUE.equals(chain.get("voided")));
-    }
-
-    public void save(String recordType, long originalRecordId, ChainState state) {
-        jdbc.update(
-                "UPDATE correction_chain SET correction_count = ?, voided = ? WHERE record_type = ?"
-                        + " AND original_record_id = ?",
-                state.correctionCount(),
-                state.voided(),
-                recordType,
-                originalRecordId);
+    /** Khóa chuỗi của bản gốc tới hết transaction ({@code technical_lock}) rồi đọc. */
+    public ChainState lock(String recordType, Collection<String> recordTypes, long originalRecordId) {
+        locks.lock("M15.CORRECTION:" + recordType + ":" + originalRecordId);
+        return stateOf(recordTypes, originalRecordId);
     }
 
     /** Nội dung đúng ({@code JSON}) của bản sửa nội dung mới nhất theo từng bản gốc (FR-030). */
@@ -90,13 +65,14 @@ public class CorrectionChainStore {
         return latest;
     }
 
-    /** Bản gốc đã có chuỗi, kèm cờ Hủy ghi nhận. */
+    /** Bản gốc đã có đính chính, kèm cờ Hủy ghi nhận. */
     public Map<Long, Boolean> voided(Collection<String> recordTypes, Collection<Long> originalRecordIds) {
         Map<Long, Boolean> chains = new HashMap<>();
         jdbc.query(
-                "SELECT original_record_id, voided FROM correction_chain" + where(recordTypes, originalRecordIds),
+                "SELECT original_record_id, MAX(type = 'VOID') FROM correction" + where(recordTypes, originalRecordIds)
+                        + " GROUP BY original_record_id",
                 rs -> {
-                    chains.merge(rs.getLong(1), rs.getBoolean(2), Boolean::logicalOr);
+                    chains.put(rs.getLong(1), rs.getBoolean(2));
                 },
                 args(recordTypes, originalRecordIds));
         return chains;

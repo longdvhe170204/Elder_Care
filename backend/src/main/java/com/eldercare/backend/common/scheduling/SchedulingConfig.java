@@ -11,8 +11,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * Bộ lập lịch (research R-10): {@code @Scheduled} cùng ShedLock (bảng {@code shedlock}) để một job không chạy chồng khi
+ * Bộ lập lịch (research R-10): {@code @Scheduled} cùng ShedLock để một job không chạy chồng khi
  * kích hoạt tay hoặc khởi động lại. Khóa tính theo giờ của MySQL vì là thông số kỹ thuật, không phải mốc nghiệp vụ.
+ * Khóa job là dòng {@code technical_lock} có {@code lock_key} là tên job, dùng thêm ba cột {@code lock_until}, {@code
+ * locked_at}, {@code locked_by} (gộp bảng {@code shedlock} 2026-11-13, research R-15 của 000).
  *
  * <p>Công tắc chung {@value #ENABLED}: {@code false} (profile test) thì không job nào chạy theo lịch, và mặc định của
  * {@code eldercare.jobs.<job>.on-startup} cũng lấy theo công tắc này; test gọi job trực tiếp hoặc qua {@code runJobs}.
@@ -27,6 +29,9 @@ public class SchedulingConfig {
     LockProvider lockProvider(DataSource dataSource) {
         return new JdbcTemplateLockProvider(JdbcTemplateLockProvider.Configuration.builder()
                 .withJdbcTemplate(new JdbcTemplate(dataSource))
+                .withTableName("technical_lock")
+                .withColumnNames(
+                        new JdbcTemplateLockProvider.ColumnNames("lock_key", "lock_until", "locked_at", "locked_by"))
                 .usingDbTime()
                 .build());
     }

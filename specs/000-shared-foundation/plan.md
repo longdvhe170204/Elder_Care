@@ -315,7 +315,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 
-- Bảy bảng dùng chung, khóa theo dòng, log lần chạy job ra file: research R-15, data-model mục 8, task T108. Hệ thống còn 79 bảng.
+- Bảy bảng dùng chung, khóa theo dòng, log lần chạy job ra file: research R-15, data-model mục 8, task T108. Hệ thống còn 79 bảng (đạt ngày 2026-11-13 sau lượt gộp `V099_01` → `V099_08`, research R-15 mục 6).
 - Bảo đảm nhóm dữ liệu (R-05) với bảng chứa nhiều nhóm: trigger theo dòng (`khoa_luc`) thay quyền theo bảng; `RecordGroupTriggerIT` kiểm mọi bảng có `khoa_luc`.
 
 ## Ghi chú T098 hộp duyệt app nhân viên (2026-11-01, nhánh `impl/000-mobile-approval-inbox`)

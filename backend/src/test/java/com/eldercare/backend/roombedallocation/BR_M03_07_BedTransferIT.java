@@ -78,7 +78,7 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                 bed,
                 Timestamp.from(time.now().minusSeconds(60)));
         jdbc.update(
-                "INSERT INTO bed_transfer_reason(id,code,name,medical_safety) VALUES(?,?,?,FALSE)",
+                "INSERT INTO catalog_item(id,catalog_type,module,code,name,status,attributes) VALUES(?,'M03.BED_TRANSFER_REASON','M03',?,?,'ACTIVE',JSON_OBJECT('medicalSafety',FALSE,'fixed',FALSE))",
                 transferReason,
                 "TR" + transferReason,
                 "Theo nhu cầu " + transferReason);

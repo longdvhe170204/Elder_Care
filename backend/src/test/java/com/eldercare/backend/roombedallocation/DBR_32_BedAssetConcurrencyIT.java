@@ -60,7 +60,7 @@ class DBR_32_BedAssetConcurrencyIT extends AssetTestBase {
         as(actor);
         duties.departmentLead(medical, actor.staffId());
         jdbc.update(
-                "INSERT INTO room_type_care_level VALUES(?,'BASIC')",
+                "UPDATE room_type SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?",
                 jdbc.queryForObject("SELECT room_type_id FROM room WHERE id=?", Long.class, room));
         jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         long bed = TestUsers.nextId(), asset = TestUsers.nextId(), resident = TestUsers.nextId();

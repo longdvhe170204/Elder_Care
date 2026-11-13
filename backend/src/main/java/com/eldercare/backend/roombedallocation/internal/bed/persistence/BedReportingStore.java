@@ -70,7 +70,7 @@ public class BedReportingStore {
 
     public List<RoomIsolationView> isolation(Instant at) {
         return jdbc.query(
-                "SELECT h.room_id,r.floor_id,h.occurred_at,h.until_at FROM (SELECT s.*,LEAD(occurred_at) OVER(PARTITION BY room_id ORDER BY occurred_at,id) until_at FROM room_isolation_history s) h JOIN room r ON r.id=h.room_id WHERE h.action='ISOLATE' AND h.occurred_at<=? AND (h.until_at IS NULL OR h.until_at>?) ORDER BY h.room_id",
+                "SELECT h.room_id,r.floor_id,h.occurred_at,h.until_at FROM (SELECT s.*,LEAD(occurred_at) OVER(PARTITION BY room_id ORDER BY occurred_at,id) until_at FROM (SELECT id,entity_id room_id,value action,starts_at occurred_at FROM status_history WHERE entity_type='M03.ROOM' AND attribute='ISOLATION') s) h JOIN room r ON r.id=h.room_id WHERE h.action='ISOLATE' AND h.occurred_at<=? AND (h.until_at IS NULL OR h.until_at>?) ORDER BY h.room_id",
                 (r, n) -> new RoomIsolationView(
                         r.getLong(1),
                         r.getLong(2),

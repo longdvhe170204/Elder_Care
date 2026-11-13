@@ -157,7 +157,7 @@ abstract class ChangeTestBase extends ContractTestBase {
                 type,
                 "Loại " + type,
                 servesShortTerm);
-        jdbc.update("INSERT INTO room_type_care_level VALUES(?,'BASIC')", type);
+        jdbc.update("UPDATE room_type SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", type);
         jdbc.update(
                 "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
                 room,

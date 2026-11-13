@@ -61,7 +61,10 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
     }
 
     private int historyRows(String code) {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM parameter_history WHERE code = ?", Integer.class, code);
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M15.PARAMETER' AND entity_id = 0 AND attribute = ?",
+                Integer.class,
+                code);
     }
 
     @Test
@@ -90,10 +93,10 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.currentValue.value").value(15));
 
         Map<String, Object> last = jdbc.queryForMap(
-                "SELECT is_default_restore, reason, JSON_EXTRACT(value, '$.value') AS v FROM parameter_history"
-                        + " WHERE code = ? ORDER BY effective_from DESC LIMIT 1",
+                "SELECT command, reason, JSON_EXTRACT(details, '$.value.value') AS v FROM status_history"
+                        + " WHERE entity_type = 'M15.PARAMETER' AND entity_id = 0 AND attribute = ? ORDER BY starts_at DESC LIMIT 1",
                 ALERT);
-        assertThat(last).containsEntry("is_default_restore", true).containsEntry("reason", "Trở về mặc định");
+        assertThat(last).containsEntry("command", "RESTORE_DEFAULT").containsEntry("reason", "Trở về mặc định");
         assertThat(String.valueOf(last.get("v"))).isEqualTo("15");
     }
 }

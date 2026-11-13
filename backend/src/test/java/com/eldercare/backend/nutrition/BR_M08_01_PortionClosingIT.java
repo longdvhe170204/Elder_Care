@@ -41,8 +41,8 @@ class BR_M08_01_PortionClosingIT extends ClosingTestBase {
                 .andExpect(jsonPath("$.flags", hasItem("NO_DIET_ASSIGNED")));
 
         assertThat(jdbc.queryForList(
-                        "SELECT JSON_EXTRACT(counted_residents, '$[*].residentId') FROM portion_closing"
-                                + " WHERE daily_meal_id = ?",
+                        "SELECT JSON_EXTRACT(content, '$.persons[*].residentId') FROM record_event WHERE kind ="
+                                + " 'M08.PORTION_CLOSING' AND entity_type = 'M08.DAILY_MEAL' AND entity_id = ?",
                         String.class,
                         dailyMeal(lunch)))
                 .singleElement()

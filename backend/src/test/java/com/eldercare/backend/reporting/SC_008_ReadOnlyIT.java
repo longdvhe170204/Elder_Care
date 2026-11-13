@@ -41,7 +41,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({TestScopedMetrics.class, FakeFileConfig.class})
 class SC_008_ReadOnlyIT extends MySqlIntegrationTestBase {
 
-    private static final Set<String> NOT_BUSINESS = Set.of("login_session", "device");
+    /** Lần kết nối của thiết bị nằm ở {@code technical_lock} từ V099_04 (thay bảng {@code device}). */
+    private static final Set<String> NOT_BUSINESS = Set.of("login_session", "technical_lock");
 
     private static final Set<String> EXPORT_WRITES = Set.of("audit_log", "file", "idempotency_key");
 

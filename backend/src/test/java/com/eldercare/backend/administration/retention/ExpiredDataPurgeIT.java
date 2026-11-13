@@ -139,12 +139,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
                 id,
                 NURSE.accountId(),
                 LocalDateTime.ofInstant(at, ZoneOffset.UTC));
-        long correctionId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
-                "INSERT INTO correction_chain (record_type, original_record_id, correction_count) VALUES (?, ?, 1)",
-                type,
-                id);
-        return correctionId;
+        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
     }
 
     private long request(String status, Instant at, Long residentId) {

@@ -88,11 +88,13 @@ class T037_SourceModulesEndToEndIT extends M13IntegrationTestBase {
         TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
         String token = "t037-" + UUID.randomUUID();
         jdbc.update(
-                "INSERT INTO push_device (account_id, device_id, app, fcm_token, updated_at)"
-                        + " VALUES (?, ?, 'STAFF_APP', ?, UTC_TIMESTAMP(6))",
+                "INSERT INTO simple_record (kind, module, entity_type, entity_id, status, content, created_at, created_by)"
+                        + " VALUES ('M13.PUSH_DEVICE', 'M13', 'M15.ACCOUNT', ?, 'ACTIVE',"
+                        + " JSON_OBJECT('deviceId', ?, 'app', 'STAFF_APP', 'fcmToken', ?), UTC_TIMESTAMP(6), ?)",
                 manager.accountId(),
                 UUID.randomUUID().toString(),
-                token);
+                token,
+                manager.accountId());
         Instant at = time.now();
         long floor = TestUsers.nextId();
         List<RecipientGroup> managers = List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));

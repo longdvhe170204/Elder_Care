@@ -221,6 +221,23 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | cột `ly_do`, `can_cu`, `chi_tiet`, `du_lieu_truoc`, `du_lieu_sau`, `khong_loai_bo` | `reason`, `basis`, `details`, `data_before`, `data_after`, `exempt_from_purge` |
 | cột `gia_tri_hien_hanh`, `gia_tri_mac_dinh`, `rang_buoc`, `hieu_luc_tu`, `hieu_luc_den`, `phien_ban` | `current_value`, `default_value`, `constraints`, `effective_from`, `effective_to`, `version` |
 
+**Bảng gộp ngày 2026-11-13** *(research R-15 mục 6, migration `V099_01` → `V099_08`; các dòng nhắc bảng cũ ở mục khác của file này đọc theo bảng dưới)*
+
+| Bảng cũ | Nơi lưu sau gộp |
+| --- | --- |
+| `correction_chain` | bỏ; đọc từ `correction`, khóa `technical_lock` `M15.CORRECTION:<loại>:<id bản gốc>` |
+| `parameter_history` | `status_history` loại `M15.PARAMETER` (`attribute` = mã tham số, `starts_at` = `effective_from`, `details.value`, `command` `CHANGE`, `RESTORE_DEFAULT`) |
+| `shedlock` | `technical_lock` (`lock_key` = tên job, `lock_until`, `locked_at`, `locked_by`) |
+| `password_reset_code` | `simple_record` loại `M15.PASSWORD_RESET_CODE` (`PasswordResetCodeContent`: `codeHash`, `expiresAt`, `failedAttempts`; trạng thái `ACTIVE`, `USED`, `REVOKED`) |
+| `device` | `technical_lock` khóa `M15.DEVICE:<device_id>` (`updated_at` = `last_connected_at`) |
+| `room_type_care_level` | cột `room_type.allowed_care_levels` (`JSON`) |
+| `room_isolation_history` | `status_history` loại `M03.ROOM`, `attribute` `ISOLATION` (`value` `ISOLATE`, `LIFT`; `basis_type` `M07.INCIDENT`) |
+| `bed_backfill_request` | `record_event` loại `M03.BED_BACKFILL_REQUEST` của `M03.BED_ALLOCATION` (`approvalRequestId`, `residentId`, `newBedId`; `occurred_at` = `transfer_at`) |
+| `bed_transfer_reason` | `catalog_item` loại `M03.BED_TRANSFER_REASON` (`attributes`: `medicalSafety`, `fixed`) |
+| `day_care_rest_area` | `catalog_item` loại `M03.DAY_CARE_REST_AREA` (`attributes`: `code`, `floorId`, `areaId`) |
+| `push_device` | `simple_record` loại `M13.PUSH_DEVICE` của `M15.ACCOUNT` (`deviceId`, `app`, `fcmToken`; trạng thái `ACTIVE`, `INVALIDATED`) |
+| `portion_closing` | `record_event` loại `M08.PORTION_CLOSING` của `M08.DAILY_MEAL` (`PortionClosingStore.Content`) |
+
 ### 6.5. Lớp chính
 
 | Tên logic | Mã |
