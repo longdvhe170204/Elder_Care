@@ -69,7 +69,7 @@ test/staff/care_tasks/
 
 - Trạng thái: `ChangeNotifier` của Flutter (`common/auth/session_controller.dart`), không thêm gói.
 - Điều hướng: `MaterialApp.home` của `ElderCareApp` (`lib/app.dart`, 2026-10-27) đổi màn theo trạng thái phiên và loại tài khoản; phần người cao tuổi dùng `AppTheme.resident`, hai phần kia `AppTheme.light`; màn con dùng `Navigator` của Flutter. Đổi sang `go_router` khi phần nhân viên có nhiều màn.
-- Client API: viết tay trong `common/api/api_client.dart` (Problem Details thành `ApiProblem`, mất mạng thành `ApiUnreachable`); script sinh client (000 T010b) làm khi phần nhân viên cần nhiều endpoint.
+- Client API: viết tay trong `common/api/api_client.dart` (Problem Details thành `ApiProblem`, mất mạng thành `ApiUnreachable`); script sinh client (000 T010b) không làm (A đóng 2026-11-13).
 - Kho token: `flutter_secure_storage` qua `common/auth/secure_store.dart` (test dùng `MemoryStore`).
 - Theme: `common/theme/app_theme.dart` theo DESIGN.md 6.6 (mục 15.2: `Tones` cho màu ngoài `ColorScheme`, `AppRadius` cho bo góc, thang chữ trong `TextTheme`; `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 500, 600 đóng gói ở `assets/fonts/`.
 - Theme 6.x (2026-10-28, nhánh `impl/000-design-v6`): nền trang trơn của `Scaffold`; thân màn dùng `widgets/page_body.dart` (`PageBody`, lề 16; thay `SkyBackground` đã bỏ); nhãn trạng thái `widgets/status_pill.dart` chữ màu không nền (`StatusTone` theo DESIGN.md 3.5). Màn không tự đặt màu, bo góc, cỡ chữ; đầu màn xanh đêm đậm và danh sách dòng (DESIGN.md 15.4) làm khi sửa từng màn.
@@ -82,6 +82,6 @@ test/staff/care_tasks/
 ## 6. Mở phần nhân viên, người thân (2026-10-27, chủ dự án)
 
 - Chủ module làm màn của feature mình trong `staff/<feature>/`, `family/<feature>/` theo tasks; thư mục chưa có thì tạo cùng PR đầu tiên.
-- Thứ tự nền của A trong `common/` và `main.dart`: 000 T006, T007 (điều hướng theo loại tài khoản, khung ba phần), T008b (lint), 002 T046, T047 (đăng nhập nhân viên trên thiết bị dùng chung, mở khóa sớm; đăng nhập người thân), 000 T100 (hàng đợi ngoại tuyến drift, phong bì `Idempotency-Key`, `thoiDiemThietBi`), 002 T060 (kết quả đồng bộ, chờ xem lại), 000 T010b (script sinh client khi số endpoint lớn).
+- Thứ tự nền của A trong `common/` và `main.dart`: 000 T006, T007 (điều hướng theo loại tài khoản, khung ba phần), T008b (lint), 002 T046, T047 (đăng nhập nhân viên trên thiết bị dùng chung, mở khóa sớm; đăng nhập người thân), 000 T100 (hàng đợi ngoại tuyến drift, phong bì `Idempotency-Key`, `thoiDiemThietBi`), 002 T060 (kết quả đồng bộ, chờ xem lại).
 - Tới khi có hàng đợi ngoại tuyến: lệnh ghi của phần nhân viên gọi API trực tuyến qua `common/api/api_client.dart` và báo cần mạng khi `ApiUnreachable`; không tự viết hàng đợi riêng trong thư mục feature.
 - Màn chỉ dùng dữ liệu mẫu khi không có backend phải ghi rõ trong test; dữ liệu minh họa theo AGENTS.md mục 6. Màn chỉ hiện trường có trong spec và hợp đồng (DESIGN.md mục 13 điều 6), cùng thứ tự và chữ với màn web tương ứng.

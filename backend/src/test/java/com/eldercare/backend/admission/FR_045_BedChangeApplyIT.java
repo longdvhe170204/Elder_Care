@@ -61,6 +61,13 @@ class FR_045_BedChangeApplyIT extends ChangeTestBase {
                                 b.newBed())
                         .toInstant())
                 .isEqualTo(effective.atStartOfDay(BusinessTime.ZONE).toInstant());
+        // 003 FR-016a (quickstart 003 Q21, B2): job chạy 12:00, trễ hơn CFG-M03-08 (30 phút) so với mốc 00:00
+        assertThat(jdbc.queryForObject(
+                        "SELECT executed_late FROM bed_allocation WHERE resident_id=? AND bed_id=?",
+                        Boolean.class,
+                        b.residentId(),
+                        b.newBed()))
+                .isTrue();
     }
 
     @Test

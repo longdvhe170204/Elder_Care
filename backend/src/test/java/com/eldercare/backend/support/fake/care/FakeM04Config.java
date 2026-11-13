@@ -92,34 +92,7 @@ public class FakeM04Config {
                 sources);
     }
 
-    /** Thay bản thật {@code MealTaskSource} của 011 trong context này: test 005 điều khiển được xác nhận phục vụ. */
-    @Bean
-    @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
-    FakeTaskSource fakeMealTaskSource(FakeM04Switches switches, ObjectProvider<TaskSourcePort> sources) {
-        return new FakeTaskSource(switches, "011", Set.of(SourceType.MEAL), sources);
-    }
-
-    /**
-     * Bỏ bean thật {@code mealTaskSource} (011, PR #122) khỏi context có bản giả loại {@code MEAL}: {@code CareTaskValidator}
-     * đòi đúng một nguồn cho mỗi loại căn cứ, hai nguồn {@code MEAL} làm mọi lệnh lập công việc trả 409
-     * {@code INVALID_BASIS}. Chỉ áp cho lớp test import cấu hình này; test của 011 dùng bản thật.
-     */
-    @Bean
-    static org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor removeRealMealTaskSource() {
-        return new org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor() {
-            @Override
-            public void postProcessBeanDefinitionRegistry(
-                    org.springframework.beans.factory.support.BeanDefinitionRegistry registry) {
-                if (registry.containsBeanDefinition("mealTaskSource")) {
-                    registry.removeBeanDefinition("mealTaskSource");
-                }
-            }
-
-            @Override
-            public void postProcessBeanFactory(
-                    org.springframework.beans.factory.config.ConfigurableListableBeanFactory beanFactory) {}
-        };
-    }
+    // 011 T042: căn cứ MEAL dùng bản thật MealTaskSource của 011, không còn bean giả trong cấu hình.
 
     @Bean
     FakeTaskSource fakeActivityTaskSource(FakeM04Switches switches, ObjectProvider<TaskSourcePort> sources) {

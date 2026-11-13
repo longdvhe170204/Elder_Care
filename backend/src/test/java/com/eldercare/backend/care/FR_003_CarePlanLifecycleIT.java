@@ -173,6 +173,54 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                 .isEqualTo(5);
     }
 
+    /**
+     * DBR-11, BR-M04-19: phiên bản đang hiệu lực không sửa; phiên bản mới đã duyệt hiệu lực thì bản cũ hết hạn ngày trước
+     * đó, mỗi ngày tối đa một phiên bản hiệu lực. BR-M04-03: báo Người phụ trách ca và Trưởng tầng rằng kế hoạch đã đổi.
+     */
+    @Test
+    void BR_M04_19_DBR_11_newApprovedRevisionReplacesLockedEffectiveOneAndNotifiesShift() throws Exception {
+        var first = time.today().plusDays(200 + TestUsers.nextId() % 300);
+        var activation = context.getBean(com.eldercare.backend.care.internal.careplan.service.CarePlanActivation.class);
+        long v1 = approved(first);
+        activation.run(first, time.now());
+        user.set(nurse.user());
+        var version = jdbc.queryForObject("SELECT version FROM care_plan WHERE id=?", Long.class, v1);
+        mvc.perform(write(
+                        put("/api/v1/care-plans/" + v1 + "/items").header("If-Match", "\"" + version + "\""), items()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("REVISION_LOCKED"));
+        long v2 = approved(first.plusDays(3));
+        activation.run(first.plusDays(3), time.now());
+
+        assertThat(jdbc.queryForList(
+                        "SELECT status FROM care_plan WHERE resident_id=? ORDER BY id", String.class, residentId))
+                .containsExactly("EXPIRED", "EFFECTIVE");
+        assertThat(jdbc.queryForObject("SELECT effective_to FROM care_plan WHERE id=?", java.sql.Date.class, v1)
+                        .toLocalDate())
+                .isEqualTo(first.plusDays(2));
+        var notice = recorded.stream(com.eldercare.backend.care.api.events.CarePlanChanged.class)
+                .filter(e -> e.newVersionId() == v2)
+                .findFirst()
+                .orElseThrow();
+        assertThat(notice.previousVersionId()).contains(v1);
+        assertThat(notice.context().recipients())
+                .extracting(r -> r.getClass().getSimpleName())
+                .containsExactlyInAnyOrder("ShiftLead", "FloorManager");
+    }
+
+    private long approved(java.time.LocalDate effectiveFrom) throws Exception {
+        long id = create();
+        mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", "\"0\""), items()))
+                .andExpect(status().isOk());
+        mvc.perform(write(
+                        post("/api/v1/care-plans/" + id + "/submit"),
+                        "{\"effectiveFrom\":\"" + effectiveFrom + "\",\"changeReason\":\"Điều chỉnh kế hoạch\"}"))
+                .andExpect(status().isOk());
+        user.set(doctor.user());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}")).andExpect(status().isOk());
+        return id;
+    }
+
     private String agreement() {
         return "[{\"choice\":\"Lựa chọn kiểm thử\",\"discussedRisks\":\"Đã trao đổi rủi ro\",\"residentParticipates\":true,\"participants\":[{\"type\":\"STAFF\",\"id\":"
                 + nurse.staffId() + "}],\"assessingDoctorId\":" + doctor.staffId()

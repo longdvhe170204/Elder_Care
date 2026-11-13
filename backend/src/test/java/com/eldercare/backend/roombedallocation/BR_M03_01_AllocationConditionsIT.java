@@ -60,6 +60,7 @@ class BR_M03_01_AllocationConditionsIT extends StructureTestSupport {
                 .invoke(checker, resident, bed, start, end, null, future);
     }
 
+    /** DBR-10: giường không Trống, phòng sai loại hình, mức chăm sóc, giới tính, cách ly đều chặn phân bổ. */
     @Test
     void BR_M03_01_returnsAllIndependentViolations() throws Exception {
         jdbc.update("UPDATE resident SET current_care_level='SPECIAL',status='DECEASED' WHERE id=?", resident);

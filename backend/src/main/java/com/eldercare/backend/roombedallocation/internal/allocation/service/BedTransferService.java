@@ -109,7 +109,7 @@ public class BedTransferService {
         this.json = json;
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.CREATE)
+    /** BR-M03-20, UC-21: kiểm khóa mức vai trò rồi kiểm trên giường kèm tầng; không dùng {@code @RequiresPermission}. */
     @BusinessCommand
     @org.springframework.resilience.annotation.Retryable(
             includes = org.springframework.dao.PessimisticLockingFailureException.class,
@@ -117,11 +117,13 @@ public class BedTransferService {
             delay = 50)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public long transfer(long id, long target, long reasonId, Reason reason) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.CREATE)))
+            throw new PermissionDeniedException("Không có quyền chuyển giường");
         return move(id, target, reasonId, reason, null, user.accountId(), true);
     }
 
     /** T036: {@code transferAt} null hoặc không ở quá khứ là chuyển bây giờ; ở quá khứ là nhập bù (FR-027). */
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.CREATE)
+    /** BR-M03-20, UC-21: kiểm khóa mức vai trò rồi kiểm trên giường kèm tầng; không dùng {@code @RequiresPermission}. */
     @BusinessCommand
     @org.springframework.resilience.annotation.Retryable(
             includes = org.springframework.dao.PessimisticLockingFailureException.class,
@@ -129,6 +131,8 @@ public class BedTransferService {
             delay = 50)
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public BedTransferOutcome transfer(long id, long target, long reasonId, Reason reason, Instant transferAt) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.CREATE)))
+            throw new PermissionDeniedException("Không có quyền chuyển giường");
         var now = time.now().truncatedTo(ChronoUnit.MICROS);
         if (transferAt == null || !transferAt.isBefore(now))
             return new BedTransferOutcome.Moved(move(id, target, reasonId, reason, null, user.accountId(), true));

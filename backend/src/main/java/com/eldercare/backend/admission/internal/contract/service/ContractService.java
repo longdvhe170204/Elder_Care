@@ -45,6 +45,7 @@ import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.Warning;
+import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -108,9 +109,11 @@ public class ContractService {
     private final ObjectProvider<ApprovalRequestApi> approvals;
 
     private final DayCareCapacityCheck capacity;
+    private final ObjectProvider<ResidentLocationApi> locations;
 
     ContractService(
             DayCareCapacityCheck capacity,
+            ObjectProvider<ResidentLocationApi> locations,
             ContractStore store,
             ResidencyLock residencyLock,
             ResidentApi residents,
@@ -125,6 +128,7 @@ public class ContractService {
             ObjectProvider<RepresentativePort> representatives,
             ObjectProvider<ApprovalRequestApi> approvals) {
         this.capacity = capacity;
+        this.locations = locations;
         this.store = store;
         this.residencyLock = residencyLock;
         this.residents = residents;
@@ -384,6 +388,11 @@ public class ContractService {
             if (!over.isEmpty()) {
                 throw new ConditionNotMetException(over);
             }
+        } else if (!locations.getObject().hasAllocationStartingBy(residentId, content.startDate())) {
+            throw new ConditionNotMetException(List.of(new UnmetCondition(
+                    "BED_ALLOCATION_REQUIRED",
+                    "Hợp đồng nội trú cần phân bổ giường (đang hiệu lực hoặc tương lai) bắt đầu không muộn hơn ngày bắt đầu"
+                            + " hợp đồng (FR-021)")));
         }
         Map<Long, BigDecimal> recorded = recordPrices(contract);
         files.attach(scanFileId, SCAN_OWNER_TYPE, contractId);
@@ -569,12 +578,18 @@ public class ContractService {
         return recorded;
     }
 
-    /** Cảnh báo không chặn (FR-025): mức khác mức hiện hành; dịch vụ hoặc đơn giá không hiệu lực tại ngày bắt đầu. */
+    /**
+     * Cảnh báo không chặn (FR-025): chưa có đánh giá đầu vào Đã xác nhận (chưa có mức hiện hành); mức khác mức hiện hành;
+     * dịch vụ hoặc đơn giá không hiệu lực tại ngày bắt đầu.
+     */
     List<Warning> warnings(Contract contract) {
         ContractContent content = contract.content();
         List<Warning> warnings = new ArrayList<>();
         Optional<CareLevel> current = careLevels.current(contract.residentId());
-        if (current.isPresent() && current.get() != content.careLevel()) {
+        if (current.isEmpty()) {
+            warnings.add(new Warning(
+                    "CONTRACT_NOT_ASSESSED", "Chưa đánh giá: người cao tuổi chưa có đánh giá đầu vào Đã xác nhận"));
+        } else if (current.get() != content.careLevel()) {
             warnings.add(new Warning(
                     "CONTRACT_CARE_LEVEL_MISMATCH",
                     "Mức chăm sóc hợp đồng (" + content.careLevel() + ") khác mức hiện hành (" + current.get() + ")"));

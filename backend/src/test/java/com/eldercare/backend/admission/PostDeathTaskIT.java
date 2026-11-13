@@ -56,4 +56,24 @@ class PostDeathTaskIT extends DeathTestBase {
         assertThat(task(list, "STORED_MEDICATION").get("status").asString()).isEqualTo("NOT_APPLICABLE");
         assertThat(list.has("closedAt")).isFalse();
     }
+
+    /**
+     * FR-072 (quickstart 004 Q35, Q39): việc REMINDERS của job hằng ngày tính lại danh sách khi một mục đổi trạng thái;
+     * Bộ lập lịch ghi nhật ký kèm căn cứ (000 FR-045), không làm lỗi cả việc nhắc.
+     */
+    @Test
+    void FR_072_dailyJobRecordsChangedItemWithBasis() throws Exception {
+        long residentId = deadWithOpenBelongings();
+        long recordId = recordIdOf(residentId);
+        runJobOn(d0);
+        item(PostDeathItemCode.BELONGINGS).status(residentId, PostDeathItemStatus.COMPLETED);
+        runJobOn(d0.plusDays(1));
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM audit_log WHERE action = 'M02_POST_DEATH_ITEM_CHANGED' AND entity_id = ?"
+                                + " AND actor_type = 'SCHEDULER' AND basis IS NOT NULL",
+                        Integer.class,
+                        Long.toString(recordId)))
+                .isEqualTo(1);
+    }
 }

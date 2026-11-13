@@ -197,6 +197,17 @@ public class FakeLocations implements LocationApi, ResidentLocationApi, Location
         return Optional.empty();
     }
 
+    private boolean allocationStartingBy = true;
+
+    /** 004 FR-021: mặc định có phân bổ từ ngày bắt đầu hợp đồng; test chặn ký thì đặt {@code false}. */
+    public void allocationStartingBy(boolean value) {
+        allocationStartingBy = value;
+    }
+
+    public boolean hasAllocationStartingBy(long resident, LocalDate date) {
+        return allocationStartingBy;
+    }
+
     public List<RoommateView> roommates(long resident, Instant from, Instant to) {
         return List.of();
     }

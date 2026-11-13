@@ -14,8 +14,7 @@ class FR_052_GroupedOverdueReminderIT extends CareOverdueTestBase {
     @Test
     void FR_052_catchUpGroupsMissedRemindersPerRecipientAndDoesNotRepeat() throws Exception {
         long a = create();
-        sourceId++;
-        meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
+        sourceId = sameTimeSourceId;
         long b = create();
         var task = taskStore.get(a, false);
         var step = context.getBean(CareTaskDueStep.class);

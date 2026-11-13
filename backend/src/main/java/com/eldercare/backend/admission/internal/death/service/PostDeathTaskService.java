@@ -10,6 +10,7 @@ import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.admission.api.PostDeathTaskApi;
 import com.eldercare.backend.admission.api.dto.PostDeathItemCode;
 import com.eldercare.backend.admission.api.dto.PostDeathItemStatus;
@@ -131,6 +132,7 @@ public class PostDeathTaskService implements PostDeathTaskApi {
                                 "item", code.name(), "status", old.status().name()))
                         .after(Map.of(
                                 "item", code.name(), "status", fresh.status().name()))
+                        .basis(new Basis("FR-072", null, record.id(), null))
                         .build());
             }
         }
@@ -142,6 +144,7 @@ public class PostDeathTaskService implements PostDeathTaskApi {
                     .entity(ENTITY_TYPE, record.id())
                     .resident(residentId)
                     .after(Map.of("closedAt", now.toString()))
+                    .basis(new Basis("FR-072", null, record.id(), null))
                     .build());
         }
         return viewOf(stored, closedAt);

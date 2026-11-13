@@ -40,6 +40,7 @@ class DBR_23_25_AuditAndTimeIT extends AbsenceTestBase {
         int afterSend = m02AuditRows(residentId);
         assertThat(afterSend).as("gửi ký").isGreaterThan(afterDraft);
 
+        bedForSigning(residentId);
         recordSignedRaw(contractId, signedBody(residentId, today())).andExpect(status().isOk());
         int afterSign = m02AuditRows(residentId);
         assertThat(afterSign).as("ghi nhận đã ký").isGreaterThan(afterSend);

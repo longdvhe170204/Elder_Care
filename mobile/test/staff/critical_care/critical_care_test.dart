@@ -9,7 +9,7 @@ import '../../support/fake_backend.dart';
 
 // 007 T046 (US11; FR-050a → FR-050d): ghi dấu, xác nhận lại nguyện vọng, thực hiện lựa chọn trên app nhân viên.
 
-Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {int? alertId, int? flagId}) async {
+Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {int? alertId, int? flagId, int? incidentId}) async {
   tester.view.physicalSize = const Size(800, 3000);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -17,7 +17,13 @@ Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {int? alertId,
     MaterialApp(
       theme: AppTheme.light(),
       home: Scaffold(
-        body: CriticalCareScreen(api: backend.client(), residentId: 5, alertId: alertId, criticalFlagId: flagId),
+        body: CriticalCareScreen(
+          api: backend.client(),
+          residentId: 5,
+          alertId: alertId,
+          criticalFlagId: flagId,
+          incidentId: incidentId,
+        ),
       ),
     ),
   );
@@ -27,7 +33,12 @@ Future<void> pumpScreen(WidgetTester tester, FakeBackend backend, {int? alertId,
 void main() {
   late FakeBackend backend;
 
-  setUp(() => backend = FakeBackend());
+  setUp(
+    () => backend = FakeBackend()
+      ..on('GET', '/staff', 200, [
+        {'id': 31, 'fullName': 'Trần Thu Hà'},
+      ]),
+  );
 
   testWidgets('FR_050a_thieuLoaiHoacNhanDinh_baoTaiO_khongGui', (tester) async {
     await pumpScreen(tester, backend);
@@ -83,7 +94,7 @@ void main() {
       'errorCode': 'CONDITION_NOT_MET',
       'detail': 'Chưa xác nhận lại nguyện vọng',
     });
-    await pumpScreen(tester, backend, alertId: 20, flagId: 9);
+    await pumpScreen(tester, backend, alertId: 20, flagId: 9, incidentId: 44);
     await tester.tap(find.text('Chuyển bệnh viện'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Thực hiện lựa chọn'));
@@ -93,11 +104,51 @@ void main() {
 
     await tester.enterText(find.widgetWithText(TextField, 'Bệnh viện chuyển đến'), 'Bệnh viện X');
     await tester.enterText(find.widgetWithText(TextField, 'Người đi cùng (họ tên, quan hệ hoặc chức danh)'), 'Con gái');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('choice-handover-staff')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trần Thu Hà').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Thực hiện lựa chọn'));
     await tester.pumpAndSettle();
 
     final body = jsonDecode(backend.calls('POST', '/alerts/20/execute-choice').single.body) as Map;
     expect((body['transferOut'] as Map)['transferUnit'], 'Bệnh viện X');
+    expect((body['transferOut'] as Map)['handoverStaffId'], 31);
     expect(find.text('Chưa xác nhận lại nguyện vọng'), findsOneWidget);
+  });
+
+  testWidgets('FR_050d_chuyenBenhVien_canhBaoChuaCoSuCo_chonLoaiSuCo_guiIncidentTypeId', (tester) async {
+    backend.on('GET', '/incident-types', 200, [
+      {'id': 7, 'code': 'OTHER_HEALTH_CARE', 'name': 'Sự cố sức khỏe/chăm sóc khác', 'active': true},
+      {'id': 8, 'code': 'OLD', 'name': 'Loại đã ngừng', 'active': false},
+    ]);
+    backend.on('POST', '/alerts/20/execute-choice', 201);
+    await pumpScreen(tester, backend, alertId: 20, flagId: 9);
+    await tester.tap(find.text('Chuyển bệnh viện'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Bệnh viện chuyển đến'), 'Bệnh viện X');
+    await tester.enterText(find.widgetWithText(TextField, 'Người đi cùng (họ tên, quan hệ hoặc chức danh)'), 'Con gái');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('choice-handover-staff')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trần Thu Hà').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Thực hiện lựa chọn'));
+    await tester.pumpAndSettle();
+    expect(find.text('Chọn loại sự cố'), findsOneWidget);
+    expect(backend.calls('POST', '/alerts/20/execute-choice'), isEmpty);
+
+    await tester.tap(find.byKey(const Key('choice-incident-type')));
+    await tester.pumpAndSettle();
+    expect(find.text('Loại đã ngừng'), findsNothing);
+    await tester.tap(find.text('Sự cố sức khỏe/chăm sóc khác').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Thực hiện lựa chọn'));
+    await tester.pumpAndSettle();
+
+    final body = jsonDecode(backend.calls('POST', '/alerts/20/execute-choice').single.body) as Map;
+    expect(body['incidentTypeId'], 7);
+    expect((body['transferOut'] as Map)['handoverStaffId'], 31);
   });
 }

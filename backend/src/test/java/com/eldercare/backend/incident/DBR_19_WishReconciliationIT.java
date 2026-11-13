@@ -18,8 +18,9 @@ class DBR_19_WishReconciliationIT extends EmergencyTestBase {
     private static final String CHECK = "/api/v1/incidents/{id}/confirm-wish-check";
     private static final String PROGRESSIONS = "/api/v1/incidents/{id}/progressions";
 
+    /** BR-M05-13: có nguyện vọng cuối đời thì phải xác nhận đã đối chiếu trước khi ghi biện pháp hồi sức. */
     @Test
-    void DBR_19_resuscitationBlockedUntilWishChecked() throws Exception {
+    void DBR_19_BR_M05_13_resuscitationBlockedUntilWishChecked() throws Exception {
         activeWish(WishChoice.STAY_PALLIATIVE);
         long incident = criticalIncident();
         String resuscitation = "{\"progressionTypeId\":" + resuscitationType() + ",\"content\":\"Ép tim\"}";
