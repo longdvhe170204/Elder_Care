@@ -181,12 +181,14 @@ public class AllocationCommandStore {
                 id);
     }
 
-    public void activateScheduled(long id, Instant at, Instant plannedAt, CheckedCareLevel level) {
+    /** FR-016a: ghi dấu thực hiện trễ khi chuyển theo lịch chạy trễ hơn CFG-M03-08 (quickstart 003 Q21). */
+    public void activateScheduled(long id, Instant at, Instant plannedAt, boolean late, CheckedCareLevel level) {
         jdbc.update(
-                "UPDATE bed_allocation SET status='ACTIVE',start_at=?,planned_at=?,waiting_for_bed_ready=FALSE,"
+                "UPDATE bed_allocation SET status='ACTIVE',start_at=?,planned_at=?,executed_late=?,waiting_for_bed_ready=FALSE,"
                         + "checked_care_level=?,care_level_source=? WHERE id=?",
                 Timestamp.from(at),
                 Timestamp.from(plannedAt),
+                late,
                 level.level().name(),
                 level.source().name(),
                 id);
