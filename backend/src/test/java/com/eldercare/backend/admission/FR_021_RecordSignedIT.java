@@ -50,6 +50,11 @@ class FR_021_RecordSignedIT extends ContractTestBase {
                         .value(today().plusDays(365).toString()));
 
         assertThat(contractStatus(id)).isEqualTo("ACTIVE");
+        // 001 api Profile.currentResidenceType "Từ hợp đồng Hiệu lực (004)", FR-051 (quickstart 001 Q32, B2)
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                        "/api/v1/residents/" + residentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentResidenceType").value("LONG_TERM_RESIDENTIAL"));
         assertThat(jdbc.queryForObject("SELECT signing_representative_id FROM contract WHERE id = ?", Long.class, id))
                 .isEqualTo(representativeOf(residentId));
         assertThat(jdbc.queryForObject("SELECT scan_file_id FROM contract WHERE id = ?", Long.class, id))

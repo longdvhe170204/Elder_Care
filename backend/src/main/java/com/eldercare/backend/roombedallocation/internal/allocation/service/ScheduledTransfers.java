@@ -313,7 +313,11 @@ public class ScheduledTransfers {
         Long actor = actor();
         allocations.close(old.id(), at, "SCHEDULED_TRANSFER", actor);
         allocations.activateScheduled(
-                future.id(), at, plannedAt, facts.careLevel(future.residentId()).orElseThrow());
+                future.id(),
+                at,
+                plannedAt,
+                states.executedLate(plannedAt, at),
+                facts.careLevel(future.residentId()).orElseThrow());
         var basis = new Basis("FR-029", requestId, null, null);
         states.transition(
                 old.bedId(), transition(BedEvent.TRANSFERRED_OUT, basis, requestId, plannedAt, actor, null, old.id()));

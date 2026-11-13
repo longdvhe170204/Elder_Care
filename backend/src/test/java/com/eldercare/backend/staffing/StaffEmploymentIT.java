@@ -143,6 +143,13 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
         terminate(now, null);
         assertThat(staff.get(employee).status()).isEqualTo("RESIGNED");
         assertThat(accounts.byStaff(employee).orElseThrow().status()).isEqualTo(AccountStatus.LOCKED);
+        // 002 US2 #4, FR-009 (quickstart 002 K7, B1): nhật ký khóa tài khoản ghi căn cứ BR-M09-04
+        assertThat(jdbc.queryForObject(
+                        "SELECT JSON_UNQUOTE(JSON_EXTRACT(basis, '$.ruleCode')) FROM audit_log WHERE action = 'ACCOUNT_LOCKED'"
+                                + " AND entity_id = ? ORDER BY id DESC LIMIT 1",
+                        String.class,
+                        Long.toString(accounts.byStaff(employee).orElseThrow().accountId())))
+                .isEqualTo("BR-M09-04");
         assertThat(jdbc.queryForObject(
                                 "SELECT withdrawn_on_resignation_at FROM shift_staff WHERE shift_id=? AND staff_id=?",
                                 java.sql.Timestamp.class,
