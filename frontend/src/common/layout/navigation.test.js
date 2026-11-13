@@ -22,6 +22,36 @@ describe('navForRole', () => {
     expect(keys(navForRole('CAREGIVER', (fn) => fn === 'MEDICATION_CATALOG'))).toContain('medication-catalog')
   })
 
+  // Quyền nạp từ Phụ lục 27 (V002_04) của từng vai trò ở các chức năng mà bốn mục dưới đây dùng
+  const GRANTED = {
+    NURSING_HOME_MANAGER: ['CARE_PLAN', 'VITAL_SIGN', 'ALERT_THRESHOLD', 'EXAM_TREATMENT', 'ACCOUNT_PERMISSION_PARAMETER'],
+    FLOOR_MANAGER: ['CARE_PLAN', 'VITAL_SIGN', 'ALERT_THRESHOLD', 'EXAM_TREATMENT'],
+    DOCTOR: ['CARE_PLAN', 'VITAL_SIGN', 'ALERT_THRESHOLD', 'EXAM_TREATMENT'],
+    NURSING_STAFF: ['CARE_PLAN', 'VITAL_SIGN', 'ALERT_THRESHOLD', 'EXAM_TREATMENT'],
+    CAREGIVER: ['CARE_PLAN', 'VITAL_SIGN'],
+    KITCHEN_STAFF: [],
+    OFFICE_STAFF: ['ACCOUNT_PERMISSION_PARAMETER'],
+    ACCOUNTANT: [],
+  }
+  const rolesSeeing = (key) =>
+    Object.keys(GRANTED).filter((role) => keys(navForRole(role, (fn) => GRANTED[role].includes(fn))).includes(key))
+
+  it('có quyền thật: Danh mục sức khỏe chỉ hiện cho Quản lý viện, Bác sĩ, Điều dưỡng', () => {
+    expect(rolesSeeing('health-catalog')).toEqual(['NURSING_HOME_MANAGER', 'DOCTOR', 'NURSING_STAFF'])
+  })
+
+  it('có quyền thật: Giấy phép và khám không hiện cho Hành chính', () => {
+    expect(rolesSeeing('facility-license')).toEqual(['NURSING_HOME_MANAGER', 'FLOOR_MANAGER', 'DOCTOR', 'NURSING_STAFF'])
+  })
+
+  it('có quyền thật: Thời khóa biểu chỉ hiện cho Trưởng tầng, Điều dưỡng (005 FR-048)', () => {
+    expect(rolesSeeing('care-timetable')).toEqual(['FLOOR_MANAGER', 'NURSING_STAFF'])
+  })
+
+  it('có quyền thật: Lịch đo và ngưỡng không hiện cho Nhân viên chăm sóc', () => {
+    expect(rolesSeeing('measurement-schedules')).toEqual(['NURSING_HOME_MANAGER', 'FLOOR_MANAGER', 'DOCTOR', 'NURSING_STAFF'])
+  })
+
   it('bản mẫu không có backend: lọc theo vai trò', () => {
     const expected = NAV_GROUPS.flatMap((g) => g.items)
       .filter((i) => i.roles.includes('KITCHEN_STAFF'))
