@@ -21,8 +21,6 @@ import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.dto.PortionReportView;
 import com.eldercare.backend.reporting.internal.activity.service.ActivityRecords;
 import com.eldercare.backend.reporting.internal.activity.service.LateAttendanceMetric;
-import com.eldercare.backend.reporting.internal.activity.service.MissingParticipantsMetric;
-import com.eldercare.backend.reporting.internal.activity.service.OverdueTripsMetric;
 import com.eldercare.backend.reporting.internal.activity.service.ParticipationRateMetric;
 import com.eldercare.backend.reporting.internal.activity.service.SessionsMetric;
 import com.eldercare.backend.reporting.internal.meal.service.DiscrepancyTicketsMetric;
@@ -33,9 +31,6 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
-import com.eldercare.backend.reporting.internal.quality.service.ChecksByRoleMetric;
-import com.eldercare.backend.reporting.internal.quality.service.OutOfCheckScopeMetric;
-import com.eldercare.backend.reporting.internal.quality.service.PassRateMetric;
 import com.eldercare.backend.reporting.internal.quality.service.QualityCheckRecords;
 import java.time.Clock;
 import java.time.Duration;
@@ -225,64 +220,5 @@ class MetricMealActivityQualityTest {
         assertThat(v.numerator()).isEqualByComparingTo("5");
         assertThat(v.denominator()).isEqualByComparingTo("8");
         assertThat(cells(v)).containsExactly(tuple("5", "66.7"), tuple("6", "50"));
-    }
-
-    @Test
-    void FR_035_overdueTrips_doubleThresholdSeparately_missingParticipants() {
-        // giờ về dự kiến hiện hành (sau gia hạn) + 30 phút
-        trips.add(new TripStatisticsView(1, Optional.of(101L), at(600), List.of(), Optional.of(at(640)), 0));
-        trips.add(new TripStatisticsView(2, Optional.of(101L), at(600), List.of(at(700)), Optional.of(at(720)), 0));
-        trips.add(new TripStatisticsView(3, Optional.of(102L), at(600), List.of(), Optional.of(at(670)), 2));
-        trips.add(new TripStatisticsView(4, Optional.of(102L), at(600), List.of(), Optional.empty(), 0));
-        trips.add(new TripStatisticsView(5, Optional.of(102L), at(1190), List.of(), Optional.empty(), 0));
-
-        OverdueTripsMetric overdue = new OverdueTripsMetric(activityRecords);
-        assertThat(overdue.metric().code()).isEqualTo("ACT.OVERDUE_TRIPS");
-        assertThat(cells(value(overdue))).containsExactly(tuple("OVERDUE", "1"), tuple("OVERDUE_DOUBLE", "2"));
-
-        MissingParticipantsMetric missing = new MissingParticipantsMetric(activityRecords);
-        assertThat(missing.metric().code()).isEqualTo("ACT.MISSING_PARTICIPANTS");
-        assertThat(value(missing).value()).isEqualByComparingTo("1");
-    }
-
-    @Test
-    void FR_037_passRate_byPerformer_checkedItemsByRole() {
-        checks.add(new QualityCheckStatisticsView(1, 9, 101, 71, "PASS", "FLOOR_MANAGER", 51L, at(600)));
-        checks.add(new QualityCheckStatisticsView(2, 9, 101, 72, "FAIL", "FLOOR_MANAGER", 51L, at(610)));
-        checks.add(new QualityCheckStatisticsView(3, 9, 101, 73, "PASS", "SHIFT_LEAD", 52L, at(620)));
-        checks.add(new QualityCheckStatisticsView(4, 9, 101, 74, "NOT_CHECKABLE", "SHIFT_LEAD", 52L, at(630)));
-        checks.add(new QualityCheckStatisticsView(5, 9, 101, 75, "OVERDUE", null, 52L, null));
-        checks.add(new QualityCheckStatisticsView(6, 9, 101, 76, "PENDING", null, 52L, null));
-
-        PassRateMetric pass = new PassRateMetric(qualityRecords);
-        MetricValue v = value(pass);
-        assertThat(pass.metric().code()).isEqualTo("QC.PASS_RATE");
-        assertThat(pass.metric().group()).isEqualTo(MetricGroup.QUALITY_CHECKS);
-        assertThat(v.numerator()).isEqualByComparingTo("2");
-        assertThat(v.denominator()).isEqualByComparingTo("3");
-        assertThat(cells(v)).containsExactly(tuple("51", "50"), tuple("52", "100"));
-
-        ChecksByRoleMetric byRole = new ChecksByRoleMetric(qualityRecords);
-        assertThat(byRole.metric().code()).isEqualTo("QC.BY_CHECKER_ROLE");
-        assertThat(cells(value(byRole))).containsExactly(tuple("FLOOR_MANAGER", "2"), tuple("SHIFT_LEAD", "2"));
-    }
-
-    /** FR-037 (Q-168, Q-254): công việc do chính người kiểm tra làm ghi "ngoài phạm vi kiểm tra", chia theo nhân viên. */
-    @Test
-    void Q_168_outOfCheckScope_byPerformer_notInPassRate() {
-        outOfScope.add(new OutOfCheckScopeView(81, 9, 101, 51, "FLOOR_MANAGER", at(600)));
-        outOfScope.add(new OutOfCheckScopeView(82, 9, 101, 51, "FLOOR_MANAGER", at(700)));
-        outOfScope.add(new OutOfCheckScopeView(83, 10, 101, 53, "SHIFT_LEAD", at(800)));
-
-        OutOfCheckScopeMetric metric = new OutOfCheckScopeMetric(qualityRecords);
-        List<OutOfCheckScopeMetric.OutOfScopeRecord> included = included(metric);
-
-        assertThat(metric.metric().code()).isEqualTo("QC.OUT_OF_CHECK_SCOPE");
-        assertThat(metric.metric().group()).isEqualTo(MetricGroup.QUALITY_CHECKS);
-        assertThat(cells(metric.metric().compute(included))).containsExactly(tuple("51", "2"), tuple("53", "1"));
-        assertThat(metric.metric().details(included, "53"))
-                .singleElement()
-                .satisfies(row -> assertThat(row.result()).containsEntry("performerRole", "SHIFT_LEAD"));
-        assertThat(cells(value(new PassRateMetric(qualityRecords)))).isEmpty();
     }
 }

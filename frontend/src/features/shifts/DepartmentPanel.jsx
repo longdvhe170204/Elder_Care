@@ -37,7 +37,7 @@ export function DepartmentPanel({ departments, staff, create, update, onDone }) 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4 md:p-5">
       <div className="flex flex-wrap justify-between gap-3">
-        <h2 className="type-section">Bộ phận</h2>
+        <h2 className="type-title">Bộ phận</h2>
         {create && (
           <Button
             variant="outline"

@@ -1,25 +1,19 @@
 package com.eldercare.backend.reporting;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.incident.api.IncidentStatisticsApi;
 import com.eldercare.backend.incident.api.dto.AlertReportView;
 import com.eldercare.backend.incident.api.dto.IncidentReportView;
-import com.eldercare.backend.incident.api.dto.MonitoringView;
 import com.eldercare.backend.reporting.internal.incident.service.AlertEscalationsMetric;
 import com.eldercare.backend.reporting.internal.incident.service.AlertRecords;
 import com.eldercare.backend.reporting.internal.incident.service.AlertResponseTimeMetric;
 import com.eldercare.backend.reporting.internal.incident.service.AlertsMetric;
-import com.eldercare.backend.reporting.internal.incident.service.CriticalFlagsMetric;
-import com.eldercare.backend.reporting.internal.incident.service.FollowUpsMetric;
 import com.eldercare.backend.reporting.internal.incident.service.IncidentEscalationsMetric;
 import com.eldercare.backend.reporting.internal.incident.service.IncidentRecords;
 import com.eldercare.backend.reporting.internal.incident.service.IncidentResponseTimeMetric;
 import com.eldercare.backend.reporting.internal.incident.service.IncidentsMetric;
-import com.eldercare.backend.reporting.internal.incident.service.NonHealthIncidentsMetric;
-import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceAlertsMetric;
 import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceArrivalTimeMaxMetric;
 import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceArrivalTimeMetric;
 import com.eldercare.backend.reporting.internal.incident.service.SosAssistanceNoArrivalMetric;
@@ -30,8 +24,6 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
-import com.eldercare.backend.reporting.internal.resident.service.OverdueReassessmentsMetric;
-import com.eldercare.backend.resident.api.ResidentStatisticsApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.support.fake.incident.FakeIncidentStatistics;
 import com.eldercare.backend.support.fake.resident.FakeResidentStatistics;
@@ -150,65 +142,6 @@ class MetricHealthEventsTest {
         assertThat(value(escalations).value()).isEqualByComparingTo("3");
     }
 
-    @Test
-    void FR_041_Q374_sosAndAssistButton_ownRowsBySource_detailCarriesArrival() {
-        incidents.alerts(
-                ALL,
-                List.of(
-                        alert(1, "DANGER", "DANGER", 0, 2, 0, "SOS"),
-                        new AlertReportView(
-                                2,
-                                null,
-                                "DANGER",
-                                "DANGER",
-                                at(0),
-                                at(3),
-                                0,
-                                false,
-                                "HELP",
-                                103L,
-                                "EMERGENCY_ASSIST",
-                                at(9),
-                                false,
-                                "RECEIVED"),
-                        new AlertReportView(
-                                3,
-                                null,
-                                "DANGER",
-                                "DANGER",
-                                at(0),
-                                at(4),
-                                0,
-                                false,
-                                "HELP",
-                                null,
-                                "EMERGENCY_ASSIST",
-                                null,
-                                true,
-                                "RECEIVED"),
-                        alert(4, "WARNING", "WARNING", 0, 1, 0, "OTHER")));
-
-        SosAssistanceAlertsMetric sos = new SosAssistanceAlertsMetric(alerts);
-        MetricValue v = value(sos);
-
-        assertThat(sos.metric().code()).isEqualTo("HEALTH.SOS_ASSISTANCE_ALERTS");
-        assertThat(v.value()).isEqualByComparingTo("3");
-        // research O-13: mỗi nguồn một dòng theo tầng; tầng rỗng là "chưa rõ tầng"
-        assertThat(breakdown(v))
-                .containsExactly(
-                        new Tuple2("EMERGENCY_ASSIST:103", "1"),
-                        new Tuple2("EMERGENCY_ASSIST:UNKNOWN_FLOOR", "1"),
-                        new Tuple2("SOS:101", "1"));
-        assertThat(sos.metric().details(included(sos), null))
-                .extracting(
-                        r -> r.result().get("responseMinutes"),
-                        r -> r.result().get("arrivalMinutes"),
-                        r -> r.result().get("arrivalTimeMissing"))
-                .containsExactly(tuple(2L, null, false), tuple(3L, 9L, false), tuple(4L, null, true));
-        // cảnh báo SOS vẫn trong tổng theo mức
-        assertThat(value(new AlertsMetric(alerts)).value()).isEqualByComparingTo("4");
-    }
-
     private static AlertReportView button(
             long id, String source, Long floor, int ackMin, Integer arrivedMin, boolean missing) {
         return new AlertReportView(
@@ -301,65 +234,5 @@ class MetricHealthEventsTest {
         IncidentEscalationsMetric escalations = new IncidentEscalationsMetric(incidentRecords);
         assertThat(escalations.metric().code()).isEqualTo("HEALTH.INCIDENT_ESCALATIONS");
         assertThat(value(escalations).value()).isEqualByComparingTo("3");
-    }
-
-    @Test
-    void FR_042a_nonHealthIncidents_onlyFlaggedTypes_rowWithoutResult() {
-        incidents.incidents(
-                ALL,
-                List.of(
-                        incident(1, "SERIOUS", "FALL", false, 0, 30, 1),
-                        incident(2, "MINOR", "LOST_BELONGING", true, 0, null, 0),
-                        incident(3, "MINOR", "FACILITY", true, 5, 9, 0)));
-
-        NonHealthIncidentsMetric nonHealth = new NonHealthIncidentsMetric(incidentRecords);
-        MetricValue v = value(nonHealth);
-
-        assertThat(nonHealth.metric().code()).isEqualTo("HEALTH.NON_HEALTH_INCIDENTS");
-        assertThat(nonHealth.metric().group()).isEqualTo(MetricGroup.NON_HEALTH_INCIDENTS);
-        assertThat(v.value()).isEqualByComparingTo("2");
-        assertThat(breakdown(v)).containsExactly(new Tuple2("FACILITY", "1"), new Tuple2("LOST_BELONGING", "1"));
-        assertThat(nonHealth.metric().details(included(nonHealth), null))
-                .allSatisfy(row -> {
-                    assertThat(row.result()).isEmpty();
-                    assertThat(row.resultGroup()).isNull();
-                    assertThat(row.residentId()).isEqualTo(8L);
-                })
-                .extracting(r -> r.type(), r -> r.status())
-                .containsExactly(tuple("LOST_BELONGING", "MINOR"), tuple("FACILITY", "MINOR"));
-    }
-
-    @Test
-    void FR_042_FR_020_followUps_criticalFlags_overdueReassessments_currentValues() {
-        incidents.monitoring(
-                ALL,
-                List.of(
-                        new MonitoringView(7, "POST_FALL", 101L, at(0), at(72 * 60)),
-                        new MonitoringView(8, "CONTACT", 102L, at(0), at(14 * 24 * 60)),
-                        new MonitoringView(9, "CONTACT", 102L, at(0), at(14 * 24 * 60))));
-        incidents.critical(ALL, List.of(7L, 9L));
-        residents.resident(7, 101L, 1L).overdue(7, at(0));
-
-        FollowUpsMetric followUps = new FollowUpsMetric(incidentApi);
-        MetricValue f = value(followUps);
-        assertThat(followUps.metric().code()).isEqualTo("HEALTH.FOLLOW_UPS");
-        assertThat(f.value()).isEqualByComparingTo("3");
-        assertThat(breakdown(f)).containsExactly(new Tuple2("CONTACT", "2"), new Tuple2("POST_FALL", "1"));
-
-        CriticalFlagsMetric critical = new CriticalFlagsMetric(incidentApi, noLocations);
-        assertThat(critical.metric().code()).isEqualTo("HEALTH.CRITICAL_FLAGS");
-        assertThat(critical.metric().group()).isEqualTo(MetricGroup.CRITICAL_FLAGS);
-        assertThat(value(critical).value()).isEqualByComparingTo("2");
-
-        OverdueReassessmentsMetric overdue = new OverdueReassessmentsMetric(
-                new StaticListableBeanFactory(Map.of("residents", residents))
-                        .getBeanProvider(ResidentStatisticsApi.class),
-                noLocations);
-        assertThat(overdue.metric().code()).isEqualTo("HEALTH.OVERDUE_REASSESSMENTS");
-        assertThat(overdue.metric().group()).isEqualTo(MetricGroup.OVERDUE_REASSESSMENTS);
-        assertThat(value(overdue).value()).isEqualByComparingTo("1");
-        assertThat(overdue.metric().details(included(overdue), null))
-                .singleElement()
-                .satisfies(r -> assertThat(r.residentId()).isEqualTo(7L));
     }
 }

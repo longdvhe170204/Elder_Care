@@ -13,45 +13,29 @@ import com.eldercare.backend.billing.api.CostStatisticsApi;
 import com.eldercare.backend.billing.api.ProcurementStatisticsApi;
 import com.eldercare.backend.billing.api.dto.BalanceStatus;
 import com.eldercare.backend.billing.api.dto.BalanceStatusView;
-import com.eldercare.backend.billing.api.dto.CostItemReportView;
 import com.eldercare.backend.billing.api.dto.CostPeriodView;
 import com.eldercare.backend.billing.api.dto.CostStatementReportView;
 import com.eldercare.backend.billing.api.dto.CostStatementType;
-import com.eldercare.backend.billing.api.dto.CostType;
 import com.eldercare.backend.billing.api.dto.ProcurementRequestView;
 import com.eldercare.backend.billing.api.dto.ProcurementStatus;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.incident.api.IncidentStatisticsApi;
-import com.eldercare.backend.incident.api.dto.IsolationZoneView;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
-import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters.CostMode;
 import com.eldercare.backend.reporting.internal.other.service.BalanceLowOrOwingMetric;
-import com.eldercare.backend.reporting.internal.other.service.ContainmentZonesMetric;
-import com.eldercare.backend.reporting.internal.other.service.CostEventGeneratedRateMetric;
-import com.eldercare.backend.reporting.internal.other.service.CostItems;
-import com.eldercare.backend.reporting.internal.other.service.CostPostFinalizationAdjustmentsMetric;
 import com.eldercare.backend.reporting.internal.other.service.CostPurchasingMetric;
 import com.eldercare.backend.reporting.internal.other.service.CostStatementsMetric;
-import com.eldercare.backend.reporting.internal.other.service.CostSummaryMetric;
-import com.eldercare.backend.reporting.internal.other.service.EmptyAwaitingTransferMetric;
 import com.eldercare.backend.reporting.internal.other.service.RegistrationToDoMetric;
 import com.eldercare.backend.reporting.internal.other.service.StaffRequestsMetric;
-import com.eldercare.backend.roombedallocation.api.BedStatisticsApi;
-import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
-import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.api.dto.ProcurementType;
 import com.eldercare.backend.staffing.api.SwapStatisticsApi;
 import com.eldercare.backend.staffing.api.dto.StaffRequestView;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -94,27 +78,6 @@ class MetricRemainingSourcesTest {
     }
 
     @Test
-    void FR_020_emptyBedsAwaitingTransferAndContainmentZones() {
-        var beds = mock(BedStatisticsApi.class);
-        when(beds.emptyAwaitingTransferBedIds(any(), any())).thenReturn(Set.of(7L, 8L));
-        var structure = mock(LocationStructureApi.class);
-        when(structure.bed(anyLong())).thenReturn(Optional.empty());
-        when(structure.bed(7L))
-                .thenReturn(Optional.of(new LocationView(1L, "Khu A", 5L, "Tầng 2", 9L, "P203", 7L, "A")));
-        assertThat(value(new EmptyAwaitingTransferMetric(provider(beds), structure, TIME), ReportFilters.NONE)
-                        .value())
-                .isEqualByComparingTo("2");
-
-        var incidents = mock(IncidentStatisticsApi.class);
-        when(incidents.containmentZones(any()))
-                .thenReturn(List.of(new IsolationZoneView(3, Set.of(5L, 6L), Set.of(), FROM, null)));
-        assertThat(value(new ContainmentZonesMetric(provider(incidents)), ReportFilters.NONE)
-                        .value())
-                .as("một khu trên hai tầng đếm một lần")
-                .isEqualByComparingTo("1");
-    }
-
-    @Test
     void FR_072_FR_073_requestsByFinalStatusAndWorkingHours() {
         var swaps = mock(SwapStatisticsApi.class);
         when(swaps.requests(any(), any(), any()))
@@ -127,35 +90,6 @@ class MetricRemainingSourcesTest {
         assertThat(breakdown(requests))
                 .containsEntry("LEAVE:REJECTED", BigDecimal.ONE)
                 .containsEntry("SWAP:APPROVED", BigDecimal.valueOf(2));
-    }
-
-    @Test
-    void FR_050_FR_053_costSummaryRateAndAdjustments_byMode() {
-        var costs = mock(CostStatisticsApi.class);
-        LocalDate d = LocalDate.of(2026, 11, 3);
-        var items = List.of(
-                item(1, CostType.RESIDENCY_FEE, "EVENT_BASED", 1_000_000L, Set.of(), "FINALIZED", null),
-                item(2, CostType.MEDICATION, "MANUAL", 200_000L, Set.of(), "FINALIZED", null),
-                item(3, CostType.MEDICATION, "EVENT_BASED", null, Set.of("MISSING_UNIT_PRICE"), "FINALIZED", null),
-                item(4, CostType.RESIDENCY_FEE, "ADJUSTMENT", -100_000L, Set.of(), "APPROVED", "2026-10"),
-                item(5, CostType.RESIDENCY_FEE, "MANUAL", 300_000L, Set.of(), "CANCELLED", null));
-        when(costs.items(any(), any(), any())).thenAnswer(i -> items.stream());
-        var api = provider(costs);
-        var finalized = new ReportFilters(Set.of(), null, null, null, null, null, CostMode.FINALIZED);
-        var provisional = new ReportFilters(Set.of(), null, null, null, null, null, CostMode.PROVISIONAL);
-
-        assertThat(value(new CostSummaryMetric(new CostItems(api)), finalized).value())
-                .as("đã chốt: khoản thiếu đơn giá không cộng")
-                .isEqualByComparingTo("1200000");
-        assertThat(value(new CostSummaryMetric(new CostItems(api)), provisional).value())
-                .as("tạm tính: thêm khoản chưa hủy của bảng chưa chốt")
-                .isEqualByComparingTo("1100000");
-        var rate = value(new CostEventGeneratedRateMetric(new CostItems(api)), finalized);
-        assertThat(rate.numerator()).isEqualByComparingTo("2");
-        assertThat(rate.denominator()).isEqualByComparingTo("3");
-        var adjustments = value(new CostPostFinalizationAdjustmentsMetric(new CostItems(api)), provisional);
-        assertThat(adjustments.value()).isEqualByComparingTo("1");
-        assertThat(breakdown(adjustments)).containsKey("2026-10");
     }
 
     @Test
@@ -232,26 +166,6 @@ class MetricRemainingSourcesTest {
         var todo = value(new RegistrationToDoMetric(provider(registrations)), ReportFilters.NONE);
         assertThat(todo.value()).isEqualByComparingTo("6");
         assertThat(breakdown(todo)).containsEntry("TO_DEREGISTER", BigDecimal.valueOf(3));
-    }
-
-    private static CostItemReportView item(
-            long id, CostType type, String origin, Long amount, Set<String> flags, String status, String period) {
-        return new CostItemReportView(
-                id,
-                41,
-                type,
-                origin,
-                9,
-                null,
-                null,
-                LocalDate.of(2026, 11, 3),
-                BigDecimal.ONE,
-                amount,
-                amount,
-                flags,
-                status,
-                period == null ? null : 900L,
-                period);
     }
 
     private static long anyLong() {

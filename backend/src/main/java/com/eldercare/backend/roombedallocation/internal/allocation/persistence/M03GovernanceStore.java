@@ -19,6 +19,11 @@ import org.springframework.stereotype.Repository;
 /** T010: chỉ truy vấn bảng M03; bảng của user story chưa triển khai được nhận diện rõ trước khi truy vấn. */
 @Repository
 public class M03GovernanceStore {
+    /** Lịch sử cách ly phòng: dòng {@code status_history} của M03 (R-15, gộp 2026-11-13). */
+    public static final String ROOM_ISOLATION = "status_history:M03.ROOM/ISOLATION";
+
+    private static final String ROOM_ISOLATION_ROWS = "entity_type='M03.ROOM' AND attribute='ISOLATION'";
+
     private final JdbcTemplate jdbc;
 
     public M03GovernanceStore(JdbcTemplate jdbc) {
@@ -75,8 +80,18 @@ public class M03GovernanceStore {
     }
 
     public Stream<TimedM03Record> timed(String table, Instant cutoff) {
-        if (!Set.of("bed_state_history", "room_isolation_history").contains(table))
-            throw new IllegalArgumentException("Bảng lịch sử không thuộc M03");
+        if (table.equals(ROOM_ISOLATION))
+            return jdbc
+                    .query(
+                            "SELECT id,starts_at FROM status_history WHERE " + ROOM_ISOLATION_ROWS
+                                    + " AND starts_at<? ORDER BY starts_at,id",
+                            (rs, i) -> new TimedM03Record(
+                                    rs.getLong(1),
+                                    rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                                    null),
+                            LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC))
+                    .stream();
+        if (!table.equals("bed_state_history")) throw new IllegalArgumentException("Bảng lịch sử không thuộc M03");
         if (!exists(table)) return Stream.empty();
         String allocation =
                 table.equals("bed_state_history") ? "IF(basis_type='BED_ALLOCATION',basis_id,NULL)" : "NULL";
@@ -124,16 +139,24 @@ public class M03GovernanceStore {
     }
     /** SQL xóa chỉ nhận bảng cố định, dùng kết nối retention do job truyền vào. */
     public void delete(JdbcTemplate retention, String table, List<Long> ids) {
-        if (!Set.of("bed_allocation", "bed_state_history", "room_isolation_history")
-                .contains(table)) throw new IllegalArgumentException("Bảng không thuộc chính sách M03");
-        if (ids.isEmpty() || !exists(table)) return;
+        if (!Set.of("bed_allocation", "bed_state_history", ROOM_ISOLATION).contains(table))
+            throw new IllegalArgumentException("Bảng không thuộc chính sách M03");
+        if (ids.isEmpty()) return;
         String placeholders = String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
         Object[] values = ids.toArray();
+        if (table.equals(ROOM_ISOLATION)) {
+            retention.update(
+                    "DELETE FROM status_history WHERE " + ROOM_ISOLATION_ROWS + " AND id IN (" + placeholders + ")",
+                    values);
+            return;
+        }
+        if (!exists(table)) return;
         if (table.equals("bed_allocation")) {
-            if (exists("bed_backfill_request"))
-                retention.update(
-                        "DELETE FROM bed_backfill_request WHERE current_allocation_id IN (" + placeholders + ")",
-                        values);
+            // Chỉ mục yêu cầu nhập bù của phân bổ ở record_event (R-15, gộp 2026-11-13).
+            retention.update(
+                    "DELETE FROM record_event WHERE entity_type='M03.BED_ALLOCATION'"
+                            + " AND kind='M03.BED_BACKFILL_REQUEST' AND entity_id IN (" + placeholders + ")",
+                    values);
             // T066: dấu nhắc của phân bổ trên reminder_marker (eldercare_retention có quyền DELETE, V000_10).
             retention.update(
                     "DELETE FROM reminder_marker WHERE kind LIKE 'M03.ALLOCATION\\_REMINDER.%'"

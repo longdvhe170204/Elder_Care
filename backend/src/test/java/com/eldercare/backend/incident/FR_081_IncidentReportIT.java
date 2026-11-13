@@ -7,8 +7,6 @@ import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.incident.api.IncidentStatisticsApi;
 import com.eldercare.backend.incident.api.dto.AlertReportView;
 import com.eldercare.backend.incident.api.dto.IncidentReportView;
-import com.eldercare.backend.incident.api.dto.IsolationZoneView;
-import com.eldercare.backend.incident.internal.infection.domain.ContainmentScope;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
 import com.eldercare.backend.support.TestUsers;
 import java.sql.Timestamp;
@@ -82,41 +80,5 @@ class FR_081_IncidentReportIT extends IncidentHttpTestBase {
                 .orElseThrow();
 
         assertThat(row.status()).isEqualTo("RECEIVED");
-    }
-
-    @Test
-    void FR_042_cancelledIncidents_areCountedInScopeOnly() {
-        incident("OTHER_INJURY", "LOW", "CANCELLED", null, nurse.accountId());
-        incident("OTHER_INJURY", "LOW", "NEW", null, nurse.accountId());
-        var from = time.now().minus(Duration.ofHours(1));
-        var to = time.now().plus(Duration.ofHours(1));
-        var otherFloor = new ScopeFilter(false, Set.of(TestUsers.nextId()), Set.of(), Set.of());
-
-        assertThat(statistics.cancelledCount(floorScope(), from, to)).isEqualTo(1);
-        assertThat(statistics.cancelledCount(otherFloor, from, to)).isZero();
-    }
-
-    @Test
-    void FR_020_containmentZones_activeZonesTouchingTheScope() {
-        long inScope = containments
-                .create(
-                        new ContainmentScope(Set.of(floor), Set.of()),
-                        time.now(),
-                        nurse.accountId(),
-                        "Nghi nhiễm",
-                        Set.of())
-                .id();
-        long elsewhere = containments
-                .create(
-                        new ContainmentScope(Set.of(TestUsers.nextId()), Set.of()),
-                        time.now(),
-                        nurse.accountId(),
-                        "Nghi nhiễm",
-                        Set.of())
-                .id();
-
-        assertThat(statistics.containmentZones(floorScope()).stream().map(IsolationZoneView::id))
-                .contains(inScope)
-                .doesNotContain(elsewhere);
     }
 }

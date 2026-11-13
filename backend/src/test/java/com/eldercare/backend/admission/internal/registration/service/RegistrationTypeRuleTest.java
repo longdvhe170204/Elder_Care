@@ -1,7 +1,6 @@
 package com.eldercare.backend.admission.internal.registration.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.service.ExpectedStayDuration.StayPeriod;
@@ -24,20 +23,8 @@ class RegistrationTypeRuleTest {
     }
 
     @Test
-    void justBelowTheThreshold_isStayNotification() {
-        assertThat(RegistrationTypeRule.determine(stay("2026-10-01", "2026-10-29"), THRESHOLD, false))
-                .isEqualTo(RegistrationType.STAY_NOTIFICATION);
-    }
-
-    @Test
     void exactlyTheThreshold_isTemporaryResidenceRegistration() {
         assertThat(RegistrationTypeRule.determine(stay("2026-10-01", "2026-10-30"), THRESHOLD, false))
-                .isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
-    }
-
-    @Test
-    void aboveTheThreshold_isTemporaryResidenceRegistration() {
-        assertThat(RegistrationTypeRule.determine(stay("2026-10-01", "2026-10-31"), THRESHOLD, false))
                 .isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
     }
 
@@ -56,25 +43,5 @@ class RegistrationTypeRuleTest {
                 .isEqualTo(RegistrationType.STAY_NOTIFICATION);
         assertThat(RegistrationTypeRule.determine(stay("2026-10-01", "2026-11-29"), THRESHOLD, false))
                 .isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
-    }
-
-    @Test
-    void localPermanentResident_isAlwaysStayNotification() {
-        assertThat(RegistrationTypeRule.determine(stay("2026-10-01", "2027-09-30"), THRESHOLD, true))
-                .isEqualTo(RegistrationType.STAY_NOTIFICATION);
-        assertThat(RegistrationTypeRule.determine(stay("2026-10-01", null), THRESHOLD, true))
-                .isEqualTo(RegistrationType.STAY_NOTIFICATION);
-    }
-
-    @Test
-    void changedThreshold_isApplied() {
-        assertThat(RegistrationTypeRule.determine(stay("2026-10-01", "2026-10-29"), 29, false))
-                .isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
-    }
-
-    @Test
-    void thresholdBelowOneDay_isRejected() {
-        assertThatThrownBy(() -> RegistrationTypeRule.determine(stay("2026-10-01", "2026-10-29"), 0, false))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 }

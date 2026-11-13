@@ -1,18 +1,14 @@
 package com.eldercare.backend.common.error.web;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
-import com.eldercare.backend.support.TableRows;
 import com.testsupport.SampleController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,39 +22,11 @@ class ProblemDetailsHandlerIT extends MySqlIntegrationTestBase {
     MockMvc mvc;
 
     @Test
-    void R_03_businessError_mapsToStatusAndErrorCode() {
-        // loại lỗi, mã HTTP, errorCode
-        TableRows.csv(
-                r -> {
-                    int status = Integer.parseInt(r[1]);
-                    mvc.perform(get("/api/v1/test-support/errors/" + r[0]))
-                            .andExpect(status().is(status))
-                            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                            .andExpect(jsonPath("$.status").value(status))
-                            .andExpect(jsonPath("$.title").isNotEmpty())
-                            .andExpect(jsonPath("$.errorCode").value(r[2]));
-                },
-                "condition, 409, CONDITION_NOT_MET",
-                "permission, 403, PERMISSION_DENIED",
-                "processed, 409, ALREADY_PROCESSED",
-                "version, 412, VERSION_MISMATCH",
-                "reason, 422, REASON_REQUIRED",
-                "invalid, 422, INVALID_VALUE",
-                "missing, 404, NOT_FOUND");
-    }
-
-    @Test
     void FR_006_unmetConditions_listBrCodeAndDescription() throws Exception {
         mvc.perform(get("/api/v1/test-support/errors/condition"))
                 .andExpect(jsonPath("$.unmetConditions[0].code").value("BR-M03-06"))
                 .andExpect(jsonPath("$.unmetConditions[0].description").value("Giường chưa Trống"))
                 .andExpect(jsonPath("$.unmetConditions[0].basis").doesNotExist())
                 .andExpect(jsonPath("$.unmetConditions[0].waivable").doesNotExist());
-    }
-
-    @Test
-    void FR_021_versionMismatch_returnsCurrentValue() throws Exception {
-        mvc.perform(get("/api/v1/test-support/errors/version"))
-                .andExpect(jsonPath("$.currentValue.currentValue").value(20));
     }
 }

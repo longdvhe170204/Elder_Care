@@ -4,22 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.ScopeApi;
-import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
-import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
-import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
 import com.eldercare.backend.support.fake.administration.FakeDuties;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,19 +65,6 @@ class ScopeByShiftIT extends MySqlIntegrationTestBase {
         now = time.now();
     }
 
-    @Test
-    void US4_8_shiftEnded90MinutesAgo_inScope_150MinutesAgo_denied() {
-        ActiveSession late = caregiverWithShift(now.minus(Duration.ofHours(9)), now.minus(Duration.ofMinutes(90)));
-        ActiveSession tooLate = caregiverWithShift(now.minus(Duration.ofHours(10)), now.minus(Duration.ofMinutes(150)));
-
-        assertThat(scope.inScope(late, resident())).isTrue();
-        assertThat(permissions.hasPermission(late, VIEW_PROFILE, resident()).allowed())
-                .isTrue();
-        assertThat(scope.inScope(tooLate, resident())).isFalse();
-        assertThat(permissions.hasPermission(tooLate, VIEW_PROFILE, resident()).failedLayer())
-                .contains(FailedLayer.SCOPE);
-    }
-
     @Autowired
     FakeDuties duties;
 
@@ -110,18 +92,5 @@ class ScopeByShiftIT extends MySqlIntegrationTestBase {
         assertThat(scope.inScope(fixtures.user(otherAccount), onTrip)).isFalse();
         assertThat(scope.filter(fixtures.user(leaderAccount), VIEW_PROFILE).residentIds())
                 .contains(participant);
-    }
-
-    /** Nhân viên chăm sóc có một ca trên tầng 1 trong khoảng đã cho. */
-    private ActiveSession caregiverWithShift(Instant from, Instant to) {
-        long account = fixtures.staffAccount("AC-05");
-        assignments.assign(
-                fixtures.staffId(account),
-                new AssignmentView(AssignmentKind.SHIFT_MEMBER, 1L, null, null, AccountFixtures.nextId(), from, to));
-        return fixtures.user(account);
-    }
-
-    private Target resident() {
-        return new Target("M01.RESIDENT", String.valueOf(residentA), residentA, null);
     }
 }

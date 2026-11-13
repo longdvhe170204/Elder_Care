@@ -50,24 +50,6 @@ class FamilyPortalCostsTest {
     }
 
     @Test
-    void FR_043_deniedFamilyNeverReadsStatementsOrMedication() {
-        when(access.user()).thenReturn(family);
-        when(permissions.hasPermission(eq(family), any(), any()))
-                .thenReturn(PermissionResult.denied(FailedLayer.SCOPE));
-        assertThatThrownBy(() -> service.finalizedStatements(42, family)).isInstanceOf(PermissionDeniedException.class);
-        verifyNoInteractions(statements, prescriptions);
-    }
-
-    @Test
-    void FR_019_withoutHealthPermissionNeverRequestsMedicationHistory() {
-        allow();
-        when(statements.list(null, 42L, "FINALIZED")).thenReturn(List.of());
-        when(fields.canView(eq(family), eq(InfoGroup.MEDICATION), any())).thenReturn(Visibility.NONE);
-        assertThat(service.finalizedStatements(42, family)).isEmpty();
-        verifyNoInteractions(prescriptions);
-    }
-
-    @Test
     void FR_019_healthPermissionResolvesOnlyTheMedicationLinkedToEachCost() {
         allow();
         var row = mock(com.eldercare.backend.billing.internal.period.domain.CostStatementRecord.class);

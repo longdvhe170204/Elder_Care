@@ -1,9 +1,12 @@
 package com.eldercare.backend.roombedallocation.internal.allocation.persistence;
 
+import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
 import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.roombedallocation.internal.allocation.domain.BackfillRequest;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedHold;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.HoldReason;
-import java.sql.Timestamp;
 import java.time.Instant;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,16 +16,19 @@ import org.springframework.stereotype.Repository;
 public class BedTransferStore {
     private final JdbcTemplate jdbc;
     private final AllocationReminderMarkers reminders;
+    private final RecordEventApi events;
 
-    public BedTransferStore(JdbcTemplate jdbc, AllocationReminderMarkers reminders) {
+    public BedTransferStore(JdbcTemplate jdbc, AllocationReminderMarkers reminders, RecordEventApi events) {
         this.jdbc = jdbc;
         this.reminders = reminders;
+        this.events = events;
     }
 
     public boolean medicalSafety(long reasonId) {
         return jdbc
                 .query(
-                        "SELECT medical_safety FROM bed_transfer_reason WHERE id=? AND status='ACTIVE' FOR SHARE",
+                        "SELECT COALESCE(JSON_VALUE(attributes,'$.medicalSafety')='true',FALSE) FROM catalog_item"
+                                + " WHERE id=? AND catalog_type='M03.BED_TRANSFER_REASON' AND status='ACTIVE' FOR SHARE",
                         (r, n) -> r.getBoolean(1),
                         reasonId)
                 .stream()
@@ -63,13 +69,19 @@ public class BedTransferStore {
 
     /** Chỉ mục yêu cầu nhập bù chờ duyệt (FR-027 (b), CHK051); ghi cùng transaction lập yêu cầu. */
     public void backfillRequested(long requestId, long residentId, long allocationId, long newBedId, Instant at) {
-        jdbc.update(
-                "INSERT INTO bed_backfill_request(approval_request_id,resident_id,current_allocation_id,new_bed_id,transfer_at) VALUES(?,?,?,?,?)",
-                requestId,
-                residentId,
-                allocationId,
-                newBedId,
-                Timestamp.from(at));
+        events.add(
+                BackfillRequest.KIND,
+                new EntityRef("M03.BED_ALLOCATION", allocationId),
+                new NewRecordEvent<>(
+                        new BackfillRequest(requestId, residentId, newBedId),
+                        null,
+                        null,
+                        true,
+                        at,
+                        null,
+                        at,
+                        null,
+                        "M03.BED_BACKFILL_REQUEST:" + requestId));
     }
 
     public void transferred(long previous, long next, long reasonId, boolean awaitingRequest, Instant at) {

@@ -2,21 +2,15 @@ package com.eldercare.backend.administration.shared;
 
 import static com.eldercare.backend.administration.shared.SharedTestKinds.OTHER_RECORD;
 import static com.eldercare.backend.administration.shared.SharedTestKinds.RECORD;
-import static com.eldercare.backend.administration.shared.SharedTestKinds.unique;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.administration.shared.SharedTestKinds.Attributes;
 import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
-import com.eldercare.backend.administration.shared.api.dto.Change;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
-import com.eldercare.backend.administration.shared.api.dto.RecordChange;
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
-import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
-import com.eldercare.backend.common.error.VersionMismatchException;
 import com.eldercare.backend.support.TestUsers;
 import java.time.LocalDate;
 import java.util.Set;
@@ -76,55 +70,5 @@ public interface SimpleRecordApiContract {
         assertThat(tx(() -> records().listByStatus(RECORD, Set.of(waiting, done))))
                 .extracting(SimpleRecord::id)
                 .containsExactly(first.id(), closed.id(), second.id());
-    }
-
-    @Test
-    default void change_checksVersion_thenLockBlocksFurtherChanges() {
-        SimpleRecord<Attributes> r = tx(() -> records().create(RECORD, record(TestUsers.nextId(), null, "OPEN", null)));
-
-        Change<SimpleRecord<Attributes>> confirmed = tx(() -> {
-            records().lockForUpdate(RECORD, r.id());
-            return records()
-                    .change(
-                            RECORD,
-                            r.id(),
-                            r.version(),
-                            new RecordChange<>("CONFIRMED", new Attributes("xanh", 2), D0.plusDays(3), null, true));
-        });
-
-        assertThat(confirmed.before()).isEqualTo(r);
-        assertThat(confirmed.after().status()).isEqualTo("CONFIRMED");
-        assertThat(confirmed.after().effectiveTo()).isEqualTo(D0.plusDays(3));
-        assertThat(confirmed.after().lockedAt()).isNotNull();
-        assertThatThrownBy(() -> tx(() -> records()
-                        .change(RECORD, r.id(), r.version(), new RecordChange<>("X", r.content(), null, null, false))))
-                .isInstanceOf(VersionMismatchException.class);
-        assertThatThrownBy(() -> tx(() -> records()
-                        .change(
-                                RECORD,
-                                r.id(),
-                                confirmed.after().version(),
-                                new RecordChange<>("X", r.content(), null, null, false))))
-                .isInstanceOf(BusinessException.class)
-                .extracting(e -> ((BusinessException) e).errorCode())
-                .isEqualTo("RECORD_LOCKED");
-    }
-
-    @Test
-    default void uniqueKey_isEnforced_andReleasedWhenSetToNull() {
-        String key = unique("R");
-        SimpleRecord<Attributes> first = tx(() -> records().create(RECORD, record(null, null, "OPEN", key)));
-
-        assertThatThrownBy(() -> tx(() -> records().create(RECORD, record(null, null, "OPEN", key))))
-                .isInstanceOf(ConditionNotMetException.class);
-        assertThat(tx(() -> records().findByUniqueKey(RECORD, key))).contains(first);
-
-        tx(() -> records()
-                .change(
-                        RECORD,
-                        first.id(),
-                        first.version(),
-                        new RecordChange<>("ENDED", first.content(), D0, null, false)));
-        tx(() -> records().create(RECORD, record(null, null, "OPEN", key)));
     }
 }

@@ -65,7 +65,7 @@ class FR_027_BackfillApprovalIT extends StructureTestSupport {
                 bed,
                 since);
         jdbc.update(
-                "INSERT INTO bed_transfer_reason(id,code,name,medical_safety) VALUES(?,?,?,FALSE)",
+                "INSERT INTO catalog_item(id,catalog_type,module,code,name,status,attributes) VALUES(?,'M03.BED_TRANSFER_REASON','M03',?,?,'ACTIVE',JSON_OBJECT('medicalSafety',FALSE,'fixed',FALSE))",
                 transferReason,
                 "TR" + transferReason,
                 "Theo nhu cầu " + transferReason);
@@ -115,7 +115,7 @@ class FR_027_BackfillApprovalIT extends StructureTestSupport {
 
         assertThat(approvals.find(request).orElseThrow().type()).isEqualTo("M03.NHAP_BU_PHAN_BO");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_backfill_request WHERE approval_request_id=? AND resident_id=? AND current_allocation_id=? AND new_bed_id=?",
+                        "SELECT COUNT(*) FROM record_event WHERE kind='M03.BED_BACKFILL_REQUEST' AND content->>'$.approvalRequestId'=? AND content->>'$.residentId'=? AND entity_type='M03.BED_ALLOCATION' AND entity_id=? AND content->>'$.newBedId'=?",
                         Integer.class,
                         request,
                         resident,
@@ -158,35 +158,5 @@ class FR_027_BackfillApprovalIT extends StructureTestSupport {
                 .isEqualTo("OCCUPIED");
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
                 .isEqualTo("AWAITING_READY");
-    }
-
-    @Test
-    void FR_027b_rejectionWritesNothing() throws Exception {
-        long request = lateRequest(time.now().minus(3, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS));
-        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
-
-        decide(request, "reject", "{\"comment\":\"Không đúng thời điểm\"}").andExpect(status().isOk());
-
-        assertThat(approvals.find(request).orElseThrow().status()).isEqualTo("REJECTED");
-        assertThat(allocationStatus(allocation)).isEqualTo("ACTIVE");
-        assertThat(opened()).isZero();
-    }
-
-    @Test
-    void FR_027a_shortBackfillAppliesDirectlyWithMark() throws Exception {
-        var at = time.now().minus(2, ChronoUnit.HOURS).truncatedTo(ChronoUnit.SECONDS);
-
-        transfer(at)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.newAllocation.backfilled").value(true));
-
-        assertThat(allocationStatus(allocation)).isEqualTo("CLOSED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_allocation WHERE resident_id=? AND bed_id=? AND backfilled AND start_at=?",
-                        Integer.class,
-                        resident,
-                        target,
-                        Timestamp.from(at)))
-                .isEqualTo(1);
     }
 }

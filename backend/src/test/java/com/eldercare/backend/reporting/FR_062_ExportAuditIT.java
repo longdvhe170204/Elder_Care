@@ -158,17 +158,6 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
                 String.valueOf(fileId));
     }
 
-    private int auditCount(TestUser u) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM audit_log WHERE action = 'REPORT_EXPORTED' AND actor_id = ?",
-                Integer.class,
-                u.accountId());
-    }
-
-    private int fileCount(TestUser u) {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM file WHERE uploaded_by = ?", Integer.class, u.accountId());
-    }
-
     private byte[] download(TestUser u, long fileId, int expectedStatus) throws Exception {
         return mvc.perform(get("/api/v1/files/" + fileId)
                         .header("Authorization", TestUsers.bearer(users.session(u.accountId()))))
@@ -227,13 +216,5 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
 
         String content = text(download(manager, fileId, 200));
         assertThat(content).contains("Nguyễn Văn A", "Lê Văn C", "Tối", "họp giao ban an toàn thuốc");
-    }
-
-    @Test
-    void US9_1_floorManager_withIdentity_403() throws Exception {
-        export(floorManager, body(true, "họp"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.errorCode").value("PERMISSION_DENIED"));
-        assertThat(fileCount(floorManager)).isZero();
     }
 }

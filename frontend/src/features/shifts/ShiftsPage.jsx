@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PageHeader } from '@/common/PageHeader'
+import { EmptyState } from '@/common/PageState'
 import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
@@ -179,7 +180,7 @@ function ShiftWorkspace({ initialMonth }) {
       <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4 md:p-5" aria-busy={loading}>
         {manage && (
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="min-w-48 flex-1">
+            <div className="min-w-48 max-w-80 flex-1">
               <Choice
                 id="selected-schedule"
                 label="Lịch tháng theo phạm vi"
@@ -210,15 +211,16 @@ function ShiftWorkspace({ initialMonth }) {
         {loading || status === 'loading' ? (
           <p role="status">Đang tải lịch ca…</p>
         ) : shifts.length === 0 ? (
-          <div className="py-12 text-center">
-            <CalendarDays className="mx-auto mb-3 size-8 text-muted-foreground" aria-hidden="true" />
-            <h2 className="type-section">Chưa có ca trong tháng này</h2>
-            <p className="mt-1 text-muted-foreground">
-              {manage
+          <EmptyState
+            bare
+            icon={CalendarDays}
+            title="Chưa có ca trong tháng này"
+            description={
+              manage
                 ? 'Chọn lịch và thêm ca để bắt đầu sắp xếp nhân viên.'
-                : 'Ca đã công bố có tên bạn sẽ xuất hiện ở đây.'}
-            </p>
-          </div>
+                : 'Ca đã công bố có tên bạn sẽ xuất hiện ở đây.'
+            }
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -364,7 +366,7 @@ function ShiftWorkspace({ initialMonth }) {
                   {formatDateTime(panel.shift.startsAt)} → {formatDateTime(panel.shift.endsAt)}
                 </p>
                 <StatusBadge status={STATUSES[panel.shift.status]} />
-                <h3 className="type-section">Nhân viên cùng ca</h3>
+                <h3 className="type-title">Nhân viên cùng ca</h3>
                 {panel.shift.staff?.map((m) => (
                   <p key={m.staffId}>
                     {staff.find((p) => p.id === m.staffId)?.fullName ?? `Nhân viên #${m.staffId}`}

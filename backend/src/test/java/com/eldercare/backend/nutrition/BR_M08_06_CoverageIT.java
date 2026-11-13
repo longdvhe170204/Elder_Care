@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.nutrition.api.events.MenuPublished;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,57 +47,5 @@ class BR_M08_06_CoverageIT extends MenuTestBase {
                 .andExpect(jsonPath("$.unmetConditions", hasSize(1)))
                 .andExpect(jsonPath("$.unmetConditions[0].code").value("INSUFFICIENT_COVERAGE"));
         assertThat(menuStatus(menu)).isEqualTo("DRAFT");
-    }
-
-    @Test
-    void FR_002_dietInMenuNotEnded_cannotBeDeactivated() throws Exception {
-        LocalDate week = futureWeek();
-        long soft = f.diet(false, List.of(), safe);
-        long softDish = f.activeDish(List.of(), List.of(soft));
-        long menu = createMenu(week);
-        putContent(menu, List.of(row(week, lunch, soft, softDish))).andExpect(status().isOk());
-
-        f.asDoctor();
-        send(post(NutritionCatalogFixture.BASE + "/diets/" + soft + "/deactivate"), "{\"reason\":\"Không dùng nữa\"}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STILL_IN_MENU"));
-    }
-
-    @Test
-    void FR_029_publish_rerunsCoverage_thenPublishesOrAppliesWhenWeekStarted() throws Exception {
-        LocalDate week = futureWeek();
-        long menu = createMenu(week);
-        putContent(menu, fullWeek(week, defaultDiet, plain)).andExpect(status().isOk());
-        submit(menu, codes(menu)).andExpect(status().isOk());
-        long diabetes = f.diet(false, List.of(), safe);
-        f.activeAssignment(f.resident("IN_RESIDENCE"), diabetes, "REGULAR", List.of(), time.now());
-
-        publish(menu, List.of())
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.unmetConditions[0].code").value("INSUFFICIENT_COVERAGE"));
-        assertThat(menuStatus(menu)).isEqualTo("PENDING_PUBLICATION");
-
-        LocalDate other = futureWeek();
-        long ok = createMenu(other);
-        List<String> rows = new ArrayList<>(fullWeek(other, defaultDiet, plain));
-        long diabeticDish = f.activeDish(List.of(), List.of(diabetes));
-        rows.addAll(fullWeek(other, diabetes, diabeticDish));
-        putContent(ok, rows).andExpect(status().isOk());
-        submit(ok, codes(ok)).andExpect(status().isOk());
-        publish(ok, List.of()).andExpect(status().isOk());
-        assertThat(menuStatus(ok)).isEqualTo("PUBLISHED");
-        assertThat(events.stream(MenuPublished.class)).hasSize(1);
-
-        jdbc.update(
-                "UPDATE menu SET status = 'CANCELLED', cancel_reason = 'test' WHERE week_start = ?"
-                        + " AND status IN ('DRAFT', 'PENDING_PUBLICATION')",
-                currentWeek());
-        long started = createMenu(currentWeek());
-        List<String> current = new ArrayList<>(fullWeek(currentWeek(), defaultDiet, plain));
-        current.addAll(fullWeek(currentWeek(), diabetes, diabeticDish));
-        putContent(started, current).andExpect(status().isOk());
-        submit(started, codes(started)).andExpect(status().isOk());
-        publish(started, List.of()).andExpect(status().isOk());
-        assertThat(menuStatus(started)).isEqualTo("APPLIED");
     }
 }

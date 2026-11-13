@@ -15,7 +15,8 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `su_kien_chung`: `su_kien_thong_bao`, `lan_gui`, `ket_qua_lan_gui`, `luot_nhac_goi_thong_bao`, `chuyen_nhac`, `ket_qua_goi`, `ket_qua_lien_he`.
 - `ho_so_chung`: `lien_he_truc_tiep`; `moc_da_nhac`: `notification_request_duplicate`; `ho_so_chung`: `khung_gop_tin_nhan` (giữ dữ liệu khung, không chỉ để khóa); `moc_da_nhac`: `m13_job_run` (lần chạy ra file log); giữ `thiet_bi_day` (`push_device`).
 - Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m13` → `moc_da_nhac`; `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` → cột `JSON` của `yeu_cau_thong_bao`. Không thêm bảng riêng.
-- Còn 4 bảng riêng của feature.
+- *(Sửa 2026-11-13, research R-15 mục 6 của 000)* `thiet_bi_day` (`push_device`) thành `ho_so_chung` loại `M13.PUSH_DEVICE` của tài khoản (`V099_05`); 009 vẫn tự quản lý token.
+- Còn 3 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V009_95`)*
 

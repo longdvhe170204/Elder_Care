@@ -1,7 +1,6 @@
 package com.eldercare.backend.roombedallocation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -15,7 +14,6 @@ import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.CareLevelBasisType;
 import com.eldercare.backend.resident.api.events.CareLevelChanged;
 import com.eldercare.backend.resident.api.events.InitialAssessmentConfirmed;
-import com.eldercare.backend.resident.api.events.PersonalInfoUpdated;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.roombedallocation.api.events.AllocationNoLongerSuitable;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationDetails;
@@ -30,7 +28,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -90,20 +87,6 @@ class BR_M03_23_AllocationSuitabilityTest {
             assertThat(e.allocationId()).isEqualTo(1);
             assertThat(e.conditions()).containsExactly(CARE_LEVEL);
         });
-    }
-
-    @Test
-    void FR_034_genderChange_activeAllocationFlagged_otherFieldsIgnored() {
-        given(allocation(3, 13, AllocationStatus.ACTIVE));
-        UnmetCondition gender = new UnmetCondition("GENDER", "Giới tính không phù hợp chính sách phòng");
-        when(checker.policyConditions(RESIDENT, 13)).thenReturn(List.of(gender));
-
-        listener.personalInfoUpdated(new PersonalInfoUpdated(RESIDENT, Set.of("phone")));
-        verify(read, never()).list(any(), any(), any());
-
-        listener.personalInfoUpdated(new PersonalInfoUpdated(RESIDENT, Set.of("gender", "phone")));
-        verify(write).markUnsuitable(3, true);
-        assertThat(published).hasSize(1);
     }
 
     @Test

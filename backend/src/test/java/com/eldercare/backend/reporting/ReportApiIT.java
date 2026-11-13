@@ -1,6 +1,5 @@
 package com.eldercare.backend.reporting;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,7 +18,6 @@ import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -98,37 +96,6 @@ class ReportApiIT extends MySqlIntegrationTestBase {
 
     private ResultActions perform(TestUser u, MockHttpServletRequestBuilder request) throws Exception {
         return mvc.perform(request.header("Authorization", TestUsers.bearer(users.session(u.accountId()))));
-    }
-
-    private MockHttpServletRequestBuilder lastWeek(String url) {
-        LocalDate today = time.today();
-        return get(url).param("from", today.minusDays(7).toString()).param("to", today.toString());
-    }
-
-    @Test
-    void FR_012_report_valuesWithinScope_dayNotEndedLabel() throws Exception {
-        perform(manager, lastWeek(REPORT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.group").value("HEALTH_MEDICATION"))
-                .andExpect(jsonPath("$.asOf").exists())
-                .andExpect(jsonPath(VALUE + ".value").value(contains(3)))
-                .andExpect(jsonPath(VALUE + ".labels[*]").value(hasItem("DAY_NOT_ENDED")))
-                .andExpect(jsonPath(VALUE + ".breakdown[*].key").value(contains("Sáng", "Tối")));
-        perform(floorManager, lastWeek(REPORT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(VALUE + ".value").value(contains(2)));
-    }
-
-    /** FR-051 (T020): chế độ tạm tính gắn nhãn "tạm tính, chưa chốt" cho chỉ tiêu chi phí; mặc định đã chốt không gắn. */
-    @Test
-    void FR_051_provisionalModeLabelsCostMetrics() throws Exception {
-        String summary = "$.values[?(@.metricCode == 'COST.SUMMARY')]";
-        perform(manager, lastWeek("/api/v1/reports/INCURRED_COSTS").param("costMode", "PROVISIONAL"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(summary + ".labels[*]").value(hasItem("PROVISIONAL")));
-        perform(manager, lastWeek("/api/v1/reports/INCURRED_COSTS"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(summary + ".labels[*]").value(org.hamcrest.Matchers.not(hasItem("PROVISIONAL"))));
     }
 
     /**

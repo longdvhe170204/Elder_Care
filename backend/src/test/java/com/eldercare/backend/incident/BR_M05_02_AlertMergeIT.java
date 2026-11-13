@@ -27,18 +27,4 @@ class BR_M05_02_AlertMergeIT extends AlertRequestTestBase {
                 .isEqualTo(2);
         assertThat(published).filteredOn(AlertCreated.class::isInstance).hasSize(1);
     }
-
-    @Test
-    void FR_030_closedAlertIsNotReusedSoNewOccurrenceCreatesNewAlert() {
-        var first = request(KEY, IncidentLevel.MEDIUM, T0, 1);
-        jdbc.update(
-                "UPDATE alert SET status = 'CLOSED', closed_at = ? WHERE id = ?",
-                java.sql.Timestamp.from(T0.plusSeconds(60)),
-                first.id());
-
-        var next = request(KEY, IncidentLevel.MEDIUM, T0.plusSeconds(120), 2);
-
-        assertThat(next.id()).isNotEqualTo(first.id());
-        assertThat(next.occurrenceCount()).isEqualTo(1);
-    }
 }

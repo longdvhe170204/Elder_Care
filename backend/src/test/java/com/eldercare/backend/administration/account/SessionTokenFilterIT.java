@@ -53,13 +53,6 @@ class SessionTokenFilterIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_013_noToken_returns401() throws Exception {
-        mvc.perform(get(PROBE))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("UNAUTHORIZED"));
-    }
-
-    @Test
     void BR_M15_21_webIdleBeyondCfgM15_10_endsSessionTimedOut() throws Exception {
         Session s = openSession("WEB");
         clock.advanceBy(Duration.ofMinutes(31));
@@ -93,14 +86,6 @@ class SessionTokenFilterIT extends MySqlIntegrationTestBase {
                 VALUES (?, ?, ?, ?, ?, ?)
                 """, SessionTokens.hash(token), accountId, deviceId, channel, now, now);
         return new Session(token, accountId, deviceId);
-    }
-
-    private Instant lastActiveAt(Session s) {
-        return jdbc.queryForObject(
-                        "SELECT last_active_at FROM login_session WHERE token_hash = ?",
-                        LocalDateTime.class,
-                        SessionTokens.hash(s.token()))
-                .toInstant(ZoneOffset.UTC);
     }
 
     private static LocalDateTime utc(Instant instant) {

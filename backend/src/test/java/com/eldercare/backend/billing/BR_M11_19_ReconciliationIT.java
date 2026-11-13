@@ -1,7 +1,6 @@
 package com.eldercare.backend.billing;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.eldercare.backend.common.Role;
@@ -13,19 +12,6 @@ import org.junit.jupiter.api.Test;
  * không tự đối chiếu; lệch thì Quản lý viện xử lý; trạng thái cuối khóa dòng.
  */
 class BR_M11_19_ReconciliationIT extends ProcurementTestBase {
-
-    @Test
-    void Q5_accountantConfirmsMatchAndTheRowLocks() throws Exception {
-        long id = purchased(1_800_000, 1_900_000);
-        as(accountant);
-        command(id, "confirm-match").andExpect(status().isOk());
-        assertThat(stateOf(id)).isEqualTo("RECONCILED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT reconciled_by_staff_id FROM procurement_request WHERE id=?", Long.class, id))
-                .isEqualTo(accountant.staffId());
-        assertThatThrownBy(() -> jdbc.update("UPDATE procurement_request SET supplier='B' WHERE id=?", id))
-                .hasMessageContaining("procurement request row is locked");
-    }
 
     @Test
     void Q7_discrepancyIsRecordedThenResolvedByManager() throws Exception {

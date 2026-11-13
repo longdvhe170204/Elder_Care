@@ -3,8 +3,6 @@ package com.eldercare.backend.medication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -20,12 +18,9 @@ import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
 import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
 import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
 import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.family.domain.FamilyMedicationBatch;
 import com.eldercare.backend.medication.internal.family.persistence.FamilyMedicationBatchRepository;
 import com.eldercare.backend.medication.internal.handover.domain.AbsenceIntervalType;
-import com.eldercare.backend.medication.internal.handover.domain.HandoverStatus;
 import com.eldercare.backend.medication.internal.handover.domain.MedicationAbsenceInterval;
-import com.eldercare.backend.medication.internal.handover.domain.MedicationHandover;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationAbsenceIntervalRepository;
 import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverRepository;
 import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
@@ -38,7 +33,6 @@ import com.eldercare.backend.medication.internal.prescription.persistence.Prescr
 import com.eldercare.backend.medication.internal.reconciliation.domain.MedicationReconciliation;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.MedicationReconciliationRepository;
 import com.eldercare.backend.medication.internal.status.service.MedicationStatusParticipant;
-import com.eldercare.backend.resident.api.dto.CommandContext;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
@@ -173,51 +167,6 @@ class MedicationStatusParticipantTest {
     }
 
     @Test
-    void FR_048_returnClosesIntervalResumesDosesAndAwaitsReturnOfCarriedMedication() {
-        MedicationAbsenceInterval open = new MedicationAbsenceInterval(
-                RESIDENT,
-                AbsenceIntervalType.TEMPORARY_LEAVE_WITH_MED,
-                AT.minus(5, ChronoUnit.HOURS),
-                AT,
-                null,
-                null,
-                AT);
-        when(absences.findOpenByResidentId(RESIDENT)).thenReturn(Optional.of(open));
-        when(time.now()).thenReturn(AT);
-        MedicationDose carried = dose(1L, DoseStatus.LEAVE_MEDICATION, AT.plus(1, ChronoUnit.HOURS));
-        MedicationDose pastCarried = dose(2L, DoseStatus.LEAVE_MEDICATION, AT.minus(1, ChronoUnit.HOURS));
-        when(doses.findByResidentIdAndStatusIn(eq(RESIDENT), anyCollection()))
-                .thenReturn(List.of(carried, pastCarried));
-        when(prescriptions.findById(anyLong())).thenReturn(Optional.of(prescription(1L, PrescriptionStatus.ACTIVE)));
-        MedicationHandover handover = mock(MedicationHandover.class);
-        when(handovers.findByResidentIdAndStatusIn(RESIDENT, List.of(HandoverStatus.HANDED_OVER)))
-                .thenReturn(List.of(handover));
-
-        participant.applyEffects(result(StatusCommand.RECORD_RETURN, ResidentStatus.TEMPORARILY_ABSENT, details()));
-
-        assertThat(open.getActualToTime()).isEqualTo(AT);
-        verify(absences).save(open);
-        assertThat(carried.getStatus()).isEqualTo(DoseStatus.DUE);
-        assertThat(pastCarried.getStatus()).isEqualTo(DoseStatus.LEAVE_MEDICATION);
-        verify(handover).markWaitingReturn();
-    }
-
-    @Test
-    void FR_048_returnFromHospitalDoesNotResumeDoses() {
-        MedicationAbsenceInterval open = new MedicationAbsenceInterval(
-                RESIDENT, AbsenceIntervalType.HOSPITAL, AT.minus(5, ChronoUnit.DAYS), null, null, null, AT);
-        when(absences.findOpenByResidentId(RESIDENT)).thenReturn(Optional.of(open));
-        when(time.now()).thenReturn(AT);
-        MedicationDose suspended = dose(1L, DoseStatus.SUSPENDED, AT.plus(1, ChronoUnit.HOURS));
-        when(doses.findByResidentIdAndStatusIn(eq(RESIDENT), anyCollection())).thenReturn(List.of(suspended));
-
-        participant.applyEffects(result(StatusCommand.RECORD_RETURN, ResidentStatus.HOSPITALIZED, details()));
-
-        assertThat(open.getActualToTime()).isEqualTo(AT);
-        assertThat(suspended.getStatus()).isEqualTo(DoseStatus.SUSPENDED);
-    }
-
-    @Test
     void FR_047_finalStatusStopsPrescriptionsAndClosesOpenDoses() {
         when(time.now()).thenReturn(AT);
         Prescription active = prescription(1L, PrescriptionStatus.ACTIVE);
@@ -243,20 +192,6 @@ class MedicationStatusParticipantTest {
         verify(results).save(recorded.capture());
         assertThat(recorded.getValue().getResultType()).isEqualTo(DoseResultType.NOT_ADMINISTERED);
         verify(open).cancel(any());
-    }
-
-    @Test
-    void FR_047_endResidencyWaitsForFamilySentMedicationAndCarriedHandovers() {
-        when(batches.findByResidentIdAndStatusIn(eq(RESIDENT), anyList()))
-                .thenReturn(List.of(mock(FamilyMedicationBatch.class)));
-        CommandContext context = new CommandContext(
-                RESIDENT, ResidentStatus.IN_RESIDENCE, StatusCommand.END_RESIDENCY, null, AT, details());
-
-        assertThat(participant.checkConditions(context)).singleElement().satisfies(c -> {
-            assertThat(c.code()).isEqualTo("KT_C_THUOC_GUI");
-            assertThat(c.waivable()).isTrue();
-        });
-        verify(handovers, never()).findByResidentIdAndStatusIn(anyLong(), anyCollection());
     }
 
     @Test

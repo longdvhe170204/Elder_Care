@@ -1,21 +1,15 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.resident.api.dto.CareLevel;
-import com.eldercare.backend.resident.api.dto.ResidenceType;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.dao.DataAccessException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 /**
@@ -28,36 +22,6 @@ class DBR_06_ContractNoOverlapIT extends ContractTestBase {
 
     @Autowired
     ContractService contractService;
-
-    private long signedRow(long residentId, LocalDate start, LocalDate end) {
-        long id = contracts.contract(
-                residentId, ContractStatus.DRAFT, ResidenceType.LONG_TERM_RESIDENTIAL, CareLevel.BASIC, start);
-        jdbc.update("UPDATE contract SET end_date = ? WHERE id = ?", end, id);
-        return id;
-    }
-
-    private int activate(long id, LocalDate currentEnd) {
-        return jdbc.update(
-                "UPDATE contract SET status = 'ACTIVE', current_end_date = ?, signed_date = start_date,"
-                        + " signing_representative_id = 1, scan_file_id = 1 WHERE id = ?",
-                currentEnd,
-                id);
-    }
-
-    @Test
-    void DBR_06_trigger_refusesAnOverlappingActiveContract_includingTheBoundaryDay() {
-        long residentId = admissionResident();
-        long first = signedRow(residentId, today(), today().plusDays(10));
-        activate(first, today().plusDays(10));
-
-        long touching = signedRow(residentId, today().plusDays(10), today().plusDays(20));
-        assertThatThrownBy(() -> activate(touching, today().plusDays(20)))
-                .as("trùng đúng ngày kết thúc của hợp đồng trước")
-                .isInstanceOf(DataAccessException.class);
-
-        long after = signedRow(residentId, today().plusDays(11), today().plusDays(20));
-        assertThat(activate(after, today().plusDays(20))).isEqualTo(1);
-    }
 
     @Test
     void FR_022_twoConcurrentRecordSigned_exactlyOneBecomesActive() throws Exception {

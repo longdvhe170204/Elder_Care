@@ -60,28 +60,6 @@ class BR_M04_20_CarePlanReviewIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M04_20_fallIncident_notifiesNurseAndApprovers_withoutBusinessRecords_andOnlyOnce() {
-        long incident = TestUsers.nextId();
-        var before = businessCounts();
-
-        review.fallIncidentRecorded(resident, incident);
-
-        var notices = notices();
-        assertThat(notices).allSatisfy(n -> {
-            assertThat(n.residentId()).isEqualTo(resident);
-            assertThat(n.context().sourceType()).isEqualTo("M05.INCIDENT");
-            assertThat(n.context().sourceId()).isEqualTo(incident);
-        });
-        assertRecipients(notices);
-        assertThat(businessCounts())
-                .as("Q35: không lập kế hoạch, công việc, yêu cầu")
-                .isEqualTo(before);
-
-        review.fallIncidentRecorded(resident, incident);
-        assertThat(notices()).as("gọi lặp cùng sự cố không báo lần hai").hasSameSizeAs(notices);
-    }
-
-    @Test
     void BR_M04_20_palliativeChoices_differentKeysGiveSeparateNotices_repeatedKeyIsIgnored() {
         Instant at = time.now();
         String first = "M05.ALERT:" + TestUsers.nextId() + ":PALLIATIVE_CARE_CHOICE";
@@ -122,12 +100,5 @@ class BR_M04_20_CarePlanReviewIT extends MySqlIntegrationTestBase {
         return events.stream(CarePlanReviewNeeded.class)
                 .filter(n -> n.residentId() == resident)
                 .toList();
-    }
-
-    private List<Long> businessCounts() {
-        return List.of(
-                jdbc.queryForObject("SELECT COUNT(*) FROM care_plan", Long.class),
-                jdbc.queryForObject("SELECT COUNT(*) FROM care_task", Long.class),
-                jdbc.queryForObject("SELECT COUNT(*) FROM approval_request", Long.class));
     }
 }

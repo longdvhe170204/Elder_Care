@@ -15,3 +15,6 @@ mobile/build/
 
 # Ghi chú và bản lưu cục bộ của công cụ
 .local/
+
+# Log chạy backend (job định kỳ)
+/logs/

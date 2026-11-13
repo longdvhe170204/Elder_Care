@@ -165,11 +165,10 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
 
     private Instant lastConnected(Instant at) {
         jdbc.update(
-                "INSERT INTO device (device_id, last_connected_at, last_account_id) VALUES (?, ?, ?) AS new"
-                        + " ON DUPLICATE KEY UPDATE last_connected_at = new.last_connected_at",
-                device,
-                LocalDateTime.ofInstant(at, ZoneOffset.UTC),
-                caregiver);
+                "INSERT INTO technical_lock (lock_key, version, updated_at) VALUES (?, 0, ?) AS new"
+                        + " ON DUPLICATE KEY UPDATE updated_at = new.updated_at",
+                "M15.DEVICE:" + device,
+                LocalDateTime.ofInstant(at, ZoneOffset.UTC));
         return at;
     }
 

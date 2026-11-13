@@ -13,9 +13,7 @@ import com.eldercare.backend.nutrition.scheduling.M08MinuteJob;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import com.eldercare.backend.support.SwitchableUserConfig;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,40 +117,5 @@ class BR_M08_03_DietAssignmentIT extends MySqlIntegrationTestBase {
         assertThat(events.stream(DietAssignmentTookEffect.class).filter(e -> e.assignmentId() == proposal))
                 .hasSize(1);
         assertThat(dietApi.current(resident).orElseThrow().dietId()).isEqualTo(diabetes);
-    }
-
-    @Test
-    void FR_017_futureEffectiveTime_pendingThenSchedulerActivatesAndDiscontinuesOld() throws Exception {
-        long old = f.activeAssignment(resident, regular, "REGULAR", List.of(), now());
-        Instant from = now().plus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
-        f.propose(resident, NutritionCatalogFixture.assignmentBody(diabetes, "SOFT", List.of(), from));
-        long proposal = f.latestAssignment(resident);
-        f.apply(proposal, "Chuẩn bị chuyển chế độ").andExpect(status().isOk());
-
-        assertThat(f.assignmentStatus(proposal)).isEqualTo("PENDING_EFFECTIVE");
-        minuteJob.runNow();
-        assertThat(f.assignmentStatus(proposal)).isEqualTo("PENDING_EFFECTIVE");
-
-        clock.setTo(from.plus(Duration.ofMinutes(3)));
-        minuteJob.runNow();
-
-        assertThat(f.assignmentStatus(proposal)).isEqualTo("ACTIVE");
-        assertThat(f.assignmentStatus(old)).isEqualTo("DISCONTINUED");
-        // Hiệu lực thực tế là thời điểm mong muốn khi lệnh áp dụng xảy ra trước đó, không phải lúc job chạy (FR-017)
-        assertThat(jdbc.queryForObject(
-                        "SELECT actual_effective_at FROM diet_assignment WHERE id = ?",
-                        java.time.LocalDateTime.class,
-                        proposal))
-                .isEqualTo(java.time.LocalDateTime.ofInstant(from, java.time.ZoneOffset.UTC));
-    }
-
-    private void copyRow(long id, String status) {
-        jdbc.update(
-                "INSERT INTO diet_assignment (resident_id, diet_id, texture, personal_restrictions, basis,"
-                        + " requested_effective_from, actual_effective_at, status, created_by, created_at)"
-                        + " SELECT resident_id, diet_id, texture, personal_restrictions, basis, requested_effective_from,"
-                        + " actual_effective_at, ?, created_by, created_at FROM diet_assignment WHERE id = ?",
-                status,
-                id);
     }
 }

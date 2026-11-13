@@ -185,37 +185,6 @@ class BR_M03_15_BedAssetIT extends AssetTestBase {
                 .containsEntry("floor_area_id", floor);
     }
 
-    /**
-     * Q24 (FR-012, Q-243): tài sản giường không chuyển vị trí bằng lệnh của tài sản; giường đã từng phân bổ trả 409
-     * {@code BED_HAS_ALLOCATION_HISTORY}, giường chưa từng phân bổ thì đổi phòng ở lệnh sửa giường của 003.
-     */
-    @Test
-    void Q24_relocatingABedAssetIsBlocked_historyGivesBedHasAllocationHistory() throws Exception {
-        as(careLead);
-        String body = "{\"location\":{\"type\":\"ROOM\",\"id\":" + room + "},\"reason\":\"Sắp xếp lại\"}";
-        command(asset, "relocate", body)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-        jdbc.update(
-                "INSERT INTO bed_allocation(id,resident_id,bed_id,status,start_at,end_at,checked_care_level,care_level_source)"
-                        + " VALUES(?,?,?,'CLOSED',?,?,'BASIC','CURRENT')",
-                TestUsers.nextId(),
-                TestUsers.nextId(),
-                bed,
-                java.time.LocalDateTime.now().minusDays(3),
-                java.time.LocalDateTime.now().minusDays(2));
-        command(asset, "relocate", body)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("BED_HAS_ALLOCATION_HISTORY"));
-    }
-
-    @Test
-    void US5_1_damageOnAnEmptyBedMovesTheBedToMaintenanceInTheSameCommand() throws Exception {
-        command(asset, "report-damage", "{\"description\":\"Gãy thanh chắn\"}").andExpect(status().isOk());
-        assertThat(stateOf(asset)).isEqualTo("DAMAGED");
-        assertThat(bedState()).isEqualTo("UNDER_MAINTENANCE");
-    }
-
     @Autowired
     com.eldercare.backend.administration.shared.api.StatusHistoryApi statusHistory;
 

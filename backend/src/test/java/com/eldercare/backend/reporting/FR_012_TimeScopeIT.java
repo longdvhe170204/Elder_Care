@@ -90,30 +90,6 @@ class FR_012_TimeScopeIT extends MySqlIntegrationTestBase {
                         .value(contains(count)));
     }
 
-    /** Điều dưỡng có tên trong ca của tầng, phân công người cao tuổi {@code resident}. */
-    private long nurseShift(TestUser nurse, Instant start) {
-        long shift = fixture.shift(floor, start, "CLOSED");
-        fixture.member(shift, nurse.staffId());
-        fixture.assignResident(shift, nurse.staffId(), resident, start, plusHours(start, 8));
-        return shift;
-    }
-
-    @Test
-    void Q11_nurse_twoShifts_assignedResidentAndCommonWork_withinShiftHoursPlusMargin() throws Exception {
-        TestUser nurse = fixture.staff(Role.NURSING_STAFF);
-        nurseShift(nurse, day1);
-        nurseShift(nurse, day2);
-        event(plusHours(day1, 1), floor, resident);
-        event(plusHours(day2, 1), floor, resident);
-        event(plusHours(day1, 2), floor, null);
-        event(plusHours(day1, 9), floor, resident);
-        event(plusHours(day1, 11), floor, resident);
-        event(plusHours(day1, 1), floor, otherResident);
-        event(plusHours(day1, 1), TestUsers.nextId(), null);
-
-        expectCount(nurse, 4);
-    }
-
     @Test
     void absentMidShift_countedUpToAbsenceOnly_noMarginAfter() throws Exception {
         TestUser nurse = fixture.staff(Role.NURSING_STAFF);

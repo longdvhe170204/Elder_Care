@@ -59,9 +59,6 @@ class LatestVitalSignReadIT extends MySqlIntegrationTestBase {
                 "INSERT INTO correction(record_type,original_record_id,type,reason,actor_id,creation_method,recorded_at,sequence_no) VALUES('M06.VITAL_SIGN_RECORD',?,'VOID','Hủy bản ghi kiểm thử',1,'A',?,2)",
                 newer,
                 Timestamp.from(TO));
-        jdbc.update(
-                "UPDATE correction_chain SET voided=TRUE WHERE record_type='M06.VITAL_SIGN_RECORD' AND original_record_id=?",
-                newer);
         assertThat(api.latestPerType(resident).get(indicator).recordId()).isEqualTo(older);
     }
 
@@ -108,9 +105,6 @@ class LatestVitalSignReadIT extends MySqlIntegrationTestBase {
                   creation_method,recorded_at,sequence_no)
                 VALUES('M06.VITAL_SIGN_RECORD',?,'AMEND_CONTENT',?,'Sửa giá trị kiểm thử',1,'A',?,1)
                 """, id, content, Timestamp.from(TO));
-        jdbc.update(
-                "INSERT INTO correction_chain(record_type,original_record_id,correction_count,voided) VALUES('M06.VITAL_SIGN_RECORD',?,1,FALSE)",
-                id);
     }
 
     @TestConfiguration(proxyBeanMethods = false)

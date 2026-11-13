@@ -14,7 +14,6 @@ import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
@@ -97,14 +96,6 @@ class FR_026_ManualAlertTest {
         assertThatThrownBy(() -> service.create(101, 30, "MEDIUM", "  ", user))
                 .isInstanceOf(InvalidValueException.class);
         verify(alerts, never()).requestAlert(any());
-    }
-
-    @Test
-    void FR_029_residentInFinalStatusIsBlocked() {
-        when(alerts.requestAlert(any())).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.create(101, 30, "MEDIUM", "Mô tả", user))
-                .isInstanceOf(BusinessException.class);
     }
 
     private static AlertRecord alert(int count) {

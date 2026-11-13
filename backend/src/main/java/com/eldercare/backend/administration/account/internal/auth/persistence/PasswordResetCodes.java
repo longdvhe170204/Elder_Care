@@ -1,88 +1,109 @@
 package com.eldercare.backend.administration.account.internal.auth.persistence;
 
 import com.eldercare.backend.administration.account.internal.auth.domain.PasswordResetCode;
+import com.eldercare.backend.administration.account.internal.auth.domain.PasswordResetCodeContent;
+import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
+import com.eldercare.backend.administration.shared.api.dto.RecordChange;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.util.Comparator;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/** Mã đặt lại mật khẩu ở {@code password_reset_code} (002 T105; FR-052a). Chỉ lưu băm; mỗi mã dùng hoặc hủy một lần. */
+/**
+ * Mã đặt lại mật khẩu ở {@code simple_record} loại {@code M15.PASSWORD_RESET_CODE} (002 T105; FR-052a). Chỉ lưu băm; mỗi
+ * mã dùng hoặc hủy một lần. Nơi gọi đã khóa dòng tài khoản nên các lệnh của một tài khoản chạy lần lượt.
+ */
 @Component
 public class PasswordResetCodes {
 
-    private final JdbcTemplate jdbc;
+    private final SimpleRecordApi records;
     private final BusinessTime time;
 
-    PasswordResetCodes(JdbcTemplate jdbc, BusinessTime time) {
-        this.jdbc = jdbc;
+    PasswordResetCodes(SimpleRecordApi records, BusinessTime time) {
+        this.records = records;
         this.time = time;
     }
 
     /** Số mã đã gửi từ {@code since} (đầu ngày) và lần gửi gần nhất, cho CFG-M15-14. */
     public int sentSince(long accountId, Instant since) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM password_reset_code WHERE account_id = ? AND requested_at >= ?",
-                Integer.class,
-                accountId,
-                utc(since));
+        return (int) codesOf(accountId).stream()
+                .filter(r -> !r.createdAt().isBefore(since))
+                .count();
     }
 
     public Optional<Instant> lastSentAt(long accountId) {
-        LocalDateTime last = jdbc.queryForObject(
-                "SELECT MAX(requested_at) FROM password_reset_code WHERE account_id = ?",
-                (rs, i) -> rs.getObject(1, LocalDateTime.class),
-                accountId);
-        return Optional.ofNullable(last).map(t -> t.toInstant(ZoneOffset.UTC));
+        return codesOf(accountId).stream().map(SimpleRecord::createdAt).max(Comparator.naturalOrder());
     }
 
     /** Mã mới thay mọi mã chưa dùng của tài khoản. */
     public void insert(long accountId, byte[] codeHash, Instant expiresAt) {
-        LocalDateTime now = utc(time.now());
-        jdbc.update(
-                "UPDATE password_reset_code SET revoked_at = ? WHERE account_id = ? AND used_at IS NULL"
-                        + " AND revoked_at IS NULL",
-                now,
-                accountId);
-        jdbc.update(
-                "INSERT INTO password_reset_code (account_id, code_hash, requested_at, expires_at) VALUES (?, ?, ?, ?)",
-                accountId,
-                codeHash,
-                now,
-                utc(expiresAt));
+        for (SimpleRecord<PasswordResetCodeContent> r : codesOf(accountId)) {
+            if (PasswordResetCodeContent.ACTIVE.equals(r.status())) {
+                change(r, PasswordResetCodeContent.REVOKED, r.content());
+            }
+        }
+        records.create(
+                PasswordResetCodeContent.KIND,
+                new NewSimpleRecord<>(
+                        null,
+                        account(accountId),
+                        PasswordResetCodeContent.ACTIVE,
+                        new PasswordResetCodeContent(HexFormat.of().formatHex(codeHash), expiresAt, 0),
+                        null,
+                        null,
+                        null,
+                        accountId,
+                        false));
     }
 
     /** Mã mới nhất chưa dùng, chưa hủy, chưa hết hạn; khóa dòng tới hết transaction. */
     public Optional<PasswordResetCode> lockActive(long accountId) {
-        return jdbc
-                .query(
-                        "SELECT id, code_hash, failed_attempts FROM password_reset_code WHERE account_id = ?"
-                                + " AND used_at IS NULL AND revoked_at IS NULL AND expires_at > ?"
-                                + " ORDER BY requested_at DESC, id DESC LIMIT 1 FOR UPDATE",
-                        (rs, i) -> new PasswordResetCode(rs.getLong(1), rs.getBytes(2), rs.getInt(3)),
-                        accountId,
-                        utc(time.now()))
-                .stream()
-                .findFirst();
+        Instant now = time.now();
+        return codesOf(accountId).stream()
+                .filter(r -> PasswordResetCodeContent.ACTIVE.equals(r.status())
+                        && r.content().expiresAt().isAfter(now))
+                .max(Comparator.comparing((SimpleRecord<PasswordResetCodeContent> r) -> r.createdAt())
+                        .thenComparing(SimpleRecord::id))
+                .map(r -> records.lockForUpdate(PasswordResetCodeContent.KIND, r.id()))
+                .map(r -> new PasswordResetCode(
+                        r.id(),
+                        HexFormat.of().parseHex(r.content().codeHash()),
+                        r.content().failedAttempts()));
     }
 
     /** Thêm một lần sai; {@code revoke} thì hủy mã. */
     public void recordFailure(long codeId, boolean revoke) {
-        jdbc.update(
-                "UPDATE password_reset_code SET failed_attempts = failed_attempts + 1,"
-                        + " revoked_at = IF(?, ?, revoked_at) WHERE id = ?",
-                revoke,
-                utc(time.now()),
-                codeId);
+        SimpleRecord<PasswordResetCodeContent> r = records.lockForUpdate(PasswordResetCodeContent.KIND, codeId);
+        change(
+                r,
+                revoke ? PasswordResetCodeContent.REVOKED : r.status(),
+                r.content().failedAgain());
     }
 
     public void markUsed(long codeId) {
-        jdbc.update("UPDATE password_reset_code SET used_at = ? WHERE id = ?", utc(time.now()), codeId);
+        SimpleRecord<PasswordResetCodeContent> r = records.lockForUpdate(PasswordResetCodeContent.KIND, codeId);
+        change(r, PasswordResetCodeContent.USED, r.content());
     }
 
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    private List<SimpleRecord<PasswordResetCodeContent>> codesOf(long accountId) {
+        return records.listByParent(PasswordResetCodeContent.KIND, account(accountId));
+    }
+
+    private void change(SimpleRecord<PasswordResetCodeContent> r, String status, PasswordResetCodeContent content) {
+        records.change(
+                PasswordResetCodeContent.KIND,
+                r.id(),
+                r.version(),
+                new RecordChange<>(status, content, null, null, false));
+    }
+
+    private static EntityRef account(long accountId) {
+        return new EntityRef(PasswordResetCodeContent.ENTITY, accountId);
     }
 }

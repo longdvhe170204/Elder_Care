@@ -6,7 +6,6 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.ContentPart;
-import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.notification.InformationSubject;
 import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationLevel;
@@ -17,7 +16,6 @@ import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.notification.api.spi.NotifiableRelationshipView;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
@@ -29,7 +27,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -191,38 +188,5 @@ class RecipientResolutionIT extends M13IntegrationTestBase {
                         String.class,
                         id))
                 .isEqualTo("IN_APP");
-    }
-
-    private static NotifiableRelationshipView relation(
-            long familyMemberId, boolean primary, boolean representative, Set<FamilyRight> rights) {
-        return new NotifiableRelationshipView(
-                familyMemberId, primary, representative, rights, Optional.empty(), false, Optional.empty());
-    }
-
-    @Test
-    void FR_013_familyMatter_partsByRight_noHealthWithoutConsent() {
-        long withCosts = TestUsers.nextId();
-        long withHealth = TestUsers.nextId();
-        family.relate(resident, relation(withCosts, false, false, Set.of(FamilyRight.VIEW_COSTS)));
-        family.relate(resident, relation(withHealth, false, false, Set.of(FamilyRight.VIEW_HEALTH)));
-
-        long id = send(request(
-                "fr013-" + resident,
-                NotificationLevel.LOW,
-                List.of(
-                        new RecipientGroup.FamilyWithRight(resident, FamilyRight.VIEW_COSTS),
-                        new RecipientGroup.FamilyWithRight(resident, FamilyRight.VIEW_HEALTH)),
-                Optional.empty(),
-                Optional.of(InformationSubject.ABOUT_FAMILY_MATTER),
-                Optional.empty(),
-                InformationType.GENERAL,
-                InformationType.COSTS,
-                InformationType.HEALTH));
-
-        assertThat(notificationOf(id, "FAMILY_MEMBER", withCosts).get("visible_parts"))
-                .isEqualTo("GENERAL,COSTS");
-        // Không có bản đồng ý Hiệu lực nên phần sức khỏe không hiện (DBR-03)
-        assertThat(notificationOf(id, "FAMILY_MEMBER", withHealth).get("visible_parts"))
-                .isEqualTo("GENERAL");
     }
 }

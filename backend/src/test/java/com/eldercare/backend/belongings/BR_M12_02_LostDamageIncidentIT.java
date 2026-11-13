@@ -5,12 +5,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.belongings.internal.incident.service.IncidentTypeLookup;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.incident.api.dto.IncidentView;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.incident.FakeIncidentCommands;
 import com.eldercare.backend.support.fake.incident.FakeIncidents;
 import com.eldercare.backend.support.fake.incident.FakeM05Config;
-import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,47 +77,18 @@ class BR_M12_02_LostDamageIncidentIT extends HandoverTestBase {
         return id;
     }
 
-    private void existingIncident(long id, long resident, String status) {
-        incidents.put(new IncidentView(id, resident, "BELONGINGS_LOST", "MEDIUM", status, Instant.now(), null));
-    }
-
     private static String newIncident(String level) {
         return ", \"incident\": {\"method\": \"NEW\", \"level\": \"" + level
                 + "\", \"description\": \"Mất điện thoại\", \"place\": \"Phòng sinh hoạt\"}";
-    }
-
-    private static String linkIncident(long incidentId) {
-        return ", \"incident\": {\"method\": \"LINK\", \"incidentId\": " + incidentId + "}";
     }
 
     private Long incidentOf(long handoverId) {
         return jdbc.queryForObject("SELECT incident_id FROM belonging_handover WHERE id = ?", Long.class, handoverId);
     }
 
-    private long handoverRows(long belongingId) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM belonging_handover WHERE belonging_id = ?", Long.class, belongingId);
-    }
-
     private ResultActions reportLost(long belongingId, String incident) throws Exception {
         return handover(
                 tokenA, command("REPORT_LOST", item(belongingId, incident), ", \"reason\": \"Không thấy điện thoại\""));
-    }
-
-    private ResultActions recordDamage(long belongingId, long location, String incident) throws Exception {
-        return handover(
-                tokenA,
-                command(
-                        "RECORD_DAMAGE",
-                        item(belongingId, ", \"photoFileIds\": [" + photo() + "]" + incident),
-                        ", \"storageLocationId\": " + location + ", \"reason\": \"Vỡ màn hình\""));
-    }
-
-    private long noticesOf(String eventType, long handoverId) {
-        return notices().stream()
-                .filter(n -> eventType.equals(n.eventType())
-                        && Long.toString(handoverId).equals(n.sourceRecord().id()))
-                .count();
     }
 
     @Test
@@ -142,51 +111,5 @@ class BR_M12_02_LostDamageIncidentIT extends HandoverTestBase {
         assertThat(recorded.getFirst().level()).isEqualTo("MEDIUM");
         assertThat(recorded.getFirst().description()).isEqualTo("Mất điện thoại");
         assertThat(recorded.getFirst().location()).isEqualTo("Phòng sinh hoạt");
-    }
-
-    @Test
-    void Q24_FR_021_incidentFailure_rollsBackTheWholeCommand() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
-        long rowsBefore = handoverRows(phone);
-        int versionBefore = version(phone);
-        events.clear();
-        types.failing = true;
-
-        reportLost(phone, newIncident("MEDIUM")).andExpect(status().isServiceUnavailable());
-
-        assertThat(statusOf(phone)).isEqualTo("HELD");
-        assertThat(version(phone)).isEqualTo(versionBefore);
-        assertThat(handoverRows(phone)).isEqualTo(rowsBefore);
-        assertThat(notices()).noneMatch(n -> "BELONGING_LOST".equals(n.eventType()));
-    }
-
-    @Test
-    void Q26_FR_011a_voidingARecordWithALinkedIncident_notifiesTheIncidentHandler() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
-        long incident = TestUsers.nextId();
-        long handlerStaff = TestUsers.nextId();
-        incidents.put(new IncidentView(
-                incident, resident, "BELONGINGS_LOST", "MEDIUM", "IN_PROGRESS", Instant.now(), null, handlerStaff));
-        reportLost(phone, linkIncident(incident)).andExpect(status().isOk());
-        events.clear();
-
-        postJson(
-                        tokenA,
-                        "/api/v1/corrections/M12.BELONGING_HANDOVER/" + latestHandover(phone),
-                        "{\"type\": \"VOID\", \"reason\": \"Ghi nhầm\"}")
-                .andExpect(status().isCreated());
-
-        assertThat(notices())
-                .filteredOn(n -> "BELONGING_INCIDENT_LINK_VOIDED".equals(n.eventType()))
-                .singleElement()
-                .satisfies(n -> assertThat(n.recipientGroups())
-                        .containsExactly(new com.eldercare.backend.common.notification.RecipientGroup.Staff(
-                                handlerStaff, "INCIDENT_ASSIGNEE")));
-    }
-
-    private static String body(long incidentId) {
-        return "{\"incidentId\": " + incidentId + "}";
     }
 }

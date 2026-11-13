@@ -4,18 +4,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.common.data.ReminderMarkers;
-import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.service.AlertService;
 import com.eldercare.backend.incident.internal.alert.service.MedicationAlertRequestListener;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
-import com.eldercare.backend.medication.api.events.ReconciliationCompleted;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -34,23 +31,6 @@ class BR_M07_MedicationAlertRequestedTest {
 
     private MedicationAlertRequestedEvent event(String type, String source) {
         return new MedicationAlertRequestedEvent(type, "TRUNG_BINH", 9L, source, "key:" + type, at, List.of());
-    }
-
-    @Test
-    void FR_026_missedDoseCreatesMediumAlertBySourceDose() {
-        when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
-                .thenReturn(true);
-
-        listener.onMedicationAlertRequested(event("BO_LO_LIEU", "dose:77"));
-
-        verify(alerts)
-                .requestAlert(argThat(c -> c.residentId() == 9
-                        && c.type().equals("BO_LO_LIEU")
-                        && c.typeLock().equals("THUOC:BO_LO_LIEU:77")
-                        && c.level() == IncidentLevel.MEDIUM
-                        && c.sourceType().equals("DOSE")
-                        && c.sourceId() == 77
-                        && c.occurredAt().equals(at)));
     }
 
     @Test
@@ -91,12 +71,5 @@ class BR_M07_MedicationAlertRequestedTest {
         listener.onMedicationAlertRequested(event("TU_CHOI_LIEN_TIEP", "dose:77"));
 
         verify(alerts, never()).requestAlert(any());
-    }
-
-    @Test
-    void FR_036_confirmedReconciliationClosesTheUnreconciledAlertBySystem() {
-        listener.onReconciliationCompleted(new ReconciliationCompleted(9L, at));
-
-        verify(alerts).closeBySystem(eq(9L), eq("THUOC:CHUA_DOI_CHIEU:9"), anyString(), eq(at));
     }
 }

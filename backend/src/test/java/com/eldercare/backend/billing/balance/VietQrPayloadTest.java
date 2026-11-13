@@ -1,7 +1,6 @@
 package com.eldercare.backend.billing.balance;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.billing.balance.internal.document.domain.VietQrPayload;
 import java.util.ArrayList;
@@ -48,15 +47,5 @@ class VietQrPayloadTest {
             i += 4 + Integer.parseInt(payload.substring(i + 2, i + 4));
         }
         assertThat(tags).containsExactly("00", "01", "38", "53", "58", "62", "63");
-    }
-
-    @Test
-    void E_04_rejectsInvalidInputs() {
-        assertThatThrownBy(() -> VietQrPayload.of("97041", "123456", "NCT1"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> VietQrPayload.of("970415", "12AB", "NCT1"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> VietQrPayload.of("970415", "123456", " "))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 }

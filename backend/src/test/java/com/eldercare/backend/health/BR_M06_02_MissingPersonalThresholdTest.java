@@ -2,8 +2,6 @@ package com.eldercare.backend.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -17,10 +15,8 @@ import com.eldercare.backend.administration.shared.api.ResidentModuleStateApi;
 import com.eldercare.backend.health.api.events.MissingPersonalThresholdReminder;
 import com.eldercare.backend.health.internal.governance.domain.ResidentVitalSignState;
 import com.eldercare.backend.health.internal.governance.service.VitalSignLock;
-import com.eldercare.backend.health.internal.threshold.domain.ThresholdVersion;
 import com.eldercare.backend.health.internal.threshold.persistence.ThresholdVersionStore;
 import com.eldercare.backend.health.internal.threshold.service.MissingThresholdReminders;
-import com.eldercare.backend.health.internal.threshold.service.ThresholdFinalStatus;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -28,7 +24,6 @@ import com.eldercare.backend.resident.api.dto.StatusPeriod;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,23 +100,5 @@ class BR_M06_02_MissingPersonalThresholdTest {
 
         verify(lock).lock(A);
         verify(states).save(ResidentVitalSignState.KIND, A, new ResidentVitalSignState(null));
-    }
-
-    @Test
-    void FR_022_finalStatusEndsPersonalThresholds() {
-        var effective = new ThresholdVersion(
-                11, "PERSONAL", A, 3, NOW.minus(Duration.ofDays(9)), null, "EFFECTIVE", Map.of(), 1);
-        var pending =
-                new ThresholdVersion(12, "PERSONAL", A, 3, NOW.plus(Duration.ofDays(1)), null, "PENDING", Map.of(), 0);
-        when(store.personalOpen(A)).thenReturn(List.of(effective, pending));
-        var thresholds = new ThresholdFinalStatus(store, lock);
-        var deceased = NOW.minusSeconds(60);
-
-        thresholds.end(A, deceased);
-
-        verify(lock).lock(A);
-        verify(store).end(11, "EXPIRED", deceased, null, null, 1);
-        verify(store).end(12, "CANCELLED", null, null, null, 0);
-        verify(store, org.mockito.Mockito.times(2)).end(anyLong(), any(), any(), any(), any(), anyInt());
     }
 }

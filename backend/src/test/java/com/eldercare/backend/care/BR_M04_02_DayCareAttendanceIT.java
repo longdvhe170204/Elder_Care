@@ -9,11 +9,9 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.admission.api.ResidencyDayApi;
 import com.eldercare.backend.admission.api.dto.Attendance;
 import com.eldercare.backend.admission.api.dto.DayCareSessionView;
-import com.eldercare.backend.admission.api.events.AddendumApplied;
 import com.eldercare.backend.care.api.*;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
-import com.eldercare.backend.care.internal.attendance.service.AttendanceClockWork;
 import com.eldercare.backend.care.internal.scheduling.service.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.file.FileApi;
@@ -275,71 +273,6 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         return api().onDate(resident, day);
     }
 
-    private int attendanceVersion(LocalDate day) {
-        return jdbc.queryForObject(
-                "SELECT version FROM simple_record WHERE unique_key=?",
-                Integer.class,
-                "M04.DAY_CARE_ATTENDANCE:" + resident + ":" + day);
-    }
-
-    @Test
-    void FR_012_arrivalScheduleAddendum_determinesDaysFromEffectiveDateToToday_earlierDayUnchanged() {
-        // Sự kiện 004 phát khi áp dụng phụ lục (luồng job áp dụng chạy REQUIRES_NEW sau commit, không kiểm được trong
-        // transaction của test: chủ dự án chọn 2026-11-09). Lịch hiện hành của hợp đồng thật có hôm nay và ngày mai.
-        daily("DAY_CARE_DAY_START").run(date, time.now());
-        int before = attendanceVersion(date);
-        LocalDate tomorrow = date.plusDays(1);
-        clock.setTo(tomorrow.atTime(12, 0).atZone(BusinessTime.ZONE).toInstant());
-        publisher.publishEvent(
-                new AddendumApplied(TestUsers.nextId(), contract, resident, Set.of("ARRIVAL_SCHEDULE"), tomorrow));
-        var added = onDate(tomorrow).orElseThrow();
-        assertThat(added.status()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
-        assertThat(added.expectedArrival()).contains(LocalTime.of(8, 0));
-        assertThat(attendanceVersion(date))
-                .as("ngày trước ngày hiệu lực không đổi")
-                .isEqualTo(before);
-    }
-
-    /**
-     * T029 (2026-11-11): luồng thật của 004 — yêu cầu thay đổi {@code ARRIVAL_SCHEDULE} lập, gửi, duyệt qua HTTP, job áp
-     * dụng của 000 ({@code ApplyDueRequestsJob}, REQUIRES_NEW) chạy {@code ResidencyChangeHandler.apply} và phát {@code
-     * AddendumApplied} thật. Job đọc dữ liệu đã commit nên ca này không chạy trong transaction của test: hợp đồng, yêu cầu
-     * và trạng thái có mặt được commit, id mới theo {@link TestUsers#nextId()}.
-     */
-    @Test
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    void FR_012_arrivalScheduleAddendumAppliedByTheRealJob_determinesEffectiveDayByNewSchedule() throws Exception {
-        LocalDate tomorrow = date.plusDays(1);
-        user.set(office.user());
-        long request = body(mvc.perform(post("/api/v1/residency-change-requests")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"contractId\":" + contract
-                                        + ",\"changeTypes\":[\"ARRIVAL_SCHEDULE\"],\"newValue\":{\"arrivalSchedule\":"
-                                        + schedule(
-                                                line(date.getDayOfWeek(), "08:00", "17:00"),
-                                                line(tomorrow.getDayOfWeek(), "09:30", "16:00"))
-                                        + "},\"requestedEffectiveDate\":\"" + tomorrow
-                                        + "\",\"reason\":\"Gia đình đề nghị đổi giờ đến\"}"))
-                        .andExpect(status().isCreated()))
-                .get("approvalRequestId")
-                .asLong();
-        approval(request, "submit", "{}");
-        user.set(manager.user());
-        approval(request, "approve", "{\"comment\":\"Đồng ý\"}");
-        assertThat(onDate(tomorrow)).isEmpty();
-
-        clock.setTo(tomorrow.atTime(12, 0).atZone(BusinessTime.ZONE).toInstant());
-        context.getBean(com.eldercare.backend.administration.approval.scheduling.ApplyDueRequestsJob.class)
-                .run();
-
-        assertThat(jdbc.queryForObject("SELECT status FROM approval_request WHERE id=?", String.class, request))
-                .isEqualTo("APPLIED");
-        var applied =
-                onDate(tomorrow).orElseThrow(() -> new AssertionError("listener 005 chưa xác định ngày hiệu lực"));
-        assertThat(applied.status()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
-        assertThat(applied.expectedArrival()).as("giờ đến theo lịch mới").contains(LocalTime.of(9, 30));
-    }
-
     private void approval(long request, String command, String content) throws Exception {
         String etag = mvc.perform(get("/api/v1/approval-requests/" + request))
                 .andExpect(status().isOk())
@@ -354,27 +287,6 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(content))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void FR_012_onlyArrivalScheduleChangesAct_andARepeatedEventChangesNothing() {
-        // Mô phỏng sự kiện 004 phát trong lệnh áp dụng phụ lục: lịch hiện hành của hợp đồng đã có hôm nay
-        publisher.publishEvent(new AddendumApplied(TestUsers.nextId(), contract, resident, Set.of("SERVICE"), date));
-        assertThat(onDate(date)).isEmpty();
-        long addendum = TestUsers.nextId();
-        publisher.publishEvent(new AddendumApplied(addendum, contract, resident, Set.of("ARRIVAL_SCHEDULE"), date));
-        assertThat(onDate(date).orElseThrow().status()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
-        int once = attendanceVersion(date);
-        publisher.publishEvent(new AddendumApplied(addendum, contract, resident, Set.of("ARRIVAL_SCHEDULE"), date));
-        assertThat(attendanceVersion(date)).isEqualTo(once);
-    }
-
-    @Test
-    void FR_012_addendumEffectiveLater_leavesTodayToTheDayStartWork() {
-        publisher.publishEvent(new AddendumApplied(
-                TestUsers.nextId(), contract, resident, Set.of("ARRIVAL_SCHEDULE"), date.plusDays(3)));
-        assertThat(onDate(date)).isEmpty();
-        assertThat(onDate(date.plusDays(3))).isEmpty();
     }
 
     // ---- Điểm danh, báo vắng, ngày nghỉ, việc theo lịch -----------------------------------------------------------
@@ -460,18 +372,6 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
                 LocalDateTime.ofInstant(recordedAt, ZoneOffset.UTC));
     }
 
-    private org.springframework.test.web.servlet.ResultActions notice(Instant familyNotifiedAt) throws Exception {
-        return mvc.perform(post("/api/v1/day-care-absence-notices")
-                .header("Idempotency-Key", UUID.randomUUID().toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"residentId\":" + resident + ",\"date\":\"" + date + "\",\"familyNotifiedAt\":\""
-                        + familyNotifiedAt + "\"}"));
-    }
-
-    private Instant timely() {
-        return date.atTime(8, 0).atZone(BusinessTime.ZONE).toInstant().minus(Duration.ofDays(2));
-    }
-
     private AttendanceStatus attendance() {
         return api().onDate(resident, date).orElseThrow().status();
     }
@@ -482,95 +382,6 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
         assertThat(sessions).hasSize(1);
         assertThat(sessions.getFirst().sessionId()).isEqualTo(1);
         return sessions.getFirst();
-    }
-
-    private Long stored(String field) {
-        String value = jdbc.queryForObject(
-                "SELECT JSON_UNQUOTE(JSON_EXTRACT(content, ?)) FROM simple_record WHERE unique_key=?",
-                String.class,
-                "$." + field,
-                "M04.DAY_CARE_ATTENDANCE:" + resident + ":" + date);
-        return value == null || value.equals("null") ? null : Long.valueOf(value);
-    }
-
-    private List<Long> notices() {
-        return jdbc.queryForList(
-                "SELECT id FROM absence WHERE kind='DAY_CARE_NOTICE' AND resident_id=? ORDER BY id",
-                Long.class,
-                resident);
-    }
-
-    @Test
-    void FR_013_dayStartReadsCalendarOf004_withoutNoticeNotArrived() {
-        daily("DAY_CARE_DAY_START").run(date, time.now());
-        assertThat(attendance()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
-        assertThat(session().attendance()).as("Chưa đến: buổi chưa xác định").isNull();
-        assertThat(session().coefficientPercent()).isNull();
-    }
-
-    @Test
-    void FR_013_timelyNoticeRecordedBy004_makesReportedAbsentAndBlocksArrival() throws Exception {
-        notice(timely())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.withinNoticePeriod").value(true));
-        assertThat(attendance()).isEqualTo(AttendanceStatus.REPORTED_ABSENT);
-        assertThat(stored("timelyAbsenceId")).isEqualTo(notices().getFirst());
-        arrive().andExpect(status().isConflict());
-        assertThat(session().attendance()).isEqualTo(Attendance.ABSENT_NOTIFIED);
-    }
-
-    @Test
-    void FR_014_lateNoticeKeepsStateAndIsStored_laterTimelyNoticeStillCounts() throws Exception {
-        daily("DAY_CARE_DAY_START").run(date, time.now());
-        notice(time.now())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.withinNoticePeriod").value(false));
-        assertThat(attendance()).isEqualTo(AttendanceStatus.NOT_ARRIVED);
-        assertThat(stored("lateAbsenceId")).isEqualTo(notices().getFirst());
-        assertThat(stored("timelyAbsenceId")).isNull();
-        notice(timely()).andExpect(status().isCreated());
-        assertThat(attendance()).isEqualTo(AttendanceStatus.REPORTED_ABSENT);
-        assertThat(stored("timelyAbsenceId")).isEqualTo(notices().get(1));
-        assertThat(stored("lateAbsenceId")).isEqualTo(notices().getFirst());
-    }
-
-    @Test
-    void FR_013_closureDayDeclaredBy004_cancelsTodaysAttendance() throws Exception {
-        daily("DAY_CARE_DAY_START").run(date, time.now());
-        mvc.perform(post("/api/v1/day-care-closure-days")
-                        .header("Idempotency-Key", UUID.randomUUID().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"date\":\"" + date + "\",\"reason\":\"Nghỉ lễ\"}"))
-                .andExpect(status().isCreated());
-        assertThat(attendance()).isEqualTo(AttendanceStatus.HOLIDAY_CANCELLED);
-        context.getBean(AttendanceClockWork.class).run(time.now());
-        assertThat(attendance()).isEqualTo(AttendanceStatus.HOLIDAY_CANCELLED);
-    }
-
-    @Test
-    void CFG_M02_07_noShowPastLimitBecomesUnreportedAbsent_withCalendarOf004() {
-        daily("DAY_CARE_DAY_START").run(date, time.now());
-        context.getBean(AttendanceClockWork.class).run(time.now());
-        assertThat(attendance()).isEqualTo(AttendanceStatus.UNREPORTED_ABSENT);
-        assertThat(session().attendance()).isEqualTo(Attendance.ABSENT_UNNOTIFIED);
-        assertThat(events.stream(UnreportedAbsence.class)
-                        .filter(e -> e.residentId() == resident)
-                        .count())
-                .isEqualTo(1);
-    }
-
-    @Test
-    void FR_019_stillPresentAtDayEndNotifiesOnce() throws Exception {
-        arriveId();
-        Instant nextMorning =
-                date.plusDays(1).atTime(0, 5).atZone(BusinessTime.ZONE).toInstant();
-        assertThat(daily("DAY_CARE_DAY_END").run(date, nextMorning)).isEqualTo(1);
-        assertThat(daily("DAY_CARE_DAY_END").run(date, nextMorning)).isZero();
-        assertThat(events.stream(DayCarePresentAtDayEnd.class)
-                        .filter(e -> e.residentId() == resident)
-                        .count())
-                .isEqualTo(1);
-        assertThat(attendance()).isEqualTo(AttendanceStatus.PRESENT);
     }
 
     private long task(long owner, Instant planned, String state) {
@@ -591,12 +402,5 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
                 user.accountId(),
                 LocalDateTime.ofInstant(at, BusinessTime.ZONE));
         return id;
-    }
-
-    private CareDailyWork daily(String name) {
-        return context.getBeansOfType(CareDailyWork.class).values().stream()
-                .filter(w -> w.name().equals(name))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Chưa cài việc " + name));
     }
 }

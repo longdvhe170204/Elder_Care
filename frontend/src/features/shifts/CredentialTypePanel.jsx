@@ -37,7 +37,7 @@ export function CredentialTypePanel({ types, create, onDone }) {
   return (
     <section className="flex flex-col gap-4 rounded-2xl border bg-card p-4 md:p-5">
       <div className="flex flex-wrap justify-between gap-3">
-        <h2 className="type-section">Loại giấy phép và đào tạo</h2>
+        <h2 className="type-title">Loại giấy phép và đào tạo</h2>
         {create && (
           <Button variant="outline" onClick={() => setAdding(true)}>
             Thêm loại chứng chỉ
