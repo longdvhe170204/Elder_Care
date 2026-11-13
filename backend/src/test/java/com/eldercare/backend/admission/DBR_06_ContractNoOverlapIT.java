@@ -66,6 +66,7 @@ class DBR_06_ContractNoOverlapIT extends ContractTestBase {
         long second = createDraft(residentId);
         send(first);
         send(second);
+        bedForSigning(residentId);
         long fileOne = scan();
         long fileTwo = scan();
 

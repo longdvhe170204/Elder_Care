@@ -134,7 +134,7 @@ abstract class AbsenceTestBase extends ContractTestBase {
 
     protected void runJobOn(LocalDate day) {
         noonOf(day);
-        dailyRunner.catchUp();
+        runDailyJob();
     }
 
     protected List<LongAbsenceManagerNotice> managerNotices(long absenceId) {

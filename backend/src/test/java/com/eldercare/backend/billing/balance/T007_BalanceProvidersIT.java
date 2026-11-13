@@ -79,10 +79,10 @@ class T007_BalanceProvidersIT extends MySqlIntegrationTestBase {
         DataRef residentRecord = new DataRef(SharedRowRetention.RESIDENT, resident);
 
         assertThat(ledgers.referencing(residentRecord)).containsExactly(new DataRef(LEDGER, resident));
-        assertThat(transactions.referencing(residentRecord))
-                .containsExactlyInAnyOrder(new DataRef(TRANSACTION, ids[0]), new DataRef(TRANSACTION, ids[1]));
-        assertThat(ledgers.referencesTo(resident))
-                .containsExactlyInAnyOrder(new DataRef(TRANSACTION, ids[0]), new DataRef(TRANSACTION, ids[1]));
+        // 010 T033 (2026-11-12): giao dịch đi theo sổ rồi theo giao dịch được trỏ, không gắn thẳng hồ sơ, để chuỗi xóa
+        // điều chỉnh trước giao dịch gốc (fk_balance_transaction_original); cả chuỗi kiểm ở ResidentRetentionIT.
+        assertThat(transactions.referencing(residentRecord)).isEmpty();
+        assertThat(ledgers.referencesTo(resident)).containsExactly(new DataRef(TRANSACTION, ids[0]));
         assertThat(transactions.referencesTo(ids[0])).containsExactly(new DataRef(TRANSACTION, ids[1]));
 
         assertThat(of(scopes, p -> LEDGER.equals(p.entityType())).assignScope(resident))

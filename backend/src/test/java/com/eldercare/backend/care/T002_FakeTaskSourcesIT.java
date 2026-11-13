@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 /**
- * T002, team-plan mục 8 (C, D: bean thật {@code TaskSourcePort} của 007; FakeM04Config phần MEAL): {@code
- * CareTaskValidator} đòi đúng một nguồn mỗi loại căn cứ. Bản giả nhường loại đã có bean thật (007 theo dõi sau ngã, theo
- * dõi tiếp xúc; 014 buổi hoạt động); {@code MEAL} vẫn do bản giả quản vì cấu hình gỡ bean thật của 011 khỏi context này.
+ * T002, team-plan mục 8 (C, D: bean thật {@code TaskSourcePort} của 007): {@code CareTaskValidator} đòi đúng một nguồn
+ * mỗi loại căn cứ. Bản giả nhường loại đã có bean thật (007 theo dõi sau ngã, theo dõi tiếp xúc; 014 buổi hoạt động);
+ * {@code MEAL} là bản thật {@code MealTaskSource} của 011 (011 T042).
  */
 @Import(FakeM04Config.class)
 class T002_FakeTaskSourcesIT extends MySqlIntegrationTestBase {
@@ -44,6 +44,6 @@ class T002_FakeTaskSourcesIT extends MySqlIntegrationTestBase {
         assertThat(managing(SourceType.ACTIVITY_SESSION).getFirst()).isNotInstanceOf(FakeTaskSource.class);
         // Chưa có bean thật của 007 cho lịch đo, cảnh báo uống nước: bản giả quản
         assertThat(managing(SourceType.MEASUREMENT).getFirst()).isInstanceOf(FakeTaskSource.class);
-        assertThat(managing(SourceType.MEAL).getFirst()).isInstanceOf(FakeTaskSource.class);
+        assertThat(managing(SourceType.MEAL).getFirst()).isNotInstanceOf(FakeTaskSource.class);
     }
 }

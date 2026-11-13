@@ -278,12 +278,67 @@ abstract class ContractTestBase extends M02TestBase {
                 .content(body.toString()));
     }
 
-    /** Hợp đồng đi hết Nháp → Chờ ký → Hiệu lực; trả mã hợp đồng. */
+    /** Hợp đồng đi hết Nháp → Chờ ký → Hiệu lực; trả mã hợp đồng. Nội trú: có giường trước khi ký (FR-021). */
     protected long activeContract(long residentId, ObjectNode body) throws Exception {
         long id = create(body).get("contract").get("id").asLong();
         send(id);
+        if (!"DAY_CARE".equals(body.path("residenceType").asString(""))) {
+            String start = body.path("startDate").asString("");
+            bedForSigning(residentId, start.isEmpty() ? today() : LocalDate.parse(start));
+        }
         recordSignedRaw(id, signedBody(residentId, today())).andExpect(status().isOk());
         return id;
+    }
+
+    /**
+     * FR-021: phân bổ Hiệu lực thật của 003 (bắt đầu 30 ngày trước, hoặc từ ngày bắt đầu hợp đồng nếu sớm hơn) ở một giường riêng, để "Ghi nhận đã ký" hợp đồng nội trú
+     * được phép; đã có phân bổ Hiệu lực hoặc Tương lai thì giữ nguyên. Test cần phân bổ ở giường khác thì gọi
+     * {@link #cancelFixtureAllocation} trước khi dựng.
+     */
+    protected void bedForSigning(long residentId) {
+        bedForSigning(residentId, today());
+    }
+
+    protected void bedForSigning(long residentId, LocalDate contractStart) {
+        Integer open = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM bed_allocation WHERE resident_id=? AND status IN ('ACTIVE','FUTURE')",
+                Integer.class,
+                residentId);
+        if (open != null && open > 0) return;
+        long area = com.eldercare.backend.support.TestUsers.nextId();
+        long floor = com.eldercare.backend.support.TestUsers.nextId();
+        long type = com.eldercare.backend.support.TestUsers.nextId();
+        long room = com.eldercare.backend.support.TestUsers.nextId();
+        long bed = com.eldercare.backend.support.TestUsers.nextId();
+        jdbc.update("INSERT INTO area(id,code,name) VALUES(?,?,?)", area, "A" + area, "Khu " + area);
+        jdbc.update(
+                "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)", floor, area, "F" + floor, "Tầng " + floor);
+        jdbc.update("INSERT INTO room_type(id,name,standard_beds) VALUES(?,?,2)", type, "Loại " + type);
+        jdbc.update(
+                "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
+                room,
+                floor,
+                type,
+                "R" + room,
+                "Phòng " + room);
+        jdbc.update("INSERT INTO bed(id,room_id,code,state) VALUES(?,?,'G1','OCCUPIED')", bed, room);
+        jdbc.update(
+                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source)"
+                        + " VALUES(?,?,'ACTIVE',?,'BASIC','CURRENT')",
+                residentId,
+                bed,
+                java.sql.Timestamp.from(
+                        java.util.Collections.min(java.util.List.of(today().minusDays(30), contractStart))
+                                .atStartOfDay(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                                .toInstant()));
+    }
+
+    /** Hủy phân bổ do {@link #bedForSigning} dựng, để test tự dựng phân bổ ở giường của mình. */
+    protected void cancelFixtureAllocation(long residentId) {
+        jdbc.update(
+                "UPDATE bed_allocation SET status='CANCELLED',cancellation_reason='Kiểm thử: bỏ phân bổ dựng sẵn'"
+                        + " WHERE resident_id=? AND status IN ('ACTIVE','FUTURE')",
+                residentId);
     }
 
     /** Đặt đồng hồ giả lập vào 12:00 ngày {@code day} (sau 00:15 nên job hằng ngày được phép chạy). */

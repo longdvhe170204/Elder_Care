@@ -61,6 +61,18 @@ class FR_011_BedTransitionsTest {
                         .isInstanceOf(IllegalStateException.class));
     }
 
+    /** BR-M03-05: giường có người (đang ở hoặc giữ cho người vắng) không sang Đang bảo trì, Không sử dụng. */
+    @Test
+    void BR_M03_05_bedInUseCannotGoToMaintenanceOrRetired() {
+        for (var from : List.of(OCCUPIED, HELD))
+            for (var event : List.of(ASSET_MAINTENANCE, ASSET_RETIRED, SUSPEND)) {
+                var hold = from == HELD ? HoldReason.ABSENT_RESIDENT : null;
+                assertThatThrownBy(() -> BedTransitions.next(from, hold, event, null, false))
+                        .as("%s %s", from, event)
+                        .isInstanceOf(IllegalStateException.class);
+            }
+    }
+
     static Stream<Row> rejected() {
         var contexts = new ArrayList<BedStatus>(Arrays.asList(BedStatus.values()));
         contexts.add(null);

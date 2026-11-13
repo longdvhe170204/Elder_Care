@@ -31,7 +31,7 @@ class FR_003_PublicContractsTest {
     void FR_003_allPublicInterfacesExposeTheContractOperations() throws Exception {
         Map<String, Integer> contracts = Map.of(
                 "ResidentLocationApi",
-                6,
+                7, // 2026-11-12: hasAllocationStartingBy (004 FR-021)
                 "LocationHistoryApi",
                 4,
                 "BedAllocationCommandApi",

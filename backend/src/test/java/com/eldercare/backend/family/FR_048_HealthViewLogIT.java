@@ -46,8 +46,9 @@ class FR_048_HealthViewLogIT extends FamilyCommandTestBase {
     @Test
     void FR_046_sourceNotAvailable_saysSo_noNumbers_noLog() throws Exception {
         String m = familySession(mMember);
-        // Mục chưa có nguồn: "vital-signs" đã có nguồn thật của 007 (PR #121) nên không còn là ví dụ cho FR-046
-        for (String section : new String[] {"eating", "diet", "weight", "medical-appointments"}) {
+        // Mục chưa có nguồn: "vital-signs" đã có nguồn thật của 007 (PR #121), "eating" có tổng hợp lượng nước của 005
+        // (chủ dự án chốt 2026-11-12) nên không còn là ví dụ cho FR-046
+        for (String section : new String[] {"diet", "weight", "medical-appointments"}) {
             JsonNode body = JSON.readTree(mvc.perform(get("/api/v1/family-portal/residents/" + a + "/health/" + section)
                             .header("Authorization", m))
                     .andExpect(status().isOk())

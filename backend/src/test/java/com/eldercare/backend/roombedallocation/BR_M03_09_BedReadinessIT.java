@@ -110,6 +110,26 @@ class BR_M03_09_BedReadinessIT extends StructureTestSupport {
         confirm("{}").andExpect(status().isConflict());
     }
 
+    /** BR-M03-10: người vừa rời được đưa vào danh sách khi giường đang Chờ sẵn sàng thì bắt buộc ghi khử khuẩn, bảo hộ. */
+    @Test
+    void BR_M03_10_listedDepartedResidentRequiresDisinfectionAndPpe() throws Exception {
+        infection.listed(departed, time.now().minusSeconds(60), true);
+        mvc.perform(get("/api/v1/beds/" + bed + "/readiness-conditions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.disinfectionRequired").value(true));
+        confirm("{}").andExpect(status().isUnprocessableContent());
+        confirm("{\"disinfected\":true}").andExpect(status().isUnprocessableContent());
+        confirm("{\"disinfected\":true,\"ppeUsed\":true}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.state").value("EMPTY"));
+        assertThat(jdbc.queryForMap(
+                        "SELECT disinfection_required,disinfected,ppe_used FROM bed_state_history WHERE bed_id=? AND event='CONFIRM_READY'",
+                        bed))
+                .containsEntry("disinfection_required", true)
+                .containsEntry("disinfected", true)
+                .containsEntry("ppe_used", true);
+    }
+
     /**
      * T060 (FR-044, research G-14; GET /bed-readiness/beds duyệt 2026-11-06): Điều dưỡng giữ nhiệm vụ Người phụ trách
      * ca thấy giường Chờ sẵn sàng của tầng đang phụ trách; hết nhiệm vụ hoặc không có nhiệm vụ thì 403; Trưởng tầng
