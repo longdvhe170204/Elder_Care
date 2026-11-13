@@ -23,6 +23,8 @@ public class SessionStore {
             + " a.staff_id, a.family_member_id, a.must_change_password, a.resident_id, s.ended_at IS NULL"
             + " FROM login_session s JOIN account a ON a.id = s.account_id WHERE s.token_hash = ?";
 
+    private static final String DEVICE_LOCK = "M15.DEVICE:";
+
     private final JdbcTemplate jdbc;
 
     SessionStore(JdbcTemplate jdbc) {
@@ -69,27 +71,29 @@ public class SessionStore {
                 tokenHash);
     }
 
-    /** Lần kết nối gần nhất của thiết bị, khóa dòng tới hết transaction (đối chiếu đồng bộ ngoại tuyến). */
+    /**
+     * Lần kết nối gần nhất của thiết bị, khóa dòng tới hết transaction (đối chiếu đồng bộ ngoại tuyến). Thiết bị là dòng
+     * {@code technical_lock} khóa {@code M15.DEVICE:<id thiết bị>}, {@code updated_at} là lần kết nối gần nhất (gộp bảng
+     * {@code device} 2026-11-13, research R-15 của 000).
+     */
     public Optional<Instant> lockLastConnection(String deviceId) {
         return jdbc
                 .queryForList(
-                        "SELECT last_connected_at FROM device WHERE device_id = ? FOR UPDATE",
+                        "SELECT updated_at FROM technical_lock WHERE lock_key = ? FOR UPDATE",
                         LocalDateTime.class,
-                        deviceId)
+                        DEVICE_LOCK + deviceId)
                 .stream()
                 .findFirst()
                 .map(t -> t.toInstant(ZoneOffset.UTC));
     }
 
-    /** Ghi lần kết nối của thiết bị và tài khoản kết nối. */
+    /** Ghi lần kết nối của thiết bị. */
     public void recordConnection(String deviceId, Instant at, long accountId) {
         jdbc.update(
-                "INSERT INTO device (device_id, last_connected_at, last_account_id) VALUES (?, ?, ?) AS new"
-                        + " ON DUPLICATE KEY UPDATE last_connected_at = new.last_connected_at,"
-                        + " last_account_id = new.last_account_id",
-                deviceId,
-                utc(at),
-                accountId);
+                "INSERT INTO technical_lock (lock_key, version, updated_at) VALUES (?, 0, ?) AS new"
+                        + " ON DUPLICATE KEY UPDATE updated_at = new.updated_at",
+                DEVICE_LOCK + deviceId,
+                utc(at));
     }
 
     private static SessionRow row(ResultSet rs, int i) throws SQLException {

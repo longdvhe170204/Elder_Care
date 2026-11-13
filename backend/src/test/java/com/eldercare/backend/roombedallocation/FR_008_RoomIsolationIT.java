@@ -40,9 +40,13 @@ class FR_008_RoomIsolationIT extends StructureTestSupport {
                 .andExpect(jsonPath("$[1].action").value("LIFT"));
         assertThat(jdbc.queryForObject("SELECT isolated FROM room WHERE id=?", Boolean.class, room))
                 .isFalse();
-        assertThatThrownBy(() -> jdbc.update("UPDATE room_isolation_history SET reason='Sửa' WHERE room_id=?", room))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE status_history SET reason='Sửa' WHERE entity_type='M03.ROOM' AND attribute='ISOLATION' AND entity_id=?",
+                        room))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM room_isolation_history WHERE room_id=?", room))
+        assertThatThrownBy(() -> jdbc.update(
+                        "DELETE FROM status_history WHERE entity_type='M03.ROOM' AND attribute='ISOLATION' AND entity_id=?",
+                        room))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
 

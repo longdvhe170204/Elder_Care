@@ -39,7 +39,6 @@ class BR_M04_14_CareResultCorrectionIT extends CareResultTestBase {
         try (var connection = retentionConnection()) {
             for (String sql : List.of(
                     "DELETE FROM correction WHERE record_type='M04.CARE_RESULT' AND original_record_id IN (SELECT id FROM care_task WHERE resident_id=?)",
-                    "DELETE FROM correction_chain WHERE record_type='M04.CARE_RESULT' AND original_record_id IN (SELECT id FROM care_task WHERE resident_id=?)",
                     "DELETE FROM audit_log WHERE entity_type IN ('M04.CARE_RESULT','M04.TASK') AND entity_id IN (SELECT id FROM care_task WHERE resident_id=?)",
                     "DELETE FROM status_history WHERE entity_type='M04.TASK' AND entity_id IN (SELECT id FROM care_task WHERE resident_id=?)",
                     "DELETE FROM reminder_marker WHERE kind LIKE 'M04.%' AND entity_type='M01.RESIDENT' AND entity_id=?",
