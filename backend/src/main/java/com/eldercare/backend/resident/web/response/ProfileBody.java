@@ -102,6 +102,29 @@ public record ProfileBody(
                 familyViewer);
     }
 
+    /** Loại lưu trú hiện hành từ hợp đồng Hiệu lực của 004 (api-001 {@code currentResidenceType}, FR-051). */
+    public ProfileBody withResidenceType(String residenceType) {
+        return new ProfileBody(
+                id,
+                profileCode,
+                personalInfo,
+                status,
+                statusSince,
+                residenceType,
+                currentCareLevel,
+                careNeeds,
+                careNote,
+                activeHealthItems,
+                hasActiveConsent,
+                hasEndOfLifeWish,
+                hasTreatmentWish,
+                previousProfileId,
+                allowedCommands,
+                hiddenFields,
+                target,
+                familyViewer);
+    }
+
     @Override
     @JsonIgnore
     public Target visibilityTarget() {
