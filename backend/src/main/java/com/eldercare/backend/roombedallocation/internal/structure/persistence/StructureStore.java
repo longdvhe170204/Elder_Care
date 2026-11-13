@@ -92,10 +92,13 @@ public class StructureStore {
         if (query != null)
             result.addAll(jdbc.query(
                     query, (rs, i) -> new UnmetCondition("FR-005", rs.getString(2) + " #" + rs.getLong(1)), id));
-        if ((kind == StructureKind.AREA || kind == StructureKind.FLOOR) && tableExists("day_care_rest_area")) {
-            String column = kind == StructureKind.AREA ? "area_id" : "floor_id";
+        if (kind == StructureKind.AREA || kind == StructureKind.FLOOR) {
+            String column = kind == StructureKind.AREA
+                    ? "JSON_VALUE(attributes,'$.areaId' RETURNING SIGNED)"
+                    : "JSON_VALUE(attributes,'$.floorId' RETURNING SIGNED)";
             result.addAll(jdbc.query(
-                    "SELECT id,name FROM day_care_rest_area WHERE status='ACTIVE' AND " + column + "=? FOR SHARE",
+                    "SELECT id,name FROM catalog_item WHERE catalog_type='M03.DAY_CARE_REST_AREA' AND status='ACTIVE' AND "
+                            + column + "=? FOR SHARE",
                     (rs, i) -> new UnmetCondition("FR-005", "Khu nghỉ " + rs.getString(2) + " #" + rs.getLong(1)),
                     id));
         }
@@ -159,10 +162,10 @@ public class StructureStore {
     }
 
     public java.util.Optional<com.eldercare.backend.roombedallocation.api.dto.LocationRef> dayCareLocation() {
-        if (!tableExists("day_care_rest_area")) return java.util.Optional.empty();
         return jdbc
                 .query(
-                        "SELECT floor_id,area_id FROM day_care_rest_area WHERE status='ACTIVE'",
+                        "SELECT JSON_VALUE(attributes,'$.floorId' RETURNING SIGNED),JSON_VALUE(attributes,'$.areaId' RETURNING SIGNED)"
+                                + " FROM catalog_item WHERE catalog_type='M03.DAY_CARE_REST_AREA' AND status='ACTIVE'",
                         (rs, i) -> rs.getObject(1) == null
                                 ? new com.eldercare.backend.roombedallocation.api.dto.LocationRef("AREA", rs.getLong(2))
                                 : new com.eldercare.backend.roombedallocation.api.dto.LocationRef(

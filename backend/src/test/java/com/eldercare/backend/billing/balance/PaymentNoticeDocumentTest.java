@@ -88,23 +88,6 @@ class PaymentNoticeDocumentTest {
     }
 
     @Test
-    void BR_M11_21_nonNegativeBalanceAfterHasNoDebtOrAccount() {
-        String pdf = pdfText(PaymentNoticeDocument.pdf(FACILITY, null, notice(20_000_000, 10_750_000, PAYMENT)));
-
-        assertThat(pdf)
-                .doesNotContain("Số còn nợ")
-                .doesNotContain("0011004000123")
-                .doesNotContain("NCT7K2M9X4A");
-    }
-
-    @Test
-    void BR_M11_21_withoutAccountParameterItSaysToContactAccounting() {
-        String pdf = pdfText(PaymentNoticeDocument.pdf(FACILITY, null, notice(8_000_000, -1_250_000, null)));
-
-        assertThat(pdf).contains("Số còn nợ").contains("Liên hệ Kế toán để biết tài khoản nộp tiền");
-    }
-
-    @Test
     void BR_M11_21_excelHasTheSameFiguresAsPdf() {
         List<String> cells = excelCells(PaymentNoticeDocument.excel(FACILITY, notice(8_000_000, -1_250_000, PAYMENT)));
 

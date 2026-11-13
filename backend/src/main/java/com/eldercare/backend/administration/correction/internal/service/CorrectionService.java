@@ -240,20 +240,12 @@ class CorrectionService implements CorrectionApi {
             long actorId,
             CreationMethod method,
             Long approvalRequestId) {
-        boolean created = chains.create(recordType, originalRecordId);
-        Set<String> legacy = new java.util.LinkedHashSet<>(aliases.withLegacy(recordType));
-        legacy.remove(recordType);
-        if (created && !legacy.isEmpty()) {
-            // Bản gốc đã có đính chính ghi với loại cũ trước khi gộp bảng: số thứ tự, Hủy ghi nhận nối tiếp (R-15 mục
-            // 5)
-            chains.save(recordType, originalRecordId, chains.stateOf(legacy, originalRecordId));
-        }
-        ChainState chain = chains.lock(recordType, originalRecordId);
+        // Đính chính ghi với loại cũ trước khi gộp bảng: số thứ tự, Hủy ghi nhận nối tiếp (R-15 mục 5)
+        ChainState chain = chains.lock(recordType, aliases.withLegacy(recordType), originalRecordId);
         if (chain.voided()) {
             throw voided();
         }
         int sequenceNo = chain.correctionCount() + 1;
-        chains.save(recordType, originalRecordId, new ChainState(sequenceNo, type == CorrectionType.VOID));
         return corrections.append(new Correction(
                 recordType,
                 originalRecordId,

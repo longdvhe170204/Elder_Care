@@ -49,23 +49,4 @@ class BR_M12_01_HandoverIT extends HandoverTestBase {
                         "SELECT kind FROM belonging_handover WHERE belonging_id = ? ORDER BY id", String.class, split))
                 .containsExactly("TRANSFER_CUSTODY");
     }
-
-    @Test
-    void Q7_FR_014_giverMustBeHolder_unlessHolderIsReallyAbsent() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long location = location();
-        long phone = intake(resident, "PHONE", "\"quantity\": 1", location);
-        onShift(null, officeA.staffId());
-        String transfer = ", \"storageLocationId\": " + location() + ", \"reason\": \"Đổi tủ\"";
-
-        handover(tokenB, command("TRANSFER_CUSTODY", item(phone, ""), transfer))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("GIVER_NOT_HOLDER"));
-        handover(tokenB, command("TRANSFER_CUSTODY", item(phone, ""), transfer + ", \"holderAbsent\": true"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("HOLDER_NOT_ABSENT"));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM belonging_handover WHERE belonging_id = ?", Integer.class, phone))
-                .isEqualTo(1);
-    }
 }

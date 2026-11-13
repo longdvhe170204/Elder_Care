@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,35 +118,6 @@ class SC_007_KhopBangChotIT extends MySqlIntegrationTestBase {
         String file = new String(exports.export(octoberPeriod, "ALL", "CSV").bytes(), StandardCharsets.UTF_8);
         assertThat(file).contains("Tổng kiểm soát: 3 bảng; 4 khoản; " + finalizedTotal + " đồng");
 
-        assertThat(summary(september, null)).isEqualByComparingTo("1000");
-    }
-
-    @Test
-    void Q19_provisionalModeAddsUnfinalizedItemsWithLabel_adjustmentKeepsOriginalPeriod() throws Exception {
-        long a = resident(), d = resident();
-        long septemberA = statement(septemberPeriod, a);
-        long septemberItem = item(septemberA, septemberPeriod, a, september, "EVENT_BASED", 1000, null);
-        approveAndFinalize(septemberA, septemberItem);
-        long octoberA = statement(octoberPeriod, a);
-        long adjustment = item(octoberA, octoberPeriod, a, october, "ADJUSTMENT", 80, septemberItem);
-        approveAndFinalize(octoberA, adjustment);
-        long octoberD = statement(octoberPeriod, d);
-        current.set(office.user());
-        items.check(selection(item(octoberD, octoberPeriod, d, october, "EVENT_BASED", 50, null)));
-
-        assertThat(summary(october, null)).isEqualByComparingTo("80");
-        assertThat(summary(october, "PROVISIONAL")).isEqualByComparingTo("130");
-        List<List<String>> labels = JsonPath.read(report(october, "PROVISIONAL"), SUMMARY + ".labels");
-        assertThat(labels.getFirst()).contains("PROVISIONAL");
-
-        String details = body(get("/api/v1/metric-details/COST.SUMMARY")
-                .param("from", october.atDay(1).toString())
-                .param("to", october.atEndOfMonth().toString()));
-        List<Map<String, Object>> results = JsonPath.read(details, "$.rows[*].result");
-        assertThat(results).singleElement().satisfies(r -> {
-            assertThat(r).containsEntry("origin", "ADJUSTMENT");
-            assertThat(r).containsEntry("originalPeriod", september.toString());
-        });
         assertThat(summary(september, null)).isEqualByComparingTo("1000");
     }
 

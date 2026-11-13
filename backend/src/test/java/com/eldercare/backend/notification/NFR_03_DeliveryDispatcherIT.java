@@ -74,11 +74,13 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
         long account = ACCOUNTS.incrementAndGet();
         for (String token : tokens) {
             jdbc.update(
-                    "INSERT INTO push_device (account_id, device_id, app, fcm_token, updated_at)"
-                            + " VALUES (?, ?, 'STAFF_APP', ?, UTC_TIMESTAMP(6))",
+                    "INSERT INTO simple_record (kind, module, entity_type, entity_id, status, content, created_at, created_by)"
+                            + " VALUES ('M13.PUSH_DEVICE', 'M13', 'M15.ACCOUNT', ?, 'ACTIVE',"
+                            + " JSON_OBJECT('deviceId', ?, 'app', 'STAFF_APP', 'fcmToken', ?), UTC_TIMESTAMP(6), ?)",
                     account,
                     UUID.randomUUID().toString(),
-                    token);
+                    token,
+                    account);
         }
         long[] attempt = new long[1];
         tx.executeWithoutResult(s -> {
@@ -131,7 +133,8 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
         assertThat(push.pushesTo(good).getFirst().message().title()).isEqualTo("Sự cố mới");
         await().atMost(Duration.ofSeconds(5))
                 .until(() -> jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM push_device WHERE fcm_token = ? AND invalidated_at IS NOT NULL",
+                                "SELECT COUNT(*) FROM simple_record WHERE kind = 'M13.PUSH_DEVICE'"
+                                        + " AND content->>'$.fcmToken' = ? AND status = 'INVALIDATED'",
                                 Integer.class,
                                 bad)
                         == 1);

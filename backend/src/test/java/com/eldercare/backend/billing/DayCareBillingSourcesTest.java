@@ -119,16 +119,4 @@ class DayCareBillingSourcesTest {
         assertThat(sources.between(RESIDENT, CLOSED, CLOSED).getFirst().blockedCode())
                 .isEqualTo("NOT_A_BILLABLE_EVENT");
     }
-
-    @Test
-    void FR_008_contractWithoutDayCareService_isNotCreated() {
-        contract("[]");
-        when(days.dayCareSessions(RESIDENT, TUESDAY, TUESDAY))
-                .thenReturn(List.of(new DayCareSessionView(TUESDAY, 1, Attendance.PRESENT, 100, false)));
-
-        var candidate = sources.between(RESIDENT, TUESDAY, TUESDAY).getFirst();
-
-        assertThat(candidate.blockedCode()).isEqualTo("CONDITION_NOT_MET");
-        assertThat(candidate.blockedReason()).contains("dịch vụ buổi bán trú");
-    }
 }

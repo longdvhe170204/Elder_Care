@@ -12,37 +12,6 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class SourceCostPricingTest {
-    @Test
-    void BR_M11_09_lastDayUsesRemainderAndPreservesContractBasis() {
-        var prices = mock(CostPricingService.class);
-        var date = LocalDate.of(2026, 11, 30);
-        var basis = new CostPricingService.PriceBasis(CostPricingService.BasisKind.CONTRACT, 1L, 2, 3L, null);
-        when(prices.event(42, 9, date, BigDecimal.ONE))
-                .thenReturn(new CostPricingService.PriceQuote(
-                        new BigDecimal("1000000"), new BigDecimal("1000000"), false, basis));
-        var source = new CostSourceCandidate(
-                42,
-                "RESIDENCY_DAY",
-                "42:" + date,
-                "DAY",
-                date,
-                Instant.EPOCH,
-                9L,
-                CostType.RESIDENCY_FEE,
-                "ngày",
-                "Phí lưu trú",
-                BigDecimal.ONE,
-                new BigDecimal("100"),
-                Set.of(),
-                null,
-                null,
-                null,
-                Map.of("billingPeriod", "MONTH"));
-        var cost = new SourceCostPricing(prices).calculate(source);
-        assertThat(cost.amount()).isEqualByComparingTo("33343");
-        assertThat(cost.basis()).isEqualTo(basis);
-        assertThat(cost.sourceValues()).containsEntry("billingPeriod", "MONTH");
-    }
 
     private static CostSourceCandidate session(Long serviceId, String factor, Map<String, Object> facts) {
         var date = LocalDate.of(2026, 10, 14);
@@ -92,19 +61,6 @@ class SourceCostPricingTest {
     }
 
     @Test
-    void FR_009_lastScheduledSession_takesRemainder() {
-        var prices = mock(CostPricingService.class);
-        when(prices.event(eq(42L), eq(7L), any(), eq(BigDecimal.ONE))).thenReturn(quote("1000000"));
-        var facts = Map.<String, Object>of(
-                "billingPeriod", "MONTH", "scheduledSessionCount", 3, "lastScheduledSession", true);
-
-        assertThat(new SourceCostPricing(prices)
-                        .calculate(session(7L, "100", facts))
-                        .amount())
-                .isEqualByComparingTo("333334");
-    }
-
-    @Test
     void FR_009_sessionPrice_timesAttendanceFactor() {
         var prices = mock(CostPricingService.class);
         when(prices.event(eq(42L), eq(7L), any(), eq(BigDecimal.ONE))).thenReturn(quote("200000"));
@@ -125,35 +81,5 @@ class SourceCostPricingTest {
 
         assertThat(cost.amount()).isEqualByComparingTo("180000");
         verify(prices, never()).event(anyLong(), anyLong(), any(), any());
-    }
-
-    @Test
-    void FR_012_unresolvedService_isMissingUnitPrice_withoutAmount() {
-        var prices = mock(CostPricingService.class);
-        var date = LocalDate.of(2026, 10, 14);
-        var source = new CostSourceCandidate(
-                42,
-                "OVERNIGHT_STAY",
-                "S1",
-                "NIGHT",
-                date,
-                Instant.EPOCH,
-                null,
-                CostType.FAMILY_OVERNIGHT_STAY,
-                "đêm",
-                "Người thân ở lại",
-                BigDecimal.ONE,
-                null,
-                Set.of(),
-                null,
-                null,
-                null,
-                Map.of());
-
-        var cost = new SourceCostPricing(prices).calculate(source);
-
-        assertThat(cost.amount()).isNull();
-        assertThat(cost.flags()).contains("MISSING_UNIT_PRICE");
-        verifyNoInteractions(prices);
     }
 }

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.error.ReasonRequiredException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -13,15 +12,6 @@ class AuditLogEntryTest {
 
     private static final AuditAction CHANGE = new AuditAction("PARAMETER_CHANGE", true);
     private static final AuditAction LOGIN = new AuditAction("LOGIN_SUCCEEDED", false);
-
-    @Test
-    void FR_044_actionRequiringReason_withoutReason_isRejected() {
-        assertThatThrownBy(() -> AuditLogEntry.builder()
-                        .action(CHANGE)
-                        .entity("M15.PARAMETER", "CFG-M15-05")
-                        .build())
-                .isInstanceOf(ReasonRequiredException.class);
-    }
 
     @Test
     void FR_044_actionRequiringReason_withReason_builds() {

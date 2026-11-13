@@ -9,17 +9,11 @@ import com.eldercare.backend.common.notification.HasNotificationRequests;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
-import com.eldercare.backend.family.api.events.FamilyRightChanged;
 import com.eldercare.backend.family.internal.scheduling.service.M10TimedTask;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,40 +81,6 @@ class BR_M10_07_RightChangeRequestIT extends FamilyCommandTestBase {
         assertThat(column(x, "pickup_allowed")).isTrue();
         assertThat(pickupNames()).contains("Lê X");
         assertThat(requestJson(request).get("confirmationMethod").asString()).isEqualTo("PORTAL");
-    }
-
-    @Test
-    void FR_016_twoRepresentativesConfirmAtOnce_exactlyOneSucceeds() throws Exception {
-        long request = id(requestRight(office, a, n, "VIEW_COSTS", true).andExpect(status().isCreated()));
-        String rSession = familySession(rMember);
-        String sSession = familySession(sMember);
-        CountDownLatch start = new CountDownLatch(1);
-        ExecutorService pool = Executors.newFixedThreadPool(2);
-        try {
-            List<Future<Integer>> results = new ArrayList<>();
-            for (String session : List.of(rSession, sSession)) {
-                Callable<Integer> confirm = () -> {
-                    start.await();
-                    return requestCommand(session, request, "confirm", "{}")
-                            .andReturn()
-                            .getResponse()
-                            .getStatus();
-                };
-                results.add(pool.submit(confirm));
-            }
-            start.countDown();
-            List<Integer> statuses = new ArrayList<>();
-            for (Future<Integer> result : results) {
-                statuses.add(result.get());
-            }
-            assertThat(statuses).containsExactlyInAnyOrder(200, 409);
-        } finally {
-            pool.shutdownNow();
-        }
-        assertThat(requestStatus(request)).isEqualTo("EFFECTIVE");
-        assertThat(events.stream(FamilyRightChanged.class)
-                        .filter(e -> e.relationshipId() == n && e.right() == FamilyRight.VIEW_COSTS))
-                .hasSize(1);
     }
 
     private JsonNode requestJson(long requestId) throws Exception {

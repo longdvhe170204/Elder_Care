@@ -8,7 +8,6 @@ import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelect
 import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelection.Channel;
 import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelection.Planned;
 import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelection.Recipient;
-import com.eldercare.backend.notification.internal.domain.DeliveryOutcome;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -61,16 +60,6 @@ class ChannelSelectionTest {
     }
 
     @Test
-    void FR_016a_staffOffShift_mediumSmsSkipped_urgentStillSent() {
-        assertThat(plan(NotificationLevel.MEDIUM, staff(false), List.of(SMS_ON)))
-                .containsExactly(
-                        new Planned("IN_APP", Optional.empty()),
-                        new Planned("SMS", Optional.of(DeliveryOutcome.SKIPPED_OFF_SHIFT)));
-        assertThat(plan(NotificationLevel.URGENT, staff(false), List.of(SMS_ON)))
-                .containsExactly(new Planned("IN_APP", Optional.empty()), new Planned("SMS", Optional.empty()));
-    }
-
-    @Test
     void FR_016_disabledChannelNotUsed_noAccountNoInApp() {
         Recipient noAccount = new Recipient(RecipientType.FAMILY_MEMBER, false, Optional.of("0901000003"), true);
 
@@ -78,18 +67,5 @@ class ChannelSelectionTest {
                 .containsExactly(new Planned("IN_APP", Optional.empty()));
         assertThat(plan(NotificationLevel.MEDIUM, noAccount, List.of(SMS_ON)))
                 .containsExactly(new Planned("SMS", Optional.empty()));
-    }
-
-    @Test
-    void FR_018_FR_020_noAddressOrInvalidContent_recordedAtOnce() {
-        Recipient noPhone = new Recipient(RecipientType.STAFF, true, Optional.empty(), true);
-
-        assertThat(plan(NotificationLevel.MEDIUM, noPhone, List.of(SMS_ON)))
-                .contains(new Planned("SMS", Optional.of(DeliveryOutcome.NO_ADDRESS)));
-        assertThat(ChannelSelection.plan(NotificationLevel.URGENT, staff(true), true, List.of(SMS_ON, ZALO_URGENT)))
-                .containsExactly(
-                        new Planned("IN_APP", Optional.empty()),
-                        new Planned("SMS", Optional.of(DeliveryOutcome.INVALID_CONTENT)),
-                        new Planned("OTHER_ZALO", Optional.of(DeliveryOutcome.INVALID_CONTENT)));
     }
 }

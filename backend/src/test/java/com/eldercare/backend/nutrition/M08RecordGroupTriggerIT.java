@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,7 @@ import org.springframework.jdbc.support.KeyHolder;
 
 /**
  * 011 T041, T046 (mở rộng {@code RecordGroupTriggerIT} của 000 cho bảng nhóm 3 của 011; data-model mục 0.1, constitution
- * XII): bảng riêng {@code portion_closing} có trigger chặn sửa, xóa; sau gộp R-15 các bản ghi nhóm 3 khác của 011 (phát
+ * XII): lần chốt suất (loại {@code M08.PORTION_CLOSING}, gộp bảng {@code portion_closing} 2026-11-13) và các bản ghi nhóm 3 khác của 011 (phát
  * sinh, yêu cầu suất bổ sung, phần bổ sung, sai lệch phiếu, xác nhận phục vụ, đổi món, kiểm tra thực đơn) là dòng
  * {@code record_event} đã xác nhận, trigger của 000 chặn sửa, xóa, kể cả tài khoản quản trị.
  */
@@ -37,25 +34,8 @@ class M08RecordGroupTriggerIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;
 
-    private long portionClosing() throws SQLException {
-        long dailyMeal = TestUsers.nextId();
-        try (Connection c = adminConnection();
-                Statement s = c.createStatement()) {
-            s.executeUpdate(
-                    "INSERT INTO portion_closing (daily_meal_id, meal_id, meal_date, meal_time, late_threshold_minutes,"
-                            + " closed_by, closed_at, closed_after_meal_time, menu_id, total_portions, counted_residents,"
-                            + " portions_by_diet, flags, missing_data) VALUES ("
-                            + dailyMeal
-                            + ", "
-                            + TestUsers.nextId()
-                            + ", '2001-03-05', '2001-03-05 04:00:00', 30, 1, UTC_TIMESTAMP(6), FALSE, NULL, 0,"
-                            + " JSON_ARRAY(), JSON_ARRAY(), JSON_ARRAY(), JSON_ARRAY())",
-                    Statement.RETURN_GENERATED_KEYS);
-            try (ResultSet keys = s.getGeneratedKeys()) {
-                keys.next();
-                return keys.getLong(1);
-            }
-        }
+    private long portionClosing() {
+        return confirmedEvent("M08.PORTION_CLOSING");
     }
 
     private long confirmedEvent(String kind) {
@@ -79,9 +59,10 @@ class M08RecordGroupTriggerIT extends MySqlIntegrationTestBase {
     void BR_M08_01_portionClosing_appAccountCannotUpdateOrDelete() throws SQLException {
         long id = portionClosing();
 
-        assertThatThrownBy(() -> jdbc.update("UPDATE portion_closing SET total_portions = 9 WHERE id = ?", id))
+        assertThatThrownBy(
+                        () -> jdbc.update("UPDATE record_event SET content = '{\"totalPortions\":9}' WHERE id = ?", id))
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM portion_closing WHERE id = ?", id))
+        assertThatThrownBy(() -> jdbc.update("DELETE FROM record_event WHERE id = ?", id))
                 .isInstanceOf(DataAccessException.class);
     }
 }

@@ -255,7 +255,7 @@ export function AssignmentPanel({ shift, staff = [] }) {
       )}
       {action && (
         <form className="flex flex-col gap-3 rounded-xl border p-3" onSubmit={finish}>
-          <h3 className="type-section">
+          <h3 className="type-title">
             {action.kind === 'delete'
               ? 'Xóa phân công nháp'
               : action.kind === 'end'
@@ -289,7 +289,7 @@ export function AssignmentPanel({ shift, staff = [] }) {
       )}
       {canCreate && (
         <form className="flex flex-col gap-4 rounded-xl border p-4" onSubmit={check}>
-          <h3 className="type-section">Lập phân công</h3>
+          <h3 className="type-title">Lập phân công</h3>
           <fieldset disabled={busy} className="grid min-w-0 gap-3 sm:grid-cols-2">
             <Choice
               id="assignment-staff"
@@ -422,7 +422,7 @@ export function AssignmentPanel({ shift, staff = [] }) {
       )}
       {commands.includes('copyAssignments') && (
         <form className="flex flex-col gap-3 rounded-xl border p-4" onSubmit={copy}>
-          <h3 className="type-section">Sao chép từ ca cùng phạm vi</h3>
+          <h3 className="type-title">Sao chép từ ca cùng phạm vi</h3>
           <Field>
             <FieldLabel htmlFor="source-shift">Mã ca nguồn</FieldLabel>
             <Input

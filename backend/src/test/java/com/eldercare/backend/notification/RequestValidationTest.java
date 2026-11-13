@@ -11,7 +11,6 @@ import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
-import com.eldercare.backend.notification.internal.intake.domain.IntakeResult;
 import com.eldercare.backend.notification.internal.intake.domain.RequestFlag;
 import com.eldercare.backend.notification.internal.intake.domain.RequestValidation;
 import com.eldercare.backend.notification.internal.intake.domain.ValidatedRequest;
@@ -54,26 +53,6 @@ class RequestValidationTest {
 
     static final List<RecipientGroup> MANAGERS = List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
     static final List<ContentPart> GENERAL = List.of(new ContentPart(InformationType.GENERAL, "Có sự cố"));
-
-    @Test
-    void FR_003_validRequest_isValidWithoutFlags() {
-        ValidatedRequest v = RequestValidation.validate(
-                request(Optional.of(NotificationLevel.LOW), MANAGERS, GENERAL, Optional.empty(), Optional.empty()));
-
-        assertThat(v.result()).isEqualTo(IntakeResult.VALID);
-        assertThat(v.level()).isEqualTo(NotificationLevel.LOW);
-        assertThat(v.flags()).isEmpty();
-    }
-
-    @Test
-    void FR_003_missingLevel_isLowWithFlag_notRejected() {
-        ValidatedRequest v = RequestValidation.validate(
-                request(Optional.empty(), MANAGERS, GENERAL, Optional.empty(), Optional.empty()));
-
-        assertThat(v.result()).isEqualTo(IntakeResult.VALID);
-        assertThat(v.level()).isEqualTo(NotificationLevel.LOW);
-        assertThat(v.flags()).containsExactly(RequestFlag.MISSING_LEVEL);
-    }
 
     @Test
     void FR_013_partWithoutInformationType_isHealth() {

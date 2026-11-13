@@ -258,7 +258,7 @@ export function ShiftTaskPlanningPage({ shiftId: initialShiftId }) {
       {source && !loading && (
         <>
           <section aria-label="Dữ liệu nguồn" className="flex flex-col gap-3 border-b pb-5">
-            <h2 className="type-section">Dữ liệu nguồn để đối chiếu</h2>
+            <h2 className="type-title">Dữ liệu nguồn để đối chiếu</h2>
             <p>
               {formatDateTime(source.shift.startsAt)} – {formatDateTime(source.shift.endsAt)}
             </p>
@@ -282,7 +282,7 @@ export function ShiftTaskPlanningPage({ shiftId: initialShiftId }) {
             ))}
           </section>
           <section aria-label="Công việc đã lập" className="flex flex-col gap-3">
-            <h2 className="type-section">Công việc đã lập ({tasks.length})</h2>
+            <h2 className="type-title">Công việc đã lập ({tasks.length})</h2>
             {!tasks.length && <p className="text-muted-foreground">Ca chưa có công việc.</p>}
             {tasks.map((t) => (
               <div className="flex flex-wrap items-center justify-between gap-3 border-b py-3" key={t.id}>
@@ -300,7 +300,7 @@ export function ShiftTaskPlanningPage({ shiftId: initialShiftId }) {
           </section>
           {create && (
             <form onSubmit={submit} className="flex flex-col gap-5">
-              <h2 className="type-section">Các dòng đang nhập</h2>
+              <h2 className="type-title">Các dòng đang nhập</h2>
               {!!rowErrors.length && (
                 <div
                   ref={summary}

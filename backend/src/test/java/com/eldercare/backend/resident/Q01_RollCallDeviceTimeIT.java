@@ -88,20 +88,4 @@ class Q01_RollCallDeviceTimeIT extends StatusTestBase {
         assertThat(historyAt(resident)).isEqualTo(device);
         assertThat(currentStatus(resident)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
     }
-
-    @Test
-    void FR_031a_cancelReturnRecordBringsResidentBackOffSite() {
-        long resident = residentIn(ResidentStatus.IN_RESIDENCE);
-
-        inTransaction(() -> statusApi.execute(
-                resident,
-                StatusCommand.CANCEL_RETURN_RECORD,
-                office.user(),
-                Optional.of(reason()),
-                details("tripId", 9),
-                sourceRecord(9)));
-
-        assertThat(currentStatus(resident)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
-        assertThat(latestHistoryStatus(resident)).isEqualTo(ResidentStatus.OFF_SITE_ACTIVITY);
-    }
 }

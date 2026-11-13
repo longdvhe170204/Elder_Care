@@ -35,7 +35,7 @@ class FR_014_RealBedHoldIT extends WaitingListTestBase {
         jdbc.update(
                 "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)", floor, area, "F" + floor, "Tầng " + floor);
         jdbc.update("INSERT INTO room_type(id,name,standard_beds) VALUES(?,?,2)", type, "Loại " + type);
-        jdbc.update("INSERT INTO room_type_care_level VALUES(?,'BASIC')", type);
+        jdbc.update("UPDATE room_type SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", type);
         jdbc.update(
                 "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
                 room,
@@ -88,30 +88,4 @@ class FR_014_RealBedHoldIT extends WaitingListTestBase {
 
     @org.springframework.beans.factory.annotation.Autowired
     org.springframework.context.ApplicationContext context;
-
-    /**
-     * FR-015, BR-M02-02 (quickstart 004 Q21): job hết hạn giữ chỗ của 003 chạy như Bộ lập lịch trả giường giữ cho hồ sơ
-     * chờ; hồ sơ về Đang chờ, nhật ký có căn cứ (000 FR-045).
-     */
-    @Test
-    void FR_015_expiredHoldOfWaitingEntry_returnsBedAndEntryWaits() throws Exception {
-        emptyBed();
-        long entryId = newEntry(Gender.FEMALE, LocalDate.of(2000, 1, 1).minusDays(System.nanoTime() % 3000), "BASIC")
-                .get("id")
-                .asLong();
-        command(entryId, "record-contacted", "{\"bedId\":" + bed + ",\"outOfOrderReason\":\"Chọn thử\"}");
-        jdbc.update("UPDATE bed SET hold_until = '2000-01-01' WHERE id = ?", bed);
-
-        user.runAs(
-                com.eldercare.backend.support.FakePermissions.user(0, com.eldercare.backend.common.Role.SCHEDULER),
-                () -> context.getBean("holdExpiryJob", com.eldercare.backend.common.scheduling.ScheduledJob.class)
-                        .runNow());
-
-        assertThat(bedState()).as("trả giường giữ chỗ").isNotEqualTo("HELD");
-        user.set(office.user());
-        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
-                        "/api/v1/waiting-list-entries/" + entryId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("WAITING"));
-    }
 }

@@ -53,8 +53,9 @@ class VitalSignStatisticsIT extends MySqlIntegrationTestBase {
         record(resident, indicator, to, "CONFIRMED", "");
         long voided = record(resident, indicator, from.plusSeconds(1), "CONFIRMED", "");
         jdbc.update(
-                "INSERT INTO correction_chain(record_type,original_record_id,correction_count,voided) VALUES('M06.VITAL_SIGN_RECORD',?,1,TRUE)",
-                voided);
+                "INSERT INTO correction(record_type,original_record_id,type,reason,actor_id,creation_method,recorded_at,sequence_no) VALUES('M06.VITAL_SIGN_RECORD',?,'VOID','Hủy bản ghi kiểm thử',1,'A',?,1)",
+                voided,
+                java.sql.Timestamp.from(from));
         var scope = new ScopeFilter(false, Set.of(), Set.of(), Set.of(resident));
         assertThat(api.readings(scope, from, to)).singleElement().satisfies(row -> {
             assertThat(row.recordId()).isEqualTo(valid);

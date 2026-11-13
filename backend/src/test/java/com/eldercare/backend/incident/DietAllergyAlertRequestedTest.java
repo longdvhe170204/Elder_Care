@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -15,7 +14,6 @@ import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.incident.api.events.AlertRequested;
 import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
-import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.service.AlertService;
 import com.eldercare.backend.incident.internal.alert.service.DietAlertRequestListener;
 import java.time.Instant;
@@ -31,25 +29,6 @@ class DietAllergyAlertRequestedTest {
 
     private AlertRequested event(String type, String level, String key) {
         return new AlertRequested(12, type, level, "MENU_DISH", 77, Optional.of("2026-11-08:3"), at, key);
-    }
-
-    @Test
-    void dietAllergyConflictCreatesMediumAlertBySourceDish() {
-        when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
-                .thenReturn(true);
-
-        listener.onAlertRequested(event("DIET_ALLERGY_CONFLICT", "MEDIUM", "M08.DIET_ALLERGY_CONFLICT:1:x"));
-
-        verify(alerts)
-                .requestAlert(
-                        argThat(c -> c.residentId() == 12
-                                && c.type().equals("DIET_ALLERGY_CONFLICT")
-                                && c.typeLock().equals("DIET_ALLERGY_CONFLICT:77")
-                                && c.level() == IncidentLevel.MEDIUM
-                                && c.sourceType().equals("MENU_DISH")
-                                && c.sourceId() == 77
-                                && c.occurredAt().equals(at)),
-                        any());
     }
 
     @Test

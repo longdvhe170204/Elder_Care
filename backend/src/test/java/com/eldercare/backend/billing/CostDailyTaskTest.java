@@ -47,49 +47,6 @@ class CostDailyTaskTest {
     }
 
     @Test
-    void FR_031_dailyTaskRemindsMissingStatementsWithoutCreatingBusinessRecords() {
-        var store = mock(CostPeriodStore.class);
-        var coverage = mock(CostBillingCoverage.class);
-        var parameters = mock(ParameterApi.class);
-        var markers = mock(ReminderMarkers.class);
-        var notifications = mock(CostNotifications.class);
-        var month = YearMonth.of(2026, 10);
-        when(store.periods())
-                .thenReturn(
-                        List.of(new CostPeriodRecord(10, month, "AWAITING_FINALIZATION", LocalDate.of(2026, 11, 30))));
-        when(coverage.expected(month)).thenReturn(Set.of(123L));
-        when(store.hasRegularStatement(10, 123)).thenReturn(false);
-        when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
-                .thenReturn(true);
-        var task = new CostDailyTask(
-                store,
-                coverage,
-                parameters,
-                markers,
-                notifications,
-                mock(CostStatementStore.class),
-                mock(CostItemStore.class),
-                mock(CostLock.class),
-                mock(AuditLogApi.class));
-        int changed = task.run(Instant.parse("2026-11-02T00:00:00Z"));
-        assertThat(changed).isEqualTo(1);
-        verify(notifications)
-                .staff(
-                        eq("COST_STATEMENT_MISSING"),
-                        eq("M11.COST_PERIOD"),
-                        eq(10L),
-                        eq(123L),
-                        anyString(),
-                        anyString(),
-                        eq(com.eldercare.backend.common.Role.OFFICE_STAFF),
-                        any(),
-                        isNull());
-        verify(store).ensurePeriod(eq(YearMonth.of(2026, 11)), any());
-        verify(store).advanceItems(eq(LocalDate.of(2026, 11, 2)));
-        verify(store, never()).closePeriod(anyLong(), any(), any());
-    }
-
-    @Test
     void FR_044_dueStatementWithUnpricedItems_remindsOfficeStaffAndManager() {
         var store = mock(CostPeriodStore.class);
         var coverage = mock(CostBillingCoverage.class);

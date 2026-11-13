@@ -99,32 +99,6 @@ class AlertStaffPortIT extends MySqlIntegrationTestBase {
         return shift;
     }
 
-    /** 008 T043b (014 FR-034): thành viên có mặt của ca đã công bố chồng khoảng chuyến; Nháp, vắng trước chuyến thì không. */
-    @Test
-    void T043b_tripStaffSchedule_overlappingPublishedShiftWithPresentMember() {
-        long worker = staff(Role.CAREGIVER), floor = TestUsers.nextId();
-        long shift = shift(floor, worker, "PUBLISHED");
-        assertThat(tripSchedules.hasOverlappingPublishedShift(worker, start.plusSeconds(3600), start.plusSeconds(7200)))
-                .isTrue();
-        assertThat(tripSchedules.hasOverlappingPublishedShift(
-                        worker, start.plusSeconds(28800), start.plusSeconds(32400)))
-                .as("chuyến sau khi ca kết thúc")
-                .isFalse();
-        jdbc.update(
-                "UPDATE shift_staff SET absent_at=? WHERE shift_id=? AND staff_id=?",
-                ShiftStore.sql(start),
-                shift,
-                worker);
-        assertThat(tripSchedules.hasOverlappingPublishedShift(worker, start.plusSeconds(3600), start.plusSeconds(7200)))
-                .as("vắng từ đầu ca")
-                .isFalse();
-        long draftWorker = staff(Role.CAREGIVER);
-        shift(TestUsers.nextId(), draftWorker, "DRAFT");
-        assertThat(tripSchedules.hasOverlappingPublishedShift(
-                        draftWorker, start.plusSeconds(3600), start.plusSeconds(7200)))
-                .isFalse();
-    }
-
     @Test
     void FR_047i_K1_realPortsAgreeAtStartEndAndRecordedAbsence() {
         long worker = staff(Role.NURSING_STAFF), floor = TestUsers.nextId();

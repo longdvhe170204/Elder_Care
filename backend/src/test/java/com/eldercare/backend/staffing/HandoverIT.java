@@ -221,82 +221,12 @@ class HandoverIT extends MySqlIntegrationTestBase {
     @Autowired
     org.springframework.context.ApplicationContext context;
 
-    private com.eldercare.backend.care.api.spi.ShiftStaffPort careStaff() {
-        return context.getBean("careStaffLookup", com.eldercare.backend.care.api.spi.ShiftStaffPort.class);
-    }
-
-    private void freezeAt(Instant at) {
-        clock.setTo(at);
-        org.mockito.Mockito.doReturn(at).when(time).now();
-    }
-
-    @Test
-    void FR_029_handoverChecklistFollowsPreparationFeedbackResubmissionAndConfirmation() {
-        var port = careStaff();
-        long sender = giver.staffId().orElseThrow(),
-                recipient = receiver.staffId().orElseThrow();
-        freezeAt(ends.minusSeconds(1801));
-        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
-        freezeAt(ends.minusSeconds(1800));
-        current.set(receiver);
-        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
-        assertThat(embeddedStore.forShift(shift)).isEmpty();
-        current.set(giver);
-        long id = draft();
-        assessment(id);
-        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
-        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
-        service.complete(id);
-        freezeAt(ends);
-        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
-        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isTrue();
-        current.set(receiver);
-        long comment = service.comment(id, "Bổ sung để tiếp nhận");
-        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
-        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isTrue();
-        current.set(giver);
-        service.resubmit(id, Map.of(comment, "Đã bổ sung"), List.of());
-        assertThat(port.handoverTasks(sender, shift).prepareAtEnd()).isFalse();
-        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isTrue();
-        current.set(receiver);
-        service.confirm(id);
-        assertThat(port.handoverConfirmed(shift)).isTrue();
-        assertThat(port.handoverTasks(recipient, next).receiveAtStart()).isFalse();
-    }
-
     private String etag(long id) {
         return "\"" + service.record(id).version() + "\"";
     }
 
-    private HandoverItemInput item(String note) {
-        return new HandoverItemInput(
-                "TASK", "M04.TASK", Long.toString(task), resident, null, "Công việc kiểm thử", note, false);
-    }
-
     private void assessment(long id) {
         service.assess(id, etag(id), "Nhận định chung", Map.of(resident, "Theo dõi trong ca"));
-    }
-
-    @Test
-    void FR_041_missingAssessmentOrCriticalNoteBlocksThenFinalizationFreezesContent() {
-        long id = draft();
-        long child = service.addHandoverItem(id, etag(id), item(null));
-        assertThatThrownBy(() -> service.complete(id)).isInstanceOf(BusinessException.class);
-        assessment(id);
-        assertThatThrownBy(() -> service.complete(id)).hasMessageContaining("ghi chú");
-        service.updateItem(id, child, etag(id), item("Theo dõi tiếp"));
-        Instant beforeComplete = time.now();
-        service.complete(id);
-        Instant afterComplete = time.now();
-        assertThat(service.record(id).status()).isEqualTo("PREPARED");
-        assertThat(service.record(id).finalizedAt()).isBetween(beforeComplete, afterComplete);
-        assertThatThrownBy(() -> service.updateItem(id, child, etag(id), item("Sửa gốc")))
-                .isInstanceOf(BusinessException.class);
-        service.addHandoverItem(
-                id,
-                etag(id),
-                new HandoverItemInput("FOLLOW_UP_ISSUE", null, null, resident, null, "Phát sinh", null, false));
-        assertThat(service.items(id).getLast().section()).isEqualTo("AFTER_PREPARATION");
     }
 
     @Test

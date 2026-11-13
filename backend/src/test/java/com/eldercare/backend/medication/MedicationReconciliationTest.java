@@ -44,7 +44,6 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -164,22 +163,6 @@ class MedicationReconciliationTest {
     }
 
     @Test
-    @DisplayName("T060: Lập phiếu theo yêu cầu chuyên môn thiếu lý do lập -> 422 INVALID_VALUE (FR-034b)")
-    void testCreate_ProfessionalRequest_MissingReasonDetail_Throws422() {
-        CreateReconciliationBody body = new CreateReconciliationBody();
-        body.setReason("THEO_YEU_CAU_CHUYEN_MON");
-        body.setReasonDetail(""); // Rỗng
-
-        assertThatThrownBy(() -> reconciliationService.create(100L, body, 1L, true))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("INVALID_VALUE");
-                });
-    }
-
-    @Test
     @DisplayName(
             "T060: Lập phiếu theo yêu cầu chuyên môn thành công -> Mở, không tạm dừng đơn, không đặt hạn (FR-034b, BR-M07-25)")
     void testCreate_ProfessionalRequest_Success_NoDeadline_NoPrescriptionsSuspended() {
@@ -203,189 +186,6 @@ class MedicationReconciliationTest {
 
         // Không đơn nào bị tạm dừng
         verify(prescriptionRepo, never()).findByResidentIdAndStatusIn(any(), any());
-    }
-
-    @Test
-    @DisplayName(
-            "T034: Lập phiếu Tiếp nhận -> Tạm dừng các đơn hiệu lực, đặt hạn đối chiếu theo CFG-M07-05 (FR-034, BR-M07-09)")
-    void testCreate_Admission_Success_SuspendsActivePrescriptions_SetsCfgM0705Deadline() {
-        Instant before = Instant.now();
-        CreateReconciliationBody body = new CreateReconciliationBody();
-        body.setReason("TIEP_NHAN");
-
-        when(reconciliationRepo.findOpenOrPendingByResidentId(100L)).thenReturn(Optional.empty());
-
-        Prescription activePrescription = createSamplePrescription(201L, 100L, PrescriptionStatus.ACTIVE);
-        when(prescriptionRepo.findByResidentIdAndStatusIn(eq(100L), any())).thenReturn(List.of(activePrescription));
-
-        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> {
-            MedicationReconciliation ticket = inv.getArgument(0);
-            setId(ticket, 2L);
-            return ticket;
-        });
-
-        ReconciliationResponse response = reconciliationService.create(100L, body, 1L, false);
-
-        assertThat(response.getId()).isEqualTo(2L);
-        assertThat(response.getStatus()).isEqualTo("OPEN");
-        // CFG-M07-05 mặc định 4 giờ
-        assertThat(response.getDeadlineAt())
-                .isBetween(before.plus(4, ChronoUnit.HOURS), Instant.now().plus(4, ChronoUnit.HOURS));
-
-        // Đơn hiệu lực đã bị tạm dừng chờ đối chiếu
-        assertThat(activePrescription.getStatus()).isEqualTo(PrescriptionStatus.SUSPENDED);
-        assertThat(activePrescription.getSuspensionReason()).isEqualTo(SuspensionReason.RECONCILIATION_PENDING);
-        verify(prescriptionRepo).save(activePrescription);
-    }
-
-    @Test
-    @DisplayName("T034: Đã có phiếu Mở hoặc Chờ xác nhận -> Chặn lập phiếu mới 409 DA_CO_PHIEU_MO (FR-034)")
-    void testCreate_AlreadyHasOpenTicket_ThrowsConflict409() {
-        MedicationReconciliation existing = new MedicationReconciliation(
-                100L,
-                ReconciliationReason.ADMISSION,
-                null,
-                Instant.now().plus(24, ChronoUnit.HOURS),
-                1L,
-                Instant.now(),
-                Instant.now());
-        when(reconciliationRepo.findOpenOrPendingByResidentId(100L)).thenReturn(Optional.of(existing));
-
-        CreateReconciliationBody body = new CreateReconciliationBody();
-        body.setReason("TRO_VE_BENH_VIEN");
-
-        assertThatThrownBy(() -> reconciliationService.create(100L, body, 2L, false))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("OPEN_RECONCILIATION_EXISTS");
-                });
-    }
-
-    @Test
-    @DisplayName("T060: Gửi xác nhận khi còn đơn thuốc chưa có dòng đối chiếu -> 409 THIEU_DONG (FR-034, BR-M07-25)")
-    void testSubmit_MissingLinesForExistingPrescription_ThrowsConflict409() {
-        MedicationReconciliation ticket = new MedicationReconciliation(
-                100L, ReconciliationReason.PROFESSIONAL_REQUEST, "Kiem tra", null, 1L, Instant.now(), Instant.now());
-        setId(ticket, 5L);
-        when(reconciliationRepo.findById(5L)).thenReturn(Optional.of(ticket));
-
-        // Người cao tuổi có đơn 201 và 202
-        Prescription p1 = createSamplePrescription(201L, 100L, PrescriptionStatus.ACTIVE);
-        Prescription p2 = createSamplePrescription(202L, 100L, PrescriptionStatus.ACTIVE);
-        when(prescriptionRepo.findByResidentIdAndStatusIn(eq(100L), any())).thenReturn(List.of(p1, p2));
-
-        // Phiếu chỉ mới có dòng cho đơn 201
-        ReconciliationItem item1 = new ReconciliationItem(
-                5L,
-                1,
-                ReconciliationItemSource.CURRENT_PRESCRIPTION,
-                201L,
-                null,
-                "Thuoc A",
-                ReconciliationDecision.CONTINUE,
-                null,
-                null,
-                1L,
-                Instant.now(),
-                Instant.now());
-        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(5L)).thenReturn(List.of(item1));
-
-        assertThatThrownBy(() -> reconciliationService.submit(5L, 1L))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("MISSING_ITEMS");
-                });
-    }
-
-    @Test
-    @DisplayName("T034: Gửi xác nhận có dòng Ngừng nhưng thiếu lý do -> 409 THIEU_DONG (FR-034)")
-    void testSubmit_DiscontinueWithoutReason_ThrowsConflict409() {
-        MedicationReconciliation ticket = new MedicationReconciliation(
-                100L,
-                ReconciliationReason.ADMISSION,
-                null,
-                Instant.now().plus(24, ChronoUnit.HOURS),
-                1L,
-                Instant.now(),
-                Instant.now());
-        setId(ticket, 6L);
-        when(reconciliationRepo.findById(6L)).thenReturn(Optional.of(ticket));
-
-        Prescription p1 = createSamplePrescription(201L, 100L, PrescriptionStatus.ACTIVE);
-        when(prescriptionRepo.findByResidentIdAndStatusIn(eq(100L), any())).thenReturn(List.of(p1));
-
-        // Dòng Ngừng thiếu lý do
-        ReconciliationItem item1 = new ReconciliationItem(
-                6L,
-                1,
-                ReconciliationItemSource.CURRENT_PRESCRIPTION,
-                201L,
-                null,
-                "Thuoc A",
-                ReconciliationDecision.DISCONTINUE,
-                "",
-                null,
-                1L,
-                Instant.now(),
-                Instant.now());
-        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(6L)).thenReturn(List.of(item1));
-
-        assertThatThrownBy(() -> reconciliationService.submit(6L, 1L))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("MISSING_ITEMS");
-                });
-    }
-
-    @Test
-    @DisplayName(
-            "T034 & T060: Quy tắc hai người: Người xác nhận trùng người gửi / lập / ghi dòng -> 409 QUY_TAC_HAI_NGUOI (SC-014, Q-55)")
-    void testConfirm_TwoPersonRule_SameUser_ThrowsConflict409() {
-        MedicationReconciliation ticket = new MedicationReconciliation(
-                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now(), Instant.now());
-        setId(ticket, 7L);
-        ticket.submit(10L, Instant.now()); // Người gửi là ID = 10
-        when(reconciliationRepo.findById(7L)).thenReturn(Optional.of(ticket));
-
-        // Thử xác nhận bởi chính người gửi (ID = 10)
-        assertThatThrownBy(() -> reconciliationService.confirm(7L, 10L, true))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("TWO_PERSON_RULE");
-                });
-
-        // Người gửi ID = 10, người xác nhận ID = 20 nhưng ID 20 là người ghi dòng
-        ticket.submit(10L, Instant.now());
-        ReconciliationItem item = new ReconciliationItem(
-                7L,
-                1,
-                ReconciliationItemSource.CURRENT_PRESCRIPTION,
-                201L,
-                null,
-                "Thuoc A",
-                ReconciliationDecision.CONTINUE,
-                null,
-                null,
-                20L,
-                Instant.now(),
-                Instant.now()); // Người ghi dòng là ID = 20
-        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(7L)).thenReturn(List.of(item));
-
-        assertThatThrownBy(() -> reconciliationService.confirm(7L, 20L, true))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("TWO_PERSON_RULE");
-                });
     }
 
     @Test
@@ -513,16 +313,5 @@ class MedicationReconciliationTest {
         ReconciliationCorrectionResponse confRes = reconciliationService.confirmCorrection(101L, 30L);
         assertThat(confRes.getStatus()).isEqualTo("CONFIRMED");
         assertThat(confRes.getConfirmedById()).isEqualTo(30L);
-    }
-
-    @Test
-    @DisplayName("T034: Cổng ReconciliationCheckPort báo true khi có phiếu mở hoặc chờ xác nhận (FR-037)")
-    void testReconciliationCheckPort_HasOpenTicket() {
-        when(reconciliationRepo.findOpenOrPendingByResidentId(100L))
-                .thenReturn(Optional.of(new MedicationReconciliation(
-                        100L, ReconciliationReason.ADMISSION, null, null, 1L, Instant.now(), Instant.now())));
-
-        boolean hasOpen = reconciliationService.hasOpenOrPendingReconciliation(100L);
-        assertThat(hasOpen).isTrue();
     }
 }

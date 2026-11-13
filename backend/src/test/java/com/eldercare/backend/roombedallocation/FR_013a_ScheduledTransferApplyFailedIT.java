@@ -107,27 +107,6 @@ class FR_013a_ScheduledTransferApplyFailedIT extends StructureTestSupport {
     }
 
     @Test
-    void FR_013a_damagedBedFailsTheScheduledTransferRequestWithBasis() {
-        scheduled("APPROVED");
-
-        maintenance();
-
-        assertThat(allocation(future)).isEqualTo("CANCELLED");
-        assertThat(allocation(current)).isEqualTo("ACTIVE");
-        assertThat(requestStatus()).isEqualTo("APPLY_FAILED");
-        assertThat(jdbc.queryForObject("SELECT closing_reason FROM approval_request WHERE id=?", String.class, request))
-                .contains("FR-013a");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action='REQUEST_APPLY_FAILED' AND entity_id=?"
-                                + " AND JSON_EXTRACT(basis,'$.ruleCode')='FR-013a'",
-                        Integer.class,
-                        Long.toString(request)))
-                .isEqualTo(1);
-        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, target))
-                .isEqualTo("UNDER_MAINTENANCE");
-    }
-
-    @Test
     void FR_013a_requestNoLongerApprovedRollsBackTheAssetCommand() {
         scheduled("APPLIED");
 

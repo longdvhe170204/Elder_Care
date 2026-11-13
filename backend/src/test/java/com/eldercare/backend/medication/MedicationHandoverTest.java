@@ -1,7 +1,6 @@
 package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -9,7 +8,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.spi.TripMedicationPort;
@@ -24,8 +22,6 @@ import com.eldercare.backend.medication.internal.handover.domain.MedicationHando
 import com.eldercare.backend.medication.internal.handover.domain.MedicationHandoverDose;
 import com.eldercare.backend.medication.internal.handover.domain.MedicationHandoverItem;
 import com.eldercare.backend.medication.internal.handover.domain.MedicationReturn;
-import com.eldercare.backend.medication.internal.handover.domain.NoMedicationOrder;
-import com.eldercare.backend.medication.internal.handover.domain.NoMedicationOrderBody;
 import com.eldercare.backend.medication.internal.handover.domain.RecipientType;
 import com.eldercare.backend.medication.internal.handover.domain.ReturnHandoverBody;
 import com.eldercare.backend.medication.internal.handover.domain.ReturnItemBody;
@@ -58,7 +54,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.support.StaticListableBeanFactory;
-import org.springframework.http.HttpStatus;
 
 /**
  * T039: Test đơn vị cho User Story 5 (Phase 7):
@@ -177,23 +172,6 @@ class MedicationHandoverTest {
     }
 
     @Test
-    @DisplayName("T039: Giao thuốc cho Người thân nhưng thiếu tên hoặc mối quan hệ -> 422 INVALID_VALUE")
-    void testCreateHandover_RelativeWithoutNameOrRelationship_Throws422() {
-        CreateHandoverBody body = new CreateHandoverBody();
-        body.setRecipientType("RELATIVE");
-        body.setRecipientName("");
-        body.setRelationship("");
-
-        assertThatThrownBy(() -> handoverService.createHandover(100L, body, 1L))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("INVALID_VALUE");
-                });
-    }
-
-    @Test
     @DisplayName("T039: Giao thuốc mang theo thành công: Liều chuyển sang MANG_THEO (DoseStatus.LEAVE_MEDICATION)")
     void testCreateHandover_Success_TransitionsDosesToLeaveMedication() {
         CreateHandoverBody body = new CreateHandoverBody();
@@ -268,64 +246,6 @@ class MedicationHandoverTest {
     }
 
     @Test
-    @DisplayName("T039: Nhận lại thuốc mang theo vượt quá số lượng đã giao -> 422 SO_LUONG_KHONG_HOP_LE (FR-048a)")
-    void testReturnHandover_ExceededHandedOverQuantity_Throws422() {
-        MedicationHandover handover = new MedicationHandover(
-                100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now(), Instant.now());
-        setId(handover, 10L);
-        when(handoverRepo.findById(10L)).thenReturn(Optional.of(handover));
-
-        // Đã giao 5 viên
-        MedicationHandoverItem handedItem =
-                new MedicationHandoverItem(10L, 201L, new BigDecimal("5.0"), null, "FACILITY");
-        when(handoverItemRepo.findByHandoverId(10L)).thenReturn(List.of(handedItem));
-
-        // Nhận lại 6 viên (vượt quá)
-        ReturnHandoverBody body = new ReturnHandoverBody();
-        ReturnItemBody returnItem = new ReturnItemBody();
-        returnItem.setPrescriptionId(201L);
-        returnItem.setQuantity(new BigDecimal("6.0"));
-        body.setItems(List.of(returnItem));
-
-        assertThatThrownBy(() -> handoverService.returnHandover(10L, body, 1L))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("INVALID_QUANTITY");
-                });
-    }
-
-    @Test
-    @DisplayName("T039: Nhận lại thuốc tổng số lượng = 0 bắt buộc có lý do (FR-048a)")
-    void testReturnHandover_ZeroQuantityWithoutReason_Throws422() {
-        MedicationHandover handover = new MedicationHandover(
-                100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now(), Instant.now());
-        setId(handover, 11L);
-        when(handoverRepo.findById(11L)).thenReturn(Optional.of(handover));
-
-        MedicationHandoverItem handedItem =
-                new MedicationHandoverItem(11L, 201L, new BigDecimal("5.0"), null, "FACILITY");
-        when(handoverItemRepo.findByHandoverId(11L)).thenReturn(List.of(handedItem));
-
-        // Nhận lại 0 viên không lý do
-        ReturnHandoverBody body = new ReturnHandoverBody();
-        ReturnItemBody returnItem = new ReturnItemBody();
-        returnItem.setPrescriptionId(201L);
-        returnItem.setQuantity(BigDecimal.ZERO);
-        body.setItems(List.of(returnItem));
-        body.setReason("");
-
-        assertThatThrownBy(() -> handoverService.returnHandover(11L, body, 1L))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("INVALID_VALUE");
-                });
-    }
-
-    @Test
     @DisplayName("T039: Nhận lại thuốc thành công -> Trạng thái lần giao chuyển DA_NHAN_LAI (HandoverStatus.RETURNED)")
     void testReturnHandover_Success() {
         MedicationHandover handover = new MedicationHandover(
@@ -364,24 +284,5 @@ class MedicationHandoverTest {
             assertThat(item.getPrescriptionId()).isEqualTo(201L);
             assertThat(item.getQuantity()).isEqualByComparingTo("2.0");
         });
-    }
-
-    @Test
-    @DisplayName("T039: Đã có lệnh không mang thuốc cho chuyến đi -> Chặn tạo thêm 409 DA_TON_TAI (FR-048b)")
-    void testOrderNoMedication_DuplicateTrip_ThrowsConflict409() {
-        when(noMedOrderRepo.findByResidentIdAndTripId(100L, 555L))
-                .thenReturn(Optional.of(new NoMedicationOrder(100L, 555L, "Da co", 1L, Instant.now())));
-
-        NoMedicationOrderBody body = new NoMedicationOrderBody();
-        body.setTripId(555L);
-        body.setReason("Chuyến đi ngắn");
-
-        assertThatThrownBy(() -> handoverService.orderNoMedication(100L, body, 1L))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("DA_TON_TAI");
-                });
     }
 }

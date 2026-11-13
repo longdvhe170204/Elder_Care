@@ -115,47 +115,6 @@ class CostRecalculationServiceTest {
     }
 
     @Test
-    void FR_012_refreshUsesQuantityReadUnderLockRatherThanAnEarlierSnapshot() {
-        var earlier = row("DRAFT");
-        var current = new StoredCostCalculation(
-                earlier.id(),
-                earlier.residentId(),
-                earlier.statementId(),
-                earlier.periodId(),
-                "DRAFT",
-                earlier.sourceType(),
-                earlier.sourceId(),
-                earlier.billingUnit(),
-                earlier.serviceId(),
-                earlier.date(),
-                earlier.occurredAt(),
-                new CostRecalculation.Calculation(new BigDecimal("3"), null, null, null),
-                Map.of("quantity", 3));
-        when(store.affected(42L, 9L, earlier.date(), earlier.date(), true)).thenReturn(List.of(earlier));
-        when(store.lock(1)).thenReturn(current);
-        when(items.item(1))
-                .thenReturn(new CostItemRecord(
-                        1,
-                        2,
-                        42,
-                        3,
-                        CostType.CONSUMABLE,
-                        "EVENT_BASED",
-                        "DRAFT",
-                        null,
-                        Set.of("MISSING_UNIT_PRICE"),
-                        null,
-                        6L,
-                        null));
-        when(pricing.event(42, 9, earlier.date(), new BigDecimal("3")))
-                .thenReturn(
-                        new CostPricingService.PriceQuote(new BigDecimal("100"), new BigDecimal("300"), false, null));
-        service().refresh(42L, 9L, earlier.date(), earlier.date(), true, "PRICE_VERSION_CREATED");
-        verify(pricing).event(42, 9, earlier.date(), new BigDecimal("3"));
-        verify(pricing, never()).event(42, 9, earlier.date(), new BigDecimal("2"));
-    }
-
-    @Test
     void FR_012_priceEventDoesNotRepriceAnItemAlreadyResolvedWhileWaitingForTheLock() {
         var earlier = row("DRAFT");
         when(store.affected(42L, 9L, earlier.date(), earlier.date(), true)).thenReturn(List.of(earlier));

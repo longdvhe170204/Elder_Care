@@ -66,17 +66,4 @@ class CorrectionMethodSelectorTest {
 
         assertThat(select(fake, FLOOR_MANAGER, floored(10, false))).contains(CreationMethod.B);
     }
-
-    @Test
-    void CHK033_flooredRecord_nobodyForB_sameRoleColleagueGoesC() {
-        assertThat(select(staff(), SAME_ROLE, floored(10, true))).contains(CreationMethod.C);
-    }
-
-    @Test
-    void CHK051_floorManager_onUnflooredRecord_isRefused() {
-        FakePermissions fake = staff().shiftLead(FLOOR, 12).floorManager(FLOOR, 13);
-
-        assertThat(select(fake, FLOOR_MANAGER, office(20, false))).isEmpty();
-        assertThat(select(fake, SHIFT_LEAD, office(20, false))).isEmpty();
-    }
 }

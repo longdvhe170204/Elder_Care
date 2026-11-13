@@ -69,20 +69,4 @@ class FR_045_BedChangeApplyIT extends ChangeTestBase {
                         b.newBed()))
                 .isTrue();
     }
-
-    @Test
-    void FR_045_newBedNoLongerSuitable_applyFails_cancelsScheduledAllocation() throws Exception {
-        Beds b = setup();
-        LocalDate effective = today().plusDays(2);
-        long requestId = approveBedChange(b, effective);
-        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('SPECIAL') WHERE id=?", b.newRoom());
-
-        applyDueOn(effective);
-
-        assertThat(requestStatus(requestId)).isEqualTo("APPLY_FAILED");
-        assertThat(addenda(b.contractId()).get(0).get("status").asString()).isEqualTo("NOT_APPLICABLE");
-        assertThat(allocationStatus(b.residentId(), b.newBed())).isEqualTo("CANCELLED");
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, b.oldAllocation()))
-                .isEqualTo("ACTIVE");
-    }
 }

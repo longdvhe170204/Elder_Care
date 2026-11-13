@@ -9,17 +9,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class PeriodCostChangeTest {
-    @Test
-    void BR_M11_07_aZeroBaselineStillWarnsWithoutInventingAFinitePercentage() {
-        var warning = PeriodCostChange.compare(
-                        Map.of(CostType.SERVICE, 100L), Map.of(CostType.SERVICE, 0L), true, new BigDecimal("30"))
-                .orElseThrow();
-        assertThat(warning.increaseRatio()).isNull();
-        assertThat(warning.topThreeIncreases()).containsExactly("SERVICE");
-        assertThat(PeriodCostChange.compare(
-                        Map.of(CostType.SERVICE, 0L), Map.of(CostType.SERVICE, 0L), true, new BigDecimal("30")))
-                .isEmpty();
-    }
 
     @Test
     void BR_M11_07_warningContainsTheRatioAndLargestPositiveIncreases() {

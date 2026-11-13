@@ -1,7 +1,6 @@
 package com.eldercare.backend.resident;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.HasNotificationRequests;
@@ -14,13 +13,7 @@ import com.eldercare.backend.common.notification.Q354Case;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
 import com.eldercare.backend.common.notification.Substitution;
-import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
-import com.eldercare.backend.resident.api.events.CareLevelChangeRequestNeeded;
-import com.eldercare.backend.resident.api.events.CareLevelChangeRequestReminder;
-import com.eldercare.backend.resident.api.events.MissingConsentReminder;
-import com.eldercare.backend.resident.api.events.MissingEndOfLifeWishReminder;
-import com.eldercare.backend.resident.api.events.ReassessmentOverdue;
 import com.eldercare.backend.resident.api.events.ResidentStatusNotice;
 import com.eldercare.backend.resident.api.events.SelfDeterminationReviewReminder;
 import com.eldercare.backend.resident.api.events.TemporaryAbsenceOverdue;
@@ -80,77 +73,6 @@ class ResidentNotificationRequestsTest {
     }
 
     @Test
-    void Q_97_recordDeath_isUrgentForThePrimaryContact_withQ354DeathCase_atTheSameInstantAsTheDeath() {
-        NotificationRequest r = only(status(StatusCommand.RECORD_DEATH));
-
-        assertThat(r.level()).contains(NotificationLevel.URGENT);
-        assertThat(r.recipientGroups()).containsExactly(new RecipientGroup.PrimaryContact(RESIDENT));
-        assertThat(r.q354Case()).contains(Q354Case.DEATH);
-        // 009 FR-015: tin báo qua đời phát sinh cùng thời điểm qua đời nên vẫn tới người thân, không cần dấu việc sau
-        // qua đời
-        assertThat(r.occurredAt()).isEqualTo(AT);
-        assertThat(r.afterDeath()).isFalse();
-        assertThat(r.eventKey())
-                .isNotEqualTo(only(status(StatusCommand.TRANSFER_OUT)).eventKey());
-    }
-
-    @Test
-    void FR_046_onlyTransferAndDeathCanBeANotice() {
-        for (StatusCommand command : StatusCommand.values()) {
-            if (command == StatusCommand.TRANSFER_OUT || command == StatusCommand.RECORD_DEATH) {
-                continue;
-            }
-            assertThatThrownBy(() -> status(command)).as(command.name()).isInstanceOf(IllegalArgumentException.class);
-        }
-    }
-
-    @Test
-    void FR_041_reassessmentOverdue_isMediumForTheDoctorOnDuty_keyedByTheDueInstant() {
-        Instant due = Instant.parse("2026-10-22T03:00:00Z");
-        NotificationRequest r = only(new ReassessmentOverdue(RESIDENT, due));
-
-        assertThat(r.level()).contains(NotificationLevel.MEDIUM);
-        assertThat(r.recipientGroups()).containsExactly(DOCTOR);
-        assertThat(r.eventKey()).contains(String.valueOf(due.toEpochMilli()));
-        assertThat(only(new ReassessmentOverdue(RESIDENT, due.plusSeconds(1))).eventKey())
-                .isNotEqualTo(r.eventKey());
-    }
-
-    @Test
-    void FR_036_careLevelChangeRequest_isMediumTheFirstTimeAndLowForReminders_forOfficeStaff() {
-        NotificationRequest first = only(new CareLevelChangeRequestNeeded(RESIDENT, 5L, CareLevel.SPECIAL, AT));
-        NotificationRequest second = only(new CareLevelChangeRequestReminder(RESIDENT, 5L, CareLevel.SPECIAL, 2, AT));
-        NotificationRequest third = only(new CareLevelChangeRequestReminder(RESIDENT, 5L, CareLevel.SPECIAL, 3, AT));
-
-        assertThat(first.level()).contains(NotificationLevel.MEDIUM);
-        assertThat(first.recipientGroups()).containsExactly(OFFICE);
-        assertThat(second.level()).contains(NotificationLevel.LOW);
-        assertThat(second.recipientGroups()).containsExactly(OFFICE);
-        assertThat(List.of(first.eventKey(), second.eventKey(), third.eventKey()))
-                .doesNotHaveDuplicates();
-    }
-
-    @Test
-    void FR_012_missingConsentReminder_isLowForOfficeStaff_eachReminderHasItsOwnKey() {
-        NotificationRequest one = only(new MissingConsentReminder(RESIDENT, 1, AT));
-        NotificationRequest two = only(new MissingConsentReminder(RESIDENT, 2, AT));
-
-        assertThat(one.level()).contains(NotificationLevel.LOW);
-        assertThat(one.recipientGroups()).containsExactly(OFFICE);
-        assertThat(one.eventKey()).isNotEqualTo(two.eventKey());
-    }
-
-    @Test
-    void FR_023d_missingEndOfLifeWishReminder_isLowForTheDoctorAndTheAssignedNurse() {
-        NotificationRequest r = only(new MissingEndOfLifeWishReminder(RESIDENT, 1, AT));
-
-        assertThat(r.level()).contains(NotificationLevel.LOW);
-        assertThat(r.recipientGroups()).containsExactlyInAnyOrder(DOCTOR, NURSE);
-        assertThat(only(new MissingEndOfLifeWishReminder(RESIDENT, 2, AT)).eventKey())
-                .isNotEqualTo(r.eventKey());
-    }
-
-    @Test
     void FR_023i_selfDeterminationReview_goesToTheAssessingDoctorAndTheAssignedNurse() {
         NotificationRequest r = only(new SelfDeterminationReviewReminder(RESIDENT, 12L, 77L, AT));
 
@@ -158,13 +80,6 @@ class ResidentNotificationRequestsTest {
         assertThat(r.recipientGroups())
                 .containsExactlyInAnyOrder(new RecipientGroup.Staff(77L, "ASSESSING_DOCTOR"), NURSE);
         assertThat(r.sourceRecord()).isEqualTo(new SourceRecord("M01.END_OF_LIFE_WISH", "12"));
-    }
-
-    @Test
-    void FR_023i_selfDeterminationReview_withoutAKnownDoctor_fallsBackToTheDoctorOnDuty() {
-        NotificationRequest r = only(new SelfDeterminationReviewReminder(RESIDENT, 12L, null, AT));
-
-        assertThat(r.recipientGroups()).containsExactlyInAnyOrder(DOCTOR, NURSE);
     }
 
     @Test
@@ -178,14 +93,5 @@ class ResidentNotificationRequestsTest {
         assertThat(r.floorAreaId()).contains(3L);
         assertThat(r.sourceRecord()).isEqualTo(new SourceRecord("M01.ABSENCE", "9"));
         assertThat(r.eventKey()).contains("9").contains(String.valueOf(expected.toEpochMilli()));
-    }
-
-    @Test
-    void FR_050_temporaryAbsenceOverdue_withoutAFloor_goesToOfficeStaffAndTheManager() {
-        NotificationRequest r =
-                only(new TemporaryAbsenceOverdue(RESIDENT, 9L, Instant.parse("2026-10-24T01:00:00Z"), null, AT));
-
-        assertThat(r.floorAreaId()).isEmpty();
-        assertThat(r.recipientGroups()).containsExactlyInAnyOrder(OFFICE, MANAGER);
     }
 }

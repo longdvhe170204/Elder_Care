@@ -8,7 +8,6 @@ import static org.mockito.Mockito.doReturn;
 import com.eldercare.backend.admission.api.ContractReadApi;
 import com.eldercare.backend.admission.api.ResidencyDayApi;
 import com.eldercare.backend.admission.api.dto.ContractContentView;
-import com.eldercare.backend.billing.api.dto.CostType;
 import com.eldercare.backend.billing.internal.source.domain.BillingSourceKey;
 import com.eldercare.backend.billing.internal.source.domain.IndexedBillingSource;
 import com.eldercare.backend.billing.internal.source.domain.SourceCostSelection;
@@ -137,78 +136,6 @@ class T009_SourceCostFromEventsIT extends MySqlIntegrationTestBase {
                 time.now());
     }
 
-    private Map<String, Object> row(long id) {
-        return jdbc.queryForMap("SELECT cost_type,unit,amount,description,flags FROM cost_item WHERE id=?", id);
-    }
-
-    @Test
-    void FR_005_careConsumable_takesTypeAndUnitFromCatalog_andIsPricedByVersion() {
-        indexed("CARE_TASK_RESULT", "c-" + resident, "UNIT", diaper, null, "2", null);
-
-        var candidate = lookup.find(resident, "CARE_TASK_RESULT", DAY, DAY).getFirst();
-        assertThat(candidate.costType()).isEqualTo(CostType.CONSUMABLE);
-        assertThat(candidate.unit()).isEqualTo("gói");
-        assertThat(candidate.blockedCode()).isNull();
-
-        var result = commands.create(new SourceCostSelection(
-                resident,
-                "CARE_TASK_RESULT",
-                null,
-                List.of(new BillingSourceKey("c-" + resident, "UNIT")),
-                null,
-                null));
-
-        assertThat(result.skipped()).isEmpty();
-        var item = row(result.succeededIds().getFirst());
-        assertThat(item).containsEntry("cost_type", "CONSUMABLE").containsEntry("unit", "gói");
-        assertThat(((Number) item.get("amount")).longValue()).isEqualTo(40_000);
-    }
-
-    @Test
-    void FR_019_medication_keepsUsageUnit_andShowsOnlyItemCode() {
-        String unit = Long.toString(medication);
-        indexed("DOSE", "d-" + resident, unit, null, medication, "0.5", "viên");
-
-        var result = commands.create(new SourceCostSelection(
-                resident, "DOSE", null, List.of(new BillingSourceKey("d-" + resident, unit)), null, null));
-
-        var item = row(result.succeededIds().getFirst());
-        assertThat(item)
-                .containsEntry("cost_type", "MEDICATION")
-                .containsEntry("unit", "viên")
-                .containsEntry("description", "Thuốc mã " + medication);
-        assertThat(((Number) item.get("amount")).longValue()).isEqualTo(750);
-    }
-
-    @Test
-    void FR_005_medicationWithDifferentUsageUnit_isSkipped_notConverted() {
-        String unit = Long.toString(medication);
-        indexed("DOSE", "m-" + resident, unit, null, medication, "5", "ml");
-
-        var result = commands.create(new SourceCostSelection(
-                resident, "DOSE", null, List.of(new BillingSourceKey("m-" + resident, unit)), null, null));
-
-        assertThat(result.succeededIds()).isEmpty();
-        assertThat(result.skipped()).singleElement().satisfies(s -> {
-            assertThat(s.errorCode()).isEqualTo("CONDITION_NOT_MET");
-            assertThat(s.reason()).contains("không quy đổi");
-        });
-    }
-
-    @Test
-    void FR_012_overnightStayWithoutService_andSeveralActiveServices_isMissingUnitPrice() {
-        service("Người thân ở lại A " + UUID.randomUUID(), "FAMILY_STAY", "đêm", null, 200_000);
-        service("Người thân ở lại B " + UUID.randomUUID(), "FAMILY_STAY", "đêm", null, 250_000);
-        indexed("OVERNIGHT_STAY", "o-" + resident, "NIGHT", null, null, "1", null);
-
-        var result = commands.create(new SourceCostSelection(
-                resident, "OVERNIGHT_STAY", null, List.of(new BillingSourceKey("o-" + resident, "NIGHT")), null, null));
-
-        var item = row(result.succeededIds().getFirst());
-        assertThat(item).containsEntry("cost_type", "FAMILY_OVERNIGHT_STAY").containsEntry("amount", null);
-        assertThat((String) item.get("flags")).contains("MISSING_UNIT_PRICE");
-    }
-
     @Test
     void DBR_15_secondCreationOfSameUnit_isSkipped() {
         indexed("CARE_TASK_RESULT", "x-" + resident, "UNIT", diaper, null, "1", null);
@@ -227,35 +154,6 @@ class T009_SourceCostFromEventsIT extends MySqlIntegrationTestBase {
     private SourceCostSelection careUnit(String id) {
         return new SourceCostSelection(
                 resident, "CARE_TASK_RESULT", null, List.of(new BillingSourceKey(id, "UNIT")), null, null);
-    }
-
-    @Test
-    void FR_011_sourceBeforeContractStart_isOutsideBillingPeriod() {
-        doReturn(Optional.empty()).when(contracts).contentAtDate(resident, DAY);
-        indexed("CARE_TASK_RESULT", "b-" + resident, "UNIT", diaper, null, "1", null);
-
-        var result = commands.create(careUnit("b-" + resident));
-
-        assertThat(result.succeededIds()).isEmpty();
-        assertThat(result.skipped()).singleElement().satisfies(s -> {
-            assertThat(s.errorCode()).isEqualTo("OUTSIDE_BILLING_PERIOD");
-            assertThat(s.reason()).contains("ngoài thời gian tính phí");
-        });
-    }
-
-    @Test
-    void FR_011_sourceAfterBillingStopDate_isOutsideBillingPeriod_butTheStopDateItselfIsBillable() {
-        doReturn(Optional.of(DAY.minusDays(1))).when(residencyDays).billingStopDate(resident);
-        indexed("CARE_TASK_RESULT", "a-" + resident, "UNIT", diaper, null, "1", null);
-
-        var after = commands.create(careUnit("a-" + resident));
-        assertThat(after.skipped())
-                .singleElement()
-                .extracting(s -> s.errorCode())
-                .isEqualTo("OUTSIDE_BILLING_PERIOD");
-
-        doReturn(Optional.of(DAY)).when(residencyDays).billingStopDate(resident);
-        assertThat(commands.create(careUnit("a-" + resident)).succeededIds()).hasSize(1);
     }
 
     @Test

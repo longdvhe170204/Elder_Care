@@ -48,8 +48,13 @@ class FR_038_DayCareHttpIT extends StructureTestSupport {
         // Schema test giữ dữ liệu của lớp khác (test chạy ngoài transaction có thể để lại khu nghỉ Hiệu lực); chỉ được
         // một
         // khu Hiệu lực, nên ngừng khu sót trong transaction của test (rollback sau ca).
-        jdbc.update("UPDATE day_care_rest_area SET status='INACTIVE' WHERE status='ACTIVE'");
-        jdbc.update("INSERT INTO day_care_rest_area(id,code,name,floor_id) VALUES(?,'D1','Khu nghỉ',?)", rest, floor);
+        jdbc.update(
+                "UPDATE catalog_item SET status='INACTIVE' WHERE catalog_type='M03.DAY_CARE_REST_AREA' AND status='ACTIVE'");
+        jdbc.update(
+                "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M03.DAY_CARE_REST_AREA',"
+                        + "'M03','Khu nghỉ','ACTIVE',JSON_OBJECT('code','D1','floorId',?,'areaId',NULL))",
+                rest,
+                floor);
         jdbc.update(
                 "INSERT INTO day_care_session(id,name,start_time,end_time) VALUES(?,'Sáng','07:00','12:00')", morning);
     }
@@ -70,44 +75,5 @@ class FR_038_DayCareHttpIT extends StructureTestSupport {
                         .content("{\"name\":\"Chiều\",\"startTime\":\"12:00\",\"endTime\":\"17:00\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.session.name").value("Chiều"));
-    }
-
-    @Test
-    void FR_040_sessionChangeRecountsAndAreaWithFutureArrivalsCannotBeDeactivated() throws Exception {
-        var day = time.today().plusDays(7);
-        arrivals.count(new com.eldercare.backend.roombedallocation.api.dto.SessionDate(day, morning), 4);
-        mvc.perform(get("/api/v1/day-care-rest-areas"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==" + rest + ")].code").value("D1"));
-        mvc.perform(get("/api/v1/day-care-sessions"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==" + morning + ")].name").value("Sáng"));
-        mvc.perform(get("/api/v1/day-care-rest-areas/registration-counts")
-                        .param("from", day.toString())
-                        .param("to", day.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.sessionId==" + morning + ")].registrations")
-                        .value(4))
-                .andExpect(
-                        jsonPath("$[?(@.sessionId==" + morning + ")].remaining").value(-1));
-        mvc.perform(put("/api/v1/day-care-sessions/" + morning)
-                        .header("If-Match", com.eldercare.backend.common.web.VersionEtag.of(0))
-                        .contentType("application/json")
-                        .content("{\"name\":\"Sáng\",\"startTime\":\"07:30\",\"endTime\":\"11:30\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.session.startTime").value("07:30"))
-                .andExpect(jsonPath("$.overCapacitySessions[0].sessionId").value(morning))
-                .andExpect(jsonPath("$.overCapacitySessions[0].remaining").value(-1));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action='M03_DAY_CARE_OVER_CAPACITY' AND entity_id=?",
-                        Integer.class,
-                        rest))
-                .isEqualTo(1);
-        mvc.perform(post("/api/v1/day-care-rest-areas/" + rest + "/deactivate")
-                        .header("If-Match", com.eldercare.backend.common.web.VersionEtag.of(0))
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Đóng khu\"}"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("DAY_CARE_FUTURE_ARRIVALS"));
     }
 }

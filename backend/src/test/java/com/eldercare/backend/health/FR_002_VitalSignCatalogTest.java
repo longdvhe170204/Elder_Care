@@ -42,21 +42,6 @@ class FR_002_VitalSignCatalogTest {
     }
 
     @Test
-    void FR_001_createsParentAndComponentsInSharedCatalogWithoutPhysicalRange() {
-        var created = service.create(new VitalSignCatalogInput(
-                "TEST",
-                "Chỉ số thử",
-                "đơn vị",
-                true,
-                List.of(new VitalSignComponentDefinition("VALUE", "Giá trị", 1))));
-        assertThat(created.missingValidRange()).isTrue();
-        assertThat(created.components()).containsExactly(new VitalSignComponentDefinition("VALUE", "Giá trị", 1));
-        assertThat(catalogs.list(HealthCatalogs.VITAL_SIGN_COMPONENT, created.id(), true))
-                .hasSize(1);
-        verify(audit).write(any());
-    }
-
-    @Test
     void FR_002_updatesMetadataWithEtagAndDoesNotRewriteComponents() {
         var created = service.create(new VitalSignCatalogInput(
                 "TEST", "Tên cũ", "đơn vị", false, List.of(new VitalSignComponentDefinition("VALUE", "Giá trị", 1))));

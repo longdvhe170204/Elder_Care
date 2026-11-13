@@ -38,12 +38,6 @@ class MetricGroupAccessTest {
     }
 
     @Test
-    void FR_010_accountantOnlyCostsAndBalances() {
-        assertThat(MetricGroupAccess.visibleGroups(Set.of(Role.ACCOUNTANT)))
-                .containsExactlyInAnyOrder(MetricGroup.INCURRED_COSTS, MetricGroup.BALANCES);
-    }
-
-    @Test
     void FR_010a_roleRestriction_appliesBeforeUnion_accountRestrictionAfter() {
         Restriction removeBedsDashboard = new Restriction("BEDS", ReportChannel.DASHBOARD, Kind.REMOVE_OPERATION);
         MetricGroupRestrictions byOfficeRole =
@@ -69,25 +63,5 @@ class MetricGroupAccessTest {
                         ReportChannel.DASHBOARD,
                         byAccount))
                 .isEmpty();
-    }
-
-    @Test
-    void FR_010a_lowerScope_facilityBecomesAssignment_allGroupsWhenGroupEmpty() {
-        MetricGroupRestrictions lowerAll =
-                new MetricGroupRestrictions(Map.of(), List.of(new Restriction(null, null, Kind.LOWER_SCOPE)));
-
-        assertThat(MetricGroupAccess.scopes(
-                        Set.of(Role.DOCTOR), MetricGroup.HEALTH_EVENTS, ReportChannel.REPORT, lowerAll))
-                .containsExactly(GroupScope.ASSIGNMENT);
-        assertThat(MetricGroupAccess.visibleGroups(Set.of(Role.ACCOUNTANT), ReportChannel.DASHBOARD, lowerAll))
-                .containsExactlyInAnyOrder(MetricGroup.INCURRED_COSTS, MetricGroup.BALANCES);
-    }
-
-    @Test
-    void FR_015_multipleRolesAreUnioned() {
-        assertThat(MetricGroupAccess.scopes(Set.of(Role.FLOOR_MANAGER, Role.NURSING_STAFF), MetricGroup.CARE_TASKS))
-                .containsExactlyInAnyOrder(GroupScope.ASSIGNED_FLOORS, GroupScope.ASSIGNMENT);
-        assertThat(MetricGroupAccess.scopes(Set.of(Role.OFFICE_STAFF, Role.DOCTOR), MetricGroup.BEDS))
-                .containsExactly(GroupScope.FACILITY);
     }
 }

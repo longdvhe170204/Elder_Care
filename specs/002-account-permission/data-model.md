@@ -17,7 +17,8 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `lich_su_chung`: `lich_su_trang_thai_tai_khoan`.
 - `ho_so_chung`: `ban_ghi_cho_xem_lai`, `loi_du_lieu_quyen` (lỗi đang mở: `khoa_duy_nhat` = nguồn, bản ghi, loại lỗi); `moc_da_nhac`: `da_canh_bao_giay_phep`.
 - Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `nghiep_vu_chuyen_mon_pham_vi` → `danh_muc_chung`. Không thêm bảng riêng.
-- Còn 6 bảng riêng của feature.
+- *(Sửa 2026-11-13, research R-15 mục 6 của 000)* `thiet_bi` (`device`) thành dòng `khoa_ky_thuat` `M15.DEVICE:<id thiết bị>` (`V099_04`); `ma_dat_lai_mat_khau` (`password_reset_code`, 002 T105) thành `ho_so_chung` loại `M15.PASSWORD_RESET_CODE` (`V099_02`).
+- Còn 5 bảng riêng của feature: `tai_khoan`, `phien_dang_nhap`, `ma_tran_quyen`, `thiet_bi_xac_thuc`, `quyen_tai_khoan`.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V002_95`)*
 

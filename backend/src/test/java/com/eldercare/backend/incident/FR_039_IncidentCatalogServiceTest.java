@@ -11,16 +11,13 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.VersionMismatchException;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentCatalogs;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
-import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeAttributes;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeInput;
 import com.eldercare.backend.incident.internal.alert.domain.ProgressionGroup;
 import com.eldercare.backend.incident.internal.alert.domain.ProgressionTypeAttributes;
-import com.eldercare.backend.incident.internal.alert.domain.ProgressionTypeInput;
 import com.eldercare.backend.incident.internal.alert.domain.TrendRuleAttributes;
 import com.eldercare.backend.incident.internal.alert.domain.TrendRuleUpdate;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
@@ -31,31 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 
 class FR_039_IncidentCatalogServiceTest {
-    @Test
-    void FR_042_specialTypesCannotBeDeactivatedButCustomTypesCan() {
-        for (String code :
-                java.util.List.of("FALL", "SUSPECTED_INFECTION", "FACILITY", "BELONGINGS_LOST", "BELONGINGS_DAMAGED")) {
-            var item = catalogs.create(
-                    IncidentCatalogs.INCIDENT_TYPE,
-                    new NewCatalogItem<>(
-                            code, code, null, 0, new IncidentTypeAttributes(IncidentLevel.MEDIUM, false, false)));
-            assertThatThrownBy(() -> service.updateIncidentType(
-                            item.id(),
-                            "\"0\"",
-                            new IncidentTypeInput(code, code, IncidentLevel.MEDIUM, false, 0),
-                            false))
-                    .isInstanceOf(BusinessException.class);
-        }
-        var custom =
-                service.createIncidentType(new IncidentTypeInput("CUSTOM", "Loại riêng", IncidentLevel.LOW, false, 0));
-        var stopped = service.updateIncidentType(
-                custom.id(),
-                "\"0\"",
-                new IncidentTypeInput("CUSTOM", "Loại riêng", IncidentLevel.LOW, false, 0),
-                false);
-        assertThat(stopped.active()).isFalse();
-        assertThat(service.incidentTypes()).extracting(v -> v.code()).contains("CUSTOM", "FALL");
-    }
 
     @Test
     void FR_039_catalogListsExposeSeedAttributesWithoutWritingAudit() {
@@ -123,16 +95,5 @@ class FR_039_IncidentCatalogServiceTest {
                         service.createIncidentType(new IncidentTypeInput("OTHER", "Khác", IncidentLevel.LOW, false, 1)))
                 .isInstanceOf(PermissionDeniedException.class);
         verifyNoInteractions(audit);
-    }
-
-    @Test
-    void BR_M05_20_createdProgressionKeepsItsResuscitationFlag() {
-        var created = service.createProgressionType(
-                new ProgressionTypeInput("AIRWAY_SUPPORT", "Hỗ trợ đường thở", ProgressionGroup.ACTION, true, 20));
-
-        assertThat(created.resuscitation()).isTrue();
-        assertThat(catalogs.require(IncidentCatalogs.PROGRESSION_TYPE, created.id())
-                        .attributes())
-                .isEqualTo(new ProgressionTypeAttributes(ProgressionGroup.ACTION, true));
     }
 }

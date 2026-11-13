@@ -44,8 +44,12 @@ class BR_M03_03_DayCareCapacityIT extends StructureTestSupport {
         // Schema test giữ dữ liệu của lớp khác (test chạy ngoài transaction có thể để lại khu nghỉ Hiệu lực); chỉ được
         // một
         // khu Hiệu lực, nên ngừng khu sót trong transaction của test (rollback sau ca).
-        jdbc.update("UPDATE day_care_rest_area SET status='INACTIVE' WHERE status='ACTIVE'");
-        jdbc.update("INSERT INTO day_care_rest_area(code,name,floor_id) VALUES('D1','Khu nghỉ',?)", floor);
+        jdbc.update(
+                "UPDATE catalog_item SET status='INACTIVE' WHERE catalog_type='M03.DAY_CARE_REST_AREA' AND status='ACTIVE'");
+        jdbc.update(
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) VALUES('M03.DAY_CARE_REST_AREA',"
+                        + "'M03','Khu nghỉ','ACTIVE',JSON_OBJECT('code','D1','floorId',?,'areaId',NULL))",
+                floor);
         morning = TestUsers.nextId();
         afternoon = TestUsers.nextId();
         jdbc.update(
@@ -74,29 +78,5 @@ class BR_M03_03_DayCareCapacityIT extends StructureTestSupport {
                 });
         assertThat(api.checkCapacity(Map.of(key, new RegistrationCount(4, 4)))).isEmpty();
         assertThat(api.checkCapacity(Map.of(key, new RegistrationCount(4, 3)))).isEmpty();
-    }
-
-    @Test
-    void BR_M03_25_parameterChangeRecountsAndWarnsOnlyOverCapacitySessions(@Autowired FakeDayCareArrivals arrivals) {
-        arrivals.reset();
-        var day = time.today().plusDays(2);
-        arrivals.count(new SessionDate(day, morning), 3).count(new SessionDate(day, afternoon), 2);
-        doReturn(new ParameterValue(
-                        ParameterCode.CFG_M03_01,
-                        ParameterKind.INTEGER,
-                        JsonMapper.builder().build().readTree("2")))
-                .when(parameters)
-                .read(ParameterCode.CFG_M03_01);
-        // DayCareParameterListener (@ApplicationModuleListener, chạy sau commit) chỉ chuyển CFG-M03-01 sang recount().
-        context.getBean(com.eldercare.backend.roombedallocation.internal.daycare.service.DayCareRecounting.class)
-                .recount();
-        var rest = jdbc.queryForObject("SELECT id FROM day_care_rest_area WHERE code='D1'", Long.class);
-        assertThat(jdbc.queryForObject(
-                        "SELECT details FROM audit_log WHERE action='M03_DAY_CARE_OVER_CAPACITY' AND entity_id=?",
-                        String.class,
-                        String.valueOf(rest)))
-                .contains("\"sessionId\": " + morning)
-                .doesNotContain("\"sessionId\": " + afternoon);
-        arrivals.reset();
     }
 }

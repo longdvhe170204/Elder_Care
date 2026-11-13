@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { PageHeader } from '@/common/PageHeader'
+import { SectionTabs } from '@/common/SectionTabs'
 import { StatusBadge } from '@/common/StatusBadge'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { PermissionDeniedState } from '@/common/PageState'
@@ -238,21 +239,16 @@ export function CareCatalogPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Danh mục chăm sóc" subtitle="Loại công việc, giá trị kết quả và lý do không thực hiện" />
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(CATALOGS).map(([key, value]) => (
-          <Button
-            key={key}
-            variant={key === kind ? 'default' : 'outline'}
-            aria-pressed={kind === key}
-            onClick={() => {
-              setLoading(true)
-              setKind(key)
-            }}
-          >
-            {value.title}
-          </Button>
-        ))}
-      </div>
+      <SectionTabs
+        label="Loại danh mục"
+        semantics="pressed"
+        value={kind}
+        onChange={(key) => {
+          setLoading(true)
+          setKind(key)
+        }}
+        tabs={Object.entries(CATALOGS).map(([key, value]) => [key, value.title])}
+      />
       {failure?.status === 403 ? (
         <PermissionDeniedState label="danh mục chăm sóc" />
       ) : (

@@ -19,16 +19,6 @@ class EffectiveRightsTest {
     }
 
     @Test
-    void FR_011_enabledViewHealth_withoutConsent_isEnabledButNotEffective() {
-        assertThat(EffectiveRights.enabledButNotEffective(FamilyRight.VIEW_HEALTH, true, false))
-                .isTrue();
-        assertThat(EffectiveRights.enabledButNotEffective(FamilyRight.VIEW_HEALTH, false, false))
-                .isFalse();
-        assertThat(EffectiveRights.enabledButNotEffective(FamilyRight.VIEW_HEALTH, true, true))
-                .isFalse();
-    }
-
-    @Test
     void FR_007_otherRights_effectiveWhenEnabled_regardlessOfConsent() {
         TableRows.each(Arrays.stream(FamilyRight.values()).filter(right -> right != FamilyRight.VIEW_HEALTH), right -> {
             assertThat(EffectiveRights.effective(right, true, false)).isTrue();

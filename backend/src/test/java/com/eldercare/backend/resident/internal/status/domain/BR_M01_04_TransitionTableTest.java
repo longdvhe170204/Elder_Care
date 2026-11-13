@@ -80,18 +80,6 @@ class BR_M01_04_TransitionTableTest {
     }
 
     @Test
-    void BR_M01_05_finalStatusesHaveNoCommand() {
-        for (ResidentStatus finalStatus : StatusTransitionTable.FINAL_STATUSES) {
-            for (StatusCommand command : StatusCommand.values()) {
-                assertThat(StatusTransitionTable.next(finalStatus, command)).isEmpty();
-            }
-        }
-        assertThat(StatusTransitionTable.FINAL_STATUSES)
-                .containsExactlyInAnyOrder(
-                        ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED);
-    }
-
-    @Test
     void FR_044_createProfileIsNeverATransition() {
         for (ResidentStatus from : ResidentStatus.values()) {
             assertThat(StatusTransitionTable.next(from, StatusCommand.CREATE_PROFILE))

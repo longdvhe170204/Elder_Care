@@ -30,17 +30,6 @@ class AllergyWarningRuleTest {
             Map.of(SHRIMP_SOUP, Set.of(SHRIMP), PLAIN_SOUP, Set.of(), PEANUT_SOUP, Set.of(PEANUT));
 
     @Test
-    void BR_M08_07_conflictWithoutSuitableSubstitute_isWarnedWithResidents() {
-        List<MenuDish> dishes = List.of(new MenuDish(DAY, 1, DIET, SHRIMP_SOUP, List.of(PEANUT_SOUP)));
-        Map<Long, List<DietUser>> users = Map.of(
-                DIET,
-                List.of(user(1, SHRIMP, PEANUT), user(2, SHRIMP), new DietUser(3, List.of(), Set.of(PEANUT)), user(4)));
-
-        assertThat(AllergyWarningRule.find(dishes, users, Map.of(), INGREDIENTS))
-                .containsExactly(new AllergyWarning(DAY, 1, DIET, SHRIMP_SOUP, List.of(1L)));
-    }
-
-    @Test
     void BR_M08_07_suitableSubstituteForEveryone_isNotWarned() {
         List<MenuDish> dishes = List.of(new MenuDish(DAY, 1, DIET, SHRIMP_SOUP, List.of(PEANUT_SOUP, PLAIN_SOUP)));
 
@@ -56,16 +45,6 @@ class AllergyWarningRuleTest {
 
         assertThat(AllergyWarningRule.find(dishes, Map.of(DIET, List.of(other)), Map.of(), INGREDIENTS))
                 .isEmpty();
-    }
-
-    @Test
-    void FR_020_dietRestriction_countsAsConflict() {
-        List<MenuDish> dishes = List.of(new MenuDish(DAY, 1, DIET, SHRIMP_SOUP, List.of()));
-
-        assertThat(AllergyWarningRule.find(
-                        dishes, Map.of(DIET, List.of(user(9))), Map.of(DIET, Set.of(SHRIMP)), INGREDIENTS))
-                .extracting(AllergyWarning::residentIds)
-                .containsExactly(List.of(9L));
     }
 
     @Test

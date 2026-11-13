@@ -42,7 +42,7 @@ export function StaffingRatioPanel({ shiftId }) {
   }, [shiftId, attempt])
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label="Tỷ lệ phục vụ">
-      <h3 className="type-section">Tỷ lệ phục vụ</h3>
+      <h3 className="type-title">Tỷ lệ phục vụ</h3>
       <p className="type-caption text-muted-foreground">
         Tổng trọng số chăm sóc chia cho số Điều dưỡng và Nhân viên chăm sóc được tính trong ca. Tỷ lệ lớn hơn ngưỡng là
         thiếu nhân lực.

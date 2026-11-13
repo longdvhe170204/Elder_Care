@@ -1,123 +1,131 @@
 package com.eldercare.backend.nutrition.internal.closing.persistence;
 
-import com.eldercare.backend.nutrition.internal.closing.domain.CountedPerson;
+import com.eldercare.backend.administration.shared.api.RecordEventApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.NewRecordEvent;
 import com.eldercare.backend.nutrition.internal.closing.domain.PortionClosing;
-import com.eldercare.backend.nutrition.internal.closing.domain.PortionClosing.FloorDietCount;
-import java.sql.PreparedStatement;
+import com.eldercare.backend.nutrition.internal.closing.domain.PortionClosingContent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Bảng riêng {@code portion_closing} (V011_05; nhóm 3, chỉ thêm). */
+/**
+ * Lần chốt suất (nhóm 3, chỉ thêm): dòng {@code record_event} loại {@code M08.PORTION_CLOSING} của bữa ngày {@code
+ * M08.DAILY_MEAL}, đã xác nhận ngay khi ghi; {@code actor_id} là người chốt, {@code occurred_at} là thời điểm chốt, {@code
+ * unique_key} theo bữa ngày giữ "mỗi bữa chốt một lần" (FR-033); phần còn lại ở {@code content} (gộp bảng {@code
+ * portion_closing} 2026-11-13, research R-15 của 000). Ghi qua {@link RecordEventApi}; đọc bằng SQL dòng loại của 011.
+ */
 @Repository
 public class PortionClosingStore {
 
-    private static final String SELECT =
-            "SELECT id, daily_meal_id, meal_id, meal_date, meal_time, late_threshold_minutes,"
-                    + " closed_by, closed_at, closed_after_meal_time, menu_id, total_portions, counted_residents,"
-                    + " portions_by_diet, flags, missing_data FROM portion_closing";
+    private static final String DAILY_MEAL = "M08.DAILY_MEAL";
+    private static final String MEAL_TIME =
+            "CAST(REPLACE(REPLACE(content->>'$.mealTime', 'T', ' '), 'Z', '') AS DATETIME(6))";
+    private static final String SELECT = "SELECT id, entity_id, actor_id, occurred_at, content FROM record_event"
+            + " WHERE entity_type = '" + DAILY_MEAL + "' AND kind = 'M08.PORTION_CLOSING'";
 
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
+    private final RecordEventApi events;
 
-    PortionClosingStore(JdbcTemplate jdbc, JsonMapper json) {
+    PortionClosingStore(JdbcTemplate jdbc, JsonMapper json, RecordEventApi events) {
         this.jdbc = jdbc;
         this.json = json;
+        this.events = events;
     }
 
     /** {@code DuplicateKeyException} khi bữa đã chốt (FR-033). */
     public long insert(PortionClosing c) {
-        KeyHolder key = new GeneratedKeyHolder();
-        jdbc.update(
-                connection -> {
-                    PreparedStatement ps = connection.prepareStatement(
-                            "INSERT INTO portion_closing (daily_meal_id, meal_id, meal_date, meal_time,"
-                                    + " late_threshold_minutes, closed_by, closed_at, closed_after_meal_time, menu_id,"
-                                    + " total_portions, counted_residents, portions_by_diet, flags, missing_data)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), CAST(? AS JSON),"
-                                    + " CAST(? AS JSON), CAST(? AS JSON))",
-                            Statement.RETURN_GENERATED_KEYS);
-                    ps.setLong(1, c.dailyMealId());
-                    ps.setLong(2, c.mealId());
-                    ps.setObject(3, c.mealDate());
-                    ps.setObject(4, utc(c.mealTime()));
-                    ps.setInt(5, c.lateThresholdMinutes());
-                    ps.setLong(6, c.closedBy());
-                    ps.setObject(7, utc(c.closedAt()));
-                    ps.setBoolean(8, c.closedAfterMealTime());
-                    ps.setObject(9, c.menuId());
-                    ps.setInt(10, c.totalPortions());
-                    ps.setString(11, json.writeValueAsString(c.persons()));
-                    ps.setString(12, json.writeValueAsString(c.portions()));
-                    ps.setString(13, json.writeValueAsString(c.flags()));
-                    ps.setString(14, json.writeValueAsString(c.missingData()));
-                    return ps;
-                },
-                key);
-        return key.getKey().longValue();
+        if (ofDailyMeal(c.dailyMealId()).isPresent()) {
+            throw new DuplicateKeyException("Bữa ngày đã chốt: " + c.dailyMealId());
+        }
+        return events.add(
+                        PortionClosingContent.KIND,
+                        new EntityRef(DAILY_MEAL, c.dailyMealId()),
+                        new NewRecordEvent<>(
+                                new PortionClosingContent(
+                                        c.mealId(),
+                                        c.mealDate(),
+                                        c.mealTime(),
+                                        c.lateThresholdMinutes(),
+                                        c.closedAfterMealTime(),
+                                        c.menuId(),
+                                        c.totalPortions(),
+                                        c.persons(),
+                                        c.portions(),
+                                        c.flags(),
+                                        c.missingData()),
+                                null,
+                                c.closedBy(),
+                                false,
+                                c.closedAt(),
+                                null,
+                                c.closedAt(),
+                                null,
+                                "M08.PORTION_CLOSING:" + c.dailyMealId()))
+                .id();
     }
 
     public Optional<PortionClosing> ofDailyMeal(long dailyMealId) {
-        return jdbc.query(SELECT + " WHERE daily_meal_id = ?", this::row, dailyMealId).stream()
+        return jdbc.query(SELECT + " AND entity_id = ?", this::row, dailyMealId).stream()
                 .findFirst();
     }
 
     /** Lần chốt của các bữa ngày trong ngày. */
     public List<PortionClosing> onDate(LocalDate date) {
-        return jdbc.query(SELECT + " WHERE meal_date = ? ORDER BY meal_time", this::row, date);
+        return jdbc.query(SELECT + " AND content->>'$.mealDate' = ? ORDER BY " + MEAL_TIME, this::row, date.toString());
     }
 
     /** Lần chốt của các bữa có ngày trong {@code [from, to]} (số liệu cho báo cáo 016). */
     public List<PortionClosing> mealDateBetween(LocalDate from, LocalDate to) {
-        return jdbc.query(SELECT + " WHERE meal_date BETWEEN ? AND ? ORDER BY meal_time", this::row, from, to);
+        return jdbc.query(
+                SELECT + " AND content->>'$.mealDate' BETWEEN ? AND ? ORDER BY " + MEAL_TIME,
+                this::row,
+                from.toString(),
+                to.toString());
     }
 
     /** Lần chốt có giờ bữa sau {@code at}: bữa đã chốt chưa tới giờ (FR-039). */
     public List<PortionClosing> beforeMealTime(Instant at) {
-        return jdbc.query(SELECT + " WHERE meal_time > ? ORDER BY meal_time", this::row, utc(at));
+        return jdbc.query(SELECT + " AND " + MEAL_TIME + " > ? ORDER BY " + MEAL_TIME, this::row, utc(at));
     }
 
     /** Lần chốt có giờ bữa trong {@code [from, to)} (việc theo phút). */
     public List<PortionClosing> mealTimeBetween(Instant from, Instant to) {
         return jdbc.query(
-                SELECT + " WHERE meal_time >= ? AND meal_time < ? ORDER BY meal_time", this::row, utc(from), utc(to));
+                SELECT + " AND " + MEAL_TIME + " >= ? AND " + MEAL_TIME + " < ? ORDER BY " + MEAL_TIME,
+                this::row,
+                utc(from),
+                utc(to));
     }
 
     private PortionClosing row(ResultSet rs, int n) throws SQLException {
+        PortionClosingContent c = json.readValue(rs.getString("content"), PortionClosingContent.class);
         return new PortionClosing(
                 rs.getLong("id"),
-                rs.getLong("daily_meal_id"),
-                rs.getLong("meal_id"),
-                rs.getObject("meal_date", LocalDate.class),
-                instant(rs, "meal_time"),
-                rs.getInt("late_threshold_minutes"),
-                rs.getLong("closed_by"),
-                instant(rs, "closed_at"),
-                rs.getBoolean("closed_after_meal_time"),
-                rs.getObject("menu_id", Long.class),
-                rs.getInt("total_portions"),
-                json.readValue(rs.getString("counted_residents"), new TypeReference<List<CountedPerson>>() {}),
-                json.readValue(rs.getString("portions_by_diet"), new TypeReference<List<FloorDietCount>>() {}),
-                json.readValue(rs.getString("flags"), new TypeReference<Set<String>>() {}),
-                json.readValue(rs.getString("missing_data"), new TypeReference<Set<String>>() {}));
-    }
-
-    private static Instant instant(ResultSet rs, String column) throws SQLException {
-        LocalDateTime value = rs.getObject(column, LocalDateTime.class);
-        return value == null ? null : value.toInstant(ZoneOffset.UTC);
+                rs.getLong("entity_id"),
+                c.mealId(),
+                c.mealDate(),
+                c.mealTime(),
+                c.lateThresholdMinutes(),
+                rs.getLong("actor_id"),
+                rs.getObject("occurred_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                c.closedAfterMealTime(),
+                c.menuId(),
+                c.totalPortions(),
+                c.persons(),
+                c.portions(),
+                c.flags(),
+                c.missingData());
     }
 
     private static LocalDateTime utc(Instant at) {

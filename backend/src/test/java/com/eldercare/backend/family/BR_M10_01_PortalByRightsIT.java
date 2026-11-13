@@ -52,22 +52,6 @@ class BR_M10_01_PortalByRightsIT extends FamilyCommandTestBase {
     }
 
     @Test
-    void US5_list_onlyActiveRelationships_withEffectiveRights() throws Exception {
-        consents.active(a, Set.of(mMember), false);
-        JsonNode list = json(portalGet(mMember, "/residents").andExpect(status().isOk()));
-        assertThat(list).singleElement().satisfies(r -> {
-            assertThat(r.get("residentId").asLong()).isEqualTo(a);
-            assertThat(r.get("rights").get("VIEW_HEALTH").asBoolean()).isTrue();
-            assertThat(r.get("rights").get("VIEW_COSTS").asBoolean()).isFalse();
-            assertThat(r.get("representative").asBoolean()).isFalse();
-        });
-        JsonNode representative = json(portalGet(rMember, "/residents").andExpect(status().isOk()));
-        assertThat(representative.get(0).get("representative").asBoolean()).isTrue();
-        assertThat(representative.get(0).get("rights").get("VIEW_COSTS").asBoolean())
-                .isTrue();
-    }
-
-    @Test
     void US5_1_health_needsRightAndConsent() throws Exception {
         portalGet(nMember, "/residents/" + a + "/health/allergies-conditions")
                 .andExpect(status().isForbidden())

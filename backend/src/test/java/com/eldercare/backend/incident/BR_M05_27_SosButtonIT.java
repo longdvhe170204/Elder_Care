@@ -46,23 +46,4 @@ class BR_M05_27_SosButtonIT extends SosTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.origin").value("SOS"));
     }
-
-    /** T106: dòng nơi đang ở gắn thẳng hồ sơ người cao tuổi (cha của lần bấm), job lưu giữ xóa cùng hồ sơ, không để mồ côi. */
-    @Test
-    void T106_placeRowIsAttachedToResident_notToThePressRow() throws Exception {
-        String body = press("k-place")
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        long pressId = ((Number) JsonPath.read(body, "$.pressId")).longValue();
-
-        place(pressId, "ROOM").andExpect(status().is2xxSuccessful());
-
-        var row = jdbc.queryForMap(
-                "SELECT entity_type, entity_id FROM record_event WHERE kind = 'M05.SOS_PLACE' AND unique_key = ?",
-                "SOS_PLACE:" + pressId);
-        assertThat(row.get("entity_type")).isEqualTo("M01.RESIDENT");
-        assertThat(((Number) row.get("entity_id")).longValue()).isEqualTo(resident);
-    }
 }

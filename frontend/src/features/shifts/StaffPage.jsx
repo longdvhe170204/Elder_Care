@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { PageHeader } from '@/common/PageHeader'
+import { EmptyState } from '@/common/PageState'
+import { FilterBar } from '@/common/FilterBar'
+import { SectionTabs } from '@/common/SectionTabs'
 import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
@@ -118,23 +121,18 @@ function StaffWorkspace() {
           )
         }
       >
-        <nav aria-label="Nội dung nhân sự" className="flex flex-wrap gap-2">
-          {[
+        <SectionTabs
+          label="Nội dung nhân sự"
+          semantics="pressed"
+          value={tab}
+          onChange={setTab}
+          tabs={[
             ['staff', 'Nhân viên'],
             ['departments', 'Bộ phận'],
             ['types', 'Loại chứng chỉ'],
             ...(create ? [['import', 'Import Excel']] : []),
-          ].map(([key, label]) => (
-            <Button
-              key={key}
-              variant={tab === key ? 'default' : 'outline'}
-              aria-pressed={tab === key}
-              onClick={() => setTab(key)}
-            >
-              {label}
-            </Button>
-          ))}
-        </nav>
+          ]}
+        />
       </PageHeader>
       <ProblemAlert problem={failure} />
       {loading || status === 'loading' ? (
@@ -147,7 +145,7 @@ function StaffWorkspace() {
         <DepartmentPanel departments={departments} staff={rows} create={create} update={update} onDone={refresh} />
       ) : (
         <section className="flex min-w-0 flex-col gap-4 rounded-2xl border bg-card p-4 md:p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <FilterBar>
             <Field>
               <FieldLabel htmlFor="staff-search">Tìm nhân viên</FieldLabel>
               <Input
@@ -167,9 +165,9 @@ function StaffWorkspace() {
               <option value="WORKING">Đang làm việc</option>
               <option value="RESIGNED">Nghỉ việc</option>
             </Choice>
-          </div>
+          </FilterBar>
           {!rows.length ? (
-            <p>Chưa có hồ sơ nhân viên trong phạm vi được xem.</p>
+            <EmptyState bare title="Chưa có hồ sơ nhân viên trong phạm vi được xem" />
           ) : (
             <Table>
               <TableHeader>

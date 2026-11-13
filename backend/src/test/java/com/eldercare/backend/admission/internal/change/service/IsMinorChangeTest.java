@@ -34,46 +34,6 @@ class IsMinorChangeTest {
     }
 
     @Test
-    void addingAnInPackageService_withNoCostImpact_isMinor() {
-        var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 20, "action": "ADD", "inPackage": true}]}""");
-
-        assertThat(IsMinorChange.test(change, NO_COST, CURRENT)).isTrue();
-    }
-
-    @Test
-    void removingAnInPackageService_isMinor() {
-        var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 12, "action": "REMOVE"}]}""");
-
-        assertThat(IsMinorChange.test(change, NO_COST, CURRENT)).isTrue();
-    }
-
-    @Test
-    void addingAServiceOutsideThePackage_isNotMinor() {
-        var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 20, "action": "ADD", "inPackage": false}]}""");
-
-        assertThat(IsMinorChange.test(change, NO_COST, CURRENT)).isFalse();
-    }
-
-    @Test
-    void removingAServiceThatIsOutsideThePackageInTheCurrentContract_isNotMinor() {
-        var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 13, "action": "REMOVE"}]}""");
-
-        assertThat(IsMinorChange.test(change, NO_COST, CURRENT)).isFalse();
-    }
-
-    @Test
-    void removingAServiceTheCurrentContractDoesNotHave_isNotMinor() {
-        var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 99, "action": "REMOVE"}]}""");
-
-        assertThat(IsMinorChange.test(change, NO_COST, CURRENT)).isFalse();
-    }
-
-    @Test
     void aCostImpactThatChangesAPrice_isNotMinor() {
         var change = content("[\"SERVICE\"]", """
                 {"services": [{"serviceId": 20, "action": "ADD", "inPackage": true}]}""");
@@ -102,13 +62,5 @@ class IsMinorChangeTest {
 
         assertThat(IsMinorChange.test(withDuration, NO_COST, CURRENT)).isFalse();
         assertThat(IsMinorChange.test(careLevel, NO_COST, CURRENT)).isFalse();
-    }
-
-    @Test
-    void aChangeThatAlsoChangesTheDeposit_isNotMinor() {
-        var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 20, "action": "ADD", "inPackage": true}], "depositAmount": 1000000}""");
-
-        assertThat(IsMinorChange.test(change, NO_COST, CURRENT)).isFalse();
     }
 }

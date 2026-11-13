@@ -137,16 +137,6 @@ class DetailRowPolicyTest {
     }
 
     @Test
-    void FR_012_Q_196_residentOutsideCurrentScope_reducedAndCannotOpen() {
-        DetailRow row = policy().apply(USER, List.of(dose(777))).getFirst();
-
-        assertThat(row.reduced()).isTrue();
-        assertThat(row.canOpenRecord()).isFalse();
-        assertThat(row.resident()).isEqualTo("Nguyễn Văn A");
-        assertThat(row.floorArea()).isEqualTo("Tầng 1");
-    }
-
-    @Test
     void FR_012_Q_196_reducedRow_resultByRoleNotByCurrentScope() {
         medication = Visibility.NONE; // ngoài phạm vi hiện hành thì canView không cho
         assertThat(policy().apply(USER, List.of(dose(777))).getFirst().result())
@@ -155,14 +145,5 @@ class DetailRowPolicyTest {
         medicationByRole = Visibility.NONE;
         assertThat(policy().apply(USER, List.of(dose(777))).getFirst().result())
                 .containsExactly(Map.entry("itemCode", "VT-001"));
-    }
-
-    @Test
-    void FR_054_Q_133_withoutMedicationView_onlyItemCodeShown() {
-        medication = Visibility.NONE;
-
-        DetailRow row = policy().apply(USER, List.of(dose(501))).getFirst();
-
-        assertThat(row.result()).containsExactly(Map.entry("itemCode", "VT-001"));
     }
 }

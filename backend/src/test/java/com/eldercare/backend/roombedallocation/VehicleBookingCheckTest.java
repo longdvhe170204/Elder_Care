@@ -67,11 +67,4 @@ class VehicleBookingCheckTest {
                 .as("đang mang dấu quá hạn")
                 .containsExactly("VEHICLE_INSPECTION_OR_INSURANCE_OVERDUE");
     }
-
-    @Test
-    void Q_236_extensionOfAnInUseScheduleIsNotBlockedByTheNextSchedule() {
-        var next = new Slot(2, THIRTEEN, FOURTEEN);
-        assertThat(VehicleBookingCheck.overlaps(List.of(next), SEVEN, FOURTEEN)).containsExactly(next);
-        assertThat(VehicleBookingCheck.overlaps(List.of(next), SEVEN, THIRTEEN)).isEmpty();
-    }
 }

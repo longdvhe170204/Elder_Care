@@ -1,4 +1,4 @@
-import { LockKeyhole, PencilRuler } from 'lucide-react'
+import { Inbox, LockKeyhole, PencilRuler } from 'lucide-react'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 
 // Trạng thái cả màn (DESIGN.md mục 7.3): luôn đặt trên thẻ trắng, không đặt chữ phụ trên nền trời.
@@ -12,6 +12,23 @@ function StateCard({ icon: Icon, title, description }) {
         <EmptyTitle>{title}</EmptyTitle>
         <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
+    </Empty>
+  )
+}
+
+// Danh sách trống (DESIGN.md 7.2 "Trống", 7.3): một kiểu cho mọi màn, nói vì sao trống và làm gì tiếp. Mặc định
+// là thẻ trắng; `bare` khi đã nằm trong một thẻ.
+export function EmptyState({ icon: Icon = Inbox, title, description, bare = false, children }) {
+  return (
+    <Empty className={bare ? 'py-10' : 'rounded-2xl border border-solid bg-card py-10'}>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Icon aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        {description && <EmptyDescription>{description}</EmptyDescription>}
+      </EmptyHeader>
+      {children}
     </Empty>
   )
 }

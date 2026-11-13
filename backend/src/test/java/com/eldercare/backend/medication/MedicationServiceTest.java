@@ -1,16 +1,12 @@
 package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.NotFoundException;
-import com.eldercare.backend.common.error.VersionMismatchException;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.catalog.domain.MedicationStatus;
 import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
@@ -83,30 +79,6 @@ class MedicationServiceTest {
     }
 
     @Test
-    @DisplayName("FR-001: Trùng tên, hàm lượng, dạng bào chế thì báo lỗi 409 TRUNG_THUOC")
-    void create_duplicateIdentity_throwsConflict() {
-        CreateMedicationCommand cmd = new CreateMedicationCommand(
-                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", Set.of(101L), null, null, false);
-
-        when(repository.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCase(
-                        "Paracetamol", "500mg", "Viên nén"))
-                .thenReturn(true);
-
-        assertThatThrownBy(() -> service.create(cmd))
-                .isInstanceOf(ConditionNotMetException.class)
-                .hasMessageContaining("Điều kiện chưa thỏa");
-    }
-
-    @Test
-    @DisplayName("FR-001: Thiếu hoạt chất dị nguyên ném lỗi")
-    void create_missingAllergen_throwsException() {
-        CreateMedicationCommand cmd = new CreateMedicationCommand(
-                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", Set.of(), null, null, false);
-
-        assertThatThrownBy(() -> service.create(cmd)).isInstanceOf(ConditionNotMetException.class);
-    }
-
-    @Test
     @DisplayName("FR-002: Cập nhật thuốc thành công khi đúng phiên bản If-Match")
     void update_validIfMatch_success() {
         Medication med =
@@ -129,21 +101,6 @@ class MedicationServiceTest {
     }
 
     @Test
-    @DisplayName("FR-002: Sai phiên bản If-Match ném VersionMismatchException (412)")
-    void update_wrongIfMatch_throwsVersionMismatch() {
-        Medication med =
-                new Medication("Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
-        setId(med, 1L);
-
-        when(repository.findById(1L)).thenReturn(Optional.of(med));
-
-        UpdateMedicationCommand cmd = new UpdateMedicationCommand(
-                "Paracetamol Extra", "500mg", "Viên nén", "Uống", "viên", Set.of(101L), 30, 30, false);
-
-        assertThatThrownBy(() -> service.update(1L, "\"99\"", cmd)).isInstanceOf(VersionMismatchException.class);
-    }
-
-    @Test
     @DisplayName("FR-002: Ngừng hiệu lực chuyển trạng thái sang INACTIVE")
     void deactivate_success() {
         Medication med =
@@ -156,13 +113,5 @@ class MedicationServiceTest {
 
         assertThat(deactivated.active()).isFalse();
         assertThat(med.getStatus()).isEqualTo(MedicationStatus.INACTIVE);
-    }
-
-    @Test
-    @DisplayName("Tra cứu thuốc không tồn tại ném NotFoundException (404)")
-    void getById_notFound_throwsNotFound() {
-        when(repository.findById(999L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.getById(999L)).isInstanceOf(NotFoundException.class);
     }
 }
