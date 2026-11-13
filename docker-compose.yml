@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0
+    command: --lower-case-table-names=1 --default-time-zone=+00:00
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_MIGRATION_PASSWORD}
+      MYSQL_DATABASE: elder_care
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build: ./backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: demo
+      DB_URL: jdbc:mysql://mysql:3306/elder_care
+      DB_MIGRATION_USERNAME: root
+      DB_MIGRATION_PASSWORD: ${DB_MIGRATION_PASSWORD}
+      DB_USERNAME: eldercare_app
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_RETENTION_USERNAME: eldercare_retention
+      DB_RETENTION_PASSWORD: ${DB_RETENTION_PASSWORD}
+    volumes:
+      - backend-logs:/app/logs
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+
+volumes:
+  mysql-data:
+  backend-logs:
