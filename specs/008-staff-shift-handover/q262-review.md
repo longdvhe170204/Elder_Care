@@ -118,8 +118,8 @@ Chín lớp baseline còn đỏ:
 
 | Chủ | Lớp | Thất bại | Lỗi |
 | --- | --- | ---: | ---: |
-| B | BR_M01_01_TemporaryAbsenceOverdueIT | 0 | 1 |
-| B | BR_M01_02_ReassessmentNoticeIT | 0 | 2 |
+| B | BR_11_TemporaryAbsenceOverdueIT | 0 | 1 |
+| B | BR_05_ReassessmentNoticeIT | 0 | 2 |
 | B | CompleteAdmissionConsentIT | 0 | 2 |
 | B | CompleteAdmissionWishWarningsIT | 0 | 3 |
 | B | FR_023h_KhongDauNangLucIT | 1 | 0 |

@@ -151,7 +151,7 @@ class MedicationStatusParticipantTest {
     }
 
     @Test
-    void BR_M07_03_temporaryAbsenceOpensIntervalByTakesMedication() {
+    void BR_28_temporaryAbsenceOpensIntervalByTakesMedication() {
         when(absences.findOpenByResidentId(RESIDENT)).thenReturn(Optional.empty());
         ObjectNode details = details()
                 .put("takesMedication", false)

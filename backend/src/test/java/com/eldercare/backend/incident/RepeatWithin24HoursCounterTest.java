@@ -14,7 +14,7 @@ class RepeatWithin24HoursCounterTest {
     private static final Duration DAY = Duration.ofHours(24);
 
     @Test
-    void BR_M05_03_countsOnlyWindowOpenAtStartClosedAtEnd() {
+    void BR_41_countsOnlyWindowOpenAtStartClosedAtEnd() {
         var times = List.of(
                 T.minusSeconds(24 * 3600), // đúng mốc t − 24h: không tính
                 T.minusSeconds(24 * 3600 - 1),
@@ -24,7 +24,7 @@ class RepeatWithin24HoursCounterTest {
     }
 
     @Test
-    void BR_M05_03_ignoresLaterOccurrences() {
+    void BR_41_ignoresLaterOccurrences() {
         assertThat(RepeatWithin24HoursCounter.count(List.of(T.plusSeconds(1)), T, DAY))
                 .isZero();
     }

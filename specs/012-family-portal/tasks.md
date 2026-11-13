@@ -79,7 +79,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 3
 
-- [x] T014 [P] [US3] Test đơn vị `BT/family/KiemTraYeuCauTest.java` (bổ sung 2026-10-18: trái mong muốn theo loại, chiều bật/tắt, ngoại lệ tắt đón, người đại diện theo pháp luật) và `BT/family/BR_M10_07_YeuCauQuyenIT.java`, `FR_020_MongMuonIT.java` (bổ sung 2026-10-18: US3 #9 → #11; mong muốn bất biến, thay thế; xác nhận cổng bị từ chối khi trái; Quản lý viện duyệt thiếu `traoDoiVoiNguoiCaoTuoi` → 422; dòng phiếu trái thành Chờ xác nhận; cảnh báo quyền trái): `UNIQUE khoa_cho`; yêu cầu bỏ thay thế yêu cầu chờ; người đại diện qua cổng và Hành chính kèm bản ký → `HIEU_LUC` ngay; hai người đại diện xác nhận đồng thời (Q8 → Q12) *(2026-11-05: tên tiếng Anh `RightRequestCheckTest` 17, `BR_M10_07_RightChangeRequestIT` 19, `FR_020_VisitPickupWishIT` 9, nền `FamilyCommandTestBase`)*
+- [x] T014 [P] [US3] Test đơn vị `BT/family/KiemTraYeuCauTest.java` (bổ sung 2026-10-18: trái mong muốn theo loại, chiều bật/tắt, ngoại lệ tắt đón, người đại diện theo pháp luật) và `BT/family/BR_M10_07_YeuCauQuyenIT.java`, `FR_020_MongMuonIT.java` (bổ sung 2026-10-18: US3 #9 → #11; mong muốn bất biến, thay thế; xác nhận cổng bị từ chối khi trái; Quản lý viện duyệt thiếu `traoDoiVoiNguoiCaoTuoi` → 422; dòng phiếu trái thành Chờ xác nhận; cảnh báo quyền trái): `UNIQUE khoa_cho`; yêu cầu bỏ thay thế yêu cầu chờ; người đại diện qua cổng và Hành chính kèm bản ký → `HIEU_LUC` ngay; hai người đại diện xác nhận đồng thời (Q8 → Q12) *(2026-11-05: tên tiếng Anh `RightRequestCheckTest` 17, `BR_65_RightChangeRequestIT` 19, `FR_020_VisitPickupWishIT` 9, nền `FamilyCommandTestBase`)*
 
 ### Implementation cho User Story 3
 
@@ -101,7 +101,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 2
 
-- [x] T018 [P] [US2] Test `BT/family/BR_M10_03_QuyTrinhDonIT.java`, `FR_024_NgoaiLeDonIT.java`, `FR_027_BanGhiDonHetHieuLucIT.java`, `Q295_VienDuaVeIT.java`: dùng lần hai → `BAN_GHI_DON_DA_DUNG` (`khoa_da_dung UNIQUE`); bỏ người đón cùng lúc ghi đón; ghi đón chỉ trực tuyến (app) (Q13 → Q20) *(2026-11-05: tên tiếng Anh `BR_M10_03_PickupProcessIT` 13, `FR_024_PickupExceptionIT` 9, `FR_027_PickupRecordExpiryIT` 2, `Q295_InstituteReturnIT` 4, nền `PickupTestBase`)*
+- [x] T018 [P] [US2] Test `BT/family/BR_M10_03_QuyTrinhDonIT.java`, `FR_024_NgoaiLeDonIT.java`, `FR_027_BanGhiDonHetHieuLucIT.java`, `Q295_VienDuaVeIT.java`: dùng lần hai → `BAN_GHI_DON_DA_DUNG` (`khoa_da_dung UNIQUE`); bỏ người đón cùng lúc ghi đón; ghi đón chỉ trực tuyến (app) (Q13 → Q20) *(2026-11-05: tên tiếng Anh `BR_66_PickupProcessIT` 13, `FR_024_PickupExceptionIT` 9, `FR_027_PickupRecordExpiryIT` 2, `Q295_InstituteReturnIT` 4, nền `PickupTestBase`)*
 
 ### Implementation cho User Story 2
 
@@ -121,7 +121,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 4
 
-- [x] T022 [P] [US4] Test đơn vị `BT/family/KiemTraDangKyThamTest.java` và `BT/family/BR_M10_02_DangKyThamIT.java`, `FR_037_KhoanhVungHuyThamIT.java`, `SC_004_SucChuaDongThoiIT.java` (20 đăng ký chỗ cuối) (Q21 → Q28) *(2026-11-05: tên tiếng Anh `VisitRegistrationCheckTest` 9, `BR_M10_02_VisitRegistrationIT` 10, `FR_037_IsolationCancelsVisitIT` 3, `SC_004_ConcurrentCapacityIT` 1, nền `VisitTestBase`)*
+- [x] T022 [P] [US4] Test đơn vị `BT/family/KiemTraDangKyThamTest.java` và `BT/family/BR_M10_02_DangKyThamIT.java`, `FR_037_KhoanhVungHuyThamIT.java`, `SC_004_SucChuaDongThoiIT.java` (20 đăng ký chỗ cuối) (Q21 → Q28) *(2026-11-05: tên tiếng Anh `VisitRegistrationCheckTest` 9, `BR_66_VisitRegistrationIT` 10, `FR_037_IsolationCancelsVisitIT` 3, `SC_004_ConcurrentCapacityIT` 1, nền `VisitTestBase`)*
 
 ### Implementation cho User Story 4
 
@@ -141,7 +141,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 5
 
-- [x] T026 [P] [US5] Test `BT/family/BR_M10_01_CongTheoQuyenIT.java`, `FR_048_NhatKyXemIT.java`, `SC_002_SucKhoeTest.java`; bổ sung 2026-10-18: người thân không có quyền xem sức khỏe thấy phần chung của sự cố (kèm mức), không thấy phần sức khỏe, không có dòng nhật ký xem (FR-046, Q-352) *(2026-11-05: tên tiếng Anh `BR_M10_01_PortalByRightsIT` 7, `FR_048_HealthViewLogIT` 3, `SC_002_HealthTest` 2)*
+- [x] T026 [P] [US5] Test `BT/family/BR_M10_01_CongTheoQuyenIT.java`, `FR_048_NhatKyXemIT.java`, `SC_002_SucKhoeTest.java`; bổ sung 2026-10-18: người thân không có quyền xem sức khỏe thấy phần chung của sự cố (kèm mức), không thấy phần sức khỏe, không có dòng nhật ký xem (FR-046, Q-352) *(2026-11-05: tên tiếng Anh `BR_65_PortalByRightsIT` 7, `FR_048_HealthViewLogIT` 3, `SC_002_HealthTest` 2)*
 
 ### Implementation cho User Story 5
 
@@ -160,7 +160,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 6
 
-- [x] T029 [P] [US6] Test đơn vị `BT/family/HanPhanHoiTest.java` và `BT/family/BR_M10_05_PhanHoiIT.java` (Q43 → Q46) *(2026-11-05: `FeedbackDeadlineTest` (5), `BR_M10_05_FeedbackIT` (12))*
+- [x] T029 [P] [US6] Test đơn vị `BT/family/HanPhanHoiTest.java` và `BT/family/BR_M10_05_PhanHoiIT.java` (Q43 → Q46) *(2026-11-05: `FeedbackDeadlineTest` (5), `BR_67_FeedbackIT` (12))*
 
 ### Implementation cho User Story 6
 

@@ -10,10 +10,12 @@ import com.eldercare.backend.care.internal.trip.service.TripPreparationService;
 import com.eldercare.backend.support.TestUsers;
 import java.time.Duration;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+@Tag("BR-78")
 class FR_068a_KenhNguoiCaoTuoiIT extends CareResultTestBase {
     @Autowired
     ApplicationContext context;

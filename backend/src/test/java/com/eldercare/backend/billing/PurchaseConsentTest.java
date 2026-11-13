@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 class PurchaseConsentTest {
     @Test
-    void BR_M11_07_thresholdIsInclusiveAndFrozenAtSend() {
+    void BR_62_thresholdIsInclusiveAndFrozenAtSend() {
         var low = PurchaseConsent.draft(500000).send(500000);
         assertThat(low.status()).isEqualTo("PURCHASE_ALLOWED");
         assertThat(low.allowedAmount()).isEqualTo(500000);

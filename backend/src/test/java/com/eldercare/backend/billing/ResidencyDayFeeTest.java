@@ -19,7 +19,7 @@ class ResidencyDayFeeTest {
     }
 
     @Test
-    void BR_M11_09_twelveMonthsAndLeapFebruarySumToTheExactMonthlyPrice() {
+    void BR_60_twelveMonthsAndLeapFebruarySumToTheExactMonthlyPrice() {
         var price = new BigDecimal("9300001");
         TableRows.each(months(), month -> {
             var total = IntStream.rangeClosed(1, month.lengthOfMonth())

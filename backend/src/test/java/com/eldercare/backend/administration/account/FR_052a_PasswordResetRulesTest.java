@@ -31,7 +31,7 @@ class FR_052a_PasswordResetRulesTest {
     }
 
     @Test
-    void BR_M15_25_requestLimit_perDayAndInterval_codeRevokedAfterMaxFailures() {
+    void BR_73_requestLimit_perDayAndInterval_codeRevokedAfterMaxFailures() {
         Instant now = Instant.parse("2026-11-08T02:00:00Z");
         Duration interval = Duration.ofSeconds(60);
         assertThat(PasswordResetRules.canRequest(now, 0, Optional.empty(), 5, interval))

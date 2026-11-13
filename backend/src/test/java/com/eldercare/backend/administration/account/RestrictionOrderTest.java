@@ -37,7 +37,7 @@ class RestrictionOrderTest {
             "AC-04", Map.of(COST_CREATE, Set.of(role(ASSIGNED)), PROFILE_VIEW, Set.of(role(ASSIGNED))));
 
     @Test
-    void BR_M15_18_roleRestriction_beforeUnion_otherRoleKeepsPermission() {
+    void BR_70_roleRestriction_beforeUnion_otherRoleKeepsPermission() {
         Map<PermissionKey, Set<RoleGrant>> result = RolePermissionRules.combine(
                 OFFICE_AND_NURSE, List.of(new RestrictionRule("AC-09", COST_CREATE, false)), List.of(), Set.of());
 
@@ -46,7 +46,7 @@ class RestrictionOrderTest {
     }
 
     @Test
-    void BR_M15_18_roleLowerScope_beforeUnion_facilityOfOtherRoleWins() {
+    void BR_70_roleLowerScope_beforeUnion_facilityOfOtherRoleWins() {
         Map<PermissionKey, Set<RoleGrant>> result = RolePermissionRules.combine(
                 Map.of(
                         "AC-09", Map.of(PROFILE_VIEW, Set.of(role(FACILITY))),

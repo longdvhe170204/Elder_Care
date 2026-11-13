@@ -56,7 +56,7 @@ class PaymentNoticeDocumentTest {
     }
 
     @Test
-    void BR_M11_21_pdfCarriesHeaderLinesTotalsAndBalances() {
+    void BR_63_pdfCarriesHeaderLinesTotalsAndBalances() {
         String pdf = pdfText(PaymentNoticeDocument.pdf(FACILITY, null, notice(8_000_000, -1_250_000, PAYMENT)));
 
         assertThat(pdf)
@@ -76,7 +76,7 @@ class PaymentNoticeDocumentTest {
     }
 
     @Test
-    void BR_M11_21_negativeBalanceAfterShowsDebtAndPaymentInstructions() {
+    void BR_63_negativeBalanceAfterShowsDebtAndPaymentInstructions() {
         String pdf = pdfText(PaymentNoticeDocument.pdf(FACILITY, null, notice(8_000_000, -1_250_000, PAYMENT)));
 
         assertThat(pdf)
@@ -88,7 +88,7 @@ class PaymentNoticeDocumentTest {
     }
 
     @Test
-    void BR_M11_21_excelHasTheSameFiguresAsPdf() {
+    void BR_63_excelHasTheSameFiguresAsPdf() {
         List<String> cells = excelCells(PaymentNoticeDocument.excel(FACILITY, notice(8_000_000, -1_250_000, PAYMENT)));
 
         assertThat(cells).contains("Phí lưu trú tháng 10", "9250000", "250000", "8000000", "-1250000");

@@ -54,7 +54,7 @@ class PrimaryAssigneeResolverTest {
     }
 
     @Test
-    void BR_M09_15_draftsCancelledAndEndedDoNotCreateAssignments() {
+    void BR_53_draftsCancelledAndEndedDoNotCreateAssignments() {
         var rows = List.of("DRAFT", "CANCELLED", "ENDED").stream()
                 .map(status -> assignment(
                         1,

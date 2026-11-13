@@ -47,7 +47,7 @@ class SettlementStatementDocumentTest {
     }
 
     @Test
-    void BR_M11_22_pdfCarriesPartiesAmountsVersionAndNotAnInvoiceLine() {
+    void BR_63_pdfCarriesPartiesAmountsVersionAndNotAnInvoiceLine() {
         String pdf = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(false, 0)));
 
         assertThat(pdf)
@@ -72,7 +72,7 @@ class SettlementStatementDocumentTest {
     }
 
     @Test
-    void BR_M11_22_remainingAndExceptionAreShownOnlyWhenPresent() {
+    void BR_63_remainingAndExceptionAreShownOnlyWhenPresent() {
         String clean = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(false, 0)));
         String debt = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(true, -1_500_000)));
         String refund = pdfText(SettlementStatementDocument.pdf(FACILITY, null, data(true, 800_000)));
