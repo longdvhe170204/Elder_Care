@@ -64,6 +64,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class QuickstartDemoApplication {
 
     public static void main(String[] args) {
+        // Bảng mẫu sample_* chỉ có ở tài nguyên test (000 T048); profile demo thường không nạp.
+        System.setProperty(
+                "spring.flyway.locations",
+                "classpath:db/migration,classpath:db/migration/demo,classpath:db/migration/sample");
         SpringApplication.run(QuickstartDemoApplication.class, args);
     }
 
