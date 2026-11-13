@@ -184,9 +184,11 @@ spring:
     activate:
       on-profile: demo
   flyway:
-    # Dữ liệu demo (tài khoản demo.*) nạp ở demo và test. Bảng mẫu sample_* của 000 T048 chỉ có ở test
+    # Bảng mẫu sample_* của 000 T048 chỉ có ở test
     # (src/test/resources/db/migration/sample). Schema demo đã có cho phép áp migration số nhỏ hơn đến sau.
-    locations: classpath:db/migration,classpath:db/migration/demo
+    # db/demo: tài khoản demo.* (V002_90) và dữ liệu demo tĩnh (V900_01). Không đặt dưới db/migration vì Flyway quét
+    # cả thư mục con: đặt ở đó thì tài khoản demo được tạo ở mọi profile, kể cả khi chạy thật. Test không nạp.
+    locations: classpath:db/migration,classpath:db/demo
     out-of-order: true
   jpa:
     show-sql: true
