@@ -139,7 +139,7 @@ class FR_040_IncidentRecordTest {
 
     /** BR-M05-18: sự cố lây nhiễm nghi ngờ luôn gắn một người cao tuổi. */
     @Test
-    void BR_M05_18_suspectedInfectionRequiresResident() {
+    void BR_44_suspectedInfectionRequiresResident() {
         assertThatThrownBy(() -> service.record(command(null, 5, "MEDIUM", null, false), user))
                 .isInstanceOf(BusinessException.class);
         verify(incidents, never()).insert(any());

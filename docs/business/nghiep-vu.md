@@ -3278,3 +3278,190 @@ Bảng dưới đây gom các văn bản pháp lý mà quy tắc nghiệp vụ d
 | Luật Người cao tuổi số 39/2009/QH12 | 01/7/2010 | Quyền của người cao tuổi, gồm quyết định sống chung với con, cháu hoặc sống riêng (Điều 3) | 1.3, 6.1, BR-M01-15, 14.1, Q-351, Q-356 | Tư vấn pháp lý |
 | Luật Dược số 105/2016/QH13, sửa đổi bởi Luật số 44/2024/QH15; Nghị định 54/2017/NĐ-CP; Thông tư 20/2017/TT-BYT, sửa đổi bởi Thông tư 27/2024/TT-BYT | Thông tư 27/2024/TT-BYT: 30/01/2025 | Thuốc gây nghiện, hướng thần, tiền chất: sổ nhập, xuất, tồn; biên bản nhận lại thuốc. Hệ thống hiện **không** áp các yêu cầu này (Q-63, giả định có rủi ro pháp lý) | 11.6, Q-63 | Dược sĩ, tư vấn pháp lý |
 | Quy định về thời hạn lưu trữ hồ sơ sức khỏe và hồ sơ của cơ sở (chưa xác định văn bản) | — | Thời hạn lưu giữ hồ sơ người cao tuổi, sức khỏe, thuốc, sự cố và nhật ký hệ thống | CFG-M15-03, CFG-M15-04 | Tư vấn pháp lý |
+
+## 30. Phụ lục – Quy tắc nghiệp vụ rút gọn (78 quy tắc)
+
+*(Bổ sung 2026-11-13, chủ dự án yêu cầu)* Đồ án sinh viên trình bày quy tắc nghiệp vụ ở mức 78 quy tắc `BR-01` → `BR-78`, chia theo 16 nhóm `FE-01` → `FE-16`. Mỗi quy tắc gộp một số quy tắc chi tiết `BR-Mxx-nn` ở các mục 5 → 19; nội dung chi tiết, tham số (CFG) và quyết định (Q-xx) của các quy tắc đó giữ nguyên và vẫn là căn cứ khi hai bên khác nhau. Nội dung 78 quy tắc do chủ dự án viết (tiếng Anh, dùng cho báo cáo). Test của quy tắc nghiệp vụ mang mã mới theo bảng 30.2.
+
+Khác bản chủ dự án đưa ngày 2026-11-13 ở ba chỗ: BR-38 bỏ câu cảnh báo nguy cơ cô lập sau 7 ngày không tham gia hoạt động nhóm (BR-M04-22 đã bỏ theo Q-407); BR-78 thêm BR-M15-24 (thiết bị đã gắn của người cao tuổi); BR-M02-18 chỉ còn ở BR-59 (bỏ ở BR-11).
+
+### 30.1. Danh sách quy tắc
+
+**FE-01 Resident Profile & Assessment**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-01 | Resident status changes only through dedicated business commands (complete admission, cancel admission, absence, return, hospital transfer, end stay, death) allowed by the status table. There is no “edit status” action, and each change is logged with actor, time and reason. | BR-M01-04, BR-M01-06 |
+| BR-02 | A resident record in a final status is read-only. Exceptions: consent withdrawal, approved corrections, post-death closure tasks and automatic retention actions. | BR-M01-05 |
+| BR-03 | Allergies and chronic conditions are never deleted. Only a doctor or nurse may mark an item as excluded, with a reason. New allergies are checked against prescriptions and menus; if the check cannot run, the item is flagged “awaiting check”. | BR-M01-07, BR-M01-11, BR-M01-12, BR-M01-17 |
+| BR-04 | An assessment consists of the doctor’s written comments and a selected care level. There are no scores and no risk flags, and each resident has at most one draft assessment. Care notes from the latest confirmed assessment are shown on the care checklist. | BR-M01-09, BR-M01-10, BR-M01-13 |
+| BR-05 | The on-duty doctor is reminded to re-assess every 90 days and after a fall or serious incident. If the care level changes, Administration is notified to raise a stay-change request. | BR-M01-02, BR-M01-03, BR-M05-07 |
+| BR-06 | Decisions follow three tiers: (1) legal acts are made by the resident, or by a proxy only with a court decision; (2) medical decisions and end-of-life wishes are made by the resident, then by prior written wishes, then by the representative, then by the doctor; (3) daily-life decisions are made by the resident. Wishes and preferences are recorded with their source. | BR-M01-14, BR-M01-15, BR-M01-16 |
+
+**FE-02 Admission & Stay**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-07 | When a bed becomes vacant, Administration receives a list of matching waiting-list entries, ordered by priority flag and then registration date. A contacted entry holds the bed for 48 hours. Entries not updated for 30 days trigger a reminder. | BR-M02-01, BR-M02-02, BR-M02-03, BR-M02-10, BR-M02-15, BR-M02-20 |
+| BR-08 | A resident cannot have overlapping active contracts. An active contract cannot be edited; changes are made by annexes. Administration selects the contract’s care level as agreed with the family. | BR-M02-08, BR-M02-09, BR-M02-22 |
+| BR-09 | Approved stay changes with a future effective date (care plan, price, bed, day-care schedule) are applied automatically on that date. | BR-M02-04, BR-M02-16 |
+| BR-10 | Long-term contracts are reminded 30 days before expiry, short-term contracts on their end date. A short-term stay extended beyond the legal limit triggers a residence registration reminder. | BR-M02-05, BR-M02-14 |
+| BR-11 | Residential absence days are charged and the bed is kept. Day-care absences are charged by an announced or unannounced rate. A long absence notifies the manager, who may release the bed. A return overdue by 2 hours raises an alert. | BR-M01-01, BR-M02-06, BR-M02-07, BR-M03-19 |
+| BR-12 | The system reminds Administration to register temporary residence on admission, renew it before expiry, and deregister it when the stay ends. | BR-M02-11, BR-M02-12, BR-M02-13 |
+
+**FE-03 Room & Bed**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-13 | Bed allocation checks that the room type allows the resident’s care level, gender and stay type. With concurrent allocations, the later one is rejected. Invalid future allocations are flagged, not cancelled. | BR-M03-01, BR-M03-02, BR-M03-20, BR-M03-22, BR-M03-23 |
+| BR-14 | A bed transfer is one atomic command that closes the old allocation and opens a new one. Pending tasks are reassigned to the new area. | BR-M03-04, BR-M03-07 |
+| BR-15 | An occupied bed cannot be set to maintenance or out-of-use. A released bed becomes “awaiting ready” until the floor head confirms it. Disinfection is mandatory if the previous occupant was on an infection or contact list. | BR-M03-05, BR-M03-06, BR-M03-09, BR-M03-10, BR-M03-13 |
+| BR-16 | Day-care capacity is per session; registrations over capacity are blocked, and changing session times recounts registrations. | BR-M03-03, BR-M03-25 |
+
+**FE-04 Care Plan & Daily Care**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-17 | Care plans are versioned; the active version cannot be edited, and a new version takes effect only after approval. The plan must be reviewed after re-assessment, a fall or a care-level change. | BR-M04-03, BR-M04-19, BR-M04-20 |
+| BR-18 | The shift lead creates tasks per shift (from 1 hour before the shift) based on the care plan; the system never auto-generates tasks. Day-care tasks are created only after arrival, and tasks during an absence are cancelled. | BR-M04-01, BR-M04-02, BR-M04-04, BR-M04-24, BR-M04-25, BR-M04-26 |
+| BR-19 | An overdue task is reminded once. An overdue Important task notifies the floor head; an overdue Mandatory task raises a medium alert and needs a reason to close. | BR-M04-05, BR-M04-06, BR-M04-29 |
+| BR-20 | Only assigned staff or the floor head may record task results; records more than 2 hours late are labeled. The quality check list is recorded every shift. | BR-M04-12, BR-M04-23 |
+| BR-21 | Tasks of absent staff or changed assignments are reassigned or become floor-common tasks. Unfinished tasks go into the shift handover. | BR-M04-07, BR-M04-13, BR-M04-28 |
+| BR-22 | Light alerts are raised for: water intake below 60% of target by 16:00; 3 consecutive poor meals; negative mood for 3 days. Poor eating or weight loss also asks the doctor to review the diet. | BR-M04-08, BR-M04-09, BR-M04-11, BR-M08-05 |
+| BR-23 | When offline, staff can view the last downloaded checklist and record results locally. On reconnection, each record’s sync result is reported. | BR-M04-27, BR-M15-20 |
+
+**FE-05 Health Monitoring**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-24 | Physically invalid values are rejected and danger-level values must be confirmed. Measurements are compared immediately against the personal threshold, or the facility default if none exists. Exceeding the warning threshold raises a medium alert; exceeding the danger threshold raises an emergency alert. The doctor is reminded if no personal threshold exists after 7 days. | BR-M04-10, BR-M06-01, BR-M06-02, BR-M06-03, BR-M06-04 |
+| BR-25 | Diagnosis and prescribing are enabled only when both the facility’s medical scope and the practitioner’s license are valid. | BR-M06-05, BR-M07-05, BR-M15-19 |
+
+**FE-06 Medication**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-26 | The dose schedule is computed from active recurring prescriptions, with no pre-created records. Stopping a medication or changing a dose recalculates future doses. Prescriptions are reminded 3 days before their end date and expire automatically. | BR-M07-01, BR-M07-07, BR-M07-08, BR-M07-15 |
+| BR-27 | Unconfirmed doses become Late and then Missed, and a missed dose raises an alert. Each dose is confirmed once. Refusing a medication twice or recording a reaction raises an alert. A floor with no nurse on shift alerts the floor head. | BR-M07-02, BR-M07-12, BR-M07-13, BR-M07-20, BR-M07-21 |
+| BR-28 | Doses during an absence are paused. For outings, doses go through a take-along handover. | BR-M07-03, BR-M07-22, BR-M04-16 |
+| BR-29 | PRN doses require a reason and respect a minimum interval and a maximum number per day. | BR-M07-04 |
+| BR-30 | A new prescription is checked for a duplicate active ingredient and for allergies. Drug-drug interaction checks are out of scope. | BR-M07-06, BR-M07-16, BR-M07-23 |
+| BR-31 | Medication reconciliation is mandatory at admission and on return from hospital, during which old prescriptions are paused. It is also done after major treatment changes. | BR-M07-09, BR-M07-17, BR-M07-25 |
+| BR-32 | Family-supplied medication can be scheduled only after reconciliation. Quantities are not deducted automatically, and returns cover the whole lot. Facility-supplied medication is obtained through purchase requests. | BR-M07-10, BR-M07-11, BR-M07-18, BR-M07-19, BR-M07-24 |
+
+**FE-07 Nutrition & Meals**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-33 | The doctor assigns the diet, with no separate approval step. | BR-M08-03 |
+| BR-34 | When a menu is checked: every diet in use must have a dish for every meal; dishes repeated within 3 days and allergens are warned. The kitchen is reminded if next week’s menu is not published. | BR-M08-02, BR-M08-06, BR-M08-07, BR-M08-16 |
+| BR-35 | Meal counts are locked 2 hours before each meal, with tickets per floor. After publishing, dishes change only through a dish swap with a reason. Changes after the lock must be acknowledged by the kitchen. | BR-M08-01, BR-M08-08, BR-M08-09, BR-M08-13 |
+| BR-36 | A ticket is marked delivered only when special meals are prepared and food samples are kept. The floor confirms receipt or reports a discrepancy. Delivery more than 30 minutes late raises an alert. | BR-M08-10, BR-M08-11, BR-M08-12, BR-M08-15 |
+| BR-37 | Staff check right person, right meal before serving a special meal. Food brought by the family is checked against allergies and restrictions. | BR-M08-04, BR-M08-14 |
+
+**FE-08 Activities & Engagement**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-38 | Activity registration is blocked when the activity is full or the zone is quarantined. Sessions are created from templates without duplicates. | BR-M04-15, BR-M04-21 |
+| BR-39 | Departure roll call sets participants to “Outside”. A return more than 30 minutes late alerts the trip leader and floor head. A missing person at return roll call raises an emergency alert. | BR-M04-17 |
+
+**FE-09 Incidents & Alerts**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-40 | Unacknowledged alerts escalate: staff, nurse, floor head or doctor, manager. After a scheduler outage, each alert escalates only one level. | BR-M05-01, BR-M05-25 |
+| BR-41 | Open alerts of the same type for the same resident are merged; a medium alert repeated 3 times in 24 hours is reported. Trend rules cover weight loss, missed measurements and repeated medication refusal. | BR-M05-02, BR-M05-03, BR-M05-04 |
+| BR-42 | An emergency incident notifies the doctor, floor head, manager and primary contact at the same time. The emergency info card is shown, with a “Call 115” button. | BR-M05-06, BR-M05-13, BR-M05-31 |
+| BR-43 | An incident closes only with a result and, at medium level or above, nurse or doctor confirmation. Emergency records cannot be edited; only a nurse or doctor may cancel or reclassify them. | BR-M05-08, BR-M05-09, BR-M05-21, BR-M05-22 |
+| BR-44 | Suspected infection leads to a contact list and quarantine, which blocks visits, group activities and bed allocation in the zone. Only a doctor or manager may lift quarantine. Absences are warned, not blocked. | BR-M05-10, BR-M05-11, BR-M05-12, BR-M05-18, BR-M05-23, BR-M05-24, BR-M03-21, BR-M03-24 |
+| BR-45 | A hospital transfer from an emergency is performed by a nurse or doctor and produces a PDF summary. | BR-M05-14, BR-M05-32 |
+| BR-46 | A critical-condition flag raises an emergency alert to carry out end-of-life wishes, with reconfirmation calls to the representative. | BR-M05-15, BR-M05-16, BR-M05-20 |
+| BR-47 | The resident SOS button has a 3-second countdown and sends immediately, with location optional. Staff have an emergency button. The responder records “arrived”. | BR-M05-27, BR-M05-28, BR-M05-29, BR-M05-30 |
+| BR-48 | Open alerts are transferred in the shift handover. An absent resident’s floor is the floor of the held bed. Facility incidents require a location. | BR-M05-05, BR-M05-17, BR-M05-19 |
+
+**FE-10 Staff & Shifts**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-49 | Staff with an expired license or mandatory training cannot be assigned to work that requires it; expiry is warned 60 days ahead. | BR-M09-01, BR-M09-05, BR-M09-17 |
+| BR-50 | Every shift has a lead. A staff member cannot have overlapping shifts. A shift is at most 24 hours, and more than 16 continuous hours is warned. The staffing ratio is weighted by care level. | BR-M09-02, BR-M09-03, BR-M09-12, BR-M09-14 |
+| BR-51 | Schedules are made manually, with no auto-rotation. A shift swap needs the receiving staff’s consent and floor-head approval, after license checks. | BR-M09-09, BR-M09-10, BR-M09-11 |
+| BR-52 | The handover is created from 30 minutes before the shift ends. A shift cannot close without a handover. After the next shift confirms, tasks and alerts transfer to it. | BR-M09-06, BR-M09-07, BR-M09-08, BR-M09-13 |
+| BR-53 | A resignation locks the account and reassigns tasks. Only published assignments create data scope. Staff can be imported from an Excel template. | BR-M09-04, BR-M09-15, BR-M09-16, BR-M09-18 |
+
+**FE-11 Assets & Personal Belongings**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-54 | Bed assets and bed status are linked. Maintenance, inspection and insurance are reminded 30 days ahead. Damage reports are linked to an asset. Vehicle bookings cannot overlap or use unusable vehicles. | BR-M03-15, BR-M03-16, BR-M03-17, BR-M03-18 |
+| BR-55 | Every belongings transfer records giver, receiver and time, and cannot be edited. Valuables require photos at intake and return. | BR-M12-01, BR-M12-05 |
+| BR-56 | Belongings are returned only to an authorized pickup person or the representative. Handing cash or jewelry to the resident needs consent. | BR-M12-04, BR-M12-06 |
+| BR-57 | Lost or damaged belongings notify the primary contact. Valuables are inventoried periodically. Unclaimed items are handled after a set period. | BR-M12-02, BR-M12-07, BR-M12-08 |
+
+**FE-12 Billing & Payment**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-58 | Every charge references a chargeable event, such as paid activities, facility medication or overnight family stays. The price comes from the version valid on the event date. Package items are charged at 0. Manual charges need a reason and approval. | BR-M11-01, BR-M11-02, BR-M11-03, BR-M11-04, BR-M04-18, BR-M07-14, BR-M10-04 |
+| BR-59 | A charge whose source is cancelled before closing is recalculated. A bill cannot close while it has unapproved charges. | BR-M11-05, BR-M11-06, BR-M02-18 |
+| BR-60 | Daily fees follow the formula in 15.7, and charging stops at the planned end date. | BR-M11-08, BR-M11-09 |
+| BR-61 | A balance equals the sum of confirmed transactions, which cannot be edited. Closing a bill creates exactly one payment transaction. The system computes the days of funds remaining each day. | BR-M11-10, BR-M11-11, BR-M11-12, BR-M11-13, BR-M11-16 |
+| BR-62 | Purchases on the resident’s behalf over 500,000 VND need representative consent or manager approval; requests with insufficient balance are flagged. | BR-M11-07, BR-M11-15, BR-M10-10 |
+| BR-63 | Refunds are made by the accountant. Each bill has one payment notice with a unique code and a frozen PDF. The accountant confirms the final settlement. | BR-M11-14, BR-M11-21, BR-M11-22, BR-M11-23 |
+| BR-64 | A new asset requires an approved purchase request. Recording a purchase requires a receipt and may exceed the approved amount by at most 10%. The accountant matches documents, and pending items are reminded. | BR-M11-17, BR-M11-18, BR-M11-19, BR-M11-20 |
+
+**FE-13 Family**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-65 | The portal shows data according to each family member’s rights; health information requires valid consent. Only the representative may request changes. Ending a relationship removes access immediately. | BR-M01-08, BR-M10-01, BR-M10-06, BR-M10-07, BR-M12-09, BR-M15-14 |
+| BR-66 | Visits are checked against time slots, capacity, quarantine and resident status. Pickups are only by listed persons; exceptions need the representative or manager. | BR-M10-02, BR-M10-03 |
+| BR-67 | Feedback has deadlines of 24 hours for high priority and 72 hours otherwise, then escalates. A Wish is marked responded only after an item is recorded in the profile. | BR-M10-05, BR-M10-12 |
+
+**FE-14 Discharge & Closure**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-68 | Ending a stay requires final cost closing, return of belongings and family medication, and bed release; belongings not yet returned block it. | BR-M12-03, mục 6.8 |
+| BR-69 | Recording a death is never blocked. It ends the contract, releases the bed and opens a post-death checklist; the record closes when every item is done. Cause of death is health information. | BR-M02-21, mục 6.8 |
+
+**FE-15 Admin, Notification & Reporting**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-70 | A user’s effective permission is role ∩ assigned data scope ∩ valid legal conditions. Scope updates immediately with assignments. Permissions can be looked up at a past point in time. | BR-M15-01, BR-M15-02, BR-M15-16, BR-M15-17, BR-M15-18 |
+| BR-71 | Protected and confirmed records are never edited or deleted; mistakes are fixed by corrections with a reason, and the old value is kept. | BR-M15-03, BR-M04-14, BR-M06-06 |
+| BR-72 | Only the manager changes permissions and parameters, and every change is logged with before and after values. Effective dates start at 00:00. Retention and purge run atomically. | BR-M15-04, BR-M15-06, BR-M15-07, BR-M15-11, BR-M15-12, BR-M15-13 |
+| BR-73 | An account is locked for 15 minutes after 5 failed logins. Family accounts inactive for 180 days become inactive. Passwords must meet a strength rule. Each device has one session. The first manager account is created only through the bootstrap tool. | BR-M15-05, BR-M15-15, BR-M15-21, BR-M15-22, BR-M15-25 |
+| BR-74 | Cancelling a request needs a reason. If no approver is available, the request is escalated. After a scheduler outage, pending work runs once, in date order. | BR-M15-08, BR-M15-09, BR-M15-10, BR-M02-19 |
+| BR-75 | Notification channels depend on severity. An emergency notification not acknowledged within 5 minutes prompts a phone call. Non-emergency notifications to family and residents are held during quiet hours (21:00–07:00). | BR-M13-01, BR-M13-02, BR-M13-03 |
+| BR-76 | Recipients are resolved from current assignments, and every delivery is logged with send and read times. | BR-M13-04, BR-M13-05 |
+| BR-77 | Reports are read-only and scoped by role and time. Viewing or exporting is limited in date range. Only the manager exports personal identifiers. | mục 18.7 |
+
+**FE-16 Resident Life**
+
+| Mã | Quy tắc | Gộp từ |
+| --- | --- | --- |
+| BR-78 | The resident channel shows only the resident’s own data, with no health or cost information. Each account binds at most one device; binding a new device unbinds the old one, and SOS works on the bound device without a login session. The account is locked when the stay ends. | BR-M10-11, BR-M15-23, BR-M15-24 |
+
+### 30.2. Ánh xạ mã chi tiết sang mã rút gọn
+
+Mã đã bỏ không có trong bảng: BR-M02-17, BR-M04-22, BR-M05-26, BR-M08-17, BR-M08-18, BR-M08-19, BR-M08-20, BR-M10-08, BR-M10-09.
+
+| Module | Mã chi tiết → mã rút gọn |
+| --- | --- |
+| M01 | 01 → BR-11; 02 → BR-05; 03 → BR-05; 04 → BR-01; 05 → BR-02; 06 → BR-01; 07 → BR-03; 08 → BR-65; 09 → BR-04; 10 → BR-04; 11 → BR-03; 12 → BR-03; 13 → BR-04; 14 → BR-06; 15 → BR-06; 16 → BR-06; 17 → BR-03 |
+| M02 | 01 → BR-07; 02 → BR-07; 03 → BR-07; 04 → BR-09; 05 → BR-10; 06 → BR-11; 07 → BR-11; 08 → BR-08; 09 → BR-08; 10 → BR-07; 11 → BR-12; 12 → BR-12; 13 → BR-12; 14 → BR-10; 15 → BR-07; 16 → BR-09; 18 → BR-59; 19 → BR-74; 20 → BR-07; 21 → BR-69; 22 → BR-08 |
+| M03 | 01 → BR-13; 02 → BR-13; 03 → BR-16; 04 → BR-14; 05 → BR-15; 06 → BR-15; 07 → BR-14; 09 → BR-15; 10 → BR-15; 13 → BR-15; 15 → BR-54; 16 → BR-54; 17 → BR-54; 18 → BR-54; 19 → BR-11; 20 → BR-13; 21 → BR-44; 22 → BR-13; 23 → BR-13; 24 → BR-44; 25 → BR-16 |
+| M04 | 01 → BR-18; 02 → BR-18; 03 → BR-17; 04 → BR-18; 05 → BR-19; 06 → BR-19; 07 → BR-21; 08 → BR-22; 09 → BR-22; 10 → BR-24; 11 → BR-22; 12 → BR-20; 13 → BR-21; 14 → BR-71; 15 → BR-38; 16 → BR-28; 17 → BR-39; 18 → BR-58; 19 → BR-17; 20 → BR-17; 21 → BR-38; 23 → BR-20; 24 → BR-18; 25 → BR-18; 26 → BR-18; 27 → BR-23; 28 → BR-21; 29 → BR-19 |
+| M05 | 01 → BR-40; 02 → BR-41; 03 → BR-41; 04 → BR-41; 05 → BR-48; 06 → BR-42; 07 → BR-05; 08 → BR-43; 09 → BR-43; 10 → BR-44; 11 → BR-44; 12 → BR-44; 13 → BR-42; 14 → BR-45; 15 → BR-46; 16 → BR-46; 17 → BR-48; 18 → BR-44; 19 → BR-48; 20 → BR-46; 21 → BR-43; 22 → BR-43; 23 → BR-44; 24 → BR-44; 25 → BR-40; 27 → BR-47; 28 → BR-47; 29 → BR-47; 30 → BR-47; 31 → BR-42; 32 → BR-45 |
+| M06 | 01 → BR-24; 02 → BR-24; 03 → BR-24; 04 → BR-24; 05 → BR-25; 06 → BR-71 |
+| M07 | 01 → BR-26; 02 → BR-27; 03 → BR-28; 04 → BR-29; 05 → BR-25; 06 → BR-30; 07 → BR-26; 08 → BR-26; 09 → BR-31; 10 → BR-32; 11 → BR-32; 12 → BR-27; 13 → BR-27; 14 → BR-58; 15 → BR-26; 16 → BR-30; 17 → BR-31; 18 → BR-32; 19 → BR-32; 20 → BR-27; 21 → BR-27; 22 → BR-28; 23 → BR-30; 24 → BR-32; 25 → BR-31 |
+| M08 | 01 → BR-35; 02 → BR-34; 03 → BR-33; 04 → BR-37; 05 → BR-22; 06 → BR-34; 07 → BR-34; 08 → BR-35; 09 → BR-35; 10 → BR-36; 11 → BR-36; 12 → BR-36; 13 → BR-35; 14 → BR-37; 15 → BR-36; 16 → BR-34 |
+| M09 | 01 → BR-49; 02 → BR-50; 03 → BR-50; 04 → BR-53; 05 → BR-49; 06 → BR-52; 07 → BR-52; 08 → BR-52; 09 → BR-51; 10 → BR-51; 11 → BR-51; 12 → BR-50; 13 → BR-52; 14 → BR-50; 15 → BR-53; 16 → BR-53; 17 → BR-49; 18 → BR-53 |
+| M10 | 01 → BR-65; 02 → BR-66; 03 → BR-66; 04 → BR-58; 05 → BR-67; 06 → BR-65; 07 → BR-65; 10 → BR-62; 11 → BR-78; 12 → BR-67 |
+| M11 | 01 → BR-58; 02 → BR-58; 03 → BR-58; 04 → BR-58; 05 → BR-59; 06 → BR-59; 07 → BR-62; 08 → BR-60; 09 → BR-60; 10 → BR-61; 11 → BR-61; 12 → BR-61; 13 → BR-61; 14 → BR-63; 15 → BR-62; 16 → BR-61; 17 → BR-64; 18 → BR-64; 19 → BR-64; 20 → BR-64; 21 → BR-63; 22 → BR-63; 23 → BR-63 |
+| M12 | 01 → BR-55; 02 → BR-57; 03 → BR-68; 04 → BR-56; 05 → BR-55; 06 → BR-56; 07 → BR-57; 08 → BR-57; 09 → BR-65 |
+| M13 | 01 → BR-75; 02 → BR-75; 03 → BR-75; 04 → BR-76; 05 → BR-76 |
+| M15 | 01 → BR-70; 02 → BR-70; 03 → BR-71; 04 → BR-72; 05 → BR-73; 06 → BR-72; 07 → BR-72; 08 → BR-74; 09 → BR-74; 10 → BR-74; 11 → BR-72; 12 → BR-72; 13 → BR-72; 14 → BR-65; 15 → BR-73; 16 → BR-70; 17 → BR-70; 18 → BR-70; 19 → BR-25; 20 → BR-23; 21 → BR-73; 22 → BR-73; 23 → BR-78; 24 → BR-78; 25 → BR-73 |

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class BalanceStatusRuleTest {
 
     @Test
-    void BR_M11_13_statusFollowsAvailableMoneyAndDailyFee() {
+    void BR_61_statusFollowsAvailableMoneyAndDailyFee() {
         TableRows.csv(
                 row -> {
                     StatusComputation result = BalanceStatusRule.compute(

@@ -53,7 +53,7 @@ class SessionTokenFilterIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M15_21_webIdleBeyondCfgM15_10_endsSessionTimedOut() throws Exception {
+    void BR_73_webIdleBeyondCfgM15_10_endsSessionTimedOut() throws Exception {
         Session s = openSession("WEB");
         clock.advanceBy(Duration.ofMinutes(31));
 

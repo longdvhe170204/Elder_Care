@@ -166,7 +166,7 @@ class RecipientResolutionIT extends M13IntegrationTestBase {
     }
 
     @Test
-    void BR_M13_04_assignedNurse_isNurseAssignedNow() {
+    void BR_76_assignedNurse_isNurseAssignedNow() {
         TestUser nurse = users.staff(Role.NURSING_STAFF);
         TestUser caregiver = users.staff(Role.CAREGIVER);
         assignTo(nurse, resident);

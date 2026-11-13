@@ -32,7 +32,7 @@ class NoticeDecisionTest {
     }
 
     @Test
-    void BR_M11_13_everyRowOfTheBalanceStatusTransitionTable() {
+    void BR_61_everyRowOfTheBalanceStatusTransitionTable() {
         TableRows.csv(
                 row -> {
                     Decision d = NoticeDecision.decide(

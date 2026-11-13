@@ -8,6 +8,7 @@ import com.eldercare.backend.resident.api.dto.TreatmentEscort;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWish;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWishStatus;
 import com.eldercare.backend.resident.internal.wish.service.TreatmentWishService.Result;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * có quan hệ Hiệu lực (0..n); hỏi gia đình trước mà không có người cần báo thì chỉ cảnh báo; ý kiến gia đình khác lưu
  * từng dòng có nguồn; {@code currentTreatmentWish} trả đủ trường cho 007.
  */
+@Tag("BR-06")
 class TreatmentWishVersionIT extends WishTestBase {
 
     @Autowired

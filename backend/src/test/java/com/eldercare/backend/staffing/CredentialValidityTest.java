@@ -37,7 +37,7 @@ class CredentialValidityTest {
     }
 
     @Test
-    void BR_M09_01_oneCredentialMustCoverBothInclusiveIntervalEndpoints() {
+    void BR_49_oneCredentialMustCoverBothInclusiveIntervalEndpoints() {
         assertThat(CredentialValidity.covers(
                         issue,
                         expiry,

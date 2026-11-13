@@ -214,7 +214,7 @@ class MedicationHandoverTest {
 
     @Test
     @DisplayName("BR-M07-22: Một khoảng vắng cho phép nhiều lần giao thuốc mang theo")
-    void BR_M07_22_multipleHandoversInOneAbsenceAreKeptAsSeparateRecords() {
+    void BR_28_multipleHandoversInOneAbsenceAreKeptAsSeparateRecords() {
         CreateHandoverBody body = new CreateHandoverBody();
         body.setRecipientType("STAFF");
         body.setRecipientName("Điều dưỡng A");

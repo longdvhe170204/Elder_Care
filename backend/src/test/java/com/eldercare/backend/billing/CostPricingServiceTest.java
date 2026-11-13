@@ -50,7 +50,7 @@ class CostPricingServiceTest {
     }
 
     @Test
-    void BR_M11_02_signedPriceWinsOverTheCurrentCatalogue() {
+    void BR_58_signedPriceWinsOverTheCurrentCatalogue() {
         contract(content(1, null, "[{\"serviceId\":21}]", Map.of(21L, new BigDecimal("12000"))));
         var quote = service.event(11, 21, DATE, new BigDecimal("2"));
         assertThat(quote.unitPrice()).isEqualByComparingTo("12000");
@@ -62,7 +62,7 @@ class CostPricingServiceTest {
     }
 
     @Test
-    void BR_M11_03_packagedStatusWinsOverARecordedNonzeroUnitPrice() {
+    void BR_58_packagedStatusWinsOverARecordedNonzeroUnitPrice() {
         contract(content(1, null, "[{\"serviceId\":21,\"inPackage\":true}]", Map.of(21L, new BigDecimal("12000"))));
         var quote = service.event(11, 21, DATE, BigDecimal.ONE);
         assertThat(quote.amount()).isEqualByComparingTo("0");

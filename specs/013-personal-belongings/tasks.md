@@ -55,7 +55,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 1
 
-- [x] T008 [P] [US1] Test `BT/belongings/DBR_22_TiepNhanGocIT.java`, `BR_M12_06_DongYTuGiuIT.java`: mỗi đồ truy về đúng một `TIEP_NHAN`; thiếu ảnh với đồ có giá trị → 422; giao sử dụng cần đồng ý Hiệu lực (`khoa_hieu_luc UNIQUE`); rút đồng ý (Q1 → Q4, Q11 → Q13) *(2026-11-05: `DBR_22_IntakeOriginIT` 6/6 (Q1, Q2, Q4, FR-003, FR-006, FR-011), `BR_M12_06_SelfCustodyConsentIT` 5/5 (Q3, Q12, một đồng ý Hiệu lực mỗi đồ, cổng chỉ người đại diện). Chưa có test rút đồng ý do Hành chính ghi bản ký, bật dấu "cần đồng ý" khi đồ đang sử dụng (FR-015a): làm ở US2.)*
+- [x] T008 [P] [US1] Test `BT/belongings/DBR_22_TiepNhanGocIT.java`, `BR_M12_06_DongYTuGiuIT.java`: mỗi đồ truy về đúng một `TIEP_NHAN`; thiếu ảnh với đồ có giá trị → 422; giao sử dụng cần đồng ý Hiệu lực (`khoa_hieu_luc UNIQUE`); rút đồng ý (Q1 → Q4, Q11 → Q13) *(2026-11-05: `DBR_22_IntakeOriginIT` 6/6 (Q1, Q2, Q4, FR-003, FR-006, FR-011), `BR_56_SelfCustodyConsentIT` 5/5 (Q3, Q12, một đồng ý Hiệu lực mỗi đồ, cổng chỉ người đại diện). Chưa có test rút đồng ý do Hành chính ghi bản ký, bật dấu "cần đồng ý" khi đồ đang sử dụng (FR-015a): làm ở US2.)*
 
 ### Implementation cho User Story 1
 
@@ -75,7 +75,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 2
 
-- [x] T012 [P] [US2] Test `BT/belongings/BR_M12_01_BanGiaoIT.java`, `FR_011b_PhienBanIT.java`, `FR_011a_DinhChinhIT.java`: `UPDATE` bản ghi bị trigger chặn; hai bàn giao đồng thời cùng đồ chỉ một thành công; tách đồ khi bàn giao một phần; đính chính tính lại trạng thái đồ; hủy ghi nhận Tiếp nhận không có bản ghi sau → `bi_loai` (Q5 → Q10, Q27, Q28) *(2026-11-05: `BR_M12_01_HandoverIT` 11/11 (Q5 tách, Q6 đếm thiếu → Báo thất lạc cùng lệnh, Q7, Q8 người giữ vắng mặt, tài khoản không Hoạt động, Q10, FR-015a đồng ý Hết hiệu lực và bật dấu, FR-027, trigger, Quản lý viện chỉ xem), `FR_011b_VersionIT` 2/2 (Q9 hai luồng đồng thời), `FR_011a_CorrectionIT` 8/8 (Hủy ghi nhận bản ghi gần nhất, chặn bản cũ, loại đồ, sửa số lượng Tiếp nhận tính lại phần tách, Q27 phần trạng thái và báo người đã nhận, Q28); thử đỏ trước khi cài 23/24 lỗi. Q27 phần người xử lý sự cố làm ở US4.)*
+- [x] T012 [P] [US2] Test `BT/belongings/BR_M12_01_BanGiaoIT.java`, `FR_011b_PhienBanIT.java`, `FR_011a_DinhChinhIT.java`: `UPDATE` bản ghi bị trigger chặn; hai bàn giao đồng thời cùng đồ chỉ một thành công; tách đồ khi bàn giao một phần; đính chính tính lại trạng thái đồ; hủy ghi nhận Tiếp nhận không có bản ghi sau → `bi_loai` (Q5 → Q10, Q27, Q28) *(2026-11-05: `BR_55_HandoverIT` 11/11 (Q5 tách, Q6 đếm thiếu → Báo thất lạc cùng lệnh, Q7, Q8 người giữ vắng mặt, tài khoản không Hoạt động, Q10, FR-015a đồng ý Hết hiệu lực và bật dấu, FR-027, trigger, Quản lý viện chỉ xem), `FR_011b_VersionIT` 2/2 (Q9 hai luồng đồng thời), `FR_011a_CorrectionIT` 8/8 (Hủy ghi nhận bản ghi gần nhất, chặn bản cũ, loại đồ, sửa số lượng Tiếp nhận tính lại phần tách, Q27 phần trạng thái và báo người đã nhận, Q28); thử đỏ trước khi cài 23/24 lỗi. Q27 phần người xử lý sự cố làm ở US4.)*
 
 ### Implementation cho User Story 2
 
@@ -95,7 +95,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 3
 
-- [x] T016 [P] [US3] Test đơn vị `BT/belongings/NguoiNhanHopLeTest.java`, `DuBangChungLienHeTest.java` và `BT/belongings/BR_M12_04_TraDoIT.java`, `FR_017a_DuyetThayIT.java`: duyệt thay sau từ chối bị chặn; xác nhận dùng một lần; Trả trong lúc Kết thúc lưu trú (đồng thời) (Q14 → Q22) *(2026-11-05: `ReturnRecipientTest` 8, `ContactEvidenceTest` 4, `BR_M12_04_ReturnIT` 14, `FR_017a_ApproveOnBehalfIT` 12 (tên glossary mục 19). Ca "Trả trong lúc Kết thúc lưu trú" chưa làm được vì `StatusTransitionParticipant` `END_B_BELONGINGS` của 013 thuộc T022 (US5): `K_03_twoConcurrentReturnsOfTheSameBelonging_oneSucceeds` kiểm khóa theo người rồi theo đồ giữa hai lệnh Trả; ca với Kết thúc lưu trú đưa sang test T022.)*
+- [x] T016 [P] [US3] Test đơn vị `BT/belongings/NguoiNhanHopLeTest.java`, `DuBangChungLienHeTest.java` và `BT/belongings/BR_M12_04_TraDoIT.java`, `FR_017a_DuyetThayIT.java`: duyệt thay sau từ chối bị chặn; xác nhận dùng một lần; Trả trong lúc Kết thúc lưu trú (đồng thời) (Q14 → Q22) *(2026-11-05: `ReturnRecipientTest` 8, `ContactEvidenceTest` 4, `BR_56_ReturnIT` 14, `FR_017a_ApproveOnBehalfIT` 12 (tên glossary mục 19). Ca "Trả trong lúc Kết thúc lưu trú" chưa làm được vì `StatusTransitionParticipant` `END_B_BELONGINGS` của 013 thuộc T022 (US5): `K_03_twoConcurrentReturnsOfTheSameBelonging_oneSucceeds` kiểm khóa theo người rồi theo đồ giữa hai lệnh Trả; ca với Kết thúc lưu trú đưa sang test T022.)*
 
 ### Implementation cho User Story 3
 
@@ -115,7 +115,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 4
 
-- [x] T020 [P] [US4] Test `BT/belongings/BR_M12_02_ThatLacHuHongIT.java`, `SC_012_ThongBaoTest.java`: ghi sự cố trong cùng transaction khi chọn; liên kết sau một lần (`su_co_id` từ `NULL`); tìm thấy thêm diễn biến vào sự cố; không tự hủy sự cố khi hủy ghi nhận (Q23 → Q26) *(2026-11-05: viết trước, đỏ 11/15; nay xanh 15/15. Một lớp `BR_M12_02_LostDamageIncidentIT` gồm cả các ca thông báo FR-032 thay cho `SC_012_ThongBaoTest`: Q23 (ghi sự cố mới, liên kết, không ghi), Q24 (lỗi 007 thì lệnh không lưu), Q25 (liên kết sau một lần), Q26 (Tìm thấy ghi diễn biến "đã tìm thấy 3/5", sự cố vẫn mở), Hủy ghi nhận bản ghi có sự cố chỉ báo, không hủy sự cố, phần đếm thiếu liên kết riêng (FR-024). Dùng `FakeM05Config` chung, không tạo bản giả thứ hai)*
+- [x] T020 [P] [US4] Test `BT/belongings/BR_M12_02_ThatLacHuHongIT.java`, `SC_012_ThongBaoTest.java`: ghi sự cố trong cùng transaction khi chọn; liên kết sau một lần (`su_co_id` từ `NULL`); tìm thấy thêm diễn biến vào sự cố; không tự hủy sự cố khi hủy ghi nhận (Q23 → Q26) *(2026-11-05: viết trước, đỏ 11/15; nay xanh 15/15. Một lớp `BR_57_LostDamageIncidentIT` gồm cả các ca thông báo FR-032 thay cho `SC_012_ThongBaoTest`: Q23 (ghi sự cố mới, liên kết, không ghi), Q24 (lỗi 007 thì lệnh không lưu), Q25 (liên kết sau một lần), Q26 (Tìm thấy ghi diễn biến "đã tìm thấy 3/5", sự cố vẫn mở), Hủy ghi nhận bản ghi có sự cố chỉ báo, không hủy sự cố, phần đếm thiếu liên kết riêng (FR-024). Dùng `FakeM05Config` chung, không tạo bản giả thứ hai)*
 
 ### Implementation cho User Story 4
 
@@ -133,8 +133,8 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Tests cho User Story 5
 
-- [x] T022 [P] [US5] Test đơn vị `BT/belongings/DieuKienDoGuiTest.java`, `MucDoGuiSauQuaDoiTest.java` và `BT/belongings/BR_M12_03_DieuKienKetThucIT.java`, `FR_026_ViecSauQuaDoiIT.java`, `BR_M12_08_XuLyDoIT.java` (Q29 → Q36) *(2026-11-05: `BelongingEndingConditionTest`, `UnclaimedDisposalRulesTest`, `BR_M12_03_EndingConditionIT` (4), `BR_M12_08_DisposalIT` (6). Mục sau qua đời nằm ở `BR_M12_03_EndingConditionIT`. Ca Trả đồng thời Kết thúc lưu trú chưa có test, ghi plan điểm 15.)*
-- [x] T023 [P] [US5] Test `BT/belongings/BR_M12_07_KiemKeIT.java`: `UNIQUE (vi_tri_id, ma_ky)`; nhắc; hoàn thành phát sinh bản ghi bàn giao cho lệch; không có danh sách vị trí "gợi ý" (Q38 → Q41) *(2026-11-05: `BR_M12_07_InventoryCheckIT` (6), `InventoryPeriodTest` (5).)*
+- [x] T022 [P] [US5] Test đơn vị `BT/belongings/DieuKienDoGuiTest.java`, `MucDoGuiSauQuaDoiTest.java` và `BT/belongings/BR_M12_03_DieuKienKetThucIT.java`, `FR_026_ViecSauQuaDoiIT.java`, `BR_M12_08_XuLyDoIT.java` (Q29 → Q36) *(2026-11-05: `BelongingEndingConditionTest`, `UnclaimedDisposalRulesTest`, `BR_68_EndingConditionIT` (4), `BR_57_DisposalIT` (6). Mục sau qua đời nằm ở `BR_68_EndingConditionIT`. Ca Trả đồng thời Kết thúc lưu trú chưa có test, ghi plan điểm 15.)*
+- [x] T023 [P] [US5] Test `BT/belongings/BR_M12_07_KiemKeIT.java`: `UNIQUE (vi_tri_id, ma_ky)`; nhắc; hoàn thành phát sinh bản ghi bàn giao cho lệch; không có danh sách vị trí "gợi ý" (Q38 → Q41) *(2026-11-05: `BR_57_InventoryCheckIT` (6), `InventoryPeriodTest` (5).)*
 
 ### Implementation cho User Story 5
 
