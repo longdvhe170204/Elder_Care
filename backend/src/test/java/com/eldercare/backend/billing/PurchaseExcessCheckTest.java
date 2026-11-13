@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class PurchaseExcessCheckTest {
     @Test
-    void BR_M11_07_eitherLimitAllowsRecordingButExcessStillNeedsApprovalReason() {
+    void BR_62_eitherLimitAllowsRecordingButExcessStillNeedsApprovalReason() {
         assertThat(PurchaseExcessCheck.evaluate(550_000, 500_000, 500_000, new BigDecimal("10")))
                 .isEqualTo(PurchaseExcessCheck.Result.EXCESS);
         assertThat(PurchaseExcessCheck.evaluate(450_000, 100_000, 500_000, new BigDecimal("10")))

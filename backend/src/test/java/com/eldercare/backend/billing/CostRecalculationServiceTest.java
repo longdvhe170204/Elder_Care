@@ -77,7 +77,7 @@ class CostRecalculationServiceTest {
     }
 
     @Test
-    void BR_M11_05_checkedItemRecalculatesAndReopensStatement() {
+    void BR_59_checkedItemRecalculatesAndReopensStatement() {
         var row = row("CHECKED");
         when(items.item(1))
                 .thenReturn(new CostItemRecord(

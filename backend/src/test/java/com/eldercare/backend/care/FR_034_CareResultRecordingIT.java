@@ -87,7 +87,7 @@ class FR_034_CareResultRecordingIT extends CareResultTestBase {
     com.eldercare.backend.care.api.VitalSignTaskApi vitalSignTasks;
 
     @Test
-    void BR_M04_10_savedMeasurementClosesAndReferencesSourceRecord() throws Exception {
+    void BR_24_savedMeasurementClosesAndReferencesSourceRecord() throws Exception {
         vital(com.eldercare.backend.care.api.spi.VitalSignPort.RecordingStatus.SAVED);
         record(measurementBody())
                 .andExpect(status().isOk())

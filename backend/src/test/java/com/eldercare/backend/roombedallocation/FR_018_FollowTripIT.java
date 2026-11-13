@@ -50,7 +50,7 @@ class FR_018_FollowTripIT extends VehicleTestBase {
     }
 
     /**
-     * Job nhắc quét mọi lịch Đang dùng của schema test; IT khác commit lịch chuyến (BR_M04_16_RoiVienIT) có giờ về trước
+     * Job nhắc quét mọi lịch Đang dùng của schema test; IT khác commit lịch chuyến (BR_28_RoiVienIT) có giờ về trước
      * đồng hồ giả lập 2099 của ca này. Đưa các lịch Đang dùng có sẵn sang Đã hoàn thành trong transaction của test
      * (tự rollback) trước khi dựng lịch của ca, theo mẫu CallReminderTestBase.isolateFromOtherTests.
      */

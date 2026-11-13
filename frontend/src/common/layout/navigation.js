@@ -4,6 +4,8 @@
 // FR-042); mục không có `functions` (Yêu cầu phê duyệt, Thông báo) hiện cho mọi tài khoản nhân viên. Bản mẫu không có
 // backend thì lọc theo `roles`. Mục chưa có màn (không có trong `built`) thì ẩn, có màn thì tự hiện. Chỉ để hiển thị,
 // backend vẫn kiểm mọi lệnh.
+// Mục có `byRole` thì khi có phiên thật còn phải đúng vai trò chính ở `roles`: chức năng của Phụ lục 27 rộng hơn
+// nhóm người dùng màn đó (spec của feature), nên chỉ lọc theo chức năng sẽ hiện thừa.
 // Nhóm theo vùng nghiệp vụ (`id` tiếng Anh, `label` hiển thị); khối đầu `general` không tên, luôn hiện; các nhóm khác
 // đóng mở được ở AppShell. Nhóm không còn mục sau khi lọc thì ẩn.
 
@@ -85,13 +87,15 @@ export const NAV_GROUPS = [
         functions: ['OVERDUE_TASK_HANDLING'],
         roles: [QL, TT],
       },
-      // FR-048 (005 T058): Trưởng tầng, Điều dưỡng xem thời khóa biểu theo ngày.
+      // FR-048 (005 T058): Trưởng tầng, Điều dưỡng xem thời khóa biểu theo ngày; `byRole` vì "Kế hoạch chăm sóc" còn
+      // cấp cho Quản lý viện, Bác sĩ, Nhân viên chăm sóc.
       {
         key: 'care-timetable',
         label: 'Thời khóa biểu',
         icon: 'CalendarDays',
         functions: ['CARE_PLAN'],
         roles: [TT, DD],
+        byRole: true,
       },
       {
         key: 'care-task-planning',
@@ -178,21 +182,23 @@ export const NAV_GROUPS = [
         functions: ['INCIDENT_EMERGENCY'],
         roles: [QL, TT, BS, DD, CS, BEP, HC, NT, KT],
       },
-      // Dòng "Ngưỡng cảnh báo", "Chỉ số sức khỏe" (007 T024)
+      // Dòng "Ngưỡng cảnh báo" (007 T024); không theo "Chỉ số sức khỏe" vì dòng đó còn cấp cho Nhân viên chăm sóc
       {
         key: 'measurement-schedules',
         label: 'Lịch đo và ngưỡng',
         icon: 'CalendarDays',
-        functions: ['ALERT_THRESHOLD', 'VITAL_SIGN'],
+        functions: ['ALERT_THRESHOLD'],
         roles: [QL, TT, BS, DD],
       },
-      // Dòng "Danh mục sức khỏe" (007 T009)
+      // Danh mục sức khỏe (007 T009): backend cho xem theo "Chỉ số sức khỏe" (X), sửa theo "Tài khoản, phân quyền, tham
+      // số" (chỉ Quản lý viện); `byRole` vì "Chỉ số sức khỏe" còn cấp cho Trưởng tầng, Nhân viên chăm sóc
       {
         key: 'health-catalog',
         label: 'Danh mục sức khỏe',
         icon: 'BookOpen',
-        functions: ['ACCOUNT_PERMISSION_PARAMETER'],
+        functions: ['VITAL_SIGN'],
         roles: [QL, BS, DD],
+        byRole: true,
       },
       // Dòng "Danh sách tiếp xúc", "Khoanh vùng" (007 T054)
       {
@@ -202,13 +208,14 @@ export const NAV_GROUPS = [
         functions: ['CONTACT_LIST', 'INFECTION_CONTAINMENT'],
         roles: [QL, TT, BS, DD, HC],
       },
-      // Dòng "Giấy phép cơ sở", "Khám, điều trị" (007 T057)
+      // Dòng "Khám và điều trị" (007 T057; Trưởng tầng P); không theo "Tài khoản, phân quyền, tham số" vì dòng đó còn
+      // cấp cho Hành chính (¹²), Quản lý viện đã có "Khám và điều trị" X
       {
         key: 'facility-license',
         label: 'Giấy phép và khám',
         icon: 'FileSignature',
-        functions: ['EXAM_TREATMENT', 'ACCOUNT_PERMISSION_PARAMETER'],
-        roles: [QL, BS, DD],
+        functions: ['EXAM_TREATMENT'],
+        roles: [QL, TT, BS, DD],
       },
     ],
   },
@@ -463,6 +470,7 @@ export const ACCOUNT_PAGE = 'my-account'
 export function canSee(item, role, hasFunction = null, built = null) {
   if (built && !built.has(item.key)) return false
   if (!hasFunction) return item.roles.includes(role)
+  if (item.byRole && !item.roles.includes(role)) return false
   return item.functions ? item.functions.some(hasFunction) : role !== 'FAMILY_MEMBER'
 }
 

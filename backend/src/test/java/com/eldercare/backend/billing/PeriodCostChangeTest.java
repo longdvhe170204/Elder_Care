@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class PeriodCostChangeTest {
 
     @Test
-    void BR_M11_07_warningContainsTheRatioAndLargestPositiveIncreases() {
+    void BR_62_warningContainsTheRatioAndLargestPositiveIncreases() {
         var warning = PeriodCostChange.compare(
                         Map.of(
                                 CostType.RESIDENCY_FEE,
@@ -29,7 +29,7 @@ class PeriodCostChangeTest {
     }
 
     @Test
-    void BR_M11_07_thresholdIsStrictAndFullMonthsAreRequired() {
+    void BR_62_thresholdIsStrictAndFullMonthsAreRequired() {
         var previous = Map.of(CostType.SERVICE, 100L);
         assertThat(PeriodCostChange.compare(Map.of(CostType.SERVICE, 130L), previous, true, new BigDecimal("30")))
                 .isEmpty();
@@ -40,7 +40,7 @@ class PeriodCostChangeTest {
     }
 
     @Test
-    void BR_M11_07_rankingIsStableAndLimitedToThreeTypes() {
+    void BR_62_rankingIsStableAndLimitedToThreeTypes() {
         var current = Map.of(
                 CostType.SERVICE, 40L, CostType.MEDICATION, 30L, CostType.CONSUMABLE, 20L, CostType.ACTIVITY, 10L);
         var warning = PeriodCostChange.compare(current, Map.of(CostType.SERVICE, 1L), true, BigDecimal.ZERO)

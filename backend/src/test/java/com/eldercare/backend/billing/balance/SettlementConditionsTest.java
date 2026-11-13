@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class SettlementConditionsTest {
 
     @Test
-    void BR_M11_22_exceptionWaivesOnlyTheMoneyLimbs() {
+    void BR_63_exceptionWaivesOnlyTheMoneyLimbs() {
         Result moneyOpen = SettlementConditions.evaluate(new Input(false, 10, 20, 0, true, false));
 
         assertThat(moneyOpen.satisfied(false)).isFalse();
@@ -24,7 +24,7 @@ class SettlementConditionsTest {
     }
 
     @Test
-    void BR_M11_22_pendingTransactionsKeepConfirmationUnmetEvenWithException() {
+    void BR_63_pendingTransactionsKeepConfirmationUnmetEvenWithException() {
         Result result = SettlementConditions.evaluate(new Input(true, 0, 0, 2, true, false));
 
         assertThat(result.settlement().status()).isEqualTo(Status.MET);
@@ -35,7 +35,7 @@ class SettlementConditionsTest {
     }
 
     @Test
-    void BR_M11_22_noCurrentConfirmationOrTransactionAfterItLeavesConfirmationUnmet() {
+    void BR_63_noCurrentConfirmationOrTransactionAfterItLeavesConfirmationUnmet() {
         Result none = SettlementConditions.evaluate(new Input(true, 0, 0, 0, false, false));
         Result after = SettlementConditions.evaluate(new Input(true, 0, 0, 0, true, true));
         Result both = SettlementConditions.evaluate(new Input(true, 0, 0, 1, false, false));

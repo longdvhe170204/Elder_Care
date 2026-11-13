@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class ReceiptMatchTest {
 
     @Test
-    void BR_M11_19_onlyAssetRequestsCompareLinkedTotal() {
+    void BR_64_onlyAssetRequestsCompareLinkedTotal() {
         // loại, thực tế, tổng nguồn, khớp
         TableRows.csv(
                 r -> assertThat(ReceiptMatch.matches(

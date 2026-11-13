@@ -21,6 +21,7 @@ import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
 import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -41,6 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 })
 @AutoConfigureMockMvc
 @org.springframework.test.context.event.RecordApplicationEvents
+@Tag("BR-52")
 class HandoverIT extends MySqlIntegrationTestBase {
     @Autowired
     com.eldercare.backend.staffing.internal.handover.persistence.HandoverStore embeddedStore;

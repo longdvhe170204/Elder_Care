@@ -81,11 +81,11 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M04 không ph
 | Nhóm | Test | Kịch bản |
 | --- | --- | --- |
 | Hàm thuần | `BuoiTheoMauTest`, `DieuKienDangKyTest`, `NgayTinhTest`, `CapNhatChuoiTest`, `CongViecDuDieuKienTest`, `SoMucToiThieuTest`, `NguoiKiemTraTest`, `TyLeThamGiaTest` | Q1, Q6 → Q10, Q35, Q38 → Q41 |
-| Buổi, đăng ký | `BR_M04_21_TaoBuoiTuMauIT`, `BR_M04_15_DangKyIT`, `FR_016a_DongYVeMuonIT`, `FR_021_KhoanhVungIT` | Q1 → Q12 |
-| Điểm danh | `BR_M04_18_SuKienTinhPhiIT`, `FR_014a_HetNgayIT`, `FR_031_DinhChinhIT` | Q13 → Q17 |
-| Chuyến đi | `BR_M04_16_RoiVienIT`, `BR_M04_17_ThieuNguoiIT`, `FR_031a_DinhChinhChuyenIT`, `FR_035_NhiemVuIT` | Q18 → Q33 |
+| Buổi, đăng ký | `BR_38_TaoBuoiTuMauIT`, `BR_38_DangKyIT`, `FR_016a_DongYVeMuonIT`, `FR_021_KhoanhVungIT` | Q1 → Q12 |
+| Điểm danh | `BR_58_SuKienTinhPhiIT`, `FR_014a_HetNgayIT`, `FR_031_DinhChinhIT` | Q13 → Q17 |
+| Chuyến đi | `BR_28_RoiVienIT`, `BR_39_ThieuNguoiIT`, `FR_031a_DinhChinhChuyenIT`, `FR_035_NhiemVuIT` | Q18 → Q33 |
 | Tinh thần | `FR_051_SoThichIT` | Q34 → Q36 |
-| Kiểm tra chất lượng | `BR_M04_23_KiemTraChatLuongIT`, `FR_066_NguoiKiemTraIT` | Q37 → Q43 |
+| Kiểm tra chất lượng | `BR_20_KiemTraChatLuongIT`, `FR_066_NguoiKiemTraIT` | Q37 → Q43 |
 | Cổng | `FR_068_CongHoatDongIT` | Q44 |
 | Đồng thời | Hai đăng ký chỗ cuối; rời viện từ hai thiết bị; hai lệnh Báo thiếu người | Q6, Q27 |
 | Bộ lập lịch | `ChayBuM04HoatDongIT` | Q45 |

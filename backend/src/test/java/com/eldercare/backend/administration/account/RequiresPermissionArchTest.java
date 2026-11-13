@@ -218,7 +218,7 @@ class RequiresPermissionArchTest {
     static final String SOS_CONTROLLER = "SosController";
 
     @ArchTest
-    static final ArchRule BR_M15_01_everyBusinessCommandRequiresPermission = methods()
+    static final ArchRule BR_70_everyBusinessCommandRequiresPermission = methods()
             .that()
             .areAnnotatedWith(BusinessCommand.class)
             .should(new ArchCondition<JavaMethod>("có @RequiresPermission hoặc có trong danh sách lệnh tự kiểm quyền") {

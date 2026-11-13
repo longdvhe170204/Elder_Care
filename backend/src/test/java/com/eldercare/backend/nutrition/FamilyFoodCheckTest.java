@@ -49,7 +49,7 @@ class FamilyFoodCheckTest {
     }
 
     @Test
-    void BR_M08_04_personalAndDietRestrictions_areNotAllowedReasons() {
+    void BR_37_personalAndDietRestrictions_areNotAllowedReasons() {
         Person restricted = new Person(List.of(), Set.of(MILK), Set.of(PEANUT), Texture.REGULAR, false);
 
         Result result = check(food("Bánh", Set.of(MILK, PEANUT), false, false, true), restricted);

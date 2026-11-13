@@ -63,7 +63,7 @@ class FR_011_BedTransitionsTest {
 
     /** BR-M03-05: giường có người (đang ở hoặc giữ cho người vắng) không sang Đang bảo trì, Không sử dụng. */
     @Test
-    void BR_M03_05_bedInUseCannotGoToMaintenanceOrRetired() {
+    void BR_15_bedInUseCannotGoToMaintenanceOrRetired() {
         for (var from : List.of(OCCUPIED, HELD))
             for (var event : List.of(ASSET_MAINTENANCE, ASSET_RETIRED, SUSPEND)) {
                 var hold = from == HELD ? HoldReason.ABSENT_RESIDENT : null;

@@ -59,7 +59,7 @@ class VitalSignHistoryCorrectionTest {
     }
 
     @Test
-    void BR_M06_06_correctedRecordShowsCurrentValueAndKeepsOriginal() {
+    void BR_71_correctedRecordShowsCurrentValueAndKeepsOriginal() {
         var original = record(1, "180", VitalSignLevel.DANGEROUS);
         when(measurements.getHistory(VitalSignMeasurementService.target(10L), 10L, null, null, null))
                 .thenReturn(List.of(original));
@@ -77,7 +77,7 @@ class VitalSignHistoryCorrectionTest {
     }
 
     @Test
-    void BR_M06_06_uncorrectedRecordIsUnchangedAndVoidedRecordIsHidden() {
+    void BR_71_uncorrectedRecordIsUnchangedAndVoidedRecordIsHidden() {
         var plain = record(1, "120", VitalSignLevel.NORMAL);
         var voided = record(2, "125", VitalSignLevel.NORMAL);
         when(measurements.getHistory(VitalSignMeasurementService.target(10L), 10L, null, null, null))

@@ -78,8 +78,8 @@ Nguồn cảnh báo AllocationHandoverApi/BedHandoverAlertApi vẫn chờ C ch�
 
 | Lớp | Thất bại | Lỗi thực thi | Đối chiếu mốc trước |
 | --- | --- | --- | --- |
-| resident.BR_M01_01_TemporaryAbsenceOverdueIT | 0 | 1 | Cùng phương thức, cùng số lỗi |
-| resident.BR_M01_02_ReassessmentNoticeIT | 0 | 2 | Cùng phương thức, cùng số lỗi |
+| resident.BR_11_TemporaryAbsenceOverdueIT | 0 | 1 | Cùng phương thức, cùng số lỗi |
+| resident.BR_05_ReassessmentNoticeIT | 0 | 2 | Cùng phương thức, cùng số lỗi |
 | resident.CompleteAdmissionConsentIT | 0 | 2 | Cùng phương thức, cùng số lỗi |
 | resident.CompleteAdmissionWishWarningsIT | 0 | 3 | Cùng phương thức, cùng số lỗi |
 | resident.FR_023h_KhongDauNangLucIT | 1 | 0 | Cùng phương thức, cùng số lỗi |

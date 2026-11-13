@@ -139,7 +139,7 @@ class StaffEmploymentIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M09_04_immediateResignationLocksAccountWithdrawsShiftAndEndsAssignment() {
+    void BR_53_immediateResignationLocksAccountWithdrawsShiftAndEndsAssignment() {
         terminate(now, null);
         assertThat(staff.get(employee).status()).isEqualTo("RESIGNED");
         assertThat(accounts.byStaff(employee).orElseThrow().status()).isEqualTo(AccountStatus.LOCKED);

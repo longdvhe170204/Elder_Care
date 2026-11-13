@@ -34,7 +34,7 @@ class BR_M07_MedicationAlertRequestedTest {
     }
 
     @Test
-    void BR_M07_20_duplicateDoseSourceIsADoseKeyAndMergesByPrescription() {
+    void BR_27_duplicateDoseSourceIsADoseKeyAndMergesByPrescription() {
         when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
                 .thenReturn(true);
 

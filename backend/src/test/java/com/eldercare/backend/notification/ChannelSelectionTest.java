@@ -34,7 +34,7 @@ class ChannelSelectionTest {
     }
 
     @Test
-    void BR_M13_01_staff_lowInAppOnly_mediumAddsSms_urgentEveryChannel() {
+    void BR_75_staff_lowInAppOnly_mediumAddsSms_urgentEveryChannel() {
         List<Channel> channels = List.of(SMS_ON, ZALO_URGENT);
 
         assertThat(plan(NotificationLevel.LOW, staff(true), channels))
@@ -49,7 +49,7 @@ class ChannelSelectionTest {
     }
 
     @Test
-    void BR_M13_01_family_portalAndSms_resident_inAppOnly() {
+    void BR_75_family_portalAndSms_resident_inAppOnly() {
         Recipient family = new Recipient(RecipientType.FAMILY_MEMBER, true, Optional.of("0901000002"), true);
         Recipient resident = new Recipient(RecipientType.RESIDENT, true, Optional.empty(), true);
 

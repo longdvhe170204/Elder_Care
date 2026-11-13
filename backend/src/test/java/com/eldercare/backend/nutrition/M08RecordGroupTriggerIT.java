@@ -56,7 +56,7 @@ class M08RecordGroupTriggerIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M08_01_portionClosing_appAccountCannotUpdateOrDelete() throws SQLException {
+    void BR_35_portionClosing_appAccountCannotUpdateOrDelete() throws SQLException {
         long id = portionClosing();
 
         assertThatThrownBy(

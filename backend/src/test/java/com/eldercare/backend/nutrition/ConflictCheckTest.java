@@ -18,14 +18,14 @@ class ConflictCheckTest {
     private static final long SALT = 4;
 
     @Test
-    void BR_M08_02_ingredientMatchesActiveAllergen_isAllergyConflict() {
+    void BR_34_ingredientMatchesActiveAllergen_isAllergyConflict() {
         assertThat(ConflictCheck.conflicts(
                         Set.of(FISH, SALT), List.of(new AllergyItem(FISH, false)), Set.of(), Set.of()))
                 .containsExactly(ConflictType.ALLERGY);
     }
 
     @Test
-    void BR_M01_07_otherAllergyNotAutoChecked_isNeverMatched() {
+    void BR_03_otherAllergyNotAutoChecked_isNeverMatched() {
         assertThat(ConflictCheck.conflicts(
                         Set.of(FISH),
                         List.of(new AllergyItem(FISH, true), new AllergyItem(null, true)),
@@ -35,7 +35,7 @@ class ConflictCheckTest {
     }
 
     @Test
-    void BR_M01_07_allergyWithoutAllergenId_isIgnored() {
+    void BR_03_allergyWithoutAllergenId_isIgnored() {
         assertThat(ConflictCheck.conflicts(Set.of(FISH), List.of(new AllergyItem(null, false)), Set.of(), Set.of()))
                 .isEmpty();
     }
