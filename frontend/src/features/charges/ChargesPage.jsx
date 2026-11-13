@@ -2,13 +2,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { getCostsPeriods, getCostsStatements } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { DetailLayout } from '@/common/DetailLayout'
 import { PageHeader } from '@/common/PageHeader'
+import { EmptyState } from '@/common/PageState'
+import { FilterBar } from '@/common/FilterBar'
 import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -148,9 +150,11 @@ export function ChargesPage({ role }) {
     >
       <PageHeader title="Chi phí" subtitle="Kiểm tra từng khoản, duyệt và chốt bảng chi phí theo kỳ." />
       {can('PURCHASE_ON_BEHALF', 'VIEW') && (
-        <Button variant="outline" onClick={() => setWorkspace('purchases')}>
-          Đề nghị mua hộ
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => setWorkspace('purchases')}>
+            Đề nghị mua hộ
+          </Button>
+        </div>
       )}
       {can('COST_ADJUSTMENT', 'CREATE') && (
         <div className="flex gap-3">
@@ -164,7 +168,7 @@ export function ChargesPage({ role }) {
         </div>
       )}
       <Card className="p-4">
-        <FieldGroup className="sm:flex-row">
+        <FilterBar>
           <Field>
             <FieldLabel htmlFor="charge-period">Kỳ chi phí</FieldLabel>
             <select
@@ -195,7 +199,7 @@ export function ChargesPage({ role }) {
               onChange={(event) => setSearch(event.target.value)}
             />
           </Field>
-        </FieldGroup>
+        </FilterBar>
       </Card>
       {role === 'ACCOUNTANT' && can('PERIOD_CLOSING', 'CREATE') && <AccountingExport periodId={periodId} />}
       <p role="status" className="empty:hidden type-body-sm">
@@ -216,9 +220,9 @@ export function ChargesPage({ role }) {
       {periods === null && !failure ? (
         <Skeleton className="h-24 w-full" />
       ) : !periods?.length ? (
-        <Card className="p-4 type-body-sm">Chưa có kỳ chi phí để xem.</Card>
+        <EmptyState title="Chưa có kỳ chi phí để xem" />
       ) : !periodId ? (
-        <Card className="p-4 type-body-sm">Chọn kỳ chi phí để xem các bảng của kỳ đó.</Card>
+        <EmptyState title="Chưa chọn kỳ chi phí" description="Chọn kỳ chi phí để xem các bảng của kỳ đó." />
       ) : (
         <>
           <ToggleGroup

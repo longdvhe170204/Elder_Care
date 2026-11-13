@@ -200,8 +200,8 @@ public class AbsenceTransition {
     public List<Warning> returnWarnings(long residentId) {
         return store.open(residentId)
                 .filter(absence -> !absence.holdBed())
-                .map(absence -> List.of(new Warning(
-                        "BED_REALLOCATION_NEEDED", "Giường đã được giải phóng, cần phân bổ giường mới (FR-059)")))
+                .map(absence -> List.of(
+                        new Warning("BED_REALLOCATION_NEEDED", "Giường đã được giải phóng, cần phân bổ giường mới")))
                 .orElse(List.of());
     }
 

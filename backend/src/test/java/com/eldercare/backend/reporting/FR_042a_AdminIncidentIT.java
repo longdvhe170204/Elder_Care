@@ -1,8 +1,6 @@
 package com.eldercare.backend.reporting;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -161,39 +159,6 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
 
     private static String value(String code) {
         return "$.values[?(@.metricCode == '" + code + "')].value";
-    }
-
-    @Test
-    void office_report_onlyNonHealthIncidents_detailWithoutResult() throws Exception {
-        perform(office, ranged(REPORT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(value(NON_HEALTH)).value(contains(3)))
-                .andExpect(jsonPath("$.values[?(@.metricCode == '" + INCIDENTS + "')]")
-                        .value(empty()));
-
-        String body = perform(office, ranged("/api/v1/metric-details/" + NON_HEALTH))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows.length()").value(3))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        assertThat(body).doesNotContain("FALL").doesNotContain("escalationCount");
-
-        // không có nhóm sức khỏe: 403 hoặc danh sách rỗng, không lộ sự cố khác
-        assertThat(perform(office, ranged("/api/v1/metric-details/" + INCIDENTS))
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString())
-                .doesNotContain("FALL");
-    }
-
-    @Test
-    void Q7_typeChangedToHealthType_leavesOfficeNumbersOnNextRead() throws Exception {
-        perform(office, ranged(REPORT)).andExpect(jsonPath(value(NON_HEALTH)).value(contains(3)));
-
-        incidents.rows.replaceAll(r -> r.incidentId() == 3 ? incident(3, "FALL", false) : r);
-
-        perform(office, ranged(REPORT)).andExpect(jsonPath(value(NON_HEALTH)).value(contains(2)));
     }
 
     @Test

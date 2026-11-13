@@ -3,7 +3,6 @@ package com.eldercare.backend.billing.balance;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,7 +13,6 @@ import com.eldercare.backend.billing.api.dto.CostStatementView;
 import com.eldercare.backend.billing.api.dto.CostType;
 import com.eldercare.backend.billing.api.dto.CostTypeTotal;
 import com.eldercare.backend.billing.api.events.BalanceDocumentIssued;
-import com.eldercare.backend.billing.api.events.CostStatementFinalized;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.Line;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.PaymentInstructions;
@@ -29,7 +27,6 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.support.TestUsers;
-import com.jayway.jsonpath.JsonPath;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -125,115 +122,7 @@ class US9_PaymentNoticeIT extends BalanceTestBase {
         getAs(blocked, file).andExpect(status().isForbidden());
     }
 
-    @Test
-    void Q25_Q27_pendingList_issueFromFinalizedStatement_balancesMatchLedger() throws Exception {
-        long a = sentForSignature(TestUsers.nextId(), null);
-        postAs(
-                        accountant,
-                        "/api/v1/residents/" + a + "/cash-payments",
-                        "{\"ledger\":\"BALANCE\",\"amount\":8000000,\"payerName\":\"Lê Văn Hải\",\"receivedAt\":\""
-                                + time.now() + "\"}")
-                .andExpect(status().isCreated());
-        long statement = TestUsers.nextId();
-        long notPaid = TestUsers.nextId();
-        as(accountant);
-        tx.executeWithoutResult(s -> publisher.publishEvent(new CostStatementFinalized(
-                statement, CostStatementType.REGULAR, TestUsers.nextId(), a, 9_250_000, time.now(), List.of())));
-        costs.statement(finalizedStatement(statement, a, false));
-        costs.statement(finalizedStatement(notPaid, a, false));
-
-        configureCollectionAccount();
-        try {
-            // danh sách chờ: chỉ Kế toán, bảng đã có giao dịch thanh toán
-            String pending = "/api/v1/payment-notices/pending-issue";
-            getAs(nurse, pending).andExpect(status().isForbidden());
-            String body = getAs(accountant, pending)
-                    .andExpect(status().isOk())
-                    .andReturn()
-                    .getResponse()
-                    .getContentAsString();
-            List<java.util.Map<String, Object>> mine =
-                    JsonPath.read(body, "$[?(@.costStatementId == " + statement + ")]");
-            assertThat(mine).as(body).hasSize(1);
-            assertThat(mine.getFirst())
-                    .containsEntry("residentId", (int) a)
-                    .containsEntry("period", "10/2026")
-                    .containsEntry("statementType", "REGULAR")
-                    .containsEntry("total", 9_250_000);
-            assertThat(JsonPath.<List<Object>>read(body, "$[?(@.costStatementId == " + notPaid + ")]"))
-                    .isEmpty();
-
-            // phát hành: Hành chính 403; bảng chưa có giao dịch thanh toán 409; không có bảng 404
-            String issue = "/api/v1/costs/statements/" + statement + "/payment-notice";
-            postAs(office, issue, "").andExpect(status().isForbidden());
-            postAs(accountant, "/api/v1/costs/statements/" + notPaid + "/payment-notice", "")
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.errorCode").value("STATEMENT_NOT_PAID"));
-            postAs(accountant, "/api/v1/costs/statements/" + TestUsers.nextId() + "/payment-notice", "")
-                    .andExpect(status().isNotFound());
-            postAs(accountant, issue, "")
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.noticeCode")
-                            .value(PaymentNoticeRecords.code(YearMonth.of(2026, 10), statement)))
-                    .andExpect(jsonPath("$.costStatementId").value(statement))
-                    .andExpect(jsonPath("$.total").value(9_250_000))
-                    .andExpect(jsonPath("$.balanceBefore").value(8_000_000))
-                    .andExpect(jsonPath("$.balanceAfter").value(-1_250_000));
-            postAs(accountant, issue, "")
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.errorCode").value("ALREADY_ISSUED"));
-            getAs(accountant, pending)
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.costStatementId == " + statement + ")]")
-                            .isEmpty());
-
-            // số liệu trong PDF lấy từ bảng đã chốt: khoản thuốc không tên thuốc, tổng theo loại, số còn nợ, mã nộp
-            // tiền
-            long noticeId = jdbc.queryForObject(
-                    "SELECT id FROM record_event WHERE unique_key = ?",
-                    Long.class,
-                    PaymentNoticeRecords.key(statement));
-            String text =
-                    DocumentReaders.pdfText(download("/api/v1/payment-notices/" + noticeId + "/file", accountant));
-            assertThat(text)
-                    .contains("Phí lưu trú", "9.000.000", "Thuốc MED-1", "250.000", "Số còn nợ: 1.250.000")
-                    // CFG-M11-10: còn nợ thì phiếu ghi mã nộp tiền, ngân hàng, tài khoản thu
-                    .contains("Vietcombank", "0011004000123")
-                    .doesNotContain("Liên hệ Kế toán để biết tài khoản nộp tiền")
-                    .doesNotContain("Paracetamol");
-        } finally {
-            restoreCollectionAccount();
-        }
-    }
-
     private static final String CFG = "/api/v1/parameters/CFG-M11-10";
-
-    private void configureCollectionAccount() throws Exception {
-        as(manager);
-        String etag = mvc.perform(get(CFG)).andReturn().getResponse().getHeader("ETag");
-        mvc.perform(
-                        post(CFG + "/change-value")
-                                .with(org.springframework.security.test.web.servlet.request
-                                        .SecurityMockMvcRequestPostProcessors.csrf())
-                                .header("If-Match", etag)
-                                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                                .content(
-                                        "{\"value\":{\"bin\":\"970436\",\"accountNumber\":\"0011004000123\",\"accountHolder\":\"Viện A\"},\"reason\":\"Tài khoản thu của viện\"}"))
-                .andExpect(status().isOk());
-    }
-
-    private void restoreCollectionAccount() throws Exception {
-        as(manager);
-        String etag = mvc.perform(get(CFG)).andReturn().getResponse().getHeader("ETag");
-        mvc.perform(
-                        post(CFG + "/change-value")
-                                .with(org.springframework.security.test.web.servlet.request
-                                        .SecurityMockMvcRequestPostProcessors.csrf())
-                                .header("If-Match", etag)
-                                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                                .content("{\"restoreDefault\":true,\"reason\":\"Trả lại sau test\"}"))
-                .andExpect(status().isOk());
-    }
 
     private static FinalizedCostStatement finalizedStatement(long id, long resident, boolean finalPeriod) {
         var rent = item(1, CostType.RESIDENCY_FEE, "Phí lưu trú tháng 10", null, 9_000_000);

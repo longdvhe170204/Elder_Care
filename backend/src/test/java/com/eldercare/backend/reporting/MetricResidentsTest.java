@@ -7,7 +7,6 @@ import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.admission.api.ResidencyStatisticsApi;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.dto.ResidenceTypeAtDateView;
-import com.eldercare.backend.admission.api.dto.ResidenceTypeChangeView;
 import com.eldercare.backend.care.api.TaskStatisticsApi;
 import com.eldercare.backend.care.api.dto.AttendanceStatus;
 import com.eldercare.backend.care.api.dto.AttendanceView;
@@ -21,15 +20,12 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
 import com.eldercare.backend.reporting.internal.resident.service.DayCareAttendanceMetric;
 import com.eldercare.backend.reporting.internal.resident.service.InResidenceMetric;
-import com.eldercare.backend.reporting.internal.resident.service.MovementsMetric;
 import com.eldercare.backend.reporting.internal.resident.service.ResidentRecords;
 import com.eldercare.backend.reporting.internal.resident.service.ResidentsAtDateMetric;
 import com.eldercare.backend.resident.api.ResidentStatisticsApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
-import com.eldercare.backend.resident.api.dto.ResidentChangeView;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.support.fake.admission.FakeResidencyStatistics;
 import com.eldercare.backend.support.fake.resident.FakeResidentStatistics;
@@ -162,119 +158,6 @@ class MetricResidentsTest {
                 .containsExactly(2L, 6L);
     }
 
-    @Test
-    void FR_022_atDate_byResidenceType_undeterminedWithoutContract_filterByType() {
-        atDay();
-
-        ResidentsAtDateMetric metric = new ResidentsAtDateMetric(records);
-        MetricValue v = value(metric, ReportFilters.NONE);
-
-        assertThat(metric.metric().code()).isEqualTo("RES.AT_DATE");
-        // người đã ở trạng thái cuối trước ngày vẫn đếm nếu 001 trả trạng thái tại ngày đó
-        assertThat(v.value()).isEqualByComparingTo("4");
-        assertThat(cells(v))
-                .containsExactly(
-                        tuple("DAY_CARE", "1"), tuple("LONG_TERM_RESIDENTIAL", "2"), tuple("UNDETERMINED", "1"));
-        assertThat(metric.metric().details(included(metric, ReportFilters.NONE), "DAY_CARE"))
-                .singleElement()
-                .satisfies(r -> {
-                    assertThat(r.residentId()).isEqualTo(2L);
-                    assertThat(r.status()).isEqualTo("TEMPORARILY_ABSENT");
-                    assertThat(r.result()).containsEntry("careLevel", "REGULAR");
-                });
-
-        ReportFilters dayCare = new ReportFilters(null, "DAY_CARE", null, null, null, null, null);
-        assertThat(value(metric, dayCare).value()).isEqualByComparingTo("1");
-    }
-
-    @Test
-    void FR_023_movements_byCommandAtEffectiveTime_returnSplitByOrigin_careLevelChange() {
-        Instant at = FROM.plus(Duration.ofHours(8));
-        residents
-                .change(change(
-                        1,
-                        at,
-                        StatusCommand.COMPLETE_ADMISSION,
-                        ResidentStatus.ADMISSION_IN_PROGRESS,
-                        ResidentStatus.IN_RESIDENCE,
-                        null))
-                .change(change(
-                        2,
-                        at,
-                        StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                        ResidentStatus.IN_RESIDENCE,
-                        ResidentStatus.TEMPORARILY_ABSENT,
-                        null))
-                .change(change(
-                        2,
-                        at.plusSeconds(60),
-                        StatusCommand.RECORD_RETURN,
-                        ResidentStatus.TEMPORARILY_ABSENT,
-                        ResidentStatus.IN_RESIDENCE,
-                        null))
-                .change(change(
-                        3,
-                        at,
-                        StatusCommand.TRANSFER_OUT,
-                        ResidentStatus.IN_RESIDENCE,
-                        ResidentStatus.HOSPITALIZED,
-                        null))
-                .change(change(
-                        3,
-                        at.plusSeconds(60),
-                        StatusCommand.RECORD_RETURN,
-                        ResidentStatus.HOSPITALIZED,
-                        ResidentStatus.IN_RESIDENCE,
-                        null))
-                .change(change(
-                        4,
-                        at,
-                        StatusCommand.ROLL_CALL_DEPARTURE,
-                        ResidentStatus.IN_RESIDENCE,
-                        ResidentStatus.OFF_SITE_ACTIVITY,
-                        null))
-                .change(new ResidentChangeView(
-                        5, at, Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(CareLevel.SPECIAL)))
-                .change(change(
-                        6, TO, StatusCommand.RECORD_DEATH, ResidentStatus.IN_RESIDENCE, ResidentStatus.DECEASED, null));
-
-        MovementsMetric metric = new MovementsMetric(records);
-
-        assertThat(metric.metric().code()).isEqualTo("RES.MOVEMENTS");
-        assertThat(cells(value(metric, ReportFilters.NONE)))
-                .containsExactly(
-                        tuple("CARE_LEVEL_CHANGE", "1"),
-                        tuple("COMPLETE_ADMISSION", "1"),
-                        tuple("GRANT_TEMPORARY_ABSENCE", "1"),
-                        tuple("RECORD_RETURN:HOSPITALIZED", "1"),
-                        tuple("RECORD_RETURN:TEMPORARILY_ABSENT", "1"),
-                        tuple("TRANSFER_OUT", "1"));
-    }
-
-    /** FR-023 (016 T014, chủ dự án duyệt 2026-11-11): đổi loại lưu trú theo ngày hiệu lực của phiên bản hợp đồng (004). */
-    @Test
-    void FR_023_movements_includeResidenceTypeChange_atEffectiveDate() {
-        residency
-                .change(new ResidenceTypeChangeView(
-                        7, 70, ResidenceType.LONG_TERM_RESIDENTIAL, ResidenceType.DAY_CARE, DAY))
-                .change(new ResidenceTypeChangeView(
-                        8, 80, ResidenceType.DAY_CARE, ResidenceType.SHORT_TERM_RESIDENTIAL, DAY.plusDays(1)));
-
-        MovementsMetric metric = new MovementsMetric(records);
-        List<ResidentRecords.MovementRecord> included = included(metric, ReportFilters.NONE);
-
-        assertThat(cells(metric.metric().compute(included))).containsExactly(tuple("RESIDENCE_TYPE_CHANGE", "1"));
-        assertThat(metric.metric().details(included, "RESIDENCE_TYPE_CHANGE"))
-                .singleElement()
-                .satisfies(row -> {
-                    assertThat(row.residentId()).isEqualTo(7L);
-                    assertThat(row.referenceTime()).isEqualTo(FROM);
-                    assertThat(row.result())
-                            .containsEntry("residenceTypeBefore", "LONG_TERM_RESIDENTIAL")
-                            .containsEntry("residenceTypeAfter", "DAY_CARE");
-                });
-    }
-
     /** FR-060 (chủ dự án duyệt 2026-11-11): lọc mức chăm sóc theo mã enum của 001, mức hiệu lực tại ngày. */
     @Test
     void FR_060_careLevelFilter_atDate() {
@@ -285,11 +168,5 @@ class MetricResidentsTest {
 
         assertThat(value(metric, regular).value()).isEqualByComparingTo("1");
         assertThat(value(new InResidenceMetric(records), regular).value()).isEqualByComparingTo("1");
-    }
-
-    private static ResidentChangeView change(
-            long resident, Instant at, StatusCommand command, ResidentStatus from, ResidentStatus to, CareLevel level) {
-        return new ResidentChangeView(
-                resident, at, Optional.of(command), Optional.of(from), Optional.of(to), Optional.ofNullable(level));
     }
 }

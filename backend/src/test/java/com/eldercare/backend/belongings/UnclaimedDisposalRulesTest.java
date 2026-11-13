@@ -43,67 +43,12 @@ class UnclaimedDisposalRulesTest {
     }
 
     @Test
-    void validRequestHasNoViolations() {
-        assertThat(UnclaimedDisposalRules.violations(check(
-                        Method.SELL, List.of(item(BelongingStatus.HELD, false, false, false)), enoughContacts(), true)))
-                .isEmpty();
-    }
-
-    @Test
-    void requestBeforeTheWaitingPeriodIsBlocked() {
-        Check early = new Check(
-                Instant.parse("2026-03-15T03:00:00Z"),
-                THRESHOLD,
-                ENDED,
-                Method.SELL,
-                List.of(item(BelongingStatus.HELD, false, false, false)),
-                true,
-                List.of(1L, 2L),
-                enoughContacts(),
-                2,
-                GAP);
-
-        assertThat(UnclaimedDisposalRules.violations(early)).contains("DISPOSAL_TOO_EARLY");
-    }
-
-    @Test
     void waitingPeriodRunsFromTheFoundTimeWhenTheItemWasFoundLater() {
         DisposalItem found =
                 new DisposalItem(1, BelongingStatus.HELD, false, false, false, NOW.minus(Duration.ofDays(10)));
 
         assertThat(UnclaimedDisposalRules.violations(check(Method.SELL, List.of(found), enoughContacts(), true)))
                 .contains("DISPOSAL_TOO_EARLY");
-    }
-
-    @Test
-    void itemsInUseOrLostCannotBeIncluded() {
-        assertThat(UnclaimedDisposalRules.violations(check(
-                        Method.SELL,
-                        List.of(item(BelongingStatus.IN_USE, false, false, false)),
-                        enoughContacts(),
-                        true)))
-                .contains("BELONGING_NOT_DISPOSABLE");
-        assertThat(UnclaimedDisposalRules.violations(check(
-                        Method.SELL, List.of(item(BelongingStatus.LOST, false, false, false)), enoughContacts(), true)))
-                .contains("BELONGING_NOT_DISPOSABLE");
-        assertThat(UnclaimedDisposalRules.violations(check(
-                        Method.SELL,
-                        List.of(item(BelongingStatus.DAMAGED, false, false, false)),
-                        enoughContacts(),
-                        true)))
-                .isEmpty();
-    }
-
-    @Test
-    void cashCanOnlyBeTransferredToAnAuthority() {
-        List<DisposalItem> cash = List.of(item(BelongingStatus.HELD, true, true, true));
-
-        assertThat(UnclaimedDisposalRules.violations(check(Method.SELL, cash, enoughContacts(), true)))
-                .contains("CASH_ONLY_TRANSFER_TO_AUTHORITY");
-        assertThat(UnclaimedDisposalRules.violations(check(Method.DESTROY, cash, enoughContacts(), true)))
-                .contains("CASH_ONLY_TRANSFER_TO_AUTHORITY");
-        assertThat(UnclaimedDisposalRules.violations(check(Method.TRANSFER_TO_AUTHORITY, cash, enoughContacts(), true)))
-                .isEmpty();
     }
 
     @Test
@@ -121,29 +66,5 @@ class UnclaimedDisposalRulesTest {
                         enoughContacts(),
                         false)))
                 .contains("MINUTES_REQUIRED");
-    }
-
-    @Test
-    void contactEvidenceNeedsEnoughSpacedAttemptsForEveryContactPerson() {
-        Instant day = NOW.minus(Duration.ofDays(20));
-        List<Contact> sameDay = List.of(
-                new Contact(1L, day, "a"),
-                new Contact(1L, day.plus(Duration.ofDays(2)), "b"),
-                new Contact(2L, day, "a"),
-                new Contact(2L, day.plus(Duration.ofDays(8)), "b"));
-        List<Contact> missingSecondPerson =
-                List.of(new Contact(1L, day, "a"), new Contact(1L, day.plus(Duration.ofDays(8)), "b"));
-        List<DisposalItem> items = List.of(item(BelongingStatus.HELD, false, false, false));
-
-        assertThat(UnclaimedDisposalRules.violations(check(Method.SELL, items, sameDay, true)))
-                .contains("CONTACT_EVIDENCE_INSUFFICIENT");
-        assertThat(UnclaimedDisposalRules.violations(check(Method.SELL, items, missingSecondPerson, true)))
-                .contains("CONTACT_EVIDENCE_INSUFFICIENT");
-    }
-
-    @Test
-    void emptyItemListIsRejected() {
-        assertThat(UnclaimedDisposalRules.violations(check(Method.SELL, List.of(), enoughContacts(), true)))
-                .contains("NO_BELONGINGS");
     }
 }

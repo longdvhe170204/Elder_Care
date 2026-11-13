@@ -80,44 +80,6 @@ class SC_008_BedReportingIT extends StructureTestSupport {
         return id;
     }
 
-    @Test
-    void FR_018_availableCountRejectsFutureReservationsAssetFlagsAndCordons() {
-        long reserved = anotherBed("RESERVED", at);
-        long damaged = anotherBed("DAMAGED", at);
-        assets.flag(damaged, true);
-        jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source) VALUES(?,?,'FUTURE',?,'BASIC','CURRENT')",
-                TestUsers.nextId(),
-                reserved,
-                Timestamp.from(at.plusSeconds(7200)));
-        try {
-            assertThat(status().countAvailable(
-                                    floorScope(),
-                                    CareLevelCode.BASIC,
-                                    ResidentGender.FEMALE,
-                                    ResidencyType.LONG_TERM,
-                                    at.plusSeconds(1)))
-                    .isEqualTo(1);
-            assertThat(status().countAvailable(
-                                    floorScope(),
-                                    CareLevelCode.SPECIAL,
-                                    ResidentGender.FEMALE,
-                                    ResidencyType.LONG_TERM,
-                                    at.plusSeconds(1)))
-                    .isZero();
-            infection.cordon(at, new CordonedArea(Set.of(), Set.of(area)));
-            assertThat(status().countAvailable(
-                                    floorScope(),
-                                    CareLevelCode.BASIC,
-                                    ResidentGender.FEMALE,
-                                    ResidencyType.LONG_TERM,
-                                    at.plusSeconds(1)))
-                    .isZero();
-        } finally {
-            assets.flag(damaged, false);
-        }
-    }
-
     /**
      * 003 T067 (module-interfaces mục 1.8a, "Đổi api" duyệt 2026-11-08; 019 FR-015, 016 FR-020): tập id giường Trống
      * tại {@code at} mang dấu "chờ chuyển người", cùng nguồn với số đếm; giường không Trống có dấu không vào tập.

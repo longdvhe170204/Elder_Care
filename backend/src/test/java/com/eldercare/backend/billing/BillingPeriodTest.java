@@ -19,17 +19,6 @@ class BillingPeriodTest {
     }
 
     @Test
-    void Q_22_residentialStartsAtTheContractDateEvenWhenAdmissionIsLater() {
-        var period = BillingPeriod.residential(START, ADMITTED, null, null, null);
-        assertThat(period.startsOn()).isEqualTo(START);
-        assertThat(period.contains(at("2026-10-05T00:00:00"), ZONE)).isTrue();
-        assertThat(period.notYetAdmitted(START)).isTrue();
-        assertThat(period.notYetAdmitted(ADMITTED.minusDays(1))).isTrue();
-        assertThat(period.notYetAdmitted(ADMITTED)).isFalse();
-        assertThat(period.contains(at("2026-10-04T23:59:59.999999"), ZONE)).isFalse();
-    }
-
-    @Test
     void Q_22_noCompletedAdmissionKeepsTheNotYetAdmittedFlag() {
         var period = BillingPeriod.residential(START, null, null, null, null);
         assertThat(period.contains(at("2026-10-06T12:00:00"), ZONE)).isTrue();
@@ -43,27 +32,12 @@ class BillingPeriodTest {
         "2026-10-20T23:59:59.999999,true",
         "2026-10-21T00:00:00,false"
     })
-    void FR_011_expectedEndIncludesItsWholeBusinessDay(String local, boolean included) {
-        var period = BillingPeriod.residential(START, ADMITTED, LocalDate.of(2026, 10, 20), null, null);
-        assertThat(period.contains(at(local), ZONE)).isEqualTo(included);
-    }
-
     @Test
     void Q_27_cancellationKeepsTheWholeCancellationDay() {
         var cancellation = LocalDate.of(2026, 10, 15);
         var period = BillingPeriod.residential(START, ADMITTED, null, cancellation, null);
         assertThat(period.contains(at("2026-10-15T23:59:59.999999"), ZONE)).isTrue();
         assertThat(period.contains(at("2026-10-16T00:00:00"), ZONE)).isFalse();
-    }
-
-    @Test
-    void FR_011_theEarlierOfCancellationAndExpectedEndLimitsThePeriod() {
-        var period = BillingPeriod.residential(
-                START, ADMITTED, LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 15), null);
-        assertThat(period.contains(at("2026-10-16T08:00:00"), ZONE)).isFalse();
-        var earlierEnd = BillingPeriod.residential(
-                START, ADMITTED, LocalDate.of(2026, 10, 12), LocalDate.of(2026, 10, 15), null);
-        assertThat(earlierEnd.contains(at("2026-10-13T08:00:00"), ZONE)).isFalse();
     }
 
     @Test

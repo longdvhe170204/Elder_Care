@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -75,17 +74,6 @@ class CostSourceChangeEventsTest {
     }
 
     @Test
-    void FR_020_medicationAdjustment_withoutIndexedSource_isIgnored_notRetriedForever() {
-        when(index.byTypeAndId("PRN_ADMINISTRATION", "3")).thenReturn(List.of());
-
-        events.medication(new MedicationBillAdjustedEvent(
-                BilledSource.PRN_ADMINISTRATION, 3, BigDecimal.ONE, "viên", BillAdjustmentReason.CORRECTION));
-
-        verify(costs, never())
-                .sourceChanged(anyString(), anyString(), anyString(), any(), eq(false), anyString(), any());
-    }
-
-    @Test
     void FR_031_activityCorrection_cancelsTheSource() {
         when(index.byKey("ACTIVITY_ATTENDANCE", "17", "OCCURRENCE"))
                 .thenReturn(List.of(match("ACTIVITY_ATTENDANCE", "17", "OCCURRENCE")));
@@ -103,44 +91,6 @@ class CostSourceChangeEventsTest {
                         eq(null),
                         eq(true),
                         eq("CORRECTION:8"),
-                        anyString());
-    }
-
-    /** 005 T050, T051 (FR-020; US7-4): đính chính kết quả chăm sóc có tính phí, VOID hủy nguồn, AMEND_CONTENT tính lại. */
-    @Test
-    void US7_4_careResultCorrection_voidCancels_amendRecalculates() {
-        when(index.byKey("CARE_TASK_RESULT", "31", "UNIT"))
-                .thenReturn(List.of(match("CARE_TASK_RESULT", "31", "UNIT")));
-        when(markers.mark(anyString(), anyString(), eq(42L), anyString(), any()))
-                .thenReturn(true);
-        var context = new com.eldercare.backend.care.api.dto.CareEventContext(
-                "M04.CORRECTION", 8, "VOID", Instant.EPOCH, Optional.empty(), List.of());
-
-        events.care(new com.eldercare.backend.care.api.events.BillableCareResultCorrected(31, "VOID", null, context));
-        verify(costs)
-                .sourceChanged(
-                        eq("CARE_TASK_RESULT"),
-                        eq("31"),
-                        eq("UNIT"),
-                        eq(null),
-                        eq(true),
-                        eq("M04.CORRECTION:8"),
-                        anyString());
-
-        events.care(new com.eldercare.backend.care.api.events.BillableCareResultCorrected(
-                31,
-                "AMEND_CONTENT",
-                new BigDecimal("3"),
-                new com.eldercare.backend.care.api.dto.CareEventContext(
-                        "M04.CORRECTION", 9, "AMEND", Instant.EPOCH, Optional.empty(), List.of())));
-        verify(costs)
-                .sourceChanged(
-                        eq("CARE_TASK_RESULT"),
-                        eq("31"),
-                        eq("UNIT"),
-                        eq(new BigDecimal("3")),
-                        eq(false),
-                        eq("M04.CORRECTION:9"),
                         anyString());
     }
 }

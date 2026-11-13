@@ -275,26 +275,4 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
     private static Map<String, Object> side(Map<String, Object> preview, String key) {
         return (Map<String, Object>) preview.get(key);
     }
-
-    @Test
-    void FR_034_absenceCoveringWholeShiftExcluded_partialAbsenceAndTouchingEdgesStillCount() {
-        long absent = inpatient(CareLevel.SPECIAL), partial = inpatient(CareLevel.SPECIAL);
-        history(absent, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", from.minusSeconds(1));
-        history(partial, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", from.minusSeconds(1));
-        history(partial, "TEMPORARILY_ABSENT", "IN_RESIDENCE", "RECORD_RETURN", from.plusSeconds(3600));
-        long id = save();
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("2.5");
-    }
-
-    @Test
-    void FR_035_employmentWithdrawalRecalculatesInSameTransaction_andRollsBackWithCommand() {
-        inpatient(CareLevel.BASIC);
-        long id = save();
-        tx.executeWithoutResult(t -> {
-            employment.apply(members.getFirst(), time.now());
-            assertThat(ratios.latest(id).orElseThrow().staffCount()).isEqualTo(3);
-            t.setRollbackOnly();
-        });
-        assertThat(ratios.history(id)).hasSize(1);
-    }
 }

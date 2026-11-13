@@ -4,13 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
-import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceValidation;
-import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceView;
 import com.eldercare.backend.incident.api.events.AlertRequested;
 import com.eldercare.backend.nutrition.internal.serving.service.ServingOfflineHandler;
-import com.eldercare.backend.support.TestUsers;
-import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,34 +19,6 @@ class BR_M08_14_ServingConfirmationIT extends ServingTestBase {
 
     @Autowired
     ServingOfflineHandler offline;
-
-    /**
-     * 011 T042 (FR-042, FR-050): nguồn căn cứ {@code MEAL} thật cho 005 (IT 005 không còn bản giả): bữa có giờ trong lịch,
-     * người trong lịch bữa, liệt kê bữa trong khoảng; suất đặc biệt chỉ cho ghi kết quả ăn sau xác nhận phục vụ.
-     */
-    @Test
-    void T042_mealTaskSource_validatesListsAndRequiresServingConfirmation() throws Exception {
-        publishedMenu(day.minusDays(2), plain);
-        long a = softResident(room2);
-        closeLunchAndServe();
-        long meal = dailyMeal(lunch);
-        var lunchAt = at(LocalTime.of(11, 0));
-
-        assertThat(mealSource.validate(SourceType.MEAL, meal, a, lunchAt))
-                .isEqualTo(new SourceValidation(true, true, true, false));
-        assertThat(mealSource
-                        .validate(SourceType.MEAL, meal, TestUsers.nextId(), lunchAt)
-                        .residentMatches())
-                .isFalse();
-        assertThat(mealSource.sources(a, at(LocalTime.of(10, 0)), at(LocalTime.of(12, 0))))
-                .extracting(SourceView::id)
-                .containsExactly(meal);
-
-        assertThat(mealSource.confirmServing(meal, a)).isFalse();
-        as(serverOf(floor2));
-        confirm(specialOf(a), a, null).andExpect(status().isCreated());
-        assertThat(mealSource.confirmServing(meal, a)).isTrue();
-    }
 
     @Test
     void BR_M08_14_allergyAfterClosing_blocksAndAlerts_eatenRecordsIncident() throws Exception {

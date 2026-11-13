@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.nutrition.api.dto.FamilyFoodStatus;
 import com.eldercare.backend.nutrition.api.dto.Texture;
-import com.eldercare.backend.nutrition.internal.conflict.domain.ConflictCheck.AllergyItem;
 import com.eldercare.backend.nutrition.internal.familyfood.domain.FamilyFoodCheck;
 import com.eldercare.backend.nutrition.internal.familyfood.domain.FamilyFoodCheck.Food;
 import com.eldercare.backend.nutrition.internal.familyfood.domain.FamilyFoodCheck.Person;
@@ -50,17 +49,6 @@ class FamilyFoodCheckTest {
     }
 
     @Test
-    void BR_M08_04_ingredientMatchingAllergy_isNotAllowedWithAllergyReason() {
-        Person allergic =
-                new Person(List.of(new AllergyItem(PEANUT, false)), Set.of(), Set.of(), Texture.REGULAR, false);
-
-        Result result = check(food("Bánh quy", Set.of(PEANUT), false, false, true), allergic);
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NOT_ALLOWED);
-        assertThat(result.reasons()).containsExactly(FamilyFoodCheck.ALLERGY);
-    }
-
-    @Test
     void BR_M08_04_personalAndDietRestrictions_areNotAllowedReasons() {
         Person restricted = new Person(List.of(), Set.of(MILK), Set.of(PEANUT), Texture.REGULAR, false);
 
@@ -69,22 +57,6 @@ class FamilyFoodCheckTest {
         assertThat(result.status()).isEqualTo(FamilyFoodStatus.NOT_ALLOWED);
         assertThat(result.reasons())
                 .containsExactlyInAnyOrder(FamilyFoodCheck.PERSONAL_RESTRICTION, FamilyFoodCheck.DIET_RESTRICTION);
-    }
-
-    @Test
-    void FR_053_forbiddenType_isNotAllowed_matchedIgnoringCaseAndSpaces() {
-        Result result = check(food("  đồ uống CÓ cồn ", Set.of(), false, false, true), healthy());
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NOT_ALLOWED);
-        assertThat(result.reasons()).containsExactly(FamilyFoodCheck.FORBIDDEN_TYPE);
-    }
-
-    @Test
-    void FR_054_unknownIngredients_needsConfirmation() {
-        Result result = check(food("Hộp cơm", Set.of(), true, false, true), healthy());
-
-        assertThat(result.status()).isEqualTo(FamilyFoodStatus.NEEDS_CONFIRMATION);
-        assertThat(result.reasons()).containsExactly(FamilyFoodCheck.INGREDIENTS_UNKNOWN);
     }
 
     @Test

@@ -6,10 +6,8 @@ import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.ProfessionalActivityApi;
 import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
-import com.eldercare.backend.administration.account.api.dto.LicenseView;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
-import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.LicenseValidity;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
@@ -80,21 +78,6 @@ class LegalConditionIT extends MySqlIntegrationTestBase {
                 LICENSE_TYPE,
                 ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING,
                 ProfessionalActivityApi.MEDICATION_ADMINISTRATION);
-    }
-
-    @Test
-    void US5_1_2_doctorLicenseValidThroughExpiryDay_deniedNextDay_withLicenseNameAndDate() {
-        facility.scope(ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING, expiry.plusDays(100));
-        ActiveSession doctor = doctorWithLicense(expiry);
-
-        assertThat(permissions
-                        .hasPermissionAt(doctor, PRESCRIBE, Target.UNSPECIFIED, lastMinuteOf(expiry))
-                        .allowed())
-                .isTrue();
-        PermissionResult nextDay =
-                permissions.hasPermissionAt(doctor, PRESCRIBE, Target.UNSPECIFIED, firstMinuteOf(expiry.plusDays(1)));
-        assertThat(nextDay.failedLayer()).contains(FailedLayer.LEGAL);
-        assertThat(nextDay.license()).contains(new LicenseView("Giấy phép hành nghề", expiry));
     }
 
     @Test

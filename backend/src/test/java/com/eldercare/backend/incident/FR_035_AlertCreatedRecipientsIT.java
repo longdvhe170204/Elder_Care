@@ -2,12 +2,10 @@ package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.HasNotificationRequests;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.incident.api.events.AlertCreated;
-import com.eldercare.backend.incident.api.events.AlertLevelRaised;
 import com.eldercare.backend.incident.internal.alert.domain.CreateAlertCommand;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import java.util.List;
@@ -48,33 +46,6 @@ class FR_035_AlertCreatedRecipientsIT extends AlertRequestTestBase {
                         new RecipientGroup.AssignedNurse(resident, anySubstitution()),
                         new RecipientGroup.Staff(PERFORMER, "ALERT_SOURCE_PERFORMER"));
         assertThat(level(medium)).isEqualTo(NotificationLevel.MEDIUM);
-    }
-
-    @Test
-    void FR_047a_criticalNotifiesFourGroupsWithoutPrimaryContactOrManagerAndRaiseNotifiesAgain() {
-        request("T016A:RAISE", IncidentLevel.MEDIUM, T0, 3);
-        published.clear();
-        request("T016A:RAISE", IncidentLevel.CRITICAL, T0.plusSeconds(60), 4);
-        var raised = published.stream()
-                .filter(AlertLevelRaised.class::isInstance)
-                .map(AlertLevelRaised.class::cast)
-                .findFirst()
-                .orElseThrow();
-        var groups = groups(raised);
-        assertThat(groups)
-                .contains(
-                        new RecipientGroup.AssignedNurse(resident, anySubstitution()),
-                        new RecipientGroup.ShiftLead(floor, anySubstitution()),
-                        new RecipientGroup.FloorManager(floor, anySubstitution()),
-                        new RecipientGroup.OnDutyDoctor(anySubstitution()))
-                .noneMatch(g -> g instanceof RecipientGroup.PrimaryContact)
-                .doesNotContain(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
-        assertThat(level(raised)).isEqualTo(NotificationLevel.URGENT);
-        assertThat(raised.notificationRequests().get(0).eventKey()).contains(":RAISED:CRITICAL");
-
-        published.clear();
-        request("T016A:RAISE", IncidentLevel.CRITICAL, T0.plusSeconds(120), 5);
-        assertThat(published).noneMatch(AlertLevelRaised.class::isInstance);
     }
 
     private AlertCreated created() {

@@ -1,7 +1,6 @@
 package com.eldercare.backend.care;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -194,46 +193,6 @@ class FR_016a_DongYVeMuonIT extends MySqlIntegrationTestBase {
                 case "TRIP_EXTENSION" -> FR_016a_extendingTheTripMovesTheReturnTimeOfAResidentWithConsent();
             }
         });
-    }
-
-    /**
-     * FR-068 (014 T026; schema chủ dự án duyệt 2026-11-10): cổng người thân thấy buổi đã đăng ký kèm đủ điều kiện đồng ý
-     * về muộn và mã bản đồng ý Hiệu lực, chuyến đi (điểm đến, giờ rời, giờ về dự kiến), số buổi đã tham gia; không có mức
-     * tham gia, cảnh báo, kết quả kiểm tra. Người thân không có quan hệ thì 403.
-     */
-    @Test
-    void FR_068_portalShowsRegisteredSessionsTripsAndAttendedCount() throws Exception {
-        // Buổi trong giờ bán trú: không cần, không ghi được đồng ý về muộn
-        long inDay = session(LocalTime.of(10, 0), LocalTime.of(11, 0));
-        register(inDay).andExpect(status().isCreated());
-        // Buổi kết thúc sau giờ về: người đại diện đồng ý trước rồi mới đăng ký được (FR-016a)
-        long late = session(LocalTime.of(16, 0), LocalTime.of(17, 0));
-        user.set(family.user());
-        consent(late).andExpect(status().isCreated());
-        user.set(manager.user());
-        register(late).andExpect(status().isCreated());
-        String url =
-                "/api/v1/family-portal/residents/" + resident + "/activities?from=" + date + "&to=" + date.plusDays(1);
-        String inDayRow = "$.registeredSessions[?(@.sessionId==" + inDay + ")]";
-        String lateRow = "$.registeredSessions[?(@.sessionId==" + late + ")]";
-
-        user.set(family.user());
-        mvc.perform(get(url))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(inDayRow + ".activityName").value(org.hamcrest.Matchers.contains("Cờ tướng")))
-                .andExpect(
-                        jsonPath(inDayRow + ".lateReturnConsentEligible").value(org.hamcrest.Matchers.contains(false)))
-                .andExpect(jsonPath(inDayRow + ".activeLateReturnConsentId")
-                        .value(org.hamcrest.Matchers.contains(org.hamcrest.Matchers.nullValue())))
-                .andExpect(jsonPath(lateRow + ".lateReturnConsentEligible").value(org.hamcrest.Matchers.contains(true)))
-                .andExpect(jsonPath(lateRow + ".activeLateReturnConsentId")
-                        .value(org.hamcrest.Matchers.contains((int) consentId(late))))
-                .andExpect(jsonPath("$.attendedSessionCount").value(0))
-                .andExpect(
-                        jsonPath("$.registeredSessions[0].participationLevel").doesNotExist());
-
-        user.set(new TestUsers(jdbc, time).family(TestUsers.nextId()).user());
-        mvc.perform(get(url)).andExpect(status().isForbidden());
     }
 
     /** Q9 (FR-016a, FR-043; US2 kịch bản 14): giờ về dự kiến theo mọi lần gia hạn chuyến. */

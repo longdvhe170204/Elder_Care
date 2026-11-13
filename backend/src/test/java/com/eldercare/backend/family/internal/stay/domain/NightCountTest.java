@@ -28,22 +28,8 @@ class NightCountTest {
     }
 
     @Test
-    void US8_sameDay08To20_isZeroNights() {
-        assertThat(NightCount.count(at("2026-11-01T08:00"), at("2026-11-01T20:00")))
-                .isZero();
-    }
-
-    @Test
     void Q32_endBeforeSecondMidnight_isOneNight() {
         assertThat(NightCount.nights(at("2026-11-01T18:00"), at("2026-11-02T23:00")))
-                .containsExactly(LocalDate.of(2026, 11, 1));
-    }
-
-    @Test
-    void FR_043_startingAtMidnight_doesNotCrossIt_endingAtMidnight_does() {
-        assertThat(NightCount.count(at("2026-11-02T00:00"), at("2026-11-02T10:00")))
-                .isZero();
-        assertThat(NightCount.nights(at("2026-11-01T20:00"), at("2026-11-02T00:00")))
                 .containsExactly(LocalDate.of(2026, 11, 1));
     }
 

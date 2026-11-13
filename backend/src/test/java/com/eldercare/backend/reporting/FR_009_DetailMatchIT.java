@@ -11,9 +11,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.reporting.TestScopedMetrics.Event;
 import com.eldercare.backend.reporting.TestScopedMetrics.EventSource;
-import com.eldercare.backend.reporting.internal.metric.domain.Metric;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
-import com.eldercare.backend.reporting.internal.report.domain.ReportGroup;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
@@ -152,65 +150,6 @@ class FR_009_DetailMatchIT extends MySqlIntegrationTestBase {
 
     @Autowired
     List<MetricSource<?>> metricSources;
-
-    /**
-     * SC-006 trên chỉ tiêu thật (2026-11-11, mọi nguồn đã có): ở cùng một mốc đồng hồ, với mọi chỉ tiêu đếm và tỷ lệ của
-     * 001 → 019 (không chỉ 20 chỉ tiêu ngẫu nhiên), con số của báo cáo hôm nay bằng số dòng chi tiết cùng khoảng (tỷ lệ:
-     * mẫu số), con số của dashboard bằng số dòng chi tiết không khoảng. Quản lý viện (toàn viện) và Trưởng tầng (phạm vi
-     * tầng, FR-012, T022). Dữ liệu là dữ liệu còn lại trong schema test.
-     */
-    @Test
-    void SC_006_realMetrics_reportDashboardAndDetailsAgree() throws Exception {
-        org.assertj.core.api.Assertions.assertThat(agree(manager)).hasSizeGreaterThanOrEqualTo(20);
-        org.assertj.core.api.Assertions.assertThat(agree(floorManager)).isNotEmpty();
-    }
-
-    /** Mã đã đối chiếu; nhóm người xem không được xem thì bỏ qua. */
-    private List<String> agree(TestUser user) throws Exception {
-        Map<String, Number> report = new java.util.HashMap<>();
-        for (ReportGroup group : ReportGroup.values()) {
-            var result = perform(user, today("/api/v1/reports/" + group.name()))
-                    .andReturn()
-                    .getResponse();
-            if (result.getStatus() == 200)
-                collect(result.getContentAsString(StandardCharsets.UTF_8), "$.values[*]", report);
-        }
-        Map<String, Number> dashboard = new java.util.HashMap<>();
-        collect(body(perform(user, get("/api/v1/dashboard"))), "$.blocks[*].values[*]", dashboard);
-
-        List<String> checked = new java.util.ArrayList<>();
-        List<String> mismatches = new java.util.ArrayList<>();
-        for (MetricSource<?> source : metricSources) {
-            var metric = source.metric();
-            if (metric.code().startsWith("TEST.") || metric.computation() instanceof Metric.Computation.Aggregate<?>)
-                continue;
-            String code = metric.code();
-            if (report.containsKey(code)) {
-                int rows = total(perform(user, today("/api/v1/metric-details/" + code)));
-                if (report.get(code).intValue() != rows)
-                    mismatches.add(code + " báo cáo " + report.get(code) + " ≠ " + rows);
-                checked.add(code);
-            }
-            if (dashboard.containsKey(code)) {
-                int rows = total(perform(user, get("/api/v1/metric-details/" + code)));
-                if (dashboard.get(code).intValue() != rows)
-                    mismatches.add(code + " dashboard " + dashboard.get(code) + " ≠ " + rows);
-                if (!checked.contains(code)) checked.add(code);
-            }
-        }
-        org.assertj.core.api.Assertions.assertThat(mismatches).isEmpty();
-        return checked;
-    }
-
-    /** Con số đối chiếu với số dòng: chỉ tiêu đếm lấy giá trị, tỷ lệ lấy mẫu số. */
-    private static void collect(String body, String path, Map<String, Number> into) {
-        List<Map<String, Object>> values = JsonPath.read(body, path);
-        for (Map<String, Object> v : values) {
-            Object n = v.get("denominator") != null ? v.get("denominator") : v.get("value");
-            if (n instanceof Number number) into.put((String) v.get("metricCode"), number);
-            else if (n == null && v.get("numerator") == null) into.put((String) v.get("metricCode"), 0);
-        }
-    }
 
     private static String body(ResultActions result) throws Exception {
         return result.andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);

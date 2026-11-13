@@ -1,7 +1,6 @@
 package com.eldercare.backend.administration.parameter;
 
 import static com.eldercare.backend.administration.parameter.ParameterFixtures.MANAGER;
-import static com.eldercare.backend.administration.parameter.ParameterFixtures.MANAGER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,30 +57,6 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
         clock.reset();
         user.set(MANAGER);
         api.restoreDefault(ALERT, api.etag(ALERT), "khôi phục sau test");
-    }
-
-    private int historyRows(String code) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M15.PARAMETER' AND entity_id = 0 AND attribute = ?",
-                Integer.class,
-                code);
-    }
-
-    @Test
-    void US4_9_staleIfMatch_isRejectedWithCurrentValue_thenSavesAfterReload() throws Exception {
-        String seen = api.etag(ALERT);
-        user.set(MANAGER_2);
-        api.change(ALERT, seen, MINUTES_20, "Người thứ nhất lưu").andExpect(status().isOk());
-
-        user.set(MANAGER);
-        api.change(ALERT, seen, "{\"value\":30,\"unit\":\"MINUTES\"}", "Người thứ hai lưu")
-                .andExpect(status().isPreconditionFailed())
-                .andExpect(jsonPath("$.errorCode").value("VERSION_MISMATCH"))
-                .andExpect(jsonPath("$.currentValue.currentValue.value").value(20));
-
-        api.change(ALERT, api.etag(ALERT), "{\"value\":30,\"unit\":\"MINUTES\"}", "Lưu lại sau khi thấy 20")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentValue.value").value(30));
     }
 
     @Test

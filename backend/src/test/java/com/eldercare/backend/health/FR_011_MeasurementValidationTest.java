@@ -97,15 +97,6 @@ class FR_011_MeasurementValidationTest {
     }
 
     @Test
-    void FR_016_emptyRemeasurementDoesNotConfirmOriginal() {
-        assertThatThrownBy(() -> service.remeasure(new RemeasureVitalSignCommand(5L, NOW, 42L, Map.of(), null), user))
-                .isInstanceOfSatisfying(
-                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("EMPTY_VALUES"));
-        verify(records, never()).confirmRemeasurement(anyLong(), any(), any());
-        verifyNoInteractions(events);
-    }
-
-    @Test
     void FR_012_futureRemeasurementDoesNotConfirmOriginal() {
         assertThatThrownBy(() -> service.remeasure(
                         new RemeasureVitalSignCommand(

@@ -120,7 +120,7 @@ export function FloorManagerPanel({ staff = [], canCreate = false, canUpdate = f
       ))}
       {selected && (
         <form className="flex flex-col gap-3 rounded-xl border p-4" onSubmit={shorten}>
-          <h3 className="type-section">Rút ngắn hoặc kết thúc giao #{selected.id}</h3>
+          <h3 className="type-title">Rút ngắn hoặc kết thúc giao #{selected.id}</h3>
           <Field>
             <FieldLabel htmlFor="floor-end-date">Ngày kết thúc giao #{selected.id}</FieldLabel>
             <Input id="floor-end-date" type="date" required value={end} onChange={(e) => setEnd(e.target.value)} />
@@ -148,7 +148,7 @@ export function FloorManagerPanel({ staff = [], canCreate = false, canUpdate = f
       )}
       {canCreate && (
         <form className="flex flex-col gap-3 rounded-xl border p-4" onSubmit={create}>
-          <h3 className="type-section">Giao Trưởng tầng</h3>
+          <h3 className="type-title">Giao Trưởng tầng</h3>
           <Choice
             id="floor-manager"
             label="Nhân viên được giao"

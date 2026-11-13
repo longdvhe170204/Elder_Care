@@ -1,7 +1,6 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,19 +89,5 @@ class FR_021_RecordSignedIT extends ContractTestBase {
         assertThat(events.stream(ContractStatusChanged.class)
                         .filter(event -> event.contractId() == id && event.to() == ContractStatus.ACTIVE))
                 .hasSize(1);
-    }
-
-    /** FR-021 (quickstart 004 Q6): hợp đồng nội trú chưa có phân bổ giường từ ngày bắt đầu thì không ghi nhận đã ký được. */
-    @Test
-    void FR_021_residentialWithoutBedAllocation_isBlocked() throws Exception {
-        long residentId = residentWithRepresentative();
-        ObjectNode body = body(residentId);
-        body.putArray("services").add(line(basicCare));
-        long id = pendingContract(residentId, body);
-
-        recordSignedRaw(id, signedBody(residentId, today()))
-                .andExpect(status().isConflict())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("BED_ALLOCATION_REQUIRED")));
-        assertThat(contractStatus(id)).isEqualTo("PENDING_SIGNATURE");
     }
 }

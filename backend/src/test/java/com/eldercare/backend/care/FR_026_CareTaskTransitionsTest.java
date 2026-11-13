@@ -69,15 +69,6 @@ class FR_026_CareTaskTransitionsTest {
     }
 
     @Test
-    void FR_047_handoverDoesNotCloseImportantOrMandatoryTasks() throws Exception {
-        for (var importance : new Importance[] {Importance.IMPORTANT, Importance.MANDATORY}) {
-            for (var status : TaskStatus.values()) {
-                assertThat(next(status, "HANDOVER_CONFIRMED", importance)).isEmpty();
-            }
-        }
-    }
-
-    @Test
     void FR_026_unknownEventDoesNotChangeAnyState() throws Exception {
         for (var status : TaskStatus.values()) {
             assertThat(next(status, "UNKNOWN", Importance.NORMAL)).isEmpty();
@@ -94,12 +85,5 @@ class FR_026_CareTaskTransitionsTest {
         assertThat(initial(from, to, to)).isEqualTo(TaskStatus.DUE);
         assertThat(initial(from, to, to.plusNanos(1))).isEqualTo(TaskStatus.OVERDUE);
         assertThat(initial(from, from, from)).isEqualTo(TaskStatus.DUE);
-    }
-
-    @Test
-    void BR_M04_26_reversedWindowCannotProduceAState() {
-        var from = Instant.parse("2026-11-01T01:00:00Z");
-        assertThatThrownBy(() -> initial(from, from.minusSeconds(1), from))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 }

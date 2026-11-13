@@ -149,7 +149,7 @@ export function DayCareAttendancePage({ initialDate = '' }) {
             )
           }}
         >
-          <h2 className="type-section md:col-span-2">Điểm danh đến</h2>
+          <h2 className="type-title md:col-span-2">Điểm danh đến</h2>
           <CareField
             label="Người cao tuổi đến"
             options={Object.fromEntries(
@@ -185,7 +185,7 @@ export function DayCareAttendancePage({ initialDate = '' }) {
         {rows.map((row) => (
           <article key={row.id} className="flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <h2 className="type-section">
+              <h2 className="type-title">
                 {people.find((p) => p.id === row.residentId)?.personalInfo?.fullName ||
                   `Người cao tuổi · mã ${row.residentId}`}
               </h2>

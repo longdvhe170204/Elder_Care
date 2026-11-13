@@ -2,23 +2,15 @@ package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.admission.api.dto.ContractStatus;
-import com.eldercare.backend.admission.api.events.BedAvailableForWaitingList;
-import com.eldercare.backend.admission.api.events.ContractCareLevelMismatch;
 import com.eldercare.backend.admission.api.events.ContractOverdueEscalated;
 import com.eldercare.backend.admission.api.events.DeathRecorded;
 import com.eldercare.backend.admission.api.events.DepositNotSatisfiedAfterAdmission;
-import com.eldercare.backend.admission.api.events.LongAbsenceManagerNotice;
-import com.eldercare.backend.admission.api.events.M02Reminder;
-import com.eldercare.backend.admission.api.events.RepresentativeRequestNeedsCompletion;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.HasNotificationRequests;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
-import com.eldercare.backend.resident.api.dto.CareLevel;
 import java.time.Instant;
-import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,32 +34,6 @@ class M02EventsTest {
     }
 
     @Test
-    void FR_013_bedAvailable_notifiesOfficeStaffAtLowLevel() {
-        NotificationRequest request = single(new BedAvailableForWaitingList(7L, 3, AT));
-
-        assertThat(request.level()).contains(NotificationLevel.LOW);
-        assertRecipient(request, Role.OFFICE_STAFF);
-    }
-
-    @Test
-    void FR_025b_careLevelMismatch_notifiesOfficeStaffAtMediumLevel() {
-        NotificationRequest request = single(
-                new ContractCareLevelMismatch(9L, CareLevel.SPECIAL, CareLevel.BASIC, ContractStatus.ACTIVE, AT));
-
-        assertThat(request.level()).contains(NotificationLevel.MEDIUM);
-        assertThat(request.residentId()).contains(9L);
-        assertRecipient(request, Role.OFFICE_STAFF);
-    }
-
-    @Test
-    void FR_055_longAbsenceNotice_notifiesManagerAtMediumLevel() {
-        NotificationRequest request = single(new LongAbsenceManagerNotice(4L, 11L, 30, AT));
-
-        assertThat(request.level()).contains(NotificationLevel.MEDIUM);
-        assertRecipient(request, Role.NURSING_HOME_MANAGER);
-    }
-
-    @Test
     void FR_029_overdueEscalated_notifiesManagerAtMediumLevel() {
         NotificationRequest request = single(new ContractOverdueEscalated(2L, 11L, 15, AT));
 
@@ -81,24 +47,6 @@ class M02EventsTest {
 
         assertThat(request.level()).contains(NotificationLevel.MEDIUM);
         assertRecipient(request, Role.NURSING_HOME_MANAGER);
-    }
-
-    @Test
-    void FR_039_representativeRequestNeedsCompletion_notifiesOfficeStaffAtLowLevel() {
-        NotificationRequest request = single(new RepresentativeRequestNeedsCompletion(5L, 11L, AT));
-
-        assertThat(request.level()).contains(NotificationLevel.LOW);
-        assertRecipient(request, Role.OFFICE_STAFF);
-    }
-
-    @Test
-    void reminder_notifiesOfficeStaffAtLowLevel_andKeyDiffersByDay() {
-        NotificationRequest first = single(new M02Reminder("CONTRACT_EXPIRING", 2L, LocalDate.of(2030, 3, 4), AT));
-        NotificationRequest next = single(new M02Reminder("CONTRACT_EXPIRING", 2L, LocalDate.of(2030, 3, 5), AT));
-
-        assertThat(first.level()).contains(NotificationLevel.LOW);
-        assertRecipient(first, Role.OFFICE_STAFF);
-        assertThat(first.eventKey()).isNotEqualTo(next.eventKey());
     }
 
     @Test

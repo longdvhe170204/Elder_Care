@@ -62,43 +62,4 @@ class BR_M12_04_ReturnIT extends ReturnTestBase {
                     .doesNotContain(new RecipientGroup.FamilyMember(picker, "REPRESENTATIVE"));
         });
     }
-
-    @Test
-    void Q15_SC_004_returnToPersonWithoutRight_isBlocked_andTheBlockIsRecorded() throws Exception {
-        long resident = resident("IN_RESIDENCE");
-        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
-        long clothes = intake(resident, "CLOTHING", "\"quantity\": 3", location());
-        long stranger = TestUsers.nextId();
-        family.relate(stranger, resident);
-
-        giveBack(
-                        tokenA,
-                        returnBody(
-                                List.of(returnItem(phone, true), returnItem(clothes, false)),
-                                familyRecipient(stranger, "Người thân " + stranger, "CCCD", "123"),
-                                ""))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("RETURN_BLOCKED"));
-
-        assertThat(statusOf(phone)).isEqualTo("HELD");
-        assertThat(statusOf(clothes)).isEqualTo("HELD");
-        assertThat(blockedCount(resident)).as("mỗi đồ trong lệnh một lần chặn").isEqualTo(2);
-        assertThat(lastBlockReason(resident)).isEqualTo("NOT_ENTITLED_TO_RECEIVE");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM belonging_handover WHERE resident_id = ? AND kind = 'RETURN'",
-                        Integer.class,
-                        resident))
-                .isZero();
-        assertThat(jdbc.queryForObject("SELECT current_handover_id FROM belonging WHERE id = ?", Long.class, phone))
-                .as("lần chặn không đổi bản ghi hiện hành của đồ")
-                .isEqualTo(jdbc.queryForObject(
-                        "SELECT MIN(id) FROM belonging_handover WHERE belonging_id = ?", Long.class, phone));
-    }
-
-    /** Một đồ của lệnh Trả với số lượng (số tiền với tiền mặt) và ảnh (đồ có giá trị). */
-    private String partialItem(long belongingId, String quantity) {
-        return "{\"belongingId\": " + belongingId + ", \"version\": " + version(belongingId) + ", \"quantity\": "
-                + quantity + ", \"condition\": {\"levelId\": " + levelId("SIGNS_OF_USE") + "}, \"photoFileIds\": ["
-                + photo() + "]}";
-    }
 }

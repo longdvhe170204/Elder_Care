@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/common/PageHeader'
+import { SectionTabs } from '@/common/SectionTabs'
 import { PermissionDeniedState } from '@/common/PageState'
 import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
 import { LeavePanel } from './LeavePanel'
@@ -26,26 +26,15 @@ function Workspace() {
         title="Đổi ca, nghỉ đột xuất"
         subtitle="Yêu cầu đổi ca và nghỉ đột xuất; chỉ thực hiện khi có mạng."
       />
-      <div role="tablist" aria-label="Loại yêu cầu" className="flex gap-2">
-        <Button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'swap'}
-          variant={tab === 'swap' ? 'default' : 'outline'}
-          onClick={() => setTab('swap')}
-        >
-          Đổi ca
-        </Button>
-        <Button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'leave'}
-          variant={tab === 'leave' ? 'default' : 'outline'}
-          onClick={() => setTab('leave')}
-        >
-          Nghỉ đột xuất
-        </Button>
-      </div>
+      <SectionTabs
+        label="Loại yêu cầu"
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          ['swap', 'Đổi ca'],
+          ['leave', 'Nghỉ đột xuất'],
+        ]}
+      />
       {tab === 'swap' ? <SwapPanel /> : <LeavePanel />}
     </div>
   )

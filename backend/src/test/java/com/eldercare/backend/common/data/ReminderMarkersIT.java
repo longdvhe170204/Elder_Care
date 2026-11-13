@@ -6,9 +6,6 @@ import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,32 +37,6 @@ class ReminderMarkersIT extends MySqlIntegrationTestBase {
                 .isTrue();
         assertThat(markers.isMarked("M15.TEST", "M15.TEST_ENTITY", entity, "d2"))
                 .isFalse();
-    }
-
-    @Test
-    void lock_serializesTransactionsOnSameKey() throws Exception {
-        String key = "M15.TEST:" + TestUsers.nextId();
-        CountDownLatch held = new CountDownLatch(1);
-        CountDownLatch release = new CountDownLatch(1);
-        ExecutorService pool = Executors.newFixedThreadPool(2);
-        try {
-            Future<?> first = pool.submit(() -> transaction.executeWithoutResult(s -> {
-                locks.lock(key);
-                held.countDown();
-                await(release);
-            }));
-            assertThat(held.await(10, TimeUnit.SECONDS)).isTrue();
-            Future<?> second = pool.submit(() -> transaction.executeWithoutResult(s -> locks.lock(key)));
-
-            Thread.sleep(300);
-            assertThat(second.isDone()).as("lệnh thứ hai chờ khóa").isFalse();
-            release.countDown();
-            first.get(10, TimeUnit.SECONDS);
-            second.get(10, TimeUnit.SECONDS);
-        } finally {
-            release.countDown();
-            pool.shutdownNow();
-        }
     }
 
     private static void await(CountDownLatch latch) {

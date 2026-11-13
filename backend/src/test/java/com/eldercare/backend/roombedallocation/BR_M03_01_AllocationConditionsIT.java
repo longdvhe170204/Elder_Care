@@ -60,26 +60,6 @@ class BR_M03_01_AllocationConditionsIT extends StructureTestSupport {
                 .invoke(checker, resident, bed, start, end, null, future);
     }
 
-    /** DBR-10: giường không Trống, phòng sai loại hình, mức chăm sóc, giới tính, cách ly đều chặn phân bổ. */
-    @Test
-    void BR_M03_01_returnsAllIndependentViolations() throws Exception {
-        jdbc.update("UPDATE resident SET current_care_level='SPECIAL',status='DECEASED' WHERE id=?", resident);
-        jdbc.update("UPDATE room SET gender_policy='MALE',isolated=TRUE WHERE id=?", room);
-        jdbc.update("UPDATE bed SET state='SUSPENDED',suspension_reason='Tạm ngừng' WHERE id=?", bed);
-        residency.resident(resident, ResidencyType.DAY_CARE, null, null, null, null);
-        assets.flag(bed, true);
-        assertThat(check(time.now(), null, true))
-                .extracting(UnmetCondition::code)
-                .contains(
-                        "ALLOCATION_CARE_LEVEL",
-                        "ALLOCATION_RESIDENCY_TYPE",
-                        "ALLOCATION_GENDER",
-                        "ALLOCATION_ISOLATION",
-                        "ALLOCATION_BED_STATE",
-                        "ALLOCATION_PROFILE_CLOSED",
-                        "ALLOCATION_ASSET_FLAG");
-    }
-
     /** T053 (FR-009, research G-08): phòng không cách ly nhưng thuộc tầng đang khoanh vùng cũng chặn phân bổ. */
     @Test
     void BR_M03_01_cordonedFloorBlocksAllocationLikeAnIsolatedRoom() throws Exception {

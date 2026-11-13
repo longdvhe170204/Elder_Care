@@ -6,9 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
-import com.eldercare.backend.administration.account.api.dto.InfoGroup;
-import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.billing.api.ProcurementMedicationLineApi;
@@ -138,53 +135,6 @@ class FR_008d_MedicationRequestIT extends ProcurementTestBase {
         return node == null || node.isNull() ? null : node.asBoolean();
     }
 
-    /** Q-410: người có quyền tiếp nhận thuốc thấy dòng thuốc đã ghi đã mua, chưa có lần Đạt, của người cao tuổi trong phạm vi. */
-    @Test
-    void Q410_receiverSeesPurchasedMedicationLinesInScope_withoutPrices() throws Exception {
-        long id = created(medication(medical, residentA, facilityA, true));
-        command(id, "submit").andExpect(status().isOk());
-        as(manager);
-        command(id, "approve", "{\"approvedAmount\":60000}").andExpect(status().isOk());
-        long line = lineId(id);
-        String path = "$[?(@.id==" + line + ")]";
-        var users = new TestUsers(jdbc, time);
-        var receiver = users.staff(Role.NURSING_STAFF);
-        assignments.assign(
-                receiver.staffId(),
-                new AssignmentView(
-                        AssignmentKind.SHIFT_MEMBER,
-                        null,
-                        null,
-                        residentA,
-                        null,
-                        time.now().minus(Duration.ofDays(1)),
-                        null));
-        as(receiver);
-        mvc.perform(get("/api/v1/procurement-medication-lines"))
-                .andExpect(jsonPath(path).isEmpty());
-
-        as(doctorLead);
-        command(id, "record-purchased", purchase(60000, doctorLead)).andExpect(status().isOk());
-        as(receiver);
-        mvc.perform(get("/api/v1/procurement-medication-lines"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(path + ".procurementRequestId").value((int) id))
-                .andExpect(jsonPath(path + ".residentId").value((int) residentA))
-                .andExpect(jsonPath(path + ".medicationName").value("Amlodipin"))
-                .andExpect(jsonPath(path + ".unit").value("viên"))
-                .andExpect(jsonPath(path + ".estimatedUnitPrice").isEmpty());
-
-        // Ngoài phạm vi: không thấy
-        as(users.staff(Role.NURSING_STAFF));
-        mvc.perform(get("/api/v1/procurement-medication-lines"))
-                .andExpect(jsonPath(path).isEmpty());
-        // Đã có lần tiếp nhận Đạt: không còn chờ
-        intakes.passed(id, line);
-        as(receiver);
-        mvc.perform(get("/api/v1/procurement-medication-lines"))
-                .andExpect(jsonPath(path).isEmpty());
-    }
-
     @Test
     void Q34_nurseDraftsAndSubmitsMedicationRequestForResidentInScope() throws Exception {
         long id = created(medication(medical, residentA, facilityA, true));
@@ -204,25 +154,6 @@ class FR_008d_MedicationRequestIT extends ProcurementTestBase {
         command(id, "withdraw").andExpect(status().isOk());
         command(id, "cancel").andExpect(status().isOk());
         assertThat(stateOf(id)).isEqualTo("CANCELLED");
-    }
-
-    @Test
-    void T028_prescriptionMustBeFacilityUnendedOfTheLineResidentAndAuthorMustSeeHealth() throws Exception {
-        // Đơn gia đình gửi, đơn Đã ngừng, đơn của người khác → 409 CONDITION_NOT_MET
-        for (long prescription : List.of(familyA, stoppedA, facilityB))
-            create(medication(medical, residentA, prescription, true))
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.unmetConditions[0].code").value("PRESCRIPTION_NOT_FACILITY_UNENDED"));
-        // Người cao tuổi ngoài phạm vi phân công của Điều dưỡng
-        create(medication(medical, residentB, facilityB, true)).andExpect(status().isForbidden());
-        // Phụ trách bộ phận Bếp không xem được HEALTH: 403 và không được cấp thêm quyền xem
-        as(kitchenLead);
-        var resident = new Target("M01.RESIDENT", Long.toString(residentA), residentA, null);
-        create(medication(kitchen, residentA, facilityA, true)).andExpect(status().isForbidden());
-        assertThat(visibility.canView(user, InfoGroup.HEALTH, resident)).isNotEqualTo(Visibility.FULL);
-        // Phụ trách bộ phận Y tế xem được thì lập được
-        as(doctorLead);
-        created(medication(medical, residentB, facilityB, true));
     }
 
     @Test

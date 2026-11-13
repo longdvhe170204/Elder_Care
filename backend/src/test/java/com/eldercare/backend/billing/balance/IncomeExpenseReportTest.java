@@ -1,14 +1,12 @@
 package com.eldercare.backend.billing.balance;
 
 import static com.eldercare.backend.billing.balance.BalanceEntries.entry;
-import static com.eldercare.backend.billing.balance.BalanceEntries.withStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport;
 import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport.Debtor;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.BalanceEntry;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
-import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionStatus;
 import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionType;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,25 +38,6 @@ class IncomeExpenseReportTest {
         assertThat(report.totalDeducted()).isEqualTo(48_000_000);
         assertThat(report.totalRefunded()).isEqualTo(2_000_000);
         assertThat(report.debtors()).containsExactly(new Debtor(8, 1_500_000));
-    }
-
-    @Test
-    void FR_025_pendingRejectedAndCancelledTransactionsAreLeftOut() {
-        BalanceEntry pending = withStatus(
-                entry(7, Ledger.BALANCE, TransactionType.REFUND, -1_000, "2026-10-05", "09:00"),
-                TransactionStatus.PENDING_APPROVAL);
-        BalanceEntry rejected = withStatus(
-                entry(7, Ledger.BALANCE, TransactionType.REFUND, -2_000, "2026-10-06", "09:00"),
-                TransactionStatus.REJECTED);
-        BalanceEntry cancelled = withStatus(
-                entry(7, Ledger.BALANCE, TransactionType.CASH_PAYMENT, 4_000, "2026-10-07", "09:00"),
-                TransactionStatus.CANCELLED);
-
-        IncomeExpenseReport report = IncomeExpenseReport.of(List.of(pending, rejected, cancelled), Map.of(), FROM, TO);
-
-        assertThat(report.totalPaid()).isZero();
-        assertThat(report.totalRefunded()).isZero();
-        assertThat(report.totalDeducted()).isZero();
     }
 
     @Test

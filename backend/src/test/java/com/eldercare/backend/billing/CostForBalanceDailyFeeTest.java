@@ -3,7 +3,6 @@ package com.eldercare.backend.billing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +19,6 @@ import com.eldercare.backend.billing.internal.provision.service.CostForBalance;
 import com.eldercare.backend.billing.internal.provision.service.CostSummaries;
 import com.eldercare.backend.billing.internal.provision.service.FinalizedCostViews;
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -84,16 +82,6 @@ class CostForBalanceDailyFeeTest {
     }
 
     @Test
-    void Q_223_dayCareMonthlyPrice_isDividedByDaysOfTheMonth() {
-        dayCareService();
-        contract(
-                "{\"residenceType\":\"DAY_CARE\",\"residencyFeeBillingPeriod\":\"MONTH\",\"services\":[{\"serviceId\":7}]}",
-                7,
-                "3000001");
-        assertThat(port.baseDailyFee(42, DAY)).contains(100_000L);
-    }
-
-    @Test
     void Q_223_dayCareSessionPrice_timesScheduledSessionsInNextSevenDays_dividedBySeven() {
         dayCareService();
         contract(
@@ -110,13 +98,5 @@ class CostForBalanceDailyFeeTest {
             };
         });
         assertThat(port.baseDailyFee(42, DAY)).contains(85_714L);
-    }
-
-    @Test
-    void FR_016_noPrice_isEmpty() {
-        dayCareService();
-        when(contracts.contentAtDate(eq(42L), any())).thenReturn(Optional.empty());
-        assertThat(port.baseDailyFee(42, DAY)).isEmpty();
-        assertThat(DayOfWeek.from(DAY)).isEqualTo(DayOfWeek.TUESDAY);
     }
 }

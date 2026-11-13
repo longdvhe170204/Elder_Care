@@ -54,7 +54,7 @@ export function StaffProfileForm({ person, etag, departments, onDone }) {
   }
   return (
     <form onSubmit={save} className="flex flex-col gap-4">
-      <h3 className="type-section">{person ? 'Sửa hồ sơ' : 'Thêm nhân viên'}</h3>
+      <h3 className="type-title">{person ? 'Sửa hồ sơ' : 'Thêm nhân viên'}</h3>
       <ProblemAlert problem={failure} />
       {failure?.status === 412 && (
         <Button type="button" onClick={reload} disabled={busy}>
@@ -138,7 +138,7 @@ export function StaffCommandForm({ kind, person, staff, departments, onDone }) {
   }
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <h3 className="type-section">{titles[kind]}</h3>
+      <h3 className="type-title">{titles[kind]}</h3>
       <ProblemAlert problem={failure} />
       {kind === 'terminate' && (
         <>

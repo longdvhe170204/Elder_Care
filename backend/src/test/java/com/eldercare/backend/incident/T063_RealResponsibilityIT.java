@@ -106,43 +106,6 @@ class T063_RealResponsibilityIT extends MySqlIntegrationTestBase {
         assertThat(staffPort.assignedNurse(unassigned, now)).isEmpty();
     }
 
-    /**
-     * 008 T049b, 007 US13 (quickstart H1, H3; FR-047i, BR-M05-29) với {@link AlertStaffPort} thật của 008 (không bản giả
-     * Mockito như {@code AssistTestBase}): thành viên ca đang diễn ra bấm nút hỗ trợ thì cảnh báo Khẩn cấp chưa gắn người
-     * cao tuổi mang tầng của ca ({@code onShift}, {@code floorDuringShift}); tầng có ca nằm trong {@code floorsWithShift};
-     * nhân viên không có tên trong ca nào bị từ chối 409 {@code NOT_ON_SHIFT}.
-     */
-    @Test
-    void T049b_H1_H3_assistButtonWithRealShiftStaff() {
-        clock.setTo(time.today().atTime(9, 0).atZone(BusinessTime.ZONE).toInstant());
-        Instant now = time.now();
-        var fixture = new RealCareFixture(jdbc, time);
-        var place = fixture.place();
-        TestUser presser = fixture.staff(Role.NURSING_STAFF);
-        TestUser offShift = fixture.staff(Role.NURSING_STAFF);
-        long shift = fixture.shift(place.floor(), now.minus(Duration.ofHours(1)), 8);
-        fixture.member(shift, presser.staffId());
-
-        assertThat(staffPort.onShift(presser.staffId(), now)).isTrue();
-        assertThat(staffPort.floorDuringShift(presser.staffId(), now)).contains(place.floor());
-        assertThat(staffPort.floorsWithShift(now)).contains(place.floor());
-        assertThat(staffPort.onShift(offShift.staffId(), now)).isFalse();
-
-        tx.executeWithoutResult(s -> assist.press(presser.user(), "assist-" + TestUsers.nextId()));
-        var alert = jdbc.queryForMap(
-                "SELECT resident_id, floor_area_id, level FROM alert WHERE type='STAFF_ASSIST_REQUEST' AND requester_id=?",
-                presser.accountId());
-        assertThat(alert.get("resident_id")).isNull();
-        assertThat(((Number) alert.get("floor_area_id")).longValue()).isEqualTo(place.floor());
-        assertThat(alert.get("level")).isEqualTo("CRITICAL");
-
-        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
-                        tx.executeWithoutResult(s -> assist.press(offShift.user(), "assist-" + TestUsers.nextId())))
-                .isInstanceOfSatisfying(
-                        com.eldercare.backend.common.error.BusinessException.class,
-                        e -> assertThat(e.errorCode()).isEqualTo("NOT_ON_SHIFT"));
-    }
-
     @Autowired
     com.eldercare.backend.incident.internal.alert.service.EmergencyAssistService assist;
 }

@@ -31,7 +31,7 @@ export function CredentialPanel({ person, rows, types, scopes, create, update, o
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="type-section">Giấy phép và đào tạo</h3>
+        <h3 className="type-title">Giấy phép và đào tạo</h3>
         {create && (
           <Button variant="outline" onClick={() => choose('add')}>
             Thêm chứng chỉ

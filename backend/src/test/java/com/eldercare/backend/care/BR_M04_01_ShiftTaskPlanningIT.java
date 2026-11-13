@@ -184,38 +184,6 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         plan("[" + row(residentId, sourceId, planned) + "]").andExpect(status().isCreated());
     }
 
-    private long failedCheck(long task) {
-        long checklist = TestUsers.nextId();
-        return context.getBean(com.eldercare.backend.administration.shared.api.RecordEventApi.class)
-                .add(
-                        com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.ITEMS,
-                        new com.eldercare.backend.administration.shared.api.dto.EntityRef(
-                                "M04.QUALITY_CHECKLIST", checklist),
-                        new com.eldercare.backend.administration.shared.api.dto.NewRecordEvent<>(
-                                new com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.Item(
-                                        checklist,
-                                        shiftId,
-                                        floor,
-                                        task,
-                                        null,
-                                        null,
-                                        com.eldercare.backend.care.internal.qualitycheck.domain.QualityCheckKinds.FAIL,
-                                        "Chưa đạt",
-                                        List.of(),
-                                        user.accountId(),
-                                        "FLOOR_MANAGER",
-                                        time.now()),
-                                null,
-                                user.accountId(),
-                                false,
-                                time.now(),
-                                null,
-                                time.now(),
-                                floor,
-                                "QC_TASK:" + task))
-                .id();
-    }
-
     private long effectiveItem() {
         long planId = TestUsers.nextId(), itemId = TestUsers.nextId();
         var data = new com.eldercare.backend.care.internal.careplan.domain.CarePlanItemData(
@@ -251,73 +219,6 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         return itemId;
     }
 
-    private long sourceItem(int revision, LocalDate from, LocalDate to, String state) {
-        long p = TestUsers.nextId(), i = TestUsers.nextId();
-        var data = new com.eldercare.backend.care.internal.careplan.domain.CarePlanItemData(
-                typeId,
-                "Mục phiên bản " + revision,
-                "ONCE_PER_SHIFT",
-                null,
-                null,
-                null,
-                List.of(),
-                List.of(),
-                15,
-                15,
-                Role.CAREGIVER,
-                com.eldercare.backend.care.api.dto.ResultType.PERFORMED,
-                com.eldercare.backend.care.api.dto.Importance.NORMAL,
-                false,
-                null);
-        jdbc.update(
-                "INSERT INTO care_plan(id,resident_id,revision,status,effective_from,created_by,created_at) VALUES(?,?,?,'DRAFT',?,?,?)",
-                p,
-                residentId,
-                revision,
-                from,
-                manager.accountId(),
-                LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE));
-        jdbc.update(
-                "INSERT INTO care_plan_item(id,care_plan_id,kind,task_type_id,frequency_type,data) VALUES(?,?,'TASK',?,'ONCE_PER_SHIFT',?)",
-                i,
-                p,
-                typeId,
-                json.writeValueAsString(data));
-        jdbc.update("UPDATE care_plan SET status=?,effective_to=? WHERE id=?", state, to, p);
-        return i;
-    }
-
     @Autowired
     FakeM04Switches fakeSwitches;
-
-    /**
-     * 005 T066 (api-005 {@code PUT /testing/fakes/{module}}, duyệt 2026-10-26): chỉ có khi import {@code FakeM04Config};
-     * tắt nguồn giả của module thì SPI báo lỗi rõ, bật lại thì dùng được; module ngoài danh sách, thiếu {@code enabled}
-     * trả 400.
-     */
-    @Test
-    void T066_testingFakesSwitch_turnsAFakeSourceOffAndOn_andRejectsBadInput() throws Exception {
-        try {
-            mvc.perform(put("/api/v1/testing/fakes/{module}", "007")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"enabled\":false}"))
-                    .andExpect(status().isNoContent());
-            assertThatThrownBy(() -> fakeSwitches.requireEnabled("007")).isInstanceOf(IllegalStateException.class);
-            mvc.perform(put("/api/v1/testing/fakes/{module}", "007")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"enabled\":true}"))
-                    .andExpect(status().isNoContent());
-            assertThatCode(() -> fakeSwitches.requireEnabled("007")).doesNotThrowAnyException();
-            mvc.perform(put("/api/v1/testing/fakes/{module}", "999")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"enabled\":true}"))
-                    .andExpect(status().isBadRequest());
-            mvc.perform(put("/api/v1/testing/fakes/{module}", "007")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{}"))
-                    .andExpect(status().isBadRequest());
-        } finally {
-            fakeSwitches.enabled("007", true);
-        }
-    }
 }

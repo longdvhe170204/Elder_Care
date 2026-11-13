@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { PageHeader } from '@/common/PageHeader'
+import { EmptyState } from '@/common/PageState'
+import { SectionTabs } from '@/common/SectionTabs'
 import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
@@ -159,8 +161,11 @@ export function BedsPage() {
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
       <PageHeader title="Phòng, giường" subtitle="Cơ cấu khu vực, tầng, phòng và giường của viện.">
-        <div role="tablist" aria-label="Nội dung phòng, giường" className="flex flex-wrap gap-2">
-          {[
+        <SectionTabs
+          label="Nội dung phòng, giường"
+          value={activeTab}
+          onChange={setTab}
+          tabs={[
             ...(allowed('VIEW')
               ? [
                   ['structure', 'Cơ cấu'],
@@ -177,18 +182,8 @@ export function BedsPage() {
               : []),
             ...(historyAllowed ? [['history', 'Lịch sử vị trí']] : []),
             ...(isolationAllowed('VIEW') ? [['isolation', 'Cách ly']] : []),
-          ].map(([key, label]) => (
-            <Button
-              key={key}
-              role="tab"
-              aria-selected={activeTab === key}
-              variant={activeTab === key ? 'secondary' : 'outline'}
-              onClick={() => setTab(key)}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
+          ]}
+        />
       </PageHeader>
       {notice && (
         <Alert>
@@ -218,9 +213,7 @@ export function BedsPage() {
             </Button>
           )}
           {!data.areas.length && (
-            <p className="rounded-xl border bg-card p-6 text-muted-foreground">
-              Chưa có khu vực. Quản lý viện có thể thêm cơ cấu đầu tiên.
-            </p>
+            <EmptyState title="Chưa có khu vực" description="Quản lý viện có thể thêm cơ cấu đầu tiên." />
           )}
           {data.areas.map((area) => (
             <section key={area.id} aria-label={area.name} className="rounded-2xl border bg-card p-4">

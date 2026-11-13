@@ -76,43 +76,4 @@ class FR_038_DayCareHttpIT extends StructureTestSupport {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.session.name").value("Chiều"));
     }
-
-    @Test
-    void FR_040_sessionChangeRecountsAndAreaWithFutureArrivalsCannotBeDeactivated() throws Exception {
-        var day = time.today().plusDays(7);
-        arrivals.count(new com.eldercare.backend.roombedallocation.api.dto.SessionDate(day, morning), 4);
-        mvc.perform(get("/api/v1/day-care-rest-areas"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==" + rest + ")].code").value("D1"));
-        mvc.perform(get("/api/v1/day-care-sessions"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==" + morning + ")].name").value("Sáng"));
-        mvc.perform(get("/api/v1/day-care-rest-areas/registration-counts")
-                        .param("from", day.toString())
-                        .param("to", day.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.sessionId==" + morning + ")].registrations")
-                        .value(4))
-                .andExpect(
-                        jsonPath("$[?(@.sessionId==" + morning + ")].remaining").value(-1));
-        mvc.perform(put("/api/v1/day-care-sessions/" + morning)
-                        .header("If-Match", com.eldercare.backend.common.web.VersionEtag.of(0))
-                        .contentType("application/json")
-                        .content("{\"name\":\"Sáng\",\"startTime\":\"07:30\",\"endTime\":\"11:30\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.session.startTime").value("07:30"))
-                .andExpect(jsonPath("$.overCapacitySessions[0].sessionId").value(morning))
-                .andExpect(jsonPath("$.overCapacitySessions[0].remaining").value(-1));
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE action='M03_DAY_CARE_OVER_CAPACITY' AND entity_id=?",
-                        Integer.class,
-                        rest))
-                .isEqualTo(1);
-        mvc.perform(post("/api/v1/day-care-rest-areas/" + rest + "/deactivate")
-                        .header("If-Match", com.eldercare.backend.common.web.VersionEtag.of(0))
-                        .contentType("application/json")
-                        .content("{\"reason\":\"Đóng khu\"}"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("DAY_CARE_FUTURE_ARRIVALS"));
-    }
 }

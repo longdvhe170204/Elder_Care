@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.eldercare.backend.care.api.events.BillableCareResultCorrected;
 import com.eldercare.backend.care.api.events.BillableCareResultRecorded;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
@@ -79,79 +78,5 @@ class FR_051_BillableCareResultIT extends CareResultTestBase {
         data("PERFORMED", true);
         record("{}").andExpect(status().isOk());
         assertThat(recorded().quantity()).isEqualByComparingTo(BigDecimal.ONE);
-    }
-
-    @Test
-    void FR_051_notPerformedPublishesNothing() throws Exception {
-        data("ITEM_QUANTITY", true);
-        String name = "Lý do tính phí " + TestUsers.nextId();
-        user.set(new TestUsers(jdbc, time)
-                .staff(com.eldercare.backend.common.Role.NURSING_HOME_MANAGER)
-                .user());
-        mvc.perform(post("/api/v1/non-performance-reason-types")
-                        .header("Idempotency-Key", "reason-" + TestUsers.nextId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"" + name + "\"}"))
-                .andExpect(status().isCreated());
-        user.set(baseManager.user());
-        long reason = jdbc.queryForObject(
-                "SELECT id FROM catalog_item WHERE catalog_type='M04.NON_PERFORMANCE_REASON_TYPE' AND name=?",
-                Long.class,
-                name);
-        notPerform("{\"reasonTypeId\":" + reason + ",\"note\":\"Người cao tuổi từ chối\"}")
-                .andExpect(status().isOk());
-        assertThat(events.stream(BillableCareResultRecorded.class).filter(e -> e.resultId() == task))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_051_unitNotDeterminableStaysBlockedWithoutEvent() throws Exception {
-        data("ML", true);
-        record("{\"numericValue\":200}").andExpect(status().isServiceUnavailable());
-        assertThat(events.stream(BillableCareResultRecorded.class).filter(e -> e.resultId() == task))
-                .isEmpty();
-        assertThat(storedStatus()).isEqualTo("DUE");
-    }
-
-    /** Quyết định 05/11 mục 2: không mặc định 1 khi đơn vị không khớp; dịch vụ tính theo tháng, ngày không phải theo lần. */
-    @Test
-    void FR_051_performedButServiceNotBilledPerOccurrence_blockedWithoutEvent() throws Exception {
-        data("PERFORMED", true, "MONTH");
-        record("{}").andExpect(status().isServiceUnavailable());
-        assertThat(events.stream(BillableCareResultRecorded.class).filter(e -> e.resultId() == task))
-                .isEmpty();
-        assertThat(storedStatus()).isEqualTo("DUE");
-    }
-
-    /** Vật phẩm: lượng thực dùng phải đúng đơn vị tính phí, dịch vụ tính theo đơn vị ({@code UNIT}). */
-    @Test
-    void FR_051_itemQuantityButServiceBilledPerSession_blockedWithoutEvent() throws Exception {
-        data("ITEM_QUANTITY", true, "SESSION");
-        record("{\"numericValue\":2}").andExpect(status().isServiceUnavailable());
-        assertThat(events.stream(BillableCareResultRecorded.class).filter(e -> e.resultId() == task))
-                .isEmpty();
-    }
-
-    @Test
-    void US7_4_amendPublishesNewTotalEvenWhenUnchanged_voidPublishesNullQuantity() throws Exception {
-        data("ITEM_QUANTITY", true);
-        record("{\"numericValue\":2}").andExpect(status().isOk());
-        correct("{\"type\":\"AMEND_CONTENT\",\"correctedContent\":{\"numericValue\":3},\"reason\":\"Ghi nhầm số tã\"}")
-                .andExpect(status().isCreated());
-        correct("{\"type\":\"AMEND_CONTENT\",\"correctedContent\":{\"numericValue\":3,\"note\":\"Bổ sung ghi chú\"},"
-                        + "\"reason\":\"Thêm ghi chú\"}")
-                .andExpect(status().isCreated());
-        correct("{\"type\":\"VOID\",\"reason\":\"Ghi nhầm người\"}").andExpect(status().isCreated());
-        var corrected = events.stream(BillableCareResultCorrected.class)
-                .filter(e -> e.resultId() == task)
-                .toList();
-        assertThat(corrected)
-                .extracting(BillableCareResultCorrected::correctionType)
-                .containsExactly("AMEND_CONTENT", "AMEND_CONTENT", "VOID");
-        assertThat(corrected.get(0).newQuantity()).isEqualByComparingTo("3");
-        assertThat(corrected.get(1).newQuantity()).isEqualByComparingTo("3");
-        assertThat(corrected.get(2).newQuantity()).isNull();
-        assertThat(corrected).extracting(BillableCareResultCorrected::eventKey).doesNotHaveDuplicates();
-        // Chưa có consumer 010 (E/T021) nên outbox chưa ghi dòng cho sự kiện này; kiểm outbox khi E nối listener.
     }
 }

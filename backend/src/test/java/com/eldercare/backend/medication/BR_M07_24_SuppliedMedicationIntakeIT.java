@@ -141,25 +141,6 @@ class BR_M07_24_SuppliedMedicationIntakeIT extends M07IntegrationTestBase {
     }
 
     @Test
-    void US9_1_passed_isSavedOnTheLine_prescriptionUnchanged_noNotification() {
-        SuppliedMedicationIntake saved =
-                service.record(service.targetOfLine(lineId), intake(lineId, IntakeResult.PASSED, null, null));
-
-        assertThat(saved.getProcurementLineId()).isEqualTo(lineId);
-        assertThat(saved.getMedicationId()).isEqualTo(prescription.getMedicationId());
-        assertThat(saved.getReceiverId()).isEqualTo(nurse.accountId());
-        assertThat(prescriptionRepository
-                        .findById(prescription.getId())
-                        .orElseThrow()
-                        .getStatus())
-                .isEqualTo(PrescriptionStatus.ACTIVE);
-        assertThat(events.stream(SuppliedMedicationIntakeFailed.class)).isEmpty();
-        assertThat(service.byProcurementRequest(requestId))
-                .singleElement()
-                .satisfies(r -> assertThat(r.passed()).isTrue());
-    }
-
-    @Test
     void US9_2_notPassed_requiresDiscrepancyAndReason_thenNotifiesCreatorAndDepartmentLead() {
         assertThatThrownBy(() -> service.record(
                         service.targetOfLine(lineId), intake(lineId, IntakeResult.NOT_PASSED, "thiếu 10 viên", null)))

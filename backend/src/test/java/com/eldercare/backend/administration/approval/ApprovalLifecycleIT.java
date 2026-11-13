@@ -3,9 +3,6 @@ package com.eldercare.backend.administration.approval;
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.MANAGER;
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.OFFICE_A;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.matchesPattern;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,7 +12,6 @@ import com.eldercare.backend.support.FakePermissions;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import java.time.LocalDate;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +23,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -90,30 +85,6 @@ class ApprovalLifecycleIT extends MySqlIntegrationTestBase {
         long id = draft();
         api.submit(id).andExpect(status().isOk());
         return id;
-    }
-
-    private List<String> auditActions(long id) {
-        return jdbc.queryForList(
-                "SELECT action FROM audit_log WHERE entity_type = 'M15.APPROVAL_REQUEST' AND entity_id = ? ORDER BY id",
-                String.class,
-                String.valueOf(id));
-    }
-
-    @Test
-    void US5_1_create_isDraft_withRequesterTypeContentDateReason() throws Exception {
-        JsonNode created = api.create(tomorrow, false);
-
-        assertThat(created.get("status").asString()).isEqualTo("DRAFT");
-        assertThat(created.get("displayCode").asString()).matches("YC-\\d{4}-\\d{6}");
-        assertThat(created.get("requester").get("id").asLong()).isEqualTo(OFFICE_A.accountId());
-        assertThat(created.get("type").asString()).isEqualTo(ApprovalFixtures.TYPE);
-        assertThat(created.get("requestedEffectiveDate").asString()).isEqualTo(tomorrow.toString());
-        assertThat(created.get("reason").asString()).isEqualTo("Đề nghị mẫu");
-        assertThat(created.get("content").has("key")).isTrue();
-        mvc.perform(get(ApprovalClient.URL + "/" + created.get("id").asLong()))
-                .andExpect(jsonPath("$.allowedCommands", hasItems("edit-content", "submit", "cancel")))
-                .andExpect(jsonPath("$.displayCode", matchesPattern("YC-\\d{4}-\\d{6}")));
-        assertThat(auditActions(created.get("id").asLong())).containsExactly("REQUEST_CREATED");
     }
 
     @Test

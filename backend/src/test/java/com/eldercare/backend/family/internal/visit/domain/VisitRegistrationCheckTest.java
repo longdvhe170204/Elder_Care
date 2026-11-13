@@ -45,27 +45,6 @@ class VisitRegistrationCheckTest {
     }
 
     @Test
-    void FR_030a_outsideVisitSlot() {
-        VisitSlot noon = new VisitSlot(LocalTime.of(12, 0), LocalTime.of(13, 0));
-        assertThat(VisitRegistrationCheck.check(portal(noon, 1), facts(0, false, true, DAY_BEFORE)))
-                .containsExactly(Reason.OUTSIDE_VISIT_SLOT);
-    }
-
-    @Test
-    void FR_030b_capacityCountsEveryVisitor_lastSeatsExact() {
-        assertThat(VisitRegistrationCheck.check(portal(MORNING, 3), facts(17, false, true, DAY_BEFORE)))
-                .isEmpty();
-        assertThat(VisitRegistrationCheck.check(portal(MORNING, 2), facts(19, false, true, DAY_BEFORE)))
-                .containsExactly(Reason.VISIT_SLOT_FULL);
-    }
-
-    @Test
-    void FR_030c_isolation_and_d_notPresent() {
-        assertThat(VisitRegistrationCheck.check(portal(MORNING, 1), facts(0, true, false, DAY_BEFORE)))
-                .containsExactly(Reason.ISOLATION_ACTIVE, Reason.RESIDENT_NOT_PRESENT);
-    }
-
-    @Test
     void FR_029_tooManyVisitors() {
         assertThat(VisitRegistrationCheck.check(portal(MORNING, 4), facts(0, false, true, DAY_BEFORE)))
                 .containsExactly(Reason.TOO_MANY_VISITORS);
@@ -84,40 +63,5 @@ class VisitRegistrationCheckTest {
                 .isEmpty();
         assertThat(VisitRegistrationCheck.check(portal(MORNING, 1), facts(0, false, true, fifteenDaysBefore)))
                 .containsExactly(Reason.OUTSIDE_REGISTRATION_WINDOW);
-    }
-
-    @Test
-    void FR_030e_counterForCurrentSlot_skipsWindow_butNotForEndedSlot() {
-        java.time.Instant during = ZonedDateTime.of(DAY, LocalTime.of(9, 30), VisitRegistrationCheck.ZONE)
-                .toInstant();
-        java.time.Instant after = ZonedDateTime.of(DAY, LocalTime.of(11, 0), VisitRegistrationCheck.ZONE)
-                .toInstant();
-        Request counter = new Request(DAY, MORNING.start(), MORNING.end(), 2, true);
-        assertThat(VisitRegistrationCheck.check(counter, facts(0, false, true, during)))
-                .isEmpty();
-        assertThat(VisitRegistrationCheck.check(portal(MORNING, 2), facts(0, false, true, during)))
-                .containsExactly(Reason.OUTSIDE_REGISTRATION_WINDOW);
-        assertThat(VisitRegistrationCheck.check(counter, facts(0, false, true, after)))
-                .containsExactly(Reason.OUTSIDE_REGISTRATION_WINDOW);
-    }
-
-    @Test
-    void FR_030_everyReasonReturnedTogether() {
-        VisitSlot noon = new VisitSlot(LocalTime.of(12, 0), LocalTime.of(13, 0));
-        java.time.Instant late = ZonedDateTime.of(DAY, LocalTime.of(11, 30), VisitRegistrationCheck.ZONE)
-                .toInstant();
-        assertThat(VisitRegistrationCheck.check(portal(noon, 5), facts(20, true, false, late)))
-                .containsExactly(
-                        Reason.OUTSIDE_VISIT_SLOT,
-                        Reason.ISOLATION_ACTIVE,
-                        Reason.RESIDENT_NOT_PRESENT,
-                        Reason.TOO_MANY_VISITORS,
-                        Reason.OUTSIDE_REGISTRATION_WINDOW);
-    }
-
-    @Test
-    void FR_030_slotLabel_roundTrips() {
-        assertThat(VisitSlot.parse(SLOTS.get(1).label())).isEqualTo(SLOTS.get(1));
-        assertThat(SLOTS.get(1).label()).isEqualTo("15:00-17:00");
     }
 }

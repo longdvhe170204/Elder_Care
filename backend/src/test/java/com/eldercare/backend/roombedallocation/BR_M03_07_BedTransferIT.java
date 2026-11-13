@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.*;
 
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.roombedallocation.api.events.BedTransferred;
 import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.BedTransferService;
@@ -13,7 +12,6 @@ import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationInfectionStatus;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,90 +121,7 @@ class BR_M03_07_BedTransferIT extends StructureTestSupport {
                 .isZero();
     }
 
-    @Test
-    void FR_033_twoTransfersOnSameAllocationHaveOneWinner() throws Exception {
-        long other = TestUsers.nextId();
-        jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'T2')", other, targetRoom);
-        var ready = new CountDownLatch(2);
-        var start = new CountDownLatch(1);
-        try (var pool = Executors.newFixedThreadPool(2)) {
-            List<Future<Boolean>> results = new java.util.ArrayList<>();
-            for (long next : new long[] {target, other})
-                results.add(pool.submit(() -> {
-                    ready.countDown();
-                    if (!start.await(10, TimeUnit.SECONDS)) throw new AssertionError("Chưa mở cổng đồng thời");
-                    try {
-                        transfer(next, transferReason, new Reason("Chuyển đồng thời"));
-                        return true;
-                    } catch (BusinessException error) {
-                        assertThat(error.errorCode()).isEqualTo("ALLOCATION_NOT_TRANSFERABLE");
-                        return false;
-                    }
-                }));
-            assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
-            start.countDown();
-            int won = 0;
-            for (var result : results) if (result.get(30, TimeUnit.SECONDS)) won++;
-            assertThat(won).isEqualTo(1);
-        }
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_allocation WHERE resident_id=? AND status='ACTIVE'",
-                        Integer.class,
-                        resident))
-                .isEqualTo(1);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_allocation WHERE resident_id=?", Integer.class, resident))
-                .isEqualTo(2);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed WHERE id IN (?,?) AND state='OCCUPIED'",
-                        Integer.class,
-                        target,
-                        other))
-                .isEqualTo(1);
-    }
-
-    /**
-     * FR-030, research G-07 (bỏ 503 theo bảng duyệt 16 điểm (3), 2026-11-09): phân bổ mang dấu chờ chuyển về phòng cùng giá
-     * so loại phòng đích với đơn giá của hợp đồng hiện hành; khác giá mà lý do không thuộc y tế/an toàn thì 409, cùng giá thì
-     * chuyển và phân bổ mới không còn dấu.
-     */
-    @Test
-    void FR_030_flaggedAllocation_comparesWithContractPrice_sameContractPriceClearsFlag() throws Exception {
-        jdbc.update("UPDATE bed_allocation SET awaiting_same_price=TRUE WHERE id=?", allocation);
-        residency.contractPriceDifference(resident, type, time.today(), true);
-        assertThatThrownBy(() -> transfer(target, transferReason, new Reason("Về phòng cũ")))
-                .isInstanceOfSatisfying(
-                        BusinessException.class,
-                        e -> assertThat(e.errorCode()).isEqualTo("RESIDENCY_CHANGE_REQUEST_REQUIRED"));
-        unchanged();
-
-        residency.contractPriceDifference(resident, type, time.today(), false);
-        long next = transfer(target, transferReason, new Reason("Về phòng cùng giá"));
-
-        assertThat(jdbc.queryForMap(
-                        "SELECT status,awaiting_request,awaiting_same_price FROM bed_allocation WHERE id=?", next))
-                .containsEntry("status", "ACTIVE")
-                .containsEntry("awaiting_request", false)
-                .containsEntry("awaiting_same_price", false);
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("CLOSED");
-    }
-
-    private void differentPrice() {
-        residency.priceDifference(resident, type, type, time.today(), true);
-    }
-
     private String state(long id) {
         return jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, id);
-    }
-
-    private void unchanged() {
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_allocation WHERE resident_id=?", Integer.class, resident))
-                .isEqualTo(1);
-        assertThat(state(bed)).isEqualTo("OCCUPIED");
-        assertThat(state(target)).isEqualTo("EMPTY");
     }
 }

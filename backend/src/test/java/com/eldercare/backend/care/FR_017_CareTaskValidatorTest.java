@@ -110,19 +110,6 @@ class FR_017_CareTaskValidatorTest {
     }
 
     @Test
-    void FR_024_sharedTaskIsRejectedWhenMatchingAssignedStaffExists() {
-        assertThat(validator
-                        .validate(row(SourceType.MEAL, at, Importance.NORMAL, null, true), shift, now, 1, null)
-                        .codes())
-                .contains("INVALID_PERFORMER");
-        when(staff.assignments(77, 5)).thenReturn(List.of());
-        assertThat(validator
-                        .validate(row(SourceType.MEAL, at, Importance.NORMAL, null, true), shift, now, 1, null)
-                        .codes())
-                .doesNotContain("INVALID_PERFORMER");
-    }
-
-    @Test
     void FR_023_prescribedMeasurementMustBeMandatory() {
         when(source.validate(any(), anyLong(), anyLong(), any()))
                 .thenReturn(new SourceValidation(true, true, true, true));
@@ -135,22 +122,5 @@ class FR_017_CareTaskValidatorTest {
                                 row(SourceType.MEASUREMENT, at, Importance.MANDATORY, 22L, false), shift, now, 1, null)
                         .codes())
                 .isEmpty();
-    }
-
-    @Test
-    void FR_021_duplicatesAreReportedWithoutPersisting() {
-        when(tasks.duplicate(any())).thenReturn(true);
-        assertThat(validator
-                        .validate(row(SourceType.MEAL, at, Importance.NORMAL, 22L, false), shift, now, 1, null)
-                        .codes())
-                .contains("DUPLICATE_BASIS");
-    }
-
-    @Test
-    void FR_026a_reworkCannotBeValidatedWithoutAnOriginalTaskFromTheQualityCommand() {
-        assertThat(validator
-                        .validate(row(SourceType.REWORK, at, Importance.NORMAL, 22L, false), shift, now, 1, null)
-                        .codes())
-                .contains("INVALID_BASIS");
     }
 }

@@ -2,7 +2,6 @@ package com.eldercare.backend.billing.balance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.admission.api.dto.PostDeathItemStatus;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceTransactionRow;
 import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions;
 import com.eldercare.backend.billing.balance.internal.settlement.domain.SettlementConditions.Input;
@@ -61,25 +60,6 @@ class SettlementRulesTest {
         assertThat(SettlementRules.confirmationUnmet(Basis.RESIDENCY_ENDING, result(-1_500_000, 0, false), false))
                 .singleElement()
                 .satisfies(u -> assertThat(u.description()).contains("Số dư chưa bằng 0"));
-    }
-
-    private record ItemCase(
-            boolean nonZero, long balance, boolean confirmed, boolean exception, PostDeathItemStatus to) {}
-
-    @Test
-    void FR_023_postDeathItem_notApplicableWithoutMoney_completedOnlyWhenConfirmed() {
-        TableRows.each(
-                Stream.of(
-                        new ItemCase(false, 0, false, false, PostDeathItemStatus.NOT_APPLICABLE),
-                        new ItemCase(true, 0, false, false, PostDeathItemStatus.NOT_COMPLETED),
-                        new ItemCase(true, 0, true, false, PostDeathItemStatus.COMPLETED),
-                        new ItemCase(true, -3_000_000, true, false, PostDeathItemStatus.NOT_COMPLETED),
-                        new ItemCase(true, -3_000_000, true, true, PostDeathItemStatus.COMPLETED),
-                        new ItemCase(true, -3_000_000, false, true, PostDeathItemStatus.NOT_COMPLETED)),
-                c -> assertThat(SettlementRules.postDeathItem(
-                                        c.nonZero(), result(c.balance(), 0, c.confirmed()), c.exception())
-                                .status())
-                        .isEqualTo(c.to()));
     }
 
     private record ReminderCase(

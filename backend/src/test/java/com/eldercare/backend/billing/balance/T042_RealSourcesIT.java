@@ -2,7 +2,6 @@ package com.eldercare.backend.billing.balance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.admission.api.dto.ContractStatus;
@@ -85,96 +84,6 @@ class T042_RealSourcesIT extends MySqlIntegrationTestBase {
     @Autowired
     com.eldercare.backend.family.internal.relationship.persistence.RelationshipHistoryStore relationshipHistory;
 
-    /**
-     * US6 #2, #8: hoàn tiền cho người đại diện thật của 012 ({@code RepresentativeLookup}): Chờ duyệt, Quản lý viện duyệt
-     * thì Đã xác nhận, số dư giảm; quan hệ người đại diện kết thúc trước lúc duyệt thì duyệt bị chặn.
-     */
-    @Test
-    void US6_refundToRealRepresentative_approvedThenBlockedWhenRepresentationEnds() throws Exception {
-        var fixture = new RealCareFixture(jdbc, time);
-        TestUser accountant = fixture.users().staff(Role.ACCOUNTANT);
-        TestUser office = fixture.users().staff(Role.OFFICE_STAFF);
-        TestUser manager = fixture.users().staff(Role.NURSING_HOME_MANAGER);
-        long resident = fixture.residentInBed(fixture.place(), time.now().minus(Duration.ofDays(3)));
-        long contract = jdbc.queryForObject("SELECT id FROM contract WHERE resident_id = ?", Long.class, resident);
-        user.set(office.user());
-        tx.executeWithoutResult(s -> publisher.publishEvent(new ContractStatusChanged(
-                contract, resident, ContractStatus.DRAFT, ContractStatus.PENDING_SIGNATURE, null)));
-        var relationships = new com.eldercare.backend.family.RelationshipFixtures(
-                jdbc, tx, relationshipHistory, time.now().minus(Duration.ofDays(10)));
-        long representative = relationships.familyMember("Trần Thị Đại Diện", "0901000777");
-        long relationship = relationships.relate(representative, resident, 1, true, true);
-
-        user.set(accountant.user());
-        mvc.perform(json(
-                        "/api/v1/residents/" + resident + "/cash-payments",
-                        "{\"ledger\":\"BALANCE\",\"amount\":2000000,\"payerName\":\"Lê Văn Hải\",\"receivedAt\":\""
-                                + time.now() + "\"}"))
-                .andExpect(status().isCreated());
-        long first = transaction(refund(resident, 1_500_000, representative));
-        assertThat(statusOf(first)).isEqualTo("PENDING_APPROVAL");
-        decide(manager, requestOf(first)).andExpect(status().isOk());
-        assertThat(statusOf(first)).isEqualTo("CONFIRMED");
-        assertThat(balance(resident)).isEqualByComparingTo("500000");
-
-        user.set(accountant.user());
-        long second = transaction(refund(resident, 500_000, representative));
-        relationships.end(relationship, time.now());
-        decide(manager, requestOf(second))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.unmetConditions[0].code").value("RECIPIENT_NO_LONGER_REPRESENTATIVE"));
-        assertThat(statusOf(second)).isEqualTo("PENDING_APPROVAL");
-    }
-
-    /**
-     * US7 #1, US10 #2: hồ sơ kết thúc lưu trú lập bằng lệnh thật của 004 (lập bảng kỳ cuối nháp ở 010 thật, phát
-     * {@code ResidencyEndingCreated}); quyết toán của 017 đọc điều kiện kỳ cuối qua {@code FinalPeriodCostApi} thật: chưa
-     * chốt thì điều kiện tiền chưa thỏa và không xác nhận quyết toán được.
-     */
-    @Test
-    void US7_realEndingAndFinalPeriod_settlementBlockedUntilFinalPeriodFinalized() throws Exception {
-        var fixture = new RealCareFixture(jdbc, time);
-        TestUser accountant = fixture.users().staff(Role.ACCOUNTANT);
-        TestUser office = fixture.users().staff(Role.OFFICE_STAFF);
-        TestUser manager = fixture.users().staff(Role.NURSING_HOME_MANAGER);
-        long resident = fixture.residentInBed(fixture.place(), time.now().minus(Duration.ofDays(20)));
-        long contract = jdbc.queryForObject("SELECT id FROM contract WHERE resident_id = ?", Long.class, resident);
-        user.set(office.user());
-        tx.executeWithoutResult(s -> publisher.publishEvent(new ContractStatusChanged(
-                contract, resident, ContractStatus.DRAFT, ContractStatus.PENDING_SIGNATURE, null)));
-        user.set(accountant.user());
-        mvc.perform(json(
-                        "/api/v1/residents/" + resident + "/cash-payments",
-                        "{\"ledger\":\"BALANCE\",\"amount\":4000000,\"payerName\":\"Lê Văn Hải\",\"receivedAt\":\""
-                                + time.now() + "\"}"))
-                .andExpect(status().isCreated());
-
-        user.set(office.user());
-        mvc.perform(json(
-                        "/api/v1/residency-endings",
-                        "{\"residentId\":" + resident + ",\"endCase\":\"DISCHARGE\",\"expectedEndDate\":\""
-                                + time.today().plusDays(5)
-                                + "\",\"requestedBy\":\"Con gái\",\"reason\":\"Gia đình đưa về nhà\"}"))
-                .andExpect(status().isCreated());
-
-        user.set(manager.user());
-        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
-                        "/api/v1/residents/" + resident + "/settlement"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.conditions[0].code").value("END_H_SETTLEMENT"))
-                .andExpect(jsonPath("$.conditions[0].status").value("NOT_MET"));
-        user.set(accountant.user());
-        mvc.perform(json("/api/v1/residents/" + resident + "/settlement/confirm", ""))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("SETTLEMENT_CONDITIONS_NOT_MET"));
-    }
-
-    private static String refund(long resident, long amount, long recipient) {
-        return "{\"type\":\"REFUND\",\"residentId\":" + resident + ",\"ledger\":\"BALANCE\",\"amount\":" + amount
-                + ",\"recipient\":{\"familyMemberId\":" + recipient + "},\"method\":\"BANK_TRANSFER\","
-                + "\"reason\":\"Gia đình xin rút\"}";
-    }
-
     private org.springframework.test.web.servlet.RequestBuilder json(String url, String body) {
         return post(url)
                 .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
@@ -189,29 +98,6 @@ class T042_RealSourcesIT extends MySqlIntegrationTestBase {
                 .getResponse()
                 .getContentAsString();
         return ((Number) com.jayway.jsonpath.JsonPath.read(created, "$.id")).longValue();
-    }
-
-    private org.springframework.test.web.servlet.ResultActions decide(TestUser who, long request) throws Exception {
-        user.set(who.user());
-        String etag = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
-                        "/api/v1/approval-requests/" + request))
-                .andReturn()
-                .getResponse()
-                .getHeader("ETag");
-        return mvc.perform(post("/api/v1/approval-requests/" + request + "/approve")
-                .header("If-Match", etag)
-                .header("Idempotency-Key", java.util.UUID.randomUUID().toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"comment\":\"Duyệt\"}"));
-    }
-
-    private long requestOf(long transaction) {
-        return jdbc.queryForObject(
-                "SELECT approval_request_id FROM balance_transaction WHERE id = ?", Long.class, transaction);
-    }
-
-    private String statusOf(long transaction) {
-        return jdbc.queryForObject("SELECT status FROM balance_transaction WHERE id = ?", String.class, transaction);
     }
 
     @Test

@@ -13,6 +13,7 @@ import { formatDateTime } from '@/common/dateTime'
 import { usePermissions } from '@/common/permissions/permissions'
 import { problemOf } from '@/common/problem'
 import { CareField } from './CareField'
+import { FilterBar } from '@/common/FilterBar'
 import { CareChecklistDetail } from './CareChecklistDetail'
 import { CareChecklistSources } from './CareChecklistSources'
 import { TaskBlock } from './TaskCard'
@@ -204,8 +205,9 @@ export function CareChecklistPage({ shiftId: initialShiftId, role }) {
         aside={view && <ClockAside time={view.now} caption="Giờ cập nhật checklist" />}
       >
         {!initialShiftId && (
-          <CareField
-            label="Ca làm việc"
+          <FilterBar>
+            <CareField
+              label="Ca làm việc"
             options={Object.fromEntries(
               shifts.map((s) => [s.id, `${formatDateTime(s.startsAt)}–${formatDateTime(s.endsAt)}`]),
             )}
@@ -219,6 +221,7 @@ export function CareChecklistPage({ shiftId: initialShiftId, role }) {
               ++selection.current
             }}
           />
+          </FilterBar>
         )}
         {view && (
           <ToggleGroup
