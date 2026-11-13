@@ -58,9 +58,9 @@ class FR_030_UrgentTransferRequestIT extends ChangeTestBase {
         user.set(manager.user());
         generic(id, "reject", "{\"comment\":\"Không đồng ý đơn giá mới\"}").andExpect(status().isOk());
 
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(flags(u.allocationId())).containsEntry("awaiting_same_price", true));
+        // Quickstart 003 Q15 (B1): đặt dấu trong chính lệnh từ chối (người duyệt là người thực hiện), không chờ
+        // listener sau commit
+        assertThat(flags(u.allocationId())).containsEntry("awaiting_same_price", true);
         assertThat(flags(u.allocationId())).containsEntry("status", "ACTIVE");
     }
 
