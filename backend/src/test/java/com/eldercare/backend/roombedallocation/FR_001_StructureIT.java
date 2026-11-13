@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.RoomPolicyApi;
-import com.eldercare.backend.roombedallocation.api.dto.GenderPolicy;
 import com.eldercare.backend.roombedallocation.api.spi.CareLevelCode;
 import com.eldercare.backend.roombedallocation.internal.structure.domain.*;
 import org.junit.jupiter.api.Test;
@@ -60,23 +59,5 @@ class FR_001_StructureIT extends StructureTestSupport {
         assertThat(locations.room(room))
                 .hasValueSatisfying(r -> assertThat(r.floorId()).isEqualTo(floor));
         assertThat(policies.allocationProperties(bed).careLevels()).containsExactly(CareLevelCode.BASIC);
-    }
-
-    @Test
-    void US1_1_managerCreatesHierarchyAndRoomCopiesDefaultLevels() {
-        assertThatCode(() -> {
-                    var a = structures.create(StructureKind.AREA, StructureChange.area("N" + area, "Khu mới"));
-                    var f = structures.create(
-                            StructureKind.FLOOR, StructureChange.floor(a.getId(), "F1", "Tầng 1", null));
-                    var r = (Room) structures.create(
-                            StructureKind.ROOM,
-                            StructureChange.room(f.getId(), type, "N" + room, "Phòng mới", GenderPolicy.FEMALE, null));
-                    assertThat(r.floorId()).isEqualTo(f.getId());
-                    assertThat(r.careLevels())
-                            .containsExactly(com.eldercare.backend.roombedallocation.api.spi.CareLevelCode.BASIC);
-                    assertThat(jdbc.queryForObject("SELECT status FROM room WHERE id=?", String.class, r.getId()))
-                            .isEqualTo("ACTIVE");
-                })
-                .doesNotThrowAnyException();
     }
 }

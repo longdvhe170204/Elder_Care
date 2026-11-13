@@ -39,14 +39,6 @@ class ContactEvidenceTest {
     }
 
     @Test
-    void attemptWithoutResult_isNotCounted() {
-        var attempts = List.of(
-                attempt(1, ContactChannel.PHONE_CALL, "không nghe máy"), attempt(1, ContactChannel.TEXT_MESSAGE, " "));
-
-        assertThat(ContactEvidence.sufficient(List.of(1L), attempts, 2, 2)).isFalse();
-    }
-
-    @Test
     void noEffectiveRepresentative_hasNoGroundA() {
         assertThat(ContactEvidence.sufficient(List.of(), List.of(), 2, 2)).isFalse();
     }

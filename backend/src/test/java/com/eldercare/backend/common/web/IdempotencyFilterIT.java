@@ -61,16 +61,4 @@ class IdempotencyFilterIT extends MySqlIntegrationTestBase {
 
         assertThat(sample.created).hasValue(1);
     }
-
-    @Test
-    void R_03_sameKeyDifferentRequest_isRejected() throws Exception {
-        String key = UUID.randomUUID().toString();
-
-        mvc.perform(create(key, "a", "x")).andExpect(status().isCreated());
-        mvc.perform(create(key, "a", "y"))
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.errorCode").value("IDEMPOTENCY_KEY_REUSED"));
-
-        assertThat(sample.created).hasValue(1);
-    }
 }

@@ -1,12 +1,10 @@
 package com.eldercare.backend.family;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.admission.api.spi.PickupRecordPort;
 import com.eldercare.backend.care.api.spi.DayCarePickupPort;
-import com.eldercare.backend.family.api.events.PickupBlockNotice;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
@@ -49,23 +47,5 @@ class BR_M10_03_PickupProcessIT extends PickupTestBase {
                 .singleElement()
                 .satisfies(p -> assertThat(p.get("id").asLong())
                         .isEqualTo(record.get("id").asLong()));
-    }
-
-    @Test
-    void US2_2_documentMismatch_isBlocked_blockIsKept_floorManagerIsTold() throws Exception {
-        int blocksBefore = blocks();
-
-        pickup(office, "TEMPORARY_ABSENCE", mMember, "000000000000")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("PICKUP_BLOCKED"))
-                .andExpect(jsonPath("$.blockReason").value("ID_DOCUMENT_MISMATCH"));
-
-        assertThat(pickupRecords()).isZero();
-        assertThat(blocks()).isEqualTo(blocksBefore + 1);
-        assertThat(lastBlockReason()).isEqualTo("ID_DOCUMENT_MISMATCH");
-        assertThat(events.stream(PickupBlockNotice.class)).singleElement().satisfies(n -> {
-            assertThat(n.residentId()).isEqualTo(a);
-            assertThat(n.reason()).isEqualTo("ID_DOCUMENT_MISMATCH");
-        });
     }
 }

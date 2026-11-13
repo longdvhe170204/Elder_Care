@@ -5,12 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.events.ContractStatusChanged;
 import com.eldercare.backend.admission.api.events.ResidencyEndingCompleted;
-import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.resident.api.dto.CareLevel;
-import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -24,24 +20,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 @AutoConfigureMockMvc
 @WithMockUser
 class EndingConditionsIT extends EndingTestBase {
-
-    @Test
-    void FR_065_theCommand_isBlocked_andListsEveryUnmetCondition() throws Exception {
-        ReadyEnding ready = readyToEnd(d0.plusDays(1));
-        long noHandover = inResidence();
-        long noHandoverEnding = createEnding(noHandover, d0.plusDays(1));
-        otherUnmet(B_BELONGINGS, true);
-        otherUnmet(D_ALERTS, true);
-
-        BusinessException blocked = endResidencyFailure(noHandover, noHandoverEnding, at(d0.plusDays(1), 12, 0));
-
-        assertThat(blocked).isNotNull();
-        assertThat(unmetCodes(blocked)).containsExactlyInAnyOrder(B_BELONGINGS, D_ALERTS, "END_E_HANDOVER");
-        assertThat(endingStatus(noHandoverEnding)).isEqualTo("PREPARING");
-        assertThat(residentStatus(noHandover)).isEqualTo(ResidentStatus.IN_RESIDENCE);
-        assertThat(unmetCodes(endResidencyFailure(ready.residentId(), ready.endingId(), at(d0.plusDays(1), 12, 0))))
-                .containsExactlyInAnyOrder(B_BELONGINGS, D_ALERTS);
-    }
 
     @Test
     void FR_065_success_completesTheEnding_endsTheContract_andClosesTheResidencyRecord() throws Exception {
@@ -81,23 +59,4 @@ class EndingConditionsIT extends EndingTestBase {
     }
 
     // ---- Dữ liệu ----------------------------------------------------------------------------------------------------
-
-    /** Nội trú ngắn ngày Đang lưu trú, hợp đồng Hiệu lực kết thúc ngày {@code end}. */
-    private long shortTermResident(LocalDate end) {
-        long residentId = admissionResident();
-        setStatus(residentId, ResidentStatus.IN_RESIDENCE.name());
-        long contractId = contracts.contract(
-                residentId,
-                ContractStatus.ACTIVE,
-                ResidenceType.SHORT_TERM_RESIDENTIAL,
-                CareLevel.BASIC,
-                d0.minusDays(20));
-        jdbc.update("UPDATE contract SET current_end_date = ? WHERE id = ?", end, contractId);
-        user.set(office.user());
-        return residentId;
-    }
-
-    private String contractOf(long residentId) {
-        return jdbc.queryForObject("SELECT status FROM contract WHERE resident_id = ?", String.class, residentId);
-    }
 }

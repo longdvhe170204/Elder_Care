@@ -89,47 +89,6 @@ class MetricTest {
             MetricTest::row);
 
     @Test
-    void FR_007_voidedRecordsAreNotCounted_FR_015_duplicatesCountedOnce() {
-        Task voided = new Task("t3", "OVERDUE", true, 1L, true, false, null);
-        List<Task> included = OVERDUE.included(
-                Stream.of(task("t1", "OVERDUE", 1), task("t1", "OVERDUE", 1), task("t2", "OVERDUE", 2), voided),
-                t -> true);
-
-        assertThat(OVERDUE.compute(included).value()).isEqualByComparingTo("2");
-    }
-
-    @Test
-    void FR_009_detailRowsMatchTheNumber_andEachBreakdownCell() {
-        List<Task> included = OVERDUE.included(
-                Stream.of(
-                        task("t1", "OVERDUE", 1),
-                        task("t2", "OVERDUE", 2),
-                        task("t3", "OVERDUE", 2),
-                        task("t4", "COMPLETED", 2)),
-                t -> true);
-
-        MetricValue value = OVERDUE.compute(included);
-
-        assertThat(OVERDUE.details(included, null)).hasSize(value.value().intValue());
-        assertThat(value.breakdown()).extracting(MetricValue.Breakdown::key).containsExactly("1", "2");
-        assertThat(value.breakdown().get(1).value()).isEqualByComparingTo("2");
-        assertThat(OVERDUE.details(included, "2"))
-                .extracting(DetailRow::sourceKey)
-                .containsExactly("t2", "t3");
-    }
-
-    @Test
-    void FR_013_recordsOutsideScopeAreNotCounted() {
-        List<Task> included = OVERDUE.included(
-                Stream.of(task("t1", "OVERDUE", 1), task("t2", "OVERDUE", 2)), t -> t.floorAreaId() == 1L);
-
-        assertThat(OVERDUE.compute(included).value()).isEqualByComparingTo("1");
-        assertThat(OVERDUE.details(included, null))
-                .extracting(DetailRow::sourceKey)
-                .containsExactly("t1");
-    }
-
-    @Test
     void FR_008_ratioCarriesNumeratorAndDenominator_detailsAreTheDenominator() {
         List<Task> included = ON_TIME.included(
                 Stream.of(

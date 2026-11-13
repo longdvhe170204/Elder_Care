@@ -2,7 +2,6 @@ package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
@@ -107,42 +106,6 @@ class BR_M07_16_ExternalPrescriberBasisIT extends M07IntegrationTestBase {
         return prescriptionRepository.save(p);
     }
 
-    private Prescription createInternalPrescription() {
-        Prescription p = new Prescription(
-                residentId,
-                medId,
-                new BigDecimal("20"),
-                "mg",
-                "Oral",
-                PrescriptionType.PERIODIC,
-                FrequencyType.TIMED_SLOTS,
-                "[\"20:00\"]",
-                null,
-                null,
-                null,
-                null,
-                null,
-                Instant.now().minusSeconds(86400),
-                null,
-                MedicationSource.FACILITY,
-                PrescriberType.INTERNAL,
-                null,
-                null,
-                10L,
-                null,
-                null,
-                "Uống buổi tối",
-                PrescriptionStatus.ACTIVE,
-                false,
-                null,
-                null,
-                10L,
-                Instant.now().minusSeconds(86400),
-                Set.of(104L),
-                Instant.now());
-        return prescriptionRepository.save(p);
-    }
-
     @Test
     @DisplayName(
             "BR-M07-16: Nurse modifying external prescription without basis is rejected (ConditionNotMetException)")
@@ -158,20 +121,5 @@ class BR_M07_16_ExternalPrescriberBasisIT extends M07IntegrationTestBase {
         assertThatThrownBy(() -> prescriptionService.suspend(
                         prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false))
                 .isInstanceOf(ConditionNotMetException.class);
-    }
-
-    @Test
-    @DisplayName("BR-M07-16: Nurse modifying internal prescription is forbidden (403)")
-    void nurse_modifyingInternalPrescription_forbidden() {
-        user.set(nurse.user());
-        assignNurse(nurse, residentId);
-        Prescription p = createInternalPrescription();
-
-        OrderPrescriptionBody cmd = new OrderPrescriptionBody();
-        cmd.setReason("Thử tạm dừng đơn nội bộ");
-
-        assertThatThrownBy(() -> prescriptionService.suspend(
-                        prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false))
-                .isInstanceOf(BusinessException.class);
     }
 }

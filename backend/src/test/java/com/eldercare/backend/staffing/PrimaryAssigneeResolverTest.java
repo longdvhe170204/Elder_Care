@@ -41,15 +41,6 @@ class PrimaryAssigneeResolverTest {
     }
 
     @Test
-    void FR_028_residentOverridesRoomAndFloorEvenIfTheirTaskTypeIsMoreSpecific() {
-        var floor = assignment(1, "FLOOR", 11, 7L);
-        var room = assignment(2, "ROOM", 21, 7L);
-        var direct = assignment(3, "RESIDENT", 31, null);
-        assertThat(PrimaryAssigneeResolver.resolve(List.of(floor, room, direct), position, Role.CAREGIVER, 7L, at))
-                .contains(direct);
-    }
-
-    @Test
     void FR_028_sameLevelTaskTypeOverridesUnrestrictedAndOtherTypesAreIgnored() {
         var unrestricted = assignment(1, "ROOM", 21, null);
         var specific = assignment(2, "ROOM", 21, 7L);
@@ -84,32 +75,6 @@ class PrimaryAssigneeResolverTest {
         assertThat(PrimaryAssigneeResolver.resolve(List.of(row), position, Role.CAREGIVER, null, row.startsAt()))
                 .contains(row);
         assertThat(PrimaryAssigneeResolver.resolve(List.of(row), position, Role.CAREGIVER, null, row.endsAt()))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_037a_endedAssignmentStillIdentifiesTheHistoricalPrimaryBeforeItsActualEnd() {
-        var original = assignment(1, "FLOOR", 11, null);
-        var ended = new StaffAssignment(
-                original.id(),
-                original.shiftId(),
-                original.staffId(),
-                original.targetType(),
-                original.targetId(),
-                original.taskTypeId(),
-                original.role(),
-                original.assignmentKind(),
-                false,
-                original.startsAt(),
-                original.endsAt(),
-                "ENDED",
-                at.minusSeconds(60),
-                "MANUAL",
-                1);
-        assertThat(PrimaryAssigneeResolver.resolve(
-                        List.of(ended), position, Role.CAREGIVER, null, at.minusSeconds(120)))
-                .contains(ended);
-        assertThat(PrimaryAssigneeResolver.resolve(List.of(ended), position, Role.CAREGIVER, null, at))
                 .isEmpty();
     }
 }

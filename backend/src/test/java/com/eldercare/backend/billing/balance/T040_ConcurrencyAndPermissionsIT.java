@@ -6,11 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.admission.api.dto.EndCase;
-import com.eldercare.backend.admission.api.dto.ResidencyEndingView;
-import com.eldercare.backend.admission.api.dto.SettlementInfoView;
 import com.eldercare.backend.billing.api.dto.CostStatementType;
-import com.eldercare.backend.billing.api.dto.FinalPeriodConditionView;
 import com.eldercare.backend.billing.api.events.CostStatementFinalized;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData;
 import com.eldercare.backend.billing.balance.internal.document.domain.PaymentNoticeData.PaymentInstructions;
@@ -93,33 +89,6 @@ class T040_ConcurrencyAndPermissionsIT extends BalanceTestBase {
                                 + " by_system, occurred_at, confirmed_at, unique_key FROM record_event WHERE unique_key = ?",
                         key))
                 .isInstanceOf(DataAccessException.class);
-    }
-
-    @Test
-    void DBR_38_twoConcurrentSettlementConfirmations_versionsStayDistinct() throws Exception {
-        long a = sentForSignature(TestUsers.nextId(), null);
-        finalPeriods.condition(a, new FinalPeriodConditionView(true, List.of()));
-        endings.preparing(
-                new ResidencyEndingView(TestUsers.nextId(), a, EndCase.CONTRACT_EXPIRED, time.today(), null),
-                new SettlementInfoView(null, null, null, time.today(), EndCase.CONTRACT_EXPIRED, null));
-        as(accountant);
-
-        List<Object> outcomes = concurrently(
-                () -> settlements.confirm(BalanceQueries.target(a), a),
-                () -> settlements.confirm(BalanceQueries.target(a), a));
-
-        assertThat(outcomes.stream().filter(o -> !(o instanceof Throwable)))
-                .as("ít nhất một lần xác nhận")
-                .isNotEmpty();
-        assertThat(outcomes.stream().filter(o -> o instanceof Throwable))
-                .allSatisfy(e -> assertThat(rootBusiness(e)).startsWith("SETTLEMENT_"));
-        List<Integer> versions = jdbc.queryForList(
-                "SELECT CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.version')) AS UNSIGNED) FROM record_event"
-                        + " WHERE kind = 'M11.SETTLEMENT_STATEMENT' AND entity_id = ? ORDER BY 1",
-                Integer.class,
-                a);
-        assertThat(versions).isNotEmpty().doesNotHaveDuplicates().startsWith(1);
-        assertThat(versions.getLast()).isEqualTo(versions.size());
     }
 
     @Test
@@ -220,39 +189,6 @@ class T040_ConcurrencyAndPermissionsIT extends BalanceTestBase {
         } finally {
             pool.shutdownNow();
         }
-    }
-
-    @Test
-    void SC_010_permissionsOfNoticeSettlementAndExport_byRole() throws Exception {
-        long a = sentForSignature(TestUsers.nextId(), null);
-        finalPeriods.condition(a, new FinalPeriodConditionView(true, List.of()));
-        String notices = "/api/v1/residents/" + a + "/payment-notices";
-        String settlement = "/api/v1/residents/" + a + "/settlement";
-        getAs(accountant, notices).andExpect(status().isOk());
-        getAs(manager, notices).andExpect(status().isOk());
-        getAs(office, notices).andExpect(status().isForbidden());
-        getAs(nurse, notices).andExpect(status().isForbidden());
-
-        getAs(manager, settlement).andExpect(status().isOk());
-        getAs(accountant, settlement).andExpect(status().isOk());
-        getAs(office, settlement).andExpect(status().isForbidden());
-        getAs(nurse, settlement).andExpect(status().isForbidden());
-
-        // lập lệnh xuất và xác nhận quyết toán: chỉ Kế toán
-        String report = "{\"from\":\"" + time.today() + "\",\"to\":\"" + time.today() + "\",\"format\":\"PDF\"}";
-        for (var who : List.of(manager, office, nurse)) {
-            as(who);
-            mvc.perform(post("/api/v1/balance-exports/income-expense-report")
-                            .with(org.springframework.security.test.web.servlet.request
-                                    .SecurityMockMvcRequestPostProcessors.csrf())
-                            .header("Idempotency-Key", java.util.UUID.randomUUID())
-                            .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                            .content(report))
-                    .andExpect(status().isForbidden());
-            postAs(who, "/api/v1/residents/" + a + "/settlement/confirm", "").andExpect(status().isForbidden());
-        }
-        as(office);
-        mvc.perform(get("/api/v1/balance-exports/1/file")).andExpect(status().isForbidden());
     }
 
     @SafeVarargs

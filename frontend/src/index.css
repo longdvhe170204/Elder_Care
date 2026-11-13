@@ -335,4 +335,18 @@
   html {
     @apply font-sans;
     }
+  /* Ô chọn gốc của trình duyệt: một kiểu cho mọi màn, khớp ô nhập (DESIGN.md mục 6: cao 40px, bo 10px, viền
+     Đường kẻ ô nhập). Lớp đặt trên từng ô vẫn thắng vì đây là lớp base. */
+  select:not([multiple]) {
+    height: 40px;
+    max-width: 100%;
+    padding-inline: 10px;
+    border: 1px solid var(--input);
+    border-radius: var(--radius-md);
+    background-color: transparent;
+    }
+  select:not([multiple]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+    }
 }

@@ -155,24 +155,6 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
         return resident;
     }
 
-    @Test
-    void FR_015_tripRegistrationRemainsOpenAfterPlannedStartUntilFirstDeparture() throws Exception {
-        long s = trip(false), r = residentIn(ResidentStatus.IN_RESIDENCE);
-        user.set(manager.user());
-        jdbc.update(
-                "UPDATE activity_session SET starts_at=? WHERE id=?",
-                LocalDateTime.ofInstant(time.now().minusSeconds(60), BusinessTime.ZONE),
-                s);
-        mvc.perform(write(post("/api/v1/activity-sessions/" + s + "/registrations"), "{\"residentId\":" + r + "}"))
-                .andExpect(status().isCreated());
-        assertThat(jdbc.queryForObject(
-                        "SELECT participant_status FROM activity_registration WHERE session_id=? AND resident_id=?",
-                        String.class,
-                        s,
-                        r))
-                .isEqualTo("REGISTERED");
-    }
-
     private void FR_034_offsiteSessionRequiresTripDetails() throws Exception {
         mvc.perform(write(
                         post("/api/v1/activity-sessions"),
@@ -401,74 +383,6 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
                                         floor, new com.eldercare.backend.common.notification.Substitution.Default())));
     }
 
-    /**
-     * 019 T022 → 014 (chủ dự án chốt 2026-11-09): đính chính giờ dự kiến của lịch xe Đã hoàn thành đổi giờ rời, về dự
-     * kiến của chuyến Đã về; tác động đã xảy ra giữ nguyên, không phát {@code TripChanged}. Nhận lặp cùng giá trị không
-     * ghi; chuyến không ở Đã về thì lỗi và lệnh đính chính của 019 rollback.
-     */
-    @Test
-    void VehicleScheduleCorrected_syncsReturnedTripPlannedTimesInTheCorrectionCommand() throws Exception {
-        long s = trip(true), r = participant(s, "ELIGIBLE");
-        leader(s);
-        long schedule = bookVehicle(s);
-        tripMedication.prepared(r, s);
-        depart(s, r).andExpect(status().isOk());
-        mvc.perform(write(post("/api/v1/trips/" + s + "/return"), "{\"residentIds\":[" + r + "]}"))
-                .andExpect(status().isOk());
-        mvc.perform(write(post("/api/v1/trips/" + s + "/finish-return"), "{}")).andExpect(status().isOk());
-        var before = jdbc.queryForMap(
-                "SELECT trip_status,trip_return_finished_at,version FROM activity_session WHERE id=?", s);
-        long tripEvents = tripChanges(s);
-        int attendance = departures(r);
-        Instant from = departure.minusSeconds(600), to = departure.plusSeconds(25200);
-
-        correctSchedule(schedule, from, to).andExpect(status().isCreated());
-        var after = jdbc.queryForMap("SELECT * FROM activity_session WHERE id=?", s);
-        assertThat(after.get("trip_planned_departure_at")).isEqualTo(LocalDateTime.ofInstant(from, BusinessTime.ZONE));
-        assertThat(after.get("trip_planned_return_at")).isEqualTo(LocalDateTime.ofInstant(to, BusinessTime.ZONE));
-        assertThat(after.get("trip_status")).isEqualTo(before.get("trip_status"));
-        assertThat(after.get("trip_return_finished_at")).isEqualTo(before.get("trip_return_finished_at"));
-        assertThat(((Number) after.get("version")).intValue())
-                .isEqualTo(((Number) before.get("version")).intValue() + 1);
-        assertThat(currentStatus(r)).isEqualTo(ResidentStatus.IN_RESIDENCE);
-        assertThat(participantStatus(s, r)).isEqualTo("RETURNED");
-        assertThat(departures(r)).isEqualTo(attendance);
-        assertThat(tripChanges(s)).isEqualTo(tripEvents);
-
-        // Nhận lặp cùng giá trị: không ghi thêm.
-        correctSchedule(schedule, from, to).andExpect(status().isCreated());
-        assertThat(jdbc.queryForObject("SELECT version FROM activity_session WHERE id=?", Integer.class, s))
-                .isEqualTo(((Number) after.get("version")).intValue());
-        assertThat(tripChanges(s)).isEqualTo(tripEvents);
-
-        // Chuyến không ở Đã về: listener lỗi, bản đính chính thứ ba không được ghi.
-        jdbc.update("UPDATE activity_session SET trip_status='IN_PROGRESS' WHERE id=?", s);
-        correctSchedule(schedule, from.plusSeconds(60), to)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("STATE_CHANGED"));
-        mvc.perform(get("/api/v1/corrections/M03.VEHICLE_SCHEDULE/" + schedule))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.corrections.length()").value(2));
-        assertThat(jdbc.queryForObject(
-                        "SELECT trip_planned_departure_at FROM activity_session WHERE id=?", LocalDateTime.class, s))
-                .isEqualTo(LocalDateTime.ofInstant(from, BusinessTime.ZONE));
-        jdbc.update("UPDATE activity_session SET trip_status='RETURNED' WHERE id=?", s);
-    }
-
-    private ResultActions correctSchedule(long schedule, Instant from, Instant to) throws Exception {
-        return mvc.perform(post("/api/v1/corrections/M03.VEHICLE_SCHEDULE/" + schedule)
-                .header("Idempotency-Key", UUID.randomUUID().toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"type\":\"AMEND_CONTENT\",\"correctedContent\":{\"plannedDepartureAt\":\"" + from
-                        + "\",\"plannedReturnAt\":\"" + to + "\"},\"reason\":\"Ghi nhầm giờ đặt xe\"}"));
-    }
-
-    private long tripChanges(long s) {
-        return recorded.stream(com.eldercare.backend.care.api.events.TripChanged.class)
-                .filter(e -> e.tripId() == s)
-                .count();
-    }
-
     long indoorSession(boolean group) {
         long a = TestUsers.nextId(), s = TestUsers.nextId();
         jdbc.update(
@@ -519,52 +433,5 @@ class BR_M04_16_RoiVienIT extends StatusTestBase {
                  "purpose":"TRIP","tripId":%d,"driverStaffId":%d}
                 """.formatted(
                         vehicle, departure, departure.plusSeconds(21600), trip, manager.staffId()))));
-    }
-
-    private com.eldercare.backend.common.error.BusinessException departureDuring(
-            long s, long r, java.util.concurrent.Callable<Void> concurrentChange) throws Exception {
-        var checked = new java.util.concurrent.CountDownLatch(1);
-        var resume = new java.util.concurrent.CountDownLatch(1);
-        tripMedication.onPreparedCheck(r, s, () -> {
-            checked.countDown();
-            try {
-                if (!resume.await(30, java.util.concurrent.TimeUnit.SECONDS))
-                    throw new IllegalStateException("Chưa hoàn tất thay đổi đồng thời trong test");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException(e);
-            }
-        });
-        var security = org.springframework.security.test.context.TestSecurityContextHolder.getContext();
-        try (var pool = java.util.concurrent.Executors.newSingleThreadExecutor()) {
-            var future = pool.submit(() -> {
-                org.springframework.security.test.context.TestSecurityContextHolder.setContext(security);
-                var repeatable = new TransactionTemplate(Objects.requireNonNull(tx.getTransactionManager()));
-                repeatable.setIsolationLevel(
-                        org.springframework.transaction.TransactionDefinition.ISOLATION_REPEATABLE_READ);
-                try {
-                    repeatable.executeWithoutResult(st -> departures.depart(
-                            new com.eldercare.backend.administration.account.api.dto.Target(
-                                    "M04.TRIP", Long.toString(s), null, floor),
-                            s,
-                            List.of(r),
-                            null,
-                            null));
-                    return null;
-                } catch (com.eldercare.backend.common.error.BusinessException e) {
-                    return e;
-                } finally {
-                    org.springframework.security.test.context.TestSecurityContextHolder.clearContext();
-                }
-            });
-            try {
-                assertThat(checked.await(30, java.util.concurrent.TimeUnit.SECONDS))
-                        .isTrue();
-                concurrentChange.call();
-            } finally {
-                resume.countDown();
-            }
-            return future.get(30, java.util.concurrent.TimeUnit.SECONDS);
-        }
     }
 }

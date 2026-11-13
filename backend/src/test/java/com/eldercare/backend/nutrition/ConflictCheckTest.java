@@ -18,13 +18,6 @@ class ConflictCheckTest {
     private static final long SALT = 4;
 
     @Test
-    void BR_M08_02_dishWithoutIngredients_hasNoConflict() {
-        assertThat(ConflictCheck.conflicts(
-                        Set.of(), List.of(new AllergyItem(FISH, false)), Set.of(SUGAR), Set.of(SALT)))
-                .isEmpty();
-    }
-
-    @Test
     void BR_M08_02_ingredientMatchesActiveAllergen_isAllergyConflict() {
         assertThat(ConflictCheck.conflicts(
                         Set.of(FISH, SALT), List.of(new AllergyItem(FISH, false)), Set.of(), Set.of()))

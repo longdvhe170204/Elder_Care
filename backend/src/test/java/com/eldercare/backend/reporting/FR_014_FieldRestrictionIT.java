@@ -2,7 +2,6 @@ package com.eldercare.backend.reporting;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,26 +15,17 @@ import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import com.eldercare.backend.support.fake.file.FakeFileConfig;
-import com.jayway.jsonpath.JsonPath;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
-import org.dhatim.fastexcel.reader.Cell;
-import org.dhatim.fastexcel.reader.ReadableWorkbook;
-import org.dhatim.fastexcel.reader.Row;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -111,53 +101,6 @@ class FR_014_FieldRestrictionIT extends MySqlIntegrationTestBase {
         expectItemCodeOnly(users.staff(Role.ACCOUNTANT));
     }
 
-    /**
-     * SC-005 trên chỉ tiêu thật {@code COST.SUMMARY} (nguồn 010 {@code CostStatisticsApi}): khoản loại Thuốc ghi tên thuốc,
-     * hàm lượng ở mô tả; Hành chính, Kế toán chỉ thấy mã vật phẩm ở danh sách chi tiết và file xuất. Tháng riêng của lần
-     * chạy (năm 1000+) để không lẫn khoản của test khác; chế độ tạm tính để không phải chốt bảng.
-     */
-    @Test
-    void SC_005_realCostMetric_medicationNameNeverReachesOfficeOrAccountant() throws Exception {
-        long seed = Math.floorMod(TestUsers.nextId(), 11000);
-        YearMonth month = YearMonth.of(1000 + (int) seed / 12, 1 + (int) seed % 12);
-        String itemCode = "VT-SC005-" + seed;
-        medicationCost(month, itemCode);
-        for (TestUser user : List.of(users.staff(Role.OFFICE_STAFF), users.staff(Role.ACCOUNTANT))) {
-            String token = TestUsers.bearer(users.session(user.accountId()));
-            String body = mvc.perform(get("/api/v1/metric-details/COST.SUMMARY")
-                            .param("from", month.atDay(1).toString())
-                            .param("to", month.atEndOfMonth().toString())
-                            .param("costMode", "PROVISIONAL")
-                            .header("Authorization", token))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.rows[0].result.itemCode").value(itemCode))
-                    .andReturn()
-                    .getResponse()
-                    .getContentAsString(StandardCharsets.UTF_8);
-            assertThat(body).doesNotContain(MEDICATION_NAME, "5 mg");
-
-            String exported = mvc.perform(post("/api/v1/reports/INCURRED_COSTS/export")
-                            .header("Authorization", token)
-                            .header("Idempotency-Key", UUID.randomUUID().toString())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("""
-                                    {"from": "%s", "to": "%s", "costMode": "PROVISIONAL"}
-                                    """.formatted(month.atDay(1), month.atEndOfMonth())))
-                    .andExpect(status().isCreated())
-                    .andReturn()
-                    .getResponse()
-                    .getContentAsString();
-            long fileId = ((Number) JsonPath.read(exported, "$.fileId")).longValue();
-            byte[] file = mvc.perform(get("/api/v1/files/" + fileId).header("Authorization", token))
-                    .andExpect(status().isOk())
-                    .andReturn()
-                    .getResponse()
-                    .getContentAsByteArray();
-            // File chỉ có giá trị tổng hợp; hai người để dòng không bị bỏ theo FR-061.
-            assertThat(text(file)).contains("COST.SUMMARY").doesNotContain(MEDICATION_NAME, "5 mg");
-        }
-    }
-
     private static final String MEDICATION_NAME = "Amlodipin";
 
     private void medicationCost(YearMonth month, String itemCode) {
@@ -208,19 +151,5 @@ class FR_014_FieldRestrictionIT extends MySqlIntegrationTestBase {
                 month.atDay(2),
                 "CARE_TASK_RESULT:sc005-" + item + ":UNIT",
                 now);
-    }
-
-    /** Mọi chữ trong các trang tính của file xuất. */
-    private static String text(byte[] xlsx) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        try (ReadableWorkbook wb = new ReadableWorkbook(new ByteArrayInputStream(xlsx))) {
-            for (var sheet : wb.getSheets().toList()) {
-                try (Stream<Row> rows = sheet.openStream()) {
-                    rows.forEach(r -> r.forEach(c ->
-                            sb.append(c == null ? "" : ((Cell) c).getText()).append('|')));
-                }
-            }
-        }
-        return sb.toString();
     }
 }

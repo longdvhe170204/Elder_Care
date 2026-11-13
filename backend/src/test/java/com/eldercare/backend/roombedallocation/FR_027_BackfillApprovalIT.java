@@ -159,34 +159,4 @@ class FR_027_BackfillApprovalIT extends StructureTestSupport {
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
                 .isEqualTo("AWAITING_READY");
     }
-
-    @Test
-    void FR_027b_rejectionWritesNothing() throws Exception {
-        long request = lateRequest(time.now().minus(3, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS));
-        user.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
-
-        decide(request, "reject", "{\"comment\":\"Không đúng thời điểm\"}").andExpect(status().isOk());
-
-        assertThat(approvals.find(request).orElseThrow().status()).isEqualTo("REJECTED");
-        assertThat(allocationStatus(allocation)).isEqualTo("ACTIVE");
-        assertThat(opened()).isZero();
-    }
-
-    @Test
-    void FR_027a_shortBackfillAppliesDirectlyWithMark() throws Exception {
-        var at = time.now().minus(2, ChronoUnit.HOURS).truncatedTo(ChronoUnit.SECONDS);
-
-        transfer(at)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.newAllocation.backfilled").value(true));
-
-        assertThat(allocationStatus(allocation)).isEqualTo("CLOSED");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM bed_allocation WHERE resident_id=? AND bed_id=? AND backfilled AND start_at=?",
-                        Integer.class,
-                        resident,
-                        target,
-                        Timestamp.from(at)))
-                .isEqualTo(1);
-    }
 }

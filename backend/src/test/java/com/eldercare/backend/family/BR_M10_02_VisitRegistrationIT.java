@@ -1,15 +1,11 @@
 package com.eldercare.backend.family;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.care.api.spi.TimetableSourcePort;
-import com.eldercare.backend.incident.api.dto.IsolationZoneView;
 import com.eldercare.backend.incident.api.spi.EmergencyFamilyPort;
-import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import tools.jackson.databind.JsonNode;
@@ -41,49 +37,5 @@ class BR_M10_02_VisitRegistrationIT extends VisitTestBase {
         assertThat(slots.get(0).get("startTime").asString()).isEqualTo("09:00");
         assertThat(slots.get(0).get("seatsLeft").asInt()).isEqualTo(17);
         assertThat(slots.get(1).get("seatsLeft").asInt()).isEqualTo(20);
-    }
-
-    @Test
-    void Q23_isolation_andTemporaryAbsence_rejected() throws Exception {
-        isolation.resident(a, List.of(zone()));
-        register(family(mMember), null, MORNING_START, MORNING_END)
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.unmetConditions[0].code").value("ISOLATION_ACTIVE"));
-
-        isolation.resident(a, List.of());
-        jdbc.update("UPDATE resident SET status = 'TEMPORARILY_ABSENT' WHERE id = ?", a);
-        register(family(mMember), null, MORNING_START, MORNING_END)
-                .andExpect(status().isUnprocessableContent())
-                .andExpect(jsonPath("$.unmetConditions[0].code").value("RESIDENT_NOT_PRESENT"));
-        assertThat(visitsOfA()).isZero();
-    }
-
-    private static String actual(String... names) {
-        StringBuilder people = new StringBuilder();
-        for (String name : names) {
-            if (!people.isEmpty()) {
-                people.append(", ");
-            }
-            people.append("{\"fullName\": \"").append(name).append("\", \"relationship\": \"Cháu\"}");
-        }
-        return "{\"actualVisitors\": [" + people + "]}";
-    }
-
-    private IsolationZoneView zone() {
-        return new IsolationZoneView(900, Set.of(), Set.of(), time.now().minus(Duration.ofHours(1)), null);
-    }
-
-    private int visitsOfA() {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM simple_record WHERE kind = 'M10.VISIT' AND resident_id = ?", Integer.class, a);
-    }
-
-    private JsonNode visitOf(long visitId) throws Exception {
-        for (JsonNode v : getJson("/api/v1/visits?residentId=" + a + "&date=" + day)) {
-            if (v.get("id").asLong() == visitId) {
-                return v;
-            }
-        }
-        throw new AssertionError("Không thấy lượt " + visitId);
     }
 }

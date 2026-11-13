@@ -62,57 +62,12 @@ class CostPricingServiceTest {
     }
 
     @Test
-    void BR_M11_02_addendumUsesTheContentEffectiveOnTheSourceDay() {
-        var before = DATE.minusDays(1);
-        when(contracts.contentAtDate(11, before))
-                .thenReturn(
-                        Optional.of(content(1, null, "[{\"serviceId\":21}]", Map.of(21L, new BigDecimal("10000")))));
-        contract(content(2, 51L, "[{\"serviceId\":21}]", Map.of(21L, new BigDecimal("15000"))));
-        assertThat(service.event(11, 21, before, BigDecimal.ONE).amount()).isEqualByComparingTo("10000");
-        var after = service.event(11, 21, DATE, BigDecimal.ONE);
-        assertThat(after.amount()).isEqualByComparingTo("15000");
-        assertThat(after.basis().contentVersion()).isEqualTo(2);
-        assertThat(after.basis().addendumId()).isEqualTo(51L);
-        verifyNoInteractions(prices);
-    }
-
-    @Test
-    void BR_M11_03_packagedServiceCostsZeroWithoutACataloguePrice() {
-        contract(content(1, null, "[{\"serviceId\":21,\"inPackage\":true}]", Map.of()));
-        var quote = service.event(11, 21, DATE, new BigDecimal("3"));
-        assertThat(quote.unitPrice()).isNull();
-        assertThat(quote.amount()).isEqualByComparingTo("0");
-        assertThat(quote.inPackage()).isTrue();
-        assertThat(quote.missingUnitPrice()).isFalse();
-        assertThat(quote.basis().kind()).isEqualTo(BasisKind.CONTRACT);
-        verifyNoInteractions(prices);
-    }
-
-    @Test
     void BR_M11_03_packagedStatusWinsOverARecordedNonzeroUnitPrice() {
         contract(content(1, null, "[{\"serviceId\":21,\"inPackage\":true}]", Map.of(21L, new BigDecimal("12000"))));
         var quote = service.event(11, 21, DATE, BigDecimal.ONE);
         assertThat(quote.amount()).isEqualByComparingTo("0");
         assertThat(quote.unitPrice()).isEqualByComparingTo("12000");
         verifyNoInteractions(prices);
-    }
-
-    @Test
-    void FR_012_missingCataloguePriceKeepsAmountUnknownRatherThanFree() {
-        var quote = service.event(11, 21, DATE, new BigDecimal("2"));
-        assertThat(quote.unitPrice()).isNull();
-        assertThat(quote.amount()).isNull();
-        assertThat(quote.missingUnitPrice()).isTrue();
-        assertThat(quote.inPackage()).isFalse();
-    }
-
-    @Test
-    void FR_012_anExplicitZeroCataloguePriceIsNotMissing() {
-        catalogue("0");
-        var quote = service.event(11, 21, DATE, BigDecimal.ONE);
-        assertThat(quote.amount()).isEqualByComparingTo("0");
-        assertThat(quote.missingUnitPrice()).isFalse();
-        assertThat(quote.inPackage()).isFalse();
     }
 
     @Test

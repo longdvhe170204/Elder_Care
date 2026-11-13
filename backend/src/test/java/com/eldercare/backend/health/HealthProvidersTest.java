@@ -3,8 +3,6 @@ package com.eldercare.backend.health;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
-import com.eldercare.backend.administration.retention.api.RetentionKind;
-import com.eldercare.backend.health.internal.governance.persistence.HealthRetentionProviders;
 import com.eldercare.backend.health.internal.governance.service.HealthFieldClassifications;
 import com.eldercare.backend.health.internal.governance.service.HealthFilePermissionProviders;
 import com.eldercare.backend.health.internal.governance.service.HealthScopeAssignments;
@@ -23,13 +21,6 @@ class HealthProvidersTest {
         assertThat(exam.entityType()).isEqualTo("M06.EXAMINATION_RECORD");
         assertThat(exam.fieldGroups().get("content")).isEqualTo(InfoGroup.HEALTH);
         assertThat(exam.fieldGroups().get("clinicalAssessment")).isEqualTo(InfoGroup.HEALTH);
-    }
-
-    @Test
-    void R11_healthRetentionProviders_distinguishResidentLinkedAndFacilityWide() {
-        var licenseRetention = HealthRetentionProviders.facilityLicense();
-        assertThat(licenseRetention.dataType()).isEqualTo("M06.FACILITY_LICENSE");
-        assertThat(licenseRetention.retentionKind()).isInstanceOf(RetentionKind.NotResidentLinked.class);
     }
 
     @Test

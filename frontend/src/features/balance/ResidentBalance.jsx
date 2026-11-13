@@ -73,7 +73,7 @@ export function ResidentBalance({ residentId, fullName }) {
   const balance = state.balance
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="type-section">Số dư của {fullName}</h2>
+      <h2 className="type-title">Số dư của {fullName}</h2>
       {notice && (
         <Alert role="status">
           <AlertDescription>{notice}</AlertDescription>
@@ -138,7 +138,7 @@ export function ResidentBalance({ residentId, fullName }) {
       {state.status === 'ready' && (
         <Card>
           <CardContent className="flex flex-col gap-3">
-            <h3 className="type-section">Giao dịch</h3>
+            <h3 className="type-title">Giao dịch</h3>
             {state.transactions.length === 0 ? (
               <Empty>
                 <EmptyHeader>
@@ -191,7 +191,7 @@ export function ResidentBalance({ residentId, fullName }) {
       {can('SETTLEMENT_RECORD', 'VIEW') && (
         <Card>
           <CardContent className="flex flex-col gap-3">
-            <h3 className="type-section">Quyết toán</h3>
+            <h3 className="type-title">Quyết toán</h3>
             <SettlementPanel residentId={residentId} />
           </CardContent>
         </Card>
@@ -199,7 +199,7 @@ export function ResidentBalance({ residentId, fullName }) {
       {can('PAYMENT_NOTICE', 'VIEW') && (
         <Card>
           <CardContent className="flex flex-col gap-3">
-            <h3 className="type-section">Phiếu báo phí đã phát hành</h3>
+            <h3 className="type-title">Phiếu báo phí đã phát hành</h3>
             <ResidentNotices residentId={residentId} />
           </CardContent>
         </Card>

@@ -65,7 +65,7 @@ export function StaffImportPanel({ onDone }) {
   return (
     <section className="flex min-w-0 flex-col gap-4 rounded-2xl border bg-card p-4 md:p-5 [&_button]:min-h-11 [&_input]:min-h-11">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="type-section">Import hồ sơ nhân viên</h2>
+        <h2 className="type-title">Import hồ sơ nhân viên</h2>
         <Button variant="outline" disabled={busy} onClick={download}>
           Tải file mẫu
         </Button>

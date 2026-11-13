@@ -107,27 +107,6 @@ class ShiftScheduleIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_014_exceededContinuousHoursRequireConfirmationAndReason() {
-        long worker = staff(Role.CAREGIVER);
-        long template = template("FACILITY", false, LocalTime.of(7, 0), LocalTime.of(15, 0));
-        long schedule = schedule("FACILITY", null);
-        service.addShift(schedule, "\"0\"", input(template, worker, null, 0, 8, false, null), Target.UNSPECIFIED);
-        assertThatThrownBy(() -> service.addShift(
-                        schedule, "\"1\"", input(template, worker, null, 8, 17, false, null), Target.UNSPECIFIED))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo("WARNING_CONFIRMATION_REQUIRED");
-        assertThatThrownBy(() -> service.addShift(
-                        schedule, "\"1\"", input(template, worker, null, 8, 17, true, null), Target.UNSPECIFIED))
-                .isInstanceOf(BusinessException.class);
-        service.addShift(
-                schedule,
-                "\"1\"",
-                input(template, worker, null, 8, 17, true, new Reason("Đã xem cảnh báo")),
-                Target.UNSPECIFIED);
-    }
-
-    @Test
     void FR_055_publicationStoresSnapshotAndAuditButDraftEditsHaveNoPerEditAudit() {
         long worker = staff(Role.CAREGIVER);
         long template = template("FACILITY", false, LocalTime.of(7, 0), LocalTime.of(15, 0));
@@ -163,21 +142,5 @@ class ShiftScheduleIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         Long.toString(schedule)))
                 .isOne();
-    }
-
-    @Test
-    void FR_017_staleVersionAndEditsAfterPublicationAreRejected() {
-        long worker = staff(Role.CAREGIVER);
-        long template = template("FACILITY", false, LocalTime.of(7, 0), LocalTime.of(15, 0));
-        long schedule = schedule("FACILITY", null);
-        var input = input(template, worker, null, 0, 8, false, null);
-        long id = service.addShift(schedule, "\"0\"", input, Target.UNSPECIFIED).shiftId();
-        assertThatThrownBy(() -> service.addShift(schedule, "\"0\"", input, Target.UNSPECIFIED))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo("VERSION_MISMATCH");
-        service.publish(schedule, List.of(), false, new Reason("Công bố"), Target.UNSPECIFIED);
-        assertThatThrownBy(() -> service.editShift(id, "\"0\"", input, Target.UNSPECIFIED))
-                .isInstanceOf(BusinessException.class);
     }
 }

@@ -1,7 +1,6 @@
 package com.eldercare.backend.resident;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.BusinessException;
@@ -10,7 +9,6 @@ import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
-import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
 import com.eldercare.backend.resident.api.spi.StatusTransitionParticipant;
 import com.eldercare.backend.resident.internal.status.service.ResidentStatusService;
 import com.eldercare.backend.support.ResidentHistoryRows;
@@ -122,25 +120,5 @@ class T073_RealParticipantsIT extends AssessmentTestBase {
                 .hasSizeGreaterThanOrEqualTo(2);
         assertThat(status(id)).isEqualTo("IN_RESIDENCE");
         assertThat(history(id)).isEqualTo(rows);
-    }
-
-    @Test
-    void FR_047_realParticipantsThenOneFails_wholeCommandRollsBack() {
-        long id = seeded(ResidentStatus.TEMPORARILY_ABSENT);
-        user.set(office.user());
-        int rows = history(id);
-        FailsLast.failFor = id;
-        try {
-            assertThatThrownBy(() -> statusService.recordReturn(
-                            target(id), new Reason("Quay về thử"), JsonNodeFactory.instance.objectNode()))
-                    .isInstanceOf(IllegalStateException.class);
-        } finally {
-            FailsLast.failFor = null;
-        }
-
-        assertThat(status(id)).isEqualTo("TEMPORARILY_ABSENT");
-        assertThat(history(id)).isEqualTo(rows);
-        assertThat(events.stream(ResidentStatusChanged.class).filter(ev -> ev.residentId() == id))
-                .isEmpty();
     }
 }

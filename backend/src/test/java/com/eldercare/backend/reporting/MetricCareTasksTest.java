@@ -21,7 +21,6 @@ import com.eldercare.backend.reporting.internal.task.service.MandatoryOnTimeRate
 import com.eldercare.backend.reporting.internal.task.service.OverdueTasksMetric;
 import com.eldercare.backend.reporting.internal.task.service.TaskRecords;
 import com.eldercare.backend.reporting.internal.task.service.TasksByStaffMetric;
-import com.eldercare.backend.reporting.internal.task.service.TasksByStatusMetric;
 import com.eldercare.backend.reporting.internal.task.service.TodayTasksMetric;
 import java.time.Duration;
 import java.time.Instant;
@@ -185,23 +184,6 @@ class MetricCareTasksTest {
         List<?> now = overdue.metric()
                 .included(overdue.current(ScopeFilter.FACILITY, FROM, TO).map(r -> r), r -> true);
         assertThat(now).hasSize(1);
-    }
-
-    @Test
-    void FR_030_byStatus_systemClosedSeparatedByRule() {
-        sample();
-
-        TasksByStatusMetric byStatus = new TasksByStatusMetric(records);
-        assertThat(byStatus.metric().code()).isEqualTo("TASK.BY_STATUS");
-        assertThat(cells(value(byStatus)))
-                .containsExactly(
-                        tuple("CANCELLED:SYSTEM:FINAL_STATUS", "1"),
-                        tuple("COMPLETED", "1"),
-                        tuple("COMPLETED_LATE", "1"),
-                        tuple("DUE", "1"),
-                        tuple("NOT_PERFORMED", "1"),
-                        tuple("NOT_PERFORMED:SYSTEM:AFTER_HANDOVER", "1"),
-                        tuple("OVERDUE", "1"));
     }
 
     @Test

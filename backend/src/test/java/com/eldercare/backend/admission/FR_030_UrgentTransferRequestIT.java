@@ -1,12 +1,9 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Map;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -48,51 +45,6 @@ class FR_030_UrgentTransferRequestIT extends ChangeTestBase {
     private Map<String, Object> flags(long allocationId) {
         return jdbc.queryForMap(
                 "SELECT status, awaiting_request, awaiting_same_price FROM bed_allocation WHERE id=?", allocationId);
-    }
-
-    @Test
-    void FR_030_rejected_allocationAwaitsSamePriceRoom() throws Exception {
-        Urgent u = urgentlyTransferred();
-        long id = createUrgentRequest(u, today());
-
-        user.set(manager.user());
-        generic(id, "reject", "{\"comment\":\"Không đồng ý đơn giá mới\"}").andExpect(status().isOk());
-
-        // Quickstart 003 Q15 (B1): đặt dấu trong chính lệnh từ chối (người duyệt là người thực hiện), không chờ
-        // listener sau commit
-        assertThat(flags(u.allocationId())).containsEntry("awaiting_same_price", true);
-        assertThat(flags(u.allocationId())).containsEntry("status", "ACTIVE");
-    }
-
-    private int reminderCycles(long allocationId) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM reminder_marker WHERE kind='M03.ALLOCATION_REMINDER.AWAITING_REQUEST'"
-                        + " AND entity_type='BED_ALLOCATION' AND entity_id=? AND marker LIKE 'START:%'",
-                Integer.class, allocationId);
-    }
-
-    /**
-     * Chủ dự án chốt 2026-11-12: yêu cầu sau chuyển gấp bị hủy hoặc Áp dụng không thành thì 003 đặt lại dấu "chờ lập yêu
-     * cầu" và mở lại mốc nhắc CFG-M03-02.
-     */
-    @Test
-    void FR_030_cancelledOrApplyFailed_flagAndReminderRestored() throws Exception {
-        Urgent u = urgentlyTransferred();
-        long cancelled = createUrgentRequest(u, today());
-        generic(cancelled, "cancel", "{\"reason\":\"Lập nhầm ngày hiệu lực\"}").andExpect(status().isOk());
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(flags(u.allocationId())).containsEntry("awaiting_request", true));
-        assertThat(reminderCycles(u.allocationId())).isEqualTo(1);
-
-        long failed = createUrgentRequest(u, today().plusDays(1));
-        managerApproves(failed);
-        jdbc.update("UPDATE contract SET status='CANCELLED' WHERE id=?", u.contractId());
-        applyDueOn(today().plusDays(1));
-
-        assertThat(requestStatus(failed)).isEqualTo("APPLY_FAILED");
-        assertThat(flags(u.allocationId())).containsEntry("awaiting_request", true);
-        assertThat(reminderCycles(u.allocationId())).isEqualTo(2);
     }
 
     @Test

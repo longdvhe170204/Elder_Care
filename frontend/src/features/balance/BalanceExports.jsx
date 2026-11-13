@@ -96,7 +96,7 @@ export function BalanceExports() {
     <Card>
       <CardContent className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <h2 className="type-section">Người cao tuổi cho sao kê</h2>
+          <h2 className="type-title">Người cao tuổi cho sao kê</h2>
           <ResidentPicker
             onPick={(picked) =>
               setResidents((list) => (list.some((r) => r.residentId === picked.residentId) ? list : [...list, picked]))
@@ -150,7 +150,7 @@ export function BalanceExports() {
         </div>
         {exports.length > 0 && (
           <div className="flex flex-col gap-2">
-            <h2 className="type-section">Lần xuất trong phiên này</h2>
+            <h2 className="type-title">Lần xuất trong phiên này</h2>
             <Table>
               <TableHeader>
                 <TableRow>

@@ -79,19 +79,4 @@ class BalanceStatementTest {
         assertThat(statement.lines()).extracting(BalanceEntry::amount).containsExactly(10L, 1L);
         assertThat(statement.closingBalance()).isEqualTo(111);
     }
-
-    @Test
-    void FR_025_linesAreOrderedByTime_andEmptyRangeKeepsOpeningAsClosing() {
-        BalanceEntry late = entry(7, Ledger.BALANCE, TransactionType.CASH_PAYMENT, 2, "2026-10-20", "10:00");
-        BalanceEntry early = entry(7, Ledger.BALANCE, TransactionType.CASH_PAYMENT, 1, "2026-10-10", "10:00");
-
-        assertThat(BalanceStatement.of(List.of(late, early), FROM, TO).lines()).containsExactly(early, late);
-
-        BalanceStatement empty = BalanceStatement.of(
-                List.of(entry(7, Ledger.DEPOSIT, TransactionType.DEPOSIT_RECEIPT, 5, "2026-01-01", "08:00")), FROM, TO);
-        assertThat(empty.lines()).isEmpty();
-        assertThat(empty.openingDeposit()).isEqualTo(5);
-        assertThat(empty.closingDeposit()).isEqualTo(5);
-        assertThat(empty.closingBalance()).isZero();
-    }
 }

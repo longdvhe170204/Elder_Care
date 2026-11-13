@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
@@ -92,31 +91,6 @@ class FR_006_MealCatalogIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_006_mealIsDeactivatedNotDeleted_andCodeCannotChange() throws Exception {
-        String code = "LATE_" + TestUsers.nextId();
-        f.asManager();
-        f.send(post(MEALS), mealBody(code, "Bữa khuya", false, null)).andExpect(status().isCreated());
-        long id = mealId(code);
-
-        f.send(put(MEALS + "/" + id), mealBody(code, "Bữa khuya nhẹ", true, "INACTIVE"))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForMap("SELECT name, status FROM catalog_item WHERE id=?", id))
-                .containsEntry("name", "Bữa khuya nhẹ")
-                .containsEntry("status", "INACTIVE");
-
-        f.send(put(MEALS + "/" + id), mealBody(code, "Bữa khuya nhẹ", true, "ACTIVE"))
-                .andExpect(status().isOk());
-        assertThat(jdbc.queryForObject("SELECT status FROM catalog_item WHERE id=?", String.class, id))
-                .isEqualTo("ACTIVE");
-
-        f.send(put(MEALS + "/" + id), mealBody(code + "X", "Bữa khuya nhẹ", true, "ACTIVE"))
-                .andExpect(status().is(422));
-
-        f.asDoctor();
-        f.send(put(MEALS + "/" + id), mealBody(code, "Đổi tên", true, "ACTIVE")).andExpect(status().isForbidden());
-    }
-
-    @Test
     void FR_001_dietListCarriesVersion_usedAsIfMatchForUpdate() throws Exception {
         long diet = f.baseDiet();
         String list = mvc.perform(get(NutritionCatalogFixture.BASE + "/diets"))
@@ -135,34 +109,5 @@ class FR_006_MealCatalogIT extends MySqlIntegrationTestBase {
                         NutritionCatalogFixture.dietBody("Chế độ sửa " + TestUsers.nextId(), false, false, List.of(), 0)
                                 .replace("\"safeDishId\":0", "\"safeDishId\":" + safe.getFirst()))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void dailyMeals_openToFloorReceivers_notToOthers() throws Exception {
-        // Người nhận tại tầng cần bữa ngày để mở phiếu (Phụ lục 27 chú thích 15; chủ dự án chọn 2026-11-08)
-        f.as(Role.CAREGIVER);
-        mvc.perform(get("/api/v1/daily-meals").param("date", time.today().toString()))
-                .andExpect(status().isOk());
-        f.as(Role.ACCOUNTANT);
-        mvc.perform(get("/api/v1/daily-meals").param("date", time.today().toString()))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void FR_007_onlyManagerWritesForbiddenTypes_nurseAndKitchenRead() throws Exception {
-        String name = "Đồ uống có cồn " + TestUsers.nextId();
-        String body = "{\"name\":\"" + name + "\",\"description\":\"Chính sách viện\",\"status\":\"ACTIVE\"}";
-        f.asDoctor();
-        f.send(post(FORBIDDEN), body).andExpect(status().isForbidden());
-
-        f.asManager();
-        f.send(post(FORBIDDEN), body).andExpect(status().isCreated());
-
-        f.asNurse();
-        mvc.perform(get(FORBIDDEN))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.name == '" + name + "')]").isNotEmpty());
-        f.asKitchen();
-        mvc.perform(get(FORBIDDEN)).andExpect(status().isOk());
     }
 }

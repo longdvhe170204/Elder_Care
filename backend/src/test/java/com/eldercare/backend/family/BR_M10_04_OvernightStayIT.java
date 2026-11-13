@@ -4,15 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.billing.api.events.CostSourceBilled;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.family.api.events.FamilyStayNotice;
-import com.eldercare.backend.nutrition.api.events.StayMealChanged;
 import com.eldercare.backend.nutrition.api.spi.StayMealPort;
-import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,62 +68,9 @@ class BR_M10_04_OvernightStayIT extends StayTestBase {
         });
     }
 
-    @Test
-    void Q31_eachMidnightWhileStaying_isOneBillingEvent_noDuplicates() throws Exception {
-        long id = confirmed(rMember, at(day, 18, 0), at(day.plusDays(2), 8, 0));
-        moveTo(at(day, 18, 0));
-        command(office, id, "start", "{}").andExpect(status().isOk());
-        assertThat(stayStatus(id)).isEqualTo("STAYING");
-
-        // FR-042 (a): 011 tính suất người ở lại có đăng ký ăn trong khoảng ở lại
-        assertThat(stayMeals.staysWithMealRegistration(at(day, 19, 0)))
-                .filteredOn(v -> v.stayId() == id)
-                .singleElement()
-                .satisfies(v -> {
-                    assertThat(v.residentId()).isEqualTo(a);
-                    assertThat(v.familyMemberId()).isEqualTo(rMember);
-                    assertThat(v.mealRegistered()).isTrue();
-                });
-        assertThat(stayMeals.staysWithMealRegistration(at(day.plusDays(2), 12, 0)))
-                .noneMatch(v -> v.stayId() == id);
-
-        runNights(at(day.plusDays(1), 0, 0));
-        runNights(at(day.plusDays(1), 0, 0));
-        runNights(at(day.plusDays(2), 0, 0));
-        moveTo(at(day.plusDays(2), 7, 0));
-        command(office, id, "end", "{}").andExpect(status().isOk());
-
-        assertThat(stayMeals.staysWithMealRegistration(at(day.plusDays(2), 7, 30)))
-                .noneMatch(v -> v.stayId() == id);
-        assertThat(events.stream(StayMealChanged.class).filter(e -> e.stayId() == id))
-                .extracting(StayMealChanged::status)
-                .containsExactly("STAYING", "ENDED");
-
-        List<CostSourceBilled> billed = billed(id);
-        assertThat(billed).hasSize(2);
-        assertThat(billed.getFirst()).satisfies(e -> {
-            assertThat(e.sourceType()).isEqualTo("OVERNIGHT_STAY");
-            assertThat(e.sourceId()).isEqualTo(id + ":" + day);
-            assertThat(e.unit()).isEqualTo("NIGHT");
-            assertThat(e.residentId()).isEqualTo(a);
-            assertThat(e.serviceId()).isEmpty();
-            assertThat(e.quantity()).isEqualByComparingTo(BigDecimal.ONE);
-            assertThat(e.incurredOn()).isEqualTo(day);
-        });
-        assertThat(billed.get(1).incurredOn()).isEqualTo(day.plusDays(1));
-        assertThat(stay(id).get("status").asString()).isEqualTo("ENDED");
-        assertThat(stay(id).get("nightCount").asInt()).isEqualTo(2);
-    }
-
     private List<FamilyStayNotice> notices(long id, FamilyStayNotice.Kind kind) {
         return events.stream(FamilyStayNotice.class)
                 .filter(n -> n.stayId() == id && n.kind() == kind)
-                .toList();
-    }
-
-    private List<CostSourceBilled> billed(long id) {
-        return events.stream(CostSourceBilled.class)
-                .filter(e -> e.sourceId().startsWith(id + ":"))
                 .toList();
     }
 

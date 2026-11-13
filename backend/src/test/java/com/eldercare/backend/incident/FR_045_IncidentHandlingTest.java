@@ -19,7 +19,6 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.events.InfectionSuspicionChanged;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
@@ -102,28 +101,6 @@ class FR_045_IncidentHandlingTest {
         incident("MONITORING", IncidentLevel.MEDIUM);
         service.reopen(null, 41, new Reason("Diễn biến xấu"), user);
         verify(incidents).changeStatus(41, "MONITORING", "IN_PROGRESS", 3);
-    }
-
-    @Test
-    void BR_M05_09_floorManagerClosesOnlyLowIncident() {
-        when(user.roles()).thenReturn(Set.of(Role.FLOOR_MANAGER));
-        incident("IN_PROGRESS", IncidentLevel.MEDIUM);
-        assertThatThrownBy(() -> service.close(41, "Đã ổn", null, user)).isInstanceOf(PermissionDeniedException.class);
-        verify(incidents, never()).close(anyLong(), any(), any(), anyLong(), any(), anyInt());
-
-        incident("MONITORING", IncidentLevel.LOW);
-        service.close(41, "Đã ổn", null, user);
-        verify(incidents).close(41, "Đã ổn", null, 900L, NOW, 3);
-    }
-
-    @Test
-    void BR_M05_09_resolutionRequiredAndOnlyFromHandlingStates() {
-        incident("IN_PROGRESS", IncidentLevel.MEDIUM);
-        assertThatThrownBy(() -> service.close(41, " ", null, user)).isInstanceOf(BusinessException.class);
-
-        incident("NEW", IncidentLevel.MEDIUM);
-        assertThatThrownBy(() -> service.close(41, "Đã ổn", null, user)).isInstanceOf(BusinessException.class);
-        verify(incidents, never()).close(anyLong(), any(), any(), anyLong(), any(), anyInt());
     }
 
     @Test

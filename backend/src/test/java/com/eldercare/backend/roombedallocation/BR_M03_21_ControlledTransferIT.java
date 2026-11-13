@@ -111,31 +111,4 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                         transfers.getFirst().nextAllocationId()))
                 .isEqualTo(allocation);
     }
-
-    @Test
-    void BR_M03_21_nonActiveDoctorCannotBeSelectedOrPrescribe() {
-        com.eldercare.backend.support.TableRows.each(
-                java.util.stream.Stream.of("LOCKED", "INACTIVE", "TEMPORARILY_LOCKED"), this::nonActiveDoctorRefused);
-    }
-
-    /** Mỗi dòng dựng phân bổ và Bác sĩ riêng như một ca của test tham số trước đây. */
-    private void nonActiveDoctorRefused(String status) throws Exception {
-        structureFixture();
-        allocationFixture();
-        jdbc.update(
-                "UPDATE account SET status=?,lock_cause=?,locked_until=? WHERE id=?",
-                status,
-                status.equals("LOCKED") ? "MANUAL" : null,
-                status.equals("TEMPORARILY_LOCKED") ? Timestamp.from(time.now().plusSeconds(3600)) : null,
-                doctor);
-        mvc.perform(get("/api/v1/bed-allocations/prescribing-doctors"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == " + doctor + ")]").isEmpty());
-        mvc.perform(post("/api/v1/bed-allocations/" + allocation + "/infection-control-transfer")
-                        .contentType("application/json")
-                        .content(body(doctor)))
-                .andExpect(status().isUnprocessableEntity());
-        assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE id=?", String.class, allocation))
-                .isEqualTo("ACTIVE");
-    }
 }

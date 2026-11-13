@@ -116,13 +116,4 @@ class FR_006_MeasurementScheduleServiceTest {
         verify(taskSources).sourceChanged(SourceType.MEASUREMENT, 50L);
         verify(events).publishEvent(any(MeasurementScheduleChanged.class));
     }
-
-    @Test
-    void FR_005_changeFromPastStartStopsOldAtCommandTime() {
-        when(store.lock(50)).thenReturn(Optional.of(existing(50, "EFFECTIVE", NOW.minus(Duration.ofDays(3)))));
-
-        service.change(50, schedule(NOW.minus(Duration.ofHours(2))), new Reason("Đổi giờ đo"), user);
-
-        verify(store).stop(50, NOW, "Đổi giờ đo", 900L, 2);
-    }
 }

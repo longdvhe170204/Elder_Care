@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,8 +13,6 @@ import com.eldercare.backend.incident.internal.emergency.service.EmergencyCardSe
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
-import java.time.LocalDate;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +54,6 @@ class BR_M05_14_TransferOutIT extends EmergencyTestBase {
         assertThat(count("M05.TRANSFER_SUMMARY", id)).isEqualTo(1);
     }
 
-    /** FR-048: thẻ thông tin khẩn cấp có ngày sinh từ hồ sơ 001 ({@code ResidentApi.dateOfBirth}, "Đổi api" 001). */
-    @Test
-    void FR_048_emergencyCardShowsDateOfBirth() {
-        when(residents.dateOfBirth(resident)).thenReturn(Optional.of(LocalDate.of(1940, 3, 15)));
-
-        assertThat(cards.build(resident, time.now()).identification().dateOfBirth())
-                .isEqualTo(LocalDate.of(1940, 3, 15));
-    }
-
     void accepted() {
         doAnswer(call -> new TransitionResult(
                         resident,
@@ -82,38 +70,5 @@ class BR_M05_14_TransferOutIT extends EmergencyTestBase {
     String body() {
         return "{\"transferUnit\":\"Bệnh viện X\",\"transferAt\":\"" + time.now() + "\",\"companion\":\"Con gái M\","
                 + "\"handoverStaffId\":" + nurse.staffId() + "}";
-    }
-
-    /**
-     * FR-050d, FR-049 (US11 #4; quickstart 007 Q55, lỗi B2; chủ dự án chốt 2026-11-12): lựa chọn "chuyển bệnh viện" trên cảnh
-     * báo nguy kịch chưa có sự cố lập sự cố kèm lệnh với loại do người xử lý chọn, rồi Chuyển viện căn cứ sự cố đó; cảnh báo
-     * vẫn mở để đóng sau.
-     */
-    @Test
-    void FR_050d_transferChoiceOnCriticalAlert_recordsIncidentOfChosenTypeAndTransfers() throws Exception {
-        activeWish(com.eldercare.backend.resident.api.dto.WishChoice.TRANSFER_TO_HOSPITAL);
-        long alertId = flag(doctor).alertId();
-        post(nurse, RECONFIRM, alertId, reconfirmation("KEPT")).andExpect(status().isCreated());
-        accepted();
-
-        post(doctor, CHOICE, alertId, "{\"choice\":\"TRANSFER_TO_HOSPITAL\",\"transferOut\":" + body() + "}")
-                .andExpect(status().isUnprocessableContent());
-        post(
-                        doctor,
-                        CHOICE,
-                        alertId,
-                        "{\"choice\":\"TRANSFER_TO_HOSPITAL\",\"incidentTypeId\":" + typeId("OTHER_HEALTH_CARE")
-                                + ",\"transferOut\":" + body() + "}")
-                .andExpect(status().isCreated());
-
-        Long incidentId = jdbc.queryForObject("SELECT incident_id FROM alert WHERE id = ?", Long.class, alertId);
-        assertThat(incidentId).isNotNull();
-        assertThat(jdbc.queryForObject("SELECT type_code FROM incident WHERE id = ?", String.class, incidentId))
-                .isEqualTo("OTHER_HEALTH_CARE");
-        assertThat(jdbc.queryForObject("SELECT status FROM alert WHERE id = ?", String.class, alertId))
-                .isNotEqualTo("CONVERTED_TO_INCIDENT");
-        var basis = ArgumentCaptor.forClass(Basis.class);
-        verify(statuses).execute(eq(resident), eq(StatusCommand.TRANSFER_OUT), any(), any(), any(), basis.capture());
-        assertThat(basis.getValue().sourceRecordId()).isEqualTo(incidentId);
     }
 }

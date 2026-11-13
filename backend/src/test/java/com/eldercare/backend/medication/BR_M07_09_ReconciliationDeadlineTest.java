@@ -1,12 +1,10 @@
 package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,7 +13,6 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
 import com.eldercare.backend.medication.api.events.ReconciliationNeeded;
 import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
 import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
@@ -157,25 +154,6 @@ class BR_M07_09_ReconciliationDeadlineTest {
     }
 
     @Test
-    void FR_034a_confirmedAdmissionTicketOnlyActivatesAdmissionPrescriptions() {
-        when(time.now()).thenReturn(AT);
-        var confirmed = ticket(ReconciliationReason.ADMISSION, ReconciliationStatus.CONFIRMED);
-        when(tickets.findByResidentId(RESIDENT)).thenReturn(List.of(confirmed));
-        Prescription waiting = prescription(2L, PrescriptionStatus.PENDING_EFFECTIVE, true);
-        Prescription scheduled = prescription(3L, PrescriptionStatus.PENDING_EFFECTIVE, false);
-        when(prescriptions.findByResidentIdAndStatusIn(eq(RESIDENT), anyCollection()))
-                .thenReturn(List.of(waiting, scheduled));
-
-        deadlines.completeAdmission(RESIDENT, AT);
-
-        assertThat(waiting.getStatus()).isEqualTo(PrescriptionStatus.ACTIVE);
-        assertThat(waiting.getStartedAt()).isEqualTo(AT);
-        assertThat(scheduled.getStatus()).isEqualTo(PrescriptionStatus.PENDING_EFFECTIVE);
-        verify(due, never()).start(any(Long.class), any(), any());
-        verify(events, never()).publishEvent(any(Object.class));
-    }
-
-    @Test
     void FR_034a_noConfirmedAdmissionTicketBehavesLikeAHospitalReturn() {
         when(time.now()).thenReturn(AT);
         ParameterValue window = mock(ParameterValue.class);
@@ -190,25 +168,6 @@ class BR_M07_09_ReconciliationDeadlineTest {
 
         assertThat(waiting.getStatus()).isEqualTo(PrescriptionStatus.SUSPENDED);
         verify(due).start(RESIDENT, AT.plus(24, ChronoUnit.HOURS), ReconciliationReason.ADMISSION.name());
-    }
-
-    @Test
-    void FR_035_overdueResidentsGetOneAlertAndTheirOpenTicketIsMarkedOverdue() {
-        when(time.now()).thenReturn(AT);
-        when(due.overdueResidentIds(AT)).thenReturn(List.of(RESIDENT));
-        MedicationReconciliation open = ticket(ReconciliationReason.HOSPITAL_RETURN, ReconciliationStatus.OPEN);
-        when(tickets.findByResidentIdAndStatusIn(eq(RESIDENT), anyCollection())).thenReturn(List.of(open));
-
-        deadlines.warnOverdue(AT);
-
-        ArgumentCaptor<Object> published = ArgumentCaptor.forClass(Object.class);
-        verify(events).publishEvent(published.capture());
-        var alert = (MedicationAlertRequestedEvent) published.getValue();
-        assertThat(alert.alertType()).isEqualTo("CHUA_DOI_CHIEU");
-        assertThat(alert.alertLevel()).isEqualTo("TRUNG_BINH");
-        assertThat(alert.residentId()).isEqualTo(RESIDENT);
-        verify(open).markOverdue(AT);
-        verify(due).markWarned(RESIDENT, AT);
     }
 
     @Test

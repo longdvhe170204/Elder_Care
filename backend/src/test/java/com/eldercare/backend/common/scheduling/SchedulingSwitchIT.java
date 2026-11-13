@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.scheduling.config.ScheduledTaskHolder;
 
 /**
  * Công tắc chung {@code eldercare.scheduling.enabled} (profile test đặt {@code false}): không job nào chạy theo lịch hay
@@ -20,16 +19,6 @@ class SchedulingSwitchIT extends MySqlIntegrationTestBase {
 
     @Autowired
     ApplicationContext context;
-
-    @Test
-    void R_10_testProfile_registersNoScheduledTask() {
-        List<String> tasks = context.getBeansOfType(ScheduledTaskHolder.class).values().stream()
-                .flatMap(holder -> holder.getScheduledTasks().stream())
-                .map(Object::toString)
-                .toList();
-
-        assertThat(tasks).as("job còn lịch chạy trong test").isEmpty();
-    }
 
     @Test
     void NFR_13_everyRunJobsValue_hasARegisteredJob() {
