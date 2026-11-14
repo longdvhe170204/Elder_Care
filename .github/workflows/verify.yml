@@ -30,7 +30,7 @@ jobs:
       - run: npm run build
   backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     env:
       TZ: Asia/Ho_Chi_Minh
       TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/eldercare_test
@@ -38,6 +38,7 @@ jobs:
       TEST_DB_ADMIN_PASSWORD: ci-root
       DB_PASSWORD: ci-app
       DB_RETENTION_PASSWORD: ci-retention
+      JAVA_TOOL_OPTIONS: -Xmx2g
     defaults:
       run:
         working-directory: backend
@@ -57,6 +58,14 @@ jobs:
           done
       - name: Verify
         run: sh ./mvnw -B clean verify -Dit.forkCount=3
+      - name: Diagnostics
+        if: always()
+        run: |
+          free -m
+          df -h /
+          docker ps -a
+          docker logs --tail 40 mysql
+          docker exec mysql mysql -uroot -pci-root -e "SHOW FULL PROCESSLIST" || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
