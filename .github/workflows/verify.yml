@@ -38,7 +38,7 @@ jobs:
       TEST_DB_ADMIN_PASSWORD: ci-root
       DB_PASSWORD: ci-app
       DB_RETENTION_PASSWORD: ci-retention
-      JAVA_TOOL_OPTIONS: -Xmx2g
+      JAVA_TOOL_OPTIONS: -Xmx4g
     defaults:
       run:
         working-directory: backend
@@ -57,7 +57,7 @@ jobs:
             sleep 2
           done
       - name: Verify
-        run: sh ./mvnw -B clean verify -Dit.forkCount=3
+        run: sh ./mvnw -B clean verify -Dit.forkCount=2
       - name: Diagnostics
         if: always()
         run: |
