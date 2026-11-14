@@ -228,6 +228,7 @@ class US7_SettlementIT extends BalanceTestBase {
         residents.changeStatus(a, ResidentStatus.RESIDENCY_ENDED, time.now());
         clock.setTo(time.now().plus(Duration.ofHours(1)));
         cash(a, "BALANCE", 100_000);
+        registerOtherTestsResidents();
         afterFinal.remind();
         var remindedAt = jdbc.queryForObject(
                 "SELECT final_status_reminded_at FROM resident_balance WHERE resident_id = ?",
@@ -368,5 +369,16 @@ class US7_SettlementIT extends BalanceTestBase {
 
     private static long id(ResultActions result) throws Exception {
         return ((Number) JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.id")).longValue();
+    }
+
+    /** Job nhắc quét cả bảng resident_balance; schema test giữ dòng của lớp khác mà FakeResidents không biết. */
+    private void registerOtherTestsResidents() {
+        for (long id : jdbc.queryForList("SELECT resident_id FROM resident_balance", Long.class)) {
+            try {
+                residents.status(id);
+            } catch (IllegalArgumentException notSet) {
+                residents.resident(id, "[Hồ sơ của lớp test khác]", null, ResidentStatus.IN_RESIDENCE);
+            }
+        }
     }
 }
