@@ -83,7 +83,8 @@ Finding từ dữ liệu thật: Profile001 trả tên ở personalInfo.fullName
 
 - IAB mở `http://127.0.0.1:5173/`: `net::ERR_CONNECTION_TIMED_OUT`.
 - Chrome cục bộ: kiểm lại sau khi có dữ liệu thật; đọc được cửa sổ GitHub, nhưng lệnh mở thẻ kiểm thử bị Computer Use dừng vì không xác định đủ chắc URL để áp chính sách. Đã dừng và gửi completion_summary; không dùng công cụ khác để né chặn. Chưa mở/quan sát được web005 trên Chrome trong lượt này.
-- `flutter devices`: chỉ Windows, Chrome, Edge. `flutter emulators`: không có nguồn máy ảo. Không có Android/iOS được kết nối.
-- Vì vậy chưa kiểm trực tiếp ba bề rộng theo DESIGN, dark có dữ liệu, điều hướng app và mất mạng trên thiết bị. Widget test 200%/theme tối không thay thế các bước đó.
+- Lượt trước `flutter devices` chỉ thấy Windows/Chrome/Edge vì không dùng đúng Android SDK. Kiểm lại theo yêu cầu Pixel6Pro: cửa sổ Android Emulator - Pixel_6_Pro:5554 có thật; ADB tại E:/DevFlutter/SDK/platform-tools nhận emulator-5554; emulator -list-avds trả Pixel_6_Pro. Đặt ANDROID_HOME/ANDROID_SDK_ROOT=E:/DevFlutter/SDK riêng tiến trình thì Flutter thấy Android16/API36. Không còn kết luận máy không có Android/AVD.
+- Pixel: cua.getApp cửa sổ máy ảo trả “Computer Use app approval timed out”; chưa lấy được màn hình hoặc điều khiển app. Chạy flutter run -d emulator-5554 đã tới “Launching lib\main.dart ...” nhưng kết thúc mã -1073741571, chưa có APK/debug hoàn tất để xác nhận app đã cài. Doctor báo thiếu cmdline-tools, trạng thái SDK license chưa xác định (chưa khẳng định đây là nguyên nhân của mã thoát). Log 20261110-pixel-doctor.log và 20261110-pixel-run.log. Không tự chấp nhận SDK license, không sửa mã chung hoặc test để né chặn.
+- Chrome cửa sổ Thẻ mới: cua.getApp lại dừng vì không xác định đủ chắc URL để áp chính sách. Đã gửi completion_summary và dừng thao tác UI. Vì vậy chưa kiểm trực tiếp ba bề rộng theo DESIGN, dark có dữ liệu, điều hướng app và mất mạng trên Pixel. Widget test 200%/theme tối không thay thế các bước đó.
 
 Cả bốn checkbox giữ mở. Không ghi màn đã nghiệm thu hoặc phase hoàn thành.
