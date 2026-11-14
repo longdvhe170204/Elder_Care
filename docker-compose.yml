@@ -31,7 +31,7 @@ services:
       - backend-logs:/app/logs
 
   frontend:
-    build: ./frontend
+    build: ../Elder_Care_Frontend
     depends_on:
       - backend
     ports:

@@ -5,10 +5,6 @@
 
 # Build output
 backend/target/
-frontend/node_modules/
-frontend/dist/
-mobile/.dart_tool/
-mobile/build/
 
 # Biến môi trường có mật khẩu
 .env
