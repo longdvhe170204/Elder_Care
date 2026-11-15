@@ -138,6 +138,15 @@ public class StaffImportService {
     }
 
     private List<ExcelRow> read(String name, String mime, byte[] bytes) {
+        requireUploadShape(name, mime, bytes);
+        int limit = parameters.read(ParameterCode.CFG_M09_13).asInt();
+        checkArchive(bytes);
+        checkSheet(bytes, limit);
+        return ExcelDocument.read(bytes, HEADERS, limit);
+    }
+
+    /** Tên đuôi .xlsx, kiểu nội dung đúng, kích thước từ 1 byte tới 5 MB. */
+    private static void requireUploadShape(String name, String mime, byte[] bytes) {
         if (name == null
                 || name.length() > 255
                 || !name.toLowerCase(Locale.ROOT).endsWith(".xlsx")
@@ -145,8 +154,13 @@ public class StaffImportService {
                 || bytes == null
                 || bytes.length == 0
                 || bytes.length > 5 * 1024 * 1024) throw invalid();
-        int limit = parameters.read(ParameterCode.CFG_M09_13).asInt();
-        // Giới hạn kỹ thuật giải nén/ô, không phải giá trị nghiệp vụ; chặn file nén phình trước khi đọc workbook.
+    }
+
+    /**
+     * Giới hạn kỹ thuật giải nén/ô, không phải giá trị nghiệp vụ; chặn file nén phình trước khi đọc workbook: tối đa 1024
+     * mục, tổng giải nén 64 MB, không macro, có {@code [Content_Types].xml}.
+     */
+    private static void checkArchive(byte[] bytes) {
         try (var zip = ZipFile.builder()
                 .setSeekableByteChannel(new SeekableInMemoryByteChannel(bytes))
                 .get()) {
@@ -160,13 +174,7 @@ public class StaffImportService {
                 if (++entries > 1024 || entry.getName().contains("vbaProject") || !zip.canReadEntryData(entry))
                     throw invalid();
                 if (entry.getName().equals("[Content_Types].xml")) content = true;
-                try (var stream = zip.getInputStream(entry)) {
-                    int n;
-                    while ((n = stream.read(buffer)) != -1) {
-                        total += n;
-                        if (total > 64L * 1024 * 1024) throw invalid();
-                    }
-                }
+                total += uncompressedSize(zip, entry, buffer, total);
             }
             if (!content) throw invalid();
         } catch (IOException ex) {
@@ -174,6 +182,28 @@ public class StaffImportService {
             failure.initCause(ex);
             throw failure;
         }
+    }
+
+    /** Đọc hết một mục để đếm số byte giải nén; vượt 64 MB tính cả các mục trước ({@code before}) thì từ chối. */
+    private static long uncompressedSize(
+            ZipFile zip, org.apache.commons.compress.archivers.zip.ZipArchiveEntry entry, byte[] buffer, long before)
+            throws IOException {
+        long size = 0;
+        try (var stream = zip.getInputStream(entry)) {
+            int n;
+            while ((n = stream.read(buffer)) != -1) {
+                size += n;
+                if (before + size > 64L * 1024 * 1024) throw invalid();
+            }
+        }
+        return size;
+    }
+
+    /**
+     * Trang đầu tên "NhanVien", dòng tiêu đề đúng sáu cột của mẫu; số ô và số dòng có dữ liệu không vượt giới hạn
+     * (CFG-M09-13).
+     */
+    private static void checkSheet(byte[] bytes, int limit) {
         try (var workbook = new ReadableWorkbook(new ByteArrayInputStream(bytes));
                 var stream = workbook.getFirstSheet().openStream()) {
             if (!"NhanVien".equals(workbook.getFirstSheet().getName())) throw invalid();
@@ -194,7 +224,6 @@ public class StaffImportService {
         } catch (IOException | RuntimeException ex) {
             throw invalid();
         }
-        return ExcelDocument.read(bytes, HEADERS, limit);
     }
 
     private static BusinessException invalid() {
