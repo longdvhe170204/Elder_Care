@@ -1,0 +1,47 @@
+# Đẩy image backend lên GHCR sau khi verify xanh trên develop (hoặc main), để docker-compose.yml của kho Elder_Care
+# chạy được mà không cần JDK, Maven hay build từ mã. Bấm tay được bằng workflow_dispatch.
+name: publish
+
+on:
+  workflow_run:
+    workflows: [verify]
+    types: [completed]
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IMAGE: ghcr.io/longdvhe170204/elder_care_backend
+      BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ env.BRANCH }}
+            ${{ env.IMAGE }}:sha-${{ env.SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
