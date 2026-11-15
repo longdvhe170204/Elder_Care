@@ -9,12 +9,15 @@ import org.springframework.context.annotation.*;
 
 /** Nguồn giường/cảnh báo phân bổ dùng chung của 003. */
 public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, AllocationHandoverApi {
+    /** Giường Chờ sẵn sàng đặt cho fixture. */
+    public record AwaitingBed(long bedId, long roomId, String description, Instant awaitingSince) {}
+
     private final Map<Long, BedStateOnDate> snapshots = new java.util.concurrent.ConcurrentHashMap<>();
-    private final Map<Long, List<AwaitingReadyBedView>> beds = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<Long, List<AwaitingBed>> beds = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<Long, List<AllocationHandoverView>> alerts = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<Long, String> states = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public void beds(long floor, List<AwaitingReadyBedView> values) {
+    public void beds(long floor, List<AwaitingBed> values) {
         beds.put(floor, List.copyOf(values));
         values.forEach(bed -> {
             state(new BedStateOnDate(
@@ -43,7 +46,7 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
         alerts.put(floor, List.copyOf(values));
     }
 
-    public List<AwaitingReadyBedView> awaitingReadinessOverdue(long floor, Instant at) {
+    public List<AwaitingBed> awaitingReadinessOverdue(long floor, Instant at) {
         return beds.getOrDefault(floor, List.of());
     }
 
