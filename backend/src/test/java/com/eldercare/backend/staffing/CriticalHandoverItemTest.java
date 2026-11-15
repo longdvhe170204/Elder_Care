@@ -13,7 +13,8 @@ class CriticalHandoverItemTest {
         TableRows.csv(
                 r -> assertThat(CriticalHandoverItem.requiresNote(r[0], r[1], r[2]))
                         .isEqualTo(Boolean.parseBoolean(r[3])),
-                "ALERT,OPEN,EMERGENCY,true",
+                "ALERT,OPEN,CRITICAL,true",
+                "INCIDENT,OPEN,CRITICAL,true",
                 "INCIDENT,OPEN,MEDIUM,true",
                 "ALERT,OPEN,LOW,false",
                 "DOSE,MISSED,,true",

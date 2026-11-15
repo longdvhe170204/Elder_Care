@@ -22,7 +22,7 @@ class HandoverEventSerializationTest {
     private void roundTrips(RecipientGroup group) {
         var at = Instant.parse("2035-04-01T08:00:00Z");
         var request = new NotificationRequest(
-                "008",
+                "M09",
                 "HANDOVER_PREPARED",
                 SourceGroup.OTHER,
                 new SourceRecord("M09.HANDOVER", "1"),

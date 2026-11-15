@@ -260,6 +260,20 @@ public class ShiftScheduleService {
         return store.staffRange(id.get(), begin, end, false);
     }
 
+    /** FR-060: chỉ phân công của chính người dùng trong ca; kết thúc sớm không hưởng biên CFG. */
+    @Transactional(readOnly = true)
+    public Instant ownShiftScopeEnd(WorkShift shift) {
+        var staffId = users.getObject().staffId();
+        if (staffId.isEmpty()) return null;
+        var margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
+        return assignments.getObject().history(staffId.get(), shift.startsAt(), shift.endsAt()).stream()
+                .filter(a -> Objects.equals(a.shiftId(), shift.id()))
+                .map(a -> a.scopeEndsAt() != null ? a.scopeEndsAt() : a.to() == null ? null : a.to().plus(margin))
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
+    }
+
     private boolean calendarReader() {
         return !Collections.disjoint(users.getObject().roles(), Set.of(Role.NURSING_HOME_MANAGER, Role.FLOOR_MANAGER));
     }
@@ -389,7 +403,7 @@ public class ShiftScheduleService {
                     .map(WorkShift::id)
                     .toList();
             requests.add(new NotificationRequest(
-                    "008",
+                    "M09",
                     "SCHEDULE_PUBLISHED",
                     SourceGroup.SCHEDULE_CHANGE,
                     new SourceRecord("M09.SCHEDULE", Long.toString(id)),

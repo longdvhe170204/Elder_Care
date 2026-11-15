@@ -262,11 +262,13 @@ class ShiftController {
 
     @GetMapping("/me/shifts")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    List<ShiftResponses.Shift> mine(
+    List<ShiftResponses.MyShift> mine(
             @RequestParam(required = false) LocalDate from, @RequestParam(required = false) LocalDate to) {
         LocalDate begin = from == null ? time.today() : from;
         LocalDate end = to == null ? begin.plusMonths(1) : to;
-        return schedules.ownShifts(begin, end).stream().map(this::body).toList();
+        return schedules.ownShifts(begin, end).stream()
+                .map(shift -> new ShiftResponses.MyShift(body(shift), schedules.ownShiftScopeEnd(shift)))
+                .toList();
     }
 
     @GetMapping("/on-duty-doctors")

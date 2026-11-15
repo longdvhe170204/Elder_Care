@@ -9,7 +9,7 @@ public final class CriticalHandoverItem {
     public static boolean requiresNote(String group, String status, String level) {
         return switch (group) {
             case "ALERT", "INCIDENT" ->
-                level != null && Set.of("EMERGENCY", "MEDIUM").contains(level);
+                level != null && Set.of("CRITICAL", "MEDIUM").contains(level);
             case "DOSE" -> status != null && Set.of("MISSED", "REFUSED").contains(status);
             case "TASK" -> "OVERDUE".equals(status) && "MANDATORY".equals(level);
             default -> false;

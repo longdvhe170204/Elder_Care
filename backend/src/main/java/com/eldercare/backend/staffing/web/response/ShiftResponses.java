@@ -109,6 +109,16 @@ public final class ShiftResponses {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public record Result(Long id, List<M09Warning> warnings) {}
 
+    @Schema(name = "MyShift")
+    public record MyShift(
+            @com.fasterxml.jackson.annotation.JsonUnwrapped Shift shift,
+
+            @Schema(
+                    types = {"string", "null"},
+                    format = "date-time",
+                    accessMode = Schema.AccessMode.READ_ONLY)
+            Instant scopeEndsAt) {}
+
     public record InvalidAssignment(long assignmentId, String reason) {}
 
     @Schema(name = "SchedulePublicationPreview")

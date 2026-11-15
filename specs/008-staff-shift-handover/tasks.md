@@ -269,3 +269,8 @@ US2 → US3 → US1 → US4 → US5 → US6; mỗi bước chạy `./mvnw verify
 - 008 không lập ca, lịch, phân công, bàn giao thay actor; không gợi ý người phụ trách ca (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M09-*)
 - Lệnh bàn giao chỉ trực tuyến; app chỉ xem ngoại tuyến
+
+## Phase 10: Khép các điểm còn thiếu sau rà 09/11/2026
+
+- [ ] T056 Sửa hồi quy FR-041/BR-M09-06: dùng mức `CRITICAL` từ nguồn 007 khi bắt ghi chú; chuẩn hóa `NotificationRequest.sourceModule` của 008 thành `M09` theo FR-058 và hợp đồng 009. Test đỏ trước sửa, kiểm lại bàn giao và bỏ ngoại lệ mã nguồn 008 trong `T037_SourceModulesEndToEndIT` theo yêu cầu A ở team-plan mục 8. Không đổi mã feature trong điều kiện lỗi.
+- [ ] T057 Cài phần máy chủ của T030/FR-060 theo `MyShift` đã duyệt 08/11: `GET /me/shifts` trả `scopeEndsAt` từ phân công của chính người dùng trong đúng ca, lấy mốc muộn nhất, không cộng CFG khi kết thúc sớm; rỗng khi không có phân công. Kiểm JSON phẳng, công thức CFG và hợp đồng API; gỡ đúng pending response đã được A giao trong team-plan mục 8. T030 tiếp tục mở cho sửa nội dung và lưu/xóa ngoại tuyến trên app.

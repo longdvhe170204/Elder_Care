@@ -16,7 +16,7 @@ public class HandoverNotifications {
             recipients.add(new RecipientGroup.Staff(receiver, "HANDOVER_CORRECTED"));
         recipients.add(new RecipientGroup.ShiftLead(shift.scopeId(), new Substitution.Default()));
         return List.of(new NotificationRequest(
-                "008",
+                "M09",
                 "HANDOVER_CORRECTED",
                 SourceGroup.OTHER,
                 new SourceRecord("M09.HANDOVER", Long.toString(id)),
@@ -76,7 +76,7 @@ public class HandoverNotifications {
     private NotificationRequest request(
             String event, long id, String type, Long floor, Instant at, String title, List<RecipientGroup> recipients) {
         return new NotificationRequest(
-                "008",
+                "M09",
                 event,
                 SourceGroup.OTHER,
                 new SourceRecord(type, Long.toString(id)),

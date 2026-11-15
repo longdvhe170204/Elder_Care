@@ -171,8 +171,7 @@ class T037_SourceModulesEndToEndIT extends M13IntegrationTestBase {
                 new Source("005", "M04", "M04.ACTIVITY_SESSION", sessionId),
                 new Source("006", "M07", "M09.SHIFT", nurseShift),
                 new Source("007", "M05", "M05.INCIDENT", incidentId),
-                // 008 hiện gửi moduleNguon "008" thay cho "M09" (team-plan mục 8, E): chỉ kiểm yêu cầu hợp lệ
-                new Source("008", null, "M09.SHIFT", leadShift));
+                new Source("008", "M09", "M09.SHIFT", leadShift));
         await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> assertThat(sources)
                         .as("mỗi feature một yêu cầu hợp lệ ở 009")

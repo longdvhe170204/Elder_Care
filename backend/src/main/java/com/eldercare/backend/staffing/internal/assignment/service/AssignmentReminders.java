@@ -126,7 +126,7 @@ public class AssignmentReminders implements M09TimedTask {
             List<RecipientGroup> recipients,
             Map<String, Object> details) {
         return new NotificationRequest(
-                "008",
+                "M09",
                 event,
                 SourceGroup.SCHEDULE_CHANGE,
                 source,

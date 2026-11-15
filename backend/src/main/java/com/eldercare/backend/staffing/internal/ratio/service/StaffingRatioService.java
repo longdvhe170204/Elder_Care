@@ -180,7 +180,7 @@ public class StaffingRatioService implements M09TimedTask {
         if (manager) recipients.add(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
         Instant at = time.now();
         var request = new NotificationRequest(
-                "008",
+                "M09",
                 "SHIFT_BELOW_STAFFING_THRESHOLD",
                 SourceGroup.OTHER,
                 new SourceRecord("M09.SHIFT", Long.toString(shift.id())),
