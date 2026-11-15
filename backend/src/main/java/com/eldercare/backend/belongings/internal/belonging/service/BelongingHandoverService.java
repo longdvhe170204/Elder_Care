@@ -387,68 +387,170 @@ public class BelongingHandoverService {
         var type = catalogs.require(BelongingCatalogs.BELONGING_TYPE, b.typeId());
         boolean valuable = valuableTypes.isValuable(type.name());
         long levelId = item.conditionLevelId() == null ? b.conditionLevelId() : item.conditionLevelId();
-        Integer order = null;
-        boolean unusable = false;
-        if (item.conditionLevelId() != null) {
-            var level = catalogs.requireActive(BelongingCatalogs.CONDITION_LEVEL, levelId);
-            order = level.sortOrder();
-            unusable = level.attributes().unusable();
+        ConditionChoice condition = condition(item);
+        HandoverCommandCheck.Current current = current(b);
+        Party giver = giver(ctx, command, b);
+        HandoverCheckResult check = checkItem(
+                ctx,
+                command,
+                item,
+                b,
+                current,
+                giver,
+                condition,
+                valuable,
+                type.attributes().requiresConsentForUse());
+        HandoverType kind = check.effectiveType();
+        boolean cash = b.cashAmount() != null;
+        BigDecimal currentAmount = cash ? b.cashAmount() : b.quantity();
+        BelongingSplit.Plan plan = splitPlan(currentAmount, item);
+        checkIncidentAndShortage(command, item, b, current, kind, plan);
+
+        ItemPlan p = new ItemPlan(
+                item,
+                b,
+                kind,
+                check.target(),
+                recordedGiver(ctx, command, b, kind, giver),
+                recipient(ctx, command, b, kind),
+                kind == HandoverType.RETURN && b.status() == BelongingStatus.IN_USE ? "Thu từ người cao tuổi" : null,
+                cash,
+                levelId,
+                valuable,
+                type.name());
+        BigDecimal originalAmount = plan.remaining().signum() > 0
+                ? plan.remaining()
+                : plan.moved().signum() > 0 ? plan.moved() : plan.missing();
+        if (plan.moved().signum() > 0) {
+            recordMoved(ctx, command, p, plan, currentAmount, created, touched);
         }
+        if (plan.missing().signum() > 0) {
+            recordMissing(ctx, command, p, plan, created, touched);
+        }
+        if (originalAmount.compareTo(currentAmount) != 0) {
+            belongings.setAmount(b.id(), cash ? null : originalAmount, cash ? originalAmount : null);
+        }
+        touched.add(b.id());
+    }
+
+    /** Mức tình trạng mới chọn ở dòng lệnh: thứ tự và dấu "không dùng được"; không chọn thì rỗng. */
+    private record ConditionChoice(Integer order, boolean unusable) {}
+
+    /** Người bàn giao hoặc người nhận: loại và mã. */
+    private record Party(GiverType type, Long id) {}
+
+    /** Người nhận và vị trí lưu giữ mới sau bàn giao. */
+    private record Recipient(GiverType type, Long id, Long location) {}
+
+    /** Một đồ đã qua kiểm tra, kèm mọi giá trị cần để ghi bản ghi bàn giao. */
+    private record ItemPlan(
+            HandoverCommand.Item item,
+            LockedBelonging b,
+            HandoverType kind,
+            BelongingStatus target,
+            Party giver,
+            Recipient recipient,
+            String moveNote,
+            boolean cash,
+            long levelId,
+            boolean valuable,
+            String typeName) {}
+
+    private ConditionChoice condition(HandoverCommand.Item item) {
+        if (item.conditionLevelId() == null) {
+            return new ConditionChoice(null, false);
+        }
+        var level = catalogs.requireActive(BelongingCatalogs.CONDITION_LEVEL, item.conditionLevelId());
+        return new ConditionChoice(level.sortOrder(), level.attributes().unusable());
+    }
+
+    private HandoverCommandCheck.Current current(LockedBelonging b) {
         int currentOrder = catalogs.require(BelongingCatalogs.CONDITION_LEVEL, b.conditionLevelId())
                 .sortOrder();
+        return new HandoverCommandCheck.Current(b.status(), b.holderType(), b.holderId(), b.version(), currentOrder);
+    }
 
+    /** Người bàn giao theo lệnh; không ghi thì là người đang giữ (người cao tuổi hoặc nhân viên thực hiện). */
+    private static Party giver(Context ctx, HandoverCommand command, LockedBelonging b) {
         GiverType giverType = command.giverType();
-        Long giverId = command.giverId();
         if (giverType == null) {
-            giverType = b.holderType() == HolderType.RESIDENT ? GiverType.RESIDENT : GiverType.STAFF;
-            giverId = b.holderType() == HolderType.RESIDENT ? ctx.residentId() : ctx.staffId();
-        } else if (giverType == GiverType.RESIDENT && giverId == null) {
-            giverId = ctx.residentId();
+            boolean resident = b.holderType() == HolderType.RESIDENT;
+            return new Party(
+                    resident ? GiverType.RESIDENT : GiverType.STAFF, resident ? ctx.residentId() : ctx.staffId());
         }
+        if (giverType == GiverType.RESIDENT && command.giverId() == null) {
+            return new Party(giverType, ctx.residentId());
+        }
+        return new Party(giverType, command.giverId());
+    }
+
+    /** Kiểm điều kiện của lệnh cho một đồ ({@link HandoverCommandCheck}); không đạt thì báo vi phạm. */
+    private HandoverCheckResult checkItem(
+            Context ctx,
+            HandoverCommand command,
+            HandoverCommand.Item item,
+            LockedBelonging b,
+            HandoverCommandCheck.Current current,
+            Party giver,
+            ConditionChoice condition,
+            boolean valuable,
+            boolean requiresConsent) {
         boolean absenceConfirmed = command.holderAbsent()
                 && b.holderType() == HolderType.STAFF
                 && (!shifts.onShift(b.holderId(), ctx.now())
                         || accounts.byStaff(b.holderId())
                                 .map(a -> a.status() != AccountStatus.ACTIVE)
                                 .orElse(true));
-        HandoverCommandCheck.Current current =
-                new HandoverCommandCheck.Current(b.status(), b.holderType(), b.holderId(), b.version(), currentOrder);
         HandoverCheckResult check = HandoverCommandCheck.check(
                 current,
                 HandoverCommandCheck.Request.builder(command.type(), item.version())
-                        .giver(giverType, giverId)
+                        .giver(giver.type(), giver.id())
                         .officeStaff(ctx.officeStaff())
                         .holderAbsent(command.holderAbsent(), absenceConfirmed)
                         .storageLocationId(command.storageLocationId())
                         .reason(command.reason())
-                        .conditionOrder(order)
-                        .unusableLevel(unusable)
+                        .conditionOrder(condition.order())
+                        .unusableLevel(condition.unusable())
                         .conditionHandling(command.conditionHandling())
                         .photoCount(item.photoFileIds().size())
                         .valuable(valuable)
-                        .requiresConsent(type.attributes().requiresConsentForUse())
+                        .requiresConsent(requiresConsent)
                         .hasEffectiveConsent(consents.hasEffective(b.id()))
                         .residentInFinalState(FINAL_STATES.contains(ctx.residentStatus()))
                         .build());
         if (!check.allowed()) {
             throw violation(b.id(), check.violations());
         }
-        HandoverType kind = check.effectiveType();
-        BelongingStatus target = check.target();
-        boolean cash = b.cashAmount() != null;
-        BigDecimal currentAmount = cash ? b.cashAmount() : b.quantity();
-        BelongingSplit.Plan plan;
+        return check;
+    }
+
+    private static BelongingSplit.Plan splitPlan(BigDecimal currentAmount, HandoverCommand.Item item) {
         try {
-            plan = BelongingSplit.plan(currentAmount, item.amount(), item.countedAmount());
+            return BelongingSplit.plan(currentAmount, item.amount(), item.countedAmount());
         } catch (IllegalArgumentException e) {
             throw invalid("INVALID_VALUE", e.getMessage());
         }
-        boolean carriesIncident = kind == HandoverType.REPORT_LOST || kind == HandoverType.RECORD_DAMAGE;
-        if (wantsIncident(item) && !carriesIncident && plan.missing().signum() == 0) {
+    }
+
+    private static boolean carriesIncident(HandoverType kind) {
+        return kind == HandoverType.REPORT_LOST || kind == HandoverType.RECORD_DAMAGE;
+    }
+
+    /**
+     * Sự cố chỉ đi kèm Báo thất lạc, Ghi hư hỏng hoặc phần đếm thiếu (FR-021); phần đếm thiếu phải thỏa điều kiện của Báo
+     * thất lạc (FR-013).
+     */
+    private static void checkIncidentAndShortage(
+            HandoverCommand command,
+            HandoverCommand.Item item,
+            LockedBelonging b,
+            HandoverCommandCheck.Current current,
+            HandoverType kind,
+            BelongingSplit.Plan plan) {
+        if (wantsIncident(item) && !carriesIncident(kind) && plan.missing().signum() == 0) {
             throw invalid("INVALID_VALUE", "Chỉ Báo thất lạc, Ghi hư hỏng mới ghi hoặc liên kết sự cố (FR-021)");
         }
         if (plan.missing().signum() > 0) {
-            // FR-013: phần đếm thiếu Báo thất lạc trong cùng lệnh, theo điều kiện của Báo thất lạc
             HandoverCheckResult lost = HandoverCommandCheck.check(
                     current,
                     HandoverCommandCheck.Request.builder(HandoverType.REPORT_LOST, item.version())
@@ -458,144 +560,153 @@ public class BelongingHandoverService {
                 throw violation(b.id(), lost.violations());
             }
         }
+    }
 
-        GiverType recipientType = null;
-        Long recipientId = null;
-        Long holderLocation = null;
-        switch (kind) {
-            case GIVE_FOR_USE -> {
-                recipientType = GiverType.RESIDENT;
-                recipientId = ctx.residentId();
-            }
-            case REPORT_LOST -> {}
-            case RETURN -> {
-                recipientType = ctx.returnInfo().recipientType();
-                recipientId = ctx.returnInfo().recipientId();
-            }
+    /** Người nhận và vị trí mới theo loại bàn giao; Chuyển giữ phải đổi người giữ hoặc vị trí (FR-011). */
+    private static Recipient recipient(Context ctx, HandoverCommand command, LockedBelonging b, HandoverType kind) {
+        return switch (kind) {
+            case GIVE_FOR_USE -> new Recipient(GiverType.RESIDENT, ctx.residentId(), null);
+            case REPORT_LOST -> new Recipient(null, null, null);
+            case RETURN ->
+                new Recipient(ctx.returnInfo().recipientType(), ctx.returnInfo().recipientId(), null);
             case TRANSFER_CUSTODY -> {
-                recipientType = GiverType.STAFF;
-                recipientId = command.recipientStaffId() != null
+                Long recipientId = command.recipientStaffId() != null
                         ? command.recipientStaffId()
                         : b.holderType() == HolderType.STAFF ? b.holderId() : ctx.staffId();
-                holderLocation = command.storageLocationId();
+                Long location = command.storageLocationId();
                 if (b.holderType() == HolderType.STAFF
                         && recipientId.equals(b.holderId())
-                        && Objects.equals(holderLocation, b.storageLocationId())) {
+                        && Objects.equals(location, b.storageLocationId())) {
                     throw invalid("INVALID_VALUE", "Chuyển giữ cần vị trí mới hoặc người giữ mới (FR-011)");
                 }
+                yield new Recipient(GiverType.STAFF, recipientId, location);
             }
-            default -> {
-                recipientType = GiverType.STAFF;
-                recipientId = command.recipientStaffId() != null ? command.recipientStaffId() : ctx.staffId();
-                holderLocation = command.storageLocationId();
-            }
-        }
-        GiverType recordedGiverType = giverType;
-        Long recordedGiverId = giverId;
-        if (command.holderAbsent()) {
-            recordedGiverType = GiverType.STAFF;
-            recordedGiverId = b.holderId();
-        } else if (kind == HandoverType.FOUND) {
-            recordedGiverType = null;
-            recordedGiverId = null;
-        }
-        String moveNote = null;
-        if (kind == HandoverType.RETURN && b.status() == BelongingStatus.IN_USE) {
-            // FR-018: Trả từ Đang được người cao tuổi sử dụng ghi người bàn giao là nhân viên thực hiện
-            recordedGiverType = GiverType.STAFF;
-            recordedGiverId = ctx.staffId();
-            moveNote = "Thu từ người cao tuổi";
-        }
-        Instant occurredAt =
-                kind == HandoverType.REPORT_LOST && command.discoveredAt() != null ? command.discoveredAt() : ctx.at();
+            default ->
+                new Recipient(
+                        GiverType.STAFF,
+                        command.recipientStaffId() != null ? command.recipientStaffId() : ctx.staffId(),
+                        command.storageLocationId());
+        };
+    }
 
-        BigDecimal originalAmount = plan.remaining().signum() > 0
-                ? plan.remaining()
-                : plan.moved().signum() > 0 ? plan.moved() : plan.missing();
-        if (plan.moved().signum() > 0) {
-            long movedId = plan.originalMoves()
-                    ? b.id()
-                    : split(ctx, b, plan.moved(), cash, target, recipientType, recipientId, holderLocation, levelId);
-            long record = record(
-                    ctx,
-                    b,
-                    movedId,
-                    kind,
-                    target,
-                    recordedGiverType,
-                    recordedGiverId,
-                    recipientType,
-                    recipientId,
-                    occurredAt,
-                    plan.moved(),
-                    cash,
-                    levelId,
-                    item.conditionDescription(),
-                    holderLocation,
-                    command.reason(),
-                    command.holderAbsent(),
-                    valuable,
-                    item.photoFileIds(),
-                    moveNote,
-                    created,
-                    touched);
-            if (carriesIncident) {
-                attachIncident(ctx, item, kind, record, occurredAt, command.reason());
-            }
-            if (kind == HandoverType.FOUND) {
-                reportFound(ctx, b, plan.moved(), currentAmount);
-            }
-            notices(ctx, kind, target, record, type.name());
-            if (command.holderAbsent()) {
-                events.publishEvent(BelongingNotices.notice(
-                        "BELONGING_HANDOVER_HOLDER_ABSENT",
-                        RECORD_TYPE,
-                        record,
-                        NotificationLevel.LOW,
-                        ctx.residentId(),
-                        List.of(new RecipientGroup.Staff(b.holderId(), "HOLDER")),
-                        type.name() + ": Hành chính đã bàn giao thay khi bạn vắng mặt",
-                        ctx.user().accountId(),
-                        ctx.now()));
-            }
+    /**
+     * Người bàn giao ghi vào bản ghi: người giữ vắng mặt thì là người giữ; Tìm thấy thì không có; Trả từ Đang được người cao
+     * tuổi sử dụng thì là nhân viên thực hiện (FR-018).
+     */
+    private static Party recordedGiver(
+            Context ctx, HandoverCommand command, LockedBelonging b, HandoverType kind, Party giver) {
+        if (kind == HandoverType.RETURN && b.status() == BelongingStatus.IN_USE) {
+            return new Party(GiverType.STAFF, ctx.staffId());
         }
-        if (plan.missing().signum() > 0) {
-            long lostId = plan.remaining().signum() == 0 && plan.moved().signum() == 0
-                    ? b.id()
-                    : split(ctx, b, plan.missing(), cash, BelongingStatus.LOST, null, null, null, levelId);
-            long record = record(
-                    ctx,
-                    b,
-                    lostId,
-                    HandoverType.REPORT_LOST,
-                    BelongingStatus.LOST,
-                    recordedGiverType,
-                    recordedGiverId,
-                    null,
-                    null,
-                    ctx.at(),
-                    plan.missing(),
-                    cash,
-                    levelId,
-                    item.conditionDescription(),
-                    null,
-                    command.reason(),
-                    command.holderAbsent(),
-                    valuable,
-                    List.of(),
-                    "Đếm thiếu khi bàn giao (FR-013)",
-                    created,
-                    touched);
-            if (!carriesIncident) {
-                // FR-024: phần thiếu của từng đồ liên kết sự cố riêng
-                attachIncident(ctx, item, HandoverType.REPORT_LOST, record, ctx.at(), command.reason());
-            }
-            notices(ctx, HandoverType.REPORT_LOST, BelongingStatus.LOST, record, type.name());
+        if (command.holderAbsent()) {
+            return new Party(GiverType.STAFF, b.holderId());
         }
-        if (originalAmount.compareTo(currentAmount) != 0) {
-            belongings.setAmount(b.id(), cash ? null : originalAmount, cash ? originalAmount : null);
+        if (kind == HandoverType.FOUND) {
+            return new Party(null, null);
         }
-        touched.add(b.id());
+        return giver;
+    }
+
+    /** Phần được bàn giao: tách đồ nếu cần, ghi bản ghi, sự cố, diễn biến Tìm thấy và thông báo (FR-012, FR-021, FR-025). */
+    private void recordMoved(
+            Context ctx,
+            HandoverCommand command,
+            ItemPlan p,
+            BelongingSplit.Plan plan,
+            BigDecimal currentAmount,
+            List<Created> created,
+            Set<Long> touched) {
+        LockedBelonging b = p.b();
+        Recipient to = p.recipient();
+        Instant occurredAt = p.kind() == HandoverType.REPORT_LOST && command.discoveredAt() != null
+                ? command.discoveredAt()
+                : ctx.at();
+        long movedId = plan.originalMoves()
+                ? b.id()
+                : split(ctx, b, plan.moved(), p.cash(), p.target(), to.type(), to.id(), to.location(), p.levelId());
+        long record = record(
+                ctx,
+                b,
+                movedId,
+                p.kind(),
+                p.target(),
+                p.giver().type(),
+                p.giver().id(),
+                to.type(),
+                to.id(),
+                occurredAt,
+                plan.moved(),
+                p.cash(),
+                p.levelId(),
+                p.item().conditionDescription(),
+                to.location(),
+                command.reason(),
+                command.holderAbsent(),
+                p.valuable(),
+                p.item().photoFileIds(),
+                p.moveNote(),
+                created,
+                touched);
+        if (carriesIncident(p.kind())) {
+            attachIncident(ctx, p.item(), p.kind(), record, occurredAt, command.reason());
+        }
+        if (p.kind() == HandoverType.FOUND) {
+            reportFound(ctx, b, plan.moved(), currentAmount);
+        }
+        notices(ctx, p.kind(), p.target(), record, p.typeName());
+        if (command.holderAbsent()) {
+            events.publishEvent(BelongingNotices.notice(
+                    "BELONGING_HANDOVER_HOLDER_ABSENT",
+                    RECORD_TYPE,
+                    record,
+                    NotificationLevel.LOW,
+                    ctx.residentId(),
+                    List.of(new RecipientGroup.Staff(b.holderId(), "HOLDER")),
+                    p.typeName() + ": Hành chính đã bàn giao thay khi bạn vắng mặt",
+                    ctx.user().accountId(),
+                    ctx.now()));
+        }
+    }
+
+    /** Phần đếm thiếu: Báo thất lạc trong cùng lệnh, liên kết sự cố riêng nếu lệnh chính không mang sự cố (FR-013, FR-024). */
+    private void recordMissing(
+            Context ctx,
+            HandoverCommand command,
+            ItemPlan p,
+            BelongingSplit.Plan plan,
+            List<Created> created,
+            Set<Long> touched) {
+        LockedBelonging b = p.b();
+        long lostId = plan.remaining().signum() == 0 && plan.moved().signum() == 0
+                ? b.id()
+                : split(ctx, b, plan.missing(), p.cash(), BelongingStatus.LOST, null, null, null, p.levelId());
+        long record = record(
+                ctx,
+                b,
+                lostId,
+                HandoverType.REPORT_LOST,
+                BelongingStatus.LOST,
+                p.giver().type(),
+                p.giver().id(),
+                null,
+                null,
+                ctx.at(),
+                plan.missing(),
+                p.cash(),
+                p.levelId(),
+                p.item().conditionDescription(),
+                null,
+                command.reason(),
+                command.holderAbsent(),
+                p.valuable(),
+                List.of(),
+                "Đếm thiếu khi bàn giao (FR-013)",
+                created,
+                touched);
+        if (!carriesIncident(p.kind())) {
+            attachIncident(ctx, p.item(), HandoverType.REPORT_LOST, record, ctx.at(), command.reason());
+        }
+        notices(ctx, HandoverType.REPORT_LOST, BelongingStatus.LOST, record, p.typeName());
     }
 
     private static boolean wantsIncident(HandoverCommand.Item item) {
