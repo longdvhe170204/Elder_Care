@@ -265,17 +265,9 @@ public class InventoryCheckService {
         SimpleRecord<InventoryCheck> record = records.lockForUpdate(InventoryCheck.KIND, id);
         requireWaiting(record);
         InventoryCheck check = record.content();
-        Map<Long, InventoryCompletion.LineResult> results = new HashMap<>();
         Set<Long> inCheck = new LinkedHashSet<>();
         check.lines().forEach(l -> inCheck.add(l.belongingId()));
-        for (InventoryCompletion.LineResult r : body.lines()) {
-            if (!inCheck.contains(r.belongingId()) || results.put(r.belongingId(), r) != null) {
-                throw invalid("Kết quả thuộc đồ không có trong phiếu hoặc lặp lại: " + r.belongingId());
-            }
-            if (r.result() == null || !RESULTS.contains(r.result())) {
-                throw invalid("Kết quả phải là MATCHED, CONDITION_MISMATCH hoặc NOT_FOUND");
-            }
-        }
+        Map<Long, InventoryCompletion.LineResult> results = lineResults(body, inCheck);
         TreeMap<Long, Set<Long>> idsByResident = new TreeMap<>();
         check.lines()
                 .forEach(l -> idsByResident
@@ -283,150 +275,19 @@ public class InventoryCheckService {
                         .add(l.belongingId()));
         Map<Long, Long> residentOfFound = new HashMap<>();
         Map<Long, List<Long>> foundPhotos = new HashMap<>();
-        for (InventoryCompletion.FoundItem found : body.found()) {
-            long foundId = found.belongingId();
-            if (inCheck.contains(foundId) || foundPhotos.put(foundId, found.photoFileIds()) != null) {
-                throw invalid("Đồ Tìm thấy không nằm trong phiếu và không lặp lại: " + foundId);
-            }
-            long owner = belongings.residentOf(foundId).orElseThrow(NotFoundException::new);
-            residentOfFound.put(foundId, owner);
-            idsByResident.computeIfAbsent(owner, k -> new LinkedHashSet<>()).add(foundId);
-        }
+        addFoundItems(body, inCheck, idsByResident, residentOfFound, foundPhotos);
         Map<Long, LockedBelonging> locked = new HashMap<>();
         idsByResident.forEach(
                 (resident, ids) -> locks.lockCurrent(resident, ids).forEach(b -> locked.put(b.id(), b)));
+        Map<Long, InventoryCheck.Line> dropped = droppedLines(check, locked, results);
+        Findings findings = new Findings(results, locked, dropped, residentOfFound, foundPhotos);
 
-        String reason = "Phát hiện khi kiểm kê kỳ " + check.periodCode();
         Map<Long, Long> handoverOf = new HashMap<>();
-        Map<Long, InventoryCheck.Line> done = new HashMap<>();
-        for (InventoryCheck.Line line : check.lines()) {
-            LockedBelonging b = locked.get(line.belongingId());
-            if (b == null
-                    || b.status() != BelongingStatus.HELD
-                    || !Objects.equals(b.storageLocationId(), check.storageLocationId())) {
-                done.put(
-                        line.belongingId(),
-                        line.completed(
-                                InventoryCheck.DROPPED,
-                                null,
-                                "Đã đổi trạng thái hoặc vị trí sau khi lập phiếu"
-                                        + (b == null ? "" : " (" + b.status() + ")"),
-                                null));
-                continue;
-            }
-            InventoryCompletion.LineResult r = results.get(line.belongingId());
-            if (r == null) {
-                throw invalid("Thiếu kết quả cho đồ " + line.belongingId() + " (FR-028b)");
-            }
-            if (InventoryCheck.CONDITION_MISMATCH.equals(r.result())) {
-                if (r.newConditionLevelId() == null) {
-                    throw invalid("Lệch tình trạng cần mức tình trạng mới");
-                }
-                catalogs.requireActive(BelongingCatalogs.CONDITION_LEVEL, r.newConditionLevelId());
-            } else if (r.recordDamage()) {
-                throw invalid("Chỉ Lệch tình trạng mới chuyển thành Ghi hư hỏng");
-            }
-        }
         for (Map.Entry<Long, Set<Long>> entry : idsByResident.entrySet()) {
-            long resident = entry.getKey();
-            Target target = new Target(ENTITY, null, resident, null);
-            List<HandoverCommand.Item> lost = new ArrayList<>();
-            List<HandoverCommand.Item> foundItems = new ArrayList<>();
-            for (long itemId : entry.getValue()) {
-                LockedBelonging b = locked.get(itemId);
-                if (residentOfFound.containsKey(itemId)) {
-                    BigDecimal amount = b.cashAmount() != null ? b.cashAmount() : b.quantity();
-                    foundItems.add(new HandoverCommand.Item(
-                            itemId, b.version(), amount, null, null, null, foundPhotos.get(itemId), null));
-                    continue;
-                }
-                if (done.containsKey(itemId)) {
-                    continue;
-                }
-                InventoryCompletion.LineResult r = results.get(itemId);
-                switch (r.result()) {
-                    case InventoryCheck.NOT_FOUND ->
-                        lost.add(new HandoverCommand.Item(
-                                itemId, b.version(), null, null, null, null, List.of(), r.incident()));
-                    case InventoryCheck.CONDITION_MISMATCH -> {
-                        if (r.recordDamage()) {
-                            HandoverCommand command = new HandoverCommand(
-                                    HandoverType.RECORD_DAMAGE,
-                                    List.of(new HandoverCommand.Item(
-                                            itemId,
-                                            b.version(),
-                                            null,
-                                            null,
-                                            r.newConditionLevelId(),
-                                            r.newConditionDescription(),
-                                            r.photoFileIds(),
-                                            r.incident())),
-                                    GiverType.STAFF,
-                                    b.holderId(),
-                                    null,
-                                    check.storageLocationId(),
-                                    null,
-                                    reason,
-                                    false,
-                                    null,
-                                    null);
-                            handovers
-                                    .inventoryHandover(target, command, id)
-                                    .handovers()
-                                    .forEach(c -> handoverOf.put(c.belongingId(), c.handoverId()));
-                        }
-                    }
-                    default -> {}
-                }
-            }
-            if (!lost.isEmpty()) {
-                HandoverCommand command = new HandoverCommand(
-                        HandoverType.REPORT_LOST, lost, null, null, null, null, null, reason, false, null, null);
-                handovers
-                        .inventoryHandover(target, command, id)
-                        .handovers()
-                        .forEach(c -> handoverOf.put(c.belongingId(), c.handoverId()));
-            }
-            if (!foundItems.isEmpty()) {
-                HandoverCommand command = new HandoverCommand(
-                        HandoverType.FOUND,
-                        foundItems,
-                        null,
-                        null,
-                        null,
-                        check.storageLocationId(),
-                        null,
-                        null,
-                        false,
-                        null,
-                        null);
-                handovers.inventoryHandover(target, command, id);
-            }
+            recordHandovers(id, check, entry.getKey(), entry.getValue(), findings, handoverOf);
         }
-        List<InventoryCheck.Line> lines = new ArrayList<>();
-        for (InventoryCheck.Line line : check.lines()) {
-            InventoryCheck.Line finished = done.get(line.belongingId());
-            if (finished == null) {
-                InventoryCompletion.LineResult r = results.get(line.belongingId());
-                boolean mismatch = InventoryCheck.CONDITION_MISMATCH.equals(r.result());
-                finished = line.completed(
-                        r.result(),
-                        mismatch ? r.newConditionLevelId() : null,
-                        mismatch ? r.newConditionDescription() : null,
-                        handoverOf.get(line.belongingId()));
-            }
-            lines.add(finished);
-        }
-        List<InventoryCheck.UnknownOwnerItem> unknown = new ArrayList<>();
-        for (InventoryCheck.UnknownOwnerItem item : body.unknownOwnerItems()) {
-            if (item.description() == null
-                    || item.description().isBlank()
-                    || item.photoFileIds().isEmpty()) {
-                throw invalid("Đồ không rõ chủ cần mô tả và ảnh (FR-028b)");
-            }
-            item.photoFileIds().forEach(fileId -> files.attach(fileId, InventoryPhotoPermission.OWNER_TYPE, id));
-            unknown.add(item);
-        }
+        List<InventoryCheck.Line> lines = finishedLines(check, findings, handoverOf);
+        List<InventoryCheck.UnknownOwnerItem> unknown = unknownOwnerItems(id, body);
         Instant now = time.now();
         InventoryCheck completed = new InventoryCheck(
                 check.storageLocationId(),
@@ -468,6 +329,215 @@ public class InventoryCheckService {
                         "unknownOwnerItems", unknown.size()))
                 .build());
         return view(saved);
+    }
+
+    /** Dữ liệu đã gom của một lần hoàn thành: kết quả từng đồ, đồ đã khóa, dòng bị loại, đồ Tìm thấy. */
+    private record Findings(
+            Map<Long, InventoryCompletion.LineResult> results,
+            Map<Long, LockedBelonging> locked,
+            Map<Long, InventoryCheck.Line> dropped,
+            Map<Long, Long> residentOfFound,
+            Map<Long, List<Long>> foundPhotos) {}
+
+    /** Kết quả gửi lên theo mã đồ: chỉ đồ có trong phiếu, không lặp, kết quả thuộc ba giá trị cho phép. */
+    private static Map<Long, InventoryCompletion.LineResult> lineResults(InventoryCompletion body, Set<Long> inCheck) {
+        Map<Long, InventoryCompletion.LineResult> results = new HashMap<>();
+        for (InventoryCompletion.LineResult r : body.lines()) {
+            if (!inCheck.contains(r.belongingId()) || results.put(r.belongingId(), r) != null) {
+                throw invalid("Kết quả thuộc đồ không có trong phiếu hoặc lặp lại: " + r.belongingId());
+            }
+            if (r.result() == null || !RESULTS.contains(r.result())) {
+                throw invalid("Kết quả phải là MATCHED, CONDITION_MISMATCH hoặc NOT_FOUND");
+            }
+        }
+        return results;
+    }
+
+    /** Đồ Thất lạc thấy tại vị trí: không nằm trong phiếu, không lặp; ghi chủ và ảnh, thêm vào nhóm đồ của chủ để khóa. */
+    private void addFoundItems(
+            InventoryCompletion body,
+            Set<Long> inCheck,
+            Map<Long, Set<Long>> idsByResident,
+            Map<Long, Long> residentOfFound,
+            Map<Long, List<Long>> foundPhotos) {
+        for (InventoryCompletion.FoundItem found : body.found()) {
+            long foundId = found.belongingId();
+            if (inCheck.contains(foundId) || foundPhotos.put(foundId, found.photoFileIds()) != null) {
+                throw invalid("Đồ Tìm thấy không nằm trong phiếu và không lặp lại: " + foundId);
+            }
+            long owner = belongings.residentOf(foundId).orElseThrow(NotFoundException::new);
+            residentOfFound.put(foundId, owner);
+            idsByResident.computeIfAbsent(owner, k -> new LinkedHashSet<>()).add(foundId);
+        }
+    }
+
+    /**
+     * Dòng bị loại vì đồ đã đổi trạng thái hoặc vị trí sau khi lập phiếu; đồ còn Đang giữ tại vị trí thì phải có kết quả hợp
+     * lệ (FR-028b).
+     */
+    private Map<Long, InventoryCheck.Line> droppedLines(
+            InventoryCheck check,
+            Map<Long, LockedBelonging> locked,
+            Map<Long, InventoryCompletion.LineResult> results) {
+        Map<Long, InventoryCheck.Line> dropped = new HashMap<>();
+        for (InventoryCheck.Line line : check.lines()) {
+            LockedBelonging b = locked.get(line.belongingId());
+            if (b == null
+                    || b.status() != BelongingStatus.HELD
+                    || !Objects.equals(b.storageLocationId(), check.storageLocationId())) {
+                dropped.put(
+                        line.belongingId(),
+                        line.completed(
+                                InventoryCheck.DROPPED,
+                                null,
+                                "Đã đổi trạng thái hoặc vị trí sau khi lập phiếu"
+                                        + (b == null ? "" : " (" + b.status() + ")"),
+                                null));
+                continue;
+            }
+            InventoryCompletion.LineResult r = results.get(line.belongingId());
+            if (r == null) {
+                throw invalid("Thiếu kết quả cho đồ " + line.belongingId() + " (FR-028b)");
+            }
+            if (InventoryCheck.CONDITION_MISMATCH.equals(r.result())) {
+                if (r.newConditionLevelId() == null) {
+                    throw invalid("Lệch tình trạng cần mức tình trạng mới");
+                }
+                catalogs.requireActive(BelongingCatalogs.CONDITION_LEVEL, r.newConditionLevelId());
+            } else if (r.recordDamage()) {
+                throw invalid("Chỉ Lệch tình trạng mới chuyển thành Ghi hư hỏng");
+            }
+        }
+        return dropped;
+    }
+
+    /**
+     * Sinh bản ghi bàn giao cho đồ của một người cao tuổi: Ghi hư hỏng từng đồ, một bản Báo thất lạc cho các đồ Không tìm
+     * thấy, một bản Tìm thấy cho các đồ Thất lạc thấy tại vị trí; ghi mã bản ghi của từng đồ vào {@code handoverOf}.
+     */
+    private void recordHandovers(
+            long checkId,
+            InventoryCheck check,
+            long resident,
+            Set<Long> itemIds,
+            Findings findings,
+            Map<Long, Long> handoverOf) {
+        String reason = "Phát hiện khi kiểm kê kỳ " + check.periodCode();
+        Target target = new Target(ENTITY, null, resident, null);
+        List<HandoverCommand.Item> lost = new ArrayList<>();
+        List<HandoverCommand.Item> foundItems = new ArrayList<>();
+        for (long itemId : itemIds) {
+            LockedBelonging b = findings.locked().get(itemId);
+            if (findings.residentOfFound().containsKey(itemId)) {
+                BigDecimal amount = b.cashAmount() != null ? b.cashAmount() : b.quantity();
+                foundItems.add(new HandoverCommand.Item(
+                        itemId,
+                        b.version(),
+                        amount,
+                        null,
+                        null,
+                        null,
+                        findings.foundPhotos().get(itemId),
+                        null));
+                continue;
+            }
+            if (findings.dropped().containsKey(itemId)) {
+                continue;
+            }
+            InventoryCompletion.LineResult r = findings.results().get(itemId);
+            if (InventoryCheck.NOT_FOUND.equals(r.result())) {
+                lost.add(
+                        new HandoverCommand.Item(itemId, b.version(), null, null, null, null, List.of(), r.incident()));
+            } else if (InventoryCheck.CONDITION_MISMATCH.equals(r.result()) && r.recordDamage()) {
+                recordHandover(target, damageCommand(check, itemId, b, r, reason), checkId, handoverOf);
+            }
+        }
+        if (!lost.isEmpty()) {
+            HandoverCommand command = new HandoverCommand(
+                    HandoverType.REPORT_LOST, lost, null, null, null, null, null, reason, false, null, null);
+            recordHandover(target, command, checkId, handoverOf);
+        }
+        if (!foundItems.isEmpty()) {
+            HandoverCommand command = new HandoverCommand(
+                    HandoverType.FOUND,
+                    foundItems,
+                    null,
+                    null,
+                    null,
+                    check.storageLocationId(),
+                    null,
+                    null,
+                    false,
+                    null,
+                    null);
+            handovers.inventoryHandover(target, command, checkId);
+        }
+    }
+
+    private static HandoverCommand damageCommand(
+            InventoryCheck check, long itemId, LockedBelonging b, InventoryCompletion.LineResult r, String reason) {
+        return new HandoverCommand(
+                HandoverType.RECORD_DAMAGE,
+                List.of(new HandoverCommand.Item(
+                        itemId,
+                        b.version(),
+                        null,
+                        null,
+                        r.newConditionLevelId(),
+                        r.newConditionDescription(),
+                        r.photoFileIds(),
+                        r.incident())),
+                GiverType.STAFF,
+                b.holderId(),
+                null,
+                check.storageLocationId(),
+                null,
+                reason,
+                false,
+                null,
+                null);
+    }
+
+    private void recordHandover(Target target, HandoverCommand command, long checkId, Map<Long, Long> handoverOf) {
+        handovers
+                .inventoryHandover(target, command, checkId)
+                .handovers()
+                .forEach(c -> handoverOf.put(c.belongingId(), c.handoverId()));
+    }
+
+    /** Các dòng của phiếu sau khi hoàn thành: dòng bị loại giữ ghi chú, dòng còn lại mang kết quả và mã bản ghi bàn giao. */
+    private static List<InventoryCheck.Line> finishedLines(
+            InventoryCheck check, Findings findings, Map<Long, Long> handoverOf) {
+        List<InventoryCheck.Line> lines = new ArrayList<>();
+        for (InventoryCheck.Line line : check.lines()) {
+            InventoryCheck.Line finished = findings.dropped().get(line.belongingId());
+            if (finished == null) {
+                InventoryCompletion.LineResult r = findings.results().get(line.belongingId());
+                boolean mismatch = InventoryCheck.CONDITION_MISMATCH.equals(r.result());
+                finished = line.completed(
+                        r.result(),
+                        mismatch ? r.newConditionLevelId() : null,
+                        mismatch ? r.newConditionDescription() : null,
+                        handoverOf.get(line.belongingId()));
+            }
+            lines.add(finished);
+        }
+        return lines;
+    }
+
+    /** Đồ không rõ chủ: cần mô tả và ảnh (FR-028b); gắn ảnh vào phiếu. */
+    private List<InventoryCheck.UnknownOwnerItem> unknownOwnerItems(long checkId, InventoryCompletion body) {
+        List<InventoryCheck.UnknownOwnerItem> unknown = new ArrayList<>();
+        for (InventoryCheck.UnknownOwnerItem item : body.unknownOwnerItems()) {
+            if (item.description() == null
+                    || item.description().isBlank()
+                    || item.photoFileIds().isEmpty()) {
+                throw invalid("Đồ không rõ chủ cần mô tả và ảnh (FR-028b)");
+            }
+            item.photoFileIds().forEach(fileId -> files.attach(fileId, InventoryPhotoPermission.OWNER_TYPE, checkId));
+            unknown.add(item);
+        }
+        return unknown;
     }
 
     List<SimpleRecord<InventoryCheck>> ofPeriod(String code) {

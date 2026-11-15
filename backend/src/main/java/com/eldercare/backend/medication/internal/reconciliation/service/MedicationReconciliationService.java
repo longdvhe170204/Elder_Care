@@ -314,143 +314,156 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         }
 
         Long actualUserId = currentUserId;
-
-        // Quy tắc hai người (SC-014, BR-M07-09, Q-55):
-        // Người xác nhận phải khác người lập và người gửi
-        if (Objects.equals(ticket.getSubmittedById(), actualUserId)
-                || Objects.equals(ticket.getCreatedById(), actualUserId)) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "TWO_PERSON_RULE",
-                    "Người xác nhận không được trùng với người lập hoặc gửi phiếu (SC-014, BR-M07-09)");
-        }
-
+        requireNotTicketAuthor(ticket, actualUserId);
         List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
-
-        // Người xác nhận không được là người đã ghi dòng
-        for (ReconciliationItem item : items) {
-            if (Objects.equals(item.getCreatedById(), actualUserId)) {
-                throw new BusinessException(
-                        HttpStatus.CONFLICT,
-                        "TWO_PERSON_RULE",
-                        "Người xác nhận không được trùng với người đã ghi dòng đối chiếu (SC-014, BR-M07-09)");
-            }
-        }
-
-        // Kiểm tra thẩm quyền nếu có tạo đơn nội bộ
-        for (ReconciliationItem item : items) {
-            if (item.getDecision() == ReconciliationDecision.ADD_NEW
-                    || item.getDecision() == ReconciliationDecision.CHANGE_DOSE) {
-                if (item.getNewPrescriptionJson() != null) {
-                    try {
-                        CreatePrescriptionBody newPrescription =
-                                objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
-                        if (newPrescription.getPrescriber() != null
-                                && !"EXTERNAL"
-                                        .equalsIgnoreCase(
-                                                newPrescription.getPrescriber().getType())
-                                && !isDoctor) {
-                            throw new BusinessException(
-                                    HttpStatus.FORBIDDEN,
-                                    "PRESCRIBING_DOCTOR_REQUIRED",
-                                    "Cần bác sĩ có quyền kê đơn để xác nhận phiếu có tạo đơn nội bộ (BR-M07-09)");
-                        }
-                    } catch (JsonProcessingException e) {
-                        // ignore parse exception here
-                    }
-                }
-            }
-        }
+        requireNotItemAuthor(items, actualUserId);
+        requireDoctorForInternalPrescriptions(items, isDoctor);
 
         // Áp dụng quyết định từng dòng trong cùng giao dịch (FR-036)
         Instant now = businessTime.now();
         for (ReconciliationItem item : items) {
-            if (item.getDecision() == ReconciliationDecision.CONTINUE) {
-                if (item.getPrescriptionId() != null) {
-                    prescriptionRepo.findById(item.getPrescriptionId()).ifPresent(p -> {
-                        if (p.getStatus() == PrescriptionStatus.SUSPENDED) {
-                            p.resume();
-                            prescriptionRepo.save(p);
-                        }
-                    });
-                }
-            } else if (item.getDecision() == ReconciliationDecision.DISCONTINUE) {
-                if (item.getPrescriptionId() != null) {
-                    prescriptionRepo.findById(item.getPrescriptionId()).ifPresent(p -> {
-                        if (p.getStatus() == PrescriptionStatus.ACTIVE
-                                || p.getStatus() == PrescriptionStatus.SUSPENDED
-                                || p.getStatus() == PrescriptionStatus.PENDING_EFFECTIVE) {
-                            p.discontinue(TerminationReason.DISCONTINUED);
-                            prescriptionRepo.save(p);
-
-                            // Hủy các liều chưa đóng
-                            if (doseRepo != null) {
-                                List<MedicationDose> openDoses = doseRepo.findByPrescriptionIdAndStatusIn(
-                                        p.getId(),
-                                        List.of(
-                                                DoseStatus.UPCOMING,
-                                                DoseStatus.DUE,
-                                                DoseStatus.LATE,
-                                                DoseStatus.SUSPENDED));
-                                for (MedicationDose d : openDoses) {
-                                    d.cancel(DoseCancellationReason.DISCONTINUED, now);
-                                    doseRepo.save(d);
-                                }
-                            }
-                        }
-                    });
-                }
-            } else if (item.getDecision() == ReconciliationDecision.CHANGE_DOSE) {
-                // Ngừng đơn cũ
-                if (item.getPrescriptionId() != null) {
-                    prescriptionRepo.findById(item.getPrescriptionId()).ifPresent(p -> {
-                        p.discontinue(TerminationReason.DISCONTINUED);
-                        prescriptionRepo.save(p);
-                    });
-                }
-                // Tạo đơn thay thế
-                if (item.getNewPrescriptionJson() != null) {
-                    try {
-                        CreatePrescriptionBody newPrescription =
-                                objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
-                        PrescriptionResponse created = prescriptionService.create(
-                                PrescriptionService.target(ticket.getResidentId()),
-                                ticket.getResidentId(),
-                                newPrescription,
-                                actualUserId,
-                                isDoctor);
-                        item.recordCreatedPrescription(created.id());
-                        itemRepo.save(item);
-                    } catch (JsonProcessingException e) {
-                        throw new BusinessException(
-                                HttpStatus.INTERNAL_SERVER_ERROR, "ERROR", "Không thể xử lý dữ liệu đơn mới");
-                    }
-                }
-            } else if (item.getDecision() == ReconciliationDecision.ADD_NEW) {
-                if (item.getNewPrescriptionJson() != null) {
-                    try {
-                        CreatePrescriptionBody newPrescription =
-                                objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
-                        PrescriptionResponse created = prescriptionService.create(
-                                PrescriptionService.target(ticket.getResidentId()),
-                                ticket.getResidentId(),
-                                newPrescription,
-                                actualUserId,
-                                isDoctor);
-                        item.recordCreatedPrescription(created.id());
-                        itemRepo.save(item);
-                    } catch (JsonProcessingException e) {
-                        throw new BusinessException(
-                                HttpStatus.INTERNAL_SERVER_ERROR, "ERROR", "Không thể xử lý dữ liệu đơn mới");
-                    }
-                }
-            }
+            applyDecision(ticket, item, actualUserId, isDoctor, now);
         }
 
         ticket.confirm(actualUserId, now);
         MedicationReconciliation saved = reconciliationRepo.save(ticket);
         deadlines.complete(ticket.getResidentId());
         return toResponse(saved, items);
+    }
+
+    /** Quy tắc hai người (SC-014, BR-M07-09, Q-55): người xác nhận phải khác người lập và người gửi. */
+    private static void requireNotTicketAuthor(MedicationReconciliation ticket, Long userId) {
+        if (Objects.equals(ticket.getSubmittedById(), userId) || Objects.equals(ticket.getCreatedById(), userId)) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "TWO_PERSON_RULE",
+                    "Người xác nhận không được trùng với người lập hoặc gửi phiếu (SC-014, BR-M07-09)");
+        }
+    }
+
+    /** Quy tắc hai người: người xác nhận không được là người đã ghi dòng. */
+    private static void requireNotItemAuthor(List<ReconciliationItem> items, Long userId) {
+        for (ReconciliationItem item : items) {
+            if (Objects.equals(item.getCreatedById(), userId)) {
+                throw new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "TWO_PERSON_RULE",
+                        "Người xác nhận không được trùng với người đã ghi dòng đối chiếu (SC-014, BR-M07-09)");
+            }
+        }
+    }
+
+    /** Phiếu có dòng tạo đơn nội bộ (thêm mới, đổi liều) thì người xác nhận phải là bác sĩ có quyền kê đơn. */
+    private void requireDoctorForInternalPrescriptions(List<ReconciliationItem> items, boolean isDoctor) {
+        for (ReconciliationItem item : items) {
+            boolean createsPrescription = (item.getDecision() == ReconciliationDecision.ADD_NEW
+                            || item.getDecision() == ReconciliationDecision.CHANGE_DOSE)
+                    && item.getNewPrescriptionJson() != null;
+            if (!createsPrescription) {
+                continue;
+            }
+            try {
+                CreatePrescriptionBody newPrescription =
+                        objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
+                if (newPrescription.getPrescriber() != null
+                        && !"EXTERNAL"
+                                .equalsIgnoreCase(
+                                        newPrescription.getPrescriber().getType())
+                        && !isDoctor) {
+                    throw new BusinessException(
+                            HttpStatus.FORBIDDEN,
+                            "PRESCRIBING_DOCTOR_REQUIRED",
+                            "Cần bác sĩ có quyền kê đơn để xác nhận phiếu có tạo đơn nội bộ (BR-M07-09)");
+                }
+            } catch (JsonProcessingException e) {
+                // ignore parse exception here
+            }
+        }
+    }
+
+    /** Áp dụng quyết định của một dòng: tiếp tục, ngừng, đổi liều (ngừng đơn cũ, tạo đơn thay thế), thêm mới. */
+    private void applyDecision(
+            MedicationReconciliation ticket, ReconciliationItem item, Long userId, boolean isDoctor, Instant now) {
+        ReconciliationDecision decision = item.getDecision();
+        if (decision == ReconciliationDecision.CONTINUE) {
+            resumeSuspendedPrescription(item);
+        } else if (decision == ReconciliationDecision.DISCONTINUE) {
+            discontinuePrescriptionAndOpenDoses(item, now);
+        } else if (decision == ReconciliationDecision.CHANGE_DOSE) {
+            discontinueOldPrescription(item);
+            createPrescriptionFromItem(ticket, item, userId, isDoctor);
+        } else if (decision == ReconciliationDecision.ADD_NEW) {
+            createPrescriptionFromItem(ticket, item, userId, isDoctor);
+        }
+    }
+
+    private void resumeSuspendedPrescription(ReconciliationItem item) {
+        if (item.getPrescriptionId() == null) {
+            return;
+        }
+        prescriptionRepo.findById(item.getPrescriptionId()).ifPresent(p -> {
+            if (p.getStatus() == PrescriptionStatus.SUSPENDED) {
+                p.resume();
+                prescriptionRepo.save(p);
+            }
+        });
+    }
+
+    /** Ngừng đơn còn mở và hủy các liều chưa đóng của đơn đó. */
+    private void discontinuePrescriptionAndOpenDoses(ReconciliationItem item, Instant now) {
+        if (item.getPrescriptionId() == null) {
+            return;
+        }
+        prescriptionRepo.findById(item.getPrescriptionId()).ifPresent(p -> {
+            if (p.getStatus() != PrescriptionStatus.ACTIVE
+                    && p.getStatus() != PrescriptionStatus.SUSPENDED
+                    && p.getStatus() != PrescriptionStatus.PENDING_EFFECTIVE) {
+                return;
+            }
+            p.discontinue(TerminationReason.DISCONTINUED);
+            prescriptionRepo.save(p);
+            if (doseRepo == null) {
+                return;
+            }
+            List<MedicationDose> openDoses = doseRepo.findByPrescriptionIdAndStatusIn(
+                    p.getId(), List.of(DoseStatus.UPCOMING, DoseStatus.DUE, DoseStatus.LATE, DoseStatus.SUSPENDED));
+            for (MedicationDose d : openDoses) {
+                d.cancel(DoseCancellationReason.DISCONTINUED, now);
+                doseRepo.save(d);
+            }
+        });
+    }
+
+    private void discontinueOldPrescription(ReconciliationItem item) {
+        if (item.getPrescriptionId() == null) {
+            return;
+        }
+        prescriptionRepo.findById(item.getPrescriptionId()).ifPresent(p -> {
+            p.discontinue(TerminationReason.DISCONTINUED);
+            prescriptionRepo.save(p);
+        });
+    }
+
+    /** Tạo đơn từ nội dung đơn mới ghi ở dòng và ghi mã đơn vừa tạo vào dòng. */
+    private void createPrescriptionFromItem(
+            MedicationReconciliation ticket, ReconciliationItem item, Long userId, boolean isDoctor) {
+        if (item.getNewPrescriptionJson() == null) {
+            return;
+        }
+        try {
+            CreatePrescriptionBody newPrescription =
+                    objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
+            PrescriptionResponse created = prescriptionService.create(
+                    PrescriptionService.target(ticket.getResidentId()),
+                    ticket.getResidentId(),
+                    newPrescription,
+                    userId,
+                    isDoctor);
+            item.recordCreatedPrescription(created.id());
+            itemRepo.save(item);
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "ERROR", "Không thể xử lý dữ liệu đơn mới");
+        }
     }
 
     @Transactional

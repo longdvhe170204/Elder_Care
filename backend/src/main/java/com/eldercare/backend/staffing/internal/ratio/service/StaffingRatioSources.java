@@ -83,88 +83,120 @@ public class StaffingRatioSources {
             boolean lockMembers,
             java.util.function.UnaryOperator<List<StaffingRatioCalculator.Member>> change) {
         try {
-            var limits = parameters.read(ParameterCode.CFG_M09_01);
-            var weightsValue = parameters.read(ParameterCode.CFG_M09_12);
-            if (!limits.isSet() || !weightsValue.isSet())
-                throw new Unavailable("Chưa cấu hình ngưỡng theo mẫu ca hoặc trọng số chăm sóc");
-            var limit = limits.raw().get(Long.toString(shift.shiftTemplateId()));
-            if (limit == null || !limit.isNumber()) throw new Unavailable("Chưa cấu hình ngưỡng của mẫu ca");
-            var weights = new EnumMap<CareLevel, BigDecimal>(CareLevel.class);
-            for (var level : CareLevel.values()) {
-                var value = weightsValue.raw().get(level.name());
-                if (value == null || !value.isNumber()) throw new Unavailable("Chưa cấu hình đủ ba trọng số chăm sóc");
-                weights.put(level, value.decimalValue());
-            }
+            RatioConfig config = config(shift);
             Instant now = time.now();
             Instant memberAt = shift.startsAt().isAfter(now) ? shift.startsAt() : now;
             if (!memberAt.isBefore(shift.endsAt()))
                 throw new Unavailable("Ca đã qua giờ kết thúc, không tính lại bằng dữ liệu hiện hành");
-            // FR-034: có mặt/vắng một phần vẫn tính đủ trọng số của cả ca; trạng thái cuối là ngoại lệ FR-035.
-            Instant from = shift.startsAt();
             var ids = new TreeSet<Long>();
-            var position = required(history);
-            var people = required(residents);
-            var status = required(statuses);
-            var levels = required(careLevels);
-            var ref = new LocationRef(shift.scopeType(), shift.scopeId());
-            for (LocalDate day = day(from); !day.isAfter(day(shift.endsAt().minusNanos(1))); day = day.plusDays(1)) {
-                for (var stay : position.byLocationOn(ref, day))
-                    if (stay.from().isBefore(shift.endsAt())
-                            && (stay.to() == null || stay.to().isAfter(from))
-                            && !endedAt(people, stay.residentId(), memberAt)
-                            && !fullyAbsent(
-                                    status.statusPeriods(stay.residentId(), ABSENT, from, shift.endsAt()),
-                                    from,
-                                    shift.endsAt())) ids.add(stay.residentId());
-            }
-            var attendance = required(contracts);
-            var structure = required(structures);
-            var daycare = structure.dayCareRestAreaLocation();
-            Set<ResidentStatus> candidates = EnumSet.allOf(ResidentStatus.class);
-            candidates.removeAll(Set.of(
-                    ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED));
-            for (long resident : people.byStatus(candidates)) {
-                for (LocalDate day = day(from);
-                        !day.isAfter(day(shift.endsAt().minusNanos(1)));
-                        day = day.plusDays(1)) {
-                    for (var visit : attendance.attendanceOn(resident, day)) {
-                        Instant arrival = visit.date()
-                                .atTime(visit.arrivalTime())
-                                .atZone(BusinessTime.ZONE)
-                                .toInstant();
-                        Instant departure = visit.date()
-                                .atTime(visit.departureTime())
-                                .atZone(BusinessTime.ZONE)
-                                .toInstant();
-                        if (!arrival.isBefore(departure))
-                            throw new Unavailable("Lịch đến bán trú có khoảng giờ không hợp lệ");
-                        if (arrival.isBefore(shift.endsAt()) && departure.isAfter(from)) {
-                            if (daycare.isEmpty()) throw new Unavailable("Chưa xác định vị trí khu nghỉ bán trú");
-                            if (matches(shift, daycare.get())) ids.add(resident);
-                        }
-                    }
-                }
-            }
-            var expected = new ArrayList<StaffingRatioCalculator.Resident>();
-            for (long id : ids)
-                expected.add(new StaffingRatioCalculator.Resident(
-                        id,
-                        levels.current(id)
-                                .orElseThrow(
-                                        () -> new Unavailable("Người dự kiến có mặt chưa có mức chăm sóc hiện hành"))));
-            var members = shifts.members(shift.id(), lockMembers).stream()
-                    .map(m -> new StaffingRatioCalculator.Member(
-                            m.staffId(),
-                            accounts.byStaff(m.staffId()).map(a -> a.roles()).orElse(Set.of()),
-                            !m.presentAt(memberAt),
-                            m.approvedLeaveRequestId() != null))
-                    .toList();
-            return StaffingRatioCalculator.calculate(expected, change.apply(members), weights, limit.decimalValue());
+            addResidentsStayingInScope(shift, memberAt, ids);
+            addDayCareVisitors(shift, ids);
+            return StaffingRatioCalculator.calculate(
+                    expectedResidents(ids),
+                    change.apply(members(shift, lockMembers, memberAt)),
+                    config.weights(),
+                    config.limit());
         } catch (Unavailable e) {
             throw e;
         } catch (RuntimeException e) {
             throw new Unavailable(e);
         }
+    }
+
+    /** Ngưỡng của mẫu ca (CFG-M09-01) và trọng số theo mức chăm sóc (CFG-M09-12). */
+    private record RatioConfig(BigDecimal limit, EnumMap<CareLevel, BigDecimal> weights) {}
+
+    private RatioConfig config(WorkShift shift) {
+        var limits = parameters.read(ParameterCode.CFG_M09_01);
+        var weightsValue = parameters.read(ParameterCode.CFG_M09_12);
+        if (!limits.isSet() || !weightsValue.isSet())
+            throw new Unavailable("Chưa cấu hình ngưỡng theo mẫu ca hoặc trọng số chăm sóc");
+        var limit = limits.raw().get(Long.toString(shift.shiftTemplateId()));
+        if (limit == null || !limit.isNumber()) throw new Unavailable("Chưa cấu hình ngưỡng của mẫu ca");
+        var weights = new EnumMap<CareLevel, BigDecimal>(CareLevel.class);
+        for (var level : CareLevel.values()) {
+            var value = weightsValue.raw().get(level.name());
+            if (value == null || !value.isNumber()) throw new Unavailable("Chưa cấu hình đủ ba trọng số chăm sóc");
+            weights.put(level, value.decimalValue());
+        }
+        return new RatioConfig(limit.decimalValue(), weights);
+    }
+
+    /**
+     * Người nội trú ở tầng, khu vực của ca trong giờ ca, trừ người đã ở trạng thái cuối và người vắng suốt ca. FR-034: có
+     * mặt/vắng một phần vẫn tính đủ trọng số của cả ca; trạng thái cuối là ngoại lệ FR-035.
+     */
+    private void addResidentsStayingInScope(WorkShift shift, Instant memberAt, Set<Long> ids) {
+        Instant from = shift.startsAt();
+        var position = required(history);
+        var people = required(residents);
+        var status = required(statuses);
+        var ref = new LocationRef(shift.scopeType(), shift.scopeId());
+        for (LocalDate day = day(from); !day.isAfter(day(shift.endsAt().minusNanos(1))); day = day.plusDays(1)) {
+            for (var stay : position.byLocationOn(ref, day))
+                if (stay.from().isBefore(shift.endsAt())
+                        && (stay.to() == null || stay.to().isAfter(from))
+                        && !endedAt(people, stay.residentId(), memberAt)
+                        && !fullyAbsent(
+                                status.statusPeriods(stay.residentId(), ABSENT, from, shift.endsAt()),
+                                from,
+                                shift.endsAt())) ids.add(stay.residentId());
+        }
+    }
+
+    /** Người bán trú có lịch đến trùng giờ ca, khi khu nghỉ bán trú thuộc phạm vi của ca. */
+    private void addDayCareVisitors(WorkShift shift, Set<Long> ids) {
+        Instant from = shift.startsAt();
+        var people = required(residents);
+        var attendance = required(contracts);
+        var daycare = required(structures).dayCareRestAreaLocation();
+        Set<ResidentStatus> candidates = EnumSet.allOf(ResidentStatus.class);
+        candidates.removeAll(
+                Set.of(ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED));
+        for (long resident : people.byStatus(candidates)) {
+            for (LocalDate day = day(from); !day.isAfter(day(shift.endsAt().minusNanos(1))); day = day.plusDays(1)) {
+                for (var visit : attendance.attendanceOn(resident, day)) {
+                    Instant arrival = visit.date()
+                            .atTime(visit.arrivalTime())
+                            .atZone(BusinessTime.ZONE)
+                            .toInstant();
+                    Instant departure = visit.date()
+                            .atTime(visit.departureTime())
+                            .atZone(BusinessTime.ZONE)
+                            .toInstant();
+                    if (!arrival.isBefore(departure))
+                        throw new Unavailable("Lịch đến bán trú có khoảng giờ không hợp lệ");
+                    if (arrival.isBefore(shift.endsAt()) && departure.isAfter(from)) {
+                        if (daycare.isEmpty()) throw new Unavailable("Chưa xác định vị trí khu nghỉ bán trú");
+                        if (matches(shift, daycare.get())) ids.add(resident);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Người dự kiến có mặt kèm mức chăm sóc hiện hành; thiếu mức thì không tính được. */
+    private List<StaffingRatioCalculator.Resident> expectedResidents(Set<Long> ids) {
+        var levels = required(careLevels);
+        var expected = new ArrayList<StaffingRatioCalculator.Resident>();
+        for (long id : ids)
+            expected.add(new StaffingRatioCalculator.Resident(
+                    id,
+                    levels.current(id)
+                            .orElseThrow(
+                                    () -> new Unavailable("Người dự kiến có mặt chưa có mức chăm sóc hiện hành"))));
+        return expected;
+    }
+
+    /** Nhân viên của ca kèm vai trò theo tài khoản, vắng mặt tại thời điểm tính, nghỉ có duyệt. */
+    private List<StaffingRatioCalculator.Member> members(WorkShift shift, boolean lockMembers, Instant memberAt) {
+        return shifts.members(shift.id(), lockMembers).stream()
+                .map(m -> new StaffingRatioCalculator.Member(
+                        m.staffId(),
+                        accounts.byStaff(m.staffId()).map(a -> a.roles()).orElse(Set.of()),
+                        !m.presentAt(memberAt),
+                        m.approvedLeaveRequestId() != null))
+                .toList();
     }
 
     /** Nhân viên vào ca: tính như có mặt, không nghỉ có duyệt; vai trò theo tài khoản hiện hành. */

@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -85,21 +86,8 @@ public class MedicationScheduleCalculator {
 
         List<CalculatedDoseSlot> result = new ArrayList<>();
         for (Instant scheduledTime : candidateTimes) {
-            // Check boundary with startedAt
-            if (scheduledTime.isBefore(prescription.getStartedAt())) {
+            if (!withinPrescriptionPeriod(prescription, scheduledTime)) {
                 continue;
-            }
-
-            // Check boundary with endedAt (end of day)
-            if (prescription.getEndedAt() != null) {
-                Instant endOfDay = prescription
-                        .getEndedAt()
-                        .atTime(LocalTime.MAX)
-                        .atZone(ZONE_VN)
-                        .toInstant();
-                if (scheduledTime.isAfter(endOfDay)) {
-                    continue;
-                }
             }
 
             ZonedDateTime zdt = scheduledTime.atZone(ZONE_VN);
@@ -107,40 +95,8 @@ public class MedicationScheduleCalculator {
 
             Instant windowFrom = scheduledTime.minus(windowBefore, ChronoUnit.MINUTES);
             Instant windowTo = scheduledTime.plus(windowAfter, ChronoUnit.MINUTES);
-
-            DoseStatus status;
-            DoseCancellationReason cancellationReason = null;
-
-            // Check if prescription is cancelled/terminated or suspendedFrom applies
-            if (prescription.getSuspendedFrom() != null && !scheduledTime.isBefore(prescription.getSuspendedFrom())) {
-                status = DoseStatus.CANCELLED;
-                cancellationReason = DoseCancellationReason.DISCONTINUED;
-            } else if (prescription.getStatus() == PrescriptionStatus.DISCONTINUED) {
-                status = DoseStatus.CANCELLED;
-                cancellationReason = DoseCancellationReason.DISCONTINUED;
-            } else if (prescription.getStatus() == PrescriptionStatus.EXPIRED) {
-                status = DoseStatus.CANCELLED;
-                cancellationReason = DoseCancellationReason.EXPIRED;
-            } else if (prescription.getStatus() == PrescriptionStatus.SUSPENDED) {
-                status = DoseStatus.SUSPENDED;
-            } else {
-                // Check resident absence intervals
-                AbsenceType absence = resolveAbsence(scheduledTime, context);
-                if (absence == AbsenceType.TEMPORARY_LEAVE || absence == AbsenceType.HOSPITALIZATION) {
-                    status = DoseStatus.SUSPENDED;
-                } else if (absence == AbsenceType.TRIP_WITH_MEDICATION) {
-                    status = DoseStatus.LEAVE_MEDICATION;
-                } else {
-                    // Time window relative to 'now'
-                    if (now.isBefore(windowFrom)) {
-                        status = DoseStatus.UPCOMING;
-                    } else if (!now.isAfter(windowTo)) {
-                        status = DoseStatus.DUE;
-                    } else {
-                        status = DoseStatus.LATE;
-                    }
-                }
-            }
+            ProjectedStatus projected =
+                    projectedStatus(prescription, scheduledTime, windowFrom, windowTo, now, context);
 
             result.add(new CalculatedDoseSlot(
                     doseKey,
@@ -156,14 +112,69 @@ public class MedicationScheduleCalculator {
                     scheduledTime,
                     windowFrom,
                     windowTo,
-                    status,
-                    cancellationReason,
+                    projected.status(),
+                    projected.cancellationReason(),
                     false,
                     null));
         }
 
         result.sort(Comparator.comparing(CalculatedDoseSlot::scheduledTime));
         return result;
+    }
+
+    /** Trạng thái dự kiến của một liều và lý do hủy nếu có. */
+    private record ProjectedStatus(DoseStatus status, DoseCancellationReason cancellationReason) {}
+
+    /** Liều nằm từ lúc đơn bắt đầu tới hết ngày kết thúc của đơn (nếu có). */
+    private static boolean withinPrescriptionPeriod(Prescription prescription, Instant scheduledTime) {
+        if (scheduledTime.isBefore(prescription.getStartedAt())) {
+            return false;
+        }
+        if (prescription.getEndedAt() == null) {
+            return true;
+        }
+        Instant endOfDay =
+                prescription.getEndedAt().atTime(LocalTime.MAX).atZone(ZONE_VN).toInstant();
+        return !scheduledTime.isAfter(endOfDay);
+    }
+
+    /**
+     * Trạng thái dự kiến theo thứ tự: đơn tạm ngừng từ thời điểm, đơn đã ngừng, hết hạn, tạm ngừng; người cao tuổi vắng
+     * (tạm về, nằm viện: tạm ngừng; chuyến có mang thuốc: thuốc mang theo); còn lại theo cửa sổ liều so với hiện tại.
+     */
+    private ProjectedStatus projectedStatus(
+            Prescription prescription,
+            Instant scheduledTime,
+            Instant windowFrom,
+            Instant windowTo,
+            Instant now,
+            ScheduleContext context) {
+        if (prescription.getSuspendedFrom() != null && !scheduledTime.isBefore(prescription.getSuspendedFrom())) {
+            return new ProjectedStatus(DoseStatus.CANCELLED, DoseCancellationReason.DISCONTINUED);
+        }
+        if (prescription.getStatus() == PrescriptionStatus.DISCONTINUED) {
+            return new ProjectedStatus(DoseStatus.CANCELLED, DoseCancellationReason.DISCONTINUED);
+        }
+        if (prescription.getStatus() == PrescriptionStatus.EXPIRED) {
+            return new ProjectedStatus(DoseStatus.CANCELLED, DoseCancellationReason.EXPIRED);
+        }
+        if (prescription.getStatus() == PrescriptionStatus.SUSPENDED) {
+            return new ProjectedStatus(DoseStatus.SUSPENDED, null);
+        }
+        AbsenceType absence = resolveAbsence(scheduledTime, context);
+        if (absence == AbsenceType.TEMPORARY_LEAVE || absence == AbsenceType.HOSPITALIZATION) {
+            return new ProjectedStatus(DoseStatus.SUSPENDED, null);
+        }
+        if (absence == AbsenceType.TRIP_WITH_MEDICATION) {
+            return new ProjectedStatus(DoseStatus.LEAVE_MEDICATION, null);
+        }
+        if (now.isBefore(windowFrom)) {
+            return new ProjectedStatus(DoseStatus.UPCOMING, null);
+        }
+        if (!now.isAfter(windowTo)) {
+            return new ProjectedStatus(DoseStatus.DUE, null);
+        }
+        return new ProjectedStatus(DoseStatus.LATE, null);
     }
 
     /**
@@ -185,80 +196,73 @@ public class MedicationScheduleCalculator {
      * Generates all candidate execution instants for the prescription inside [fromTime, toTime].
      */
     public List<Instant> generateCandidateTimes(Prescription prescription, Instant fromTime, Instant toTime) {
-        List<Instant> candidateTimes = new ArrayList<>();
         FrequencyType freqType = prescription.getFrequencyType();
         if (freqType == null) {
-            return candidateTimes;
+            return new ArrayList<>();
         }
-
-        ZonedDateTime fromZdt = fromTime.atZone(ZONE_VN);
-        ZonedDateTime toZdt = toTime.atZone(ZONE_VN);
-
-        switch (freqType) {
+        return switch (freqType) {
             case TIMED_SLOTS -> {
                 List<LocalTime> slots = parseTimedSlots(prescription.getTimedSlots());
-                if (slots.isEmpty()) {
-                    break;
-                }
-                LocalDate curDate = fromZdt.toLocalDate();
-                LocalDate endDate = toZdt.toLocalDate();
-                while (!curDate.isAfter(endDate)) {
-                    for (LocalTime slot : slots) {
-                        Instant inst = curDate.atTime(slot).atZone(ZONE_VN).toInstant();
-                        if (!inst.isBefore(fromTime) && !inst.isAfter(toTime)) {
-                            candidateTimes.add(inst);
-                        }
-                    }
-                    curDate = curDate.plusDays(1);
-                }
+                yield slots.isEmpty() ? new ArrayList<>() : slotsOnDays(slots, fromTime, toTime, day -> true);
             }
-            case EVERY_N_HOURS -> {
-                Integer intervalHours = prescription.getEveryNHours();
-                if (intervalHours == null || intervalHours <= 0) {
-                    intervalHours = 8;
-                }
-                Instant current =
-                        prescription.getFirstSlot() != null ? prescription.getFirstSlot() : prescription.getStartedAt();
-
-                // If starting before fromTime, jump forward
-                if (current.isBefore(fromTime)) {
-                    long hoursDiff = ChronoUnit.HOURS.between(current, fromTime);
-                    long steps = hoursDiff / intervalHours;
-                    current = current.plus(steps * intervalHours, ChronoUnit.HOURS);
-                }
-
-                while (current.isBefore(fromTime)) {
-                    current = current.plus(intervalHours, ChronoUnit.HOURS);
-                }
-
-                while (!current.isAfter(toTime)) {
-                    candidateTimes.add(current);
-                    current = current.plus(intervalHours, ChronoUnit.HOURS);
-                }
-            }
+            case EVERY_N_HOURS -> everyNHours(prescription, fromTime, toTime);
             case DAYS_OF_WEEK -> {
                 List<LocalTime> slots = parseTimedSlots(prescription.getTimedSlots());
                 if (slots.isEmpty()) {
                     slots = List.of(LocalTime.of(8, 0));
                 }
                 Set<Integer> targetDays = parseDaysOfWeek(prescription.getDaysOfWeek());
-                LocalDate curDate = fromZdt.toLocalDate();
-                LocalDate endDate = toZdt.toLocalDate();
-                while (!curDate.isAfter(endDate)) {
-                    int dayValue = mapDayOfWeekToDbValue(curDate.getDayOfWeek());
-                    if (targetDays.contains(dayValue)) {
-                        for (LocalTime slot : slots) {
-                            Instant inst = curDate.atTime(slot).atZone(ZONE_VN).toInstant();
-                            if (!inst.isBefore(fromTime) && !inst.isAfter(toTime)) {
-                                candidateTimes.add(inst);
-                            }
-                        }
+                yield slotsOnDays(
+                        slots, fromTime, toTime, day -> targetDays.contains(mapDayOfWeekToDbValue(day.getDayOfWeek())));
+            }
+        };
+    }
+
+    /** Các giờ trong ngày của mọi ngày được chọn trong khoảng, chỉ giữ thời điểm nằm trong [fromTime, toTime]. */
+    private static List<Instant> slotsOnDays(
+            List<LocalTime> slots, Instant fromTime, Instant toTime, Predicate<LocalDate> includeDay) {
+        List<Instant> candidateTimes = new ArrayList<>();
+        LocalDate curDate = fromTime.atZone(ZONE_VN).toLocalDate();
+        LocalDate endDate = toTime.atZone(ZONE_VN).toLocalDate();
+        while (!curDate.isAfter(endDate)) {
+            if (includeDay.test(curDate)) {
+                for (LocalTime slot : slots) {
+                    Instant inst = curDate.atTime(slot).atZone(ZONE_VN).toInstant();
+                    if (!inst.isBefore(fromTime) && !inst.isAfter(toTime)) {
+                        candidateTimes.add(inst);
                     }
-                    curDate = curDate.plusDays(1);
                 }
             }
+            curDate = curDate.plusDays(1);
+        }
+        return candidateTimes;
+    }
+
+    /** Mỗi N giờ (mặc định 8) tính từ liều đầu, hoặc từ lúc đơn bắt đầu khi không có liều đầu. */
+    private static List<Instant> everyNHours(Prescription prescription, Instant fromTime, Instant toTime) {
+        List<Instant> candidateTimes = new ArrayList<>();
+        Integer intervalHours = prescription.getEveryNHours();
+        if (intervalHours == null || intervalHours <= 0) {
+            intervalHours = 8;
+        }
+        Instant current =
+                prescription.getFirstSlot() != null ? prescription.getFirstSlot() : prescription.getStartedAt();
+
+        // If starting before fromTime, jump forward
+        if (current.isBefore(fromTime)) {
+            long hoursDiff = ChronoUnit.HOURS.between(current, fromTime);
+            long steps = hoursDiff / intervalHours;
+            current = current.plus(steps * intervalHours, ChronoUnit.HOURS);
         }
 
+        while (current.isBefore(fromTime)) {
+            current = current.plus(intervalHours, ChronoUnit.HOURS);
+        }
+
+        while (!current.isAfter(toTime)) {
+            candidateTimes.add(current);
+            current = current.plus(intervalHours, ChronoUnit.HOURS);
+        }
         return candidateTimes;
     }
 
