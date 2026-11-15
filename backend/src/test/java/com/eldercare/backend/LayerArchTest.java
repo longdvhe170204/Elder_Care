@@ -67,8 +67,7 @@ class LayerArchTest {
     private static final String[] PENDING_LAYER_SUB_PACKAGES = {};
     private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of();
 
-    /** C (005): care; record, enum ở gốc {@code api} chuyển vào {@code api.dto}. */
-    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of("care.api.MedicationChecklistItem");
+    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of();
 
     /** Record lồng chuyển ra {@code domain}: C (roombedallocation). */
     private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(

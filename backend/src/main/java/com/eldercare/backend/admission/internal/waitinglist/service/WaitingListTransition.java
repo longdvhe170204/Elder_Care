@@ -5,6 +5,7 @@ import static com.eldercare.backend.admission.internal.waitinglist.service.Waiti
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.admission.internal.application.persistence.AdmissionApplicationStore;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import com.eldercare.backend.admission.internal.waitinglist.domain.BedContact;
@@ -129,6 +130,7 @@ public class WaitingListTransition {
                 .resident(entry.residentId())
                 .before(Map.of("status", entry.status().name(), "heldBedId", bedId))
                 .after(Map.of("status", WaitingListStatus.WAITING.name()))
+                .basis(new Basis("BR-M02-02", null, bedId, null))
                 .build());
     }
 

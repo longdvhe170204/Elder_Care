@@ -21,6 +21,10 @@ public final class SharedTestKinds {
     public static final SharedKind<Attributes> OTHER_RECORD = SharedKind.of("M15.TEST_OTHER_RECORD", Attributes.class);
     public static final SharedKind<Attributes> STATE = SharedKind.of("M15.TEST_STATE", Attributes.class);
     public static final SharedKind<Attributes> OTHER_MODULE_STATE = SharedKind.of("M14.TEST_STATE", Attributes.class);
+    /** Cùng module với {@link #STATE}, dòng riêng theo mã loại; mã dài để kiểm cột đủ rộng. */
+    public static final SharedKind<Attributes> OWN_ROW_STATE =
+            SharedKind.of("M15.TEST_STATE_OWN_ROW_LONG_KIND_CODE", Attributes.class);
+
     public static final HistoryTrack<Attributes> TRACK =
             new HistoryTrack<>("M15.TEST_ENTITY", "status", Attributes.class);
     public static final HistoryTrack<Void> OTHER_TRACK = new HistoryTrack<>("M15.TEST_ENTITY", "owner", Void.class);

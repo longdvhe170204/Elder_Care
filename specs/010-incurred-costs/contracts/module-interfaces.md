@@ -173,3 +173,5 @@ CostItemView của E thêm commandHistory: List<Map<String,Object>>, mỗi dòng
 | Điều hướng cổng/app | Màn PurchaseConsentScreen của E nhận ApiClient/residentId; các lệnh sử dụng hợp đồng api-010 hiện có | A nối vào family_root/cổng 012; E không đổi màn gốc, common hoặc tạo import chéo feature |
 
 Đây là bàn giao thiếu nguồn, không phải API mới đã được duyệt. Không đổi hợp đồng HTTP hoặc chữ ký công khai B/D trong lượt này. Các nhánh chưa đủ căn cứ trả SOURCE_UNAVAILABLE khi được gọi, không tự cho mua gấp hay xác nhận một khoản là ngoài danh mục.
+
+**Cập nhật 10/11/2026 (A):** các điều kiện của bảng trên đã có: nhập tay FR-021 kiểm bằng `UnitPriceApi.servicesNamed`; mua hộ theo danh mục và mua gấp Q-269 kiểm bằng `UnitPriceApi.service` (loại `FACILITY_SUPPLIED_MEDICATION`, `MEDICAL_SUPPLY`) và `StaffProfileApi` (Bác sĩ, Điều dưỡng đang làm việc); `PurchaseAssistancePort.purchasedDetails` đã cài (`PurchasedMedications`); màn đồng ý mua hộ đã nối vào cổng web và app. Còn nghiệm thu chuỗi lưu giữ thật và bean thật ở T033.

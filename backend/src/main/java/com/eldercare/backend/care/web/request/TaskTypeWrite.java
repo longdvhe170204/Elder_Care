@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 
 /** Cùng hình dạng hợp đồng TaskType;id/status do lệnh và vòng đời quản lý. */
-@Schema(name = "TaskType")
+@Schema(name = "TaskTypeInput")
 public record TaskTypeWrite(
         Long id,
         String name,

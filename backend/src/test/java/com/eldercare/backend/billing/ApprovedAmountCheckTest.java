@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 class ApprovedAmountCheckTest {
 
     @Test
-    void BR_M11_18_actualWithinApprovedPlusPercentIsAllowed() {
+    void BR_64_actualWithinApprovedPlusPercentIsAllowed() {
         // duyệt, thực tế, mức %, được phép
         TableRows.csv(
                 r -> assertThat(ApprovedAmountCheck.withinLimit(
@@ -34,7 +34,7 @@ class ApprovedAmountCheckTest {
 
     @ParameterizedTest(name = "duyệt {0}, mức {1}% → tối đa {2}")
     @CsvSource({"1800000, 10, 1980000", "1000, 2.5, 1025", "999, 10, 1098"})
-    void BR_M11_18_maximumIsRoundedDown(long approved, BigDecimal percent, long maximum) {
+    void BR_64_maximumIsRoundedDown(long approved, BigDecimal percent, long maximum) {
         assertThat(ApprovedAmountCheck.maximum(approved, percent)).isEqualTo(maximum);
     }
 }

@@ -595,11 +595,3 @@ Người dùng cho phép đồng bộ; checkpointca179af1 đã push. Ghép14comm
 ### Checkpoint chung theo yêu cầu người dùng — 2026-11-06
 
 Tạm dừng triển khai để gom công việc hiện có lên develop; chi tiết ở publish-checkpoint-2026-11-06.md. Ghép menu mobile với bản A/B mới, giữ các mục theo quyền; khôi phục bản sửa fixture và test đổi kết nối từ hai worktree cũ vào package/bảng R-15 hiện tại. Các gate nguồn thật/nghiệm thu của 008 giữ mở.
-
-## Tiếp tục sau rà 008/010 — 09/11/2026
-
-Người dùng yêu cầu sửa lỗi rõ ràng của 008 trước, rồi app/tích hợp, sau đó 010; không commit/push. Tách T056 cho hồi quy mức `CRITICAL` và mã nguồn thông báo `M09`; không đổi mã feature ở `unmetConditions`. Giữ các test hiện có, bổ sung dữ liệu/assertion đúng hợp đồng nguồn 007/009 thay vì tạo bộ test trùng.
-
-T057 tách phần máy chủ của T030: `ShiftResponses.MyShift` dùng JSON phẳng của `Shift` kèm `scopeEndsAt`, chỉ áp cho `/me/shifts`. `ShiftScheduleService.ownShiftScopeEnd` đọc `AssignmentApi.history` của người dùng trong khoảng ca, lọc đúng `shiftId`; lấy mốc muộn nhất giữa các phân công, dùng mốc kết thúc sớm nếu có, nếu không lấy `to + CFG-M15-07`. Không có phân công thì trả null. Dùng SPI đã có, không đổi API liên module hoặc tự cố định thời lượng. Bỏ pending response của `ApiContractIT` và ngoại lệ mã nguồn trong `T037_SourceModulesEndToEndIT` đúng hai đầu việc A giao E ở team-plan mục 8; không nới kiểm tra.
-
-Ghi chú chờ ngày 05/11 không còn phản ánh nền hiện tại: client `ApiClient.requestResponse` đã trả ETag; hợp đồng MyShift được duyệt ngày 08/11. App sửa mục/nhận định và lưu/xóa ngoại tuyến vẫn thuộc T030, chưa được coi hoàn tất bởi phần máy chủ. Kết quả kiểm và giới hạn được ghi ở validation.md/progress.md sau khi chạy.

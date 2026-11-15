@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 class ContainmentScopeTest {
 
     @Test
-    void BR_M05_11_scopeAllowsSeveralFloorsOrOneArea() {
+    void BR_44_scopeAllowsSeveralFloorsOrOneArea() {
         assertThat(new ContainmentScope(Set.of(10L, 20L), Set.of()).floorIds()).containsExactlyInAnyOrder(10L, 20L);
         assertThat(new ContainmentScope(Set.of(), Set.of(30L)).areaIds()).containsExactly(30L);
 
@@ -22,7 +22,7 @@ class ContainmentScopeTest {
     }
 
     @Test
-    void BR_M05_12_scopeIsEffectiveFromCreationUntilRelease() {
+    void BR_44_scopeIsEffectiveFromCreationUntilRelease() {
         var start = Instant.parse("2026-11-03T00:00:00Z");
         var end = start.plusSeconds(600);
         var scope = new ContainmentScope(Set.of(10L), Set.of());

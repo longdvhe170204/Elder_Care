@@ -15,7 +15,8 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `su_kien_chung`: `su_kien_thong_bao`, `lan_gui`, `ket_qua_lan_gui`, `luot_nhac_goi_thong_bao`, `chuyen_nhac`, `ket_qua_goi`, `ket_qua_lien_he`.
 - `ho_so_chung`: `lien_he_truc_tiep`; `moc_da_nhac`: `notification_request_duplicate`; `ho_so_chung`: `khung_gop_tin_nhan` (giữ dữ liệu khung, không chỉ để khóa); `moc_da_nhac`: `m13_job_run` (lần chạy ra file log); giữ `thiet_bi_day` (`push_device`).
 - Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m13` → `moc_da_nhac`; `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` → cột `JSON` của `yeu_cau_thong_bao`. Không thêm bảng riêng.
-- Còn 4 bảng riêng của feature.
+- *(Sửa 2026-11-13, research R-15 mục 6 của 000)* `thiet_bi_day` (`push_device`) thành `ho_so_chung` loại `M13.PUSH_DEVICE` của tài khoản (`V099_05`); 009 vẫn tự quản lý token.
+- Còn 3 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V009_95`)*
 
@@ -65,12 +66,12 @@ Hai cột ghi cùng câu `INSERT` (trigger hiện có đã chặn sửa); backen
 | --- | --- | --- |
 | FR-005 | Không trùng yêu cầu: `UNIQUE (source_record_type, source_record_id, event_key)` giữ; bản trùng ở `moc_da_nhac` | `FR_005_DeduplicationIT` |
 | FR-012 | Một thông báo mỗi người nhận mỗi yêu cầu: `UNIQUE (request_id, recipient_type, recipient_id)` giữ | test nhận người nhận hiện có |
-| FR-032 | Một lượt nhắc gọi đang chờ mỗi người cần gọi: `call_reminder.pending_key` `UNIQUE` | `BR_M13_02_CallReminderIT`, `M13RecordGroupTriggerIT` |
+| FR-032 | Một lượt nhắc gọi đang chờ mỗi người cần gọi: `call_reminder.pending_key` `UNIQUE` | `BR_75_CallReminderIT`, `M13RecordGroupTriggerIT` |
 | FR-036, XII *(cài 2026-10-30)* | Yêu cầu thông báo nhóm 3 (trigger chặn sửa, xóa); thông báo, lượt nhắc gọi khóa theo dòng (`row_lock`, quyền `UPDATE` theo cột); sự kiện, lần gửi, kết quả ở `record_event` (trigger của 000); một sự kiện gửi, xem, xác nhận mỗi thông báo và một kết quả mỗi lần gửi bằng `unique_key` | `M13RecordGroupTriggerIT`, `FR_026_AcknowledgeIT`, `NFR_03_DeliveryDispatcherIT` |
 | NFR (L2) | Sự kiện thông báo, lần gửi vào `su_kien_chung` (bảng lớn nhất): truy vấn theo `(loai_doi_tuong, doi_tuong_id, loai)`; hộp thông báo đọc `notification` (cột dẫn xuất có chỉ mục) | đo lại phần NFR của quickstart sau T043 |
 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 23 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
-- Test của module: `BR_M13_01_ChannelSelectionIT`, `BR_M13_02_CallReminderIT`, `BR_M13_03_QuietHoursIT`, `BR_M13_04_ShiftGroupsIT`, `CallReminderTestBase`, `FR_003_RequestValidationIT`, `FR_005_DeduplicationIT`, `FR_014_015_ConsentAndDeathIT`, `FR_016_ChannelConfigIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT`, `FR_021_DirectContactIT`, `FR_022a_ResidentRecipientIT`, `FR_024_ParameterChangeIT`, `FR_026_AcknowledgeIT`, `FR_029a_CallResultIT`, `FR_031_CorrectionResidentIT`, `InboxIT`, `M13ProvidersIT`, `M13RecordGroupTriggerIT`, `NFR_03_DeliveryDispatcherIT`, `NFR_04_M13CatchUpIT`, `RecipientResolutionIT`.
+- Test của module: `BR_75_ChannelSelectionIT`, `BR_75_CallReminderIT`, `BR_75_QuietHoursIT`, `BR_M13_04_ShiftGroupsIT`, `CallReminderTestBase`, `FR_003_RequestValidationIT`, `FR_005_DeduplicationIT`, `FR_014_015_ConsentAndDeathIT`, `FR_016_ChannelConfigIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT`, `FR_021_DirectContactIT`, `FR_022a_ResidentRecipientIT`, `FR_024_ParameterChangeIT`, `FR_026_AcknowledgeIT`, `FR_029a_CallResultIT`, `FR_031_CorrectionResidentIT`, `InboxIT`, `M13ProvidersIT`, `M13RecordGroupTriggerIT`, `NFR_03_DeliveryDispatcherIT`, `NFR_04_M13CatchUpIT`, `RecipientResolutionIT`.
 
 ---
 

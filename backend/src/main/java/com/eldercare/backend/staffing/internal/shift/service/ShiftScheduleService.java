@@ -56,6 +56,7 @@ public class ShiftScheduleService {
     private final com.eldercare.backend.staffing.internal.assignment.service.AssignmentService staffAssignments;
     private final com.eldercare.backend.staffing.internal.assignment.service.AssignmentReminders assignmentReminders;
     private final com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService ratios;
+    private final ObjectProvider<com.eldercare.backend.staffing.internal.swap.service.ApprovedLeaveDayPort> leaveDays;
 
     public ShiftScheduleService(
             ShiftStore store,
@@ -72,7 +73,8 @@ public class ShiftScheduleService {
             ApplicationEventPublisher events,
             com.eldercare.backend.staffing.internal.assignment.service.AssignmentService staffAssignments,
             com.eldercare.backend.staffing.internal.assignment.service.AssignmentReminders assignmentReminders,
-            com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService ratios) {
+            com.eldercare.backend.staffing.internal.ratio.service.StaffingRatioService ratios,
+            ObjectProvider<com.eldercare.backend.staffing.internal.swap.service.ApprovedLeaveDayPort> leaveDays) {
         this.store = store;
         this.staff = staff;
         this.credentials = credentials;
@@ -88,6 +90,7 @@ public class ShiftScheduleService {
         this.staffAssignments = staffAssignments;
         this.assignmentReminders = assignmentReminders;
         this.ratios = ratios;
+        this.leaveDays = leaveDays;
     }
 
     public List<ShiftTemplate> templates() {
@@ -260,20 +263,6 @@ public class ShiftScheduleService {
         return store.staffRange(id.get(), begin, end, false);
     }
 
-    /** FR-060: chỉ phân công của chính người dùng trong ca; kết thúc sớm không hưởng biên CFG. */
-    @Transactional(readOnly = true)
-    public Instant ownShiftScopeEnd(WorkShift shift) {
-        var staffId = users.getObject().staffId();
-        if (staffId.isEmpty()) return null;
-        var margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
-        return assignments.getObject().history(staffId.get(), shift.startsAt(), shift.endsAt()).stream()
-                .filter(a -> Objects.equals(a.shiftId(), shift.id()))
-                .map(a -> a.scopeEndsAt() != null ? a.scopeEndsAt() : a.to() == null ? null : a.to().plus(margin))
-                .filter(Objects::nonNull)
-                .max(Comparator.naturalOrder())
-                .orElse(null);
-    }
-
     private boolean calendarReader() {
         return !Collections.disjoint(users.getObject().roles(), Set.of(Role.NURSING_HOME_MANAGER, Role.FLOOR_MANAGER));
     }
@@ -318,6 +307,16 @@ public class ShiftScheduleService {
                 warnings.addAll(trainingWarnings(member.staffId(), shift.startsAt(), shift.endsAt()));
             }
         extended.orderedStream().forEach(check -> warnings.addAll(check.check(schedule.id())));
+        // FR-016 (015 FR-026a, Q-184; chủ dự án duyệt 2026-11-12): nghỉ theo ngày chưa quyết định của tháng, không
+        // chặn.
+        var pendingLeave = leaveDays.getIfAvailable();
+        if (pendingLeave != null)
+            for (long staffId :
+                    pendingLeave.pendingLeaveDayStaff(schedule.scopeType(), schedule.scopeId(), schedule.month()))
+                warnings.add(warning(
+                        "PENDING_LEAVE_DAY",
+                        "Nhân viên còn yêu cầu nghỉ theo ngày chưa quyết định trong tháng",
+                        Map.of("staffId", staffId)));
         for (var shift : shifts) warnings.addAll(ratios.preview(shift.id()));
         var invalid = staffAssignments.invalidDrafts(schedule.id()).stream()
                 .map(a -> new InvalidAssignment(a.assignmentId(), a.reason()))
@@ -359,10 +358,13 @@ public class ShiftScheduleService {
         if (!check.unmetConditions().isEmpty()) throw new ConditionNotMetException(check.unmetConditions());
         boolean self = Objects.equals(schedule.createdBy(), users.getObject().accountId());
         if (self && reason == null) throw new ReasonRequiredException();
-        // FR-036: cảnh báo tỷ lệ không chặn công bố và không phát sinh yêu cầu lý do riêng.
+        // FR-036: cảnh báo tỷ lệ không chặn công bố và không phát sinh yêu cầu lý do riêng; nghỉ theo ngày chờ duyệt
+        // cũng vậy
+        // (FR-016).
         confirm(
                 check.warnings().stream()
-                        .filter(w -> !Set.of("BELOW_STAFFING_THRESHOLD", "STAFFING_RATIO_UNAVAILABLE")
+                        .filter(w -> !Set.of(
+                                        "BELOW_STAFFING_THRESHOLD", "STAFFING_RATIO_UNAVAILABLE", "PENDING_LEAVE_DAY")
                                 .contains(w.code()))
                         .toList(),
                 confirmWarnings,
@@ -458,6 +460,15 @@ public class ShiftScheduleService {
                         "Chuỗi ca liên tục vượt ngưỡng cấu hình",
                         Map.of("staffId", member.staffId())));
             warnings.addAll(trainingWarnings(member.staffId(), from, to));
+            // FR-012 (015 FR-026a): xếp tay lịch Nháp vào ngày đã nghỉ có duyệt thì cảnh báo, xác nhận kèm lý do.
+            LocalDate day = LocalDate.ofInstant(from, BusinessTime.ZONE);
+            if ("DRAFT".equals(schedule.status())
+                    && leaveDays.getIfAvailable() != null
+                    && leaveDays.getObject().approvedLeaveDay(member.staffId(), day))
+                warnings.add(warning(
+                        "APPROVED_LEAVE_DAY",
+                        "Nhân viên đã được duyệt nghỉ ngày này",
+                        Map.of("staffId", member.staffId(), "date", day.toString())));
         }
         if (input.leadStaffId() != null) {
             var account = accounts.byStaff(input.leadStaffId())

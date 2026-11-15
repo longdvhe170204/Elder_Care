@@ -2,6 +2,7 @@ package com.eldercare.backend.health.internal.measurement.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
+import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.*;
@@ -331,8 +332,15 @@ public class VitalSignMeasurementService {
         return true;
     }
 
+    /** Đối tượng kiểm quyền theo người cao tuổi (phạm vi được giao của 002); controller không có đối tượng nên không kiểm thay. */
+    public static Target target(long residentId) {
+        return new Target("M06.VITAL_SIGN_RECORD", null, residentId, null);
+    }
+
+    @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public List<VitalSignRecord> getHistory(long residentId, Long indicatorId, Instant from, Instant to) {
+    public List<VitalSignRecord> getHistory(
+            Target target, long residentId, Long indicatorId, Instant from, Instant to) {
         if (indicatorId != null && from != null && to != null) {
             return records.withinRange(residentId, indicatorId, from, to);
         }
@@ -348,7 +356,7 @@ public class VitalSignMeasurementService {
     private PermissionResult checkPermission(CurrentUser user, long residentId, Instant deviceTime) {
         if (user == null) throw new PermissionDeniedException("Không có người ghi chỉ số");
         var key = new PermissionKey(Function.VITAL_SIGN, Operation.CREATE);
-        var target = new Target("M06.VITAL_SIGN_RECORD", null, residentId, null);
+        var target = target(residentId);
         var result = deviceTime == null
                 ? permissions.hasPermission(user, key, target)
                 : permissions.hasPermissionAt(user, key, target, deviceTime);

@@ -5,6 +5,7 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.family.internal.relationship.domain.FamilyRelationship;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,5 +33,13 @@ class RepresentativeLookup implements RepresentativePort {
     @Override
     public boolean hasRepresentative(long residentId) {
         return queries.activeOfResident(residentId).stream().anyMatch(FamilyRelationship::representative);
+    }
+
+    @Override
+    public Optional<Long> activeRepresentative(long residentId) {
+        return queries.activeOfResident(residentId).stream()
+                .filter(FamilyRelationship::representative)
+                .map(FamilyRelationship::familyMemberId)
+                .findFirst();
     }
 }

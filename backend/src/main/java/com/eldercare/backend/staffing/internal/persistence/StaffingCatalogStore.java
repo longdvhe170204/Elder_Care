@@ -44,6 +44,13 @@ public class StaffingCatalogStore {
         return departments().stream().filter(r -> departmentId(r) == logicalId).findFirst();
     }
 
+    /** Mã bộ phận logic của bộ phận Hiệu lực mang mã hệ thống {@code code} (V008_96: {@code CARE}). */
+    public Optional<Long> departmentByCode(String code) {
+        return catalogs.findByCode(DEPARTMENT, null, code)
+                .filter(r -> r.status() == com.eldercare.backend.common.data.CatalogStatus.ACTIVE)
+                .map(this::departmentId);
+    }
+
     public CatalogItem<DepartmentAttributes> requireDepartment(long logicalId, boolean lock) {
         if (lock) locks.lock("M09.DEPARTMENT:" + logicalId);
         return department(logicalId).orElseThrow(NotFoundException::new);

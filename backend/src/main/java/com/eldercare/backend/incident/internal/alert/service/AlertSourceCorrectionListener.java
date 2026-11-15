@@ -1,7 +1,10 @@
 package com.eldercare.backend.incident.internal.alert.service;
 
+import com.eldercare.backend.administration.account.api.AccountApi;
+import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.health.api.events.VitalSignCorrected;
 import com.eldercare.backend.incident.api.events.AlertSourceCorrected;
+import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import java.util.List;
@@ -21,10 +24,12 @@ public class AlertSourceCorrectionListener {
 
     private final AlertStore alerts;
     private final ApplicationEventPublisher events;
+    private final AccountApi accounts;
 
-    public AlertSourceCorrectionListener(AlertStore alerts, ApplicationEventPublisher events) {
+    public AlertSourceCorrectionListener(AlertStore alerts, ApplicationEventPublisher events, AccountApi accounts) {
         this.alerts = alerts;
         this.events = events;
+        this.accounts = accounts;
     }
 
     @ApplicationModuleListener
@@ -36,7 +41,14 @@ public class AlertSourceCorrectionListener {
                             alert.id(),
                             event.eventKey() + ":" + alert.id(),
                             event.occurredAt(),
-                            AlertNotices.sourceCorrected(alert, event.eventKey(), event.occurredAt()))));
+                            AlertNotices.sourceCorrected(
+                                    alert, assigneeStaffId(alert), event.eventKey(), event.occurredAt()))));
         }
+    }
+
+    /** Người phụ trách lưu theo tài khoản; nhóm người nhận cần mã nhân viên (không có tài khoản nhân viên thì báo điều dưỡng). */
+    private Long assigneeStaffId(AlertRecord alert) {
+        if (alert.assigneeId() == null) return null;
+        return accounts.byId(alert.assigneeId()).map(AccountView::staffId).orElse(null);
     }
 }

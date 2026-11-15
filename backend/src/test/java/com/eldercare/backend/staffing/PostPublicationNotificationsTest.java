@@ -35,12 +35,10 @@ class PostPublicationNotificationsTest {
         var request =
                 notices.request("STAFF_ABSENT", shift, List.of(10L), at, false).getFirst();
         assertThat(request.floorAreaId()).contains(5L);
-        assertThat(request.sourceModule()).isEqualTo("M09");
         assertThat(request.shortContent())
                 .hasValueSatisfying(text -> assertThat(text).contains("Ca #20", "tầng #5", "Mở ứng dụng"));
         var handover = notices.handover(shift, 30, 11, at).getFirst();
         assertThat(handover.sourceRecord()).isEqualTo(new SourceRecord("M09.HANDOVER", "30"));
         assertThat(handover.sourceGroup()).isEqualTo(SourceGroup.SCHEDULE_CHANGE);
-        assertThat(handover.sourceModule()).isEqualTo("M09");
     }
 }

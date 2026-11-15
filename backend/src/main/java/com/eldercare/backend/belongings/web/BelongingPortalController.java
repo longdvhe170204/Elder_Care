@@ -33,7 +33,7 @@ class BelongingPortalController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemBody.class)))
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(responseCode = "200", description = "OK")
     List<PortalBelongingResponse> belongings(@PathVariable long residentId) {
         return queries.view(residentId).stream()
                 .map(PortalBelongingResponse::of)

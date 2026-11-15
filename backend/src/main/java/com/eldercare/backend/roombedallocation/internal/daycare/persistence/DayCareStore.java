@@ -39,12 +39,16 @@ public class DayCareStore {
     }
 
     public void lock() {
-        jdbc.queryForObject("SELECT id FROM day_care_capacity_guard WHERE id=1 FOR UPDATE", Integer.class);
+        // T066: dòng technical_lock M03.SUC_CHUA_BAN_TRU do V003_95 tạo (thay day_care_capacity_guard).
+        jdbc.queryForObject(
+                "SELECT lock_key FROM technical_lock WHERE lock_key='M03.SUC_CHUA_BAN_TRU' FOR UPDATE", String.class);
     }
 
     public List<DayCareAreaState> areas(boolean current) {
         return jdbc.query(
-                "SELECT * FROM day_care_rest_area ORDER BY id" + (current ? " FOR UPDATE" : ""),
+                "SELECT id,JSON_VALUE(attributes,'$.code') code,name,JSON_VALUE(attributes,'$.floorId' RETURNING SIGNED) floor_id,JSON_VALUE(attributes,'$.areaId' RETURNING SIGNED) area_id,status,version"
+                        + " FROM catalog_item WHERE catalog_type='M03.DAY_CARE_REST_AREA' ORDER BY id"
+                        + (current ? " FOR UPDATE" : ""),
                 (r, n) -> new DayCareAreaState(
                         r.getLong("id"),
                         r.getString("code"),

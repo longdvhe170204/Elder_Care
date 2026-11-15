@@ -38,3 +38,7 @@ build/
 
 ### Log lần chạy job (logback-spring.xml) ###
 logs/
+
+### Log JVM khi crash ###
+hs_err_pid*.log
+replay_pid*.log

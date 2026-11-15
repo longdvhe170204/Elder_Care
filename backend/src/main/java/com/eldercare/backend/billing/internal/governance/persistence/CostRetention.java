@@ -22,7 +22,9 @@ public class CostRetention {
     public enum Kind {
         PERIOD,
         STATEMENT,
-        ITEM
+        ITEM,
+        /** Chỉ mục nguồn (dữ liệu kỹ thuật, T033): đi theo hồ sơ người cao tuổi, không có bản trỏ tới. */
+        SOURCE_INDEX
     }
 
     private static final Set<ResidentStatus> FINAL_STATUSES =
@@ -89,9 +91,13 @@ public class CostRetention {
                         .ifPresent(at -> milestones.add(new Candidate(residentId, at)));
             }
             milestones.sort(Comparator.comparing(Candidate::at).thenComparingLong(Candidate::id));
-            String query = kind == Kind.STATEMENT
-                    ? "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=? AND id>? ORDER BY id LIMIT ?"
-                    : "SELECT id FROM cost_item WHERE resident_id=? AND id>? ORDER BY id LIMIT ?";
+            String query = switch (kind) {
+                case STATEMENT ->
+                    "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=? AND id>? ORDER BY id LIMIT ?";
+                case SOURCE_INDEX ->
+                    "SELECT id FROM cost_source_index WHERE resident_id=? AND id>? ORDER BY id LIMIT ?";
+                default -> "SELECT id FROM cost_item WHERE resident_id=? AND id>? ORDER BY id LIMIT ?";
+            };
             List<Candidate> result = new ArrayList<>();
             for (Candidate milestone : milestones) {
                 if (after != null && milestone.at().isBefore(after.at())) continue;
@@ -106,9 +112,11 @@ public class CostRetention {
         @Override
         public Set<DataRef> referencing(DataRef target) {
             if (kind == Kind.PERIOD || !target.dataType().equals("M01.RESIDENT")) return Set.of();
-            String sql = kind == Kind.STATEMENT
-                    ? "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=?"
-                    : "SELECT id FROM cost_item WHERE resident_id=?";
+            String sql = switch (kind) {
+                case STATEMENT -> "SELECT id FROM cost_statement WHERE kind='STATEMENT' AND resident_id=?";
+                case SOURCE_INDEX -> "SELECT id FROM cost_source_index WHERE resident_id=?";
+                default -> "SELECT id FROM cost_item WHERE resident_id=?";
+            };
             Set<DataRef> references = new LinkedHashSet<>();
             jdbc.queryForList(sql, Long.class, target.id()).forEach(id -> references.add(new DataRef(dataType(), id)));
             return references;
@@ -117,6 +125,7 @@ public class CostRetention {
         @Override
         public Set<DataRef> referencesTo(long id) {
             Set<DataRef> references = new LinkedHashSet<>();
+            if (kind == Kind.SOURCE_INDEX) return references;
             if (kind != Kind.ITEM
                     && jdbc.queryForObject(
                                     "SELECT COUNT(*) FROM cost_statement WHERE id=? AND kind=?",
@@ -148,12 +157,15 @@ public class CostRetention {
 
         @Override
         public void delete(Collection<Long> ids) {
-            String query = kind == Kind.ITEM
-                    ? "DELETE FROM cost_item WHERE id=?"
-                    : "DELETE FROM cost_statement WHERE id=? AND kind=?";
+            String query = switch (kind) {
+                case ITEM -> "DELETE FROM cost_item WHERE id=?";
+                case SOURCE_INDEX -> "DELETE FROM cost_source_index WHERE id=?";
+                default -> "DELETE FROM cost_statement WHERE id=? AND kind=?";
+            };
             // Job đã xếp bản trỏ tới trước bản gốc; không sắp lại ID làm đảo thứ tự khóa ngoại.
             for (long id : ids.stream().distinct().toList()) {
-                if (kind == Kind.ITEM) retention.jdbc().update(query, id);
+                if (kind == Kind.ITEM || kind == Kind.SOURCE_INDEX)
+                    retention.jdbc().update(query, id);
                 else retention.jdbc().update(query, id, kind.name());
             }
         }

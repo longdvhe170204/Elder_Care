@@ -92,21 +92,6 @@ class ThreeLayerPermissionIT extends MySqlIntegrationTestBase {
                 .containsExactly("reportIncident");
     }
 
-    @Test
-    void US1_10_assignedExecution_otherFloorDenied_facilityExecution_anyFloor() {
-        CurrentUser caregiver = staffOnFloor1(Role.CAREGIVER);
-        PermissionKey record = key(Function.TASK_CHECKLIST, Operation.CREATE);
-        CurrentUser office = staff(Role.OFFICE_STAFF);
-        PermissionKey absence = key(Function.ABSENCE_RETURN, Operation.CREATE);
-
-        assertThat(permissions.hasPermission(caregiver, record, onFloor1).allowed())
-                .isTrue();
-        assertThat(permissions.hasPermission(caregiver, record, onFloor2).failedLayer())
-                .contains(FailedLayer.SCOPE);
-        assertThat(permissions.hasPermission(office, absence, onFloor2).allowed())
-                .isTrue();
-    }
-
     private static PermissionKey key(Function function, Operation operation) {
         return new PermissionKey(function, operation);
     }

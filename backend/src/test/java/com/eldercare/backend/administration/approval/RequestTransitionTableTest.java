@@ -45,7 +45,7 @@ class RequestTransitionTableTest {
     private final RequestTransitionTable table = new RequestTransitionTable();
 
     @Test
-    void BR_M15_08_everyStatusCommandPair_followsTheCommonTable() {
+    void BR_74_everyStatusCommandPair_followsTheCommonTable() {
         for (Command command : Command.values()) {
             for (String status : STATUSES) {
                 String expected = ALLOWED.get(command).get(status);

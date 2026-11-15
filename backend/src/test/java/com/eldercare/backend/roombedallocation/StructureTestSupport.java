@@ -49,7 +49,7 @@ abstract class StructureTestSupport extends MySqlIntegrationTestBase {
         jdbc.update(
                 "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)", floor, area, "F" + floor, "Tầng " + floor);
         jdbc.update("INSERT INTO room_type(id,name,standard_beds) VALUES(?,?,2)", type, "Loại " + type);
-        jdbc.update("INSERT INTO room_type_care_level VALUES(?,'BASIC')", type);
+        jdbc.update("UPDATE room_type SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", type);
         jdbc.update(
                 "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
                 room,
@@ -57,7 +57,7 @@ abstract class StructureTestSupport extends MySqlIntegrationTestBase {
                 type,
                 "R" + room,
                 "Phòng " + room);
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G1')", bed, room);
     }
 }

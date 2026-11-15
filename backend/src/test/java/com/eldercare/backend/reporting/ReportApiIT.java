@@ -1,6 +1,5 @@
 package com.eldercare.backend.reporting;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,7 +18,6 @@ import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -100,22 +98,24 @@ class ReportApiIT extends MySqlIntegrationTestBase {
         return mvc.perform(request.header("Authorization", TestUsers.bearer(users.session(u.accountId()))));
     }
 
-    private MockHttpServletRequestBuilder lastWeek(String url) {
-        LocalDate today = time.today();
-        return get(url).param("from", today.minusDays(7).toString()).param("to", today.toString());
-    }
-
+    /**
+     * 016 T109 (FR-007): khoảng báo cáo giao với dữ liệu đã loại bỏ theo bản tóm tắt EXPIRED_DATA_PURGED thì chỉ tiêu đọc
+     * loại dữ liệu đó mang nhãn và tên loại. Mốc năm 2001 để không ảnh hưởng báo cáo của test khác (audit_log giữ lại).
+     */
     @Test
-    void FR_012_report_valuesWithinScope_dayNotEndedLabel() throws Exception {
-        perform(manager, lastWeek(REPORT))
+    void FR_007_purgedRangeOverlapsPeriod_labelsMetricWithDataType() throws Exception {
+        jdbc.update(
+                "INSERT INTO audit_log (occurred_at, actor_type, action, entity_type, entity_id, details, exempt_from_purge)"
+                        + " VALUES (?, 'SCHEDULER', 'EXPIRED_DATA_PURGED', 'M15.PURGE_RUN', ?, ?, 1)",
+                java.time.LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE),
+                "run-" + UUID.randomUUID(),
+                "{\"deleted\":{\"M07.TEST_DOSE\":{\"count\":2,\"from\":\"2001-01-01T00:00:00Z\",\"to\":\"2001-03-01T00:00:00Z\"}}}");
+        perform(manager, get(REPORT).param("from", "2001-02-01").param("to", "2001-02-28"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.group").value("HEALTH_MEDICATION"))
-                .andExpect(jsonPath("$.asOf").exists())
-                .andExpect(jsonPath(VALUE + ".value").value(contains(3)))
-                .andExpect(jsonPath(VALUE + ".labels[*]").value(hasItem("DAY_NOT_ENDED")))
-                .andExpect(jsonPath(VALUE + ".breakdown[*].key").value(contains("Sáng", "Tối")));
-        perform(floorManager, lastWeek(REPORT))
+                .andExpect(jsonPath(VALUE + ".labels[*]").value(hasItem("PURGED_BY_RETENTION")))
+                .andExpect(jsonPath(VALUE + ".purgedDataTypes[*]").value(hasItem("M07.TEST_DOSE")));
+        perform(manager, get(REPORT).param("from", "2001-04-01").param("to", "2001-04-30"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath(VALUE + ".value").value(contains(2)));
+                .andExpect(jsonPath(VALUE + ".purgedDataTypes[*]").isEmpty());
     }
 }

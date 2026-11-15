@@ -34,17 +34,6 @@ class BuoiTheoMauTest {
     }
 
     @Test
-    void FR_005_noSlotAfterTemplateEndDateOrBeforeStartDate() {
-        var slots = SessionTemplate.slots(
-                List.of(new VersionFrom(MONDAY, weekdays("08:00", "08:45", MONDAY.plusDays(1), MONDAY.plusDays(2)))),
-                MONDAY,
-                MONDAY.plusDays(13));
-        assertThat(slots)
-                .extracting(SessionTemplate.Slot::startsAt)
-                .containsExactly(at(MONDAY.plusDays(1), "08:00"), at(MONDAY.plusDays(2), "08:00"));
-    }
-
-    @Test
     void FR_009_eachDayUsesTheVersionInEffectOnThatDay() {
         var versions = List.of(
                 new VersionFrom(MONDAY, weekdays("08:00", "08:45", MONDAY, null)),

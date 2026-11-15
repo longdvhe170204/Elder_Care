@@ -143,7 +143,7 @@ public class M03GovernanceConfiguration {
             BusinessTime time) {
         return new M03Retention(
                 "M03.ROOM_ISOLATION_HISTORY",
-                "room_isolation_history",
+                M03GovernanceStore.ROOM_ISOLATION,
                 new RetentionKind.NotResidentLinked(),
                 store,
                 database,

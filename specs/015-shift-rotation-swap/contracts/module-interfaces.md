@@ -50,7 +50,7 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 
 ```java
 Stream<YeuCauNhanSuView> yeuCau(PhamViLoc phamVi, LocalDate tu, LocalDate den);     // loại, trạng thái cuối, thời gian lập → quyết định
-Stream<GioLamView> gioLamTheoThang(PhamViLoc phamVi, YearMonth thang);              // FR-034 (không có lý do)
+// Stream<GioLamView> gioLamTheoThang(PhamViLoc phamVi, YearMonth thang);         // bỏ theo Q-408 (2026-11-11)
 ```
 
 ### 2.2. SPI và provider 015 cài

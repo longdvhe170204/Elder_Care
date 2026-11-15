@@ -32,6 +32,11 @@ class M08StatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "011";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(
                 StatusCommand.COMPLETE_ADMISSION,

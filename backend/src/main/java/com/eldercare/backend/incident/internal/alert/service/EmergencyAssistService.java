@@ -103,19 +103,6 @@ public class EmergencyAssistService {
         long staffId = user.staffId().orElseThrow(() -> notOnShift());
         if (staff.isEmpty() || !staff.get().onShift(staffId, now)) throw notOnShift();
         Long floor = staff.get().floorDuringShift(staffId, now).orElse(null);
-        var press = records.add(
-                PRESS,
-                new EntityRef("M15.ACCOUNT", user.accountId()),
-                new NewRecordEvent<>(
-                        new AssistPressContent(user.accountId(), staffId, idempotencyKey, floor),
-                        null,
-                        user.accountId(),
-                        false,
-                        now,
-                        now,
-                        now,
-                        floor,
-                        null));
         boolean noOnDutyDoctor = staff.get().onDutyDoctors(now).isEmpty();
         List<Long> floorsWithShift = floor == null ? staff.get().floorsWithShift(now) : List.of();
         var alert = alerts.requestAlert(
@@ -127,12 +114,28 @@ public class EmergencyAssistService {
                                 IncidentLevel.CRITICAL,
                                 now,
                                 PRESS_SOURCE,
-                                press.id(),
+                                null,
                                 "Nhân viên yêu cầu hỗ trợ khẩn cấp",
                                 user.accountId(),
                                 user.accountId()),
                         created -> AssistNotices.created(created, noOnDutyDoctor, floorsWithShift, now))
                 .orElseThrow();
+        // 007 T106 (chủ dự án chốt 2026-11-10): lần bấm gắn vào cảnh báo nó tạo hoặc gộp vào, xóa cùng cảnh báo theo
+        // hạn
+        // lưu giữ hồ sơ sức khỏe (R-15: dòng bảng chung mang entity_type của bản ghi cha).
+        var press = records.add(
+                PRESS,
+                new EntityRef("M05.ALERT", alert.id()),
+                new NewRecordEvent<>(
+                        new AssistPressContent(user.accountId(), staffId, idempotencyKey, floor),
+                        null,
+                        user.accountId(),
+                        false,
+                        now,
+                        now,
+                        now,
+                        floor,
+                        null));
         if (alert.occurrenceCount() == 1 && noOnDutyDoctor) store.markNoOnDutyDoctor(alert.id());
         return views.of(press.id(), alert);
     }
@@ -219,10 +222,14 @@ public class EmergencyAssistService {
     }
 
     private long latestPress(long alertId) {
-        return records.list(SharedKind.of("M05.ALERT_SOURCE", Map.class), new EntityRef("M05.ALERT", alertId)).stream()
-                .filter(row -> PRESS_SOURCE.equals(row.content().get("sourceType")))
-                .map(row -> ((Number) row.content().get("sourceId")).longValue())
-                .reduce((first, second) -> second)
+        return latestPress(records, alertId);
+    }
+
+    /** Lần bấm mới nhất gắn vào cảnh báo (cha là cảnh báo từ 2026-11-10). */
+    static long latestPress(RecordEventApi records, long alertId) {
+        return records.list(PRESS, new EntityRef("M05.ALERT", alertId)).stream()
+                .mapToLong(row -> row.id())
+                .max()
                 .orElseThrow();
     }
 }

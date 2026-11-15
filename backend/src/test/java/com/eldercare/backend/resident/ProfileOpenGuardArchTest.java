@@ -56,11 +56,11 @@ class ProfileOpenGuardArchTest {
     }
 
     @ArchTest
-    static final ArchRule BR_M01_05_everyBusinessCommandCallsProfileOpenGuard = everyBusinessCommandCallsGuard();
+    static final ArchRule BR_02_everyBusinessCommandCallsProfileOpenGuard = everyBusinessCommandCallsGuard();
 
     /** Chứng minh luật không rỗng: lớp mẫu có gọi guard thì qua, không gọi thì bị bắt. */
     @Test
-    void BR_M01_05_rule_catchesCommandWithoutGuard() {
+    void BR_02_rule_catchesCommandWithoutGuard() {
         JavaClasses fixtures = new ClassFileImporter().importPackages("com.eldercare.backend.archfixture.m01guard");
 
         assertThat(violates(fixtures, "GuardedService")).isFalse();

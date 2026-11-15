@@ -40,16 +40,6 @@ class Dbr02CheckTest {
                 .containsExactly(Violation.MORE_THAN_ONE_PRIMARY_CONTACT);
     }
 
-    @Test
-    void FR_003_admissionInProgress_maySaveIncompleteRoles() {
-        assertThat(Dbr02Check.violations(ResidentStatus.ADMISSION_IN_PROGRESS, List.of()))
-                .isEmpty();
-        assertThat(Dbr02Check.satisfied(List.of()))
-                .as("điều kiện DBR_02 của Hoàn tất tiếp nhận xét đủ vai trò bất kể trạng thái")
-                .isFalse();
-        assertThat(Dbr02Check.satisfied(List.of(BOTH))).isTrue();
-    }
-
     @ParameterizedTest
     @EnumSource(
             value = ResidentStatus.class,

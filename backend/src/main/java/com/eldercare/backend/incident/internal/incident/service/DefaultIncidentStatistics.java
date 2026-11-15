@@ -2,8 +2,10 @@ package com.eldercare.backend.incident.internal.incident.service;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.incident.api.IncidentStatisticsApi;
+import com.eldercare.backend.incident.api.IsolationApi;
 import com.eldercare.backend.incident.api.dto.AlertReportView;
 import com.eldercare.backend.incident.api.dto.IncidentReportView;
+import com.eldercare.backend.incident.api.dto.IsolationZoneView;
 import com.eldercare.backend.incident.api.dto.MonitoringView;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentTypeView;
 import com.eldercare.backend.incident.internal.alert.service.IncidentCatalogService;
@@ -40,6 +42,7 @@ public class DefaultIncidentStatistics implements IncidentStatisticsApi {
     private final CriticalCareStore critical;
     private final IncidentCatalogService catalog;
     private final ResidentLocationApi locations;
+    private final IsolationApi isolation;
 
     public DefaultIncidentStatistics(
             IncidentReportStore reports,
@@ -47,13 +50,15 @@ public class DefaultIncidentStatistics implements IncidentStatisticsApi {
             ContactPersonStore contacts,
             CriticalCareStore critical,
             IncidentCatalogService catalog,
-            ResidentLocationApi locations) {
+            ResidentLocationApi locations,
+            IsolationApi isolation) {
         this.reports = reports;
         this.falls = falls;
         this.contacts = contacts;
         this.critical = critical;
         this.catalog = catalog;
         this.locations = locations;
+        this.isolation = isolation;
     }
 
     @Override
@@ -117,6 +122,28 @@ public class DefaultIncidentStatistics implements IncidentStatisticsApi {
                 .map(flag -> flag.residentId())
                 .filter(resident -> resident != null && inCurrentScope(scope, resident, currentFloor(resident)))
                 .distinct()
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int cancelledCount(ScopeFilter scope, Instant from, Instant to) {
+        return (int) reports.cancelledIncidents(from, to).stream()
+                .filter(row -> inScope(scope, row.residentId(), row.floorAreaId(), row.createdAt()))
+                .count();
+    }
+
+    /**
+     * Vùng đang khoanh có tầng hoặc khu trong phạm vi. Phạm vi chỉ theo phòng hoặc người cao tuổi không thấy vùng (vùng
+     * khoanh theo tầng, khu; 016 lọc tầng của người xem).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<IsolationZoneView> containmentZones(ScopeFilter scope) {
+        return isolation.activeZones().stream()
+                .filter(zone -> scope.facilityWide()
+                        || zone.floorAreaIds().stream().anyMatch(scope.floorAreaIds()::contains)
+                        || zone.areaIds().stream().anyMatch(scope.floorAreaIds()::contains))
                 .toList();
     }
 

@@ -39,4 +39,21 @@ class ResidentModuleStateService implements ResidentModuleStateApi {
     public <T> void save(SharedKind<T> kind, long residentId, T data) {
         store.save(kind.module(), residentId, content.write(data), time.now());
     }
+
+    @Override
+    public <T> Optional<T> getOwnRow(SharedKind<T> kind, long residentId) {
+        return store.find(kind.code(), residentId, false).map(json -> content.read(kind.content(), json));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public <T> Optional<T> lockOwnRowForUpdate(SharedKind<T> kind, long residentId) {
+        return store.find(kind.code(), residentId, true).map(json -> content.read(kind.content(), json));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public <T> void saveOwnRow(SharedKind<T> kind, long residentId, T data) {
+        store.save(kind.code(), residentId, content.write(data), time.now());
+    }
 }

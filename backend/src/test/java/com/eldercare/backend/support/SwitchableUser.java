@@ -25,6 +25,17 @@ public class SwitchableUser implements CurrentUser {
         this.delegate = defaultUser();
     }
 
+    /** Chạy {@code work} với {@code other} là người dùng hiện tại, xong thì trả lại người dùng trước đó. */
+    public void runAs(CurrentUser other, Runnable work) {
+        CurrentUser before = delegate;
+        delegate = other;
+        try {
+            work.run();
+        } finally {
+            delegate = before;
+        }
+    }
+
     @Override
     public long accountId() {
         return delegate.accountId();

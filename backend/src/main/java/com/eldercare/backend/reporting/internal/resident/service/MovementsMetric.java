@@ -26,8 +26,8 @@ public class MovementsMetric implements MetricSource<MovementRecord> {
             CODE,
             MetricGroup.RESIDENTS,
             "Biến động người cao tuổi",
-            "Số lần Hoàn tất tiếp nhận, Hủy tiếp nhận, Kết thúc lưu trú, Qua đời, bắt đầu và kết thúc Tạm vắng, Điều trị tại bệnh viện, đổi mức chăm sóc, theo thời điểm hiệu lực trong khoảng",
-            "001 ResidentStatisticsApi.changes",
+            "Số lần Hoàn tất tiếp nhận, Hủy tiếp nhận, Kết thúc lưu trú, Qua đời, bắt đầu và kết thúc Tạm vắng, Điều trị tại bệnh viện, đổi loại lưu trú, đổi mức chăm sóc, theo thời điểm hiệu lực trong khoảng",
+            "001 ResidentStatisticsApi.changes; 004 ResidencyStatisticsApi.residenceTypeChanges",
             new Metric.Computation.Count<>(r -> true),
             MovementRecord::kind,
             ResidentRecords::movementRow);

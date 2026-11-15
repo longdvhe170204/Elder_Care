@@ -129,7 +129,12 @@ public class CriticalCareController {
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody ExecuteChoiceRequest request) {
         critical.executeChoice(
-                id, request.choice(), request.reason(), TransferOutBody.toCommand(request.transferOut()), currentUser);
+                id,
+                request.choice(),
+                request.reason(),
+                TransferOutBody.toCommand(request.transferOut()),
+                request.incidentTypeId(),
+                currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

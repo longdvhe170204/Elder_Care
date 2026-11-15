@@ -15,6 +15,7 @@ import com.eldercare.backend.belongings.internal.belonging.persistence.Belonging
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingResidentLock;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingStore;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogs;
+import com.eldercare.backend.belongings.internal.incident.service.BelongingIncidents;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -66,6 +67,7 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
     private final CatalogApi catalogs;
     private final FileApi files;
     private final NotificationLookupApi lookup;
+    private final BelongingIncidents incidents;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
@@ -77,6 +79,7 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
             CatalogApi catalogs,
             FileApi files,
             NotificationLookupApi lookup,
+            BelongingIncidents incidents,
             ApplicationEventPublisher events,
             BusinessTime time) {
         this.handovers = handovers;
@@ -86,6 +89,7 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
         this.catalogs = catalogs;
         this.files = files;
         this.lookup = lookup;
+        this.incidents = incidents;
         this.events = events;
         this.time = time;
     }
@@ -270,8 +274,8 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
 
     /**
      * FR-011a, Q-307: bản ghi có sự cố liên kết bị Hủy ghi nhận thì báo người xử lý sự cố (Nhẹ); KHÔNG hủy sự cố, người
-     * xử lý tự đóng hoặc đính chính bằng lệnh của 007. {@code IncidentView} chưa có người phụ trách nên tạm báo Quản lý
-     * viện (plan 013 điểm 14; chờ D thêm người phụ trách vào {@code IncidentView}).
+     * xử lý tự đóng hoặc đính chính bằng lệnh của 007. Người xử lý lấy từ {@code IncidentView.assigneeStaffId}; sự cố chưa
+     * giao thì báo Quản lý viện (plan 013 điểm 14).
      */
     private void notifyIncidentHandler(HandoverRow original) {
         if (original.incidentId() == null) {
@@ -288,7 +292,11 @@ class BelongingHandoverCorrection implements CorrectableRecordProvider {
                 original.id(),
                 NotificationLevel.LOW,
                 original.residentId(),
-                List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER)),
+                incidents
+                        .handlerOf(original.incidentId())
+                        .<RecipientGroup>map(staffId -> new RecipientGroup.Staff(staffId, "INCIDENT_ASSIGNEE"))
+                        .map(List::of)
+                        .orElseGet(() -> List.of(new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER))),
                 typeName + ": bản ghi đồ gửi liên kết sự cố " + original.incidentId()
                         + " đã được hủy ghi nhận (ghi nhầm); sự cố cần được xem lại",
                 null,

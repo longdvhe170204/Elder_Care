@@ -346,6 +346,17 @@ public class AlertStore {
                 """, incidentId, id, expectedVersion));
     }
 
+    /**
+     * Gắn sự cố lập kèm lệnh lựa chọn "chuyển bệnh viện" (FR-050d) mà không đổi trạng thái: cảnh báo nguy kịch vẫn mở tới
+     * khi người xử lý đóng.
+     */
+    public void linkIncident(long id, long incidentId) {
+        requireOne(jdbc.update(
+                "UPDATE alert SET incident_id = ?, version = version + 1 WHERE id = ? AND incident_id IS NULL",
+                incidentId,
+                id));
+    }
+
     /** Giao người phụ trách: đổi người, giữ trạng thái, cấp, hạn và dấu tạm nhận (bảng FR-029). */
     public void reassign(long id, long assigneeId, int expectedVersion) {
         requireOne(jdbc.update("""

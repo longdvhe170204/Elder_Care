@@ -15,9 +15,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class AllocationReadStore {
     private final JdbcTemplate jdbc;
+    private final ResidentPositionStore positions;
 
-    public AllocationReadStore(JdbcTemplate jdbc) {
+    public AllocationReadStore(JdbcTemplate jdbc, ResidentPositionStore positions) {
         this.jdbc = jdbc;
+        this.positions = positions;
     }
 
     public List<AllocationDetails> list(Long residentId, Long bedId, AllocationStatus status) {
@@ -40,11 +42,7 @@ public class AllocationReadStore {
     }
 
     public Instant withoutBedSince(long residentId) {
-        var rows = jdbc.query(
-                "SELECT without_bed_since FROM resident_position WHERE resident_id=?",
-                (rs, i) -> instant(rs, "without_bed_since"),
-                residentId);
-        return rows.isEmpty() ? null : rows.getFirst();
+        return positions.withoutBedSince(residentId).orElse(null);
     }
 
     private static AllocationDetails row(ResultSet rs, int index) throws SQLException {

@@ -15,7 +15,7 @@ import tools.jackson.databind.node.ObjectNode;
 /**
  * 004 T030 (US3; FR-021, FR-036, DBR-02, Q-297): "Ghi nhận đã ký" cần ngày ký, người đại diện hiệu lực (012) và bản scan;
  * thành công thì hợp đồng Hiệu lực, ghi phiên bản nội dung 0 với đơn giá của mọi khoản và đánh dấu phiên bản giá đã tham
- * chiếu. Kiểm giường (nội trú) và sức chứa (bán trú) chờ giao diện của 003 nên chưa có ở đây.
+ * chiếu. Nội trú cần phân bổ giường của 003 bắt đầu không muộn hơn ngày bắt đầu.
  */
 @AutoConfigureMockMvc
 @WithMockUser
@@ -34,6 +34,7 @@ class FR_021_RecordSignedIT extends ContractTestBase {
         body.put("endDate", today().plusDays(365).toString());
         body.putArray("services").add(line(basicCare)).add(line(meal));
         long id = pendingContract(residentId, body);
+        bedForSigning(residentId);
         long file = scan();
         ObjectNode sign = JSON.createObjectNode();
         sign.put("signedDate", today().toString());
@@ -48,6 +49,11 @@ class FR_021_RecordSignedIT extends ContractTestBase {
                         .value(today().plusDays(365).toString()));
 
         assertThat(contractStatus(id)).isEqualTo("ACTIVE");
+        // 001 api Profile.currentResidenceType "Từ hợp đồng Hiệu lực (004)", FR-051 (quickstart 001 Q32, B2)
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                        "/api/v1/residents/" + residentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentResidenceType").value("LONG_TERM_RESIDENTIAL"));
         assertThat(jdbc.queryForObject("SELECT signing_representative_id FROM contract WHERE id = ?", Long.class, id))
                 .isEqualTo(representativeOf(residentId));
         assertThat(jdbc.queryForObject("SELECT scan_file_id FROM contract WHERE id = ?", Long.class, id))

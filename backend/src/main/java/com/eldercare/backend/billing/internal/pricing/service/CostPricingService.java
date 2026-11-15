@@ -40,6 +40,11 @@ public class CostPricingService {
                 return quote(contract.recordedUnitPrices().get(serviceId), quantity, inPackage, basis);
             }
         }
+        return catalog(serviceId, incurredOn, quantity);
+    }
+
+    /** Chỉ phiên bản đơn giá của danh mục, không theo hợp đồng (buổi bán trú phát sinh, FR-005b (a)). */
+    public PriceQuote catalog(long serviceId, LocalDate incurredOn, BigDecimal quantity) {
         return prices.unitPriceAt(serviceId, incurredOn, true)
                 .map(version -> quote(
                         version.unitPrice(),

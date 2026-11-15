@@ -21,8 +21,10 @@ import com.eldercare.backend.support.fake.administration.FakeFamilyRelationships
 import com.eldercare.backend.support.fake.administration.FakeFamilyRelationshipsConfig;
 import com.eldercare.backend.support.fake.admission.FakeContractSchedules;
 import com.eldercare.backend.support.fake.admission.FakeM02Config;
+import com.eldercare.backend.support.fake.admission.FakeResidencyEndingReadsConfig;
 import com.eldercare.backend.support.fake.billing.FakeCostForBalance;
 import com.eldercare.backend.support.fake.billing.FakeM11Config;
+import com.eldercare.backend.support.fake.file.FakeFileConfig;
 import com.eldercare.backend.support.fake.resident.FakeM01Config;
 import com.eldercare.backend.support.fake.resident.FakeResidents;
 import java.math.BigDecimal;
@@ -54,7 +56,9 @@ import org.springframework.transaction.support.TransactionTemplate;
     FakeM01Config.class,
     FakeM02Config.class,
     FakeM11Config.class,
-    FakeFamilyRelationshipsConfig.class
+    FakeFamilyRelationshipsConfig.class,
+    FakeResidencyEndingReadsConfig.class,
+    FakeFileConfig.class
 })
 abstract class BalanceTestBase extends MySqlIntegrationTestBase {
 

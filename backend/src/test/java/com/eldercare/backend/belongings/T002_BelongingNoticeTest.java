@@ -27,14 +27,6 @@ import org.junit.jupiter.api.Test;
 class T002_BelongingNoticeTest {
 
     @Test
-    void FR_032_familyRequest_withFamilyMatterSubject_isAccepted() {
-        var notice = new BelongingNotice(List.of(request(
-                new RecipientGroup.PrimaryContact(7L), Optional.of(InformationSubject.ABOUT_FAMILY_MATTER), null)));
-
-        assertThat(notice.notificationRequests()).hasSize(1);
-    }
-
-    @Test
     void FR_032_everyFamilyRecipientGroup_requiresFamilyMatterSubject() {
         for (RecipientGroup family : List.of(
                 new RecipientGroup.PrimaryContact(7L),

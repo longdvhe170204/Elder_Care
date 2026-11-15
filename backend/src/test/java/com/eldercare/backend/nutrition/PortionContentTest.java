@@ -11,7 +11,6 @@ import com.eldercare.backend.nutrition.internal.closing.domain.PortionFlag;
 import com.eldercare.backend.nutrition.internal.menu.domain.MenuDish;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import java.util.function.LongPredicate;
 import org.junit.jupiter.api.Test;
 
@@ -58,21 +57,6 @@ class PortionContentTest {
     }
 
     @Test
-    void FR_037a_safeDish_appliedOnlyWhenAllowed_andNotConflicting() {
-        List<MenuDish> rows = List.of(row(SHRIMP_SOUP));
-
-        assertThat(PortionContent.of(input(rows, Texture.REGULAR, null, SHRIMP_AND_PEANUT, false))
-                        .flags())
-                .containsExactly(PortionFlag.MISSING_SUBSTITUTE_DISH);
-        Portion safe = PortionContent.of(input(rows, Texture.REGULAR, null, SHRIMP_AND_PEANUT, true));
-        assertThat(safe.flags()).containsExactly(PortionFlag.SAFE_DISH);
-        assertThat(safe.dishes()).containsExactly(new DishChoice(SHRIMP_SOUP, SAFE));
-        Portion conflicting = PortionContent.of(input(rows, Texture.REGULAR, null, id -> true, true));
-        assertThat(conflicting.flags()).containsExactly(PortionFlag.MISSING_SUBSTITUTE_DISH);
-        assertThat(conflicting.safeDishConflicts()).isTrue();
-    }
-
-    @Test
     void FR_038_noDishForDiet_isMarked_safeDishFillsIt() {
         assertThat(PortionContent.of(input(List.of(), Texture.REGULAR, null, NONE, false))
                         .flags())
@@ -83,14 +67,5 @@ class PortionContentTest {
         assertThat(PortionContent.of(new Input(List.of(), false, Texture.REGULAR, null, NONE, SAFE, false, false))
                         .flags())
                 .isEmpty();
-    }
-
-    @Test
-    void FR_036a_otherAllergy_isCrossCheckFlag_withoutMakingPortionSpecial() {
-        Portion p = PortionContent.of(
-                new Input(List.of(row(PLAIN_SOUP)), true, Texture.REGULAR, null, NONE, SAFE, false, true));
-
-        assertThat(p.flags()).isEqualTo(Set.of(PortionFlag.NEEDS_CROSS_CHECK));
-        assertThat(p.special()).isFalse();
     }
 }

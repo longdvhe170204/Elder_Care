@@ -18,8 +18,6 @@ import com.eldercare.backend.resident.api.dto.ResidenceTypePeriod;
 import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.admission.FakeContractSchedules;
-import com.eldercare.backend.support.fake.nutrition.FakeStayMealPort;
-import com.eldercare.backend.support.fake.nutrition.FakeTripMealPort;
 import com.eldercare.backend.support.fake.resident.FakeAbsences;
 import com.eldercare.backend.support.fake.resident.FakeContracts;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
@@ -40,7 +38,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Nền chung cho IT chốt suất của 011 Phase 6 (một context): bản giả dùng chung của 003 (vị trí, khu bán trú), 004 (lượt
- * vắng, lịch đến, loại lưu trú), 012 (lượt ở lại), 014 (chuyến đi); giờ bữa CFG-M08-04 đặt qua spy của {@link ParameterApi}
+ * vắng, lịch đến, loại lưu trú); lượt ở lại (012 `StayMeals`) và chuyến đi (014 qua `TripMeals`) là bean thật từ 2026-11-11 (011
+ * T042); giờ bữa CFG-M08-04 đặt qua spy của {@link ParameterApi}
  * (như {@code BR_M03_25_DayCareParameterIT}); đồng hồ giả lập. Tầng/khu mỗi test mới, nên người của test khác không lẫn vào
  * phần so sánh theo tầng.
  */
@@ -74,18 +73,6 @@ abstract class ClosingTestBase extends MenuTestBase {
         FakeContracts closingResidenceTypes() {
             return new FakeContracts();
         }
-
-        @Bean
-        @Primary
-        FakeStayMealPort closingStays() {
-            return new FakeStayMealPort();
-        }
-
-        @Bean
-        @Primary
-        FakeTripMealPort closingTrips() {
-            return new FakeTripMealPort();
-        }
     }
 
     @Autowired
@@ -99,12 +86,6 @@ abstract class ClosingTestBase extends MenuTestBase {
 
     @Autowired
     FakeContracts residenceTypes;
-
-    @Autowired
-    FakeStayMealPort stays;
-
-    @Autowired
-    FakeTripMealPort trips;
 
     @Autowired
     TestClockControl clock;

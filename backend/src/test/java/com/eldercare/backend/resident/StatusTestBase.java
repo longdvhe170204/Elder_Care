@@ -43,12 +43,15 @@ public abstract class StatusTestBase extends AssessmentTestBase {
          * Test của 001 kiểm hành vi của M01 với các bản giả; bean thật của 004 (kiểm {@code details}, điều kiện hợp đồng) không tham gia để
          * các test này không phải dựng thân lệnh của 004. Tích hợp thật của hai module ở {@code AdmissionRealBedIT}, {@code
          * M02StatusParticipantIT}. Bean thật của 012 (điều kiện DBR_02 đọc quan hệ người thân) cũng không tham gia; ca thật ở
-         * {@code DBR_02_PrimaryContactIT}.
+         * {@code DBR_02_PrimaryContactIT}. Bean thật của 017 (hai mã điều kiện quyết toán, BR-M11-22: chưa xác nhận quyết
+         * toán thì chặn Kết thúc lưu trú) cũng không tham gia; ca thật ở {@code US7_SettlementIT}.
          */
         @Bean
         static BeanDefinitionRegistryPostProcessor withoutM02Participant() {
             return registry -> {
-                for (String name : new String[] {"m02StatusParticipant", "m10StatusParticipant"}) {
+                for (String name :
+                        new String[] {"m02StatusParticipant", "m10StatusParticipant", "settlementTransitionParticipant"
+                        }) {
                     if (registry.containsBeanDefinition(name)) {
                         registry.removeBeanDefinition(name);
                     }

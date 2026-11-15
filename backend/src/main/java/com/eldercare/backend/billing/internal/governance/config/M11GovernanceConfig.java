@@ -28,6 +28,11 @@ class M11GovernanceConfig {
         return store.provider(CostRetention.Kind.ITEM);
     }
 
+    @Bean
+    RetentionProvider costSourceIndexRetention(CostRetention store) {
+        return store.provider(CostRetention.Kind.SOURCE_INDEX);
+    }
+
     private static FieldClassificationProvider financialFields(String type) {
         return new FieldClassificationProvider() {
             public String entityType() {

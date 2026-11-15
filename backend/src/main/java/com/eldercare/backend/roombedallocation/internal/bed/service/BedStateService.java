@@ -104,12 +104,7 @@ public class BedStateService {
         Instant deadline = after == BedStatus.AWAITING_READY
                 ? now.plus(parameters.read(ParameterCode.CFG_M03_04).asDuration())
                 : null;
-        boolean late = command.plannedAt() != null
-                && Duration.between(command.plannedAt(), now)
-                                .compareTo(parameters
-                                        .read(ParameterCode.CFG_M03_08)
-                                        .asDuration())
-                        > 0;
+        boolean late = command.plannedAt() != null && executedLate(command.plannedAt(), now);
         BedStateChange change = new BedStateChange(before, after, now, late);
         if (bed.holdReason() == HoldReason.WAITING_RECORD && bed.holdResidentId() != null)
             holds.update(bed.holdResidentId(), bedId, false);
@@ -165,5 +160,12 @@ public class BedStateService {
                                 : Map.of("holdUntil", hold.until().toString()))
                 .basis(basis)
                 .build());
+    }
+
+    /** Việc theo lịch thực hiện trễ hơn CFG-M03-08 so với thời điểm dự kiến (FR-016a). */
+    public boolean executedLate(Instant plannedAt, Instant at) {
+        return Duration.between(plannedAt, at)
+                        .compareTo(parameters.read(ParameterCode.CFG_M03_08).asDuration())
+                > 0;
     }
 }

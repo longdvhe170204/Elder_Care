@@ -46,7 +46,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M14 chỉ ph�
 | Q19 | Chế độ "tạm tính"; khoản điều chỉnh sau chốt | Nhãn tạm tính; khoản điều chỉnh xếp theo kỳ chứa kèm kỳ gốc | FR-051, FR-052 |
 | Q20 | Hành chính xem báo cáo chi phí theo thuốc | Chỉ mã vật phẩm | FR-054, SC-005 |
 | Q21 | Báo cáo nhân sự của T2 | Tỷ lệ phục vụ lần tính cuối kèm "từng không đạt"; yêu cầu đổi ca, nghỉ đột xuất theo trạng thái cuối (ca thiếu phủ bỏ theo Q-397); không có lý do nghỉ | US8, FR-070 → FR-072 |
-| Q22 | Người phụ trách ca xem giờ làm theo nhân viên | 403 | FR-073 |
+| Q22 | *(Bỏ theo Q-408, đánh dấu 2026-11-12: không chạy)* Người phụ trách ca xem giờ làm theo nhân viên | 403 | FR-073 |
 | Q23 | Chọn khoảng 13 tháng | 422 `VUOT_KHOANG_TOI_DA` | FR-060, SC-003 |
 | Q24 | Báo cáo 12 tháng toàn viện | ≤ 30 giây | SC-003 |
 | Q25 | QL xuất danh sách có định danh không nhập mục đích; có mục đích | 422 `THIEU_MUC_DICH`; tệp + bản ghi nhật ký | US9, FR-061, FR-062, SC-013 |

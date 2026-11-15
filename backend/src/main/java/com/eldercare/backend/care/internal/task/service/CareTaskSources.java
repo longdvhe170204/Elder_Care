@@ -41,8 +41,20 @@ public class CareTaskSources implements TaskSourceApi {
 
     @Override
     public void sourceCancelled(SourceType type, long sourceId, Reason reason) {
+        cancel(tasks.forSource(type, sourceId), reason);
+    }
+
+    @Override
+    public void sourceCancelled(SourceType type, long sourceId, long residentId, Reason reason) {
+        cancel(
+                tasks.forSource(type, sourceId).stream()
+                        .filter(t -> Objects.equals(t.residentId(), residentId))
+                        .toList(),
+                reason);
+    }
+
+    private void cancel(List<com.eldercare.backend.care.internal.task.domain.CareTask> candidates, Reason reason) {
         Objects.requireNonNull(reason);
-        var candidates = tasks.forSource(type, sourceId);
         locks.lock(candidates.stream()
                 .map(t -> t.residentId())
                 .filter(Objects::nonNull)

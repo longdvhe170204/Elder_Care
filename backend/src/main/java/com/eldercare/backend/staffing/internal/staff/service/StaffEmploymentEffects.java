@@ -161,7 +161,8 @@ public class StaffEmploymentEffects implements M09TimedTask {
                         .basis(new Basis("FR-004", null, id, MDC.get(SchedulerRuns.MDC_KEY)))
                         .build());
             }
-        accounts.lockOnResignation(id, new Basis("FR-004", null, id, MDC.get(SchedulerRuns.MDC_KEY)));
+        // 002 US2 #4, FR-009: khóa tài khoản do Nghỉ việc có căn cứ BR-M09-04 (quickstart 002 K7)
+        accounts.lockOnResignation(id, new Basis("BR-M09-04", null, id, MDC.get(SchedulerRuns.MDC_KEY)));
         if (api != null) api.onResignation(id, at);
         employment.status(id, "RESIGNED", time.now());
         audit.write(AuditLogEntry.builder()

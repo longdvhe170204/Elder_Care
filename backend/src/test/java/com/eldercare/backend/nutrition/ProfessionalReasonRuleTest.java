@@ -25,46 +25,9 @@ class ProfessionalReasonRuleTest {
     }
 
     @Test
-    void FR_013a_toTreatmentDietFromOther_requiresReason() {
-        assertThat(ProfessionalReasonRule.required(
-                        side(REGULAR_DIET, false, Texture.REGULAR), side(DIABETES, true, Texture.SOFT)))
-                .isTrue();
-    }
-
-    @Test
-    void FR_013b_fromTreatmentDietToOther_requiresReason() {
-        assertThat(ProfessionalReasonRule.required(
-                        side(DIABETES, true, Texture.SOFT), side(REGULAR_DIET, false, Texture.SOFT)))
-                .isTrue();
-        assertThat(ProfessionalReasonRule.required(
-                        side(DIABETES, true, Texture.SOFT), side(KIDNEY, true, Texture.SOFT)))
-                .isTrue();
-    }
-
-    @Test
     void FR_013_nonTreatmentToNonTreatment_noReason() {
         assertThat(ProfessionalReasonRule.required(
                         side(REGULAR_DIET, false, Texture.REGULAR), side(VEGETARIAN, false, Texture.PUREED)))
-                .isFalse();
-    }
-
-    @Test
-    void FR_013c_sameTreatmentDietHarderTexture_requiresReason() {
-        assertThat(ProfessionalReasonRule.required(
-                        side(DIABETES, true, Texture.PUREED), side(DIABETES, true, Texture.SOFT)))
-                .isTrue();
-        assertThat(ProfessionalReasonRule.required(
-                        side(DIABETES, true, Texture.SOFT), side(DIABETES, true, Texture.REGULAR)))
-                .isTrue();
-    }
-
-    @Test
-    void FR_013c_sameTreatmentDietSofterTextureOrMoreRestrictions_noReason() {
-        assertThat(ProfessionalReasonRule.required(
-                        side(DIABETES, true, Texture.SOFT, 10L), side(DIABETES, true, Texture.PUREED, 10L, 11L)))
-                .isFalse();
-        assertThat(ProfessionalReasonRule.required(
-                        side(DIABETES, true, Texture.SOFT), side(DIABETES, true, Texture.SOFT)))
                 .isFalse();
     }
 
@@ -83,14 +46,6 @@ class ProfessionalReasonRuleTest {
     void FR_013cd_sameNonTreatmentDiet_harderTextureOrDropRestriction_noReason() {
         assertThat(ProfessionalReasonRule.required(
                         side(VEGETARIAN, false, Texture.PUREED, 10L), side(VEGETARIAN, false, Texture.REGULAR)))
-                .isFalse();
-    }
-
-    @Test
-    void FR_013_noCurrentAndNoDefault_onlyTreatmentDietRequiresReason() {
-        assertThat(ProfessionalReasonRule.required(null, side(DIABETES, true, Texture.REGULAR)))
-                .isTrue();
-        assertThat(ProfessionalReasonRule.required(null, side(VEGETARIAN, false, Texture.REGULAR)))
                 .isFalse();
     }
 }

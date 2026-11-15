@@ -25,6 +25,11 @@ class ActivityStatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "014";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return EnumSet.of(StatusCommand.END_RESIDENCY, StatusCommand.RECORD_DEATH, StatusCommand.CANCEL_ADMISSION);
     }

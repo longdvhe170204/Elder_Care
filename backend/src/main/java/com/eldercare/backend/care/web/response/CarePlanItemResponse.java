@@ -8,7 +8,9 @@ import java.time.LocalTime;
 import java.util.List;
 
 /** T016: không đưa kind/active hoặc id vật lý của danh mục vào HTTP. */
-@Schema(name = "CarePlanItem")
+@Schema(
+        name = "CarePlanItem",
+        requiredProperties = {"taskTypeId", "content", "frequencyType", "performerRole", "importance", "billable"})
 public record CarePlanItemResponse(
         long id,
         Long sourceItemId,

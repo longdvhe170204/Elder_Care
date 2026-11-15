@@ -823,12 +823,17 @@ public class AssetService {
             throw new PermissionDeniedException("Chỉ Phụ trách bộ phận, hoặc Trưởng tầng với tài sản trong tầng mình");
     }
 
+    /**
+     * Q-243 (FR-012): vị trí tài sản giường luôn là phòng của giường. Giường đã từng phân bổ không đổi phòng (tạo giường mới,
+     * thanh lý giường cũ); giường chưa từng phân bổ đổi phòng ở lệnh sửa giường của 003, tài sản đi theo.
+     */
     private void requireNotBed(AssetRow row) {
-        if (row.bedId() != null)
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "SOURCE_UNAVAILABLE",
-                    "Chuyển vị trí tài sản giường chờ cổng đồng bộ vị trí của 003 (Q-243, tạm hoãn)");
+        if (row.bedId() == null) return;
+        if (beds.everAllocated(row.bedId()))
+            throw conflict(
+                    "BED_HAS_ALLOCATION_HISTORY",
+                    "Giường đã từng có phân bổ không đổi phòng; tạo giường mới và thanh lý giường cũ (Q-243)");
+        throw conflict("STATE_CHANGED", "Đổi phòng của giường ở màn Phòng, giường; tài sản giường đi theo (Q-243)");
     }
 
     private static void requireNotDisposed(AssetRow row) {

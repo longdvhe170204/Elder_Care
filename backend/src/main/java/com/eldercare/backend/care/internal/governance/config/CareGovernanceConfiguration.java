@@ -249,6 +249,35 @@ public class CareGovernanceConfiguration {
     }
 
     @Bean
+    CareFieldClassification fieldsSESSION_ATTENDANCE() {
+        return new CareFieldClassification(
+                "M04.SESSION_ATTENDANCE",
+                Map.of(
+                        "participationLevel", InfoGroup.INTERNAL_PUBLIC,
+                        "communicationLevel", InfoGroup.INTERNAL_PUBLIC,
+                        "conditionAfter", InfoGroup.INTERNAL_PUBLIC,
+                        "note", InfoGroup.INTERNAL_PUBLIC,
+                        "absenceReason", InfoGroup.INTERNAL_PUBLIC));
+    }
+
+    @Bean
+    CareFieldClassification fieldsPREFERENCE() {
+        return new CareFieldClassification(
+                "M04.PREFERENCE",
+                Map.of("description", InfoGroup.WISHES, "level", InfoGroup.WISHES, "source", InfoGroup.WISHES));
+    }
+
+    @Bean
+    CareFieldClassification fieldsQUALITY_CHECK_ITEM() {
+        return new CareFieldClassification(
+                "M04.QUALITY_CHECK_ITEM",
+                Map.of(
+                        "status", InfoGroup.INTERNAL_PUBLIC,
+                        "note", InfoGroup.INTERNAL_PUBLIC,
+                        "photoFileIds", InfoGroup.INTERNAL_PUBLIC));
+    }
+
+    @Bean
     CareRetention retainACTIVITY_SESSION(
             CareGovernanceStore store, RetentionDatabase database, ObjectProvider<ResidentApi> residents) {
         return new CareRetention(CareRetentionType.ACTIVITY_SESSION, store, database, residents);

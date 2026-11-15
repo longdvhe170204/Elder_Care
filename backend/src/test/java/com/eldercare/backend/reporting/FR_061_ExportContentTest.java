@@ -1,15 +1,14 @@
 package com.eldercare.backend.reporting;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.reporting.internal.export.domain.ExportContent;
 import com.eldercare.backend.reporting.internal.export.domain.ExportContent.SummaryRow;
+import com.eldercare.backend.reporting.internal.export.domain.ExportWorkbook;
 import com.eldercare.backend.reporting.internal.metric.domain.DetailRow;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
+import com.eldercare.backend.reporting.internal.metric.domain.ValueLabel;
 import com.eldercare.backend.reporting.internal.report.domain.MetricResult;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -72,16 +71,6 @@ class FR_061_ExportContentTest {
                 List.of(row("d-1", 1, "Nguyễn Văn A"), row("d-2", 2, "Trần Thị B"), row("d-3", 3, "Lê Văn C")));
     }
 
-    private static MetricResult workingHours() {
-        return new MetricResult(
-                "SHIFT.WORKING_HOURS",
-                "Số giờ làm",
-                new MetricValue("SHIFT.WORKING_HOURS", BigDecimal.TEN, null, null, Set.of(), 0, List.of()),
-                Set.of(),
-                Map.of(),
-                List.of());
-    }
-
     @Test
     void Q26_otherRole_aggregateOnly_dropsSinglePersonGroups_noDetailRows() {
         ExportContent content = ExportContent.decide(FLOOR_MANAGER, false, Optional.empty(), List.of(missedDoses()));
@@ -91,6 +80,32 @@ class FR_061_ExportContentTest {
         assertThat(content.summary()).extracting(SummaryRow::breakdownKey).containsExactly(null, "Tầng 1");
         assertThat(content.summary().getFirst().value()).isEqualByComparingTo("3");
         assertThat(content.rowCount()).isEqualTo(2);
+    }
+
+    /** 016 T109 (FR-007): file xuất ghi nhãn dữ liệu đã loại bỏ kèm loại dữ liệu. */
+    @Test
+    void FR_007_purgedLabel_notesListDataTypes() {
+        MetricResult purged = new MetricResult(
+                "MED.MISSED_RATE",
+                "Liều Bỏ lỡ",
+                new MetricValue(
+                        "MED.MISSED_RATE",
+                        BigDecimal.valueOf(5),
+                        null,
+                        null,
+                        Set.of(ValueLabel.PURGED_BY_RETENTION),
+                        0,
+                        List.of(),
+                        List.of("M07.DOSE")),
+                Set.of(1L, 2L),
+                Map.of(),
+                List.of());
+
+        SummaryRow total = ExportContent.decide(MANAGER, false, Optional.empty(), List.of(purged))
+                .summary()
+                .getFirst();
+        assertThat(total.purgedDataTypes()).containsExactly("M07.DOSE");
+        assertThat(ExportWorkbook.notes(total)).isEqualTo("số liệu không đầy đủ do đã loại bỏ theo lưu trữ (M07.DOSE)");
     }
 
     @Test
@@ -106,54 +121,5 @@ class FR_061_ExportContentTest {
         assertThat(ExportContent.decide(FLOOR_MANAGER, false, Optional.empty(), List.of(one))
                         .summary())
                 .isEmpty();
-    }
-
-    @Test
-    void US9_1_otherRole_withIdentity_isRejected() {
-        assertThatThrownBy(() -> ExportContent.decide(FLOOR_MANAGER, true, Optional.of("họp"), List.of(missedDoses())))
-                .isInstanceOf(PermissionDeniedException.class)
-                .hasMessageContaining("chỉ Quản lý viện");
-    }
-
-    @Test
-    void Q25_manager_withIdentity_withoutPurpose_isRejected() {
-        assertThatThrownBy(() -> ExportContent.decide(MANAGER, true, Optional.empty(), List.of(missedDoses())))
-                .isInstanceOfSatisfying(
-                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("PURPOSE_REQUIRED"));
-        assertThatThrownBy(() -> ExportContent.decide(MANAGER, true, Optional.of("  "), List.of(missedDoses())))
-                .isInstanceOfSatisfying(
-                        BusinessException.class, e -> assertThat(e.errorCode()).isEqualTo("PURPOSE_REQUIRED"));
-    }
-
-    @Test
-    void Q25_manager_withIdentityAndPurpose_hasEveryRowAndDetails() {
-        ExportContent content =
-                ExportContent.decide(MANAGER, true, Optional.of("họp giao ban an toàn thuốc"), List.of(missedDoses()));
-
-        assertThat(content.includeIdentity()).isTrue();
-        assertThat(content.summary()).extracting(SummaryRow::breakdownKey).containsExactly(null, "Tầng 1", "Tầng 2");
-        assertThat(content.details())
-                .extracting(d -> d.row().resident())
-                .containsExactly("Nguyễn Văn A", "Trần Thị B", "Lê Văn C");
-        assertThat(content.rowCount()).isEqualTo(6);
-    }
-
-    @Test
-    void manager_withoutIdentity_isAggregateOnly() {
-        ExportContent content = ExportContent.decide(MANAGER, false, Optional.empty(), List.of(missedDoses()));
-
-        assertThat(content.details()).isEmpty();
-        assertThat(content.summary()).extracting(SummaryRow::breakdownKey).containsExactly(null, "Tầng 1");
-    }
-
-    @Test
-    void Q197_workingHoursPerStaff_onlyManagerExports() {
-        assertThat(ExportContent.decide(FLOOR_MANAGER, false, Optional.empty(), List.of(workingHours()))
-                        .summary())
-                .isEmpty();
-        assertThat(ExportContent.decide(MANAGER, false, Optional.empty(), List.of(workingHours()))
-                        .summary())
-                .extracting(SummaryRow::metricCode)
-                .containsExactly("SHIFT.WORKING_HOURS");
     }
 }

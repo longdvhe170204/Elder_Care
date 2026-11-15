@@ -12,6 +12,7 @@ import com.eldercare.backend.medication.web.request.PrescriptionChangeRequests.D
 import com.eldercare.backend.medication.web.request.PrescriptionChangeRequests.ExtendRequest;
 import com.eldercare.backend.medication.web.request.PrescriptionChangeRequests.InstructionNoteRequest;
 import com.eldercare.backend.medication.web.request.PrescriptionCommandRequest;
+import com.eldercare.backend.medication.web.response.M07Problems;
 import com.eldercare.backend.medication.web.response.PrescriptionBodies.CheckBody;
 import com.eldercare.backend.medication.web.response.PrescriptionBodies.DiscontinueBody;
 import com.eldercare.backend.medication.web.response.PrescriptionBodies.PrescriptionBody;
@@ -77,7 +78,7 @@ public class PrescriptionController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M07Problems.Issues.class))),
         @ApiResponse(
                 responseCode = "422",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
@@ -200,7 +201,7 @@ public class PrescriptionController {
         @ApiResponse(responseCode = "201", description = "Đơn thay thế"),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M07Problems.Issues.class)))
     })
     public ResponseEntity<PrescriptionBody> changeDosage(
             @PathVariable("id") Long id,

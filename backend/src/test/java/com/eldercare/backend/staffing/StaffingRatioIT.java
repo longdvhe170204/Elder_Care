@@ -21,6 +21,7 @@ import com.eldercare.backend.support.fake.administration.*;
 import com.eldercare.backend.support.fake.admission.*;
 import com.eldercare.backend.support.fake.roombedallocation.*;
 import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
+import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.*;
@@ -248,25 +249,30 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
                 .shiftId();
     }
 
+    /** 015 FR-021 (f), FR-027 (015 T002): xem trước tỷ lệ khi một nhân viên rời hoặc vào ca; chỉ đọc, không ghi lần tính. */
     @Test
-    void FR_034_absenceCoveringWholeShiftExcluded_partialAbsenceAndTouchingEdgesStillCount() {
-        long absent = inpatient(CareLevel.SPECIAL), partial = inpatient(CareLevel.SPECIAL);
-        history(absent, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", from.minusSeconds(1));
-        history(partial, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", from.minusSeconds(1));
-        history(partial, "TEMPORARILY_ABSENT", "IN_RESIDENCE", "RECORD_RETURN", from.plusSeconds(3600));
-        long id = save();
-        assertThat(ratios.latest(id).orElseThrow().totalWeight()).isEqualByComparingTo("2.5");
-    }
-
-    @Test
-    void FR_035_employmentWithdrawalRecalculatesInSameTransaction_andRollsBackWithCommand() {
+    void FR_034_beforeAfterPreview_leavingAndJoiningStaff_doesNotRecordCalculation() {
+        inpatient(CareLevel.SPECIAL);
         inpatient(CareLevel.BASIC);
         long id = save();
-        tx.executeWithoutResult(t -> {
-            employment.apply(members.getFirst(), time.now());
-            assertThat(ratios.latest(id).orElseThrow().staffCount()).isEqualTo(3);
-            t.setRollbackOnly();
-        });
-        assertThat(ratios.history(id)).hasSize(1);
+        int calculations = ratios.history(id).size();
+        long joining = staff(Role.CAREGIVER);
+
+        var leaving = ratios.beforeAfter(id, members.get(0), null);
+        var swapped = ratios.beforeAfter(id, members.get(0), joining);
+        var added = ratios.beforeAfter(id, null, joining);
+
+        assertThat(leaving).containsEntry("shiftId", id);
+        assertThat(side(leaving, "before")).containsEntry("staffCount", 4);
+        assertThat(side(leaving, "after")).containsEntry("staffCount", 3);
+        assertThat(((BigDecimal) (side(leaving, "after")).get("totalWeight"))).isEqualByComparingTo("3.5");
+        assertThat(side(swapped, "after")).containsEntry("staffCount", 4);
+        assertThat(side(added, "after")).containsEntry("staffCount", 5);
+        assertThat(ratios.history(id)).hasSize(calculations);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> side(Map<String, Object> preview, String key) {
+        return (Map<String, Object>) preview.get(key);
     }
 }

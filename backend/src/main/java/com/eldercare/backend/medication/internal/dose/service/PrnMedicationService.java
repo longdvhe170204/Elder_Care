@@ -122,6 +122,7 @@ public class PrnMedicationService {
         // Check PRN limits
         Instant earliestAllowed = null;
         boolean limitExceeded = false;
+        List<String> violations = new java.util.ArrayList<>();
 
         // 1. Minimum interval between doses (minIntervalMinutes)
         Integer minInterval = prescription.getMinIntervalMinutes();
@@ -133,6 +134,7 @@ public class PrnMedicationService {
                 Instant minAvailable = mostRecent.getAdministeredAt().plus(Duration.ofMinutes(minInterval));
                 if (minAvailable.isAfter(adminTime)) {
                     limitExceeded = true;
+                    violations.add("MIN_INTERVAL");
                     earliestAllowed = minAvailable;
                 }
             }
@@ -145,6 +147,7 @@ public class PrnMedicationService {
             List<PrnAdministration> list24h = prnRepo.findInWindow(chainPrescriptionIds, window24hStart);
             if (list24h.size() >= maxDoses) {
                 limitExceeded = true;
+                violations.add("MAX_PER_24H");
                 // Expiry time of the oldest dose within the max-dose window
                 PrnAdministration oldestInMaxWindow = list24h.get(maxDoses - 1);
                 Instant maxAvailable = oldestInMaxWindow.getAdministeredAt().plus(Duration.ofHours(24));
@@ -167,8 +170,10 @@ public class PrnMedicationService {
                                         "earliestAllowedAt",
                                         earliestAllowed.toString(),
                                         "earliestAllowed",
-                                        earliestAllowed.toString())
-                                : Map.of());
+                                        earliestAllowed.toString(),
+                                        "violations",
+                                        List.copyOf(violations))
+                                : Map.of("violations", List.copyOf(violations)));
             }
         }
 

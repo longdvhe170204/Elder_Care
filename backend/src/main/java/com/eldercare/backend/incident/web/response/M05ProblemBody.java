@@ -21,6 +21,20 @@ public record M05ProblemBody(
         Long openIncidentId,
 
         @Schema(description = "WISH_NOT_CHECKED") Map<String, Object> endOfLifeWish) {
-
     public record Condition(String code, String description, String basis) {}
+
+    /** 409 {@code ALREADY_RECEIVED} của lệnh Tiếp nhận (api-007): {@code Problem} cộng người, lúc đã tiếp nhận. */
+    @Schema(name = "M05ReceivedProblem")
+    public record Received(
+            String type,
+            String title,
+            Integer status,
+            String detail,
+            String errorCode,
+            List<Condition> unmetConditions,
+            Map<String, Object> validRange,
+            Long openIncidentId,
+            Map<String, Object> endOfLifeWish,
+            String receivedBy,
+            java.time.Instant receivedAt) {}
 }

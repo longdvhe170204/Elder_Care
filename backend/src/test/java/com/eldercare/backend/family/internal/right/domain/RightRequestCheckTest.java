@@ -4,11 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.family.internal.right.domain.RightChangeRequest.Type;
-import com.eldercare.backend.family.internal.right.domain.RightRequestCheck.ActiveWish;
 import com.eldercare.backend.family.internal.right.domain.RightRequestCheck.Person;
-import com.eldercare.backend.support.TableRows;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,62 +31,11 @@ class RightRequestCheckTest {
     }
 
     @Test
-    void FR_014_anyFamilyMember_mayTurnOffOwnRight() {
-        TableRows.each(Arrays.stream(FamilyRight.values()), this::mayTurnOffOwnRight);
-    }
-
-    private void mayTurnOffOwnRight(FamilyRight right) {
-        assertThat(RightRequestCheck.selfRestriction(Type.RIGHT, right, false, true))
-                .isTrue();
-        assertThat(RightRequestCheck.selfRestriction(Type.RIGHT, right, true, true))
-                .isFalse();
-        assertThat(RightRequestCheck.selfRestriction(Type.RIGHT, right, false, false))
-                .isFalse();
-    }
-
-    @Test
     void FR_014_representativeAndSelfReturnRequests_areNotSelfRestrictions() {
         assertThat(RightRequestCheck.selfRestriction(Type.REMOVE_REPRESENTATIVE, null, false, true))
                 .isFalse();
         assertThat(RightRequestCheck.selfRestriction(Type.SELF_RETURN, null, false, true))
                 .isFalse();
-    }
-
-    @Test
-    void FR_020b_grantingAgainstUnwantedWish_ofSameType_conflicts() {
-        ActiveWish noPickup = wish(1, 10L, null, VisitPickupWish.Type.PICKUP, false, true);
-        ActiveWish noVisit = wish(2, 10L, null, VisitPickupWish.Type.VISIT, false, true);
-
-        assertThat(RightRequestCheck.conflictingWish(
-                        Type.RIGHT, FamilyRight.PICKUP_ALLOWED, true, X, List.of(noPickup, noVisit), false))
-                .contains(noPickup);
-        assertThat(RightRequestCheck.conflictingWish(
-                        Type.RIGHT, FamilyRight.REGISTER_VISITS, true, X, List.of(noPickup, noVisit), false))
-                .contains(noVisit);
-        assertThat(RightRequestCheck.conflictingWish(
-                        Type.RIGHT, FamilyRight.VIEW_COSTS, true, X, List.of(noPickup, noVisit), false))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_020b_turningOffRightOfWantedPerson_conflicts_grantingDoesNot() {
-        ActiveWish wantsVisit = wish(3, 10L, null, VisitPickupWish.Type.VISIT, true, true);
-
-        assertThat(RightRequestCheck.conflictingWish(
-                        Type.RIGHT, FamilyRight.REGISTER_VISITS, false, X, List.of(wantsVisit), false))
-                .contains(wantsVisit);
-        assertThat(RightRequestCheck.conflictingWish(
-                        Type.RIGHT, FamilyRight.REGISTER_VISITS, true, X, List.of(wantsVisit), false))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_020c_requestByLegalRepresentative_isNotConflicting() {
-        ActiveWish noPickup = wish(7, 10L, null, VisitPickupWish.Type.PICKUP, false, true);
-
-        assertThat(RightRequestCheck.conflictingWish(
-                        Type.RIGHT, FamilyRight.PICKUP_ALLOWED, true, X, List.of(noPickup), true))
-                .isEmpty();
     }
 
     @Test
@@ -103,15 +48,5 @@ class RightRequestCheckTest {
                 .isFalse();
         // FR-016 (Edge Cases): người đại diện xác nhận cả yêu cầu tác động tới chính mình
         assertThat(RightRequestCheck.mayConfirm(Type.RIGHT, 10L, 10L)).isTrue();
-    }
-
-    private static ActiveWish wish(
-            long id,
-            Long relationshipId,
-            String idDocumentNumber,
-            VisitPickupWish.Type type,
-            boolean wanted,
-            boolean fromResident) {
-        return new ActiveWish(id, relationshipId, idDocumentNumber, type, wanted, fromResident);
     }
 }

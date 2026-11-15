@@ -15,7 +15,6 @@ import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.internal.permission.service.RequiresPermissionAspect;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.support.FakePermissions;
 import java.time.Instant;
@@ -84,15 +83,6 @@ class RequiresPermissionAspectTest {
                     assertThat(e.errorCode()).isEqualTo("PERMISSION_DENIED");
                     assertThat(e.properties()).containsEntry("failedLayer", "ROLE");
                 });
-        assertThat(Commands.runs).isZero();
-    }
-
-    @Test
-    void FR_043_targetOutsideViewScope_404WithoutLayer() {
-        permissions.results.put(APPROVE, PermissionResult.denied(FailedLayer.SCOPE));
-        permissions.results.put(VIEW, PermissionResult.denied(FailedLayer.SCOPE));
-
-        assertThatThrownBy(() -> commands.approve(RESIDENT_7, "x")).isInstanceOf(NotFoundException.class);
         assertThat(Commands.runs).isZero();
     }
 

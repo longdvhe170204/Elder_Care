@@ -88,26 +88,30 @@ class FR_076_NotYetAdmittedWarningIT extends M02TestBase {
 
     @Test
     void FR_076_dailyRun_remindsOncePerDay_untilTheStartDateIsNoLongerInThePast() throws Exception {
+        // Ghim giữa ngày: today() của test và ngày của job phải trùng kể cả khi chạy sát nửa đêm (004 T112)
+        clock.setTo(today().atTime(10, 0)
+                .atZone(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                .toInstant());
         long residentId = admissionResident();
         long id = application(residentId);
         contracts.active(residentId, CareLevel.BASIC, today().minusDays(2));
 
-        dailyRunner.catchUp();
+        runDailyJob();
         assertThat(remindersOf(id)).hasSize(1);
         assertThat(remindersOf(id).get(0).on()).isEqualTo(today());
 
-        dailyRunner.catchUp();
+        runDailyJob();
         assertThat(remindersOf(id)).as("cùng ngày không nhắc lại").hasSize(1);
 
         clock.advanceBy(Duration.ofDays(1));
-        dailyRunner.catchUp();
+        runDailyJob();
         assertThat(remindersOf(id)).hasSize(2);
 
         // Phụ lục đổi ngày bắt đầu sang tương lai: dừng nhắc
         contracts.reset();
         contracts.active(residentId, CareLevel.BASIC, today().plusDays(5));
         clock.advanceBy(Duration.ofDays(1));
-        dailyRunner.catchUp();
+        runDailyJob();
         assertThat(remindersOf(id)).hasSize(2);
     }
 }

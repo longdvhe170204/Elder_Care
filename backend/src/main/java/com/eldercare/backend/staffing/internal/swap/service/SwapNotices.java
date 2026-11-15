@@ -65,7 +65,7 @@ class SwapNotices {
         }
         String message = "Yêu cầu #" + requestId + ": " + text + ". Mở ứng dụng để xem.";
         events.publishEvent(new SwapNotification(List.of(new NotificationRequest(
-                "015",
+                "M09",
                 event,
                 SourceGroup.SCHEDULE_CHANGE,
                 new SourceRecord(sourceType, Long.toString(requestId)),

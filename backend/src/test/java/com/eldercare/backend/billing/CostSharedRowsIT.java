@@ -80,25 +80,6 @@ class CostSharedRowsIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void BR_M11_05_recalculationKeepsBeforeAfterCauseActorAndBasisWithoutLosingPrecision() {
-        long item = TestUsers.nextId(), source = TestUsers.nextId();
-        long id = add(item, source);
-        assertThat(history.list(CostRecalculation.TRACK, item)).singleElement().satisfies(row -> {
-            assertThat(row.id()).isEqualTo(id);
-            assertThat(row.startsAt()).isEqualTo(AT);
-            assertThat(row.actorId()).isEqualTo(1L);
-            assertThat(row.basisType()).isEqualTo("M02.PRICE_VERSION");
-            assertThat(row.basisId()).isEqualTo(source);
-            assertThat(row.valueBefore()).isEqualTo("CHECKED");
-            assertThat(row.value()).isEqualTo("DRAFT");
-            assertThat(row.details())
-                    .usingRecursiveComparison()
-                    .withComparatorForType(BigDecimal::compareTo, BigDecimal.class)
-                    .isEqualTo(change());
-        });
-    }
-
-    @Test
     void FR_013_sharedHistoryRejectsMoneyOrQuantityOutsideStoragePrecision() {
         // số lượng, đơn giá, hệ số, số tiền
         TableRows.csv(

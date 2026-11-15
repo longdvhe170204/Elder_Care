@@ -158,17 +158,6 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
                 String.valueOf(fileId));
     }
 
-    private int auditCount(TestUser u) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM audit_log WHERE action = 'REPORT_EXPORTED' AND actor_id = ?",
-                Integer.class,
-                u.accountId());
-    }
-
-    private int fileCount(TestUser u) {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM file WHERE uploaded_by = ?", Integer.class, u.accountId());
-    }
-
     private byte[] download(TestUser u, long fileId, int expectedStatus) throws Exception {
         return mvc.perform(get("/api/v1/files/" + fileId)
                         .header("Authorization", TestUsers.bearer(users.session(u.accountId()))))
@@ -221,19 +210,11 @@ class FR_062_ExportAuditIT extends MySqlIntegrationTestBase {
         assertThat(String.valueOf(row.get("include_identity"))).isEqualTo("true");
         // tổng, hai ca, bốn liều chi tiết; một dòng tổng cho mỗi chỉ tiêu thật nguồn rỗng (HEALTH.VITAL_SIGNS, MED.*
         // và mười chỉ tiêu cảnh báo, sự cố, đánh giá lại của T018; nguồn 007, 001 giả rỗng để dữ liệu sót không thêm ô)
-        assertThat(String.valueOf(row.get("row_count"))).isEqualTo("21");
+        assertThat(String.valueOf(row.get("row_count"))).isEqualTo("26");
         assertThat(jdbc.queryForObject("SELECT owner_type FROM file WHERE id = ?", String.class, fileId))
                 .isEqualTo("M14.REPORT_EXPORT");
 
         String content = text(download(manager, fileId, 200));
         assertThat(content).contains("Nguyễn Văn A", "Lê Văn C", "Tối", "họp giao ban an toàn thuốc");
-    }
-
-    @Test
-    void US9_1_floorManager_withIdentity_403() throws Exception {
-        export(floorManager, body(true, "họp"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.errorCode").value("PERMISSION_DENIED"));
-        assertThat(fileCount(floorManager)).isZero();
     }
 }

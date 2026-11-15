@@ -12,6 +12,8 @@ import com.eldercare.backend.roombedallocation.internal.allocation.persistence.A
 import com.eldercare.backend.roombedallocation.internal.allocation.service.ScheduledTransfers;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.*;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.*;
+import com.eldercare.backend.roombedallocation.internal.structure.domain.StructureKind;
+import com.eldercare.backend.roombedallocation.internal.structure.persistence.StructureStore;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ public class BedReadinessService {
     private final ObjectProvider<AllocationInfectionStatus> infection;
     private final ScheduledTransfers transfers;
     private final BedHoldService holds;
+    private final StructureStore structures;
 
     public BedReadinessService(
             BedReadinessStore store,
@@ -45,7 +48,8 @@ public class BedReadinessService {
             BusinessTime time,
             ObjectProvider<AllocationInfectionStatus> infection,
             ScheduledTransfers transfers,
-            BedHoldService holds) {
+            BedHoldService holds,
+            StructureStore structures) {
         this.store = store;
         this.locks = locks;
         this.states = states;
@@ -57,6 +61,7 @@ public class BedReadinessService {
         this.infection = infection;
         this.transfers = transfers;
         this.holds = holds;
+        this.structures = structures;
     }
 
     @Transactional(readOnly = true)
@@ -69,16 +74,41 @@ public class BedReadinessService {
     }
 
     private void access(BedReadinessStore.Snapshot row, Operation operation) {
-        if (!permissions
-                        .hasPermission(user, new PermissionKey(Function.BED_READINESS, operation), target(row))
+        if (!allowed(target(row), row.floorId(), operation))
+            throw new PermissionDeniedException("Chỉ Trưởng tầng được giao hoặc Người phụ trách ca của tầng thực hiện");
+    }
+
+    /** Research G-14: có quyền theo ma trận và là Trưởng tầng được giao hoặc Người phụ trách ca của tầng lúc này. */
+    private boolean allowed(Target target, long floorId, Operation operation) {
+        return permissions
+                        .hasPermission(user, new PermissionKey(Function.BED_READINESS, operation), target)
                         .allowed()
-                || !(scope.assignedFloorManager(row.floorId())
+                && (scope.assignedFloorManager(floorId)
                                 .filter(a -> a == user.accountId())
                                 .isPresent()
-                        || scope.shiftLead(row.floorId(), time.now())
+                        || scope.shiftLead(floorId, time.now())
                                 .filter(a -> a == user.accountId())
-                                .isPresent()))
+                                .isPresent());
+    }
+
+    /**
+     * T060 ({@code GET /bed-readiness/beds}, duyệt 2026-11-06): giường Chờ sẵn sàng ở các tầng người dùng đọc được theo
+     * cùng luật G-14; không tầng nào thì 403; {@code floorId} chỉ thu hẹp. Không ghi dữ liệu. Kiểm quyền theo từng tầng
+     * thay {@code @RequiresPermission}: ô ⁴⁰ của Điều dưỡng chỉ có ở lớp nhiệm vụ nên cần đối tượng mang tầng.
+     */
+    @Transactional(readOnly = true)
+    public List<BedDetails> awaitingReadyBeds(Long floorId) {
+        var floors = structures.list(StructureKind.FLOOR).stream()
+                .map(f -> f.getId())
+                .filter(f -> allowed(new Target("M03.BED", null, null, f), f, Operation.VIEW))
+                .collect(java.util.stream.Collectors.toSet());
+        if (floors.isEmpty())
             throw new PermissionDeniedException("Chỉ Trưởng tầng được giao hoặc Người phụ trách ca của tầng thực hiện");
+        var now = time.now();
+        return beds.list(null, floorId, null, List.of(BedStatus.AWAITING_READY)).stream()
+                .filter(b -> floors.contains(b.location().floorId()))
+                .map(b -> b.withAccess(now, null, List.of()))
+                .toList();
     }
 
     @RequiresPermission(function = Function.BED_READINESS, operation = Operation.VIEW)

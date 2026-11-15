@@ -147,7 +147,7 @@ public class CareOfflineHandlers {
         return new BusinessException(
                 HttpStatus.CONFLICT,
                 "CARE_TASK_CLOSED",
-                "CARE_TASK_CLOSED: công việc " + p.getOrDefault("status", "đã đóng") + ", đóng bởi "
+                "CARE_TASK_CLOSED: công việc " + p.getOrDefault("currentStatus", "đã đóng") + ", đóng bởi "
                         + p.getOrDefault("closedBy", "hệ thống") + " lúc " + p.getOrDefault("closedAt", "?")
                         + "; chuyển thành đính chính hoặc Ghi nhận phát sinh",
                 p);

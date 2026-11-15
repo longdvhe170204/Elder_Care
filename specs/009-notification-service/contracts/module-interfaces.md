@@ -71,6 +71,16 @@ Bản cài `NhatKyThongBaoPort` của 007 (`incident.api`) ủy cho `theoNguon`.
 
 *(Bổ sung 2026-10-27, Q-388, luật "Đổi api", chủ dự án duyệt)*: "lượt nhắc" trong `NguoiDaThongBaoView` là mọi lượt của chuỗi gọi chứa thông báo (cả lượt gọi người thân kế tiếp, FR-029a), mỗi lượt kèm người cần gọi (loại, id) và kết quả gọi; mã `NotifiedPersonView.CallReminderSummary` (`callReminderId`, `personToCallType`, `personToCallId`, `status`, `results`). Thông báo của người nhận chỉ Đã xác nhận qua cuộc gọi khi gọi được chính người đó; gọi được người thân kế tiếp thì xem ở lượt tương ứng.
 
+### 1.2a. `notification.api.CallReminderCommandApi` (lệnh, MANDATORY; 012) — Đổi api 2026-11-12, chủ dự án chốt
+
+```java
+void calleeEligibilityChanged(long familyMemberId, long residentId);
+    // T019: người thân không còn trong FamilyNotificationPort.callOrder → lượt Chờ kết quả của người đó Đã dừng
+    // (CALLEE_NOT_ELIGIBLE) ngay trong transaction lệnh của 012, chuỗi gọi người kế tiếp như "Không liên lạc được" (FR-029a (a))
+```
+
+012 gọi từ listener đồng bộ của chính 012 (`CallReminderEligibilityListener`) khi phát `RelationshipChanged` hoặc `FamilyRightChanged` tắt `RECEIVE_URGENT`; 009 không nghe sự kiện của 012 (tránh vòng `family → notification → family`). Bản giả `support/fake/notification/FakeCallReminderCommands` (`.Config`, ghi lời gọi).
+
 ### 1.3. SPI 009 cài cho module khác
 
 | SPI (gói khai báo) | Bản cài | Dùng bởi |

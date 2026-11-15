@@ -96,13 +96,23 @@ public final class ExportWorkbook {
         return doc.toBytes();
     }
 
-    private static List<Object> row(SummaryRow r) {
-        String notes = r.labels().stream()
-                .map(l -> l == ValueLabel.PENDING_REVIEW
-                        ? LABELS.get(l) + " (" + r.pendingReviewCount() + ")"
-                        : LABELS.get(l))
+    /** Cột ghi chú: nhãn của giá trị; dữ liệu đã loại bỏ kèm loại dữ liệu (016 FR-007, T109). */
+    public static String notes(SummaryRow r) {
+        return r.labels().stream()
+                .map(l -> switch (l) {
+                    case PENDING_REVIEW -> LABELS.get(l) + " (" + r.pendingReviewCount() + ")";
+                    case PURGED_BY_RETENTION ->
+                        r.purgedDataTypes().isEmpty()
+                                ? LABELS.get(l)
+                                : LABELS.get(l) + " (" + String.join(", ", r.purgedDataTypes()) + ")";
+                    default -> LABELS.get(l);
+                })
                 .sorted()
                 .collect(Collectors.joining("; "));
+    }
+
+    private static List<Object> row(SummaryRow r) {
+        String notes = notes(r);
         return Arrays.asList(
                 r.metricCode(),
                 r.metricName(),

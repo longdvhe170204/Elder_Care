@@ -1,6 +1,6 @@
 package com.eldercare.backend.admission;
 
-import com.eldercare.backend.admission.internal.transition.service.M02DailyRunner;
+import com.eldercare.backend.admission.scheduling.M02DailyJob;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.AssessmentTestBase;
 import com.eldercare.backend.resident.api.dto.CareLevel;
@@ -28,12 +28,16 @@ import org.springframework.context.annotation.Import;
  */
 // Điều kiện giường của 003 (participant thật cần phân bổ thật) do bản giả otherModules đứng thay; ca có giường thật ở
 // AdmissionRealBedIT. Điều kiện DBR_02 của 012 (participant thật đọc quan hệ người thân thật) cũng do otherModules đứng
-// thay; ca thật ở DBR_02_PrimaryContactIT của 012
+// thay; ca thật ở DBR_02_PrimaryContactIT của 012. Hai mã điều kiện quyết toán của 017 (BR-M11-22) do otherModules đứng
+// thay; ca thật ở US7_SettlementIT của 017
 @org.springframework.test.context.bean.override.mockito.MockitoBean(
         name = "allocationStatusParticipant",
         types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
 @org.springframework.test.context.bean.override.mockito.MockitoBean(
         name = "m10StatusParticipant",
+        types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
+@org.springframework.test.context.bean.override.mockito.MockitoBean(
+        name = "settlementTransitionParticipant",
         types = com.eldercare.backend.resident.api.spi.StatusTransitionParticipant.class)
 @Import({FakeM02PortsConfig.class, M02TestBase.Fakes.class})
 public abstract class M02TestBase extends AssessmentTestBase {
@@ -70,7 +74,14 @@ public abstract class M02TestBase extends AssessmentTestBase {
     protected FakeStatusTransitionParticipant otherModules;
 
     @Autowired
-    protected M02DailyRunner dailyRunner;
+    protected M02DailyJob dailyJob;
+
+    /** Chạy job M02_DAILY như Bộ lập lịch thật: nhật ký do job ghi phải có căn cứ (000 FR-045). */
+    protected void runDailyJob() {
+        user.runAs(
+                com.eldercare.backend.support.FakePermissions.user(0, com.eldercare.backend.common.Role.SCHEDULER),
+                dailyJob::runNow);
+    }
 
     @BeforeEach
     void resetM02Fakes() {

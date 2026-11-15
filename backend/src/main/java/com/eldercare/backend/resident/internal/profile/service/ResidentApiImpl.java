@@ -8,6 +8,7 @@ import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.internal.profile.domain.Resident;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -56,6 +57,11 @@ class ResidentApiImpl implements ResidentApi {
     @Override
     public Optional<Gender> gender(long residentId) {
         return residents.findById(residentId).map(Resident::getGender);
+    }
+
+    @Override
+    public Optional<LocalDate> dateOfBirth(long residentId) {
+        return residents.findById(residentId).map(Resident::getDateOfBirth);
     }
 
     @Override

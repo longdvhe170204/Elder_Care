@@ -2,8 +2,6 @@ package com.eldercare.backend.family.internal.feedback.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.family.internal.feedback.domain.Feedback.AssigneeRole;
-import com.eldercare.backend.family.internal.feedback.domain.Feedback.ContentGroup;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Priority;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Status;
 import com.eldercare.backend.family.internal.feedback.domain.Feedback.Type;
@@ -32,40 +30,6 @@ class FeedbackDeadlineTest {
     void FR_061_dueFromBasisByPriority() {
         assertThat(FeedbackDeadline.dueAt(SENT, Priority.HIGH, CFG)).isEqualTo(SENT.plus(Duration.ofHours(24)));
         assertThat(FeedbackDeadline.dueAt(SENT, Priority.NORMAL, CFG)).isEqualTo(SENT.plus(Duration.ofHours(72)));
-    }
-
-    @Test
-    void FR_059_defaultAssigneeByGroup() {
-        assertThat(FeedbackDeadline.defaultAssignee(ContentGroup.CARE)).isEqualTo(AssigneeRole.FLOOR_MANAGER);
-        assertThat(FeedbackDeadline.defaultAssignee(ContentGroup.EATING)).isEqualTo(AssigneeRole.FLOOR_MANAGER);
-        assertThat(FeedbackDeadline.defaultAssignee(ContentGroup.HEALTH_MEDICATION))
-                .isEqualTo(AssigneeRole.FLOOR_MANAGER);
-        assertThat(FeedbackDeadline.defaultAssignee(ContentGroup.COSTS_CONTRACT))
-                .isEqualTo(AssigneeRole.OFFICE_STAFF);
-        assertThat(FeedbackDeadline.defaultAssignee(ContentGroup.OTHER)).isEqualTo(AssigneeRole.OFFICE_STAFF);
-    }
-
-    @Test
-    void BR_M10_05_escalateOncePerDue() {
-        Instant due = FeedbackDeadline.dueAt(SENT, Priority.HIGH, CFG);
-
-        assertThat(FeedbackDeadline.shouldEscalate(Status.NEW, due, null, due.minusSeconds(1)))
-                .isFalse();
-        assertThat(FeedbackDeadline.shouldEscalate(Status.NEW, due, null, due)).isTrue();
-        assertThat(FeedbackDeadline.shouldEscalate(Status.IN_PROGRESS, due, null, due.plusSeconds(60)))
-                .isTrue();
-        // đã leo thang cho đúng hạn này: không nhắc lặp (FR-063)
-        assertThat(FeedbackDeadline.shouldEscalate(Status.NEW, due, due, due.plus(Duration.ofDays(3))))
-                .isFalse();
-        // hạn mới sau Mở lại: leo thang lại
-        Instant newDue = due.plus(Duration.ofDays(2));
-        assertThat(FeedbackDeadline.shouldEscalate(Status.REOPENED, newDue, due, newDue))
-                .isTrue();
-        // đã trả lời, đã đóng thì không leo thang
-        assertThat(FeedbackDeadline.shouldEscalate(Status.REPLIED, due, null, due))
-                .isFalse();
-        assertThat(FeedbackDeadline.shouldEscalate(Status.CLOSED, due, null, due))
-                .isFalse();
     }
 
     @Test

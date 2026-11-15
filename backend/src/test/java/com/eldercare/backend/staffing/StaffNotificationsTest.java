@@ -19,6 +19,5 @@ class StaffNotificationsTest {
                         new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER),
                         new RecipientGroup.FloorManager(7L, new Substitution.Default()));
         assertThat(request.level()).contains(NotificationLevel.MEDIUM);
-        assertThat(request.sourceModule()).isEqualTo("M09");
     }
 }

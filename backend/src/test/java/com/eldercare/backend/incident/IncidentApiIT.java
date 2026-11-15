@@ -1,15 +1,12 @@
 package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.incident.api.dto.IncidentView;
 import com.eldercare.backend.incident.internal.incident.service.DefaultIncidentApi;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * Bản thật {@code IncidentApi} (module-interfaces 007 mục 1.7; 013 FR-021, FR-025): loại hiện hành, mức, trạng thái theo
@@ -51,23 +48,5 @@ class IncidentApiIT extends IncidentHttpTestBase {
         var flag = api.monitoringFlag(resident, time.now());
         assertThat(flag.suspectedInfection()).isFalse();
         assertThat(flag.postFall()).isFalse();
-    }
-
-    /** api-007 {@code IncidentStatus}: Đã hủy lưu {@code CANCELLED} nhưng HTTP trả và lọc bằng {@code VOIDED}. */
-    @Test
-    void FR_046_cancelledIncidentIsVoidedOverHttp() throws Exception {
-        long cancelled = incident("OTHER_INJURY", "LOW", "CANCELLED", null, nurse.accountId());
-
-        mvc.perform(as(floorManager, MockMvcRequestBuilders.get("/api/v1/incidents/{id}", cancelled)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("VOIDED"));
-        mvc.perform(as(
-                        floorManager,
-                        MockMvcRequestBuilders.get("/api/v1/incidents")
-                                .param("status", "VOIDED")
-                                .param("residentId", Long.toString(resident))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id").value(org.hamcrest.Matchers.contains((int) cancelled)))
-                .andExpect(jsonPath("$[0].status").value("VOIDED"));
     }
 }

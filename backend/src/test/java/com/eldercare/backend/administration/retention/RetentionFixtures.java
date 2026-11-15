@@ -1,17 +1,27 @@
 package com.eldercare.backend.administration.retention;
 
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
+import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
+import com.eldercare.backend.administration.approval.api.dto.ExtendedTransitions;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
+import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
 import com.eldercare.backend.administration.sample.SampleFloorRecordProvider;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;
+import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.support.SwitchableUser;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +29,7 @@ import java.util.stream.Stream;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Provider lưu trữ cho hai bảng mẫu nhóm 3 (000 T066): mốc tính hạn là {@code occurred_at}, không gắn hồ sơ
@@ -142,6 +153,62 @@ public class RetentionFixtures {
             String in = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
             database.jdbc().update("DELETE FROM " + table + " WHERE id IN (" + in + ")");
         }
+    }
+
+    /**
+     * Loại yêu cầu mẫu có trạng thái mở rộng (000 T114, như 015): {@code WAITING} còn mở vì là nguồn của {@code AGREE},
+     * {@code EXPIRED} là trạng thái cuối riêng của loại.
+     */
+    public static final String EXTENDED_REQUEST = "M15.SAMPLE_EXTENDED";
+
+    @Bean
+    RequestTypeHandler sampleExtendedRequestHandler() {
+        return new RequestTypeHandler() {
+            @Override
+            public String typeCode() {
+                return EXTENDED_REQUEST;
+            }
+
+            @Override
+            public ExtendedTransitions extendedTransitions() {
+                return new ExtendedTransitions(Map.of(
+                        "WAIT",
+                        new ExtendedTransitions.Transition(Set.of(ApprovalStatus.PENDING_APPROVAL), "WAITING"),
+                        "AGREE",
+                        new ExtendedTransitions.Transition(Set.of("WAITING"), ApprovalStatus.PENDING_APPROVAL),
+                        "EXPIRE",
+                        new ExtendedTransitions.Transition(
+                                Set.of("WAITING", ApprovalStatus.PENDING_APPROVAL), "EXPIRED")));
+            }
+
+            @Override
+            public void validateContent(JsonNode content) {}
+
+            @Override
+            public PermissionKey createPermission() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public PermissionKey approvePermission() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Target scope(JsonNode content) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<UnmetCondition> checkApplyConditions(ApprovalRequestView request) {
+                return List.of();
+            }
+
+            @Override
+            public ResultRef apply(ApprovalRequestView request, LocalDate actualEffectiveDate) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     @Bean

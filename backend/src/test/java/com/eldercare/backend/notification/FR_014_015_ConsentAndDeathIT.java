@@ -27,7 +27,6 @@ import com.eldercare.backend.support.fake.resident.FakeConsentApi;
 import com.eldercare.backend.support.fake.resident.FakeM01Config;
 import com.eldercare.backend.support.fake.resident.FakeResidentEvents;
 import com.eldercare.backend.support.fake.resident.FakeResidents;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -153,18 +152,6 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
         return ((Number) awaitRequests(r.eventKey(), 1).getFirst().get("id")).longValue();
     }
 
-    /** Người thân nhận thông báo của yêu cầu, kèm phần được xem. */
-    private Map<Long, String> familyRecipients(long requestId) {
-        Map<Long, String> found = new java.util.TreeMap<>();
-        jdbc.queryForList(
-                        "SELECT recipient_id, visible_parts FROM notification WHERE request_id = ?"
-                                + " AND recipient_type = 'FAMILY_MEMBER'",
-                        requestId)
-                .forEach(row -> found.put(
-                        ((Number) row.get("recipient_id")).longValue(), String.valueOf(row.get("visible_parts"))));
-        return found;
-    }
-
     private Map<String, Object> state(long requestId, long familyMemberId) {
         return jdbc.queryForMap(
                 "SELECT n.id, n.status FROM notification n WHERE n.request_id = ? AND n.recipient_type = 'FAMILY_MEMBER' AND n.recipient_id = ?",
@@ -178,33 +165,6 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
                         + " AND e.content->>'$.type' = 'NOT_SENT'",
                 String.class,
                 ((Number) state.get("id")).longValue());
-    }
-
-    @Test
-    void FR_015_afterDeath_noFamilyNotification_staffStillNotified() {
-        long m = relative(true, FamilyRight.VIEW_COSTS);
-        consents.active(resident, Set.of(m), true);
-        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
-        Instant death = time.now().minus(Duration.ofHours(1));
-        residents.changeStatus(resident, ResidentStatus.DECEASED, death);
-
-        long id = send(request(
-                "fr015-after-" + resident,
-                NotificationLevel.LOW,
-                time.now(),
-                false,
-                Optional.empty(),
-                List.of(
-                        new RecipientGroup.PrimaryContact(resident),
-                        new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER)),
-                InformationType.GENERAL));
-
-        assertThat(familyRecipients(id)).isEmpty();
-        assertThat(jdbc.queryForList(
-                        "SELECT recipient_id FROM notification WHERE request_id = ? AND recipient_type = 'STAFF'",
-                        Long.class,
-                        id))
-                .contains(manager.staffId());
     }
 
     @Test

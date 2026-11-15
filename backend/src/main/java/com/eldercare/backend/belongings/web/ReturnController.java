@@ -115,7 +115,10 @@ class ReturnController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemBody.class)))
-    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "201",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = IdResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse create(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -162,6 +165,19 @@ class ReturnController {
             case "cancel" -> confirmations.cancel(target(id), id, body.reason());
             default -> throw new NotFoundException();
         }
+    }
+
+    @GetMapping("/family-portal/recipient-confirmations/{id}")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Lỗi",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemBody.class)))
+    @ApiResponse(responseCode = "200", description = "OK")
+    RecipientConfirmationResponse portalGet(@PathVariable long id) {
+        return RecipientConfirmationResponse.of(confirmations.viewOnPortal(id));
     }
 
     @PostMapping("/family-portal/recipient-confirmations/{id}/{command}")

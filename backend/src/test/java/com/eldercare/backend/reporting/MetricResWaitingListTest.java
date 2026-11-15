@@ -51,6 +51,12 @@ class MetricResWaitingListTest {
         }
 
         @Override
+        public Stream<com.eldercare.backend.admission.api.dto.ResidenceTypeChangeView> residenceTypeChanges(
+                ScopeFilter scope, LocalDate from, LocalDate to) {
+            return Stream.empty();
+        }
+
+        @Override
         public Stream<WaitingEntryView> waitingList(LocalDate from, LocalDate to) {
             asked.add(new LocalDate[] {from, to});
             return entries.stream()
@@ -92,6 +98,13 @@ class MetricResWaitingListTest {
 
         MetricValue all = value(list, ReportFilters.NONE);
         MetricValue dayCare = value(list, new ReportFilters(Set.of(), "DAY_CARE", null, null, null, null, null));
+        // FR-060 (chủ dự án duyệt 2026-11-11): lọc mức chăm sóc dự kiến theo mã enum
+        assertThat(value(list, new ReportFilters(Set.of(), null, "BASIC", null, null, null, null))
+                        .value())
+                .isEqualByComparingTo("3");
+        assertThat(value(list, new ReportFilters(Set.of(), null, "SPECIAL", null, null, null, null))
+                        .value())
+                .isEqualByComparingTo("0");
 
         assertThat(list.metric().code()).isEqualTo("RES.WAITING_LIST");
         assertThat(list.metric().group()).isEqualTo(MetricGroup.WAITING_LIST);

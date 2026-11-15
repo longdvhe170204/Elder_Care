@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -39,9 +40,11 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @AutoConfigureMockMvc
 @Import({TestScopedMetrics.class, FakeFileConfig.class})
+@Tag("BR-77")
 class SC_008_ReadOnlyIT extends MySqlIntegrationTestBase {
 
-    private static final Set<String> NOT_BUSINESS = Set.of("login_session", "device");
+    /** Lần kết nối của thiết bị nằm ở {@code technical_lock} từ V099_04 (thay bảng {@code device}). */
+    private static final Set<String> NOT_BUSINESS = Set.of("login_session", "technical_lock");
 
     private static final Set<String> EXPORT_WRITES = Set.of("audit_log", "file", "idempotency_key");
 

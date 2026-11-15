@@ -110,7 +110,9 @@ public class LocationHistoryStore {
 
     public List<Long> backfillRequests(long resident, Instant from, Instant to) {
         return jdbc.queryForList(
-                "SELECT q.approval_request_id FROM bed_backfill_request q JOIN v_current_allocation v ON v.id=q.current_allocation_id WHERE q.resident_id=? AND v.effective_end>? AND q.transfer_at<?",
+                "SELECT CAST(q.content->>'$.approvalRequestId' AS UNSIGNED) FROM record_event q JOIN v_current_allocation v ON v.id=q.entity_id"
+                        + " WHERE q.entity_type='M03.BED_ALLOCATION' AND q.kind='M03.BED_BACKFILL_REQUEST'"
+                        + " AND q.content->>'$.residentId'=? AND v.effective_end>? AND q.occurred_at<?",
                 Long.class,
                 resident,
                 Timestamp.from(from),

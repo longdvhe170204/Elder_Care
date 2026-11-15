@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * Nền chung cho IT phiếu bữa ăn của 011 Phase 7 (trên {@link ClosingTestBase}, một context): bản ghi lưu mẫu của bữa ngày
- * ghi thẳng qua {@link SimpleRecordApi} (dấu tối thiểu; lệnh lưu mẫu thật ở {@code BR_M08_15_RetainedSampleIT}); người nhận tại tầng mở quyền "Nhận phiếu, báo sai lệch"
+ * ghi thẳng qua {@link SimpleRecordApi} (dấu tối thiểu; lệnh lưu mẫu thật ở {@code BR_36_RetainedSampleIT}); người nhận tại tầng mở quyền "Nhận phiếu, báo sai lệch"
  * cho đúng một tầng/khu bằng spy {@code PermissionApi}, tầng khác trả lớp {@code SCOPE} không thỏa.
  */
 abstract class SlipTestBase extends ClosingTestBase {

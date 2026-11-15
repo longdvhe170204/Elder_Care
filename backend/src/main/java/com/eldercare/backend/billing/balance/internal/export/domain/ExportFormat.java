@@ -1,0 +1,23 @@
+package com.eldercare.backend.billing.balance.internal.export.domain;
+
+/** Định dạng file xuất (schema {@code ExportFormat} của api-017). */
+public enum ExportFormat {
+    XLSX("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx"),
+    PDF("application/pdf", "pdf");
+
+    private final String mimeType;
+    private final String extension;
+
+    ExportFormat(String mimeType, String extension) {
+        this.mimeType = mimeType;
+        this.extension = extension;
+    }
+
+    public String mimeType() {
+        return mimeType;
+    }
+
+    public String extension() {
+        return extension;
+    }
+}

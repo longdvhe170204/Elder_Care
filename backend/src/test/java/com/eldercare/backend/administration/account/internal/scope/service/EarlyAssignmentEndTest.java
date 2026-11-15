@@ -39,7 +39,7 @@ class EarlyAssignmentEndTest {
     }
 
     @Test
-    void BR_M09_15_earlyEndCutsOffScopeAtTheExactInstantAndHistoricalRange() {
+    void BR_53_earlyEndCutsOffScopeAtTheExactInstantAndHistoricalRange() {
         Instant start = Instant.parse("2026-11-01T00:00:00Z"),
                 end = start.plusSeconds(8 * 3600),
                 cut = start.plusSeconds(3600);

@@ -32,6 +32,14 @@ public class BalanceGovernanceStore {
                 "SELECT id FROM balance_transaction WHERE resident_id = ? ORDER BY id", Long.class, residentId);
     }
 
+    /** Giao dịch không trỏ giao dịch gốc nào (không phải điều chỉnh): mức đầu dưới sổ trong chuỗi lưu giữ. */
+    public List<Long> rootTransactionsOf(long residentId) {
+        return jdbc.queryForList(
+                "SELECT id FROM balance_transaction WHERE resident_id = ? AND original_transaction_id IS NULL ORDER BY id",
+                Long.class,
+                residentId);
+    }
+
     /** Điều chỉnh trỏ giao dịch gốc, giao dịch còn lại của cặp cấn trừ (FR-011, FR-015). */
     public List<Long> transactionsReferencing(long transactionId) {
         return jdbc.queryForList(

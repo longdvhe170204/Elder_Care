@@ -6,7 +6,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
 
-@Schema(name = "RiskAgreement")
+@Schema(
+        name = "RiskAgreement",
+        requiredProperties = {
+            "choice",
+            "discussedRisks",
+            "residentParticipates",
+            "assessingDoctorId",
+            "selfDeterminationAssessment",
+            "decisionMaker",
+            "reviewDate"
+        })
 public record CareRiskAgreementResponse(
         long id,
         Long sourceAgreementId,

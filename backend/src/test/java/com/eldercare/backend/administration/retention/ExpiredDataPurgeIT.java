@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
-import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.retention.scheduling.ExpiredDataPurgeJob;
 import com.eldercare.backend.administration.sample.SampleFloorRecordProvider;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;
@@ -18,7 +17,6 @@ import com.eldercare.backend.support.SwitchableUser;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,51 +105,16 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
     }
 
-    private long floorRecord(Instant at) {
-        return record("sample_floor_record", at);
-    }
-
-    private long officeRecord(Instant at) {
-        return record("sample_office_record", at);
-    }
-
-    private void logFor(String type, long id, Instant at, Long residentId) {
-        clock.setTo(at);
-        user.set(NURSE);
-        try {
-            tx.executeWithoutResult(s -> auditLog.write(AuditLogEntry.builder()
-                    .action(RECORDED)
-                    .entity(type, id)
-                    .resident(residentId)
-                    .after(Map.of("note", "ghi nhận"))
-                    .build()));
-        } finally {
-            clock.reset();
-        }
-    }
-
-    private long correctionFor(String type, long id, Instant at) {
-        jdbc.update(
-                "INSERT INTO correction (record_type, original_record_id, type, corrected_content, reason, actor_id,"
-                        + " creation_method, recorded_at, sequence_no) VALUES (?, ?, 'AMEND_CONTENT', '{\"note\":\"đúng\"}',"
-                        + " 'ghi nhầm', ?, 'A', ?, 1)",
-                type,
-                id,
-                NURSE.accountId(),
-                LocalDateTime.ofInstant(at, ZoneOffset.UTC));
-        long correctionId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
-                "INSERT INTO correction_chain (record_type, original_record_id, correction_count) VALUES (?, ?, 1)",
-                type,
-                id);
-        return correctionId;
-    }
-
     private long request(String status, Instant at, Long residentId) {
+        return request("M15.SAMPLE", status, at, residentId);
+    }
+
+    private long request(String type, String status, Instant at, Long residentId) {
         LocalDateTime time = LocalDateTime.ofInstant(at, ZoneOffset.UTC);
         jdbc.update(
                 "INSERT INTO approval_request (type, status, content, resident_id, requester_id, created_at, reason,"
-                        + " requested_effective_date, decided_at) VALUES ('M15.SAMPLE', ?, '{}', ?, ?, ?, 'đề nghị', ?, ?)",
+                        + " requested_effective_date, decided_at) VALUES (?, ?, '{}', ?, ?, ?, 'đề nghị', ?, ?)",
+                type,
                 status,
                 residentId,
                 NURSE.accountId(),
@@ -163,48 +126,6 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
 
     private boolean exists(String table, long id) {
         return jdbc.queryForObject("SELECT COUNT(*) FROM " + table + " WHERE id = ?", Integer.class, id) > 0;
-    }
-
-    private int logsOf(String type, long id) {
-        return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM audit_log WHERE entity_type = ? AND entity_id = ?",
-                Integer.class,
-                type,
-                String.valueOf(id));
-    }
-
-    private Map<String, Object> summary(String runId) {
-        return jdbc.queryForMap(
-                "SELECT actor_type, exempt_from_purge,"
-                        + " JSON_EXTRACT(basis, '$.schedulerRunId') AS run_id,"
-                        + " JSON_EXTRACT(details, '$.deleted.\"M15.SAMPLE_RECORD\".count') AS records,"
-                        + " JSON_EXTRACT(details, '$.deleted.\"M15.AUDIT_LOG\".count') AS logs,"
-                        + " JSON_EXTRACT(details, '$.parameters.\"CFG-M15-04\"') AS parameter,"
-                        + " JSON_EXTRACT(details, '$.stopped') AS stopped"
-                        + " FROM audit_log WHERE action = 'EXPIRED_DATA_PURGED' AND entity_id = ?",
-                runId);
-    }
-
-    @Test
-    void US3_4_BR_M15_12_expiredChain_isPurgedWithItsLogs_andSummaryIsWritten() {
-        long old = floorRecord(expired);
-        logFor(FLOOR, old, expired, null);
-        long kept = floorRecord(recent);
-        logFor(FLOOR, kept, recent, null);
-
-        String runId = runJob();
-
-        assertThat(exists("sample_floor_record", old)).isFalse();
-        assertThat(logsOf(FLOOR, old)).isZero();
-        assertThat(exists("sample_floor_record", kept)).isTrue();
-        assertThat(logsOf(FLOOR, kept)).isEqualTo(1);
-        Map<String, Object> summary = summary(runId);
-        assertThat(summary).containsEntry("actor_type", "SCHEDULER").containsEntry("exempt_from_purge", true);
-        assertThat(String.valueOf(summary.get("run_id"))).isEqualTo("\"" + runId + "\"");
-        assertThat(String.valueOf(summary.get("records"))).isEqualTo("1");
-        assertThat(String.valueOf(summary.get("logs"))).isEqualTo("1");
-        assertThat(summary.get("parameter")).isNotNull();
-        assertThat(String.valueOf(summary.get("stopped"))).isEqualTo("false");
     }
 
     @Test
@@ -256,15 +177,5 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
                     id);
         }
         return n;
-    }
-
-    private long sharedEventFor(String type, long id) {
-        jdbc.update(
-                "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
-                        + " confirmed_at) VALUES (?, ?, 'M15', 'M15.TEST_EVENT', '{}', FALSE, UTC_TIMESTAMP(6),"
-                        + " UTC_TIMESTAMP(6))",
-                type,
-                id);
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
     }
 }

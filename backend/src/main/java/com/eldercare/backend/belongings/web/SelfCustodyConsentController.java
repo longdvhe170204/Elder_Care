@@ -42,7 +42,10 @@ class SelfCustodyConsentController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemBody.class)))
-    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "201",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = IdResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse record(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -88,7 +91,10 @@ class SelfCustodyConsentController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemBody.class)))
-    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "201",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = IdResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
     IdResponse recordOnPortal(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

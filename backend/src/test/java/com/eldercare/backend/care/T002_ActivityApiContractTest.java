@@ -33,7 +33,7 @@ class T002_ActivityApiContractTest {
                 .containsExactly("removeDuty");
         assertThat(Arrays.stream(Class.forName(API + "ActivityStatisticsApi").getDeclaredMethods())
                         .map(m -> m.getName()))
-                .containsExactlyInAnyOrder("sessions", "trips", "qualityChecks", "isolationRisks");
+                .containsExactlyInAnyOrder("sessions", "trips", "qualityChecks", "outOfCheckScope");
     }
 
     @Test

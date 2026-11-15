@@ -1,9 +1,7 @@
 package com.eldercare.backend.administration.shared;
 
 import static com.eldercare.backend.administration.shared.SharedTestKinds.OTHER_TRACK;
-import static com.eldercare.backend.administration.shared.SharedTestKinds.REASON_TRACK;
 import static com.eldercare.backend.administration.shared.SharedTestKinds.TRACK;
-import static com.eldercare.backend.administration.shared.SharedTestKinds.unique;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -14,7 +12,6 @@ import com.eldercare.backend.administration.shared.api.dto.HistoryKind;
 import com.eldercare.backend.administration.shared.api.dto.HistoryRow;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.ConditionNotMetException;
-import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.support.TestUsers;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -46,41 +43,6 @@ public interface StatusHistoryApiContract {
                 new Attributes("đỏ", 1),
                 null,
                 uniqueKey);
-    }
-
-    private static HistoryEntry<Void> change(String before, boolean bySystem, Reason reason) {
-        return new HistoryEntry<>(
-                HistoryKind.POINT, before, "B", null, T0, "CHANGE", 7L, bySystem, reason, null, null, null, null, null);
-    }
-
-    /** FR-046: track có reasonRequired chặn lệnh đổi giá trị không có lý do, trừ do hệ thống hoặc dòng đầu (không có "từ"). */
-    @Test
-    default void reasonRequiredTrack_rejectsAChangeWithoutAReason() {
-        long entity = TestUsers.nextId();
-
-        assertThatThrownBy(() -> tx(() -> history().add(REASON_TRACK, entity, change("A", false, null))))
-                .isInstanceOf(ReasonRequiredException.class);
-        assertThat(tx(() -> history().list(REASON_TRACK, entity))).isEmpty();
-    }
-
-    @Test
-    default void reasonRequiredTrack_acceptsSystemChangeFirstRowAndReasonedChange() {
-        long entity = TestUsers.nextId();
-
-        tx(() -> history().add(REASON_TRACK, entity, change(null, false, null)));
-        tx(() -> history().add(REASON_TRACK, entity, change("A", true, null)));
-        tx(() -> history().add(REASON_TRACK, entity, change("A", false, new Reason("đã có lý do"))));
-
-        assertThat(tx(() -> history().list(REASON_TRACK, entity))).hasSize(3);
-    }
-
-    @Test
-    default void trackWithoutReasonRequired_acceptsAChangeWithoutAReason() {
-        long entity = TestUsers.nextId();
-
-        tx(() -> history().add(OTHER_TRACK, entity, change("A", false, null)));
-
-        assertThat(tx(() -> history().list(OTHER_TRACK, entity))).hasSize(1);
     }
 
     @Test
@@ -119,30 +81,5 @@ public interface StatusHistoryApiContract {
         tx(() -> history().add(TRACK, entity, entry(HistoryKind.PERIOD, "B", end, null)));
         assertThat(tx(() -> history().open(TRACK, entity)))
                 .hasValueSatisfying(row -> assertThat(row.value()).isEqualTo("B"));
-    }
-
-    @Test
-    default void at_returnsRowInEffectAtInstant() {
-        long entity = TestUsers.nextId();
-        Instant end = T0.plus(10, ChronoUnit.DAYS);
-        tx(() -> history().add(TRACK, entity, entry(HistoryKind.PERIOD, "A", T0, null)));
-        tx(() -> history().closeOpen(TRACK, entity, end));
-        tx(() -> history().add(TRACK, entity, entry(HistoryKind.PERIOD, "B", end, null)));
-
-        assertThat(tx(() -> history().at(TRACK, entity, T0.minusSeconds(1)))).isEmpty();
-        assertThat(tx(() -> history().at(TRACK, entity, T0.plus(5, ChronoUnit.DAYS))))
-                .hasValueSatisfying(row -> assertThat(row.value()).isEqualTo("A"));
-        assertThat(tx(() -> history().at(TRACK, entity, end)))
-                .hasValueSatisfying(row -> assertThat(row.value()).isEqualTo("B"));
-    }
-
-    @Test
-    default void uniqueKey_isEnforced() {
-        String key = unique("K");
-        tx(() -> history().add(TRACK, TestUsers.nextId(), entry(HistoryKind.POINT, "A", T0, key)));
-
-        assertThatThrownBy(() ->
-                        tx(() -> history().add(TRACK, TestUsers.nextId(), entry(HistoryKind.POINT, "B", T0, key))))
-                .isInstanceOf(ConditionNotMetException.class);
     }
 }

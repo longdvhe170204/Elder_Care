@@ -114,7 +114,7 @@ public class CareChecklistController {
                             permissions.allowedCommands(user, CareTaskService.target(task), available));
                 })
                 .toList();
-        var grouped = new LinkedHashMap<Long, List<CareChecklistResponse.Agreement>>();
+        var grouped = new LinkedHashMap<Long, List<CareRiskAgreementResponse>>();
         for (var agreement : data.agreements())
             if (health.computeIfAbsent(
                     agreement.residentId(),
@@ -122,7 +122,9 @@ public class CareChecklistController {
                                     user, InfoGroup.HEALTH, new Target("M01.RESIDENT", Long.toString(id), id, null))
                             == Visibility.FULL))
                 grouped.computeIfAbsent(agreement.residentId(), id -> new ArrayList<>())
-                        .add(CareChecklistResponse.Agreement.of(agreement));
+                        .add(CareRiskAgreementResponse.of(
+                                agreement.agreement(),
+                                id -> id == null ? null : accounts.fullName(id).orElse(Long.toString(id))));
         var risks = grouped.entrySet().stream()
                 .map(e -> new CareChecklistResponse.ResidentAgreements(e.getKey(), List.copyOf(e.getValue())))
                 .toList();

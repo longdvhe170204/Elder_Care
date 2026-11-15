@@ -38,6 +38,7 @@ class ChangeArrivalScheduleIT extends ChangeTestBase {
     @Test
     void FR_041_aBedChange_waitsFor003() throws Exception {
         Setup s = activeSetup();
+        cancelFixtureAllocation(s.residentId());
         long id = createChange(request(s.contractId(), "[\"BED\"]", "{\"newBedId\": 55}", today().plusDays(5)))
                 .get("approvalRequestId")
                 .asLong();

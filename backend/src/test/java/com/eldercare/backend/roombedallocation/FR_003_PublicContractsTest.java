@@ -31,11 +31,11 @@ class FR_003_PublicContractsTest {
     void FR_003_allPublicInterfacesExposeTheContractOperations() throws Exception {
         Map<String, Integer> contracts = Map.of(
                 "ResidentLocationApi",
-                6,
+                7, // 2026-11-12: hasAllocationStartingBy (004 FR-021)
                 "LocationHistoryApi",
                 4,
                 "BedAllocationCommandApi",
-                11,
+                13,
                 "DayCareCapacityApi",
                 3,
                 "LocationStructureApi",
@@ -45,7 +45,7 @@ class FR_003_PublicContractsTest {
                 "BedStatusApi",
                 6,
                 "BedStatisticsApi",
-                3,
+                4,
                 "BedHandoverAlertApi",
                 1);
         for (var contract : contracts.entrySet()) {

@@ -371,6 +371,7 @@ Khóa chính `(nct_id, module)`, `du_lieu JSON`, `phien_ban`, `cap_nhat_luc`. L�
 ### Bảng của 000 sau gộp
 
 - `ket_qua_ap_dung` (`application_result`, nhóm 3, 1–1) thành cột của `yeu_cau_phe_duyet`, khóa theo dòng khi áp dụng.
-- `chuoi_dinh_chinh` (`correction_chain`) thành cột gốc của `dinh_chinh` nếu không phá `v_latest_correction` (không thì giữ, ghi ở plan).
+- `chuoi_dinh_chinh` (`correction_chain`): bỏ ngày 2026-11-13 (`V099_01`); số thứ tự và Hủy ghi nhận đọc từ `dinh_chinh`, các lần đính chính trên cùng bản gốc tuần tự bằng dòng `khoa_ky_thuat` `M15.CORRECTION:<loại>:<id bản gốc>`.
 - `lan_chay_lich` (`scheduler_run`) ra file log (R-15 mục 4).
-- Còn lại: `tham_so`, `lich_su_tham_so`, `yeu_cau_phe_duyet`, `dinh_chinh`, `nhat_ky`, `tep`, `khoa_lap_lai`, `event_publication`, `shedlock` và bảy bảng chung: 16 bảng.
+- *(Sửa 2026-11-13, research R-15 mục 6)* `lich_su_tham_so` (`parameter_history`) thành dòng `lich_su_chung` loại `M15.PARAMETER` (`V099_06`); `shedlock` gộp vào `khoa_ky_thuat` (thêm `lock_until`, `locked_at`, `locked_by`; `V099_07`).
+- Còn lại: `tham_so`, `yeu_cau_phe_duyet`, `dinh_chinh`, `nhat_ky`, `tep`, `khoa_lap_lai`, `event_publication` và bảy bảng chung: 14 bảng.

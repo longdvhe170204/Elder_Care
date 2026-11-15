@@ -2,6 +2,7 @@ package com.eldercare.backend.belongings.web;
 
 import com.eldercare.backend.belongings.internal.inventorycheck.service.InventoryCheckService;
 import com.eldercare.backend.belongings.web.request.InventoryCheckRequests;
+import com.eldercare.backend.belongings.web.response.IdResponse;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -46,7 +47,10 @@ class InventoryCheckController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemBody.class)))
-    @ApiResponse(responseCode = "201", description = "OK", content = @Content)
+    @ApiResponse(
+            responseCode = "201",
+            description = "OK",
+            content = @Content(schema = @Schema(implementation = IdResponse.class)))
     @ResponseStatus(HttpStatus.CREATED)
     InventoryCheckService.CheckView create(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

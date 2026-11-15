@@ -21,4 +21,10 @@ public interface ResidentLocationApi {
     boolean hasNoBed(long residentId);
 
     Optional<BedAllocationView> currentOrFutureAllocation(long residentId);
+
+    /**
+     * 004 FR-021: người cao tuổi có phân bổ Hiệu lực hoặc Tương lai bắt đầu không muộn hơn ngày {@code date} (giờ Việt
+     * Nam). Tên logic {@code coPhanBoBatDauTruoc} (module-interfaces 003 mục 1.2).
+     */
+    boolean hasAllocationStartingBy(long residentId, LocalDate date);
 }

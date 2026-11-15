@@ -69,8 +69,12 @@ public record RecordEndOfLifeWishBody(
             requiredProperties = {"number", "date", "court", "fileId"})
     public record CourtDecisionBody(String number, java.time.LocalDate date, String court, Long fileId) {}
 
-    @Schema(name = "RecordEndOfLifeWishOpinion")
-    public record OtherOpinionBody(@NotNull OpinionSource source, String content) {}
+    @Schema(
+            name = "RecordEndOfLifeWishOpinion",
+            requiredProperties = {"source", "content"})
+    public record OtherOpinionBody(
+            @NotNull OpinionSource source,
+            @jakarta.validation.constraints.NotBlank String content) {}
 
     public RecordEndOfLifeWish command(long residentId) {
         SelfDeterminationAssessment assessment = selfDeterminationAssessment == null

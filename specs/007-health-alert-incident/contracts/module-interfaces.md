@@ -119,10 +119,14 @@ List<ChiSoNguoiThanView> chiSo(long nctId, long nguoiThanId, Instant tu, Instant
 Stream<CanhBaoBaoCaoView> canhBao(PhamViLoc phamVi, Instant tu, Instant den);
     // mức hiện hành, mức lúc tiếp nhận, lan_dau_luc, tiep_nhan_luc, số lần leo thang, dấu leo thang tối đa, loại, tầng; nguon (SOS / KHAC, bổ sung 2026-10-18, FR-081)
     // bổ sung 2026-10-22 (Q-374, Q-375): nguon thêm NUT_HO_TRO; daToiNoiLuc, khongGhiMocToiNoi (thời gian tới nơi, 18.3)
+    // bổ sung 2026-11-10 ("Đổi api" duyệt 2026-11-08): trạng thái hiện hành (status) để dashboard đếm cảnh báo đang mở
 Stream<SuCoBaoCaoView> suCo(PhamViLoc phamVi, Instant tu, Instant den);
     // mức, loại (kèm dấu khong_thuoc_suc_khoe), tầng, thời điểm tạo, tiếp nhận xử lý (Q-199), số lần leo thang; bỏ Đã hủy
+    // bổ sung 2026-11-10 (007 T108, "Đổi api" duyệt 2026-11-08): mức lúc tiếp nhận (levelAtAcknowledgement, rỗng khi chưa tiếp nhận), trạng thái hiện hành (status)
 List<TheoDoiView> dangTheoDoi(PhamViLoc phamVi);        // sau ngã, tiếp xúc
 List<Long> dangNguyKich(PhamViLoc phamVi);              // dấu Đang mở, Tạm, kèm tầng
+int soSuCoDaHuy(PhamViLoc phamVi, Instant tu, Instant den);   // cancelledCount: dòng tham khảo "số sự cố đã hủy ghi nhận" của 016 FR-042, không vào chỉ tiêu (bổ sung 2026-11-10, "Đổi api" duyệt 2026-11-08)
+List<VungView> vungDangKhoanh(PhamViLoc phamVi);            // containmentZones: dangKhoanh (mục 1.8) có tầng hoặc khu trong phạm vi; 016 FR-020 (bổ sung 2026-11-10)
 Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
     // lần đo đã xác nhận (lần đo lại thay bản ghi đầu; "chưa đo lại" được tính), mức vượt ngưỡng lúc đo theo thành phần nặng nhất
 ```
@@ -170,7 +174,7 @@ Mỗi sự kiện mang khóa `loại + id + mốc` (NFR-04) và, với sự ki�
 ```java
 record YeuCauTaoCanhBao(long nctId, String loai, MucCanhBao muc, String loaiNguon, long nguonId,
                         Optional<String> khoaDoiTuong, Instant thoiDiem, String khoaSuKien) {}
-    // 011 (xung đột dị ứng chế độ ăn, thực đơn; phục vụ suất dị ứng bị chặn), 014 (thiếu người khi về: KHAN_CAP; nguy cơ cô lập)
+    // 011 (xung đột dị ứng chế độ ăn, thực đơn; phục vụ suất dị ứng bị chặn), 014 (thiếu người khi về: KHAN_CAP; nguy cơ cô lập bỏ theo Q-407)
 record YeuCauDongCanhBaoNguon(String loaiNguon, long nguonId, String lyDo, String khoaSuKien) {}   // FR-032
 record YeuCauGhiDienBienCanhBao(String loaiNguon, long nguonId, String maDienBien, String noiDung, String khoaSuKien) {}
     // bổ sung theo plan 014 (research L-11): ghi diễn biến vào cảnh báo đang mở của nguồn, không đổi trạng thái, không đóng;
@@ -323,6 +327,7 @@ Stream<VitalSignReportView> VitalSignStatisticsApi.readings(ScopeFilter scope, I
 - Khoảng thời gian `[from, to)`. `VitalSignReadingView(id, residentId, indicatorId, values, level, confirmationStatus, measuredAt, labels)` dùng giá trị hiện hành; `level` là mức lưu tại lúc đo. `LatestVitalSignView` chọn bản CONFIRMED, bỏ bản đang chờ, bản đầu đã REMEASURED và bản bị hủy; thứ tự mốc đo rồi ID. Nếu bản mới bị hủy thì tìm bản hợp lệ cũ hơn. Lịch sử vẫn giữ bản đầu đã được đo lại; thống kê nghiệp vụ phải dùng API thống kê theo FR-081, không đếm trực tiếp lịch sử.
 - `MeasurementScheduleView(id, residentId, indicatorIds, frequencyType, frequencyParameters, startsAt, endsAt, importance, note)`; `MeasurementFrequency`: `CLOCK_TIMES`, `EVERY_N_HOURS`, `WEEKDAYS`. Đọc lịch không sinh công việc. `FacilityContactView(phoneNumber, note, version)`; chưa có số cấu hình thì phone/note `null`, version 0 trong fake.
 - `VitalSignReportView(recordId, residentId, indicatorId, floorAreaId, measuredAt, level)`; `ScopeFilter` dùng bản công khai 002 hiện có. Chưa cài thuật toán thống kê trong T003.
+- *(Đổi api 2026-11-11, 016 T018, A duyệt qua phiên chính; team-plan dòng "D (007) `VitalSignReportView` thêm giá trị đo")* `VitalSignReportView` thêm thành phần cuối `Map<String, BigDecimal> values`: giá trị theo thành phần, thành phần có đính chính lấy giá trị đã đính chính (`CorrectionApi.current`, nội dung `{"values": …}`); mức `level` vẫn là mức lúc đo. 016 dùng cho chuỗi giá trị theo thời gian của một người (FR-040). Test: `VitalSignStatisticsIT`, `MetricHealthVitalSignsTest`.
 - `VitalSignLevel`: `NORMAL`, `WARNING`, `DANGEROUS`, `NO_THRESHOLD`; `VitalSignConfirmationStatus`: `AWAITING_REMEASUREMENT`, `CONFIRMED`, `REMEASURED`; `VitalSignLabel`: `IMMEDIATE_ACTION`, `NOT_REMEASURED`, `LATE_RECORDED`, `OFFLINE_RECORDED`.
 - Sự kiện ở `health.api.events`, công khai NamedInterface `events`: `VitalSignConfirmed(recordId, residentId, indicatorId, level, thresholdVersionId, taskId, measuredAt, labels, eventKey, occurredAt)`; `VitalSignCorrected(originalRecordId, residentId, indicatorId, originalLevel, currentLevel, measuredAt, eventKey, occurredAt)` (`measuredAt` thêm 2026-11-06 cho sụt cân khi đính chính, FR-039a); `MeasurementScheduleChanged(scheduleId, residentId, eventKey, occurredAt)`; `MissingPersonalThresholdReminder(residentId, eventKey, occurredAt)`. Hai trường cuối theo phong bì sự kiện của 000; chưa thêm publisher nghiệp vụ trước khi có lệnh ghi.
 - Nhắc thiếu ngưỡng dùng `HasNotificationRequests`, mức LOW, nhóm vai trò DOCTOR toàn viện theo FR-023; nội dung chỉ số xếp HEALTH, thông báo ngoài ứng dụng dùng câu trung tính. Không nhét danh sách người nhận vào outbox.

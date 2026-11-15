@@ -99,6 +99,7 @@ components:
         dueAt: { type: string, format: date-time }
         status: { type: string, enum: [TO_SUBMIT, SUBMITTED, CONFIRMED, EXPIRED, DEREGISTERED, SUPERSEDED, CANCELLED] }
         expiryDate: { type: string, format: date }
+        evidenceFileId: { type: integer, format: int64, description: 'Tệp bằng chứng của kết quả được chấp nhận (mở bằng GET /files/{id})' }
         localPermanentResident: { type: boolean }
         basisNote: { type: string, description: 'Căn cứ xác nhận thường trú cùng xã/phường' }
         allowedCommands: { type: array, description: 'Lệnh còn làm được theo trạng thái (chưa xét quyền)', items: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } }

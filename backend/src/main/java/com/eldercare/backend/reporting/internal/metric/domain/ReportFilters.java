@@ -11,7 +11,7 @@ import java.util.Set;
 public record ReportFilters(
         Set<Long> floorAreaIds,
         String residenceType,
-        Long careLevelId,
+        String careLevel,
         Long residentId,
         Long staffId,
         Long shiftId,
@@ -42,7 +42,7 @@ public record ReportFilters(
             map.put("floorAreaId", floorAreaIds.stream().sorted().toList());
         }
         put(map, "residenceType", residenceType);
-        put(map, "careLevelId", careLevelId);
+        put(map, "careLevel", careLevel);
         put(map, "residentId", residentId);
         put(map, "staffId", staffId);
         put(map, "shiftId", shiftId);

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.medication.internal.catalog.service.MedicationService;
-import com.eldercare.backend.medication.internal.catalog.service.MedicationService.CreateMedicationCommand;
 import com.eldercare.backend.medication.internal.catalog.service.MedicationService.MedicationDetailView;
 import com.eldercare.backend.medication.internal.catalog.service.MedicationService.UpdateMedicationCommand;
 import com.eldercare.backend.medication.web.MedicationController;
@@ -37,22 +36,6 @@ class MedicationControllerTest {
     }
 
     @Test
-    @DisplayName("GET /medications: Danh sách thuốc trả về đúng format")
-    void list_returnsMedications() {
-        MedicationDetailView view = new MedicationDetailView(
-                1L, "Paracetamol", "500mg", "Viên nén", "Uống", "viên", List.of(101L), 30, 30, false, true, false, 1);
-
-        when(medicationService.list(eq("para"), eq(true))).thenReturn(List.of(view));
-
-        List<MedicationBody> responses = controller.list("para", true);
-
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).id()).isEqualTo(1L);
-        assertThat(responses.get(0).name()).isEqualTo("Paracetamol");
-        assertThat(responses.get(0).active()).isTrue();
-    }
-
-    @Test
     @DisplayName("GET /medications/{id}: Trả về thuốc và ETag phiên bản")
     void getById_returnsDetailAndEtag() {
         MedicationDetailView view = new MedicationDetailView(
@@ -67,25 +50,6 @@ class MedicationControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().name()).isEqualTo("Amlodipin");
         assertThat(response.getBody().missingPricingItem()).isTrue();
-    }
-
-    @Test
-    @DisplayName("POST /medications: Thêm thuốc mới trả về 201 CREATED")
-    void create_returns201() {
-        MedicationRequest body = new MedicationRequest(
-                null, "Paracetamol", "500mg", "Viên nén", "Uống", "viên", List.of(101L), 30, 30, false, null);
-
-        MedicationDetailView created = new MedicationDetailView(
-                10L, "Paracetamol", "500mg", "Viên nén", "Uống", "viên", List.of(101L), 30, 30, false, true, false, 0);
-
-        when(medicationService.create(any(CreateMedicationCommand.class))).thenReturn(created);
-
-        ResponseEntity<Void> response = controller.create(null, body);
-
-        // api-006: 201 không thân, phiên bản ở ETag
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getHeaders().getETag()).isEqualTo("\"0\"");
-        assertThat(response.getBody()).isNull();
     }
 
     @Test

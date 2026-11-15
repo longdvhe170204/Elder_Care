@@ -37,6 +37,9 @@ public record HandoverRequest(
         OffsetDateTime discoveredAt) {
 
     /** Một đồ trong lệnh. */
+    @Schema(
+            name = "HandoverCommandItem",
+            requiredProperties = {"belongingId", "version"})
     public record ItemRequest(
             Long belongingId,
             Integer version,
@@ -47,8 +50,17 @@ public record HandoverRequest(
             IncidentOptionRequest incident) {}
 
     /** {@code IncidentOption} (FR-021): {@code NEW}, {@code LINK}, {@code NONE}. */
+    @Schema(
+            name = "IncidentOption",
+            requiredProperties = {"method"})
     public record IncidentOptionRequest(
-            String method, Long incidentId, String level, String description, String place) {}
+            @Schema(allowableValues = {"NEW", "LINK", "NONE"})
+            String method,
+
+            Long incidentId,
+            String level,
+            String description,
+            String place) {}
 
     /** Thiếu trường bắt buộc của hợp đồng thì {@code null} (controller trả 422). */
     public HandoverCommand toCommand() {

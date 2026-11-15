@@ -77,6 +77,19 @@ public class QualityCheckRecords {
         return api.qualityChecks(rough, first, last).map(QualityCheckRecord::new);
     }
 
+    /** 016 FR-037 (Q-168): công việc ngoài phạm vi kiểm tra trong khoảng (ngày nghiệp vụ, hai đầu). */
+    public Stream<com.eldercare.backend.care.api.dto.OutOfCheckScopeView> outOfScope(
+            ScopeFilter rough, Instant from, Instant to) {
+        ActivityStatisticsApi api = statistics.getIfAvailable();
+        if (api == null) {
+            return Stream.empty();
+        }
+        return api.outOfCheckScope(
+                rough,
+                LocalDate.ofInstant(from, BusinessTime.ZONE),
+                LocalDate.ofInstant(to.minusNanos(1), BusinessTime.ZONE));
+    }
+
     static DetailRow row(QualityCheckRecord r) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("careTaskId", r.view().careTaskId());

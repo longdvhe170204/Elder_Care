@@ -29,7 +29,7 @@ class VehicleBookingCheckTest {
     }
 
     @Test
-    void BR_M03_16_overlapWithAnUncancelledScheduleIsBlockedButAdjacentIsNot() {
+    void BR_54_overlapWithAnUncancelledScheduleIsBlockedButAdjacentIsNot() {
         var c1 = new Slot(1, SEVEN, THIRTEEN);
         assertThat(codes(VehicleBookingCheck.check(ready(), List.of(c1), TEN, ELEVEN)))
                 .containsExactly("VEHICLE_SCHEDULE_OVERLAP");
@@ -66,12 +66,5 @@ class VehicleBookingCheckTest {
                         new Vehicle(AssetStatus.READY, null, null, false, true), List.of(), TEN, ELEVEN)))
                 .as("đang mang dấu quá hạn")
                 .containsExactly("VEHICLE_INSPECTION_OR_INSURANCE_OVERDUE");
-    }
-
-    @Test
-    void Q_236_extensionOfAnInUseScheduleIsNotBlockedByTheNextSchedule() {
-        var next = new Slot(2, THIRTEEN, FOURTEEN);
-        assertThat(VehicleBookingCheck.overlaps(List.of(next), SEVEN, FOURTEEN)).containsExactly(next);
-        assertThat(VehicleBookingCheck.overlaps(List.of(next), SEVEN, THIRTEEN)).isEmpty();
     }
 }

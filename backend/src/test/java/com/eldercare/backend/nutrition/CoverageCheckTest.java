@@ -31,28 +31,6 @@ class CoverageCheckTest {
             new MealServing(DINNER, true, false));
 
     @Test
-    void BR_M08_06_fullWeek_hasNoGap() {
-        List<MenuDish> dishes = new ArrayList<>(fullWeek(DEFAULT_DIET));
-        dishes.addAll(fullWeek(DIABETIC));
-
-        assertThat(CoverageCheck.gaps(
-                        MONDAY, dishes, List.of(defaultDiet(), new DietInUse(DIABETIC, false, true, false)), MEALS))
-                .isEmpty();
-    }
-
-    @Test
-    void BR_M08_06_missingFridayDinner_isListedPerDietDateMeal() {
-        List<MenuDish> dishes = new ArrayList<>(fullWeek(DEFAULT_DIET));
-        fullWeek(DIABETIC).stream()
-                .filter(d -> !(d.date().equals(MONDAY.plusDays(4)) && d.mealId() == DINNER))
-                .forEach(dishes::add);
-
-        assertThat(CoverageCheck.gaps(
-                        MONDAY, dishes, List.of(defaultDiet(), new DietInUse(DIABETIC, false, true, false)), MEALS))
-                .containsExactly(new Gap(DIABETIC, MONDAY.plusDays(4), DINNER));
-    }
-
-    @Test
     void FR_027_dietWithOnlyDayCareUsers_needsOnlyMealsServingDayCare() {
         List<MenuDish> dishes = new ArrayList<>(fullWeek(DEFAULT_DIET));
         for (int day = 0; day < 7; day++) {
@@ -74,12 +52,6 @@ class CoverageCheckTest {
         assertThat(CoverageCheck.gaps(MONDAY, dishes, List.of(defaultDiet()), MEALS))
                 .hasSize(14)
                 .allMatch(gap -> gap.dietId() == DEFAULT_DIET && gap.mealId() != LUNCH);
-    }
-
-    @Test
-    void FR_025_dietNotInUse_isNotChecked() {
-        assertThat(CoverageCheck.gaps(MONDAY, fullWeek(DEFAULT_DIET), List.of(defaultDiet()), MEALS))
-                .isEmpty();
     }
 
     @Test

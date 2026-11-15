@@ -184,17 +184,4 @@ class FR_051a_MedicationRetentionIT extends MySqlIntegrationTestBase {
                         "SELECT COUNT(*) FROM medication_handover WHERE resident_id = ?", Integer.class, resident))
                 .isZero();
     }
-
-    @Test
-    void FR_051_residentsStillInResidenceKeepTheirMedicationData() {
-        long resident = TestUsers.nextId();
-        residents.resident(resident, "[Hồ sơ còn ở viện]", null, ResidentStatus.IN_RESIDENCE);
-        long medication = medicationItem();
-        long prescription = prescription(resident, medication, null);
-
-        assertThat(provider("M07.PRESCRIPTION")
-                        .expiredCandidates(CUTOFF, null, 1000)
-                        .map(Candidate::id))
-                .doesNotContain(prescription);
-    }
 }

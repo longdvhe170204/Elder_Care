@@ -16,7 +16,8 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `ho_so_chung`: `phieu_bua_an` (suất đặc biệt thành `JSON`), `suat_an_nguoi_than`, `do_an_gia_dinh`, `luu_mau` (món thành `JSON`, món thêm sau phát sinh là sự kiện).
 - `khoa_ky_thuat`: `bua_ngay`; `moc_da_nhac`: `thong_bao_xem_lai`; `trang_thai_nct`: `dinh_duong_nct`.
 - Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `che_do_an_han_che` → `danh_muc_chung` (thuộc tính của chế độ ăn); `ban_gan_han_che` → cột `JSON` `han_che_rieng` của `ban_gan_che_do_an` *(bổ sung 2026-10-30, sót khi rà)*; `mon_an_phien_ban`, `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`); `thuc_don_mon`, `thuc_don_mon_thay_the` → cột `JSON` của `thuc_don`; `su_kien_m08_da_xu_ly`, `lan_chay_m08` → `moc_da_nhac`; `nguoi_duoc_tinh`, `suat_theo_che_do` → cột `JSON` của `lan_chot`; `suat_dac_biet`, `luu_mau_mon` → `ho_so_chung`. Không thêm bảng riêng.
-- Còn 3 bảng riêng của feature.
+- *(Sửa 2026-11-13, research R-15 mục 6 của 000)* `lan_chot` (`portion_closing`) thành `su_kien_chung` loại `M08.PORTION_CLOSING` của bữa ngày, xác nhận ngay khi ghi (`V099_08`).
+- Còn 2 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T046)*
 

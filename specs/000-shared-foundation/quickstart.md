@@ -24,7 +24,7 @@ backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 frontend/ npm ci && npm test && npm run dev
 ```
 
-*(2026-11-01, T103)* Loại yêu cầu, bản ghi mẫu ở mục 1 chỉ có trong mã test: chạy mục 3 bằng `QuickstartDemoApplication` (`spring-boot:test-run`) và script `backend/tools/quickstart-000/`, cách chạy ở README của thư mục đó.
+*(2026-11-01, T103)* Loại yêu cầu, bản ghi mẫu ở mục 1 chỉ có trong mã test: chạy mục 3 bằng `QuickstartDemoApplication` (`spring-boot:test-run`) và script `backend/tools/quickstart-000/`, cách chạy ở README của thư mục đó. *(2026-11-13: A xóa thư mục `backend/tools/`, script chỉ còn trong lịch sử git; mục 3 do chủ dự án nghiệm thu bằng demo tay.)*
 
 Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khởi động với profile `demo` thì bảng `tham_so` có đủ 119 mã của Phụ lục 25, mỗi mã có một dòng `lich_su_tham_so` ban đầu.
 

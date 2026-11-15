@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-/** Lần chốt suất (bảng {@code portion_closing}, nhóm 3; data-model mục 6). */
+/** Lần chốt suất ({@code record_event} loại {@code M08.PORTION_CLOSING}, nhóm 3; data-model mục 6). */
 public record PortionClosing(
         long id,
         long dailyMealId,

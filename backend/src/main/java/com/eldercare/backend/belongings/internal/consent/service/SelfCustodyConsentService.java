@@ -105,6 +105,19 @@ public class SelfCustodyConsentService {
                 .isPresent();
     }
 
+    /** Bản đồng ý Hiệu lực của đồ, để web, app rút đồng ý (api-013 {@code selfCustodyConsent}; FR-015a). */
+    public java.util.Optional<SimpleRecord<SelfCustodyConsent>> effectiveOf(long belongingId) {
+        return records.findByUniqueKey(SelfCustodyConsent.KIND, SelfCustodyConsent.effectiveKey(belongingId));
+    }
+
+    /** Các bản đồng ý Hiệu lực của người cao tuổi theo mã đồ (một lần đọc cho cả danh sách trên cổng). */
+    public Map<Long, SimpleRecord<SelfCustodyConsent>> effectiveOfResident(long residentId) {
+        return records
+                .listByResident(SelfCustodyConsent.KIND, residentId, Set.of(SelfCustodyConsent.EFFECTIVE))
+                .stream()
+                .collect(java.util.stream.Collectors.toMap(c -> c.content().belongingId(), c -> c, (a, b) -> a));
+    }
+
     /**
      * Đồ chuyển Đã trả, Thất lạc, Hư hỏng hoặc Đã xử lý: đồng ý Hiệu lực chuyển Hết hiệu lực trong cùng lệnh (FR-015a);
      * lệnh gọi đã khóa người cao tuổi.

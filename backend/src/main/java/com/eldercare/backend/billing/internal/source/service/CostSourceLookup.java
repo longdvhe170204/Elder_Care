@@ -15,25 +15,28 @@ import org.springframework.stereotype.Service;
 @Service
 public class CostSourceLookup {
     private final ResidencyBillingSources residential;
-    private final ResidencyDayApi days;
     private final ContractReadApi contracts;
     private final UnitPriceApi prices;
     private final BillingSourceIndexStore index;
     private final com.eldercare.backend.billing.internal.finalperiod.service.FinalBillingWindow window;
+    private final DayCareBillingSources dayCare;
+    private final SourceServiceMetadata metadata;
 
     public CostSourceLookup(
             ResidencyBillingSources residential,
-            ResidencyDayApi days,
             ContractReadApi contracts,
             UnitPriceApi prices,
             BillingSourceIndexStore index,
-            com.eldercare.backend.billing.internal.finalperiod.service.FinalBillingWindow window) {
+            com.eldercare.backend.billing.internal.finalperiod.service.FinalBillingWindow window,
+            DayCareBillingSources dayCare,
+            SourceServiceMetadata metadata) {
         this.residential = residential;
-        this.days = days;
         this.contracts = contracts;
         this.prices = prices;
         this.index = index;
         this.window = window;
+        this.dayCare = dayCare;
+        this.metadata = metadata;
     }
 
     public List<CostSourceCandidate> find(long resident, String type, LocalDate from, LocalDate to) {
@@ -106,37 +109,7 @@ public class CostSourceLookup {
                                 facts);
                     })
                     .toList();
-        if ("DAY_CARE_SESSION".equals(type)) {
-            var sessions = days.dayCareSessions(resident, from, to);
-            var existing = index.effectiveItems(
-                    resident,
-                    type,
-                    sessions.stream().map(s -> Long.toString(s.sessionId())).toList());
-            return sessions.stream()
-                    .map(s -> new CostSourceCandidate(
-                            resident,
-                            type,
-                            Long.toString(s.sessionId()),
-                            "SESSION",
-                            s.date(),
-                            s.date().atStartOfDay(BusinessTime.ZONE).toInstant(),
-                            null,
-                            CostType.DAY_CARE_SESSION_FEE,
-                            "buổi",
-                            "Phí bán trú",
-                            BigDecimal.ONE,
-                            s.coefficientPercent() == null ? null : BigDecimal.valueOf(s.coefficientPercent()),
-                            Set.of(),
-                            existing.get(new BillingSourceKey(Long.toString(s.sessionId()), "SESSION")),
-                            "CONDITION_NOT_MET",
-                            s.closureDay()
-                                    ? "Ngày khu bán trú nghỉ"
-                                    : s.coefficientPercent() == null
-                                            ? "Buổi chưa xác định trạng thái"
-                                            : "Nguồn chưa cung cấp định danh dịch vụ, lịch toàn tháng và dấu buổi phát sinh để tính phí",
-                            Map.<String, Object>of("session", s)))
-                    .toList();
-        }
+        if ("DAY_CARE_SESSION".equals(type)) return dayCare.between(resident, from, to);
         if (!Set.of(
                         "CARE_TASK_RESULT",
                         "DOSE",
@@ -149,9 +122,27 @@ public class CostSourceLookup {
         return index.find(resident, type, from, to).stream().map(this::indexed).toList();
     }
 
+    /** Q3: dịch vụ duy nhất Hiệu lực của loại nguồn không mang mã dịch vụ. */
+    public Optional<Long> serviceForUnresolved(String sourceType) {
+        return metadata.serviceForUnresolved(sourceType);
+    }
+
     public CostSourceCandidate indexed(IndexedSourceMatch match) {
         var s = match.source();
-        // Chưa có metadata tài chính của B/C/D: giữ đúng lượng nhưng không suy đơn vị/loại từ khóa kỹ thuật.
+        boolean afterDeath = window.afterDeath(s.residentId(), s.incurredOn(), s.occurredAt(), false);
+        var meta = metadata.resolve(s);
+        // FR-011: ngoài thời gian tính phí (trước ngày bắt đầu hợp đồng, sau mốc dừng của 004) bị chặn.
+        boolean outside = !afterDeath && window.outsideEventPeriod(s.residentId(), s.incurredOn());
+        String code = afterDeath || outside
+                ? "OUTSIDE_BILLING_PERIOD"
+                : match.cancelled()
+                        ? "NOT_A_BILLABLE_EVENT"
+                        : meta.blockedReason() != null ? "CONDITION_NOT_MET" : null;
+        String reason = afterDeath
+                ? "Nguồn phát sinh sau thời điểm qua đời"
+                : outside
+                        ? "Nguồn ngoài thời gian tính phí"
+                        : match.cancelled() ? "Nguồn đã hủy" : meta.blockedReason();
         return new CostSourceCandidate(
                 s.residentId(),
                 s.sourceType(),
@@ -159,22 +150,16 @@ public class CostSourceLookup {
                 s.unit(),
                 s.incurredOn(),
                 s.occurredAt(),
-                s.serviceId(),
-                null,
-                null,
-                "Bản ghi tính phí",
+                meta.serviceId(),
+                meta.costType(),
+                meta.unit(),
+                meta.description() == null ? "Bản ghi tính phí" : meta.description(),
                 s.quantity(),
                 null,
                 Set.of(),
                 match.existingItemId(),
-                window.afterDeath(s.residentId(), s.incurredOn(), s.occurredAt(), false)
-                        ? "OUTSIDE_BILLING_PERIOD"
-                        : match.cancelled() ? "NOT_A_BILLABLE_EVENT" : "CONDITION_NOT_MET",
-                window.afterDeath(s.residentId(), s.incurredOn(), s.occurredAt(), false)
-                        ? "Nguồn phát sinh sau thời điểm qua đời"
-                        : match.cancelled()
-                                ? "Nguồn đã hủy"
-                                : "Nguồn chưa cung cấp đủ đơn vị sử dụng và loại dịch vụ/vật phẩm",
+                code,
+                reason,
                 Map.of("source", s, "sourceVersion", match.version(), "cancelled", match.cancelled()));
     }
 }

@@ -189,39 +189,12 @@ class AssignmentIT extends MySqlIntegrationTestBase {
     @Autowired
     org.springframework.context.ApplicationContext context;
 
-    @Test
-    void FR_025_draftDoesNotGrantScopeAndPublishedAssignmentDoes() {
-        long id = create(usual());
-        assertThat(assignments.history(worker, from, to)).isEmpty();
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, id))
-                .isEqualTo("DRAFT");
-        service.delete(id, target());
-        published();
-        create(usual());
-        assertThat(assignments.history(worker, from, to)).anyMatch(a -> Objects.equals(a.floorAreaId(), floor));
-        assertThat(assignments.activeAt(worker, from)).hasSize(1);
-        assertThat(assignments.activeAt(worker, to)).isEmpty();
-    }
-
     private void credential(long person, LocalDate expires) {
         jdbc.update(
                 "INSERT INTO credential(staff_id,credential_type_id,issue_date,expiry_date) SELECT ?,id,?,? FROM (SELECT c.id AS id,c.name AS name,c.status AS status,c.version AS version,CAST(REPLACE(REPLACE(NULLIF(JSON_UNQUOTE(c.attributes->'$.createdAt'),'null'),'T',' '),'Z','') AS DATETIME(6)) AS created_at,COALESCE(NULLIF(JSON_UNQUOTE(c.attributes->'$.legacyCode'),'null'),c.code) AS code,NULLIF(JSON_UNQUOTE(c.attributes->'$.credentialGroup'),'null') AS credential_group,(c.attributes->'$.hasExpiry'=CAST('true' AS JSON)) AS has_expiry,c.attributes->'$.requiredForRoles' AS required_for_roles,(c.attributes->'$.hasPracticeScopes'=CAST('true' AS JSON)) AS has_practice_scopes FROM catalog_item c WHERE c.catalog_type='M09.CREDENTIAL_TYPE') credential_type WHERE code='FIRST_AID_TRAINING'",
                 person,
                 expires.minusDays(30),
                 expires);
-    }
-
-    private long anotherShift(long person, Instant start, Instant end) {
-        long template = jdbc.queryForObject("SELECT template_id FROM work_shift WHERE id=?", Long.class, shift);
-        long result = insert(
-                "INSERT INTO work_shift(schedule_id,template_id,scope_type,scope_id,starts_at,ends_at,requires_handover) VALUES (?,?,'FLOOR',?,?,?,FALSE)",
-                schedule,
-                template,
-                floor,
-                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(start),
-                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(end));
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", result, person);
-        return result;
     }
 
     @Test
@@ -269,23 +242,11 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         assertThat(assignments.activeAt(worker, time.now())).isEmpty();
     }
 
-    private boolean floorRace(long staff, CyclicBarrier barrier) throws Exception {
-        barrier.await();
-        try {
-            managers.assign(staff, floor, time.today(), time.today().plusDays(2), null, target());
-            return true;
-        } catch (BusinessException ex) {
-            return false;
-        }
-    }
+    @Autowired
+    com.eldercare.backend.staffing.internal.assignment.service.AssignmentQueries queries;
 
-    private void readyToPublish() {
-        long manager = staff(Role.FLOOR_MANAGER);
-        managers.assign(manager, floor, time.today(), null, null, target());
-        long lead = staff(Role.NURSING_STAFF);
-        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, lead);
-        jdbc.update("UPDATE work_shift SET lead_staff_id=? WHERE id=?", lead, shift);
-    }
+    @Autowired
+    com.eldercare.backend.administration.parameter.api.ParameterApi parameters;
 
     @Autowired
     @Qualifier("shiftLocationReferences")

@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -44,6 +45,7 @@ import org.springframework.test.web.servlet.ResultActions;
 @AutoConfigureMockMvc
 @Import({FakeM15Config.class, TestOfflineHandlers.class})
 @RecordApplicationEvents
+@Tag("BR-23")
 class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
 
     @Autowired
@@ -165,11 +167,10 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
 
     private Instant lastConnected(Instant at) {
         jdbc.update(
-                "INSERT INTO device (device_id, last_connected_at, last_account_id) VALUES (?, ?, ?) AS new"
-                        + " ON DUPLICATE KEY UPDATE last_connected_at = new.last_connected_at",
-                device,
-                LocalDateTime.ofInstant(at, ZoneOffset.UTC),
-                caregiver);
+                "INSERT INTO technical_lock (lock_key, version, updated_at) VALUES (?, 0, ?) AS new"
+                        + " ON DUPLICATE KEY UPDATE updated_at = new.updated_at",
+                "M15.DEVICE:" + device,
+                LocalDateTime.ofInstant(at, ZoneOffset.UTC));
         return at;
     }
 

@@ -80,41 +80,25 @@ class SC_008_BedReportingIT extends StructureTestSupport {
         return id;
     }
 
+    /**
+     * 003 T067 (module-interfaces mục 1.8a, "Đổi api" duyệt 2026-11-08; 019 FR-015, 016 FR-020): tập id giường Trống
+     * tại {@code at} mang dấu "chờ chuyển người", cùng nguồn với số đếm; giường không Trống có dấu không vào tập.
+     */
     @Test
-    void FR_018_availableCountRejectsFutureReservationsAssetFlagsAndCordons() {
-        long reserved = anotherBed("RESERVED", at);
-        long damaged = anotherBed("DAMAGED", at);
-        assets.flag(damaged, true);
-        jdbc.update(
-                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,checked_care_level,care_level_source) VALUES(?,?,'FUTURE',?,'BASIC','CURRENT')",
-                TestUsers.nextId(),
-                reserved,
-                Timestamp.from(at.plusSeconds(7200)));
+    void T_067_emptyAwaitingTransferBedIds_onlyEmptyFlaggedBeds_matchesTheCount() {
+        long awaiting = anotherBed("AWAITING", at);
+        long maintained = anotherBed("MAINTAINED", at);
+        fact(maintained, "UNDER_MAINTENANCE", "START_MAINTENANCE", at.plusSeconds(60));
+        assets.flag(awaiting, true);
+        assets.flag(maintained, true);
+        Instant t = at.plusSeconds(120);
         try {
-            assertThat(status().countAvailable(
-                                    floorScope(),
-                                    CareLevelCode.BASIC,
-                                    ResidentGender.FEMALE,
-                                    ResidencyType.LONG_TERM,
-                                    at.plusSeconds(1)))
-                    .isEqualTo(1);
-            assertThat(status().countAvailable(
-                                    floorScope(),
-                                    CareLevelCode.SPECIAL,
-                                    ResidentGender.FEMALE,
-                                    ResidencyType.LONG_TERM,
-                                    at.plusSeconds(1)))
-                    .isZero();
-            infection.cordon(at, new CordonedArea(Set.of(), Set.of(area)));
-            assertThat(status().countAvailable(
-                                    floorScope(),
-                                    CareLevelCode.BASIC,
-                                    ResidentGender.FEMALE,
-                                    ResidencyType.LONG_TERM,
-                                    at.plusSeconds(1)))
-                    .isZero();
+            assertThat(statistics().emptyAwaitingTransferBedIds(floorScope(), t))
+                    .containsExactly(awaiting);
+            assertThat(status().countEmptyAwaitingTransfer(floorScope(), t)).isEqualTo(1);
         } finally {
-            assets.flag(damaged, false);
+            assets.flag(awaiting, false);
+            assets.flag(maintained, false);
         }
     }
 

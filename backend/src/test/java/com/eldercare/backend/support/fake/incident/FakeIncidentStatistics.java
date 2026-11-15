@@ -13,6 +13,8 @@ public class FakeIncidentStatistics implements IncidentStatisticsApi {
     private final Map<ScopeFilter, List<IncidentReportView>> incidents = new HashMap<>();
     private final Map<ScopeFilter, List<MonitoringView>> monitoring = new HashMap<>();
     private final Map<ScopeFilter, List<Long>> critical = new HashMap<>();
+    private final Map<ScopeFilter, Integer> cancelled = new HashMap<>();
+    private final Map<ScopeFilter, List<IsolationZoneView>> zones = new HashMap<>();
 
     public void alerts(ScopeFilter scope, List<AlertReportView> rows) {
         alerts.put(scope, List.copyOf(rows));
@@ -28,6 +30,14 @@ public class FakeIncidentStatistics implements IncidentStatisticsApi {
 
     public void critical(ScopeFilter scope, List<Long> ids) {
         critical.put(scope, List.copyOf(ids));
+    }
+
+    public void cancelled(ScopeFilter scope, int count) {
+        cancelled.put(scope, count);
+    }
+
+    public void zones(ScopeFilter scope, List<IsolationZoneView> rows) {
+        zones.put(scope, List.copyOf(rows));
     }
 
     @Override
@@ -50,5 +60,15 @@ public class FakeIncidentStatistics implements IncidentStatisticsApi {
     @Override
     public List<Long> criticalResidentIds(ScopeFilter scope) {
         return critical.getOrDefault(scope, List.of());
+    }
+
+    @Override
+    public int cancelledCount(ScopeFilter scope, Instant from, Instant to) {
+        return cancelled.getOrDefault(scope, 0);
+    }
+
+    @Override
+    public List<IsolationZoneView> containmentZones(ScopeFilter scope) {
+        return zones.getOrDefault(scope, List.of());
     }
 }

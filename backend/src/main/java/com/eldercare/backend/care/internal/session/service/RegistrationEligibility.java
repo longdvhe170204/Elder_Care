@@ -1,23 +1,19 @@
 package com.eldercare.backend.care.internal.session.service;
 
 import com.eldercare.backend.administration.shared.api.CatalogApi;
-import com.eldercare.backend.admission.api.ContractReadApi;
 import com.eldercare.backend.care.api.spi.ActivityHealthGatePort;
 import com.eldercare.backend.care.internal.activity.domain.Activity;
 import com.eldercare.backend.care.internal.activity.domain.ActivityKinds;
 import com.eldercare.backend.care.internal.session.domain.RegistrationConditions;
-import com.eldercare.backend.care.internal.session.domain.RegistrationConditions.DayCare;
 import com.eldercare.backend.care.internal.session.domain.RegistrationConditions.Facts;
 import com.eldercare.backend.care.internal.session.domain.Session;
 import com.eldercare.backend.care.internal.session.persistence.ActivitySessionStore;
 import com.eldercare.backend.care.internal.wellbeing.service.PreferenceService;
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.AssessmentApi;
 import com.eldercare.backend.resident.api.ResidentApi;
-import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
-import java.time.*;
+import java.time.Instant;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
@@ -34,7 +30,7 @@ public class RegistrationEligibility {
     private final ActivitySessionStore store;
     private final ResidentApi residents;
     private final AssessmentApi assessments;
-    private final ContractReadApi contracts;
+    private final LateReturnConsentService consents;
     private final ObjectProvider<ActivityHealthGatePort> gates;
     private final CatalogApi catalogs;
     private final PreferenceService preferences;
@@ -43,14 +39,14 @@ public class RegistrationEligibility {
             ActivitySessionStore store,
             ResidentApi residents,
             AssessmentApi assessments,
-            ContractReadApi contracts,
+            LateReturnConsentService consents,
             ObjectProvider<ActivityHealthGatePort> gates,
             CatalogApi catalogs,
             PreferenceService preferences) {
         this.store = store;
         this.residents = residents;
         this.assessments = assessments;
-        this.contracts = contracts;
+        this.consents = consents;
         this.gates = gates;
         this.catalogs = catalogs;
         this.preferences = preferences;
@@ -84,7 +80,7 @@ public class RegistrationEligibility {
                 gate.suspectedInfection(residentId, now),
                 gate.hasOpenMediumOrHigher(residentId),
                 store.overlaps(residentId, session.id(), session.startsAt(), session.endsAt()),
-                dayCare(session, residentId, lateReturnConsent),
+                consents.registrationSchedule(session, residentId, lateReturnConsent),
                 assessments.currentCareNote(List.of(residentId)).getOrDefault(residentId, Optional.empty()));
         var result = RegistrationConditions.check(facts);
         var groups = catalogs.require(ActivityKinds.ACTIVITY_TYPES, activity.typeId())
@@ -95,23 +91,5 @@ public class RegistrationEligibility {
         var warnings = new ArrayList<>(result.warnings());
         warnings.addAll(dislikes);
         return Optional.of(new RegistrationConditions.Result(result.blockers(), List.copyOf(warnings)));
-    }
-
-    /** Người bán trú vào ngày của buổi: hợp đồng hiệu lực ngày đó có loại hình Bán trú (004 FR-019). */
-    private DayCare dayCare(Session session, long residentId, boolean consent) {
-        var date = LocalDate.ofInstant(session.startsAt(), BusinessTime.ZONE);
-        boolean dayCare = contracts
-                .contentAtDate(residentId, date)
-                .flatMap(c -> contracts.contract(c.contractId()))
-                .map(c -> c.residenceType() == ResidenceType.DAY_CARE)
-                .orElse(false);
-        if (!dayCare) return null;
-        var schedule = contracts.attendanceOn(residentId, date).stream().findFirst();
-        return new DayCare(
-                LocalTime.ofInstant(session.startsAt(), BusinessTime.ZONE),
-                LocalTime.ofInstant(session.endsAt(), BusinessTime.ZONE),
-                schedule.map(s -> s.arrivalTime()).orElse(null),
-                schedule.map(s -> s.departureTime()).orElse(null),
-                consent);
     }
 }

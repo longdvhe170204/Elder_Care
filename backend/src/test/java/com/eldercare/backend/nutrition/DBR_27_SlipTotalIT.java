@@ -32,7 +32,9 @@ class DBR_27_SlipTotalIT extends SlipTestBase {
         clock.setTo(at(LocalTime.of(9, 30)));
         close(dailyMeal(lunch)).andExpect(status().isCreated());
         long closed = jdbc.queryForObject(
-                "SELECT total_portions FROM portion_closing WHERE daily_meal_id = ?", Long.class, dailyMeal(lunch));
+                "SELECT content->>'$.totalPortions' FROM record_event WHERE kind = 'M08.PORTION_CLOSING' AND entity_type = 'M08.DAILY_MEAL' AND entity_id = ?",
+                Long.class,
+                dailyMeal(lunch));
         assertThat(slipTotal(dailyMeal(lunch))).isEqualTo(closed);
 
         clock.setTo(at(LocalTime.of(10, 0)));

@@ -26,13 +26,13 @@ class SwapRulesTest {
     }
 
     @Test
-    void BR_M09_03_overlappingShiftsAreDetected() {
+    void BR_50_overlappingShiftsAreDetected() {
         assertThat(SwapRules.overlaps(shift(10, 6, 14), shift(10, 13, 21))).isTrue();
         assertThat(SwapRules.overlaps(shift(10, 6, 14), shift(10, 8, 10))).isTrue();
     }
 
     @Test
-    void BR_M09_03_touchingShiftsDoNotOverlap() {
+    void BR_50_touchingShiftsDoNotOverlap() {
         assertThat(SwapRules.overlaps(shift(10, 6, 14), shift(10, 14, 22))).isFalse();
         assertThat(SwapRules.anyOverlap(List.of(shift(10, 6, 14), shift(11, 6, 14)), shift(12, 6, 14)))
                 .isFalse();

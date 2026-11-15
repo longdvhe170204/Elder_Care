@@ -1,6 +1,8 @@
 package com.eldercare.backend.billing.internal.procurement.persistence;
 
+import com.eldercare.backend.billing.api.dto.ProcurementRequestView;
 import com.eldercare.backend.billing.api.dto.ProcurementStatus;
+import com.eldercare.backend.billing.api.dto.ProcurementTotalView;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementContent;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementRequestRow;
 import com.eldercare.backend.billing.internal.procurement.domain.ProcurementRequestRow.Line;
@@ -209,6 +211,61 @@ public class ProcurementRequestStore {
         }
         sql.append(" ORDER BY created_at DESC, id DESC");
         return jdbc.query(sql.toString(), this::row, args.toArray());
+    }
+
+    /**
+     * T023 (016 CP.MUA_SAM): yêu cầu có ngày lập trong [from, to] theo {@link BusinessTime#ZONE}; {@code departmentIds}
+     * rỗng là toàn viện.
+     */
+    public List<ProcurementRequestView> statistics(Set<Long> departmentIds, LocalDate from, LocalDate to) {
+        return jdbc.query(
+                "SELECT id, department_id, type, status, estimated_total, approved_amount, actual_amount, created_at,"
+                        + " purchased_on FROM procurement_request" + statisticsWhere(departmentIds)
+                        + " ORDER BY created_at, id",
+                (rs, n) -> new ProcurementRequestView(
+                        rs.getLong("id"),
+                        rs.getLong("department_id"),
+                        ProcurementType.valueOf(rs.getString("type")),
+                        ProcurementStatus.valueOf(rs.getString("status")),
+                        rs.getLong("estimated_total"),
+                        rs.getObject("approved_amount", Long.class),
+                        rs.getObject("actual_amount", Long.class),
+                        rs.getObject("created_at", LocalDateTime.class).toLocalDate(),
+                        rs.getObject("purchased_on", LocalDate.class)),
+                statisticsArgs(departmentIds, from, to));
+    }
+
+    /** T023: đếm, cộng tiền theo (bộ phận, trạng thái) bằng GROUP BY tại DB; tiền chưa có tính 0. */
+    public List<ProcurementTotalView> totals(Set<Long> departmentIds, LocalDate from, LocalDate to) {
+        return jdbc.query(
+                "SELECT department_id, status, COUNT(*) AS request_count,"
+                        + " COALESCE(SUM(approved_amount), 0) AS approved_amount,"
+                        + " COALESCE(SUM(actual_amount), 0) AS actual_amount FROM procurement_request"
+                        + statisticsWhere(departmentIds) + " GROUP BY department_id, status"
+                        + " ORDER BY department_id, status",
+                (rs, n) -> new ProcurementTotalView(
+                        rs.getLong("department_id"),
+                        ProcurementStatus.valueOf(rs.getString("status")),
+                        rs.getLong("request_count"),
+                        rs.getLong("approved_amount"),
+                        rs.getLong("actual_amount")),
+                statisticsArgs(departmentIds, from, to));
+    }
+
+    /** Khoảng nửa mở trên created_at để dùng chỉ mục (department_id, created_at). */
+    private static String statisticsWhere(Set<Long> departmentIds) {
+        return " WHERE created_at >= ? AND created_at < ?"
+                + (departmentIds.isEmpty()
+                        ? ""
+                        : " AND department_id IN (" + String.join(",", Collections.nCopies(departmentIds.size(), "?"))
+                                + ")");
+    }
+
+    private static Object[] statisticsArgs(Set<Long> departmentIds, LocalDate from, LocalDate to) {
+        var args = new ArrayList<Object>(
+                List.of(from.atStartOfDay(), to.plusDays(1).atStartOfDay()));
+        args.addAll(departmentIds);
+        return args.toArray();
     }
 
     private int bindContent(PreparedStatement ps, ProcurementContent content, int i, long createdBy)

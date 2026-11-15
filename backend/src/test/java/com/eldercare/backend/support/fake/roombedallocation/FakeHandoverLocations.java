@@ -106,6 +106,12 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
         return java.util.stream.Stream.empty();
     }
 
+    /** module-interfaces 003 mục 1.8a: bản giả trả tập rỗng. */
+    public java.util.Set<Long> emptyAwaitingTransferBedIds(
+            com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant at) {
+        return java.util.Set.of();
+    }
+
     public Map<BedStatus, Integer> countByState(
             com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant at) {
         var counts = new EnumMap<BedStatus, Integer>(BedStatus.class);

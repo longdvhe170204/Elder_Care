@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.admission.api.UnitPriceApi;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.*;
@@ -52,6 +53,7 @@ public class CareResultService {
     private final ObjectProvider<DutyApi> duties;
     private final AuditLogApi audit;
     private final com.eldercare.backend.care.internal.rules.service.CareResultRules rules;
+    private final UnitPriceApi unitPrices;
 
     public CareResultService(
             CareTaskStore tasks,
@@ -70,7 +72,8 @@ public class CareResultService {
             ApplicationEventPublisher events,
             ObjectProvider<DutyApi> duties,
             AuditLogApi audit,
-            com.eldercare.backend.care.internal.rules.service.CareResultRules rules) {
+            com.eldercare.backend.care.internal.rules.service.CareResultRules rules,
+            UnitPriceApi unitPrices) {
         this.tasks = tasks;
         this.results = results;
         this.locks = locks;
@@ -88,6 +91,7 @@ public class CareResultService {
         this.duties = duties;
         this.audit = audit;
         this.rules = rules;
+        this.unitPrices = unitPrices;
     }
 
     @RequiresPermission(function = Function.TASK_CHECKLIST, operation = Operation.CONFIRM)
@@ -115,7 +119,7 @@ public class CareResultService {
     private void open(CareTask task, Object rejected) {
         if (Set.of(TaskStatus.DUE, TaskStatus.OVERDUE).contains(task.status())) return;
         var properties = new LinkedHashMap<String, Object>();
-        properties.put("status", task.status());
+        properties.put("currentStatus", task.status());
         properties.put("rejectedContent", rejected);
         var closure = tasks.closure(task.id());
         if (closure.at() != null) properties.put("closedAt", closure.at());
@@ -162,7 +166,7 @@ public class CareResultService {
         var now = time.now();
         var effectiveAt = deviceAt == null ? now : deviceAt;
         String basis = basis(task, deviceAt);
-        if (task.data().billable()) throw unavailable("Chờ 010 thống nhất số lượng tính phí của kết quả");
+        requireBillableQuantity(task);
         if (task.data().resultType().equals("ML")
                 && task.data().upperLimit() == null
                 && !Boolean.TRUE.equals(task.data().resultConfigurationCaptured()))
@@ -277,36 +281,38 @@ public class CareResultService {
                 .build());
     }
 
-    /** Callback 007 trong transaction nguồn; không ghi lại giá trị đo đầu thành giá trị đã xác nhận. */
+    /**
+     * Callback 007 trong transaction nguồn; không ghi lại giá trị đo đầu thành giá trị đã xác nhận. Chủ dự án chốt
+     * 2026-11-12: lần đo lại khác người hoặc khác giờ thì người thực hiện, thời điểm thực hiện, trạng thái đóng và nhãn ghi
+     * muộn theo lần đo đầu; kết quả trỏ bản ghi đã xác nhận của 007.
+     */
     @Transactional(propagation = Propagation.MANDATORY)
     public void confirmed(long id, long vitalSignRecordId, Instant measuredAt, long measuredById) {
         var task = lock(id);
         var existing = results.find(id);
         if (existing.isPresent() && Objects.equals(existing.get().vitalSignRecordId(), vitalSignRecordId)) return;
-        if (task.data().billable()) throw unavailable("Chưa có cấu hình số lượng tính phí cho loại công việc này");
+        requireBillableQuantity(task);
         open(task, Map.of("vitalSignRecordId", vitalSignRecordId));
         var pending = results.pending(id)
                 .orElseThrow(() -> new BusinessException(
                         HttpStatus.CONFLICT, "AWAITING_REMEASUREMENT", "Không có lần đo đang chờ xác nhận"));
-        if (!measuredAt
-                        .truncatedTo(java.time.temporal.ChronoUnit.MICROS)
-                        .equals(pending.performedAt().truncatedTo(java.time.temporal.ChronoUnit.MICROS))
-                || measuredById != pending.staffId())
-            throw unavailable("Chờ 007 thống nhất metadata cho lần đo lại khác thời điểm/người đo gốc");
+        var performed = pending.performedAt();
         var input = new CareResultInput(
-                measuredAt,
+                performed,
                 null,
                 null,
                 Map.of(),
                 pending.input().upperLimitConfirmed(),
                 pending.input().note(),
                 pending.input().reason());
-        var next = CareResultTiming.completedStatus(task.windowFrom(), task.windowTo(), measuredAt);
+        var next = task.basisType() == TaskSourcePort.SourceType.AD_HOC_RECORDING
+                ? TaskStatus.COMPLETED
+                : CareResultTiming.completedStatus(task.windowFrom(), task.windowTo(), performed);
         results.complete(
                 task,
                 input,
                 next,
-                measuredAt,
+                performed,
                 time.now(),
                 pending.deviceAt(),
                 pending.accountId(),
@@ -318,17 +324,49 @@ public class CareResultService {
         auditResult(
                 task,
                 input,
-                measuredAt,
+                performed,
                 time.now(),
                 pending.deviceAt(),
                 pending.permissionBasis(),
                 pending.late(),
                 pending.permissionLost());
-        recordedEvents(task, input, measuredAt, next, time.now());
+        recordedEvents(task, input, performed, next, time.now());
+    }
+
+    /** FR-051: chỉ loại kết quả có lượng xác định ({@link CareBillableQuantity}); có dịch vụ và người cao tuổi. */
+    private void requireBillableQuantity(CareTask task) {
+        if (!task.data().billable()) return;
+        if (!CareBillableQuantity.supported(task.data().resultType()))
+            throw unavailable(
+                    "Chưa xác định được đơn vị tính phí của loại kết quả này; không quy đổi ml, mức hay giá trị đo");
+        if (task.data().serviceId() == null || task.residentId() == null)
+            throw unavailable("Công việc có tính phí cần dịch vụ và người cao tuổi");
+        var service = unitPrices
+                .service(task.data().serviceId())
+                .orElseThrow(() -> unavailable("Không tìm thấy dịch vụ tính phí của công việc"));
+        if (!CareBillableQuantity.matches(
+                task.data().resultType(), service.billingPeriod().name()))
+            throw unavailable("Kỳ tính của dịch vụ không khớp loại kết quả; không quy đổi, không mặc định 1");
     }
 
     private void recordedEvents(CareTask task, CareResultInput input, Instant performed, TaskStatus next, Instant now) {
         rules.onResult(task.id());
+        if (task.data().billable())
+            events.publishEvent(new BillableCareResultRecorded(
+                    task.id(),
+                    task.residentId(),
+                    task.data().publicTaskTypeId(),
+                    task.data().serviceId(),
+                    CareBillableQuantity.of(task.data().resultType(), input.numericValue())
+                            .orElseThrow(),
+                    performed,
+                    new CareEventContext(
+                            "M04.CARE_RESULT",
+                            task.id(),
+                            "BILLABLE_RECORDED",
+                            now,
+                            Optional.of(task.floorAreaId()),
+                            List.of())));
         var context = new CareEventContext(
                 "M04.TASK", task.id(), "RESULT_RECORDED", now, Optional.of(task.floorAreaId()), List.of());
         events.publishEvent(new AlertClosureRequested(

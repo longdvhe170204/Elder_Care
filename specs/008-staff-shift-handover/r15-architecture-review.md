@@ -65,8 +65,8 @@ LayerArchTest đã bỏ danh sách PENDING_MODULE_ROOT_PACKAGES chỉ gồm E, x
 
 | Lớp baseline | Thất bại | Lỗi thực thi |
 | --- | ---: | ---: |
-| BR_M01_01_TemporaryAbsenceOverdueIT | 0 | 1 |
-| BR_M01_02_ReassessmentNoticeIT | 0 | 2 |
+| BR_11_TemporaryAbsenceOverdueIT | 0 | 1 |
+| BR_05_ReassessmentNoticeIT | 0 | 2 |
 | CompleteAdmissionConsentIT | 0 | 2 |
 | CompleteAdmissionWishWarningsIT | 0 | 3 |
 | FR_023h_KhongDauNangLucIT | 1 | 0 |

@@ -16,7 +16,9 @@ import java.util.function.LongFunction;
  * kiến hiện hành rồi lịch sử) và {@code waitingListEntryId} chỉ có ở phản hồi một lượt; danh sách không kèm để tránh truy
  * vấn từng dòng.
  */
-@Schema(name = "AdmissionApplication")
+@Schema(
+        name = "AdmissionApplication",
+        requiredProperties = {"residentId", "applicationDate", "desiredResidenceType", "expectedCareLevel"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record AdmissionApplicationBody(
         long id,

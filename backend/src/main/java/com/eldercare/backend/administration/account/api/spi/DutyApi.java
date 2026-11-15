@@ -25,6 +25,12 @@ public interface DutyApi {
 
     Optional<Long> departmentLead(long departmentId);
 
+    /**
+     * Bộ phận Hiệu lực mang mã hệ thống (chủ dự án duyệt 2026-11-11: {@code CARE} là bộ phận Chăm sóc, 019 ghi tăng tài sản
+     * giường kèm lệnh Tạo giường, Q-238); rỗng khi chưa có.
+     */
+    Optional<Long> departmentByCode(String code);
+
     boolean isDepartmentLead(long staffId);
 
     /** DBR-36. */
@@ -33,6 +39,12 @@ public interface DutyApi {
     Optional<Long> groupLeader(long tripId);
 
     List<Long> companions(long tripId);
+
+    /**
+     * FR-031 (Q-161, T049): người cao tuổi đang trên chuyến Đang diễn ra mà nhân viên là Trưởng đoàn hoặc Người đi cùng;
+     * góp vào phạm vi trong thời gian chuyến đi. Đổi api 2026-11-12 (người dùng duyệt).
+     */
+    List<Long> tripResidents(long staffId);
 
     /** Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc có phân công trong tầng và ca (011 UC-76). */
     List<Long> floorReceivers(long floorAreaId, long shiftId);

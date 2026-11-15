@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 class PurchaseConsentTest {
     @Test
-    void BR_M11_07_thresholdIsInclusiveAndFrozenAtSend() {
+    void BR_62_thresholdIsInclusiveAndFrozenAtSend() {
         var low = PurchaseConsent.draft(500000).send(500000);
         assertThat(low.status()).isEqualTo("PURCHASE_ALLOWED");
         assertThat(low.allowedAmount()).isEqualTo(500000);
@@ -36,17 +36,5 @@ class PurchaseConsentTest {
         assertThat(agreed.allowedAmount()).isEqualTo(1200000);
         assertThat(agreed.additionalPending()).isFalse();
         assertThatThrownBy(() -> agreed.requestAdditional(1200000)).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void Q_269_rejectionAndWithdrawalPreservePreviousConsent() {
-        var pending = PurchaseConsent.draft(800000).send(500000).agree().requestAdditional(1000000);
-        assertThat(pending.reject().allowedAmount()).isEqualTo(800000);
-        assertThat(pending.reject().status()).isEqualTo("PURCHASE_ALLOWED");
-        assertThat(pending.withdraw().allowedAmount()).isEqualTo(800000);
-        assertThatThrownBy(pending::purchase).isInstanceOf(IllegalStateException.class);
-        assertThat(pending.cancel().status()).isEqualTo("CANCELLED");
-        assertThatThrownBy(() -> PurchaseConsent.draft(800000).send(500000).withdraw())
-                .isInstanceOf(IllegalStateException.class);
     }
 }

@@ -16,4 +16,17 @@ public interface ResidentModuleStateApi {
 
     /** Thêm hoặc thay dữ liệu của module cho người cao tuổi; gọi sau {@link #lockForUpdate} khi cần tuần tự. */
     <T> void save(SharedKind<T> kind, long residentId, T data);
+
+    /**
+     * Dòng riêng của loại, khóa {@code (resident_id, kind.code())} thay vì {@code (resident_id, module)} (bổ sung
+     * 2026-11-10 cho 014 {@code M04.HOAT_DONG_NCT}, quyết định 09/11 (6)): module đã có dòng chung do phần khác ghi dùng dòng
+     * riêng để không ghi chung một JSON. Không đọc, không đè dòng chung của module.
+     */
+    <T> Optional<T> getOwnRow(SharedKind<T> kind, long residentId);
+
+    /** Như {@link #getOwnRow}, khóa dòng tới hết transaction. */
+    <T> Optional<T> lockOwnRowForUpdate(SharedKind<T> kind, long residentId);
+
+    /** Thêm hoặc thay dòng riêng của loại; gọi sau {@link #lockOwnRowForUpdate} khi cần tuần tự. */
+    <T> void saveOwnRow(SharedKind<T> kind, long residentId, T data);
 }

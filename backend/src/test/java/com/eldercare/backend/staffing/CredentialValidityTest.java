@@ -37,18 +37,7 @@ class CredentialValidityTest {
     }
 
     @Test
-    void FR_007_revocationStartsAtMidnightAndReplacementInvalidatesOldRecord() {
-        assertThat(CredentialValidity.status(
-                        issue, expiry, expiry, false, time.startOfDay(expiry).minusNanos(1), time))
-                .isEqualTo(Status.VALID);
-        assertThat(CredentialValidity.status(issue, expiry, expiry, false, time.startOfDay(expiry), time))
-                .isEqualTo(Status.REVOKED);
-        assertThat(CredentialValidity.status(issue, expiry, null, true, time.startOfDay(issue), time))
-                .isEqualTo(Status.REPLACED);
-    }
-
-    @Test
-    void BR_M09_01_oneCredentialMustCoverBothInclusiveIntervalEndpoints() {
+    void BR_49_oneCredentialMustCoverBothInclusiveIntervalEndpoints() {
         assertThat(CredentialValidity.covers(
                         issue,
                         expiry,

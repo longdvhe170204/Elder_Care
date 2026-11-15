@@ -18,6 +18,7 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -34,6 +35,7 @@ import org.springframework.test.web.servlet.ResultActions;
  */
 @AutoConfigureMockMvc
 @Import(FakeM15Config.class)
+@Tag("BR-78")
 class LoginQrCodeIT extends MySqlIntegrationTestBase {
 
     @Autowired

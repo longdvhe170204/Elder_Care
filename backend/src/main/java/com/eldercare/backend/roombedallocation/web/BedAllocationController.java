@@ -55,6 +55,13 @@ public class BedAllocationController {
                                 mediaType = "application/json",
                                 schema = @Schema(implementation = BedTransferResult.class))),
         @ApiResponse(
+                responseCode = "202",
+                description = "Đã lập yêu cầu nhập bù chờ Quản lý viện duyệt",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = BackfillRequestCreated.class))),
+        @ApiResponse(
                 responseCode = "403",
                 description = "Không có quyền",
                 content =
@@ -76,19 +83,20 @@ public class BedAllocationController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = StructureProblem.class)))
     })
-    public BedTransferResult transfer(@PathVariable long id, @Valid @RequestBody BedTransferWrite body) {
-        var now = time.now();
-        // Chủ dự án chọn chờ quyền duyệt của A cho T034; không đổi nhập bù thành chuyển ngay.
-        if (body.transferAt() != null && body.transferAt().isBefore(now))
-            throw new com.eldercare.backend.common.error.BusinessException(
-                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE,
-                    "SOURCE_UNAVAILABLE",
-                    "Chức năng nhập bù chưa sẵn sàng. Liên hệ quản trị hệ thống.");
-        if (body.transferAt() != null && body.transferAt().isAfter(now))
+    public ResponseEntity<?> transfer(@PathVariable long id, @Valid @RequestBody BedTransferWrite body) {
+        if (body.transferAt() != null && body.transferAt().isAfter(time.now()))
             throw new com.eldercare.backend.common.error.InvalidValueException(
                     "Chuyển trong tương lai phải qua yêu cầu thay đổi lưu trú");
-        long next = transfers.transfer(id, body.newBedId(), body.transferReasonId(), body.reason());
-        return new BedTransferResult(detail(id), detail(next), List.of());
+        var outcome =
+                transfers.transfer(id, body.newBedId(), body.transferReasonId(), body.reason(), body.transferAt());
+        return switch (outcome) {
+            case com.eldercare.backend.roombedallocation.internal.allocation.domain.BedTransferOutcome.Moved moved ->
+                ResponseEntity.ok(new BedTransferResult(detail(id), detail(moved.newAllocationId()), List.of()));
+            case com.eldercare.backend.roombedallocation.internal.allocation.domain.BedTransferOutcome.BackfillRequested
+                    requested ->
+                ResponseEntity.accepted()
+                        .body(new BackfillRequestCreated(requested.approvalRequestId(), requested.status()));
+        };
     }
 
     @GetMapping

@@ -5,6 +5,9 @@ import com.eldercare.backend.care.api.PublicCareResultApi;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.internal.result.persistence.CareResultStore;
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.time.BusinessTime;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.*;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -53,7 +56,22 @@ public class PublicCareResults implements PublicCareResultApi {
 
     @Override
     public EatingDrinkingSummary summary(long residentId, LocalDate from, LocalDate to) {
-        throw unavailable("Công thức tổng hợp ăn/uống chờ thống nhất với 012 theo quyết định chủ dự án");
+        // Chủ dự án chốt 2026-11-12: trung bình theo ngày có ít nhất một lần ghi nước, ngày không ghi không tính
+        var perDay = new TreeMap<LocalDate, BigDecimal>();
+        for (var r : results(
+                residentId,
+                from.atStartOfDay(BusinessTime.ZONE).toInstant(),
+                to.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant())) {
+            if (r.resultType() != ResultType.ML || !(r.values().get("numericValue") instanceof Number ml)) continue;
+            perDay.merge(
+                    LocalDate.ofInstant(r.performedAt(), BusinessTime.ZONE),
+                    new BigDecimal(ml.toString()),
+                    BigDecimal::add);
+        }
+        if (perDay.isEmpty()) return new EatingDrinkingSummary(Optional.empty(), 0);
+        var total = perDay.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new EatingDrinkingSummary(
+                Optional.of(total.divide(BigDecimal.valueOf(perDay.size()), 0, RoundingMode.HALF_UP)), perDay.size());
     }
 
     private BusinessException unavailable(String message) {

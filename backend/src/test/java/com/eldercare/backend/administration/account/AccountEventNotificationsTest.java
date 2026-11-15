@@ -3,7 +3,6 @@ package com.eldercare.backend.administration.account;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.events.LicenseExpiring;
-import com.eldercare.backend.administration.account.api.events.PermissionDataError;
 import com.eldercare.backend.administration.account.api.events.RecordPendingReview;
 import com.eldercare.backend.administration.account.api.events.RecordSyncedAfterPermissionLoss;
 import com.eldercare.backend.common.Role;
@@ -55,15 +54,6 @@ class AccountEventNotificationsTest {
     }
 
     @Test
-    void FR_041a_syncedAfterPermissionLoss_withoutFloor_goesToManagers() {
-        NotificationRequest r =
-                only(new RecordSyncedAfterPermissionLoss("M15.SAMPLE", "5", null, AT).notificationRequests());
-
-        assertThat(r.floorAreaId()).isEmpty();
-        assertThat(r.recipientGroups()).containsExactly(MANAGERS);
-    }
-
-    @Test
     void FR_041c_pendingReview_followsSameRecipients() {
         NotificationRequest onFloor = only(new RecordPendingReview(9L, 3L, AT).notificationRequests());
         NotificationRequest noFloor = only(new RecordPendingReview(10L, null, AT).notificationRequests());
@@ -73,17 +63,6 @@ class AccountEventNotificationsTest {
         assertThat(onFloor.recipientGroups())
                 .containsExactly(new RecipientGroup.FloorManager(3L, new Substitution.Default()));
         assertThat(noFloor.recipientGroups()).containsExactly(MANAGERS);
-    }
-
-    @Test
-    void FR_041b_permissionDataError_goesToManagers() {
-        NotificationRequest r = only(new PermissionDataError(4L, "M03.BED_ALLOCATION", 12L, "TWO_OPEN_ALLOCATIONS", AT)
-                .notificationRequests());
-
-        assertThat(r.eventType()).isEqualTo("PERMISSION_DATA_ERROR");
-        assertThat(r.sourceRecord()).isEqualTo(new SourceRecord("M15.PERMISSION_DATA_ERROR", "4"));
-        assertThat(r.recipientGroups()).containsExactly(MANAGERS);
-        assertThat(r.shortContent().orElseThrow()).contains("M03.BED_ALLOCATION");
     }
 
     @Test

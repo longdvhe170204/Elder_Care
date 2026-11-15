@@ -52,7 +52,7 @@ frontend/ npm ci && npm test && npm run dev
 | Nhóm | Test | Kịch bản |
 | --- | --- | --- |
 | Hàm thuần | `ExpectedStayDurationTest`, `RegistrationTypeRuleTest` | Q3, Q14, Q16, Q17, Q20 |
-| Khai báo | `BR_M02_11_ResidenceRegistrationIT`, `RegistrationSubmissionResultIT`, `BR_M02_12_RenewalIT`, `BR_M02_13_DeregistrationIT`, `BR_M02_14_TypeChangeIT`, `DBR_33_OneRegistrationIT`, `RegistrationStoreIT`, `RegistrationProvidersIT`, `RegistrationStatisticsIT` | Q1 → Q19 |
+| Khai báo | `BR_12_ResidenceRegistrationIT`, `RegistrationSubmissionResultIT`, `BR_12_RenewalIT`, `BR_12_DeregistrationIT`, `BR_M02_14_TypeChangeIT`, `DBR_33_OneRegistrationIT`, `RegistrationStoreIT`, `RegistrationProvidersIT`, `RegistrationStatisticsIT` | Q1 → Q19 |
 | Việc hằng ngày | `RegistrationCatchUpIT` (bốn việc `REG_*` là `M02DailyTask` xét trạng thái tại ngày chạy; không nhắc trùng khi chạy lại); chạy bù từng ngày do `BR_M02_19_CatchUpRunIT` của 004 | Q4, Q11, Q13 |
 | Kiến trúc | `ResidenceRegistrationArchTest`: `admission.scheduling` không lập khai báo (Q-306) | |
 
@@ -73,13 +73,13 @@ frontend/ npm ci && npm test && npm run dev
 
 | # | Test | Ghi chú |
 | --- | --- | --- |
-| Q1, Q2 | `BR_M02_11_ResidenceRegistrationIT` `Q1_*` | |
+| Q1, Q2 | `BR_12_ResidenceRegistrationIT` `Q1_*` | |
 | Q3 | `BR_M02_11_*` `Q2_*`, `Q3_*`, `BR_M02_11_thirtyDays*`; `RegistrationTypeRuleTest` | |
 | Q4 | `BR_M02_11_*` `Q4_*`; `RegistrationSubmissionResultIT` `Q9_afterARejection_*`, `Q9_aManagerAlreadyTold*` | gọi `RegistrationOverdueReminders.remind(day)`; job `M02_DAILY` chạy bốn việc |
-| Q5 | `BR_M02_11_*` `Q5_*`; `BR_M02_13_DeregistrationIT` `SC_004_*`, `US4_1_*` | |
+| Q5 | `BR_M02_11_*` `Q5_*`; `BR_12_DeregistrationIT` `SC_004_*`, `US4_1_*` | |
 | Q6 | `BR_M02_11_*` `Q6_*`; `RegistrationSubmissionResultIT` `FR_001_*Local*` | |
 | Q7 → Q10 | `RegistrationSubmissionResultIT` `Q7_*` → `Q10_*` | |
-| Q11 | `BR_M02_12_RenewalIT` `Q11_*` | gọi `RegistrationRenewalReminders.remind(day)` |
+| Q11 | `BR_12_RenewalIT` `Q11_*` | gọi `RegistrationRenewalReminders.remind(day)` |
 | Q12 | `BR_M02_12_*` `Q12_*`; `RegistrationStoreIT` `DBR_33_*` | |
 | Q13 | `BR_M02_12_*` `Q13_*`, `Z_04_*` | gọi `RegistrationExpiry.expire(day)` |
 | Q14, Q16, Q17 | `BR_M02_14_TypeChangeIT`; `BR_M02_11_*` `FR_001a_*` | |

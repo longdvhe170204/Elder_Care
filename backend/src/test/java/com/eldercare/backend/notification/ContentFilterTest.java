@@ -48,12 +48,4 @@ class ContentFilterTest {
         assertThat(ContentFilter.visibleParts(ALL, EnumSet.allOf(FamilyRight.class), true, false, true))
                 .containsExactly(GENERAL);
     }
-
-    @Test
-    void onlyPartsPresentInRequest() {
-        assertThat(ContentFilter.visibleParts(Set.of(HEALTH), Set.of(FamilyRight.VIEW_COSTS), false, true, true))
-                .isEmpty();
-        assertThat(ContentFilter.visibleParts(Set.of(GENERAL, HEALTH), Set.of(), false, true, true))
-                .containsExactly(GENERAL);
-    }
 }

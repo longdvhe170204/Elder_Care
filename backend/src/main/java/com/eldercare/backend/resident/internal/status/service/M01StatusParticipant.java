@@ -93,6 +93,11 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "001";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.COMPLETE_ADMISSION, StatusCommand.RECORD_RETURN);
     }

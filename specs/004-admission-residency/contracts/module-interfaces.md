@@ -58,6 +58,14 @@ Optional<DichVuView> thuocNguonVien(long thuocId);
 
 Không có phiên bản hiệu lực tại ngày thì trả rỗng; 010 ghi khoản "thiếu đơn giá" (010 FR-012).
 
+*Đổi api 2026-11-10 (A duyệt, 010 Q1, Q2, Q4):* `LoaiDichVu` thêm `VAT_PHAM_TIEU_HAO` (`CONSUMABLE`), `VAT_TU_Y_TE` (`MEDICAL_SUPPLY`) theo nghiệp vụ 6.4 và Q-269; `DichVuView` thêm `hieuLuc` (`active`), `thuocId` (`medicationId`, chỉ thuốc nguồn viện). Thêm ba hàm đọc cho 010 (tên Java ở glossary 1076):
+
+```java
+Optional<DichVuView> dichVu(long dichVuId);              // kể cả Ngừng hiệu lực; 010 lấy loại, đơn vị của nguồn
+List<DichVuView> dichVuHieuLucTheoLoai(LoaiDichVu loai); // 010 Q3: nguồn không mang mã dịch vụ, chỉ dùng khi đúng một mục
+List<DichVuView> dichVuTheoTen(String ten);              // 010 FR-021: trùng tên sau khi bỏ khoảng trắng thừa, không phân biệt hoa thường, giữ dấu; kể cả Ngừng hiệu lực
+```
+
 ### 1.4. `NgayLuuTruApi` (010; FR-052, FR-060, FR-074)
 
 ```java
@@ -94,6 +102,8 @@ boolean coNgoaiLeQuyetToanDaDuyet(long nctId);                  // 017 FR-023, F
 Stream<LoaiLuuTruTaiNgayView> loaiLuuTruTaiNgay(PhamViLoc phamVi, LocalDate ngay);  // 016 FR-022: hợp đồng hiệu lực (kể cả quá hạn), chờ hiệu lực, chưa xác định
 Stream<HoSoChoView> danhSachCho(LocalDate tu, LocalDate den);                       // 016 FR-025: trạng thái, loại lưu trú, mức dự kiến, thời gian chờ, lý do rời
 ```
+
+*(Đổi api 2026-11-11, 016 T014, chủ dự án duyệt 2026-11-11)* Thêm `Stream<ResidenceTypeChangeView> residenceTypeChanges(ScopeFilter scope, LocalDate from, LocalDate to)` (016 FR-023 "đổi loại lưu trú"): phiên bản nội dung của hợp đồng đã ký (Hiệu lực, Kết thúc, Chấm dứt) có loại lưu trú khác phiên bản liền trước, ngày hiệu lực trong `[from, to]`; `ResidenceTypeChangeView(residentId, contractId, from, to, effectiveOn)`; phạm vi không toàn viện chỉ lọc `residentIds`. Bản giả `support/fake/admission/FakeResidencyStatistics`; test `T014_ResidenceTypeChangeStatisticsIT`. Chỉ thêm truy vấn đọc ở `ContractStore`, không đổi lệnh phụ lục.
 
 ### 1.6. `DanhSachViecSauQuaDoiApi`
 
@@ -141,7 +151,7 @@ record DayCareAbsenceNoticeView(long noticeId, Long sessionId, Instant familyNot
 | `HopDongDaDoiTrangThai(hopDongId, nctId, tu, den, lyDo)`; `KhoanCocDaDoi(hopDongId, khoanMoi)` | 017, 018, 010, 012 | FR-033a, FR-033b |
 | `TiepNhanHoanTat(nctId, hopDongId, loaiLuuTru, ngayBatDau, ngayKetThucDuKien)` | 018 | FR-033b |
 | `PhuLucDaApDung(phuLucId, hopDongId, nctId, loaiThayDoi, ngayHieuLuc)` | 010, 018, 005 (báo điều dưỡng phụ trách xem xét kế hoạch), 011 | FR-042, FR-033b |
-| `LoaiLuuTruDaDoi(nctId)` *(bổ sung 2026-11-02: 003 contracts mục 2.2, T004, T045 đã ghi nhưng bảng này thiếu)* | 003 | FR-034 của 003 |
+| `LoaiLuuTruDaDoi(nctId)` *(bổ sung 2026-11-02: 003 contracts mục 2.2, T004, T045 đã ghi nhưng bảng này thiếu; 2026-11-11: 003 không nghe vì tạo vòng module, 004 gọi `PhanBoGiuongLenhApi.daDoiLoaiLuuTru` trong cùng lệnh áp dụng phụ lục)* | (không còn module nghe) | FR-034 của 003 |
 | `LuotVangDaMo`, `LuotVangDaGiaHan`, `LuotVangDaDong` (`luotVangId`, `nctId`, mốc) | 001, 006, 011, 010 | FR-048, FR-049 |
 | `NgayLuuTruDaDoi(nctId, tuNgay, denNgay, nguyenNhan)` | 010 | FR-052, FR-056, FR-061 |
 | `LongAbsenceManagerNotice(absenceId, residentId, absentDays, at)` (sửa 2026-11-02 theo Q-395, thay ba sự kiện cũ) | 009 (Quản lý viện, Trung bình, một lần) | FR-055 |
@@ -164,6 +174,7 @@ record DayCareAbsenceNoticeView(long noticeId, Long sessionId, Instant familyNot
 interface NguoiDaiDienPort {          // 012 cài
   boolean laNguoiDaiDienHieuLuc(long nguoiThanId, long nctId, LocalDate ngay);   // DBR-02, FR-021, FR-039
   boolean coNguoiDaiDien(long nctId);                                            // lập hợp đồng
+  Optional<Long> nguoiDaiDienHieuLuc(long nctId);  // bổ sung 2026-11-10 (chủ dự án duyệt): mã người thân đại diện hiện tại, họ tên qua FamilyRelationshipApi.familyMemberName; 017 FR-034, BR-M11-22
 }
 interface BanGhiDonPort {             // 012 cài
   Optional<BanGhiDonView> banGhiDonHopLe(long nctId, long nguoiDonId, Instant thoiDiem); // FR-048; 012 FR-021, FR-024, FR-026

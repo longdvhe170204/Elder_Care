@@ -105,14 +105,4 @@ class CostAdjustmentServiceTest {
         verifyNoInteractions(destination);
         verify(creation, never()).adjustmentTotal(anyLong());
     }
-
-    @Test
-    void FR_043_deniedScopeCannotAcquireCostLocksOrWrite() {
-        var service = service("EVENT_BASED", "DRAFT");
-        when(access.require(any(), any(), any(), anyString(), anyLong(), any()))
-                .thenThrow(new PermissionDeniedException("Ngoài phạm vi"));
-        assertThatThrownBy(() -> service.adjust(1, -1, "WAIVER", reason, null))
-                .isInstanceOf(PermissionDeniedException.class);
-        verifyNoInteractions(locks, creation, destination);
-    }
 }

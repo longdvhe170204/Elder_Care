@@ -3,13 +3,8 @@ package com.eldercare.backend.roombedallocation.internal.structure.domain;
 import com.eldercare.backend.common.data.CatalogBase;
 import com.eldercare.backend.common.data.DataGroup;
 import com.eldercare.backend.roombedallocation.api.spi.CareLevelCode;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,10 +23,9 @@ public class RoomType extends CatalogBase {
     @Column(name = "serves_short_term")
     private boolean servesShortTerm;
 
-    @ElementCollection
-    @CollectionTable(name = "room_type_care_level", joinColumns = @JoinColumn(name = "room_type_id"))
-    @Column(name = "care_level")
-    @Enumerated(EnumType.STRING)
+    /** Mảng mã mức trong cột JSON {@code allowed_care_levels} (thay bảng {@code room_type_care_level}, R-15). */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "allowed_care_levels", nullable = false)
     private Set<CareLevelCode> careLevels = new HashSet<>();
 
     protected RoomType() {}

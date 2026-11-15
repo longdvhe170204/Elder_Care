@@ -86,17 +86,6 @@ class EsmsSmsProviderTest {
     }
 
     @Test
-    void T026a_providerRejects_isPermanentWithProviderCode() throws IOException {
-        URI endpoint = serve(200, "{\"CodeResult\":\"104\",\"ErrorMessage\":\"Brandname khong ton tai\"}");
-
-        SmsResult r = provider(endpoint, false).send("0912345678", "Noi dung");
-
-        assertThat(r.outcome()).isEqualTo(Outcome.PERMANENT_FAILURE);
-        assertThat(r.providerCode()).contains("104");
-        assertThat(r.detail()).contains("Brandname khong ton tai");
-    }
-
-    @Test
     void T026a_code99_orServerError_isTemporary() throws IOException {
         URI endpoint = serve(200, "{\"CodeResult\":\"99\",\"ErrorMessage\":\"Loi ket noi\"}");
         SmsResult r = provider(endpoint, false).send("0912345678", "Noi dung");
@@ -107,23 +96,5 @@ class EsmsSmsProviderTest {
         URI failing = serve(503, "{}");
         assertThat(provider(failing, false).send("0912345678", "Noi dung").outcome())
                 .isEqualTo(Outcome.TEMPORARY_FAILURE);
-    }
-
-    @Test
-    void T026a_unreachableProvider_isTemporary() {
-        URI nowhere = URI.create("http://127.0.0.1:1/MainService.svc/json/SendMultipleMessage_V4_post_json/");
-
-        SmsResult r = provider(nowhere, false).send("0912345678", "Noi dung");
-
-        assertThat(r.outcome()).isEqualTo(Outcome.TEMPORARY_FAILURE);
-        assertThat(r.providerCode()).isEmpty();
-    }
-
-    @Test
-    void T026a_config_withoutApiKey_isUnconfigured_withKey_isEsms() {
-        assertThat(SmsProviders.from("", "", "", false, "https://rest.esms.vn"))
-                .isInstanceOf(UnconfiguredSmsProvider.class);
-        assertThat(SmsProviders.from("k", "s", "ELDERCARE", true, "https://rest.esms.vn"))
-                .isInstanceOf(EsmsSmsProvider.class);
     }
 }

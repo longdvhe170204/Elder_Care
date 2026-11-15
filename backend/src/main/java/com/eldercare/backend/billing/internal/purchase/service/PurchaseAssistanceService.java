@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.shared.api.*;
 import com.eldercare.backend.administration.shared.api.dto.*;
+import com.eldercare.backend.admission.api.UnitPriceApi;
 import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.billing.api.dto.PurchaseAssistanceStatus;
 import com.eldercare.backend.billing.api.events.*;
@@ -43,6 +44,7 @@ public class PurchaseAssistanceService {
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
     private final CostNotifications notifications;
+    private final UnitPriceApi catalog;
 
     public PurchaseAssistanceService(
             SimpleRecordApi records,
@@ -55,7 +57,8 @@ public class PurchaseAssistanceService {
             AuditLogApi audit,
             BusinessTime time,
             ApplicationEventPublisher events,
-            CostNotifications notifications) {
+            CostNotifications notifications,
+            UnitPriceApi catalog) {
         this.records = records;
         this.history = history;
         this.access = access;
@@ -67,6 +70,7 @@ public class PurchaseAssistanceService {
         this.time = time;
         this.events = events;
         this.notifications = notifications;
+        this.catalog = catalog;
     }
 
     @BusinessCommand
@@ -92,9 +96,10 @@ public class PurchaseAssistanceService {
                 || reason == null
                 || description == null
                 || description.isBlank()) throw new InvalidValueException("Thông tin đề nghị chưa hợp lệ");
-        if (catalogItem != null) throw unavailableCatalog();
+        if (catalogItem != null && catalog.service(catalogItem).isEmpty())
+            throw new InvalidValueException("Vật phẩm không có trong danh mục");
         var content = new PurchaseDetails(
-                null,
+                catalogItem,
                 description,
                 quantity,
                 reason.value(),
@@ -474,13 +479,6 @@ public class PurchaseAssistanceService {
         } catch (IllegalArgumentException ex) {
             throw new InvalidValueException(ex.getMessage());
         }
-    }
-
-    public static BusinessException unavailableCatalog() {
-        return new BusinessException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "SOURCE_UNAVAILABLE",
-                "Chưa có hợp đồng đọc danh mục dịch vụ, vật phẩm để kiểm căn cứ");
     }
 
     private static String label(String command) {

@@ -1,9 +1,11 @@
 package com.eldercare.backend.belongings.web.response;
 
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.api.dto.BelongingView;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingDetail;
 import com.eldercare.backend.belongings.internal.belonging.domain.HandoverView;
+import com.eldercare.backend.belongings.internal.consent.domain.SelfCustodyConsent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -16,7 +18,12 @@ public record BelongingResponse(
         long typeId,
         String description,
         BigDecimal quantity,
-        @Schema(type = "integer", format = "int64") BigDecimal cashAmount,
+
+        @Schema(
+                types = {"integer"},
+                format = "int64")
+        BigDecimal cashAmount,
+
         BelongingStatus status,
         String holder,
         Long storageLocationId,
@@ -41,10 +48,14 @@ public record BelongingResponse(
     }
 
     /** Chi tiết đồ gửi và lịch sử bàn giao ({@code GET /belongings/{id}}; hợp đồng không khai schema). */
-    public record Detail(BelongingResponse belonging, List<HandoverView> handovers) {
+    public record Detail(
+            BelongingResponse belonging, List<HandoverView> handovers, SelfCustodyConsentResponse selfCustodyConsent) {
 
-        public static Detail of(BelongingDetail detail) {
-            return new Detail(BelongingResponse.of(detail.belonging()), detail.handovers());
+        public static Detail of(BelongingDetail detail, SimpleRecord<SelfCustodyConsent> consent) {
+            return new Detail(
+                    BelongingResponse.of(detail.belonging()),
+                    detail.handovers(),
+                    SelfCustodyConsentResponse.of(consent));
         }
     }
 }

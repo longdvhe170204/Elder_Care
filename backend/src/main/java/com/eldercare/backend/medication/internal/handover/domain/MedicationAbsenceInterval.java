@@ -51,6 +51,11 @@ public class MedicationAbsenceInterval {
         this.actualToTime = actualToTime;
     }
 
+    /** 014 FR-031a (c): Hủy ghi nhận về, người cao tuổi chưa về nên khoảng vắng mở lại. */
+    public void reopen() {
+        this.actualToTime = null;
+    }
+
     public void extend(Instant newExpectedToTime) {
         this.expectedToTime = newExpectedToTime;
     }

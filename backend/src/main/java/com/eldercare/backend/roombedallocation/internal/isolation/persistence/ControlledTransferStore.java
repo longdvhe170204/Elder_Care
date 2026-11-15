@@ -42,8 +42,9 @@ public class ControlledTransferStore {
     }
 
     public void metadata(long previous, long next, long doctor, boolean pending, Instant at) {
-        long reason =
-                jdbc.queryForObject("SELECT id FROM bed_transfer_reason WHERE code='INFECTION_CONTROL'", Long.class);
+        long reason = jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type='M03.BED_TRANSFER_REASON' AND code='INFECTION_CONTROL'",
+                Long.class);
         jdbc.update(
                 "UPDATE bed_allocation SET previous_allocation_id=?,transfer_reason_id=?,prescribing_doctor_id=?,awaiting_doctor_confirmation=?,doctor_confirmation_requested_at=? WHERE id=?",
                 previous,

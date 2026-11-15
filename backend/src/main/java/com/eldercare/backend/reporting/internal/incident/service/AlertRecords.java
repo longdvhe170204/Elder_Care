@@ -32,6 +32,8 @@ public class AlertRecords {
 
     static final String EMERGENCY_ASSIST = "EMERGENCY_ASSIST";
 
+    static final String UNKNOWN_FLOOR = "UNKNOWN_FLOOR";
+
     /** Một cảnh báo; mốc xếp khoảng là lần tạo đầu. */
     public record AlertRecord(AlertReportView view) implements MetricRecord {
 
@@ -66,6 +68,20 @@ public class AlertRecords {
 
         boolean fromButton() {
             return SOS.equals(view.source()) || EMERGENCY_ASSIST.equals(view.source());
+        }
+
+        /** Ô của chỉ tiêu nút SOS, nút hỗ trợ: nguồn và tầng; tầng rỗng là dòng "chưa rõ tầng" (research O-13). */
+        String sourceAndFloor() {
+            return view.source() + ":" + (view.floorAreaId() == null ? UNKNOWN_FLOOR : view.floorAreaId());
+        }
+
+        /** Phút từ lúc tạo đến lúc tới nơi; rỗng khi không có mốc tới nơi. */
+        BigDecimal arrivalMinutes() {
+            return view.arrivedAt() == null ? null : minutes(view.firstAt(), view.arrivedAt());
+        }
+
+        boolean arrivalTimeMissing() {
+            return view.arrivalTimeMissing();
         }
     }
 

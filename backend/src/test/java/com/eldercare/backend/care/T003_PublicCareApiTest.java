@@ -17,7 +17,7 @@ class T003_PublicCareApiTest {
                 Map.entry("DayCareAttendanceApi", 7),
                 Map.entry("ShiftTaskApi", 6),
                 Map.entry("HandoverTaskApi", 3),
-                Map.entry("TaskSourceApi", 2),
+                Map.entry("TaskSourceApi", 3),
                 Map.entry("AbsenceTaskApi", 1),
                 Map.entry("VitalSignTaskApi", 1),
                 Map.entry("TaskStatisticsApi", 4),

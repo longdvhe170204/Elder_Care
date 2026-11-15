@@ -28,6 +28,7 @@ Optional<ViTriView> taiThoiDiem(long nctId, Instant t);       // FR-035 (a); 007
 Optional<Long> tangTaiNgay(long nctId, LocalDate ngay);       // 011, 016
 boolean chuaCoGiuong(long nctId);                             // dấu FR-025a; 004, 016
 Optional<PhanBoView> phanBoHienHanhHoacTuongLai(long nctId);  // bổ sung theo plan 004: 004 FR-021 (giường từ ngày bắt đầu hợp đồng), FR-004 (d)
+boolean coPhanBoBatDauTruoc(long nctId, LocalDate ngay);     // bổ sung 2026-11-12 (chủ dự án duyệt): 004 FR-021, có phân bổ Hiệu lực hoặc Tương lai bắt đầu không muộn hơn ngày (PhanBoView không có ngày bắt đầu)
 ```
 
 ### 1.3. `LichSuViTriApi`: tra cứu lịch sử (FR-035, FR-036)
@@ -55,6 +56,8 @@ KetQuaChuyenTheoLich thucHienChuyenTheoLich(long yeuCauId, Instant thoiDiemDuKie
 void huyPhanBoTheoLich(long yeuCauId, LyDo lyDo);                                  // khi yêu cầu Áp dụng không thành; idempotent
 void daLapYeuCauSauChuyenGap(long phanBoId, long yeuCauId);                        // FR-030: gỡ dấu chờ lập yêu cầu
 void ketQuaYeuCauSauChuyenGap(long phanBoId, boolean duocDuyet);                   // FR-030: từ chối → dấu chờ chuyển về phòng cùng giá
+void yeuCauSauChuyenGapDaRut(long phanBoId);                                       // FR-030: yêu cầu bị hủy, Áp dụng không thành, không còn yêu cầu khác → đặt lại dấu chờ lập yêu cầu và mốc nhắc (chủ dự án chốt 2026-11-12)
+void daDoiLoaiLuuTru(long nctId);                                                  // BR-M03-23, FR-034: 004 gọi khi phụ lục đổi loại lưu trú áp dụng (bổ sung 2026-11-11, T035)
 ```
 
 *(Bản cài 2026-11-06, 003 T033, chủ dự án chốt)*: `giaHanKetThucDuKien` không làm gì khi người không có phân bổ đang hiệu lực (bán trú, chưa có giường). Chuyển theo lịch đang chờ giường (`cho_giuong_san_sang`) được thực hiện trong lệnh Xác nhận giường sẵn sàng hoặc gỡ dấu của 019; FR-018 không còn thỏa lúc đó thì 003 tự hủy phân bổ tương lai và báo Hành chính, Trưởng tầng, Quản lý viện (`KetQuaChuyenTheoLich` giữ hai giá trị). `ketQuaYeuCauSauChuyenGap` báo người thực hiện lệnh chuyển gấp và Hành chính.
@@ -150,6 +153,19 @@ Chỉ là cảnh báo chưa xử lý để 008 hiển thị trong bàn giao (1.3
 | `GanPhamViProvider` (002) | `M03.GIUONG`, `M03.PHONG`, `M03.PHAN_BO_GIUONG` | Research G-14 |
 | `PhanBoGiuongApi` (002) | Mục 1.1 | |
 
+### 1.10a. `LenhKiemSoatLayNhiemApi` (`InfectionControlCommandApi`): lệnh 007 gọi *(bổ sung 2026-11-09, chủ dự án duyệt, thay hai listener sự kiện 007)*
+
+Chiều incident → roombedallocation như `TinhTrangLayNhiemChoPhanBo` (007 cài): 003 không nghe `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc` (nghe thì incident ↔ roombedallocation thành vòng module), không dời sự kiện sang gói chung. Mọi hàm `Propagation.MANDATORY`, chạy trong transaction của lệnh 007; lỗi thì ném để lệnh 007 rollback.
+
+```java
+interface LenhKiemSoatLayNhiemApi {   // api.InfectionControlCommandApi
+  void daGoKhoanhVung(Set<Long> tangIds, Set<Long> khuVucIds, Instant t);   // cordonLifted: 007 gọi sau khi gỡ vùng; 003 đọc lại vungDangKhoanh(t), gỡ dấu "chờ bác sĩ xác nhận vùng cách ly" của phân bổ Hiệu lực ở phòng thuộc vùng vừa gỡ mà không còn chịu chặn (FR-024a (c)); gọi lặp không tác động thêm
+  void daThemVaoDanhSachTiepXuc(long nctId, Instant t);   // contactListed: người vừa rời một giường còn Chờ sẵn sàng → phát GiuongCoNguoiRoiThuocDanhSach (FormerOccupantListed) báo Trưởng tầng của tầng (FR-045, US8 #5); giường đã Trống thì không làm gì; khóa thông báo theo giường và lần Chờ sẵn sàng nên gọi lặp không báo lại
+}
+```
+
+Bản giả chung cho test của 007: `support/fake/roombedallocation/FakeInfectionControlCommands` (ghi lời gọi; `fail(error)` cho lời gọi kế tiếp ném lỗi), nhập bằng `FakeInfectionControlCommands.Config`.
+
 ### 1.11. Sự kiện 003 phát (sau commit, qua outbox của 000)
 
 | Sự kiện | Người nghe | FR |
@@ -189,6 +205,7 @@ interface NguonLuuTruChoPhanBo {                 // 004 cài
   Optional<Instant> ketThucDuKien(long nctId);             // nội trú ngắn ngày
   GiuGiuong giuGiuongKhiVang(long nctId);                  // gọi trong lệnh vắng, sau bean 004: (giu, han?)
   boolean khacDonGia(long nctId, long loaiPhongCu, long loaiPhongMoi, LocalDate ngay); // FR-030, CHK016
+  boolean khacDonGiaHopDong(long nctId, long loaiPhong, LocalDate ngay); // FR-030, G-07: phân bổ mang dấu chờ lập yêu cầu, chờ về phòng cùng giá so với loại phòng của hợp đồng Hiệu lực (bổ sung 2026-11-11, bảng duyệt 16 điểm (3); đặt ở SPI này thay cho admission.api vì roombedallocation → admission tạo vòng module)
   void hoSoChoHetHanGiuCho(long hoSoChoId);                // MANDATORY; job HetHanGiuCho
   void daPhanBo(long nctId, long phanBoId);                // MANDATORY; hồ sơ chờ Đã tiếp nhận (004 FR-016)
 }
@@ -209,7 +226,7 @@ interface ThamChieuViTri {                       // 008 cài; module khác MAY c
 }
 ```
 
-Sự kiện 003 nghe: `KhoanhVungDaGo(tangIds, khuVucIds)`, `DaThemVaoDanhSachTiepXuc(nctId, thoiDiem)` (007); `LoaiLuuTruDaDoi(nctId)` (004); `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat` (001); `ThamSoDaDoi(CFG-M03-01)` (000).
+Sự kiện 003 nghe: (007 gọi `LenhKiemSoatLayNhiemApi` mục 1.10a thay cho `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`, sửa 2026-11-09); (004 gọi `PhanBoGiuongLenhApi.daDoiLoaiLuuTru` mục 1.4 thay cho nghe `LoaiLuuTruDaDoi`: nghe thì admission ↔ roombedallocation thành vòng module, sửa 2026-11-11); `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat` (001); `ThamSoDaDoi(CFG-M03-01)` (000).
 
 ### 2.2. Giao diện có sẵn hoặc đã bổ sung
 
@@ -248,6 +265,7 @@ interface TaiSanGiuongPort {                     // 019 cài, 003 gọi
   boolean mangDauChoChuyenNguoi(long giuongId);  // FR-018 (i), FR-014
   Set<Long> giuongMangDau(Collection<Long> giuongIds);   // lọc danh sách giường
   Set<Long> giuongMangDauTai(Collection<Long> giuongIds, Instant t);   // dấu tại thời điểm, từ lần gắn và gỡ dấu (bổ sung 2026-11-06, chủ dự án duyệt; cho demTrongChoChuyenNguoi)
+  void doiViTriTaiSanTheoGiuong(long giuongId, long phongMoiId);   // FR-007, Q-243, 019 FR-012: lệnh sửa giường đổi phòng giường chưa từng phân bổ; tài sản giường chuyển sang phòng mới, ghi lịch sử vị trí (phòng cũ, mới, người, thời điểm) cùng transaction, lỗi thì lệnh rollback cả hai; tài sản Đã thanh lý → 409 STATE_CHANGED; giường chưa có tài sản thì không làm gì (bổ sung 2026-11-09, chủ dự án duyệt, mở lại Q-243)
 }
 ```
 

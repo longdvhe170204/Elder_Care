@@ -16,14 +16,17 @@ class DBR_23_RecordTablesIT extends StructureTestSupport {
                 Timestamp.from(time.now()),
                 floor);
         jdbc.update(
-                "INSERT INTO room_isolation_history(room_id,action,occurred_at,actor_id,reason) VALUES(?,'ISOLATE',?,?,'Kiểm tra trigger')",
+                "INSERT INTO status_history(entity_type,entity_id,attribute,module,kind,value,starts_at,actor_id,by_system,reason) VALUES('M03.ROOM',?,'ISOLATION','M03','POINT','ISOLATE',?,?,FALSE,'Kiểm tra trigger')",
                 room,
                 Timestamp.from(time.now()),
                 user.accountId());
         try (var connection = adminConnection();
                 var statement = connection.createStatement()) {
-            for (String table : List.of("bed_state_history", "room_isolation_history")) {
-                String condition = table.equals("bed_state_history") ? "bed_id=" + bed : "room_id=" + room;
+            // Lịch sử cách ly phòng là dòng status_history loại M03.ROOM / ISOLATION (R-15, gộp 2026-11-13)
+            for (String table : List.of("bed_state_history", "status_history")) {
+                String condition = table.equals("bed_state_history")
+                        ? "bed_id=" + bed
+                        : "entity_type='M03.ROOM' AND attribute='ISOLATION' AND entity_id=" + room;
                 String update = "UPDATE " + table + " SET reason='Đổi nội dung' WHERE " + condition;
                 String delete = "DELETE FROM " + table + " WHERE " + condition;
                 assertThatThrownBy(() -> jdbc.update(update))

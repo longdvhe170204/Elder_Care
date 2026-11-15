@@ -20,6 +20,15 @@ public class ResidentStatusHistory {
     public static final HistoryTrack<StatusChangeDetails> TRACK =
             new HistoryTrack<>("M01.RESIDENT", "STATUS", StatusChangeDetails.class, true);
 
+    /**
+     * Đính chính thời điểm thực tế của một dòng {@link #TRACK} (014 FR-031a (a); đổi api chủ dự án duyệt 2026-11-11). Lịch
+     * sử chỉ thêm (DBR-23) nên không sửa {@code starts_at} của dòng gốc: mỗi lần đính chính là một dòng {@code POINT} mới,
+     * {@code value_id} là mã dòng gốc, {@code starts_at} là thời điểm đúng; lần mới nhất thắng khi đọc.
+     */
+    public static final HistoryTrack<Void> TIME_TRACK = new HistoryTrack<>("M01.RESIDENT", "STATUS_TIME", Void.class);
+
+    public static final String CORRECT_TIME = "CORRECT_TIME";
+
     private final Long id;
     private final long residentId;
     private final ResidentStatus fromStatus;
@@ -115,6 +124,23 @@ public class ResidentStatusHistory {
                 toStatus,
                 command,
                 occurredAt,
+                performedBy,
+                bySystem,
+                reason,
+                basisType,
+                basisId,
+                conditionWaiver);
+    }
+
+    /** Cùng dòng, thời điểm đã đính chính ({@link #TIME_TRACK}). */
+    public ResidentStatusHistory withOccurredAt(Instant corrected) {
+        return new ResidentStatusHistory(
+                id,
+                residentId,
+                fromStatus,
+                toStatus,
+                command,
+                corrected,
                 performedBy,
                 bySystem,
                 reason,

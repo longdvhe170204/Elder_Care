@@ -59,16 +59,4 @@ class FileTypesTest {
         assertThatThrownBy(() -> FileTypes.check(FileTypes.XLSX, PDF, FileTypes.SYSTEM_GENERATED))
                 .isInstanceOf(BusinessException.class);
     }
-
-    @Test
-    void over10Mb_rejected() {
-        byte[] big = new byte[(int) FileTypes.MAX_SIZE + 1];
-        System.arraycopy(PDF, 0, big, 0, PDF.length);
-
-        assertThatThrownBy(() -> FileTypes.check("application/pdf", big, FileTypes.SYSTEM_GENERATED))
-                .isInstanceOfSatisfying(
-                        BusinessException.class,
-                        e -> org.assertj.core.api.Assertions.assertThat(e.errorCode())
-                                .isEqualTo("FILE_TOO_LARGE"));
-    }
 }

@@ -18,17 +18,44 @@ public class AssetStatisticsStore {
     }
 
     public List<OverdueAssetView> overdue(ScopeFilter scope, LocalDate on) {
-        return jdbc.query(
-                query(scope) + " ORDER BY asset_id, flag",
-                (rs, n) -> new OverdueAssetView(
-                        rs.getLong("asset_id"),
-                        rs.getString("code"),
-                        rs.getString("name"),
-                        rs.getLong("department_id"),
-                        rs.getObject("floor_area_id", Long.class),
-                        AssetFlag.valueOf(rs.getString("flag")),
-                        rs.getObject("due_on", LocalDate.class)),
-                args(scope, on));
+        return jdbc.query(query(scope) + " ORDER BY asset_id, flag", this::view, args(scope, on));
+    }
+
+    /** Hạn trong [from, to], chưa mang dấu quá hạn của hạn đó, tài sản chưa thanh lý (016 T008). */
+    public List<OverdueAssetView> dueSoon(ScopeFilter scope, LocalDate from, LocalDate to) {
+        String sql = dueSoon("maintenance_overdue", "maintenance_due_on", AssetFlag.MAINTENANCE_OVERDUE, scope)
+                + " UNION ALL "
+                + dueSoon(
+                        "vehicle_inspection_overdue",
+                        "vehicle_inspection_due_on",
+                        AssetFlag.VEHICLE_INSPECTION_OVERDUE,
+                        scope)
+                + " UNION ALL " + dueSoon("insurance_overdue", "insurance_due_on", AssetFlag.INSURANCE_OVERDUE, scope)
+                + " ORDER BY asset_id, flag";
+        var args = new ArrayList<Object>();
+        for (int i = 0; i < 3; i++) {
+            args.add(from);
+            args.add(to);
+            if (!scope.facilityWide()) args.addAll(scope.floorAreaIds());
+        }
+        return jdbc.query(sql, this::view, args.toArray());
+    }
+
+    private OverdueAssetView view(java.sql.ResultSet rs, int n) throws java.sql.SQLException {
+        return new OverdueAssetView(
+                rs.getLong("asset_id"),
+                rs.getString("code"),
+                rs.getString("name"),
+                rs.getLong("department_id"),
+                rs.getObject("floor_area_id", Long.class),
+                AssetFlag.valueOf(rs.getString("flag")),
+                rs.getObject("due_on", LocalDate.class));
+    }
+
+    private String dueSoon(String flagColumn, String dueColumn, AssetFlag flag, ScopeFilter scope) {
+        return "SELECT id AS asset_id,code,name,department_id,floor_area_id,'" + flag.name() + "' AS flag," + dueColumn
+                + " AS due_on FROM asset WHERE status <> 'DISPOSED' AND NOT " + flagColumn + " AND " + dueColumn
+                + " BETWEEN ? AND ?" + scopeFilter(scope);
     }
 
     public Map<AssetFlag, Long> countOverdue(ScopeFilter scope, LocalDate on) {
@@ -54,7 +81,12 @@ public class AssetStatisticsStore {
     }
 
     private String select(String flagColumn, String dueColumn, AssetFlag flag, ScopeFilter scope) {
-        String filter = scope.facilityWide()
+        return "SELECT id AS asset_id,code,name,department_id,floor_area_id,'" + flag.name() + "' AS flag," + dueColumn
+                + " AS due_on FROM asset WHERE " + flagColumn + " AND " + dueColumn + " < ?" + scopeFilter(scope);
+    }
+
+    private static String scopeFilter(ScopeFilter scope) {
+        return scope.facilityWide()
                 ? ""
                 : scope.floorAreaIds().isEmpty()
                         ? " AND 1=0"
@@ -62,8 +94,6 @@ public class AssetStatisticsStore {
                                 + String.join(
                                         ",",
                                         Collections.nCopies(scope.floorAreaIds().size(), "?")) + ")";
-        return "SELECT id AS asset_id,code,name,department_id,floor_area_id,'" + flag.name() + "' AS flag," + dueColumn
-                + " AS due_on FROM asset WHERE " + flagColumn + " AND " + dueColumn + " < ?" + filter;
     }
 
     private Object[] args(ScopeFilter scope, LocalDate on) {

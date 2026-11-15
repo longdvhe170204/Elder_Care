@@ -92,10 +92,15 @@ public class DeliveryStore {
                 limit);
     }
 
-    /** Token FCM còn hiệu lực của một tài khoản. */
+    /**
+     * Token FCM còn hiệu lực của một tài khoản. Thiết bị nhận đẩy là dòng {@code simple_record} loại {@code
+     * M13.PUSH_DEVICE} của tài khoản, khóa duy nhất theo (tài khoản, thiết bị), trạng thái {@code ACTIVE}, {@code
+     * INVALIDATED}; app, token ở {@code content} (gộp bảng {@code push_device} 2026-11-13, research R-15 của 000).
+     */
     public List<String> activeTokens(long accountId) {
         return jdbc.queryForList(
-                "SELECT fcm_token FROM push_device WHERE account_id = ? AND invalidated_at IS NULL",
+                "SELECT content->>'$.fcmToken' FROM simple_record WHERE kind = 'M13.PUSH_DEVICE'"
+                        + " AND entity_type = 'M15.ACCOUNT' AND entity_id = ? AND status = 'ACTIVE'",
                 String.class,
                 accountId);
     }
@@ -103,21 +108,28 @@ public class DeliveryStore {
     /** Đăng ký hoặc cập nhật token FCM của thiết bị đang đăng nhập (research B-05); token mới bỏ dấu vô hiệu. */
     public void registerToken(long accountId, String deviceId, String app, String fcmToken, Instant at) {
         jdbc.update(
-                "INSERT INTO push_device (account_id, device_id, app, fcm_token, updated_at) VALUES (?, ?, ?, ?, ?)"
-                        + " ON DUPLICATE KEY UPDATE app = VALUES(app), fcm_token = VALUES(fcm_token),"
-                        + " updated_at = VALUES(updated_at), invalidated_at = NULL",
+                "INSERT INTO simple_record (kind, module, entity_type, entity_id, status, content, unique_key, created_at,"
+                        + " created_by) VALUES ('M13.PUSH_DEVICE', 'M13', 'M15.ACCOUNT', ?, 'ACTIVE',"
+                        + " JSON_OBJECT('deviceId', ?, 'app', ?, 'fcmToken', ?, 'updatedAt', ?), ?, ?, ?) AS new"
+                        + " ON DUPLICATE KEY UPDATE status = 'ACTIVE', content = new.content,"
+                        + " version = simple_record.version + 1",
                 accountId,
                 deviceId,
                 app,
                 fcmToken,
-                utc(at));
+                at.toString(),
+                "M13.PUSH_DEVICE:" + accountId + ":" + deviceId,
+                utc(at),
+                accountId);
     }
 
     /** FCM báo token hết hạn: không đẩy tới token này nữa. */
     public void invalidateToken(String token, Instant at) {
         jdbc.update(
-                "UPDATE push_device SET invalidated_at = ? WHERE fcm_token = ? AND invalidated_at IS NULL",
-                utc(at),
+                "UPDATE simple_record SET status = 'INVALIDATED', content = JSON_SET(content, '$.invalidatedAt', ?),"
+                        + " version = version + 1 WHERE kind = 'M13.PUSH_DEVICE' AND status = 'ACTIVE'"
+                        + " AND content->>'$.fcmToken' = ?",
+                at.toString(),
                 token);
     }
 

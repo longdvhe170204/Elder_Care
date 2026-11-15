@@ -42,6 +42,16 @@ public interface RequestTypeHandler {
     /** Ghi tác động trong transaction áp dụng; ném lỗi thì rollback, yêu cầu giữ Đã duyệt (FR-037b). */
     ResultRef apply(ApprovalRequestView request, LocalDate actualEffectiveDate);
 
+    /**
+     * Loại tự kiểm phạm vi của người lập (bổ sung theo plan 015, 000 T-015/T033; 015 FR-019, FR-026): có giá trị thì 000
+     * chỉ kiểm người lập giữ khóa {@link #createPermission()} (không xét phạm vi theo phân công hiện tại của 002) và lấy
+     * giá trị này làm kết quả kiểm phạm vi, ví dụ "có tên trong ca Đã công bố chưa bắt đầu"; rỗng thì kiểm quyền theo
+     * phạm vi như mọi loại.
+     */
+    default Optional<Boolean> creatorInOwnScope(CurrentUser user, JsonNode content) {
+        return Optional.empty();
+    }
+
     /** 013 FR-027a: false thì người yêu cầu không được tự duyệt. */
     default boolean allowSelfApproval() {
         return true;

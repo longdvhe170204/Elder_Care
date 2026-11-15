@@ -167,14 +167,15 @@ public class ActivityTripStore {
                 registrationId);
     }
 
-    public Optional<Instant> departedAt(long registrationId) {
+    /** Mã bản ghi điểm danh mới nhất loại {@code type} ({@code DEPARTURE}, {@code RETURN}) của đăng ký. */
+    public Optional<Long> latestAttendanceId(long registrationId, String type) {
         return Optional.ofNullable(jdbc.queryForObject(
-                        "SELECT MAX(e.occurred_at) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE'"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.registrationId'))=?"
-                                + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))='DEPARTURE'",
-                        LocalDateTime.class,
-                        Long.toString(registrationId)))
-                .map(at -> at.toInstant(ZoneOffset.UTC)); // record_event lưu UTC (000 Rows)
+                "SELECT MAX(e.id) FROM record_event e WHERE e.kind='M04.TRIP_ATTENDANCE'"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.registrationId'))=?"
+                        + " AND JSON_UNQUOTE(JSON_EXTRACT(e.content,'$.type'))=?",
+                Long.class,
+                Long.toString(registrationId),
+                type));
     }
 
     /** Số lần đã ghi rời viện của đăng ký, kể cả lần đã Hủy ghi nhận (FR-031a), để khóa chống trùng của lần sau khác. */
@@ -193,6 +194,15 @@ public class ActivityTripStore {
                         "UPDATE activity_registration SET participant_status='ELIGIBLE',participant_reason=NULL,"
                                 + "missing_alert_requested=FALSE,version=version+1"
                                 + " WHERE id=? AND participant_status IN ('DEPARTED','MISSING_ON_RETURN')",
+                        registrationId)
+                == 1;
+    }
+
+    /** FR-031a (c): người bị ghi về nhầm trở lại Đã rời viện; chỉ khi đang ở Đã về. */
+    public boolean undoReturn(long registrationId) {
+        return jdbc.update(
+                        "UPDATE activity_registration SET participant_status='DEPARTED',participant_reason=NULL,"
+                                + "version=version+1 WHERE id=? AND participant_status='RETURNED'",
                         registrationId)
                 == 1;
     }
@@ -217,6 +227,16 @@ public class ActivityTripStore {
     public void extend(long id, Instant plannedReturnAt) {
         jdbc.update(
                 "UPDATE activity_session SET trip_planned_return_at=?,trip_overdue_return=FALSE,version=version+1 WHERE id=?",
+                local(plannedReturnAt),
+                id);
+    }
+
+    /** Đính chính lịch xe (019) đổi giờ rời, về dự kiến của chuyến Đã về; không đụng dấu quá giờ, mốc đã báo. */
+    public void correctPlannedTimes(long id, Instant plannedDepartureAt, Instant plannedReturnAt) {
+        jdbc.update(
+                "UPDATE activity_session SET trip_planned_departure_at=?,trip_planned_return_at=?,version=version+1"
+                        + " WHERE id=? AND trip_status='RETURNED'",
+                local(plannedDepartureAt),
                 local(plannedReturnAt),
                 id);
     }
@@ -260,6 +280,18 @@ public class ActivityTripStore {
         return jdbc.query(
                 "SELECT * FROM activity_session WHERE trip_status IN ('SCHEDULED','IN_PROGRESS') ORDER BY id",
                 ActivityTripStore::row);
+    }
+
+    public Optional<Long> missingIncident(long registrationId) {
+        return Optional.ofNullable(jdbc.queryForObject(
+                "SELECT missing_incident_id FROM activity_registration WHERE id=?", Long.class, registrationId));
+    }
+
+    public void recordMissingIncident(long registrationId, long incidentId) {
+        jdbc.update(
+                "UPDATE activity_registration SET missing_incident_id=?,participant_status='MISSING_ON_RETURN',version=version+1 WHERE id=? AND missing_incident_id IS NULL",
+                incidentId,
+                registrationId);
     }
 
     public Optional<Instant> firstDeparture(long tripId) {

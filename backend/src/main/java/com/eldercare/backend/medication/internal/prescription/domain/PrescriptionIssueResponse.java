@@ -10,7 +10,10 @@ public record PrescriptionIssueResponse(
         Long duplicatePrescriptionId,
         Long allergyItemId,
         String severity,
+
+        @com.fasterxml.jackson.annotation.JsonProperty("notAutoChecked")
         boolean manualReviewRequired,
+
         Integer lineNumber) {
 
     public static PrescriptionIssueResponse from(PrescriptionIssueView view) {

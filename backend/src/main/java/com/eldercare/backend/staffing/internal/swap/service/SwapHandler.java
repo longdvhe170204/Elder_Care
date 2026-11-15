@@ -1,5 +1,6 @@
 package com.eldercare.backend.staffing.internal.swap.service;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -11,10 +12,12 @@ import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
+import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import com.eldercare.backend.staffing.internal.swap.domain.SwapStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
@@ -38,6 +41,12 @@ class SwapHandler implements RequestTypeHandler {
     static final String APPLY = "APPLY";
     static final String REJECT = "REJECT";
 
+    private final ShiftStore shifts;
+
+    SwapHandler(ShiftStore shifts) {
+        this.shifts = shifts;
+    }
+
     @Override
     public String typeCode() {
         return TYPE;
@@ -58,6 +67,18 @@ class SwapHandler implements RequestTypeHandler {
     @Override
     public PermissionKey createPermission() {
         return new PermissionKey(Function.SHIFT_SWAP_REQUEST, Operation.CREATE);
+    }
+
+    /**
+     * FR-019 (015 T033): người lập là người nhường và có tên trong ca X; không cần phân công hiện tại (ca X chưa bắt
+     * đầu).
+     */
+    @Override
+    public Optional<Boolean> creatorInOwnScope(CurrentUser user, JsonNode content) {
+        long giver = content.path("giverStaffId").asLong();
+        long shiftX = content.path("shiftXId").asLong();
+        return Optional.of(user.staffId().filter(id -> id == giver).isPresent()
+                && shifts.members(shiftX).stream().anyMatch(m -> m.staffId() == giver));
     }
 
     @Override

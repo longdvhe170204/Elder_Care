@@ -54,10 +54,12 @@ public class AllocationCheckStore {
                                 rs.getBoolean("active"),
                                 rs.getBoolean("isolated"),
                                 GenderPolicy.valueOf(rs.getString("gender_policy")),
+                                // T066: cột JSON room.allowed_care_levels (thay room_allowed_care_level).
                                 Set.copyOf(jdbc
                                         .queryForList(
-                                                "SELECT care_level FROM room_allowed_care_level WHERE room_id=?"
-                                                        + (current ? " FOR SHARE" : ""),
+                                                "SELECT l.care_level FROM room r, JSON_TABLE(r.allowed_care_levels,"
+                                                        + " '$[*]' COLUMNS (care_level VARCHAR(20) PATH '$')) l"
+                                                        + " WHERE r.id=?" + (current ? " FOR SHARE OF r" : ""),
                                                 String.class,
                                                 rs.getLong("room_id"))
                                         .stream()

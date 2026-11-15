@@ -30,6 +30,35 @@ public record DetailRow(
         boolean reduced,
         boolean canOpenRecord) {
 
+    /** Dòng của chỉ tiêu tổng hợp nguồn ngoài: kết quả không giới hạn nhóm, không chờ xem lại, mở được theo nguồn. */
+    public static DetailRow simple(
+            String sourceKey,
+            String feature,
+            String type,
+            String status,
+            Instant referenceTime,
+            Long floorAreaId,
+            Long residentId,
+            Map<String, Object> result) {
+        return new DetailRow(
+                sourceKey,
+                feature,
+                type,
+                status,
+                referenceTime,
+                floorAreaId,
+                null,
+                residentId,
+                null,
+                null,
+                result,
+                null,
+                Map.of(),
+                false,
+                false,
+                false);
+    }
+
     public DetailRow withResult(Map<String, Object> shown) {
         return new DetailRow(
                 sourceKey,
@@ -51,6 +80,27 @@ public record DetailRow(
     }
 
     /** Q-196: không mở được bản ghi từ danh sách (mở hồ sơ hiện tại cũng không). */
+    /** Mở được bản ghi gốc ở màn của feature sở hữu (FR-009, Q12). */
+    public DetailRow withCanOpenRecord(boolean open) {
+        return new DetailRow(
+                sourceKey,
+                feature,
+                type,
+                status,
+                referenceTime,
+                floorAreaId,
+                floorArea,
+                residentId,
+                resident,
+                performedBy,
+                result,
+                resultGroup,
+                restrictedResult,
+                pendingReview,
+                reduced,
+                open);
+    }
+
     public DetailRow asReduced() {
         return new DetailRow(
                 sourceKey,

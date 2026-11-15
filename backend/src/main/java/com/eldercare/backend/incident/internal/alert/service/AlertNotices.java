@@ -141,11 +141,15 @@ final class AlertNotices {
                 at));
     }
 
-    /** Chỉ số nguồn bị đính chính: báo người phụ trách (hoặc điều dưỡng phụ trách), không đóng cảnh báo (FR-019). */
-    static List<NotificationRequest> sourceCorrected(AlertRecord alert, String eventKey, Instant at) {
+    /**
+     * Chỉ số nguồn bị đính chính: báo người phụ trách (hoặc điều dưỡng phụ trách), không đóng cảnh báo (FR-019).
+     * {@code assigneeStaffId} là mã nhân viên của người phụ trách ({@code assigneeId} của cảnh báo là mã tài khoản).
+     */
+    static List<NotificationRequest> sourceCorrected(
+            AlertRecord alert, Long assigneeStaffId, String eventKey, Instant at) {
         var groups = new ArrayList<RecipientGroup>();
-        if (alert.assigneeId() != null) {
-            groups.add(new RecipientGroup.Staff(alert.assigneeId(), "ALERT_SOURCE_CORRECTED"));
+        if (assigneeStaffId != null) {
+            groups.add(new RecipientGroup.Staff(assigneeStaffId, "ALERT_SOURCE_CORRECTED"));
         } else if (alert.residentId() != null) {
             groups.add(new RecipientGroup.AssignedNurse(alert.residentId(), new Substitution.Default()));
         }

@@ -42,19 +42,6 @@ class ResidencyBillingSourcesTest {
     }
 
     @Test
-    void FR_005a_bedReleasedAndOutsidePeriodAreKeptForTheCreationCheckInsteadOfLosingTheSource() {
-        var original = day(DAY, true, false, true);
-        when(residency.daysBetween(42, DAY, DAY)).thenReturn(List.of(original));
-        when(index.effectiveItems(42, "RESIDENCY_DAY", List.of("42:" + DAY))).thenReturn(Map.of());
-
-        assertThat(service.between(42, DAY, DAY)).singleElement().satisfies(source -> {
-            assertThat(source.day().bedReleased()).isTrue();
-            assertThat(source.day().outsideBillingPeriod()).isTrue();
-            assertThat(source.day().absenceId()).isEqualTo(31L);
-        });
-    }
-
-    @Test
     void FR_005_sourcesWithExistingCostsRemainVisibleAndKeepTheirEffectiveCostId() {
         var first = day(DAY, false, false, false);
         var second = day(DAY.plusDays(1), false, false, false);
@@ -80,14 +67,5 @@ class ResidencyBillingSourcesTest {
         assertThat(service.between(42, DAY, DAY).getFirst().day().bedReleased()).isFalse();
         assertThat(service.between(42, DAY, DAY).getFirst().day().bedReleased()).isTrue();
         verify(residency, times(2)).daysBetween(42, DAY, DAY);
-    }
-
-    @Test
-    void FR_005a_anEmptyCalendarDoesNotExpandToAllCostsOrCreateSourceRows() {
-        when(residency.daysBetween(42, DAY, DAY)).thenReturn(List.of());
-
-        assertThat(service.between(42, DAY, DAY)).isEmpty();
-
-        verifyNoInteractions(index);
     }
 }

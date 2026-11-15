@@ -8,14 +8,26 @@ public record IncidentReportRow(
         long id,
         Long residentId,
         String level,
+        String levelAtReceived,
         long currentTypeId,
         String typeCode,
         Long floorAreaId,
         Instant createdAt,
         Instant receivedAt,
-        int escalationLevel) {
+        int escalationLevel,
+        String status) {
     public IncidentReportView view(boolean nonHealth) {
         return new IncidentReportView(
-                id, residentId, level, typeCode, nonHealth, floorAreaId, createdAt, receivedAt, escalationLevel);
+                id,
+                residentId,
+                level,
+                levelAtReceived,
+                typeCode,
+                nonHealth,
+                floorAreaId,
+                createdAt,
+                receivedAt,
+                escalationLevel,
+                status);
     }
 }

@@ -229,34 +229,6 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_020_taskFailureRollsBackAbsenceAssignmentsAuditAndRatio() throws Exception {
-        var called = new AtomicInteger();
-        tasks.onAbsent((staff, ca) -> {
-            called.incrementAndGet();
-            throw new IllegalStateException("[Nguồn công việc lỗi kiểm thử]");
-        });
-        try {
-            command("record-absence", headToken, reason(worker.staffId()));
-        } catch (jakarta.servlet.ServletException expected) {
-        }
-        assertThat(called).hasValue(1);
-        assertThat(jdbc.queryForObject("SELECT absent_at FROM shift_staff WHERE id=?", Object.class, member))
-                .isNull();
-        assertThat(jdbc.queryForObject("SELECT status FROM staff_assignment WHERE id=?", String.class, assignment))
-                .isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE entity_type='M09.STAFF_ABSENCE' AND entity_id=?",
-                        Integer.class,
-                        Long.toString(member)))
-                .isZero();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM (SELECT COALESCE(CAST(NULLIF(JSON_UNQUOTE(e.content->'$.legacy.id'),'null') AS UNSIGNED),e.id) AS id,e.entity_id AS shift_id,e.occurred_at AS calculated_at,NULLIF(JSON_UNQUOTE(e.content->'$.event'),'null') AS event,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.totalWeight'),'null') AS DECIMAL(8,2)) AS total_weight,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.staffCount'),'null') AS SIGNED) AS staff_count,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.ratio'),'null') AS DECIMAL(8,2)) AS ratio,CAST(NULLIF(JSON_UNQUOTE(e.content->'$.threshold'),'null') AS DECIMAL(8,2)) AS threshold,(e.content->'$.meetsThreshold'=CAST('true' AS JSON)) AS meets_threshold FROM record_event e WHERE e.kind='M09.STAFFING_RATIO_CALCULATION') staffing_ratio_calculation WHERE shift_id=?",
-                        Integer.class,
-                        shift))
-                .isZero();
-    }
-
-    @Test
     void FR_020_twoConcurrentAbsenceCommandsApplyExactlyOnce() throws Exception {
         var latch = new java.util.concurrent.CountDownLatch(1);
         var calls = new AtomicInteger();

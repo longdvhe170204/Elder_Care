@@ -35,6 +35,7 @@ public class ActivityRecords {
     static final Set<String> COUNTED_ABSENCES = Set.of("REFUSED", "HEALTH", "OTHER");
 
     static final String PRESENT = "PRESENT";
+    static final String LATE_RECORDED = "LATE_RECORDED";
     static final String OVERDUE = "OVERDUE";
     static final String OVERDUE_DOUBLE = "OVERDUE_DOUBLE";
 
@@ -158,6 +159,13 @@ public class ActivityRecords {
             });
             return rows.stream();
         });
+    }
+
+    /** Điểm danh buổi mang nhãn "ghi nhận muộn" (FR-032), mỗi lượt một bản ghi. */
+    public Stream<AttendanceRecord> lateAttendance(ScopeFilter rough, Instant from, Instant to) {
+        return sessions(rough, from, to)
+                .flatMap(s -> java.util.stream.IntStream.range(0, s.view().lateRecorded())
+                        .mapToObj(i -> new AttendanceRecord(s.view(), LATE_RECORDED, i)));
     }
 
     /**

@@ -373,11 +373,14 @@ public class PortalService {
                 try {
                     var summary = api.summary(residentId, fromDay, toDay);
                     Map<String, Object> item = new LinkedHashMap<>();
-                    summary.averageEatingRatio().ifPresent(v -> item.put("averageEatingRatio", v));
-                    summary.averageWaterMl().ifPresent(v -> item.put("averageWaterMl", v));
+                    // Chủ dự án chốt 2026-11-12: lượng nước trung bình theo ngày có ghi, kèm số ngày có dữ liệu
+                    summary.averageWaterMl().ifPresent(v -> {
+                        item.put("averageWaterMl", v);
+                        item.put("waterDays", summary.waterDays());
+                    });
                     return new HealthPart(code, true, null, item.isEmpty() ? List.of() : List.of(item));
                 } catch (BusinessException e) {
-                    // 005 chưa chốt công thức tổng hợp (team-plan mục 8): không trả số giả
+                    // nguồn 005 chưa đọc được (ví dụ nội dung đính chính lỗi): không trả số giả
                     return new HealthPart(code, false, e.getMessage(), List.of());
                 }
             }

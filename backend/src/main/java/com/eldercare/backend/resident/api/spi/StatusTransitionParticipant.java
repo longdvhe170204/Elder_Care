@@ -20,6 +20,11 @@ public interface StatusTransitionParticipant {
 
     Set<StatusCommand> interestedCommands();
 
+    /** Feature sở hữu, ví dụ {@code "013"}: gắn vào {@link Condition#module()} của điều kiện bên này trả (api-001). */
+    default String module() {
+        return null;
+    }
+
     /** Chỉ đọc; rỗng nghĩa là thỏa. */
     List<Condition> checkConditions(CommandContext context);
 

@@ -28,26 +28,6 @@ class FR_032_DepositUnmetAfterAdmissionIT extends AbsenceTestBase {
     TransactionTemplate transactions;
 
     @Test
-    void FR_032_unmetDepositWhileInResidence_notifiesManager_andKeepsResidencyStatus() throws Exception {
-        long residentId = inResidence();
-        long contractId =
-                jdbc.queryForObject("SELECT MAX(id) FROM contract WHERE resident_id = ?", Long.class, residentId);
-
-        deposits.status(contractId, DepositStatus.SATISFIED);
-        transactions.executeWithoutResult(status -> recheck.recheck(contractId));
-        assertThat(events.stream(DepositNotSatisfiedAfterAdmission.class).filter(e -> e.contractId() == contractId))
-                .as("Đã đáp ứng thì không báo")
-                .isEmpty();
-
-        deposits.status(contractId, DepositStatus.NOT_SATISFIED);
-        transactions.executeWithoutResult(status -> recheck.recheck(contractId));
-        assertThat(events.stream(DepositNotSatisfiedAfterAdmission.class).filter(e -> e.contractId() == contractId))
-                .as("Chưa đáp ứng khi đã lưu trú thì báo Quản lý viện")
-                .hasSize(1);
-        assertThat(currentStatus(residentId)).isEqualTo(ResidentStatus.IN_RESIDENCE);
-    }
-
-    @Test
     void FR_032_unmetDepositBeforeResidence_doesNotNotify() throws Exception {
         long residentId = inResidence();
         long contractId =

@@ -20,6 +20,11 @@ public class CostStatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "010";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.END_RESIDENCY, StatusCommand.RECORD_DEATH, StatusCommand.CANCEL_ADMISSION);
     }

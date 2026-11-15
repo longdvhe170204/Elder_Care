@@ -39,8 +39,12 @@ class StaffCommandsHttpIT extends MySqlIntegrationTestBase {
         var users = new TestUsers(jdbc, time);
         manager = TestUsers.bearer(
                 users.session(users.staff(Role.NURSING_HOME_MANAGER).accountId()));
-        staff = AssignmentFixtures.insert(
-                jdbc, "INSERT INTO staff_profile(full_name,position) VALUES ('[Nhân viên HTTP Phase 6]','Điều dưỡng')");
+        // Id tường minh: id tự tăng có thể trùng staff_id của Quản lý viện ở trên (tài khoản không có staff_profile)
+        // khi lớp chạy trước đã chèn staff_profile với id từ TestUsers.nextId().
+        staff = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO staff_profile(id,full_name,position) VALUES (?,'[Nhân viên HTTP Phase 6]','Điều dưỡng')",
+                staff);
     }
 
     private org.springframework.test.web.servlet.ResultActions command(String path, Object body) throws Exception {

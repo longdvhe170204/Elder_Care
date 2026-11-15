@@ -4,6 +4,7 @@ import com.eldercare.backend.resident.api.dto.Gender;
 import com.eldercare.backend.resident.api.dto.IdentityView;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,6 +25,9 @@ public interface ResidentApi {
 
     /** 003 (BR-M03-01). */
     Optional<Gender> gender(long residentId);
+
+    /** Ngày sinh cho 007: tuổi khi gọi 115 (FR-047k), thẻ thông tin khẩn cấp (FR-048); không có hồ sơ hoặc chưa ghi thì rỗng. */
+    Optional<LocalDate> dateOfBirth(long residentId);
 
     /** Cho job của module khác. */
     List<Long> byStatus(Set<ResidentStatus> statuses);

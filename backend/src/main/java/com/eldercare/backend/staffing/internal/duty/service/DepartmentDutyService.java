@@ -96,6 +96,11 @@ public class DepartmentDutyService {
                 .build());
     }
 
+    /** Bộ phận Hiệu lực mang mã hệ thống (V008_96: {@code CARE} là bộ phận Chăm sóc). */
+    public Optional<Long> byCode(String code) {
+        return store.byCode(code);
+    }
+
     public Optional<Long> lead(long department) {
         return store.lead(department);
     }

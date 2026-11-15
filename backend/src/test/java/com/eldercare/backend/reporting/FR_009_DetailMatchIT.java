@@ -4,15 +4,19 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.reporting.TestScopedMetrics.Event;
 import com.eldercare.backend.reporting.TestScopedMetrics.EventSource;
+import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
+import com.jayway.jsonpath.JsonPath;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -142,5 +146,16 @@ class FR_009_DetailMatchIT extends MySqlIntegrationTestBase {
     @Test
     void SC_006_dashboardReportAndDetails_sameNumber_facilityWide() throws Exception {
         expectSameNumberEverywhere(manager, 2 * PER_FLOOR);
+    }
+
+    @Autowired
+    List<MetricSource<?>> metricSources;
+
+    private static String body(ResultActions result) throws Exception {
+        return result.andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private static int total(ResultActions result) throws Exception {
+        return ((Number) JsonPath.read(body(result), "$.total")).intValue();
     }
 }

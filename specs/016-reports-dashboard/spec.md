@@ -90,14 +90,14 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 **Trong phạm vi** (Module 14, mục 18; UC-67):
 
 1. Báo cáo người cao tuổi: số lượng, loại lưu trú, mức chăm sóc, trạng thái, phân bố phòng/giường, danh sách chờ (18.1).
-2. Báo cáo chăm sóc: công việc theo trạng thái, nhân viên, ca, tầng; ghi nhận muộn; thời gian giường Chờ sẵn sàng (sửa, 2026-10-06, Q-282: bỏ vệ sinh); phiếu bữa ăn; hoạt động và tỷ lệ tham gia; nguy cơ cô lập (18.2).
+2. Báo cáo chăm sóc: công việc theo trạng thái, nhân viên, ca, tầng; ghi nhận muộn; thời gian giường Chờ sẵn sàng (sửa, 2026-10-06, Q-282: bỏ vệ sinh); phiếu bữa ăn; hoạt động và tỷ lệ tham gia (18.2) *(sửa 2026-11-10, Q-407: bỏ nguy cơ cô lập)*.
 3. Báo cáo chất lượng: tỷ lệ Đạt của kiểm tra chất lượng theo nhân viên và theo tầng (18.2, BR-M04-23); *(bổ sung 2026-09-30, Q-254)* số mục theo người kiểm tra (Trưởng tầng / Người phụ trách ca).
 4. Báo cáo sức khỏe và thuốc: chỉ số, cảnh báo, sự cố, trường hợp cần theo dõi, tình trạng dùng thuốc, đánh giá lại và đối chiếu thuốc quá hạn (18.3; **sửa, 2026-10-06, Q-307**).
 5. Báo cáo chi phí phát sinh của người cao tuổi (18.4).
 6. Dashboard theo vai trò với số liệu trong ngày và ca hiện tại (18.5).
 7. Áp phạm vi dữ liệu và giới hạn trường của người xem cho mọi số liệu, danh sách và lần mở chi tiết (18.5 "(Bổ sung)", 19.3, BR-M15-01).
 8. Mở từ một số liệu xuống danh sách bản ghi tạo nên số liệu đó (chỉ xem).
-9. Báo cáo nhân sự và ca trực: tỷ lệ phục vụ theo ca, yêu cầu đổi ca, nghỉ đột xuất, số giờ làm trong tháng (18.2 "theo ca", 18.5; feature 008 FR-037, feature 015 FR-042; Q-194).
+9. Báo cáo nhân sự và ca trực: tỷ lệ phục vụ theo ca, yêu cầu đổi ca, nghỉ đột xuất (18.2 "theo ca", 18.5; số giờ làm trong tháng bỏ theo Q-408; feature 008 FR-037, feature 015 FR-042; Q-194).
 10. Xuất báo cáo ra file theo đúng phạm vi và giới hạn trường, có ghi lại lần xuất (Q-193).
 
 **Ngoài phạm vi**:
@@ -181,7 +181,7 @@ Quản lý viện, hành chính và các vai trò có quyền xem hồ sơ trong
 
 ### User Story 4 - Báo cáo chăm sóc và chất lượng (Priority: P2)
 
-Quản lý viện và trưởng tầng xem kết quả chăm sóc trong một khoảng: công việc hoàn thành, chưa hoàn thành, quá hạn theo nhân viên, ca, tầng; tỷ lệ hoàn thành đúng hạn công việc Bắt buộc; số ghi nhận muộn; thời gian giường Chờ sẵn sàng (sửa, 2026-10-06, Q-282: bỏ vệ sinh đúng hạn); phiếu bữa ăn giao trễ hoặc có sai lệch; hoạt động, tỷ lệ tham gia, lượt "Không ghi nhận", chuyến đi quá giờ về, sự cố thiếu người; danh sách người có nguy cơ cô lập; tỷ lệ Đạt của kiểm tra chất lượng. Bác sĩ và điều dưỡng xem phần công việc chăm sóc (không có phần theo nhân viên).
+Quản lý viện và trưởng tầng xem kết quả chăm sóc trong một khoảng: công việc hoàn thành, chưa hoàn thành, quá hạn theo nhân viên, ca, tầng; tỷ lệ hoàn thành đúng hạn công việc Bắt buộc; số ghi nhận muộn; thời gian giường Chờ sẵn sàng (sửa, 2026-10-06, Q-282: bỏ vệ sinh đúng hạn); phiếu bữa ăn giao trễ hoặc có sai lệch; hoạt động, tỷ lệ tham gia, lượt "Không ghi nhận", chuyến đi quá giờ về, sự cố thiếu người; tỷ lệ Đạt của kiểm tra chất lượng. Bác sĩ và điều dưỡng xem phần công việc chăm sóc (không có phần theo nhân viên).
 
 **Why this priority**: Là công cụ giám sát chất lượng chăm sóc (18.2, BR-M04-23). Cần dữ liệu một thời gian mới có giá trị, nên sau dashboard.
 
@@ -257,7 +257,7 @@ Mọi con số trên dashboard và báo cáo mở được xuống danh sách b�
 
 ### User Story 8 - Báo cáo nhân sự và ca trực (Priority: P3)
 
-Quản lý viện và trưởng tầng xem theo tháng: tỷ lệ phục vụ và tình trạng đạt của từng ca; yêu cầu đổi ca, nghỉ đột xuất theo trạng thái cuối và thời gian từ lập tới quyết định; phân bố số giờ làm trong tháng theo nhân viên.
+Quản lý viện và trưởng tầng xem theo tháng: tỷ lệ phục vụ và tình trạng đạt của từng ca; yêu cầu đổi ca, nghỉ đột xuất theo trạng thái cuối và thời gian từ lập tới quyết định. *(Phân bố số giờ làm theo nhân viên bỏ theo Q-408.)*
 
 **Why this priority**: Là số liệu feature 008 và 015 đã lưu cho feature này; giúp Quản lý viện điều chỉnh nhân lực. Không chặn các báo cáo khác.
 
@@ -287,7 +287,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 3. **Given** file đã xuất ngày 01/11, **When** một kết quả trong tháng 10 bị đính chính ngày 03/11, **Then** file cũ không bị hệ thống sửa; xuất lại cho số mới.
 4. **Given** nhân viên chăm sóc C, **When** C tìm xuất bất kỳ báo cáo nào, **Then** hệ thống từ chối.
 5. **Given** Quản lý viện xem danh sách liều Bỏ lỡ tháng 10 có họ tên người cao tuổi, **When** xuất file mà không nhập mục đích, **Then** hệ thống từ chối; **When** nhập mục đích "họp giao ban an toàn thuốc" rồi xuất, **Then** file có đầy đủ danh sách như màn hình và lần xuất ghi dấu "có định danh" cùng mục đích (FR-061, FR-062, Q-198).
-6. **Given** trưởng tầng T xem báo cáo tỷ lệ Đạt theo nhân viên và báo cáo giờ làm tháng 10 của tầng 1, **When** T xuất báo cáo tỷ lệ Đạt, **Then** file có tên nhân viên; **When** T xuất báo cáo giờ làm theo nhân viên, **Then** hệ thống từ chối vì chỉ Quản lý viện được xuất chỉ tiêu này (FR-061, FR-073, Q-197).
+6. **Given** trưởng tầng T xem báo cáo tỷ lệ Đạt theo nhân viên của tầng 1, **When** T xuất báo cáo tỷ lệ Đạt, **Then** file có tên nhân viên (FR-061, Q-197). *(Phần xuất báo cáo giờ làm theo nhân viên bỏ theo Q-408.)*
 
 ---
 
@@ -343,7 +343,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 | Chỉ tiêu theo từng nhân viên (công việc, kiểm tra chất lượng) | Toàn viện | Nhân viên có phân công tại tầng | — | — | — | **Hồ sơ nhân viên, chứng chỉ**; Kiểm tra chất lượng |
 | Thời gian giường Chờ sẵn sàng (sửa, 2026-10-06, Q-282; trước đây "Vệ sinh phòng, khu vực") | Toàn viện | Tầng được giao | — | — | — | **Cấu hình phòng, giường**; Phân bổ, chuyển giường |
 | Phiếu bữa ăn giao trễ, có sai lệch | Toàn viện | Tầng được giao | — | — | — | **Suất ăn đã chốt, phiếu bữa ăn**; Nhận phiếu, báo sai lệch |
-| Hoạt động, tỷ lệ tham gia, chuyến đi, nguy cơ cô lập | Toàn viện | Tầng được giao | — | — | — | **Hoạt động, ngoài viện** |
+| Hoạt động, tỷ lệ tham gia, chuyến đi | Toàn viện | Tầng được giao | — | — | — | **Hoạt động, ngoài viện** |
 | Kiểm tra chất lượng | Toàn viện | Tầng được giao | — | — | — | **Kiểm tra chất lượng** |
 | Chỉ số, cảnh báo, sự cố, trường hợp cần theo dõi | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Chỉ số sức khỏe**; Xử lý cảnh báo; Sự cố, khẩn cấp; Danh sách tiếp xúc |
 | Sự cố thuộc loại mang dấu "không thuộc sức khỏe" (FR-042a) | (như dòng trên) | (như dòng trên) | (như dòng trên) | (như dòng trên) | Toàn viện, không có mô tả, diễn biến | **Sự cố, khẩn cấp** (HC "T¹⁰"); 19.3 giới hạn trường của Hành chính |
@@ -429,7 +429,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 
   *(Nguồn: 18.2; BR-M08-11, BR-M08-12; feature 011 bảng giao tiếp)*
 - **FR-035**: Báo cáo hoạt động MUST nêu số buổi, số lượt đăng ký, số lượt Có mặt, số lượt "Không ghi nhận", tỷ lệ tham gia theo hoạt động, theo tầng; tỷ lệ tham gia = số lượt Có mặt ÷ (số lượt Có mặt + số lượt Vắng có lý do "từ chối", "sức khỏe" hoặc "khác"); lượt "Vắng – đang vắng mặt", "Vắng – không đến", "Không ghi nhận" và đăng ký Đã hủy không vào mẫu số. Báo cáo MUST nêu số chuyến quá giờ về (quá giờ về dự kiến + CFG-M04-07, mặc định \[30 phút\], mà chưa điểm danh về, BR-M04-17), trong đó số chuyến tới mốc giờ về + 2 × CFG-M04-07 (Q-172) tính riêng, và số sự cố thiếu người. *(Nguồn: 18.2; BR-M04-17; Q-169, Q-172, Q-173; feature 014 FR-070)*
-- **FR-036**: Báo cáo MUST nêu danh sách người cao tuổi có cảnh báo nguy cơ cô lập đang mở và số ngày tính của chuỗi (BR-M04-22, CFG-M04-10, mặc định \[7 ngày\]). *(Nguồn: 18.2; feature 014 FR-058)*
+- **FR-036**: *(Bỏ, 2026-11-10, Q-407)* Báo cáo không còn danh sách nguy cơ cô lập (BR-M04-22, CFG-M04-10 bỏ; feature 014 FR-058 bỏ). *(Nguồn: Q-407)*
 - **FR-037**: Báo cáo chất lượng MUST nêu tỷ lệ Đạt = số Đạt ÷ (số Đạt + số Không đạt), theo nhân viên thực hiện công việc gốc và theo tầng; số mục "Không kiểm tra được" và "Quá hạn kiểm tra" tính riêng. Công việc do trưởng tầng được giao thực hiện MUST ghi "ngoài phạm vi kiểm tra" và MUST NOT hiện tỷ lệ Đạt cho trưởng tầng (Q-168). **(Bổ sung, 2026-10-01, Q-254)** Báo cáo MUST nêu số mục đã kiểm tra theo vai trò kiểm tra (Trưởng tầng / Người phụ trách ca); công việc do Người phụ trách ca thực hiện trong ca không có Trưởng tầng được giao cũng MUST ghi "ngoài phạm vi kiểm tra". *(Nguồn: 18.2; BR-M04-23; feature 014 FR-065, FR-066; Q-254)*
 
 #### F. Báo cáo sức khỏe và thuốc (18.3)
@@ -463,7 +463,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
   - **Thông tin định danh người cao tuổi** là: họ tên, mã người cao tuổi, phòng/giường, ngày sinh, số CCCD, ảnh (5.1), và mọi dòng tổng hợp mà nhóm chỉ có đúng một người cao tuổi.
   - **Quản lý viện**: xuất được số liệu tổng hợp và danh sách chi tiết có định danh người cao tuổi. Trước mỗi lần xuất có định danh, Quản lý viện MUST nhập mục đích xuất; không có mục đích thì không xuất được. *(Clarification 2026-09-27, đề xuất Q-198)*
   - **Vai trò khác**: chỉ xuất số liệu tổng hợp; file MUST NOT có dòng hay cột nào chứa thông tin định danh người cao tuổi.
-  - **Định danh nhân viên** (họ tên nhân viên trong chỉ tiêu theo nhân viên, ghi nhận muộn, kiểm tra chất lượng, nhân sự) được xuất theo đúng quyền xem của người xuất; riêng số giờ làm theo từng nhân viên (FR-073) chỉ Quản lý viện được xuất. *(Clarification 2026-09-27, đề xuất Q-197)* Vì vậy các báo cáo theo từng người cao tuổi (ví dụ chi phí theo người, tỷ lệ liều theo người, danh sách nguy cơ cô lập, trường hợp cần theo dõi) không xuất được với các vai trò này; họ vẫn xem được trên hệ thống. Dữ liệu chi phí theo người cho kế toán đi qua file của feature 010 (UC-64).
+  - **Định danh nhân viên** (họ tên nhân viên trong chỉ tiêu theo nhân viên, ghi nhận muộn, kiểm tra chất lượng, nhân sự) được xuất theo đúng quyền xem của người xuất. *(Clarification 2026-09-27, đề xuất Q-197)* Vì vậy các báo cáo theo từng người cao tuổi (ví dụ chi phí theo người, tỷ lệ liều theo người, trường hợp cần theo dõi) không xuất được với các vai trò này; họ vẫn xem được trên hệ thống. Dữ liệu chi phí theo người cho kế toán đi qua file của feature 010 (UC-64).
 
   File MUST có đúng phạm vi (FR-012, FR-013), bộ lọc, giới hạn trường (FR-014) và cùng số liệu như màn hình tại thời điểm xuất; MUST ghi người xuất, "tính đến" thời điểm lấy số, bộ lọc và dòng tổng. Hệ thống MUST NOT sửa file đã xuất khi dữ liệu nguồn đổi sau đó; muốn số mới thì xuất lại. Dashboard không có lệnh xuất; muốn xuất thì dùng báo cáo tương ứng. Định dạng file do giai đoạn thiết kế chọn. *(Nguồn: Clarification 2026-09-27, đề xuất Q-193; 19.3; NFR-08)*
 - **FR-062**: Mỗi lần xuất MUST được ghi thành một bản ghi nhật ký hành động "Xuất báo cáo" theo feature 000 FR-043a, FR-044: người thực hiện (người xuất, kèm vai trò), thời điểm, đối tượng (báo cáo), dữ liệu trước/sau để trống, lý do là mục đích xuất (bắt buộc khi file có thông tin định danh người cao tuổi, Q-198); phần chi tiết gồm bộ lọc, khoảng, phạm vi, chế độ (với chi phí), số dòng, dấu "có định danh". File MUST NOT được giao cho người dùng nếu bản ghi nhật ký chưa được lưu (feature 000 FR-047). Bản ghi chỉ ghi thêm (feature 000 FR-048), lưu giữ theo CFG-M15-04 (mặc định \[10 năm\]) và chỉ được Bộ lập lịch loại bỏ (feature 000 FR-050, FR-051). Quản lý viện xem được mọi lần xuất (feature 000 FR-049); người xuất xem được lần xuất của mình. Việc xem dashboard và báo cáo trên hệ thống (không xuất) MUST NOT tạo bản ghi nhật ký hay bản ghi nghiệp vụ. *(Nguồn: 19.4; NFR-07; Q-193, Q-198; feature 000 FR-043a → FR-051)*
@@ -471,9 +471,9 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 #### I. Báo cáo nhân sự và ca trực
 
 - **FR-070**: Báo cáo MUST nêu, cho từng ca đã diễn ra trong khoảng: tỷ lệ phục vụ theo khu, số nhân viên được tính, tổng trọng số và tình trạng đạt/không đạt theo lần tính cuối cùng trước khi ca kết thúc do feature 008 lưu (BR-M09-02, Q-79, CFG-M09-01), kèm dấu "từng không đạt" nếu có bất kỳ lần tính nào trong thời gian ca cho kết quả không đạt; tổng hợp theo tầng, mẫu ca, tháng: số ca không đạt, đếm theo dấu "từng không đạt". *(Nguồn: 18.2 "theo ca", 18.5; feature 008 FR-037; Clarification 2026-09-27, đề xuất Q-200)*
-- **FR-071**: *(Bỏ theo Q-397, 2026-10-29: không còn phủ tối thiểu, thiếu ca; nội dung cũ:)* Báo cáo MUST nêu theo tầng, vai trò của dòng phủ, tháng: số ca thiếu phủ (CFG-M09-07, mặc định \[≥ 1 điều dưỡng / tầng / ca\]), tổng thời gian ca chạy thiếu phủ, số mục "thiếu ca" đã công bố (Q-189). Ca toàn viện được nêu riêng, chỉ với Quản lý viện. *(Nguồn: BR-M09-11; feature 015 FR-042)*
+- **FR-071**: *(Bỏ theo Q-397, 2026-10-29: không còn phủ tối thiểu, thiếu ca; nội dung cũ:)* Báo cáo MUST nêu theo tầng, vai trò của dòng phủ, tháng: số ca thiếu phủ (CFG-M09-07, mặc định \[≥ 1 điều dưỡng / tầng / ca\]), tổng thời gian ca chạy thiếu phủ, số mục "thiếu ca" đã công bố (Q-189). Ca toàn viện được nêu riêng, chỉ với Quản lý viện. *(Nguồn: BR-M09-11; feature 015 FR-042)*~~
 - **FR-072**: Báo cáo MUST nêu số yêu cầu đổi ca, yêu cầu nghỉ đột xuất theo trạng thái cuối (của feature 015) và thời gian trung bình từ lập tới quyết định (Q-397: bỏ lời mời nhận ca thay). Lý do nghỉ, lý do đổi ca MUST NOT hiện trong báo cáo, danh sách chi tiết hay file xuất; số liệu MUST NOT được chia theo loại nghỉ hay lý do nghỉ, để không lộ gián tiếp thông tin sức khỏe của nhân viên. *(Nguồn: BR-M09-10, BR-M09-11; 19.3 "(Bổ sung, spec 015)"; feature 015 FR-042)*
-- **FR-073**: Báo cáo MUST nêu phân bố số giờ làm trong tháng theo nhân viên: giờ đã làm và giờ đã xếp còn lại tách riêng (Q-180); số lần vượt số giờ làm liên tục CFG-M09-02 (mặc định \[16 giờ\]). Chỉ Quản lý viện và trưởng tầng được giao xem được chỉ tiêu này. Căn cứ: 19.3 chỉ cho trưởng tầng được giao (tầng mình) và Quản lý viện xem số giờ làm của người khác (sửa 2026-10-29, Q-397: bỏ cảnh báo thiếu phủ). Người phụ trách ca không phải trưởng tầng MUST NOT xem. Trưởng tầng chỉ thấy nhân viên có phân công tại tầng mình; giờ ở ca của tầng khác của cùng nhân viên chỉ hiện tổng, không hiện chi tiết ca; giờ ở ca toàn viện chỉ Quản lý viện xem chi tiết. Chỉ Quản lý viện được xuất chỉ tiêu này ra file (FR-061). *(Nguồn: BR-M09-03, BR-M09-11; Q-178, Q-180; 19.3; feature 015 FR-042)*
+- **FR-073**: *(Bỏ theo Q-408, chủ dự án 2026-11-11: không có chỉ tiêu số giờ làm theo nhân viên; cảnh báo chồng giờ, giờ làm liên tục vẫn ở 008, 015.)* ~~Báo cáo MUST nêu phân bố số giờ làm trong tháng theo nhân viên: giờ đã làm và giờ đã xếp còn lại tách riêng (Q-180); số lần vượt số giờ làm liên tục CFG-M09-02 (mặc định \[16 giờ\]). Chỉ Quản lý viện và trưởng tầng được giao xem được chỉ tiêu này. Căn cứ: 19.3 chỉ cho trưởng tầng được giao (tầng mình) và Quản lý viện xem số giờ làm của người khác (sửa 2026-10-29, Q-397: bỏ cảnh báo thiếu phủ). Người phụ trách ca không phải trưởng tầng MUST NOT xem. Trưởng tầng chỉ thấy nhân viên có phân công tại tầng mình; giờ ở ca của tầng khác của cùng nhân viên chỉ hiện tổng, không hiện chi tiết ca; giờ ở ca toàn viện chỉ Quản lý viện xem chi tiết. Chỉ Quản lý viện được xuất chỉ tiêu này ra file (FR-061). *(Nguồn: BR-M09-03, BR-M09-11; Q-178, Q-180; 19.3; feature 015 FR-042)*
 
 ### Giao tiếp với feature khác
 
@@ -493,11 +493,11 @@ Feature này chỉ **nhận** dữ liệu; yêu cầu duy nhất gửi đi là g
 | Nhận | 008 | Ca, lịch đã công bố, tỷ lệ phục vụ theo lần tính (feature 008 FR-037), bàn giao chưa xác nhận, giấy phép và chứng chỉ nhân viên; **lịch sử** để tính phạm vi theo thời gian (FR-012): phân công theo ca, giao trưởng tầng (kể cả giao tạm có thời hạn), bổ sung và gỡ nhân viên khỏi ca, vắng ca, người phụ trách ca | Ca, tầng/khu, nhân viên, vai trò trong ca, thời điểm bắt đầu/kết thúc, tỷ lệ, tình trạng |
 | Nhận | 010 | Khoản chi phí (loại, nguồn sinh, người lập, loại điều chỉnh), bảng thường và bảng bổ sung, kỳ, điều chỉnh sau chốt | Như dòng "Gửi 016" của feature 010 |
 | Nhận | 011 | Phiếu bữa ăn giao trễ, có sai lệch (FR-034); số suất theo bữa, chế độ ăn không dùng ở giai đoạn này | Phiếu, bữa, giờ bữa, tầng/khu, thời điểm Đã giao, lịch sử trạng thái Có sai lệch |
-| Nhận | 014 | Tỷ lệ tham gia, "Không ghi nhận", nguy cơ cô lập, kiểm tra chất lượng, chuyến quá giờ, sự cố thiếu người, cách xếp tầng (feature 014 FR-058, FR-065, FR-070) | Như dòng "Gửi Module 14 (feature 016)" của feature 014 |
+| Nhận | 014 | Tỷ lệ tham gia, "Không ghi nhận", kiểm tra chất lượng, chuyến quá giờ, sự cố thiếu người, cách xếp tầng (feature 014 FR-065, FR-070) | Như dòng "Gửi Module 14 (feature 016)" của feature 014 |
 | Nhận | 017 | *(bổ sung 2026-09-28)* Tình trạng số dư theo lần tính hằng ngày, số dư, số ngày còn đủ tiền, số tiền còn nợ (feature 017 mục H, dòng "Gửi 016") | Hồ sơ, tình trạng, số dư, số ngày còn đủ tiền, thời điểm tính |
 | Nhận | 018 | *(bổ sung 2026-09-29)* Số liệu ở feature 018 FR-011: khai báo Cần khai báo, quá hạn khai báo, Hết hạn, việc khai báo xóa chưa xong | Người cao tuổi, trạng thái khai báo, hạn |
 | Nhận | 019 | *(bổ sung 2026-09-29)* Tài sản mang dấu quá hạn và tới mốc nhắc, kèm vị trí hiện hành (để xếp tầng); nguyên liệu dưới tồn tối thiểu; lô sắp hết hạn, quá hạn (feature 019 dòng "Gửi 016", 18.5) | Tài sản, loại, vị trí, dấu, hạn; nguyên liệu, tồn, mức tối thiểu; lô, hạn dùng |
-| Nhận | 015 | Yêu cầu đổi ca, nghỉ đột xuất, giờ làm (feature 015 FR-042; Q-397 bỏ phủ, thiếu ca, lời mời) | Ca, tầng/khu, vai trò, trạng thái, thời điểm lập, quyết định |
+| Nhận | 015 | Yêu cầu đổi ca, nghỉ đột xuất (feature 015 FR-042; Q-397 bỏ phủ, thiếu ca, lời mời; Q-408 bỏ giờ làm) | Ca, tầng/khu, vai trò, trạng thái, thời điểm lập, quyết định |
 | — | 009, 012, 013 | Không nhận ở giai đoạn này (Q-194); số liệu các spec này đã hứa cung cấp để giai đoạn sau | — |
 | Nhận | 007 | *(bổ sung 2026-10-18, Q-369; sửa 2026-10-22, Q-374, Q-375)* Nguồn của cảnh báo để tách cảnh báo SOS, nút hỗ trợ khẩn cấp; mốc tới nơi (FR-041) | Cảnh báo, nguồn, mức, thời điểm tạo, tiếp nhận và tới nơi, dấu "không ghi mốc tới nơi", tầng |
 
@@ -526,7 +526,7 @@ Feature này không sở hữu dữ liệu nghiệp vụ nhóm 1, 2, 3. Các kh�
 - **SC-010**: 100% file xuất trong bộ kiểm thử có cùng số liệu và cùng tổng với màn hình tại thời điểm xuất; 0 file chứa bản ghi ngoài phạm vi, trường bị giới hạn, tên thuốc với Hành chính, hay lý do nghỉ, lý do đổi ca; 0 file do vai trò khác Quản lý viện xuất chứa thông tin định danh người cao tuổi.
 - **SC-011**: Với bộ kiểm thử phạm vi theo thời gian (trưởng tầng nhận giao, thôi giao giữa kỳ; điều dưỡng có 2 ca trong tháng; người cao tuổi chuyển tầng), 100% số liệu khớp quy tắc FR-012, kể cả Người phụ trách ca và ca có bổ sung, gỡ, vắng, nghỉ có duyệt.
 - **SC-012**: 0 lần Hành chính thấy sự cố thuộc loại không mang dấu "không thuộc sức khỏe", hoặc thấy mô tả, diễn biến của sự cố mang dấu, trên dashboard, báo cáo, danh sách chi tiết hay file xuất, kể cả sau khi sự cố đổi loại hoặc dấu của loại bị đổi (FR-042a).
-- **SC-013**: 100% lần xuất có thông tin định danh người cao tuổi do Quản lý viện thực hiện và có mục đích xuất; 0 file giờ làm theo nhân viên do vai trò khác Quản lý viện xuất (FR-061, FR-073).
+- **SC-013**: 100% lần xuất có thông tin định danh người cao tuổi do Quản lý viện thực hiện và có mục đích xuất (FR-061). *(Phần file giờ làm theo nhân viên bỏ theo Q-408.)*
 - **SC-014**: Số giường theo từng trạng thái trên dashboard và báo cáo phân bố giường khớp 100% với trạng thái giường của feature 003 tại cùng thời điểm (tương ứng feature 003 SC-008).
 
 ## Assumptions

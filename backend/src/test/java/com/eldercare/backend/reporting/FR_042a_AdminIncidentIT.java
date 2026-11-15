@@ -1,8 +1,6 @@
 package com.eldercare.backend.reporting;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,6 +75,18 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
         public List<Long> criticalResidentIds(ScopeFilter scope) {
             return List.of();
         }
+
+        @Override
+        public int cancelledCount(ScopeFilter scope, Instant from, Instant to) {
+            return cancelled;
+        }
+
+        volatile int cancelled;
+
+        @Override
+        public List<com.eldercare.backend.incident.api.dto.IsolationZoneView> containmentZones(ScopeFilter scope) {
+            return List.of();
+        }
     }
 
     @TestConfiguration
@@ -128,11 +138,13 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
     @AfterEach
     void reset() {
         incidents.rows.clear();
+        incidents.cancelled = 0;
         clock.reset();
     }
 
     private IncidentReportView incident(long id, String type, boolean nonHealth) {
-        return new IncidentReportView(id, TestUsers.nextId(), "MINOR", type, nonHealth, floor, at, null, 0);
+        return new IncidentReportView(
+                id, TestUsers.nextId(), "MINOR", null, type, nonHealth, floor, at, null, 0, "NEW");
     }
 
     private ResultActions perform(TestUser user, MockHttpServletRequestBuilder request) throws Exception {
@@ -150,42 +162,27 @@ class FR_042a_AdminIncidentIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void office_report_onlyNonHealthIncidents_detailWithoutResult() throws Exception {
-        perform(office, ranged(REPORT))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(value(NON_HEALTH)).value(contains(3)))
-                .andExpect(jsonPath("$.values[?(@.metricCode == '" + INCIDENTS + "')]")
-                        .value(empty()));
-
-        String body = perform(office, ranged("/api/v1/metric-details/" + NON_HEALTH))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rows.length()").value(3))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        assertThat(body).doesNotContain("FALL").doesNotContain("escalationCount");
-
-        // không có nhóm sức khỏe: 403 hoặc danh sách rỗng, không lộ sự cố khác
-        assertThat(perform(office, ranged("/api/v1/metric-details/" + INCIDENTS))
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString())
-                .doesNotContain("FALL");
-    }
-
-    @Test
-    void Q7_typeChangedToHealthType_leavesOfficeNumbersOnNextRead() throws Exception {
-        perform(office, ranged(REPORT)).andExpect(jsonPath(value(NON_HEALTH)).value(contains(3)));
-
-        incidents.rows.replaceAll(r -> r.incidentId() == 3 ? incident(3, "FALL", false) : r);
-
-        perform(office, ranged(REPORT)).andExpect(jsonPath(value(NON_HEALTH)).value(contains(2)));
-    }
-
-    @Test
     void manager_seesAllIncidentsInHealthGroup() throws Exception {
         perform(users.staff(Role.NURSING_HOME_MANAGER), ranged(REPORT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(value(INCIDENTS)).value(contains(5)));
+    }
+
+    /**
+     * FR-042, FR-007 (016 T018; chủ dự án duyệt 2026-11-12): số sự cố Đã hủy chỉ là dòng tham khảo
+     * {@code cancelledIncidentCount}, không vào {@code HEALTH.INCIDENTS}; người không thấy nhóm sự cố sức khỏe không có số
+     * này.
+     */
+    @Test
+    void FR_042_cancelledIncidentsAreAReferenceLineOnly() throws Exception {
+        incidents.cancelled = 2;
+
+        perform(users.staff(Role.NURSING_HOME_MANAGER), ranged(REPORT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(value(INCIDENTS)).value(contains(5)))
+                .andExpect(jsonPath("$.cancelledIncidentCount").value(2));
+        perform(office, ranged(REPORT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cancelledIncidentCount").doesNotExist());
     }
 }

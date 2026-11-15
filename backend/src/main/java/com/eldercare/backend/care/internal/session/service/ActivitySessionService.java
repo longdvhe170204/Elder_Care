@@ -4,8 +4,10 @@ import static com.eldercare.backend.care.internal.activity.domain.ActivityKinds.
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
@@ -19,6 +21,7 @@ import com.eldercare.backend.care.internal.activity.domain.Activity;
 import com.eldercare.backend.care.internal.session.domain.*;
 import com.eldercare.backend.care.internal.session.domain.SessionTemplate.VersionFrom;
 import com.eldercare.backend.care.internal.session.persistence.ActivitySessionStore;
+import com.eldercare.backend.care.internal.trip.domain.TripTemplatePlan;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
@@ -28,6 +31,8 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
+import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import java.time.*;
 import java.util.*;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,6 +52,7 @@ public class ActivitySessionService {
     private final ActivitySessionStore store;
     private final SimpleRecordApi records;
     private final RegistrationEligibility eligibility;
+    private final LateReturnConsentService consents;
     private final RegistrationNotices notices;
     private final CurrentUser user;
     private final AuditLogApi audit;
@@ -54,21 +60,27 @@ public class ActivitySessionService {
     private final ApplicationEventPublisher events;
     private final com.eldercare.backend.care.internal.trip.service.TripLifecycle trips;
     private final com.eldercare.backend.administration.shared.api.CatalogApi catalogs;
+    private final LocationStructureApi locations;
+    private final ScopeApi scopes;
 
     public ActivitySessionService(
             ActivitySessionStore store,
             SimpleRecordApi records,
             RegistrationEligibility eligibility,
+            LateReturnConsentService consents,
             RegistrationNotices notices,
             CurrentUser user,
             AuditLogApi audit,
             BusinessTime time,
             ApplicationEventPublisher events,
             com.eldercare.backend.care.internal.trip.service.TripLifecycle trips,
-            com.eldercare.backend.administration.shared.api.CatalogApi catalogs) {
+            com.eldercare.backend.administration.shared.api.CatalogApi catalogs,
+            LocationStructureApi locations,
+            ScopeApi scopes) {
         this.store = store;
         this.records = records;
         this.eligibility = eligibility;
+        this.consents = consents;
         this.notices = notices;
         this.user = user;
         this.audit = audit;
@@ -76,6 +88,8 @@ public class ActivitySessionService {
         this.events = events;
         this.trips = trips;
         this.catalogs = catalogs;
+        this.locations = locations;
+        this.scopes = scopes;
     }
 
     public static Target target(Long floorAreaId) {
@@ -85,6 +99,25 @@ public class ActivitySessionService {
     public Target target(long id) {
         var s = store.find(id).orElseThrow(() -> new com.eldercare.backend.common.error.NotFoundException());
         return new Target(ENTITY, Long.toString(id), null, s.floorAreaId());
+    }
+
+    /** FR-002b: người tạo hoặc Trưởng tầng của địa điểm thực tế của buổi toàn viện. */
+    public Target commandTarget(long id) {
+        var session = store.find(id).orElseThrow(() -> new com.eldercare.backend.common.error.NotFoundException());
+        var activity = records.require(ACTIVITIES, session.activityId()).content();
+        if (!Activity.FACILITY.equals(activity.scope())) return target(id);
+        Long floor = session.floorAreaId();
+        if (user.staffId().filter(staff -> staff == activity.createdByStaffId()).isPresent())
+            floor =
+                    scopes
+                            .filter(user, new PermissionKey(Function.ACTIVITY_OUTING, Operation.UPDATE))
+                            .floorAreaIds()
+                            .stream()
+                            .sorted()
+                            .findFirst()
+                            .orElse(null);
+        if (floor == null) throw new PermissionDeniedException("Chưa có phạm vi quản lý buổi này");
+        return new Target(ENTITY, null, null, floor);
     }
 
     @RequiresPermission(function = Function.ACTIVITY_OUTING, operation = Operation.VIEW)
@@ -109,20 +142,21 @@ public class ActivitySessionService {
     @RequiresPermission(function = Function.ACTIVITY_OUTING, operation = Operation.CREATE)
     @BusinessCommand(requiresReason = false)
     @Transactional
-    public List<Long> createFromTemplate(Target target, long activityId, LocalDate from, LocalDate to) {
+    public List<Long> createFromTemplate(
+            Target target, long activityId, LocalDate from, LocalDate to, TripTemplatePlan trip) {
         requireFloorManager();
         if (from == null || to == null) throw new InvalidValueException("Cần khoảng ngày");
         if (from.isBefore(time.today())) throw new InvalidValueException("Ngày đầu không sớm hơn hôm nay");
         if (to.isBefore(from)) throw new InvalidValueException("Ngày cuối không trước ngày đầu");
         var activity = records.lockForUpdate(ACTIVITIES, activityId);
         requireActive(activity, from);
-        if (catalogs.require(ACTIVITY_TYPES, activity.content().typeId())
+        boolean offSite = catalogs.require(ACTIVITY_TYPES, activity.content().typeId())
                 .attributes()
-                .offSite())
-            throw new BusinessException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "CARE_SOURCE_UNAVAILABLE",
-                    "Mẫu ngoài viện chưa có thông tin chuyến trong hợp đồng; tạo buổi lẻ có thông tin chuyến");
+                .offSite();
+        if (offSite != (trip != null))
+            throw new InvalidValueException(
+                    "Mẫu ngoài viện cần thông tin chuyến; mẫu trong viện không dùng thông tin chuyến");
+        if (trip != null) trip.on(from);
         var versions = versions(activityId);
         if (versions.isEmpty()) throw new InvalidValueException("Hoạt động chưa có mẫu lặp");
         var slots = SessionTemplate.slots(versions, from, to);
@@ -148,6 +182,7 @@ public class ActivitySessionService {
                     user.accountId(),
                     now);
             created.add(id);
+            if (trip != null) trips.schedule(id, trip.on(LocalDate.ofInstant(slot.startsAt(), BusinessTime.ZONE)));
             var session = store.lock(id);
             for (long resident : regulars) {
                 if (!eligible(session, activity.content(), resident, now)) skipped.add(resident);
@@ -213,21 +248,27 @@ public class ActivitySessionService {
         if (!start.equals(before.startsAt()) && store.exists(before.activityId(), start))
             throw new BusinessException(HttpStatus.CONFLICT, "SESSION_ALREADY_EXISTS", "Đã có buổi cùng giờ bắt đầu");
         store.reschedule(id, start, end, roomId, responsibleStaffId);
+        var activityRow = records.require(ACTIVITIES, before.activityId()).content();
+        if (Activity.FACILITY.equals(activityRow.scope()) && roomId != null)
+            store.changeLocationFloor(id, roomFloor(roomId));
         var after = store.lock(id);
         trips.reschedule(before, after);
         var activity = records.require(ACTIVITIES, before.activityId()).content();
         var now = time.now();
         var cancelled = new ArrayList<Registration>();
-        for (var r : store.activeRegistrations(id))
+        for (var r : store.activeRegistrations(id)) {
             eligibility
-                    .tryCheck(after, activity, r.residentId(), now, false)
+                    .tryCheck(after, activity, r.residentId(), now, consents.hasActiveConsent(after, r.residentId()))
                     .ifPresent(result -> result.blockers().stream()
                             .filter(c -> !c.code().equals("CAPACITY_FULL"))
                             .findFirst()
                             .ifPresent(c -> {
                                 store.cancelRegistration(r.id(), Registration.AUTO_SESSION_CHANGED, c.description());
+                                consents.registrationCancelled(after, r);
                                 cancelled.add(r);
                             }));
+            if (!cancelled.contains(r)) consents.registrationSaved(after, r.residentId(), r.id());
+        }
         notices.cancelled(after, cancelled, Registration.AUTO_SESSION_CHANGED, now);
         events.publishEvent(new ActivitySessionChanged(id));
         log(ENTITY, id, "SESSION_RESCHEDULED", Map.of("startsAt", start.toString(), "endsAt", end.toString()), reason);
@@ -289,9 +330,13 @@ public class ActivitySessionService {
     public void onRegularAdded(long activityId, long residentId) {
         var now = time.now();
         var activity = records.require(ACTIVITIES, activityId).content();
-        for (var s : store.scheduledFrom(activityId, now))
-            if (!store.registered(s.id(), residentId) && eligible(s, activity, residentId, now))
-                store.register(s.id(), residentId, Registration.REGULAR, null, now);
+        for (var candidate : store.scheduledFrom(activityId, now)) {
+            var s = store.lock(candidate.id());
+            if (!store.registered(s.id(), residentId) && eligible(s, activity, residentId, now)) {
+                long id = store.register(s.id(), residentId, Registration.REGULAR, null, now);
+                consents.registrationSaved(s, residentId, id);
+            }
+        }
     }
 
     /** FR-010: bỏ người thường xuyên hủy đăng ký sẵn ở buổi chưa diễn ra, giữ đăng ký thêm tay. */
@@ -299,8 +344,10 @@ public class ActivitySessionService {
     public void onRegularRemoved(long activityId, long residentId, String reason) {
         for (var s : store.scheduledFrom(activityId, time.now()))
             for (var r : store.activeRegistrations(s.id()))
-                if (r.residentId() == residentId && Registration.REGULAR.equals(r.source()))
+                if (r.residentId() == residentId && Registration.REGULAR.equals(r.source())) {
                     store.cancelRegistration(r.id(), null, reason);
+                    consents.registrationCancelled(s, r);
+                }
     }
 
     /** FR-004, FR-009, FR-013, FR-021: hủy buổi chưa có điểm danh kèm mọi đăng ký, báo người đã đăng ký. */
@@ -315,7 +362,11 @@ public class ActivitySessionService {
             default -> Registration.AUTO_SESSION_CANCELLED;
         };
         var registrations = store.activeRegistrations(session.id());
-        for (var r : registrations) store.cancelRegistration(r.id(), auto, reason);
+        for (var r : registrations) {
+            store.cancelRegistration(r.id(), auto, reason);
+            consents.registrationCancelled(session, r);
+        }
+        consents.sessionCancelled(session.id());
         notices.cancelled(session, registrations, auto, time.now());
         events.publishEvent(new ActivitySessionCancelled(session.id()));
     }
@@ -323,7 +374,7 @@ public class ActivitySessionService {
     /** Điều kiện đăng ký sẵn (FR-008, FR-010): có điều kiện chặn hoặc nguồn 007 chưa có thì không đăng ký. */
     private boolean eligible(Session session, Activity activity, long residentId, Instant now) {
         return eligibility
-                .tryCheck(session, activity, residentId, now, false)
+                .tryCheck(session, activity, residentId, now, consents.hasActiveConsent(session, residentId))
                 .map(result -> result.blockers().isEmpty())
                 .orElse(false);
     }
@@ -351,21 +402,33 @@ public class ActivitySessionService {
             SimpleRecord<Activity> activity, Instant start, Instant end, String source, Long roomId, Long responsible) {
         var a = activity.content();
         var location = a.defaultLocation();
+        Long room = roomId != null ? roomId : location == null ? null : location.roomId();
+        Long floor = a.floorAreaId();
+        if (Activity.FACILITY.equals(a.scope()) && room != null) floor = roomFloor(room);
         return new Session(
                 0,
                 activity.id(),
                 start,
                 end,
                 source,
-                roomId != null ? roomId : location == null ? null : location.roomId(),
+                room,
                 roomId != null || location == null ? null : location.areaId(),
-                a.floorAreaId(),
+                floor,
                 responsible != null ? responsible : a.defaultResponsibleStaffId(),
                 Session.SCHEDULED,
                 false,
                 null,
                 null,
                 0);
+    }
+
+    private long roomFloor(long roomId) {
+        if (!locations.active(new LocationRef("ROOM", roomId)))
+            throw new InvalidValueException("Địa điểm buổi phải là phòng đang dùng");
+        return locations
+                .room(roomId)
+                .orElseThrow(() -> new InvalidValueException("Phòng không thuộc cấu trúc của viện"))
+                .floorId();
     }
 
     private List<VersionFrom> versions(long activityId) {

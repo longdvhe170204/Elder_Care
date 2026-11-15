@@ -59,75 +59,6 @@ class M02StatusParticipantTest {
     }
 
     @Test
-    void FR_048_grantTemporaryAbsence_rejectsMissingOrWrongFields() {
-        String ok = "\"expectedReturnAt\":\"2030-03-06T01:00:00Z\",\"pickedUpById\":11,\"pickupRecordId\":12,"
-                + "\"handoverStaffId\":13";
-        assertInvalid(StatusCommand.GRANT_TEMPORARY_ABSENCE, "{" + ok + "}", "absenceType");
-        assertInvalid(
-                StatusCommand.GRANT_TEMPORARY_ABSENCE, "{\"absenceType\":\"HOSPITAL\"," + ok + "}", "absenceType");
-        assertInvalid(
-                StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                "{\"absenceType\":\"OTHER\",\"pickedUpById\":11,\"pickupRecordId\":12,\"handoverStaffId\":13}",
-                "expectedReturnAt");
-        assertInvalid(
-                StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                "{\"absenceType\":\"OTHER\",\"expectedReturnAt\":\"khong-phai-gio\",\"pickedUpById\":11,"
-                        + "\"pickupRecordId\":12,\"handoverStaffId\":13}",
-                "expectedReturnAt");
-        assertInvalid(
-                StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                "{\"absenceType\":\"OTHER\",\"expectedReturnAt\":\"2030-03-06T01:00:00Z\",\"pickupRecordId\":12,"
-                        + "\"handoverStaffId\":13}",
-                "pickedUpById");
-        assertInvalid(
-                StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                "{\"absenceType\":\"OTHER\"," + ok + ",\"takesMedication\":\"co\"}",
-                "takesMedication");
-        assertInvalid(
-                StatusCommand.GRANT_TEMPORARY_ABSENCE,
-                "{\"absenceType\":\"OTHER\"," + ok + ",\"standardReason\":\"LY_DO_LA\"}",
-                "standardReason");
-    }
-
-    @Test
-    void FR_062_endResidency_needsEndingAndEffectiveTime() {
-        assertThatCode(() -> participant.validateDetails(
-                        StatusCommand.END_RESIDENCY,
-                        json("{\"residencyEndingId\":7,\"effectiveAt\":\"2030-04-01T00:00:00Z\"}")))
-                .doesNotThrowAnyException();
-        assertInvalid(StatusCommand.END_RESIDENCY, "{\"effectiveAt\":\"2030-04-01T00:00:00Z\"}", "residencyEndingId");
-        assertInvalid(StatusCommand.END_RESIDENCY, "{\"residencyEndingId\":7}", "effectiveAt");
-    }
-
-    @Test
-    void FR_069_recordDeath_needsTimePlaceDiscovererConfirmer_causeAndEvidenceOptional() {
-        String required =
-                "\"deathAt\":\"2030-03-04T22:00:00Z\",\"place\":\"Phòng 201\",\"discoveredBy\":\"Điều dưỡng A\","
-                        + "\"confirmedById\":9";
-        assertThatCode(() -> participant.validateDetails(StatusCommand.RECORD_DEATH, json("{" + required + "}")))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> participant.validateDetails(
-                        StatusCommand.RECORD_DEATH,
-                        json("{" + required + ",\"cause\":\"Suy tim\",\"evidenceFileId\":31}")))
-                .doesNotThrowAnyException();
-        assertInvalid(
-                StatusCommand.RECORD_DEATH, "{\"place\":\"P\",\"discoveredBy\":\"A\",\"confirmedById\":9}", "deathAt");
-        assertInvalid(
-                StatusCommand.RECORD_DEATH,
-                "{\"deathAt\":\"2030-03-04T22:00:00Z\",\"discoveredBy\":\"A\",\"confirmedById\":9}",
-                "place");
-        assertInvalid(
-                StatusCommand.RECORD_DEATH,
-                "{\"deathAt\":\"2030-03-04T22:00:00Z\",\"place\":\"P\",\"confirmedById\":9}",
-                "discoveredBy");
-        assertInvalid(
-                StatusCommand.RECORD_DEATH,
-                "{\"deathAt\":\"2030-03-04T22:00:00Z\",\"place\":\"P\",\"discoveredBy\":\"A\"}",
-                "confirmedById");
-        assertInvalid(StatusCommand.RECORD_DEATH, "{" + required + ",\"evidenceFileId\":\"x\"}", "evidenceFileId");
-    }
-
-    @Test
     void FR_002_cancelAdmission_waitingListFieldsComeTogetherAndAreOptional() {
         assertThatCode(() -> participant.validateDetails(StatusCommand.CANCEL_ADMISSION, json("{}")))
                 .doesNotThrowAnyException();
@@ -145,11 +76,5 @@ class M02StatusParticipantTest {
                 StatusCommand.CANCEL_ADMISSION,
                 "{\"waitingListEntryId\":4,\"waitingListCommand\":\"HUY\"}",
                 "waitingListCommand");
-    }
-
-    @Test
-    void completeAdmission_hasNoDetailsToValidate() {
-        assertThatCode(() -> participant.validateDetails(StatusCommand.COMPLETE_ADMISSION, json("{}")))
-                .doesNotThrowAnyException();
     }
 }

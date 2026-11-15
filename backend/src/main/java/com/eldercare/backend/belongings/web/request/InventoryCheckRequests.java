@@ -15,8 +15,14 @@ public final class InventoryCheckRequests {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             Long storageLocationId) {}
 
+    @Schema(
+            name = "InventoryItemCondition",
+            requiredProperties = {"levelId"})
     public record ItemCondition(Long levelId, String description) {}
 
+    @Schema(
+            name = "InventoryCheckResult",
+            requiredProperties = {"belongingId", "result"})
     public record Line(
             Long belongingId,
             String result,

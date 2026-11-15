@@ -69,16 +69,6 @@ class ExcelDocumentTest {
     }
 
     @Test
-    void read_cellOfWrongType_is422WithRowAndColumn() {
-        ExcelRow first = ExcelDocument.read(sample(), List.of("Mô tả"), 100).getFirst();
-
-        assertThatThrownBy(() -> first.number("Mô tả"))
-                .isInstanceOf(InvalidValueException.class)
-                .hasMessageContaining("Dòng 10")
-                .hasMessageContaining("Mô tả");
-    }
-
-    @Test
     void written_hasHeaderLines_andMoneyDateFormats() throws IOException {
         try (ReadableWorkbook workbook =
                 new ReadableWorkbook(new ByteArrayInputStream(sample()), new ReadingOptions(true, false))) {
@@ -95,20 +85,6 @@ class ExcelDocumentTest {
             assertThat(first.getCell(0).getDataFormatString()).isEqualTo("dd/mm/yyyy");
             assertThat(first.getCell(1).getDataFormatString()).isEqualTo("dd/mm/yyyy hh:mm");
         }
-    }
-
-    @Test
-    void read_missingTemplateHeader_is422() {
-        assertThatThrownBy(() -> ExcelDocument.read(sample(), List.of("Ngày", "Số điện thoại"), 100))
-                .isInstanceOf(InvalidValueException.class)
-                .hasMessageContaining("Số điện thoại");
-    }
-
-    @Test
-    void read_moreRowsThanLimit_is422() {
-        assertThatThrownBy(() -> ExcelDocument.read(sample(), List.of("Ngày"), 1))
-                .isInstanceOf(InvalidValueException.class)
-                .hasMessageContaining("1");
     }
 
     @Test

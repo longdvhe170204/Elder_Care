@@ -187,7 +187,7 @@ Nhiệm vụ trưởng đoàn, người đi cùng chỉ mở các lệnh của c
   - test đồng thời: hai đăng ký chỗ cuối; điểm danh rời viện của hai thiết bị; hai lệnh Báo thiếu người;
   - đồng hồ giả lập cho CFG-M04-06, 07, 10, 11, 13, CFG-M09-04, nửa đêm;
   - bản giả `LichXeApi`/`LichXeLenhApi` (019), 006 `MangThuocChuyenDiApi`, 007 `SuCoLenhApi`.
-- Tên test theo BR/FR (`BR_M04_17_ThieuNguoiIT`, `BR_M04_23_KiemTraChatLuongIT`).
+- Tên test theo BR/FR (`BR_39_ThieuNguoiIT`, `BR_20_KiemTraChatLuongIT`).
 
 ---
 

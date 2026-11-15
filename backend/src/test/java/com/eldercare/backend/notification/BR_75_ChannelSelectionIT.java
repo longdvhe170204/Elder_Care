@@ -1,0 +1,167 @@
+package com.eldercare.backend.notification;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.notification.ContentPart;
+import com.eldercare.backend.common.notification.InformationSubject;
+import com.eldercare.backend.common.notification.InformationType;
+import com.eldercare.backend.common.notification.NotificationLevel;
+import com.eldercare.backend.common.notification.NotificationRequest;
+import com.eldercare.backend.common.notification.RecipientGroup;
+import com.eldercare.backend.common.notification.SourceGroup;
+import com.eldercare.backend.common.notification.SourceRecord;
+import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.common.time.TestClockControl;
+import com.eldercare.backend.notification.internal.delivery.service.OutOfAppResender;
+import com.eldercare.backend.support.TestUsers;
+import com.eldercare.backend.support.TestUsers.TestUser;
+import com.eldercare.backend.support.fake.administration.FakeM15Config;
+import com.eldercare.backend.support.fake.administration.FakeStaffProfiles;
+import com.eldercare.backend.support.fake.notification.FakeFamilyNotifications;
+import com.eldercare.backend.support.fake.notification.FakeSmsProvider;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.temporal.TemporalAdjusters;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+
+/**
+ * 009 US3 (T024, tên logic {@code BR_M13_01_ChonKenhIT}, {@code FR_018_GuiLaiIT}, {@code FR_020_NoiDungKenhNgoaiIT};
+ * quickstart Q16 → Q19): kênh theo mức (BR-M13-01, FR-016); tin nhắn dùng nội dung rút gọn, kênh tắt không gửi; không có số
+ * ghi Không có địa chỉ (FR-018); lỗi tạm gửi lại tối đa CFG-M13-05 lần (FR-018); nội dung rút gọn có trường sức khỏe thì
+ * phần kênh ngoài Nội dung không hợp lệ, phần trong ứng dụng vẫn gửi (FR-020). Nhân viên ở đây là Kế toán trong giờ hành
+ * chính CFG-M13-06 nên đang trong ca; nhân viên ngoài ca (FR-016a) ở {@link FR_016a_OffShiftIT}.
+ */
+@Import(FakeM15Config.class)
+class BR_75_ChannelSelectionIT extends M13IntegrationTestBase {
+
+    @Autowired
+    BusinessTime time;
+
+    @Autowired
+    TestClockControl clock;
+
+    @Autowired
+    FakeStaffProfiles profiles;
+
+    @Autowired
+    FakeFamilyNotifications family;
+
+    @Autowired
+    FakeSmsProvider sms;
+
+    @Autowired
+    OutOfAppResender resender;
+
+    TestUsers users;
+    long resident;
+
+    @BeforeEach
+    void setUp() {
+        // 10:00 thứ Ba gần nhất đã qua: chạy trong giờ yên tĩnh (CFG-M13-02) thì thông báo cho người thân bị giữ lại;
+        // mốc ở
+        // quá khứ để phân công vai trò tạo trong test không bắt đầu sau giờ thật mà test khác dùng để kết thúc; ngày
+        // thường
+        // để Kế toán trong giờ hành chính CFG-M13-06 (FR-016a).
+        clock.setTo(time.today()
+                .with(TemporalAdjusters.previous(DayOfWeek.TUESDAY))
+                .atTime(10, 0)
+                .atZone(BusinessTime.ZONE)
+                .toInstant());
+        users = new TestUsers(jdbc, time);
+        resident = TestUsers.nextId();
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('true' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
+        sms.reset();
+    }
+
+    @AfterEach
+    void reset() {
+        clock.reset();
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
+        family.reset();
+        sms.reset();
+    }
+
+    private NotificationRequest request(
+            String key, NotificationLevel level, Map<String, Object> displayParams, RecipientGroup group) {
+        return new NotificationRequest(
+                "M05",
+                "TEST_EVENT",
+                SourceGroup.OTHER,
+                new SourceRecord("M05.TEST", key),
+                key,
+                Optional.of(level),
+                Optional.of(resident),
+                Optional.empty(),
+                List.of(group),
+                List.of(new ContentPart(InformationType.GENERAL, "Nội dung đầy đủ")),
+                Optional.of("Có việc mới cần xem trong ứng dụng"),
+                Optional.of("Việc mới"),
+                Optional.empty(),
+                false,
+                time.now(),
+                displayParams,
+                false,
+                Optional.of(InformationSubject.ABOUT_FAMILY_MATTER),
+                Optional.empty());
+    }
+
+    private long send(NotificationRequest r) {
+        sourceCommand("009", new SampleSourceEvent(List.of(r)));
+        long requestId = ((Number) awaitRequests(r.eventKey(), 1).getFirst().get("id")).longValue();
+        return jdbc.queryForObject("SELECT id FROM notification WHERE request_id = ?", Long.class, requestId);
+    }
+
+    /** Kênh → kết quả lần gửi mới nhất của kênh đó (rỗng: chưa có kết quả). */
+    private Map<String, String> outcomes(long notificationId) {
+        Map<String, String> out = new java.util.TreeMap<>();
+        jdbc.queryForList(
+                        "SELECT a.content->>'$.channel' AS channel, r.m13_result AS result FROM record_event a"
+                                + " LEFT JOIN record_event r ON r.kind = 'M13.DELIVERY_RESULT' AND r.entity_type = 'M13.DELIVERY_ATTEMPT' AND r.entity_id = a.id"
+                                + " WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
+                                + " AND a.entity_id = ? ORDER BY JSON_VALUE(a.content, '$.attemptNo' RETURNING SIGNED)",
+                        notificationId)
+                .forEach(row -> out.put(
+                        (String) row.get("channel"), row.get("result") == null ? "" : (String) row.get("result")));
+        return out;
+    }
+
+    private void awaitOutcomes(long notificationId, Map<String, String> expected) {
+        await().atMost(Duration.ofSeconds(10))
+                .until(() -> outcomes(notificationId).equals(expected));
+    }
+
+    private TestUser staffWithPhone(String phone) {
+        TestUser u = users.staff(Role.ACCOUNTANT);
+        profiles.phone(u.staffId(), phone);
+        return u;
+    }
+
+    @Test
+    void BR_75_staff_lowInApp_mediumInAppAndSmsWithShortContent() {
+        TestUser u = staffWithPhone("0901111001");
+
+        long low = send(request(
+                "ch-low-" + resident, NotificationLevel.LOW, Map.of(), new RecipientGroup.Staff(u.staffId(), "X")));
+        long medium = send(request(
+                "ch-medium-" + resident,
+                NotificationLevel.MEDIUM,
+                Map.of(),
+                new RecipientGroup.Staff(u.staffId(), "X")));
+
+        awaitOutcomes(low, Map.of("IN_APP", "SENT"));
+        awaitOutcomes(medium, Map.of("IN_APP", "SENT", "SMS", "SENT"));
+        assertThat(sms.sent())
+                .containsExactly(new FakeSmsProvider.SentSms("0901111001", "Có việc mới cần xem trong ứng dụng"));
+    }
+}

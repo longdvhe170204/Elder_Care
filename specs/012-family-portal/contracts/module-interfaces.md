@@ -15,7 +15,7 @@ Giao diện Java công khai ở `family.api`, và bản cài các SPI do module 
 | `QuanHeNguoiThanApi` (`administration.taikhoan.api`; hợp nhất theo plan này, F-14) | Chữ ký ở dưới | 001 FR-011, FR-023c; 002 FR-045 → FR-052; 006 FR-040, FR-041; 011 FR-057 |
 | `DieuKienChuThich` (`administration.quyen.api`) | Chú thích ² "chỉ người đại diện": `laNguoiDaiDienHieuLuc(nd.nguoiThanId, doiTuong.nctId, now)` | 002 A-05 |
 | `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 010, trước 013. Điều kiện `DBR_02` (`coTheMien = false`) cho `HOAN_TAT_TIEP_NHAN`. Tác động: `CHO_TAM_VANG`, `DIEU_TRI_BV` → hủy lượt thăm trùng thời gian, nhắc kết thúc lượt ở lại; `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN` → FR-075 | 001 H-02 |
-| `NguoiDaiDienPort` (`admission.api`) | `laNguoiDaiDienHieuLuc`, `coNguoiDaiDien` | 004, 010 |
+| `NguoiDaiDienPort` (`admission.api`) | `laNguoiDaiDienHieuLuc`, `coNguoiDaiDien`, `nguoiDaiDienHieuLuc` (bổ sung 2026-11-10) | 004, 010, 017 |
 | `BanGhiDonPort` (`admission.api`) | `banGhiDonHopLe`; thêm `daDung` (MANDATORY, bổ sung theo plan này) | 004 FR-048, FR-066 |
 | `BanGhiDonBanTruPort` (`care.api`) | `hopLe`; thêm `daDung` (MANDATORY, bổ sung theo plan này) | 005 điểm danh về |
 | `ThoiKhoaBieuNguonPort` (`care.api`) | Lượt thăm Đã duyệt, Đã vào trong ngày | 005 FR-048 |
@@ -72,7 +72,8 @@ Stream<PhanHoiBaoCaoView> phanHoi(PhamViLoc phamVi, LocalDate tu, LocalDate den)
 ```
 
 ```java
-interface HoatDongKenhNctPort {    // 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (c), 014 FR-068a)
+// 2026-11-10: bỏ HoatDongKenhNctPort; 012 gọi thẳng care.api.ResidentActivityReadApi.upcoming (đổi hướng duyệt 07/11, 014 module-interfaces mục 5)
+interface HoatDongKenhNctPort {    // (đã bỏ) 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (c), 014 FR-068a)
   List<BuoiSapToiView> sapToi(long nctId, LocalDate tu, LocalDate den);     // buổi của tầng người cao tuổi và toàn viện; coTen; không có đánh giá khả năng tham gia
 }
 interface DoGuiKenhNctPort {       // 013 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (e), 013 FR-030a)
@@ -118,7 +119,7 @@ Bean thiếu → phần tương ứng của kênh hiện "chưa có dữ liệu"
 
 ```java
 List<KetQuaNguoiThanView> ketQua(long nctId, Instant tu, Instant den);   // kết quả công việc chăm sóc đã ghi (không có ghi chú nội bộ)
-TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lượng nước TB (bỏ tỷ lệ ăn 2026-11-09, 012 FR-046); rỗng khi không có dữ liệu
+TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // lượng nước TB (bỏ tỷ lệ ăn 2026-11-09, 012 FR-046); rỗng khi không có dữ liệu. Chủ dự án chốt 2026-11-12: TB = tổng lượng nước từng ngày / số ngày có ít nhất một lần ghi (ngày không ghi không tính), kèm số ngày có dữ liệu (`waterDays`)
 ```
 
 ### 2.1. Sự kiện 012 nghe

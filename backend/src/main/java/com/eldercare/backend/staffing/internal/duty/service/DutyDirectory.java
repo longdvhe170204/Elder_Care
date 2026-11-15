@@ -59,6 +59,11 @@ public class DutyDirectory implements DutyApi {
         return departments.lead(id);
     }
 
+    @Override
+    public Optional<Long> departmentByCode(String code) {
+        return departments.byCode(code);
+    }
+
     public boolean isDepartmentLead(long id) {
         return departments.isLead(id);
     }
@@ -75,6 +80,11 @@ public class DutyDirectory implements DutyApi {
     public List<Long> companions(long id) {
         var p = trips.getIfAvailable();
         return p == null ? List.of() : p.companions(id);
+    }
+
+    public List<Long> tripResidents(long staffId) {
+        var p = trips.getIfAvailable();
+        return p == null ? List.of() : p.tripResidentsOf(staffId);
     }
 
     public List<Long> floorReceivers(long floor, long shift) {

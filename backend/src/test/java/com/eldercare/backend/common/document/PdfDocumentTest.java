@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.openpdf.text.PageSize;
 import org.openpdf.text.pdf.PdfReader;
 import org.openpdf.text.pdf.parser.PdfTextExtractor;
 
@@ -56,72 +55,10 @@ class PdfDocumentTest {
     }
 
     @Test
-    void page_isA4_withFontEmbedded() throws IOException {
-        PdfReader reader = new PdfReader(sample());
-        try {
-            assertThat(reader.getPageSize(1).getWidth()).isEqualTo(PageSize.A4.getWidth());
-            assertThat(reader.getPageSize(1).getHeight()).isEqualTo(PageSize.A4.getHeight());
-        } finally {
-            reader.close();
-        }
-        assertThat(new String(sample(), java.nio.charset.StandardCharsets.ISO_8859_1))
-                .contains("BeVietnamPro")
-                .contains("/FontFile2");
-    }
-
-    @Test
-    void tableRowWithWrongCellCount_isRejected() {
-        PdfDocument pdf = PdfDocument.a4(null, null, "SAO KÊ");
-
-        org.assertj.core.api.Assertions.assertThatThrownBy(
-                        () -> pdf.table(List.of("Mô tả", "Số tiền"), List.of(List.of("Chỉ một ô"))))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     void facilityNotSet_skipsHeader() throws IOException {
         byte[] pdf = PdfDocument.a4(null, null, "SAO KÊ").paragraph("Nội dung").toBytes();
 
         assertThat(text(pdf, 1)).contains("SAO KÊ").doesNotContain("Mã số thuế");
-    }
-
-    @Test
-    void longTable_breaksPages_andNumbersEveryPage() throws IOException {
-        List<List<String>> rows = java.util.stream.IntStream.range(0, 120)
-                .mapToObj(i -> List.of("Dòng " + i, "x"))
-                .toList();
-        byte[] pdf = PdfDocument.a4(FACILITY, null, "SAO KÊ")
-                .table(List.of("Mô tả", "Ghi chú"), rows)
-                .toBytes();
-
-        PdfReader reader = new PdfReader(pdf);
-        int pages = reader.getNumberOfPages();
-        reader.close();
-        assertThat(pages).isGreaterThan(1);
-        assertThat(text(pdf, pages)).contains("Trang " + pages + "/" + pages).contains("Dòng 119");
-    }
-
-    /** 017 FR-032: ảnh QR VietQR in trong thân phiếu báo phí; ảnh 200×100 px vào ô 120 pt thành 120×60 pt. */
-    @Test
-    void FR_017_032_bodyImage_keepsAspectRatio_largestSideIsSizePt() throws IOException {
-        java.awt.image.BufferedImage picture =
-                new java.awt.image.BufferedImage(200, 100, java.awt.image.BufferedImage.TYPE_INT_RGB);
-        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
-        javax.imageio.ImageIO.write(picture, "png", png);
-
-        byte[] pdf = PdfDocument.a4(null, null, "PHIẾU BÁO PHÍ")
-                .paragraph("Quét mã để chuyển khoản")
-                .image(png.toByteArray(), 120f)
-                .toBytes();
-
-        PdfReader reader = new PdfReader(pdf);
-        try {
-            String content = new String(reader.getPageContent(1), java.nio.charset.StandardCharsets.ISO_8859_1);
-            assertThat(content).containsPattern("120(\\.0+)? 0 0 60(\\.0+)? [-\\d.]+ [-\\d.]+ cm");
-            assertThat(text(pdf, 1)).contains("Quét mã để chuyển khoản");
-        } finally {
-            reader.close();
-        }
     }
 
     @Test

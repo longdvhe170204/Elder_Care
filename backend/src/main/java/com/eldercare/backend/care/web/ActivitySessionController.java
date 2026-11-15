@@ -119,7 +119,7 @@ public class ActivitySessionController {
                     String command,
             @RequestHeader("Idempotency-Key") String key,
             @RequestBody(required = false) ActivitySessionCommandWrite body) {
-        var target = sessions.target(id);
+        var target = sessions.commandTarget(id);
         var input = body == null ? new ActivitySessionCommandWrite(null, null, null, null, null) : body;
         var reason = input.reason() == null || input.reason().isBlank() ? null : new Reason(input.reason());
         switch (command) {

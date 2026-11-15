@@ -72,16 +72,18 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
     FakeShiftStaff shifts;
 
     @Autowired
-    @Qualifier("fakeMealTaskSource")
-    FakeTaskSource meals;
-
-    @Autowired
     JsonMapper json;
 
     @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     com.eldercare.backend.care.internal.task.persistence.CareTaskStore taskStore;
 
-    long residentId, floor, shiftId, typeId, sourceId;
+    /**
+     * Căn cứ là mục kế hoạch chăm sóc Hiệu lực (nguồn thật của 005; 011 T042 bỏ bản giả {@code MEAL}: căn cứ không phải
+     * điều các IT quá hạn, bàn giao kiểm). {@code sourceId} có mốc {@code planned} và {@code planned + 10 phút};
+     * {@code sameTimeSourceId} là mục khác cùng mốc {@code planned}.
+     */
+    long residentId, floor, shiftId, typeId, sourceId, sameTimeSourceId;
+
     Instant planned;
     TestUsers.TestUser manager, caregiver;
 
@@ -98,7 +100,6 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
         floor = TestUsers.nextId();
         shiftId = TestUsers.nextId();
         typeId = TestUsers.nextId();
-        sourceId = TestUsers.nextId();
         planned = time.now().plusSeconds(1800);
         var users = new TestUsers(jdbc, time);
         manager = users.staff(Role.FLOOR_MANAGER);
@@ -129,12 +130,51 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
         shifts.onShift(caregiver.staffId(), planned, true);
         shifts.qualified(
                 caregiver.staffId(), Set.of(), planned.atZone(BusinessTime.ZONE).toLocalDate(), true);
-        meals.validation(SourceType.MEAL, sourceId, residentId, planned, new SourceValidation(true, true, true, false));
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
                 typeId,
                 "Loại kiểm thử " + typeId,
                 "{\"group\":\"OTHER\",\"professional\":false,\"resultType\":\"PERFORMED\",\"defaultRole\":\"CAREGIVER\",\"defaultImportance\":\"NORMAL\",\"billable\":false,\"certificates\":[]}");
+        long planId = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO care_plan(id,resident_id,revision,status,effective_from,created_by,created_at) VALUES(?,?,1,'DRAFT',?,?,?)",
+                planId,
+                residentId,
+                time.today(),
+                manager.accountId(),
+                LocalDateTime.ofInstant(time.now(), BusinessTime.ZONE));
+        sourceId = planItem(planId, planned, planned.plusSeconds(600));
+        sameTimeSourceId = planItem(planId, planned);
+        jdbc.update("UPDATE care_plan SET status='EFFECTIVE' WHERE id=?", planId);
+    }
+
+    private long planItem(long planId, Instant... times) {
+        long itemId = TestUsers.nextId();
+        var data = new com.eldercare.backend.care.internal.careplan.domain.CarePlanItemData(
+                typeId,
+                "Nội dung kiểm thử",
+                "TIMES_PER_DAY",
+                null,
+                times.length,
+                null,
+                Arrays.stream(times)
+                        .map(t -> t.atZone(BusinessTime.ZONE).toLocalTime())
+                        .toList(),
+                List.of(),
+                15,
+                15,
+                Role.CAREGIVER,
+                com.eldercare.backend.care.api.dto.ResultType.PERFORMED,
+                com.eldercare.backend.care.api.dto.Importance.NORMAL,
+                false,
+                null);
+        jdbc.update(
+                "INSERT INTO care_plan_item(id,care_plan_id,kind,task_type_id,frequency_type,data) VALUES(?,?,'TASK',?,'TIMES_PER_DAY',?)",
+                itemId,
+                planId,
+                typeId,
+                json.writeValueAsString(data));
+        return itemId;
     }
 
     @AfterEach
@@ -143,7 +183,8 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
     }
 
     String row(long resident, long source, Instant at) {
-        return "{\"residentId\":" + resident + ",\"taskTypeId\":" + typeId + ",\"basis\":{\"type\":\"MEAL\",\"id\":"
+        return "{\"residentId\":" + resident + ",\"taskTypeId\":" + typeId
+                + ",\"basis\":{\"type\":\"CARE_PLAN_ITEM\",\"id\":"
                 + source + "},\"content\":\"Nội dung kiểm thử\",\"plannedAt\":\"" + at
                 + "\",\"windowBeforeMinutes\":15,\"windowAfterMinutes\":15,\"importance\":\"NORMAL\",\"performerId\":"
                 + caregiver.staffId() + ",\"shared\":false}";
@@ -156,15 +197,13 @@ abstract class CareOverdueTestBase extends MySqlIntegrationTestBase {
                 .content(body));
     }
 
-    /** Công việc thứ hai cùng người, căn cứ khác (tránh trùng DBR-12). */
+    /** Công việc thứ hai cùng người, cùng mục kế hoạch ở mốc khác (không trùng DBR-12). */
     long createAnother() throws Exception {
-        long other = TestUsers.nextId();
         var at = planned.plusSeconds(600);
-        meals.validation(SourceType.MEAL, other, residentId, at, new SourceValidation(true, true, true, false));
         shifts.onShift(caregiver.staffId(), at, true);
         shifts.qualified(
                 caregiver.staffId(), Set.of(), at.atZone(BusinessTime.ZONE).toLocalDate(), true);
-        var result = plan("[" + row(residentId, other, at) + "]")
+        var result = plan("[" + row(residentId, sourceId, at) + "]")
                 .andExpect(status().isCreated())
                 .andReturn();
         return json.readTree(result.getResponse().getContentAsString())

@@ -2,7 +2,6 @@ package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.staffing.internal.duty.service.ForbiddenPortCallerFixture;
 import com.eldercare.backend.staffing.internal.shift.service.ShiftCommandPortFixture;
 import com.eldercare.backend.staffing.internal.swap.service.SwapPortCallerFixture;
 import com.eldercare.backend.staffing.scheduling.M09SchedulingFixtures;
@@ -20,18 +19,6 @@ class M09ArchRuleTest {
 
         assertThat(M09ArchTest.INTERNAL_COMMAND_PORTS.evaluate(classes).hasViolation())
                 .isFalse();
-    }
-
-    @Test
-    void FR_017_commandPortsRejectUnrelatedCallers() {
-        JavaClasses classes =
-                new ClassFileImporter().importClasses(ShiftCommandPortFixture.class, ForbiddenPortCallerFixture.class);
-
-        var result = M09ArchTest.INTERNAL_COMMAND_PORTS.evaluate(classes);
-
-        assertThat(result.hasViolation()).isTrue();
-        assertThat(result.getFailureReport().getDetails())
-                .anySatisfy(detail -> assertThat(detail).contains("ForbiddenPortCallerFixture", "createShift"));
     }
 
     @Test

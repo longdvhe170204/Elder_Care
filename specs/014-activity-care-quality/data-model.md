@@ -31,7 +31,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 | `danh_sach_kiem_tra` | `ho_so_chung` | `M04.DANH_SACH_KIEM_TRA` | `id`, `ca_id`, `tang_khu_vuc_id`, `lap_boi_id`, `vai_tro_lap` (`TRUONG_TANG`, `NGUOI_PHU_TRACH_CA`), `lap_luc`, `so_du_dieu_kien_luc_lap`, `da_bao_ql_qua_han_luc`; `UNIQUE (ca_id, tang_khu_vuc_id)`. | `khoa_duy_nhat` |
 | `muc_kiem_tra` | `su_kien_chung` | `M04.MUC_KIEM_TRA` | `id`, `danh_sach_id`, `cong_viec_id` `UNIQUE`, `nguoi_thuc_hien_goc_id`, `trang_thai` (`CHO_KIEM_TRA`, `DAT`, `KHONG_DAT`, `KHONG_KIEM_TRA_DUOC`, `QUA_HAN_KIEM_TRA`), `kiem_tra_boi_id`, `vai_tro_kiem_tra`, `ghi_chu`, `tep_anh_ids`, `cong_viec_lam_lai_id NULL`,… | `khoa_duy_nhat` |
 | `hoat_dong_nct` | `trang_thai_nct` | `M04.HOAT_DONG_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
-| `chuoi_co_lap` | `trang_thai_nct` | `M04.CHUOI_CO_LAP` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `chuoi_co_lap` | — | — | — | *(Bỏ theo Q-407, 2026-11-10)* không có bảng, dòng chuỗi cô lập |
 | `loai_hoat_dong` | `danh_muc_chung` | `M04.LOAI_HOAT_DONG` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `nhom_so_thich` | `danh_muc_chung` | `M04.NHOM_SO_THICH` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `loai_hoat_dong_nhom_so_thich` | `danh_muc_chung` | `M04.LOAI_HOAT_DONG_NHOM_SO_THICH` | — | cột vào `JSON` hoặc cột của bảng đích |
@@ -53,7 +53,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `hoat_dong_nct` | 2 (kỹ thuật) | Đích khóa sở thích, chuỗi cô lập (L-03) *(R-15: `hoat_dong_nct` → `trang_thai_nct`)* |
+| `hoat_dong_nct` | 2 (kỹ thuật) | Đích khóa sở thích (L-03; chuỗi cô lập bỏ theo Q-407) *(R-15: `hoat_dong_nct` → `trang_thai_nct`)* |
 | `loai_hoat_dong`, `loai_hoat_dong_nhom_so_thich`, `nhom_so_thich` | 1 | A, I *(R-15: `loai_hoat_dong`, `loai_hoat_dong_nhom_so_thich`, `nhom_so_thich` → `danh_muc_chung`)* |
 | `hoat_dong` | 1 | A *(R-15: `hoat_dong` → `danh_muc_chung`)* |
 | `mau_lap_phien_ban` | 1 (có lịch sử) | B *(R-15: `mau_lap_phien_ban` → `ho_so_chung`)* |
@@ -67,7 +67,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 | `danh_gia_kha_nang` | 3 | G (FR-036) *(R-15: `danh_gia_kha_nang` → `su_kien_chung`)* |
 | `diem_danh_chuyen` | 3 | H *(R-15: `diem_danh_chuyen` → `su_kien_chung`)* |
 | `so_thich` | 2 | I *(R-15: `so_thich` → `ho_so_chung`)* |
-| `chuoi_co_lap` | Kỹ thuật | I (FR-054) *(R-15: `chuoi_co_lap` → `trang_thai_nct`)* |
+| `chuoi_co_lap` | — | *(Bỏ theo Q-407)* |
 | `danh_sach_kiem_tra`, `muc_kiem_tra`, `ca_khong_danh_sach` | 2; 2 → 3 khi có kết quả; 3 | J *(R-15: `danh_sach_kiem_tra` → `ho_so_chung`; `muc_kiem_tra` → `su_kien_chung`)* |
 | `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` | Kỹ thuật | Listener, job *(R-15: `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` → `moc_da_nhac`)* |
 
@@ -186,7 +186,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 - `hoat_dong_nct`: `nct_id`, `phien_ban`. *(R-15: `hoat_dong_nct` → `trang_thai_nct`)*
 - `so_thich` (nhóm 2): `id`, `nct_id`, `nhom_id`, `mo_ta`, `muc` (`THICH`, `KHONG_THICH`), `nguon_loai` (`NGUOI_CAO_TUOI`, `NGUOI_THAN`, `NHAN_VIEN_QUAN_SAT`), `nguon_nguoi_than_id NULL` (mẫu cột nguồn 001 data-model mục 6a; sửa 2026-10-18, Q-363), `trang_thai` (`HIEN_HANH`, `DA_THAY`, `DA_BO`), `boi_id`, `luc`, `ly_do_bo`, `thay_boi_id NULL`; cột sinh `khoa_hien_hanh` theo (người cao tuổi, nhóm, nguồn) `UNIQUE` (L-09). *(Bổ sung 2026-10-18)* Thêm `phan_hoi_id NULL` (001 FR-023g, research L-16). *(R-15: `so_thich` → `ho_so_chung`)*
-- `chuoi_co_lap` (kỹ thuật): `nct_id`, `so_ngay_tinh`, `ngay_bat_dau_chuoi`, `ngay_xet_cuoi`, `da_yeu_cau_canh_bao_cho_chuoi`. *(R-15: `chuoi_co_lap` → `trang_thai_nct`)*
+- `chuoi_co_lap`: *(Bỏ theo Q-407, 2026-11-10)* không lưu chuỗi cô lập.
 
 ---
 
@@ -217,7 +217,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 | --- | --- |
 | DBR-12 (tương tự) | `UNIQUE (hoat_dong_id, bat_dau)` |
 | DBR-15 | Sự kiện tính phí khóa theo `diem_danh_buoi.id` / `diem_danh_chuyen.id` (010 chống trùng) |
-| DBR-18 | Cảnh báo cô lập gộp ở 007 theo nguồn `CO_LAP` |
+| DBR-18 | *(Phần cô lập bỏ theo Q-407)* |
 | DBR-23 | Nhật ký mọi lệnh |
 | DBR-25 | Thời điểm thiết bị cho bản ghi ngoại tuyến; ngày tính theo Asia/Ho_Chi_Minh |
 | BR-M04-15 | `DieuKienDangKy`; khóa buổi khi đếm sức chứa |
@@ -225,5 +225,5 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 | BR-M04-17 | `su_co_thieu_nguoi_id` một lần; cảnh báo Khẩn cấp khi kết thúc về |
 | BR-M04-18 | Sự kiện tính phí cho lượt Có mặt ở hoạt động có thu phí |
 | BR-M04-21 | Tạo buổi từ mẫu bằng lệnh; đổi mẫu theo phiên bản |
-| BR-M04-22 | `chuoi_co_lap`; job 00:00 *(R-15: `chuoi_co_lap` → `trang_thai_nct`)* |
+| BR-M04-22 | *(Bỏ theo Q-407)* |
 | BR-M04-23 | `UNIQUE (ca_id, tang_khu_vuc_id)`, `UNIQUE (cong_viec_id)`; kiểm tỷ lệ khi lập |

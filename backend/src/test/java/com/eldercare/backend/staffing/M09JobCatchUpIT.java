@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.TestClockControl;
-import com.eldercare.backend.staffing.internal.service.M09Jobs;
 import com.eldercare.backend.staffing.internal.service.M09TimedTask;
 import com.eldercare.backend.staffing.internal.service.M09TimedTask.Cadence;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
@@ -26,8 +25,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /** T008/T050: mốc thành công ở ReminderMarkers; lỗi rollback để retry, chi tiết lần chạy ra SchedulerRuns. */
 @Import(M09JobCatchUpIT.Tasks.class)
 class M09JobCatchUpIT extends MySqlIntegrationTestBase {
+    /** Chạy qua {@code ScheduledJob.runNow} để người dùng hiện tại là Bộ lập lịch như job thật (008 T057). */
     @Autowired
-    M09Jobs jobs;
+    com.eldercare.backend.staffing.scheduling.M09MinuteJob minuteJob;
 
     @Autowired
     TestClockControl clock;
@@ -60,12 +60,12 @@ class M09JobCatchUpIT extends MySqlIntegrationTestBase {
     void FR_022_failedTickCanBeRetriedThenBecomesIdempotent() {
         clock.setTo(Instant.parse("2026-10-23T05:20:20Z"));
         minute.fail = true;
-        assertThatThrownBy(() -> jobs.runDue(Cadence.MINUTE)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> minuteJob.runNow()).isInstanceOf(IllegalStateException.class);
         assertThat(marked("M09_MINUTE", "2026-10-23T05:20:00Z")).isFalse();
         minute.fail = false;
-        jobs.runDue(Cadence.MINUTE);
+        minuteJob.runNow();
         int after = minute.calls.size();
-        jobs.runDue(Cadence.MINUTE);
+        minuteJob.runNow();
         assertThat(minute.calls).hasSize(after);
         assertThat(marked("M09_MINUTE", "2026-10-23T05:20:00Z")).isTrue();
     }

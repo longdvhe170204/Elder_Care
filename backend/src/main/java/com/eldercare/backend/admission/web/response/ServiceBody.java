@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Dịch vụ trong danh mục (contracts/api-004.yaml, schema {@code Service}; FR-034). {@code version} cũng là ETag của lệnh
  * sửa, ngừng hiệu lực.
  */
-@Schema(name = "Service")
+@Schema(
+        name = "Service",
+        requiredProperties = {"type", "name", "unit", "billingPeriod"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ServiceBody(
         long id,

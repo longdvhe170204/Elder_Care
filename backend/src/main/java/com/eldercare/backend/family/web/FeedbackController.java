@@ -142,6 +142,7 @@ class FeedbackController {
                 b.priority(),
                 b.newType() == null ? null : Type.valueOf(b.newType().name()),
                 b.opinion() == null ? null : b.opinion().itemId(),
+                interest(b.opinion()),
                 b.fileIds());
         var view = switch (command) {
             case "start-handling" -> feedback.startHandling(id);
@@ -157,5 +158,13 @@ class FeedbackController {
             default -> throw new NotFoundException();
         };
         return FeedbackDetailResponse.of(view);
+    }
+
+    private static FeedbackService.Interest interest(FeedbackCommandRequest.Opinion o) {
+        if (o == null || o.itemType() != FeedbackCommandRequest.Opinion.ItemType.INTEREST) {
+            return null;
+        }
+        return new FeedbackService.Interest(
+                o.interestGroupId(), o.level(), o.description(), Boolean.TRUE.equals(o.confirmReplacement()));
     }
 }

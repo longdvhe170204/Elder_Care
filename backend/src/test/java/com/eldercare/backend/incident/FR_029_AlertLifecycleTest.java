@@ -92,7 +92,7 @@ class FR_029_AlertLifecycleTest {
     }
 
     @Test
-    void BR_M04_06_overdueMandatoryTaskAlertNeedsReason() {
+    void BR_19_overdueMandatoryTaskAlertNeedsReason() {
         lock(AlertStatus.IN_PROGRESS, IncidentLevel.MEDIUM, 900L, "QUA_HAN:44");
 
         assertThatThrownBy(() -> service.close(ID, "Đã làm", null, user)).isInstanceOf(BusinessException.class);

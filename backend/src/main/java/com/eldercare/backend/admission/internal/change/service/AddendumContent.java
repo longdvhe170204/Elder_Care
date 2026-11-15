@@ -38,6 +38,9 @@ final class AddendumContent {
 
         /** Dịch vụ thuộc loại chăm sóc. */
         boolean isCareService(long serviceId);
+
+        /** Loại phòng của giường (003 {@code LocationStructureApi.roomTypeOfBed}). */
+        Optional<Long> roomTypeOfBed(long bedId);
     }
 
     record Built(ObjectNode content, ObjectNode before, ObjectNode after) {}
@@ -84,6 +87,11 @@ final class AddendumContent {
         }
         if (change.has(ChangeType.BED)) {
             replace(content, before, after, "bedId", F.numberNode(change.newBedId()));
+            // 003 FR-030: yêu cầu sau chuyển gấp khác giá áp đơn giá theo loại phòng của giường mới từ ngày hiệu lực
+            if (change.afterUrgentTransfer()) {
+                pricing.roomTypeOfBed(change.newBedId())
+                        .ifPresent(type -> replace(content, before, after, "roomTypeId", F.numberNode(type)));
+            }
         }
         if (change.has(ChangeType.ARRIVAL_SCHEDULE)) {
             replace(content, before, after, "arrivalSchedule", schedule(change.arrivalSchedule()));

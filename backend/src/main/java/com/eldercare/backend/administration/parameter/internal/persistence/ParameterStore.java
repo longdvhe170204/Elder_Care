@@ -20,9 +20,17 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Đọc, ghi {@code parameter} và lịch sử {@code parameter_history} (nhóm 3, DBR-24) (research R-07; FR-011 → FR-022). */
+/**
+ * Đọc, ghi {@code parameter} và lịch sử đổi giá trị (nhóm 3, DBR-24) (research R-07; FR-011 → FR-022). Lịch sử là dòng
+ * {@code status_history} loại {@code M15.PARAMETER}: {@code attribute} là mã tham số ({@code entity_id} = 0 vì tham số
+ * khóa bằng mã), {@code starts_at} là mốc hiệu lực, giá trị ở {@code details.value}, {@code command} là {@code CHANGE}
+ * hoặc {@code RESTORE_DEFAULT}; {@code unique_key} giữ ràng buộc (mã, mốc hiệu lực) (gộp bảng {@code parameter_history}
+ * 2026-11-13, research R-15 của 000).
+ */
 @Component
 public class ParameterStore {
+
+    private static final String HISTORY_ROWS = "entity_type = 'M15.PARAMETER' AND entity_id = 0 AND attribute = ?";
 
     private static final String COLUMNS = "SELECT code, description, kind, unit, constraints, default_value,"
             + " current_value, used_in, version, changed_at FROM parameter";
@@ -78,8 +86,8 @@ public class ParameterStore {
     public Optional<JsonNode> valueAt(String code, Instant at) {
         return jdbc
                 .queryForList(
-                        "SELECT value FROM parameter_history WHERE code = ? AND effective_from <= ?"
-                                + " ORDER BY effective_from DESC LIMIT 1",
+                        "SELECT JSON_EXTRACT(details, '$.value') FROM status_history WHERE " + HISTORY_ROWS
+                                + " AND starts_at <= ? ORDER BY starts_at DESC LIMIT 1",
                         String.class,
                         code,
                         utc(at))
@@ -91,8 +99,9 @@ public class ParameterStore {
     /** Các lần đổi giá trị theo thời điểm hiệu lực (FR-019). */
     public List<ParameterHistoryRow> history(String code) {
         return jdbc.query(
-                "SELECT value, effective_from, actor_id, reason, is_default_restore FROM parameter_history"
-                        + " WHERE code = ? ORDER BY effective_from",
+                "SELECT JSON_EXTRACT(details, '$.value') AS value, starts_at AS effective_from, actor_id, reason,"
+                        + " command = 'RESTORE_DEFAULT' AS is_default_restore FROM status_history WHERE "
+                        + HISTORY_ROWS + " ORDER BY starts_at",
                 (rs, i) -> new ParameterHistoryRow(
                         json.readTree(rs.getString("value")),
                         rs.getObject("effective_from", LocalDateTime.class).toInstant(ZoneOffset.UTC),
@@ -124,19 +133,21 @@ public class ParameterStore {
             String code, JsonNode value, Instant at, long actorId, String reason, boolean defaultRestore) {
         LocalDateTime effectiveFrom = utc(at).truncatedTo(ChronoUnit.MICROS);
         LocalDateTime latest = jdbc.queryForObject(
-                "SELECT MAX(effective_from) FROM parameter_history WHERE code = ?", LocalDateTime.class, code);
+                "SELECT MAX(starts_at) FROM status_history WHERE " + HISTORY_ROWS, LocalDateTime.class, code);
         if (latest != null && !effectiveFrom.isAfter(latest)) {
             effectiveFrom = latest.plus(1, ChronoUnit.MICROS);
         }
         jdbc.update(
-                "INSERT INTO parameter_history (code, value, effective_from, actor_id, reason, is_default_restore)"
-                        + " VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, starts_at, command, actor_id,"
+                        + " by_system, reason, details, unique_key) VALUES ('M15.PARAMETER', 0, ?, 'M15', 'POINT', ?, ?, ?,"
+                        + " FALSE, ?, JSON_OBJECT('value', CAST(? AS JSON)), ?)",
                 code,
-                json.writeValueAsString(value),
                 effectiveFrom,
+                defaultRestore ? "RESTORE_DEFAULT" : "CHANGE",
                 actorId,
                 reason,
-                defaultRestore);
+                json.writeValueAsString(value),
+                "M15.PARAMETER:" + code + ":" + effectiveFrom);
     }
 
     private ParameterRow row(ResultSet rs) throws SQLException {

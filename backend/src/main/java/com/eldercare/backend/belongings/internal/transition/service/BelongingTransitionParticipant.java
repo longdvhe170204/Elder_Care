@@ -42,6 +42,11 @@ class BelongingTransitionParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    public String module() {
+        return "013";
+    }
+
+    @Override
     public Set<StatusCommand> interestedCommands() {
         return Set.of(StatusCommand.END_RESIDENCY);
     }

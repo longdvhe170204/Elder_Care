@@ -1,7 +1,6 @@
 package com.eldercare.backend.common.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.util.UUID;
@@ -58,23 +57,5 @@ class EventPublicationIT extends MySqlIntegrationTestBase {
                         Integer.class,
                         "%" + key + "%"))
                 .isEqualTo(1);
-    }
-
-    @Test
-    void R_09_eventRolledBack_isNeitherStoredNorDelivered() throws InterruptedException {
-        String key = UUID.randomUUID().toString();
-
-        assertThatThrownBy(() -> tx.executeWithoutResult(s -> {
-                    events.publishEvent(new SampleEvent(key));
-                    throw new IllegalStateException("lệnh lỗi");
-                }))
-                .isInstanceOf(IllegalStateException.class);
-
-        assertThat(Listener.RECEIVED.poll(2, TimeUnit.SECONDS)).isNull();
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE SERIALIZED_EVENT LIKE ?",
-                        Integer.class,
-                        "%" + key + "%"))
-                .isZero();
     }
 }

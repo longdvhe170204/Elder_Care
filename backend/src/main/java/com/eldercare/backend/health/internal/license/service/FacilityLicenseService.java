@@ -12,6 +12,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.health.api.dto.FacilityContactView;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -59,6 +60,9 @@ public class FacilityLicenseService {
             boolean replacesDueToError,
             String reason) {}
 
+    @Schema(
+            name = "FacilityLicenseView",
+            requiredProperties = {"number", "issuer", "issuedOn", "expiresOn", "coversMedicalPractice"})
     public record LicenseView(
             long id,
             String number,

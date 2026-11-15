@@ -85,8 +85,8 @@ class T003_HealthApiContractTest {
     @Test
     void FR_081_statisticsSourceRespectsScopeAndTheRequestedTimeWindow() {
         var floor = new ScopeFilter(false, Set.of(501L), Set.of(), Set.of());
-        var first = new VitalSignReportView(201, 101, 301, 501L, FROM, VitalSignLevel.DANGEROUS);
-        var atEnd = new VitalSignReportView(202, 101, 301, 501L, TO, VitalSignLevel.NORMAL);
+        var first = new VitalSignReportView(201, 101, 301, 501L, FROM, VitalSignLevel.DANGEROUS, Map.of());
+        var atEnd = new VitalSignReportView(202, 101, 301, 501L, TO, VitalSignLevel.NORMAL, Map.of());
         var fake = new FakeVitalSignStatistics();
         fake.source(floor, List.of(first, atEnd));
 

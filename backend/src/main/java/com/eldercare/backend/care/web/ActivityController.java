@@ -122,7 +122,7 @@ public class ActivityController {
             case "remove-regular-participant" ->
                 activities.removeRegularParticipant(target, id, body.residentId(), reason);
             case "create-sessions-from-template" ->
-                sessions.createFromTemplate(target, id, body.fromDate(), body.toDate());
+                sessions.createFromTemplate(target, id, body.fromDate(), body.toDate(), body.trip());
             default -> throw new InvalidValueException("Lệnh không hợp lệ: " + command);
         }
     }

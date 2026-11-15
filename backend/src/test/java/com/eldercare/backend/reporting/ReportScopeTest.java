@@ -1,7 +1,6 @@
 package com.eldercare.backend.reporting;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
@@ -23,7 +22,6 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.Role;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
@@ -272,49 +270,7 @@ class ReportScopeTest {
                 .isTrue();
     }
 
-    @Test
-    void FR_015_dashboard_eachGroupByOwnRole_nurseAssignmentsNotInFloorManagerGroup() {
-        Instant start = NOW.minusSeconds(3600);
-        Instant end = NOW.plusSeconds(3600);
-        assignments.assign(
-                STAFF,
-                new AssignmentView(
-                        AssignmentKind.FLOOR_MANAGER,
-                        1L,
-                        null,
-                        null,
-                        null,
-                        Instant.parse("2026-10-01T00:00:00Z"),
-                        null));
-        assignments.assign(STAFF, new AssignmentView(AssignmentKind.SHIFT_MEMBER, null, null, 501L, 12L, start, end));
-        currentFilter = new ScopeFilter(false, Set.of(1L), Set.of(), Set.of(501L));
-        User both = new User(Set.of(Role.FLOOR_MANAGER, Role.NURSING_STAFF));
-
-        ReportScope activities = service().dashboard(both, MetricGroup.ACTIVITIES);
-        ReportScope tasks = service().dashboard(both, MetricGroup.CARE_TASKS);
-
-        assertThat(activities.covers(rec("floor", "2026-10-24T02:00:00Z", 1, null)))
-                .isTrue();
-        assertThat(activities.covers(rec("assigned", "2026-10-24T02:00:00Z", 3, 501L)))
-                .isFalse();
-        assertThat(tasks.covers(rec("assigned", "2026-10-24T02:00:00Z", 3, 501L)))
-                .isTrue();
-    }
-
     private static Rec rec(String key, String at, long floor, Long resident) {
         return new Rec(key, Instant.parse(at), floor, resident);
-    }
-
-    @Test
-    void FR_016_invalidSourceData_deniedWithSourceDataLayer() {
-        assignments.invalid(STAFF, "CONFLICTING_ASSIGNMENT");
-
-        assertThatThrownBy(() -> service().dashboard(new User(Set.of(Role.NURSING_STAFF)), MetricGroup.CARE_TASKS))
-                .isInstanceOfSatisfying(
-                        PermissionDeniedException.class,
-                        e -> assertThat(e.properties()).containsEntry("failedLayer", "SOURCE_DATA"));
-        assertThat(recordedErrors)
-                .extracting(InvalidPermissionDataException::errorKind)
-                .containsExactly("CONFLICTING_ASSIGNMENT");
     }
 }

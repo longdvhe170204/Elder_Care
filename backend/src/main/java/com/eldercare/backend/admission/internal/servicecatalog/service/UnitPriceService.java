@@ -8,9 +8,11 @@ import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
 import com.eldercare.backend.admission.internal.domain.ServiceAttributes;
 import com.eldercare.backend.admission.internal.servicecatalog.persistence.PriceVersionStore;
+import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
@@ -80,11 +82,52 @@ public class UnitPriceService implements UnitPriceApi {
         return catalog.list(ServiceAttributes.KIND, null, true).stream()
                 .filter(item -> filter.test(item.attributes()))
                 .min(Comparator.comparingLong(CatalogItem::id))
-                .map(item -> new ServiceView(
-                        item.id(),
-                        item.attributes().type(),
-                        item.name(),
-                        item.attributes().unit(),
-                        item.attributes().billingPeriod()));
+                .map(UnitPriceService::view);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ServiceView> service(long serviceId) {
+        return catalog.list(ServiceAttributes.KIND, null, false).stream()
+                .filter(item -> item.id() == serviceId)
+                .findFirst()
+                .map(UnitPriceService::view);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ServiceView> activeServicesOf(ServiceType type) {
+        return catalog.list(ServiceAttributes.KIND, null, true).stream()
+                .filter(item -> item.attributes().type() == type)
+                .sorted(Comparator.comparingLong(CatalogItem::id))
+                .map(UnitPriceService::view)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ServiceView> servicesNamed(String name) {
+        String wanted = normalized(name);
+        return catalog.list(ServiceAttributes.KIND, null, false).stream()
+                .filter(item -> normalized(item.name()).equals(wanted))
+                .sorted(Comparator.comparingLong(CatalogItem::id))
+                .map(UnitPriceService::view)
+                .toList();
+    }
+
+    /** 010 Q4: bỏ khoảng trắng thừa, không phân biệt hoa thường, giữ dấu. */
+    private static String normalized(String name) {
+        return name == null ? "" : name.strip().replaceAll("\\s+", " ").toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private static ServiceView view(CatalogItem<ServiceAttributes> item) {
+        return new ServiceView(
+                item.id(),
+                item.attributes().type(),
+                item.name(),
+                item.attributes().unit(),
+                item.attributes().billingPeriod(),
+                item.status() == CatalogStatus.ACTIVE,
+                item.attributes().medicationId());
     }
 }

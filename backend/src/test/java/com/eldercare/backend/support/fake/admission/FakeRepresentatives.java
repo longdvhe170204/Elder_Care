@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /** Bản giả {@link RepresentativePort} (012 cài): mặc định chưa ai có người đại diện. */
@@ -30,5 +31,10 @@ public class FakeRepresentatives implements RepresentativePort {
     @Override
     public boolean hasRepresentative(long residentId) {
         return !representatives.getOrDefault(residentId, Set.of()).isEmpty();
+    }
+
+    @Override
+    public Optional<Long> activeRepresentative(long residentId) {
+        return representatives.getOrDefault(residentId, Set.of()).stream().findFirst();
     }
 }

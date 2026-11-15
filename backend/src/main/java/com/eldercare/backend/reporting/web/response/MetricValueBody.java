@@ -13,7 +13,8 @@ public record MetricValueBody(
         BigDecimal denominator,
         List<ValueLabel> labels,
         int pendingReviewCount,
-        List<BreakdownBody> breakdown) {
+        List<BreakdownBody> breakdown,
+        List<String> purgedDataTypes) {
 
     public record BreakdownBody(String key, BigDecimal value, BigDecimal numerator, BigDecimal denominator) {}
 
@@ -27,6 +28,7 @@ public record MetricValueBody(
                 v.pendingReviewCount(),
                 v.breakdown().stream()
                         .map(b -> new BreakdownBody(b.key(), b.value(), b.numerator(), b.denominator()))
-                        .toList());
+                        .toList(),
+                v.purgedDataTypes());
     }
 }

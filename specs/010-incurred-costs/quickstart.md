@@ -40,13 +40,13 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q6 | HC và HC2 cùng lập ngày 05/10; lập liều trước ngày bắt đầu hợp đồng | Một thành công, một 409 `DA_CO_KHOAN`; 409 `NGOAI_THOI_GIAN_TINH_PHI` | US1 #6, DBR-15 |
 | Q7 | 004 đính chính lượt vắng 06/10 thành không vắng (`NgayLuuTruDaDoi`) khi khoản Nháp; khi đã chốt | Tính lại, lịch sử tính lại; đã chốt: biến động sau chốt, HC nhận thông báo, không có khoản điều chỉnh tự tạo | US1 #7, FR-020 |
 | Q8 | Lập phí cả tháng 10 (31 ngày) A; cả tháng 11 (30 ngày) giá 10.000.000 | Mỗi ngày 300.000, tổng 9.300.000; 29 × 333.333 + 333.343 | US2 #1, #2, SC-002 |
-| Q9 | Phí C ngày vắng thứ 8 → 30 | Phí ngày × 70%, làm tròn nửa lên | US2 #3 |
+| Q9 | *(Bỏ theo Q-395, đánh dấu 2026-11-12: không chạy)* Phí C ngày vắng thứ 8 → 30 | Phí ngày × 70%, làm tròn nửa lên | US2 #3 |
 | Q10 | Đưa đi khám 14/10, lập ngày 01/11 | Đơn giá 300.000, căn cứ phiên bản hiệu lực 14/10 | US2 #4, BR-M11-02 |
 | Q11 | Phí tháng 11 có phụ lục từ 20/11 | 01 → 19/11 theo 12.000.000/30; 20 → 30/11 theo 13.500.000/30 | US2 #6 |
 | Q12 | E tháng 11: 13 buổi; vắng có báo 09/11; vắng không báo 11/11; khu nghỉ 18/11; đến thêm 24/11 | 230.769 (230.772 buổi 30/11); 0; 115.385; khu nghỉ: 12 buổi, 250.000, 18/11 không lập được; buổi phát sinh 100% theo đơn giá buổi | US2 #7, Q-140 |
 | Q13 | Hợp đồng A bắt đầu 10/10, Hoàn tất tiếp nhận 12/10; lập 10/10, 11/10 | Dấu `CHUA_VAO_O`, 100% | US2 #8, Q-22 |
 | Q14 | Lập liều thuốc X chưa có giá; 004 tạo phiên bản lùi từ 01/10 | Khoản `THIEU_DON_GIA`, không số tiền, HC nhận Nhẹ; sau `PhienBanDonGiaDaTao`: tính lại, gỡ dấu | US2 #9, FR-012 |
-| Q15 | Trạng thái có mặt đổi hệ số 50% → 70% → 30% khi khoản Nháp | 161.538; 69.231 | US2 #10, FR-013 |
+| Q15 | *(Bỏ theo Q-395, đánh dấu 2026-11-12: không chạy)* Trạng thái có mặt đổi hệ số 50% → 70% → 30% khi khoản Nháp | 161.538; 69.231 | US2 #10, FR-013 |
 | Q16 | Gửi chốt khi còn khoản Nháp; đủ điều kiện | 409 `CON_KHOAN_NHAP` liệt kê; `CHO_CHOT`, QL nhận | US3 #1, #2 |
 | Q17 | QL trả lại một khoản; chốt khi còn Đã kiểm tra chưa duyệt; chốt khi đủ | Khoản Nháp, bảng Đang mở; 409; `DA_CHOT`, khoản Đã chốt, `BangChiPhiDaChot`, người thân có quyền chi phí nhận Trung bình | US3 #3 → #5 |
 | Q18 | Sửa, xóa khoản Đã chốt bằng API; `UPDATE` trực tiếp; gọi đính chính 000 | Không có endpoint; trigger chặn; 409 `KHONG_HO_TRO_DINH_CHINH` | US3 #6, SC-004 |

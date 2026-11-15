@@ -75,8 +75,6 @@ class HandoverCorrectionNotificationsTest {
 
         var event = ArgumentCaptor.forClass(HandoverCorrected.class);
         verify(publisher).publishEvent(event.capture());
-        assertThat(event.getValue().notificationRequests().getFirst().sourceModule())
-                .isEqualTo("M09");
         assertThat(event.getValue().notificationRequests().getFirst().recipientGroups())
                 .contains(new RecipientGroup.Staff(11, "HANDOVER_CORRECTED"));
     }

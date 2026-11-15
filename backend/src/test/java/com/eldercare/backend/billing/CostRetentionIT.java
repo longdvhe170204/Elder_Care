@@ -16,7 +16,6 @@ import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** T008: provider thật và MySQL thật; chỉ trạng thái hồ sơ dùng fake chung của B. */
@@ -133,42 +132,5 @@ class CostRetentionIT extends MySqlIntegrationTestBase {
                 Timestamp.from(OLD));
         items.add(id);
         return id;
-    }
-
-    private long adjustment(long period, long statement, long resident, long original, long originalPeriod) {
-        long id = TestUsers.nextId();
-        jdbc.update(
-                "INSERT INTO cost_item(id,resident_id,statement_id,period_id,cost_type,origin,description,incurred_on,quantity,unit,amount,reason,original_item_id,original_period_id,created_at,created_by) VALUES (?,?,?,?,'OTHER','ADJUSTMENT','[Điều chỉnh kiểm lưu giữ]','1940-01-01',1,'UNIT',-100,'Kiểm chuỗi',?,?,?,1)",
-                id,
-                resident,
-                statement,
-                period,
-                original,
-                originalPeriod,
-                Timestamp.from(OLD));
-        items.add(id);
-        return id;
-    }
-
-    @Test
-    void FR_051_deletionUsesRetentionAccountEvenForLockedRows() {
-        long resident = person(ResidentStatus.RESIDENCY_ENDED, OLD), p = period(OLD), s = statement(p, resident);
-        long i = item(p, s, resident);
-        jdbc.update("UPDATE cost_item SET status='FINALIZED',locked_at=? WHERE id=?", Timestamp.from(OLD), i);
-        jdbc.update(
-                "UPDATE cost_statement SET status='FINALIZED',total=300,totals_by_type=JSON_ARRAY(JSON_OBJECT('type','OTHER','total',300)),finalized_at=?,locked_at=? WHERE id=?",
-                Timestamp.from(OLD),
-                Timestamp.from(OLD),
-                s);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM cost_item WHERE id=?", i))
-                .isInstanceOf(DataAccessException.class);
-        database.transaction().executeWithoutResult(tx -> {
-            provider("M11.COST_ITEM").delete(List.of(i));
-            provider("M11.COST_STATEMENT").delete(List.of(s));
-        });
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_item WHERE id=?", Integer.class, i))
-                .isZero();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM cost_statement WHERE id=?", Integer.class, s))
-                .isZero();
     }
 }

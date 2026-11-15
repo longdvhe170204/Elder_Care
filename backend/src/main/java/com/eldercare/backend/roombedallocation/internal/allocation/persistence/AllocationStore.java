@@ -24,9 +24,11 @@ public class AllocationStore {
         JOIN floor f ON f.id=v.floor_id JOIN area a ON a.id=v.area_id
         """;
     private final JdbcTemplate jdbc;
+    private final ResidentPositionStore positions;
 
-    public AllocationStore(JdbcTemplate jdbc) {
+    public AllocationStore(JdbcTemplate jdbc, ResidentPositionStore positions) {
         this.jdbc = jdbc;
+        this.positions = positions;
     }
 
     public List<AllocationLocation> at(Instant at) {
@@ -47,28 +49,34 @@ public class AllocationStore {
                 residentId);
     }
 
+    /** Có phân bổ Hiệu lực hoặc Tương lai bắt đầu trước {@code before} (004 FR-021). */
+    public boolean openOrFutureStartingBefore(long residentId, Instant before) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM v_current_allocation WHERE resident_id=? AND status IN ('ACTIVE','FUTURE') AND start_at<?",
+                Integer.class,
+                residentId,
+                LocalDateTime.ofInstant(before, ZoneOffset.UTC));
+        return count != null && count > 0;
+    }
+
     public boolean hasNoBed(long residentId) {
-        return jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM resident_position WHERE resident_id=? AND without_bed_since IS NOT NULL",
-                        Integer.class,
-                        residentId)
-                > 0;
+        return positions.withoutBedSince(residentId).isPresent();
     }
 
+    /** T066: khóa theo người là dòng {@code technical_lock} (upsert lấy khóa X ngay, như {@code resident_position} cũ). */
     public void lockPosition(long residentId) {
-        // Nhánh trùng khóa lấy khóa độc quyền ngay, tránh nâng khóa chia sẻ của INSERT IGNORE.
-        jdbc.update(
-                "INSERT INTO resident_position(resident_id) VALUES(?) ON DUPLICATE KEY UPDATE resident_id=resident_position.resident_id",
-                residentId);
-        jdbc.queryForList(
-                "SELECT resident_id FROM resident_position WHERE resident_id=? FOR UPDATE", Long.class, residentId);
+        positions.lock(residentId);
     }
 
-    /** RC chạy song song; transaction RR giữ độc quyền để trigger không tạo gap-lock cycle giữa các giường. */
+    /**
+     * RC chạy song song; transaction RR giữ độc quyền để trigger không tạo gap-lock cycle giữa các giường. T066: dòng
+     * {@code technical_lock} M03.PHAN_BO do V003_95 tạo (thay {@code allocation_write_guard}).
+     */
     public void guardWrites(boolean readCommitted) {
         jdbc.queryForList(
-                "SELECT id FROM allocation_write_guard WHERE id=1 " + (readCommitted ? "FOR SHARE" : "FOR UPDATE"),
-                Integer.class);
+                "SELECT lock_key FROM technical_lock WHERE lock_key='M03.PHAN_BO' "
+                        + (readCommitted ? "FOR SHARE" : "FOR UPDATE"),
+                String.class);
     }
 
     public void lockBed(long bedId) {

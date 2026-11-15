@@ -49,6 +49,18 @@ public class FakeTripDuties implements TripDutyPort {
         return companions.getOrDefault(tripId, List.of());
     }
 
+    /** Người tham gia của chuyến mà {@code staffId} là trưởng đoàn hoặc người đi cùng (FR-031); không mô phỏng trạng thái. */
+    @Override
+    public List<Long> tripResidentsOf(long staffId) {
+        requireAvailable();
+        return trips.values().stream()
+                .filter(t -> Long.valueOf(staffId).equals(leaders.get(t.view().tripId()))
+                        || companions.getOrDefault(t.view().tripId(), List.of()).contains(staffId))
+                .flatMap(t -> t.view().residentIds().stream())
+                .distinct()
+                .toList();
+    }
+
     @Override
     public List<TripInShiftView> inShift(long floorAreaId, Instant from, Instant to) {
         requireAvailable();

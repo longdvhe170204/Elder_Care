@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Nguồn thật cho adapter 006/008; dùng trạng thái tham gia thay trạng thái đăng ký chung. */
 @Service
 @Transactional(readOnly = true)
-public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi {
+public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi, ResidentTripReadApi, TripMealReadApi {
     private final ActivityTripStore trips;
     private final TripPreparationService preparation;
 
@@ -26,6 +26,37 @@ public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi {
                 .noneMatch(p -> p.residentId() == resident
                         && Set.of("ELIGIBLE", "DEPARTED").contains(p.status()))) return Optional.empty();
         return tripInterval(id);
+    }
+
+    @Override
+    public Optional<ResidentOngoingTripView> ongoing(long residentId) {
+        return trips.active().stream()
+                .filter(t -> "IN_PROGRESS".equals(t.status()))
+                .filter(t -> trips.participants(t.id()).stream()
+                        .anyMatch(p -> p.residentId() == residentId
+                                && Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status())))
+                .findFirst()
+                .map(t -> {
+                    var duties = preparation.duties(t.id());
+                    return new ResidentOngoingTripView(
+                            t.id(), Optional.ofNullable(duties.leaderId()), duties.companionIds());
+                });
+    }
+
+    @Override
+    public List<TripMealOverlapView> overlappingMealTime(Instant mealTime) {
+        return trips.active().stream()
+                .filter(t -> !t.plan().plannedDepartureAt().isAfter(mealTime)
+                        && t.plan().plannedReturnAt().isAfter(mealTime))
+                .map(t -> new TripMealOverlapView(
+                        t.id(),
+                        trips.participants(t.id()).stream()
+                                .filter(p -> Set.of("ELIGIBLE", "DEPARTED").contains(p.status()))
+                                .map(p -> p.residentId())
+                                .toList(),
+                        t.plan().plannedDepartureAt(),
+                        t.plan().plannedReturnAt()))
+                .toList();
     }
 
     @Override
@@ -44,6 +75,22 @@ public class TripReadSources implements TripMedicationReadApi, TripDutyReadApi {
     @Override
     public List<Long> companions(long id) {
         return preparation.duties(id).companionIds();
+    }
+
+    @Override
+    public List<Long> tripResidentsOf(long staffId) {
+        return trips.active().stream()
+                .filter(t -> "IN_PROGRESS".equals(t.status()))
+                .filter(t -> {
+                    var d = preparation.duties(t.id());
+                    return Objects.equals(d.leaderId(), staffId)
+                            || d.companionIds().contains(staffId);
+                })
+                .flatMap(t -> trips.participants(t.id()).stream())
+                .filter(p -> Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status()))
+                .map(p -> p.residentId())
+                .distinct()
+                .toList();
     }
 
     @Override

@@ -203,7 +203,8 @@ public class CareTaskValidator {
                 .filter(a -> roleMatches(role, a.role()) && port.onShift(a.staffId(), d.plannedAt()))
                 .toList();
         if (d.shared()) {
-            if (d.performerId() != null || !matching.isEmpty()) errors.add("INVALID_PERFORMER");
+            if (d.performerId() != null || (d.basisType() != SourceType.REWORK && !matching.isEmpty()))
+                errors.add("INVALID_PERFORMER");
         } else {
             if (d.performerId() == null
                     || matching.stream().noneMatch(a -> Objects.equals(a.staffId(), d.performerId())))

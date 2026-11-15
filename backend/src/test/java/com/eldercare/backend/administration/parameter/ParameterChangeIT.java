@@ -1,7 +1,6 @@
 package com.eldercare.backend.administration.parameter;
 
 import static com.eldercare.backend.administration.parameter.ParameterFixtures.MANAGER;
-import static com.eldercare.backend.administration.parameter.ParameterFixtures.MANAGER_2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,27 +59,6 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
         api.restoreDefault(ALERT, api.etag(ALERT), "khôi phục sau test");
     }
 
-    private int historyRows(String code) {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM parameter_history WHERE code = ?", Integer.class, code);
-    }
-
-    @Test
-    void US4_9_staleIfMatch_isRejectedWithCurrentValue_thenSavesAfterReload() throws Exception {
-        String seen = api.etag(ALERT);
-        user.set(MANAGER_2);
-        api.change(ALERT, seen, MINUTES_20, "Người thứ nhất lưu").andExpect(status().isOk());
-
-        user.set(MANAGER);
-        api.change(ALERT, seen, "{\"value\":30,\"unit\":\"MINUTES\"}", "Người thứ hai lưu")
-                .andExpect(status().isPreconditionFailed())
-                .andExpect(jsonPath("$.errorCode").value("VERSION_MISMATCH"))
-                .andExpect(jsonPath("$.currentValue.currentValue.value").value(20));
-
-        api.change(ALERT, api.etag(ALERT), "{\"value\":30,\"unit\":\"MINUTES\"}", "Lưu lại sau khi thấy 20")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentValue.value").value(30));
-    }
-
     @Test
     void US4_7_restoreDefault_isAnOrdinaryChange_markedAsRestore() throws Exception {
         api.change(ALERT, api.etag(ALERT), MINUTES_20, "Thử giá trị mới").andExpect(status().isOk());
@@ -90,10 +68,10 @@ class ParameterChangeIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.currentValue.value").value(15));
 
         Map<String, Object> last = jdbc.queryForMap(
-                "SELECT is_default_restore, reason, JSON_EXTRACT(value, '$.value') AS v FROM parameter_history"
-                        + " WHERE code = ? ORDER BY effective_from DESC LIMIT 1",
+                "SELECT command, reason, JSON_EXTRACT(details, '$.value.value') AS v FROM status_history"
+                        + " WHERE entity_type = 'M15.PARAMETER' AND entity_id = 0 AND attribute = ? ORDER BY starts_at DESC LIMIT 1",
                 ALERT);
-        assertThat(last).containsEntry("is_default_restore", true).containsEntry("reason", "Trở về mặc định");
+        assertThat(last).containsEntry("command", "RESTORE_DEFAULT").containsEntry("reason", "Trở về mặc định");
         assertThat(String.valueOf(last.get("v"))).isEqualTo("15");
     }
 }

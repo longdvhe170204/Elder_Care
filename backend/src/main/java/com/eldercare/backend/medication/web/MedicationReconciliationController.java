@@ -12,6 +12,7 @@ import com.eldercare.backend.medication.web.request.ReasonRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.NewReconciliationRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.ProposeCorrectionRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.ReconciliationItemRequest;
+import com.eldercare.backend.medication.web.response.M07Problems;
 import com.eldercare.backend.medication.web.response.ReconciliationBodies.ReconciliationBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -94,7 +95,7 @@ public class MedicationReconciliationController {
         @ApiResponse(responseCode = "200", description = "OK", content = @Content),
         @ApiResponse(
                 responseCode = "409",
-                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = M07Problems.Issues.class))),
         @ApiResponse(
                 responseCode = "412",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))

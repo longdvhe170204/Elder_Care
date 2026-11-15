@@ -82,8 +82,12 @@ class DetailRowPolicyTest {
     };
 
     private static DetailRow dose(long residentId) {
+        return row("M07.DOSE:d1", residentId);
+    }
+
+    private static DetailRow row(String sourceKey, long residentId) {
         return new DetailRow(
-                "d1",
+                sourceKey,
                 "006",
                 "DOSE",
                 "MISSED",
@@ -98,7 +102,7 @@ class DetailRowPolicyTest {
                 Map.of("itemCode", "VT-001"),
                 false,
                 false,
-                true);
+                false);
     }
 
     private DetailRowPolicy policy() {
@@ -110,18 +114,26 @@ class DetailRowPolicyTest {
         DetailRow row = policy().apply(USER, List.of(dose(501))).getFirst();
 
         assertThat(row.reduced()).isFalse();
-        assertThat(row.canOpenRecord()).isTrue();
         assertThat(row.result()).containsEntry("medication", "Amlodipin 5 mg");
     }
 
+    /**
+     * FR-009 câu cuối, Q12 (016 T021; chủ dự án duyệt 2026-11-12): chỉ loại bản ghi đã nối với màn có id của feature sở hữu
+     * mới mở được; quyền, trường ẩn do màn đó xét. Liều thuốc chưa có màn mở theo id.
+     */
     @Test
-    void FR_012_Q_196_residentOutsideCurrentScope_reducedAndCannotOpen() {
-        DetailRow row = policy().apply(USER, List.of(dose(777))).getFirst();
+    void FR_009_Q12_onlyLinkedRecordTypesCanOpen() {
+        List<DetailRow> rows = policy().apply(
+                        USER,
+                        List.of(
+                                row("M05.INCIDENT:9", 501),
+                                row("M03.ASSET:4:MAINTENANCE", 501),
+                                row("M11.PROCUREMENT_REQUEST:7", 501),
+                                row("M02.WAITING_LIST:3", 501),
+                                dose(501),
+                                row("M05.INCIDENT:10", 777)));
 
-        assertThat(row.reduced()).isTrue();
-        assertThat(row.canOpenRecord()).isFalse();
-        assertThat(row.resident()).isEqualTo("Nguyễn Văn A");
-        assertThat(row.floorArea()).isEqualTo("Tầng 1");
+        assertThat(rows).extracting(DetailRow::canOpenRecord).containsExactly(true, true, true, true, false, false);
     }
 
     @Test
@@ -133,14 +145,5 @@ class DetailRowPolicyTest {
         medicationByRole = Visibility.NONE;
         assertThat(policy().apply(USER, List.of(dose(777))).getFirst().result())
                 .containsExactly(Map.entry("itemCode", "VT-001"));
-    }
-
-    @Test
-    void FR_054_Q_133_withoutMedicationView_onlyItemCodeShown() {
-        medication = Visibility.NONE;
-
-        DetailRow row = policy().apply(USER, List.of(dose(501))).getFirst();
-
-        assertThat(row.result()).containsExactly(Map.entry("itemCode", "VT-001"));
     }
 }

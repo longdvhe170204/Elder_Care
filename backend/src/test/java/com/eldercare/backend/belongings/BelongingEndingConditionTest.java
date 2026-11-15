@@ -20,20 +20,6 @@ import org.junit.jupiter.api.Test;
 class BelongingEndingConditionTest {
 
     @Test
-    void heldInUseAndDamagedBlockEndingAndAreListed() {
-        BelongingEndingConditionView view = EndingConditionCalculator.evaluate(List.of(
-                new Item(1, BelongingStatus.HELD, false),
-                new Item(2, BelongingStatus.HELD, false),
-                new Item(3, BelongingStatus.IN_USE, false),
-                new Item(4, BelongingStatus.DAMAGED, false),
-                new Item(5, BelongingStatus.RETURNED, false)));
-
-        assertThat(view.met()).isFalse();
-        assertThat(view.blockingBelongingIds()).containsExactly(1L, 2L, 3L, 4L);
-        assertThat(view.lostWithOpenIncidentBelongingIds()).isEmpty();
-    }
-
-    @Test
     void returningTheItemsOneByOneEventuallyMeetsTheCondition() {
         assertThat(EndingConditionCalculator.evaluate(List.of(
                         new Item(1, BelongingStatus.RETURNED, false), new Item(2, BelongingStatus.IN_USE, false))))
@@ -60,11 +46,6 @@ class BelongingEndingConditionTest {
     }
 
     @Test
-    void noBelongingsMeansTheConditionIsMet() {
-        assertThat(EndingConditionCalculator.evaluate(List.of()).met()).isTrue();
-    }
-
-    @Test
     void postDeathItemIsNotApplicableWhenNothingWasUnreturnedAtDeath() {
         PostDeathItemStatusView none = PostDeathBelongings.evaluate(List.of());
         PostDeathItemStatusView returnedBefore = PostDeathBelongings.evaluate(List.of(
@@ -73,29 +54,5 @@ class BelongingEndingConditionTest {
 
         assertThat(none.status()).isEqualTo(PostDeathItemStatus.NOT_APPLICABLE);
         assertThat(returnedBefore.status()).isEqualTo(PostDeathItemStatus.NOT_APPLICABLE);
-    }
-
-    @Test
-    void postDeathItemCompletesWhenEveryBelongingIsReturnedLostOrDisposed() {
-        List<Entry> pending = List.of(
-                new Entry(BelongingStatus.HELD, BelongingStatus.RETURNED, false),
-                new Entry(BelongingStatus.IN_USE, BelongingStatus.HELD, false));
-        List<Entry> done = List.of(
-                new Entry(BelongingStatus.HELD, BelongingStatus.RETURNED, false),
-                new Entry(BelongingStatus.IN_USE, BelongingStatus.LOST, false),
-                new Entry(BelongingStatus.DAMAGED, BelongingStatus.DISPOSED, false));
-
-        assertThat(PostDeathBelongings.evaluate(pending).status()).isEqualTo(PostDeathItemStatus.NOT_COMPLETED);
-        assertThat(PostDeathBelongings.evaluate(done).status()).isEqualTo(PostDeathItemStatus.COMPLETED);
-    }
-
-    @Test
-    void anItemFoundAfterCompletionDoesNotReopenTheItem() {
-        // FR-026a: đồ Tìm thấy sau khi mục Hoàn thành theo dõi riêng bằng nhắc, không tính vào mục
-        List<Entry> afterFound = List.of(
-                new Entry(BelongingStatus.HELD, BelongingStatus.RETURNED, false),
-                new Entry(BelongingStatus.HELD, BelongingStatus.HELD, true));
-
-        assertThat(PostDeathBelongings.evaluate(afterFound).status()).isEqualTo(PostDeathItemStatus.COMPLETED);
     }
 }

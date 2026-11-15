@@ -118,6 +118,18 @@ class M02AllocationResidencySource implements AllocationResidencySource {
         return previous.isEmpty() || next.isEmpty() || previous.get().compareTo(next.get()) != 0;
     }
 
+    /** Loại phòng của phiên bản nội dung mới nhất của hợp đồng Hiệu lực; không có hợp đồng Hiệu lực thì coi là khác. */
+    @Override
+    @Transactional(readOnly = true)
+    public boolean differentContractUnitPrice(long residentId, long roomTypeId, LocalDate date) {
+        return latest(contracts.ofResident(residentId), Set.of(ContractStatus.ACTIVE))
+                .flatMap(contract -> contracts.latestVersion(contract.id()))
+                .map(version -> version.content().path("roomTypeId"))
+                .filter(node -> node.isNumber())
+                .map(node -> differentUnitPrice(residentId, node.asLong(), roomTypeId, date))
+                .orElse(true);
+    }
+
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void waitingRecordHoldExpired(long waitingRecordId) {

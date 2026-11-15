@@ -71,14 +71,14 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(),
-                    // MyShift.scopeEndsAt (chủ dự án duyệt 2026-11-08): E cài thì xóa
                     Set.of(),
                     true),
-            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù chờ T034.
+            // 003 (chủ dự án duyệt 2026-11-06, A review): chuyển thường đã cài; phản hồi nhập bù 202 xong 2026-11-08
+            // (T034).
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
                     Set.of(),
-                    Set.of("POST /api/v1/bed-allocations/{id}/transfer 202"),
+                    Set.of(),
                     true),
             // 004 (dịch lại 2026-11-02 theo Q-394, Q-395, R-15; A review trong PR); sửa yêu cầu Nháp xong 2026-11-04
             // (T043, T047)
@@ -87,7 +87,11 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu; còn /testing/fakes
+            // 005 T060 (2026-11-03); T056, T058 (2026-11-05) dịch và cài phân lại, thời khóa biểu. /testing/fakes giữ
+            // pending:
+            // FakeM04Controller chỉ đăng ký khi import FakeM04Config (test classpath), context này không import; kiểm
+            // bằng
+            // BR_18_ShiftTaskPlanningIT.T066 (005 T066, 2026-11-10)
             new Contract(
                     Path.of("..", "specs", "005-daily-care-tasks", "contracts", "api-005.yaml"),
                     Set.of("PUT /api/v1/testing/fakes/{module}"),
@@ -115,7 +119,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 010 T032: đăng ký khi cài endpoint Phase 5; story khác giữ pending, không nới phép so operation.
             new Contract(
                     Path.of("..", "specs", "010-incurred-costs", "contracts", "api-010.yaml"),
-                    Set.of("POST /api/v1/costs/items/manual"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
@@ -150,50 +154,22 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 017 (2026-11-08, A): hợp đồng đã dịch (glossary mục 23); xóa dòng khi cài controller của từng story (A
-            // Phase 1–6,
-            // B Phase 7–10)
+            // 017 (2026-11-08, A): hợp đồng đã dịch (glossary mục 23); đủ operation sau Phase 9 của B (2026-11-09)
             new Contract(
                     Path.of("..", "specs", "017-resident-balance-ledger", "contracts", "api-017.yaml"),
-                    Set.of(
-                            "POST /api/v1/balance-transactions",
-                            "GET /api/v1/balance-transactions/pending-approval",
-                            "POST /api/v1/residents/{residentId}/deposit-offsets",
-                            "GET /api/v1/residents/{residentId}/settlement",
-                            "POST /api/v1/residents/{residentId}/settlement/confirm",
-                            "POST /api/v1/settlement-statements/{id}/signed-copy",
-                            "GET /api/v1/settlement-statements/{id}/file",
-                            "GET /api/v1/payment-notices/pending-issue",
-                            "POST /api/v1/costs/statements/{statementId}/payment-notice",
-                            "GET /api/v1/residents/{residentId}/payment-notices",
-                            "GET /api/v1/payment-notices/{id}/file",
-                            "POST /api/v1/balance-exports/statement",
-                            "POST /api/v1/balance-exports/income-expense-report",
-                            "GET /api/v1/balance-exports/{id}/file",
-                            "GET /api/v1/family-portal/residents/{residentId}/documents",
-                            "GET /api/v1/family-portal/documents/{type}/{id}/file",
-                            "POST /api/v1/family-portal/residents/{residentId}/balance-statement"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 014 (2026-11-05): hợp đồng đã dịch (glossary mục 20); xóa dòng khi cài controller của từng story
             new Contract(
                     Path.of("..", "specs", "014-activity-care-quality", "contracts", "api-014.yaml"),
-                    Set.of(
-                            "GET /api/v1/activity-types",
-                            "POST /api/v1/activity-types",
-                            "POST /api/v1/late-return-consents",
-                            "POST /api/v1/late-return-consents/{id}/withdraw",
-                            "GET /api/v1/residents/{residentId}/preferences",
-                            "GET /api/v1/residents/{residentId}/wellbeing-profile",
-                            "GET /api/v1/family-portal/residents/{residentId}/activities",
-                            "POST /api/v1/family-portal/late-return-consents",
-                            "POST /api/v1/family-portal/late-return-consents/{id}/withdraw"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 019 (2026-11-06): hợp đồng đã dịch (glossary mục 25); xóa dòng khi cài controller của từng story
             new Contract(
                     Path.of("..", "specs", "019-inventory-assets", "contracts", "api-019.yaml"),
-                    Set.of("GET /api/v1/assets/{id}"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 015 (D, 2026-11-09, T028): hợp đồng đã dịch (glossary mục 21); đủ endpoint đổi ca và nghỉ đột xuất

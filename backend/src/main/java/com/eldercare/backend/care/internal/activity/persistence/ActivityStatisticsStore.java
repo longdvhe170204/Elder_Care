@@ -63,7 +63,8 @@ public class ActivityStatisticsStore {
         return jdbc.queryForList(
                 "SELECT id,CAST(JSON_EXTRACT(content,'$.sessionId') AS UNSIGNED) session_id,"
                         + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.result')) result,"
-                        + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.absenceReason')) absence_reason"
+                        + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.absenceReason')) absence_reason,"
+                        + "JSON_UNQUOTE(JSON_EXTRACT(content,'$.lateRecorded')) late_recorded"
                         + " FROM record_event WHERE kind='M04.SESSION_ATTENDANCE'"
                         + " AND CAST(JSON_EXTRACT(content,'$.sessionId') AS UNSIGNED) IN ("
                         + String.join(",", Collections.nCopies(sessionIds.size(), "?")) + ")",

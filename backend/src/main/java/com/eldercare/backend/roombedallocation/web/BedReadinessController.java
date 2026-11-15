@@ -35,7 +35,7 @@ public class BedReadinessController {
                         ? null
                         : new ResidentSummarySchema(
                                 resident, residents.identity(resident).fullName(), null, null),
-                value.unmetConditions());
+                BedReadinessResponse.Unmet.of(value.unmetConditions()));
     }
 
     @PostMapping("/confirm-readiness")

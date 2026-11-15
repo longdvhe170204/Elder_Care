@@ -44,7 +44,6 @@ public class InResidenceMetric implements MetricSource<ResidentAtDateRecord> {
 
     @Override
     public Stream<ResidentAtDateRecord> records(ScopeFilter rough, Instant from, Instant to, ReportFilters filters) {
-        return records.atDate(rough, to, filters.residenceType())
-                .filter(r -> ResidentRecords.IN_RESIDENCE.contains(r.status()));
+        return records.atDate(rough, to, filters).filter(r -> ResidentRecords.IN_RESIDENCE.contains(r.status()));
     }
 }

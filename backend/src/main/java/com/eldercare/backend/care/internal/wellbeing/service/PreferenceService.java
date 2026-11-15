@@ -79,6 +79,33 @@ public class PreferenceService {
             String level,
             OpinionSource source,
             boolean confirmReplacement) {
+        return save(residentId, interestGroupId, description, level, source, confirmReplacement, null);
+    }
+
+    @RequiresPermission(function = Function.ACTIVITY_OUTING, operation = Operation.CREATE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public long recordFeedback(
+            Target target,
+            long residentId,
+            long feedbackId,
+            Long interestGroupId,
+            String description,
+            String level,
+            OpinionSource source,
+            boolean confirmReplacement) {
+        if (feedbackId <= 0) throw new InvalidValueException("Cần mã phản hồi hợp lệ");
+        return save(residentId, interestGroupId, description, level, source, confirmReplacement, feedbackId);
+    }
+
+    private long save(
+            long residentId,
+            Long interestGroupId,
+            String description,
+            String level,
+            OpinionSource source,
+            boolean confirmReplacement,
+            Long feedbackId) {
         recorder();
         if (interestGroupId == null) throw new InvalidValueException("Cần nhóm sở thích");
         if (!Preference.LIKE.equals(level) && !Preference.DISLIKE.equals(level))
@@ -121,7 +148,7 @@ public class PreferenceService {
                         residentId,
                         null,
                         Preference.CURRENT,
-                        new Preference(interestGroupId, description, level, source, now, null, null, null),
+                        new Preference(interestGroupId, description, level, source, now, null, null, null, feedbackId),
                         null,
                         null,
                         key,

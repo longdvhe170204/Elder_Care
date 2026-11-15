@@ -36,12 +36,10 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
             BigDecimal numerator,
             BigDecimal denominator,
             Set<ValueLabel> labels,
-            int pendingReviewCount) {}
+            int pendingReviewCount,
+            List<String> purgedDataTypes) {}
 
     public record DetailLine(String metricCode, DetailRow row) {}
-
-    /** Chỉ tiêu chỉ Quản lý viện xuất được (FR-061, FR-073). */
-    static final Set<String> MANAGER_ONLY = Set.of("SHIFT.WORKING_HOURS");
 
     public static ExportContent decide(
             Set<Role> roles, boolean includeIdentity, Optional<String> purpose, List<MetricResult> results) {
@@ -61,9 +59,6 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
         List<SummaryRow> summary = new ArrayList<>();
         List<DetailLine> details = new ArrayList<>();
         for (MetricResult r : results) {
-            if (!manager && MANAGER_ONLY.contains(r.metricCode())) {
-                continue;
-            }
             MetricValue v = r.value();
             if (includeIdentity || !singlePerson(r.residents())) {
                 summary.add(new SummaryRow(
@@ -74,7 +69,8 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
                         v.numerator(),
                         v.denominator(),
                         v.labels(),
-                        v.pendingReviewCount()));
+                        v.pendingReviewCount(),
+                        v.purgedDataTypes()));
             }
             for (MetricValue.Breakdown b : v.breakdown()) {
                 if (includeIdentity || !singlePerson(r.residentsByKey().getOrDefault(b.key(), Set.of()))) {
@@ -86,7 +82,8 @@ public record ExportContent(boolean includeIdentity, List<SummaryRow> summary, L
                             b.numerator(),
                             b.denominator(),
                             Set.of(),
-                            0));
+                            0,
+                            List.of()));
                 }
             }
             if (includeIdentity) {

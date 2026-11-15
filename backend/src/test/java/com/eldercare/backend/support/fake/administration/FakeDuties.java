@@ -21,6 +21,7 @@ public class FakeDuties implements DutyApi {
     private final Map<Long, Long> departments = new HashMap<>();
     private final Map<Long, Long> groupLeaders = new HashMap<>();
     private final Map<Long, List<Long>> companions = new HashMap<>();
+    private final Map<Long, List<Long>> tripResidents = new HashMap<>();
     private final Map<List<Long>, List<Long>> floorReceivers = new HashMap<>();
 
     public FakeDuties shiftLead(long floorAreaId, long staffId) {
@@ -49,6 +50,18 @@ public class FakeDuties implements DutyApi {
         return this;
     }
 
+    private final Map<String, Long> departmentCodes = new HashMap<>();
+
+    public FakeDuties departmentCode(String code, long departmentId) {
+        departmentCodes.put(code, departmentId);
+        return this;
+    }
+
+    @Override
+    public Optional<Long> departmentByCode(String code) {
+        return Optional.ofNullable(departmentCodes.get(code));
+    }
+
     public FakeDuties department(long staffId, long departmentId) {
         departments.put(staffId, departmentId);
         return this;
@@ -58,6 +71,17 @@ public class FakeDuties implements DutyApi {
         groupLeaders.put(tripId, groupLeaderId);
         companions.put(tripId, List.copyOf(companionIds));
         return this;
+    }
+
+    /** Người cao tuổi đang trên chuyến của Trưởng đoàn, Người đi cùng {@code staffId} (FR-031, T049). */
+    public FakeDuties tripResidents(long staffId, Long... residentIds) {
+        tripResidents.computeIfAbsent(staffId, k -> new java.util.ArrayList<>()).addAll(List.of(residentIds));
+        return this;
+    }
+
+    @Override
+    public List<Long> tripResidents(long staffId) {
+        return tripResidents.getOrDefault(staffId, List.of());
     }
 
     public FakeDuties floorReceivers(long floorAreaId, long shiftId, List<Long> staffIds) {

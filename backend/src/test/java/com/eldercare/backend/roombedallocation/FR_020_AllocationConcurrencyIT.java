@@ -24,6 +24,7 @@ class FR_020_AllocationConcurrencyIT extends StructureTestSupport {
     @Autowired
     FakeAllocationResidencySource residency;
 
+    /** BR-M03-02: hai người cùng phân bổ một giường, người sau nhận lỗi giường đã được phân bổ. */
     @Test
     void FR_020_tenConcurrentReservationsHaveExactlyOneWinner() throws Exception {
         user.set(new TestUsers(jdbc, time).staff(Role.OFFICE_STAFF).user());

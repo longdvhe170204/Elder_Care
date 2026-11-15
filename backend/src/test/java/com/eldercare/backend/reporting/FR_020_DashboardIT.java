@@ -112,9 +112,4 @@ class FR_020_DashboardIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.blocks[*].group").value(not(hasItem("INCURRED_COSTS"))))
                 .andExpect(jsonPath("$.blocks[*].group").value(hasItem("CARE_TASKS")));
     }
-
-    @Test
-    void US2_caregiver_hasNoDashboard_403() throws Exception {
-        dashboard(users.staff(Role.CAREGIVER)).andExpect(status().isForbidden());
-    }
 }

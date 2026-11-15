@@ -72,6 +72,29 @@ class ResidencyChangeRules {
      */
     List<UnmetCondition> check(
             Contract contract, JsonNode base, ResidencyChangeContent change, LocalDate effective, Long requestId) {
+        return check(contract, base, change, effective, requestId, null);
+    }
+
+    /**
+     * Điều kiện áp dụng (FR-045): giường mới kiểm qua phân bổ đã đặt trước lúc duyệt ({@code checkScheduledTransfer}), không
+     * kiểm lại như lúc đặt trước (chính phân bổ Tương lai đó sẽ chặn).
+     */
+    List<UnmetCondition> checkApply(
+            Contract contract,
+            JsonNode base,
+            ResidencyChangeContent change,
+            LocalDate effective,
+            long applyingRequestId) {
+        return check(contract, base, change, effective, null, applyingRequestId);
+    }
+
+    private List<UnmetCondition> check(
+            Contract contract,
+            JsonNode base,
+            ResidencyChangeContent change,
+            LocalDate effective,
+            Long requestId,
+            Long applyingRequestId) {
         List<UnmetCondition> unmet = new ArrayList<>();
         if (contract.status() != ContractStatus.ACTIVE) {
             unmet.add(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng gốc không còn Hiệu lực (FR-045)"));
@@ -114,7 +137,13 @@ class ResidencyChangeRules {
             if (resultType == ResidenceType.DAY_CARE) {
                 unmet.add(new UnmetCondition("NOT_INPATIENT", "Người bán trú không có giường để đổi (FR-041)"));
             }
-            unmet.addAll(bedConditions(contract.residentId(), change.newBedId(), effective));
+            // Sau chuyển gấp (003 FR-030): người đã ở giường mới, không đặt trước nên không kiểm như chuyển theo lịch
+            if (!change.afterUrgentTransfer()) {
+                unmet.addAll(
+                        applyingRequestId != null && change.newBedId() != null
+                                ? beds.getObject().checkScheduledTransfer(applyingRequestId)
+                                : bedConditions(contract.residentId(), change.newBedId(), effective));
+            }
         }
         if (change.has(ChangeType.ARRIVAL_SCHEDULE)) {
             if (resultType != ResidenceType.DAY_CARE) {
@@ -277,6 +306,9 @@ class ResidencyChangeRules {
         }
         if (types.contains(ChangeType.BED)) {
             copy(base, previous, "bedId");
+            if (change.afterUrgentTransfer()) {
+                copy(base, previous, "roomTypeId");
+            }
         }
         if (types.contains(ChangeType.ARRIVAL_SCHEDULE)) {
             copy(base, previous, "arrivalSchedule");

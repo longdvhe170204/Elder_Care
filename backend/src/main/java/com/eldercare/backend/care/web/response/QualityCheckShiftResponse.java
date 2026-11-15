@@ -1,10 +1,14 @@
 package com.eldercare.backend.care.web.response;
 
 import com.eldercare.backend.care.internal.qualitycheck.service.QualityCheckService.ShiftOverview;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
 
-/** Schema {@code QualityCheckShiftView} của api-014 (GET /quality-checks/shifts/{shiftId}, duyệt 07/11/2026). */
+/**
+ * Schema {@code QualityCheckShiftView} của api-014 (GET /quality-checks/shifts/{shiftId}, duyệt 07/11/2026). Record con
+ * đặt tên schema riêng: tên {@code Item}, {@code Checklist} trùng record của module khác làm springdoc gộp schema.
+ */
 public record QualityCheckShiftResponse(
         long shiftId,
         long floorAreaId,
@@ -14,8 +18,10 @@ public record QualityCheckShiftResponse(
         List<EligibleTask> eligibleTasks,
         List<Item> items) {
 
+    @Schema(name = "QualityCheckChecklistView")
     public record Checklist(long id, String status, Instant createdAt, String inspectorRole) {}
 
+    @Schema(name = "QualityCheckEligibleTaskView")
     public record EligibleTask(
             long taskId,
             long taskTypeId,
@@ -24,6 +30,7 @@ public record QualityCheckShiftResponse(
             Long performerStaffId,
             Instant performedAt) {}
 
+    @Schema(name = "QualityCheckItemView")
     public record Item(long id, long taskId, String status, String note, String inspectorRole, Instant recordedAt) {}
 
     public static QualityCheckShiftResponse of(ShiftOverview view) {
@@ -49,13 +56,7 @@ public record QualityCheckShiftResponse(
                                 t.performedAt()))
                         .toList(),
                 view.items().stream()
-                        .map(i -> new Item(
-                                i.id(),
-                                i.content().taskId(),
-                                i.content().status(),
-                                i.content().note(),
-                                i.content().inspectorRole(),
-                                i.content().recordedAt()))
+                        .map(i -> new Item(i.id(), i.taskId(), i.status(), i.note(), i.inspectorRole(), i.recordedAt()))
                         .toList());
     }
 }

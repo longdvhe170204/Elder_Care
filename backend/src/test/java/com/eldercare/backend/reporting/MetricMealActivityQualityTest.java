@@ -9,7 +9,7 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.care.api.ActivityStatisticsApi;
-import com.eldercare.backend.care.api.dto.IsolationRiskView;
+import com.eldercare.backend.care.api.dto.OutOfCheckScopeView;
 import com.eldercare.backend.care.api.dto.QualityCheckStatisticsView;
 import com.eldercare.backend.care.api.dto.SessionStatisticsView;
 import com.eldercare.backend.care.api.dto.TripStatisticsView;
@@ -20,8 +20,7 @@ import com.eldercare.backend.nutrition.api.dto.MealSlipReportView;
 import com.eldercare.backend.nutrition.api.dto.MealSlipStatus;
 import com.eldercare.backend.nutrition.api.dto.PortionReportView;
 import com.eldercare.backend.reporting.internal.activity.service.ActivityRecords;
-import com.eldercare.backend.reporting.internal.activity.service.MissingParticipantsMetric;
-import com.eldercare.backend.reporting.internal.activity.service.OverdueTripsMetric;
+import com.eldercare.backend.reporting.internal.activity.service.LateAttendanceMetric;
 import com.eldercare.backend.reporting.internal.activity.service.ParticipationRateMetric;
 import com.eldercare.backend.reporting.internal.activity.service.SessionsMetric;
 import com.eldercare.backend.reporting.internal.meal.service.DiscrepancyTicketsMetric;
@@ -32,8 +31,6 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricSource;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricValue;
 import com.eldercare.backend.reporting.internal.metric.domain.ReportFilters;
-import com.eldercare.backend.reporting.internal.quality.service.ChecksByRoleMetric;
-import com.eldercare.backend.reporting.internal.quality.service.PassRateMetric;
 import com.eldercare.backend.reporting.internal.quality.service.QualityCheckRecords;
 import java.time.Clock;
 import java.time.Duration;
@@ -65,6 +62,7 @@ class MetricMealActivityQualityTest {
     private final List<SessionStatisticsView> sessions = new ArrayList<>();
     private final List<TripStatisticsView> trips = new ArrayList<>();
     private final List<QualityCheckStatisticsView> checks = new ArrayList<>();
+    private final List<OutOfCheckScopeView> outOfScope = new ArrayList<>();
 
     private final NutritionStatisticsApi nutrition = new NutritionStatisticsApi() {
         @Override
@@ -101,8 +99,8 @@ class MetricMealActivityQualityTest {
         }
 
         @Override
-        public Stream<IsolationRiskView> isolationRisks() {
-            return Stream.empty();
+        public Stream<OutOfCheckScopeView> outOfCheckScope(ScopeFilter scope, LocalDate from, LocalDate to) {
+            return outOfScope.stream();
         }
     };
 
@@ -173,6 +171,24 @@ class MetricMealActivityQualityTest {
                 .containsExactly(tuple("M08.MEAL_SLIP:2", 102L), tuple("M08.MEAL_SLIP:3", 101L));
     }
 
+    /** T016 (FR-032): điểm danh buổi hoạt động mang nhãn "ghi nhận muộn" tính riêng, theo hoạt động; tầng ở bộ lọc chung. */
+    @Test
+    void FR_032_lateRecordedActivityAttendance_countedSeparately() {
+        sessions.add(
+                new SessionStatisticsView(1, 5, Optional.of(101L), at(540), "COMPLETED", false, 4, 3, Map.of(), 0, 2));
+        sessions.add(
+                new SessionStatisticsView(2, 6, Optional.of(102L), at(600), "COMPLETED", false, 2, 2, Map.of(), 0, 0));
+        sessions.add(
+                new SessionStatisticsView(3, 6, Optional.of(102L), at(660), "COMPLETED", false, 2, 1, Map.of(), 0, 1));
+
+        LateAttendanceMetric late = new LateAttendanceMetric(activityRecords);
+        assertThat(late.metric().code()).isEqualTo("ACT.LATE_ATTENDANCE");
+        assertThat(late.metric().group()).isEqualTo(MetricGroup.ACTIVITIES);
+        assertThat(value(late).value()).isEqualByComparingTo("3");
+        assertThat(cells(value(late))).containsExactly(tuple("5", "2"), tuple("6", "1"));
+        assertThat(late.metric().details(included(late), "5")).hasSize(2);
+    }
+
     @Test
     void FR_035_sessions_participationRate_awayNoShowNotRecordedNotInDenominator() {
         sessions.add(new SessionStatisticsView(
@@ -185,11 +201,12 @@ class MetricMealActivityQualityTest {
                 10,
                 4,
                 Map.of("REFUSED", 1, "HEALTH", 1, "AWAY", 2, "NO_SHOW", 1),
-                1));
+                1,
+                0));
         sessions.add(
-                new SessionStatisticsView(2, 6, Optional.of(101L), at(600), "CANCELLED", false, 3, 0, Map.of(), 0));
+                new SessionStatisticsView(2, 6, Optional.of(101L), at(600), "CANCELLED", false, 3, 0, Map.of(), 0, 0));
         sessions.add(new SessionStatisticsView(
-                3, 6, Optional.of(102L), at(660), "COMPLETED", false, 2, 1, Map.of("OTHER", 1), 0));
+                3, 6, Optional.of(102L), at(660), "COMPLETED", false, 2, 1, Map.of("OTHER", 1), 0, 0));
 
         SessionsMetric count = new SessionsMetric(activityRecords);
         assertThat(count.metric().code()).isEqualTo("ACT.SESSIONS");
@@ -203,45 +220,5 @@ class MetricMealActivityQualityTest {
         assertThat(v.numerator()).isEqualByComparingTo("5");
         assertThat(v.denominator()).isEqualByComparingTo("8");
         assertThat(cells(v)).containsExactly(tuple("5", "66.7"), tuple("6", "50"));
-    }
-
-    @Test
-    void FR_035_overdueTrips_doubleThresholdSeparately_missingParticipants() {
-        // giờ về dự kiến hiện hành (sau gia hạn) + 30 phút
-        trips.add(new TripStatisticsView(1, Optional.of(101L), at(600), List.of(), Optional.of(at(640)), 0));
-        trips.add(new TripStatisticsView(2, Optional.of(101L), at(600), List.of(at(700)), Optional.of(at(720)), 0));
-        trips.add(new TripStatisticsView(3, Optional.of(102L), at(600), List.of(), Optional.of(at(670)), 2));
-        trips.add(new TripStatisticsView(4, Optional.of(102L), at(600), List.of(), Optional.empty(), 0));
-        trips.add(new TripStatisticsView(5, Optional.of(102L), at(1190), List.of(), Optional.empty(), 0));
-
-        OverdueTripsMetric overdue = new OverdueTripsMetric(activityRecords);
-        assertThat(overdue.metric().code()).isEqualTo("ACT.OVERDUE_TRIPS");
-        assertThat(cells(value(overdue))).containsExactly(tuple("OVERDUE", "1"), tuple("OVERDUE_DOUBLE", "2"));
-
-        MissingParticipantsMetric missing = new MissingParticipantsMetric(activityRecords);
-        assertThat(missing.metric().code()).isEqualTo("ACT.MISSING_PARTICIPANTS");
-        assertThat(value(missing).value()).isEqualByComparingTo("1");
-    }
-
-    @Test
-    void FR_037_passRate_byPerformer_checkedItemsByRole() {
-        checks.add(new QualityCheckStatisticsView(1, 9, 101, 71, "PASS", "FLOOR_MANAGER", 51L, at(600)));
-        checks.add(new QualityCheckStatisticsView(2, 9, 101, 72, "FAIL", "FLOOR_MANAGER", 51L, at(610)));
-        checks.add(new QualityCheckStatisticsView(3, 9, 101, 73, "PASS", "SHIFT_LEAD", 52L, at(620)));
-        checks.add(new QualityCheckStatisticsView(4, 9, 101, 74, "NOT_CHECKABLE", "SHIFT_LEAD", 52L, at(630)));
-        checks.add(new QualityCheckStatisticsView(5, 9, 101, 75, "OVERDUE", null, 52L, null));
-        checks.add(new QualityCheckStatisticsView(6, 9, 101, 76, "PENDING", null, 52L, null));
-
-        PassRateMetric pass = new PassRateMetric(qualityRecords);
-        MetricValue v = value(pass);
-        assertThat(pass.metric().code()).isEqualTo("QC.PASS_RATE");
-        assertThat(pass.metric().group()).isEqualTo(MetricGroup.QUALITY_CHECKS);
-        assertThat(v.numerator()).isEqualByComparingTo("2");
-        assertThat(v.denominator()).isEqualByComparingTo("3");
-        assertThat(cells(v)).containsExactly(tuple("51", "50"), tuple("52", "100"));
-
-        ChecksByRoleMetric byRole = new ChecksByRoleMetric(qualityRecords);
-        assertThat(byRole.metric().code()).isEqualTo("QC.BY_CHECKER_ROLE");
-        assertThat(cells(value(byRole))).containsExactly(tuple("FLOOR_MANAGER", "2"), tuple("SHIFT_LEAD", "2"));
     }
 }

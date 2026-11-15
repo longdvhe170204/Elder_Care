@@ -28,6 +28,7 @@ import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.incident.api.dto.EmergencyFamilyContactView;
+import com.eldercare.backend.incident.api.dto.RecordIncidentCommand;
 import com.eldercare.backend.incident.api.events.CriticalFlagRecorded;
 import com.eldercare.backend.incident.api.events.PalliativeCareChoiceRecorded;
 import com.eldercare.backend.incident.api.events.TemporaryCriticalFlagConfirmationRequested;
@@ -57,6 +58,7 @@ import com.eldercare.backend.incident.internal.emergency.domain.TransferOutComma
 import com.eldercare.backend.incident.internal.emergency.domain.TransferRefusedException;
 import com.eldercare.backend.incident.internal.emergency.service.TransferOutService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
+import com.eldercare.backend.incident.internal.incident.service.IncidentRecordService;
 import com.eldercare.backend.resident.api.EndOfLifeWishApi;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -102,6 +104,7 @@ public class CriticalCareService {
     private final ResidentApi residents;
     private final EndOfLifeWishApi wishes;
     private final TransferOutService transfers;
+    private final IncidentRecordService incidents;
     private final Optional<AlertStaffPort> staff;
     private final Optional<EmergencyFamilyPort> family;
 
@@ -118,6 +121,7 @@ public class CriticalCareService {
             ResidentApi residents,
             EndOfLifeWishApi wishes,
             TransferOutService transfers,
+            IncidentRecordService incidents,
             @Autowired(required = false) AlertStaffPort staff,
             @Autowired(required = false) EmergencyFamilyPort family) {
         this.store = store;
@@ -132,6 +136,7 @@ public class CriticalCareService {
         this.residents = residents;
         this.wishes = wishes;
         this.transfers = transfers;
+        this.incidents = incidents;
         this.staff = Optional.ofNullable(staff);
         this.family = Optional.ofNullable(family);
     }
@@ -312,7 +317,12 @@ public class CriticalCareService {
      */
     @Transactional
     public long executeChoice(
-            long alertId, String choiceValue, Reason reason, TransferOutCommand transferOut, CurrentUser user) {
+            long alertId,
+            String choiceValue,
+            Reason reason,
+            TransferOutCommand transferOut,
+            Long incidentTypeId,
+            CurrentUser user) {
         ExecutionChoice choice = parse(ExecutionChoice.class, choiceValue, "Lựa chọn thực hiện không hợp lệ");
         var alert = lockCriticalAlert(alertId, user);
         var results = store.reconfirmations(alertId);
@@ -338,14 +348,36 @@ public class CriticalCareService {
             }
         }
         if (choice == ExecutionChoice.TRANSFER_TO_HOSPITAL) {
-            // Lệnh Chuyển viện của US5 chạy trên sự cố đã liên kết với cảnh báo (chuyển sự cố hoặc kích hoạt khẩn
-            // cấp); 001 từ chối thì cả lệnh rollback, không ghi lựa chọn (FR-049, "hoặc toàn bộ, hoặc không").
+            // Lệnh Chuyển viện của US5 chạy trên sự cố (FR-049). Cảnh báo chưa có sự cố thì lệnh lập sự cố kèm, loại do
+            // người xử lý chọn (Q-306), gắn với cảnh báo mà không đổi trạng thái (chủ dự án chốt 2026-11-12, US11 #4);
+            // 001 từ chối thì cả lệnh rollback, không ghi lựa chọn ("hoặc toàn bộ, hoặc không").
             if (transferOut == null) throw new InvalidValueException("Thiếu thông tin Chuyển viện");
-            if (alert.incidentId() == null) {
-                throw blocked("FR-049", "Chuyển cảnh báo thành sự cố hoặc kích hoạt khẩn cấp trước khi chuyển viện");
+            Long incidentId = alert.incidentId();
+            if (incidentId == null) {
+                if (incidentTypeId == null) throw new InvalidValueException("Thiếu loại sự cố cho lệnh Chuyển viện");
+                incidentId = incidents
+                        .record(
+                                new RecordIncidentCommand(
+                                        alert.residentId(),
+                                        incidentTypeId,
+                                        null,
+                                        alert.firstAt(),
+                                        alert.firstAt(),
+                                        alert.floorAreaId(),
+                                        null,
+                                        null,
+                                        alert.description(),
+                                        alert.level().name(),
+                                        "Mức theo cảnh báo nguy kịch " + alertId,
+                                        null,
+                                        false),
+                                user,
+                                alertId)
+                        .incidentId();
+                alerts.linkIncident(alertId, incidentId);
             }
             try {
-                transfers.transfer(alert.incidentId(), transferOut, user);
+                transfers.transfer(incidentId, transferOut, user);
             } catch (TransferRefusedException refused) {
                 throw refused.refusal();
             }

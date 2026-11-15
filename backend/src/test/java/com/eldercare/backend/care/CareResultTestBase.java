@@ -142,11 +142,25 @@ abstract class CareResultTestBase extends MySqlIntegrationTestBase {
     }
 
     void data(String resultType, boolean billable) {
+        data(resultType, billable, resultType.equals("PERFORMED") ? "OCCURRENCE" : "UNIT");
+    }
+
+    /** Dịch vụ thật trong danh mục 004 với kỳ tính {@code billingPeriod} (quyết định 05/11: kiểm đơn vị thực). */
+    void data(String resultType, boolean billable, String billingPeriod) {
+        String name = "Dịch vụ chăm sóc " + TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO catalog_item (catalog_type, module, name, status, attributes) VALUES ('M02.SERVICE', 'M02', ?,"
+                        + " 'ACTIVE', ?)",
+                name,
+                "{\"type\":\"OTHER\",\"unit\":\"lần\",\"billingPeriod\":\"" + billingPeriod
+                        + "\",\"careLevelCode\":null,\"roomTypeId\":null,\"medicationId\":null}");
+        long service = jdbc.queryForObject(
+                "SELECT id FROM catalog_item WHERE catalog_type='M02.SERVICE' AND name=?", Long.class, name);
         jdbc.update(
                 "UPDATE care_task SET data=JSON_SET(data,'$.resultType',?,'$.billable',CAST(? AS JSON),'$.serviceId',?) WHERE id=?",
                 resultType,
                 Boolean.toString(billable),
-                TestUsers.nextId(),
+                service,
                 task);
     }
 }

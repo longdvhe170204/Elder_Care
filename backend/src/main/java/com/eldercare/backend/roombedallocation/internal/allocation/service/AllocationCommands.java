@@ -77,7 +77,10 @@ public class AllocationCommands {
         this.events = events;
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.CREATE)
+    /**
+     * BR-M03-20: tự kiểm (BED_ALLOCATION, CREATE) trên giường kèm tầng của giường, không dùng {@code @RequiresPermission}
+     * (đối tượng không xác định làm phạm vi được giao của Trưởng tầng luôn trượt, người chưa có giường chưa thuộc tầng).
+     */
     @BusinessCommand
     @org.springframework.resilience.annotation.Retryable(
             includes = org.springframework.dao.PessimisticLockingFailureException.class,
@@ -85,6 +88,8 @@ public class AllocationCommands {
             delay = 50)
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public long create(long residentId, long bedId, Instant startAt, Reason reason) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.CREATE)))
+            throw new PermissionDeniedException("Không có quyền phân bổ giường");
         locks.lock(residentId, List.of());
         var bedIds = new ArrayList<>(store.heldBeds(residentId));
         bedIds.add(bedId);
@@ -161,7 +166,7 @@ public class AllocationCommands {
         return id;
     }
 
-    @RequiresPermission(function = Function.BED_ALLOCATION, operation = Operation.UPDATE)
+    /** BR-M03-20, UC-21: kiểm khóa mức vai trò rồi kiểm trên giường kèm tầng; không dùng {@code @RequiresPermission}. */
     @BusinessCommand
     @org.springframework.resilience.annotation.Retryable(
             includes = org.springframework.dao.PessimisticLockingFailureException.class,
@@ -169,6 +174,8 @@ public class AllocationCommands {
             delay = 50)
     @Transactional
     public void cancel(long id, Reason reason) {
+        if (!permissions.permissions(user).contains(new PermissionKey(Function.BED_ALLOCATION, Operation.UPDATE)))
+            throw new PermissionDeniedException("Không có quyền hủy phân bổ giường");
         var allocation = store.get(id);
         locks.lock(allocation.residentId(), List.of(allocation.bedId()));
         allocation = store.current(id);

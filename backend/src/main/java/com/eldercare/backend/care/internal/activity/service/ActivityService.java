@@ -18,6 +18,8 @@ import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.administration.shared.api.dto.NewSimpleRecord;
 import com.eldercare.backend.administration.shared.api.dto.RecordChange;
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
+import com.eldercare.backend.admission.api.UnitPriceApi;
+import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.care.internal.activity.domain.Activity;
 import com.eldercare.backend.care.internal.activity.domain.RegularParticipant;
 import com.eldercare.backend.care.internal.activity.domain.TemplateVersion;
@@ -46,6 +48,7 @@ public class ActivityService {
 
     private final SimpleRecordApi records;
     private final CatalogApi catalogs;
+    private final UnitPriceApi services;
     private final CurrentUser user;
     private final AuditLogApi audit;
     private final BusinessTime time;
@@ -61,8 +64,10 @@ public class ActivityService {
             BusinessTime time,
             ActivitySessionService sessions,
             ScopeApi scopes,
-            LocationStructureApi structure) {
+            LocationStructureApi structure,
+            UnitPriceApi services) {
         this.records = records;
+        this.services = services;
         this.catalogs = catalogs;
         this.user = user;
         this.audit = audit;
@@ -300,6 +305,10 @@ public class ActivityService {
         requireKnownLocation(in.defaultLocation());
         if (in.maxParticipants() < 1) throw new InvalidValueException("Số lượng tối đa từ 1");
         if (in.charged() && in.serviceId() == null) throw new InvalidValueException("Hoạt động thu phí cần dịch vụ");
+        // FR-002: dịch vụ của hoạt động thu phí phải có trong danh mục 004 và đang Hiệu lực
+        if (in.charged()
+                && !services.service(in.serviceId()).map(ServiceView::active).orElse(false))
+            throw new InvalidValueException("Dịch vụ không có trong danh mục hoặc đã ngừng hiệu lực");
         boolean group = requestedGroup == null ? type.attributes().groupActivity() : requestedGroup;
         String reason = in.groupActivityChangeReason();
         if (group != type.attributes().groupActivity() && (reason == null || reason.isBlank()))

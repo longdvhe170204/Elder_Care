@@ -3,12 +3,17 @@ package com.eldercare.backend.support.fake.care;
 import com.eldercare.backend.care.api.spi.TaskSourcePort;
 import java.time.Instant;
 import java.util.*;
+import org.springframework.beans.factory.ObjectProvider;
 
-/** Mỗi bean giữ dữ liệu của đúng nguồn 007/011/014; mặc định căn cứ không hợp lệ. */
+/**
+ * Mỗi bean giữ dữ liệu của đúng nguồn 007/011/014; mặc định căn cứ không hợp lệ. Loại đã có bean {@link TaskSourcePort}
+ * thật trong context thì bản giả không quản nữa ({@code CareTaskValidator} cần đúng một nguồn mỗi loại; team-plan mục 8).
+ */
 public class FakeTaskSource implements TaskSourcePort {
     private final FakeM04Switches switches;
     private final String module;
     private final Set<SourceType> types;
+    private final ObjectProvider<TaskSourcePort> all;
     private final Map<Reference, SourceValidation> results = new HashMap<>();
     private final Map<MealResident, Boolean> served = new HashMap<>();
     private final Map<Long, List<SourceView>> sources = new HashMap<>();
@@ -27,10 +32,12 @@ public class FakeTaskSource implements TaskSourcePort {
                 .toList();
     }
 
-    public FakeTaskSource(FakeM04Switches switches, String module, Set<SourceType> types) {
+    public FakeTaskSource(
+            FakeM04Switches switches, String module, Set<SourceType> types, ObjectProvider<TaskSourcePort> all) {
         this.switches = switches;
         this.module = module;
         this.types = Set.copyOf(types);
+        this.all = all;
     }
 
     public void validation(
@@ -45,7 +52,12 @@ public class FakeTaskSource implements TaskSourcePort {
 
     @Override
     public Set<SourceType> managedTypes() {
-        return types;
+        var managed = EnumSet.noneOf(SourceType.class);
+        managed.addAll(types);
+        all.orderedStream()
+                .filter(source -> !(source instanceof FakeTaskSource))
+                .forEach(source -> managed.removeAll(source.managedTypes()));
+        return managed;
     }
 
     @Override

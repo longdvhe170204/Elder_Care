@@ -124,6 +124,7 @@ Bean thiếu thì nhóm (g), phần chuyến đi của nhóm (e) trả "chưa c�
 | --- | --- |
 | `DoGuiBanGiaoPort.dangGiu`, `.conDangGiu` | `staffing.api.spi.HeldBelongingsHandoverPort.heldBy`, `.stillHeld` |
 | `ChuyenDiNhiemVuPort.truongDoan`, `.nguoiDiCung`, `.chuyenTrongCa` | `staffing.api.spi.TripDutyPort.groupLeader`, `.companions`, `.inShift` |
+| *(Đổi api 2026-11-12, 002 T049, người dùng duyệt)* `ChuyenDiNhiemVuPort.nguoiThamGiaCua(nv)` | `TripDutyPort.tripResidentsOf(staffId)`: người tham gia đã rời viện (chưa về) của chuyến Đang diễn ra mà nhân viên là Trưởng đoàn, Người đi cùng; `TripDuties` đọc `care.api.TripDutyReadApi.tripResidentsOf`; 008 cài `DutyApi.tripResidents` cho 002 FR-031 |
 | `DoGuiDangGiuView` | `HeldBelongingView(belongingId, holderStaffId, residentId, storageLocationId)`; vị trí lưu giữ có thể rỗng theo data-model 013 |
 | `ChuyenTrongCaView` | `TripInShiftView(tripId, staffIds, expectedReturnAt)` |
 

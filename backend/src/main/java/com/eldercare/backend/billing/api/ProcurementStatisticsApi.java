@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 /**
  * 019 contracts mục 2.3 (MuaSamThongKeApi) cho 016 (CP.MUA_SAM, FR-055a), theo yêu cầu chung của 016
  * module-interfaces mục 2 (chủ dự án duyệt 2026-11-06). Phạm vi theo bộ phận vì ScopeFilter không có bộ phận;
- * departmentIds rỗng là toàn viện. Khoảng [from, to] theo ngày lập yêu cầu (chờ A xác nhận, team-plan mục 8).
+ * departmentIds rỗng là toàn viện. Khoảng [from, to] theo ngày lập yêu cầu (ngày nghiệp vụ, hai đầu tính
+ * vào), A xác nhận 2026-11-07.
  */
 public interface ProcurementStatisticsApi {
     Stream<ProcurementRequestView> byDepartment(Set<Long> departmentIds, LocalDate from, LocalDate to);

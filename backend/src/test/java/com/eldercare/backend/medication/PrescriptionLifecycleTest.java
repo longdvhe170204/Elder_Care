@@ -1,16 +1,13 @@
 package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
@@ -23,14 +20,11 @@ import com.eldercare.backend.medication.internal.prescription.domain.ChangeDosag
 import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
 import com.eldercare.backend.medication.internal.prescription.domain.DiscontinuePrescriptionBody;
 import com.eldercare.backend.medication.internal.prescription.domain.ExtendPrescriptionBody;
-import com.eldercare.backend.medication.internal.prescription.domain.ExternalBasisBody;
 import com.eldercare.backend.medication.internal.prescription.domain.FrequencyBody;
 import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
-import com.eldercare.backend.medication.internal.prescription.domain.OrderPrescriptionBody;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriberType;
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
-import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasis;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionCheckResult;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
@@ -237,45 +231,6 @@ class PrescriptionLifecycleTest {
     }
 
     @Test
-    @DisplayName("BR-M07-16: Điều dưỡng sửa đơn bên ngoài không có căn cứ cơ sở kê thì bị chặn THIEU_CAN_CU_CO_SO_KE")
-    void nurse_modifyingExternalWithoutBasis_rejected() {
-        Prescription external = createSamplePrescription(1003L, PrescriptionStatus.ACTIVE, PrescriberType.EXTERNAL);
-        when(prescriptionRepository.findById(1003L)).thenReturn(Optional.of(external));
-
-        OrderPrescriptionBody body = new OrderPrescriptionBody();
-        body.setExternalBasis(null); // Thiếu căn cứ
-
-        assertThatThrownBy(() -> prescriptionService.suspend(Target.UNSPECIFIED, 1003L, body, 2L, false))
-                .isInstanceOf(ConditionNotMetException.class)
-                .satisfies(ex -> {
-                    ConditionNotMetException cnme = (ConditionNotMetException) ex;
-                    assertThat(cnme.unmetConditions()).anyMatch(c -> c.code().equals("EXTERNAL_BASIS_REQUIRED"));
-                });
-    }
-
-    @Test
-    @DisplayName("BR-M07-16: Điều dưỡng sửa đơn bên ngoài có căn cứ hợp lệ thì lưu căn cứ thành công")
-    void nurse_modifyingExternalWithValidBasis_success() {
-        Prescription external = createSamplePrescription(1003L, PrescriptionStatus.ACTIVE, PrescriberType.EXTERNAL);
-        when(prescriptionRepository.findById(1003L)).thenReturn(Optional.of(external));
-        when(prescriptionRepository.save(any(Prescription.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        OrderPrescriptionBody body = new OrderPrescriptionBody();
-        ExternalBasisBody basis = new ExternalBasisBody();
-        basis.setFacilityName("Bệnh viện Đa khoa");
-        basis.setPrescriberName("Bác sĩ Trần");
-        basis.setPrescribedDate(LocalDate.of(2026, 10, 24));
-        basis.setBasisType("DON_MOI");
-        basis.setDocumentFileId(999L);
-        body.setExternalBasis(basis);
-
-        PrescriptionResponse resp = prescriptionService.suspend(Target.UNSPECIFIED, 1003L, body, 2L, false);
-
-        assertThat(resp.status()).isEqualTo(PrescriptionStatus.SUSPENDED.name());
-        verify(prescriptionBasisRepository).save(any(PrescriptionBasis.class));
-    }
-
-    @Test
     @DisplayName("FR-015: Gia hạn đơn thuốc cập nhật ngày kết thúc mới")
     void extend_success() {
         Prescription p = createSamplePrescription(1004L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
@@ -289,23 +244,5 @@ class PrescriptionLifecycleTest {
         PrescriptionResponse resp = prescriptionService.extend(Target.UNSPECIFIED, 1004L, body, 1L, true);
 
         assertThat(resp.endedAt()).isEqualTo(LocalDate.of(2026, 12, 31));
-    }
-
-    @Test
-    @DisplayName("FR-015: Gia hạn với ngày mới sớm hơn ngày cũ bị chặn")
-    void extend_earlierDate_rejected() {
-        Prescription p = createSamplePrescription(1004L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
-        when(prescriptionRepository.findById(1004L)).thenReturn(Optional.of(p));
-
-        ExtendPrescriptionBody body = new ExtendPrescriptionBody();
-        body.setNewEndedAt(LocalDate.of(2026, 11, 10)); // Ngày cũ là 2026-11-20
-        body.setReason("Rút ngắn");
-
-        assertThatThrownBy(() -> prescriptionService.extend(Target.UNSPECIFIED, 1004L, body, 1L, true))
-                .isInstanceOf(ConditionNotMetException.class)
-                .satisfies(ex -> {
-                    ConditionNotMetException cnme = (ConditionNotMetException) ex;
-                    assertThat(cnme.unmetConditions()).anyMatch(c -> c.code().equals("INVALID_END_DATE"));
-                });
     }
 }

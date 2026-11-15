@@ -108,7 +108,9 @@ public class RecipientConfirmationService {
             List<Long> belongingIds,
             String status,
             String method,
-            Instant expiresAt) {}
+            Instant expiresAt,
+            Long signedRepresentativeId,
+            Long signedFormFileId) {}
 
     private enum Ground {
         A,
@@ -327,6 +329,15 @@ public class RecipientConfirmationService {
     }
 
     // ---- người đại diện qua cổng ----
+
+    /** Người đại diện hiện tại đọc yêu cầu trước khi quyết định (FR-017, FR-030); kiểm quyền mỗi lần như confirm, reject. */
+    @Transactional(readOnly = true)
+    public View viewOnPortal(long id) {
+        long representativeId = familyMember();
+        SimpleRecord<RecipientConfirmation> confirmation = records.require(RecipientConfirmation.KIND, id);
+        requireRepresentative(representativeId, confirmation.residentId());
+        return view(confirmation);
+    }
 
     @Transactional
     public void confirmOnPortal(long id) {
@@ -751,7 +762,9 @@ public class RecipientConfirmationService {
                 content.remaining(),
                 record.status(),
                 content.method(),
-                content.expiresAt());
+                content.expiresAt(),
+                content.signedRepresentativeId(),
+                content.signedFormFileId());
     }
 
     private Duration validity() {

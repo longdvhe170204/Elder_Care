@@ -160,26 +160,26 @@ public class SourceCostCommands {
     private List<CostSourceCandidate> selected(SourceCostSelection r, List<SourceCostResult.Skipped> skipped) {
         if (r.from() != null) return lookup.find(r.residentId(), r.sourceType(), r.from(), r.to());
         if (Set.of("RESIDENCY_DAY", "DAY_CARE_SESSION").contains(r.sourceType())) {
-            // Với ngày lưu trú, id đã được công bố là residentId:yyyy-MM-dd; không dùng thời gian hiện tại để đoán
-            // nguồn.
-            if (!r.sourceType().equals("RESIDENCY_DAY"))
-                throw new InvalidValueException("Nguồn bán trú chưa có cổng tra đơn vị theo id");
+            // Id đã công bố: ngày lưu trú residentId:yyyy-MM-dd; buổi bán trú residentId:yyyy-MM-dd:<buổi|AD_HOC>.
+            // Không dùng thời gian hiện tại để đoán nguồn.
+            String unit = r.sourceType().equals("RESIDENCY_DAY") ? "DAY" : DayCareBillingSources.UNIT;
             var keys = r.sourceUnits() != null
                     ? r.sourceUnits()
                     : r.sourceIds().stream()
-                            .map(id -> new BillingSourceKey(id, "DAY"))
+                            .map(id -> new BillingSourceKey(id, unit))
                             .toList();
             var result = new ArrayList<CostSourceCandidate>();
             for (var key : keys.stream().distinct().toList()) {
                 try {
-                    if (!key.sourceId().startsWith(r.residentId() + ":") || !"DAY".equals(key.billingUnit()))
+                    if (!key.sourceId().startsWith(r.residentId() + ":") || !unit.equals(key.billingUnit()))
                         throw new IllegalArgumentException();
-                    var date = LocalDate.parse(
-                            key.sourceId().substring(key.sourceId().indexOf(':') + 1));
-                    var found = lookup.find(r.residentId(), r.sourceType(), date, date);
+                    var date = LocalDate.parse(key.sourceId().split(":")[1]);
+                    var found = lookup.find(r.residentId(), r.sourceType(), date, date).stream()
+                            .filter(c -> c.sourceId().equals(key.sourceId()))
+                            .toList();
                     if (found.isEmpty()) throw new IllegalArgumentException();
                     result.addAll(found);
-                } catch (IllegalArgumentException ex) {
+                } catch (IllegalArgumentException | DateTimeException ex) {
                     skipped.add(new SourceCostResult.Skipped(
                             key.sourceId(), "NOT_A_BILLABLE_EVENT", "Không tìm thấy đơn vị nguồn"));
                 }

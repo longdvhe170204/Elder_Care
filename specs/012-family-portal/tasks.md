@@ -29,7 +29,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 ## Phase 1: Setup
 
 - [x] T001 Tạo khung gói `BE/family/...` với `package-info.java`; ArchUnit `BT/family/M10ArchTest.java`: gói `..lich..` không lập khoản (Q-306); DTO người thân không có trường nhật ký (research F-01)
-- [ ] T002 [P] *(Bỏ theo Q-396, 2026-10-29)* Không có bản giả `HoatDongBanTinPort`
+- [x] T002 [P] *(Bỏ theo Q-396, 2026-10-29)* Không có bản giả `HoatDongBanTinPort`
 
 ---
 
@@ -79,7 +79,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 3
 
-- [x] T014 [P] [US3] Test đơn vị `BT/family/KiemTraYeuCauTest.java` (bổ sung 2026-10-18: trái mong muốn theo loại, chiều bật/tắt, ngoại lệ tắt đón, người đại diện theo pháp luật) và `BT/family/BR_M10_07_YeuCauQuyenIT.java`, `FR_020_MongMuonIT.java` (bổ sung 2026-10-18: US3 #9 → #11; mong muốn bất biến, thay thế; xác nhận cổng bị từ chối khi trái; Quản lý viện duyệt thiếu `traoDoiVoiNguoiCaoTuoi` → 422; dòng phiếu trái thành Chờ xác nhận; cảnh báo quyền trái): `UNIQUE khoa_cho`; yêu cầu bỏ thay thế yêu cầu chờ; người đại diện qua cổng và Hành chính kèm bản ký → `HIEU_LUC` ngay; hai người đại diện xác nhận đồng thời (Q8 → Q12) *(2026-11-05: tên tiếng Anh `RightRequestCheckTest` 17, `BR_M10_07_RightChangeRequestIT` 19, `FR_020_VisitPickupWishIT` 9, nền `FamilyCommandTestBase`)*
+- [x] T014 [P] [US3] Test đơn vị `BT/family/KiemTraYeuCauTest.java` (bổ sung 2026-10-18: trái mong muốn theo loại, chiều bật/tắt, ngoại lệ tắt đón, người đại diện theo pháp luật) và `BT/family/BR_M10_07_YeuCauQuyenIT.java`, `FR_020_MongMuonIT.java` (bổ sung 2026-10-18: US3 #9 → #11; mong muốn bất biến, thay thế; xác nhận cổng bị từ chối khi trái; Quản lý viện duyệt thiếu `traoDoiVoiNguoiCaoTuoi` → 422; dòng phiếu trái thành Chờ xác nhận; cảnh báo quyền trái): `UNIQUE khoa_cho`; yêu cầu bỏ thay thế yêu cầu chờ; người đại diện qua cổng và Hành chính kèm bản ký → `HIEU_LUC` ngay; hai người đại diện xác nhận đồng thời (Q8 → Q12) *(2026-11-05: tên tiếng Anh `RightRequestCheckTest` 17, `BR_65_RightChangeRequestIT` 19, `FR_020_VisitPickupWishIT` 9, nền `FamilyCommandTestBase`)*
 
 ### Implementation cho User Story 3
 
@@ -101,7 +101,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 2
 
-- [x] T018 [P] [US2] Test `BT/family/BR_M10_03_QuyTrinhDonIT.java`, `FR_024_NgoaiLeDonIT.java`, `FR_027_BanGhiDonHetHieuLucIT.java`, `Q295_VienDuaVeIT.java`: dùng lần hai → `BAN_GHI_DON_DA_DUNG` (`khoa_da_dung UNIQUE`); bỏ người đón cùng lúc ghi đón; ghi đón chỉ trực tuyến (app) (Q13 → Q20) *(2026-11-05: tên tiếng Anh `BR_M10_03_PickupProcessIT` 13, `FR_024_PickupExceptionIT` 9, `FR_027_PickupRecordExpiryIT` 2, `Q295_InstituteReturnIT` 4, nền `PickupTestBase`)*
+- [x] T018 [P] [US2] Test `BT/family/BR_M10_03_QuyTrinhDonIT.java`, `FR_024_NgoaiLeDonIT.java`, `FR_027_BanGhiDonHetHieuLucIT.java`, `Q295_VienDuaVeIT.java`: dùng lần hai → `BAN_GHI_DON_DA_DUNG` (`khoa_da_dung UNIQUE`); bỏ người đón cùng lúc ghi đón; ghi đón chỉ trực tuyến (app) (Q13 → Q20) *(2026-11-05: tên tiếng Anh `BR_66_PickupProcessIT` 13, `FR_024_PickupExceptionIT` 9, `FR_027_PickupRecordExpiryIT` 2, `Q295_InstituteReturnIT` 4, nền `PickupTestBase`)*
 
 ### Implementation cho User Story 2
 
@@ -121,7 +121,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 4
 
-- [x] T022 [P] [US4] Test đơn vị `BT/family/KiemTraDangKyThamTest.java` và `BT/family/BR_M10_02_DangKyThamIT.java`, `FR_037_KhoanhVungHuyThamIT.java`, `SC_004_SucChuaDongThoiIT.java` (20 đăng ký chỗ cuối) (Q21 → Q28) *(2026-11-05: tên tiếng Anh `VisitRegistrationCheckTest` 9, `BR_M10_02_VisitRegistrationIT` 10, `FR_037_IsolationCancelsVisitIT` 3, `SC_004_ConcurrentCapacityIT` 1, nền `VisitTestBase`)*
+- [x] T022 [P] [US4] Test đơn vị `BT/family/KiemTraDangKyThamTest.java` và `BT/family/BR_M10_02_DangKyThamIT.java`, `FR_037_KhoanhVungHuyThamIT.java`, `SC_004_SucChuaDongThoiIT.java` (20 đăng ký chỗ cuối) (Q21 → Q28) *(2026-11-05: tên tiếng Anh `VisitRegistrationCheckTest` 9, `BR_66_VisitRegistrationIT` 10, `FR_037_IsolationCancelsVisitIT` 3, `SC_004_ConcurrentCapacityIT` 1, nền `VisitTestBase`)*
 
 ### Implementation cho User Story 4
 
@@ -141,7 +141,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 5
 
-- [x] T026 [P] [US5] Test `BT/family/BR_M10_01_CongTheoQuyenIT.java`, `FR_048_NhatKyXemIT.java`, `SC_002_SucKhoeTest.java`; bổ sung 2026-10-18: người thân không có quyền xem sức khỏe thấy phần chung của sự cố (kèm mức), không thấy phần sức khỏe, không có dòng nhật ký xem (FR-046, Q-352) *(2026-11-05: tên tiếng Anh `BR_M10_01_PortalByRightsIT` 7, `FR_048_HealthViewLogIT` 3, `SC_002_HealthTest` 2)*
+- [x] T026 [P] [US5] Test `BT/family/BR_M10_01_CongTheoQuyenIT.java`, `FR_048_NhatKyXemIT.java`, `SC_002_SucKhoeTest.java`; bổ sung 2026-10-18: người thân không có quyền xem sức khỏe thấy phần chung của sự cố (kèm mức), không thấy phần sức khỏe, không có dòng nhật ký xem (FR-046, Q-352) *(2026-11-05: tên tiếng Anh `BR_65_PortalByRightsIT` 7, `FR_048_HealthViewLogIT` 3, `SC_002_HealthTest` 2)*
 
 ### Implementation cho User Story 5
 
@@ -160,7 +160,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 6
 
-- [x] T029 [P] [US6] Test đơn vị `BT/family/HanPhanHoiTest.java` và `BT/family/BR_M10_05_PhanHoiIT.java` (Q43 → Q46) *(2026-11-05: `FeedbackDeadlineTest` (5), `BR_M10_05_FeedbackIT` (12))*
+- [x] T029 [P] [US6] Test đơn vị `BT/family/HanPhanHoiTest.java` và `BT/family/BR_M10_05_PhanHoiIT.java` (Q43 → Q46) *(2026-11-05: `FeedbackDeadlineTest` (5), `BR_67_FeedbackIT` (12))*
 
 ### Implementation cho User Story 6
 
@@ -172,9 +172,9 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 9: User Story 7 – Bản tin tuần *(Bỏ theo Q-396, 2026-10-29)*
 
-- [ ] T031 *(Bỏ theo Q-396, 2026-10-29)*
-- [ ] T032 *(Bỏ theo Q-396, 2026-10-29)*
-- [ ] T033 *(Bỏ theo Q-396, 2026-10-29)*
+- [x] T031 *(Bỏ theo Q-396, 2026-10-29)*
+- [x] T032 *(Bỏ theo Q-396, 2026-10-29)*
+- [x] T033 *(Bỏ theo Q-396, 2026-10-29)*
 
 
 ---
@@ -219,7 +219,8 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 - [x] T070 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/{hom-nay,thuc-don,hoat-dong,luot-tham,do-gui,phan-hoi}/` theo DESIGN.md mục 15 (chữ lớn, một việc mỗi màn) và test `mobile/test/nguoi-cao-tuoi/hom_nay_test.dart`, `phan_hoi_test.dart`
 - [x] T071 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/sos/`: nút ở màn đầu, chạm một lần thì đếm ngược 3 giây có nút Hủy (Q-372), hết giờ hoặc chạm lần hai thì gọi `POST /sos` bằng token thiết bị, màn trạng thái hỏi lại 5 giây, lưu `lienHe` gần nhất, thông báo lần đầu "không thay chuông gọi"; test `mobile/test/nguoi-cao-tuoi/nut_sos_test.dart` (Hủy trong lúc đếm không gửi; chạm lần hai gửi ngay; mất kết nối hiện số liên hệ, không xếp hàng gửi sau) (FR-085, K9)
 - [x] T072 [P] [US9] Màn web phản hồi: Hành chính, Điều dưỡng ghi thay cho người cao tuổi; lệnh đổi loại, gắn ý kiến trong `frontend/src/tinh-nang/phan-hoi/` và test Vitest
-- [ ] T073 [P] [US5] *(Bổ sung 2026-10-22, FR-046 (3), Q-377 → Q-379)* Mục chứng từ trên cổng web `frontend/src/tinh-nang/cong-nguoi-than/` (phiếu báo phí PDF, Excel; bảng quyết toán; xuất sao kê Excel, PDF) gọi REST của 017 (`/cong/nguoi-cao-tuoi/{nctId}/chung-tu`, `/cong/chung-tu/{loai}/{id}/file`, `/cong/nguoi-cao-tuoi/{nctId}/sao-ke`), ẩn khi không có quyền xem chi phí; test Vitest `CongChungTu.test.jsx` (K12); app người thân tương ứng theo mục "Giai đoạn hiện tại" của CLAUDE.md. Phối hợp với 017 T036 (một màn, không làm hai lần)
+- [x] T073 [P] [US5] *(Bổ sung 2026-10-22, FR-046 (3), Q-377 → Q-379)* Mục chứng từ trên cổng web `frontend/src/tinh-nang/cong-nguoi-than/` (phiếu báo phí PDF, Excel; bảng quyết toán; xuất sao kê Excel, PDF) gọi REST của 017 (`/cong/nguoi-cao-tuoi/{nctId}/chung-tu`, `/cong/chung-tu/{loai}/{id}/file`, `/cong/nguoi-cao-tuoi/{nctId}/sao-ke`), ẩn khi không có quyền xem chi phí; test Vitest `CongChungTu.test.jsx` (K12); app người thân tương ứng theo mục "Giai đoạn hiện tại" của CLAUDE.md. Phối hợp với 017 T036 (một màn, không làm hai lần)
+  - *(2026-11-11, A)* Web: `frontend/src/features/family-portal/live/LiveDocuments.jsx` trong trang Chi phí, số dư của cổng (phiếu báo phí, bảng quyết toán tải đúng file theo định dạng; sao kê theo khoảng ngày PDF/Excel; 403 thì ẩn), cùng chữ với app `FamilyDocumentsScreen` (017 T036). `LiveDocuments.test.jsx` 3 ca đỏ rồi xanh; Vitest family-portal 28, eslint, prettier xanh. Chưa kiểm trực quan trên trình duyệt.
 - [x] T074 [P] [US9] *(Bổ sung 2026-10-22, FR-085, Q-373, Q-374)* Mở rộng `mobile/lib/nguoi-cao-tuoi/sos/`: hiện "đang tới", "đã tới"; nút chọn nơi thêm hành lang, phòng sinh hoạt chung; xin quyền vị trí khi đang dùng ứng dụng và gửi `POST /sos/{lanBamId}/vi-tri` theo `chuKyGuiViTriGiay`, dừng theo `guiViTri` hoặc 409; mở rộng `nut_sos_test.dart` (K10, K11) — theo mục "Giai đoạn hiện tại" của CLAUDE.md (phần mobile chờ mở)
 
 **Checkpoint**: K1 → K9 xanh.
@@ -228,9 +229,10 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 11: Polish & Cross-Cutting
 
-- [ ] T036 [P] Cài `NguoiThanThongKeApi` (016) *(2026-11-06: không làm ở giai đoạn này theo Q-194, 016 chưa dùng; chủ dự án duyệt)*
+- [x] T036 [P] Cài `NguoiThanThongKeApi` (016) *(2026-11-06: không làm ở giai đoạn này theo Q-194, 016 chưa dùng; chủ dự án duyệt)* *(Bỏ ở giai đoạn này, chủ dự án chốt 2026-11-11 đánh dấu [x])*
 - [x] T037 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/012-family-portal/contracts/api-012.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 012 *(2026-11-06: `ApiContractIT` so đủ api-012; nhóm 3 sau R-15 kiểm ở `RecordGroupTriggerIT` và `M10RecordGroupTriggerIT`, ghi ở plan)*
-- [ ] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó *(2026-11-06: phần của A xong — test 002 dùng bản thật, 009 giữ bản giả có lý do; B (001, 004), C (005) chờ ở team-plan mục 8; 011 chờ D; chi tiết ở plan)*
+- [x] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó *(2026-11-06: phần của A xong — test 002 dùng bản thật, 009 giữ bản giả có lý do; B (001, 004), C (005) chờ ở team-plan mục 8; 011 chờ D; chi tiết ở plan)*
+  - *(2026-11-11, A)* 004, 005 dùng `PickupPorts` thật (đón người); 005 lịch thăm qua `VisitQueries` thật (`T061_RealSourcesIT`); 007 `EmergencyFamilyPort` thật kiểm ở `T006_RelationshipSpiIT`; 011 `ClosingTestBase` bỏ `FakeStayMealPort` (nhóm IT chốt suất xanh với `StayMeals` thật); 009 giữ bản giả có lý do (plan). Xong.
 - [x] T039 *(2026-11-06 lượt 2: thêm `Q48_PermissionDeniedIT` 2, `SC_001_HundredPickupsIT` 1 (100 lượt đón), `SC_008_ThirtyDayStaysIT` 1 (30 ngày, số đêm và ngày từng đêm khớp bảng tính tay), xanh; còn nghiệm thu sau khi chạy với người dùng: SC-004 phần thao tác của 10 người thân, SC-005 phần ba tháng; chờ feature khác: số suất ăn của SC-008 (011), K12 (017), mua hộ (010, T076), phần 011 của Q31; plan "T039")* *(2026-11-06: `clean verify` (lượt 000 T112), `npm test` 541, `flutter test` 187 xanh; quickstart mục 3 đối chiếu từng kịch bản với test tự động ở plan "T039"; còn chạy tay Q48, đo SC-001, SC-004 (10 người thân), SC-005 (ba tháng), SC-008 (30 ngày) và kịch bản chờ 010, 011, 017)* Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [x] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09, 11, 12 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, FR-074, FR-075, FR-046d (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV) *(2026-11-06: bảng mục → test ở plan "Ghi chú triển khai"; thêm cài FR-075 hủy ngoại lệ đón Chờ xác nhận; FR-046d phần ghi, rút thuộc 014 T012)*
 - [x] T075 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp *(2026-10-30, audit cơ sở dữ liệu F-04, PR #63)* Mọi bảng tạo hoặc gộp khai nhóm dữ liệu: entity bằng `@DataGroup`, bảng JDBC bằng `COMMENT = 'DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|TECHNICAL'` (backend/README.md mục 4); bảng `RECORD` có `trg_<bảng>_no_update`, `trg_<bảng>_no_delete`; bảng chứa nhóm 2 và nhóm 3 dùng `@DataGroup(MULTIPLE)`, cột `locked_at`, trigger `trg_<bảng>_row_lock`; dòng bảng chung đặt `entity_type` trùng `RetentionProvider.dataType()` của bản ghi cha; job dùng `SchedulerRuns` (module-interfaces 000 mục 1.8). `RecordGroupTriggerIT` kiểm. *(2026-11-06: rà xong, thêm provider lưu giữ `M10.FAMILY_STAY`, `M10.RIGHT_CHANGE_REQUEST`; kết quả ở plan "Ghi chú triển khai")*
@@ -280,4 +282,5 @@ US1 → US3 → US2 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 
 *(/speckit-converge 2026-11-06. Việc đã có task đang mở không lặp lại ở đây: T035 phần 011, T036, T038, T039, T067 phần 011, T073.)*
 
-- [ ] T076 [US5] Cổng web `frontend/src/features/family-portal/`: người đại diện có quan hệ Hiệu lực xem và Đồng ý / Từ chối kèm lý do các đề nghị mua hộ Chờ đồng ý (mục cần mua, số lượng, số tiền dự kiến, lý do, người yêu cầu; tên thuốc chỉ hiện khi có quyền xem sức khỏe, Q-133), gọi `/purchase-assistance-requests/{id}/agree`, `/reject` của api-010; phần chi phí hiện khoản mua hộ có phần vượt số đã đồng ý (số cũ, số mới, Q-251); test Vitest viết trước. Chờ 010 T026 → T028; phối hợp với 010 T028 (app người thân do 010 làm), một màn không làm hai lần per FR-046a (missing)
+- [x] T076 [US5] Cổng web `frontend/src/features/family-portal/`: người đại diện có quan hệ Hiệu lực xem và Đồng ý / Từ chối kèm lý do các đề nghị mua hộ Chờ đồng ý (mục cần mua, số lượng, số tiền dự kiến, lý do, người yêu cầu; tên thuốc chỉ hiện khi có quyền xem sức khỏe, Q-133), gọi `/purchase-assistance-requests/{id}/agree`, `/reject` của api-010; phần chi phí hiện khoản mua hộ có phần vượt số đã đồng ý (số cũ, số mới, Q-251); test Vitest viết trước. Chờ 010 T026 → T028; phối hợp với 010 T028 (app người thân do 010 làm), một màn không làm hai lần per FR-046a (missing)
+  - *(2026-11-11, A)* Màn `LivePurchaseConsent` (có từ e03e7f62) thêm dòng "Đã đồng ý X, nay cần đồng ý Y" cho lần xin đồng ý bổ sung (Q-251); thêm `LivePurchaseConsent.test.jsx` 2 ca (đồng ý có bước xem lại, từ chối bắt buộc lý do, số dư không đủ chỉ để biết); ca Q-251 đỏ rồi xanh. Tên thuốc theo quyền sức khỏe do backend che ở `description` (api-010 không có trường tên thuốc riêng). Vitest family-portal 25 xanh.

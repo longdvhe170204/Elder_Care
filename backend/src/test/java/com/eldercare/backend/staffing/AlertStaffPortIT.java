@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.care.api.spi.CareShiftPort;
+import com.eldercare.backend.care.api.spi.TripStaffSchedulePort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
@@ -44,6 +45,9 @@ class AlertStaffPortIT extends MySqlIntegrationTestBase {
 
     @Autowired
     NursingShiftPort nursing;
+
+    @Autowired
+    TripStaffSchedulePort tripSchedules;
 
     @Autowired
     ParameterApi parameters;

@@ -106,6 +106,9 @@ class ScopeService implements ScopeApi {
         if (onTrip(user.staffId().get(), target)) {
             return true;
         }
+        if (target.residentId() != null && tripResidents(user.staffId().get()).contains(target.residentId())) {
+            return true;
+        }
         Long floorAreaId = target.floorAreaId();
         Long roomId = null;
         if (target.residentId() != null) {
@@ -170,7 +173,20 @@ class ScopeService implements ScopeApi {
             return empty();
         }
         Instant now = time.now();
-        return of(assignments.at(user.staffId().get(), now), now);
+        ScopeFilter assigned = of(assignments.at(user.staffId().get(), now), now);
+        List<Long> onTrip = tripResidents(user.staffId().get());
+        if (onTrip.isEmpty()) {
+            return assigned;
+        }
+        Set<Long> residents = new HashSet<>(assigned.residentIds());
+        residents.addAll(onTrip);
+        return new ScopeFilter(false, assigned.floorAreaIds(), assigned.roomIds(), Set.copyOf(residents));
+    }
+
+    /** Người tham gia chuyến Đang diễn ra mà nhân viên là Trưởng đoàn, Người đi cùng (FR-031, Q-161; T049). */
+    private List<Long> tripResidents(long staffId) {
+        DutyApi api = duties.getIfAvailable();
+        return api == null ? List.of() : api.tripResidents(staffId);
     }
 
     @Override

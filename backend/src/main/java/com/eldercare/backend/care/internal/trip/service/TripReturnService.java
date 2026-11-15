@@ -13,6 +13,8 @@ import com.eldercare.backend.care.api.dto.TripInterval;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.care.api.spi.TripMedicationPreparationPort;
+import com.eldercare.backend.care.internal.attendance.service.AttendanceSources;
+import com.eldercare.backend.care.internal.session.service.LateReturnConsentService;
 import com.eldercare.backend.care.internal.trip.domain.*;
 import com.eldercare.backend.care.internal.trip.persistence.ActivityTripStore;
 import com.eldercare.backend.common.Reason;
@@ -21,6 +23,7 @@ import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.roombedallocation.api.VehicleScheduleCommandApi;
@@ -35,7 +38,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 014 T020 (US5): điểm danh về, gia hạn, chuyển trưởng đoàn, kết thúc điểm danh về (FR-035a, FR-043, FR-044, FR-047, FR-050).
- * Lệnh 001 khóa người cao tuổi trước khi khóa chuyến như rời viện (L-03). Ghi sự cố thiếu người chờ port 007 (team-plan mục 8).
+ * Lệnh 001 khóa người cao tuổi trước khi khóa chuyến như rời viện (L-03); diễn biến sự cố qua TripIncidentPort cùng transaction.
  */
 @Service
 public class TripReturnService {
@@ -54,6 +57,11 @@ public class TripReturnService {
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final JsonMapper json;
+    private final LateReturnConsentService consents;
+    private final TripMissingService missing;
+    private final TripAttendanceTimes attendanceTimes;
+    private final AttendanceSources attendanceSources;
+    private final ResidentApi residents;
 
     public TripReturnService(
             ActivityTripStore trips,
@@ -68,7 +76,12 @@ public class TripReturnService {
             BusinessTime time,
             AuditLogApi audit,
             ApplicationEventPublisher events,
-            JsonMapper json) {
+            JsonMapper json,
+            LateReturnConsentService consents,
+            TripMissingService missing,
+            TripAttendanceTimes attendanceTimes,
+            AttendanceSources attendanceSources,
+            ResidentApi residents) {
         this.trips = trips;
         this.preparation = preparation;
         this.histories = histories;
@@ -82,6 +95,11 @@ public class TripReturnService {
         this.audit = audit;
         this.events = events;
         this.json = json;
+        this.consents = consents;
+        this.missing = missing;
+        this.attendanceTimes = attendanceTimes;
+        this.attendanceSources = attendanceSources;
+        this.residents = residents;
     }
 
     /** FR-044, FR-047, FR-050: người đã ở viện; về muộn sau khi chuyến Đã về chỉ cho người Thiếu khi về. */
@@ -89,8 +107,12 @@ public class TripReturnService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void returnResidents(Target target, long id, List<Long> selected, Instant deviceAt) {
-        if (deviceAt != null)
-            throw unavailable("001 chưa hỗ trợ thời điểm thiết bị cho lệnh trạng thái; chưa thể đồng bộ điểm danh về");
+        apply(id, selected, deviceAt);
+    }
+
+    /** Dùng chung cho lệnh trực tuyến và bản ghi ngoại tuyến {@code M04.TRIP_RETURN} đã qua kiểm quyền của 002 (Q-01). */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void apply(long id, List<Long> selected, Instant deviceAt) {
         var ids = distinct(selected, "Cần danh sách người điểm danh về không trùng");
         var trip = trips.find(id).orElseThrow(NotFoundException::new);
         if (!Set.of("IN_PROGRESS", "RETURNED").contains(trip.status()))
@@ -99,7 +121,8 @@ public class TripReturnService {
         var participants = trips.participants(id);
         for (long resident : ids) requireOutside(participants, resident, trip.status());
         var source = medication();
-        var at = time.now();
+        // Ghi ngoại tuyến (Q-24, Q-01): thời điểm trên thiết bị vào lịch sử trạng thái 001 (đổi api duyệt 2026-11-11)
+        var at = deviceAt == null ? time.now() : deviceAt;
         for (long resident : ids)
             status.execute(
                     resident,
@@ -107,7 +130,8 @@ public class TripReturnService {
                     user,
                     Optional.empty(),
                     json.createObjectNode().put("tripId", id).put("at", at.toString()),
-                    new Basis(null, null, id, null));
+                    new Basis(null, null, id, null),
+                    deviceAt);
         var locked = trips.lock(id);
         var current = trips.participants(id);
         for (long resident : ids) {
@@ -122,16 +146,19 @@ public class TripReturnService {
                             user.accountId(),
                             false,
                             at,
-                            null,
+                            deviceAt,
                             time.now(),
                             locked.floorAreaId(),
                             "TRIP_RETURN:" + p.registrationId()));
             if (!trips.markReturnedIfOut(p.registrationId()))
                 throw conflict("STATE_CHANGED", "Người tham gia vừa thay đổi, tải lại để điểm danh");
-            var departed =
-                    trips.departedAt(p.registrationId()).orElse(locked.plan().plannedDepartureAt());
+            var departed = attendanceTimes
+                    .departedAt(p.registrationId())
+                    .orElse(locked.plan().plannedDepartureAt());
             source.recalculateInterval(id, resident, new TripInterval(departed, at));
-            if (wasMissing)
+            if (wasMissing && trips.missingIncident(p.registrationId()).isPresent())
+                missing.foundReturned(p.registrationId(), resident, id, at);
+            else if (wasMissing)
                 events.publishEvent(new AlertProgressRequested(
                         PARTICIPANT_SOURCE,
                         p.registrationId(),
@@ -150,6 +177,29 @@ public class TripReturnService {
         log(id, "TRIP_RETURNED", Map.of("residentIds", ids, "at", at.toString()), null);
     }
 
+    /**
+     * Q-286 (014 T011, chủ dự án chốt 2026-11-11): bán trú không ở lại qua đêm, nên gia hạn sang ngày sau ngày rời viện dự
+     * kiến bị từ chối khi chuyến còn người bán trú đang ở ngoài; lỗi nêu tên người đó.
+     */
+    private void requireNoDayCareOvernight(Trip trip, long id, Instant newReturnAt) {
+        var tripDay = java.time.LocalDate.ofInstant(trip.plan().plannedDepartureAt(), BusinessTime.ZONE);
+        if (!java.time.LocalDate.ofInstant(newReturnAt, BusinessTime.ZONE).isAfter(tripDay)) return;
+        var dayCare = trips.participants(id).stream()
+                .filter(p -> Set.of("DEPARTED", "MISSING_ON_RETURN").contains(p.status()))
+                .map(TripParticipant::residentId)
+                .filter(resident -> attendanceSources.dayCare(resident, tripDay))
+                .toList();
+        if (dayCare.isEmpty()) return;
+        var names = dayCare.stream()
+                .map(resident -> residents.identity(resident).fullName())
+                .collect(java.util.stream.Collectors.joining(", "));
+        throw new BusinessException(
+                org.springframework.http.HttpStatus.CONFLICT,
+                "DAY_CARE_OVERNIGHT_NOT_ALLOWED",
+                "Người bán trú không ở lại qua đêm (Q-286), không gia hạn sang ngày sau: " + names,
+                Map.of("residentIds", dayCare));
+    }
+
     /** FR-043: chỉ khi Đang đi, kèm lý do; 006 nhận khoảng mới của người đang ở ngoài, 011/019 qua TripChanged. */
     @RequiresPermission(function = Function.ACTIVITY_OUTING, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
@@ -163,6 +213,7 @@ public class TripReturnService {
         var previous = trip.plan().plannedReturnAt();
         if (!newReturnAt.isAfter(previous) || !newReturnAt.isAfter(time.now()))
             throw new InvalidValueException("Giờ về mới phải sau giờ về dự kiến hiện tại và sau thời điểm hiện tại");
+        requireNoDayCareOvernight(trip, id, newReturnAt);
         var source = medication();
         records.add(
                 TripKinds.EXTENSIONS,
@@ -178,13 +229,15 @@ public class TripReturnService {
                         trip.floorAreaId(),
                         null));
         trips.extend(id, newReturnAt);
+        consents.tripExtended(id);
         for (var p : trips.participants(id))
             if ("DEPARTED".equals(p.status()))
                 source.recalculateInterval(
                         id,
                         p.residentId(),
                         new TripInterval(
-                                trips.departedAt(p.registrationId())
+                                attendanceTimes
+                                        .departedAt(p.registrationId())
                                         .orElse(trip.plan().plannedDepartureAt()),
                                 newReturnAt));
         if (trip.plan().facilityVehicle())

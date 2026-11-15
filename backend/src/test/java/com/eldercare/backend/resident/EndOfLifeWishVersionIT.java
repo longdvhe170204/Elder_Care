@@ -8,6 +8,7 @@ import com.eldercare.backend.resident.api.dto.WishChoice;
 import com.eldercare.backend.resident.api.dto.WishRecordSource;
 import com.eldercare.backend.resident.internal.wish.domain.EndOfLifeWish;
 import com.eldercare.backend.resident.internal.wish.domain.WishStatus;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -18,6 +19,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * bản Hiệu lực cũ trong cùng lệnh; cơ sở dữ liệu giữ tối đa một bản Hiệu lực, chỉ cho đổi Hiệu lực → Được thay thế và
  * không xóa. 007 ghi phiên bản xác nhận lại lúc nguy kịch qua {@link EndOfLifeWishApi} trong transaction của nó.
  */
+@Tag("BR-06")
 class EndOfLifeWishVersionIT extends WishTestBase {
 
     @Autowired

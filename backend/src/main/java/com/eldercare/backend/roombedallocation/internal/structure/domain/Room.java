@@ -4,13 +4,10 @@ import com.eldercare.backend.common.data.CatalogBase;
 import com.eldercare.backend.common.data.DataGroup;
 import com.eldercare.backend.roombedallocation.api.dto.GenderPolicy;
 import com.eldercare.backend.roombedallocation.api.spi.CareLevelCode;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,10 +33,9 @@ public class Room extends CatalogBase {
     @Column(name = "isolated", updatable = false)
     private boolean isolated;
 
-    @ElementCollection
-    @CollectionTable(name = "room_allowed_care_level", joinColumns = @JoinColumn(name = "room_id"))
-    @Column(name = "care_level")
-    @Enumerated(EnumType.STRING)
+    /** T066 (R-15): mảng mã mức trong cột JSON {@code allowed_care_levels} (thay bảng {@code room_allowed_care_level}). */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "allowed_care_levels", nullable = false)
     private Set<CareLevelCode> careLevels = new HashSet<>();
 
     protected Room() {}
@@ -86,7 +82,6 @@ public class Room extends CatalogBase {
         this.code = code;
         this.genderPolicy = policy;
         rename(name);
-        careLevels.clear();
-        careLevels.addAll(levels);
+        careLevels = new HashSet<>(levels);
     }
 }

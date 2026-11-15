@@ -65,6 +65,7 @@ public class VitalSignsMetric implements MetricSource<VitalSignsMetric.VitalSign
                 Map<String, Object> result = new LinkedHashMap<>();
                 result.put("indicatorId", r.view().indicatorId());
                 result.put("level", r.view().level().name());
+                result.put("values", r.view().values());
                 return new DetailRow(
                         r.sourceKey(),
                         "007",

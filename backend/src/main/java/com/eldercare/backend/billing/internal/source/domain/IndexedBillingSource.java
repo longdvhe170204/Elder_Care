@@ -9,7 +9,10 @@ import java.time.LocalDate;
 import java.util.HexFormat;
 import java.util.Objects;
 
-/** Dữ liệu chỉ mục của nguồn tính phí; unit là khóa đơn vị tính phí, không phải đơn vị hiển thị. */
+/**
+ * Dữ liệu chỉ mục của nguồn tính phí; unit là khóa đơn vị tính phí, không phải đơn vị hiển thị. {@code usageUnit} là đơn vị
+ * dùng nguồn gửi (thuốc), rỗng khi nguồn không gửi.
+ */
 public record IndexedBillingSource(
         String sourceType,
         String sourceId,
@@ -19,7 +22,21 @@ public record IndexedBillingSource(
         Instant occurredAt,
         Long serviceId,
         Long medicationId,
-        BigDecimal quantity) {
+        BigDecimal quantity,
+        String usageUnit) {
+
+    public IndexedBillingSource(
+            String sourceType,
+            String sourceId,
+            String unit,
+            long residentId,
+            LocalDate incurredOn,
+            Instant occurredAt,
+            Long serviceId,
+            Long medicationId,
+            BigDecimal quantity) {
+        this(sourceType, sourceId, unit, residentId, incurredOn, occurredAt, serviceId, medicationId, quantity, null);
+    }
 
     public IndexedBillingSource {
         Objects.requireNonNull(sourceType);

@@ -30,11 +30,13 @@ public record ResidencyChangeRequestBody(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<ChangeType> changeTypes,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) JsonNode newValue,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) LocalDate requestedEffectiveDate,
-        JsonNode reference,
+        @Schema(implementation = Reference.class) JsonNode reference,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Reason reason,
         long approvalRequestId,
         JsonNode previousValue,
-        @FieldGroup(InfoGroup.FINANCE) JsonNode costImpact,
+
+        @FieldGroup(InfoGroup.FINANCE) List<CostImpactItem> costImpact,
+
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) boolean minorChange,
         String status,
         Long addendumId,
@@ -56,7 +58,7 @@ public record ResidencyChangeRequestBody(
                 request.reason() == null ? null : new Reason(request.reason()),
                 request.id(),
                 content.get("previousValue"),
-                view.financeVisible() ? content.get("costImpact") : null,
+                view.financeVisible() ? CostImpactItem.of(content.get("costImpact")) : null,
                 view.minorChange(),
                 request.status(),
                 view.addendumId(),
@@ -77,5 +79,31 @@ public record ResidencyChangeRequestBody(
     @JsonIgnore
     public Set<String> selfHiddenFields() {
         return financeVisible ? Set.of() : Set.of("costImpact");
+    }
+
+    /** Căn cứ của yêu cầu (api-004 {@code reference}): lần đánh giá hoặc lệnh chuyển giường. */
+    @Schema(name = "ResidencyChangeReference")
+    public record Reference(
+            @Schema(allowableValues = {"ASSESSMENT", "BED_TRANSFER_ORDER"})
+            String type,
+
+            Long id) {}
+
+    /** Một dòng tác động chi phí (api-004 {@code costImpact[]}), chỉ khi xem được phần tài chính (FR-028). */
+    @Schema(name = "ResidencyChangeCostImpact")
+    public record CostImpactItem(String item, Long previousUnitPrice, Long newUnitPrice) {
+        static List<CostImpactItem> of(JsonNode items) {
+            if (items == null || !items.isArray()) return null;
+            var list = new java.util.ArrayList<CostImpactItem>();
+            for (JsonNode i : items) {
+                list.add(new CostImpactItem(
+                        i.path("item").asString(null),
+                        i.hasNonNull("previousUnitPrice")
+                                ? i.get("previousUnitPrice").asLong()
+                                : null,
+                        i.hasNonNull("newUnitPrice") ? i.get("newUnitPrice").asLong() : null));
+            }
+            return list;
+        }
     }
 }

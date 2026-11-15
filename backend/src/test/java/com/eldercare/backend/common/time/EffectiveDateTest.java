@@ -17,12 +17,12 @@ class EffectiveDateTest {
     private final BusinessTime time = new BusinessTime(Clock.fixed(Instant.parse("2026-10-19T23:30:00Z"), VN));
 
     @Test
-    void BR_M15_07_startOfDay_isMidnightVietnamTime() {
+    void BR_72_startOfDay_isMidnightVietnamTime() {
         assertThat(time.startOfDay(LocalDate.of(2026, 10, 20))).isEqualTo(Instant.parse("2026-10-19T17:00:00Z"));
     }
 
     @Test
-    void BR_M15_07_today_followsVietnamCalendarNotUtc() {
+    void BR_72_today_followsVietnamCalendarNotUtc() {
         assertThat(time.today()).isEqualTo(LocalDate.of(2026, 10, 20));
     }
 

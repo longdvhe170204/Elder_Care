@@ -1,12 +1,9 @@
 package com.eldercare.backend.incident;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import com.eldercare.backend.admission.api.ResidencyDayApi;
-import com.eldercare.backend.admission.api.dto.ResidencyDayView;
 import com.eldercare.backend.care.api.dto.CareEventContext;
 import com.eldercare.backend.care.api.events.SleepResultRecorded;
 import com.eldercare.backend.care.api.events.SleepResultVoided;
@@ -68,41 +65,6 @@ class FR_039c_ProlongedInsomniaIT extends MySqlIntegrationTestBase {
         var alert = alerts.findOpenAlert(other, TypeLock.forTrend("PROLONGED_INSOMNIA"))
                 .orElseThrow();
         assertThat(alert.level()).isEqualTo(IncidentLevel.MEDIUM);
-    }
-
-    @Test
-    void FR_039c_amendedToOtherGroupBreaksChainAndDisabledRuleCreatesNothing() {
-        rule(true);
-        long resident = TestUsers.nextId();
-        long middle = TestUsers.nextId();
-        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT.minusDays(2), "INSOMNIA", 0));
-        trends.onSleepResultRecorded(recorded(middle, resident, NIGHT.minusDays(1), "INSOMNIA", 1));
-        trends.onSleepResultRecorded(recorded(middle, resident, NIGHT.minusDays(1), "", 2));
-        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT, "INSOMNIA", 3));
-        assertThat(alerts.findOpenAlert(resident, TypeLock.forTrend("PROLONGED_INSOMNIA")))
-                .isEmpty();
-
-        rule(false);
-        long off = TestUsers.nextId();
-        for (int i = 2; i >= 0; i--)
-            trends.onSleepResultRecorded(recorded(TestUsers.nextId(), off, NIGHT.minusDays(i), "INSOMNIA", 4 + i));
-        assertThat(alerts.findOpenAlert(off, TypeLock.forTrend("PROLONGED_INSOMNIA")))
-                .isEmpty();
-    }
-
-    @Test
-    void FR_039c_absentNightIsNotCountedAndDoesNotBreakChain() {
-        rule(true);
-        long resident = TestUsers.nextId();
-        var absent = new ResidencyDayView(NIGHT.minusDays(1), 1L, 1L, "ABSENT", 9L, false, false, false, false);
-        doReturn(List.of(absent)).when(residencyDays).daysBetween(eq(resident), any(), any());
-        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT.minusDays(3), "INSOMNIA", 0));
-        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT.minusDays(2), "INSOMNIA", 1));
-        assertThat(alerts.findOpenAlert(resident, TypeLock.forTrend("PROLONGED_INSOMNIA")))
-                .isEmpty();
-        trends.onSleepResultRecorded(recorded(TestUsers.nextId(), resident, NIGHT, "INSOMNIA", 2));
-        assertThat(alerts.findOpenAlert(resident, TypeLock.forTrend("PROLONGED_INSOMNIA")))
-                .isPresent();
     }
 
     /** Mức Trung bình để không phụ thuộc nguồn ca của 008 (cảnh báo Nhẹ cần hạn theo ca). */

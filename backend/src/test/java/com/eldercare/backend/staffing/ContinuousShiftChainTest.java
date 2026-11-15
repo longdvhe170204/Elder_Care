@@ -19,13 +19,13 @@ class ContinuousShiftChainTest {
     }
 
     @Test
-    void BR_M09_03_newShiftBridgesBothSidesRegardlessOfInputOrder() {
+    void BR_50_newShiftBridgesBothSidesRegardlessOfInputOrder() {
         assertThat(ContinuousShiftChain.duration(List.of(hours(16, 24), hours(0, 8)), hours(8, 16)))
                 .isEqualTo(Duration.ofHours(24));
     }
 
     @Test
-    void BR_M09_03_exactThresholdIsNotExceededAndDoesNotRoundAwayExtraTime() {
+    void BR_50_exactThresholdIsNotExceededAndDoesNotRoundAwayExtraTime() {
         Duration threshold = Duration.ofHours(16);
         assertThat(ContinuousShiftChain.duration(List.of(hours(0, 8)), hours(8, 16))
                         .compareTo(threshold))
@@ -36,7 +36,7 @@ class ContinuousShiftChainTest {
     }
 
     @Test
-    void BR_M09_12_emptyAndReversedIntervalsAreRejected() {
+    void BR_50_emptyAndReversedIntervalsAreRejected() {
         assertThatIllegalArgumentException().isThrownBy(() -> hours(8, 8));
         assertThatIllegalArgumentException().isThrownBy(() -> hours(9, 8));
     }

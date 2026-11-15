@@ -35,7 +35,7 @@ class FR_014_RealBedHoldIT extends WaitingListTestBase {
         jdbc.update(
                 "INSERT INTO floor(id,area_id,code,name) VALUES(?,?,?,?)", floor, area, "F" + floor, "Tầng " + floor);
         jdbc.update("INSERT INTO room_type(id,name,standard_beds) VALUES(?,?,2)", type, "Loại " + type);
-        jdbc.update("INSERT INTO room_type_care_level VALUES(?,'BASIC')", type);
+        jdbc.update("UPDATE room_type SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", type);
         jdbc.update(
                 "INSERT INTO room(id,floor_id,room_type_id,code,name,gender_policy) VALUES(?,?,?,?,?,'UNRESTRICTED')",
                 room,
@@ -43,7 +43,7 @@ class FR_014_RealBedHoldIT extends WaitingListTestBase {
                 type,
                 "R" + room,
                 "Phòng " + room);
-        jdbc.update("INSERT INTO room_allowed_care_level VALUES(?,'BASIC')", room);
+        jdbc.update("UPDATE room SET allowed_care_levels=JSON_ARRAY('BASIC') WHERE id=?", room);
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G1')", bed, room);
         jdbc.update(
                 "INSERT INTO bed_state_history(bed_id,to_state,event,occurred_at,basis_type,basis_id,floor_area_id)"
@@ -85,4 +85,7 @@ class FR_014_RealBedHoldIT extends WaitingListTestBase {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("WAITING"));
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.context.ApplicationContext context;
 }

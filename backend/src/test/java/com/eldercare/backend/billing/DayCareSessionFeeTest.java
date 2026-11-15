@@ -20,7 +20,7 @@ class DayCareSessionFeeTest {
     }
 
     @Test
-    void BR_M11_09_scheduledSessionsSumToTheExactMonthlyPrice() {
+    void BR_60_scheduledSessionsSumToTheExactMonthlyPrice() {
         var price = new BigDecimal("10000000");
         TableRows.each(Stream.of(1, 12, 13, 22, 23, 31), scheduledCount -> {
             var total = IntStream.rangeClosed(1, scheduledCount)

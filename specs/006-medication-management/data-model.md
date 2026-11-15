@@ -66,13 +66,13 @@ Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_reques
 | Mã | Bảo đảm sau gộp | Test |
 | --- | --- | --- |
 | BR-M07-03 | Một khoảng vắng mở mỗi người: `ho_so_chung` loại `M07.ABSENCE_INTERVAL`, `khoa_duy_nhat` | test vắng mặt hiện có (`MedicationHandoverTest`, IT vắng mặt) |
-| BR-M07-04 | Giới hạn khoảng cách, số lần PRN: đọc `dose_result` loại `PRN` theo đơn và thời điểm; chỉ mục `(kind, prescription_id, administered_at)` (M2) | `BR_M07_04_PrnLimitTest`, IT PRN hiện có |
-| BR-M07-16 | Căn cứ cơ sở kê: `su_kien_chung` loại `M07.PRESCRIPTION_BASIS` | `BR_M07_16_ExternalPrescriberBasisIT` |
+| BR-M07-04 | Giới hạn khoảng cách, số lần PRN: đọc `dose_result` loại `PRN` theo đơn và thời điểm; chỉ mục `(kind, prescription_id, administered_at)` (M2) | `BR_29_PrnLimitTest`, IT PRN hiện có |
+| BR-M07-16 | Căn cứ cơ sở kê: `su_kien_chung` loại `M07.PRESCRIPTION_BASIS` | `BR_30_ExternalPrescriberBasisIT` |
 | BR-M07-17 | Đề nghị đính chính phiếu: `ho_so_chung` loại `M07.RECONCILIATION_CORRECTION_REQUEST` | `MedicationReconciliationTest`, IT đính chính phiếu hiện có |
 | BR-M07-18 | Lô dùng chung cho nhiều đơn: `family_medication_batch.prescription_bindings`; chỉ mục nhiều giá trị `((CAST(prescription_bindings->'$[*].prescriptionId' AS UNSIGNED ARRAY)))` cho tra lô theo đơn (M2) | `FamilyMedicationTest` |
 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 10 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
-- Test của module: `BR_M07_05_PrescriberAuthorityIT`, `BR_M07_07_DosageChangeIT`, `BR_M07_08_PrescriptionExpirationIT`, `BR_M07_15_CancelDosageChangeIT`, `BR_M07_16_ExternalPrescriberBasisIT`, `DBR_14_ReplacementPrescriptionIT`, `FR_012_NewAllergyIT`, `PrescriptionTriggerIT`.
+- Test của module: `BR_25_PrescriberAuthorityIT`, `BR_26_DosageChangeIT`, `BR_26_PrescriptionExpirationIT`, `BR_26_CancelDosageChangeIT`, `BR_30_ExternalPrescriberBasisIT`, `DBR_14_ReplacementPrescriptionIT`, `FR_012_NewAllergyIT`, `PrescriptionTriggerIT`.
 - Test của common (chủ module review): `RecipientGroupTest`.
 - Test của reporting (chủ module review): `DetailRowPolicyTest`.
 

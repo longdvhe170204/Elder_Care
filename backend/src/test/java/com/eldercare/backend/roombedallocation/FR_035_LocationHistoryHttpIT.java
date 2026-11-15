@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.TestUsers;
-import java.sql.Timestamp;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -58,20 +57,5 @@ class FR_035_LocationHistoryHttpIT extends StructureTestSupport {
         mvc.perform(get("/api/v1/location-history/residents/" + resident).param("at", "2026-01-02T00:00:00Z"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
-    }
-
-    private void statusHistory(long person, String from, String to, String command, String at) {
-        // Lịch sử trạng thái của 001 ở status_history từ 001 T084 (data-model 001 mục 0.1)
-        com.eldercare.backend.support.ResidentHistoryRows.insertStatus(
-                jdbc,
-                TestUsers.nextId(),
-                person,
-                from,
-                to,
-                command,
-                Timestamp.from(java.time.Instant.parse(at)),
-                user.accountId(),
-                false,
-                "Dữ liệu kiểm thử FR-036");
     }
 }

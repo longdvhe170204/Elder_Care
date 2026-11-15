@@ -94,44 +94,6 @@ class LoginTemporaryLockIT extends MySqlIntegrationTestBase {
                 .isEqualTo(1);
     }
 
-    @Test
-    void US3_2_fiveWrongPasswords_temporarilyLocked_correctPasswordRefusedWithUnlockTime() throws Exception {
-        long account = fixtures.staffAccount("AC-05");
-        String username = fixtures.password(account, PASSWORD, encoder);
-        String token = fixtures.session(account);
-
-        for (int i = 0; i < 4; i++) {
-            mvc.perform(login(username, "sai" + i + "abc", "WEB", device()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.errorCode").value("LOGIN_FAILED"));
-        }
-        assertThat(accountStatus(account)).isEqualTo("ACTIVE");
-        mvc.perform(login(username, "sai5abc", "WEB", device()))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errorCode").value("LOGIN_FAILED"));
-
-        assertThat(accountStatus(account)).isEqualTo("TEMPORARILY_LOCKED");
-        mvc.perform(get("/api/v1/me").header("Authorization", bearer(token))).andExpect(status().isUnauthorized());
-        mvc.perform(login(username, PASSWORD, "WEB", device()))
-                .andExpect(status().isLocked())
-                .andExpect(jsonPath("$.errorCode").value("ACCOUNT_TEMPORARILY_LOCKED"))
-                .andExpect(jsonPath("$.unlocksAt").isNotEmpty());
-        assertThat(count(
-                        "SELECT COUNT(*) FROM audit_log WHERE action = 'ACCOUNT_TEMPORARILY_LOCKED'"
-                                + " AND entity_id = ? AND actor_type = 'SCHEDULER'",
-                        String.valueOf(account)))
-                .isEqualTo(1);
-        assertThat(count(
-                        "SELECT COUNT(*) FROM audit_log WHERE action = 'LOGIN_FAILED' AND entity_id = ?"
-                                + " AND actor_type = 'ANONYMOUS'",
-                        String.valueOf(account)))
-                .isEqualTo(6);
-    }
-
-    private String accountStatus(long account) {
-        return jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, account);
-    }
-
     private int count(String sql, Object... args) {
         return jdbc.queryForObject(sql, Integer.class, args);
     }

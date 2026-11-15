@@ -3,6 +3,7 @@ package com.eldercare.backend.reporting.web.response;
 import com.eldercare.backend.reporting.internal.report.domain.MetricResult;
 import com.eldercare.backend.reporting.internal.report.domain.Report;
 import com.eldercare.backend.reporting.internal.report.domain.ReportGroup;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -17,7 +18,8 @@ public record ReportBody(
         Map<String, Object> filters,
         FilterOptions filterOptions,
         List<MetricValueBody> values,
-        List<String> notes) {
+        List<String> notes,
+        @JsonInclude(JsonInclude.Include.NON_NULL) Integer cancelledIncidentCount) {
 
     /** Giá trị lọc tầng/khu trong phạm vi của người xem (FR-013). */
     public record FilterOptions(boolean facilityWide, List<FloorArea> floorAreas) {}
@@ -43,6 +45,7 @@ public record ReportBody(
                         .map(MetricResult::value)
                         .map(MetricValueBody::of)
                         .toList(),
-                r.group() == ReportGroup.INCURRED_COSTS ? List.of(COSTS_NOTE) : List.of());
+                r.group() == ReportGroup.INCURRED_COSTS ? List.of(COSTS_NOTE) : List.of(),
+                r.cancelledIncidentCount());
     }
 }

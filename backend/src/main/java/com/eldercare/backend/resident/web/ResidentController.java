@@ -119,6 +119,9 @@ class ResidentController {
     private final TreatmentWishService treatmentWishes;
     private final HealthItemService healthItems;
     private final AssessmentApi assessments;
+    private final org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.spi.ContractApi>
+            contracts;
+    private final com.eldercare.backend.common.time.BusinessTime time;
 
     ResidentController(
             ResidentProfileService profiles,
@@ -128,7 +131,12 @@ class ResidentController {
             EndOfLifeWishService endOfLifeWishes,
             TreatmentWishService treatmentWishes,
             HealthItemService healthItems,
-            AssessmentApi assessments) {
+            AssessmentApi assessments,
+            org.springframework.beans.factory.ObjectProvider<com.eldercare.backend.resident.api.spi.ContractApi>
+                    contracts,
+            com.eldercare.backend.common.time.BusinessTime time) {
+        this.contracts = contracts;
+        this.time = time;
         this.healthItems = healthItems;
         this.assessments = assessments;
         this.profiles = profiles;
@@ -272,7 +280,7 @@ class ResidentController {
                         .toList()
                 : List.of();
         if (isFamilyViewer()) {
-            return body(view).withDetail(active, List.of(), null);
+            return body(view).withDetail(active, List.of(), null).withResidenceType(residenceType(id));
         }
         List<String> needs = assessments
                 .latestConfirmed(id)
@@ -282,7 +290,16 @@ class ResidentController {
                         .toList())
                 .orElse(List.of());
         String note = assessments.currentCareNote(List.of(id)).get(id).orElse(null);
-        return body(view).withDetail(active, needs, note);
+        return body(view).withDetail(active, needs, note).withResidenceType(residenceType(id));
+    }
+
+    /** Loại lưu trú từ hợp đồng Hiệu lực hôm nay (004 cài {@code ContractApi}); chỉ ở chi tiết, danh sách không đọc. */
+    private String residenceType(long residentId) {
+        var source = contracts.getIfAvailable();
+        if (source == null) return null;
+        return source.currentResidenceType(residentId, time.today())
+                .map(Enum::name)
+                .orElse(null);
     }
 
     private boolean isFamilyViewer() {

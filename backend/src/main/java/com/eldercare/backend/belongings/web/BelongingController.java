@@ -5,6 +5,7 @@ import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingHandoverService;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingQueries;
 import com.eldercare.backend.belongings.internal.belonging.service.IntakeService;
+import com.eldercare.backend.belongings.internal.consent.service.SelfCustodyConsentService;
 import com.eldercare.backend.belongings.internal.ending.service.BelongingEndingService;
 import com.eldercare.backend.belongings.internal.incident.service.BelongingIncidentLinks;
 import com.eldercare.backend.belongings.web.request.BelongingIntakeRequest;
@@ -44,18 +45,21 @@ class BelongingController {
     private final BelongingIncidentLinks incidentLinks;
     private final BelongingQueries queries;
     private final BelongingEndingService endings;
+    private final SelfCustodyConsentService consents;
 
     BelongingController(
             IntakeService intake,
             BelongingHandoverService handovers,
             BelongingIncidentLinks incidentLinks,
             BelongingQueries queries,
-            BelongingEndingService endings) {
+            BelongingEndingService endings,
+            SelfCustodyConsentService consents) {
         this.intake = intake;
         this.handovers = handovers;
         this.incidentLinks = incidentLinks;
         this.queries = queries;
         this.endings = endings;
+        this.consents = consents;
     }
 
     /** Điều kiện (b) kết thúc lưu trú và mục "xử lý đồ gửi" kèm căn cứ (FR-025, FR-026). */
@@ -110,9 +114,9 @@ class BelongingController {
     }
 
     @GetMapping("/belongings/{id}")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
     BelongingResponse.Detail detail(@PathVariable long id) {
-        return BelongingResponse.Detail.of(queries.detail(id));
+        return BelongingResponse.Detail.of(
+                queries.detail(id), consents.effectiveOf(id).orElse(null));
     }
 
     @PostMapping("/belongings/handovers")

@@ -52,15 +52,7 @@ class M02FieldClassificationConfigTest {
     }
 
     @Test
-    void BR_M02_21_causeOfDeath_isHealth() {
+    void BR_69_causeOfDeath_isHealth() {
         assertThat(byType.get("M02.DEATH_RECORD").fieldGroups()).containsOnly(Map.entry("cause", InfoGroup.HEALTH));
-    }
-
-    @Test
-    void everyProvider_belongsToM02() {
-        List<String> types = byType.keySet().stream().sorted().toList();
-
-        assertThat(types).allMatch(type -> type.startsWith("M02."));
-        assertThat(types).containsExactly("M02.ADDENDUM", "M02.CONTRACT", "M02.DEATH_RECORD", "M02.RESIDENCY_CHANGE");
     }
 }

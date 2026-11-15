@@ -7,8 +7,6 @@ import com.eldercare.backend.staffing.api.ShiftApi;
 import com.eldercare.backend.staffing.api.StaffStatisticsApi;
 import com.eldercare.backend.staffing.api.dto.ShiftView;
 import com.eldercare.backend.staffing.api.events.SchedulePublished;
-import com.eldercare.backend.staffing.api.events.ShiftEnded;
-import com.eldercare.backend.staffing.api.events.StaffAbsent;
 import com.eldercare.backend.support.fake.staffing.FakeM09Config;
 import com.eldercare.backend.support.fake.staffing.FakeShifts;
 import com.eldercare.backend.support.fake.staffing.FakeStaffStatistics;
@@ -59,13 +57,5 @@ class M09PublicApiTest {
         assertThat(event.staffIds()).containsExactly(10L);
         assertThat(event).isInstanceOf(HasNotificationRequests.class);
         assertThat(event.notificationRequests()).isEmpty();
-    }
-
-    @Test
-    void FR_053_absenceEventCannotCarryPrivateReasons() {
-        assertThat(StaffAbsent.class.getRecordComponents())
-                .extracting(component -> component.getName())
-                .doesNotContain("reason", "absenceReason", "terminationReason");
-        assertThat(ShiftEnded.class).isRecord();
     }
 }

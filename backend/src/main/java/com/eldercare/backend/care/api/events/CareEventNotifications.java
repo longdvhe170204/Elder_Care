@@ -19,7 +19,13 @@ final class CareEventNotifications {
             Map<String, Object> displayParams) {
         String title = "Thông tin chăm sóc cần xem xét";
         return create(
-                event, level, recipients, key, List.of(new ContentPart(InformationType.GENERAL, title)), displayParams);
+                event,
+                level,
+                recipients,
+                key,
+                List.of(new ContentPart(InformationType.GENERAL, title)),
+                displayParams,
+                Optional.empty());
     }
 
     static NotificationRequest create(
@@ -28,7 +34,26 @@ final class CareEventNotifications {
             List<RecipientGroup> recipients,
             String key,
             List<ContentPart> content) {
-        return create(event, level, recipients, key, content, Map.of());
+        return create(event, level, recipients, key, content, Map.of(), Optional.empty());
+    }
+
+    /** FR-071 (009 FR-001a): thông báo có nhóm người thân khai đối tượng thông tin; chỉ phần chung. */
+    static NotificationRequest create(
+            CareNotice event,
+            NotificationLevel level,
+            List<RecipientGroup> recipients,
+            String key,
+            Map<String, Object> displayParams,
+            InformationSubject subject) {
+        String title = "Thông tin chăm sóc cần xem xét";
+        return create(
+                event,
+                level,
+                recipients,
+                key,
+                List.of(new ContentPart(InformationType.GENERAL, title)),
+                displayParams,
+                Optional.of(subject));
     }
 
     private static NotificationRequest create(
@@ -37,7 +62,8 @@ final class CareEventNotifications {
             List<RecipientGroup> recipients,
             String key,
             List<ContentPart> content,
-            Map<String, Object> displayParams) {
+            Map<String, Object> displayParams,
+            Optional<InformationSubject> subject) {
         var context = event.context();
         String title = "Thông tin chăm sóc cần xem xét";
         return new NotificationRequest(
@@ -58,7 +84,7 @@ final class CareEventNotifications {
                 context.occurredAt(),
                 displayParams,
                 false,
-                Optional.empty(),
+                subject,
                 Optional.empty());
     }
 }

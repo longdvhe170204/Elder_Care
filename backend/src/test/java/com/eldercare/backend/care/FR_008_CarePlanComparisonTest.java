@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /** T010: ghép theo id gốc,không báo đổi chỉ vì sao chép sang phiên bản mới. */
 class FR_008_CarePlanComparisonTest {
     private CarePlanItemView item(long id, String content) {
-        return BR_M04_25_CarePlanItemSequenceTest.item(id, content, "ONCE_PER_SHIFT", null, null, List.of(), null);
+        return BR_18_CarePlanItemSequenceTest.item(id, content, "ONCE_PER_SHIFT", null, null, List.of(), null);
     }
 
     private Object compare(Map<Long, CarePlanItemView> before, Map<Long, CarePlanItemView> after) throws Exception {

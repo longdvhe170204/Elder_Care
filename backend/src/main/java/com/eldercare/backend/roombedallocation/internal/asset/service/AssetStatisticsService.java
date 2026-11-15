@@ -1,6 +1,8 @@
 package com.eldercare.backend.roombedallocation.internal.asset.service;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.api.AssetStatisticsApi;
@@ -23,10 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class AssetStatisticsService implements AssetStatisticsApi {
     private final AssetStatisticsStore store;
     private final SimpleRecordApi records;
+    private final ParameterApi parameters;
 
-    public AssetStatisticsService(AssetStatisticsStore store, SimpleRecordApi records) {
+    public AssetStatisticsService(AssetStatisticsStore store, SimpleRecordApi records, ParameterApi parameters) {
         this.store = store;
         this.records = records;
+        this.parameters = parameters;
     }
 
     @Override
@@ -37,6 +41,12 @@ public class AssetStatisticsService implements AssetStatisticsApi {
     @Override
     public Map<AssetFlag, Long> countOverdue(ScopeFilter scope, LocalDate on) {
         return store.countOverdue(scope, on);
+    }
+
+    @Override
+    public Stream<OverdueAssetView> dueSoon(ScopeFilter scope, LocalDate on) {
+        int before = parameters.read(ParameterCode.CFG_M03_09).asPeriod().getDays();
+        return store.dueSoon(scope, on, on.plusDays(before)).stream();
     }
 
     @Override

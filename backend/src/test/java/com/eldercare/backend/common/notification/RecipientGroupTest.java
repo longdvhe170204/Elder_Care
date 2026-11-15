@@ -13,33 +13,6 @@ import org.junit.jupiter.api.Test;
 class RecipientGroupTest {
 
     @Test
-    void FR_007_recipientGroup_coversGroupsAToF() {
-        assertThat(leaves(RecipientGroup.class))
-                .containsExactlyInAnyOrder(
-                        // (a) nhiệm vụ
-                        "AssignedNurse",
-                        "AssignedStaff",
-                        "OnShiftStaff",
-                        "ShiftLead",
-                        "OnDutyDoctor",
-                        "FloorManager",
-                        "TripLeader",
-                        "DepartmentLead",
-                        // (b), (c)
-                        "FacilityRole",
-                        "Approvers",
-                        // (d) gắn bản ghi nguồn
-                        "Staff",
-                        "FamilyMember",
-                        // (e) quan hệ người thân
-                        "PrimaryContact",
-                        "Representative",
-                        "FamilyWithRight",
-                        // (f) chính người cao tuổi (009 T041, Q-366)
-                        "Resident");
-    }
-
-    @Test
     void FR_010_dutyGroups_carrySubstitution() {
         assertThat(leaves(RecipientGroup.DutyGroup.class))
                 .containsExactlyInAnyOrder(

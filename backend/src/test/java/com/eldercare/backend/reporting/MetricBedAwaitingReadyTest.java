@@ -73,6 +73,11 @@ class MetricBedAwaitingReadyTest {
         public Stream<RoomIsolationView> isolatedRooms(ScopeFilter scope, Instant at) {
             return Stream.empty();
         }
+
+        @Override
+        public java.util.Set<Long> emptyAwaitingTransferBedIds(ScopeFilter scope, Instant at) {
+            return java.util.Set.of();
+        }
     }
 
     private final StubBedStatistics statistics = new StubBedStatistics();

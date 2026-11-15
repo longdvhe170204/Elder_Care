@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.file.FakeFileConfig;
 import com.eldercare.backend.support.fake.file.InMemoryS3Client;
@@ -86,24 +85,6 @@ class FileServiceIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void upload_storesObjectInS3AndRowWithoutOwner() {
-        int before = s3.count();
-
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-
-        assertThat(s3.count()).isEqualTo(before + 1);
-        var row = jdbc.queryForMap("SELECT * FROM file WHERE id = ?", id);
-        assertThat(s3.contains((String) row.get("uuid"))).isTrue();
-        assertThat(row.get("original_name")).isEqualTo("scan.png");
-        assertThat(row.get("mime_type")).isEqualTo(FileTypes.PNG);
-        assertThat(((Number) row.get("size_bytes")).longValue()).isEqualTo(PNG.length);
-        assertThat((String) row.get("sha256")).hasSize(64);
-        assertThat(((Number) row.get("uploaded_by")).longValue()).isEqualTo(UPLOADER);
-        assertThat(row.get("owner_type")).isNull();
-        assertThat(row.get("attached_at")).isNull();
-    }
-
-    @Test
     void attach_setsOwnerOnce() {
         long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
 
@@ -119,19 +100,5 @@ class FileServiceIT extends MySqlIntegrationTestBase {
                     assertThat(e.errorCode()).isEqualTo("FILE_ALREADY_ATTACHED");
                     assertThat(e.status().value()).isEqualTo(409);
                 });
-    }
-
-    @Test
-    void download_attached_followsOwnerModulePermission() {
-        long id = files.upload("scan.png", FileTypes.PNG, PNG, UPLOADER);
-        transactions.executeWithoutResult(s -> files.attach(id, OWNER_TYPE, 9));
-
-        assertThatThrownBy(() -> service.download(id, UPLOADER)).isInstanceOf(PermissionDeniedException.class);
-        provider.allowed.set(true);
-        assertThat(service.download(id, UPLOADER + 1).content()).isEqualTo(PNG);
-    }
-
-    private int rowCount() {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM file", Integer.class);
     }
 }

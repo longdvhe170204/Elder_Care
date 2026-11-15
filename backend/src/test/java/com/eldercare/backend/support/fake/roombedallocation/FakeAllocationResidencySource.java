@@ -27,6 +27,7 @@ public class FakeAllocationResidencySource implements AllocationResidencySource 
 
     private final Map<Long, Resident> residents = new HashMap<>();
     private final Set<PriceKey> differentPrices = new HashSet<>();
+    private final Set<PriceKey> differentContractPrices = new HashSet<>();
     private final List<Long> expiredWaitingRecords = new ArrayList<>();
     private final Map<Long, Long> allocations = new HashMap<>();
 
@@ -79,6 +80,23 @@ public class FakeAllocationResidencySource implements AllocationResidencySource 
                 .orElse(new HeldBed(false, Optional.empty()));
     }
 
+    /** Loại phòng có phí khác đơn giá của hợp đồng hiện hành tại ngày (mặc định: cùng giá). */
+    public FakeAllocationResidencySource contractPriceDifference(
+            long residentId, long roomTypeId, LocalDate date, boolean different) {
+        PriceKey key = new PriceKey(residentId, 0, roomTypeId, date);
+        if (different) {
+            differentContractPrices.add(key);
+        } else {
+            differentContractPrices.remove(key);
+        }
+        return this;
+    }
+
+    @Override
+    public boolean differentContractUnitPrice(long residentId, long roomTypeId, LocalDate date) {
+        return differentContractPrices.contains(new PriceKey(residentId, 0, roomTypeId, date));
+    }
+
     @Override
     public boolean differentUnitPrice(long residentId, long previousRoomTypeId, long nextRoomTypeId, LocalDate date) {
         return differentPrices.contains(new PriceKey(residentId, previousRoomTypeId, nextRoomTypeId, date));
@@ -105,6 +123,7 @@ public class FakeAllocationResidencySource implements AllocationResidencySource 
     public void reset() {
         residents.clear();
         differentPrices.clear();
+        differentContractPrices.clear();
         expiredWaitingRecords.clear();
         allocations.clear();
     }

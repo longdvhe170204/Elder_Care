@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @WithMockUser
 @Transactional
+@org.springframework.test.context.event.RecordApplicationEvents
 class FR_008_RoomIsolationIT extends StructureTestSupport {
     @Autowired
     MockMvc mvc;
@@ -39,9 +40,22 @@ class FR_008_RoomIsolationIT extends StructureTestSupport {
                 .andExpect(jsonPath("$[1].action").value("LIFT"));
         assertThat(jdbc.queryForObject("SELECT isolated FROM room WHERE id=?", Boolean.class, room))
                 .isFalse();
-        assertThatThrownBy(() -> jdbc.update("UPDATE room_isolation_history SET reason='Sửa' WHERE room_id=?", room))
+        assertThatThrownBy(() -> jdbc.update(
+                        "UPDATE status_history SET reason='Sửa' WHERE entity_type='M03.ROOM' AND attribute='ISOLATION' AND entity_id=?",
+                        room))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM room_isolation_history WHERE room_id=?", room))
+        assertThatThrownBy(() -> jdbc.update(
+                        "DELETE FROM status_history WHERE entity_type='M03.ROOM' AND attribute='ISOLATION' AND entity_id=?",
+                        room))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
     }
+
+    @Autowired
+    com.eldercare.backend.roombedallocation.api.InfectionControlCommandApi infectionCommands;
+
+    @Autowired
+    com.eldercare.backend.support.fake.roombedallocation.FakeAllocationInfectionStatus infection;
+
+    @Autowired
+    org.springframework.test.context.event.ApplicationEvents events;
 }

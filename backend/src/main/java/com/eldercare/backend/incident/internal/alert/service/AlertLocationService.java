@@ -89,7 +89,7 @@ public class AlertLocationService {
                 || !Long.valueOf(user.accountId()).equals(alert.requesterId())) {
             throw new NotFoundException();
         }
-        record(alert, "ASSIST", latestPress(alertId, EmergencyAssistService.PRESS_SOURCE), user.accountId(), report);
+        record(alert, "ASSIST", EmergencyAssistService.latestPress(records, alertId), user.accountId(), report);
     }
 
     /** App gửi vị trí khi cảnh báo đang mở và chưa ghi đã tới nơi (FR-047h, FR-047j). */

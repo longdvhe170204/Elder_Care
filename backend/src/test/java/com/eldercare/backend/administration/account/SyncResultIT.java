@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -43,6 +44,7 @@ import org.springframework.test.web.servlet.ResultActions;
 @AutoConfigureMockMvc
 @Import({FakeM15Config.class, TestOfflineHandlers.class})
 @RecordApplicationEvents
+@Tag("BR-23")
 class SyncResultIT extends MySqlIntegrationTestBase {
 
     @Autowired
@@ -114,10 +116,9 @@ class SyncResultIT extends MySqlIntegrationTestBase {
     /** Lần kết nối gần nhất của thiết bị mà máy chủ đã thấy, trước khi ngoại tuyến. */
     private Instant lastConnected(Instant at) {
         jdbc.update(
-                "INSERT INTO device (device_id, last_connected_at, last_account_id) VALUES (?, ?, ?)",
-                device,
-                LocalDateTime.ofInstant(at, ZoneOffset.UTC),
-                account);
+                "INSERT INTO technical_lock (lock_key, version, updated_at) VALUES (?, 0, ?)",
+                "M15.DEVICE:" + device,
+                LocalDateTime.ofInstant(at, ZoneOffset.UTC));
         return at;
     }
 

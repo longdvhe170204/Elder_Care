@@ -14,6 +14,9 @@ import com.eldercare.backend.administration.shared.api.dto.RecordEvent;
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.billing.api.events.CostSourceBilled;
 import com.eldercare.backend.billing.api.events.CostSourceChanged;
+import com.eldercare.backend.care.api.TaskSourceApi;
+import com.eldercare.backend.care.api.spi.TaskSourcePort;
+import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.data.TechnicalLocks;
 import com.eldercare.backend.common.error.ConditionNotMetException;
@@ -55,6 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -76,6 +80,10 @@ public class PortionClosingService {
     public static final String FAMILY_MEAL_UNIT = "PORTION";
 
     private static final AuditAction CLOSED = new AuditAction("PORTIONS_CLOSED", false);
+    /** Loại thay đổi của {@link ClosingEventHandlers} do vắng mặt (lượt vắng nội trú, có mặt hoặc báo vắng bán trú). */
+    private static final Set<String> ABSENCE_CHANGES = Set.of("ABSENCE", "DAY_CARE_ATTENDANCE");
+
+    private static final Reason MEAL_SKIPPED_FOR_ABSENCE = Reason.of("Bữa bị bỏ vì vắng mặt");
     private static final List<PermissionKey> DAILY_MEAL_VIEWERS = List.of(
             new PermissionKey(Function.MEAL_COUNT_TICKET, Operation.VIEW),
             new PermissionKey(Function.MEAL_RECEIPT, Operation.VIEW),
@@ -91,6 +99,8 @@ public class PortionClosingService {
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
     private final PermissionApi permissions;
+    /** Lười như {@code MealTaskSource}: 005 cần nguồn bữa của 011 lúc khởi tạo. */
+    private final ObjectProvider<TaskSourceApi> taskSources;
 
     PortionClosingService(
             DailyMeals dailyMeals,
@@ -102,7 +112,8 @@ public class PortionClosingService {
             CurrentUser user,
             BusinessTime time,
             ApplicationEventPublisher events,
-            PermissionApi permissions) {
+            PermissionApi permissions,
+            ObjectProvider<TaskSourceApi> taskSources) {
         this.dailyMeals = dailyMeals;
         this.counter = counter;
         this.closings = closings;
@@ -113,6 +124,7 @@ public class PortionClosingService {
         this.time = time;
         this.events = events;
         this.permissions = permissions;
+        this.taskSources = taskSources;
     }
 
     /** Kết quả chốt hoặc tính sẵn (api-011 {@code ClosingResult}). */
@@ -362,6 +374,17 @@ public class PortionClosingService {
             }
             if (delta.change() == Change.REMOVED) {
                 dropSpecial(closing.dailyMealId(), delta.before());
+                if (ABSENCE_CHANGES.contains(changeType) && person.kind() != CountedKind.FAMILY) {
+                    // FR-042: bữa của người này bị bỏ vì vắng; công việc hỗ trợ ăn Chưa đến hạn của bữa chuyển Hủy (005
+                    // FR-022)
+                    taskSources
+                            .getObject()
+                            .sourceCancelled(
+                                    TaskSourcePort.SourceType.MEAL,
+                                    closing.dailyMealId(),
+                                    person.residentId(),
+                                    MEAL_SKIPPED_FOR_ABSENCE);
+                }
             }
             familyMealEffects(meal, delta, now);
         }

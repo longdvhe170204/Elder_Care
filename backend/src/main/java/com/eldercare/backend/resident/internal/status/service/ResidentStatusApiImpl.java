@@ -49,6 +49,29 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
     }
 
     @Override
+    public TransitionResult execute(
+            long residentId,
+            StatusCommand command,
+            CurrentUser user,
+            Optional<Reason> reason,
+            JsonNode details,
+            Basis basis,
+            Instant occurredAt) {
+        return status.executeFromModule(residentId, command, user, reason, details, basis, occurredAt);
+    }
+
+    @Override
+    public Instant correctRollCallTime(
+            long residentId,
+            StatusCommand command,
+            long tripId,
+            Instant correctedAt,
+            CurrentUser user,
+            Optional<Reason> reason) {
+        return status.correctRollCallTime(residentId, command, tripId, correctedAt, user, reason);
+    }
+
+    @Override
     public List<Condition> previewConditions(long residentId, StatusCommand command) {
         return status.preview(residentId, command);
     }

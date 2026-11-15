@@ -169,7 +169,8 @@ class FR_048b_TripMedicationApiTest {
                 mock(ResidentMedicationLock.class),
                 time,
                 calculator,
-                beans(port).getBeanProvider(TripMedicationPort.class));
+                beans(port).getBeanProvider(TripMedicationPort.class),
+                event -> {});
         NoMedicationOrderBody body = new NoMedicationOrderBody();
         body.setTripId(TRIP);
         body.setReason("Gia đình mang thuốc riêng");
