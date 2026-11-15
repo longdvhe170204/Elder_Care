@@ -59,8 +59,9 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_001_002b_catalogAndFacilitySessionCommandsRespectTheirPermissions() throws Exception {
-        com.eldercare.backend.support.TableRows.each(List.of("CATALOG", "SESSION", "SERVICE"), scenario -> {
+        com.eldercare.backend.support.TableRows.each(List.of("CATALOG", "INTEREST", "SESSION", "SERVICE"), scenario -> {
             if ("CATALOG".equals(scenario)) FR_001_catalogUsesTheApprovedViewAndWritePermissions();
+            else if ("INTEREST".equals(scenario)) FR_051_interestGroupCatalogIsManagedByTheManagerAndReadByCareStaff();
             else if ("SERVICE".equals(scenario)) FR_002_chargedActivityNeedsAnActiveServiceOfTheCatalog();
             else
                 FR_069_sessionCommandsAreAuditedWithActorTimeAndReason(
@@ -96,6 +97,43 @@ class T004_ActivityCommandsIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/activity-types"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.name == '" + name + "')].status").value(hasItem("INACTIVE")));
+    }
+
+    /**
+     * FR-051, Phụ lục 27 dòng "Danh mục loại hoạt động, nhóm sở thích": Quản lý viện tạo, đổi tên, ngừng; Trưởng tầng,
+     * Điều dưỡng, Nhân viên chăm sóc xem; Hành chính không có quyền.
+     */
+    private void FR_051_interestGroupCatalogIsManagedByTheManagerAndReadByCareStaff() throws Exception {
+        var users = new TestUsers(jdbc, time);
+        var manager = users.staff(Role.NURSING_HOME_MANAGER);
+        var floorManager = users.staff(Role.FLOOR_MANAGER);
+        var office = users.staff(Role.OFFICE_STAFF);
+        String name = "Âm nhạc " + TestUsers.nextId();
+        user.set(floorManager.user());
+        command("/api/v1/interest-groups", "{\"name\":\"" + name + "\"}").andExpect(status().isForbidden());
+        user.set(manager.user());
+        command("/api/v1/interest-groups", "{\"name\":\"" + name + "\"}").andExpect(status().isOk());
+        long id = catalogs.list(ActivityKinds.INTEREST_GROUPS, null, false).stream()
+                .filter(row -> row.name().equals(name))
+                .findFirst()
+                .orElseThrow()
+                .id();
+        user.set(floorManager.user());
+        mvc.perform(get("/api/v1/interest-groups"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].name").value(hasItem(name)))
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].status").value(hasItem("ACTIVE")));
+        user.set(office.user());
+        mvc.perform(get("/api/v1/interest-groups")).andExpect(status().isForbidden());
+        user.set(manager.user());
+        command(
+                        "/api/v1/interest-groups",
+                        "{\"id\":" + id + ",\"name\":\"" + name + " dân ca\",\"status\":\"INACTIVE\"}")
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/interest-groups"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].name").value(hasItem(name + " dân ca")))
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].status").value(hasItem("INACTIVE")));
     }
 
     private long[] FR_002b_facilitySessionIsManagedByTheCreatorOrTheManagerOfItsOwnLocation() throws Exception {
