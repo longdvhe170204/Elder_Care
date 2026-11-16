@@ -2515,7 +2515,7 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Nguồn tỷ lệ / listener sau commit / truy vấn thống kê | `StaffingRatioSources / StaffingRatioEvents / StaffStatisticsService / StaffStatisticsStore / StaffStatisticsRows` |
 | Lịch đến trong ngày (004, khai báo tối thiểu được duyệt) | `admission.api.ContractReadApi.attendanceOn`; `AttendanceScheduleView(date, arrivalTime, departureTime)`; `FakeContractSchedules / FakeM02Config` |
 | Vị trí nghỉ bán trú (003, hàm đã có trong hợp đồng) | `LocationStructureApi.daycareRestLocation`; `FakeLocations.daycareRestLocation / closeStays` |
-| Phân bổ bắt đầu / đóng / chuyển giường (003) | `roombedallocation.api.events.AllocationStarted / AllocationClosed / BedChanged` |
+| Phân bổ bắt đầu / đóng / chuyển giường (003) | `roombedallocation.api.events.AllocationStarted / AllocationClosed / BedChanged` *(rà 2026-11-16: `AllocationStarted`, `AllocationClosed` là khai báo cũ, không nơi nào phát; 003 phát `BedAllocationStarted`, `BedAllocationClosed`, `BedTransferred` ở dòng "Sự kiện phân bổ mở / đóng / chuyển giường thật"; 008 giữ listener tên cũ theo plan 008)* |
 | Dữ liệu tỷ lệ / thống kê chưa đọc đủ | `STAFFING_RATIO_UNAVAILABLE / STAFF_STATISTICS_SOURCE_UNAVAILABLE`; không trả số không thay nguồn lỗi |
 | Ngưỡng theo mẫu / trọng số theo mức (kiểu TABLE của CFG) | `CFG_M09_01`: object khóa là id mẫu ca dạng chuỗi; `CFG_M09_12`: object khóa `BASIC / REGULAR / SPECIAL`, giá trị số dương; không giá trị mặc định viết cứng |
 | Đọc nhật ký theo khoảng và con trỏ (A duyệt E cài, A review) | `AuditLogApi.recordedBetween(entityType, from, to, afterId, limit)`; khoảng `[from,to)`, id tăng dần, trang tối đa `RECORDED_LIMIT` (200), giữ kiểu `AuditLogRecord` và hàm `recorded` |
