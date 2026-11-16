@@ -43,6 +43,7 @@ import com.eldercare.backend.incident.internal.infection.domain.FamilyContactToN
 import com.eldercare.backend.incident.internal.infection.domain.NewContact;
 import com.eldercare.backend.incident.internal.infection.persistence.ContactListStore;
 import com.eldercare.backend.incident.internal.infection.persistence.ContactPersonStore;
+import com.eldercare.backend.roombedallocation.api.InfectionControlCommandApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import java.time.Instant;
@@ -77,6 +78,7 @@ public class ContactListService {
     private final ResidentLocationApi locations;
     private final FacilityContactApi facilityContact;
     private final EmergencyFamilyPort family;
+    private final InfectionControlCommandApi infectionControl;
 
     public ContactListService(
             IncidentStore incidents,
@@ -90,7 +92,8 @@ public class ContactListService {
             TaskSourceApi taskSources,
             ResidentLocationApi locations,
             FacilityContactApi facilityContact,
-            EmergencyFamilyPort family) {
+            EmergencyFamilyPort family,
+            InfectionControlCommandApi infectionControl) {
         this.incidents = incidents;
         this.lists = lists;
         this.people = people;
@@ -103,6 +106,7 @@ public class ContactListService {
         this.locations = locations;
         this.facilityContact = facilityContact;
         this.family = family;
+        this.infectionControl = infectionControl;
     }
 
     /** Đối tượng của sự cố cho lớp phạm vi của {@code @RequiresPermission}. */
@@ -340,6 +344,9 @@ public class ContactListService {
             if (person.type() == ContactType.RESIDENT) {
                 events.publishEvent(
                         new ContactAdded(person.subjectId(), at, PERSON + ":" + row.id() + ":ADDED", List.of()));
+                // 003 FR-045 (003 mục 1.10a): báo Trưởng tầng nếu người này vừa rời giường còn Chờ sẵn sàng; lỗi thì
+                // rollback
+                infectionControl.contactListed(person.subjectId(), at);
                 var floor = floors.computeIfAbsent(
                         person.subjectId(), id -> locations.current(id).map(LocationView::floorId));
                 events.publishEvent(new ContactTemperatureCheckRequested(

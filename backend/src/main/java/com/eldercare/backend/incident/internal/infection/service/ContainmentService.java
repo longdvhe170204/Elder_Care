@@ -22,6 +22,7 @@ import com.eldercare.backend.incident.internal.incident.persistence.IncidentStor
 import com.eldercare.backend.incident.internal.infection.domain.ContainmentContent;
 import com.eldercare.backend.incident.internal.infection.domain.ContainmentScope;
 import com.eldercare.backend.incident.internal.infection.persistence.ContainmentStore;
+import com.eldercare.backend.roombedallocation.api.InfectionControlCommandApi;
 import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationRef;
 import java.util.HashSet;
@@ -46,6 +47,7 @@ public class ContainmentService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
     private final ObjectProvider<ActivityRegistrationAutoCancelApi> autoCancel;
+    private final InfectionControlCommandApi infectionControl;
 
     public ContainmentService(
             ContainmentStore store,
@@ -55,7 +57,8 @@ public class ContainmentService {
             ApplicationEventPublisher events,
             BusinessTime time,
             ObjectProvider<CurrentUser> users,
-            ObjectProvider<ActivityRegistrationAutoCancelApi> autoCancel) {
+            ObjectProvider<ActivityRegistrationAutoCancelApi> autoCancel,
+            InfectionControlCommandApi infectionControl) {
         this.store = store;
         this.incidents = incidents;
         this.locations = locations;
@@ -64,6 +67,7 @@ public class ContainmentService {
         this.time = time;
         this.users = users;
         this.autoCancel = autoCancel;
+        this.infectionControl = infectionControl;
     }
 
     @BusinessCommand
@@ -121,6 +125,8 @@ public class ContainmentService {
                 at,
                 ContainmentNotices.lifted(
                         id, scope, locations, users.getObject().accountId(), at)));
+        // 003 FR-024a (c) (003 mục 1.10a): gỡ dấu chờ bác sĩ của vùng vừa gỡ cùng transaction; lỗi thì lệnh rollback
+        infectionControl.cordonLifted(scope.floorIds(), scope.areaIds(), at);
         return after;
     }
 

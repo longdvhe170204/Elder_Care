@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.care.api.events.CarePlanReviewNeeded;
 import com.eldercare.backend.incident.api.events.FallIncidentRecorded;
 import com.eldercare.backend.incident.api.events.PostFallFollowUpRequested;
 import com.eldercare.backend.incident.internal.incident.persistence.FallMonitoringStore;
@@ -51,6 +52,20 @@ class BR_05_FallIT extends EmergencyTestBase {
                 .isZero();
         // ngã báo đánh giá lại qua ReassessmentApi (001 FR-024, 007 FR-043); 001 tự bỏ lần gọi lại cùng sự cố
         verify(reassessments).notifyAfterIncident(resident, incident);
+    }
+
+    /** BR-M04-20 (005 mục 1.10b): lệnh ghi sự cố Ngã gọi 005 thật, 005 báo xem xét kế hoạch theo nguồn sự cố. */
+    @Test
+    void BR_M04_20_fallAsksCarePlanReviewThroughRealCareModule() throws Exception {
+        long incident = recordFall();
+
+        assertThat(events.stream(CarePlanReviewNeeded.class).toList())
+                .isNotEmpty()
+                .allSatisfy(event -> {
+                    assertThat(event.residentId()).isEqualTo(resident);
+                    assertThat(event.source()).isEqualTo("M05.INCIDENT");
+                    assertThat(event.reference()).isEqualTo(Long.toString(incident));
+                });
     }
 
     /** Ghi sự cố Ngã mức mặc định Khẩn cấp qua HTTP; trả mã sự cố vừa tạo. */

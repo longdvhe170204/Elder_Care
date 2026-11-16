@@ -22,6 +22,7 @@ import com.eldercare.backend.roombedallocation.api.LocationHistoryApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.support.TestUsers.TestUser;
+import com.eldercare.backend.support.fake.roombedallocation.FakeInfectionControlCommands;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -29,15 +30,18 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.event.RecordApplicationEvents;
 
 /**
  * Nền cho IT lây nhiễm (US8; T051): bốn nguồn truy vết (003 cùng phòng, 014 điểm danh, 008 phân công, 012 lượt thăm),
  * người ghi kết quả công việc, liều (005, 006), khoảng trạng thái (001), vị trí hiện tại (003) và nguồn công việc 005 là
- * bản giả Mockito chung cho các lớp để dùng một context. Sự cố lây nhiễm của {@link #resident} do Điều dưỡng ghi.
+ * bản giả Mockito chung cho các lớp để dùng một context; lệnh kiểm soát lây nhiễm của 003 dùng bản giả chung
+ * {@link FakeInfectionControlCommands}. Sự cố lây nhiễm của {@link #resident} do Điều dưỡng ghi.
  */
 @RecordApplicationEvents
+@Import(FakeInfectionControlCommands.Config.class)
 abstract class ContactTracingTestBase extends IncidentHttpTestBase {
     static final String LOOKUP = "/api/v1/incidents/{id}/contact-lookup";
     static final String LIST = "/api/v1/incidents/{id}/contact-list";
