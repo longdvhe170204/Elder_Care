@@ -73,6 +73,18 @@ public class M03GovernanceStore {
                 .stream();
     }
 
+    /**
+     * Phân bổ đã đóng, hủy của người cao tuổi (000 T112, FR-051a): cùng tập với {@link #allocations()} để chuỗi của hồ sơ
+     * chỉ kéo theo phân bổ mà job xóa được; phân bổ còn mở của người đã kết thúc là dữ liệu dở, không giữ hồ sơ mãi.
+     */
+    public List<Long> allocationsOf(long residentId) {
+        if (!exists("bed_allocation")) return List.of();
+        return jdbc.queryForList(
+                "SELECT id FROM bed_allocation WHERE resident_id=? AND status IN ('CLOSED','CANCELLED') ORDER BY id",
+                Long.class,
+                residentId);
+    }
+
     public Optional<Long> allocationResident(long id) {
         if (!exists("bed_allocation")) return Optional.empty();
         return jdbc.query("SELECT resident_id FROM bed_allocation WHERE id=?", (rs, i) -> rs.getLong(1), id).stream()

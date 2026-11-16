@@ -1,15 +1,19 @@
 package com.eldercare.backend.notification.internal.governance.service;
 
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
 import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.internal.directcontact.domain.DirectContactContent;
 import com.eldercare.backend.notification.internal.domain.DeliveryAttemptContent;
 import com.eldercare.backend.notification.internal.domain.NotificationEventContent;
 import com.eldercare.backend.notification.internal.persistence.M13Sql;
 import com.eldercare.backend.notification.internal.urgent.domain.CallReminderEvents;
+import com.eldercare.backend.resident.api.ResidentApi;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -19,14 +23,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * Lưu giữ yêu cầu thông báo và mọi thứ thuộc nó ({@code LuuTruProvider}; data-model mục 10, FR-041): theo CFG-M15-04
- * tính từ lúc tiếp nhận. Yêu cầu gắn người cao tuổi giữ theo hồ sơ (CFG-M15-03 từ ngày kết thúc lưu trú), chưa có giao
- * diện của 001 nên chưa hết hạn (như yêu cầu phê duyệt của 000). Yêu cầu không gắn người cao tuổi tiếp nhận sau bản ghi
- * nguồn nên không bị loại bỏ trước bản ghi nguồn cùng hạn.
+ * tính từ lúc tiếp nhận. Yêu cầu gắn người cao tuổi giữ theo hồ sơ (CFG-M15-03 từ lúc người đó sang trạng thái cuối, đọc
+ * qua {@link ResidentApi#finalStatusAt}; 000 T112, 2026-11-16) và đi cùng chuỗi của hồ sơ ({@link #referencing}). Yêu cầu không
+ * gắn người cao tuổi tiếp nhận sau bản ghi nguồn nên không bị loại bỏ trước bản ghi nguồn cùng hạn.
  */
 @Component
 class NotificationRequestRetention implements RetentionProvider {
@@ -38,11 +43,23 @@ class NotificationRequestRetention implements RetentionProvider {
     private final JdbcTemplate jdbc;
     private final RetentionDatabase database;
     private final SharedRowRetention sharedRows;
+    private final ObjectProvider<ResidentApi> residents;
+    private final ParameterApi parameters;
+    private final BusinessTime time;
 
-    NotificationRequestRetention(JdbcTemplate jdbc, RetentionDatabase database, SharedRowRetention sharedRows) {
+    NotificationRequestRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            SharedRowRetention sharedRows,
+            ObjectProvider<ResidentApi> residents,
+            ParameterApi parameters,
+            BusinessTime time) {
         this.jdbc = jdbc;
         this.database = database;
         this.sharedRows = sharedRows;
+        this.residents = residents;
+        this.parameters = parameters;
+        this.time = time;
     }
 
     @Override
@@ -67,20 +84,50 @@ class NotificationRequestRetention implements RetentionProvider {
                 ? LocalDateTime.of(1000, 1, 1, 0, 0)
                 : LocalDateTime.ofInstant(after.at(), ZoneOffset.UTC);
         long afterId = after == null ? 0 : after.id();
+        List<Candidate> unlinked = jdbc.query(
+                "SELECT id, received_at FROM notification_request WHERE resident_id IS NULL AND received_at < ?"
+                        + " AND (received_at > ? OR (received_at = ? AND id > ?))"
+                        + " ORDER BY received_at, id LIMIT ?",
+                (rs, i) -> new Candidate(
+                        rs.getLong(1), rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
+                LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
+                afterAt,
+                afterAt,
+                afterId,
+                batch);
+        return RetentionProvider.page(Stream.concat(unlinked.stream(), residentLinked().stream()), after, batch);
+    }
+
+    /**
+     * Yêu cầu gắn hồ sơ đã hết hạn theo hồ sơ: người cao tuổi sang trạng thái cuối trước mốc CFG-M15-03 (000 T112); mốc
+     * của ứng viên là lúc sang trạng thái cuối. Chưa có nguồn trạng thái cuối thì giữ.
+     */
+    private List<Candidate> residentLinked() {
+        ResidentApi source = residents.getIfAvailable();
+        if (source == null) return List.of();
+        Instant profileCutoff = time.now()
+                .atZone(BusinessTime.ZONE)
+                .minus(parameters.read(ParameterCode.CFG_M15_03).asPeriod())
+                .toInstant();
+        List<Candidate> found = new ArrayList<>();
+        jdbc.query("SELECT id, resident_id FROM notification_request WHERE resident_id IS NOT NULL", rs -> {
+            long id = rs.getLong(1);
+            source.finalStatusAt(rs.getLong(2))
+                    .filter(at -> at.isBefore(profileCutoff))
+                    .ifPresent(at -> found.add(new Candidate(id, at)));
+        });
+        return found;
+    }
+
+    /** Yêu cầu thông báo gắn hồ sơ người cao tuổi {@code target} (000 T112, FR-051a). */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
         return jdbc
-                .query(
-                        "SELECT id, received_at FROM notification_request WHERE resident_id IS NULL AND received_at < ?"
-                                + " AND (received_at > ? OR (received_at = ? AND id > ?))"
-                                + " ORDER BY received_at, id LIMIT ?",
-                        (rs, i) -> new Candidate(
-                                rs.getLong(1),
-                                rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
-                        LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
-                        afterAt,
-                        afterAt,
-                        afterId,
-                        batch)
-                .stream();
+                .queryForList("SELECT id FROM notification_request WHERE resident_id = ?", Long.class, target.id())
+                .stream()
+                .map(id -> new DataRef(TYPE, id))
+                .collect(Collectors.toSet());
     }
 
     /** Không bản ghi nào của module khác trỏ về yêu cầu thông báo. */

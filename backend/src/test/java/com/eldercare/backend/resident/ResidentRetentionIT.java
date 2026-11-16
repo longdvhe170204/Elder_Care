@@ -211,6 +211,23 @@ class ResidentRetentionIT extends StatusTestBase {
             "simple_record:M01.REASSESSMENT_NOTICE",
             "reminder_marker");
 
+    /**
+     * Chạy job sau khi listener sau commit đã xử lý xong sự kiện của hồ sơ: bản ghi module khác tạo từ sự kiện (yêu cầu
+     * thông báo gắn người cao tuổi) đi cùng chuỗi qua {@code referencing} (000 T112); ghi muộn trong lúc job chạy thì chuỗi
+     * bị bỏ qua lượt đó (CI 2 JVM, 2026-11-16).
+     */
+    private void runJobAfter(long residentId, Duration sinceNow) {
+        org.awaitility.Awaitility.await()
+                .atMost(Duration.ofSeconds(10))
+                .until(() -> jdbc.queryForObject(
+                                "SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE COMPLETION_DATE IS NULL"
+                                        + " AND JSON_EXTRACT(SERIALIZED_EVENT, '$.residentId') = ?",
+                                Integer.class,
+                                residentId)
+                        == 0);
+        runJobAfter(sinceNow);
+    }
+
     private void runJobAfter(Duration sinceNow) {
         clock.setTo(Instant.now().plus(sinceNow));
         user.set(FakePermissions.user(0, Role.SCHEDULER));
@@ -244,7 +261,7 @@ class ResidentRetentionIT extends StatusTestBase {
                 + "))";
         assertThat(jdbc.queryForObject(residentFiles, Integer.class)).isEqualTo(3);
 
-        runJobAfter(Duration.ofDays(11 * 366));
+        runJobAfter(id, Duration.ofDays(11 * 366));
 
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM file WHERE id IN (" + photo + ", " + hospitalDocument + ")",
@@ -323,13 +340,13 @@ class ResidentRetentionIT extends StatusTestBase {
         String costRows = "SELECT (SELECT COUNT(*) FROM cost_statement WHERE id=?) + (SELECT COUNT(*) FROM cost_item"
                 + " WHERE resident_id=?)";
 
-        runJobAfter(Duration.ofDays(366));
+        runJobAfter(id, Duration.ofDays(366));
         assertThat(count("resident", id)).as("hồ sơ chưa hết hạn").isEqualTo(1);
         assertThat(jdbc.queryForObject(costRows, Integer.class, statement, id))
                 .as("bảng, khoản chi phí giữ cùng hồ sơ")
                 .isEqualTo(3);
 
-        runJobAfter(Duration.ofDays(11 * 366));
+        runJobAfter(id, Duration.ofDays(11 * 366));
         assertThat(count("resident", id)).isZero();
         assertThat(jdbc.queryForObject(costRows, Integer.class, statement, id))
                 .as("bảng, khoản, khoản điều chỉnh xóa cùng chuỗi hồ sơ")

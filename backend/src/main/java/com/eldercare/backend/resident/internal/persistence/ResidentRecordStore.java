@@ -45,17 +45,28 @@ public class ResidentRecordStore {
                 "SELECT id FROM " + table + " WHERE " + residentColumn + " = ?" + condition, Long.class, residentId);
     }
 
-    /** Bản ghi của hồ sơ đã vào trạng thái cuối trước {@code cutoff}, theo lúc vào trạng thái cuối rồi mã. */
+    /**
+     * Bản ghi của hồ sơ đã vào trạng thái cuối trước {@code cutoff}, theo lúc vào trạng thái cuối rồi mã, đứng sau
+     * {@code after} (rỗng là trang đầu; 000 T112).
+     */
     public List<Candidate> expiredCandidates(
-            String table, String residentColumn, String condition, Instant cutoff, int batch) {
+            String table, String residentColumn, String condition, Instant cutoff, Candidate after, int batch) {
+        LocalDateTime afterAt = after == null
+                ? LocalDateTime.of(1000, 1, 1, 0, 0)
+                : LocalDateTime.ofInstant(after.at(), ZoneOffset.UTC);
+        long afterId = after == null ? 0 : after.id();
         return jdbc.query(
                 "SELECT c.id, f.final_at FROM " + table + " c JOIN (" + FINAL_STATUS_AT
                         + ") f ON f.resident_id = c." + residentColumn + " WHERE f.final_at < ?" + condition
+                        + " AND (f.final_at > ? OR (f.final_at = ? AND c.id > ?))"
                         + " ORDER BY f.final_at,"
                         + " c.id LIMIT ?",
                 (rs, i) -> new Candidate(
                         rs.getLong(1), rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                 LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
+                afterAt,
+                afterAt,
+                afterId,
                 batch);
     }
 }

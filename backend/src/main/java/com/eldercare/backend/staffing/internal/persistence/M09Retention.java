@@ -93,6 +93,12 @@ public class M09Retention implements RetentionProvider {
     }
 
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (at, id)} (000 T112): sự kiện đọc hết rồi mới cắt trang, như các nguồn khác. */
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         Stream<Candidate> stream;
         if (isCatalog())
             stream = catalogRows().stream()
@@ -114,11 +120,26 @@ public class M09Retention implements RetentionProvider {
             stream = records.listByStatus(IMPORT_BATCH, Set.of("RECORDED")).stream()
                     .map(r -> new Candidate(
                             Legacy.logicalId(r.id(), r.content().legacy(), "staff_import_batch"), r.createdAt()));
-        else if (isEvent()) stream = eventCandidates(cutoff, batch);
+        else if (isEvent()) stream = eventCandidates(cutoff, Integer.MAX_VALUE);
         else stream = privateCandidates(cutoff);
-        return stream.filter(c -> c.at().isBefore(cutoff))
-                .sorted(Comparator.comparing(Candidate::at).thenComparingLong(Candidate::id))
-                .limit(batch);
+        return RetentionProvider.page(stream.filter(c -> c.at().isBefore(cutoff)), after, batch);
+    }
+
+    /**
+     * Phân công chăm sóc trỏ tới người cao tuổi {@code target} (000 T112, FR-051a); các loại M09 khác không gắn hồ sơ
+     * người cao tuổi.
+     */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (kind != Kind.ASSIGNMENT || !SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
+        var refs = new LinkedHashSet<DataRef>();
+        jdbc.queryForList(
+                        "SELECT id FROM staff_assignment WHERE kind='CARE' AND target_type='RESIDENT' AND target_id=?"
+                                + " AND status IN ('ENDED','CANCELLED')",
+                        Long.class,
+                        target.id())
+                .forEach(id -> refs.add(new DataRef(kind.type, id)));
+        return refs;
     }
 
     private Stream<Candidate> privateCandidates(Instant cutoff) {

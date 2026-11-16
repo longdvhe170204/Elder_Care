@@ -69,12 +69,8 @@ class LayerArchTest {
 
     private static final Set<String> PENDING_API_ROOT_TYPES = Set.of();
 
-    /** Record lồng chuyển ra {@code domain}: C (roombedallocation). */
-    private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(
-            "roombedallocation.internal.allocation.persistence.AllocationReminderStore",
-            "roombedallocation.internal.bed.persistence.BedAssetStateStore",
-            "roombedallocation.internal.bed.persistence.BedHoldStore",
-            "roombedallocation.internal.bed.persistence.BedReadinessStore");
+    /** Record lồng chưa chuyển ra {@code domain} (roombedallocation đã chuyển 2026-11-16). */
+    private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of();
 
     /**
      * Lớp trong {@code internal} nằm ở một tầng; module lớn có gói chức năng ở giữa ({@code internal.auth.service}). Tầng

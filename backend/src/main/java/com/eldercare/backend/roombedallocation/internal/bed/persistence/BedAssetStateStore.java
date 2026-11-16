@@ -1,6 +1,7 @@
 package com.eldercare.backend.roombedallocation.internal.bed.persistence;
 
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.FutureAllocation;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,16 +10,6 @@ import org.springframework.stereotype.Repository;
 /** T042: dữ liệu phân bổ cần kiểm/hủy trong tác động tài sản; không ghi trạng thái giường. */
 @Repository
 public class BedAssetStateStore {
-    public record FutureAllocation(long id, long residentId, String basisType, Long basisId, Long previousId) {
-        public boolean hasLinkedSource() {
-            return basisType != null || basisId != null || previousId != null;
-        }
-
-        /** Phân bổ đặt trước cho yêu cầu chuyển theo lịch (căn cứ là yêu cầu phê duyệt, T033). */
-        public boolean scheduledTransfer() {
-            return "APPROVAL_REQUEST".equals(basisType) && basisId != null;
-        }
-    }
 
     private final JdbcTemplate jdbc;
 

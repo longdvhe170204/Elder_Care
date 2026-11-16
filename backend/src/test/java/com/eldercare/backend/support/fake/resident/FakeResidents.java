@@ -60,7 +60,10 @@ public class FakeResidents implements ResidentApi {
 
     @Override
     public Optional<Instant> finalStatusAt(long residentId) {
-        return entry(residentId).finalStatusAt();
+        // Như bản thật (ResidentApiImpl): không có hồ sơ thì không có mốc trạng thái cuối. Job loại bỏ dữ liệu quét cả
+        // dòng sót của test khác (000 T112), không được dừng vì mã chưa đặt ở bản giả.
+        Entry e = residents.get(residentId);
+        return e == null ? Optional.empty() : e.finalStatusAt();
     }
 
     @Override

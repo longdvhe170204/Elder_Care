@@ -204,7 +204,7 @@ public class PostPublicationService {
                 s,
                 reason,
                 Map.of("staffId", person, "entryBasis", entry),
-                "INVITED".equals(entry) ? "ROLE_INVITATION_SENT" : "ROLE",
+                "ROLE",
                 basis);
         var all = new ArrayList<>(warnings);
         all.addAll(ratios.recalculate(id, basis == null ? "STAFF_ADDED" : "SHIFT_SWAP_015"));

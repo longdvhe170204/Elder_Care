@@ -4,11 +4,13 @@ import com.eldercare.backend.administration.parameter.api.*;
 import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.administration.retention.api.*;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -45,6 +47,12 @@ public class HandoverRetention implements RetentionProvider {
     }
 
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (at, id)} (000 T112). */
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         Instant unlinkedCutoff = time.now()
                 .atZone(BusinessTime.ZONE)
                 .minus(parameters.read(ParameterCode.CFG_M15_04).asPeriod())
@@ -54,7 +62,7 @@ public class HandoverRetention implements RetentionProvider {
                 (r, n) -> new Candidate(
                         r.getLong(1), r.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                 ShiftStore.sql(time.now()));
-        return candidates.stream()
+        var all = candidates.stream()
                 .map(c -> {
                     var ids = jdbc.queryForList(
                             "SELECT j.resident_id FROM shift_handover h JOIN JSON_TABLE(h.items,'$[*]' COLUMNS(resident_id BIGINT PATH '$.residentId' NULL ON EMPTY NULL ON ERROR)) j WHERE h.id=? AND j.resident_id IS NOT NULL UNION SELECT j.resident_id FROM shift_handover h JOIN JSON_TABLE(h.assessments,'$[*]' COLUMNS(resident_id BIGINT PATH '$.residentId' NULL ON EMPTY NULL ON ERROR)) j WHERE h.id=? AND j.resident_id IS NOT NULL",
@@ -74,7 +82,23 @@ public class HandoverRetention implements RetentionProvider {
                     return new Candidate(c.id(), latest);
                 })
                 .filter(Objects::nonNull)
-                .limit(batch);
+                .toList();
+        return RetentionProvider.page(all.stream(), after, batch);
+    }
+
+    /** Bàn giao có mục hoặc đánh giá của người cao tuổi {@code target} (000 T112, FR-051a). */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
+        return jdbc
+                .queryForList(
+                        "SELECT h.id FROM shift_handover h JOIN JSON_TABLE(h.items,'$[*]' COLUMNS(resident_id BIGINT PATH '$.residentId' NULL ON EMPTY NULL ON ERROR)) j WHERE j.resident_id=? UNION SELECT h.id FROM shift_handover h JOIN JSON_TABLE(h.assessments,'$[*]' COLUMNS(resident_id BIGINT PATH '$.residentId' NULL ON EMPTY NULL ON ERROR)) j WHERE j.resident_id=?",
+                        Long.class,
+                        target.id(),
+                        target.id())
+                .stream()
+                .map(id -> new DataRef(dataType(), id))
+                .collect(Collectors.toSet());
     }
 
     public Set<DataRef> referencesTo(long id) {

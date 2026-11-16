@@ -54,14 +54,28 @@ class ResidentRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (at, id)} (000 T112). */
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
+        LocalDateTime afterAt = after == null
+                ? LocalDateTime.of(1000, 1, 1, 0, 0)
+                : LocalDateTime.ofInstant(after.at(), ZoneOffset.UTC);
+        long afterId = after == null ? 0 : after.id();
         return jdbc
                 .query(
                         "SELECT f.resident_id, f.final_at FROM (" + ResidentRecordStore.FINAL_STATUS_AT
-                                + ") f WHERE f.final_at < ? ORDER BY f.final_at, f.resident_id LIMIT ?",
+                                + ") f WHERE f.final_at < ? AND (f.final_at > ? OR (f.final_at = ? AND f.resident_id > ?))"
+                                + " ORDER BY f.final_at, f.resident_id LIMIT ?",
                         (rs, i) -> new Candidate(
                                 rs.getLong(1),
                                 rs.getObject(2, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                         LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
+                        afterAt,
+                        afterAt,
+                        afterId,
                         batch)
                 .stream();
     }
