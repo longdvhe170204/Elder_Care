@@ -27,6 +27,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_RETENTION_USERNAME: eldercare_retention
       DB_RETENTION_PASSWORD: ${DB_RETENTION_PASSWORD}
+      # Tin nhắn eSMS (009 T026a); trống ESMS_API_KEY thì chỉ có thông báo trong ứng dụng
+      ESMS_API_KEY: ${ESMS_API_KEY:-}
+      ESMS_SECRET_KEY: ${ESMS_SECRET_KEY:-}
+      ESMS_BRANDNAME: ${ESMS_BRANDNAME:-}
+      ESMS_SANDBOX: ${ESMS_SANDBOX:-true}
     volumes:
       - backend-logs:/app/logs
 
