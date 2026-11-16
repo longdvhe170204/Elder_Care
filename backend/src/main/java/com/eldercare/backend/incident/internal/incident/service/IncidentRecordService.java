@@ -14,6 +14,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi;
+import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -80,6 +81,7 @@ public class IncidentRecordService {
     private final Optional<ActivityRegistrationAutoCancelApi> autoCancel;
     private final Optional<ResidentLocationApi> locations;
     private final FallMonitoringStore fallMonitoring;
+    private final CarePlanReviewApi carePlanReview;
 
     public IncidentRecordService(
             IncidentStore incidents,
@@ -94,7 +96,8 @@ public class IncidentRecordService {
             @Autowired(required = false) ResidentApi residents,
             @Autowired(required = false) ResidentLocationApi locations,
             FallMonitoringStore fallMonitoring,
-            @Autowired(required = false) ActivityRegistrationAutoCancelApi autoCancel) {
+            @Autowired(required = false) ActivityRegistrationAutoCancelApi autoCancel,
+            CarePlanReviewApi carePlanReview) {
         this.incidents = incidents;
         this.catalog = catalog;
         this.permissions = permissions;
@@ -108,6 +111,7 @@ public class IncidentRecordService {
         this.locations = Optional.ofNullable(locations);
         this.fallMonitoring = fallMonitoring;
         this.autoCancel = Optional.ofNullable(autoCancel);
+        this.carePlanReview = carePlanReview;
     }
 
     @Transactional
@@ -246,6 +250,8 @@ public class IncidentRecordService {
         var endsAt = anchor.plus(setting.duration().toDuration());
         fallMonitoring.start(residentId, incidentId, anchor, endsAt, interval, actor);
         events.publishEvent(new FallIncidentRecorded(residentId, incidentId));
+        // BR-M04-20 (005 mục 1.10b): 005 báo xem xét kế hoạch trong transaction của lệnh; lỗi thì lệnh rollback
+        carePlanReview.fallIncidentRecorded(residentId, incidentId);
         events.publishEvent(new PostFallFollowUpRequested(
                 residentId,
                 incidentId,

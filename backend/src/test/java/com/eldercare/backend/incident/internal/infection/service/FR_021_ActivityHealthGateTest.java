@@ -90,7 +90,8 @@ class FR_021_ActivityHealthGateTest {
                 mock(ApplicationEventPublisher.class),
                 time,
                 users,
-                cancels);
+                cancels,
+                new com.eldercare.backend.support.fake.roombedallocation.FakeInfectionControlCommands());
 
         service.create(scope, Set.of(4L), new Reason("Cúm A"));
 

@@ -17,6 +17,7 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
+import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -34,11 +35,13 @@ import com.eldercare.backend.incident.internal.incident.service.IncidentRecordSe
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
+import com.eldercare.backend.support.fake.care.FakeM04ApiFixture;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
@@ -64,6 +67,8 @@ class FR_040_IncidentRecordTest {
     private final CurrentUser user = mock(CurrentUser.class);
     private final com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi autoCancel =
             mock(com.eldercare.backend.care.api.ActivityRegistrationAutoCancelApi.class);
+    private final FakeM04ApiFixture care = new FakeM04ApiFixture();
+    private final AtomicInteger reviewCalls = new AtomicInteger();
     private final IncidentRecordService service = new IncidentRecordService(
             incidents,
             catalog,
@@ -77,7 +82,8 @@ class FR_040_IncidentRecordTest {
             residents,
             locations,
             fallMonitoring,
-            autoCancel);
+            autoCancel,
+            care.api(CarePlanReviewApi.class));
 
     @BeforeEach
     void defaults() {
@@ -111,6 +117,39 @@ class FR_040_IncidentRecordTest {
         when(parameters.read(ParameterCode.CFG_M05_06)).thenReturn(fall);
         when(incidents.insert(any())).thenReturn(41L);
         when(incidents.openEmergency(RESIDENT)).thenReturn(Optional.empty());
+        care.reply(CarePlanReviewApi.class, "fallIncidentRecorded", List.of(RESIDENT, 41L), () -> {
+            reviewCalls.incrementAndGet();
+            return null;
+        });
+    }
+
+    /** BR-M04-20, 005 FR-011: lệnh ghi sự cố Ngã gọi 005 báo xem xét kế hoạch, sau khi đã ghi sự cố, khoảng theo dõi. */
+    @Test
+    void BR_M04_20_fallIncidentAsksCarePlanReviewInSameCommand() {
+        service.record(command(RESIDENT, 1, "LOW", "Chỉ trượt nhẹ, không đau", false), user);
+
+        assertThat(reviewCalls).hasValue(1);
+        verify(fallMonitoring).start(eq(RESIDENT), eq(41L), any(), any(), any(), eq(900L));
+    }
+
+    /** 005 lỗi thì lỗi ra khỏi lệnh {@code @Transactional} của 007, nên sự cố, khoảng theo dõi đã ghi bị rollback. */
+    @Test
+    void BR_M04_20_carePlanReviewFailureFailsTheFallCommand() {
+        care.reset();
+
+        assertThatThrownBy(() -> service.record(command(RESIDENT, 1, "LOW", "Chỉ trượt nhẹ, không đau", false), user))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("CarePlanReviewApi.fallIncidentRecorded");
+        verify(incidents).insert(any());
+    }
+
+    @Test
+    void BR_M04_20_nonFallIncidentDoesNotAskCarePlanReview() {
+        care.reset();
+
+        service.record(command(RESIDENT, 2, "MEDIUM", null, false), user);
+
+        assertThat(reviewCalls).hasValue(0);
     }
 
     @Test

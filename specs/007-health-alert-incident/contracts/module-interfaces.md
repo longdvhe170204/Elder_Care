@@ -154,15 +154,15 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 | `SuCoDaGiaoNguoiXuLy(suCoId, nguoiGiaoId, nguoiDuocGiaoId, muc)` *(bổ sung 2026-10-11, Q-339)* | 009 (mức theo mức hiện hành của sự cố; người nhận là người được giao) | FR-045a |
 | `SuCoKhanCapDaKichHoat(suCoId, nctId, nhom[], noiDungNguoiThan, khongCoBacSiTruc)` | 009 (Khẩn cấp, song song) | FR-047 |
 | `YeuCauDungNhacGoiDien(nguonLoai, nguonId)` | 009 | FR-044, BR-M05-22 |
-| `SuCoNgaDaGhiNhan(nctId, suCoId)` | 005 (xem xét kế hoạch) | FR-051 |
+| `SuCoNgaDaGhiNhan(nctId, suCoId)` *(sửa 2026-11-16 theo 005 mục 1.10b, chủ dự án duyệt 08/11, 09/11)*: 005 không nghe; lệnh ghi sự cố Ngã gọi `BaoXemXetKeHoachApi.suCoNgaDaGhiNhan` (`CarePlanReviewApi.fallIncidentRecorded`) trong transaction, lỗi thì rollback | — (005 qua lệnh gọi) | FR-051 |
 | `CanLapCongViecTheoDoiSauNga(nctId, suCoId, moc, ketThuc, khoangDo)` | 009 (Người phụ trách ca của tầng) | FR-051, FR-052 |
 | `CanLapDanhSachTiepXuc(suCoId, nctId)`; `DanhSachTiepXucCanXemLai(danhSachId)` | 009 | FR-060, FR-061 |
-| `DaThemVaoDanhSachTiepXuc(nctId, thoiDiem)` | 003, 009 | FR-062 |
+| `DaThemVaoDanhSachTiepXuc(nctId, thoiDiem)` *(sửa 2026-11-16 theo 003 mục 1.10a)*: 003 không nghe; lệnh gọi `LenhKiemSoatLayNhiemApi.daThemVaoDanhSachTiepXuc` (`InfectionControlCommandApi.contactListed`) trong transaction, lỗi thì rollback | 009 | FR-062 |
 | `CanLapCongViecDoNhietDo(nctId, nguoiTiepXucId, tu, den)`; `ThongBaoTiepXuc(danhSachId, nguoiNhan[])` | 009 | FR-062 |
-| `KhoanhVungDaTao(vungId, tangIds, khuVucIds)`; `KhoanhVungDaGo(vungId, tangIds, khuVucIds)` | 003, 012 (hủy lượt thăm), 014 (hủy buổi), 009, 016 | FR-064, FR-065 |
+| `KhoanhVungDaTao(vungId, tangIds, khuVucIds)`; `KhoanhVungDaGo(vungId, tangIds, khuVucIds)` *(sửa 2026-11-16 theo 003 mục 1.10a)*: 003 không nghe `KhoanhVungDaGo`; lệnh gỡ vùng gọi `LenhKiemSoatLayNhiemApi.daGoKhoanhVung` (`InfectionControlCommandApi.cordonLifted`) sau khi ghi gỡ, lỗi thì rollback | 003, 012 (hủy lượt thăm), 014 (hủy buổi), 009, 016 | FR-064, FR-065 |
 | `NguyKichDaGhi(dauId, canhBaoId, nctId, loai)`; `CanXacNhanLaiNguyenVong(canhBaoId, nctId)`; `CanXacNhanDauTam(dauId)`; `DaCoKetQuaXacNhanLai(canhBaoId)` | 009 | FR-050a, FR-050b, FR-050c |
 | `CanChoTamVangVeNha(nctId, canhBaoId)` | 009 (Hành chính, Trưởng tầng) | FR-050d |
-| `LuaChonChamSocGiamNheDaGhi(nctId)` | 005 | FR-050d |
+| `LuaChonChamSocGiamNheDaGhi(nctId)` *(sửa 2026-11-16 theo 005 mục 1.10b)*: 005 không nghe; lệnh ghi lựa chọn gọi `BaoXemXetKeHoachApi.luaChonChamSocGiamNheDaGhi` (`CarePlanReviewApi.palliativeCareChoiceRecorded`) cùng khóa sự kiện, lỗi thì rollback | — (005 qua lệnh gọi) | FR-050d |
 | `SutCanPhatHien(nctId, banGhiCaoNhatId, banGhiMoiId)` | 011 (BR-M08-05) | FR-039a |
 | `DauNghiNhiemDaDoi(nctId, suCoId, daGan, thoiDiem)` (bổ sung theo plan 014): gắn hoặc gỡ dấu "nghi nhiễm" | 014 (hủy đăng ký, chuyển Không đi, báo trưởng đoàn; 014 FR-021a) | FR-060 |
 | `TacDongConHieuLuc(suCoId, danhSach)` | 009 | FR-046a |
