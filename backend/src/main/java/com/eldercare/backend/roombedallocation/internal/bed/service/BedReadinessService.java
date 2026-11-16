@@ -11,6 +11,7 @@ import com.eldercare.backend.roombedallocation.api.spi.AllocationInfectionStatus
 import com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationStore;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.ScheduledTransfers;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.*;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.ReadinessBedSnapshot;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.*;
 import com.eldercare.backend.roombedallocation.internal.structure.domain.StructureKind;
 import com.eldercare.backend.roombedallocation.internal.structure.persistence.StructureStore;
@@ -69,11 +70,11 @@ public class BedReadinessService {
         return target(store.read(id));
     }
 
-    private Target target(BedReadinessStore.Snapshot row) {
+    private Target target(ReadinessBedSnapshot row) {
         return new Target("M03.BED", Long.toString(row.id()), null, row.floorId());
     }
 
-    private void access(BedReadinessStore.Snapshot row, Operation operation) {
+    private void access(ReadinessBedSnapshot row, Operation operation) {
         if (!allowed(target(row), row.floorId(), operation))
             throw new PermissionDeniedException("Chỉ Trưởng tầng được giao hoặc Người phụ trách ca của tầng thực hiện");
     }
@@ -119,7 +120,7 @@ public class BedReadinessService {
         return conditions(row);
     }
 
-    private BedReadiness conditions(BedReadinessStore.Snapshot row) {
+    private BedReadiness conditions(ReadinessBedSnapshot row) {
         boolean required = false;
         if (row.departedResidentId() != null) {
             var source = infection.getIfAvailable();

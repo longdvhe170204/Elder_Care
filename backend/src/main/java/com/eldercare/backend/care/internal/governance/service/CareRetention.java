@@ -2,11 +2,13 @@ package com.eldercare.backend.care.internal.governance.service;
 
 import com.eldercare.backend.administration.retention.api.*;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.care.internal.governance.domain.CareRetentionType;
 import com.eldercare.backend.care.internal.governance.persistence.CareGovernanceStore;
 import com.eldercare.backend.resident.api.ResidentApi;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,9 +54,16 @@ public class CareRetention implements RetentionProvider {
     @Override
     @Transactional(readOnly = true)
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (at, id)} (000 T112). */
+    @Override
+    @Transactional(readOnly = true)
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         if (batch <= 0) return Stream.empty();
         var source = residents.getIfAvailable();
-        return store.rows(type).stream()
+        var all = store.rows(type).stream()
                 .flatMap(row -> {
                     Optional<Instant> at = type.profile()
                             ? (source == null || row.residentId() == null
@@ -66,9 +75,18 @@ public class CareRetention implements RetentionProvider {
                             .map(value -> new Candidate(row.id(), value))
                             .stream();
                 })
-                .limit(batch)
-                .toList()
-                .stream();
+                .toList();
+        return RetentionProvider.page(all.stream(), after, batch).toList().stream();
+    }
+
+    /** Bản ghi theo hồ sơ của người cao tuổi {@code target} (000 T112, FR-051a); loại theo vị trí không gắn hồ sơ. */
+    @Override
+    @Transactional(readOnly = true)
+    public Set<DataRef> referencing(DataRef target) {
+        if (!type.profile() || !SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
+        return store.rowsOfResident(type, target.id()).stream()
+                .map(row -> new DataRef(dataType(), row.id()))
+                .collect(Collectors.toSet());
     }
 
     @Override

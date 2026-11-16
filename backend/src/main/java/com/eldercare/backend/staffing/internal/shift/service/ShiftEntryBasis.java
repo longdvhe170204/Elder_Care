@@ -3,12 +3,14 @@ package com.eldercare.backend.staffing.internal.shift.service;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 
-/** Căn cứ vào ca của 015; lý do được truyền từ lệnh gọi khi cần xác nhận cảnh báo. */
+/**
+ * Căn cứ vào ca của 015; lý do được truyền từ lệnh gọi khi cần xác nhận cảnh báo. Bỏ {@code INVITED} theo Q-397 (015 không
+ * còn lời mời; chủ dự án chốt bỏ 2026-11-16).
+ */
 public record ShiftEntryBasis(Kind kind, long sourceId, Reason reason) {
     public enum Kind {
         SWAPPED,
-        COVERED,
-        INVITED
+        COVERED
     }
 
     public ShiftEntryBasis {

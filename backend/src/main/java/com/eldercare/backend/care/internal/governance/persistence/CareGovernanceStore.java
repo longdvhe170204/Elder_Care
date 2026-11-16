@@ -109,9 +109,33 @@ public class CareGovernanceStore {
     }
 
     public List<CareRetentionRow> rows(CareRetentionType type) {
-        if (type == CareRetentionType.RISK_OPINION) return List.of();
-        if (!exists(type.table())) return List.of();
-        String sql = switch (type) {
+        String sql = rowsSql(type);
+        return sql == null ? List.of() : jdbc.query(sql + " ORDER BY id", CareGovernanceStore::row);
+    }
+
+    /** Dòng của một loại gắn hồ sơ {@code residentId} (000 T112, FR-051a). */
+    public List<CareRetentionRow> rowsOfResident(CareRetentionType type, long residentId) {
+        String sql = rowsSql(type);
+        return sql == null
+                ? List.of()
+                : jdbc.query(
+                        "SELECT * FROM (" + sql + ") x WHERE x.resident_id = ? ORDER BY x.id",
+                        CareGovernanceStore::row,
+                        residentId);
+    }
+
+    private static CareRetentionRow row(java.sql.ResultSet rs, int i) throws java.sql.SQLException {
+        LocalDateTime planned = rs.getObject("planned_at", LocalDateTime.class);
+        return new CareRetentionRow(
+                rs.getLong("id"),
+                rs.getObject("resident_id", Long.class),
+                planned == null ? null : planned.atZone(BusinessTime.ZONE).toInstant());
+    }
+
+    private String rowsSql(CareRetentionType type) {
+        if (type == CareRetentionType.RISK_OPINION) return null;
+        if (!exists(type.table())) return null;
+        return switch (type) {
             case CARE_PLAN, DAY_CARE_ATTENDANCE -> "SELECT id,resident_id,NULL planned_at FROM " + type.table();
             case CARE_PLAN_ITEM ->
                 exists("care_plan")
@@ -148,14 +172,6 @@ public class CareGovernanceStore {
                 "SELECT id,NULL resident_id,locked_at planned_at FROM simple_record"
                         + " WHERE kind='M04.QUALITY_CHECKLIST' AND locked_at IS NOT NULL";
         };
-        if (sql == null) return List.of();
-        return jdbc.query(sql + " ORDER BY id", (rs, i) -> {
-            LocalDateTime planned = rs.getObject("planned_at", LocalDateTime.class);
-            return new CareRetentionRow(
-                    rs.getLong("id"),
-                    rs.getObject("resident_id", Long.class),
-                    planned == null ? null : planned.atZone(BusinessTime.ZONE).toInstant());
-        });
     }
 
     public Set<DataRef> references(CareRetentionType type, long id) {

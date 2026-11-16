@@ -9,6 +9,7 @@ import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.api.dto.BedNotificationContext;
 import com.eldercare.backend.roombedallocation.api.events.*;
+import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationReminderKey;
 import com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationReminderStore;
 import java.time.Duration;
 import java.util.*;
@@ -42,7 +43,7 @@ public class AllocationReminderProcessor {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public boolean remind(AllocationReminderStore.Key key, String run) {
+    public boolean remind(AllocationReminderKey key, String run) {
         var resident = store.resident(key);
         if (resident == null) {
             store.delete(key);

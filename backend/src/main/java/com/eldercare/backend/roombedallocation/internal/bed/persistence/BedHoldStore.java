@@ -1,5 +1,7 @@
 package com.eldercare.backend.roombedallocation.internal.bed.persistence;
 
+import com.eldercare.backend.roombedallocation.internal.bed.domain.ActiveBedAllocation;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.HeldBed;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -10,9 +12,6 @@ import org.springframework.stereotype.Repository;
 /** SQL giữ chỗ; trạng thái giường vẫn chỉ được BedStateService ghi. */
 @Repository
 public class BedHoldStore {
-    public record Held(long bedId, long residentId, long waitingId, String reason, Instant until) {}
-
-    public record Active(long allocationId, long bedId) {}
 
     private final JdbcTemplate jdbc;
 
@@ -20,10 +19,10 @@ public class BedHoldStore {
         this.jdbc = jdbc;
     }
 
-    public List<Held> expired(Instant now) {
+    public List<HeldBed> expired(Instant now) {
         return jdbc.query(
                 "SELECT id,hold_resident_id,hold_waiting_record_id,hold_reason,hold_until FROM bed WHERE state='HELD' AND hold_until<=? AND (hold_reason='WAITING_RECORD' OR hold_expiry_notified_at IS NULL) ORDER BY id",
-                (r, i) -> new Held(
+                (r, i) -> new HeldBed(
                         r.getLong(1),
                         r.getLong(2),
                         r.getLong(3),
@@ -45,10 +44,10 @@ public class BedHoldStore {
         jdbc.update("UPDATE bed SET hold_expiry_notified_at=?,version=version+1 WHERE id=?", date(now), bedId);
     }
 
-    public List<Held> waiting(long waitingId) {
+    public List<HeldBed> waiting(long waitingId) {
         return jdbc.query(
                 "SELECT id,hold_resident_id,hold_waiting_record_id,hold_reason,hold_until FROM bed WHERE state='HELD' AND hold_waiting_record_id=? ORDER BY id",
-                (r, i) -> new Held(
+                (r, i) -> new HeldBed(
                         r.getLong(1),
                         r.getLong(2),
                         r.getLong(3),
@@ -76,10 +75,10 @@ public class BedHoldStore {
                 .isEmpty();
     }
 
-    public List<Held> waitingForResidentCurrent(long bedId, long residentId) {
+    public List<HeldBed> waitingForResidentCurrent(long bedId, long residentId) {
         return jdbc.query(
                 "SELECT id,hold_resident_id,hold_waiting_record_id,hold_reason,hold_until FROM bed WHERE id=? AND hold_resident_id=? AND state='HELD' AND hold_reason='WAITING_RECORD' FOR UPDATE",
-                (r, i) -> new Held(
+                (r, i) -> new HeldBed(
                         r.getLong(1),
                         r.getLong(2),
                         r.getLong(3),
@@ -98,11 +97,11 @@ public class BedHoldStore {
                 .isEmpty();
     }
 
-    public Active active(long residentId) {
+    public ActiveBedAllocation active(long residentId) {
         return jdbc
                 .query(
                         "SELECT id,bed_id FROM bed_allocation WHERE resident_id=? AND status='ACTIVE'",
-                        (r, i) -> new Active(r.getLong(1), r.getLong(2)),
+                        (r, i) -> new ActiveBedAllocation(r.getLong(1), r.getLong(2)),
                         residentId)
                 .stream()
                 .findFirst()

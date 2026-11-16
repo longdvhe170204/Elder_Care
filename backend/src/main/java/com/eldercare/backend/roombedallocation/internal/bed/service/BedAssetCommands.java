@@ -13,6 +13,7 @@ import com.eldercare.backend.roombedallocation.internal.allocation.service.Sched
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommand;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommandPort;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.FlaggedBedFutureAllocations;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.FutureAllocation;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedAssetStateStore;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedReadinessStore;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedStateStore;
@@ -90,7 +91,7 @@ public class BedAssetCommands implements BedAssetCommandPort {
     @Override
     public void residentTransferFlagAdded(long bedId) {
         var residents = allocations.future(bedId, false).stream()
-                .map(BedAssetStateStore.FutureAllocation::residentId)
+                .map(FutureAllocation::residentId)
                 .distinct()
                 .toList();
         if (residents.isEmpty()) return;

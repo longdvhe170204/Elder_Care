@@ -1,5 +1,8 @@
 package com.eldercare.backend.roombedallocation.internal.allocation.persistence;
 
+import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationReminderKey;
+import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationReminderMarker;
+import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationReminderSource;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,23 +26,19 @@ public class AllocationReminderStore {
         this.positions = positions;
     }
 
-    public record Key(String type, long id, String flag) {}
-
-    public record Source(long resident, Long floor, boolean open) {}
-
-    public record Marker(Instant started, Instant last, int count) {}
-
-    public List<Key> candidates() {
-        var keys = new LinkedHashSet<Key>();
-        markers.openKeys().forEach(k -> keys.add(new Key(k[0], Long.parseLong(k[1]), k[2])));
-        positions.residentsWithoutBed().forEach(id -> keys.add(new Key("RESIDENT", id, "WITHOUT_BED")));
+    public List<AllocationReminderKey> candidates() {
+        var keys = new LinkedHashSet<AllocationReminderKey>();
+        markers.openKeys().forEach(k -> keys.add(new AllocationReminderKey(k[0], Long.parseLong(k[1]), k[2])));
+        positions
+                .residentsWithoutBed()
+                .forEach(id -> keys.add(new AllocationReminderKey("RESIDENT", id, "WITHOUT_BED")));
         keys.addAll(jdbc.query(
                 "SELECT 'BED_ALLOCATION',id,'AWAITING_REQUEST' FROM bed_allocation WHERE status='ACTIVE' AND awaiting_request=TRUE UNION SELECT 'BED_ALLOCATION',id,'AWAITING_SAME_PRICE' FROM bed_allocation WHERE status='ACTIVE' AND awaiting_same_price=TRUE UNION SELECT 'BED_ALLOCATION',id,'ROOM_UNSUITABLE' FROM bed_allocation WHERE status IN ('ACTIVE','FUTURE') AND room_unsuitable=TRUE",
-                (r, n) -> new Key(r.getString(1), r.getLong(2), r.getString(3))));
+                (r, n) -> new AllocationReminderKey(r.getString(1), r.getLong(2), r.getString(3))));
         return List.copyOf(keys);
     }
 
-    public Long resident(Key key) {
+    public Long resident(AllocationReminderKey key) {
         if (key.type().equals("RESIDENT")) return key.id();
         return jdbc
                 .query("SELECT resident_id FROM bed_allocation WHERE id=?", (r, n) -> r.getLong(1), key.id())
@@ -49,9 +48,9 @@ public class AllocationReminderStore {
     }
 
     /** Lệnh gọi đã khóa người cao tuổi ({@code AllocationLocks}); dấu của người đọc sau khóa. */
-    public Source source(Key key) {
+    public AllocationReminderSource source(AllocationReminderKey key) {
         if (key.type().equals("RESIDENT"))
-            return new Source(
+            return new AllocationReminderSource(
                     key.id(),
                     null,
                     key.flag().equals("WITHOUT_BED")
@@ -59,7 +58,7 @@ public class AllocationReminderStore {
         return jdbc
                 .query(
                         "SELECT a.resident_id,r.floor_id,a.status,a.awaiting_request,a.awaiting_same_price,a.room_unsuitable FROM bed_allocation a JOIN bed b ON b.id=a.bed_id JOIN room r ON r.id=b.room_id WHERE a.id=? FOR UPDATE OF a",
-                        (r, n) -> new Source(
+                        (r, n) -> new AllocationReminderSource(
                                 r.getLong(1),
                                 r.getLong(2),
                                 switch (key.flag()) {
@@ -75,16 +74,16 @@ public class AllocationReminderStore {
                 .orElse(null);
     }
 
-    public Marker marker(Key key, Instant at) {
+    public AllocationReminderMarker marker(AllocationReminderKey key, Instant at) {
         var cycle = markers.start(key.type(), key.id(), key.flag(), at);
-        return new Marker(cycle.started(), cycle.last(), cycle.count());
+        return new AllocationReminderMarker(cycle.started(), cycle.last(), cycle.count());
     }
 
-    public void mark(Key key, Instant at) {
+    public void mark(AllocationReminderKey key, Instant at) {
         markers.remind(key.type(), key.id(), key.flag(), at);
     }
 
-    public void delete(Key key) {
+    public void delete(AllocationReminderKey key) {
         markers.end(key.type(), key.id(), key.flag());
     }
 }
