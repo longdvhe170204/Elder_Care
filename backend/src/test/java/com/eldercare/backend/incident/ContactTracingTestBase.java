@@ -9,7 +9,6 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.TaskSourceApi;
 import com.eldercare.backend.care.api.TaskStatisticsApi;
-import com.eldercare.backend.care.api.spi.AttendanceTracePort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.api.spi.EmergencyFamilyPort;
@@ -35,9 +34,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.event.RecordApplicationEvents;
 
 /**
- * Nền cho IT lây nhiễm (US8; T051): bốn nguồn truy vết (003 cùng phòng, 014 điểm danh, 008 phân công, 012 lượt thăm),
- * người ghi kết quả công việc, liều (005, 006), khoảng trạng thái (001), vị trí hiện tại (003) và nguồn công việc 005 là
- * bản giả Mockito chung cho các lớp để dùng một context; lệnh kiểm soát lây nhiễm của 003 dùng bản giả chung
+ * Nền cho IT lây nhiễm (US8; T051): ba nguồn truy vết (003 cùng phòng, 008 phân công, 012 lượt thăm), người ghi kết quả
+ * công việc, liều (005, 006), khoảng trạng thái (001), vị trí hiện tại (003) và nguồn công việc 005 là bản giả Mockito
+ * chung cho các lớp để dùng một context; điểm danh của 014 dùng bản thật {@code ActivityAttendanceTraceSource}; lệnh kiểm soát lây nhiễm của 003 dùng bản giả chung
  * {@link FakeInfectionControlCommands}. Sự cố lây nhiễm của {@link #resident} do Điều dưỡng ghi.
  */
 @RecordApplicationEvents
@@ -50,9 +49,6 @@ abstract class ContactTracingTestBase extends IncidentHttpTestBase {
 
     @MockitoBean
     LocationHistoryApi history;
-
-    @MockitoBean
-    AttendanceTracePort attendance;
 
     @MockitoBean
     AlertStaffPort staff;
@@ -96,7 +92,6 @@ abstract class ContactTracingTestBase extends IncidentHttpTestBase {
         when(locations.current(resident))
                 .thenReturn(Optional.of(new LocationView(null, null, floor, "Tầng 2", 201L, "P201", 1L, "G1")));
         when(history.roommates(anyLong(), any(), any())).thenReturn(List.of());
-        when(attendance.coAttendance(anyLong(), any(), any())).thenReturn(List.of());
         when(staff.assignmentsInRange(anyLong(), any(), any())).thenReturn(List.of());
         when(careResults.resultRecorders(anyLong(), any(), any())).thenReturn(Set.of());
         when(doses.staffRecordedDose(anyLong(), any(), any())).thenReturn(Set.of());
