@@ -4,7 +4,7 @@
     {
       "name": "frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "--port", "5173", "--strictPort"],
+      "runtimeArgs": ["--prefix", "../Elder_Care_Frontend", "run", "dev", "--", "--port", "5173", "--strictPort"],
       "port": 5173
     },
     {

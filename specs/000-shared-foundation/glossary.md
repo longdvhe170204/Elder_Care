@@ -3649,6 +3649,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | Tên logic | Mã |
 | --- | --- |
 | `/hoat-dong/loai`, `/hoat-dong`, `/hoat-dong/{id}` | `/activity-types`, `/activities`, `/activities/{id}` |
+| *(thêm 2026-11-15, FR-051, chủ dự án duyệt)* `/hoat-dong/nhom-so-thich` | `/interest-groups` |
 | `/hoat-dong/{id}/{lenh}`: `ngung`, `doi-mau`, `tao-buoi-tu-mau`, `them-thuong-xuyen`, `bo-thuong-xuyen` | `/activities/{id}/{command}`: `deactivate`, `change-template`, `create-sessions-from-template`, `add-regular-participant`, `remove-regular-participant` |
 | `/buoi`, `/buoi/{id}`; `/buoi/{id}/{lenh}`: `doi`, `huy`, `hoan-tat-diem-danh` | `/activity-sessions`, `/activity-sessions/{id}`; `/activity-sessions/{id}/{command}`: `reschedule`, `cancel`, `complete-attendance` |
 | `/buoi/{id}/dang-ky`, `/dang-ky/{id}/huy`, `/buoi/{id}/diem-danh` | `/activity-sessions/{id}/registrations`, `/activity-registrations/{id}/cancel`, `/activity-sessions/{id}/attendance` |
@@ -3666,6 +3667,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 | Tên logic | Mã |
 | --- | --- |
 | thân loại hoạt động (`ten`, `hoatDongNhom`, `ngoaiVien`, `nhomSoThichIds`, `trangThai`) | `name`, `groupActivity`, `offSite`, `interestGroupIds`, `status` |
+| *(thêm 2026-11-15)* thân nhóm sở thích (`ten`, `trangThai`) | `name`, `status` (`ACTIVE`, `INACTIVE`) |
 | `HoatDong` (`ten`, `loaiId`, `phamVi`, `tangKhuVucId`, `diaDiemMacDinh` {`phongId`, `khuVucId`, `diemDen`}, `nguoiPhuTrachMacDinhId`, `thoiLuongPhut`, `soLuongToiDa`, `doiTuong`, `coThuPhi`, `dichVuId`, `hoatDongNhom`, `lyDoDoiHoatDongNhom`, `dangKyCanHuy`, `lyDo`) | `Activity` (`name`, `typeId`, `scope`, `floorAreaId`, `defaultLocation` {`roomId`, `areaId`, `destination`}, `defaultResponsibleStaffId`, `durationMinutes`, `maxParticipants`, `targetGroup`, `charged`, `serviceId`, `groupActivity`, `groupActivityChangeReason`, `registrationsToCancel`, `reason`) |
 | `LenhHoatDong` (`lyDo`, `ngayApDung`, `mau` {`ngayTrongTuan`, `chuKyNgay`, `gioBatDau`, `gioKetThuc`, `ngayBatDau`, `ngayKetThuc`}, `tuNgay`, `denNgay`, `nctId`) | `ActivityCommand` (`reason`, `effectiveDate`, `template` {`daysOfWeek`, `intervalDays`, `startTime`, `endTime`, `startDate`, `endDate`}, `fromDate`, `toDate`, `residentId`) |
 | `TaoBuoi` (`hoatDongId`, `batDau`, `ketThuc`, `diaDiemId`, `nguoiPhuTrachId`, `chuyen` {`diemDen`, `roiDuKien`, `veDuKien`, `phuongTien`, `xeCuaVien`}) | `ActivitySessionCreate` (`activityId`, `startsAt`, `endsAt`, `locationId`, `responsibleStaffId`, `trip` {`destination`, `plannedDepartureAt`, `plannedReturnAt`, `transport`, `facilityVehicle`}) |

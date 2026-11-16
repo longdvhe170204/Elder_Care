@@ -77,4 +77,45 @@ public class ActivityCatalogService {
                 .after(Map.of("name", after.name(), "status", after.status().name(), "attributes", after.attributes()))
                 .build());
     }
+
+    /** FR-051: danh mục nhóm sở thích, cùng quyền với danh mục loại hoạt động (Phụ lục 27, Q-401). */
+    @RequiresPermission(function = Function.ACTIVITY_CATALOG, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public List<CatalogItem<Void>> listInterestGroups(Target target) {
+        return catalogs.list(INTEREST_GROUPS, null, false);
+    }
+
+    /** FR-051: Quản lý viện tạo, đổi tên, ngừng hoặc dùng lại nhóm sở thích; danh mục không xóa được. */
+    @RequiresPermission(function = Function.ACTIVITY_CATALOG, operation = Operation.CREATE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public void writeInterestGroup(Target target, Long id, String name, String status) {
+        if (name == null || name.isBlank()) throw new InvalidValueException("Cần tên nhóm sở thích");
+        if (status != null && !Set.of("ACTIVE", "INACTIVE").contains(status))
+            throw new InvalidValueException("Trạng thái phải là ACTIVE hoặc INACTIVE");
+        CatalogItem<Void> before = id == null ? null : catalogs.require(INTEREST_GROUPS, id);
+        var after = before == null
+                ? catalogs.create(INTEREST_GROUPS, new NewCatalogItem<>(null, name.trim(), null, 0, null))
+                : catalogs.update(INTEREST_GROUPS, id, before.version(), name.trim(), before.sortOrder(), null)
+                        .after();
+        if ("INACTIVE".equals(status) && after.status() == CatalogStatus.ACTIVE)
+            after = catalogs.deactivate(INTEREST_GROUPS, after.id(), after.version())
+                    .after();
+        else if ("ACTIVE".equals(status) && after.status() == CatalogStatus.INACTIVE)
+            after = catalogs.reactivate(INTEREST_GROUPS, after.id(), after.version())
+                    .after();
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("INTEREST_GROUP_RECORDED", false))
+                .entity(INTEREST_GROUPS.code(), after.id())
+                .before(
+                        before == null
+                                ? Map.of()
+                                : Map.of(
+                                        "name",
+                                        before.name(),
+                                        "status",
+                                        before.status().name()))
+                .after(Map.of("name", after.name(), "status", after.status().name()))
+                .build());
+    }
 }
