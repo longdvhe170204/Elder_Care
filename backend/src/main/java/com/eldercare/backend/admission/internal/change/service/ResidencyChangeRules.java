@@ -14,11 +14,14 @@ import com.eldercare.backend.admission.internal.contract.domain.ServiceKind;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.contract.service.DayCareCapacityCheck;
 import com.eldercare.backend.common.error.UnmetCondition;
+import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
+import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,7 +124,7 @@ class ResidencyChangeRules {
         ResidenceType baseType = ResidenceType.valueOf(base.get("residenceType").asString());
         ResidenceType resultType = change.residenceType() != null ? change.residenceType() : baseType;
         if (change.has(ChangeType.RESIDENCE_TYPE)) {
-            residenceType(unmet, contract.residentId(), change, baseType, effective);
+            residenceType(unmet, contract.residentId(), change, baseType, effective, applyingRequestId);
         }
         if (change.has(ChangeType.CARE_LEVEL)) {
             careLevel(unmet, base, change, effective);
@@ -137,8 +140,9 @@ class ResidencyChangeRules {
             if (resultType == ResidenceType.DAY_CARE) {
                 unmet.add(new UnmetCondition("NOT_INPATIENT", "Người bán trú không có giường để đổi (FR-041)"));
             }
-            // Sau chuyển gấp (003 FR-030): người đã ở giường mới, không đặt trước nên không kiểm như chuyển theo lịch
-            if (!change.afterUrgentTransfer()) {
+            // Sau chuyển gấp (003 FR-030): người đã ở giường mới, không đặt trước nên không kiểm như chuyển theo lịch.
+            // Bán trú sang nội trú kèm giường: đã kiểm ở nhánh đổi loại lưu trú (phân bổ đầu tiên).
+            if (!change.afterUrgentTransfer() && !change.firstBed(baseType)) {
                 unmet.addAll(
                         applyingRequestId != null && change.newBedId() != null
                                 ? beds.getObject().checkScheduledTransfer(applyingRequestId)
@@ -160,7 +164,8 @@ class ResidencyChangeRules {
             long residentId,
             ResidencyChangeContent change,
             ResidenceType baseType,
-            LocalDate effective) {
+            LocalDate effective,
+            Long applyingRequestId) {
         ResidenceType target = change.residenceType();
         if (target == baseType) {
             unmet.add(new UnmetCondition("RESIDENCE_TYPE_UNCHANGED", "Loại lưu trú mới trùng loại hiện hành"));
@@ -179,8 +184,19 @@ class ResidencyChangeRules {
             if (change.newBedId() == null) {
                 unmet.add(
                         new UnmetCondition("BED_REQUIRED", "Đổi từ bán trú sang nội trú cần kèm giường mới (FR-041)"));
+                return;
             }
-            unmet.addAll(bedConditions(residentId, change.newBedId(), effective));
+            // 003 mục 1.4a: người bán trú chưa có giường; lúc áp dụng kiểm qua phân bổ đã đặt trước lúc duyệt
+            unmet.addAll(
+                    applyingRequestId != null
+                            ? beds.getObject().checkScheduledTransfer(applyingRequestId)
+                            : beds.getObject()
+                                    .checkFirstAllocationReservation(
+                                            residentId,
+                                            change.newBedId(),
+                                            effective,
+                                            firstBedExpectedEnd(change),
+                                            residencyType(target)));
         }
     }
 
@@ -253,6 +269,17 @@ class ResidencyChangeRules {
         }
     }
 
+    /** Kết thúc dự kiến của phân bổ đầu tiên: đầu ngày liền sau ngày kết thúc với ngắn ngày, không có với dài ngày. */
+    static Instant firstBedExpectedEnd(ResidencyChangeContent change) {
+        return change.residenceType() == ResidenceType.SHORT_TERM_RESIDENTIAL && change.endDate() != null
+                ? change.endDate().plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant()
+                : null;
+    }
+
+    static ResidencyType residencyType(ResidenceType type) {
+        return type == ResidenceType.SHORT_TERM_RESIDENTIAL ? ResidencyType.SHORT_TERM : ResidencyType.LONG_TERM;
+    }
+
     /** Điều kiện giữ giường theo lịch của 003 (FR-041); thiếu bản cài hoặc thiếu giường thì chưa duyệt được. */
     private List<UnmetCondition> bedConditions(long residentId, Long newBedId, LocalDate effective) {
         if (newBedId == null) {
@@ -305,10 +332,7 @@ class ResidencyChangeRules {
             copy(base, previous, "endDate");
         }
         if (types.contains(ChangeType.BED)) {
-            copy(base, previous, "bedId");
-            if (change.afterUrgentTransfer()) {
-                copy(base, previous, "roomTypeId");
-            }
+            copy(base, previous, "bedId", "roomTypeId");
         }
         if (types.contains(ChangeType.ARRIVAL_SCHEDULE)) {
             copy(base, previous, "arrivalSchedule");

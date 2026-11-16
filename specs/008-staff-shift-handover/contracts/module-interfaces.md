@@ -72,7 +72,7 @@ Stream<LichSuPhanCongView> lichSuPhanCong(PhamViLoc phamVi, Instant tu, Instant 
 
 ### 1.5. Port nội bộ M09 cho 015 (gói `staffing.lichca.port`, `staffing.phancong.port`)
 
-Theo research N-07 (`CaLenhPort`, `PhanCongLenhPort`, `KiemTraCongBoMoRong`). Chỉ `staffing.doica`, `staffing.xoayca` được dùng (ArchUnit). Khi 015 chưa có, `KiemTraCongBoMoRong` không có bean và lệnh công bố bỏ qua phần của 015.
+Theo research N-07 (`CaLenhPort`, `PhanCongLenhPort`, `KiemTraCongBoMoRong`). Chỉ `staffing.doica`, `staffing.xoayca` được dùng (ArchUnit). Khi 015 chưa có, `KiemTraCongBoMoRong` không có bean và lệnh công bố bỏ qua phần của 015. *(2026-11-17, chủ dự án chốt)* `KiemTraCongBoMoRong` đã gỡ khỏi mã (bỏ theo Q-397, 015 contracts mục 1.3): không còn phủ tối thiểu, mục "thiếu ca"; nghỉ theo ngày còn chờ lúc công bố đọc qua `NghiCoDuyetPort` (`ApprovedLeaveDayPort`).
 
 Bổ sung theo plan 015 (hợp đồng 015 mục 1.2, 1.4): `LichNhapLenhPort` (008 cài: `goNhanVienKhoiNhap`, `lichThang`; MANDATORY; sửa 2026-10-29, Q-397: bỏ `taoNhap`, `thayNoiDungNhap`) để nghỉ theo ngày gỡ nhân viên khỏi lịch Nháp; `NghiCoDuyetPort` (015 cài, 008 dùng khi sửa tay lịch Nháp và khi công bố, 008 FR-012, FR-016); *(Q-397: bỏ sự kiện `LichNhapDaLuu`, `GiayPhepDaDoiHieuLuc`, `DaoTaoDaDoiHieuLuc` dùng để 015 tính phủ.)*
 
@@ -128,7 +128,7 @@ Bean thiếu thì nhóm (g), phần chuyến đi của nhóm (e) trả "chưa c�
 | `DoGuiDangGiuView` | `HeldBelongingView(belongingId, holderStaffId, residentId, storageLocationId)`; vị trí lưu giữ có thể rỗng theo data-model 013 |
 | `ChuyenTrongCaView` | `TripInShiftView(tripId, staffIds, expectedReturnAt)` |
 
-Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung ở `support/fake/staffing/`: test `@Import(FakeM09Config.class)` rồi tiêm bản giả để đặt dữ liệu. `available(false)` mô phỏng nguồn không có dữ liệu bằng lỗi, tách biệt với kết quả rỗng khi nguồn hoạt động; cách xử lý khi thiếu bean vẫn theo đoạn trên. SPI nội bộ `KiemTraCongBoMoRong` ở mục 1.5 có tên triển khai `staffing.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)`; cảnh báo `PublicationWarning(code, description, details)` dùng tên trường của schema `Warning`.
+Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung ở `support/fake/staffing/`: test `@Import(FakeM09Config.class)` rồi tiêm bản giả để đặt dữ liệu. `available(false)` mô phỏng nguồn không có dữ liệu bằng lỗi, tách biệt với kết quả rỗng khi nguồn hoạt động; cách xử lý khi thiếu bean vẫn theo đoạn trên. SPI nội bộ `KiemTraCongBoMoRong` ở mục 1.5 có tên triển khai `staffing.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)`; cảnh báo `PublicationWarning(code, description, details)` dùng tên trường của schema `Warning`. *(2026-11-17)* `ExtendedPublicationCheck` và bản giả `FakeExtendedPublicationChecks` đã gỡ (Q-397); `PublicationWarning` giữ.
 
 ### 2.2. Sự kiện 008 nghe
 
@@ -152,7 +152,7 @@ Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung �
 | `LieuBanGiaoApi` | M07 (006) | FR-039 (b), FR-040 | Có sẵn |
 | `CanhBaoBanGiaoApi` (`dangMo`, `khiXacNhanBanGiao` MANDATORY), `ChiSoApi.vuotNguongTrongKhoang` | M05, M06 (007) | FR-039 (c), (d), FR-044 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
-| Bản cài các SPI mục 2.1; `KiemTraCongBoMoRong` (015) | 013, 014, 015 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
+| Bản cài các SPI mục 2.1 *(`KiemTraCongBoMoRong` của 015 đã gỡ 2026-11-17, Q-397)* | 013, 014 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
 
 ### 2.4. Ghi chú nối Phase 4 (2026-10-24)
 

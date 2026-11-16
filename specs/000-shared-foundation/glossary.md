@@ -785,7 +785,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | --- | --- |
 | `ViTriApi` | `api.ResidentLocationApi`: `current`, `current`, `at`, `floorOn`, `hasNoBed`, `currentOrFutureAllocation`, `hasAllocationStartingBy` (`coPhanBoBatDauTruoc`, 2026-11-12) |
 | `LichSuViTriApi` | `api.LocationHistoryApi`: `byResident`, `byLocation`, `byLocationOn`, `roommates` |
-| `PhanBoGiuongLenhApi` | `api.BedAllocationCommandApi`: `holdForWaitingRecord`, `cancelHold`, `releaseWhenAbsent`, `extendExpectedEnd`, `checkScheduledReservation`, `reserveScheduledTransfer`, `checkScheduledTransfer`, `applyScheduledTransfer`, `cancelScheduledAllocation`, `requestCreatedAfterUrgentTransfer`, `urgentTransferRequestResult`, `urgentTransferRequestWithdrawn` (`yeuCauSauChuyenGapDaRut`, bổ sung 2026-11-12), `residenceTypeChanged` (`daDoiLoaiLuuTru`, bổ sung 2026-11-11) |
+| `PhanBoGiuongLenhApi` | `api.BedAllocationCommandApi`: `holdForWaitingRecord`, `cancelHold`, `releaseWhenAbsent`, `extendExpectedEnd`, `checkScheduledReservation`, `reserveScheduledTransfer`, `checkFirstAllocationReservation`, `reserveFirstAllocation` (`kiemTraDatTruocPhanBoDauTien`, `datTruocPhanBoDauTien`, mục 1.4a, bổ sung 2026-11-17), `checkScheduledTransfer`, `applyScheduledTransfer`, `cancelScheduledAllocation`, `requestCreatedAfterUrgentTransfer`, `urgentTransferRequestResult`, `urgentTransferRequestWithdrawn` (`yeuCauSauChuyenGapDaRut`, bổ sung 2026-11-12), `residenceTypeChanged` (`daDoiLoaiLuuTru`, bổ sung 2026-11-11) |
 | `SucChuaBanTruApi` | `api.DayCareCapacityApi`: `lock`, `occupiedSessions`, `checkCapacity` |
 | `CoCauViTriApi` | `api.LocationStructureApi`: `bed`, `room`, `floor`, `area`, `active`, `floorsInArea`, `dayCareRestAreaLocation`, `roomTypeOfBed` |
 | `PhongChoPhepApi` | `api.RoomPolicyApi`: `currentRoomAllows`, `allocationProperties` |
@@ -1479,6 +1479,7 @@ DTO ở api/dto, sự kiện ở api/events, private metadata/read/store/service
 | KetQuaTinhPhiDaDinhChinh | `BillableCareResultCorrected` |
 | AnKemKeoDai | `ProlongedPoorEating` |
 | CongViecDoBiBo | `MeasurementTaskMissed` |
+| `lyDo` của CongViecDoBiBo: `KHONG_THUC_HIEN`, `QUA_HAN_HET_CA` | `NOT_PERFORMED`, `OVERDUE_AT_SHIFT_END` |
 | KetQuaNguDaGhi | `SleepResultRecorded` |
 
 CareEventContext là metadata sourceType/sourceId/milestone/occurredAt/floorAreaId/recipients; CareEvent tính key, CareNotice triển khai HasNotificationRequests, CareEventNotifications dựng khuôn. Khóa hash namespace+mốc có độ dài cố định, sourceId và tên event là tiền tố; nguồn/task type và loại ngày xem lại không bị gộp nhầm. Các DTO/event chưa có HTTP schema nghiệp vụ mới.
@@ -2281,14 +2282,13 @@ Tên trong tasks/plan là tên logic; chỉ tạo gói khi có lớp theo `backe
 | `chuyenTrongCa(tangKhuVucId, tu, den)` | `inShift(floorAreaId, from, to)` |
 | `ChuyenTrongCaView` | `TripInShiftView` |
 | Chuyến, nhân viên đang đi, giờ về dự kiến | `tripId`, `staffIds`, `expectedReturnAt` |
-| `KiemTraCongBoMoRong.kiemTra(lichCaId)` | `staffing.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)` |
 | `CanhBaoCongBo` | `PublicationWarning(code, description, details)` ở cùng gói port nội bộ |
-| Bản giả đồ gửi, chuyến đi, kiểm tra công bố | `FakeHeldBelongings`, `FakeTripDuties`, `FakeExtendedPublicationChecks` |
+| Bản giả đồ gửi, chuyến đi | `FakeHeldBelongings`, `FakeTripDuties` |
 | Cấu hình bản giả dùng chung cho test M09 | `support.fake.staffing.FakeM09Config` |
 | Đặt đồ đang giữ / bỏ đồ trong bản giả | `hold` / `release` |
 | Đặt chuyến, cảnh báo, công tắc nguồn dữ liệu trong bản giả | `trip`, `warnings`, `available` |
 
-`M09ArchTest` kiểm lời gọi port lệnh nội bộ theo các tên trên và cấm job gọi `createSchedule`, `createShift`, `createAssignment`, `createHandover`, `addHandoverItem`. `ExtendedPublicationCheck` có chiều gọi 008 → 015 nên không thuộc nhóm port lệnh chỉ 015 được gọi. Công tắc bản giả chỉ dùng trong test, không thêm endpoint HTTP.
+`M09ArchTest` kiểm lời gọi port lệnh nội bộ theo các tên trên và cấm job gọi `createSchedule`, `createShift`, `createAssignment`, `createHandover`, `addHandoverItem`. `ExtendedPublicationCheck` (`KiemTraCongBoMoRong`) đã gỡ ngày 2026-11-17 theo Q-397. Công tắc bản giả chỉ dùng trong test, không thêm endpoint HTTP.
 
 ### 14.7. Backend Phase 2 (2026-10-23)
 

@@ -19,6 +19,7 @@ import com.eldercare.backend.care.internal.result.persistence.CareResultStore;
 import com.eldercare.backend.care.internal.status.persistence.CareLockStore;
 import com.eldercare.backend.care.internal.task.domain.*;
 import com.eldercare.backend.care.internal.task.persistence.CareTaskStore;
+import com.eldercare.backend.care.internal.task.service.CareTaskNotices;
 import com.eldercare.backend.care.internal.task.service.CareTaskService;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.data.*;
@@ -54,6 +55,7 @@ public class CareResultService {
     private final AuditLogApi audit;
     private final com.eldercare.backend.care.internal.rules.service.CareResultRules rules;
     private final UnitPriceApi unitPrices;
+    private final CareTaskNotices notices;
 
     public CareResultService(
             CareTaskStore tasks,
@@ -73,7 +75,8 @@ public class CareResultService {
             ObjectProvider<DutyApi> duties,
             AuditLogApi audit,
             com.eldercare.backend.care.internal.rules.service.CareResultRules rules,
-            UnitPriceApi unitPrices) {
+            UnitPriceApi unitPrices,
+            CareTaskNotices notices) {
         this.tasks = tasks;
         this.results = results;
         this.locks = locks;
@@ -92,6 +95,7 @@ public class CareResultService {
         this.audit = audit;
         this.rules = rules;
         this.unitPrices = unitPrices;
+        this.notices = notices;
     }
 
     @RequiresPermission(function = Function.TASK_CHECKLIST, operation = Operation.CONFIRM)
@@ -432,6 +436,7 @@ public class CareResultService {
                 "NOT_PERFORMED",
                 note == null || note.isBlank() ? null : Reason.of(note),
                 false);
+        notices.measurementMissed(task, time.now(), "NOT_PERFORMED");
         var details = new LinkedHashMap<String, Object>();
         details.put("nonPerformanceReasonTypeId", reason.id());
         if (note != null) details.put("nonPerformanceNote", note);

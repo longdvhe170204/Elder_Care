@@ -10,15 +10,18 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
+import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.api.dto.BedNotificationContext;
 import com.eldercare.backend.roombedallocation.api.dto.BedStatus;
 import com.eldercare.backend.roombedallocation.api.dto.ScheduledTransferResult;
+import com.eldercare.backend.roombedallocation.api.events.BedAllocationStarted;
 import com.eldercare.backend.roombedallocation.api.events.BedTransferred;
 import com.eldercare.backend.roombedallocation.api.events.ScheduledTransferWaitingForBed;
 import com.eldercare.backend.roombedallocation.api.spi.AllocationResidencySource;
+import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationRecord;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.AllocationStatus;
 import com.eldercare.backend.roombedallocation.internal.allocation.domain.ScheduledTransferNotice;
@@ -130,9 +133,53 @@ public class ScheduledTransfers {
                 current.expectedEnd(),
                 requestId,
                 current.id(),
+                "Chuyển giường theo lịch",
                 actor(),
                 facts.careLevel(residentId).orElseThrow());
         record(id, residentId, "M03_SCHEDULED_TRANSFER_RESERVED", "FUTURE", requestId, null);
+        return id;
+    }
+
+    /**
+     * Mục 1.4a (004 FR-041): điều kiện đặt trước phân bổ đầu tiên cho người chưa có giường (bán trú đổi sang nội trú).
+     * FR-018 (b) xét theo loại lưu trú mới vì lúc duyệt người này còn là bán trú.
+     */
+    public List<UnmetCondition> checkFirstReservation(
+            long residentId, long bedId, LocalDate effectiveDate, Instant expectedEnd, ResidencyType targetType) {
+        if (targetType == null || targetType == ResidencyType.DAY_CARE)
+            throw new InvalidValueException("Loại lưu trú mới phải là nội trú dài ngày hoặc ngắn ngày");
+        var unmet = new ArrayList<UnmetCondition>();
+        if (!allocations.openCurrent(residentId, true, false).isEmpty())
+            unmet.add(new UnmetCondition(
+                    "ALLOCATION_ALREADY_ACTIVE", "Người cao tuổi đã có phân bổ đang hiệu lực, hãy dùng đổi giường"));
+        if (!allocations.openCurrent(residentId, false, true).isEmpty())
+            unmet.add(new UnmetCondition("FUTURE_ALLOCATION_EXISTS", "Người cao tuổi đã có phân bổ tương lai"));
+        unmet.addAll(checker.checkAs(residentId, bedId, start(effectiveDate), expectedEnd, targetType));
+        return List.copyOf(unmet);
+    }
+
+    /** Mục 1.4a, lúc duyệt: đặt trước phân bổ Tương lai đầu tiên, căn cứ là yêu cầu, không có phân bổ trước. */
+    public long reserveFirst(
+            long requestId,
+            long residentId,
+            long bedId,
+            LocalDate effectiveDate,
+            Instant expectedEnd,
+            ResidencyType targetType) {
+        locks.lock(residentId, List.of(bedId));
+        var unmet = checkFirstReservation(residentId, bedId, effectiveDate, expectedEnd, targetType);
+        if (!unmet.isEmpty()) throw new ConditionNotMetException(unmet);
+        long id = allocations.createScheduled(
+                residentId,
+                bedId,
+                start(effectiveDate),
+                expectedEnd,
+                requestId,
+                null,
+                "Phân bổ theo yêu cầu đổi loại lưu trú",
+                actor(),
+                facts.careLevel(residentId).orElseThrow());
+        record(id, residentId, "M03_FIRST_ALLOCATION_RESERVED", "FUTURE", requestId, null);
         return id;
     }
 
@@ -142,6 +189,19 @@ public class ScheduledTransfers {
         if (future.isEmpty())
             return List.of(
                     new UnmetCondition("SCHEDULED_ALLOCATION_MISSING", "Không có phân bổ đặt trước của yêu cầu"));
+        // Mục 1.4a: phân bổ đầu tiên; phiên bản hợp đồng mới chưa ghi nên (b) kiểm lại lúc bắt đầu, không kiểm ở đây
+        if (allocations.findPrevious(future.get().id()).isEmpty())
+            return checker
+                    .check(
+                            future.get().residentId(),
+                            future.get().bedId(),
+                            now(),
+                            future.get().expectedEnd(),
+                            future.get().id(),
+                            true)
+                    .stream()
+                    .filter(c -> !WAITABLE.contains(c.code()) && !"ALLOCATION_RESIDENCY_TYPE".equals(c.code()))
+                    .toList();
         var old = allocations.get(allocations.previousOf(future.get().id()));
         return checker
                 .check(
@@ -161,8 +221,10 @@ public class ScheduledTransfers {
         var future = allocations.scheduledFor(requestId).orElseThrow(() -> conflict("Không có phân bổ đặt trước"));
         if (future.status() == AllocationStatus.ACTIVE) return ScheduledTransferResult.TRANSFERRED;
         if (future.status() != AllocationStatus.FUTURE) throw conflict("Phân bổ đặt trước không còn Tương lai");
-        var old = allocations.get(allocations.previousOf(future.id()));
-        locks.lock(future.residentId(), List.of(old.bedId(), future.bedId()));
+        var previous = allocations.findPrevious(future.id()).map(allocations::get);
+        locks.lock(
+                future.residentId(),
+                previous.map(old -> List.of(old.bedId(), future.bedId())).orElse(List.of(future.bedId())));
         var bed = beds.currentCandidate(future.bedId());
         var asset = assets.getIfAvailable();
         boolean flagged = asset != null && asset.awaitingResidentTransfer(future.bedId());
@@ -180,7 +242,8 @@ public class ScheduledTransfers {
                                     new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)))));
             return ScheduledTransferResult.AWAITING_READY;
         }
-        transfer(future, old, requestId, plannedAt);
+        if (previous.isPresent()) transfer(future, previous.get(), requestId, plannedAt);
+        else startFirst(future, requestId, plannedAt);
         return ScheduledTransferResult.TRANSFERRED;
     }
 
@@ -194,12 +257,20 @@ public class ScheduledTransfers {
                 .scheduledFor(requestId)
                 .filter(a -> a.status() == AllocationStatus.FUTURE)
                 .orElseThrow(() -> conflict("Không có phân bổ chờ giường của yêu cầu"));
-        var old = allocations.get(allocations.previousOf(future.id()));
-        locks.lock(future.residentId(), List.of(old.bedId(), future.bedId()));
-        var unmet =
-                checker.checkCurrent(future.residentId(), future.bedId(), now(), old.expectedEnd(), future.id(), false);
+        var previous = allocations.findPrevious(future.id()).map(allocations::get);
+        locks.lock(
+                future.residentId(),
+                previous.map(old -> List.of(old.bedId(), future.bedId())).orElse(List.of(future.bedId())));
+        var unmet = checker.checkCurrent(
+                future.residentId(),
+                future.bedId(),
+                now(),
+                previous.map(AllocationRecord::expectedEnd).orElse(future.expectedEnd()),
+                future.id(),
+                false);
         if (unmet.isEmpty()) {
-            transfer(future, old, requestId, plannedAt);
+            if (previous.isPresent()) transfer(future, previous.get(), requestId, plannedAt);
+            else startFirst(future, requestId, plannedAt);
             return true;
         }
         allocations.cancel(future.id(), "Không còn đạt điều kiện phân bổ khi giường sẵn sàng");
@@ -345,6 +416,38 @@ public class ScheduledTransfers {
                 .build());
         events.publishEvent(
                 new BedTransferred(future.residentId(), old.id(), future.id(), from.floorId(), to.floorId(), at));
+    }
+
+    /** Mục 1.4a: bắt đầu phân bổ đầu tiên đã đặt trước; không đóng phân bổ nào, phát {@link BedAllocationStarted}. */
+    private void startFirst(AllocationRecord future, long requestId, Instant plannedAt) {
+        var at = now();
+        var unmet =
+                checker.checkCurrent(future.residentId(), future.bedId(), at, future.expectedEnd(), future.id(), false);
+        if (!unmet.isEmpty()) throw new ConditionNotMetException(unmet);
+        allocations.activateScheduled(
+                future.id(),
+                at,
+                plannedAt,
+                states.executedLate(plannedAt, at),
+                facts.careLevel(future.residentId()).orElseThrow());
+        var basis = new Basis("FR-029", requestId, null, null);
+        states.transition(
+                future.bedId(),
+                transition(BedEvent.ALLOCATION_STARTED, basis, requestId, plannedAt, actor(), null, null));
+        var source = residency.getIfAvailable();
+        if (source != null) source.allocated(future.residentId(), future.id());
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("M03_FIRST_ALLOCATION_STARTED", false))
+                .entity("M03.BED_ALLOCATION", future.id())
+                .resident(future.residentId())
+                .after(Map.of(
+                        "allocationId", future.id(),
+                        "bedId", future.bedId(),
+                        "startedAt", at.toString(),
+                        "plannedAt", plannedAt.toString()))
+                .basis(basis)
+                .build());
+        events.publishEvent(new BedAllocationStarted(future.id(), future.residentId(), future.bedId(), at));
     }
 
     private static BedTransition transition(

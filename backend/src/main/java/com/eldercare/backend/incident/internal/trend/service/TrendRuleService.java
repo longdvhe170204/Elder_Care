@@ -14,6 +14,7 @@ import com.eldercare.backend.care.api.events.MeasurementTaskMissed;
 import com.eldercare.backend.care.api.events.SleepResultRecorded;
 import com.eldercare.backend.care.api.events.SleepResultVoided;
 import com.eldercare.backend.common.data.ReminderMarkers;
+import com.eldercare.backend.health.api.MeasurementScheduleApi;
 import com.eldercare.backend.health.api.VitalSignApi;
 import com.eldercare.backend.health.api.dto.VitalSignReadingView;
 import com.eldercare.backend.health.api.events.VitalSignConfirmed;
@@ -76,6 +77,7 @@ public class TrendRuleService {
     private final ApplicationEventPublisher events;
     private final RecordEventApi recordEvents;
     private final ResidencyDayApi residencyDays;
+    private final MeasurementScheduleApi schedules;
 
     public TrendRuleService(
             IncidentCatalogService catalog,
@@ -85,7 +87,8 @@ public class TrendRuleService {
             ReminderMarkers markers,
             ApplicationEventPublisher events,
             RecordEventApi recordEvents,
-            ResidencyDayApi residencyDays) {
+            ResidencyDayApi residencyDays,
+            MeasurementScheduleApi schedules) {
         this.catalog = catalog;
         this.parameters = parameters;
         this.vitalSigns = vitalSigns;
@@ -94,6 +97,7 @@ public class TrendRuleService {
         this.events = events;
         this.recordEvents = recordEvents;
         this.residencyDays = residencyDays;
+        this.schedules = schedules;
     }
 
     /** Sụt cân (FR-039a): cân nặng mới được xác nhận so với giá trị cao nhất trong cửa sổ trước đó. */
@@ -303,7 +307,14 @@ public class TrendRuleService {
         if (event.importance() == Importance.MANDATORY && level.ordinal() < IncidentLevel.MEDIUM.ordinal()) {
             level = IncidentLevel.MEDIUM;
         }
-        for (long indicatorId : event.vitalSignIds()) {
+        // 005 chỉ gửi mã lịch đo (chủ dự án chốt 2026-11-16): chỉ số tra theo lịch đo của 007
+        Set<Long> indicatorIds = !event.vitalSignIds().isEmpty()
+                ? event.vitalSignIds()
+                : schedules.effectiveAt(event.residentId(), event.context().occurredAt()).stream()
+                        .filter(schedule -> schedule.id() == event.measurementScheduleId())
+                        .flatMap(schedule -> schedule.indicatorIds().stream())
+                        .collect(Collectors.toSet());
+        for (long indicatorId : indicatorIds) {
             String key = "MISSED:" + event.taskId() + ":" + indicatorId;
             if (!markers.mark(MARKER_KIND, "M01.RESIDENT", event.residentId(), key, null)) continue;
             alerts.requestAlert(new CreateAlertCommand(

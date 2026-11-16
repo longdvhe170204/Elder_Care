@@ -112,14 +112,18 @@ public class AllocationCommandStore {
 
     // ---- Chuyển theo lịch, kết quả yêu cầu sau chuyển gấp (003 T033 lượt 2; FR-029, FR-030) ---------------------
 
-    /** Phân bổ tương lai đặt trước cho yêu cầu thay đổi lưu trú; căn cứ là yêu cầu, trỏ về phân bổ đang hiệu lực. */
+    /**
+     * Phân bổ tương lai đặt trước cho yêu cầu thay đổi lưu trú; căn cứ là yêu cầu, trỏ về phân bổ đang hiệu lực
+     * ({@code previousId} là {@code null} với phân bổ đầu tiên của người chưa có giường, mục 1.4a).
+     */
     public long createScheduled(
             long residentId,
             long bedId,
             Instant start,
             Instant expectedEnd,
             long requestId,
-            long previousId,
+            Long previousId,
+            String startReason,
             Long actor,
             CheckedCareLevel level) {
         var key = new GeneratedKeyHolder();
@@ -134,12 +138,12 @@ public class AllocationCommandStore {
                     statement.setLong(2, bedId);
                     statement.setTimestamp(3, Timestamp.from(start));
                     statement.setTimestamp(4, expectedEnd == null ? null : Timestamp.from(expectedEnd));
-                    statement.setString(5, "Chuyển giường theo lịch");
+                    statement.setString(5, startReason);
                     statement.setObject(6, actor);
                     statement.setString(7, level.level().name());
                     statement.setString(8, level.source().name());
                     statement.setLong(9, requestId);
-                    statement.setLong(10, previousId);
+                    statement.setObject(10, previousId);
                     return statement;
                 },
                 key);
@@ -164,6 +168,12 @@ public class AllocationCommandStore {
                         requestId)
                 .stream()
                 .findFirst();
+    }
+
+    /** Phân bổ trước của phân bổ đặt trước; rỗng với phân bổ đầu tiên (mục 1.4a). */
+    public java.util.Optional<Long> findPrevious(long id) {
+        return java.util.Optional.ofNullable(
+                jdbc.queryForObject("SELECT previous_allocation_id FROM bed_allocation WHERE id=?", Long.class, id));
     }
 
     public long previousOf(long id) {

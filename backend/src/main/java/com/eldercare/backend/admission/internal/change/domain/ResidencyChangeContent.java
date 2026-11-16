@@ -66,6 +66,17 @@ public record ResidencyChangeContent(
         return urgentTransferAllocationId() != null;
     }
 
+    /**
+     * Đổi từ bán trú sang nội trú kèm giường mới (FR-041): người chưa có giường nên 003 đặt trước phân bổ đầu tiên
+     * (module-interfaces 003 mục 1.4a), không phải chuyển giường theo lịch.
+     */
+    public boolean firstBed(ResidenceType baseType) {
+        return has(ChangeType.RESIDENCE_TYPE)
+                && baseType == ResidenceType.DAY_CARE
+                && residenceType != ResidenceType.DAY_CARE
+                && newBedId != null;
+    }
+
     /** Có đổi khoản cọc đi kèm. */
     public boolean changesDeposit() {
         return noDepositRequired != null || depositAmount != null;

@@ -84,6 +84,7 @@ public class CareTaskHandover implements ShiftTaskApi {
                 var after = tasks.transition(
                         before, TaskStatus.NOT_PERFORMED, at, reason.value(), "SYSTEM_CLOSED_AFTER_HANDOVER");
                 commands.record(before, after, "SYSTEM_CLOSED_AFTER_HANDOVER", reason, true, handoverId);
+                notices.measurementMissed(after, at, "NOT_PERFORMED");
                 closed.add(before.id());
             } else if (!"FROM_PREVIOUS_SHIFT".equals(before.carryover()) || nextShiftId != null) {
                 var certificates = catalogs.require(
