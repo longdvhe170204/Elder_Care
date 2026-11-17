@@ -204,7 +204,7 @@ void luaChonChamSocGiamNheDaGhi(long nctId, String khoaSuKien, Instant thoiDiem)
 | `KetQuaCoTinhPhi(ketQuaId, nctId, loaiCongViecId, dichVuId, soLuong, thoiDiemThucHien)` | 010 | FR-051, DBR-15 |
 | `KetQuaTinhPhiDaDinhChinh(ketQuaId, kieu, soLuongMoi)` | 010 | FR-037, DBR-17 |
 | `AnKemKeoDai(nctId, buaIds, thoiDiem)` | 011 | FR-040 |
-| `CongViecDoBiBo(congViecId, nctId, lichDoId, chiSoIds, lyDo, mucQuanTrong)` (bổ sung theo plan 007): công việc căn cứ `LAN_DO` đóng Không thực hiện (không tính đóng do trạng thái cuối) hoặc còn Quá hạn khi hết ca; `lyDo` là `KHONG_THUC_HIEN` hoặc `QUA_HAN_HET_CA` | 007 (quy tắc bỏ lỡ lần đo, 007 FR-039b, Q-75) | FR-026, FR-044 |
+| `CongViecDoBiBo(congViecId, nctId, lichDoId, chiSoIds, lyDo, mucQuanTrong)` (bổ sung theo plan 007): công việc căn cứ `LAN_DO` đóng Không thực hiện (không tính đóng do trạng thái cuối) hoặc còn Quá hạn khi hết ca; `lyDo` là `KHONG_THUC_HIEN` hoặc `QUA_HAN_HET_CA`. *(Chủ dự án chốt 2026-11-16, cài 2026-11-17)* `lichDoId` là căn cứ của công việc, `chiSoIds` để trống: 007 tự tra chỉ số theo lịch đo của mình; không đổi `TaskSourcePort`. Phát một lần cho mỗi công việc | 007 (quy tắc bỏ lỡ lần đo, 007 FR-039b, Q-75) | FR-026, FR-044 |
 | `KetQuaNguDaGhi(ketQuaId, nctId, ngay, nhomGiaTri)` (bổ sung theo plan 007): khi ghi hoặc đính chính kết quả ngủ; `ngay` là ngày dương lịch của thời điểm dự kiến | 007 (mất ngủ kéo dài, 007 FR-039c) | FR-034, FR-037 |
 
 Mỗi sự kiện mang khóa `loại + id + mốc` để bên nghe bỏ trùng (NFR-04).

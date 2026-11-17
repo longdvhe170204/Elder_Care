@@ -47,13 +47,23 @@ public class AllocationChecker {
     @Transactional(readOnly = true)
     public List<UnmetCondition> check(
             long residentId, long bedId, Instant start, Instant end, Long excludedAllocationId, boolean future) {
-        return check(residentId, bedId, start, end, excludedAllocationId, future, false);
+        return check(residentId, bedId, start, end, excludedAllocationId, future, false, null);
+    }
+
+    /**
+     * Mục 1.4a: phân bổ Tương lai cho người sẽ đổi loại lưu trú; FR-018 (b) xét theo {@code assumedType} thay cho loại
+     * hiện tại của nguồn lưu trú.
+     */
+    @Transactional(readOnly = true)
+    public List<UnmetCondition> checkAs(
+            long residentId, long bedId, Instant start, Instant end, ResidencyType assumedType) {
+        return check(residentId, bedId, start, end, null, true, false, assumedType);
     }
 
     /** Chỉ gọi sau khóa vị trí và toàn bộ giường, khi tham gia transaction RR của module nguồn. */
     public List<UnmetCondition> checkCurrent(
             long residentId, long bedId, Instant start, Instant end, Long excludedAllocationId, boolean future) {
-        return check(residentId, bedId, start, end, excludedAllocationId, future, true);
+        return check(residentId, bedId, start, end, excludedAllocationId, future, true, null);
     }
 
     private List<UnmetCondition> check(
@@ -63,7 +73,8 @@ public class AllocationChecker {
             Instant end,
             Long excludedAllocationId,
             boolean future,
-            boolean current) {
+            boolean current,
+            ResidencyType assumedType) {
         var source = residency.getIfAvailable();
         var cordons = infection.getIfAvailable();
         var asset = assets.getIfAvailable();
@@ -81,7 +92,7 @@ public class AllocationChecker {
                     "FR-011a",
                     null,
                     null));
-        errors.addAll(policyConditions(residentId, bed));
+        errors.addAll(policyConditions(residentId, bed, assumedType));
         var cordon = cordons.cordonedAt(start);
         if (bed.isolated()
                 || cordon.floorIds().contains(bed.floorId())
@@ -102,10 +113,10 @@ public class AllocationChecker {
 
     @Transactional(readOnly = true)
     public List<UnmetCondition> policyConditions(long residentId, long bedId) {
-        return policyConditions(residentId, store.candidate(bedId));
+        return policyConditions(residentId, store.candidate(bedId), null);
     }
 
-    private List<UnmetCondition> policyConditions(long residentId, AllocationCandidate bed) {
+    private List<UnmetCondition> policyConditions(long residentId, AllocationCandidate bed, ResidencyType assumedType) {
         var source = residency.getIfAvailable();
         if (source == null)
             throw new BusinessException(HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn lưu trú");
@@ -113,7 +124,7 @@ public class AllocationChecker {
         if (facts.careLevel(residentId)
                 .filter(level -> bed.careLevels().contains(level.level()))
                 .isEmpty()) add(errors, "a", "Mức chăm sóc không được phòng cho phép");
-        var type = source.residencyType(residentId);
+        var type = assumedType != null ? java.util.Optional.of(assumedType) : source.residencyType(residentId);
         if (type.isEmpty()
                 || !(type.get() == ResidencyType.LONG_TERM && bed.servesLongTerm()
                         || type.get() == ResidencyType.SHORT_TERM && bed.servesShortTerm()))

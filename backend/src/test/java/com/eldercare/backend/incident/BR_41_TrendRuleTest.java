@@ -16,7 +16,10 @@ import com.eldercare.backend.care.api.dto.CareEventContext;
 import com.eldercare.backend.care.api.dto.Importance;
 import com.eldercare.backend.care.api.events.MeasurementTaskMissed;
 import com.eldercare.backend.common.data.ReminderMarkers;
+import com.eldercare.backend.health.api.MeasurementScheduleApi;
 import com.eldercare.backend.health.api.VitalSignApi;
+import com.eldercare.backend.health.api.dto.MeasurementFrequency;
+import com.eldercare.backend.health.api.dto.MeasurementScheduleView;
 import com.eldercare.backend.incident.internal.alert.domain.CreateAlertCommand;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.domain.TrendRuleView;
@@ -27,6 +30,7 @@ import com.eldercare.backend.incident.internal.trend.service.TrendRuleService;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -44,6 +48,7 @@ class BR_41_TrendRuleTest {
     private final IncidentCatalogService catalog = mock(IncidentCatalogService.class);
     private final AlertService alerts = mock(AlertService.class);
     private final ReminderMarkers markers = mock(ReminderMarkers.class);
+    private final MeasurementScheduleApi schedules = mock(MeasurementScheduleApi.class);
     private final TrendRuleService trends = new TrendRuleService(
             catalog,
             mock(ParameterApi.class),
@@ -52,7 +57,8 @@ class BR_41_TrendRuleTest {
             markers,
             mock(ApplicationEventPublisher.class),
             mock(RecordEventApi.class),
-            mock(ResidencyDayApi.class));
+            mock(ResidencyDayApi.class),
+            schedules);
 
     private void rules(boolean missed, boolean refusal) {
         when(catalog.trendRules())
@@ -85,6 +91,44 @@ class BR_41_TrendRuleTest {
                 .extracting(CreateAlertCommand::typeLock)
                 .containsExactlyInAnyOrder(TypeLock.forMissedMeasurement(3), TypeLock.forMissedMeasurement(4));
         assertThat(commands.getAllValues()).allMatch(c -> c.level() == IncidentLevel.MEDIUM);
+    }
+
+    /** Chủ dự án chốt 2026-11-16: 005 gửi mã lịch đo, không gửi chỉ số; 007 tự tra chỉ số theo lịch đo của mình. */
+    @Test
+    void FR_039b_eventWithoutIndicatorsUsesTheIndicatorsOfItsMeasurementSchedule() {
+        rules(true, true);
+        when(markers.mark(anyString(), anyString(), anyLong(), anyString(), any()))
+                .thenReturn(true);
+        when(schedules.effectiveAt(101, AT)).thenReturn(List.of(schedule(4, Set.of(8L)), schedule(5, Set.of(3L, 4L))));
+
+        trends.onMeasurementTaskMissed(new MeasurementTaskMissed(
+                9,
+                101,
+                5,
+                Set.of(),
+                "OVERDUE_AT_SHIFT_END",
+                Importance.NORMAL,
+                new CareEventContext("M04.TASK", 9, "MISSED", AT, Optional.of(7L), List.of())));
+
+        var commands = ArgumentCaptor.forClass(CreateAlertCommand.class);
+        verify(alerts, times(2)).requestAlert(commands.capture());
+        assertThat(commands.getAllValues())
+                .extracting(CreateAlertCommand::typeLock)
+                .containsExactlyInAnyOrder(TypeLock.forMissedMeasurement(3), TypeLock.forMissedMeasurement(4));
+        assertThat(commands.getAllValues()).allMatch(c -> c.level() == IncidentLevel.LOW);
+    }
+
+    private static MeasurementScheduleView schedule(long id, Set<Long> indicators) {
+        return new MeasurementScheduleView(
+                id,
+                101,
+                indicators,
+                MeasurementFrequency.CLOCK_TIMES,
+                Map.of(),
+                AT.minusSeconds(86400),
+                null,
+                "NORMAL",
+                null);
     }
 
     @Test

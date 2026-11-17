@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.shared.api.StatusHistoryApi;
 import com.eldercare.backend.administration.shared.api.dto.*;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
+import com.eldercare.backend.care.api.spi.TaskSourcePort.SourceType;
 import com.eldercare.backend.care.internal.task.domain.CareTask;
 import com.eldercare.backend.care.internal.task.domain.CareTaskHandling;
 import com.eldercare.backend.common.data.ReminderMarkers;
@@ -140,6 +141,24 @@ public class CareTaskNotices {
                         "NORMAL_ESCALATION",
                         List.of(new RecipientGroup.ShiftLead(task.floorAreaId(), new Substitution.Default())))));
         handling(task, at, "NORMAL_ESCALATION");
+    }
+
+    /**
+     * FR-026, FR-044; 007 FR-039b, Q-75: công việc căn cứ lịch đo đóng Không thực hiện hoặc còn Quá hạn lúc hết ca, báo
+     * một lần cho mỗi công việc. Chỉ gửi mã lịch đo; 007 tự tra chỉ số theo lịch đo (chủ dự án chốt 2026-11-16).
+     */
+    public void measurementMissed(CareTask task, Instant at, String reason) {
+        if (task.basisType() != SourceType.MEASUREMENT || task.basisId() == null || task.residentId() == null) return;
+        if (!markers.mark("M04.MEASUREMENT_MISSED", "M04.TASK", task.id(), "MISSED", Map.of("at", at.toString())))
+            return;
+        events.publishEvent(new MeasurementTaskMissed(
+                task.id(),
+                task.residentId(),
+                task.basisId(),
+                Set.of(),
+                reason,
+                task.importance(),
+                context(task, at, "MISSED", List.of())));
     }
 
     private void handling(CareTask task, Instant at, String command) {

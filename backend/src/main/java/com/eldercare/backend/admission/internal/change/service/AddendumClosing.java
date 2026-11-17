@@ -36,8 +36,10 @@ class AddendumClosing {
                 .filter(addendum -> addendum.status() == Addendum.Status.PENDING_EFFECTIVE)
                 .ifPresent(addendum -> {
                     addenda.markNotApplied(addendum.id());
-                    if (addendum.changeTypes().contains(ChangeType.BED)) {
-                        // Phân bổ theo lịch đặt lúc duyệt phải hủy cùng phụ lục (FR-045)
+                    if (addendum.changeTypes().contains(ChangeType.BED)
+                            || addendum.changeTypes().contains(ChangeType.RESIDENCE_TYPE)) {
+                        // Phân bổ đặt lúc duyệt (chuyển theo lịch, hoặc phân bổ đầu tiên của người bán trú sang nội
+                        // trú) phải hủy cùng phụ lục (FR-045); 003 không có phân bổ đặt trước thì không làm gì
                         beds.getObject()
                                 .cancelScheduledAllocation(
                                         approvalRequestId, new Reason("Phụ lục không áp dụng (FR-045)"));
