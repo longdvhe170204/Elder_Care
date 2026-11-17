@@ -64,7 +64,7 @@ public class AlertQueryService {
         this.locations = locations;
     }
 
-    /** Danh sách theo bộ lọc, đã giới hạn theo phạm vi; không kèm nguồn và lệnh (xem chi tiết). */
+    /** Danh sách theo bộ lọc, đã giới hạn theo phạm vi; không kèm nguồn; có lệnh được phép để thẻ hiện nút ngay trên danh sách. */
     @Transactional(readOnly = true)
     public List<AlertDetails> list(
             Collection<AlertStatus> statuses,
@@ -83,7 +83,7 @@ public class AlertQueryService {
                         scope.floorAreaIds(),
                         scope.residentIds())
                 .stream()
-                .map(alert -> new AlertDetails(alert, assigneeName(alert), List.of(), Set.of()))
+                .map(alert -> new AlertDetails(alert, assigneeName(alert), List.of(), allowedCommands(alert, user)))
                 .toList();
     }
 
@@ -165,6 +165,15 @@ public class AlertQueryService {
             commands.add("mark-arrived");
         }
         if (open && handler && alert.level() == IncidentLevel.CRITICAL) commands.add("call-115");
+        boolean converter = handler
+                && (user.roles().contains(Role.NURSING_STAFF)
+                        || user.roles().contains(Role.FLOOR_MANAGER)
+                        || user.roles().contains(Role.DOCTOR));
+        if (converter && status == AlertStatus.IN_PROGRESS) commands.add("convert-to-incident");
+        if (converter
+                && (status == AlertStatus.NEW || status == AlertStatus.ESCALATED || status == AlertStatus.RECEIVED)) {
+            commands.add("activate-emergency");
+        }
         return commands;
     }
 

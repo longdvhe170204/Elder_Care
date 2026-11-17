@@ -127,6 +127,11 @@ public class IncidentQueryService {
         if (status.equals("MONITORING") && handler) commands.add("reopen");
         var closers = incident.level() == IncidentLevel.LOW ? HANDLER_ROLES : SERIOUS_CLOSER_ROLES;
         if (!status.equals("NEW") && handler && closers.stream().anyMatch(roles::contains)) commands.add("close");
+        if (handler
+                && (status.equals("NEW") || status.equals("IN_PROGRESS"))
+                && (roles.contains(Role.NURSING_STAFF) || roles.contains(Role.DOCTOR))) {
+            commands.add("transfer-out");
+        }
         if (incident.level() == IncidentLevel.CRITICAL
                 && !manager
                 && permissions.hasPermission(user, CREATE, target).allowed()) {
