@@ -376,10 +376,11 @@ public class CareResultService {
         events.publishEvent(new AlertClosureRequested(
                 task.id(), next == TaskStatus.COMPLETED ? "PERFORMED_IN_WINDOW" : "TASK_COMPLETED_LATE", context));
         if (task.residentId() != null && task.data().resultType().equals("SLEEP"))
+            // 007 FR-039c (CHK045): "đêm" là ngày của thời điểm dự kiến, như lệnh đính chính
             events.publishEvent(new SleepResultRecorded(
                     task.id(),
                     task.residentId(),
-                    performed.atZone(BusinessTime.ZONE).toLocalDate(),
+                    task.plannedAt().atZone(BusinessTime.ZONE).toLocalDate(),
                     validation.catalogGroup("SLEEP_QUALITY", input.codeValue()),
                     context));
     }

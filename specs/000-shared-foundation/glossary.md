@@ -974,6 +974,12 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | --- | --- |
 | `giuongTrongChoChuyenNguoi` (id giường Trống mang dấu "chờ chuyển người" tại thời điểm; module-interfaces 1.8a) | `BedStatisticsApi.emptyAwaitingTransferBedIds(ScopeFilter scope, Instant at)` trả `Set<Long>` |
 
+### 9.24. Tag của `api-003.yaml` (2026-11-17, chủ dự án duyệt; chỉ đổi tên tag, không đổi endpoint)
+
+| Tên logic | Tên trong hợp đồng |
+| --- | --- |
+| tag `co-cau`, `giuong`, `cach-ly`, `phan-bo`, `tra-cuu`, `ban-tru` | `structure`, `beds`, `isolation`, `allocations`, `location-history`, `day-care` |
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
@@ -1919,6 +1925,7 @@ Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường
 | Phiên bản ngưỡng (`nguong_phien_ban` → `monitoring_setting` kind THRESHOLD): `CO_SO`/`CA_NHAN`, `CHO_HIEU_LUC`/`HIEU_LUC`/`HET_HIEU_LUC`/`DA_HUY`; `KiemTraNguong`; lệnh thiết lập, hủy, ngừng; nhắc thiếu ngưỡng cá nhân | `FACILITY`/`PERSONAL`, `PENDING`/`EFFECTIVE`/`EXPIRED`/`CANCELLED`; `ThresholdRules.violations`; `ThresholdService` (`set`, `cancel`, `stop`, `activateDue`), `ThresholdVersionStore`, `ThresholdIndicators`, `NewThreshold`, `ThresholdVersion`, `ThresholdIndicator`; `ThresholdActivationTask` (M06 phút), `MissingThresholdReminders` (`missing`, `remind`, `allowReminderAgain`), `MissingThresholdReminderTask` (M06 ngày), `ThresholdFinalStatusListener`; `THRESHOLD_SET`, `THRESHOLD_CANCELLED`, `THRESHOLD_STOPPED`; lỗi `INVALID_THRESHOLD` (kèm `violations`), `VALID_RANGE_MISSING` |
 | Lịch đo (`lich_do` → `monitoring_setting` kind `MEASUREMENT_SCHEDULE`, V007_09): `MOC_GIO`/`MOI_N_GIO`/`THEO_THU`, `CHO_HIEU_LUC`/`HIEU_LUC`/`DA_NGUNG`/`HET_HAN`, `thay_the_cho`, `ngung_luc`; `ChuoiMocDo`; mức quan trọng `BINH_THUONG`/`QUAN_TRONG`/`BAT_BUOC` | `CLOCK_TIMES`/`EVERY_N_HOURS`/`WEEKDAYS`, `PENDING`/`EFFECTIVE`/`STOPPED`/`EXPIRED`, cột `replaces_id`, `stopped_at`; `MeasurementTimeline.occurrences`; `NORMAL`/`IMPORTANT`/`MANDATORY`; `MeasurementScheduleService` (`create`, `change`, `stop`, `transitionDue`, `stopForFinalStatus`), `MeasurementScheduleStore`, `ScheduleFrequency`, `NewMeasurementSchedule`, `MeasurementSchedule` (`basisAt`), `StoredScheduleContent`, `MeasurementScheduleTask` (M06 phút), `MeasurementScheduleFinalStatusListener`, `DefaultMeasurementScheduleApi`; `MEASUREMENT_SCHEDULE_CREATED`, `_CHANGED`, `_STOPPED` |
 | Màn và route ngưỡng, lịch đo (T024) | `ThresholdController`, `MeasurementScheduleController`; `ThresholdRequest` (`ThresholdComponentRequest`), `MeasurementScheduleRequest` (`FrequencyRequest`), `ChangeMeasurementScheduleRequest`, `HealthReasonRequest`; `ThresholdVersionResponse` (`ThresholdComponentResponse`), `MeasurementScheduleResponse` (`ScheduleFrequencyResponse`); `ThresholdListing`; `ThresholdService.list`, `missingPersonal`; `MeasurementScheduleService.list`, `occurrences` |
+| `NguonCongViecPort` loại `LAN_DO` (T023, research S-05; bean thật 2026-11-17) | `health.internal.schedule.service.MeasurementTaskSource` cài `care.api.spi.TaskSourcePort` cho `SourceType.MEASUREMENT` |
 | Phạm vi và khoảng hiệu lực khoanh vùng (Q-69, BR-M05-11/12) | `incident.internal.infection.domain.ContainmentScope`, `ContainmentPeriod` |
 | `NhatKyThongBaoPort.theoNguon`, `DaThongBaoView` | `NotificationLogPort.bySource`, `IncidentNotificationView` (`recipientType`, `recipientId`, `channel`, `sentAt`, `viewedAt`, `callReminders`); lượt nhắc gọi `CallReminderSummary`, kết quả gọi `CallOutcome` (Q-388) |
 | gói chức năng M06: danh mục, lịch đo, chỉ số, ngưỡng, giấy phép, khám, tham gia trạng thái | `health.internal.catalog`, `schedule`, `measurement`, `threshold`, `license`, `examination`, `governance` (cùng dưới `health.internal`) |
