@@ -202,7 +202,7 @@ mobile/lib/nguoi-than/ho-so/
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-**(2026-10-19) Lưu tệp trên AWS S3: region và nghĩa vụ chuyển dữ liệu ra nước ngoài — chờ chủ dự án chốt.** Bucket ở region nước ngoài (AWS chưa có region ở Việt Nam) chứa bản scan bản đồng ý, giấy tờ sức khỏe, ảnh người cao tuổi. Cần đối chiếu Luật 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (hồ sơ đánh giá tác động chuyển dữ liệu ra nước ngoài) và chọn region; đề xuất ghi một dòng vào 24.4 của tài liệu nghiệp vụ cạnh Q-03. Không chặn thiết kế, chặn trước khi vận hành.
+**(2026-10-19) Lưu tệp trên AWS S3: region và nghĩa vụ chuyển dữ liệu ra nước ngoài.** *(Region: chủ dự án chốt 2026-11-17: region `ap-southeast-1` (Singapore), dùng cả cho bản demo Docker (không đặt `ELDERCARE_S3_BUCKET` thì profile `demo` vẫn dùng chỗ lưu trong bộ nhớ); bucket riêng tư, chặn truy cập công khai, SSE-S3, versioning, lifecycle xóa phiên bản không còn hiện hành sau 30 ngày và dọn delete marker hết hạn (mã xóa tệp gọi `deleteObject` không kèm `versionId`, nên không có lifecycle thì nội dung cũ vẫn còn sau khi job dọn tệp, job loại bỏ dữ liệu chạy); IAM chỉ `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` trên bucket. Phần pháp lý vẫn đối chiếu trước khi vận hành thật.)* Bucket ở region nước ngoài (AWS chưa có region ở Việt Nam) chứa bản scan bản đồng ý, giấy tờ sức khỏe, ảnh người cao tuổi. Cần đối chiếu Luật 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (hồ sơ đánh giá tác động chuyển dữ liệu ra nước ngoài) và chọn region; đề xuất ghi một dòng vào 24.4 của tài liệu nghiệp vụ cạnh Q-03. Không chặn thiết kế, chặn trước khi vận hành.
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec 001.
 
