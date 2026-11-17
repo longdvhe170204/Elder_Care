@@ -51,6 +51,9 @@ class FR_029_FirstAllocationReservationIT extends StructureTestSupport {
     @Autowired
     FakeBedAssets assets;
 
+    @Autowired
+    com.eldercare.backend.roombedallocation.internal.allocation.service.ScheduledTransfers scheduled;
+
     long resident, request;
     LocalDate effective;
 
@@ -155,5 +158,75 @@ class FR_029_FirstAllocationReservationIT extends StructureTestSupport {
         assertThat(codes(() -> commands.checkFirstAllocationReservation(
                         resident, other, effective, null, ResidencyType.LONG_TERM)))
                 .contains("ALLOCATION_ALREADY_ACTIVE");
+    }
+
+    /** Giường chưa Trống tới ngày hiệu lực: giữ Tương lai, chờ; giường về Trống thì bắt đầu, hoặc hủy khi FR-018 trượt. */
+    @Test
+    void FR_011a_firstAllocationWaitsForTheBedThenStartsOrIsCancelled() {
+        long id = tx.execute(
+                s -> commands.reserveFirstAllocation(request, resident, bed, effective, null, ResidencyType.LONG_TERM));
+        awaitingReady(bed);
+        assertThat(codes(() -> commands.checkScheduledTransfer(request)))
+                .as("giường chưa Trống không phải vi phạm")
+                .isEmpty();
+        residency.resident(resident, ResidencyType.LONG_TERM, null, null, null, null);
+
+        assertThat(applyNow(request)).isEqualTo(ScheduledTransferResult.AWAITING_READY);
+        assertThat(allocation(id)).isEqualTo("FUTURE");
+        assertThat(jdbc.queryForObject(
+                        "SELECT waiting_for_bed_ready FROM bed_allocation WHERE id=?", Boolean.class, id))
+                .isTrue();
+
+        empty(bed);
+        assertThat(startWaiting(request)).isTrue();
+        assertThat(allocation(id)).isEqualTo("ACTIVE");
+        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
+                .isEqualTo("OCCUPIED");
+        assertThat(events.stream(BedAllocationStarted.class)).anyMatch(e -> e.allocationId() == id);
+
+        // Người thứ hai: tới lúc giường về Trống vẫn là bán trú (phụ lục không áp dụng) thì FR-018 (b) trượt, 003 tự
+        // hủy
+        long second = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO resident(id,full_name,date_of_birth,gender,status,status_since,current_care_level,"
+                        + "created_at,created_by) VALUES(?,'[Họ tên NCT]','1951-01-01','FEMALE','IN_RESIDENCE',?,'BASIC',?,?)",
+                second,
+                Timestamp.from(time.now()),
+                Timestamp.from(time.now()),
+                user.accountId());
+        residency.resident(second, ResidencyType.DAY_CARE, null, null, null, null);
+        long secondBed = TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G2')", secondBed, room);
+        long secondRequest = TestUsers.nextId();
+        long secondId = tx.execute(s -> commands.reserveFirstAllocation(
+                secondRequest, second, secondBed, effective, null, ResidencyType.LONG_TERM));
+        awaitingReady(secondBed);
+        assertThat(applyNow(secondRequest)).isEqualTo(ScheduledTransferResult.AWAITING_READY);
+        empty(secondBed);
+
+        assertThat(startWaiting(secondRequest)).isFalse();
+        assertThat(allocation(secondId)).isEqualTo("CANCELLED");
+        assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, secondBed))
+                .isEqualTo("EMPTY");
+    }
+
+    ScheduledTransferResult applyNow(long requestId) {
+        return tx.execute(s -> commands.applyScheduledTransfer(requestId, time.now()));
+    }
+
+    boolean startWaiting(long requestId) {
+        return tx.execute(s -> scheduled.startWaiting(requestId, time.now()));
+    }
+
+    void awaitingReady(long bedId) {
+        jdbc.update(
+                "UPDATE bed SET state='AWAITING_READY',awaiting_ready_since=?,ready_deadline=? WHERE id=?",
+                Timestamp.from(time.now().minusSeconds(3600)),
+                Timestamp.from(time.now().plusSeconds(10800)),
+                bedId);
+    }
+
+    void empty(long bedId) {
+        jdbc.update("UPDATE bed SET state='EMPTY',awaiting_ready_since=NULL,ready_deadline=NULL WHERE id=?", bedId);
     }
 }

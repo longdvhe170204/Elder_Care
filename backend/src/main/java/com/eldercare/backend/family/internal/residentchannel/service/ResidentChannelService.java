@@ -15,6 +15,8 @@ import com.eldercare.backend.family.internal.relationship.domain.FamilyMember;
 import com.eldercare.backend.family.internal.relationship.service.RelationshipQueries;
 import com.eldercare.backend.family.internal.visit.domain.Visit;
 import com.eldercare.backend.family.internal.visit.service.VisitQueries;
+import com.eldercare.backend.nutrition.api.ExpectedMealApi;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -55,6 +57,9 @@ public class ResidentChannelService {
     /** Lịch đến/về của người bán trú trong ngày. */
     public record ChannelDayCare(LocalDate date, String arrivalTime, String departureTime) {}
 
+    /** Một món của suất ăn dự kiến: ngày, bữa, tên món, có phải món thay thế (011 FR-063; không có chế độ ăn, dị ứng). */
+    public record ChannelMeal(LocalDate date, String mealName, String name, boolean substitute) {}
+
     /** Hôm nay; {@code unavailable} là phần chưa có nguồn. */
     public record Today(
             LocalDate date,
@@ -80,6 +85,7 @@ public class ResidentChannelService {
     private final ObjectProvider<ResidentActivityReadApi> activities;
     private final ObjectProvider<ResidentChannelBelongingPort> belongings;
     private final ObjectProvider<ContractReadApi> contracts;
+    private final ObjectProvider<ExpectedMealApi> meals;
     private final PermissionApi permissions;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
@@ -90,6 +96,7 @@ public class ResidentChannelService {
             ObjectProvider<ResidentActivityReadApi> activities,
             ObjectProvider<ResidentChannelBelongingPort> belongings,
             ObjectProvider<ContractReadApi> contracts,
+            ObjectProvider<ExpectedMealApi> meals,
             PermissionApi permissions,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser) {
@@ -98,6 +105,7 @@ public class ResidentChannelService {
         this.activities = activities;
         this.belongings = belongings;
         this.contracts = contracts;
+        this.meals = meals;
         this.permissions = permissions;
         this.time = time;
         this.currentUser = currentUser;
@@ -142,10 +150,21 @@ public class ResidentChannelService {
         return new Today(today, todayVisits, todayActivities, dayCare, unavailable);
     }
 
-    /** Thực đơn tuần đã công bố và suất ăn dự kiến (FR-083 (b)): 011 chưa có {@code SuatAnDuKienApi}. */
-    public Section<Object> menu() {
-        self();
-        return Section.missing();
+    /**
+     * Thực đơn tuần đã công bố và suất ăn dự kiến của mình (FR-083 (b); 011 FR-063): món theo ngày, bữa của tuần chứa
+     * {@code week} (mặc định hôm nay), thứ hai → chủ nhật, kể cả món thay thế; tuần chưa công bố thì rỗng.
+     */
+    @Transactional(readOnly = true)
+    public Section<ChannelMeal> menu(LocalDate week) {
+        long residentId = self();
+        ExpectedMealApi api = meals.getIfAvailable();
+        if (api == null) {
+            return Section.missing();
+        }
+        LocalDate monday = (week == null ? time.today() : week).with(DayOfWeek.MONDAY);
+        return Section.of(api.ofResident(residentId, monday, monday.plusDays(6)).stream()
+                .map(p -> new ChannelMeal(p.date(), p.mealName(), p.dishName(), p.isSubstitute()))
+                .toList());
     }
 
     @Transactional(readOnly = true)

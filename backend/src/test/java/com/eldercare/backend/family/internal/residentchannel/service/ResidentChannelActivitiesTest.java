@@ -58,6 +58,7 @@ class ResidentChannelActivitiesTest {
                 provider,
                 belongings,
                 contracts,
+                mock(ObjectProvider.class),
                 permissions,
                 time,
                 current);
