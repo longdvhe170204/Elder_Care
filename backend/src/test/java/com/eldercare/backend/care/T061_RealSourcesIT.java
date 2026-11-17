@@ -132,7 +132,7 @@ class T061_RealSourcesIT extends MySqlIntegrationTestBase {
         jdbc.update(
                 "INSERT INTO simple_record(id,kind,module,status,content,created_at,created_by) VALUES(?,'M04.ACTIVITY','M04','ACTIVE',?,NOW(6),1)",
                 activity,
-                "{\"name\":\"Dưỡng sinh\",\"scope\":\"FACILITY\",\"maxParticipants\":20,\"charged\":false,\"groupActivity\":true}");
+                "{\"name\":\"Dưỡng sinh\",\"typeId\":1,\"createdByStaffId\":1,\"scope\":\"FACILITY\",\"maxParticipants\":20,\"charged\":false,\"groupActivity\":true}");
         long session = TestUsers.nextId();
         var start = java.time.LocalDateTime.ofInstant(planned.minus(Duration.ofMinutes(5)), BusinessTime.ZONE);
         jdbc.update(
