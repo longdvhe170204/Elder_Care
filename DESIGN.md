@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 6.13.0
+version: 6.14.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-11-10
@@ -376,7 +376,7 @@ Bốn cặp màu: xanh trời nhạt, xanh chàm nhạt, xanh lá nhạt, xám (
 
 - **Khung chung** (`AppShell`): lưới hai cột, menu trái rộng 240px màu xanh đêm đậm (mục 3.2), nội dung bên phải (lề 16px, từ 768px là 32px; trên dưới 24px). Không có thanh trên trên máy tính. Căn trái toàn bộ.
 - **Menu:** logo, các nhóm mục theo vai trò, cuối là khối người dùng: ảnh đại diện vai trò, tên vai trò, tầng và ca, nút sáng/tối. Mục menu bo 8px, cao tối thiểu 40px, biểu tượng 16px.
-- **Nhóm menu** (CĐA 2026-11-09): khối đầu không tên luôn hiện (Tổng quan, Báo cáo, Yêu cầu phê duyệt, Thông báo, Chờ xem lại); các nhóm theo vùng nghiệp vụ đóng mở được: Chăm sóc hằng ngày; Thuốc và sức khỏe; Dinh dưỡng, bữa ăn; Người cao tuổi, lưu trú; Người thân, khách thăm (không gọi "Người thân" vì trùng tên mục con); Nhân sự, ca trực; Chi phí, dịch vụ; Quản trị (`src/common/layout/navigation.js`). Tên nhóm là nút `Collapsible` cao 44px (9.1), chữ `label` màu `--sidebar-muted-foreground`, mũi tên chỉ phải khi đóng, chỉ xuống khi mở, có `aria-expanded`. Mặc định chỉ mở nhóm chứa trang đang xem (kể cả khi chuyển trang, tải lại); nhóm người xem mở, đóng được nhớ trong `localStorage` (khóa `elder-care-nav-groups`). Nhóm không còn mục sau khi lọc theo quyền thì ẩn cả nhóm.
+- **Nhóm menu** (CĐA 2026-11-09): khối đầu không tên luôn hiện (Tổng quan, Báo cáo, Yêu cầu phê duyệt, Thông báo, Chờ xem lại); các nhóm theo vùng nghiệp vụ đóng mở được: Chăm sóc hằng ngày; Thuốc và sức khỏe; Dinh dưỡng, bữa ăn; Người cao tuổi, lưu trú; Người thân, khách thăm (không gọi "Người thân" vì trùng tên mục con); Nhân sự, ca trực; Chi phí, dịch vụ; Quản trị (`src/common/layout/navigation.js`). Tên nhóm là nút `Collapsible` cao 44px (9.1), chữ `label` màu `--sidebar-muted-foreground`, mũi tên chỉ phải khi đóng, chỉ xuống khi mở, có `aria-expanded`. Mặc định chỉ mở nhóm chứa trang đang xem (kể cả khi chuyển trang, tải lại); nhóm người xem mở, đóng được nhớ trong `localStorage` (khóa `elder-care-nav-groups`). Nhóm không còn mục sau khi lọc theo quyền thì ẩn cả nhóm. Từ 6.14.0 (chủ dự án duyệt 2026-11-17) trên cùng có nhóm ghim **Việc chính** của vai trò chính: 3–6 mục làm hằng ngày theo luồng BF, đúng thứ tự ở `PRIMARY_BY_ROLE` (`navigation.js`); luôn mở, không có nút thu gọn, tên nhóm là chữ `caption` màu `--sidebar-muted-foreground`; mục đã ghim không lặp lại ở nhóm gốc; mục vẫn lọc theo quyền như mọi mục khác, vai trò không còn mục nào thì không có nhóm.
 - **Đầu mỗi màn** (`page-header`): đặt thẳng trên nền trang, không bọc thẻ. Bên trái tiêu đề nói phạm vi bằng câu bình thường và dòng phụ; bên phải giờ hiện tại (màn trong ca) hoặc ô tìm. Mỗi màn một ô tìm duy nhất (NN/g heuristic 4, 8). Không đặt dãy thẻ số liệu lớn ở đầu trang; số đếm nằm trên tab lọc.
 - **Dải cần làm ngay** (`now-strip`, mới ở 6.0.0): một dòng trên bề mặt trắng ngay dưới đầu màn, nhãn đỏ "Cần làm ngay (n)" (Phát thuốc) rồi tên việc và người, nối bằng dấu phẩy; bấm một mục mở khung chi tiết của nó. Checklist ca không dùng dải một dòng mà dùng nhóm "Quá hạn (n)" gồm các khối việc đầy đủ (mục 7.2 `shift-timeline`), vì spec 005 FR-030 bắt mỗi dòng hiện đủ trường và việc Quá hạn lên đầu. Không tô nền đỏ. Chỉ hiện số liệu, cảnh báo đã có, không tự gợi ý (Q-306, Q-307). Không có gì thì không có dải (mục 11: việc gấp nổi lên bằng thứ tự).
 - Màn nhân viên rộng tối đa 1600px (cổng người thân theo mục 2.3); khoảng cách giữa các khối 20px, giữa các khối việc 8px. Dùng `gap-*`, không dùng `space-x-*`/`space-y-*`.
@@ -395,9 +395,33 @@ Một thẻ là **một đối tượng nghiệp vụ người dùng thao tác r
 | Cổng người thân | Thẻ | Một người cao tuổi |
 | Danh sách người cao tuổi | Bảng theo hợp đồng `GET /residents` của api-001: Người cao tuổi (ảnh đại diện, họ tên, mã), Ngày sinh, Mức chăm sóc, Loại hình, Trạng thái, Đánh giá lại (khi xem được đánh giá). Một ô tìm (`q`), thanh lọc trạng thái theo tham số `status` (không số đếm vì hợp đồng không trả) và "Cần đánh giá lại n". Không có cột phòng, số việc hay cảnh báo trong ngày tới khi hợp đồng có trường đó (6.7.0) | — |
 | Chi phí, số dư, nhật ký, lịch ca, tham số, báo cáo, lần xuất | Bảng | — |
-| Tổng quan (dashboard 016) | Dải "Cần xử lý ngay", rồi lưới khối theo nhóm chỉ tiêu `minmax(240px, 1fr)` | Một nhóm chỉ tiêu (FR-020); trong khối là số `type-metric` gọn bấm được kèm nhãn, dòng chia nhóm; không dãy thẻ số liệu lớn, không biểu đồ |
+| Tổng quan (dashboard 016) | Dải "Cần xử lý ngay", rồi lưới khối theo nhóm chỉ tiêu `minmax(240px, 1fr)` | Một nhóm chỉ tiêu (FR-020); trong khối là số `type-metric` gọn bấm được kèm nhãn; phần chia nhóm vẽ bằng biểu đồ có chức năng khi vẽ được (mục 5.2, từ 6.14.0), không thì giữ dòng chữ; không dãy thẻ số liệu lớn |
 
 Lưới dùng `repeat(auto-fit, minmax(<min>, 1fr))` để thẻ giãn lấp đầy hàng, kèm giới hạn rộng mỗi thẻ (`*:max-w-[480px]`) để thẻ lẻ không kéo dài cả màn: thẻ công việc, thẻ thuốc tối thiểu 280px, tối đa 480px; thẻ phòng tối thiểu 220px; thẻ việc ở Tổng quan tối thiểu 220px, tối đa 360px.
+
+### 5.2 Biểu đồ có chức năng
+
+Chủ dự án duyệt 2026-11-17 (6.14.0) cho Tổng quan và Báo cáo của 016. Biểu đồ chỉ vẽ dữ liệu `breakdown` mà api-016 trả, không tự tính chỉ tiêu (Q-306, Q-307); mỗi biểu đồ trả lời một câu hỏi vận hành. Component dùng chung `src/common/charts/BreakdownChart.jsx`, quy tắc chọn dạng và màu ở `chartRules.js`.
+
+| Dạng | Dùng khi | Ví dụ |
+| --- | --- | --- |
+| Thanh chồng một hàng | Các phần cộng đúng bằng tổng (chia theo trạng thái, mức) | Người đang lưu trú, công việc hôm nay, chi phí kỳ |
+| Thanh ngang so sánh | Các phần không cộng thành tổng (theo tầng, ca, nhân viên, tỷ lệ theo nhóm) | Tỷ lệ liều Bỏ lỡ theo ca, giường theo tầng |
+| Không vẽ | Một phần, quá 12 phần hoặc tổng bằng 0 | Giữ dòng chữ "nhãn số, nhãn số" |
+| Đường theo ngày | Chưa có: api-016 chưa trả chuỗi theo ngày; thêm phải "Đổi api" (đề xuất C2, chưa duyệt) | — |
+
+- Màu theo tông trạng thái 3.5: đỏ chỉ cho việc gấp (Quá hạn, Khẩn cấp, Bỏ lỡ); Chưa đến hạn, Hoàn thành trễ, Không thực hiện là trung tính; trạng thái giường dùng màu sơ đồ giường; phần không có tông dùng xanh thương hiệu (chỉ đồ họa), xanh chàm, xám.
+- Màu không là tín hiệu duy nhất: chú thích ghi tên và số của từng phần; thanh so sánh có nhãn và số ở mỗi hàng; có bảng ẩn (`sr-only`) cho trình đọc màn hình.
+- Không biểu đồ tròn, 3D, gradient, hiệu ứng tự chạy. Biểu đồ không nằm trong `<button>`: số liệu vẫn là nút mở danh sách bản ghi (FR-009), biểu đồ đặt ngay dưới. Ở Báo cáo, biểu đồ đứng trên bảng; bảng giữ số chính xác và lối mở chi tiết.
+
+### 5.3 Màn làm việc theo luồng: Hồ sơ tiếp nhận
+
+Chủ dự án duyệt 2026-11-17 (6.14.0). Một lượt tiếp nhận là một màn (`src/features/admissions/AdmissionWorkspacePage.jsx`, khóa `admission-workspace`, mở bằng nút "Mở hồ sơ tiếp nhận" ở khung chi tiết của Đăng ký tiếp nhận). Màn con không có mục menu riêng: quyền mở và mục được chọn trên menu theo màn cha (`PARENT_PAGE` ở `App.jsx`).
+
+- Đầu màn: "Tiếp nhận <họ tên>", mã hồ sơ, loại lưu trú, ngày đăng ký, ngày mong muốn vào, thanh tiến độ theo tiến trình của 004 (`/admission-applications/{id}/progress`), nút "Danh sách đăng ký".
+- Cột trái: các bước BF-01 chia năm giai đoạn (Hồ sơ và đăng ký; Sức khỏe và đánh giá; Giường, hợp đồng, đặt cọc; Hoàn tất tiếp nhận; Sau tiếp nhận). Mỗi bước một dòng: tên, ai làm, trạng thái (lấy từ điều kiện `ADM_A` → `ADM_F` của `/admission-conditions`, hoặc "Không chặn tiếp nhận"), nút mở đúng form đang có trong `Sheet` (hồ sơ người cao tuổi, ý kiến, phân bổ giường, hợp đồng) hoặc chuyển tới màn sở hữu (Người thân và quyền, Số dư, thu chi, Khai báo cư trú, Kế hoạch chăm sóc). Bước chưa có màn ghi rõ "Chưa có màn" (phiếu đối chiếu thuốc của 006).
+- Cột phải: điều kiện Hoàn tất tiếp nhận, cảnh báo, ý kiến về việc vào ở kèm nguồn (mục 2.2), nút chính "Hoàn tất tiếp nhận" (theo `allowedCommands`) mở tab Trạng thái của hồ sơ; dòng "Còn n điều kiện chưa đạt". Backend vẫn kiểm mọi lệnh.
+- Chỉ hiện trạng thái đã ghi; không tự làm bước thay người, không gợi ý thứ tự khác luồng BF-01 (Q-306, Q-307).
 
 ## 6. Hình khối, độ nổi
 
@@ -571,7 +595,7 @@ Cổng người thân thiết kế cho điện thoại trước.
 
 **Không nên**
 - Dùng đỏ cho thứ không gấp (kể cả phòng cách ly, dị ứng, mức Bắt buộc).
-- Gradient ở bất kỳ đâu; kính mờ; bóng đổ ở bề mặt, khối, nút; dãy thẻ số liệu to; biểu đồ trang trí.
+- Gradient ở bất kỳ đâu; kính mờ; bóng đổ ở bề mặt, khối, nút; dãy thẻ số liệu to; biểu đồ trang trí (biểu đồ có chức năng theo mục 5.2 thì được).
 - Nhiều hộp tô màu trong một khối; nhãn trạng thái có nền màu phấn; bọc mọi thứ trong thẻ.
 - Dùng lưới thẻ cho danh sách cần so sánh hay sắp xếp.
 - Gắn nhãn năng lực lên người cao tuổi; gộp ý kiến của người cao tuổi và gia đình thành một dòng; đặt nút Sửa, Xóa trên ý kiến đã ghi (mục 2.2).
@@ -618,6 +642,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có mục menu "Thông báo" (009 T035, T028; bố cục duyệt 2026-10-23), nhóm đầu ngay dưới "Yêu cầu phê duyệt", cho mọi vai trò nhân viên; tab theo bảng quyền FR-039 của spec 009: Hộp thông báo (mọi vai trò), Lịch sử gửi (Quản lý viện, Trưởng tầng), Lỗi gửi (Quản lý viện), Liên hệ trực tiếp (Hành chính ghi kết quả, Quản lý viện xem), Kênh (Quản lý viện). Bốn tab sau dùng bảng, bấm dòng mở khung chi tiết. Nút "Xác nhận đã nhận" thông báo Khẩn cấp ở khối Khẩn cấp (009 US1); ô lọc "Người cao tuổi" cạnh "Loại sự kiện" lấy hồ sơ trong phạm vi (001), không xem được hồ sơ thì không có ô. Gọi API thật.
 - Tổng quan là dashboard của 016 (T010, bố cục duyệt 2026-10-24): page-header "Tổng quan <phạm vi> hôm nay" kèm "Cập nhật lúc HH:mm:ss, tự làm mới mỗi 30 giây" (ETag) và nút Làm mới; dải `dashboard-urgent`; lưới `dashboard-block` theo nhóm người xem được thấy; không có phạm vi thì "Hiện không có phạm vi phân công". Bản mẫu cũ (lưới việc theo khung giờ, sơ đồ giường) bỏ vì trùng Checklist ca, Phòng giường. Mục menu "Báo cáo" ngay dưới Tổng quan (dòng "Dashboard, báo cáo"): tab theo nhóm báo cáo người xem thấy và tab "Lần xuất" (bảng, nút "Tải file"); thanh lọc khoảng (hôm nay, tuần, tháng, tùy chọn tới CFG-M14-01) và tầng trong phạm vi; `report-table`, `metric-detail-sheet`, `export-dialog`. Gọi API thật; tới khi các module có `*ThongKeApi`, khối, bảng chưa có nguồn ghi "Chưa có dữ liệu".
 - Đã có tài khoản người cao tuổi trong tab Tài khoản (002 T095, bố cục duyệt 2026-10-24): bộ lọc Loại thêm "Người cao tuổi", lọc theo loại này thì bảng thêm cột Thiết bị; nút "Tạo tài khoản người cao tuổi" (Hành chính, Quản lý viện) mở khung tạo: chọn hồ sơ Đang lưu trú, tên đăng nhập, "Người cao tuổi đã" Tự yêu cầu / Đồng ý, mã hồ sơ nhân viên đã nghe; tạo xong hiện mật khẩu tạm một lần. Khung chi tiết tài khoản người cao tuổi có khối "Đăng nhập trên app": thiết bị đang gắn, nút chính "Tạo mã QR" hiện mã QR (`qrcode.react`) kèm "Còn m:ss" (tông `warning-foreground`), hết hạn thì "Mã đã hết hạn. Tạo mã mới."; các nút Gỡ thiết bị, Khóa (căn cứ + lý do), Mở khóa (xác nhận của người cao tuổi), "Lập đề nghị khóa theo lời người thân" (mã hồ sơ người thân + lý do, gửi Quản lý viện duyệt) mở form ngay dưới. Không thêm màu. Gọi API thật.
+- Đã có tạo tài khoản người thân trong tab Tài khoản (002 T106, 2026-11-17): nút "Tạo tài khoản người thân" (Hành chính, Quản lý viện) cạnh hai nút tạo tài khoản, mở `Sheet` theo mẫu tạo tài khoản người cao tuổi: ô "Tìm người thân" kèm nút Tìm (họ tên, số điện thoại, số giấy tờ), hồ sơ khớp chọn bằng radio (họ tên · số điện thoại), tên đăng nhập, nhóm "Xác minh danh tính" hai lựa chọn (Có mặt, đối chiếu giấy tờ tùy thân / Gọi lại số đã đăng ký) mở ô số tương ứng; lỗi báo tại ô, lỗi xác minh hiện `ProblemAlert`; tạo xong hiện mật khẩu tạm một lần. Không thêm màu. Gọi API thật.
 - Đã có tab Phân quyền (002 T077, bố cục duyệt 2026-10-21): bên trái 9 vai trò, bên phải bảng quyền của vai trò theo dòng ma trận (chức năng, thao tác, tối đa, hiện hành, trạng thái Theo ma trận / Đã thu hẹp, nút Thu hẹp mở form ngay dưới dòng), dưới là danh sách thu hẹp đang hiệu lực có Khôi phục; không có lệnh thêm quyền. Khung chi tiết tài khoản thêm mục Quyền (vai trò, thu hẹp theo vai trò chỉ xem, thu hẹp theo tài khoản, quyền gán thêm, nút theo `allowedCommands`, quyền hiện hành thu gọn, "Xem tại thời điểm" chỉ xem). Gọi API thật.
 - Đã có tab Sức khỏe trong khung chi tiết hồ sơ người cao tuổi (001 T033, bố cục duyệt 2026-10-22; `src/features/residents/`): từ 6.7.0 là nút "Sức khỏe" mở `Sheet` 768px chồng lên khung hồ sơ, ẩn khi backend bỏ phần sức khỏe theo quyền (`hiddenFields`). Tab gồm hai khối. Hồ sơ sức khỏe ban đầu: nhãn Bản nháp hoặc Đã xác nhận (kèm Đã đính chính), tám ô theo FR-017, nút Lập hồ sơ, Sửa bản nháp, Xác nhận hồ sơ (chỉ Bác sĩ), Đính chính mở khung đính chính dùng chung. Dị ứng, bệnh nền, tiền sử bệnh: bộ lọc Hiệu lực | Đã loại trừ | Tất cả, khối dị ứng `AllergyNote` đứng trước, mục chia theo loại kèm nguồn, người ghi, ngày; "Không kiểm tra tự động" tông `attention`, "Chờ kiểm tra thuốc và chế độ ăn" tông `neutral`; nút Ghi nhận mục mở form ngay dưới (Dị ứng từ danh mục, Dị ứng khác nhập tay, Bệnh nền, Tiền sử bệnh; trùng thì hỏi "Vẫn ghi nhận mục này"); nút Loại trừ mở ô lý do bắt buộc ngay dưới mục. Mục không có nút Sửa, Xóa (DBR-04). Nút hiện theo `allowedCommands`. Gọi API thật.
 
@@ -749,6 +774,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.14.0 | 2026-11-17 | Chủ dự án duyệt ba đề xuất (đề xuất A, B, C): nhóm ghim "Việc chính" theo vai trò ở đầu menu (mục 5 "Nhóm menu"); biểu đồ có chức năng cho Tổng quan, Báo cáo (mục 5.1, 5.2, 11); màn làm việc theo luồng "Hồ sơ tiếp nhận" (mục 5.3). Kho web nhánh `impl/ui-admission-dashboard-nav`. |
 | 6.13.0 | 2026-11-10 | Màn Lịch xe (019 T022; mục 14). Mục 3.5 thêm trạng thái lịch xe: Đang dùng `occupied`, Đã hoàn thành `settled`, Đã đặt, Đã hủy `neutral`. Không thêm màu |
 | 6.12.0 | 2026-11-10 | Màn Tài sản (019 T018; mục 14). Mục 3.5 thêm trạng thái tài sản: Hỏng và dấu Chờ chuyển người `attention`; Đang sử dụng `occupied`; Sẵn sàng, Đang bảo trì, Đã thanh lý `neutral`; dấu quá hạn bảo trì, đăng kiểm, bảo hiểm `urgent`. Không thêm màu |
 | 6.11.0 | 2026-11-10 | Màn Yêu cầu mua sắm (019 T008; mục 14). Mục 3.5 thêm trạng thái yêu cầu mua sắm: Chờ đối chiếu, Lệch `attention`; Đã duyệt, Đã đối chiếu `settled`; Nháp, Từ chối, Đã hủy `neutral`. Không thêm màu |
