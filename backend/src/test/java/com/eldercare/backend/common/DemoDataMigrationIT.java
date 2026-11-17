@@ -3,6 +3,7 @@ package com.eldercare.backend.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import java.time.Instant;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -57,5 +58,16 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND floor_area_id=9001 AND status='ACTIVE'",
                         Integer.class))
                 .isEqualTo(1);
+        // Người phụ trách ca đọc từ cột work_shift.lead_staff_id (ShiftStore), không chỉ dòng lịch sử LEAD_STAFF
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM work_shift WHERE template_id=9001 AND scope_id=9001 AND lead_staff_id=9005",
+                        Integer.class))
+                .isEqualTo(7);
+        // Mốc thời gian trong JSON của bảng chung được đọc thành Instant (ISO-8601 UTC); dạng DATETIME của MySQL làm
+        // backend dừng khi khởi động (job phút của 005 đọc mẫu ca, 2026-11-17).
+        assertThat(Instant.parse(jdbc.queryForObject(
+                        "SELECT attributes->>'$.createdAt' FROM catalog_item WHERE id=9001 AND catalog_type='M09.SHIFT_TEMPLATE'",
+                        String.class)))
+                .isNotNull();
     }
 }
