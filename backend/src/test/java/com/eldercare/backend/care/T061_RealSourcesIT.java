@@ -1,13 +1,20 @@
 package com.eldercare.backend.care;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.care.api.ShiftTaskApi;
 import com.eldercare.backend.care.api.spi.ShiftStaffPort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
+import com.eldercare.backend.health.api.dto.MeasurementFrequency;
+import com.eldercare.backend.health.internal.schedule.domain.MeasurementSchedule;
+import com.eldercare.backend.health.internal.schedule.domain.NewMeasurementSchedule;
+import com.eldercare.backend.health.internal.schedule.domain.ScheduleFrequency;
+import com.eldercare.backend.health.internal.schedule.persistence.MeasurementScheduleStore;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.RealCareFixture;
 import com.eldercare.backend.support.SwitchableUser;
@@ -16,6 +23,8 @@ import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +36,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -63,6 +73,15 @@ class T061_RealSourcesIT extends MySqlIntegrationTestBase {
 
     @Autowired
     com.eldercare.backend.care.internal.task.service.CareTaskClockProcessor clockProcessor;
+
+    @Autowired
+    ShiftTaskApi shiftTasks;
+
+    @Autowired
+    MeasurementScheduleStore schedules;
+
+    @Autowired
+    TransactionTemplate tx;
 
     RealCareFixture fixture;
     RealCareFixture.Place place;
@@ -167,5 +186,90 @@ class T061_RealSourcesIT extends MySqlIntegrationTestBase {
                         .content(body.replace("\"residentId\":" + resident, "\"residentId\":" + other)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.rowErrors[0].codes").value(org.hamcrest.Matchers.hasItem("INVALID_BASIS")));
+    }
+
+    /**
+     * 007 T023 (FR-004, research S-05): căn cứ lịch đo kiểm qua nguồn thật của 007 ({@code MeasurementTaskSource}): mốc
+     * thuộc chuỗi mốc đo của lịch, đúng người thì lập được; lịch mức Bắt buộc mà lập công việc mức Thường bị chặn (005
+     * FR-023); lịch của người khác bị chặn.
+     */
+    @Test
+    void T023_measurementBasis_validatedByRealMeasurementTaskSource() throws Exception {
+        var local = planned.atZone(BusinessTime.ZONE).toLocalTime();
+        var frequency = new ScheduleFrequency(MeasurementFrequency.CLOCK_TIMES, List.of(local), null, null, Set.of());
+        long schedule = schedules.insert(
+                new MeasurementSchedule(
+                        0,
+                        resident,
+                        new NewMeasurementSchedule(
+                                Set.of(TestUsers.nextId()),
+                                frequency,
+                                time.now().minus(Duration.ofDays(1)),
+                                null,
+                                "MANDATORY",
+                                null),
+                        "EFFECTIVE",
+                        null,
+                        null,
+                        null,
+                        0),
+                manager.staffId(),
+                time.now());
+        String body = row(caregiver.staffId())
+                .replace("{\"type\":\"AD_HOC\"}", "{\"type\":\"MEASUREMENT\",\"id\":" + schedule + "}");
+        user.set(manager.user());
+
+        mvc.perform(post("/api/v1/shifts/" + shift + "/care-tasks/plan")
+                        .header("Idempotency-Key", "real-" + TestUsers.nextId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.rowErrors[0].codes").value(org.hamcrest.Matchers.hasItem("INVALID_BASIS")));
+
+        mvc.perform(post("/api/v1/shifts/" + shift + "/care-tasks/plan")
+                        .header("Idempotency-Key", "real-" + TestUsers.nextId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.replace("\"importance\":\"NORMAL\"", "\"importance\":\"MANDATORY\"")))
+                .andExpect(status().isCreated());
+
+        long other = fixture.residentInBed(fixture.secondBed(place), time.now().minus(Duration.ofDays(1)));
+        mvc.perform(post("/api/v1/shifts/" + shift + "/care-tasks/plan")
+                        .header("Idempotency-Key", "real-" + TestUsers.nextId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.replace("\"importance\":\"NORMAL\"", "\"importance\":\"MANDATORY\"")
+                                .replace("\"residentId\":" + resident, "\"residentId\":" + other)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.rowErrors[0].codes").value(org.hamcrest.Matchers.hasItem("INVALID_BASIS")));
+    }
+
+    /**
+     * 005 T056 (contracts 1.4 {@code khiVangCa}, {@code khiNghiViec}; BR-M04-21) với {@code ShiftStaffPort} thật của 008
+     * ({@code CareStaffLookup}): vắng ca làm công việc chưa đóng của người đó trong ca thành việc chung; nghỉ việc làm công
+     * việc chưa đóng ở ca còn chưa kết thúc thành việc chung. Lệnh của 008 gọi trong transaction của mình (MANDATORY).
+     */
+    @Test
+    void T056_absenceAndResignation_shareOpenTasks_withRealShiftStaffPort() throws Exception {
+        plan(caregiver.staffId()).andExpect(status().isCreated());
+        long first = lastTaskOf(caregiver.staffId());
+
+        tx.executeWithoutResult(s -> shiftTasks.onAbsence(caregiver.staffId(), shift));
+
+        assertThat(performerOf(first)).isNull();
+
+        plan(caregiver.staffId()).andExpect(status().isCreated());
+        long second = lastTaskOf(caregiver.staffId());
+
+        tx.executeWithoutResult(s -> shiftTasks.onResignation(caregiver.staffId(), time.now()));
+
+        assertThat(performerOf(second)).isNull();
+    }
+
+    private long lastTaskOf(long performer) {
+        return jdbc.queryForObject(
+                "SELECT MAX(id) FROM care_task WHERE shift_id=? AND performer_id=?", Long.class, shift, performer);
+    }
+
+    private Long performerOf(long task) {
+        return jdbc.queryForObject("SELECT performer_id FROM care_task WHERE id=?", Long.class, task);
     }
 }

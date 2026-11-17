@@ -895,7 +895,7 @@ components:
         windowBeforeMinutes: { type: integer }
         windowAfterMinutes: { type: integer }
         performerRole: { type: string }
-        resultType: { type: string }
+        resultType: { type: string, enum: [EATING, ML, MEASURED_VALUE, MOVEMENT, SLEEP, MOOD, BEHAVIOR, ITEM_QUANTITY, PERFORMED, NONE] }
         importance: { $ref: '#/components/schemas/Importance' }
         billable: { type: boolean }
         waterTargetMl: { type: integer }
@@ -1125,7 +1125,7 @@ components:
         name: { type: string }
         group: { type: string }
         professional: { type: boolean }
-        resultType: { type: string }
+        resultType: { type: string, enum: [EATING, ML, MEASURED_VALUE, MOVEMENT, SLEEP, MOOD, BEHAVIOR, ITEM_QUANTITY, PERFORMED, NONE] }
         defaultRole: { type: string }
         defaultImportance: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY] }
         windowBeforeMinutes: { type: integer }
@@ -1291,6 +1291,8 @@ components:
           type: array
           items:
             type: string
+            enum: [record, notPerform, claim, cancel]
+          description: 'record, notPerform: POST /care-tasks/{id}/record, /not-perform; claim: POST /care-tasks/{id}/claim; cancel: POST /care-tasks/{id}/cancel (Trưởng tầng, công việc Chưa đến giờ). Chủ dự án duyệt 2026-11-17.'
     CareTaskDetail:
       allOf:
         - $ref: "#/components/schemas/CareTask"
@@ -1335,6 +1337,7 @@ components:
           format: int64
         resultType:
           type: string
+          enum: [EATING, ML, MEASURED_VALUE, MOVEMENT, SLEEP, MOOD, BEHAVIOR, ITEM_QUANTITY, PERFORMED, NONE]
         currentValue:
           type: object
           additionalProperties: true
