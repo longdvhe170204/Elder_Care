@@ -11,6 +11,7 @@ import com.eldercare.backend.incident.api.dto.AlertShiftView;
 import com.eldercare.backend.incident.api.spi.AlertStaffPort;
 import com.eldercare.backend.incident.internal.alert.domain.*;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
+import com.eldercare.backend.incident.internal.alert.service.AcknowledgementDeadlines;
 import com.eldercare.backend.incident.internal.alert.service.AlertService;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
 import java.time.Duration;
@@ -62,6 +63,16 @@ class FR_031_AlertDeadlineTest {
         when(parameters.read(ParameterCode.CFG_M05_01)).thenThrow(new IllegalStateException("Chưa có cấu hình"));
         assertThatThrownBy(() -> request(IncidentLevel.MEDIUM)).isInstanceOf(IllegalStateException.class);
         verify(store, never()).insert(any());
+    }
+
+    @Test
+    void FR_031_lightEscalationWithoutCurrentShiftFallsBackToMediumInterval() {
+        duration(ParameterCode.CFG_M05_01, Duration.ofMinutes(15));
+        assertThat(AcknowledgementDeadlines.forEscalation(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
+                .isEqualTo(NOW.plusSeconds(900));
+        assertThatThrownBy(
+                        () -> AcknowledgementDeadlines.of(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     private AlertRecord request(IncidentLevel level) {

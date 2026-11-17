@@ -11,6 +11,24 @@ import java.util.Optional;
 public final class AcknowledgementDeadlines {
     private AcknowledgementDeadlines() {}
 
+    /**
+     * Hạn mới khi đang leo thang hoặc nhắc lại: như {@link #of}, nhưng mức Nhẹ không còn ca hiện tại hoặc ca kế tiếp (ví dụ
+     * ngay sau khi hết ca) thì lấy bây giờ + CFG-M05-01 để cảnh báo, sự cố không kẹt ở cấp cũ.
+     */
+    public static Instant forEscalation(
+            IncidentLevel level,
+            Instant now,
+            Long floorAreaId,
+            ParameterApi parameters,
+            Optional<AlertStaffPort> staffPort) {
+        try {
+            return of(level, now, floorAreaId, parameters, staffPort);
+        } catch (IllegalStateException noShift) {
+            if (level != IncidentLevel.LOW) throw noShift;
+            return now.plus(parameters.read(ParameterCode.CFG_M05_01).asDuration());
+        }
+    }
+
     public static Instant of(
             IncidentLevel level,
             Instant now,
