@@ -34,4 +34,6 @@ public record EndOfLifeWish(
         WishRecordSource source,
         WishStatus status,
         long recordedBy,
-        Instant recordedAt) {}
+        Instant recordedAt,
+        Long verifiedBy,
+        Instant verifiedAt) {}

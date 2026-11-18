@@ -71,6 +71,9 @@ class ResidentController {
     // thêm)
     private static final String CONFIRM_INITIAL_HEALTH_RECORD = "CONFIRM_INITIAL_HEALTH_RECORD";
     private static final String VERIFY_HEALTH_ITEM = "VERIFY_HEALTH_ITEM";
+    private static final String DRAFT_END_OF_LIFE_WISH = "DRAFT_END_OF_LIFE_WISH";
+    private static final String DRAFT_TREATMENT_WISH = "DRAFT_TREATMENT_WISH";
+    private static final String RECORD_FAMILY_DECLARED = "RECORD_FAMILY_DECLARED";
     private static final PermissionKey WRITE_HEALTH = new PermissionKey(Function.ALLERGY_CONDITION, Operation.UPDATE);
     private static final Map<String, PermissionKey> PROFILE_COMMANDS = Map.ofEntries(
             Map.entry(UPDATE_PERSONAL_INFO, new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE)),
@@ -87,7 +90,11 @@ class ResidentController {
             Map.entry("WITHDRAW_CONSENT", new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.UPDATE)),
             // Phiếu nguyện vọng (US7): Bác sĩ, Điều dưỡng ghi phiên bản mới (Phụ lục 27)
             Map.entry("RECORD_END_OF_LIFE_WISH", new PermissionKey(Function.END_OF_LIFE_WISHES, Operation.CREATE)),
-            Map.entry("RECORD_TREATMENT_WISH", new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE)));
+            Map.entry("RECORD_TREATMENT_WISH", new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE)),
+            // Bản Nháp tự khai do Hành chính lập khi Đang tiếp nhận (Q-412, BR-M01-18; Phụ lục 27 T⁵², T⁵⁰)
+            Map.entry(DRAFT_END_OF_LIFE_WISH, new PermissionKey(Function.END_OF_LIFE_WISHES, Operation.CREATE)),
+            Map.entry(DRAFT_TREATMENT_WISH, new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE)),
+            Map.entry(RECORD_FAMILY_DECLARED, new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.CREATE)));
 
     // Lệnh trạng thái (US4): khóa quyền theo data-model mục 2; hợp trạng thái hiện tại lọc thêm ở body()
     private static final Map<StatusCommand, PermissionKey> STATUS_COMMANDS = Map.of(
@@ -215,6 +222,22 @@ class ResidentController {
         return profiles.linkedProfiles(ResidentProfileService.target(id));
     }
 
+    /**
+     * Lệnh của bản Nháp tự khai (Q-412, BR-M01-18): Hành chính chỉ lập Nháp phiếu nguyện vọng, ghi "Gia đình khai" khi
+     * người cao tuổi còn Đang tiếp nhận, không ghi phiếu, không lập đánh giá (ô T⁵² của ma trận rộng hơn); người khác không
+     * có lệnh lập Nháp (Bác sĩ, Điều dưỡng kiểm chứng bằng chính lệnh ghi phiếu).
+     */
+    static void applySelfReportDrafts(Set<String> commands, boolean officeOnly, ResidentStatus status) {
+        if (officeOnly) {
+            commands.removeAll(Set.of("RECORD_END_OF_LIFE_WISH", "RECORD_TREATMENT_WISH", "CREATE_ASSESSMENT"));
+            if (status != ResidentStatus.ADMISSION_IN_PROGRESS) {
+                commands.removeAll(Set.of(DRAFT_END_OF_LIFE_WISH, DRAFT_TREATMENT_WISH, RECORD_FAMILY_DECLARED));
+            }
+        } else {
+            commands.removeAll(Set.of(DRAFT_END_OF_LIFE_WISH, DRAFT_TREATMENT_WISH, RECORD_FAMILY_DECLARED));
+        }
+    }
+
     private static Map<String, PermissionKey> allCommands() {
         Map<String, PermissionKey> all = new HashMap<>(PROFILE_COMMANDS);
         STATUS_COMMANDS.forEach((command, key) -> all.put(command.name(), key));
@@ -234,6 +257,7 @@ class ResidentController {
                 commands.removeAll(Set.of("RECORD_HEALTH_ITEM", "WRITE_INITIAL_HEALTH_RECORD"));
             }
         }
+        applySelfReportDrafts(commands, SelfReportedHealth.isOfficeOnly(currentUser), view.status());
         // Trạng thái cuối: backend chặn 409 PROFILE_CLOSED nên không cho hiện nút (BUG-06). Lệnh ghi khác giữ nguyên vì
         // màn
         // còn dùng để hiện đính chính.

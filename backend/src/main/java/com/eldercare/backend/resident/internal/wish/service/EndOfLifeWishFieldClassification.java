@@ -39,6 +39,8 @@ class EndOfLifeWishFieldClassification implements FieldClassificationProvider {
                 Map.entry("courtDecisionFileId", InfoGroup.WISHES),
                 Map.entry("otherOpinionCount", InfoGroup.WISHES),
                 Map.entry("signedAt", InfoGroup.WISHES),
-                Map.entry("signedCopyFileId", InfoGroup.WISHES));
+                Map.entry("signedCopyFileId", InfoGroup.WISHES),
+                // lý do Hủy nháp tự khai (Q-412, FR-023p)
+                Map.entry("reason", InfoGroup.WISHES));
     }
 }
