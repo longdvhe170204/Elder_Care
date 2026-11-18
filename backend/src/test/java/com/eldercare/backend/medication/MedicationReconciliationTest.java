@@ -70,6 +70,7 @@ class MedicationReconciliationTest {
     private ResidentMedicationLock residentMedicationLock;
     private ObjectMapper objectMapper;
     private ReconciliationDeadlines deadlines;
+    private com.eldercare.backend.medication.internal.reconciliation.service.PrescribingAuthority prescribingAuthority;
 
     private MedicationReconciliationService reconciliationService;
 
@@ -84,6 +85,8 @@ class MedicationReconciliationTest {
         residentMedicationLock = mock(ResidentMedicationLock.class);
         objectMapper = new ObjectMapper().findAndRegisterModules();
         deadlines = mock(ReconciliationDeadlines.class);
+        prescribingAuthority =
+                mock(com.eldercare.backend.medication.internal.reconciliation.service.PrescribingAuthority.class);
 
         reconciliationService = new MedicationReconciliationService(
                 reconciliationRepo,
@@ -95,7 +98,8 @@ class MedicationReconciliationTest {
                 residentMedicationLock,
                 objectMapper,
                 new BusinessTime(Clock.systemUTC()),
-                deadlines);
+                deadlines,
+                prescribingAuthority);
     }
 
     private void setId(Object entity, Long id) {
@@ -237,7 +241,7 @@ class MedicationReconciliationTest {
         line.setSource("CURRENT_PRESCRIPTION");
         line.setPrescriptionId(201L);
 
-        ReconciliationResponse updated = reconciliationService.updateItems(7L, null, List.of(line), 11L, false);
+        ReconciliationResponse updated = reconciliationService.updateItems(7L, null, List.of(line), 11L);
 
         assertThat(updated.getItems().getFirst().getDecision()).isNull();
         ReconciliationItem saved = new ReconciliationItem(
@@ -286,13 +290,10 @@ class MedicationReconciliationTest {
     }
 
     private static void assertBasisRequired(org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
-        assertThatThrownBy(call)
-                .isInstanceOf(com.eldercare.backend.common.error.ConditionNotMetException.class)
-                .satisfies(e -> assertThat(((com.eldercare.backend.common.error.ConditionNotMetException) e)
-                                .unmetConditions()
-                                .getFirst()
-                                .code())
-                        .isEqualTo("EXTERNAL_BASIS_REQUIRED"));
+        assertThatThrownBy(call).isInstanceOf(BusinessException.class).satisfies(e -> {
+            assertThat(((BusinessException) e).status()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(((BusinessException) e).errorCode()).isEqualTo("EXTERNAL_BASIS_REQUIRED");
+        });
     }
 
     @Test
@@ -305,19 +306,40 @@ class MedicationReconciliationTest {
         discontinue.setPrescriptionId(201L);
         discontinue.setDecision("DISCONTINUE");
 
-        assertBasisRequired(() -> reconciliationService.updateItems(5L, null, List.of(discontinue), 11L, false));
+        assertBasisRequired(() -> reconciliationService.updateItems(5L, null, List.of(discontinue), 11L));
         assertBasisRequired(() -> reconciliationService.updateItems(
-                5L, null, List.of(changeDoseLine("INTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L, false));
-        assertBasisRequired(() ->
-                reconciliationService.updateItems(5L, null, List.of(changeDoseLine("EXTERNAL", " ")), 11L, false));
+                5L, null, List.of(changeDoseLine("INTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L));
+        assertBasisRequired(
+                () -> reconciliationService.updateItems(5L, null, List.of(changeDoseLine("EXTERNAL", " ")), 11L));
 
         ReconciliationResponse nurse = reconciliationService.updateItems(
-                5L, null, List.of(changeDoseLine("EXTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L, false);
+                5L, null, List.of(changeDoseLine("EXTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L);
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
         ReconciliationResponse doctor =
-                reconciliationService.updateItems(5L, null, List.of(changeDoseLine("INTERNAL", null)), 12L, true);
+                reconciliationService.updateItems(5L, null, List.of(changeDoseLine("INTERNAL", null)), 12L);
 
         assertThat(nurse.getItems()).hasSize(1);
         assertThat(doctor.getItems()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName(
+            "FR-005, BR-M06-05, Q-411: bác sĩ giấy phép hết hạn ghi dòng Ngừng không căn cứ bị chặn; bác sĩ hợp lệ thì được")
+    void doctorWithoutValidPrescribingLicenseNeedsBasis() {
+        openTicket(4L);
+        var discontinue = new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        discontinue.setSource("CURRENT_PRESCRIPTION");
+        discontinue.setPrescriptionId(201L);
+        discontinue.setDecision("DISCONTINUE");
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(false);
+
+        assertBasisRequired(() -> reconciliationService.updateItems(4L, null, List.of(discontinue), 12L));
+
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
+        assertThat(reconciliationService
+                        .updateItems(4L, null, List.of(discontinue), 12L)
+                        .getItems())
+                .hasSize(1);
     }
 
     @Test

@@ -1,9 +1,7 @@
 package com.eldercare.backend.medication.internal.reconciliation.service;
 
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
-import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.medication.internal.dose.domain.DoseCancellationReason;
@@ -64,6 +62,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final ObjectMapper objectMapper;
     private final BusinessTime businessTime;
     private final ReconciliationDeadlines deadlines;
+    private final PrescribingAuthority prescribingAuthority;
 
     public MedicationReconciliationService(
             MedicationReconciliationRepository reconciliationRepo,
@@ -75,8 +74,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             ResidentMedicationLock residentMedicationLock,
             @Autowired(required = false) ObjectMapper objectMapper,
             BusinessTime businessTime,
-            ReconciliationDeadlines deadlines) {
+            ReconciliationDeadlines deadlines,
+            PrescribingAuthority prescribingAuthority) {
         this.deadlines = deadlines;
+        this.prescribingAuthority = prescribingAuthority;
         this.reconciliationRepo = reconciliationRepo;
         this.itemRepo = itemRepo;
         this.correctionRepo = correctionRepo;
@@ -160,7 +161,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
     @Transactional
     public ReconciliationResponse updateItems(
-            Long id, String ifMatch, List<ReconciliationItemBody> itemsBody, Long currentUserId, boolean isDoctor) {
+            Long id, String ifMatch, List<ReconciliationItemBody> itemsBody, Long currentUserId) {
         MedicationReconciliation ticket = reconciliationRepo.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(ticket.getResidentId());
 
@@ -175,6 +176,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             VersionEtag.requireMatch(ifMatch, ticket.getVersion(), toResponse(ticket, List.of()));
         }
 
+        boolean prescriber = prescribingAuthority.canPrescribe(ticket.getResidentId());
         itemRepo.deleteByReconciliationId(id);
 
         List<ReconciliationItem> savedItems = new ArrayList<>();
@@ -183,7 +185,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             for (ReconciliationItemBody b : itemsBody) {
                 ReconciliationItemSource source = parseSource(b.getSource());
                 ReconciliationDecision decision = b.getDecision() != null ? parseDecision(b.getDecision()) : null;
-                if (!isDoctor) {
+                if (!prescriber) {
                     requireExternalBasis(decision, b);
                 }
 
@@ -582,7 +584,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     }
 
     /**
-     * Dòng Ngừng, Thay đổi liều của người không phải Bác sĩ có quyền kê đơn (FR-005): lý do ghi căn cứ từ cơ sở kê bên
+     * Dòng Ngừng, Thay đổi liều của người không phải Bác sĩ có quyền kê đơn hợp lệ ({@link PrescribingAuthority}) (FR-005): lý do ghi căn cứ từ cơ sở kê bên
      * ngoài, đơn thay thế là đơn bên ngoài có cơ sở kê (bảng FR-035, FR-006, Q-411). Nội dung căn cứ do người xác nhận
      * kiểm.
      */
@@ -597,10 +599,11 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         || !"EXTERNAL"
                                 .equalsIgnoreCase(replacement.getPrescriber().getType()));
         if (!hasBasis || internalReplacement) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition(
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
                     "EXTERNAL_BASIS_REQUIRED",
-                    "Discontinue or change-dose line by a non-prescriber needs the external basis in the reason and an"
-                            + " external replacement prescription (FR-035, FR-006, Q-411)")));
+                    "Dòng Ngừng, Thay đổi liều của người không có quyền kê đơn phải ghi căn cứ từ cơ sở kê bên ngoài"
+                            + " (cơ sở, người, ngày) trong lý do; đơn thay thế phải là đơn bên ngoài có cơ sở kê (Q-411)");
         }
     }
 
