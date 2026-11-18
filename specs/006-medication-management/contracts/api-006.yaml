@@ -138,11 +138,11 @@ paths:
     post:
       tags: [prescription]
       summary: Tiếp tục đơn
-      description: 'Chỉ khi đơn Tạm dừng do lệnh (không phải "chờ đối chiếu") và không có phiếu đối chiếu mở (FR-037).'
+      description: 'Chỉ khi đơn Tạm dừng do lệnh (không phải "chờ đối chiếu") và không có phiếu đối chiếu mở (FR-037). Đơn nội bộ: Bác sĩ có quyền kê đơn hợp lệ (FR-005), không thì 403 LEGAL_CONDITION_NOT_MET (Q-413, bổ sung 2026-11-19).'
       x-fr: [FR-011, FR-037]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/PrescriptionCommand' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
   /prescriptions/{id}/discontinue:
     post:
       tags: [prescription]
@@ -173,13 +173,14 @@ paths:
     post:
       tags: [prescription]
       summary: Gia hạn (ngày kết thúc muộn hơn hoặc bỏ ngày kết thúc)
+      description: 'Đơn nội bộ: Bác sĩ có quyền kê đơn hợp lệ (FR-005), không thì 403 LEGAL_CONDITION_NOT_MET (FR-015; bổ sung 2026-11-19).'
       x-fr: [FR-015, FR-017]
       x-br: [BR-M07-08]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
         required: true
         content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/PrescriptionCommandBody' }, { type: object, properties: { newEndedAt: { type: [string, 'null'], format: date } } } ] } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Lịch thuốc và liều ----------------
   /residents/{residentId}/medication-schedule:

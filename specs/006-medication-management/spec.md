@@ -422,7 +422,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Chờ hiệu lực (dấu "chờ tiếp nhận") | Hoàn tất tiếp nhận | Hiệu lực | Hệ thống | — | Ngày giờ bắt đầu = thời điểm lệnh; lịch thuốc tính liều (FR-018) |
 | Hiệu lực | Tạm dừng đơn | Tạm dừng | Bác sĩ; Điều dưỡng chỉ khi đơn bên ngoài và có căn cứ từ cơ sở kê | Bắt buộc lý do | Liều Chưa đến giờ từ thời điểm tạm dừng chuyển Tạm dừng |
 | Hiệu lực | Tiếp nhận hoặc trở về từ bệnh viện (BR-M07-09) | Tạm dừng | Hệ thống | — | Lý do "chờ đối chiếu"; gắn vào phiếu đối chiếu (FR-034) |
-| Tạm dừng | Tiếp tục đơn | Hiệu lực | Như "Tạm dừng đơn" | Đơn không đang chờ đối chiếu; bắt buộc lý do | Liều Tạm dừng có thời điểm dự kiến từ lúc tiếp tục trở lại Chưa đến giờ (FR-021) |
+| Tạm dừng | Tiếp tục đơn | Hiệu lực | Như "Tạm dừng đơn"; với đơn nội bộ là Bác sĩ đáp ứng FR-005 *(Q-413, 2026-11-19; Tạm dừng, Ngừng đơn nội bộ chỉ cần vai trò Bác sĩ)* | Đơn không đang chờ đối chiếu; bắt buộc lý do | Liều Tạm dừng có thời điểm dự kiến từ lúc tiếp tục trở lại Chưa đến giờ (FR-021) |
 | Tạm dừng | Phiếu đối chiếu được xác nhận với quyết định Tiếp tục | Hiệu lực | Hệ thống | — | Như trên |
 | Hiệu lực, Tạm dừng, Chờ hiệu lực | Ngừng đơn | Đã ngừng | Bác sĩ; Điều dưỡng chỉ khi đơn bên ngoài và có căn cứ từ cơ sở kê | Bắt buộc lý do; thời điểm ngừng không trước thời điểm lệnh | Hủy liều từ thời điểm ngừng (BR-M07-07) |
 | Hiệu lực, Tạm dừng, Chờ hiệu lực | Đổi liều / đổi thuốc (FR-016) hoặc quyết định Thay đổi liều trên phiếu đối chiếu | Đã ngừng | Như "Ngừng đơn" (với đơn thay thế là đơn nội bộ: FR-005) | Đơn thay thế qua FR-007; cùng một lệnh | Lý do "thay thế"; đơn thay thế trỏ về đơn này (DBR-14) |
