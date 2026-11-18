@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.shared.api.ResidentModuleStateApi;
 import com.eldercare.backend.medication.internal.reconciliation.domain.MedicationResidentState;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,11 @@ public class ReconciliationDueStore {
     public void start(long residentId, Instant dueAt, String reason) {
         lock.lock(residentId);
         states.save(MedicationResidentState.KIND, residentId, MedicationResidentState.dueAt(dueAt, reason));
+    }
+
+    /** Hạn đang chạy từ lệnh Hoàn tất tiếp nhận hoặc Ghi nhận trở về; trống khi chưa có lệnh hoặc đã xác nhận. */
+    public Optional<Instant> dueAt(long residentId) {
+        return states.get(MedicationResidentState.KIND, residentId).map(MedicationResidentState::reconciliationDueAt);
     }
 
     public void clear(long residentId) {

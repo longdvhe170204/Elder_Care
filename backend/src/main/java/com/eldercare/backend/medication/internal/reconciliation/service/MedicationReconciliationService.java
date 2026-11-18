@@ -1,7 +1,5 @@
 package com.eldercare.backend.medication.internal.reconciliation.service;
 
-import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -14,7 +12,6 @@ import com.eldercare.backend.medication.internal.prescription.domain.CreatePresc
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.prescription.domain.SuspensionReason;
 import com.eldercare.backend.medication.internal.prescription.domain.TerminationReason;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
@@ -64,7 +61,6 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final ResidentMedicationLock residentMedicationLock;
     private final ObjectMapper objectMapper;
     private final BusinessTime businessTime;
-    private final ParameterApi parameters;
     private final ReconciliationDeadlines deadlines;
 
     public MedicationReconciliationService(
@@ -77,7 +73,6 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             ResidentMedicationLock residentMedicationLock,
             @Autowired(required = false) ObjectMapper objectMapper,
             BusinessTime businessTime,
-            ParameterApi parameters,
             ReconciliationDeadlines deadlines) {
         this.deadlines = deadlines;
         this.reconciliationRepo = reconciliationRepo;
@@ -89,7 +84,6 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         this.residentMedicationLock = residentMedicationLock;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
         this.businessTime = businessTime;
-        this.parameters = parameters;
     }
 
     @Override
@@ -125,18 +119,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             }
             // Do not suspend prescriptions, no deadline (deadlineAt = null)
         } else {
-            // Admission or Hospital return: 24-hour deadline (CFG-M07-05)
-            deadlineAt = businessTime
-                    .now()
-                    .plus(parameters.read(ParameterCode.CFG_M07_05).asDuration());
-
-            // Suspend active prescriptions pending reconciliation (FR-034)
-            List<Prescription> activePrescriptions =
-                    prescriptionRepo.findByResidentIdAndStatusIn(residentId, List.of(PrescriptionStatus.ACTIVE));
-            for (Prescription p : activePrescriptions) {
-                p.suspend(SuspensionReason.RECONCILIATION_PENDING);
-                prescriptionRepo.save(p);
-            }
+            // Admission or hospital return: the CFG-M07-05 deadline runs from the Complete admission / Record return
+            // command (FR-034, FR-035); a ticket opened before Complete admission has none yet (FR-034a). Prescriptions
+            // are suspended by that command (ReconciliationDeadlines.begin), not when the ticket is opened.
+            deadlineAt = deadlines.currentDeadline(residentId).orElse(null);
         }
 
         MedicationReconciliation ticket = new MedicationReconciliation(
@@ -213,7 +199,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         b.getPrescriptionId(),
                         b.getAdmissionMedicationItemId(),
                         b.getMedicationDescription(),
-                        decision != null ? decision : ReconciliationDecision.CONTINUE,
+                        decision,
                         b.getReason(),
                         newPrescriptionJson,
                         currentUserId,
