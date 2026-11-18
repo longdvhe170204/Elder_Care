@@ -856,6 +856,12 @@ public class PrescriptionService implements PrescriptionApi {
             Long currentUserId,
             boolean isDoctor) {
         if (isDoctor) {
+            // Gia hạn (FR-015), tiếp tục (Q-413) đơn nội bộ là cho dùng thuốc tiếp: cần quyền kê đơn hợp lệ (FR-005).
+            // Tạm dừng, ngừng không bị khóa khi giấy phép có vấn đề, để vẫn dừng được thuốc.
+            if (p.getPrescriberType() == PrescriberType.INTERNAL
+                    && (cmd == PrescriptionBasisCommand.EXTEND || cmd == PrescriptionBasisCommand.RESUME)) {
+                requirePrescribingDoctor(p.getResidentId());
+            }
             if (basisBody != null
                     && basisBody.getFacilityName() != null
                     && !basisBody.getFacilityName().isBlank()) {

@@ -309,4 +309,54 @@ class PrescriptionLifecycleTest {
 
         assertThat(resp.endedAt()).isEqualTo(LocalDate.of(2026, 12, 31));
     }
+
+    @Test
+    @DisplayName("FR-015, FR-005: gia hạn đơn nội bộ cần quyền kê đơn hợp lệ; chặn thì ngày kết thúc giữ nguyên")
+    void extendInternal_withoutValidPrescribingLicense_isBlocked() {
+        Prescription p = createSamplePrescription(1005L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
+        when(prescriptionRepository.findById(1005L)).thenReturn(Optional.of(p));
+        when(prescribingAuthority.canPrescribe(residentId)).thenReturn(false);
+        ExtendPrescriptionBody body = new ExtendPrescriptionBody();
+        body.setNewEndedAt(LocalDate.of(2026, 12, 31));
+        body.setReason("Tiếp tục điều trị theo chỉ định");
+
+        assertLegalConditionNotMet(() -> prescriptionService.extend(Target.UNSPECIFIED, 1005L, body, 1L, true));
+        assertThat(p.getEndedAt()).isEqualTo(LocalDate.of(2026, 11, 20));
+    }
+
+    @Test
+    @DisplayName("Q-413, FR-005: tiếp tục đơn nội bộ cần quyền kê đơn hợp lệ; chặn thì đơn giữ Tạm dừng")
+    void resumeInternal_withoutValidPrescribingLicense_isBlocked() {
+        Prescription p = createSamplePrescription(1006L, PrescriptionStatus.SUSPENDED, PrescriberType.INTERNAL);
+        when(prescriptionRepository.findById(1006L)).thenReturn(Optional.of(p));
+        when(prescribingAuthority.canPrescribe(residentId)).thenReturn(false);
+        var body = new com.eldercare.backend.medication.internal.prescription.domain.OrderPrescriptionBody();
+        body.setReason("Hết đợt tạm dừng");
+
+        assertLegalConditionNotMet(() -> prescriptionService.resume(Target.UNSPECIFIED, 1006L, body, 1L, true));
+        assertThat(p.getStatus()).isEqualTo(PrescriptionStatus.SUSPENDED);
+    }
+
+    @Test
+    @DisplayName(
+            "Q-413: bác sĩ chưa có quyền kê đơn hợp lệ vẫn tạm dừng, ngừng được đơn nội bộ (dừng thuốc không bị khóa)")
+    void suspendAndDiscontinueInternal_withoutValidPrescribingLicense_areAllowed() {
+        when(prescribingAuthority.canPrescribe(residentId)).thenReturn(false);
+        when(prescriptionRepository.save(any(Prescription.class))).thenAnswer(inv -> inv.getArgument(0));
+        Prescription toSuspend = createSamplePrescription(1007L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
+        when(prescriptionRepository.findById(1007L)).thenReturn(Optional.of(toSuspend));
+        var suspendBody = new com.eldercare.backend.medication.internal.prescription.domain.OrderPrescriptionBody();
+        suspendBody.setReason("Người cao tuổi nôn, tạm dừng theo dõi");
+
+        prescriptionService.suspend(Target.UNSPECIFIED, 1007L, suspendBody, 1L, true);
+        assertThat(toSuspend.getStatus()).isEqualTo(PrescriptionStatus.SUSPENDED);
+
+        Prescription toStop = createSamplePrescription(1008L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
+        when(prescriptionRepository.findById(1008L)).thenReturn(Optional.of(toStop));
+        DiscontinuePrescriptionBody stopBody = new DiscontinuePrescriptionBody();
+        stopBody.setDiscontinueAt(Instant.now());
+
+        prescriptionService.discontinue(Target.UNSPECIFIED, 1008L, stopBody, 1L, true);
+        assertThat(toStop.getStatus()).isEqualTo(PrescriptionStatus.DISCONTINUED);
+    }
 }
