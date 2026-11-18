@@ -1,11 +1,10 @@
-package com.eldercare.backend.medication.internal.reconciliation.service;
+package com.eldercare.backend.medication.internal.prescription.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
-import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
 import org.springframework.stereotype.Component;
 
 /**

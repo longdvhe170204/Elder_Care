@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
@@ -67,6 +69,7 @@ class PrescriptionLifecycleTest {
     private HealthAllergyPort healthAllergyPort;
     private ReconciliationCheckPort reconciliationCheckPort;
     private PrescriptionService prescriptionService;
+    private com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority prescribingAuthority;
 
     private Long residentId = 8801L;
     private Long medId = 501L;
@@ -82,6 +85,9 @@ class PrescriptionLifecycleTest {
         prescriptionValidator = mock(PrescriptionValidator.class);
         healthAllergyPort = mock(HealthAllergyPort.class);
         reconciliationCheckPort = mock(ReconciliationCheckPort.class);
+        prescribingAuthority =
+                mock(com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority.class);
+        when(prescribingAuthority.canPrescribe(residentId)).thenReturn(true);
 
         prescriptionService = new PrescriptionService(
                 prescriptionRepository,
@@ -94,7 +100,8 @@ class PrescriptionLifecycleTest {
                 healthAllergyPort,
                 reconciliationCheckPort,
                 new BusinessTime(Clock.systemUTC()),
-                M07TestParameters.defaults());
+                M07TestParameters.defaults(),
+                prescribingAuthority);
 
         when(prescriptionValidator.validate(any(), any(), any(), any()))
                 .thenReturn(new PrescriptionCheckResult(List.of(), List.of()));
@@ -150,6 +157,63 @@ class PrescriptionLifecycleTest {
                 Instant.now());
         setId(p, id);
         return p;
+    }
+
+    private static CreatePrescriptionBody internalPrescription(Long medicationId) {
+        CreatePrescriptionBody body = new CreatePrescriptionBody();
+        body.setMedicationId(medicationId);
+        body.setDosage(new BigDecimal("10.0"));
+        body.setDosageUnit("mg");
+        body.setRoute("Oral");
+        body.setPrescriptionType("PERIODIC");
+        FrequencyBody freq = new FrequencyBody();
+        freq.setType("TIMED_SLOTS");
+        freq.setTimedSlots(List.of("08:00"));
+        body.setFrequency(freq);
+        body.setMedicationSource("FACILITY");
+        PrescriberBody prescriber = new PrescriberBody();
+        prescriber.setType("INTERNAL");
+        prescriber.setPrescriberId(101L);
+        body.setPrescriber(prescriber);
+        body.setStartedAt(Instant.now());
+        return body;
+    }
+
+    private static void assertLegalConditionNotMet(org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
+        org.assertj.core.api.Assertions.assertThatThrownBy(call)
+                .isInstanceOf(com.eldercare.backend.common.error.BusinessException.class)
+                .satisfies(e -> {
+                    var be = (com.eldercare.backend.common.error.BusinessException) e;
+                    assertThat(be.status()).isEqualTo(org.springframework.http.HttpStatus.FORBIDDEN);
+                    assertThat(be.errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET");
+                });
+    }
+
+    @Test
+    @DisplayName(
+            "FR-005, BR-M06-05: bác sĩ không có quyền kê đơn hợp lệ (giấy phép, phạm vi cơ sở) không tạo được đơn nội bộ")
+    void createInternal_withoutValidPrescribingLicense_isBlocked() {
+        when(prescribingAuthority.canPrescribe(residentId)).thenReturn(false);
+
+        assertLegalConditionNotMet(() -> prescriptionService.create(
+                PrescriptionService.target(residentId), residentId, internalPrescription(medId), 1L, true));
+        verify(prescriptionRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName(
+            "FR-005, FR-016: đổi liều sang đơn thay thế nội bộ cần quyền kê đơn hợp lệ; chặn thì đơn cũ giữ nguyên (DBR-14)")
+    void changeDosageToInternal_withoutValidPrescribingLicense_isBlocked() {
+        Prescription oldPrescription =
+                createSamplePrescription(1003L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
+        when(prescriptionRepository.findById(1003L)).thenReturn(Optional.of(oldPrescription));
+        when(prescribingAuthority.canPrescribe(residentId)).thenReturn(false);
+        ChangeDosageBody body = new ChangeDosageBody();
+        body.setEffectiveFrom(Instant.now());
+        body.setNewPrescription(internalPrescription(medId));
+
+        assertLegalConditionNotMet(() -> prescriptionService.changeDosage(Target.UNSPECIFIED, 1003L, body, 1L, true));
+        assertThat(oldPrescription.getStatus()).isEqualTo(PrescriptionStatus.ACTIVE);
     }
 
     @Test

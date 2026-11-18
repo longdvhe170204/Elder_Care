@@ -70,7 +70,7 @@ class MedicationReconciliationTest {
     private ResidentMedicationLock residentMedicationLock;
     private ObjectMapper objectMapper;
     private ReconciliationDeadlines deadlines;
-    private com.eldercare.backend.medication.internal.reconciliation.service.PrescribingAuthority prescribingAuthority;
+    private com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority prescribingAuthority;
 
     private MedicationReconciliationService reconciliationService;
 
@@ -86,7 +86,7 @@ class MedicationReconciliationTest {
         objectMapper = new ObjectMapper().findAndRegisterModules();
         deadlines = mock(ReconciliationDeadlines.class);
         prescribingAuthority =
-                mock(com.eldercare.backend.medication.internal.reconciliation.service.PrescribingAuthority.class);
+                mock(com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority.class);
 
         reconciliationService = new MedicationReconciliationService(
                 reconciliationRepo,
@@ -340,6 +340,46 @@ class MedicationReconciliationTest {
                         .updateItems(4L, null, List.of(discontinue), 12L)
                         .getItems())
                 .hasSize(1);
+    }
+
+    @Test
+    @DisplayName(
+            "FR-005, FR-038: xác nhận phiếu có dòng tạo đơn nội bộ cần Bác sĩ có quyền kê đơn hợp lệ, không chỉ vai trò")
+    void confirmWithInternalPrescriptionLineNeedsValidPrescriber() throws Exception {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.HOSPITAL_RETURN, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 3L);
+        ticket.submit(10L, Instant.now());
+        when(reconciliationRepo.findById(3L)).thenReturn(Optional.of(ticket));
+        ReconciliationItem addNew = new ReconciliationItem(
+                3L,
+                1,
+                ReconciliationItemSource.DISCHARGE_PRESCRIPTION,
+                null,
+                null,
+                "Thuoc moi",
+                ReconciliationDecision.ADD_NEW,
+                null,
+                objectMapper.writeValueAsString(Map.of("prescriber", Map.of("type", "INTERNAL"))),
+                11L,
+                Instant.now(),
+                Instant.now());
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(3L)).thenReturn(List.of(addNew));
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(false);
+
+        assertThatThrownBy(() -> reconciliationService.confirm(3L, 30L, true))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> {
+                    assertThat(((BusinessException) e).status()).isEqualTo(HttpStatus.FORBIDDEN);
+                    assertThat(((BusinessException) e).errorCode()).isEqualTo("PRESCRIBING_DOCTOR_REQUIRED");
+                });
+
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(prescriptionService.create(any(), eq(100L), any(), eq(30L), eq(true)))
+                .thenReturn(
+                        mock(com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse.class));
+        assertThat(reconciliationService.confirm(3L, 30L, true).getStatus()).isEqualTo("CONFIRMED");
     }
 
     @Test

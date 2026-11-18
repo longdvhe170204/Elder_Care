@@ -14,6 +14,7 @@ import com.eldercare.backend.medication.internal.prescription.domain.Prescriptio
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.prescription.domain.TerminationReason;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority;
 import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
 import com.eldercare.backend.medication.internal.reconciliation.domain.CreateReconciliationBody;
 import com.eldercare.backend.medication.internal.reconciliation.domain.MedicationReconciliation;
@@ -308,7 +309,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         requireNotTicketAuthor(ticket, actualUserId);
         List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
         requireNotItemAuthor(items, actualUserId);
-        requireDoctorForInternalPrescriptions(items, isDoctor);
+        requireDoctorForInternalPrescriptions(items, ticket.getResidentId());
 
         // Áp dụng quyết định từng dòng trong cùng giao dịch (FR-036)
         Instant now = businessTime.now();
@@ -345,7 +346,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     }
 
     /** Phiếu có dòng tạo đơn nội bộ (thêm mới, đổi liều) thì người xác nhận phải là bác sĩ có quyền kê đơn. */
-    private void requireDoctorForInternalPrescriptions(List<ReconciliationItem> items, boolean isDoctor) {
+    private void requireDoctorForInternalPrescriptions(List<ReconciliationItem> items, long residentId) {
         for (ReconciliationItem item : items) {
             boolean createsPrescription = (item.getDecision() == ReconciliationDecision.ADD_NEW
                             || item.getDecision() == ReconciliationDecision.CHANGE_DOSE)
@@ -360,7 +361,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         && !"EXTERNAL"
                                 .equalsIgnoreCase(
                                         newPrescription.getPrescriber().getType())
-                        && !isDoctor) {
+                        && !prescribingAuthority.canPrescribe(residentId)) {
                     throw new BusinessException(
                             HttpStatus.FORBIDDEN,
                             "PRESCRIBING_DOCTOR_REQUIRED",
