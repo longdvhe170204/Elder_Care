@@ -24,6 +24,8 @@ import com.eldercare.backend.resident.internal.health.persistence.InitialHealthR
 import com.eldercare.backend.resident.internal.health.service.UnconfirmedHealthRecordReminderService;
 import com.eldercare.backend.resident.internal.wish.service.EndOfLifeWishService;
 import com.eldercare.backend.resident.internal.wish.service.TreatmentWishService;
+import com.eldercare.backend.resident.internal.wish.service.UnverifiedWishDraftReminderService;
+import com.eldercare.backend.resident.internal.wish.service.WishDraftService;
 import com.eldercare.backend.resident.internal.wish.service.WishReminderService;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -51,6 +53,8 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     static final String MISSING_END_OF_LIFE_WISH = "MISSING_END_OF_LIFE_WISH";
     static final String MISSING_TREATMENT_WISH = "MISSING_TREATMENT_WISH";
     static final String UNCONFIRMED_HEALTH_RECORD = "UNCONFIRMED_HEALTH_RECORD";
+    static final String UNVERIFIED_END_OF_LIFE_WISH_DRAFT = "UNVERIFIED_END_OF_LIFE_WISH_DRAFT";
+    static final String UNVERIFIED_TREATMENT_WISH_DRAFT = "UNVERIFIED_TREATMENT_WISH_DRAFT";
 
     private final AssessmentRepository assessments;
     private final ParameterApi parameters;
@@ -64,6 +68,8 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     private final InitialHealthRecordStore healthRecords;
     private final HealthItemRepository healthItems;
     private final UnconfirmedHealthRecordReminderService healthReminders;
+    private final WishDraftService wishDrafts;
+    private final UnverifiedWishDraftReminderService draftReminders;
 
     M01StatusParticipant(
             AssessmentRepository assessments,
@@ -77,7 +83,11 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             WishReminderService wishReminders,
             InitialHealthRecordStore healthRecords,
             HealthItemRepository healthItems,
-            UnconfirmedHealthRecordReminderService healthReminders) {
+            UnconfirmedHealthRecordReminderService healthReminders,
+            WishDraftService wishDrafts,
+            UnverifiedWishDraftReminderService draftReminders) {
+        this.wishDrafts = wishDrafts;
+        this.draftReminders = draftReminders;
         this.healthReminders = healthReminders;
         this.healthRecords = healthRecords;
         this.healthItems = healthItems;
@@ -162,6 +172,19 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             warnings.add(new Warning(
                     MISSING_TREATMENT_WISH, "Chưa có nguyện vọng khi điều trị; không nhắc định kỳ (FR-023l)"));
         }
+        List<String> drafts = wishDrafts.openDraftKinds(residentId);
+        if (drafts.contains("END_OF_LIFE")) {
+            warnings.add(
+                    new Warning(
+                            UNVERIFIED_END_OF_LIFE_WISH_DRAFT,
+                            "Phiếu nguyện vọng cuối đời tự khai chưa được kiểm chứng; Bác sĩ, Điều dưỡng sẽ được nhắc (FR-023r)"));
+        }
+        if (drafts.contains("TREATMENT")) {
+            warnings.add(
+                    new Warning(
+                            UNVERIFIED_TREATMENT_WISH_DRAFT,
+                            "Phiếu nguyện vọng khi điều trị tự khai chưa được kiểm chứng; Bác sĩ, Điều dưỡng sẽ được nhắc (FR-023r)"));
+        }
         return warnings;
     }
 
@@ -179,6 +202,9 @@ class M01StatusParticipant implements StatusTransitionParticipant {
             }
             if (healthReminders.needsReminding(result.residentId())) {
                 healthReminders.startReminding(result.residentId());
+            }
+            if (draftReminders.needsReminding(result.residentId())) {
+                draftReminders.startReminding(result.residentId());
             }
         }
     }

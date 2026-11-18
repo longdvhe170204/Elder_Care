@@ -25,12 +25,15 @@ import com.eldercare.backend.resident.api.dto.WishOpinion;
 import com.eldercare.backend.resident.api.dto.WishRecordSource;
 import com.eldercare.backend.resident.api.dto.WishSignerType;
 import com.eldercare.backend.resident.internal.health.service.ActorNames;
+import com.eldercare.backend.resident.internal.health.service.SelfReportedHealth;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import com.eldercare.backend.resident.internal.wish.domain.EndOfLifeWish;
+import com.eldercare.backend.resident.internal.wish.domain.EndOfLifeWishDraft;
 import com.eldercare.backend.resident.internal.wish.domain.NewEndOfLifeWish;
 import com.eldercare.backend.resident.internal.wish.persistence.EndOfLifeWishStore;
+import com.eldercare.backend.resident.internal.wish.persistence.WishDraftStore;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,11 +58,13 @@ public class EndOfLifeWishService {
 
     static final AuditAction RECORDED = new AuditAction("END_OF_LIFE_WISH_RECORDED", false);
     static final AuditAction SUPERSEDED = new AuditAction("END_OF_LIFE_WISH_SUPERSEDED", false);
+    static final AuditAction DRAFT_VERIFIED = new AuditAction("WISH_DRAFT_VERIFIED", false);
 
     /** Phiên bản Hiệu lực và lịch sử; {@code hasWish} là cờ "đã có / chưa có" (FR-023e). */
     public record Summary(boolean hasWish, Optional<EndOfLifeWish> current, List<EndOfLifeWish> history) {}
 
     private final EndOfLifeWishStore store;
+    private final WishDraftStore drafts;
     private final ResidentRepository residents;
     private final ProfileOpenGuard guard;
     private final FileApi files;
@@ -73,6 +78,7 @@ public class EndOfLifeWishService {
 
     EndOfLifeWishService(
             EndOfLifeWishStore store,
+            WishDraftStore drafts,
             ResidentRepository residents,
             ProfileOpenGuard guard,
             FileApi files,
@@ -84,6 +90,7 @@ public class EndOfLifeWishService {
             ObjectProvider<FamilyRelationshipApi> relationships,
             ObjectProvider<CurrentUser> currentUser) {
         this.store = store;
+        this.drafts = drafts;
         this.residents = residents;
         this.guard = guard;
         this.files = files;
@@ -99,13 +106,30 @@ public class EndOfLifeWishService {
     /** Đối tượng kiểm quyền của phiếu: hồ sơ người cao tuổi mà nó thuộc về (quyền tải bản ký). */
     @Transactional(readOnly = true)
     public Target targetOf(long wishId) {
-        return ResidentProfileService.target(
-                store.find(wishId).orElseThrow(NotFoundException::new).residentId());
+        return ResidentProfileService.target(store.residentIdOf(wishId).orElseThrow(NotFoundException::new));
+    }
+
+    /** Tệp gắn vào phiếu: Hành chính chỉ tải tệp của bản Nháp do chính mình lập (Q-412, FR-023q). */
+    @Transactional(readOnly = true)
+    public boolean officeMayDownload(long wishId, CurrentUser user) {
+        return !SelfReportedHealth.isOfficeOnly(user)
+                || drafts.draftWriterOf(wishId)
+                        .filter(w -> w == user.accountId())
+                        .isPresent();
+    }
+
+    /** Hành chính chỉ biết đã có hay chưa có phiếu (FR-023e); bản Nháp tự khai đi qua {@code WishDraftService}. */
+    private void requireNotOfficeOnly() {
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice(
+                    "Hành chính chỉ biết đã có hay chưa có phiếu nguyện vọng cuối đời");
+        }
     }
 
     @RequiresPermission(function = Function.END_OF_LIFE_WISHES, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public Summary get(Target target) {
+        requireNotOfficeOnly();
         Optional<EndOfLifeWish> current = store.findActive(target.residentId());
         return new Summary(current.isPresent(), current, store.listByResident(target.residentId()));
     }
@@ -113,16 +137,17 @@ public class EndOfLifeWishService {
     /** Họ tên người ký để hiện: người thân theo hồ sơ của 012, người cao tuổi theo hồ sơ của chính họ. */
     @Transactional(readOnly = true)
     public String signerName(EndOfLifeWish wish) {
-        if (wish.signerFamilyMemberId() == null) {
-            return residents
-                    .findById(wish.residentId())
-                    .map(r -> r.getFullName())
-                    .orElse(null);
+        return signerName(wish.signerFamilyMemberId(), wish.residentId());
+    }
+
+    /** Họ tên người ký của bản Nháp (người ký có thể chưa ghi). */
+    @Transactional(readOnly = true)
+    public String signerName(Long signerFamilyMemberId, long residentId) {
+        if (signerFamilyMemberId == null) {
+            return residents.findById(residentId).map(r -> r.getFullName()).orElse(null);
         }
         FamilyRelationshipApi api = relationships.getIfAvailable();
-        return api == null
-                ? null
-                : api.familyMemberName(wish.signerFamilyMemberId()).orElse(null);
+        return api == null ? null : api.familyMemberName(signerFamilyMemberId).orElse(null);
     }
 
     /** Họ tên người ghi để hiện. */
@@ -143,9 +168,34 @@ public class EndOfLifeWishService {
         if (command.residentId() != target.residentId()) {
             throw new NotFoundException();
         }
+        requireNotOfficeOnly();
         residents.lockById(command.residentId()).orElseThrow(NotFoundException::new);
         guard.requireOpen(command.residentId());
-        return store.find(write(command, source)).orElseThrow();
+        if (drafts.findEndOfLife(command.residentId()).isPresent()) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "DRAFT_ALREADY_EXISTS",
+                    "Còn bản Nháp tự khai: kiểm chứng hoặc Hủy nháp trước khi ghi phiên bản mới (FR-023p)");
+        }
+        return store.find(write(command, source, null)).orElseThrow();
+    }
+
+    /**
+     * Kiểm chứng bản Nháp tự khai do Hành chính lập (Q-412, FR-023p): lệnh mang đủ nội dung phiếu, cùng kiểm tra như ghi
+     * phiên bản; dòng Nháp thành phiên bản Hiệu lực (giữ id, người lập), phiên bản Hiệu lực trước bị thay.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.END_OF_LIFE_WISHES, operation = Operation.CREATE)
+    @Transactional
+    public EndOfLifeWish verifyDraft(Target target, RecordEndOfLifeWish command) {
+        if (command.residentId() != target.residentId()) {
+            throw new NotFoundException();
+        }
+        requireNotOfficeOnly();
+        residents.lockById(command.residentId()).orElseThrow(NotFoundException::new);
+        guard.requireOpen(command.residentId());
+        EndOfLifeWishDraft draft = drafts.findEndOfLife(command.residentId()).orElseThrow(WishDraftService::noDraft);
+        return store.find(write(command, WishRecordSource.ADMISSION, draft)).orElseThrow();
     }
 
     /** Phiên bản Hiệu lực cho 007 (thẻ khẩn cấp, cảnh báo nguy kịch). */
@@ -170,11 +220,14 @@ public class EndOfLifeWishService {
     public long recordVersion(RecordEndOfLifeWish command, WishRecordSource source) {
         residents.lockById(command.residentId()).orElseThrow(NotFoundException::new);
         guard.requireOpen(command.residentId());
-        return write(command, source);
+        return write(command, source, null);
     }
 
-    /** Phần chung của hai đường ghi; người gọi đã khóa hồ sơ và kiểm hồ sơ chưa ở trạng thái cuối. */
-    private long write(RecordEndOfLifeWish command, WishRecordSource source) {
+    /**
+     * Phần chung của các đường ghi; người gọi đã khóa hồ sơ và kiểm hồ sơ chưa ở trạng thái cuối. {@code draft} khác rỗng
+     * thì phiên bản được ghi vào chính dòng Nháp (kiểm chứng, Q-412).
+     */
+    private long write(RecordEndOfLifeWish command, WishRecordSource source, EndOfLifeWishDraft draft) {
         long residentId = command.residentId();
         validate(residentId, command);
         long accountId = currentUser.getObject().accountId();
@@ -183,38 +236,43 @@ public class EndOfLifeWishService {
 
         Optional<EndOfLifeWish> previous = store.findActive(residentId);
         previous.ifPresent(old -> store.supersede(old.id()));
-        long id = store.insert(
-                new NewEndOfLifeWish(
-                        residentId,
-                        command.choice(),
-                        command.firstContact().strip(),
-                        blankToNull(command.note()),
-                        command.respondentType(),
-                        command.respondentFamilyMemberId(),
-                        blankToNull(command.relationship()),
-                        command.assessingDoctorId(),
-                        assessment.canSelfDetermine(),
-                        now,
-                        assessment.supportMethod().strip(),
-                        assessment.reviewDate(),
-                        command.signerType(),
-                        command.signerFamilyMemberId(),
-                        command.representativeSelection(),
-                        command.courtDecision(),
-                        command.signedAt() == null ? now : command.signedAt(),
-                        command.signedCopyFileId(),
-                        source,
-                        accountId,
-                        now),
-                opinionsOf(command));
+        NewEndOfLifeWish version = new NewEndOfLifeWish(
+                residentId,
+                command.choice(),
+                command.firstContact().strip(),
+                blankToNull(command.note()),
+                command.respondentType(),
+                command.respondentFamilyMemberId(),
+                blankToNull(command.relationship()),
+                command.assessingDoctorId(),
+                assessment.canSelfDetermine(),
+                now,
+                assessment.supportMethod().strip(),
+                assessment.reviewDate(),
+                command.signerType(),
+                command.signerFamilyMemberId(),
+                command.representativeSelection(),
+                command.courtDecision(),
+                command.signedAt() == null ? now : command.signedAt(),
+                command.signedCopyFileId(),
+                source,
+                draft == null ? accountId : draft.recordedBy(),
+                draft == null ? now : draft.recordedAt());
+        long id;
+        if (draft == null) {
+            id = store.insert(version, opinionsOf(command));
+        } else {
+            id = draft.id();
+            store.activateDraft(id, version, opinionsOf(command), accountId, now);
+        }
         previous.ifPresent(old -> store.supersededBy(old.id(), id));
-        files.attach(command.signedCopyFileId(), ENTITY_TYPE, id);
+        attachOnce(command.signedCopyFileId(), id);
         if (command.courtDecision() != null) {
-            files.attach(command.courtDecision().fileId(), ENTITY_TYPE, id);
+            attachOnce(command.courtDecision().fileId(), id);
         }
 
         auditLog.write(AuditLogEntry.builder()
-                .action(RECORDED)
+                .action(draft == null ? RECORDED : DRAFT_VERIFIED)
                 .entity(ENTITY_TYPE, id)
                 .resident(residentId)
                 .after(snapshot(store.find(id).orElseThrow()))
@@ -227,6 +285,13 @@ public class EndOfLifeWishService {
                 .after(Map.of("status", "SUPERSEDED", "supersededById", id))
                 .build()));
         return id;
+    }
+
+    /** Tệp đã gắn vào chính bản Nháp này thì không gắn lại. */
+    private void attachOnce(long fileId, long wishId) {
+        if (files.attachedTo(ENTITY_TYPE, wishId).stream().noneMatch(f -> f.id() == fileId)) {
+            files.attach(fileId, ENTITY_TYPE, wishId);
+        }
     }
 
     private void validate(long residentId, RecordEndOfLifeWish command) {

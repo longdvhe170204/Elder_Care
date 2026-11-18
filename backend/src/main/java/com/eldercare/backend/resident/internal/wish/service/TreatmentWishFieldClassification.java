@@ -31,6 +31,8 @@ class TreatmentWishFieldClassification implements FieldClassificationProvider {
                 Map.entry("respondentType", InfoGroup.HEALTH),
                 Map.entry("respondentFamilyMemberId", InfoGroup.HEALTH),
                 Map.entry("otherOpinionCount", InfoGroup.HEALTH),
-                Map.entry("signedCopyFileId", InfoGroup.HEALTH));
+                Map.entry("signedCopyFileId", InfoGroup.HEALTH),
+                // lý do Hủy nháp tự khai (Q-412, FR-023p)
+                Map.entry("reason", InfoGroup.HEALTH));
     }
 }

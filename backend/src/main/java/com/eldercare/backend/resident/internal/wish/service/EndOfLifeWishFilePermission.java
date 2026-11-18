@@ -37,8 +37,9 @@ class EndOfLifeWishFilePermission implements FilePermissionProvider {
 
     @Override
     public boolean canDownload(long ownerId) {
-        return permissions
-                .hasPermission(currentUser.getObject(), VIEW, wishes.targetOf(ownerId))
-                .allowed();
+        return wishes.officeMayDownload(ownerId, currentUser.getObject())
+                && permissions
+                        .hasPermission(currentUser.getObject(), VIEW, wishes.targetOf(ownerId))
+                        .allowed();
     }
 }

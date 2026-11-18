@@ -20,9 +20,12 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.resident.api.OpinionSourceApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.CareLevelBasisType;
 import com.eldercare.backend.resident.api.dto.CareNeedView;
+import com.eldercare.backend.resident.api.dto.OpinionSource;
+import com.eldercare.backend.resident.api.dto.OpinionSourceType;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.events.AssessmentChangedCareLevelOrNeeds;
@@ -33,11 +36,15 @@ import com.eldercare.backend.resident.api.spi.CareLevelChangeRequestApi;
 import com.eldercare.backend.resident.internal.assessment.domain.Assessment;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentStatus;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentType;
+import com.eldercare.backend.resident.internal.assessment.domain.FamilyDeclaredEntry;
+import com.eldercare.backend.resident.internal.assessment.domain.FamilyDeclaredTopic;
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelHistoryStore;
+import com.eldercare.backend.resident.internal.assessment.persistence.FamilyDeclaredStore;
 import com.eldercare.backend.resident.internal.assessment.service.AssessmentContents.Effective;
 import com.eldercare.backend.resident.internal.health.service.ActorNames;
 import com.eldercare.backend.resident.internal.health.service.M01Catalogs;
+import com.eldercare.backend.resident.internal.health.service.SelfReportedHealth;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusStore;
@@ -49,6 +56,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -73,6 +81,8 @@ public class AssessmentService {
     static final AuditAction DRAFT_EDITED = new AuditAction("ASSESSMENT_DRAFT_EDITED", false);
     static final AuditAction CONFIRMED = new AuditAction("ASSESSMENT_CONFIRMED", false);
     static final AuditAction DISCARDED = new AuditAction("ASSESSMENT_DISCARDED", true);
+    static final AuditAction FAMILY_DECLARED_RECORDED = new AuditAction("ASSESSMENT_FAMILY_DECLARED_RECORDED", false);
+    private static final int MAX_FAMILY_DECLARED_LENGTH = 2000;
     private static final int MAX_CARE_NOTE_LENGTH = 1000;
     private static final int MAX_BASIS_LENGTH = 1000;
 
@@ -96,7 +106,17 @@ public class AssessmentService {
             String confirmedBy,
             Instant confirmedAt,
             boolean corrected,
-            int version) {}
+            int version,
+            List<FamilyDeclaredEntryView> familyDeclared) {}
+
+    /** Một mục "Gia đình khai" do Hành chính ghi theo lời người cao tuổi hoặc gia đình (Q-412, FR-025a). */
+    public record FamilyDeclaredInput(FamilyDeclaredTopic topic, String content, OpinionSource source) {}
+
+    public record FamilyDeclaredEntryView(
+            FamilyDeclaredTopic topic, String content, OpinionSource source, String recordedBy, Instant at) {}
+
+    /** Phần Hành chính thấy của lần đánh giá đầu vào Nháp; {@code created}: lệnh vừa tạo bản Nháp. */
+    public record FamilyDeclaredView(long assessmentId, List<FamilyDeclaredEntryView> entries, boolean created) {}
 
     /** Nội dung gửi khi sửa nháp; thay toàn bộ các trường (FR-025). */
     public record DraftContent(
@@ -129,6 +149,8 @@ public class AssessmentService {
     private final ObjectProvider<CareLevelChangeRequestApi> changeRequests;
     private final ObjectProvider<CurrentUser> currentUser;
     private final CareLevelChangeRequestReminderService changeRequestReminders;
+    private final FamilyDeclaredStore familyDeclared;
+    private final OpinionSourceApi opinionSources;
 
     AssessmentService(
             AssessmentRepository assessments,
@@ -144,7 +166,11 @@ public class AssessmentService {
             ApplicationEventPublisher events,
             ObjectProvider<CareLevelChangeRequestApi> changeRequests,
             ObjectProvider<CurrentUser> currentUser,
-            CareLevelChangeRequestReminderService changeRequestReminders) {
+            CareLevelChangeRequestReminderService changeRequestReminders,
+            FamilyDeclaredStore familyDeclared,
+            OpinionSourceApi opinionSources) {
+        this.familyDeclared = familyDeclared;
+        this.opinionSources = opinionSources;
         this.assessments = assessments;
         this.residents = residents;
         this.statuses = statuses;
@@ -173,12 +199,14 @@ public class AssessmentService {
     @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<AssessmentView> list(Target target) {
+        requireNotOfficeOnly();
         return views(assessments.findByResidentIdOrderByIdDesc(target.residentId()));
     }
 
     @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public AssessmentView get(Target target, long id) {
+        requireNotOfficeOnly();
         return views(List.of(find(target, id))).getFirst();
     }
 
@@ -187,6 +215,7 @@ public class AssessmentService {
     @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.CREATE)
     @Transactional
     public AssessmentView create(Target target, AssessmentType type, String basis) {
+        requireNotOfficeOnly();
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
@@ -212,11 +241,143 @@ public class AssessmentService {
         return views(List.of(created)).getFirst();
     }
 
+    /**
+     * Hành chính ghi phần "Gia đình khai" của lần đánh giá đầu vào khi người cao tuổi còn Đang tiếp nhận (Q-412, FR-025a;
+     * chú thích 52 kiểm ở 002): chưa có Nháp thì tạo bản Nháp đầu vào; có Nháp đầu vào (kể cả do Bác sĩ, Điều dưỡng lập) thì
+     * ghi vào chính bản đó (BR-M01-13). Thay toàn bộ danh sách mục; mục không đổi giữ người, thời điểm ghi cũ.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.CREATE)
+    @Transactional
+    public FamilyDeclaredView recordFamilyDeclared(Target target, List<FamilyDeclaredInput> input) {
+        CurrentUser user = currentUser.getObject();
+        if (!SelfReportedHealth.isOfficeOnly(user)) {
+            throw SelfReportedHealth.deniedForOffice("Chỉ Hành chính ghi phần Gia đình khai (FR-025a)");
+        }
+        long residentId = target.residentId();
+        residents.lockById(residentId).orElseThrow(NotFoundException::new);
+        guard.requireOpen(residentId);
+        List<FamilyDeclaredInput> entries = input == null ? List.of() : input;
+        validateFamilyDeclared(residentId, entries);
+        Optional<Assessment> open = assessments.findFirstByResidentIdAndStatus(residentId, AssessmentStatus.DRAFT);
+        if (open.isPresent() && open.get().getType() != AssessmentType.INITIAL) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "STATUS_NOT_ASSESSABLE", "Bản Nháp đang mở không phải đánh giá đầu vào");
+        }
+        Instant now = time.now();
+        Assessment draft;
+        if (open.isPresent()) {
+            draft = open.get();
+        } else {
+            requireAssessable(residentId, AssessmentType.INITIAL);
+            draft = assessments.saveAndFlush(
+                    new Assessment(residentId, AssessmentType.INITIAL, null, user.accountId(), now));
+            auditLog.write(AuditLogEntry.builder()
+                    .action(CREATED)
+                    .entity(RECORD_TYPE, draft.getId())
+                    .resident(residentId)
+                    .after(Map.of("type", AssessmentType.INITIAL.name()))
+                    .build());
+        }
+        List<FamilyDeclaredEntry> previous =
+                familyDeclared.read(List.of(draft.getId())).getOrDefault(draft.getId(), List.of());
+        List<FamilyDeclaredEntry> rows = entries.stream()
+                .map(e -> {
+                    String content = e.content().strip();
+                    return previous.stream()
+                            .filter(p -> p.topic() == e.topic()
+                                    && p.content().equals(content)
+                                    && p.sourceType().equals(e.source().type().name())
+                                    && Objects.equals(
+                                            p.sourceFamilyMemberId(), e.source().familyMemberId()))
+                            .findFirst()
+                            .orElseGet(() -> new FamilyDeclaredEntry(
+                                    e.topic(),
+                                    content,
+                                    e.source().type().name(),
+                                    e.source().familyMemberId(),
+                                    user.accountId(),
+                                    now));
+                })
+                .toList();
+        familyDeclared.write(draft.getId(), rows);
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put(
+                "familyDeclared",
+                rows.stream().map(r -> r.topic().name() + ": " + r.content()).toList());
+        auditLog.write(AuditLogEntry.builder()
+                .action(FAMILY_DECLARED_RECORDED)
+                .entity(RECORD_TYPE, draft.getId())
+                .resident(residentId)
+                .after(after)
+                .build());
+        return new FamilyDeclaredView(draft.getId(), entryViews(rows), open.isEmpty());
+    }
+
+    /** Phần "Gia đình khai" của lần đánh giá đầu vào Nháp đang mở; không có thì 404 {@code NO_DRAFT}. */
+    @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public FamilyDeclaredView familyDeclared(Target target) {
+        Assessment draft = assessments
+                .findFirstByResidentIdAndStatus(target.residentId(), AssessmentStatus.DRAFT)
+                .filter(a -> a.getType() == AssessmentType.INITIAL)
+                .orElseThrow(() ->
+                        new BusinessException(HttpStatus.NOT_FOUND, "NO_DRAFT", "Không có lần đánh giá đầu vào Nháp"));
+        return new FamilyDeclaredView(
+                draft.getId(),
+                entryViews(familyDeclared.read(List.of(draft.getId())).getOrDefault(draft.getId(), List.of())),
+                false);
+    }
+
+    private void validateFamilyDeclared(long residentId, List<FamilyDeclaredInput> entries) {
+        for (FamilyDeclaredInput e : entries) {
+            if (e == null
+                    || e.topic() == null
+                    || e.content() == null
+                    || e.content().isBlank()) {
+                throw new InvalidValueException("Mỗi mục Gia đình khai cần chủ đề và nội dung");
+            }
+            if (e.content().strip().length() > MAX_FAMILY_DECLARED_LENGTH) {
+                throw new InvalidValueException(
+                        "Nội dung Gia đình khai tối đa " + MAX_FAMILY_DECLARED_LENGTH + " ký tự");
+            }
+            if (e.source() == null
+                    || (e.source().type() != OpinionSourceType.RESIDENT
+                            && e.source().type() != OpinionSourceType.FAMILY_MEMBER)) {
+                throw new BusinessException(
+                        HttpStatus.UNPROCESSABLE_CONTENT,
+                        "INVALID_OPINION_SOURCE",
+                        "Nguồn của Gia đình khai là người cao tuổi hoặc người thân (FR-025a)");
+            }
+            opinionSources.validate(residentId, e.source());
+        }
+    }
+
+    private List<FamilyDeclaredEntryView> entryViews(List<FamilyDeclaredEntry> rows) {
+        return rows.stream()
+                .map(r -> new FamilyDeclaredEntryView(
+                        r.topic(),
+                        r.content(),
+                        new OpinionSource(OpinionSourceType.valueOf(r.sourceType()), r.sourceFamilyMemberId()),
+                        names.of(r.recordedBy()),
+                        r.recordedAt()))
+                .toList();
+    }
+
+    /** Hành chính chỉ ghi, xem phần "Gia đình khai"; không đọc, sửa, hủy lần đánh giá (19.3, FR-025a). */
+    private void requireNotOfficeOnly() {
+        if (SelfReportedHealth.isOfficeOnly(currentUser.getObject())) {
+            throw SelfReportedHealth.deniedForOffice(
+                    "Hành chính chỉ xem mức chăm sóc và phần Gia đình khai do mình ghi");
+        }
+    }
+
     /** Sửa bản nháp kèm {@code If-Match}; người tạo hoặc Bác sĩ. */
     @BusinessCommand(requiresReason = false)
     @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.UPDATE)
     @Transactional
     public AssessmentView saveDraft(Target target, long id, String ifMatch, DraftContent input) {
+        requireNotOfficeOnly();
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
@@ -325,6 +486,7 @@ public class AssessmentService {
     @RequiresPermission(function = Function.ASSESSMENT_CARE_LEVEL, operation = Operation.UPDATE)
     @Transactional
     public AssessmentView discard(Target target, long id, Reason reason) {
+        requireNotOfficeOnly();
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
@@ -451,6 +613,8 @@ public class AssessmentService {
         Set<Long> needIds =
                 list.stream().flatMap(a -> a.getCareNeedIds().stream()).collect(Collectors.toSet());
         Map<Long, String> needNames = catalogs.names(M01Catalogs.CARE_NEED, needIds);
+        Map<Long, List<FamilyDeclaredEntry>> declared =
+                familyDeclared.read(list.stream().map(Assessment::getId).toList());
         return list.stream()
                 .map(a -> {
                     Effective e = effective.get(a.getId());
@@ -473,7 +637,8 @@ public class AssessmentService {
                             a.getConfirmedBy() == null ? null : names.of(a.getConfirmedBy()),
                             a.getConfirmedAt(),
                             e.corrected(),
-                            a.getVersion());
+                            a.getVersion(),
+                            entryViews(declared.getOrDefault(a.getId(), List.of())));
                 })
                 .toList();
     }
