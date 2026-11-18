@@ -20,6 +20,7 @@ import com.eldercare.backend.medication.internal.reconciliation.persistence.Medi
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ReconciliationDueStore;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -100,6 +101,11 @@ public class ReconciliationDeadlines {
             tickets.save(ticket);
         }
         events.publishEvent(new ReconciliationNeeded(residentId, reason.name(), at));
+    }
+
+    /** Hạn CFG-M07-05 tính từ lệnh Hoàn tất tiếp nhận hoặc Ghi nhận trở về; trống khi chưa có lệnh (FR-034a). */
+    public Optional<Instant> currentDeadline(long residentId) {
+        return due.dueAt(residentId);
     }
 
     /** Phiếu được xác nhận: gỡ hạn, liều Tạm dừng của đơn đã Hiệu lực lại quay về lịch (FR-021, FR-036). */

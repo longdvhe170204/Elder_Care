@@ -87,6 +87,34 @@ class BR_25_PrescriberAuthorityIT extends M07IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("FR-005, BR-M06-05: Bác sĩ chưa có giấy phép hành nghề hợp lệ không kê được đơn nội bộ (403)")
+    void doctor_without_valid_license_cannot_prescribe_internally() {
+        user.set(new TestUsers(jdbc, time)
+                .staff(com.eldercare.backend.common.Role.DOCTOR)
+                .user());
+        CreatePrescriptionBody body = new CreatePrescriptionBody();
+        body.setMedicationId(medId);
+        body.setDosage(new BigDecimal("1.0"));
+        body.setRoute("Uống");
+        body.setPrescriptionType("REGULAR");
+        body.setMedicationSource("FACILITY");
+        body.setStartedAt(Instant.now());
+        FrequencyBody freq = new FrequencyBody();
+        freq.setType("TIMED_SLOTS");
+        freq.setTimedSlots(List.of("08:00"));
+        body.setFrequency(freq);
+        PrescriberBody prescriber = new PrescriberBody();
+        prescriber.setType("INTERNAL");
+        body.setPrescriber(prescriber);
+
+        assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(
+                        ex -> assertThat(((BusinessException) ex).errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET"));
+    }
+
+    @Test
     @DisplayName(
             "FR-007, BR-M07-06: Phát hiện xung đột dị ứng mà chưa xác nhận lý do thì bị chặn với 409 CAN_XAC_NHAN_VAN_DE")
     void allergy_conflict_without_confirmation_throws_409() {
