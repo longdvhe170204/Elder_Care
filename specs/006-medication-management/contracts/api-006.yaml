@@ -338,7 +338,7 @@ paths:
     post:
       tags: [reconciliation]
       summary: Gửi xác nhận
-      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Tạm dừng chưa có dòng, thuốc đang dùng khi tiếp nhận chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do (FR-034, FR-034a).'
+      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do (FR-034, FR-034a).'
       x-fr: [FR-034, FR-034a, FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/Blocked' } }
