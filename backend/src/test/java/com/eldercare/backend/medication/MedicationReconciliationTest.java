@@ -82,7 +82,7 @@ class MedicationReconciliationTest {
         doseRepo = mock(MedicationDoseRepository.class);
         prescriptionService = mock(PrescriptionService.class);
         residentMedicationLock = mock(ResidentMedicationLock.class);
-        objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper().findAndRegisterModules();
         deadlines = mock(ReconciliationDeadlines.class);
 
         reconciliationService = new MedicationReconciliationService(
@@ -237,7 +237,7 @@ class MedicationReconciliationTest {
         line.setSource("CURRENT_PRESCRIPTION");
         line.setPrescriptionId(201L);
 
-        ReconciliationResponse updated = reconciliationService.updateItems(7L, null, List.of(line), 11L);
+        ReconciliationResponse updated = reconciliationService.updateItems(7L, null, List.of(line), 11L, false);
 
         assertThat(updated.getItems().getFirst().getDecision()).isNull();
         ReconciliationItem saved = new ReconciliationItem(
@@ -257,6 +257,67 @@ class MedicationReconciliationTest {
         assertThatThrownBy(() -> reconciliationService.submit(7L, 11L))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(e -> assertThat(((BusinessException) e).errorCode()).isEqualTo("MISSING_ITEMS"));
+    }
+
+    private com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody changeDoseLine(
+            String prescriberType, String reason) {
+        var prescriber = new com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody();
+        prescriber.setType(prescriberType);
+        prescriber.setFacilityName("Bệnh viện Bạch Mai");
+        prescriber.setPrescriberName("BS. Trần Văn Kê");
+        prescriber.setPrescribedAt(LocalDate.of(2026, 11, 15));
+        var replacement = new com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody();
+        replacement.setPrescriber(prescriber);
+        var line = new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        line.setSource("DISCHARGE_PRESCRIPTION");
+        line.setPrescriptionId(201L);
+        line.setDecision("CHANGE_DOSE");
+        line.setReason(reason);
+        line.setNewPrescription(replacement);
+        return line;
+    }
+
+    private void openTicket(long id) {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.HOSPITAL_RETURN, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, id);
+        when(reconciliationRepo.findById(id)).thenReturn(Optional.of(ticket));
+        when(itemRepo.save(any(ReconciliationItem.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    private static void assertBasisRequired(org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
+        assertThatThrownBy(call)
+                .isInstanceOf(com.eldercare.backend.common.error.ConditionNotMetException.class)
+                .satisfies(e -> assertThat(((com.eldercare.backend.common.error.ConditionNotMetException) e)
+                                .unmetConditions()
+                                .getFirst()
+                                .code())
+                        .isEqualTo("EXTERNAL_BASIS_REQUIRED"));
+    }
+
+    @Test
+    @DisplayName(
+            "FR-035, Q-411: người không phải bác sĩ ghi Ngừng, Thay đổi liều phải có căn cứ, đơn thay thế bên ngoài")
+    void nonDoctorDiscontinueOrChangeDoseNeedsBasisAndExternalReplacement() {
+        openTicket(5L);
+        var discontinue = new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        discontinue.setSource("CURRENT_PRESCRIPTION");
+        discontinue.setPrescriptionId(201L);
+        discontinue.setDecision("DISCONTINUE");
+
+        assertBasisRequired(() -> reconciliationService.updateItems(5L, null, List.of(discontinue), 11L, false));
+        assertBasisRequired(() -> reconciliationService.updateItems(
+                5L, null, List.of(changeDoseLine("INTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L, false));
+        assertBasisRequired(() ->
+                reconciliationService.updateItems(5L, null, List.of(changeDoseLine("EXTERNAL", " ")), 11L, false));
+
+        ReconciliationResponse nurse = reconciliationService.updateItems(
+                5L, null, List.of(changeDoseLine("EXTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L, false);
+        ReconciliationResponse doctor =
+                reconciliationService.updateItems(5L, null, List.of(changeDoseLine("INTERNAL", null)), 12L, true);
+
+        assertThat(nurse.getItems()).hasSize(1);
+        assertThat(doctor.getItems()).hasSize(1);
     }
 
     @Test

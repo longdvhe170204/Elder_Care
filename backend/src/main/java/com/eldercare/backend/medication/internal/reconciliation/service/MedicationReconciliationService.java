@@ -1,7 +1,9 @@
 package com.eldercare.backend.medication.internal.reconciliation.service;
 
 import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.medication.internal.dose.domain.DoseCancellationReason;
@@ -158,7 +160,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
     @Transactional
     public ReconciliationResponse updateItems(
-            Long id, String ifMatch, List<ReconciliationItemBody> itemsBody, Long currentUserId) {
+            Long id, String ifMatch, List<ReconciliationItemBody> itemsBody, Long currentUserId, boolean isDoctor) {
         MedicationReconciliation ticket = reconciliationRepo.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(ticket.getResidentId());
 
@@ -181,6 +183,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             for (ReconciliationItemBody b : itemsBody) {
                 ReconciliationItemSource source = parseSource(b.getSource());
                 ReconciliationDecision decision = b.getDecision() != null ? parseDecision(b.getDecision()) : null;
+                if (!isDoctor) {
+                    requireExternalBasis(decision, b);
+                }
 
                 String newPrescriptionJson = null;
                 if (b.getNewPrescription() != null) {
@@ -574,6 +579,29 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                 throw new BusinessException(
                         HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_VALUE", "Lý do không hợp lệ: " + reasonStr);
         };
+    }
+
+    /**
+     * Dòng Ngừng, Thay đổi liều của người không phải Bác sĩ có quyền kê đơn (FR-005): lý do ghi căn cứ từ cơ sở kê bên
+     * ngoài, đơn thay thế là đơn bên ngoài có cơ sở kê (bảng FR-035, FR-006, Q-411). Nội dung căn cứ do người xác nhận
+     * kiểm.
+     */
+    private static void requireExternalBasis(ReconciliationDecision decision, ReconciliationItemBody line) {
+        if (decision != ReconciliationDecision.DISCONTINUE && decision != ReconciliationDecision.CHANGE_DOSE) {
+            return;
+        }
+        boolean hasBasis = line.getReason() != null && !line.getReason().isBlank();
+        var replacement = line.getNewPrescription();
+        boolean internalReplacement = replacement != null
+                && (replacement.getPrescriber() == null
+                        || !"EXTERNAL"
+                                .equalsIgnoreCase(replacement.getPrescriber().getType()));
+        if (!hasBasis || internalReplacement) {
+            throw new ConditionNotMetException(List.of(new UnmetCondition(
+                    "EXTERNAL_BASIS_REQUIRED",
+                    "Discontinue or change-dose line by a non-prescriber needs the external basis in the reason and an"
+                            + " external replacement prescription (FR-035, FR-006, Q-411)")));
+        }
     }
 
     private ReconciliationItemSource parseSource(String sourceStr) {

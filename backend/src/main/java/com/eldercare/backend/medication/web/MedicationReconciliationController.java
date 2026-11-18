@@ -109,7 +109,8 @@ public class MedicationReconciliationController {
                 id,
                 ifMatch,
                 items.stream().map(M07RequestMapper::reconciliationItem).toList(),
-                currentUser.accountId());
+                currentUser.accountId(),
+                isDoctor());
         return ResponseEntity.ok().eTag(VersionEtag.of(res.getVersion())).build();
     }
 
