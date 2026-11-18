@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 6.14.0
+version: 6.14.1
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-11-10
@@ -419,7 +419,7 @@ Chủ dự án duyệt 2026-11-17 (6.14.0) cho Tổng quan và Báo cáo của 0
 Chủ dự án duyệt 2026-11-17 (6.14.0). Một lượt tiếp nhận là một màn (`src/features/admissions/AdmissionWorkspacePage.jsx`, khóa `admission-workspace`, mở bằng nút "Mở hồ sơ tiếp nhận" ở khung chi tiết của Đăng ký tiếp nhận). Màn con không có mục menu riêng: quyền mở và mục được chọn trên menu theo màn cha (`PARENT_PAGE` ở `App.jsx`).
 
 - Đầu màn: "Tiếp nhận <họ tên>", mã hồ sơ, loại lưu trú, ngày đăng ký, ngày mong muốn vào, thanh tiến độ theo tiến trình của 004 (`/admission-applications/{id}/progress`), nút "Danh sách đăng ký".
-- Cột trái: các bước BF-01 chia năm giai đoạn (Hồ sơ và đăng ký; Sức khỏe và đánh giá; Giường, hợp đồng, đặt cọc; Hoàn tất tiếp nhận; Sau tiếp nhận). Mỗi bước một dòng: tên, ai làm, trạng thái (lấy từ điều kiện `ADM_A` → `ADM_F` của `/admission-conditions`, hoặc "Không chặn tiếp nhận"), nút mở đúng form đang có trong `Sheet` (hồ sơ người cao tuổi, ý kiến, phân bổ giường, hợp đồng) hoặc chuyển tới màn sở hữu (Người thân và quyền, Số dư, thu chi, Khai báo cư trú, Kế hoạch chăm sóc). Bước chưa có màn ghi rõ "Chưa có màn" (phiếu đối chiếu thuốc của 006).
+- Cột trái: các bước BF-01 chia năm giai đoạn (Hồ sơ và đăng ký; Sức khỏe và đánh giá; Giường, hợp đồng, đặt cọc; Hoàn tất tiếp nhận; Sau tiếp nhận). Mỗi bước một dòng: tên, ai làm, trạng thái (lấy từ điều kiện `ADM_A` → `ADM_F` của `/admission-conditions`, hoặc "Không chặn tiếp nhận"), nút mở đúng form đang có trong `Sheet` (hồ sơ người cao tuổi, ý kiến, phân bổ giường, hợp đồng) hoặc chuyển tới màn sở hữu (Người thân và quyền, Số dư, thu chi, Khai báo cư trú, Kế hoạch chăm sóc). Bước chưa có màn ghi rõ "Chưa có màn". Từ 6.14.1 bước phiếu đối chiếu thuốc "tiếp nhận" (006 T073) hiện trạng thái phiếu (Chưa lập phiếu, Mở, Chờ xác nhận, Đã xác nhận, kèm "quá hạn" chữ đỏ khi có) và nút "Mở đối chiếu thuốc" mở `ReconciliationPanel` của `features/medication/` trong `Sheet`; vẫn ghi "Không chặn Hoàn tất tiếp nhận". Màn Phát thuốc có thêm chế độ "Đối chiếu thuốc" (chọn người cao tuổi, cùng panel). Thuốc đang dùng khi tiếp nhận chỉ hiện để đọc, không có nút chép thành dòng (Q-307).
 - Cột phải: điều kiện Hoàn tất tiếp nhận, cảnh báo, ý kiến về việc vào ở kèm nguồn (mục 2.2), nút chính "Hoàn tất tiếp nhận" (theo `allowedCommands`) mở tab Trạng thái của hồ sơ; dòng "Còn n điều kiện chưa đạt". Backend vẫn kiểm mọi lệnh.
 - Chỉ hiện trạng thái đã ghi; không tự làm bước thay người, không gợi ý thứ tự khác luồng BF-01 (Q-306, Q-307).
 
@@ -774,6 +774,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.14.1 | 2026-11-18 | Mục 5.3: bước phiếu đối chiếu thuốc của Hồ sơ tiếp nhận có màn (006 T071 → T073, chủ dự án duyệt 2026-11-18); màn Phát thuốc thêm chế độ "Đối chiếu thuốc". Không thêm màu. Kho web nhánh `impl/006-reconciliation-web`. |
 | 6.14.0 | 2026-11-17 | Chủ dự án duyệt ba đề xuất (đề xuất A, B, C): nhóm ghim "Việc chính" theo vai trò ở đầu menu (mục 5 "Nhóm menu"); biểu đồ có chức năng cho Tổng quan, Báo cáo (mục 5.1, 5.2, 11); màn làm việc theo luồng "Hồ sơ tiếp nhận" (mục 5.3). Kho web nhánh `impl/ui-admission-dashboard-nav`. |
 | 6.13.0 | 2026-11-10 | Màn Lịch xe (019 T022; mục 14). Mục 3.5 thêm trạng thái lịch xe: Đang dùng `occupied`, Đã hoàn thành `settled`, Đã đặt, Đã hủy `neutral`. Không thêm màu |
 | 6.12.0 | 2026-11-10 | Màn Tài sản (019 T018; mục 14). Mục 3.5 thêm trạng thái tài sản: Hỏng và dấu Chờ chuyển người `attention`; Đang sử dụng `occupied`; Sẵn sàng, Đang bảo trì, Đã thanh lý `neutral`; dấu quá hạn bảo trì, đăng kiểm, bảo hiểm `urgent`. Không thêm màu |
