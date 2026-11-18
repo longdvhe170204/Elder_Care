@@ -72,6 +72,7 @@ public class TransferOutService {
     private static final Set<Role> VIEWERS =
             Set.of(Role.DOCTOR, Role.NURSING_STAFF, Role.FLOOR_MANAGER, Role.NURSING_HOME_MANAGER);
     private static final String REFUSED = "TRANSFER_REFUSED";
+    private static final String TRANSFERRED = "TRANSFERRED_OUT";
 
     private final IncidentStore incidents;
     private final IncidentProgressionStore progressions;
@@ -179,6 +180,17 @@ public class TransferOutService {
 
         var now = time.now();
         var result = execute(residentId, incidentId, command, user);
+        // Ghi vào sự cố để người xử lý thấy đã chuyển viện sang đâu, ai đi kèm (sự cố vẫn Đang xử lý cho tới khi đóng)
+        progressions.add(
+                incidentId,
+                progressionTypes.typeIdByCode(TRANSFERRED),
+                TRANSFERRED,
+                "Đã chuyển viện sang " + command.transferUnit() + ", người đi kèm: " + command.companion(),
+                command.transferAt(),
+                user.accountId(),
+                false,
+                incident.floorAreaId(),
+                now);
         var card = cards.build(residentId, now);
         String preparedBy = accounts.fullName(user.accountId()).orElse(Long.toString(user.accountId()));
         var draft = new TransferSummaryContent(
