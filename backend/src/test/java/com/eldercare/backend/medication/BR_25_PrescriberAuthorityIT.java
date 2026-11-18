@@ -89,7 +89,9 @@ class BR_25_PrescriberAuthorityIT extends M07IntegrationTestBase {
     @Test
     @DisplayName("FR-005, BR-M06-05: Bác sĩ chưa có giấy phép hành nghề hợp lệ không kê được đơn nội bộ (403)")
     void doctor_without_valid_license_cannot_prescribe_internally() {
-        user.set(new TestUsers(jdbc, time).staff(com.eldercare.backend.common.Role.DOCTOR).user());
+        user.set(new TestUsers(jdbc, time)
+                .staff(com.eldercare.backend.common.Role.DOCTOR)
+                .user());
         CreatePrescriptionBody body = new CreatePrescriptionBody();
         body.setMedicationId(medId);
         body.setDosage(new BigDecimal("1.0"));
@@ -108,7 +110,8 @@ class BR_25_PrescriberAuthorityIT extends M07IntegrationTestBase {
         assertThatThrownBy(() ->
                         prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true))
                 .isInstanceOf(BusinessException.class)
-                .satisfies(ex -> assertThat(((BusinessException) ex).errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET"));
+                .satisfies(
+                        ex -> assertThat(((BusinessException) ex).errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET"));
     }
 
     @Test

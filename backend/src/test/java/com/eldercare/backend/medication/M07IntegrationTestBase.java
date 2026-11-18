@@ -1,8 +1,8 @@
 package com.eldercare.backend.medication;
 
+import com.eldercare.backend.administration.account.api.ProfessionalActivityApi;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
-import com.eldercare.backend.administration.account.api.ProfessionalActivityApi;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.administration.account.api.spi.LicenseValidity;
 import com.eldercare.backend.common.Role;
@@ -78,11 +78,14 @@ abstract class M07IntegrationTestBase extends MySqlIntegrationTestBase {
                         + " WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code = ?",
                 PRESCRIBING_LICENSE,
                 ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING);
-        facilityLicenses.scope(ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING, time.today().plusYears(1));
+        facilityLicenses.scope(
+                ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING,
+                time.today().plusYears(1));
         licenses.license(
                 who.staffId(),
                 PRESCRIBING_LICENSE,
-                new LicenseValidity(TestUsers.nextId(), "Giấy phép hành nghề", time.today().plusYears(1), Set.of()));
+                new LicenseValidity(
+                        TestUsers.nextId(), "Giấy phép hành nghề", time.today().plusYears(1), Set.of()));
     }
 
     /** Cho điều dưỡng thuộc ca của tầng chứa người cao tuổi (quyền Đơn thuốc của AC-04 theo phân công). */

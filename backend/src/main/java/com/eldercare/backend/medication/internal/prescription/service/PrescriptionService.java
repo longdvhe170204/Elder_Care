@@ -79,10 +79,9 @@ public class PrescriptionService implements PrescriptionApi {
     private final ReconciliationCheckPort reconciliationCheckPort;
     private final BusinessTime businessTime;
     private final ParameterApi parameters;
-
-    @Autowired
     private final PrescribingAuthority prescribingAuthority;
 
+    @Autowired
     public PrescriptionService(
             PrescriptionRepository prescriptionRepository,
             PrescriptionIssueRepository prescriptionIssueRepository,
