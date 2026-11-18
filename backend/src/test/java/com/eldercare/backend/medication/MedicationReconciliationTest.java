@@ -260,6 +260,28 @@ class MedicationReconciliationTest {
     }
 
     @Test
+    @DisplayName("FR-035, Q-411: người không còn đơn nào gửi được phiếu không có dòng; còn đơn chưa có dòng thì chặn")
+    void emptyTicketSubmitsWhenNoPrescriptionsAndIsBlockedOtherwise() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.ADMISSION, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 6L);
+        when(reconciliationRepo.findById(6L)).thenReturn(Optional.of(ticket));
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(6L)).thenReturn(List.of());
+        when(prescriptionRepo.findByResidentIdAndStatusIn(eq(100L), any()))
+                .thenReturn(List.of(createSamplePrescription(201L, 100L, PrescriptionStatus.ACTIVE)))
+                .thenReturn(List.of());
+
+        assertThatThrownBy(() -> reconciliationService.submit(6L, 10L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).errorCode()).isEqualTo("MISSING_ITEMS"));
+
+        ReconciliationResponse submitted = reconciliationService.submit(6L, 10L);
+
+        assertThat(submitted.getStatus()).isEqualTo("PENDING_CONFIRMATION");
+    }
+
+    @Test
     @DisplayName(
             "T034: Xác nhận phiếu thành công bởi người khác: Áp quyết định Tiếp tục (khôi phục đơn) & Ngừng (hủy đơn và liều) (FR-036, BR-M07-09)")
     void testConfirm_Success_AppliesDecisions() {

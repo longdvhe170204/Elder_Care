@@ -225,11 +225,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                     "Reconciliation sheet is not in OPEN status to submit for confirmation");
         }
 
+        // A ticket may have no line when the resident has no prescription (FR-035, Q-411). Lines for "current
+        // medications at admission" are checked by the confirmer against the initial health record (FR-034a, Q-411).
         List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
-        if (items.isEmpty()) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "MISSING_ITEMS", "Reconciliation sheet has no items (FR-034)");
-        }
 
         // Verify item completeness (FR-034, FR-034a, BR-M07-25)
         for (ReconciliationItem item : items) {
