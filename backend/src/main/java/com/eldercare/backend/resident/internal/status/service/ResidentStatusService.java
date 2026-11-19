@@ -319,6 +319,22 @@ public class ResidentStatusService {
         return evaluate(context).unmet();
     }
 
+    /**
+     * Cảnh báo lệnh sẽ trả nếu thực hiện lúc này, không đổi dữ liệu (004 FR-004a; audit luồng tiếp nhận 2026-11-18): cùng
+     * {@code warnings(context)} của các bean tham gia như lệnh thật, để Hành chính thấy trước lệnh Hoàn tất tiếp nhận.
+     */
+    @Transactional(readOnly = true)
+    public List<Warning> previewWarnings(long residentId, StatusCommand command) {
+        Resident resident = residents.findById(residentId).orElseThrow(NotFoundException::new);
+        requireTransition(resident.getStatus(), command);
+        CommandContext context = context(resident, command, currentUser.getIfAvailable(), noDetails());
+        return participants
+                .orderedStream()
+                .filter(p -> p.interestedCommands().contains(command))
+                .flatMap(p -> p.warnings(context).stream())
+                .toList();
+    }
+
     @RequiresPermission(function = Function.RESIDENT_PROFILE, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<HistoryEntry> history(Target target) {

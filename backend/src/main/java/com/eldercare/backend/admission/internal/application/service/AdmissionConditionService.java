@@ -222,6 +222,14 @@ public class AdmissionConditionService implements AdmissionConditionApi {
     private List<Warning> warnings(
             long residentId, Optional<AdmissionApplication> application, Optional<ContractView> contract) {
         List<Warning> warnings = new ArrayList<>(opinionWarnings.of(application));
+        // Cảnh báo lệnh Hoàn tất tiếp nhận sẽ trả (bản đồng ý, hồ sơ sức khỏe, nguyện vọng của 001…), để thấy trước
+        // lệnh
+        // (FR-004a; audit 2026-11-18). Bean 004 cũng trả cảnh báo ý kiến vào ở nên bỏ mã đã có.
+        for (Warning warning : residentStatus.previewWarnings(residentId, StatusCommand.COMPLETE_ADMISSION)) {
+            if (warnings.stream().noneMatch(w -> w.code().equals(warning.code()))) {
+                warnings.add(warning);
+            }
+        }
         if (contract.isEmpty()) {
             return List.copyOf(warnings);
         }
@@ -230,19 +238,20 @@ public class AdmissionConditionService implements AdmissionConditionApi {
         if (current.isPresent() && current.get() != active.careLevel()) {
             warnings.add(new Warning(
                     CARE_LEVEL_MISMATCH,
-                    "Mức chăm sóc của hợp đồng (" + active.careLevel() + ") khác mức hiện hành (" + current.get()
-                            + ")"));
+                    "Mức chăm sóc của hợp đồng (" + AdmissionTexts.level(active.careLevel()) + ") khác mức hiện hành ("
+                            + AdmissionTexts.level(current.get()) + ")"));
         }
         if (application.isPresent() && application.get().desiredResidenceType() != active.residenceType()) {
             warnings.add(new Warning(
                     RESIDENCE_TYPE_MISMATCH,
-                    "Loại lưu trú của hợp đồng (" + active.residenceType() + ") khác loại mong muốn của lượt đăng ký ("
-                            + application.get().desiredResidenceType() + ")"));
+                    "Loại lưu trú của hợp đồng (" + AdmissionTexts.type(active.residenceType())
+                            + ") khác loại mong muốn của lượt đăng ký ("
+                            + AdmissionTexts.type(application.get().desiredResidenceType()) + ")"));
         }
         if (isFeeChargedBeforeAdmission(active, time.today())) {
             warnings.add(new Warning(
                     NOT_YET_ADMITTED,
-                    "Phí lưu trú đang tính từ ngày " + active.startDate()
+                    "Phí lưu trú đang tính từ ngày " + AdmissionTexts.date(active.startDate())
                             + " nhưng người cao tuổi chưa Hoàn tất tiếp nhận (FR-074, FR-076)"));
         }
         return List.copyOf(warnings);

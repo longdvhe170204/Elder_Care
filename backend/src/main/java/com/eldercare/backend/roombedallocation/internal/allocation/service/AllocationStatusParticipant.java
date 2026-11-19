@@ -122,7 +122,10 @@ public class AllocationStatusParticipant implements StatusTransitionParticipant 
                     new Condition("ALLOCATION_RESIDENCY_TYPE", "Chưa xác định được loại lưu trú", "FR-018(b)", false));
         var future = read.list(context.residentId(), null, AllocationStatus.FUTURE).stream()
                 .findFirst();
-        if (future.isEmpty()) return List.of(notReady());
+        // Chưa có phân bổ nào: cùng mã điều kiện, câu nói rõ chưa phân bổ giường (audit luồng tiếp nhận 2026-11-18)
+        if (future.isEmpty())
+            return List.of(new Condition(
+                    notReady().code(), "Chưa phân bổ giường", notReady().basis(), false));
         long bedId =
                 replacement(context.details()).orElse(future.get().location().bedId());
         return admissionConditions(

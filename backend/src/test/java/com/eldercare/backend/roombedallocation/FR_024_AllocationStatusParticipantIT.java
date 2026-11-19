@@ -85,6 +85,19 @@ class FR_024_AllocationStatusParticipantIT extends StructureTestSupport {
                 .executeWithoutResult(status -> participant().applyEffects(result));
     }
 
+    // Audit luồng tiếp nhận 2026-11-18: nội trú chưa có phân bổ nào thì điều kiện nói rõ chưa phân bổ giường, không báo
+    // "giường đặt trước chưa sẵn sàng"; mã điều kiện giữ nguyên
+    @Test
+    void FR_023_noAllocationYet_conditionSaysNotAllocated() {
+        var unmet = statusApi.previewConditions(resident, StatusCommand.COMPLETE_ADMISSION).stream()
+                .filter(c -> c.code().equals("RESERVED_BED_NOT_READY"))
+                .toList();
+
+        assertThat(unmet)
+                .singleElement()
+                .satisfies(c -> assertThat(c.description()).isEqualTo("Chưa phân bổ giường"));
+    }
+
     @Test
     void FR_024_absenceWithRetentionKeepsAllocationAndHoldDeadline() {
         TableRows.each(

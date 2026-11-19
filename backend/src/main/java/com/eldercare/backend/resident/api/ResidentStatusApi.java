@@ -9,6 +9,7 @@ import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.StatusPeriod;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
+import com.eldercare.backend.resident.api.dto.Warning;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,9 @@ public interface ResidentStatusApi {
 
     /** Danh sách điều kiện chưa thỏa, cho 004 FR-004. */
     List<Condition> previewConditions(long residentId, StatusCommand command);
+
+    /** Cảnh báo lệnh sẽ trả nếu thực hiện lúc này, không đổi dữ liệu; cho 004 FR-004a (hiện trước lệnh). */
+    List<Warning> previewWarnings(long residentId, StatusCommand command);
 
     /**
      * Giấy tờ bệnh viện gắn vào dòng lịch sử của lệnh Ghi nhận trở về, Chuyển viện (FR-047c, BR-M05-32; 006 hiện cạnh
