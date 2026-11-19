@@ -39,6 +39,7 @@ import com.eldercare.backend.medication.internal.reconciliation.persistence.Reco
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
 import com.eldercare.backend.medication.internal.reconciliation.service.MedicationReconciliationService;
 import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines;
+import com.eldercare.backend.medication.web.response.ReconciliationBodies;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -529,5 +530,42 @@ class MedicationReconciliationTest {
         ReconciliationCorrectionResponse confRes = reconciliationService.confirmCorrection(101L, 30L);
         assertThat(confRes.getStatus()).isEqualTo("CONFIRMED");
         assertThat(confRes.getConfirmedById()).isEqualTo(30L);
+    }
+
+    @Test
+    @DisplayName("T076, FR-039: phiếu kèm các đề nghị đính chính (nội dung, lý do, người lập, lý do trả lại); "
+            + "người xác nhận khác người lập mới có lệnh CONFIRM, RETURN")
+    void get_includesCorrections_withCommandsForOtherViewerOnly() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.ADMISSION, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 9L);
+        ticket.submit(10L, Instant.now());
+        ticket.confirm(30L, Instant.now());
+        when(reconciliationRepo.findById(9L)).thenReturn(Optional.of(ticket));
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(9L)).thenReturn(List.of());
+        ReconciliationCorrectionRequest pending = new ReconciliationCorrectionRequest(
+                9L, "{\"description\":\"Dòng 1 ghi nhầm liều\"}", "Ghi nhầm", 10L, Instant.now(), Instant.now());
+        setId(pending, 101L);
+        ReconciliationCorrectionRequest returned =
+                new ReconciliationCorrectionRequest(9L, "{}", "Lần trước", 10L, Instant.now(), Instant.now());
+        setId(returned, 100L);
+        returned.reject(30L, Instant.now(), "Thiếu nội dung đúng");
+        when(correctionRepo.findByReconciliationId(9L)).thenReturn(List.of(returned, pending));
+
+        var res = reconciliationService.get(9L);
+
+        assertThat(res.getCorrections()).hasSize(2);
+        var first = res.getCorrections().get(0);
+        assertThat(first.getId()).isEqualTo(101L);
+        assertThat(first.getStatus()).isEqualTo("PENDING_CONFIRMATION");
+        assertThat(first.getCorrectedContent()).containsEntry("description", "Dòng 1 ghi nhầm liều");
+        assertThat(first.getCreatedById()).isEqualTo(10L);
+        assertThat(res.getCorrections().get(1).getReturnReason()).isEqualTo("Thiếu nội dung đúng");
+
+        var byCreator = ReconciliationBodies.ReconciliationBody.of(res, 10L);
+        assertThat(byCreator.corrections().get(0).allowedCommands()).isEmpty();
+        var byOther = ReconciliationBodies.ReconciliationBody.of(res, 31L);
+        assertThat(byOther.corrections().get(0).allowedCommands()).containsExactly("CONFIRM", "RETURN");
+        assertThat(byOther.corrections().get(1).allowedCommands()).isEmpty();
     }
 }

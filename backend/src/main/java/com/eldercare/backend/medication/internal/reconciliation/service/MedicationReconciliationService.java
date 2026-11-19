@@ -692,6 +692,36 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         }
         res.setPermittedActions(actions);
 
+        if (t.getId() != null) {
+            res.setCorrections(correctionRepo.findByReconciliationId(t.getId()).stream()
+                    .sorted(java.util.Comparator.comparing(ReconciliationCorrectionRequest::getId)
+                            .reversed())
+                    .map(this::toCorrectionResponse)
+                    .toList());
+        }
+        return res;
+    }
+
+    /** Một đề nghị đính chính để hiện trên phiếu (FR-039; 006 T076). */
+    private ReconciliationCorrectionResponse toCorrectionResponse(ReconciliationCorrectionRequest req) {
+        ReconciliationCorrectionResponse res = new ReconciliationCorrectionResponse();
+        res.setId(req.getId());
+        res.setReconciliationId(req.getReconciliationId());
+        if (req.getCorrectedContentJson() != null) {
+            try {
+                res.setCorrectedContent(objectMapper.readValue(
+                        req.getCorrectedContentJson(),
+                        new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {}));
+            } catch (JsonProcessingException ignored) {
+            }
+        }
+        res.setReason(req.getReason());
+        res.setStatus(req.getStatus().name());
+        res.setCreatedById(req.getCreatedById());
+        res.setCreatedAt(req.getCreatedAt());
+        res.setConfirmedById(req.getConfirmedById());
+        res.setConfirmedAt(req.getConfirmedAt());
+        res.setReturnReason(req.getReturnReason());
         return res;
     }
 }

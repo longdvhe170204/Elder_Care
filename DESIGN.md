@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 6.15.1
+version: 6.16.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-11-10
@@ -776,6 +776,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.16.0 | 2026-11-19 | Phiếu đối chiếu thuốc (006 T077, T078, chủ dự án duyệt 2026-11-19): chế độ "Đối chiếu thuốc" của Phát thuốc có dải `now-strip` "Cần đối chiếu (n)" (người trong phạm vi có phiếu Mở, Chờ xác nhận hoặc đơn chờ đối chiếu, quá hạn trước; mỗi mục "<họ tên>, <quá hạn / mở / chờ xác nhận / chưa lập phiếu>", bấm là mở phiếu người đó); phiếu có khối "Đề nghị đính chính" (nội dung đúng, lý do, người lập, trạng thái, lý do trả lại; nút "Xác nhận đính chính", "Trả lại" theo `allowedCommands`). Màn Cảnh báo: thẻ "Thuốc chưa đối chiếu" đang mở có nút "Mở đối chiếu thuốc của <họ tên>" chuyển sang Phát thuốc đúng người; chỉ mã người cao tuổi đi vào URL, không có họ tên. Không thêm màu. Kho web nhánh `impl/006-reconciliation-corrections-worklist`. |
 | 6.15.1 | 2026-11-18 | Màn Phát thuốc thêm chế độ "Đối chiếu thuốc" (006 T071 → T073, chủ dự án duyệt 2026-11-18): lập, xử lý phiếu đối chiếu của người cao tuổi được chọn; thuốc đang dùng khi tiếp nhận chỉ hiện để đọc, không có nút chép thành dòng (Q-307). Tab Đơn thuốc: đơn tạm dừng chờ đối chiếu ghi "Chờ đối chiếu thuốc" (tông `attention`), kèm nút "Mở đối chiếu thuốc của <họ tên>" (006 T074). Không đặt lối vào ở Hồ sơ tiếp nhận (chủ dự án bỏ nhóm "Hoàn tất tiếp nhận" khỏi màn đó). Không thêm màu. Kho web nhánh `impl/006-reconciliation-web`. |
 | 6.15.0 | 2026-11-18 | Chủ dự án yêu cầu 2026-11-17: nút "Quay lại <tên màn trước>" toàn web (mục 5); công thức `file-input` cho mọi ô chọn tệp (mục 7.2, 16 chỗ đổi sang `FileInput`); form lập hợp đồng mở từ Hồ sơ tiếp nhận hoặc khi sửa chỉ hiện họ tên người cao tuổi (mục 5.3). Không thêm màu. |
 | 6.14.1 | 2026-11-17 | Hồ sơ tiếp nhận (mục 5.3; 004 T114, chủ dự án yêu cầu): bấm tên ở Đăng ký tiếp nhận mở thẳng màn, danh sách bỏ khung chi tiết; bước thuộc hồ sơ mở đúng phần; đầu màn thêm "Cập nhật đăng ký". Không thêm màu, component. |

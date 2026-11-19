@@ -14,6 +14,8 @@ public interface MedicationReconciliationRepository extends JpaRepository<Medica
 
     List<MedicationReconciliation> findByResidentId(Long residentId);
 
+    List<MedicationReconciliation> findByStatusIn(Collection<ReconciliationStatus> statuses);
+
     List<MedicationReconciliation> findByResidentIdAndStatusIn(
             Long residentId, Collection<ReconciliationStatus> statuses);
 

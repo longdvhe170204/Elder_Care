@@ -139,4 +139,8 @@ public class ReconciliationCorrectionRequest {
     public Long getCorrectionId() {
         return correctionId;
     }
+
+    public String getReturnReason() {
+        return returnReason;
+    }
 }

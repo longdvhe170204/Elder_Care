@@ -19,6 +19,15 @@ public class ReconciliationCorrectionResponse {
     private Instant createdAt;
     private Long confirmedById;
     private Instant confirmedAt;
+    private String returnReason;
+
+    public String getReturnReason() {
+        return returnReason;
+    }
+
+    public void setReturnReason(String returnReason) {
+        this.returnReason = returnReason;
+    }
 
     public Long getId() {
         return id;

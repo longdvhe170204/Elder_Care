@@ -319,6 +319,14 @@ paths:
       x-fr: [FR-054]
       parameters: [ { name: purchaseRequestId, in: query, required: true, schema: { type: integer, format: int64 } } ]
       responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SuppliedMedicationIntake' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /medication-reconciliation-worklist:
+    get:
+      tags: [reconciliation]
+      summary: Danh sách "Cần đối chiếu" (bổ sung 2026-11-19, 006 T075, T076)
+      description: 'Người cao tuổi trong phạm vi quyền xem đối chiếu thuốc của người dùng có phiếu Mở, Chờ xác nhận hoặc có đơn tạm dừng chờ đối chiếu. Phiếu quá hạn trước, rồi theo hạn sớm nhất; chưa lập phiếu sau cùng. Chỉ hiện số liệu đã có (Q-306, Q-307). Họ tên lấy từ api-001.'
+      x-fr: [FR-034, FR-034a, FR-034b]
+      x-br: [BR-M07-09]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ReconciliationWorklistEntry' } } } } } }
   /medication-reconciliations/{id}:
     get:
       tags: [reconciliation]
@@ -372,7 +380,7 @@ paths:
       x-br: [BR-M07-17]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [correctedContent, reason], properties: { correctedContent: { type: object, additionalProperties: true }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
-      responses: { '201': { description: Chờ xác nhận }, '403': { $ref: '#/components/responses/Problem' } }
+      responses: { '201': { description: 'Chờ xác nhận; trả đề nghị vừa lập (bổ sung 2026-11-19, 006 T076)', content: { application/json: { schema: { $ref: '#/components/schemas/ReconciliationCorrection' } } } }, '403': { $ref: '#/components/responses/Problem' } }
   /reconciliation-corrections/{id}/confirm:
     post:
       tags: [reconciliation]
@@ -853,6 +861,33 @@ components:
         confirmedBy: { type: string }
         items: { type: array, items: { $ref: '#/components/schemas/ReconciliationItem' } }
         allowedCommands: { type: array, items: { type: string } }
+        corrections: { type: array, readOnly: true, items: { $ref: '#/components/schemas/ReconciliationCorrection' }, description: 'Đề nghị đính chính của phiếu, mọi trạng thái, mới nhất trước (FR-039; bổ sung 2026-11-19, 006 T076)' }
+    ReconciliationCorrection:
+      type: object
+      description: 'Đề nghị đính chính phiếu Đã xác nhận (FR-039, BR-M07-17; bổ sung 2026-11-19, 006 T076). allowedCommands theo người xem: CONFIRM, RETURN khi Chờ xác nhận và người xem khác người lập.'
+      properties:
+        id: { type: integer, format: int64 }
+        reconciliationId: { type: integer, format: int64 }
+        correctedContent: { type: object, additionalProperties: true }
+        reason: { type: string }
+        status: { type: string, enum: [PENDING_CONFIRMATION, CONFIRMED, REJECTED] }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+        confirmedBy: { type: string }
+        confirmedAt: { type: string, format: date-time }
+        returnReason: { type: string }
+        allowedCommands: { type: array, items: { type: string, enum: [CONFIRM, RETURN] } }
+    ReconciliationWorklistEntry:
+      type: object
+      description: 'Một dòng danh sách "Cần đối chiếu" (bổ sung 2026-11-19, 006 T075, T076); reconciliationId, status, reason rỗng khi chưa lập phiếu.'
+      properties:
+        residentId: { type: integer, format: int64 }
+        reconciliationId: { type: integer, format: int64 }
+        status: { type: string, enum: [OPEN, PENDING_CONFIRMATION] }
+        reason: { type: string, enum: [ADMISSION, HOSPITAL_RETURN, PROFESSIONAL_REQUEST] }
+        deadlineAt: { type: string, format: date-time }
+        overdue: { type: boolean }
+        awaitingPrescriptionCount: { type: integer }
     ReceiveFamilyMedication:
       type: object
       required: [concentration, quantity, unit, expiryDate, packagingCondition, hasPrescription, deliverer, receivedAt]

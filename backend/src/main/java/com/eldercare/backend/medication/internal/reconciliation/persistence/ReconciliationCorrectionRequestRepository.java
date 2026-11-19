@@ -9,6 +9,7 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationCorrectionRequest;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationCorrectionRequestContent;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationCorrectionStatus;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,17 @@ public class ReconciliationCorrectionRequestRepository {
                         .after();
         request.restoreRow(row.id(), row.version());
         return request;
+    }
+
+    /** Đề nghị đính chính của một phiếu (cha {@code M07.RECONCILIATION}; 006 T076). */
+    public List<ReconciliationCorrectionRequest> findByReconciliationId(Long reconciliationId) {
+        return rows
+                .listByParent(
+                        ReconciliationCorrectionRequestContent.KIND,
+                        new EntityRef("M07.RECONCILIATION", reconciliationId))
+                .stream()
+                .map(ReconciliationCorrectionRequestRepository::toDomain)
+                .toList();
     }
 
     public Optional<ReconciliationCorrectionRequest> findById(Long id) {
