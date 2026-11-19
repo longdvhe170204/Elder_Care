@@ -27,6 +27,43 @@ public class CostSummaries {
             if (item.amount() == null) missing = true;
             else totals.merge(item.type(), item.amount(), Math::addExact);
         }
+         for (var item : store.provisional(resident)) {
+            if (!ProvisionalCostTotal.included(item.origin(), item.status())) continue;
+            if (from != null && item.date().isBefore(from)
+                    || to != null && item.date().isAfter(to)) continue;
+            if (item.amount() == null) missing = true;
+            else totals.merge(item.type(), item.amount(), Math::addExact);
+        } for (var item : store.provisional(resident)) {
+            if (!ProvisionalCostTotal.included(item.origin(), item.status())) continue;
+            if (from != null && item.date().isBefore(from)
+                    || to != null && item.date().isAfter(to)) continue;
+            if (item.amount() == null) missing = true;
+            else totals.merge(item.type(), item.amount(), Math::addExact);
+        } for (var item : store.provisional(resident)) {
+            if (!ProvisionalCostTotal.included(item.origin(), item.status())) continue;
+            if (from != null && item.date().isBefore(from)
+                    || to != null && item.date().isAfter(to)) continue;
+            if (item.amount() == null) missing = true;
+            else totals.merge(item.type(), item.amount(), Math::addExact);
+        } for (var item : store.provisional(resident)) {
+            if (!ProvisionalCostTotal.included(item.origin(), item.status())) continue;
+            if (from != null && item.date().isBefore(from)
+                    || to != null && item.date().isAfter(to)) continue;
+            if (item.amount() == null) missing = true;
+            else totals.merge(item.type(), item.amount(), Math::addExact);
+        } for (var item : store.provisional(resident)) {
+            if (!ProvisionalCostTotal.included(item.origin(), item.status())) continue;
+            if (from != null && item.date().isBefore(from)
+                    || to != null && item.date().isAfter(to)) continue;
+            if (item.amount() == null) missing = true;
+            else totals.merge(item.type(), item.amount(), Math::addExact);
+        } for (var item : store.provisional(resident)) {
+            if (!ProvisionalCostTotal.included(item.origin(), item.status())) continue;
+            if (from != null && item.date().isBefore(from)
+                    || to != null && item.date().isAfter(to)) continue;
+            if (item.amount() == null) missing = true;
+            else totals.merge(item.type(), item.amount(), Math::addExact);
+        }
         return new ProvisionalCostSummaryView(
                 "tạm tính, chưa chốt",
                 totals.entrySet().stream()
