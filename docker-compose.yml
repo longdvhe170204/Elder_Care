@@ -27,6 +27,16 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_RETENTION_USERNAME: eldercare_retention
       DB_RETENTION_PASSWORD: ${DB_RETENTION_PASSWORD}
+      # Tin nhắn eSMS
+      ESMS_API_KEY: ${ESMS_API_KEY:-}
+      ESMS_SECRET_KEY: ${ESMS_SECRET_KEY:-}
+      ESMS_BRANDNAME: ${ESMS_BRANDNAME:-}
+      ESMS_SANDBOX: ${ESMS_SANDBOX:-true}
+      # Tệp đính kèm trên AWS S3
+      AWS_REGION: ${AWS_REGION:-ap-southeast-1}
+      ELDERCARE_S3_BUCKET: ${ELDERCARE_S3_BUCKET:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     volumes:
       - backend-logs:/app/logs
 

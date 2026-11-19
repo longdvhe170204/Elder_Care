@@ -24,6 +24,8 @@ import com.eldercare.backend.family.internal.relationship.service.RelationshipQu
 import com.eldercare.backend.family.internal.visit.service.VisitQueries;
 import com.eldercare.backend.incident.api.FamilyPortalHealthApi;
 import com.eldercare.backend.medication.api.FamilyPortalMedicationApi;
+import com.eldercare.backend.nutrition.api.DietApi;
+import com.eldercare.backend.nutrition.api.GeneralMenuApi;
 import com.eldercare.backend.resident.api.AllergenApi;
 import com.eldercare.backend.resident.api.HealthItemApi;
 import com.eldercare.backend.resident.api.ResidentApi;
@@ -85,6 +87,7 @@ public class PortalService {
             List<Map<String, Object>> absences,
             List<Map<String, Object>> dayCareSchedule,
             List<Map<String, Object>> incidents,
+            List<Map<String, Object>> menu,
             List<String> unavailable) {}
 
     /** Một phần sức khỏe; {@code available} sai khi nguồn chưa có, kèm {@code note}. */
@@ -106,6 +109,8 @@ public class PortalService {
     private final ObjectProvider<FamilyPortalMedicationApi> medications;
     private final ObjectProvider<PublicCareResultApi> careResults;
     private final ObjectProvider<ContractReadApi> contracts;
+    private final ObjectProvider<GeneralMenuApi> menus;
+    private final ObjectProvider<DietApi> diets;
     private final AuditLogApi auditLog;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
@@ -124,6 +129,8 @@ public class PortalService {
             ObjectProvider<FamilyPortalMedicationApi> medications,
             ObjectProvider<PublicCareResultApi> careResults,
             ObjectProvider<ContractReadApi> contracts,
+            ObjectProvider<GeneralMenuApi> menus,
+            ObjectProvider<DietApi> diets,
             AuditLogApi auditLog,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
@@ -140,6 +147,8 @@ public class PortalService {
         this.medications = medications;
         this.careResults = careResults;
         this.contracts = contracts;
+        this.menus = menus;
+        this.diets = diets;
         this.auditLog = auditLog;
         this.time = time;
         this.currentUser = currentUser;
@@ -173,7 +182,7 @@ public class PortalService {
         long self = related(residentId);
         Instant now = time.now();
         LocalDate today = time.today();
-        List<String> unavailable = new ArrayList<>(List.of("menu"));
+        List<String> unavailable = new ArrayList<>();
         String location = locations
                 .current(residentId)
                 .map(l -> l.roomName() == null ? l.bedCode() : l.roomName() + ", giường " + l.bedCode())
@@ -220,6 +229,16 @@ public class PortalService {
                             "level", i.general().level(),
                             "processingStatus", i.general().processingStatus())));
         }
+        // Thực đơn chung của viện, cùng khoảng 7 ngày với lịch đến/về (011 FR-028: món của chế độ ăn mặc định)
+        List<Map<String, Object>> menu = new ArrayList<>();
+        GeneralMenuApi generalMenu = menus.getIfAvailable();
+        if (generalMenu == null) {
+            unavailable.add("menu");
+        } else {
+            generalMenu
+                    .generalMenu(today, today.plusDays(6))
+                    .forEach(d -> menu.add(row("date", d.date(), "mealName", d.mealName(), "dishName", d.dishName())));
+        }
         return new General(
                 residentId,
                 residents.identity(residentId).fullName(),
@@ -229,6 +248,7 @@ public class PortalService {
                 absences,
                 schedule,
                 incidents,
+                menu,
                 unavailable);
     }
 
@@ -413,7 +433,17 @@ public class PortalService {
                 return missing(code, "Cân nặng");
             }
             case DIET -> {
-                return missing(code, "Chế độ ăn riêng");
+                DietApi api = diets.getIfAvailable();
+                if (api == null) {
+                    return missing(code, "Chế độ ăn riêng");
+                }
+                List<Map<String, Object>> items = api.current(residentId).stream()
+                        .map(d -> row(
+                                "dietName", d.dietName(),
+                                "texture", d.texture().name(),
+                                "notAssigned", d.notAssigned()))
+                        .toList();
+                return new HealthPart(code, true, null, items);
             }
             case MEDICAL_APPOINTMENTS -> {
                 return missing(code, "Lịch khám bên ngoài");

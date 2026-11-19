@@ -48,7 +48,6 @@ public class ShiftScheduleService {
     private final PermissionApi permissions;
     private final ObjectProvider<CurrentUser> users;
     private final ObjectProvider<AssignmentApi> assignments;
-    private final ObjectProvider<ExtendedPublicationCheck> extended;
     private final ParameterApi parameters;
     private final BusinessTime time;
     private final AuditLogApi audit;
@@ -66,7 +65,6 @@ public class ShiftScheduleService {
             PermissionApi permissions,
             ObjectProvider<CurrentUser> users,
             ObjectProvider<AssignmentApi> assignments,
-            ObjectProvider<ExtendedPublicationCheck> extended,
             ParameterApi parameters,
             BusinessTime time,
             AuditLogApi audit,
@@ -82,7 +80,6 @@ public class ShiftScheduleService {
         this.permissions = permissions;
         this.users = users;
         this.assignments = assignments;
-        this.extended = extended;
         this.parameters = parameters;
         this.time = time;
         this.audit = audit;
@@ -310,7 +307,6 @@ public class ShiftScheduleService {
                             Map.of("staffId", member.staffId(), "shiftId", shift.id())));
                 warnings.addAll(trainingWarnings(member.staffId(), shift.startsAt(), shift.endsAt()));
             }
-        extended.orderedStream().forEach(check -> warnings.addAll(check.check(schedule.id())));
         // FR-016 (015 FR-026a, Q-184; chủ dự án duyệt 2026-11-12): nghỉ theo ngày chưa quyết định của tháng, không
         // chặn.
         var pendingLeave = leaveDays.getIfAvailable();

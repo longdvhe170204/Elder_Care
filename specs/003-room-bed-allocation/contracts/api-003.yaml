@@ -17,17 +17,17 @@ servers:
 security:
   - phien: []
 tags:
-  - name: co-cau
+  - name: structure
     description: UC-19; mục A (khu vực, tầng, loại phòng, phòng, giường, lý do chuyển)
-  - name: giuong
+  - name: beds
     description: Trạng thái giường; mục C, H (Tạm ngừng sử dụng, Sử dụng lại, Xác nhận giường sẵn sàng UC-74)
-  - name: cach-ly
+  - name: isolation
     description: UC-37 (phần đặt, gỡ cách ly phòng); mục B
-  - name: phan-bo
+  - name: allocations
     description: UC-20, UC-21; mục D, E
-  - name: tra-cuu
+  - name: location-history
     description: Lịch sử vị trí; mục F
-  - name: ban-tru
+  - name: day-care
     description: Khu nghỉ bán trú, buổi; mục G
 
 paths:
@@ -35,7 +35,7 @@ paths:
   /areas:
     get:
       tags:
-        - co-cau
+        - structure
       summary: Danh sách khu vực
       x-fr:
         - FR-001
@@ -54,7 +54,7 @@ paths:
       x-implementation-phase: 3
     post:
       tags:
-        - co-cau
+        - structure
       summary: Tạo khu vực (Quản lý viện)
       x-fr:
         - FR-001
@@ -90,7 +90,7 @@ paths:
   /areas/{id}:
     put:
       tags:
-        - co-cau
+        - structure
       summary: Sửa khu vực
       x-fr:
         - FR-002
@@ -120,7 +120,7 @@ paths:
       x-implementation-phase: 3
     delete:
       tags:
-        - co-cau
+        - structure
       summary: Xóa khu vực chưa từng được tham chiếu
       description: Đã được tham chiếu (trong 003 hoặc ThamChieuViTri.daTungThamChieu) thì 409
         DANH_MUC_DA_DUOC_THAM_CHIEU; chỉ còn Ngừng hiệu lực (FR-005).
@@ -156,7 +156,7 @@ paths:
   /areas/{id}/deactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Ngừng hiệu lực khu vực
       description: Chặn khi còn tầng chưa Ngừng hiệu lực hoặc còn phân công trỏ vào (FR-005 b, c); 409 liệt kê đối
         tượng gây chặn.
@@ -181,7 +181,7 @@ paths:
   /areas/{id}/reactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Kích hoạt lại khu vực
       x-fr:
         - FR-005
@@ -202,7 +202,7 @@ paths:
   /floors:
     get:
       tags:
-        - co-cau
+        - structure
       summary: Danh sách tầng
       x-fr:
         - FR-001
@@ -226,7 +226,7 @@ paths:
       x-implementation-phase: 3
     post:
       tags:
-        - co-cau
+        - structure
       summary: Tạo tầng (Quản lý viện)
       x-fr:
         - FR-001
@@ -252,7 +252,7 @@ paths:
   /floors/{id}:
     put:
       tags:
-        - co-cau
+        - structure
       summary: Sửa tầng
       description: Không đổi khu vực khi tầng đã có phòng với lịch sử phân bổ (FR-007).
       x-fr:
@@ -280,7 +280,7 @@ paths:
       x-implementation-phase: 3
     delete:
       tags:
-        - co-cau
+        - structure
       summary: Xóa tầng chưa từng được tham chiếu
       x-fr:
         - FR-005
@@ -314,7 +314,7 @@ paths:
   /floors/{id}/deactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Ngừng hiệu lực tầng
       x-fr:
         - FR-005
@@ -333,7 +333,7 @@ paths:
   /floors/{id}/reactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Kích hoạt lại tầng
       x-fr:
         - FR-005
@@ -350,7 +350,7 @@ paths:
   /room-types:
     get:
       tags:
-        - co-cau
+        - structure
       summary: Danh mục loại phòng
       x-fr:
         - FR-004
@@ -368,7 +368,7 @@ paths:
       x-implementation-phase: 3
     post:
       tags:
-        - co-cau
+        - structure
       summary: Tạo loại phòng (Quản lý viện)
       x-fr:
         - FR-004
@@ -391,7 +391,7 @@ paths:
   /room-types/{id}:
     put:
       tags:
-        - co-cau
+        - structure
       summary: Sửa loại phòng
       description: Không đổi danh sách mức của phòng đã tạo (phòng giữ bản sao riêng, FR-004).
       x-fr:
@@ -449,7 +449,7 @@ paths:
   /room-types/{id}/deactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Ngừng hiệu lực loại phòng
       description: Được phép khi còn phòng Hiệu lực dùng; phòng giữ nguyên loại và điều kiện (US1
       x-fr:
@@ -468,7 +468,7 @@ paths:
   /rooms:
     get:
       tags:
-        - co-cau
+        - structure
       summary: Danh sách phòng
       x-fr:
         - FR-002
@@ -492,7 +492,7 @@ paths:
       x-implementation-phase: 3
     post:
       tags:
-        - co-cau
+        - structure
       summary: Tạo phòng (Quản lý viện)
       description: Danh sách mức được phép khởi tạo từ loại phòng nếu không gửi (FR-004).
       x-fr:
@@ -520,7 +520,7 @@ paths:
   /rooms/{id}:
     get:
       tags:
-        - co-cau
+        - structure
       summary: Xem phòng
       x-fr:
         - FR-002
@@ -539,7 +539,7 @@ paths:
       x-implementation-phase: 3
     put:
       tags:
-        - co-cau
+        - structure
       summary: Sửa phòng
       description: >
         Đổi chính sách giới tính hoặc danh sách mức làm người có phân bổ đang hiệu lực/tương lai vi phạm:
@@ -576,7 +576,7 @@ paths:
       x-implementation-phase: 3
     delete:
       tags:
-        - co-cau
+        - structure
       summary: Xóa phòng chưa từng được tham chiếu
       x-fr:
         - FR-005
@@ -592,7 +592,7 @@ paths:
   /rooms/{id}/deactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Ngừng hiệu lực phòng
       description: Chặn khi còn giường chưa Không sử dụng (kể cả Tạm ngừng sử dụng, Q-260) hoặc còn phân công trỏ
         vào (FR-005).
@@ -613,7 +613,7 @@ paths:
   /rooms/{id}/reactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Kích hoạt lại phòng
       x-fr:
         - FR-005
@@ -630,7 +630,7 @@ paths:
   /bed-transfer-reasons:
     get:
       tags:
-        - co-cau
+        - structure
       summary: Danh mục lý do chuyển giường
       x-fr:
         - FR-030
@@ -646,7 +646,7 @@ paths:
       x-implementation-phase: 3
     post:
       tags:
-        - co-cau
+        - structure
       summary: Thêm lý do chuyển giường (Quản lý viện)
       x-fr:
         - FR-030
@@ -669,7 +669,7 @@ paths:
   /bed-transfer-reasons/{id}:
     put:
       tags:
-        - co-cau
+        - structure
       summary: Sửa lý do chuyển giường
       description: Dòng cố định KIEM_SOAT_LAY_NHIEM không đổi cờ yTeAnToan, không Ngừng hiệu lực (409 DONG_CO_DINH).
       x-fr:
@@ -725,7 +725,7 @@ paths:
   /bed-transfer-reasons/{id}/deactivate:
     post:
       tags:
-        - co-cau
+        - structure
       summary: Ngừng hiệu lực lý do chuyển giường
       x-fr:
         - FR-030
@@ -746,7 +746,7 @@ paths:
   /beds:
     get:
       tags:
-        - giuong
+        - beds
       summary: Bảng giường (Quản lý viện, Trưởng tầng, Hành chính)
       description: >
         Toàn bộ cơ cấu và trạng thái giường (FR-002). Mỗi giường có trạng thái, thuộc tính giữ chỗ, hạn xác nhận
@@ -799,7 +799,7 @@ paths:
       x-implementation-phase: 3
     post:
       tags:
-        - giuong
+        - beds
       summary: Tạo giường (Quản lý viện)
       description: |
         Giường ở Trống; trong cùng một lần ghi tăng tài sản loại "giường" (019, Q-238).
@@ -831,7 +831,7 @@ paths:
   /beds/summary:
     get:
       tags:
-        - giuong
+        - beds
       summary: Số giường theo trạng thái và số giường Trống theo điều kiện
       description: Tạm ngừng sử dụng không tính vào giường có thể dùng (Q-246). Số liệu cho dashboard 016 (SC-008).
       x-fr:
@@ -871,7 +871,7 @@ paths:
   /beds/{id}:
     get:
       tags:
-        - giuong
+        - beds
       summary: Xem giường
       x-fr:
         - FR-002
@@ -891,7 +891,7 @@ paths:
       x-implementation-phase: 3
     put:
       tags:
-        - giuong
+        - beds
       summary: Sửa mã giường; đổi phòng khi giường chưa từng có phân bổ
       description: Đổi phòng của giường đã có phân bổ → 409 KHONG_DOI_CHA (FR-007, Q-243); vị trí tài sản đổi theo ở 019.
       x-fr:
@@ -1060,7 +1060,7 @@ paths:
   /bed-allocations/suitable-beds:
     get:
       tags:
-        - phan-bo
+        - allocations
       summary: Danh sách giường thỏa FR-018 cho một người cao tuổi
       description: |
         Chỉ gồm giường thỏa mọi điều kiện cho người đó và khoảng dự kiến, sắp theo khu vực, tầng, phòng.
@@ -1109,7 +1109,7 @@ paths:
       x-implementation-phase: 4
   /bed-allocations:
     get:
-      tags: [phan-bo]
+      tags: [allocations]
       summary: Danh sách phân bổ trong phạm vi quyền người xem
       description: Các bộ lọc tùy chọn kết hợp với phạm vi dữ liệu của người xem theo 002.
       x-fr: [FR-017, FR-021, FR-037]
@@ -1129,7 +1129,7 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
     post:
       tags:
-        - phan-bo
+        - allocations
       summary: Phân bổ giường (Hành chính; Trưởng tầng với giường trong phạm vi)
       description: >
         Người Đang tiếp nhận: tạo phân bổ FUTURE từ startAt (FR-023). Người Đang lưu trú mang dấu "chưa có
@@ -1198,7 +1198,7 @@ paths:
   /bed-allocations/{id}:
     get:
       tags:
-        - phan-bo
+        - allocations
       summary: Xem phân bổ
       x-fr:
         - FR-017
@@ -1217,7 +1217,7 @@ paths:
   /bed-allocations/{id}/cancel:
     post:
       tags:
-        - phan-bo
+        - allocations
       summary: Hủy phân bổ tương lai
       description: Chỉ phân bổ FUTURE; bản ghi chuyển CANCELLED và được giữ (FR-023).
       x-fr:
@@ -1241,7 +1241,7 @@ paths:
   /bed-allocations/{id}/transfer:
     post:
       tags:
-        - phan-bo
+        - allocations
       summary: Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi)
       description: >
         Một lần thực hiện: đóng phân bổ {id} tại transferAt, mở phân bổ mới cùng thời điểm, đổi trạng thái
@@ -1346,7 +1346,7 @@ paths:
   /residents/{residentId}/location:
     get:
       tags:
-        - phan-bo
+        - allocations
       summary: Vị trí hiện tại, phân bổ tương lai và dấu của một người cao tuổi
       description: Trong phạm vi của người xem (002). Vai trò không có quyền X ở "Phân bổ, chuyển giường" chỉ nhận
         location hiện tại.

@@ -13,6 +13,7 @@ import com.eldercare.backend.roombedallocation.api.events.*;
 import com.eldercare.backend.roombedallocation.api.spi.AllocationResidencySource;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.AllocationLocks;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedEvent;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.HeldBed;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.BedHoldStore;
 import java.time.Duration;
 import java.util.*;
@@ -57,7 +58,7 @@ public class HoldExpiryProcessor {
     }
 
     @Transactional
-    public boolean expire(BedHoldStore.Held held, String runId) {
+    public boolean expire(HeldBed held, String runId) {
         locks.lock(held.residentId(), List.of(held.bedId()));
         var now = time.now();
         if (!store.stillExpired(held.bedId(), now)) return false;

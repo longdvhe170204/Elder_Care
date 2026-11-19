@@ -17,6 +17,7 @@ import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
+import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
@@ -107,6 +108,7 @@ public class CriticalCareService {
     private final IncidentRecordService incidents;
     private final Optional<AlertStaffPort> staff;
     private final Optional<EmergencyFamilyPort> family;
+    private final CarePlanReviewApi carePlanReview;
 
     public CriticalCareService(
             CriticalCareStore store,
@@ -123,7 +125,8 @@ public class CriticalCareService {
             TransferOutService transfers,
             IncidentRecordService incidents,
             @Autowired(required = false) AlertStaffPort staff,
-            @Autowired(required = false) EmergencyFamilyPort family) {
+            @Autowired(required = false) EmergencyFamilyPort family,
+            CarePlanReviewApi carePlanReview) {
         this.store = store;
         this.alertService = alertService;
         this.alerts = alerts;
@@ -139,6 +142,7 @@ public class CriticalCareService {
         this.incidents = incidents;
         this.staff = Optional.ofNullable(staff);
         this.family = Optional.ofNullable(family);
+        this.carePlanReview = carePlanReview;
     }
 
     public record Recorded(long flagId, long alertId) {}
@@ -407,9 +411,12 @@ public class CriticalCareService {
                         now,
                         CriticalCareNotices.homeLeave(
                                 alertId, residentId, alert.floorAreaId(), user.accountId(), now)));
-            case STAY_PALLIATIVE ->
-                events.publishEvent(new PalliativeCareChoiceRecorded(
-                        residentId, CriticalCareNotices.key(alertId, "PALLIATIVE_CARE_CHOICE"), now));
+            case STAY_PALLIATIVE -> {
+                String key = CriticalCareNotices.key(alertId, "PALLIATIVE_CARE_CHOICE");
+                events.publishEvent(new PalliativeCareChoiceRecorded(residentId, key, now));
+                // BR-M04-20 (005 mục 1.10b): cùng khóa với sự kiện; lỗi từ 005 làm lệnh rollback
+                carePlanReview.palliativeCareChoiceRecorded(residentId, key, now);
+            }
             case TRANSFER_TO_HOSPITAL -> {}
         }
         return row.id();

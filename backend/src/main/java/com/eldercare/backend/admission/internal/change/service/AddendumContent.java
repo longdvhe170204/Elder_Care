@@ -72,7 +72,7 @@ final class AddendumContent {
                 }
             } else if (baseType == ResidenceType.DAY_CARE) {
                 if (change.newBedId() != null) {
-                    replace(content, before, after, "bedId", F.numberNode(change.newBedId()));
+                    newBed(content, before, after, change.newBedId(), pricing);
                 }
                 replace(content, before, after, "arrivalSchedule", F.arrayNode());
             }
@@ -86,12 +86,7 @@ final class AddendumContent {
                     F.stringNode(change.endDate().toString()));
         }
         if (change.has(ChangeType.BED)) {
-            replace(content, before, after, "bedId", F.numberNode(change.newBedId()));
-            // 003 FR-030: yêu cầu sau chuyển gấp khác giá áp đơn giá theo loại phòng của giường mới từ ngày hiệu lực
-            if (change.afterUrgentTransfer()) {
-                pricing.roomTypeOfBed(change.newBedId())
-                        .ifPresent(type -> replace(content, before, after, "roomTypeId", F.numberNode(type)));
-            }
+            newBed(content, before, after, change.newBedId(), pricing);
         }
         if (change.has(ChangeType.ARRIVAL_SCHEDULE)) {
             replace(content, before, after, "arrivalSchedule", schedule(change.arrivalSchedule()));
@@ -112,6 +107,16 @@ final class AddendumContent {
             services(base, content, before, after, change, pricing);
         }
         return new Built(content, before, after);
+    }
+
+    /**
+     * Giường mới kèm loại phòng của giường đó (003 FR-030; chủ dự án chốt 2026-11-16 cho mọi phụ lục có giường mới): phí
+     * lưu trú và đơn giá hợp đồng theo loại phòng của giường mới từ ngày hiệu lực.
+     */
+    private static void newBed(ObjectNode content, ObjectNode before, ObjectNode after, long bedId, Pricing pricing) {
+        replace(content, before, after, "bedId", F.numberNode(bedId));
+        pricing.roomTypeOfBed(bedId)
+                .ifPresent(type -> replace(content, before, after, "roomTypeId", F.numberNode(type)));
     }
 
     private static void services(

@@ -220,92 +220,17 @@ public class RightChangeRequestService {
     public SimpleRecord<RightChangeRequest> create(CreateCommand command, Reason reason) {
         CurrentUser user = currentUser.getObject();
         long residentId = command.residentId();
-        Target target = residentTarget(residentId);
         lock.lock(residentId);
         residents.status(residentId);
         List<FamilyRelationship> active = store.activeOfResident(residentId);
-        Optional<FamilyRelationship> own = Optional.empty();
-        if (user.type() == AccountType.FAMILY_MEMBER) {
-            long self = user.familyMemberId().orElseThrow();
-            own = active.stream().filter(r -> r.familyMemberId() == self).findFirst();
-            if (own.isEmpty()) {
-                throw new NotFoundException();
-            }
-            if (command.withSignedForm() || command.signedByFamilyMemberId() != null) {
-                throw forbidden("Bản ký do Hành chính ghi nhận tại quầy (FR-015 b)");
-            }
-        } else {
-            requireStaff(user);
-            authorize(user, Operation.CREATE, target);
-        }
+        Optional<FamilyRelationship> own = requester(user, command, active);
 
         Type type = required(command.type(), "Cần loại yêu cầu");
-        FamilyRelationship relationship = null;
-        boolean newValue;
         Instant now = time.now();
-        switch (type) {
-            case RIGHT -> {
-                required(command.right(), "Cần quyền");
-                newValue = required(command.newValue(), "Cần giá trị mới");
-                if (command.newPicker() != null) {
-                    if (command.right() != FamilyRight.PICKUP_ALLOWED || !newValue) {
-                        throw new InvalidValueException("Người đón mới chỉ đi kèm yêu cầu bật được phép đón");
-                    }
-                    if (own.isPresent() && !own.get().representative()) {
-                        throw forbidden("Chỉ người đại diện được đề nghị thêm người đón (FR-014)");
-                    }
-                    relationship = createPicker(residentId, command.newPicker(), user.accountId(), now);
-                } else {
-                    relationship = activeRelationship(active, command.relationshipId());
-                }
-                if (relationship.enabledRights().contains(command.right()) == newValue
-                        && !replacesPendingGrant(residentId, relationship, command.right(), newValue)) {
-                    throw stateChanged("Quyền đã ở giá trị được yêu cầu");
-                }
-                if (newValue) {
-                    grants.check(residentId, relationship, command.right());
-                }
-            }
-            case SELF_RETURN -> {
-                if (command.relationshipId() != null) {
-                    throw new InvalidValueException("Dấu được tự về không gắn người thân");
-                }
-                newValue = required(command.newValue(), "Cần giá trị mới");
-                if (selfReturn(residentId) == newValue) {
-                    throw stateChanged("Dấu được tự về đã ở giá trị được yêu cầu");
-                }
-            }
-            case SET_REPRESENTATIVE, REMOVE_REPRESENTATIVE -> {
-                relationship = activeRelationship(active, command.relationshipId());
-                newValue = type == Type.SET_REPRESENTATIVE;
-                if (relationship.representative() == newValue) {
-                    throw stateChanged(
-                            newValue ? "Người thân đã là người đại diện" : "Người thân không phải người đại diện");
-                }
-                if (newValue && active.stream().noneMatch(FamilyRelationship::representative)) {
-                    throw stateChanged("Người cao tuổi chưa có người đại diện; dùng lệnh đặt người đại diện đầu tiên");
-                }
-                if (command.evidenceFileId() == null) {
-                    throw new InvalidValueException("Cần bằng chứng đặt, thôi người đại diện (FR-005)");
-                }
-                if (!newValue) {
-                    checkRemoval(residentId, relationship);
-                }
-            }
-            default -> throw new IllegalStateException(type.name());
-        }
-
-        boolean selfRestriction = own.isPresent()
-                && relationship != null
-                && RightRequestCheck.selfRestriction(
-                        type,
-                        command.right(),
-                        newValue,
-                        relationship.id() == own.get().id());
-        if (own.isPresent() && !own.get().representative() && !selfRestriction) {
-            throw forbidden("Người thân không phải người đại diện chỉ được tự bỏ mình khỏi danh sách đón hoặc tắt quyền"
-                    + " của chính mình (FR-014)");
-        }
+        Subject subject = subject(command, type, active, own, user, now);
+        FamilyRelationship relationship = subject.relationship();
+        boolean newValue = subject.newValue();
+        requireRepresentativeOrSelfRestriction(command, type, own, subject);
 
         // Chỉ ghi "áp ngay khi lập" khi giá trị thật sự đổi, để Từ chối, Hủy không bật một quyền chưa từng có (Q12)
         boolean applied = RightRequestCheck.appliesOnCreation(type, command.right(), newValue)
@@ -331,43 +256,17 @@ public class RightChangeRequestService {
                 null,
                 null);
         String key = request.pendingKey(residentId);
-        Optional<SimpleRecord<RightChangeRequest>> pending = records.findByUniqueKey(RightChangeRequest.KIND, key);
-        if (pending.isPresent()) {
-            RightChangeRequest existing = pending.get().content();
-            if (type == Type.RIGHT
-                    && command.right() == FamilyRight.PICKUP_ALLOWED
-                    && !newValue
-                    && existing.newValue()) {
-                close(pending.get(), Status.CANCELLED, null, REPLACED_BY_REMOVAL, now, false);
-            } else {
-                throw new BusinessException(
-                        HttpStatus.CONFLICT,
-                        "DUPLICATE_PENDING_REQUEST",
-                        "Đã có yêu cầu Chờ xác nhận cho quyền này (FR-018)");
-            }
-        }
+        replacePendingGrantOrReject(command, type, newValue, key, now);
 
         Optional<ActiveWish> conflict = conflict(residentId, request, relationship, creatorFamilyMemberId);
         request = request.withConflict(conflict.map(ActiveWish::id).orElse(null));
         boolean needsManager = RightRequestCheck.needsManagerApproval(type, command.right(), newValue, conflict);
 
-        ConfirmationMethod method = null;
-        Long confirmer = null;
-        if (own.isPresent() && own.get().representative()) {
-            if (!needsManager && RightRequestCheck.mayConfirm(type, own.get().id(), request.relationshipId())) {
-                method = ConfirmationMethod.PORTAL;
-                confirmer = own.get().familyMemberId();
-            }
-        } else if (command.withSignedForm()) {
-            FamilyRelationship signer = signer(active, command.signedByFamilyMemberId(), command.evidenceFileId());
-            if (!needsManager && RightRequestCheck.mayConfirm(type, signer.id(), request.relationshipId())) {
-                method = ConfirmationMethod.SIGNED_FORM;
-                confirmer = signer.familyMemberId();
-            }
-        }
-        boolean effective = method != null;
+        Optional<Confirmation> confirmation = immediateConfirmation(command, type, own, active, request, needsManager);
+        boolean effective = confirmation.isPresent();
         if (effective) {
-            request = request.confirmed(method, confirmer, null, user.accountId(), now);
+            request = request.confirmed(
+                    confirmation.get().method(), confirmation.get().familyMemberId(), null, user.accountId(), now);
         }
 
         SimpleRecord<RightChangeRequest> created = records.create(
@@ -395,24 +294,212 @@ public class RightChangeRequestService {
                 .after(snapshot(created.status(), request))
                 .reason(reason)
                 .build());
-        if (effective) {
-            tookEffect(residentId, created.id(), request, now);
-        } else {
-            events.publishEvent(new RightChangeRequestNotice(
-                    RightChangeRequestNotice.Kind.NEEDS_CONFIRMATION,
-                    residentId,
-                    created.id(),
-                    summary(request, "cần xác nhận"),
-                    confirmers(residentId, request),
-                    null,
-                    null,
-                    0,
-                    now));
-            if (applied) {
-                otherRepresentatives(residentId, created.id(), request, now);
-            }
-        }
+        announceCreated(residentId, created.id(), request, effective, applied, now);
         return created;
+    }
+
+    /** Người thân bị tác động (rỗng với dấu "được tự về") và giá trị mới của yêu cầu đang lập. */
+    private record Subject(FamilyRelationship relationship, boolean newValue) {}
+
+    /** Cách xác nhận và người đại diện xác nhận khi yêu cầu Hiệu lực ngay lúc lập. */
+    private record Confirmation(ConfirmationMethod method, Long familyMemberId) {}
+
+    /**
+     * Người lập: người thân thì trả quan hệ Hiệu lực của chính họ với người cao tuổi (không được kèm bản ký); nhân viên thì
+     * kiểm quyền lập và trả rỗng.
+     */
+    private Optional<FamilyRelationship> requester(
+            CurrentUser user, CreateCommand command, List<FamilyRelationship> active) {
+        if (user.type() != AccountType.FAMILY_MEMBER) {
+            requireStaff(user);
+            authorize(user, Operation.CREATE, residentTarget(command.residentId()));
+            return Optional.empty();
+        }
+        long self = user.familyMemberId().orElseThrow();
+        Optional<FamilyRelationship> own =
+                active.stream().filter(r -> r.familyMemberId() == self).findFirst();
+        if (own.isEmpty()) {
+            throw new NotFoundException();
+        }
+        if (command.withSignedForm() || command.signedByFamilyMemberId() != null) {
+            throw forbidden("Bản ký do Hành chính ghi nhận tại quầy (FR-015 b)");
+        }
+        return own;
+    }
+
+    /** Kiểm nội dung yêu cầu theo loại, trả người thân bị tác động và giá trị mới. */
+    private Subject subject(
+            CreateCommand command,
+            Type type,
+            List<FamilyRelationship> active,
+            Optional<FamilyRelationship> own,
+            CurrentUser user,
+            Instant now) {
+        return switch (type) {
+            case RIGHT -> rightSubject(command, active, own, user, now);
+            case SELF_RETURN -> selfReturnSubject(command);
+            case SET_REPRESENTATIVE, REMOVE_REPRESENTATIVE -> representativeSubject(command, type, active);
+        };
+    }
+
+    /** Bật, tắt một quyền; người đón mới chưa có hồ sơ thì lập hồ sơ và quan hệ kèm (FR-013, FR-014). */
+    private Subject rightSubject(
+            CreateCommand command,
+            List<FamilyRelationship> active,
+            Optional<FamilyRelationship> own,
+            CurrentUser user,
+            Instant now) {
+        long residentId = command.residentId();
+        required(command.right(), "Cần quyền");
+        boolean newValue = required(command.newValue(), "Cần giá trị mới");
+        FamilyRelationship relationship;
+        if (command.newPicker() != null) {
+            if (command.right() != FamilyRight.PICKUP_ALLOWED || !newValue) {
+                throw new InvalidValueException("Người đón mới chỉ đi kèm yêu cầu bật được phép đón");
+            }
+            if (own.isPresent() && !own.get().representative()) {
+                throw forbidden("Chỉ người đại diện được đề nghị thêm người đón (FR-014)");
+            }
+            relationship = createPicker(residentId, command.newPicker(), user.accountId(), now);
+        } else {
+            relationship = activeRelationship(active, command.relationshipId());
+        }
+        if (relationship.enabledRights().contains(command.right()) == newValue
+                && !replacesPendingGrant(residentId, relationship, command.right(), newValue)) {
+            throw stateChanged("Quyền đã ở giá trị được yêu cầu");
+        }
+        if (newValue) {
+            grants.check(residentId, relationship, command.right());
+        }
+        return new Subject(relationship, newValue);
+    }
+
+    /** Bật, tắt dấu "được tự về" của người cao tuổi. */
+    private Subject selfReturnSubject(CreateCommand command) {
+        if (command.relationshipId() != null) {
+            throw new InvalidValueException("Dấu được tự về không gắn người thân");
+        }
+        boolean newValue = required(command.newValue(), "Cần giá trị mới");
+        if (selfReturn(command.residentId()) == newValue) {
+            throw stateChanged("Dấu được tự về đã ở giá trị được yêu cầu");
+        }
+        return new Subject(null, newValue);
+    }
+
+    /** Đặt, thôi người đại diện: cần bằng chứng; thôi thì kiểm DBR-02 và người đồng ý (FR-005). */
+    private Subject representativeSubject(CreateCommand command, Type type, List<FamilyRelationship> active) {
+        FamilyRelationship relationship = activeRelationship(active, command.relationshipId());
+        boolean newValue = type == Type.SET_REPRESENTATIVE;
+        if (relationship.representative() == newValue) {
+            throw stateChanged(newValue ? "Người thân đã là người đại diện" : "Người thân không phải người đại diện");
+        }
+        if (newValue && active.stream().noneMatch(FamilyRelationship::representative)) {
+            throw stateChanged("Người cao tuổi chưa có người đại diện; dùng lệnh đặt người đại diện đầu tiên");
+        }
+        if (command.evidenceFileId() == null) {
+            throw new InvalidValueException("Cần bằng chứng đặt, thôi người đại diện (FR-005)");
+        }
+        if (!newValue) {
+            checkRemoval(command.residentId(), relationship);
+        }
+        return new Subject(relationship, newValue);
+    }
+
+    /** Người thân không phải người đại diện chỉ được lập yêu cầu tự hạn chế chính mình (FR-014). */
+    private static void requireRepresentativeOrSelfRestriction(
+            CreateCommand command, Type type, Optional<FamilyRelationship> own, Subject subject) {
+        if (own.isEmpty() || own.get().representative()) {
+            return;
+        }
+        FamilyRelationship relationship = subject.relationship();
+        boolean selfRestriction = relationship != null
+                && RightRequestCheck.selfRestriction(
+                        type,
+                        command.right(),
+                        subject.newValue(),
+                        relationship.id() == own.get().id());
+        if (!selfRestriction) {
+            throw forbidden("Người thân không phải người đại diện chỉ được tự bỏ mình khỏi danh sách đón hoặc tắt quyền"
+                    + " của chính mình (FR-014)");
+        }
+    }
+
+    /**
+     * Đã có yêu cầu Chờ xác nhận cùng khóa (FR-018): yêu cầu bỏ khỏi danh sách đón thay cho yêu cầu thêm đang chờ; trường
+     * hợp khác thì từ chối.
+     */
+    private void replacePendingGrantOrReject(
+            CreateCommand command, Type type, boolean newValue, String key, Instant now) {
+        Optional<SimpleRecord<RightChangeRequest>> pending = records.findByUniqueKey(RightChangeRequest.KIND, key);
+        if (pending.isEmpty()) {
+            return;
+        }
+        boolean removalReplacesGrant = type == Type.RIGHT
+                && command.right() == FamilyRight.PICKUP_ALLOWED
+                && !newValue
+                && pending.get().content().newValue();
+        if (!removalReplacesGrant) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "DUPLICATE_PENDING_REQUEST",
+                    "Đã có yêu cầu Chờ xác nhận cho quyền này (FR-018)");
+        }
+        close(pending.get(), Status.CANCELLED, null, REPLACED_BY_REMOVAL, now, false);
+    }
+
+    /**
+     * Yêu cầu Hiệu lực ngay khi người lập là người đại diện (qua cổng) hoặc Hành chính kèm bản ký của người đại diện, không
+     * cần Quản lý viện duyệt và người đó được xác nhận yêu cầu này (FR-015, FR-016); rỗng thì Chờ xác nhận.
+     */
+    private Optional<Confirmation> immediateConfirmation(
+            CreateCommand command,
+            Type type,
+            Optional<FamilyRelationship> own,
+            List<FamilyRelationship> active,
+            RightChangeRequest request,
+            boolean needsManager) {
+        ConfirmationMethod method;
+        FamilyRelationship confirmer;
+        if (own.isPresent() && own.get().representative()) {
+            method = ConfirmationMethod.PORTAL;
+            confirmer = own.get();
+        } else if (command.withSignedForm()) {
+            method = ConfirmationMethod.SIGNED_FORM;
+            confirmer = signer(active, command.signedByFamilyMemberId(), command.evidenceFileId());
+        } else {
+            return Optional.empty();
+        }
+        if (needsManager || !RightRequestCheck.mayConfirm(type, confirmer.id(), request.relationshipId())) {
+            return Optional.empty();
+        }
+        return Optional.of(new Confirmation(method, confirmer.familyMemberId()));
+    }
+
+    /** Thông báo sau khi lập: đã Hiệu lực thì báo kết quả; còn chờ thì báo người xác nhận, áp ngay thì báo thêm. */
+    private void announceCreated(
+            long residentId,
+            long requestId,
+            RightChangeRequest request,
+            boolean effective,
+            boolean applied,
+            Instant now) {
+        if (effective) {
+            tookEffect(residentId, requestId, request, now);
+            return;
+        }
+        events.publishEvent(new RightChangeRequestNotice(
+                RightChangeRequestNotice.Kind.NEEDS_CONFIRMATION,
+                residentId,
+                requestId,
+                summary(request, "cần xác nhận"),
+                confirmers(residentId, request),
+                null,
+                null,
+                0,
+                now));
+        if (applied) {
+            otherRepresentatives(residentId, requestId, request, now);
+        }
     }
 
     /** Người đại diện xác nhận qua cổng, hoặc Hành chính ghi nhận bản ký kèm bản scan (FR-015 a, b; FR-016). */

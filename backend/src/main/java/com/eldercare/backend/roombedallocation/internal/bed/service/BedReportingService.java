@@ -141,13 +141,18 @@ public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedH
         return Set.copyOf(asset.flaggedBedsAt(empty, at));
     }
 
+    /** Dấu của hợp đồng 1.8 (phòng không còn phù hợp, chờ bác sĩ xác nhận); chờ yêu cầu, chờ cùng giá không thuộc hàm này. */
+    private static final Set<String> CONTRACT_FLAGS = Set.of("ROOM_UNSUITABLE", "AWAITING_DOCTOR_CONFIRMATION");
+
     @Override
     public List<BedFlagView> flaggedBeds(ScopeFilter scope) {
         point(scope, time.now());
         List<BedFlagView> result = new ArrayList<>();
-        for (var row : store.flags())
-            if (!row.flags().isEmpty() && visible(scope, row.floorId(), row.roomId(), Set.of(row.residentId())))
-                result.add(new BedFlagView(row.residentId(), row.bedId(), row.flags()));
+        for (var row : store.flags()) {
+            var flags = row.flags().stream().filter(CONTRACT_FLAGS::contains).collect(Collectors.toSet());
+            if (!flags.isEmpty() && visible(scope, row.floorId(), row.roomId(), Set.of(row.residentId())))
+                result.add(new BedFlagView(row.residentId(), row.bedId(), Set.copyOf(flags)));
+        }
         for (long resident : store.withoutBed())
             if (scope.facilityWide() || scope.residentIds().contains(resident))
                 result.add(new BedFlagView(resident, null, Set.of("WITHOUT_BED")));

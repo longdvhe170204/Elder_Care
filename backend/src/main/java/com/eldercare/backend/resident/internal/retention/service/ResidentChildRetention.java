@@ -85,7 +85,13 @@ public class ResidentChildRetention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
-        return records.expiredCandidates(table, residentColumn, condition, cutoff, batch).stream();
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (at, id)} (000 T112). */
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
+        return records.expiredCandidates(table, residentColumn, condition, cutoff, after, batch).stream();
     }
 
     /** Hồ sơ chứa bản ghi: kéo cả hồ sơ và các bản ghi con khác vào chuỗi. */

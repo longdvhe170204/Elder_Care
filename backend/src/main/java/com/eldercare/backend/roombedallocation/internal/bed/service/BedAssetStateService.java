@@ -13,6 +13,7 @@ import com.eldercare.backend.roombedallocation.api.dto.*;
 import com.eldercare.backend.roombedallocation.api.events.FutureAllocationCancelledForDamagedBed;
 import com.eldercare.backend.roombedallocation.internal.allocation.service.AllocationLocks;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.*;
+import com.eldercare.backend.roombedallocation.internal.bed.domain.FutureAllocation;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.*;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
@@ -68,7 +69,7 @@ public class BedAssetStateService {
 
     private record Evaluation(
             BedStateSnapshot bed,
-            List<BedAssetStateStore.FutureAllocation> current,
+            List<FutureAllocation> current,
             List<UnmetCondition> failures,
             boolean cancelAllowed,
             BedEvent event) {}
@@ -93,7 +94,7 @@ public class BedAssetStateService {
                     "SOURCE_UNAVAILABLE",
                     "Chưa nối xử lý căn cứ của phân bổ tương lai; giữ nguyên phân bổ");
         if (cancelAllowed
-                && current.stream().anyMatch(BedAssetStateStore.FutureAllocation::scheduledTransfer)
+                && current.stream().anyMatch(FutureAllocation::scheduledTransfer)
                 && approvals.getIfAvailable() == null)
             throw new BusinessException(
                     HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa có nguồn yêu cầu phê duyệt");
@@ -104,16 +105,15 @@ public class BedAssetStateService {
             long bedId, BedAssetCommand command, boolean damageWhilePreparing, boolean repeatedDamage) {
         var initial = allocations.future(bedId, false);
         var residents = initial.stream()
-                .map(BedAssetStateStore.FutureAllocation::residentId)
+                .map(FutureAllocation::residentId)
                 .distinct()
                 .sorted()
                 .toList();
         for (long resident : residents) locks.lock(resident, List.of());
         var bed = beds.lock(bedId);
         var current = allocations.future(bedId, true);
-        if (!residents.containsAll(current.stream()
-                .map(BedAssetStateStore.FutureAllocation::residentId)
-                .toList()))
+        if (!residents.containsAll(
+                current.stream().map(FutureAllocation::residentId).toList()))
             throw new CannotAcquireLockException(
                     "Phân bổ đã đổi trong khi lấy khóa; cần thử lại transaction của lệnh nguồn");
         var failures = new ArrayList<UnmetCondition>();
@@ -151,7 +151,7 @@ public class BedAssetStateService {
             long bedId,
             Basis basis,
             BedStateSnapshot bed,
-            List<BedAssetStateStore.FutureAllocation> current,
+            List<FutureAllocation> current,
             boolean cancelAllowed,
             BedEvent event) {
         if (cancelAllowed) {
@@ -180,7 +180,7 @@ public class BedAssetStateService {
             events.publishEvent(new FutureAllocationCancelledForDamagedBed(
                     bedId,
                     current.stream()
-                            .map(BedAssetStateStore.FutureAllocation::residentId)
+                            .map(FutureAllocation::residentId)
                             .distinct()
                             .toList(),
                     new BedNotificationContext(

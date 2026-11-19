@@ -60,12 +60,20 @@ public class FakeResidents implements ResidentApi {
 
     @Override
     public Optional<Instant> finalStatusAt(long residentId) {
-        return entry(residentId).finalStatusAt();
+        // Như bản thật (ResidentApiImpl): không có hồ sơ thì không có mốc trạng thái cuối. Job loại bỏ dữ liệu quét cả
+        // dòng sót của test khác (000 T112), không được dừng vì mã chưa đặt ở bản giả.
+        Entry e = residents.get(residentId);
+        return e == null ? Optional.empty() : e.finalStatusAt();
     }
 
     @Override
     public boolean isFinalStatus(long residentId) {
-        return FINAL_STATUSES.contains(entry(residentId).status());
+        // Như bản thật (ResidentApiImpl: finalStatusAt rỗng thì không phải trạng thái cuối). Job số dư hằng ngày của
+        // 017
+        // quét mọi dòng số dư, gồm dòng sót của test khác chưa đặt ở bản giả; ném lỗi ở đây làm US5_BalanceStatusIT đỏ
+        // tùy thứ tự chạy (CI develop sau #191, 2026-11-19)
+        Entry e = residents.get(residentId);
+        return e != null && FINAL_STATUSES.contains(e.status());
     }
 
     @Override

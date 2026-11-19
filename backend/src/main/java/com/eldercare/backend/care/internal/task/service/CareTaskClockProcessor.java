@@ -86,6 +86,9 @@ public class CareTaskClockProcessor {
                 notices.escalateNormal(task, now);
         }
         var old = commands.shift(task.shiftId());
+        // FR-044, 007 FR-039b: công việc đo còn Quá hạn lúc hết ca
+        if (task.status() == TaskStatus.OVERDUE && !now.isBefore(old.endsAt()))
+            notices.measurementMissed(task, old.endsAt(), "OVERDUE_AT_SHIFT_END");
         if (!"AWAITING_HANDOVER_CONFIRMATION".equals(task.carryover())
                 && !now.isBefore(old.endsAt())
                 && !commands.staff().handoverConfirmed(old.id())) {

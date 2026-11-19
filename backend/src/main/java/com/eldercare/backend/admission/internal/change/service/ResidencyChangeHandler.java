@@ -42,6 +42,7 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.CareLevelApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
+import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
 import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.dto.RoomTypeRef;
@@ -256,6 +257,16 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         }
         if (change.afterUrgentTransfer()) {
             beds.getObject().urgentTransferRequestResult(change.urgentTransferAllocationId(), true);
+        } else if (change.firstBed(baseType(base))) {
+            // 003 mục 1.4a: bán trú sang nội trú, giữ giường bằng phân bổ Tương lai đầu tiên từ ngày hiệu lực
+            beds.getObject()
+                    .reserveFirstAllocation(
+                            request.id(),
+                            contract.residentId(),
+                            change.newBedId(),
+                            actualEffectiveDate,
+                            ResidencyChangeRules.firstBedExpectedEnd(change),
+                            ResidencyChangeRules.residencyType(change.residenceType()));
         } else if (change.has(ChangeType.BED) && change.newBedId() != null) {
             beds.getObject()
                     .reserveScheduledTransfer(
@@ -332,7 +343,9 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                             contract.residentId(),
                             newEnd.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant());
         }
-        if (change.has(ChangeType.BED) && change.newBedId() != null && !change.afterUrgentTransfer()) {
+        if ((change.has(ChangeType.BED) || change.firstBed(baseType(base)))
+                && change.newBedId() != null
+                && !change.afterUrgentTransfer()) {
             // Mốc dự kiến là 00:00 ngày hiệu lực; 003 ghi thời điểm thực hiện và dấu trễ (003 FR-016a)
             beds.getObject()
                     .applyScheduledTransfer(
@@ -413,6 +426,10 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     // ---- Chi tiết -------------------------------------------------------------------------------------------------
+
+    private static ResidenceType baseType(ContractVersion base) {
+        return ResidenceType.valueOf(base.content().get("residenceType").asString());
+    }
 
     Optional<ContractVersion> base(long contractId) {
         return contracts.latestVersion(contractId);

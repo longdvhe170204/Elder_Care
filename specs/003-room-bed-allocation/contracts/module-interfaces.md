@@ -60,6 +60,24 @@ void yeuCauSauChuyenGapDaRut(long phanBoId);                                    
 void daDoiLoaiLuuTru(long nctId);                                                  // BR-M03-23, FR-034: 004 gọi khi phụ lục đổi loại lưu trú áp dụng (bổ sung 2026-11-11, T035)
 ```
 
+#### 1.4a. Đặt trước phân bổ đầu tiên cho người chưa có giường *(bổ sung 2026-11-17, "Đổi api", chủ dự án duyệt 2026-11-17; đã cài)*
+
+Căn cứ: quyết định 2026-11-16 (team-plan mục 8 dòng "B (004), C (003)"; 004 FR-041 "đổi loại lưu trú từ bán trú sang nội trú — kèm giường mới", FR-045; 003 FR-018, FR-029). Hiện `kiemTraDatTruocChuyenTheoLich` luôn trả `ALLOCATION_NOT_ACTIVE` với người bán trú vì họ chưa có phân bổ. Thêm hai hàm vào `PhanBoGiuongLenhApi` (`BedAllocationCommandApi`), `Propagation.MANDATORY`; không đổi chữ ký hàm cũ:
+
+```java
+List<DieuKien> kiemTraDatTruocPhanBoDauTien(long nctId, long giuongId, LocalDate ngayHieuLuc, Instant ketThucDuKien, LoaiLuuTru loaiLuuTruMoi);
+long datTruocPhanBoDauTien(long yeuCauId, long nctId, long giuongId, LocalDate ngayHieuLuc, Instant ketThucDuKien, LoaiLuuTru loaiLuuTruMoi); // trong khiDuyet của handler 004
+```
+
+Tên tiếng Anh (glossary mục 9): `checkFirstAllocationReservation(residentId, bedId, effectiveDate, expectedEnd, targetType)`, `reserveFirstAllocation(requestId, residentId, bedId, effectiveDate, expectedEnd, targetType)`; `LoaiLuuTru` là `api.spi.ResidencyType` có sẵn (`LONG_TERM`, `SHORT_TERM`).
+
+- **Kiểm (lúc lập, lúc duyệt)**: người cao tuổi không có phân bổ Hiệu lực (có thì `ALLOCATION_ALREADY_ACTIVE`: phải dùng đổi giường), không có phân bổ Tương lai (`FUTURE_ALLOCATION_EXISTS`), và FR-018 cho giường từ 00:00 ngày hiệu lực tới `ketThucDuKien` (`null` với nội trú dài ngày). Điều kiện FR-018 (b) "loại lưu trú được loại phòng phục vụ" xét theo `loaiLuuTruMoi`, không theo loại hiện tại: lúc duyệt người này còn là bán trú, loại mới chỉ có hiệu lực từ ngày hiệu lực của chính phụ lục đó. `loaiLuuTruMoi = DAY_CARE` → `INVALID_VALUE`.
+- **Đặt trước (lúc duyệt)**: tạo phân bổ Tương lai từ 00:00 ngày hiệu lực, căn cứ là yêu cầu (`APPROVAL_REQUEST`, `yeuCauId`), không có phân bổ trước; trả mã phân bổ. Ghi nhật ký `M03_FIRST_ALLOCATION_RESERVED`.
+- **Ba hàm có sẵn nhận cả phân bổ đặt trước loại này (mở rộng hành vi, không đổi chữ ký)**: `kiemTraChuyenTheoLich(yeuCauId)` kiểm lại FR-018 trừ (b) (lúc kiểm áp dụng phiên bản hợp đồng mới chưa ghi; (b) được kiểm lại theo dữ liệu thật khi bắt đầu phân bổ, trong cùng transaction áp dụng, sau khi 004 đã ghi phiên bản mới), giường chưa Trống không phải vi phạm; `thucHienChuyenTheoLich(yeuCauId, thoiDiemDuKien)` bắt đầu phân bổ (giường Trống → `DA_CHUYEN`, phát `PhanBoDaBatDau` thay cho `DaChuyenGiuong`, không đóng phân bổ nào; giường chưa Trống hoặc mang dấu "chờ chuyển người" → `CHO_GIUONG_SAN_SANG`, bắt đầu khi giường về Trống như FR-011a, hoặc tự hủy và báo Hành chính, Trưởng tầng, Quản lý viện khi FR-018 không còn thỏa); `huyPhanBoTheoLich(yeuCauId, lyDo)` hủy phân bổ Tương lai.
+- **Phía 004** (không đổi api 004): `ResidencyChangeRules` gọi hàm kiểm mới khi hợp đồng gốc là bán trú và yêu cầu đổi sang nội trú kèm `newBedId` (`ketThucDuKien` là 00:00 ngày sau `endDate` của yêu cầu với ngắn ngày, như `giaHanKetThucDuKien`); `khiDuyet` gọi hàm đặt trước; `apDung` gọi `thucHienChuyenTheoLich` sau khi ghi phiên bản nội dung mới và trước `daDoiLoaiLuuTru`; yêu cầu bị hủy, Áp dụng không thành gọi `huyPhanBoTheoLich` như đổi giường.
+- **Rollback**: mọi hàm chạy trong transaction của lệnh 004; 003 ném `DieuKienChuaThoa` thì lệnh duyệt, áp dụng rollback cả phụ lục và phân bổ.
+- **Bản giả**: `BedAllocationCommandApi` không có bản giả; test của 004 chạy với bản cài thật của 003 (`FR_041_DayCareToResidentialIT`), test của 003 dùng `FakeAllocationResidencySource` có sẵn (`FR_029_FirstAllocationReservationIT`).
+
 *(Bản cài 2026-11-06, 003 T033, chủ dự án chốt)*: `giaHanKetThucDuKien` không làm gì khi người không có phân bổ đang hiệu lực (bán trú, chưa có giường). Chuyển theo lịch đang chờ giường (`cho_giuong_san_sang`) được thực hiện trong lệnh Xác nhận giường sẵn sàng hoặc gỡ dấu của 019; FR-018 không còn thỏa lúc đó thì 003 tự hủy phân bổ tương lai và báo Hành chính, Trưởng tầng, Quản lý viện (`KetQuaChuyenTheoLich` giữ hai giá trị). `ketQuaYeuCauSauChuyenGap` báo người thực hiện lệnh chuyển gấp và Hành chính.
 
 ### 1.5. `SucChuaBanTruApi`: kiểm tra sức chứa cho 004, 005 (FR-038 → FR-042)

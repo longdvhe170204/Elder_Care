@@ -24,7 +24,10 @@ public record AssessmentBody(
         AssessmentStatus status,
         String confirmedBy,
         Instant confirmedAt,
-        boolean corrected) {
+        boolean corrected,
+
+        @Schema(description = "Phần Gia đình khai (Q-412, FR-025a): chỉ lần đánh giá đầu vào; Hành chính ghi")
+        List<FamilyDeclaredEntryBody> familyDeclared) {
 
     public static AssessmentBody of(AssessmentView v) {
         return new AssessmentBody(
@@ -42,6 +45,7 @@ public record AssessmentBody(
                 v.status(),
                 v.confirmedBy(),
                 v.confirmedAt(),
-                v.corrected());
+                v.corrected(),
+                v.familyDeclared().stream().map(FamilyDeclaredEntryBody::of).toList());
     }
 }

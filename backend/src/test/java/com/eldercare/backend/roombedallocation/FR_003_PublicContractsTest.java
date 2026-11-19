@@ -35,7 +35,7 @@ class FR_003_PublicContractsTest {
                 "LocationHistoryApi",
                 4,
                 "BedAllocationCommandApi",
-                13,
+                15, // 2026-11-17: checkFirstAllocationReservation, reserveFirstAllocation (mục 1.4a)
                 "DayCareCapacityApi",
                 3,
                 "LocationStructureApi",

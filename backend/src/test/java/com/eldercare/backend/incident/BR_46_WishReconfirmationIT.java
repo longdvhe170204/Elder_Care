@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.care.api.events.CarePlanReviewNeeded;
+import com.eldercare.backend.incident.api.events.PalliativeCareChoiceRecorded;
 import com.eldercare.backend.resident.api.dto.RecordEndOfLifeWish;
 import com.eldercare.backend.resident.api.dto.WishChoice;
 import com.eldercare.backend.resident.api.dto.WishRecordSource;
@@ -57,6 +59,27 @@ class BR_46_WishReconfirmationIT extends CriticalCareTestBase {
                         String.class,
                         alertId))
                 .isEqualTo("777");
+    }
+
+    /** BR-M04-20 (005 mục 1.10b): lựa chọn ở lại chăm sóc giảm nhẹ gọi 005 thật với cùng khóa của sự kiện 007. */
+    @Test
+    void BR_M04_20_stayPalliativeAsksCarePlanReviewThroughRealCareModule() throws Exception {
+        long alertId = flag(doctor).alertId();
+        post(nurse, RECONFIRM, alertId, reconfirmation("KEPT")).andExpect(status().isCreated());
+
+        post(doctor, CHOICE, alertId, "{\"choice\":\"STAY_PALLIATIVE\"}").andExpect(status().is2xxSuccessful());
+
+        var key = events.stream(PalliativeCareChoiceRecorded.class)
+                .map(PalliativeCareChoiceRecorded::eventKey)
+                .findFirst()
+                .orElseThrow();
+        assertThat(events.stream(CarePlanReviewNeeded.class).toList())
+                .isNotEmpty()
+                .allSatisfy(event -> {
+                    assertThat(event.residentId()).isEqualTo(resident);
+                    assertThat(event.source()).isEqualTo("M05.PALLIATIVE_CARE_CHOICE");
+                    assertThat(event.reference()).isEqualTo(key);
+                });
     }
 
     private String changed() {

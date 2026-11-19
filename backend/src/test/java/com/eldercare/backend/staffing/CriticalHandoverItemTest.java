@@ -13,6 +13,7 @@ class CriticalHandoverItemTest {
         TableRows.csv(
                 r -> assertThat(CriticalHandoverItem.requiresNote(r[0], r[1], r[2]))
                         .isEqualTo(Boolean.parseBoolean(r[3])),
+                // Mức theo IncidentLevel của 007 (LOW, MEDIUM, CRITICAL); Khẩn cấp là CRITICAL
                 "ALERT,OPEN,CRITICAL,true",
                 "INCIDENT,OPEN,CRITICAL,true",
                 "INCIDENT,OPEN,MEDIUM,true",

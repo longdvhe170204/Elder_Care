@@ -67,8 +67,9 @@ class ResidentChannelController {
                 description = "PERMISSION_DENIED",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
-    ResidentChannelService.Section<Object> menu(@RequestParam(required = false) LocalDate week) {
-        return channel.menu();
+    ResidentChannelService.Section<ResidentChannelService.ChannelMeal> menu(
+            @RequestParam(required = false) LocalDate week) {
+        return channel.menu(week);
     }
 
     @GetMapping("/activities")

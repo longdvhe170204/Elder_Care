@@ -66,7 +66,11 @@ public class WishReminderService {
         Duration period = parameters.read(ParameterCode.CFG_M01_06).asDuration();
         Instant now = time.now();
         List<DueReminder> due = reminders.dueWithoutActive(
-                MISSING, "(SELECT resident_id, status FROM wish WHERE kind = 'END_OF_LIFE')", now.minus(period));
+                MISSING,
+                // Còn Nháp tự khai thì nhắc Nháp chưa kiểm chứng thay cho nhắc thiếu phiếu (Q-412, FR-023r)
+                "(SELECT resident_id, IF(status = 'DRAFT', 'ACTIVE', status) AS status FROM wish"
+                        + " WHERE kind = 'END_OF_LIFE')",
+                now.minus(period));
         for (DueReminder row : due) {
             int number = row.reminderCount() + 1;
             reminders.markReminded(MISSING, row.residentId(), 0, number);

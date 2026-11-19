@@ -31,10 +31,4 @@ public class FakeM09Config {
     FakeTripDuties fakeTripDuties() {
         return new FakeTripDuties();
     }
-
-    @Bean
-    @Primary
-    FakeExtendedPublicationChecks fakeExtendedPublicationChecks() {
-        return new FakeExtendedPublicationChecks();
-    }
 }

@@ -79,7 +79,7 @@ public class AdmissionContractConditions {
                 unmet.add(new Condition(
                         CONTRACT,
                         "Thời điểm tiếp nhận sớm hơn ngày bắt đầu hợp đồng "
-                                + contract.get().startDate(),
+                                + AdmissionTexts.date(contract.get().startDate()),
                         "FR-075",
                         false));
             }
@@ -95,8 +95,9 @@ public class AdmissionContractConditions {
         } else if (contract.get().careLevel() != current.get()) {
             unmet.add(new Condition(
                     CONTRACT_LEVEL,
-                    "Mức chăm sóc của hợp đồng (" + contract.get().careLevel() + ") khác mức hiện hành ("
-                            + current.get() + ")",
+                    "Mức chăm sóc của hợp đồng ("
+                            + AdmissionTexts.level(contract.get().careLevel()) + ") khác mức hiện hành ("
+                            + AdmissionTexts.level(current.get()) + ")",
                     "BR-M02-22",
                     false));
         }

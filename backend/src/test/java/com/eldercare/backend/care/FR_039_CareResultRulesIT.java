@@ -149,4 +149,31 @@ class FR_039_CareResultRulesIT extends CareResultTestBase {
                 .when(plans)
                 .effectiveOn(resident, time.today());
     }
+
+    /**
+     * 007 FR-039c (CHK045): "đêm" của kết quả ngủ là ngày dương lịch của thời điểm dự kiến của công việc, kể cả khi ghi
+     * nhận muộn sang ngày khác; lệnh ghi và lệnh đính chính phát {@code SleepResultRecorded} cùng một ngày.
+     */
+    @Test
+    void FR_039c_sleepResultDateIsThePlannedDate_evenWhenRecordedOnALaterDay() throws Exception {
+        String code = "SLEEP_" + TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO catalog_item(catalog_type,module,name,status,attributes) VALUES('M04.RESULT_VALUE','M04',?,'ACTIVE',?)",
+                "Ngủ kém " + code,
+                "{\"type\":\"SLEEP_QUALITY\",\"code\":\"" + code + "\",\"ruleGroup\":\"INSOMNIA\"}");
+        Instant planned = time.now().minus(Duration.ofDays(1));
+        jdbc.update(
+                "UPDATE care_task SET planned_at=?,window_from=?,window_to=?,data=JSON_SET(data,'$.resultType','SLEEP') WHERE id=?",
+                local(planned),
+                local(planned.minus(Duration.ofMinutes(15))),
+                local(planned.plus(Duration.ofMinutes(15))),
+                task);
+
+        record("{\"numericValue\":6,\"codeValue\":\"" + code + "\"}").andExpect(status().isOk());
+
+        assertThat(events.stream(SleepResultRecorded.class))
+                .extracting(SleepResultRecorded::date)
+                .containsExactly(planned.atZone(com.eldercare.backend.common.time.BusinessTime.ZONE)
+                        .toLocalDate());
+    }
 }

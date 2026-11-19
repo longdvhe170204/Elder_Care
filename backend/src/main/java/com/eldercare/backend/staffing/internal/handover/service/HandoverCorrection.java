@@ -116,33 +116,44 @@ public class HandoverCorrection implements CorrectableRecordProvider, ScopeAssig
         if (m.containsKey("generalAssessment")
                 && (!(m.get("generalAssessment") instanceof String text) || text.isBlank())) throw invalid();
         for (String field : List.of("items", "residentAssessments", "comments"))
-            if (m.containsKey(field)) {
-                if (!(m.get(field) instanceof List<?> rows)) throw invalid();
-                for (var row : rows) {
-                    if (!(row instanceof Map<?, ?> r)) throw invalid();
-                    String key = field.equals("residentAssessments") ? "residentId" : "id";
-                    if (!(r.get(key) instanceof Number)) throw invalid();
-                    var allowed = field.equals("items")
-                            ? Set.of("id", "description", "note")
-                            : field.equals("comments")
-                                    ? Set.of("id", "content", "replies")
-                                    : Set.of("residentId", "content");
-                    if (!allowed.containsAll(r.keySet())) throw invalid();
-                    for (String text : List.of("description", "note", "content"))
-                        if (r.containsKey(text) && r.get(text) != null && !(r.get(text) instanceof String))
-                            throw invalid();
-                    if (r.containsKey("description")
-                            && (r.get("description") == null
-                                    || r.get("description").toString().isBlank())) throw invalid();
-                    if (r.containsKey("replies")) {
-                        if (!(r.get("replies") instanceof List<?> replies)) throw invalid();
-                        for (var reply : replies)
-                            if (!(reply instanceof Map<?, ?> p)
-                                    || !p.keySet().equals(Set.of("content"))
-                                    || !(p.get("content") instanceof String)) throw invalid();
-                    }
-                }
-            }
+            if (m.containsKey(field)) validateRows(field, m.get(field));
+    }
+
+    /** Một nhóm dòng (mục, nhận định theo người cao tuổi, ý kiến) phải là danh sách các dòng hợp lệ. */
+    private static void validateRows(String field, Object value) {
+        if (!(value instanceof List<?> rows)) throw invalid();
+        for (var row : rows) validateRow(field, row);
+    }
+
+    /** Một dòng: có khóa định danh dạng số, chỉ chứa trường được sửa của nhóm, chữ là chuỗi, mô tả không rỗng. */
+    private static void validateRow(String field, Object row) {
+        if (!(row instanceof Map<?, ?> r)) throw invalid();
+        String key = field.equals("residentAssessments") ? "residentId" : "id";
+        if (!(r.get(key) instanceof Number)) throw invalid();
+        if (!allowedKeys(field).containsAll(r.keySet())) throw invalid();
+        for (String text : List.of("description", "note", "content"))
+            if (r.containsKey(text) && r.get(text) != null && !(r.get(text) instanceof String)) throw invalid();
+        if (r.containsKey("description")
+                && (r.get("description") == null
+                        || r.get("description").toString().isBlank())) throw invalid();
+        if (r.containsKey("replies")) validateReplies(r.get("replies"));
+    }
+
+    private static Set<String> allowedKeys(String field) {
+        return switch (field) {
+            case "items" -> Set.of("id", "description", "note");
+            case "comments" -> Set.of("id", "content", "replies");
+            default -> Set.of("residentId", "content");
+        };
+    }
+
+    /** Phản hồi của một ý kiến: danh sách, mỗi phản hồi chỉ có nội dung dạng chuỗi. */
+    private static void validateReplies(Object value) {
+        if (!(value instanceof List<?> replies)) throw invalid();
+        for (var reply : replies)
+            if (!(reply instanceof Map<?, ?> p)
+                    || !p.keySet().equals(Set.of("content"))
+                    || !(p.get("content") instanceof String)) throw invalid();
     }
 
     public boolean allows(CurrentUser user, CreationMethod method, long id) {

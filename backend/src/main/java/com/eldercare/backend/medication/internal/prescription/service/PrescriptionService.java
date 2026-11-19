@@ -79,6 +79,7 @@ public class PrescriptionService implements PrescriptionApi {
     private final ReconciliationCheckPort reconciliationCheckPort;
     private final BusinessTime businessTime;
     private final ParameterApi parameters;
+    private final PrescribingAuthority prescribingAuthority;
 
     @Autowired
     public PrescriptionService(
@@ -93,7 +94,9 @@ public class PrescriptionService implements PrescriptionApi {
             @org.springframework.context.annotation.Lazy @Autowired(required = false)
                     ReconciliationCheckPort reconciliationCheckPort,
             BusinessTime businessTime,
-            ParameterApi parameters) {
+            ParameterApi parameters,
+            PrescribingAuthority prescribingAuthority) {
+        this.prescribingAuthority = prescribingAuthority;
         this.prescriptionRepository = prescriptionRepository;
         this.prescriptionIssueRepository = prescriptionIssueRepository;
         this.prescriptionBasisRepository = prescriptionBasisRepository;
@@ -131,8 +134,7 @@ public class PrescriptionService implements PrescriptionApi {
             Long prescriptionFileId,
             String instructionNote,
             boolean pendingAdmission,
-            Map<String, String> confirmedIssues,
-            boolean doctorLicensed) {}
+            Map<String, String> confirmedIssues) {}
 
     /** Đối tượng kiểm quyền, phạm vi của lệnh đơn thuốc trên một người cao tuổi (kiểm ở {@code RequiresPermissionAspect}). */
     public static Target target(long residentId) {
@@ -206,13 +208,12 @@ public class PrescriptionService implements PrescriptionApi {
             Target target,
             long residentId,
             com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody body) {
-        return check(target, residentId, toCommand(body, 1L, true));
+        return check(target, residentId, toCommand(body, 1L));
     }
 
     public CreatePrescriptionCommand toCommand(
             com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody body,
-            Long currentUserId,
-            boolean isDoctor) {
+            Long currentUserId) {
         FrequencyType freqType = null;
         if (body.getFrequency() != null && body.getFrequency().getType() != null) {
             String type = body.getFrequency().getType().toUpperCase();
@@ -327,8 +328,7 @@ public class PrescriptionService implements PrescriptionApi {
                 prescriptionFileId,
                 body.getInstructionNote(),
                 body.isPendingAdmission(),
-                confirmedMap,
-                isDoctor);
+                confirmedMap);
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
@@ -339,7 +339,7 @@ public class PrescriptionService implements PrescriptionApi {
             com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody body,
             Long currentUserId,
             boolean isDoctor) {
-        return create(target, residentId, toCommand(body, currentUserId, isDoctor));
+        return create(target, residentId, toCommand(body, currentUserId));
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
@@ -358,12 +358,7 @@ public class PrescriptionService implements PrescriptionApi {
 
         // 3. Kiểm tra thẩm quyền kê đơn (BR-M07-05, BR-M06-05)
         if (cmd.prescriberType() == PrescriberType.INTERNAL) {
-            if (!cmd.doctorLicensed()) {
-                throw new BusinessException(
-                        HttpStatus.FORBIDDEN,
-                        "LEGAL_CONDITION_NOT_MET",
-                        "Chỉ Bác sĩ có giấy phép hành nghề hợp lệ mới được kê đơn nội bộ (BR-M07-05, BR-M06-05)");
-            }
+            requirePrescribingDoctor(residentId);
         } else {
             // Đơn bên ngoài bắt buộc có tên cơ sở, người kê và ngày kê (BR-M07-05)
             if (cmd.facilityName() == null
@@ -502,6 +497,19 @@ public class PrescriptionService implements PrescriptionApi {
         p.changeInstructionNote(newNote);
         Prescription saved = prescriptionRepository.save(p);
         return toResponse(saved);
+    }
+
+    /**
+     * Đơn nội bộ chỉ do Bác sĩ có quyền kê đơn hợp lệ tại thời điểm lệnh (FR-005, BR-M07-05, BR-M06-05): lớp pháp lý của
+     * 002 qua {@link PrescribingAuthority}, không chỉ vai trò.
+     */
+    private void requirePrescribingDoctor(long residentId) {
+        if (!prescribingAuthority.canPrescribe(residentId)) {
+            throw new BusinessException(
+                    HttpStatus.FORBIDDEN,
+                    "LEGAL_CONDITION_NOT_MET",
+                    "Chỉ Bác sĩ có giấy phép hành nghề hợp lệ mới được kê đơn nội bộ (BR-M07-05, BR-M06-05)");
+        }
     }
 
     private static ConditionNotMetException conditionNotMet(String code, String description) {
@@ -687,7 +695,10 @@ public class PrescriptionService implements PrescriptionApi {
 
         // Chuyển đổi và kiểm tra đơn thuốc mới (bỏ qua trùng hoạt chất với chính oldPrescription - BR-M07-06 scenario
         // 4)
-        CreatePrescriptionCommand cmd = toCommand(body.getNewPrescription(), currentUserId, isDoctor);
+        CreatePrescriptionCommand cmd = toCommand(body.getNewPrescription(), currentUserId);
+        if (cmd.prescriberType() == PrescriberType.INTERNAL) {
+            requirePrescribingDoctor(oldPrescription.getResidentId());
+        }
         PrescriptionCheckResult checkResult =
                 check(target, oldPrescription.getResidentId(), cmd, oldPrescription.getId());
 
@@ -845,6 +856,12 @@ public class PrescriptionService implements PrescriptionApi {
             Long currentUserId,
             boolean isDoctor) {
         if (isDoctor) {
+            // Gia hạn (FR-015), tiếp tục (Q-413) đơn nội bộ là cho dùng thuốc tiếp: cần quyền kê đơn hợp lệ (FR-005).
+            // Tạm dừng, ngừng không bị khóa khi giấy phép có vấn đề, để vẫn dừng được thuốc.
+            if (p.getPrescriberType() == PrescriberType.INTERNAL
+                    && (cmd == PrescriptionBasisCommand.EXTEND || cmd == PrescriptionBasisCommand.RESUME)) {
+                requirePrescribingDoctor(p.getResidentId());
+            }
             if (basisBody != null
                     && basisBody.getFacilityName() != null
                     && !basisBody.getFacilityName().isBlank()) {

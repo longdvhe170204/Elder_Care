@@ -33,7 +33,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 ## Phase 1: Setup
 
 - [x] T001 Tạo khung M09 theo `backend/README.md`, R-02: dùng tên tiếng Anh, chỉ tạo gói khi có lớp; giữ `@ApplicationModule` ở gốc, `@NamedInterface` cho các gói API được tạo. ArchUnit `BT/staffing/M09ArchTest.java`: chỉ phần đổi/xoay ca 015 gọi các port lệnh nội bộ; `scheduling/` không lập lịch, ca, phân công, bàn giao hoặc mục bàn giao (research N-01, N-07; Q-306). Tên và chỗ đặt cụ thể ở glossary mục 14, plan "Ghi chú triển khai".
-- [x] T002 [P] Khai báo tối thiểu các SPI đã có trong hợp đồng để tạo bản giả: `DoGuiBanGiaoPort` (013), `ChuyenDiNhiemVuPort` (014), `KiemTraCongBoMoRong` (015); bản giả và `@TestConfiguration` ở `BT/support/fake/staffing/`, SPI/kiểu công khai ở `staffing.api.spi`, port mở rộng công bố nội bộ ở tầng service của phần ca (contracts 008 mục 2.1; research N-07). Phần khai báo hai SPI lấy sớm từ T003; T003 vẫn giữ API tra cứu ca, thống kê và sự kiện.
+- [x] T002 [P] Khai báo tối thiểu các SPI đã có trong hợp đồng để tạo bản giả: `DoGuiBanGiaoPort` (013), `ChuyenDiNhiemVuPort` (014), `KiemTraCongBoMoRong` (015; gỡ 2026-11-17 theo Q-397, xem plan "Kiểm tra công bố"); bản giả và `@TestConfiguration` ở `BT/support/fake/staffing/`, SPI/kiểu công khai ở `staffing.api.spi`, port mở rộng công bố nội bộ ở tầng service của phần ca (contracts 008 mục 2.1; research N-07). Phần khai báo hai SPI lấy sớm từ T003; T003 vẫn giữ API tra cứu ca, thống kê và sự kiện.
 
 ---
 

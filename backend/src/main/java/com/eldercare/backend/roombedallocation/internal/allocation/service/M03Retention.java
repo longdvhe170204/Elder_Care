@@ -6,6 +6,7 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.internal.allocation.persistence.M03GovernanceStore;
 import java.time.Instant;
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -62,28 +64,47 @@ public class M03Retention implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        return expiredCandidates(cutoff, null, batch);
+    }
+
+    /** Trang sau mốc {@code (at, id)} (000 T112). */
+    @Override
+    public Stream<Candidate> expiredCandidates(Instant cutoff, Candidate after, int batch) {
         if (batch <= 0) return Stream.empty();
         if (kind instanceof RetentionKind.ResidentRecord) {
-            return store.allocations()
+            var all = store.allocations()
                     .flatMap(row -> finalAt(row.residentId())
                             .filter(at -> at.isBefore(cutoff))
                             .map(at -> new Candidate(row.allocationId(), at))
                             .stream())
-                    .limit(batch);
+                    .toList();
+            return RetentionProvider.page(all.stream(), after, batch);
         }
         // Lịch sử theo căn cứ phân bổ không được mất trước hạn hồ sơ của phân bổ đó (FR-051a).
         Instant profileCutoff = time.now()
                 .atZone(BusinessTime.ZONE)
                 .minus(parameters.read(ParameterCode.CFG_M15_03).asPeriod())
                 .toInstant();
-        return store.timed(table, cutoff)
+        var all = store.timed(table, cutoff)
                 .filter(row -> row.allocationId() == null
                         || store.allocationResident(row.allocationId())
                                 .flatMap(this::finalAt)
                                 .filter(at -> at.isBefore(profileCutoff))
                                 .isPresent())
-                .limit(batch)
-                .map(row -> new Candidate(row.id(), row.at()));
+                .map(row -> new Candidate(row.id(), row.at()))
+                .toList();
+        return RetentionProvider.page(all.stream(), after, batch);
+    }
+
+    /** Phân bổ của hồ sơ người cao tuổi {@code target} (000 T112, FR-051a); loại không gắn hồ sơ không trả. */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!(kind instanceof RetentionKind.ResidentRecord) || !SharedRowRetention.RESIDENT.equals(target.dataType())) {
+            return Set.of();
+        }
+        return store.allocationsOf(target.id()).stream()
+                .map(id -> new DataRef(type, id))
+                .collect(Collectors.toSet());
     }
 
     @Override

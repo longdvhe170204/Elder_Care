@@ -6,6 +6,7 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
 import com.eldercare.backend.roombedallocation.api.dto.HoldCancellationReason;
 import com.eldercare.backend.roombedallocation.api.dto.ScheduledTransferResult;
+import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationCommandStore;
 import com.eldercare.backend.roombedallocation.internal.bed.service.BedHoldService;
 import java.time.Instant;
@@ -70,6 +71,23 @@ public class BedAllocationCommands implements BedAllocationCommandApi {
     @Override
     public long reserveScheduledTransfer(long requestId, long residentId, long nextBedId, LocalDate effectiveDate) {
         return scheduled.reserve(requestId, residentId, nextBedId, effectiveDate);
+    }
+
+    @Override
+    public List<UnmetCondition> checkFirstAllocationReservation(
+            long residentId, long bedId, LocalDate effectiveDate, Instant expectedEnd, ResidencyType targetType) {
+        return scheduled.checkFirstReservation(residentId, bedId, effectiveDate, expectedEnd, targetType);
+    }
+
+    @Override
+    public long reserveFirstAllocation(
+            long requestId,
+            long residentId,
+            long bedId,
+            LocalDate effectiveDate,
+            Instant expectedEnd,
+            ResidencyType targetType) {
+        return scheduled.reserveFirst(requestId, residentId, bedId, effectiveDate, expectedEnd, targetType);
     }
 
     @Override

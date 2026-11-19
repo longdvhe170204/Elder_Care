@@ -462,7 +462,7 @@ paths:
       responses:
         '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWish' } } } }
         '422': { description: 'INVALID_OPINION_SOURCE, COURT_DECISION_REQUIRED, thiếu selfDeterminationAssessment', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
-        '409': { description: 'INVALID_SIGNER, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INVALID_SIGNER, PROFILE_CLOSED; DRAFT_ALREADY_EXISTS khi còn bản Nháp tự khai (bổ sung 2026-11-17, Q-412, FR-023p)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
 
   /residents/{id}/treatment-wishes:
     get:
@@ -519,7 +519,178 @@ paths:
           content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWishResult' } } }
         '403': { $ref: '#/components/responses/Problem' }
         '422': { description: 'INVALID_OPINION_SOURCE, thiếu bệnh viện ưu tiên', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INVALID_FAMILY_MEMBER, PROFILE_CLOSED; DRAFT_ALREADY_EXISTS khi còn bản Nháp tự khai (bổ sung 2026-11-17, Q-412, FR-023p)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+
+  /residents/{id}/end-of-life-wish-draft:
+    get:
+      tags: [end-of-life-wishes]
+      summary: Bản Nháp tự khai của phiếu nguyện vọng cuối đời (bổ sung 2026-11-17, Q-412)
+      description: |
+        Bác sĩ, Điều dưỡng xem trong phạm vi; Hành chính chỉ xem bản Nháp do chính mình lập khi người cao tuổi còn Đang tiếp nhận (FR-023q, chú thích ⁵²).
+        Nháp không có hiệu lực, không tính là đã có phiếu (FR-023o). 404 NO_DRAFT khi không có Nháp.
+      x-fr: [FR-023n, FR-023o, FR-023q]
+      x-br: [BR-M01-18]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [end-of-life-wishes]
+      summary: Lập hoặc sửa bản Nháp tự khai (Hành chính, khi Đang tiếp nhận; bổ sung 2026-11-17, Q-412)
+      description: |
+        Chưa có Nháp thì tạo (201), có rồi thì thay nội dung (200; chỉ người lập). Trường bắt buộc của phiên bản Hiệu lực được để trống.
+        Không có nhận định tự quyết (chỉ Bác sĩ, BR-M01-15); source ghi ADMISSION khi kiểm chứng.
+      x-fr: [FR-023n, FR-023q]
+      x-br: [BR-M01-18, BR-M01-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWishDraftBody' } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWish' } } } }
+        '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_OPINION_SOURCE, RESPONDENT_REQUIRED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INVALID_RESPONDENT, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /residents/{id}/end-of-life-wish-draft/verify:
+    post:
+      tags: [end-of-life-wishes]
+      summary: Kiểm chứng bản Nháp (Bác sĩ, Điều dưỡng; bổ sung 2026-11-17, Q-412)
+      description: |
+        Thân mang đủ nội dung phiếu như POST /residents/{id}/end-of-life-wishes (được sửa mọi trường của Nháp) với cùng điều kiện (FR-023a, FR-023c):
+        bản ký bắt buộc; selfDeterminationAssessment chỉ Bác sĩ ghi, Điều dưỡng kiểm chứng khi Nháp đã có nhận định của Bác sĩ.
+        Nháp thành phiên bản Hiệu lực (verifiedBy, verifiedAt), phiên bản Hiệu lực trước chuyển SUPERSEDED cùng lệnh. Hành chính: 403.
+      x-fr: [FR-023p]
+      x-br: [BR-M01-18, BR-M01-15]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWishVerifyBody' } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_OPINION_SOURCE, COURT_DECISION_REQUIRED, thiếu selfDeterminationAssessment', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INVALID_SIGNER, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /residents/{id}/end-of-life-wish-draft/discard:
+    post:
+      tags: [end-of-life-wishes]
+      summary: Hủy nháp kèm lý do (Bác sĩ, Điều dưỡng; Hành chính 403; bổ sung 2026-11-17, Q-412)
+      x-fr: [FR-023p]
+      x-br: [BR-M01-18]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EndOfLifeWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /residents/{id}/treatment-wish-draft:
+    get:
+      tags: [end-of-life-wishes]
+      summary: Bản Nháp tự khai của phiếu nguyện vọng khi điều trị (bổ sung 2026-11-17, Q-412)
+      description: Quyền xem như /residents/{id}/end-of-life-wish-draft (FR-023q). 404 NO_DRAFT khi không có Nháp.
+      x-fr: [FR-023n, FR-023o, FR-023q]
+      x-br: [BR-M01-18]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [end-of-life-wishes]
+      summary: Lập hoặc sửa bản Nháp tự khai (Hành chính, khi Đang tiếp nhận; bổ sung 2026-11-17, Q-412)
+      description: Chưa có Nháp thì tạo (201), có rồi thì thay nội dung (200; chỉ người lập). Trường bắt buộc của phiên bản Hiệu lực được để trống.
+      x-fr: [FR-023n, FR-023q]
+      x-br: [BR-M01-18, BR-M01-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWishDraftBody' } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWish' } } } }
+        '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_OPINION_SOURCE, TOO_MANY_PREFERRED_HOSPITALS', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
         '409': { description: 'INVALID_FAMILY_MEMBER, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /residents/{id}/treatment-wish-draft/verify:
+    post:
+      tags: [end-of-life-wishes]
+      summary: Kiểm chứng bản Nháp (Bác sĩ, Điều dưỡng; bổ sung 2026-11-17, Q-412)
+      description: |
+        Thân mang đủ nội dung phiếu như POST /residents/{id}/treatment-wishes (được sửa mọi trường của Nháp) với cùng điều kiện (FR-023j).
+        Nháp thành phiên bản Hiệu lực (verifiedBy, verifiedAt), phiên bản Hiệu lực trước chuyển EXPIRED cùng lệnh. Hành chính: 403.
+      x-fr: [FR-023p]
+      x-br: [BR-M01-18, BR-M01-16]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWishVerifyBody' } } }
+      responses:
+        '200':
+          description: OK; warnings có NO_FAMILY_MEMBER_TO_NOTIFY khi askFamilyFirst = true mà notifyFamilyMemberIds rỗng
+          content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWishResult' } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_OPINION_SOURCE, thiếu bệnh viện ưu tiên', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INVALID_FAMILY_MEMBER, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /residents/{id}/treatment-wish-draft/discard:
+    post:
+      tags: [end-of-life-wishes]
+      summary: Hủy nháp kèm lý do (Bác sĩ, Điều dưỡng; Hành chính 403; bổ sung 2026-11-17, Q-412)
+      x-fr: [FR-023p]
+      x-br: [BR-M01-18]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWish' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /residents/{id}/initial-assessment/family-declared:
+    get:
+      tags: [assessments]
+      summary: Phần "Gia đình khai" của lần đánh giá đầu vào Nháp đang mở (Hành chính khi Đang tiếp nhận; bổ sung 2026-11-17, Q-412)
+      description: Chỉ trả phần "Gia đình khai", không có nhận xét, mức (FR-025a, 19.3). 404 NO_DRAFT khi không có Nháp đầu vào.
+      x-fr: [FR-025a]
+      x-br: [BR-M01-18]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyDeclaredAssessment' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [assessments]
+      summary: Ghi phần "Gia đình khai" (chỉ Hành chính, khi Đang tiếp nhận; bổ sung 2026-11-17, Q-412)
+      description: |
+        Thay toàn bộ danh sách mục. Chưa có Nháp thì tạo lần đánh giá đầu vào Nháp (201); đã có Nháp đầu vào (kể cả do Bác sĩ, Điều dưỡng lập) thì ghi vào bản đó (200, BR-M01-13).
+        Không đổi version của lần đánh giá (không làm lệnh sửa nháp của Bác sĩ nhận 412). Bác sĩ, Điều dưỡng: 403.
+      x-fr: [FR-025a]
+      x-br: [BR-M01-18, BR-M01-13, BR-M01-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entries]
+              properties:
+                entries:
+                  type: array
+                  items:
+                    type: object
+                    required: [topic, content, source]
+                    properties:
+                      topic: { $ref: '#/components/schemas/FamilyDeclaredTopic' }
+                      content: { type: string, minLength: 1, maxLength: 2000 }
+                      source: { $ref: '#/components/schemas/OpinionSource' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyDeclaredAssessment' } } } }
+        '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyDeclaredAssessment' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_OPINION_SOURCE (nguồn chỉ RESIDENT hoặc FAMILY_MEMBER)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INITIAL_ASSESSMENT_EXISTS, STATUS_NOT_ASSESSABLE, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
 
   /residents/{id}/assessments:
     get:
@@ -800,7 +971,7 @@ components:
     Warning:
       type: object
       properties:
-        code: { type: string, enum: [MISSING_CONSENT, MISSING_END_OF_LIFE_WISH, CITIZEN_ID_MATCHES_DECEASED_PROFILE, ALLERGY_NOT_AUTO_CHECKED, MISSING_TREATMENT_WISH, NO_FAMILY_MEMBER_TO_NOTIFY] }
+        code: { type: string, enum: [MISSING_CONSENT, MISSING_END_OF_LIFE_WISH, CITIZEN_ID_MATCHES_DECEASED_PROFILE, ALLERGY_NOT_AUTO_CHECKED, MISSING_TREATMENT_WISH, NO_FAMILY_MEMBER_TO_NOTIFY, UNVERIFIED_END_OF_LIFE_WISH_DRAFT, UNVERIFIED_TREATMENT_WISH_DRAFT], description: 'UNVERIFIED_*_WISH_DRAFT bổ sung 2026-11-17 (Q-412, FR-023r): cảnh báo ở Hoàn tất tiếp nhận khi còn bản Nháp tự khai' }
         description: { type: string }
     PersonalInfo:
       type: object
@@ -974,7 +1145,11 @@ components:
               at: { type: string, format: date-time }
         signedAt: { type: string, format: date-time }
         source: { type: string, enum: [ADMISSION, FAMILY_REQUEST, CRITICAL_RECONFIRMATION], description: 'CRITICAL_RECONFIRMATION do 007 ghi qua EndOfLifeWishApi (BR-M05-16); POST chỉ nhận ADMISSION, FAMILY_REQUEST' }
-        status: { type: string, enum: [ACTIVE, SUPERSEDED] }
+        status: { type: string, enum: [ACTIVE, SUPERSEDED, DRAFT, DISCARDED], description: 'DRAFT, DISCARDED bổ sung 2026-11-17 (Q-412): bản Nháp tự khai chỉ có ở /end-of-life-wish-draft, không có ở current, history' }
+        recordedBy: { type: string, description: 'Bổ sung 2026-11-17: người lập (Hành chính với bản Nháp tự khai)' }
+        verifiedBy: { type: [string, 'null'], description: 'Bổ sung 2026-11-17 (Q-412): Bác sĩ, Điều dưỡng kiểm chứng bản Nháp; rỗng với phiên bản ghi thẳng' }
+        verifiedAt: { type: [string, 'null'], format: date-time }
+        discard: { type: [object, 'null'], properties: { at: { type: string, format: date-time }, by: { type: string }, reason: { type: string } } }
     PreferredHospital:
       type: object
       required: [name, address]
@@ -1020,7 +1195,10 @@ components:
         signedCopyFileId: { type: [integer, 'null'], format: int64 }
         recordedBy: { type: string }
         at: { type: string, format: date-time }
-        status: { type: string, enum: [ACTIVE, EXPIRED] }
+        status: { type: string, enum: [ACTIVE, EXPIRED, DRAFT, DISCARDED], description: 'DRAFT, DISCARDED bổ sung 2026-11-17 (Q-412): bản Nháp tự khai chỉ có ở /treatment-wish-draft, không có ở active, history' }
+        verifiedBy: { type: [string, 'null'], description: 'Bổ sung 2026-11-17 (Q-412)' }
+        verifiedAt: { type: [string, 'null'], format: date-time }
+        discard: { type: [object, 'null'], properties: { at: { type: string, format: date-time }, by: { type: string }, reason: { type: string } } }
     TreatmentWishSummary:
       type: object
       properties:
@@ -1059,6 +1237,120 @@ components:
         date: { type: string, format: date }
         court: { type: string }
         fileId: { type: integer, format: int64 }
+    EndOfLifeWishDraftBody:
+      type: object
+      description: Bản Nháp tự khai (Q-412, FR-023n); không có assessingDoctorId, selfDeterminationAssessment (chỉ Bác sĩ)
+      required: [respondentType]
+      properties:
+        choice: { type: string, enum: [TRANSFER_TO_HOSPITAL, RETURN_HOME, STAY_PALLIATIVE] }
+        firstContact: { type: string }
+        note: { type: string }
+        respondentType: { type: string, enum: [RESIDENT, PATIENT_REPRESENTATIVE, LEGAL_REPRESENTATIVE] }
+        respondentFamilyMemberId: { type: integer, format: int64 }
+        relationship: { type: string }
+        signerType: { type: string, enum: [RESIDENT, PATIENT_REPRESENTATIVE, LEGAL_REPRESENTATIVE] }
+        signerFamilyMemberId: { type: integer, format: int64 }
+        representativeSelection: { type: string, enum: [CHOSEN_BY_RESIDENT, CHOSEN_BY_FAMILY] }
+        courtDecision: { $ref: '#/components/schemas/CourtDecision' }
+        otherOpinions:
+          type: array
+          items:
+            type: object
+            required: [source, content]
+            properties:
+              source: { $ref: '#/components/schemas/OpinionSource' }
+              content: { type: string }
+        signedAt: { type: string, format: date-time }
+        signedCopyFileId: { type: integer, format: int64 }
+    EndOfLifeWishVerifyBody:
+      type: object
+      description: Như thân POST /residents/{id}/end-of-life-wishes (Q-412, FR-023p)
+      required: [choice, firstContact, respondentType, assessingDoctorId, selfDeterminationAssessment, signerType, signedAt, signedCopyFileId]
+      properties:
+        choice: { type: string, enum: [TRANSFER_TO_HOSPITAL, RETURN_HOME, STAY_PALLIATIVE] }
+        firstContact: { type: string }
+        note: { type: string }
+        respondentType: { type: string, enum: [RESIDENT, PATIENT_REPRESENTATIVE, LEGAL_REPRESENTATIVE] }
+        respondentFamilyMemberId: { type: integer, format: int64 }
+        relationship: { type: string }
+        assessingDoctorId: { type: integer, format: int64 }
+        selfDeterminationAssessment: { $ref: '#/components/schemas/SelfDeterminationAssessment' }
+        signerType: { type: string, enum: [RESIDENT, PATIENT_REPRESENTATIVE, LEGAL_REPRESENTATIVE] }
+        signerFamilyMemberId: { type: integer, format: int64 }
+        representativeSelection: { type: string, enum: [CHOSEN_BY_RESIDENT, CHOSEN_BY_FAMILY] }
+        courtDecision: { $ref: '#/components/schemas/CourtDecision' }
+        otherOpinions:
+          type: array
+          items:
+            type: object
+            required: [source, content]
+            properties:
+              source: { $ref: '#/components/schemas/OpinionSource' }
+              content: { type: string }
+        signedAt: { type: string, format: date-time }
+        signedCopyFileId: { type: integer, format: int64 }
+    TreatmentWishDraftBody:
+      type: object
+      description: Bản Nháp tự khai (Q-412, FR-023n); mọi trường trừ respondent để trống được
+      required: [respondent]
+      properties:
+        preferredHospitals: { type: array, maxItems: 2, items: { $ref: '#/components/schemas/PreferredHospital' } }
+        healthInsurance: { $ref: '#/components/schemas/HealthInsurance' }
+        askFamilyFirst: { type: boolean }
+        notifyFamilyMemberIds: { type: array, items: { type: integer, format: int64 } }
+        accompaniedBy: { type: string, enum: [FAMILY, FACILITY_STAFF, CASE_BY_CASE] }
+        note: { type: string }
+        respondent: { $ref: '#/components/schemas/OpinionSource' }
+        otherOpinions:
+          type: array
+          items:
+            type: object
+            required: [source, content]
+            properties:
+              source: { $ref: '#/components/schemas/OpinionSource' }
+              content: { type: string }
+        signedCopyFileId: { type: integer, format: int64 }
+    TreatmentWishVerifyBody:
+      type: object
+      description: Như thân POST /residents/{id}/treatment-wishes (Q-412, FR-023p)
+      required: [preferredHospitals, askFamilyFirst, accompaniedBy, respondent]
+      properties:
+        preferredHospitals: { type: array, minItems: 1, maxItems: 2, items: { $ref: '#/components/schemas/PreferredHospital' } }
+        healthInsurance: { $ref: '#/components/schemas/HealthInsurance' }
+        askFamilyFirst: { type: boolean }
+        notifyFamilyMemberIds: { type: array, items: { type: integer, format: int64 } }
+        accompaniedBy: { type: string, enum: [FAMILY, FACILITY_STAFF, CASE_BY_CASE] }
+        note: { type: string }
+        respondent: { $ref: '#/components/schemas/OpinionSource' }
+        otherOpinions:
+          type: array
+          items:
+            type: object
+            required: [source, content]
+            properties:
+              source: { $ref: '#/components/schemas/OpinionSource' }
+              content: { type: string }
+        signedCopyFileId: { type: integer, format: int64 }
+    FamilyDeclaredTopic:
+      type: string
+      description: Chủ đề của mục "Gia đình khai" (FR-025a; bổ sung 2026-11-17)
+      enum: [GENERAL_CONDITION, MOBILITY, SELF_CARE, COGNITION, KNOWN_RISKS]
+    FamilyDeclaredEntry:
+      type: object
+      description: Một mục "Gia đình khai", hiển thị "Tự khai, chưa được Bác sĩ kiểm chứng" (Q-412, FR-025a)
+      properties:
+        topic: { $ref: '#/components/schemas/FamilyDeclaredTopic' }
+        content: { type: string }
+        source: { $ref: '#/components/schemas/OpinionSource' }
+        recordedBy: { type: string }
+        at: { type: string, format: date-time }
+    FamilyDeclaredAssessment:
+      type: object
+      description: Phần Hành chính thấy của lần đánh giá đầu vào Nháp (Q-412, FR-025a); không có nhận xét, mức
+      properties:
+        assessmentId: { type: integer, format: int64 }
+        status: { type: string, enum: [DRAFT] }
+        entries: { type: array, items: { $ref: '#/components/schemas/FamilyDeclaredEntry' } }
     EndOfLifeWishSummary:
       type: object
       properties:
@@ -1082,6 +1374,7 @@ components:
         confirmedBy: { type: [string, 'null'] }
         confirmedAt: { type: [string, 'null'], format: date-time }
         corrected: { type: boolean }
+        familyDeclared: { type: array, items: { $ref: '#/components/schemas/FamilyDeclaredEntry' }, description: 'Bổ sung 2026-11-17 (Q-412, FR-025a): chỉ lần đánh giá đầu vào; Hành chính ghi, Bác sĩ, Điều dưỡng chỉ đọc' }
     AssessmentDetail:
       allOf:
         - $ref: '#/components/schemas/Assessment'

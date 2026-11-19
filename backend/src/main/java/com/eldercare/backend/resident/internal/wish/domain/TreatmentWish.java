@@ -22,4 +22,6 @@ public record TreatmentWish(
         Long signedCopyFileId,
         TreatmentWishStatus status,
         long recordedBy,
-        Instant recordedAt) {}
+        Instant recordedAt,
+        Long verifiedBy,
+        Instant verifiedAt) {}

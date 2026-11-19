@@ -8,12 +8,15 @@ import com.eldercare.backend.medication.internal.reconciliation.domain.CreateRec
 import com.eldercare.backend.medication.internal.reconciliation.domain.ProposeCorrectionBody;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationResponse;
 import com.eldercare.backend.medication.internal.reconciliation.service.MedicationReconciliationService;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationWorklist;
 import com.eldercare.backend.medication.web.request.ReasonRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.NewReconciliationRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.ProposeCorrectionRequest;
 import com.eldercare.backend.medication.web.request.ReconciliationRequests.ReconciliationItemRequest;
 import com.eldercare.backend.medication.web.response.M07Problems;
 import com.eldercare.backend.medication.web.response.ReconciliationBodies.ReconciliationBody;
+import com.eldercare.backend.medication.web.response.ReconciliationBodies.ReconciliationCorrectionBody;
+import com.eldercare.backend.medication.web.response.ReconciliationBodies.ReconciliationWorklistEntryBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,11 +43,15 @@ public class MedicationReconciliationController {
 
     private final MedicationReconciliationService reconciliationService;
     private final CurrentUser currentUser;
+    private final ReconciliationWorklist worklist;
 
     public MedicationReconciliationController(
-            MedicationReconciliationService reconciliationService, CurrentUser currentUser) {
+            MedicationReconciliationService reconciliationService,
+            CurrentUser currentUser,
+            ReconciliationWorklist worklist) {
         this.reconciliationService = reconciliationService;
         this.currentUser = currentUser;
+        this.worklist = worklist;
     }
 
     private boolean isDoctor() {
@@ -55,8 +62,14 @@ public class MedicationReconciliationController {
     @ApiResponse(responseCode = "200", description = "OK")
     public List<ReconciliationBody> listByResident(@PathVariable("residentId") Long residentId) {
         return reconciliationService.listByResident(residentId).stream()
-                .map(ReconciliationBody::of)
+                .map(r -> ReconciliationBody.of(r, currentUser.accountId()))
                 .toList();
+    }
+
+    @GetMapping("/api/v1/medication-reconciliation-worklist")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<ReconciliationWorklistEntryBody> worklist() {
+        return worklist.list().stream().map(ReconciliationWorklistEntryBody::of).toList();
     }
 
     @PostMapping("/api/v1/residents/{residentId}/medication-reconciliations")
@@ -87,7 +100,9 @@ public class MedicationReconciliationController {
     @ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<ReconciliationBody> getById(@PathVariable("id") Long id) {
         ReconciliationResponse res = reconciliationService.get(id);
-        return ResponseEntity.ok().eTag(VersionEtag.of(res.getVersion())).body(ReconciliationBody.of(res));
+        return ResponseEntity.ok()
+                .eTag(VersionEtag.of(res.getVersion()))
+                .body(ReconciliationBody.of(res, currentUser.accountId()));
     }
 
     @PutMapping("/api/v1/medication-reconciliations/{id}/items")
@@ -156,20 +171,21 @@ public class MedicationReconciliationController {
 
     @PostMapping("/api/v1/medication-reconciliations/{id}/propose-correction")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Chờ xác nhận", content = @Content),
+        @ApiResponse(responseCode = "201", description = "Chờ xác nhận"),
         @ApiResponse(
                 responseCode = "403",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
-    public ResponseEntity<Void> proposeCorrection(
+    public ResponseEntity<ReconciliationCorrectionBody> proposeCorrection(
             @PathVariable("id") Long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody ProposeCorrectionRequest body) {
         ProposeCorrectionBody command = new ProposeCorrectionBody();
         command.setCorrectedContent(body.correctedContent());
         command.setReason(body.reason());
-        reconciliationService.proposeCorrection(id, command, currentUser.accountId());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        var created = reconciliationService.proposeCorrection(id, command, currentUser.accountId());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ReconciliationCorrectionBody.of(created, currentUser.accountId()));
     }
 
     @PostMapping("/api/v1/reconciliation-corrections/{id}/confirm")

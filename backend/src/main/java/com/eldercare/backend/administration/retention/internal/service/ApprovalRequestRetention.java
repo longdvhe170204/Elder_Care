@@ -1,11 +1,16 @@
 package com.eldercare.backend.administration.retention.internal.service;
 
+import com.eldercare.backend.administration.account.api.spi.ResidencyEndApi;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
 import com.eldercare.backend.administration.approval.api.dto.ExtendedTransitions;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
+import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -24,9 +29,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * Lưu giữ yêu cầu phê duyệt (000 T072; FR-050, FR-051a): chỉ yêu cầu đã ở trạng thái cuối, theo CFG-M15-04 tính từ
- * mốc cuối cùng (lập, quyết định, áp dụng). Yêu cầu gắn hồ sơ người cao tuổi tính hạn từ ngày kết thúc lưu trú, chưa có
- * giao diện của 001 nên chưa hết hạn (plan 000, D5). Kết quả áp dụng (cột của yêu cầu, R-15) và bản đính chính
- * cách C trỏ về yêu cầu: còn thì giữ yêu cầu.
+ * mốc cuối cùng (lập, quyết định, áp dụng). Yêu cầu gắn hồ sơ người cao tuổi giữ theo hồ sơ (CFG-M15-03 từ lúc người đó
+ * sang trạng thái cuối, đọc qua {@link ResidencyEndApi}; 000 T112, 2026-11-16) và đi cùng chuỗi của hồ sơ
+ * ({@link #referencing}). Kết quả áp dụng (cột của yêu cầu, R-15) và bản đính chính cách C trỏ về yêu cầu: còn thì giữ
+ * yêu cầu.
  */
 @Component
 class ApprovalRequestRetention implements RetentionProvider {
@@ -42,12 +48,23 @@ class ApprovalRequestRetention implements RetentionProvider {
     private final JdbcTemplate jdbc;
     private final RetentionDatabase database;
     private final ObjectProvider<RequestTypeHandler> handlers;
+    private final ObjectProvider<ResidencyEndApi> ends;
+    private final ParameterApi parameters;
+    private final BusinessTime time;
 
     ApprovalRequestRetention(
-            JdbcTemplate jdbc, RetentionDatabase database, ObjectProvider<RequestTypeHandler> handlers) {
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            ObjectProvider<RequestTypeHandler> handlers,
+            ObjectProvider<ResidencyEndApi> ends,
+            ParameterApi parameters,
+            BusinessTime time) {
         this.jdbc = jdbc;
         this.database = database;
         this.handlers = handlers;
+        this.ends = ends;
+        this.parameters = parameters;
+        this.time = time;
     }
 
     /**
@@ -105,18 +122,65 @@ class ApprovalRequestRetention implements RetentionProvider {
         long afterId = after == null ? 0 : after.id();
         List<Object> args = new ArrayList<>();
         String finalStatus = finalCondition(args);
+        List<Object> linkedArgs = new ArrayList<>(args);
         args.addAll(List.of(LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC), afterAt, afterAt, afterId, batch));
+        List<Candidate> unlinked = jdbc.query(
+                "SELECT id, GREATEST(created_at, COALESCE(decided_at, created_at), COALESCE(applied_at,"
+                        + " created_at)) AS at FROM approval_request WHERE " + finalStatus
+                        + " AND resident_id IS NULL HAVING at < ? AND (at > ? OR (at = ? AND id > ?))"
+                        + " ORDER BY at, id LIMIT ?",
+                (rs, i) -> new Candidate(
+                        rs.getLong("id"),
+                        rs.getObject("at", LocalDateTime.class).toInstant(ZoneOffset.UTC)),
+                args.toArray());
+        List<Candidate> linked = residentLinked(
+                "SELECT id, resident_id FROM approval_request WHERE " + finalStatus + " AND resident_id IS NOT NULL",
+                linkedArgs.toArray());
+        return RetentionProvider.page(Stream.concat(unlinked.stream(), linked.stream()), after, batch);
+    }
+
+    /**
+     * Yêu cầu gắn hồ sơ đã hết hạn theo hồ sơ: người cao tuổi sang trạng thái cuối trước mốc CFG-M15-03 (000 T112); mốc
+     * của ứng viên là lúc sang trạng thái cuối. Chưa có nguồn trạng thái cuối thì giữ.
+     */
+    private List<Candidate> residentLinked(String sql, Object[] args) {
+        ResidencyEndApi source = ends.getIfAvailable();
+        if (source == null) return List.of();
+        Instant profileCutoff = time.now()
+                .atZone(BusinessTime.ZONE)
+                .minus(parameters.read(ParameterCode.CFG_M15_03).asPeriod())
+                .toInstant();
+        List<Candidate> found = new ArrayList<>();
+        jdbc.query(
+                sql,
+                rs -> {
+                    long id = rs.getLong(1);
+                    source.finalStatusAt(rs.getLong(2))
+                            .filter(at -> at.isBefore(profileCutoff))
+                            .ifPresent(at -> found.add(new Candidate(id, at)));
+                },
+                args);
+        return found;
+    }
+
+    /**
+     * Yêu cầu ở trạng thái cuối gắn hồ sơ người cao tuổi {@code target} (000 T112, FR-051a): cùng tập với ứng viên, để
+     * chuỗi của hồ sơ chỉ kéo theo yêu cầu mà job xóa được; yêu cầu còn mở không giữ hồ sơ mãi.
+     */
+    @Override
+    public Set<DataRef> referencing(DataRef target) {
+        if (!SharedRowRetention.RESIDENT.equals(target.dataType())) return Set.of();
+        List<Object> args = new ArrayList<>();
+        String finalStatus = finalCondition(args);
+        args.add(target.id());
         return jdbc
-                .query(
-                        "SELECT id, GREATEST(created_at, COALESCE(decided_at, created_at), COALESCE(applied_at,"
-                                + " created_at)) AS at FROM approval_request WHERE " + finalStatus
-                                + " AND resident_id IS NULL HAVING at < ? AND (at > ? OR (at = ? AND id > ?))"
-                                + " ORDER BY at, id LIMIT ?",
-                        (rs, i) -> new Candidate(
-                                rs.getLong("id"),
-                                rs.getObject("at", LocalDateTime.class).toInstant(ZoneOffset.UTC)),
+                .queryForList(
+                        "SELECT id FROM approval_request WHERE " + finalStatus + " AND resident_id = ?",
+                        Long.class,
                         args.toArray())
-                .stream();
+                .stream()
+                .map(id -> new DataRef(TYPE, id))
+                .collect(Collectors.toSet());
     }
 
     /**

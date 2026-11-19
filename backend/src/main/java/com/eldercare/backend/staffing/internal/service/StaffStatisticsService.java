@@ -225,11 +225,7 @@ public class StaffStatisticsService implements StaffStatisticsApi {
                     Object basis = data.getOrDefault("permissionBasis", data.get("basis"));
                     // Không suy quyền quá khứ từ vai trò hiện tại; mã BR/FR không phải căn cứ nhiệm vụ.
                     if (!(basis instanceof String value)
-                            || !Set.of(
-                                            "SHIFT_LEAD",
-                                            "FLOOR_MANAGER_SUBSTITUTE",
-                                            "TEMPORARY_RECEIVER",
-                                            "ROLE_INVITATION_SENT")
+                            || !Set.of("SHIFT_LEAD", "FLOOR_MANAGER_SUBSTITUTE", "TEMPORARY_RECEIVER")
                                     .contains(value)) continue;
                     if (!scope.facilityWide()) {
                         Long shiftId = number(data.get("shiftId"));
