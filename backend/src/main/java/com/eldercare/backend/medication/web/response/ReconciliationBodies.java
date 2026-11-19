@@ -1,12 +1,15 @@
 package com.eldercare.backend.medication.web.response;
 
 import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationCorrectionResponse;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemResponse;
 import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationResponse;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationWorklist;
 import com.eldercare.backend.medication.web.request.NewPrescriptionRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /** Phản hồi đối chiếu thuốc theo api-006 ({@code Reconciliation}, {@code ReconciliationItem}; FR-034 → FR-038). */
 public final class ReconciliationBodies {
@@ -73,9 +76,17 @@ public final class ReconciliationBodies {
             String submittedBy,
             String confirmedBy,
             List<ReconciliationItemBody> items,
-            List<String> allowedCommands) {
+            List<String> allowedCommands,
+
+            @Schema(description = "Đề nghị đính chính của phiếu, mới nhất trước (FR-039; bổ sung 2026-11-19, 006 T076)")
+            List<ReconciliationCorrectionBody> corrections) {
 
         public static ReconciliationBody of(ReconciliationResponse r) {
+            return of(r, null);
+        }
+
+        /** viewerId: người xem, để tính lệnh của từng đề nghị (người lập không tự xác nhận, BR-M07-17). */
+        public static ReconciliationBody of(ReconciliationResponse r, Long viewerId) {
             return new ReconciliationBody(
                     r.getId(),
                     r.getResidentId(),
@@ -92,7 +103,74 @@ public final class ReconciliationBodies {
                             : r.getItems().stream()
                                     .map(ReconciliationItemBody::of)
                                     .toList(),
-                    r.getPermittedActions());
+                    r.getPermittedActions(),
+                    r.getCorrections().stream()
+                            .map(c -> ReconciliationCorrectionBody.of(c, viewerId))
+                            .toList());
+        }
+    }
+
+    /** api-006 {@code ReconciliationCorrection} (FR-039; bổ sung 2026-11-19, 006 T076). */
+    public record ReconciliationCorrectionBody(
+            Long id,
+            Long reconciliationId,
+            Map<String, Object> correctedContent,
+            String reason,
+
+            @Schema(allowableValues = {"PENDING_CONFIRMATION", "CONFIRMED", "REJECTED"})
+            String status,
+
+            String createdBy,
+            Instant createdAt,
+            String confirmedBy,
+            Instant confirmedAt,
+            String returnReason,
+
+            @Schema(allowableValues = {"CONFIRM", "RETURN"}) List<String> allowedCommands) {
+
+        public static ReconciliationCorrectionBody of(ReconciliationCorrectionResponse c, Long viewerId) {
+            boolean decidable = "PENDING_CONFIRMATION".equals(c.getStatus())
+                    && viewerId != null
+                    && !viewerId.equals(c.getCreatedById());
+            return new ReconciliationCorrectionBody(
+                    c.getId(),
+                    c.getReconciliationId(),
+                    c.getCorrectedContent(),
+                    c.getReason(),
+                    c.getStatus(),
+                    c.getCreatedById() == null ? null : String.valueOf(c.getCreatedById()),
+                    c.getCreatedAt(),
+                    c.getConfirmedById() == null ? null : String.valueOf(c.getConfirmedById()),
+                    c.getConfirmedAt(),
+                    c.getReturnReason(),
+                    decidable ? List.of("CONFIRM", "RETURN") : List.of());
+        }
+    }
+
+    /** api-006 {@code ReconciliationWorklistEntry} (bổ sung 2026-11-19, 006 T075, T076). */
+    public record ReconciliationWorklistEntryBody(
+            Long residentId,
+            Long reconciliationId,
+
+            @Schema(allowableValues = {"OPEN", "PENDING_CONFIRMATION"})
+            String status,
+
+            @Schema(allowableValues = {"ADMISSION", "HOSPITAL_RETURN", "PROFESSIONAL_REQUEST"})
+            String reason,
+
+            Instant deadlineAt,
+            Boolean overdue,
+            Integer awaitingPrescriptionCount) {
+
+        public static ReconciliationWorklistEntryBody of(ReconciliationWorklist.Entry e) {
+            return new ReconciliationWorklistEntryBody(
+                    e.residentId(),
+                    e.reconciliationId(),
+                    e.status(),
+                    e.reason(),
+                    e.deadlineAt(),
+                    e.overdue(),
+                    e.awaitingPrescriptionCount());
         }
     }
 

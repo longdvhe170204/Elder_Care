@@ -24,7 +24,17 @@ public class ReconciliationResponse {
     private String returnReason;
     private List<ReconciliationItemResponse> items = new ArrayList<>();
     private List<String> permittedActions = new ArrayList<>();
+    private List<ReconciliationCorrectionResponse> corrections = new ArrayList<>();
     private int version;
+
+    /** Đề nghị đính chính của phiếu, mọi trạng thái, mới nhất trước (FR-039; 006 T076). */
+    public List<ReconciliationCorrectionResponse> getCorrections() {
+        return corrections;
+    }
+
+    public void setCorrections(List<ReconciliationCorrectionResponse> corrections) {
+        this.corrections = corrections != null ? corrections : new ArrayList<>();
+    }
 
     public Long getId() {
         return id;
