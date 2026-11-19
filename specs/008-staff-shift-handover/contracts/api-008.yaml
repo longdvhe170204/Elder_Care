@@ -228,7 +228,7 @@ paths:
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ShiftSchedule' } } } } } }
     post:
       tags: [shift-schedules]
-      summary: Lập lịch Nháp cho tháng, phạm vi (lịch toàn viện chỉ Quản lý viện)
+      summary: Lập lịch Nháp cho tháng, phạm vi (chỉ Quản lý viện, mọi phạm vi)
       x-fr: [FR-012, FR-016]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [month, scopeType], properties: { month: { type: string }, scopeType: { type: string, enum: [FLOOR, AREA, FACILITY] }, scopeId: { type: integer, format: int64 } } } } } }
@@ -236,7 +236,7 @@ paths:
   /shift-schedules/{id}/shifts:
     post:
       tags: [shift-schedules]
-      summary: Tạo ca trong lịch Nháp (từ mẫu; giờ chỉnh riêng được)
+      summary: Tạo ca trong lịch Nháp (Trưởng tầng được giao; Quản lý viện chỉ toàn viện; từ mẫu, giờ chỉnh riêng được)
       x-fr: [FR-012]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewShift' } } } }
@@ -273,7 +273,7 @@ paths:
   /shift-schedules/{id}/publish:
     post:
       tags: [shift-schedules]
-      summary: Công bố lịch (Trưởng tầng được giao; Quản lý viện; lịch toàn viện chỉ Quản lý viện)
+      summary: Công bố cả lịch tháng (tầng/khu vực do Trưởng tầng được giao; toàn viện do Quản lý viện)
       description: |
         Chặn: ca thiếu người phụ trách; tầng chưa có Trưởng tầng cho cả tháng; phân công Nháp không đạt FR-028, FR-030 (kèm danh sách; assignmentIdsToRemove[] để loại trong cùng lệnh).
         Tự công bố: reason bắt buộc, nhật ký tuDuyet (Q-10); lý do dùng chung cho công bố khi thiếu phủ (015).
@@ -285,7 +285,7 @@ paths:
   /shifts/{id}/add-staff:
     post:
       tags: [shift-schedules]
-      summary: Bổ sung nhân viên vào ca đã công bố hoặc đang diễn ra (Trưởng tầng của tầng, Quản lý viện; lý do)
+      summary: Bổ sung nhân viên vào ca đã công bố hoặc đang diễn ra (Trưởng tầng của tầng; Quản lý viện chỉ với toàn viện; lý do)
       x-fr: [FR-018, FR-013, FR-014]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [staffId, reason], properties: { staffId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' }, confirmWarnings: { type: boolean } } } } } }
@@ -293,7 +293,7 @@ paths:
   /shifts/{id}/change-lead:
     post:
       tags: [shift-schedules]
-      summary: Chuyển người phụ trách ca (Trưởng tầng của tầng, Quản lý viện; lý do); bàn giao đang dở chuyển theo
+      summary: Chuyển người phụ trách ca (Trưởng tầng của tầng; Quản lý viện chỉ với toàn viện; lý do); bàn giao đang dở chuyển theo
       x-fr: [FR-019]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [staffId, reason], properties: { staffId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }

@@ -286,7 +286,7 @@ class ShiftController {
 
     private ShiftResponses.Shift body(WorkShift shift) {
         List<String> commands = List.of();
-        if ("DRAFT".equals(shift.status()))
+        if (schedules.canEditShift(shift))
             commands = permissions
                     .allowedCommands(
                             users.getObject(),

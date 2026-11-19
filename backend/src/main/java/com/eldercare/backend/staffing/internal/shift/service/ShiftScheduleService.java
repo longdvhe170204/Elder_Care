@@ -101,6 +101,10 @@ public class ShiftScheduleService {
         return staffAssignments.allowedCommands(shift);
     }
 
+    public boolean canEditShift(WorkShift shift) {
+        return "DRAFT".equals(shift.status()) && allowed(Operation.UPDATE, target(shift.scopeType(), shift.scopeId()));
+    }
+
     @RequiresPermission(function = Function.SHIFT_SCHEDULE, operation = Operation.CREATE)
     @Transactional
     public ShiftTemplate createTemplate(TemplateInput input) {
@@ -560,6 +564,12 @@ public class ShiftScheduleService {
     }
 
     private boolean allowed(Operation operation, Target target) {
+        var roles = users.getObject().roles();
+        if (operation == Operation.CREATE && !roles.contains(Role.NURSING_HOME_MANAGER)) return false;
+        if (operation == Operation.UPDATE || operation == Operation.APPROVE) {
+            var required = target.floorAreaId() == null ? Role.NURSING_HOME_MANAGER : Role.FLOOR_MANAGER;
+            if (!roles.contains(required)) return false;
+        }
         return permissions
                 .hasPermission(users.getObject(), new PermissionKey(Function.SHIFT_SCHEDULE, operation), target)
                 .allowed();

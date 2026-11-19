@@ -597,6 +597,10 @@ public class AssignmentService {
     }
 
     private boolean allowed(Operation op, WorkShift s) {
+        if (op != Operation.VIEW) {
+            var required = s.scopeId() == null ? Role.NURSING_HOME_MANAGER : Role.FLOOR_MANAGER;
+            if (!users.getObject().roles().contains(required)) return false;
+        }
         return permissions
                 .hasPermission(
                         users.getObject(),

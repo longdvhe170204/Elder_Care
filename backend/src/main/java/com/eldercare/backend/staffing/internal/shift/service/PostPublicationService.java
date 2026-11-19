@@ -103,7 +103,7 @@ public class PostPublicationService {
 
     private boolean manages(WorkShift s) {
         var u = users.getObject();
-        return u.roles().contains(Role.NURSING_HOME_MANAGER)
+        return s.scopeId() == null && u.roles().contains(Role.NURSING_HOME_MANAGER)
                 || u.roles().contains(Role.FLOOR_MANAGER)
                         && s.scopeId() != null
                         && permissions

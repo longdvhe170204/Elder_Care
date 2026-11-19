@@ -1565,7 +1565,7 @@ Ca có: tên ca; thời gian; khu vực; nhân viên; người phụ trách. Th�
 
 Ví dụ khảo sát: Ca ngày 07:00–18:00; Ca đêm 18:00–07:00 hôm sau. Đây là cấu hình tham chiếu, không phải giá trị cố định của sản phẩm.
 
-**Lịch ca (sửa theo Q-397).** Lịch ca do người lập lịch lập theo tháng bằng tay (feature 008); không có mẫu xoay ca, nhóm xoay ca, phủ tối thiểu, lời mời nhận ca thay. Lịch có trạng thái Nháp → Đã công bố; sau khi công bố, đổi ca và nghỉ đột xuất đi qua yêu cầu có duyệt, không sửa lịch trực tiếp. Ca thiếu người do Trưởng tầng tự bổ sung nhân viên vào ca.
+**Lịch ca (sửa theo Q-397).** Quản lý viện tạo lịch tháng Nháp cho từng tầng/khu vực; Trưởng tầng được giao tạo các ca trong lịch, xếp nhân viên, chỉ định Người phụ trách ca và công bố cả lịch tháng (không công bố riêng từng ca). Quản lý viện không thực hiện thay các thao tác này trên lịch tầng/khu vực. Với lịch toàn viện, Quản lý viện tạo lịch, tạo ca, phân công và công bố. Quyết định chủ dự án ngày 2026-11-19 (feature 008); không có mẫu xoay ca, nhóm xoay ca, phủ tối thiểu, lời mời nhận ca thay. Lịch có trạng thái Nháp → Đã công bố; sau khi công bố, đổi ca và nghỉ đột xuất đi qua yêu cầu có duyệt, không sửa lịch trực tiếp. Ca thiếu người do Trưởng tầng tự bổ sung nhân viên vào ca.
 
 - Phạm vi của ca là một tầng, một khu vực hoặc toàn viện. Mẫu ca khai báo có yêu cầu bàn giao hay không (mặc định: có với tầng/khu vực, không với toàn viện). Ca toàn viện dùng cho Bác sĩ trực và các vai trò phục vụ toàn viện; lịch toàn viện do Quản lý viện lập và công bố. Ca kéo qua hai tháng thuộc lịch của tháng chứa giờ bắt đầu.
 - Ranh giới feature (Q-77): feature 008 sở hữu lịch ca (lập tay, công bố, các lệnh Ghi nhận vắng ca, Bổ sung nhân viên vào ca, Chuyển người phụ trách ca, Hủy ca); feature 015 sở hữu đổi ca và nghỉ đột xuất có duyệt (Q-397).
@@ -3140,7 +3140,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Xác nhận phục vụ suất đặc biệt | UC-77 | X | X | X | T²⁷ | T | — | — | — | — | — |
 | Đối chiếu đồ ăn gia đình | UC-48 | X | — | T | T | — | — | — | — | — | — |
 | Hồ sơ nhân viên, chứng chỉ | UC-49, 102 | T | X | — | — | — | — | — | — | — | — |
-| Lịch ca, phân công | UC-50, 51 | T, D | T, D | P | P | P | P | P | — | — | — |
+| Lịch ca, phân công | UC-50, 51 | T, D (tạo lịch tháng; điều hành và công bố chỉ toàn viện) | T, D (tạo ca, phân công, công bố lịch tầng/khu vực được giao; không tạo lịch tháng) | P | P | P | P | P | — | — | — |
 | Bàn giao ca | UC-52, 53 | X | T | X | T | P²⁵ | — | — | — | — | — |
 | Yêu cầu đổi ca | UC-54 | X | D | T | T | T | T | T | — | — | — |
 | Người thân và quyền | UC-55 | D¹⁸ | — | — | — | — | — | T | T² | — | — |

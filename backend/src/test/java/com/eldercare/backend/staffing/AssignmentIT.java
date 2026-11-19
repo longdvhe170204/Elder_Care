@@ -107,13 +107,24 @@ class AssignmentIT extends MySqlIntegrationTestBase {
 
     @BeforeEach
     void setup() {
-        // Đặt đồng hồ trước khi tạo người dùng: quyền của Quản lý viện phải có hiệu lực từ trước mốc đồng hồ của test
+        // Quyết định 19/11: phân công tầng do Trưởng tầng được giao thực hiện.
         clock.setTo(Instant.parse("2026-11-01T01:00:00Z"));
-        current.set(new TestUsers(jdbc, time).staff(Role.NURSING_HOME_MANAGER).user());
+        var head = new TestUsers(jdbc, time).staff(Role.FLOOR_MANAGER);
+        current.set(head.user());
         floor = TestUsers.nextId();
         room = TestUsers.nextId();
         resident = TestUsers.nextId();
         locations.floor(floor, TestUsers.nextId()).room(room, floor);
+        jdbc.update(
+                "INSERT INTO staff_profile(id,full_name,position,account_id) VALUES (?,'[Trưởng tầng kiểm thử phân công]','Trưởng tầng',?)",
+                head.staffId(),
+                head.accountId());
+        jdbc.update(
+                "INSERT INTO staff_assignment(kind,staff_id,floor_area_id,starts_at,assigned_by,reason,status) VALUES ('FLOOR_MANAGER',?,?,?,1,'[Khởi tạo fixture]','ACTIVE')",
+                head.staffId(),
+                floor,
+                com.eldercare.backend.staffing.internal.shift.persistence.ShiftStore.sql(
+                        time.now().minusSeconds(86400)));
         from = Instant.parse("2026-11-01T02:00:00Z").plusSeconds(60L * sequence.incrementAndGet());
         to = from.plusSeconds(8 * 3600);
         locations.stay(resident, room, from.minusSeconds(7200), null);
