@@ -81,5 +81,12 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND JSON_CONTAINS(attributes->'$.operationScopes', '\"INTERNAL_DIAGNOSIS_PRESCRIBING\"')",
                         Integer.class))
                 .isEqualTo(1);
+        // V900_06: dịch vụ chăm sóc demo 9302 "Chăm sóc thường xuyên" mang mã mức chăm sóc REGULAR (001 CareLevel),
+        // không
+        // phải FREQUENT V900_05 ghi nhầm, để hợp đồng mức Thường xuyên chọn được dịch vụ chăm sóc tương ứng
+        assertThat(jdbc.queryForObject(
+                        "SELECT attributes->>'$.careLevelCode' FROM catalog_item WHERE id=9302 AND catalog_type='M02.SERVICE'",
+                        String.class))
+                .isEqualTo("REGULAR");
     }
 }
