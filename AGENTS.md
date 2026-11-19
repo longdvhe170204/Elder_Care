@@ -11,7 +11,7 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 1. `docs/team-plan.md`: bạn sở hữu module, thư mục, migration nào; đang ở đợt nào; **mục 8: việc người khác đang chờ bạn** (đầu mỗi phiên báo cho người dùng các dòng có tên họ; cần người khác làm gì thì thêm dòng trong PR của mình; việc xong thì xóa dòng, quy định ngay trên bảng mục 8).
 2. README của phần sẽ sửa: [backend/README.md](backend/README.md), [README kho web](https://github.com/longdvhe170204/Elder_Care_Frontend/blob/develop/README.md), [README kho app](https://github.com/longdvhe170204/Elder_Care_Mobile/blob/develop/README.md). Web và app ở hai kho riêng từ 2026-11-14 (README gốc kho này mục "Ba kho của hệ thống").
 3. Khi làm một task: `specs/NNN-*/tasks.md` → `plan.md` → `data-model.md` → `contracts/` → `research.md` → `spec.md` → `docs/business/nghiep-vu.md`. Đường dẫn file trong tasks, plan (`BE/resident/hoso/internal/…`) là tên logic: đặt lớp theo cấu trúc ở [backend/README.md](backend/README.md) (research R-02 của 000), không chép đường dẫn trong tasks.
-4. Tên tiếng Anh: [specs/000-shared-foundation/glossary.md](specs/000-shared-foundation/glossary.md). Giao diện: [DESIGN.md](DESIGN.md).
+4. Tên tiếng Anh: [specs/000-shared-foundation/glossary.md](specs/000-shared-foundation/glossary.md). Giao diện: DESIGN.md ở gốc kho web (`../Elder_Care_Frontend/DESIGN.md`, từ 2026-11-20); sửa bố cục màn web thì đọc mục 0 "Mẫu màn" trước.
 
 ## 2. Mười luật không được vi phạm
 
@@ -55,7 +55,11 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 
 ## 5. Web và mobile
 
-Web ở kho [Elder_Care_Frontend](https://github.com/longdvhe170204/Elder_Care_Frontend), app ở kho [Elder_Care_Mobile](https://github.com/longdvhe170204/Elder_Care_Mobile); theo README của từng kho: thư mục màn hình theo feature, không import chéo feature, gọi API chỉ qua client sinh từ hợp đồng, lỗi qua `problemOf`/`ProblemAlert`, ngày giờ qua `dateTime.js`, màu chữ qua token của DESIGN.md. Mobile đã mở cả ba phần (người cao tuổi 2026-10-24; nhân viên, người thân 2026-10-27): màn của feature ở `lib/{staff, family, resident}/<feature>/` của kho app, phần dùng chung ở `lib/common/` do A giữ; màn cần đăng nhập nhân viên, người thân hoặc ghi khi mất mạng thì chờ phần nền của A (CLAUDE.md mục "Giai đoạn hiện tại").
+Web ở kho [Elder_Care_Frontend](https://github.com/longdvhe170204/Elder_Care_Frontend), app ở kho [Elder_Care_Mobile](https://github.com/longdvhe170204/Elder_Care_Mobile); theo README của từng kho: thư mục màn hình theo feature, không import chéo feature, gọi API chỉ qua client sinh từ hợp đồng, lỗi qua `problemOf`/`ProblemAlert`, ngày giờ qua `dateTime.js`, màu chữ qua token của DESIGN.md.
+
+Bố cục màn web (DESIGN.md 6.18.0, mục 0): mỗi màn theo một mẫu trong bảng "Mẫu màn" (danh sách và khung chi tiết, dòng thời gian ca, lưới thẻ theo giờ, màn theo luồng, bảng chỉ tiêu), dùng component chung ở `src/common` của mẫu đó, ghi tên mẫu trong mô tả PR. Không mẫu nào hợp thì đề xuất phương án, chờ chủ dự án duyệt và thêm vào bảng rồi mới sửa mã. Công cụ AI nào cũng không tự đặt phong cách riêng cho một màn; skill thẩm mỹ (`frontend-design` hay tương tự) chỉ dùng cho cách xếp bên trong một mẫu. DESIGN.md, skill `ui-redesign` và luật AI riêng của web (`AGENTS.md`, `CLAUDE.md` ngắn) ở kho web từ 2026-11-20: mở công cụ AI ở kho web để sửa màn. Dùng Claude Code thì gọi `/ui-redesign <tên màn>`; công cụ khác làm theo ba bước trong `.claude/skills/ui-redesign/SKILL.md` của kho web (đánh giá, phương án, làm sau khi duyệt).
+
+Mobile đã mở cả ba phần (người cao tuổi 2026-10-24; nhân viên, người thân 2026-10-27): màn của feature ở `lib/{staff, family, resident}/<feature>/` của kho app, phần dùng chung ở `lib/common/` do A giữ; màn cần đăng nhập nhân viên, người thân hoặc ghi khi mất mạng thì chờ phần nền của A (CLAUDE.md mục "Giai đoạn hiện tại").
 
 ## 6. AI không được làm
 
