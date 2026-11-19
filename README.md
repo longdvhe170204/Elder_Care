@@ -15,8 +15,8 @@ Hệ thống quản lý viện dưỡng lão (đồ án nhóm).
 
 | Kho | Nội dung |
 | --- | --- |
-| Elder_Care (kho này) | Backend, đặc tả, hợp đồng API, tài liệu nghiệp vụ và quy ước chung (CLAUDE.md, AGENTS.md, DESIGN.md) |
-| [Elder_Care_Frontend](https://github.com/longdvhe170204/Elder_Care_Frontend) | Web React 19, Vite, JavaScript, Tailwind CSS v4, shadcn/ui |
+| Elder_Care (kho này) | Backend, đặc tả, hợp đồng API, tài liệu nghiệp vụ và quy ước chung (CLAUDE.md, AGENTS.md) |
+| [Elder_Care_Frontend](https://github.com/longdvhe170204/Elder_Care_Frontend) | Web React 19, Vite, JavaScript, Tailwind CSS v4, shadcn/ui; quy tắc giao diện web và app DESIGN.md (từ 2026-11-20) |
 | [Elder_Care_Mobile](https://github.com/longdvhe170204/Elder_Care_Mobile) | Một app Flutter chung cho nhân viên, người thân và người cao tuổi |
 
 Web và app chỉ nói chuyện với backend qua API `/api/v1`. Tách thành ba kho ngày 2026-11-14 (trước đó là thư mục `frontend/`, `mobile/` của kho này); hai kho mới giữ lịch sử commit của thư mục tương ứng.

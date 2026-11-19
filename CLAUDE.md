@@ -19,7 +19,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Thiết kế giao diện
 
-Mọi quy tắc giao diện cho cả web (kho Elder_Care_Frontend) và app di động (kho Elder_Care_Mobile) (màu, chữ, bố cục, component, trợ năng, quy trình, skill) ở [DESIGN.md](DESIGN.md) gốc kho; mục 15 riêng cho Flutter. Đọc hết file đó trước khi thiết kế hay sửa màn hình.
+Mọi quy tắc giao diện cho cả web (kho Elder_Care_Frontend) và app di động (kho Elder_Care_Mobile) (màu, chữ, bố cục, component, trợ năng, quy trình, skill) ở DESIGN.md gốc **kho web**: `../Elder_Care_Frontend/DESIGN.md` (chủ dự án chuyển sang 2026-11-20, DESIGN.md 6.18.0; file `DESIGN.md` ở kho này chỉ trỏ sang đó); mục 15 riêng cho Flutter. Đọc hết file đó trước khi thiết kế hay sửa màn hình. Mọi chỗ "DESIGN.md mục …" trong spec, plan, tasks của kho này là file ở kho web.
+
+- Bố cục màn web theo mục 0 "Mẫu màn" của DESIGN.md (từ 6.18.0, chủ dự án yêu cầu 2026-11-20): mỗi màn chọn một mẫu trong bảng; mẫu mới phải được chủ dự án duyệt và thêm vào bảng trước khi sửa mã.
+- Sửa màn web thì mở Claude Code ở kho web: skill `/ui-redesign <tên màn>` và `frontend-design`, `shadcn` ở `.claude/skills/` của kho đó; kho web có `CLAUDE.md`, `AGENTS.md` ngắn trỏ về các file chung của kho này. Không gọi thẳng `/frontend-design` để sửa bố cục. Đổi quy định giao diện thì sửa DESIGN.md cùng PR với mã ở kho web.
 
 ## Cách viết mã (bắt buộc cho mọi thành viên, skill karpathy-guidelines)
 
