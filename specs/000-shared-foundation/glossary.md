@@ -681,7 +681,7 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | gói chức năng `hoso`, `trangthai`, `dongy`, `suckhoe`, `nguyenvong`, `danhgia`, `lich` | `internal.profile`, `internal.status`, `internal.consent`, `internal.health`, `internal.wish`, `internal.assessment`; `scheduling` |
 | `resident.api` / `api/sukien`; `@NamedInterface` | `resident.api` (`dto`, `spi`, `events`); `resident`, `resident-spi`, `resident-events` |
 | `NguoiCaoTuoiApi` (`trangThai`, `nhanDang`, `thoiDiemTrangThaiCuoi`, `laTrangThaiCuoi`, `gioiTinh`, `ngaySinh` (bổ sung 2026-11-10), `theoTrangThai`); `NhanDangView` | `ResidentApi` (`status`, `identity`, `finalStatusAt`, `isFinalStatus`, `gender`, `dateOfBirth`, `byStatus`); `IdentityView` |
-| `TrangThaiNguoiCaoTuoiApi` (`thucHien`, `xemDieuKien`, `khoangTrangThai`); `KhoangTrangThai` | `ResidentStatusApi` (`execute`, `previewConditions`, `statusPeriods`); `StatusPeriod` |
+| `TrangThaiNguoiCaoTuoiApi` (`thucHien`, `xemDieuKien`, `xemCanhBao`, `khoangTrangThai`); `KhoangTrangThai` | `ResidentStatusApi` (`execute`, `previewConditions`, `previewWarnings`, `statusPeriods`); `StatusPeriod` |
 | `MucChamSocApi` (`hienHanh`, `taiNgay`, `apDungThayDoi`) | `CareLevelApi` (`current`, `atDate`, `applyChange`) |
 | `DanhGiaApi` (`luuYHienHanh`, `xacNhanGanNhat`), `DanhGiaLaiApi` (`trangThai`, `baoSauSuCo` (bổ sung 2026-11-10)) | `AssessmentApi` (`currentCareNote`, `latestConfirmed`), `ReassessmentApi` (`status`, `notifyAfterIncident`) |
 | `MucSucKhoeApi` (`hieuLuc`, `daKiemTra`), `HoSoSucKhoeApi` (`banDau`), `DiNguyenApi` (`diNguyenHieuLuc`) | `HealthItemApi` (`active`, `markChecked`), `HealthRecordApi` (`initial`), `AllergenApi` (`activeAllergens`) |

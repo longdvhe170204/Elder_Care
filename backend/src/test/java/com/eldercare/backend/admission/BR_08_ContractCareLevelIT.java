@@ -80,4 +80,21 @@ class BR_08_ContractCareLevelIT extends M02TestBase {
         assertThat(unmetCodes(blocked)).containsExactly("ADM_E_CONTRACT_LEVEL");
         assertThat(currentStatus(residentId)).isEqualTo(ResidentStatus.ADMISSION_IN_PROGRESS);
     }
+
+    // Audit 2026-11-18: chữ của điều kiện, cảnh báo hiện cho Hành chính bằng tên mức chăm sóc, không lẫn mã enum
+    @Test
+    void BR_08_mismatchText_usesVietnameseLevelNames() throws Exception {
+        long residentId = admissionResident();
+        long id = application(residentId);
+        confirmedAssessment(residentId, CareLevel.BASIC);
+        contracts.active(residentId, CareLevel.SPECIAL, today());
+
+        String text = conditions(id).toString();
+
+        assertThat(text)
+                .contains("Đặc biệt")
+                .contains("Cơ bản")
+                .doesNotContain("SPECIAL")
+                .doesNotContain("BASIC");
+    }
 }

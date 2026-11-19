@@ -90,4 +90,19 @@ class FR_004_ConditionsMatchCommandIT extends M02TestBase {
         assertThat(blocked.errorCode()).isEqualTo("UNMET_CONDITIONS");
         assertThat(unmetCodes(blocked)).containsExactlyInAnyOrderElementsOf(codesWith(list, "NOT_MET"));
     }
+
+    // Audit 2026-11-18: cảnh báo của lệnh Hoàn tất tiếp nhận (ở đây của 001: chưa có bản đồng ý) hiện ngay ở danh sách
+    // điều kiện, trước khi làm lệnh; không trùng mã với cảnh báo ý kiến vào ở của 004
+    @Test
+    void FR_004a_warningsOfTheCommand_shownBeforeCommand_withoutDuplicates() throws Exception {
+        long residentId = admissionResident();
+        long id = application(residentId);
+
+        JsonNode list = conditions(id);
+
+        List<String> codes = StreamSupport.stream(list.get("warnings").spliterator(), false)
+                .map(w -> w.get("code").asString())
+                .toList();
+        assertThat(codes).contains("MISSING_CONSENT").doesNotHaveDuplicates();
+    }
 }
