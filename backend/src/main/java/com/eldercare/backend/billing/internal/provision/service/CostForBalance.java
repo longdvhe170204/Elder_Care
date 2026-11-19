@@ -50,6 +50,7174 @@ public class CostForBalance implements CostForBalancePort {
      * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
      * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
      */
+     /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */ /**
+     * 017 FR-016, Q-223: hợp đồng tháng: phí ngày cơ sở; hợp đồng ngày: đơn giá ngày; bán trú giá tháng: giá ÷ số ngày của
+     * tháng; bán trú giá buổi: giá × số buổi có lịch trong 7 ngày tới ÷ 7. Làm tròn tới đồng; chưa có giá thì rỗng.
+     */
     public Optional<Long> baseDailyFee(long resident, LocalDate date) {
         return contracts.contentAtDate(resident, date).flatMap(c -> {
             String period = c.content().path("residencyFeeBillingPeriod").asString();
