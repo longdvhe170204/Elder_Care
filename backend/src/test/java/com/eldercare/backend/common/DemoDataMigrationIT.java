@@ -88,5 +88,14 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                         "SELECT attributes->>'$.careLevelCode' FROM catalog_item WHERE id=9302 AND catalog_type='M02.SERVICE'",
                         String.class))
                 .isEqualTo("REGULAR");
+        // V900_07: phòng demo có danh sách mức chăm sóc được phép khởi tạo từ loại phòng (003 FR-004); V900_01 để trống
+        // nên mọi giường trượt FR-018(a) và không phân bổ được giường cho người mới (BF-01 bước 8)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM room r JOIN room_type t ON t.id=r.room_type_id WHERE r.id IN"
+                                + " (9001,9002,9003,9004) AND JSON_LENGTH(r.allowed_care_levels)>0"
+                                + " AND JSON_CONTAINS(r.allowed_care_levels, t.allowed_care_levels)"
+                                + " AND JSON_CONTAINS(t.allowed_care_levels, r.allowed_care_levels)",
+                        Integer.class))
+                .isEqualTo(4);
     }
 }
