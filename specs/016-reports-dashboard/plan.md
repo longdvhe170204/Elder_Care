@@ -288,3 +288,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
   - `M02.WAITING_LIST` → `waiting-list` (`entryId`), 004.
   Bốn màn trên chỉ thêm prop nhận id để mở sẵn khung chi tiết (không đổi gì khác). Loại khác chưa có màn mở theo id nên không hiện nút; nối thêm khi màn đó nhận id. Test: `DetailRowPolicyTest.FR_009_Q12_onlyLinkedRecordTypesCanOpen`, `reportLabels.test.js` `recordLink`, `ReportsPage.test.jsx` `FR_009_Q12_moBanGhi_…`, `App.test.jsx` `016_Q12_duongDanCoId_…`, test `016_Q12_moTheoIdTuDuongDan` ở bốn màn đích.
 
+## Dòng chi tiết, chỉ tiêu tại ngày (2026-11-20, A; chủ dự án duyệt 2026-11-20)
+
+- `DetailRowPolicy` điền họ tên người cao tuổi (`ResidentApi.identity`, chỉ mã có hồ sơ lấy qua `byStatus`, vì `identity` báo lỗi với mã không có làm hủy giao dịch đọc) và tên tầng/khu (`LocationStructureApi`) cho dòng chỉ có mã; dùng chung cho màn và file xuất (FR-009, FR-012; Q-196: dòng rút gọn vẫn có họ tên).
+- Người xem có phạm vi toàn viện ở dòng "Dashboard, báo cáo" (`ScopeApi.filter(user, ReportScopeService.KEY).facilityWide()`) không có dòng rút gọn; `ScopeApi.inScope` chỉ xét phân công nên chỉ dùng cho vai trò theo tầng, phân công. Trước đó Quản lý viện, Hành chính thấy mọi dòng là ngoài phạm vi.
+- `RES.AT_DATE` không đếm hồ sơ đã ở trạng thái cuối (Hủy tiếp nhận, Kết thúc lưu trú, Qua đời) tại ngày đó (`ResidentRecords.FINAL`). FR-022 chỉ ghi hồ sơ trạng thái cuối "vẫn được đếm cho các ngày trước khi chuyển"; chủ dự án chốt loại ra từ ngày chuyển.

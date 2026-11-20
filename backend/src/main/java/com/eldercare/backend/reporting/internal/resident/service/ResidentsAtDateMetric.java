@@ -25,7 +25,7 @@ public class ResidentsAtDateMetric implements MetricSource<ResidentAtDateRecord>
             CODE,
             MetricGroup.RESIDENTS,
             "Người cao tuổi tại ngày",
-            "Số hồ sơ theo trạng thái 5.5, loại lưu trú, mức chăm sóc có hiệu lực tại ngày cuối của khoảng, chia theo loại lưu trú (theo hợp đồng Hiệu lực tại ngày; chưa có hợp đồng là chưa xác định); trạng thái, mức ở dòng chi tiết",
+            "Số hồ sơ theo trạng thái 5.5, loại lưu trú, mức chăm sóc có hiệu lực tại ngày cuối của khoảng, không gồm hồ sơ đã ở trạng thái cuối (Hủy tiếp nhận, Kết thúc lưu trú, Qua đời) tại ngày đó, chia theo loại lưu trú (theo hợp đồng Hiệu lực tại ngày; chưa có hợp đồng là chưa xác định); trạng thái, mức ở dòng chi tiết",
             "001 ResidentStatisticsApi.statusAtDate; 004 ResidencyStatisticsApi.residenceTypeAtDate",
             new Metric.Computation.Count<>(r -> true),
             ResidentAtDateRecord::residenceType,
@@ -44,6 +44,6 @@ public class ResidentsAtDateMetric implements MetricSource<ResidentAtDateRecord>
 
     @Override
     public Stream<ResidentAtDateRecord> records(ScopeFilter rough, Instant from, Instant to, ReportFilters filters) {
-        return records.atDate(rough, to, filters);
+        return records.atDate(rough, to, filters).filter(r -> !ResidentRecords.FINAL.contains(r.status()));
     }
 }
