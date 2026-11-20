@@ -1,9 +1,11 @@
 package com.eldercare.backend.medication.internal.reconciliation.domain;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /**
- * Medication reconciliation item line entity (FR-036).
+ * Medication reconciliation item line entity (FR-036). Dòng lưu trong cột JSON `lines` của phiếu: so sánh theo giá trị
+ * để Hibernate không coi phiếu là bẩn mỗi lần đọc (phiếu Đã xác nhận bị trigger chặn UPDATE; FR-034a).
  */
 public class ReconciliationItem {
 
@@ -135,5 +137,48 @@ public class ReconciliationItem {
 
     public Long getCreatedPrescriptionId() {
         return createdPrescriptionId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ReconciliationItem that)) {
+            return false;
+        }
+        return Objects.equals(id, that.id)
+                && Objects.equals(reconciliationId, that.reconciliationId)
+                && itemOrder == that.itemOrder
+                && source == that.source
+                && Objects.equals(prescriptionId, that.prescriptionId)
+                && Objects.equals(admissionMedicationItemId, that.admissionMedicationItemId)
+                && Objects.equals(medicationDescription, that.medicationDescription)
+                && decision == that.decision
+                && Objects.equals(reason, that.reason)
+                && Objects.equals(newPrescriptionJson, that.newPrescriptionJson)
+                && Objects.equals(createdById, that.createdById)
+                && Objects.equals(createdAt, that.createdAt)
+                && discontinuedOutsideTicket == that.discontinuedOutsideTicket
+                && Objects.equals(createdPrescriptionId, that.createdPrescriptionId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                id,
+                reconciliationId,
+                itemOrder,
+                source,
+                prescriptionId,
+                admissionMedicationItemId,
+                medicationDescription,
+                decision,
+                reason,
+                newPrescriptionJson,
+                createdById,
+                createdAt,
+                discontinuedOutsideTicket,
+                createdPrescriptionId);
     }
 }
