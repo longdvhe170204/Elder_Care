@@ -180,7 +180,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     @Transactional(propagation = Propagation.MANDATORY)
     public void closeForFinalState(long requestId, Basis basis) {
         ApprovalRequestView request = store.lock(requestId).orElseThrow(NotFoundException::new);
-        if (table.isFinal(request.status())) {
+        if (table.isFinal(request.status(), directory.handler(request.type()).extendedTransitions())) {
             return;
         }
         String to = table.next(request.status(), Command.CLOSE_FOR_FINAL_STATE);
@@ -522,6 +522,10 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         // FR-034a: người yêu cầu mất quyền tạo thì Nháp không gửi duyệt được nữa
         if (!mayCreate(user, handler, request.content(), request.target())) {
             throw new PermissionDeniedException("Không còn quyền lập loại yêu cầu " + request.type());
+        }
+        List<UnmetCondition> unmet = handler.checkOnSubmit(request);
+        if (!unmet.isEmpty()) {
+            throw new ConditionNotMetException(unmet);
         }
         Instant now = time.now();
         store.update(

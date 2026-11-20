@@ -58,8 +58,9 @@ class ResidencyChangeRequestController {
     ResponseEntity<ResidencyChangeRequestBody> create(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody ResidencyChangeRequestInputBody body) {
+        long contractId = changes.contractFor(body.contractId(), body.residentId());
         ResidencyChangeService.View view = changes.create(
-                changes.targetOf(body.contractId()), body.toContent(), body.requestedEffectiveDate(), body.reason());
+                changes.targetOf(contractId), body.toContent(contractId), body.requestedEffectiveDate(), body.reason());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .eTag(VersionEtag.of(view.details().request().version()))
                 .body(ResidencyChangeRequestBody.of(view));
@@ -86,11 +87,12 @@ class ResidencyChangeRequestController {
             @RequestHeader("If-Match") String ifMatch,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody ResidencyChangeRequestInputBody body) {
+        long contractId = changes.contractFor(body.contractId(), body.residentId());
         ResidencyChangeService.View view = changes.edit(
-                changes.targetOf(body.contractId()),
+                changes.targetOf(contractId),
                 id,
                 ifMatch,
-                body.toContent(),
+                body.toContent(contractId),
                 body.requestedEffectiveDate(),
                 body.reason());
         return ResponseEntity.ok()

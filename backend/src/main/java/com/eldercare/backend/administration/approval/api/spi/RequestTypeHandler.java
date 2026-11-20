@@ -66,6 +66,14 @@ public interface RequestTypeHandler {
         return ExtendedTransitions.NONE;
     }
 
+    /**
+     * Kiểm thêm khi Gửi duyệt, trước khi đổi trạng thái; không rỗng thì 409, yêu cầu giữ Nháp (bổ sung theo 004, chủ dự
+     * án yêu cầu 2026-11-20: xác nhận với người đại diện trước khi gửi Quản lý viện).
+     */
+    default List<UnmetCondition> checkOnSubmit(ApprovalRequestView request) {
+        return List.of();
+    }
+
     /** Kiểm thêm khi Duyệt, trước khi đổi trạng thái; không rỗng thì 409, yêu cầu giữ Chờ duyệt (bổ sung theo plan 003). */
     default List<UnmetCondition> checkOnApprove(ApprovalRequestView request) {
         return List.of();

@@ -59,6 +59,19 @@ public class RequestTransitionTable {
         return FINAL.contains(status);
     }
 
+    /**
+     * Trạng thái cuối, kể cả trạng thái mở rộng do loại yêu cầu khai báo: là đích của một chuyển mở rộng mà không là điểm
+     * xuất phát của chuyển nào (ví dụ Được thay thế của 004).
+     */
+    public boolean isFinal(String status, ExtendedTransitions declared) {
+        if (isFinal(status)) {
+            return true;
+        }
+        var transitions = declared.byCode().values();
+        return transitions.stream().anyMatch(t -> t.to().equals(status))
+                && transitions.stream().noneMatch(t -> t.from().contains(status));
+    }
+
     public String nextExtended(String status, ExtendedTransitions declared, String code) {
         ExtendedTransitions.Transition transition = declared.byCode().get(code);
         if (transition == null || !transition.from().contains(status)) {

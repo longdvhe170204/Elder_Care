@@ -15,7 +15,9 @@ import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView
 import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.events.RepresentativeRequestNeedsCompletion;
+import com.eldercare.backend.admission.api.events.ResidencyChangeNeedsConfirmation;
 import com.eldercare.backend.admission.internal.change.domain.Addendum;
+import com.eldercare.backend.admission.internal.change.domain.RepresentativeConfirmation;
 import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent;
 import com.eldercare.backend.admission.internal.change.persistence.AddendumStore;
 import com.eldercare.backend.admission.internal.contract.domain.Contract;
@@ -23,11 +25,13 @@ import com.eldercare.backend.admission.internal.contract.domain.ContractVersion;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
+import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -60,7 +64,10 @@ public class ResidencyChangeService {
             Long addendumId,
             String requestedBy,
             boolean financeVisible,
-            Target target) {}
+            Target target,
+            boolean confirmationRequired,
+            Optional<RepresentativeConfirmation> confirmation,
+            String confirmationRecordedBy) {}
 
     private final ContractStore contracts;
     private final AddendumStore addenda;
@@ -72,6 +79,7 @@ public class ResidencyChangeService {
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<AccountApi> accounts;
     private final ObjectProvider<PermissionApi> permissions;
+    private final FileApi files;
 
     ResidencyChangeService(
             ContractStore contracts,
@@ -83,7 +91,9 @@ public class ResidencyChangeService {
             ObjectProvider<ApprovalRequestApi> approvals,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<AccountApi> accounts,
-            ObjectProvider<PermissionApi> permissions) {
+            ObjectProvider<PermissionApi> permissions,
+            FileApi files) {
+        this.files = files;
         this.contracts = contracts;
         this.addenda = addenda;
         this.rules = rules;
@@ -94,6 +104,27 @@ public class ResidencyChangeService {
         this.currentUser = currentUser;
         this.accounts = accounts;
         this.permissions = permissions;
+    }
+
+    /**
+     * Hợp đồng của yêu cầu: {@code contractId} nếu có; không thì hợp đồng Hiệu lực của {@code residentId} (Bác sĩ không
+     * xem được hợp đồng nên lập theo người cao tuổi, FR-039). Không có hợp đồng Hiệu lực thì 409 {@code CONTRACT_NOT_ACTIVE}.
+     */
+    public long contractFor(Long contractId, Long residentId) {
+        if (contractId != null) {
+            return contractId;
+        }
+        if (residentId == null) {
+            throw new InvalidValueException("Cần contractId hoặc residentId");
+        }
+        return contracts.ofResident(residentId).stream()
+                .filter(c -> c.status() == ContractStatus.ACTIVE)
+                .map(Contract::id)
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "CONTRACT_NOT_ACTIVE",
+                        "Người cao tuổi không có hợp đồng đang Hiệu lực (FR-037)"));
     }
 
     /** Đối tượng của hợp đồng để kiểm quyền; không có hợp đồng thì 404. */
@@ -113,15 +144,21 @@ public class ResidencyChangeService {
         ResidencyChangeContent change = ResidencyChangeContent.parse(input);
         Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
         ObjectNode content = withSystemValues(input, change, contract, requestedEffectiveDate);
+        recordConfirmation(content);
         ApprovalRequestView request = approvals
                 .getObject()
                 .create(new CreateRequest(ResidencyChangeHandler.TYPE, content, requestedEffectiveDate, reason, false));
+        attachEvidence(content, null, contract.id());
         addenda.addAttributes(
                 request.id(), contract.id(), contract.residentId(), change.changeTypes(), request.requesterId());
         handler.created(change, request.id());
-        if (currentUser.getObject().type() == AccountType.FAMILY_MEMBER) {
+        CurrentUser user = currentUser.getObject();
+        if (user.type() == AccountType.FAMILY_MEMBER) {
             events.publishEvent(
                     new RepresentativeRequestNeedsCompletion(request.id(), contract.residentId(), time.now()));
+        } else if (!mayConfirm(user)) {
+            // Bác sĩ lập: Hành chính xác nhận với người đại diện rồi gửi duyệt (2026-11-20)
+            events.publishEvent(new ResidencyChangeNeedsConfirmation(request.id(), contract.residentId(), time.now()));
         }
         return view(approvals.getObject().detail(request.id()));
     }
@@ -153,7 +190,9 @@ public class ResidencyChangeService {
         ResidencyChangeContent change = ResidencyChangeContent.parse(input);
         Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
         ObjectNode content = withSystemValues(input, change, contract, requestedEffectiveDate);
+        recordConfirmation(content);
         approvals.getObject().editDraft(approvalRequestId, ifMatch, content, requestedEffectiveDate, reason);
+        attachEvidence(content, current.content(), contract.id());
         addenda.replaceAttributes(
                 approvalRequestId,
                 contract.id(),
@@ -192,6 +231,54 @@ public class ResidencyChangeService {
         content.set("previousValue", rules.previousValue(base.content(), change));
         content.set("costImpact", rules.costImpact(base.content(), change, effective));
         return content;
+    }
+
+    /**
+     * Xác nhận với người đại diện (2026-11-20): chỉ Hành chính, Quản lý viện ghi (403 với người khác); ngày xác nhận không
+     * sau hôm nay (422 {@code CONFIRMATION_DATE_IN_FUTURE}); hệ thống ghi người lưu và thời điểm. Sửa nháp không gửi lại
+     * xác nhận thì xác nhận cũ bị bỏ, vì nội dung đã đổi phải xác nhận lại.
+     */
+    private void recordConfirmation(ObjectNode content) {
+        Optional<RepresentativeConfirmation> confirmation = RepresentativeConfirmation.of(content);
+        if (confirmation.isEmpty()) {
+            return;
+        }
+        CurrentUser user = currentUser.getObject();
+        if (!mayConfirm(user)) {
+            throw new PermissionDeniedException("Chỉ Hành chính ghi xác nhận với người đại diện");
+        }
+        if (confirmation.get().confirmedOn().isAfter(time.today())) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    "CONFIRMATION_DATE_IN_FUTURE",
+                    "Ngày xác nhận với người đại diện không được sau hôm nay");
+        }
+        content.set(
+                RepresentativeConfirmation.FIELD,
+                confirmation.get().recordedBy(user.accountId(), time.now()).toJson());
+    }
+
+    private static boolean mayConfirm(CurrentUser user) {
+        return user.type() != AccountType.FAMILY_MEMBER
+                && (user.roles().contains(Role.OFFICE_STAFF) || user.roles().contains(Role.NURSING_HOME_MANAGER));
+    }
+
+    /**
+     * Tệp bằng chứng xác nhận gắn vào hợp đồng như bản scan hợp đồng (quyền tải theo quyền xem hợp đồng); tệp chỉ gắn một
+     * lần nên sửa nháp giữ tệp cũ thì không gắn lại.
+     */
+    private void attachEvidence(JsonNode content, JsonNode previous, long contractId) {
+        Optional<Long> fileId = RepresentativeConfirmation.of(content).map(RepresentativeConfirmation::evidenceFileId);
+        if (fileId.isEmpty()) {
+            return;
+        }
+        boolean attached = previous != null
+                && RepresentativeConfirmation.of(previous)
+                        .map(c -> c.evidenceFileId() == fileId.get())
+                        .orElse(false);
+        if (!attached) {
+            files.attach(fileId.get(), ContractService.SCAN_OWNER_TYPE, contractId);
+        }
     }
 
     /** Xem một yêu cầu; không phải loại này hoặc không xem được thì 404. */
@@ -247,6 +334,7 @@ public class ResidencyChangeService {
         ApprovalRequestView request = details.request();
         ResidencyChangeContent content = ResidencyChangeContent.parse(request.content());
         Optional<Addendum> addendum = addenda.findByRequest(request.id());
+        Optional<RepresentativeConfirmation> confirmation = RepresentativeConfirmation.of(request.content());
         return new View(
                 details,
                 content,
@@ -254,7 +342,13 @@ public class ResidencyChangeService {
                 addendum.map(Addendum::id).orElse(null),
                 accounts.getObject().fullName(request.requesterId()).orElse(null),
                 financeVisible(request.target()),
-                request.target());
+                request.target(),
+                handler.confirmationRequired(request),
+                confirmation,
+                confirmation
+                        .map(RepresentativeConfirmation::recordedBy)
+                        .flatMap(id -> accounts.getObject().fullName(id))
+                        .orElse(null));
     }
 
     /**

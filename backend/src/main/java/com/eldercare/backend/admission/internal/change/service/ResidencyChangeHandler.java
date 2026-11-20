@@ -3,7 +3,6 @@ package com.eldercare.backend.admission.internal.change.service;
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
-import com.eldercare.backend.administration.account.api.dto.AccountView;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -22,11 +21,13 @@ import com.eldercare.backend.admission.api.UnitPriceApi;
 import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
 import com.eldercare.backend.admission.api.events.AddendumApplied;
+import com.eldercare.backend.admission.api.events.AddendumAppliedNotice;
 import com.eldercare.backend.admission.api.events.DepositAmountChanged;
 import com.eldercare.backend.admission.api.events.ResidenceTypeChanged;
 import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.admission.internal.change.domain.Addendum;
 import com.eldercare.backend.admission.internal.change.domain.ChangeType;
+import com.eldercare.backend.admission.internal.change.domain.RepresentativeConfirmation;
 import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent;
 import com.eldercare.backend.admission.internal.change.persistence.AddendumStore;
 import com.eldercare.backend.admission.internal.contract.domain.Contract;
@@ -48,6 +49,7 @@ import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.dto.RoomTypeRef;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +76,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     static final String ADDENDUM_ENTITY = "M02.ADDENDUM";
     static final String SUPERSEDE = "SUPERSEDE";
     static final String SUPERSEDED = "SUPERSEDED";
+    static final String CONFIRMATION_REQUIRED = "REPRESENTATIVE_CONFIRMATION_REQUIRED";
     static final AuditAction ADDENDUM_CREATED = new AuditAction("M02_ADDENDUM_CREATED", false);
     static final AuditAction ADDENDUM_APPLIED = new AuditAction("M02_ADDENDUM_APPLIED", false);
     static final AuditAction ADDENDUM_NOT_APPLIED = new AuditAction("M02_ADDENDUM_NOT_APPLIED", false);
@@ -164,18 +167,21 @@ class ResidencyChangeHandler implements RequestTypeHandler {
 
     /**
      * Sửa, gửi duyệt Nháp (FR-039): người yêu cầu, hoặc Hành chính khi người yêu cầu là người đại diện gửi qua cổng người
-     * thân (tài khoản người thân). Hủy vẫn chỉ người yêu cầu (000).
+     * thân (tài khoản người thân) hoặc là Bác sĩ (Hành chính xác nhận với người đại diện, kèm bằng chứng). Hủy vẫn chỉ
+     * người yêu cầu (000).
      */
     @Override
     public boolean mayActOnDraft(CurrentUser user, ApprovalRequestView request) {
         if (request.requesterId() == user.accountId()) {
             return true;
         }
+        // Hành chính hoàn thiện cả nháp của Bác sĩ (xác nhận với người đại diện, kèm bằng chứng; 2026-11-20)
         return user.roles().contains(Role.OFFICE_STAFF)
                 && accounts.getObject()
                         .byId(request.requesterId())
-                        .map(AccountView::type)
-                        .filter(type -> type == AccountType.FAMILY_MEMBER)
+                        .filter(requester -> requester.type() == AccountType.FAMILY_MEMBER
+                                || (requester.roles().contains(Role.DOCTOR)
+                                        && !requester.roles().contains(Role.OFFICE_STAFF)))
                         .isPresent();
     }
 
@@ -226,7 +232,34 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (base.isEmpty()) {
             return List.of(new UnmetCondition("CONTRACT_NOT_ACTIVE", "Hợp đồng chưa có nội dung đã ký"));
         }
-        return rules.check(contract, base.get().content(), change, effectiveOn(request), request.id());
+        List<UnmetCondition> unmet = new ArrayList<>(
+                rules.check(contract, base.get().content(), change, effectiveOn(request), request.id()));
+        unmet.addAll(checkOnSubmit(request));
+        return unmet;
+    }
+
+    /**
+     * Yêu cầu do Hành chính hoặc Bác sĩ lập chỉ gửi Quản lý viện duyệt được khi Hành chính đã xác nhận với người đại diện,
+     * kèm bằng chứng (chủ dự án yêu cầu 2026-11-20); yêu cầu người đại diện tự gửi qua cổng thì không cần. Kiểm lại lúc
+     * duyệt.
+     */
+    @Override
+    public List<UnmetCondition> checkOnSubmit(ApprovalRequestView request) {
+        if (!confirmationRequired(request)
+                || RepresentativeConfirmation.of(request.content()).isPresent()) {
+            return List.of();
+        }
+        return List.of(new UnmetCondition(
+                CONFIRMATION_REQUIRED,
+                "Hành chính cần xác nhận với người đại diện và đính kèm bằng chứng trước khi gửi Quản lý viện duyệt"));
+    }
+
+    /** Người yêu cầu không phải tài khoản người thân (người đại diện gửi qua cổng đã là xác nhận của chính họ). */
+    boolean confirmationRequired(ApprovalRequestView request) {
+        return accounts.getObject()
+                .byId(request.requesterId())
+                .map(requester -> requester.type() != AccountType.FAMILY_MEMBER)
+                .orElse(true);
     }
 
     /** DBR-07: tạo phụ lục Chờ hiệu lực, khóa thuộc tính (FR-046); đổi giường thì giữ giường theo lịch ở 003 (FR-041). */
@@ -369,6 +402,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 .build());
         events.publishEvent(new AddendumApplied(
                 addendum.id(), contract.id(), contract.residentId(), names(change.changeTypes()), effective));
+        events.publishEvent(new AddendumAppliedNotice(
+                addendum.id(), contract.residentId(), names(change.changeTypes()), effective, time.now()));
         if (names(change.changeTypes()).contains("RESIDENCE_TYPE")) {
             beds.getObject().residenceTypeChanged(contract.residentId());
             events.publishEvent(new ResidenceTypeChanged(contract.residentId()));

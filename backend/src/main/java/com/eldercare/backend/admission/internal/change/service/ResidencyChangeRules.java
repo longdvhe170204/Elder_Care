@@ -19,6 +19,7 @@ import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
 import com.eldercare.backend.roombedallocation.api.BedAllocationCommandApi;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import com.eldercare.backend.roombedallocation.api.spi.ResidencyType;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -53,6 +54,7 @@ class ResidencyChangeRules {
     private final ResidentApi residents;
     private final DayCareCapacityCheck capacity;
     private final ObjectProvider<BedAllocationCommandApi> beds;
+    private final ObjectProvider<LocationStructureApi> structure;
 
     ResidencyChangeRules(
             ContractStore contracts,
@@ -60,9 +62,11 @@ class ResidencyChangeRules {
             UnitPriceApi prices,
             ResidentApi residents,
             DayCareCapacityCheck capacity,
-            ObjectProvider<BedAllocationCommandApi> beds) {
+            ObjectProvider<BedAllocationCommandApi> beds,
+            ObjectProvider<LocationStructureApi> structure) {
         this.capacity = capacity;
         this.beds = beds;
+        this.structure = structure;
         this.contracts = contracts;
         this.addenda = addenda;
         this.prices = prices;
@@ -385,7 +389,25 @@ class ResidencyChangeRules {
                 }
             }
         }
+        if (change.newBedId() != null) {
+            // Phí lưu trú theo loại phòng của giường mới, như billing tính theo roomTypeId
+            BigDecimal previous = base.path("roomTypeId").isNumber()
+                    ? residencyFeeAt(base.path("roomTypeId").asLong(), effective)
+                    : BigDecimal.ZERO;
+            BigDecimal next = structure
+                    .getObject()
+                    .roomTypeOfBed(change.newBedId())
+                    .map(type -> residencyFeeAt(type.id(), effective))
+                    .orElse(BigDecimal.ZERO);
+            items.add(item("RESIDENCY_FEE", previous, next));
+        }
         return items;
+    }
+
+    private BigDecimal residencyFeeAt(long roomTypeId, LocalDate date) {
+        return prices.residencyFeeServiceOf(roomTypeId)
+                .flatMap(fee -> priceAt(fee.id(), date))
+                .orElse(BigDecimal.ZERO);
     }
 
     private static ObjectNode item(String name, BigDecimal previous, BigDecimal next) {

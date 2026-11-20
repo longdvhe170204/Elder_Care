@@ -73,6 +73,25 @@ class RequestTransitionTableTest {
         assertThat(table.isFinal(APPROVED)).isFalse();
     }
 
+    /**
+     * Trạng thái mở rộng chỉ là đích, không là điểm xuất phát của chuyển nào (Được thay thế của 004) là trạng thái cuối:
+     * {@code closeForFinalState} không làm gì với nó (FR-070 không được bị chặn). Trạng thái mở rộng còn đi tiếp không cuối.
+     */
+    @Test
+    void FR_031_extendedTargetWithNoOutgoingTransition_isFinal() {
+        ExtendedTransitions declared = new ExtendedTransitions(Map.of(
+                "SUPERSEDE",
+                        new ExtendedTransitions.Transition(Set.of(DRAFT, PENDING_APPROVAL, APPROVED), "SUPERSEDED"),
+                "ASK", new ExtendedTransitions.Transition(Set.of(DRAFT), "AWAITING"),
+                "AGREE", new ExtendedTransitions.Transition(Set.of("AWAITING"), PENDING_APPROVAL)));
+
+        assertThat(table.isFinal("SUPERSEDED", declared)).isTrue();
+        assertThat(table.isFinal("AWAITING", declared)).isFalse();
+        assertThat(table.isFinal(CANCELLED, declared)).isTrue();
+        assertThat(table.isFinal(APPROVED, declared)).isFalse();
+        assertThat(table.isFinal("SUPERSEDED", ExtendedTransitions.NONE)).isFalse();
+    }
+
     @Test
     void extendedTransition_onlyAsDeclaredByRequestType() {
         ExtendedTransitions declared = new ExtendedTransitions(

@@ -42,10 +42,26 @@ abstract class ChangeTestBase extends ContractTestBase {
         return new Setup(residentId, activeContract(residentId, body));
     }
 
+    /**
+     * Thân lập yêu cầu, kèm xác nhận của Hành chính với người đại diện (mỗi lần một tệp bằng chứng mới, tệp chỉ gắn được
+     * một lần).
+     */
     protected ObjectNode request(long contractId, String changeTypes, String newValue, LocalDate effective) {
-        return (ObjectNode) JSON.readTree("""
+        ObjectNode body =
+                (ObjectNode) JSON.readTree("""
                 {"contractId": %d, "changeTypes": %s, "newValue": %s, "requestedEffectiveDate": "%s",
                  "reason": "%s"}""".formatted(contractId, changeTypes, newValue, effective, REASON));
+        body.set("representativeConfirmation", confirmation(today()));
+        return body;
+    }
+
+    /** Xác nhận gặp trực tiếp người đại diện ngày {@code on}, kèm tệp bằng chứng mới. */
+    protected ObjectNode confirmation(LocalDate on) {
+        ObjectNode node = JSON.createObjectNode();
+        node.put("method", "IN_PERSON");
+        node.put("confirmedOn", on.toString());
+        node.put("evidenceFileId", scan());
+        return node;
     }
 
     protected ResultActions createRaw(String path, ObjectNode body) throws Exception {

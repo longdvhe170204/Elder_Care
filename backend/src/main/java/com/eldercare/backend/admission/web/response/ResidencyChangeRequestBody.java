@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
 import com.eldercare.backend.admission.internal.change.domain.ChangeType;
 import com.eldercare.backend.admission.internal.change.service.ResidencyChangeService;
+import com.eldercare.backend.admission.web.request.ResidencyChangeRequestInputBody.RepresentativeConfirmationBody;
 import com.eldercare.backend.common.Reason;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,12 +27,14 @@ import tools.jackson.databind.JsonNode;
 @Schema(name = "ResidencyChangeRequest")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ResidencyChangeRequestBody(
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long contractId,
+        long contractId,
+        Long residentId,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<ChangeType> changeTypes,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) JsonNode newValue,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) LocalDate requestedEffectiveDate,
         @Schema(implementation = Reference.class) JsonNode reference,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Reason reason,
+        RepresentativeConfirmationBody representativeConfirmation,
         long approvalRequestId,
         JsonNode previousValue,
 
@@ -41,6 +44,12 @@ public record ResidencyChangeRequestBody(
         String status,
         Long addendumId,
         String requestedBy,
+
+        @Schema(
+                accessMode = Schema.AccessMode.READ_ONLY,
+                description = "Gửi duyệt cần xác nhận với người đại diện (yêu cầu không do người đại diện tự gửi)")
+        boolean representativeConfirmationRequired,
+
         List<String> hiddenFields,
         @JsonIgnore @Schema(hidden = true) boolean financeVisible,
         @JsonIgnore @Schema(hidden = true) Target target)
@@ -51,11 +60,21 @@ public record ResidencyChangeRequestBody(
         JsonNode content = request.content();
         return new ResidencyChangeRequestBody(
                 view.content().contractId(),
+                view.target() == null ? null : view.target().residentId(),
                 List.copyOf(view.content().changeTypes()),
                 content.get("newValue"),
                 request.requestedEffectiveDate(),
                 view.content().reference(),
                 request.reason() == null ? null : new Reason(request.reason()),
+                view.confirmation()
+                        .map(c -> new RepresentativeConfirmationBody(
+                                c.method(),
+                                c.confirmedOn(),
+                                c.evidenceFileId(),
+                                c.note(),
+                                view.confirmationRecordedBy(),
+                                c.recordedAt()))
+                        .orElse(null),
                 request.id(),
                 content.get("previousValue"),
                 view.financeVisible() ? CostImpactItem.of(content.get("costImpact")) : null,
@@ -63,6 +82,7 @@ public record ResidencyChangeRequestBody(
                 request.status(),
                 view.addendumId(),
                 view.requestedBy(),
+                view.confirmationRequired(),
                 List.of(),
                 view.financeVisible(),
                 view.target());
