@@ -15,12 +15,20 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.reporting.internal.metric.domain.DetailRow;
 import com.eldercare.backend.reporting.internal.scope.service.DetailRowPolicy;
+import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.Gender;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
+import com.eldercare.backend.support.fake.resident.FakeResidents;
+import com.eldercare.backend.support.fake.roombedallocation.FakeLocations;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
 
 /** Giới hạn trường của dòng chi tiết (016 T005; research O-04): FR-012 (Q-196), FR-014, FR-054 (Q-133). */
 class DetailRowPolicyTest {
@@ -29,6 +37,7 @@ class DetailRowPolicyTest {
 
     private final Set<Long> residentsInScope = Set.of(501L);
     private Visibility medication = Visibility.FULL;
+    private boolean facilityWide = false;
 
     private final ScopeApi scopes = new ScopeApi() {
         @Override
@@ -38,7 +47,7 @@ class DetailRowPolicyTest {
 
         @Override
         public ScopeFilter filter(CurrentUser user, PermissionKey key) {
-            throw new UnsupportedOperationException();
+            return facilityWide ? ScopeFilter.FACILITY : new ScopeFilter(false, Set.of(), Set.of(), residentsInScope);
         }
 
         @Override
@@ -105,8 +114,52 @@ class DetailRowPolicyTest {
                 false);
     }
 
+    private final FakeResidents residents = new FakeResidents();
+    private final FakeLocations locations = new FakeLocations();
+
+    private static <T> ObjectProvider<T> provider(Class<T> type, T bean) {
+        return new StaticListableBeanFactory(Map.of("bean", bean)).getBeanProvider(type);
+    }
+
     private DetailRowPolicy policy() {
-        return new DetailRowPolicy(scopes, fields);
+        return new DetailRowPolicy(
+                scopes,
+                fields,
+                provider(ResidentApi.class, residents),
+                provider(LocationStructureApi.class, locations));
+    }
+
+    /** Dòng của chỉ tiêu chỉ có mã người cao tuổi, mã tầng (ví dụ {@code DetailRow.simple}). */
+    private static DetailRow idsOnly(String sourceKey, long residentId, long floorAreaId) {
+        return DetailRow.simple(
+                sourceKey, "001", "RESIDENT", "ADMISSION_IN_PROGRESS", null, floorAreaId, residentId, Map.of());
+    }
+
+    /**
+     * FR-009, FR-012 (Q-196): dòng chi tiết hiện họ tên người cao tuổi và tầng/khu, cả dòng rút gọn ngoài phạm vi hiện
+     * hành; nguồn chỉ trả mã thì tra họ tên ở 001, tên tầng ở 003. Không tra được thì để trống, không làm hỏng danh sách.
+     */
+    @Test
+    void FR_012_Q_196_namesFilledFromIds_alsoOnReducedRows() {
+        residents.resident(501, "Nguyễn Văn An", Gender.MALE, ResidentStatus.IN_RESIDENCE);
+        residents.resident(777, "Trần Thị Bình", Gender.FEMALE, ResidentStatus.ADMISSION_IN_PROGRESS);
+        locations.floor(9001, null);
+
+        List<DetailRow> rows = policy().apply(
+                        USER,
+                        List.of(
+                                idsOnly("M01.RESIDENT:501", 501, 9001),
+                                idsOnly("M01.RESIDENT:777", 777, 9001),
+                                idsOnly("M01.RESIDENT:888", 888, 4242),
+                                dose(501)));
+
+        assertThat(rows)
+                .extracting(DetailRow::resident)
+                .containsExactly("Nguyễn Văn An", "Trần Thị Bình", null, "Nguyễn Văn A");
+        assertThat(rows).extracting(DetailRow::reduced).containsExactly(false, true, true, false);
+        assertThat(rows)
+                .extracting(DetailRow::floorArea)
+                .containsExactly("[Tầng kiểm thử]", "[Tầng kiểm thử]", null, "Tầng 1");
     }
 
     @Test
@@ -134,6 +187,21 @@ class DetailRowPolicyTest {
                                 row("M05.INCIDENT:10", 777)));
 
         assertThat(rows).extracting(DetailRow::canOpenRecord).containsExactly(true, true, true, true, false, false);
+    }
+
+    /**
+     * FR-010, FR-012 (Q-196): người xem có phạm vi toàn viện ở dòng "Dashboard, báo cáo" (Quản lý viện, Hành chính, Bác
+     * sĩ) thấy mọi người cao tuổi trong phạm vi, không có dòng rút gọn; phạm vi hiện hành theo phân công chỉ xét với vai
+     * trò theo tầng, phân công.
+     */
+    @Test
+    void FR_012_facilityWideViewer_noReducedRows() {
+        facilityWide = true;
+
+        List<DetailRow> rows = policy().apply(USER, List.of(row("M05.INCIDENT:9", 777), dose(501)));
+
+        assertThat(rows).extracting(DetailRow::reduced).containsExactly(false, false);
+        assertThat(rows).extracting(DetailRow::canOpenRecord).containsExactly(true, false);
     }
 
     @Test

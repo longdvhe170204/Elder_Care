@@ -29,7 +29,7 @@ paths:
         '200': { description: OK, headers: { ETag: { schema: { type: string } } }, content: { application/json: { schema: { $ref: '#/components/schemas/Dashboard' } } } }
         '304': { description: Không đổi }
         '403': { $ref: '#/components/responses/Problem' }
-  /metrics:
+  /metric-catalog:
     get:
       tags: [reports]
       summary: Danh mục chỉ tiêu người xem được thấy, kèm định nghĩa hiển thị

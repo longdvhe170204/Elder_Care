@@ -64,7 +64,7 @@ public class DashboardController {
         return ResponseEntity.ok().eTag(etag).body(body);
     }
 
-    @GetMapping("/metrics")
+    @GetMapping("/metric-catalog")
     @Tag(name = "reports")
     @ApiResponse(responseCode = "200", description = "OK")
     List<MetricBody> metrics() {

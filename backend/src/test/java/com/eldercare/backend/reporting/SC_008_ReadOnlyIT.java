@@ -128,7 +128,7 @@ class SC_008_ReadOnlyIT extends MySqlIntegrationTestBase {
     private void viewEverything(String token) throws Exception {
         LocalDate today = time.today();
         mvc.perform(get("/api/v1/dashboard").header("Authorization", token));
-        mvc.perform(get("/api/v1/metrics").header("Authorization", token));
+        mvc.perform(get("/api/v1/metric-catalog").header("Authorization", token));
         for (ReportGroup group : ReportGroup.values()) {
             mvc.perform(get("/api/v1/reports/" + group)
                     .param("from", today.minusDays(7).toString())

@@ -59,6 +59,27 @@ public record DetailRow(
                 false);
     }
 
+    /** Tên tầng/khu, họ tên người cao tuổi tra từ mã khi nguồn chỉ trả mã (FR-009, FR-012). */
+    public DetailRow withNames(String floorAreaName, String residentName) {
+        return new DetailRow(
+                sourceKey,
+                feature,
+                type,
+                status,
+                referenceTime,
+                floorAreaId,
+                floorAreaName,
+                residentId,
+                residentName,
+                performedBy,
+                result,
+                resultGroup,
+                restrictedResult,
+                pendingReview,
+                reduced,
+                canOpenRecord);
+    }
+
     public DetailRow withResult(Map<String, Object> shown) {
         return new DetailRow(
                 sourceKey,
