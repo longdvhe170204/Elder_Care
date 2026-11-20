@@ -36,6 +36,13 @@ public class ResidentRecords {
 
     static final String UNDETERMINED = "UNDETERMINED";
 
+    /**
+     * Trạng thái cuối (5.5): hồ sơ ở các trạng thái này tại một ngày không còn là người cao tuổi tại ngày đó, chỉ được đếm
+     * cho các ngày trước khi chuyển (FR-022; chủ dự án chốt 2026-11-20).
+     */
+    static final Set<ResidentStatus> FINAL =
+            Set.of(ResidentStatus.ADMISSION_CANCELLED, ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED);
+
     /** Đang lưu trú gồm vắng tạm thời (FR-020). */
     static final Set<ResidentStatus> IN_RESIDENCE = Set.of(
             ResidentStatus.IN_RESIDENCE,

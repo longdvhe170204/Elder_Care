@@ -158,6 +158,25 @@ class MetricResidentsTest {
                 .containsExactly(2L, 6L);
     }
 
+    /**
+     * FR-022 (chủ dự án chốt 2026-11-20): hồ sơ đã ở trạng thái cuối (Hủy tiếp nhận, Kết thúc lưu trú, Qua đời) tại ngày
+     * không còn là người cao tuổi tại ngày đó; chỉ được đếm cho các ngày trước khi chuyển. Đang tiếp nhận vẫn đếm.
+     */
+    @Test
+    void FR_022_atDate_excludesFinalStatuses_keepsAdmitting() {
+        atDay();
+        residents
+                .statusOn(DAY, 5, ResidentStatus.ADMISSION_CANCELLED, null)
+                .statusOn(DAY, 6, ResidentStatus.RESIDENCY_ENDED, CareLevel.BASIC);
+
+        MetricValue v = value(new ResidentsAtDateMetric(records), ReportFilters.NONE);
+
+        assertThat(v.value()).isEqualByComparingTo("3");
+        assertThat(included(new ResidentsAtDateMetric(records), ReportFilters.NONE))
+                .extracting(r -> r.residentId())
+                .containsExactlyInAnyOrder(1L, 2L, 4L);
+    }
+
     /** FR-060 (chủ dự án duyệt 2026-11-11): lọc mức chăm sóc theo mã enum của 001, mức hiệu lực tại ngày. */
     @Test
     void FR_060_careLevelFilter_atDate() {
