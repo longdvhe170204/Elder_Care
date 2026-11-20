@@ -10,6 +10,7 @@ import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.StatusPeriod;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
+import com.eldercare.backend.resident.api.dto.Warning;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +75,11 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
     @Override
     public List<Condition> previewConditions(long residentId, StatusCommand command) {
         return status.preview(residentId, command);
+    }
+
+    @Override
+    public List<Warning> previewWarnings(long residentId, StatusCommand command) {
+        return status.previewWarnings(residentId, command);
     }
 
     @Override

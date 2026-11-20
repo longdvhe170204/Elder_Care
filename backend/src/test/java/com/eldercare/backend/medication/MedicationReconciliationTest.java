@@ -38,6 +38,8 @@ import com.eldercare.backend.medication.internal.reconciliation.persistence.Reco
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ReconciliationItemRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
 import com.eldercare.backend.medication.internal.reconciliation.service.MedicationReconciliationService;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines;
+import com.eldercare.backend.medication.web.response.ReconciliationBodies;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -68,6 +70,8 @@ class MedicationReconciliationTest {
     private PrescriptionService prescriptionService;
     private ResidentMedicationLock residentMedicationLock;
     private ObjectMapper objectMapper;
+    private ReconciliationDeadlines deadlines;
+    private com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority prescribingAuthority;
 
     private MedicationReconciliationService reconciliationService;
 
@@ -80,7 +84,10 @@ class MedicationReconciliationTest {
         doseRepo = mock(MedicationDoseRepository.class);
         prescriptionService = mock(PrescriptionService.class);
         residentMedicationLock = mock(ResidentMedicationLock.class);
-        objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper().findAndRegisterModules();
+        deadlines = mock(ReconciliationDeadlines.class);
+        prescribingAuthority =
+                mock(com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority.class);
 
         reconciliationService = new MedicationReconciliationService(
                 reconciliationRepo,
@@ -92,8 +99,8 @@ class MedicationReconciliationTest {
                 residentMedicationLock,
                 objectMapper,
                 new BusinessTime(Clock.systemUTC()),
-                M07TestParameters.defaults(),
-                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class));
+                deadlines,
+                prescribingAuthority);
     }
 
     private void setId(Object entity, Long id) {
@@ -186,6 +193,216 @@ class MedicationReconciliationTest {
 
         // Không đơn nào bị tạm dừng
         verify(prescriptionRepo, never()).findByResidentIdAndStatusIn(any(), any());
+    }
+
+    private void stubSave() {
+        when(reconciliationRepo.findOpenOrPendingByResidentId(100L)).thenReturn(Optional.empty());
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    @Test
+    @DisplayName("FR-034a: phiếu tiếp nhận lập trước khi Hoàn tất tiếp nhận chưa có hạn, không tạm dừng đơn")
+    void createAdmissionBeforeCompletionHasNoDeadlineAndSuspendsNothing() {
+        stubSave();
+        when(deadlines.currentDeadline(100L)).thenReturn(Optional.empty());
+        CreateReconciliationBody body = new CreateReconciliationBody();
+        body.setReason("ADMISSION");
+
+        ReconciliationResponse response = reconciliationService.create(100L, body, 1L, false);
+
+        assertThat(response.getDeadlineAt()).isNull();
+        verify(prescriptionRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("FR-034, FR-035: phiếu lập sau lệnh trở về lấy hạn từ lệnh, không tạm dừng đơn lần nữa")
+    void createHospitalReturnAfterCommandTakesDeadlineFromCommand() {
+        stubSave();
+        Instant due = Instant.parse("2026-11-18T08:00:00Z");
+        when(deadlines.currentDeadline(100L)).thenReturn(Optional.of(due));
+        CreateReconciliationBody body = new CreateReconciliationBody();
+        body.setReason("HOSPITAL_RETURN");
+
+        ReconciliationResponse response = reconciliationService.create(100L, body, 1L, false);
+
+        assertThat(response.getDeadlineAt()).isEqualTo(due);
+        verify(prescriptionRepo, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("FR-035: dòng gửi lên không có quyết định giữ trống, gửi xác nhận bị chặn")
+    void itemWithoutDecisionStaysEmptyAndBlocksSubmit() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.HOSPITAL_RETURN, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 7L);
+        when(reconciliationRepo.findById(7L)).thenReturn(Optional.of(ticket));
+        when(itemRepo.save(any(ReconciliationItem.class))).thenAnswer(inv -> inv.getArgument(0));
+        com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody line =
+                new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        line.setSource("CURRENT_PRESCRIPTION");
+        line.setPrescriptionId(201L);
+
+        ReconciliationResponse updated = reconciliationService.updateItems(7L, null, List.of(line), 11L);
+
+        assertThat(updated.getItems().getFirst().getDecision()).isNull();
+        ReconciliationItem saved = new ReconciliationItem(
+                7L,
+                1,
+                ReconciliationItemSource.CURRENT_PRESCRIPTION,
+                201L,
+                null,
+                null,
+                null,
+                null,
+                null,
+                11L,
+                Instant.now(),
+                Instant.now());
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(7L)).thenReturn(List.of(saved));
+        assertThatThrownBy(() -> reconciliationService.submit(7L, 11L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).errorCode()).isEqualTo("MISSING_ITEMS"));
+    }
+
+    private com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody changeDoseLine(
+            String prescriberType, String reason) {
+        var prescriber = new com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody();
+        prescriber.setType(prescriberType);
+        prescriber.setFacilityName("Bệnh viện Bạch Mai");
+        prescriber.setPrescriberName("BS. Trần Văn Kê");
+        prescriber.setPrescribedAt(LocalDate.of(2026, 11, 15));
+        var replacement = new com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody();
+        replacement.setPrescriber(prescriber);
+        var line = new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        line.setSource("DISCHARGE_PRESCRIPTION");
+        line.setPrescriptionId(201L);
+        line.setDecision("CHANGE_DOSE");
+        line.setReason(reason);
+        line.setNewPrescription(replacement);
+        return line;
+    }
+
+    private void openTicket(long id) {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.HOSPITAL_RETURN, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, id);
+        when(reconciliationRepo.findById(id)).thenReturn(Optional.of(ticket));
+        when(itemRepo.save(any(ReconciliationItem.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    private static void assertBasisRequired(org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
+        assertThatThrownBy(call).isInstanceOf(BusinessException.class).satisfies(e -> {
+            assertThat(((BusinessException) e).status()).isEqualTo(HttpStatus.CONFLICT);
+            assertThat(((BusinessException) e).errorCode()).isEqualTo("EXTERNAL_BASIS_REQUIRED");
+        });
+    }
+
+    @Test
+    @DisplayName(
+            "FR-035, Q-411: người không phải bác sĩ ghi Ngừng, Thay đổi liều phải có căn cứ, đơn thay thế bên ngoài")
+    void nonDoctorDiscontinueOrChangeDoseNeedsBasisAndExternalReplacement() {
+        openTicket(5L);
+        var discontinue = new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        discontinue.setSource("CURRENT_PRESCRIPTION");
+        discontinue.setPrescriptionId(201L);
+        discontinue.setDecision("DISCONTINUE");
+
+        assertBasisRequired(() -> reconciliationService.updateItems(5L, null, List.of(discontinue), 11L));
+        assertBasisRequired(() -> reconciliationService.updateItems(
+                5L, null, List.of(changeDoseLine("INTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L));
+        assertBasisRequired(
+                () -> reconciliationService.updateItems(5L, null, List.of(changeDoseLine("EXTERNAL", " ")), 11L));
+
+        ReconciliationResponse nurse = reconciliationService.updateItems(
+                5L, null, List.of(changeDoseLine("EXTERNAL", "Giấy ra viện BV Bạch Mai, 15/11")), 11L);
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
+        ReconciliationResponse doctor =
+                reconciliationService.updateItems(5L, null, List.of(changeDoseLine("INTERNAL", null)), 12L);
+
+        assertThat(nurse.getItems()).hasSize(1);
+        assertThat(doctor.getItems()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName(
+            "FR-005, BR-M06-05, Q-411: bác sĩ giấy phép hết hạn ghi dòng Ngừng không căn cứ bị chặn; bác sĩ hợp lệ thì được")
+    void doctorWithoutValidPrescribingLicenseNeedsBasis() {
+        openTicket(4L);
+        var discontinue = new com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody();
+        discontinue.setSource("CURRENT_PRESCRIPTION");
+        discontinue.setPrescriptionId(201L);
+        discontinue.setDecision("DISCONTINUE");
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(false);
+
+        assertBasisRequired(() -> reconciliationService.updateItems(4L, null, List.of(discontinue), 12L));
+
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
+        assertThat(reconciliationService
+                        .updateItems(4L, null, List.of(discontinue), 12L)
+                        .getItems())
+                .hasSize(1);
+    }
+
+    @Test
+    @DisplayName(
+            "FR-005, FR-038: xác nhận phiếu có dòng tạo đơn nội bộ cần Bác sĩ có quyền kê đơn hợp lệ, không chỉ vai trò")
+    void confirmWithInternalPrescriptionLineNeedsValidPrescriber() throws Exception {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.HOSPITAL_RETURN, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 3L);
+        ticket.submit(10L, Instant.now());
+        when(reconciliationRepo.findById(3L)).thenReturn(Optional.of(ticket));
+        ReconciliationItem addNew = new ReconciliationItem(
+                3L,
+                1,
+                ReconciliationItemSource.DISCHARGE_PRESCRIPTION,
+                null,
+                null,
+                "Thuoc moi",
+                ReconciliationDecision.ADD_NEW,
+                null,
+                objectMapper.writeValueAsString(Map.of("prescriber", Map.of("type", "INTERNAL"))),
+                11L,
+                Instant.now(),
+                Instant.now());
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(3L)).thenReturn(List.of(addNew));
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(false);
+
+        assertThatThrownBy(() -> reconciliationService.confirm(3L, 30L, true))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> {
+                    assertThat(((BusinessException) e).status()).isEqualTo(HttpStatus.FORBIDDEN);
+                    assertThat(((BusinessException) e).errorCode()).isEqualTo("PRESCRIBING_DOCTOR_REQUIRED");
+                });
+
+        when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(prescriptionService.create(any(), eq(100L), any(), eq(30L), eq(true)))
+                .thenReturn(
+                        mock(com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse.class));
+        assertThat(reconciliationService.confirm(3L, 30L, true).getStatus()).isEqualTo("CONFIRMED");
+    }
+
+    @Test
+    @DisplayName("FR-035, Q-411: người không còn đơn nào gửi được phiếu không có dòng; còn đơn chưa có dòng thì chặn")
+    void emptyTicketSubmitsWhenNoPrescriptionsAndIsBlockedOtherwise() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.ADMISSION, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 6L);
+        when(reconciliationRepo.findById(6L)).thenReturn(Optional.of(ticket));
+        when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(6L)).thenReturn(List.of());
+        when(prescriptionRepo.findByResidentIdAndStatusIn(eq(100L), any()))
+                .thenReturn(List.of(createSamplePrescription(201L, 100L, PrescriptionStatus.ACTIVE)))
+                .thenReturn(List.of());
+
+        assertThatThrownBy(() -> reconciliationService.submit(6L, 10L))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).errorCode()).isEqualTo("MISSING_ITEMS"));
+
+        ReconciliationResponse submitted = reconciliationService.submit(6L, 10L);
+
+        assertThat(submitted.getStatus()).isEqualTo("PENDING_CONFIRMATION");
     }
 
     @Test
@@ -313,5 +530,42 @@ class MedicationReconciliationTest {
         ReconciliationCorrectionResponse confRes = reconciliationService.confirmCorrection(101L, 30L);
         assertThat(confRes.getStatus()).isEqualTo("CONFIRMED");
         assertThat(confRes.getConfirmedById()).isEqualTo(30L);
+    }
+
+    @Test
+    @DisplayName("T076, FR-039: phiếu kèm các đề nghị đính chính (nội dung, lý do, người lập, lý do trả lại); "
+            + "người xác nhận khác người lập mới có lệnh CONFIRM, RETURN")
+    void get_includesCorrections_withCommandsForOtherViewerOnly() {
+        MedicationReconciliation ticket = new MedicationReconciliation(
+                100L, ReconciliationReason.ADMISSION, null, null, 10L, Instant.now(), Instant.now());
+        setId(ticket, 9L);
+        ticket.submit(10L, Instant.now());
+        ticket.confirm(30L, Instant.now());
+        when(reconciliationRepo.findById(9L)).thenReturn(Optional.of(ticket));
+        when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(9L)).thenReturn(List.of());
+        ReconciliationCorrectionRequest pending = new ReconciliationCorrectionRequest(
+                9L, "{\"description\":\"Dòng 1 ghi nhầm liều\"}", "Ghi nhầm", 10L, Instant.now(), Instant.now());
+        setId(pending, 101L);
+        ReconciliationCorrectionRequest returned =
+                new ReconciliationCorrectionRequest(9L, "{}", "Lần trước", 10L, Instant.now(), Instant.now());
+        setId(returned, 100L);
+        returned.reject(30L, Instant.now(), "Thiếu nội dung đúng");
+        when(correctionRepo.findByReconciliationId(9L)).thenReturn(List.of(returned, pending));
+
+        var res = reconciliationService.get(9L);
+
+        assertThat(res.getCorrections()).hasSize(2);
+        var first = res.getCorrections().get(0);
+        assertThat(first.getId()).isEqualTo(101L);
+        assertThat(first.getStatus()).isEqualTo("PENDING_CONFIRMATION");
+        assertThat(first.getCorrectedContent()).containsEntry("description", "Dòng 1 ghi nhầm liều");
+        assertThat(first.getCreatedById()).isEqualTo(10L);
+        assertThat(res.getCorrections().get(1).getReturnReason()).isEqualTo("Thiếu nội dung đúng");
+
+        var byCreator = ReconciliationBodies.ReconciliationBody.of(res, 10L);
+        assertThat(byCreator.corrections().get(0).allowedCommands()).isEmpty();
+        var byOther = ReconciliationBodies.ReconciliationBody.of(res, 31L);
+        assertThat(byOther.corrections().get(0).allowedCommands()).containsExactly("CONFIRM", "RETURN");
+        assertThat(byOther.corrections().get(1).allowedCommands()).isEmpty();
     }
 }

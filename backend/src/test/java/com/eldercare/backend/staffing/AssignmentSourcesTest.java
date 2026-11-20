@@ -45,6 +45,8 @@ class AssignmentSourcesTest {
                 .resident(31, "[Họ tên NCT 31]", null, ResidentStatus.DECEASED);
         assertThat(source.isFinalStatus(30)).isFalse();
         assertThat(source.isFinalStatus(31)).isTrue();
-        assertThatThrownBy(() -> new FakeResidents().isFinalStatus(30)).isInstanceOf(IllegalArgumentException.class);
+        // Bản giả mới không biết 31 (Đã qua đời ở bản giả trên): trả false như bản thật với mã chưa có, không rò trạng
+        // thái
+        assertThat(new FakeResidents().isFinalStatus(31)).isFalse();
     }
 }

@@ -28,6 +28,7 @@ public record AssessmentDetailBody(
         String confirmedBy,
         Instant confirmedAt,
         boolean corrected,
+        List<FamilyDeclaredEntryBody> familyDeclared,
         Reference reference) {
 
     /** Dữ liệu để bác sĩ tham khảo; chỉ số gần nhất qua SPI {@code LatestVitalSignSource} (health cài); chưa có bản cài thì rỗng. */
@@ -52,6 +53,7 @@ public record AssessmentDetailBody(
                 a.confirmedBy(),
                 a.confirmedAt(),
                 a.corrected(),
+                a.familyDeclared(),
                 reference);
     }
 }

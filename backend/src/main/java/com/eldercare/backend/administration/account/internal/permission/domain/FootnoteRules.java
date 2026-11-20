@@ -7,7 +7,8 @@ import java.util.Set;
  *
  * <ul>
  *   <li>{@link #CONDITIONS}: điều kiện cần dữ liệu lúc chạy; ô chỉ thỏa khi module chủ cài {@code FootnoteCondition} cho
- *       mã đó và điều kiện đúng, chưa cài thì từ chối (¹ bản đồng ý, 001; ², ⁷ người đại diện, 012);
+ *       mã đó và điều kiện đúng, chưa cài thì từ chối (¹ bản đồng ý, 001; ², ⁷ người đại diện, 012; ⁵² Hành chính lập bản
+ *       Nháp tự khai khi người cao tuổi còn Đang tiếp nhận, 001, Q-412);
  *   <li>{@link #DUTIES}: điều kiện là nhiệm vụ (¹⁵ Người nhận tại tầng; ⁴⁰ Người phụ trách ca xác nhận giường); lớp vai
  *       trò từ chối, quyền đến từ lớp nhiệm vụ (FR-019g, T053). ⁹ (ô T⁹ của Trưởng tầng, dòng "Xử lý việc quá hạn") không
  *       phải điều kiện của ô: chú thích mở cùng quyền cho Người phụ trách ca (FR-019a "như Trưởng tầng"), nên ô có hiệu
@@ -20,7 +21,7 @@ import java.util.Set;
  */
 public final class FootnoteRules {
 
-    public static final Set<String> CONDITIONS = Set.of("1", "2", "7");
+    public static final Set<String> CONDITIONS = Set.of("1", "2", "7", "52");
     public static final Set<String> DUTIES = Set.of("15", "40");
 
     private FootnoteRules() {}

@@ -6,7 +6,6 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.common.file.FilePermissionProvider;
-import com.eldercare.backend.resident.internal.health.service.SelfReportedHealth;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +36,7 @@ class TreatmentWishFilePermission implements FilePermissionProvider {
 
     @Override
     public boolean canDownload(long ownerId) {
-        return !SelfReportedHealth.isOfficeOnly(currentUser.getObject())
+        return wishes.officeMayDownload(ownerId, currentUser.getObject())
                 && permissions
                         .hasPermission(currentUser.getObject(), VIEW, wishes.targetOf(ownerId))
                         .allowed();

@@ -30,7 +30,9 @@ import com.eldercare.backend.resident.internal.profile.service.ResidentProfileSe
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import com.eldercare.backend.resident.internal.wish.domain.NewTreatmentWish;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWish;
+import com.eldercare.backend.resident.internal.wish.domain.TreatmentWishDraft;
 import com.eldercare.backend.resident.internal.wish.persistence.TreatmentWishStore;
+import com.eldercare.backend.resident.internal.wish.persistence.WishDraftStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -56,6 +58,7 @@ public class TreatmentWishService {
 
     static final AuditAction RECORDED = new AuditAction("TREATMENT_WISH_RECORDED", false);
     static final AuditAction EXPIRED = new AuditAction("TREATMENT_WISH_EXPIRED", false);
+    static final AuditAction DRAFT_VERIFIED = new AuditAction("WISH_DRAFT_VERIFIED", false);
 
     private static final int MAX_HOSPITALS = 2;
 
@@ -75,6 +78,7 @@ public class TreatmentWishService {
     public record Summary(Optional<TreatmentWish> active, List<TreatmentWish> history) {}
 
     private final TreatmentWishStore store;
+    private final WishDraftStore drafts;
     private final ResidentRepository residents;
     private final ProfileOpenGuard guard;
     private final FileApi files;
@@ -87,6 +91,7 @@ public class TreatmentWishService {
 
     TreatmentWishService(
             TreatmentWishStore store,
+            WishDraftStore drafts,
             ResidentRepository residents,
             ProfileOpenGuard guard,
             FileApi files,
@@ -97,6 +102,7 @@ public class TreatmentWishService {
             ObjectProvider<FamilyRelationshipApi> relationships,
             ObjectProvider<CurrentUser> currentUser) {
         this.store = store;
+        this.drafts = drafts;
         this.residents = residents;
         this.guard = guard;
         this.files = files;
@@ -116,6 +122,15 @@ public class TreatmentWishService {
             throw SelfReportedHealth.deniedForOffice(
                     "Hành chính chỉ biết đã có hay chưa có phiếu nguyện vọng khi điều trị");
         }
+    }
+
+    /** Tệp gắn vào phiếu: Hành chính chỉ tải tệp của bản Nháp do chính mình lập (Q-412, FR-023q). */
+    @Transactional(readOnly = true)
+    public boolean officeMayDownload(long wishId, CurrentUser user) {
+        return !SelfReportedHealth.isOfficeOnly(user)
+                || drafts.draftWriterOf(wishId)
+                        .filter(w -> w == user.accountId())
+                        .isPresent();
     }
 
     public Target targetOf(long wishId) {
@@ -143,6 +158,33 @@ public class TreatmentWishService {
         long residentId = target.residentId();
         residents.lockById(residentId).orElseThrow(NotFoundException::new);
         guard.requireOpen(residentId);
+        if (drafts.findTreatment(residentId).isPresent()) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "DRAFT_ALREADY_EXISTS",
+                    "Còn bản Nháp tự khai: kiểm chứng hoặc Hủy nháp trước khi ghi phiên bản mới (FR-023p)");
+        }
+        return write(residentId, command, null);
+    }
+
+    /**
+     * Kiểm chứng bản Nháp tự khai do Hành chính lập (Q-412, FR-023p): lệnh mang đủ nội dung phiếu, cùng kiểm tra như ghi
+     * phiên bản; dòng Nháp thành phiên bản Hiệu lực (giữ id, người lập), phiên bản Hiệu lực trước Hết hiệu lực.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.ALLERGY_CONDITION, operation = Operation.CREATE)
+    @Transactional
+    public Result verifyDraft(Target target, RecordCommand command) {
+        requireNotOfficeOnly();
+        long residentId = target.residentId();
+        residents.lockById(residentId).orElseThrow(NotFoundException::new);
+        guard.requireOpen(residentId);
+        TreatmentWishDraft draft = drafts.findTreatment(residentId).orElseThrow(WishDraftService::noDraft);
+        return write(residentId, command, draft);
+    }
+
+    /** Phần chung của ghi thẳng và kiểm chứng; người gọi đã khóa hồ sơ và kiểm hồ sơ chưa ở trạng thái cuối. */
+    private Result write(long residentId, RecordCommand command, TreatmentWishDraft draft) {
         List<Long> notify = new ArrayList<>(new LinkedHashSet<>(
                 command.notifyFamilyMemberIds() == null ? List.of() : command.notifyFamilyMemberIds()));
         List<WishOpinion> opinions = command.otherOpinions() == null ? List.of() : command.otherOpinions();
@@ -152,33 +194,39 @@ public class TreatmentWishService {
 
         Optional<TreatmentWish> previous = store.findActive(residentId);
         previous.ifPresent(old -> store.expire(old.id()));
-        long id = store.insert(
-                new NewTreatmentWish(
-                        residentId,
-                        command.preferredHospitals().stream()
-                                .map(h -> new PreferredHospital(
-                                        h.name().strip(), h.address().strip()))
-                                .toList(),
-                        command.healthInsurance(),
-                        command.askFamilyFirst(),
-                        notify,
-                        command.accompaniedBy(),
-                        command.note() == null || command.note().isBlank()
-                                ? null
-                                : command.note().strip(),
-                        command.respondent(),
-                        command.signedCopyFileId(),
-                        accountId,
-                        now),
-                opinions);
+        NewTreatmentWish version = new NewTreatmentWish(
+                residentId,
+                command.preferredHospitals().stream()
+                        .map(h -> new PreferredHospital(
+                                h.name().strip(), h.address().strip()))
+                        .toList(),
+                command.healthInsurance(),
+                command.askFamilyFirst(),
+                notify,
+                command.accompaniedBy(),
+                command.note() == null || command.note().isBlank()
+                        ? null
+                        : command.note().strip(),
+                command.respondent(),
+                command.signedCopyFileId(),
+                draft == null ? accountId : draft.recordedBy(),
+                draft == null ? now : draft.recordedAt());
+        long id;
+        if (draft == null) {
+            id = store.insert(version, opinions);
+        } else {
+            id = draft.id();
+            store.activateDraft(id, version, opinions, accountId, now);
+        }
         previous.ifPresent(old -> store.supersededBy(old.id(), id));
-        if (command.signedCopyFileId() != null) {
+        if (command.signedCopyFileId() != null
+                && files.attachedTo(ENTITY_TYPE, id).stream().noneMatch(f -> f.id() == command.signedCopyFileId())) {
             files.attach(command.signedCopyFileId(), ENTITY_TYPE, id);
         }
         TreatmentWish saved = store.findActive(residentId).orElseThrow();
 
         auditLog.write(AuditLogEntry.builder()
-                .action(RECORDED)
+                .action(draft == null ? RECORDED : DRAFT_VERIFIED)
                 .entity(ENTITY_TYPE, id)
                 .resident(residentId)
                 .after(snapshot(saved))
@@ -216,8 +264,13 @@ public class TreatmentWishService {
 
     /** Người cần báo kèm họ tên và số điện thoại lấy qua 012 (chưa có bản cài của 012 thì để trống). */
     public List<NotifyContact> notifyContacts(TreatmentWish wish) {
+        return notifyContacts(wish.notifyFamilyMemberIds());
+    }
+
+    /** Người cần báo của bản Nháp (Q-412). */
+    public List<NotifyContact> notifyContacts(List<Long> familyMemberIds) {
         FamilyRelationshipApi family = relationships.getIfAvailable();
-        return wish.notifyFamilyMemberIds().stream()
+        return familyMemberIds.stream()
                 .map(memberId -> new NotifyContact(
                         memberId,
                         family == null
@@ -231,10 +284,14 @@ public class TreatmentWishService {
 
     /** Mã quan hệ của người cần báo với người cao tuổi (FR-023l); 012 chưa có bản cài hoặc không có quan hệ thì trống. */
     public String relationshipOf(TreatmentWish wish, long familyMemberId) {
+        return relationshipOf(wish.residentId(), familyMemberId);
+    }
+
+    public String relationshipOf(long residentId, long familyMemberId) {
         FamilyRelationshipApi family = relationships.getIfAvailable();
         return family == null
                 ? null
-                : family.relationship(familyMemberId, wish.residentId())
+                : family.relationship(familyMemberId, residentId)
                         .map(Enum::name)
                         .orElse(null);
     }

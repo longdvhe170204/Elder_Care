@@ -44,7 +44,9 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 Mọi `CHECK` cũ giữ, mỗi `CHECK` thêm điều kiện `kind = …` (ví dụ `kind <> 'END_OF_LIFE' OR can_self_determine = (signer_type = 'RESIDENT')`); thêm `CHECK` cột riêng của loại kia là `NULL`. Quyền `eldercare_app`: `INSERT`, `UPDATE (status, superseded_by_id)`; trigger `trg_wish_only_supersede` chỉ kiểm chuyển trạng thái (`ACTIVE` → `SUPERSEDED` với cuối đời, `ACTIVE` → `EXPIRED` với điều trị; `superseded_by_id` đặt một lần), các cột khác đã bị quyền theo cột chặn. Chỉ mục `(kind, status, review_date)`, `(resident_id, kind, id)`.
 
-**`assessment`** (`danh_gia`) – giữ nguyên. Thêm `care_need_ids JSON NOT NULL DEFAULT (JSON_ARRAY())` (thay `assessment_care_need`); trigger `trg_assessment_no_update` hiện có đã chặn sửa khi `CONFIRMED`, `DISCARDED`, nên chặn cả đổi nhu cầu. Bỏ khóa ngoại `care_level` → `care_level` như `resident`.
+*(2026-11-17, Q-412, BR-M01-18, `V001_97`)* Bản Nháp tự khai nằm ngay trong `wish` (giữ một bảng, giữ id và tệp bản ký khi Nháp thành Hiệu lực): `status` thêm `DRAFT`, `DISCARDED`; thêm `verified_by BIGINT NULL`, `verified_at DATETIME(6) NULL` (người, thời điểm kiểm chứng; rỗng với phiên bản ghi thẳng; `CHECK` cùng rỗng hoặc cùng có), `discarded_by`, `discarded_at`, `discard_reason` (bắt buộc khi và chỉ khi `DISCARDED`, `CHECK`), `draft_opinions JSON NULL` (ý kiến khác của Nháp, chỉ khi `DRAFT`; khi kiểm chứng chép sang `record_event` `M01.WISH_OPINION` rồi đặt `NULL`, vì `record_event` chỉ thêm), cột sinh `draft_key` `IF(status = 'DRAFT', CONCAT(kind, ':', resident_id), NULL)` `UNIQUE` (tối đa một Nháp mỗi loại mỗi người). `ck_wish_kind_columns` dựng lại: cột bắt buộc của từng loại chỉ kiểm khi `status NOT IN ('DRAFT', 'DISCARDED')`; cột của loại kia vẫn `NULL` ở mọi trạng thái; `respondent_type` vẫn `NOT NULL` (Nháp phải có người trả lời). Các `CHECK` còn lại giữ (giá trị `NULL` của Nháp làm biểu thức `NULL`, `CHECK` qua). Quyền `eldercare_app` thêm `UPDATE` các cột nội dung, kiểm chứng, hủy; trigger `trg_wish_only_supersede` dựng lại: nội dung chỉ đổi khi `OLD.status = 'DRAFT'`; chuyển được `DRAFT → DRAFT`, `DRAFT → ACTIVE` (đặt `verified_by`, `verified_at`), `DRAFT → DISCARDED` và hai chuyển cũ; `ACTIVE`, `SUPERSEDED`, `EXPIRED`, `DISCARDED` không đổi nội dung, `DISCARDED` là trạng thái cuối. Nháp có `recorded_by`, `recorded_at` là người, thời điểm lập; `source` của phiếu cuối đời đặt `ADMISSION` khi kiểm chứng. Đọc phiên bản Hiệu lực, lịch sử, `EndOfLifeWishApi`, cờ đã có phiếu, nhắc thiếu phiếu: chỉ `ACTIVE`, `SUPERSEDED`, `EXPIRED` (FR-023o).
+
+**`assessment`** (`danh_gia`) – giữ nguyên. Thêm `care_need_ids JSON NOT NULL DEFAULT (JSON_ARRAY())` (thay `assessment_care_need`); trigger `trg_assessment_no_update` hiện có đã chặn sửa khi `CONFIRMED`, `DISCARDED`, nên chặn cả đổi nhu cầu. Bỏ khóa ngoại `care_level` → `care_level` như `resident`. *(2026-11-17, Q-412, `V001_97`)* Thêm `family_declared JSON NULL` (phần "Gia đình khai", FR-025a): mảng mục `{topic, content, sourceType, sourceFamilyMemberId, recordedBy, recordedAt}`, `topic` thuộc `GENERAL_CONDITION`, `MOBILITY`, `SELF_CARE`, `COGNITION`, `KNOWN_RISKS`, `sourceType` thuộc `RESIDENT`, `FAMILY_MEMBER` (mẫu nguồn mục 6a); `CHECK (family_declared IS NULL OR type = 'INITIAL')`. Trigger hiện có đã chặn sửa khi `CONFIRMED`, `DISCARDED`, nên phần này giữ nguyên khi xác nhận. Ghi phần này không tăng `version` (lệnh sửa nháp của Bác sĩ không nhận 412 vì Hành chính ghi).
 
 **Loại ở bảng chung**:
 
@@ -275,6 +277,16 @@ Người cấu hình `muc_do_di_ung`, `nguon_thong_tin`, `nhu_cau_cham_soc` theo
 
 ---
 
+### Bảng chuyển bản Nháp tự khai *(bổ sung 2026-11-17, Q-412, BR-M01-18; FR-023n → FR-023r)*
+
+| Từ | Lệnh | Đến | Endpoint | Kiểm tra | Nhật ký |
+| --- | --- | --- | --- | --- | --- |
+| — | Lập Nháp | `DRAFT` | `PUT /residents/{id}/end-of-life-wish-draft`, `…/treatment-wish-draft` (201) | AC-09 (`END_OF_LIFE_WISHES` hoặc `ALLERGY_CONDITION`, `CREATE`; chú thích ⁵², ⁵⁰: Đang tiếp nhận); không có Nháp cùng loại (`draft_key`); không có nhận định tự quyết | `WISH_DRAFT_CREATED` |
+| `DRAFT` | Sửa Nháp | `DRAFT` | `PUT` cùng đường dẫn (200) | Hành chính đã lập Nháp đó; Đang tiếp nhận | `WISH_DRAFT_EDITED` |
+| `DRAFT` | Kiểm chứng | `ACTIVE` | `POST …/verify` | AC-03, AC-04 trong phạm vi; điều kiện như ghi phiên bản (FR-023a, FR-023c hoặc FR-023j); nhận định tự quyết chỉ AC-03; phiên bản `ACTIVE` trước → `SUPERSEDED`/`EXPIRED` cùng lệnh | `WISH_DRAFT_VERIFIED` (kèm `END_OF_LIFE_WISH_SUPERSEDED`/`TREATMENT_WISH_EXPIRED` khi có) |
+| `DRAFT` | Hủy nháp | `DISCARDED` | `POST …/discard` | AC-03, AC-04; lý do | `WISH_DRAFT_DISCARDED` |
+| (có `DRAFT`) | Ghi phiên bản mới | — | `POST …/end-of-life-wishes`, `…/treatment-wishes` | 409 `DRAFT_ALREADY_EXISTS` (FR-023p) | — |
+
 ## 6a. Nguồn của ý kiến và không có dấu năng lực *(bổ sung 2026-10-18; FR-023g, FR-023h; research H-16)*
 
 **Mẫu cột nguồn ý kiến** (001 định nghĩa; 004, 005, 012, 014 dùng cho bảng của mình):
@@ -324,7 +336,10 @@ Bảng dùng mẫu này không có quyền `UPDATE` trên cột nội dung và n
 | — | Tạo | `NHAP` | `POST /nguoi-cao-tuoi/{id}/danh-gia` | AC-03, AC-04 (`DANH_GIA_MUC_CHAM_SOC, TAO`); không có Nháp khác (409 `DA_CO_BAN_NHAP`); `DAU_VAO` chỉ khi chưa có đầu vào Đã xác nhận và hồ sơ `DANG_TIEP_NHAN`; `DANH_GIA_LAI` theo trạng thái ở FR-035 | `DG_TAO` |
 | `NHAP` | Sửa nháp | `NHAP` | `PUT /danh-gia/{id}` cùng `If-Match` | Người tạo hoặc AC-03 | `DG_SUA_NHAP` |
 | `NHAP` | Xác nhận | `DA_XAC_NHAN` | `POST /danh-gia/{id}/xac-nhan` | AC-03 (`DANH_GIA_MUC_CHAM_SOC, DUYET`); FR-028 | `DG_XAC_NHAN` |
-| `NHAP` | Hủy nháp | `DA_HUY` | `POST /danh-gia/{id}/huy-nhap` | Người tạo hoặc AC-03; lý do | `DG_HUY_NHAP` |
+| `NHAP` | Hủy nháp | `DA_HUY` | `POST /danh-gia/{id}/huy-nhap` | Người tạo hoặc AC-03; lý do; Hành chính không hủy (Q-412) | `DG_HUY_NHAP` |
+| (chưa có) hoặc `NHAP` đầu vào | Ghi "Gia đình khai" *(Q-412)* | `NHAP` | `PUT /residents/{id}/initial-assessment/family-declared` | Chỉ AC-09 (`ASSESSMENT_CARE_LEVEL`, `CREATE`/`UPDATE`; chú thích ⁵²: Đang tiếp nhận); chưa có Nháp thì tạo `DAU_VAO` (điều kiện như Tạo); có Nháp đầu vào của người khác thì ghi vào bản đó; Nháp đánh giá lại hoặc đã có đầu vào Đã xác nhận → 409; không đổi `phien_ban` | `ASSESSMENT_FAMILY_DECLARED_RECORDED` (kèm `DG_TAO` khi tạo) |
+
+Hành chính lập Nháp qua lệnh trên không thành "người tạo" cho lệnh Sửa nháp, Hủy nháp (FR-025a); `GET /danh-gia/{id}` với Hành chính trả 403, Hành chính đọc qua `GET /residents/{id}/initial-assessment/family-declared`.
 
 Tác động khi xác nhận: theo research H-10, trong cùng transaction. Các tác động đó gồm đặt mức hiện hành, gọi 004 thay thế yêu cầu, sự kiện cho 004, 005, 009, và đáp ứng các lần báo đánh giá lại.
 
@@ -382,9 +397,10 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). `nguo
 - Hồ sơ: `NCT_TAO`, `NCT_XAC_NHAN_KHONG_TRUNG`, `NCT_CAP_NHAT`, `NCT_CHUYEN`, `MUC_CS_DOI`.
 - Bản đồng ý: `BDY_GHI_NHAN`, `BDY_THAY_THE`, `BDY_RUT_LAI`.
 - Sức khỏe: `HSSK_LAP`, `HSSK_SUA_NHAP`, `HSSK_XAC_NHAN`, `MSK_GHI_NHAN`, `MSK_XAC_NHAN_TRUNG`, `MSK_LOAI_TRU`, `MSK_DA_KIEM_TRA`.
-- Nguyện vọng: `NV_GHI` (chi tiết gồm các ý kiến khác và nguồn); `NVDT_GHI` (phiếu nguyện vọng khi điều trị, bổ sung 2026-10-22).
+- Nguyện vọng: `NV_GHI` (chi tiết gồm các ý kiến khác và nguồn); `NVDT_GHI` (phiếu nguyện vọng khi điều trị, bổ sung 2026-10-22); bản Nháp tự khai (bổ sung 2026-11-17, Q-412): `WISH_DRAFT_CREATED`, `WISH_DRAFT_EDITED`, `WISH_DRAFT_VERIFIED`, `WISH_DRAFT_DISCARDED` (chi tiết ghi loại phiếu), giá trị theo phân loại trường của phiếu nên Hành chính xem nhật ký chỉ thấy "đã thay đổi" (19.3).
+- Gia đình khai (bổ sung 2026-11-17, Q-412): `ASSESSMENT_FAMILY_DECLARED_RECORDED`; giá trị thuộc nhóm `SUC_KHOE` như mọi trường của `M01.DANH_GIA`.
 - Đánh giá: `DG_TAO`, `DG_SUA_NHAP`, `DG_XAC_NHAN`, `DG_HUY_NHAP`.
-- Bộ lập lịch: `DGL_BAO`, `DGL_CANH_BAO_QUA_HAN`, `NHAC_THIEU_DONG_Y`, `NHAC_THIEU_NGUYEN_VONG`, `NHAC_LAP_YEU_CAU_DOI_MUC`, `CANH_BAO_TAM_VANG_QUA_HAN`.
+- Bộ lập lịch: `DGL_BAO`, `DGL_CANH_BAO_QUA_HAN`, `NHAC_THIEU_DONG_Y`, `NHAC_THIEU_NGUYEN_VONG`, `NHAC_LAP_YEU_CAU_DOI_MUC`, `CANH_BAO_TAM_VANG_QUA_HAN`; `UNVERIFIED_WISH_DRAFT_REMINDER` (Q-412, FR-023r; `reminder_marker` `M01.PERIODIC_REMINDER.UNVERIFIED_WISH_DRAFT`).
 - Danh mục: `DM_TAO`, `DM_SUA`, `DM_NGUNG`, `DM_KICH_HOAT_LAI`.
 
 `PhanLoaiTruongProvider` (000 mục 1.3) cho các loại đối tượng của M01:
@@ -429,6 +445,7 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | DBR-23 | Nhật ký trong transaction (000); mọi lệnh có `resident_id`, loại và mã bản ghi, người thực hiện | `M01AuditCompletenessIT` (proxy `DataSource` của 000, lệnh danh mục), `M01CommandAuditTrailIT` (mọi lệnh gắn người cao tuổi) |
 | DBR-25 | `Clock` của 000; không có thời điểm từ client cho lệnh của 001 | ArchUnit của 000 |
 | DBR-34 | `dang_hieu_luc UNIQUE`; trigger | `NguyenVongPhienBanIT` |
+| BR-M01-18 (Q-412, bổ sung 2026-11-17) | `wish.draft_key UNIQUE`, `ck_wish_kind_columns`, trigger `trg_wish_only_supersede`; `assessment.family_declared` `CHECK`; chú thích ⁵² (`SelfReportDraftFootnoteCondition`) | `BR_M01_18_WishDraftIT`, `BR_M01_18_FamilyDeclaredIT`, `PermissionMatrixMatchesSourceIT`, `PermissionMatrixIT` |
 | DBR-39 | `nguyen_vong_dieu_tri.dang_hieu_luc UNIQUE`; trigger | `NguyenVongDieuTriPhienBanIT` |
 | BR-M01-01 | Job `CanhBaoQuaHanTroLai`; `canh_bao_tro_lai` | `BR_M01_01_TamVangQuaHanIT` *(R-15: `canh_bao_tro_lai` → `moc_da_nhac`)* |
 | BR-M01-02 | `lan_bao_danh_gia_lai`; hai job; listener sự cố | `BR_M01_02_BaoDanhGiaLaiIT` *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`)* |

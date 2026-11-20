@@ -35,7 +35,8 @@ public class EndOfLifeWishStore {
             + " respondent_family_member_id, relationship, assessing_doctor_id, can_self_determine, assessed_at,"
             + " support_method, review_date, signer_type, signer_family_member_id, representative_selection,"
             + " court_decision_number, court_decision_date, court_decision_court, court_decision_file_id, signed_at,"
-            + " signed_copy_file_id, source, status, recorded_by, recorded_at FROM wish WHERE kind = 'END_OF_LIFE'";
+            + " signed_copy_file_id, source, status, recorded_by, recorded_at, verified_by, verified_at FROM wish"
+            + " WHERE kind = 'END_OF_LIFE' AND status IN ('ACTIVE', 'SUPERSEDED')";
 
     private static final String WISH_TYPE = "M01.END_OF_LIFE_WISH";
 
@@ -113,6 +114,61 @@ public class EndOfLifeWishStore {
         return id;
     }
 
+    /**
+     * Kiểm chứng bản Nháp (Q-412, FR-023p): ghi đủ nội dung phiên bản vào chính dòng Nháp, chuyển Hiệu lực kèm người, thời
+     * điểm kiểm chứng (giữ id, người lập), ghi các ý kiến khác. Người gọi đã chuyển phiên bản Hiệu lực cũ sang Được thay thế.
+     */
+    public void activateDraft(
+            long draftId, NewEndOfLifeWish wish, List<WishOpinion> opinions, long verifiedBy, Instant verifiedAt) {
+        CourtDecisionRef court = wish.courtDecision();
+        int updated = jdbc.update(
+                "UPDATE wish SET choice = ?, first_contact = ?, note = ?, respondent_type = ?, respondent_family_member_id = ?,"
+                        + " relationship = ?, assessing_doctor_id = ?, can_self_determine = ?, assessed_at = ?,"
+                        + " support_method = ?, review_date = ?, signer_type = ?, signer_family_member_id = ?,"
+                        + " representative_selection = ?, court_decision_number = ?, court_decision_date = ?,"
+                        + " court_decision_court = ?, court_decision_file_id = ?, signed_at = ?, signed_copy_file_id = ?,"
+                        + " source = ?, draft_opinions = NULL, status = 'ACTIVE', verified_by = ?, verified_at = ?"
+                        + " WHERE id = ? AND kind = 'END_OF_LIFE' AND status = 'DRAFT'",
+                wish.choice().name(),
+                wish.firstContact(),
+                wish.note(),
+                wish.respondentType().name(),
+                wish.respondentFamilyMemberId(),
+                wish.relationship(),
+                wish.assessingDoctorId(),
+                wish.canSelfDetermine(),
+                utc(wish.assessedAt()),
+                wish.supportMethod(),
+                wish.reviewDate(),
+                wish.signerType().name(),
+                wish.signerFamilyMemberId(),
+                wish.representativeSelection() == null
+                        ? null
+                        : wish.representativeSelection().name(),
+                court == null ? null : court.number(),
+                court == null ? null : court.date(),
+                court == null ? null : court.court(),
+                court == null ? null : court.fileId(),
+                utc(wish.signedAt()),
+                wish.signedCopyFileId(),
+                wish.source().name(),
+                verifiedBy,
+                utc(verifiedAt),
+                draftId);
+        if (updated != 1) {
+            throw new IllegalStateException("Bản Nháp " + draftId + " không còn ở Nháp");
+        }
+        this.opinions.add(WISH_TYPE, draftId, opinions, verifiedBy, verifiedAt);
+    }
+
+    /** Người cao tuổi của phiếu ở mọi trạng thái, kể cả Nháp (quyền tải tệp). */
+    public Optional<Long> residentIdOf(long id) {
+        return jdbc
+                .queryForList("SELECT resident_id FROM wish WHERE id = ? AND kind = 'END_OF_LIFE'", Long.class, id)
+                .stream()
+                .findFirst();
+    }
+
     public Optional<EndOfLifeWish> find(long id) {
         return jdbc.query(SELECT + " AND id = ?", (rs, i) -> map(rs), id).stream()
                 .findFirst();
@@ -175,7 +231,11 @@ public class EndOfLifeWishStore {
                 WishRecordSource.valueOf(rs.getString("source")),
                 WishStatus.valueOf(rs.getString("status")),
                 rs.getLong("recorded_by"),
-                rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
+                rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                rs.getObject("verified_by", Long.class),
+                rs.getObject("verified_at", LocalDateTime.class) == null
+                        ? null
+                        : rs.getObject("verified_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
     }
 
     private static LocalDateTime utc(Instant instant) {

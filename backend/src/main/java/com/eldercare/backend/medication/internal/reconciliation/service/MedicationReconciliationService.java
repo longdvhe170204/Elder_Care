@@ -1,7 +1,5 @@
 package com.eldercare.backend.medication.internal.reconciliation.service;
 
-import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -14,9 +12,9 @@ import com.eldercare.backend.medication.internal.prescription.domain.CreatePresc
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
 import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.prescription.domain.SuspensionReason;
 import com.eldercare.backend.medication.internal.prescription.domain.TerminationReason;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.prescription.service.PrescribingAuthority;
 import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
 import com.eldercare.backend.medication.internal.reconciliation.domain.CreateReconciliationBody;
 import com.eldercare.backend.medication.internal.reconciliation.domain.MedicationReconciliation;
@@ -64,8 +62,8 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final ResidentMedicationLock residentMedicationLock;
     private final ObjectMapper objectMapper;
     private final BusinessTime businessTime;
-    private final ParameterApi parameters;
     private final ReconciliationDeadlines deadlines;
+    private final PrescribingAuthority prescribingAuthority;
 
     public MedicationReconciliationService(
             MedicationReconciliationRepository reconciliationRepo,
@@ -77,9 +75,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             ResidentMedicationLock residentMedicationLock,
             @Autowired(required = false) ObjectMapper objectMapper,
             BusinessTime businessTime,
-            ParameterApi parameters,
-            ReconciliationDeadlines deadlines) {
+            ReconciliationDeadlines deadlines,
+            PrescribingAuthority prescribingAuthority) {
         this.deadlines = deadlines;
+        this.prescribingAuthority = prescribingAuthority;
         this.reconciliationRepo = reconciliationRepo;
         this.itemRepo = itemRepo;
         this.correctionRepo = correctionRepo;
@@ -89,7 +88,6 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         this.residentMedicationLock = residentMedicationLock;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
         this.businessTime = businessTime;
-        this.parameters = parameters;
     }
 
     @Override
@@ -125,18 +123,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             }
             // Do not suspend prescriptions, no deadline (deadlineAt = null)
         } else {
-            // Admission or Hospital return: 24-hour deadline (CFG-M07-05)
-            deadlineAt = businessTime
-                    .now()
-                    .plus(parameters.read(ParameterCode.CFG_M07_05).asDuration());
-
-            // Suspend active prescriptions pending reconciliation (FR-034)
-            List<Prescription> activePrescriptions =
-                    prescriptionRepo.findByResidentIdAndStatusIn(residentId, List.of(PrescriptionStatus.ACTIVE));
-            for (Prescription p : activePrescriptions) {
-                p.suspend(SuspensionReason.RECONCILIATION_PENDING);
-                prescriptionRepo.save(p);
-            }
+            // Admission or hospital return: the CFG-M07-05 deadline runs from the Complete admission / Record return
+            // command (FR-034, FR-035); a ticket opened before Complete admission has none yet (FR-034a). Prescriptions
+            // are suspended by that command (ReconciliationDeadlines.begin), not when the ticket is opened.
+            deadlineAt = deadlines.currentDeadline(residentId).orElse(null);
         }
 
         MedicationReconciliation ticket = new MedicationReconciliation(
@@ -187,6 +177,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             VersionEtag.requireMatch(ifMatch, ticket.getVersion(), toResponse(ticket, List.of()));
         }
 
+        boolean prescriber = prescribingAuthority.canPrescribe(ticket.getResidentId());
         itemRepo.deleteByReconciliationId(id);
 
         List<ReconciliationItem> savedItems = new ArrayList<>();
@@ -195,6 +186,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             for (ReconciliationItemBody b : itemsBody) {
                 ReconciliationItemSource source = parseSource(b.getSource());
                 ReconciliationDecision decision = b.getDecision() != null ? parseDecision(b.getDecision()) : null;
+                if (!prescriber) {
+                    requireExternalBasis(decision, b);
+                }
 
                 String newPrescriptionJson = null;
                 if (b.getNewPrescription() != null) {
@@ -213,7 +207,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         b.getPrescriptionId(),
                         b.getAdmissionMedicationItemId(),
                         b.getMedicationDescription(),
-                        decision != null ? decision : ReconciliationDecision.CONTINUE,
+                        decision,
                         b.getReason(),
                         newPrescriptionJson,
                         currentUserId,
@@ -239,11 +233,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                     "Reconciliation sheet is not in OPEN status to submit for confirmation");
         }
 
+        // A ticket may have no line when the resident has no prescription (FR-035, Q-411). Lines for "current
+        // medications at admission" are checked by the confirmer against the initial health record (FR-034a, Q-411).
         List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
-        if (items.isEmpty()) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "MISSING_ITEMS", "Reconciliation sheet has no items (FR-034)");
-        }
 
         // Verify item completeness (FR-034, FR-034a, BR-M07-25)
         for (ReconciliationItem item : items) {
@@ -317,7 +309,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         requireNotTicketAuthor(ticket, actualUserId);
         List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
         requireNotItemAuthor(items, actualUserId);
-        requireDoctorForInternalPrescriptions(items, isDoctor);
+        requireDoctorForInternalPrescriptions(items, ticket.getResidentId());
 
         // Áp dụng quyết định từng dòng trong cùng giao dịch (FR-036)
         Instant now = businessTime.now();
@@ -354,7 +346,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     }
 
     /** Phiếu có dòng tạo đơn nội bộ (thêm mới, đổi liều) thì người xác nhận phải là bác sĩ có quyền kê đơn. */
-    private void requireDoctorForInternalPrescriptions(List<ReconciliationItem> items, boolean isDoctor) {
+    private void requireDoctorForInternalPrescriptions(List<ReconciliationItem> items, long residentId) {
         for (ReconciliationItem item : items) {
             boolean createsPrescription = (item.getDecision() == ReconciliationDecision.ADD_NEW
                             || item.getDecision() == ReconciliationDecision.CHANGE_DOSE)
@@ -369,7 +361,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         && !"EXTERNAL"
                                 .equalsIgnoreCase(
                                         newPrescription.getPrescriber().getType())
-                        && !isDoctor) {
+                        && !prescribingAuthority.canPrescribe(residentId)) {
                     throw new BusinessException(
                             HttpStatus.FORBIDDEN,
                             "PRESCRIBING_DOCTOR_REQUIRED",
@@ -592,6 +584,30 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         };
     }
 
+    /**
+     * Dòng Ngừng, Thay đổi liều của người không phải Bác sĩ có quyền kê đơn hợp lệ ({@link PrescribingAuthority}) (FR-005): lý do ghi căn cứ từ cơ sở kê bên
+     * ngoài, đơn thay thế là đơn bên ngoài có cơ sở kê (bảng FR-035, FR-006, Q-411). Nội dung căn cứ do người xác nhận
+     * kiểm.
+     */
+    private static void requireExternalBasis(ReconciliationDecision decision, ReconciliationItemBody line) {
+        if (decision != ReconciliationDecision.DISCONTINUE && decision != ReconciliationDecision.CHANGE_DOSE) {
+            return;
+        }
+        boolean hasBasis = line.getReason() != null && !line.getReason().isBlank();
+        var replacement = line.getNewPrescription();
+        boolean internalReplacement = replacement != null
+                && (replacement.getPrescriber() == null
+                        || !"EXTERNAL"
+                                .equalsIgnoreCase(replacement.getPrescriber().getType()));
+        if (!hasBasis || internalReplacement) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "EXTERNAL_BASIS_REQUIRED",
+                    "Dòng Ngừng, Thay đổi liều của người không có quyền kê đơn phải ghi căn cứ từ cơ sở kê bên ngoài"
+                            + " (cơ sở, người, ngày) trong lý do; đơn thay thế phải là đơn bên ngoài có cơ sở kê (Q-411)");
+        }
+    }
+
     private ReconciliationItemSource parseSource(String sourceStr) {
         if (sourceStr == null) {
             return ReconciliationItemSource.CURRENT_PRESCRIPTION;
@@ -676,6 +692,36 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         }
         res.setPermittedActions(actions);
 
+        if (t.getId() != null) {
+            res.setCorrections(correctionRepo.findByReconciliationId(t.getId()).stream()
+                    .sorted(java.util.Comparator.comparing(ReconciliationCorrectionRequest::getId)
+                            .reversed())
+                    .map(this::toCorrectionResponse)
+                    .toList());
+        }
+        return res;
+    }
+
+    /** Một đề nghị đính chính để hiện trên phiếu (FR-039; 006 T076). */
+    private ReconciliationCorrectionResponse toCorrectionResponse(ReconciliationCorrectionRequest req) {
+        ReconciliationCorrectionResponse res = new ReconciliationCorrectionResponse();
+        res.setId(req.getId());
+        res.setReconciliationId(req.getReconciliationId());
+        if (req.getCorrectedContentJson() != null) {
+            try {
+                res.setCorrectedContent(objectMapper.readValue(
+                        req.getCorrectedContentJson(),
+                        new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {}));
+            } catch (JsonProcessingException ignored) {
+            }
+        }
+        res.setReason(req.getReason());
+        res.setStatus(req.getStatus().name());
+        res.setCreatedById(req.getCreatedById());
+        res.setCreatedAt(req.getCreatedAt());
+        res.setConfirmedById(req.getConfirmedById());
+        res.setConfirmedAt(req.getConfirmedAt());
+        res.setReturnReason(req.getReturnReason());
         return res;
     }
 }

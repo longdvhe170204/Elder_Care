@@ -157,6 +157,9 @@ public class PrescriptionController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK", content = @Content),
         @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
                 responseCode = "409",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
@@ -221,6 +224,9 @@ public class PrescriptionController {
     @PostMapping("/api/v1/prescriptions/{id}/extend")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))

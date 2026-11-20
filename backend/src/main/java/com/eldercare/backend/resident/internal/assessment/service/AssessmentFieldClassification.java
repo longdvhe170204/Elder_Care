@@ -28,6 +28,8 @@ class AssessmentFieldClassification implements FieldClassificationProvider {
                 Map.entry("careLevel", InfoGroup.CARE_LEVEL),
                 Map.entry("careNeedIds", InfoGroup.HEALTH),
                 Map.entry("proposedResidenceType", InfoGroup.HEALTH),
-                Map.entry("confirmedAt", InfoGroup.HEALTH));
+                Map.entry("confirmedAt", InfoGroup.HEALTH),
+                // Gia đình khai do Hành chính ghi (Q-412, FR-025a): Hành chính xem nhật ký chỉ thấy "đã thay đổi"
+                Map.entry("familyDeclared", InfoGroup.HEALTH));
     }
 }

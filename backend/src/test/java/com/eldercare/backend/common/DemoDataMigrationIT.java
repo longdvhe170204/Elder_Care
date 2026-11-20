@@ -69,5 +69,24 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                         "SELECT attributes->>'$.createdAt' FROM catalog_item WHERE id=9001 AND catalog_type='M09.SHIFT_TEMPLATE'",
                         String.class)))
                 .isNotNull();
+        // V900_04: Bác sĩ demo kê đơn nội bộ được qua lớp pháp lý (006 FR-005): loại giấy phép của nghiệp vụ kê đơn đã
+        // cấu hình (JSON null ở V002_95 không phải SQL NULL), giấy phép cơ sở có phạm vi đó.
+        assertThat(jdbc.queryForObject(
+                        "SELECT attributes->>'$.requiredLicenseType' FROM catalog_item"
+                                + " WHERE catalog_type='M15.PROFESSIONAL_ACTIVITY' AND code='INTERNAL_DIAGNOSIS_PRESCRIBING'",
+                        String.class))
+                .isEqualTo("DOCTOR_LICENSE");
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM catalog_item WHERE catalog_type='M06.FACILITY_LICENSE'"
+                                + " AND JSON_CONTAINS(attributes->'$.operationScopes', '\"INTERNAL_DIAGNOSIS_PRESCRIBING\"')",
+                        Integer.class))
+                .isEqualTo(1);
+        // V900_06: dịch vụ chăm sóc demo 9302 "Chăm sóc thường xuyên" mang mã mức chăm sóc REGULAR (001 CareLevel),
+        // không
+        // phải FREQUENT V900_05 ghi nhầm, để hợp đồng mức Thường xuyên chọn được dịch vụ chăm sóc tương ứng
+        assertThat(jdbc.queryForObject(
+                        "SELECT attributes->>'$.careLevelCode' FROM catalog_item WHERE id=9302 AND catalog_type='M02.SERVICE'",
+                        String.class))
+                .isEqualTo("REGULAR");
     }
 }

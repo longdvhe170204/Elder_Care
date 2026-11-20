@@ -36,7 +36,8 @@ public class TreatmentWishStore {
     private static final String SELECT = "SELECT id, resident_id, hospital1_name, hospital1_address, hospital2_name,"
             + " hospital2_address, insurance_registration_place, insurance_card_number, insurance_card_expiry,"
             + " ask_family_first, escort, note, respondent_type, respondent_family_member_id, signed_copy_file_id,"
-            + " status, recorded_by, recorded_at FROM wish WHERE kind = 'TREATMENT'";
+            + " status, recorded_by, recorded_at, verified_by, verified_at FROM wish"
+            + " WHERE kind = 'TREATMENT' AND status IN ('ACTIVE', 'EXPIRED')";
 
     private static final String WISH_TYPE = "M01.TREATMENT_WISH";
 
@@ -94,6 +95,46 @@ public class TreatmentWishStore {
         long id = keys.getKey().longValue();
         this.opinions.add(WISH_TYPE, id, opinions, wish.recordedBy(), wish.recordedAt());
         return id;
+    }
+
+    /**
+     * Kiểm chứng bản Nháp (Q-412, FR-023p): ghi đủ nội dung phiên bản vào chính dòng Nháp, chuyển Hiệu lực kèm người, thời
+     * điểm kiểm chứng. Người gọi đã chuyển phiên bản Hiệu lực cũ sang Hết hiệu lực.
+     */
+    public void activateDraft(
+            long draftId, NewTreatmentWish wish, List<WishOpinion> opinions, long verifiedBy, Instant verifiedAt) {
+        PreferredHospital first = wish.preferredHospitals().get(0);
+        PreferredHospital second =
+                wish.preferredHospitals().size() > 1 ? wish.preferredHospitals().get(1) : null;
+        HealthInsurance insurance = wish.healthInsurance();
+        int updated = jdbc.update(
+                "UPDATE wish SET hospital1_name = ?, hospital1_address = ?, hospital2_name = ?, hospital2_address = ?,"
+                        + " insurance_registration_place = ?, insurance_card_number = ?, insurance_card_expiry = ?,"
+                        + " ask_family_first = ?, escort = ?, note = ?, respondent_type = ?, respondent_family_member_id = ?,"
+                        + " signed_copy_file_id = ?, notify_family_member_ids = CAST(? AS JSON), draft_opinions = NULL,"
+                        + " status = 'ACTIVE', verified_by = ?, verified_at = ?"
+                        + " WHERE id = ? AND kind = 'TREATMENT' AND status = 'DRAFT'",
+                first.name(),
+                first.address(),
+                second == null ? null : second.name(),
+                second == null ? null : second.address(),
+                insurance == null ? null : insurance.initialRegistrationPlace(),
+                insurance == null ? null : insurance.cardNumber(),
+                insurance == null ? null : insurance.cardExpiry(),
+                wish.askFamilyFirst(),
+                wish.accompaniedBy().name(),
+                wish.note(),
+                wish.respondent().type().name(),
+                wish.respondent().familyMemberId(),
+                wish.signedCopyFileId(),
+                wish.notifyFamilyMemberIds().stream().map(String::valueOf).collect(Collectors.joining(",", "[", "]")),
+                verifiedBy,
+                utc(verifiedAt),
+                draftId);
+        if (updated != 1) {
+            throw new IllegalStateException("Bản Nháp " + draftId + " không còn ở Nháp");
+        }
+        this.opinions.add(WISH_TYPE, draftId, opinions, verifiedBy, verifiedAt);
     }
 
     public Optional<TreatmentWish> findActive(long residentId) {
@@ -169,7 +210,11 @@ public class TreatmentWishStore {
                 rs.getObject("signed_copy_file_id", Long.class),
                 TreatmentWishStatus.valueOf(rs.getString("status")),
                 rs.getLong("recorded_by"),
-                rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
+                rs.getObject("recorded_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                rs.getObject("verified_by", Long.class),
+                rs.getObject("verified_at", LocalDateTime.class) == null
+                        ? null
+                        : rs.getObject("verified_at", LocalDateTime.class).toInstant(ZoneOffset.UTC));
     }
 
     private static LocalDateTime utc(Instant instant) {
