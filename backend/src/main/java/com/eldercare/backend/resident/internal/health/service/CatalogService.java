@@ -1,5 +1,6 @@
 package com.eldercare.backend.resident.internal.health.service;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
@@ -11,6 +12,7 @@ import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
 import com.eldercare.backend.administration.shared.api.dto.SharedKind;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.data.CatalogStatus;
 import com.eldercare.backend.common.error.BusinessException;
@@ -26,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,20 +73,30 @@ public class CatalogService {
     private final Map<String, Kind> kinds = new LinkedHashMap<>();
     private final CatalogApi catalog;
     private final AuditLogApi auditLog;
+    private final ObjectProvider<CurrentUser> currentUser;
 
-    CatalogService(CatalogApi catalog, AuditLogApi auditLog) {
+    CatalogService(CatalogApi catalog, AuditLogApi auditLog, ObjectProvider<CurrentUser> currentUser) {
         this.catalog = catalog;
         this.auditLog = auditLog;
+        this.currentUser = currentUser;
         kinds.put("allergens", new AllergenKind());
         kinds.put("allergy-severities", new SharedCatalogKind(M01Catalogs.ALLERGY_SEVERITY, true));
         kinds.put("information-sources", new SharedCatalogKind(M01Catalogs.INFORMATION_SOURCE, false));
         kinds.put("care-needs", new SharedCatalogKind(M01Catalogs.CARE_NEED, false));
     }
 
-    /** {@code group} chỉ lọc dị nguyên; {@code status} rỗng là mọi trạng thái. */
+    /**
+     * {@code group} chỉ lọc dị nguyên; {@code status} rỗng là mọi trạng thái. Hành chính (chỉ có quyền theo chú thích ⁵⁰
+     * của Phụ lục 27) chỉ thấy mục Hiệu lực, để chọn khi ghi tự khai (Q-400, BR-M01-17).
+     */
     @RequiresPermission(function = Function.HEALTH_CATALOGS, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public List<CatalogItemView> list(String type, String group, Optional<CatalogStatus> status) {
+    public List<CatalogItemView> list(String type, String group, Optional<CatalogStatus> requested) {
+        CurrentUser user = currentUser.getObject();
+        Optional<CatalogStatus> status =
+                SelfReportedHealth.isOfficeOnly(user) && !user.roles().contains(Role.NURSING_HOME_MANAGER)
+                        ? Optional.of(CatalogStatus.ACTIVE)
+                        : requested;
         if (CARE_LEVELS.equals(type)) {
             return catalog.list(M01Catalogs.CARE_LEVEL, null, true).stream()
                     .map(i ->
