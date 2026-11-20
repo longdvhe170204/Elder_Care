@@ -3919,7 +3919,7 @@ Thuật ngữ: đồ gửi = `belonging` (như 008 `HeldBelongingView`, 012 `Res
 
 | Tên logic | Mã |
 | --- | --- |
-| `/dashboard`, `/chi-tieu` | `/dashboard`, `/metrics` |
+| `/dashboard`, `/chi-tieu` | `/dashboard`, `/metric-catalog` (trước 2026-11-20 là `/metrics`, đổi vì chính sách quản trị của Chrome có thể chặn đường dẫn kết thúc bằng `/metrics`; chủ dự án duyệt) |
 | `/bao-cao/{nhom}`, `…/xuat`, `/bao-cao/lan-xuat` | `/reports/{group}`, `…/export`, `/reports/exports` |
 | `/chi-tiet/{maChiTieu}` | `/metric-details/{metricCode}` |
 | tag `dashboard`, `bao-cao`, `xuat` | `dashboard`, `reports`, `export` |
