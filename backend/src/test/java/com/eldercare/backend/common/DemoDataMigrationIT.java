@@ -97,5 +97,16 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND JSON_CONTAINS(t.allowed_care_levels, r.allowed_care_levels)",
                         Integer.class))
                 .isEqualTo(4);
+        // V900_08: Bác sĩ thứ hai (demo.bacsi2, hồ sơ 9010, giấy phép DOCTOR_LICENSE) để thử quy tắc hai người của
+        // phiếu
+        // đối chiếu thuốc trước Hoàn tất tiếp nhận (BF-01 bước 12, Q-55; Điều dưỡng chỉ thấy người trong phân công)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM account a JOIN permission_assignment r ON r.account_id=a.id AND r.kind='ROLE_ASSIGNMENT' AND r.role='AC-03'"
+                                + " JOIN staff_profile s ON s.id=a.staff_id AND s.account_id=a.id"
+                                + " JOIN credential c ON c.staff_id=s.id JOIN catalog_item t ON t.id=c.credential_type_id"
+                                + " AND t.code='DOCTOR_LICENSE' WHERE a.username='demo.bacsi2' AND a.status='ACTIVE'"
+                                + " AND a.staff_id=9010",
+                        Integer.class))
+                .isEqualTo(1);
     }
 }

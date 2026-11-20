@@ -3100,7 +3100,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Hồ sơ người cao tuổi | UC-01, 02 | X | P | X | P | P | — | T⁵ | X | X⁵ | — |
 | Bản đồng ý chia sẻ dữ liệu | UC-03 | X | — | — | — | — | — | T | X | — | — |
 | Dị ứng, bệnh nền | UC-04, 103 | X | P | T | T | P | — | T⁵⁰ | X¹ | — | — |
-| Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc | BR-M01-11, Q-291 | C | — | X | X | — | — | — | — | — | — |
+| Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc | BR-M01-11, Q-291 | C | — | X | X | — | — | X⁵⁰ | — | — | — |
 | Đánh giá, mức chăm sóc | UC-05, 06 | X | P | T, D | T | — | — | T⁵² | — | — | — |
 | Tiếp nhận, hợp đồng, đặt cọc | UC-08, 09, 11, 12 | X, D⁶ | — | — | — | — | — | T²⁶ | X⁷ | T²⁶ | — |
 | Danh sách chờ, dấu ưu tiên | UC-10 | X | — | — | — | — | — | T | — | — | — |
@@ -3223,7 +3223,7 @@ Cột KT (Kế toán): ô của các dòng không nêu ở đây là "—", tr�
 - ⁴⁷ Người cao tuổi bấm trên thiết bị đã gắn (BR-M05-27, BR-M15-24); cảnh báo tạo ra được xử lý theo dòng "Xử lý cảnh báo".
 - ⁴⁸ Điều dưỡng trong phạm vi chỉ tạo mã QR đăng nhập cho người cao tuổi (19.1, Q-370); tạo, khóa tài khoản và gỡ thiết bị do Hành chính, Quản lý viện.
 - ⁴⁹ Chỉ khi đang trong ca; vai trò không xếp ca trong giờ hành chính CFG-M13-06 (BR-M05-29). Cảnh báo tạo ra được xử lý theo dòng "Xử lý cảnh báo".
-- ⁵⁰ Hành chính chỉ ghi tự khai của gia đình khi người cao tuổi còn Đang tiếp nhận (Q-400, BR-M01-17): lập, sửa bản Nháp hồ sơ sức khỏe ban đầu và thêm mục dị ứng, bệnh nền, tiền sử bệnh mang dấu "chưa kiểm chứng"; không loại trừ mục, không xác nhận hồ sơ; chỉ xem bản Nháp và các mục chưa kiểm chứng do chính mình ghi, không xem hồ sơ đã xác nhận, chỉ số đo hay dữ liệu sức khỏe khác (19.3). Phiếu nguyện vọng khi điều trị (quyền theo dòng này, BR-M01-16): Hành chính chỉ lập bản Nháp theo chú thích ⁵².
+- ⁵⁰ Hành chính chỉ ghi tự khai của gia đình khi người cao tuổi còn Đang tiếp nhận (Q-400, BR-M01-17): lập, sửa bản Nháp hồ sơ sức khỏe ban đầu và thêm mục dị ứng, bệnh nền, tiền sử bệnh mang dấu "chưa kiểm chứng"; không loại trừ mục, không xác nhận hồ sơ; chỉ xem bản Nháp và các mục chưa kiểm chứng do chính mình ghi, không xem hồ sơ đã xác nhận, chỉ số đo hay dữ liệu sức khỏe khác (19.3). Phiếu nguyện vọng khi điều trị (quyền theo dòng này, BR-M01-16): Hành chính chỉ lập bản Nháp theo chú thích ⁵². Dòng "Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc": Hành chính chỉ xem các mục Hiệu lực để chọn khi ghi tự khai, không tạo, sửa danh mục (chủ dự án 2026-11-20; trước đó ô này trống nên Hành chính không mở được form thêm mục).
 - ⁵¹ Hành chính chỉ xem phần người thân cần liên hệ của danh sách tiếp xúc (họ tên, quan hệ, số điện thoại, nội dung cần báo; BR-M05-24, 007 FR-062, Q-401); không xem người cao tuổi, nhân viên trong danh sách.
 - ⁵² Hành chính chỉ lập, sửa bản Nháp tự khai khi người cao tuổi còn Đang tiếp nhận (Q-412, BR-M01-18): phần "Gia đình khai" của phiếu đánh giá đầu vào, phiếu nguyện vọng cuối đời, phiếu nguyện vọng khi điều trị; không ghi nhận xét đánh giá, không chọn mức chăm sóc, nhu cầu chăm sóc, không xác nhận, không kiểm chứng; chỉ xem bản Nháp do chính mình ghi (19.3).
 
