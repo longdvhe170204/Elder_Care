@@ -338,7 +338,7 @@ paths:
     put:
       tags: [reconciliation]
       summary: Thay danh sách dòng và quyết định (chỉ khi Mở)
-      description: 'Dòng CHANGE_DOSE, ADD_NEW kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng. Người không phải Bác sĩ có quyền kê đơn hợp lệ (FR-005) ghi dòng DISCONTINUE, CHANGE_DOSE mà reason trống (căn cứ từ cơ sở kê bên ngoài: cơ sở, người, ngày) hoặc newPrescription không phải đơn bên ngoài thì 409 EXTERNAL_BASIS_REQUIRED (FR-035, FR-006, Q-411).'
+      description: 'Dòng tạo đơn (CHANGE_DOSE, ADD_NEW; CONTINUE của dòng DISCHARGE_PRESCRIPTION, ADMISSION_CURRENT_MEDICATION, ghi kèm newPrescription theo đơn bệnh viện, FR-034a, User Story 4 kịch bản 10) kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng. Người không phải Bác sĩ có quyền kê đơn hợp lệ (FR-005) ghi dòng DISCONTINUE, CHANGE_DOSE mà reason trống (căn cứ từ cơ sở kê bên ngoài: cơ sở, người, ngày) hoặc newPrescription không phải đơn bên ngoài thì 409 EXTERNAL_BASIS_REQUIRED (FR-035, FR-006, Q-411).'
       x-fr: [FR-035, FR-036, FR-007]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ReconciliationItem' } } } } }
@@ -347,7 +347,7 @@ paths:
     post:
       tags: [reconciliation]
       summary: Gửi xác nhận
-      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do (FR-034, FR-034a).'
+      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do, dòng tạo đơn thiếu newPrescription (FR-034, FR-034a).'
       x-fr: [FR-034, FR-034a, FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/Blocked' } }

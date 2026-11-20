@@ -34,6 +34,8 @@ import com.eldercare.backend.medication.internal.reconciliation.persistence.Medi
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ReconciliationCorrectionRequestRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ReconciliationItemRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -64,6 +66,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final BusinessTime businessTime;
     private final ReconciliationDeadlines deadlines;
     private final PrescribingAuthority prescribingAuthority;
+    private final ResidentApi residents;
 
     public MedicationReconciliationService(
             MedicationReconciliationRepository reconciliationRepo,
@@ -76,7 +79,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             @Autowired(required = false) ObjectMapper objectMapper,
             BusinessTime businessTime,
             ReconciliationDeadlines deadlines,
-            PrescribingAuthority prescribingAuthority) {
+            PrescribingAuthority prescribingAuthority,
+            ResidentApi residents) {
+        this.residents = residents;
         this.deadlines = deadlines;
         this.prescribingAuthority = prescribingAuthority;
         this.reconciliationRepo = reconciliationRepo;
@@ -86,7 +91,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         this.doseRepo = doseRepo;
         this.prescriptionService = prescriptionService;
         this.residentMedicationLock = residentMedicationLock;
-        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
+        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper().findAndRegisterModules();
         this.businessTime = businessTime;
     }
 
@@ -247,6 +252,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                 throw new BusinessException(
                         HttpStatus.CONFLICT, "MISSING_ITEMS", "Discontinue item missing reason (FR-034)");
             }
+            if (createsPrescription(item) && item.getNewPrescriptionJson() == null) {
+                throw new BusinessException(
+                        HttpStatus.CONFLICT, "MISSING_ITEMS", "Dòng tạo đơn thiếu nội dung đơn (FR-034a, FR-036)");
+            }
         }
 
         // Kiểm tra độ bao phủ các đơn hiện tại của người cao tuổi (BR-M07-25, FR-034)
@@ -348,10 +357,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     /** Phiếu có dòng tạo đơn nội bộ (thêm mới, đổi liều) thì người xác nhận phải là bác sĩ có quyền kê đơn. */
     private void requireDoctorForInternalPrescriptions(List<ReconciliationItem> items, long residentId) {
         for (ReconciliationItem item : items) {
-            boolean createsPrescription = (item.getDecision() == ReconciliationDecision.ADD_NEW
-                            || item.getDecision() == ReconciliationDecision.CHANGE_DOSE)
-                    && item.getNewPrescriptionJson() != null;
-            if (!createsPrescription) {
+            if (!createsPrescription(item) || item.getNewPrescriptionJson() == null) {
                 continue;
             }
             try {
@@ -377,7 +383,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private void applyDecision(
             MedicationReconciliation ticket, ReconciliationItem item, Long userId, boolean isDoctor, Instant now) {
         ReconciliationDecision decision = item.getDecision();
-        if (decision == ReconciliationDecision.CONTINUE) {
+        if (decision == ReconciliationDecision.CONTINUE && createsPrescription(item)) {
+            createPrescriptionFromItem(ticket, item, userId, isDoctor);
+        } else if (decision == ReconciliationDecision.CONTINUE) {
             resumeSuspendedPrescription(item);
         } else if (decision == ReconciliationDecision.DISCONTINUE) {
             discontinuePrescriptionAndOpenDoses(item, now);
@@ -437,6 +445,18 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     }
 
     /** Tạo đơn từ nội dung đơn mới ghi ở dòng và ghi mã đơn vừa tạo vào dòng. */
+    /**
+     * Dòng tạo đơn khi xác nhận (FR-036): Thêm mới, Thay đổi liều, và Tiếp tục thuốc từ đơn ra viện hoặc thuốc đang dùng khi
+     * tiếp nhận (chưa có đơn trong hệ thống, ghi kèm đơn; FR-034a, User Story 4 kịch bản 10).
+     */
+    private static boolean createsPrescription(ReconciliationItem item) {
+        ReconciliationDecision decision = item.getDecision();
+        return decision == ReconciliationDecision.ADD_NEW
+                || decision == ReconciliationDecision.CHANGE_DOSE
+                || (decision == ReconciliationDecision.CONTINUE
+                        && item.getSource() != ReconciliationItemSource.CURRENT_PRESCRIPTION);
+    }
+
     private void createPrescriptionFromItem(
             MedicationReconciliation ticket, ReconciliationItem item, Long userId, boolean isDoctor) {
         if (item.getNewPrescriptionJson() == null) {
@@ -445,12 +465,16 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         try {
             CreatePrescriptionBody newPrescription =
                     objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
-            PrescriptionResponse created = prescriptionService.create(
+            // Phiếu lập trước khi hồ sơ Đang tiếp nhận: đơn Chờ hiệu lực dấu "chờ tiếp nhận", có hiệu lực tại lệnh
+            // Hoàn tất tiếp nhận (FR-034a, Q-57).
+            if (residents.status(ticket.getResidentId()) == ResidentStatus.ADMISSION_IN_PROGRESS) {
+                newPrescription.setPendingAdmission(true);
+            }
+            PrescriptionResponse created = prescriptionService.createFromReconciliation(
                     PrescriptionService.target(ticket.getResidentId()),
                     ticket.getResidentId(),
                     newPrescription,
-                    userId,
-                    isDoctor);
+                    userId);
             item.recordCreatedPrescription(created.id());
             itemRepo.save(item);
         } catch (JsonProcessingException e) {

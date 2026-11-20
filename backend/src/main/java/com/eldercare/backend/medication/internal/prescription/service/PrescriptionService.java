@@ -342,14 +342,32 @@ public class PrescriptionService implements PrescriptionApi {
         return create(target, residentId, toCommand(body, currentUserId));
     }
 
+    /**
+     * Đơn tạo từ một dòng của phiếu đối chiếu đang được xác nhận (FR-036): thay đổi đã ghi trên phiếu nên không chặn theo
+     * FR-037 như lệnh Nhập đơn ngoài phiếu.
+     */
+    @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
+    @Transactional
+    public PrescriptionResponse createFromReconciliation(
+            Target target,
+            long residentId,
+            com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody body,
+            Long currentUserId) {
+        return create(residentId, toCommand(body, currentUserId), false);
+    }
+
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
     @Transactional
     public PrescriptionResponse create(Target target, long residentId, CreatePrescriptionCommand cmd) {
+        return create(residentId, cmd, true);
+    }
+
+    private PrescriptionResponse create(long residentId, CreatePrescriptionCommand cmd, boolean outsideTicket) {
         // 1. Khóa trạng thái M07 theo người trên resident_module_state (research D-03, R-15)
         residentMedicationLock.lock(residentId);
 
         // 2. Chặn nếu đang có phiếu đối chiếu Mở hoặc Chờ xác nhận (FR-037)
-        if (reconciliationCheckPort.hasOpenOrPendingReconciliation(residentId)) {
+        if (outsideTicket && reconciliationCheckPort.hasOpenOrPendingReconciliation(residentId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "RECONCILIATION_IN_PROGRESS",
