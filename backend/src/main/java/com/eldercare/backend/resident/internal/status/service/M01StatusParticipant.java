@@ -149,8 +149,7 @@ class M01StatusParticipant implements StatusTransitionParticipant {
         List<Warning> warnings = new ArrayList<>();
         if (consents.findActive(residentId).isEmpty()) {
             warnings.add(new Warning(
-                    MISSING_CONSENT,
-                    "Chưa có bản đồng ý chia sẻ dữ liệu Hiệu lực; Hành chính sẽ được nhắc ghi nhận (FR-012)"));
+                    MISSING_CONSENT, "Chưa có bản đồng ý chia sẻ dữ liệu Hiệu lực; Hành chính sẽ được nhắc ghi nhận"));
         }
         boolean recordConfirmed = healthRecords
                 .findByResidentId(residentId)
@@ -158,32 +157,28 @@ class M01StatusParticipant implements StatusTransitionParticipant {
                 .orElse(false);
         if (!recordConfirmed
                 || healthItems.existsByResidentIdAndStatusAndUnverifiedTrue(residentId, HealthItemStatus.ACTIVE)) {
-            warnings.add(
-                    new Warning(
-                            UNCONFIRMED_HEALTH_RECORD,
-                            "Hồ sơ sức khỏe ban đầu chưa được Bác sĩ xác nhận hoặc còn mục tự khai chưa kiểm chứng (BR-M01-17)"));
+            warnings.add(new Warning(
+                    UNCONFIRMED_HEALTH_RECORD,
+                    "Hồ sơ sức khỏe ban đầu chưa được Bác sĩ xác nhận hoặc còn mục tự khai chưa kiểm chứng"));
         }
         if (!endOfLifeWishes.hasActive(residentId)) {
             warnings.add(new Warning(
                     MISSING_END_OF_LIFE_WISH,
-                    "Chưa có nguyện vọng cuối đời; Bác sĩ, Điều dưỡng phụ trách sẽ được nhắc ghi phiếu (FR-023d)"));
+                    "Chưa có nguyện vọng cuối đời; Bác sĩ, Điều dưỡng phụ trách sẽ được nhắc ghi phiếu"));
         }
         if (!treatmentWishes.hasActive(residentId)) {
-            warnings.add(new Warning(
-                    MISSING_TREATMENT_WISH, "Chưa có nguyện vọng khi điều trị; không nhắc định kỳ (FR-023l)"));
+            warnings.add(new Warning(MISSING_TREATMENT_WISH, "Chưa có nguyện vọng khi điều trị; không nhắc định kỳ"));
         }
         List<String> drafts = wishDrafts.openDraftKinds(residentId);
         if (drafts.contains("END_OF_LIFE")) {
-            warnings.add(
-                    new Warning(
-                            UNVERIFIED_END_OF_LIFE_WISH_DRAFT,
-                            "Phiếu nguyện vọng cuối đời tự khai chưa được kiểm chứng; Bác sĩ, Điều dưỡng sẽ được nhắc (FR-023r)"));
+            warnings.add(new Warning(
+                    UNVERIFIED_END_OF_LIFE_WISH_DRAFT,
+                    "Phiếu nguyện vọng cuối đời tự khai chưa được kiểm chứng; Bác sĩ, Điều dưỡng sẽ được nhắc"));
         }
         if (drafts.contains("TREATMENT")) {
-            warnings.add(
-                    new Warning(
-                            UNVERIFIED_TREATMENT_WISH_DRAFT,
-                            "Phiếu nguyện vọng khi điều trị tự khai chưa được kiểm chứng; Bác sĩ, Điều dưỡng sẽ được nhắc (FR-023r)"));
+            warnings.add(new Warning(
+                    UNVERIFIED_TREATMENT_WISH_DRAFT,
+                    "Phiếu nguyện vọng khi điều trị tự khai chưa được kiểm chứng; Bác sĩ, Điều dưỡng sẽ được nhắc"));
         }
         return warnings;
     }
