@@ -521,6 +521,12 @@ public class ContractService {
                     "Hợp đồng cần đúng một dịch vụ chăm sóc, đúng mức " + content.careLevel() + " của hợp đồng",
                     "FR-025, Q-297"));
         }
+        if (inpatient && content.roomTypeId() != null && hasResidencyFeeOfOtherRoomType(content)) {
+            unmet.add(condition(
+                    "CONTRACT_RESIDENCY_FEE_MISMATCH",
+                    "Phí lưu trú phải theo đúng loại phòng của hợp đồng",
+                    "FR-019, FR-034"));
+        }
         if (!nonStandardTerms(contract).isEmpty() && !termsApproved(contract)) {
             unmet.add(condition(
                     "TERMS_APPROVAL_REQUIRED",
@@ -540,6 +546,15 @@ public class ContractService {
                 .filter(kind -> "CARE".equals(kind.type()))
                 .toList();
         return care.size() == 1 && care.get(0).careLevel() == content.careLevel();
+    }
+
+    /** Dòng phí lưu trú gắn loại phòng khác loại phòng của hợp đồng (chủ dự án duyệt 2026-11-21). */
+    private boolean hasResidencyFeeOfOtherRoomType(ContractContent content) {
+        return content.services().stream()
+                .map(line -> store.serviceKind(line.serviceId()).orElseThrow())
+                .anyMatch(kind -> "RESIDENCY_FEE".equals(kind.type())
+                        && kind.roomTypeId() != null
+                        && !kind.roomTypeId().equals(content.roomTypeId()));
     }
 
     private boolean termsApproved(Contract contract) {
