@@ -141,5 +141,17 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND floor_area_id=9002 AND status='ACTIVE'",
                         Integer.class))
                 .isEqualTo(1);
+        // V900_10: nghiệp vụ Phát thuốc có loại giấy phép NURSING_LICENSE để Trưởng tầng đặt được Điều dưỡng phụ trách
+        // (008 AssignmentService, BF-01 bước 16; F17); Điều dưỡng demo 9005, 9011 có giấy phép đó
+        assertThat(jdbc.queryForObject(
+                        "SELECT attributes->>'$.requiredLicenseType' FROM catalog_item"
+                                + " WHERE catalog_type='M15.PROFESSIONAL_ACTIVITY' AND code='MEDICATION_ADMINISTRATION'",
+                        String.class))
+                .isEqualTo("NURSING_LICENSE");
+        assertThat(jdbc.queryForList(
+                        "SELECT c.staff_id FROM credential c JOIN catalog_item t ON t.id=c.credential_type_id"
+                                + " AND t.code='NURSING_LICENSE' WHERE c.staff_id IN (9005, 9011) ORDER BY c.staff_id",
+                        Long.class))
+                .containsExactly(9005L, 9011L);
     }
 }
