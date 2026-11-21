@@ -252,7 +252,7 @@ public class AdmissionConditionService implements AdmissionConditionApi {
             warnings.add(new Warning(
                     NOT_YET_ADMITTED,
                     "Phí lưu trú đang tính từ ngày " + AdmissionTexts.date(active.startDate())
-                            + " nhưng người cao tuổi chưa Hoàn tất tiếp nhận (FR-074, FR-076)"));
+                            + " nhưng người cao tuổi chưa Hoàn tất tiếp nhận"));
         }
         return List.copyOf(warnings);
     }
