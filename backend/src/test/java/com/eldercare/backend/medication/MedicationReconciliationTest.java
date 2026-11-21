@@ -100,7 +100,8 @@ class MedicationReconciliationTest {
                 objectMapper,
                 new BusinessTime(Clock.systemUTC()),
                 deadlines,
-                prescribingAuthority);
+                prescribingAuthority,
+                mock(com.eldercare.backend.resident.api.ResidentApi.class));
     }
 
     private void setId(Object entity, Long id) {
@@ -377,7 +378,7 @@ class MedicationReconciliationTest {
 
         when(prescribingAuthority.canPrescribe(100L)).thenReturn(true);
         when(reconciliationRepo.save(any(MedicationReconciliation.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(prescriptionService.create(any(), eq(100L), any(), eq(30L), eq(true)))
+        when(prescriptionService.createFromReconciliation(any(), eq(100L), any(), eq(30L)))
                 .thenReturn(
                         mock(com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse.class));
         assertThat(reconciliationService.confirm(3L, 30L, true).getStatus()).isEqualTo("CONFIRMED");
