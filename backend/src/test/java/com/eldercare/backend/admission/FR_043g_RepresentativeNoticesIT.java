@@ -3,8 +3,11 @@ package com.eldercare.backend.admission;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.approval.api.events.RequestSubmitted;
 import com.eldercare.backend.admission.api.events.ResidencyChangeOutcomeNotice;
 import com.eldercare.backend.admission.api.events.ResidencyChangeSubmittedNotice;
+import com.eldercare.backend.common.notification.ContentPart;
+import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -20,7 +23,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 class FR_043g_RepresentativeNoticesIT extends ChangeTestBase {
 
     private long draftNonMinor(Setup s) throws Exception {
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         return createChange(request(
                         s.contractId(),
                         "[\"SERVICE\"]",
@@ -28,6 +31,26 @@ class FR_043g_RepresentativeNoticesIT extends ChangeTestBase {
                         today().plusDays(5)))
                 .get("approvalRequestId")
                 .asLong();
+    }
+
+    @Test
+    void submitted_approverNoticeNamesResidentAndContract_shortContentDoesNot() throws Exception {
+        Setup s = activeSetup();
+        long id = draftNonMinor(s);
+        submit(id);
+
+        String name = jdbc.queryForObject("SELECT full_name FROM resident WHERE id = ?", String.class, s.residentId());
+        String number =
+                jdbc.queryForObject("SELECT contract_number FROM contract WHERE id = ?", String.class, s.contractId());
+        NotificationRequest notice = events.stream(RequestSubmitted.class)
+                .filter(e -> e.request().id() == id)
+                .findFirst()
+                .orElseThrow()
+                .notificationRequests()
+                .getFirst();
+        String content = notice.content().stream().map(ContentPart::content).reduce("", String::concat);
+        assertThat(content).contains(name, number, "Dịch vụ");
+        assertThat(notice.shortContent().orElseThrow()).doesNotContain(name);
     }
 
     @Test

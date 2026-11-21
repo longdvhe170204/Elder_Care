@@ -25,7 +25,7 @@ public record AddendumSignatureOverdue(long addendumId, long requestId, long res
                 Notices.MANAGER,
                 "Phụ lục số %02d quá hạn ký".formatted(addendumNo),
                 "Phụ lục hợp đồng đã duyệt quá lâu mà người đại diện chưa ký. Liên hệ gia đình; gia đình đổi ý thì hủy"
-                        + " yêu cầu thay đổi lưu trú.",
+                        + " yêu cầu điều chỉnh hợp đồng.",
                 at));
     }
 }

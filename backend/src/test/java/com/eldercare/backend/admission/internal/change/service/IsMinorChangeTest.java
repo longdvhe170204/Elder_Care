@@ -45,10 +45,11 @@ class IsMinorChangeTest {
 
     @Test
     void aCostImpactWithEqualPrices_isStillMinor() {
+        // R19: dịch vụ 11 thuộc gói trong hợp đồng hiện hành (dịch vụ chưa có thì không phải thay đổi nhỏ)
         var change = content("[\"SERVICE\"]", """
-                {"services": [{"serviceId": 20, "action": "ADD", "inPackage": true}]}""");
+                {"services": [{"serviceId": 11, "action": "ADD", "inPackage": true}]}""");
         JsonNode cost = cost("""
-                [{"item": "SERVICE:20", "previousUnitPrice": 0, "newUnitPrice": 0}]""");
+                [{"item": "SERVICE:11", "previousUnitPrice": 0, "newUnitPrice": 0}]""");
 
         assertThat(IsMinorChange.test(change, cost, CURRENT)).isTrue();
     }

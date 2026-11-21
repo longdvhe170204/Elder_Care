@@ -325,7 +325,7 @@ public class ResidencyChangeService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public List<OpinionView> recordOpinion(long approvalRequestId, OpinionInput input) {
-        ApprovalRequestView request = opinionTarget(approvalRequestId);
+        ApprovalRequestView request = opinionTarget(approvalRequestId, true);
         if (input == null || input.opinion() == null || input.source() == null) {
             throw new InvalidValueException("Cần ý kiến và nguồn của ý kiến");
         }
@@ -353,10 +353,13 @@ public class ResidencyChangeService {
         return opinionViews(request);
     }
 
-    /** Lịch sử ý kiến người cao tuổi của yêu cầu, mới nhất trước (FR-043h); cùng quyền như lệnh ghi. */
+    /**
+     * Lịch sử ý kiến người cao tuổi của yêu cầu, mới nhất trước (FR-043h); người ghi được và Quản lý viện (người duyệt cần
+     * xem ý kiến khi quyết định) xem được.
+     */
     @Transactional(readOnly = true)
     public List<OpinionView> opinions(long approvalRequestId) {
-        return opinionViews(opinionTarget(approvalRequestId));
+        return opinionViews(opinionTarget(approvalRequestId, false));
     }
 
     private List<OpinionView> opinionViews(ApprovalRequestView request) {
@@ -368,9 +371,10 @@ public class ResidencyChangeService {
 
     /**
      * Yêu cầu để ghi, xem ý kiến: Điều dưỡng không xem được yêu cầu phê duyệt (000 FR-042) nên đọc thẳng, quyền xét theo vai
-     * trò và phạm vi người cao tuổi. Không phải loại này thì 404.
+     * trò và phạm vi người cao tuổi. Ghi: Hành chính, Bác sĩ, Điều dưỡng phụ trách (FR-043h); xem: thêm Quản lý viện. Không
+     * phải loại này thì 404.
      */
-    private ApprovalRequestView opinionTarget(long approvalRequestId) {
+    private ApprovalRequestView opinionTarget(long approvalRequestId, boolean write) {
         ApprovalRequestView request =
                 approvals.getObject().find(approvalRequestId).orElseThrow(NotFoundException::new);
         if (!ResidencyChangeHandler.TYPE.equals(request.type())
@@ -380,13 +384,15 @@ public class ResidencyChangeService {
         CurrentUser user = currentUser.getObject();
         boolean allowed = user.type() != AccountType.FAMILY_MEMBER
                 && (user.roles().contains(Role.OFFICE_STAFF)
-                        || user.roles().contains(Role.NURSING_HOME_MANAGER)
+                        || (!write && user.roles().contains(Role.NURSING_HOME_MANAGER))
                         || user.roles().contains(Role.DOCTOR)
                         || (user.roles().contains(Role.NURSING_STAFF)
                                 && scopes.getObject().inScope(user, request.target())));
         if (!allowed) {
             throw new PermissionDeniedException(
-                    "Chỉ Hành chính, Bác sĩ, Điều dưỡng phụ trách ghi, xem ý kiến người cao tuổi");
+                    write
+                            ? "Chỉ Hành chính, Bác sĩ, Điều dưỡng phụ trách ghi ý kiến người cao tuổi"
+                            : "Chỉ Hành chính, Bác sĩ, Điều dưỡng phụ trách, Quản lý viện xem ý kiến người cao tuổi");
         }
         return request;
     }
@@ -520,7 +526,7 @@ public class ResidencyChangeService {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "CONTRACT_NOT_ACTIVE",
-                    "Yêu cầu thay đổi lưu trú cần hợp đồng đang Hiệu lực (FR-037)");
+                    "Yêu cầu điều chỉnh hợp đồng cần hợp đồng đang Hiệu lực (FR-037)");
         }
         if (requestedEffectiveDate == null) {
             throw new InvalidValueException("requestedEffectiveDate là ngày bắt buộc");
@@ -614,9 +620,10 @@ public class ResidencyChangeService {
 
     /**
      * Danh sách yêu cầu lọc theo hợp đồng, trạng thái của yêu cầu phê duyệt ("Đổi api" 004, A duyệt 2026-11-07), mới nhất
-     * trước. Nguồn là chỉ mục thuộc tính (FR-046); yêu cầu người dùng không xem được ({@code detail} 404) bị bỏ qua.
+     * trước. Nguồn là chỉ mục thuộc tính (FR-046); yêu cầu người dùng không xem được ({@code detail} 404) bị bỏ qua. Không
+     * mở transaction bao ngoài: {@code detail} 404 trong transaction chung đánh dấu rollback-only, cả danh sách lỗi 500 (người
+     * thân xem lịch sử yêu cầu, FR-039).
      */
-    @Transactional(readOnly = true)
     public List<View> list(Long contractId, Set<String> statuses) {
         Stream<Long> ids = contractId == null
                 ? addenda.allRequests().stream()

@@ -32,7 +32,7 @@ public record ResidencyChangeSubmittedNotice(
                 new SourceRecord("M02.RESIDENCY_CHANGE", String.valueOf(requestId)),
                 "RESIDENCY_CHANGE_SUBMITTED:" + requestId + ":" + at.toEpochMilli(),
                 residentId,
-                "Yêu cầu thay đổi lưu trú đã gửi duyệt",
+                "Yêu cầu điều chỉnh hợp đồng đã gửi duyệt",
                 text,
                 at);
         return List.of(new NotificationRequest(

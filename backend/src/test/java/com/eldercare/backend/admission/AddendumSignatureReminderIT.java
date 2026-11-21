@@ -23,7 +23,7 @@ class AddendumSignatureReminderIT extends ChangeTestBase {
         Setup s = activeSetup();
         noonOf(today());
         LocalDate approvedOn = today();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = createApproveUnsigned(request(
                 s.contractId(),
                 "[\"SERVICE\"]",

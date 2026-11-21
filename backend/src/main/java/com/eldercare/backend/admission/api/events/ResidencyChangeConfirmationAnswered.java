@@ -24,10 +24,12 @@ public record ResidencyChangeConfirmationAnswered(long requestId, long residentI
                 NotificationLevel.LOW,
                 residentId,
                 Notices.OFFICE,
-                accepted ? "Người đại diện đồng ý thay đổi lưu trú" : "Người đại diện không đồng ý thay đổi lưu trú",
                 accepted
-                        ? "Người đại diện đã đồng ý yêu cầu thay đổi lưu trú. Hành chính gửi Quản lý viện duyệt."
-                        : "Người đại diện không đồng ý yêu cầu thay đổi lưu trú. Xem lý do trên yêu cầu để sửa hoặc hủy.",
+                        ? "Người đại diện đồng ý điều chỉnh hợp đồng"
+                        : "Người đại diện không đồng ý điều chỉnh hợp đồng",
+                accepted
+                        ? "Người đại diện đã đồng ý yêu cầu điều chỉnh hợp đồng. Hành chính gửi Quản lý viện duyệt."
+                        : "Người đại diện không đồng ý yêu cầu điều chỉnh hợp đồng. Xem lý do trên yêu cầu để sửa hoặc hủy.",
                 at));
     }
 }

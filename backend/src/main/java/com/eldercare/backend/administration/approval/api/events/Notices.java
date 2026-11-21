@@ -24,6 +24,17 @@ final class Notices {
 
     static NotificationRequest of(
             ApprovalRequestView request, String eventType, List<RecipientGroup> recipients, String text, Instant at) {
+        return of(request, eventType, recipients, text, text, at);
+    }
+
+    /** {@code text} là nội dung đầy đủ; {@code shortText} là nội dung rút gọn (kênh ngoài ứng dụng). */
+    static NotificationRequest of(
+            ApprovalRequestView request,
+            String eventType,
+            List<RecipientGroup> recipients,
+            String text,
+            String shortText,
+            Instant at) {
         return new NotificationRequest(
                 "M15",
                 eventType,
@@ -35,7 +46,7 @@ final class Notices {
                 Optional.ofNullable(request.target().floorAreaId()),
                 recipients,
                 List.of(new ContentPart(InformationType.GENERAL, text)),
-                Optional.of(text),
+                Optional.of(shortText),
                 Optional.of("Yêu cầu " + request.displayCode()),
                 Optional.empty(),
                 false,

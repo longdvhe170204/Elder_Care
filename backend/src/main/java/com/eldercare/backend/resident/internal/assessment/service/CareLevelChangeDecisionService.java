@@ -23,6 +23,7 @@ import com.eldercare.backend.resident.internal.assessment.domain.CareLevelChange
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelChangeDecisionStore;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelHistoryStore;
+import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
@@ -55,6 +56,7 @@ public class CareLevelChangeDecisionService {
     private final ObjectProvider<CurrentUser> currentUser;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
+    private final ProfileOpenGuard guard;
 
     CareLevelChangeDecisionService(
             CareLevelChangeDecisionStore decisions,
@@ -65,7 +67,8 @@ public class CareLevelChangeDecisionService {
             ObjectProvider<CareRiskAgreementPort> risks,
             ObjectProvider<CurrentUser> currentUser,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            ProfileOpenGuard guard) {
         this.decisions = decisions;
         this.assessments = assessments;
         this.contents = contents;
@@ -75,6 +78,7 @@ public class CareLevelChangeDecisionService {
         this.currentUser = currentUser;
         this.events = events;
         this.time = time;
+        this.guard = guard;
     }
 
     /**
@@ -93,6 +97,7 @@ public class CareLevelChangeDecisionService {
                 || !(user.roles().contains(Role.OFFICE_STAFF) || user.roles().contains(Role.NURSING_HOME_MANAGER))) {
             throw new PermissionDeniedException("Chỉ Hành chính ghi quyết định khi gia đình không đồng ý đổi mức");
         }
+        guard.requireOpen(residentId);
         if (input == null || input.assessmentId() == null || input.decision() == null) {
             throw new InvalidValueException("Cần lần đánh giá và quyết định");
         }

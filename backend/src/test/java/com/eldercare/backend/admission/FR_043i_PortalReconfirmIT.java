@@ -65,7 +65,7 @@ class FR_043i_PortalReconfirmIT extends ChangeTestBase {
     @Test
     void R12_officeChangesEffectiveDate_needsConfirmation() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = portalRequest(s, body(s, extra, today().plusDays(5), REASON));
 
         edit(id, body(s, extra, today().plusDays(9), REASON)).andExpect(status().isOk());
@@ -85,7 +85,7 @@ class FR_043i_PortalReconfirmIT extends ChangeTestBase {
     @Test
     void R12_officeChangesOnlyReason_noConfirmationNeeded() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = portalRequest(s, body(s, extra, today().plusDays(5), REASON));
 
         edit(id, body(s, extra, today().plusDays(5), "Gia đình đề nghị, Hành chính bổ sung ghi chú"))

@@ -17,7 +17,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 class FR_043f_CancelIT extends ChangeTestBase {
 
     private long draftNonMinor(Setup s) throws Exception {
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         return createChange(request(
                         s.contractId(),
                         "[\"SERVICE\"]",
@@ -68,7 +68,7 @@ class FR_043f_CancelIT extends ChangeTestBase {
                 s.contractId(),
                 "[\"SERVICE\"]",
                 "{\"services\": [{\"serviceId\": "
-                        + service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000)
+                        + service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000)
                         + ", \"action\": \"ADD\"}]}",
                 today().plusDays(6)));
         assertThat(requestStatus(again)).as("thuộc tính đã được nhả (FR-046)").isEqualTo("APPROVED");

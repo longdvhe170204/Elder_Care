@@ -13,7 +13,7 @@ public enum Function {
     ASSESSMENT_CARE_LEVEL("Đánh giá, mức chăm sóc"),
     ADMISSION_CONTRACT_DEPOSIT("Tiếp nhận, hợp đồng, đặt cọc"),
     WAITING_LIST("Danh sách chờ, dấu ưu tiên"),
-    RESIDENCY_CHANGE_REQUEST("Yêu cầu thay đổi lưu trú"),
+    RESIDENCY_CHANGE_REQUEST("Yêu cầu điều chỉnh hợp đồng"),
     ABSENCE_RETURN("Tạm vắng, trở về"),
     RESIDENCY_END_DEATH("Kết thúc lưu trú, qua đời"),
     TRANSFER_OUT("Chuyển viện"),

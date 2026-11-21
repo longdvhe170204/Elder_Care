@@ -165,4 +165,38 @@ class InboxIT extends M13IntegrationTestBase {
                 .hasSize(1);
         assertThat(getJson(INBOX, token).get("unreadCount").asInt()).isZero();
     }
+
+    /**
+     * FR-034: phạm vi của nhân viên theo 002 (quyền xem hồ sơ người cao tuổi, kể cả phạm vi toàn viện), không chỉ theo phân
+     * công tầng, ca: Quản lý viện, Hành chính thấy nội dung thông báo về người cao tuổi không thuộc tầng nào của mình;
+     * Điều dưỡng không phụ trách người đó chỉ thấy tiêu đề.
+     */
+    @Test
+    void FR_034_facilityWideStaffSeeContent_unassignedNurseDoesNot() throws Exception {
+        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
+        TestUser office = users.staff(Role.OFFICE_STAFF);
+        TestUser nurse = users.staff(Role.NURSING_STAFF);
+        String key = send(notice(
+                "fr034b-" + resident,
+                NotificationLevel.LOW,
+                new RecipientGroup.Staff(manager.staffId(), "TEST"),
+                Optional.empty(),
+                InformationType.GENERAL));
+        String officeKey = send(notice(
+                "fr034c-" + resident, NotificationLevel.LOW, staff(office), Optional.empty(), InformationType.GENERAL));
+        String nurseKey = send(notice(
+                "fr034d-" + resident, NotificationLevel.LOW, staff(nurse), Optional.empty(), InformationType.GENERAL));
+
+        JsonNode toManager =
+                getJson(INBOX + "/" + notificationId(key, manager.accountId()), users.session(manager.accountId()));
+        JsonNode toOffice =
+                getJson(INBOX + "/" + notificationId(officeKey, office.accountId()), users.session(office.accountId()));
+        JsonNode toNurse =
+                getJson(INBOX + "/" + notificationId(nurseKey, nurse.accountId()), users.session(nurse.accountId()));
+
+        assertThat(toManager.get("content")).hasSize(1);
+        assertThat(toOffice.get("content")).hasSize(1);
+        assertThat(toNurse.get("content")).isEmpty();
+        assertThat(toNurse.get("hiddenParts").toString()).contains("GENERAL");
+    }
 }

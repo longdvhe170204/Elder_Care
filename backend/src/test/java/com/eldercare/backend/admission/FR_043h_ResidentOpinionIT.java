@@ -2,6 +2,7 @@ package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,7 +52,7 @@ class FR_043h_ResidentOpinionIT extends ChangeTestBase {
     @Test
     void R11_missingOpinion_warnsButSubmits() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = createChange(nonMinor(s, extra, today().plusDays(5), REASON))
                 .get("approvalRequestId")
                 .asLong();
@@ -64,7 +65,7 @@ class FR_043h_ResidentOpinionIT extends ChangeTestBase {
     @Test
     void R11_disagree_submitNeedsReason() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = createChange(nonMinor(s, extra, today().plusDays(5), REASON))
                 .get("approvalRequestId")
                 .asLong();
@@ -81,7 +82,7 @@ class FR_043h_ResidentOpinionIT extends ChangeTestBase {
     @Test
     void R11_nurseInScopeRecords_accountantForbidden() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = createChange(nonMinor(s, extra, today().plusDays(5), REASON))
                 .get("approvalRequestId")
                 .asLong();
@@ -92,6 +93,24 @@ class FR_043h_ResidentOpinionIT extends ChangeTestBase {
 
         user.set(users.staff(Role.ACCOUNTANT).user());
         opinion(id, "AGREE").andExpect(status().isForbidden());
+    }
+
+    @Test
+    void R11_managerViewsOpinions_cannotRecord() throws Exception {
+        Setup s = activeSetup();
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long id = createChange(nonMinor(s, extra, today().plusDays(5), REASON))
+                .get("approvalRequestId")
+                .asLong();
+        user.set(office.user());
+        opinion(id, "AGREE").andExpect(status().isOk());
+
+        user.set(manager.user());
+        opinion(id, "DISAGREE").andExpect(status().isForbidden());
+        MvcResult listed = mvc.perform(get("/api/v1/residency-change-requests/" + id + "/resident-opinions"))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(JSON.readTree(listed.getResponse().getContentAsString())).hasSize(1);
     }
 
     @Test
@@ -107,7 +126,7 @@ class FR_043h_ResidentOpinionIT extends ChangeTestBase {
     @Test
     void R18_substantiveChangeAfterOpinion_outdated_reasonOnlyNot() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = createChange(nonMinor(s, extra, today().plusDays(5), REASON))
                 .get("approvalRequestId")
                 .asLong();

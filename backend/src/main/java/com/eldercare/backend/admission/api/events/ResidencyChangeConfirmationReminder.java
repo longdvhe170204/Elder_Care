@@ -22,8 +22,8 @@ public record ResidencyChangeConfirmationReminder(long confirmationId, long requ
                         new SourceRecord("M02.CHANGE_CONFIRMATION", String.valueOf(confirmationId)),
                         "RESIDENCY_CHANGE_CONFIRMATION_REMINDER:" + confirmationId,
                         residentId,
-                        "Nhắc xác nhận thay đổi lưu trú",
-                        "Viện đang chờ bạn xác nhận đề nghị thay đổi lưu trú. Mở ứng dụng để xem và trả lời.",
+                        "Nhắc xác nhận điều chỉnh hợp đồng",
+                        "Viện đang chờ bạn xác nhận đề nghị điều chỉnh hợp đồng. Mở ứng dụng để xem và trả lời.",
                         at),
                 Notices.of(
                         "RESIDENCY_CHANGE_CONFIRMATION_OVERDUE",
@@ -33,7 +33,7 @@ public record ResidencyChangeConfirmationReminder(long confirmationId, long requ
                         residentId,
                         Notices.OFFICE,
                         "Người đại diện chưa trả lời đề nghị xác nhận",
-                        "Người đại diện chưa trả lời yêu cầu thay đổi lưu trú. Hành chính liên hệ trực tiếp và ghi xác"
+                        "Người đại diện chưa trả lời yêu cầu điều chỉnh hợp đồng. Hành chính liên hệ trực tiếp và ghi xác"
                                 + " nhận kèm bằng chứng nếu cần.",
                         at));
     }

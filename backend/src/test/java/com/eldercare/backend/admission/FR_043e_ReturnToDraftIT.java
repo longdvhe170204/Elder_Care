@@ -20,7 +20,7 @@ import tools.jackson.databind.JsonNode;
 class FR_043e_ReturnToDraftIT extends ChangeTestBase {
 
     private long pendingNonMinor(Setup s) throws Exception {
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long id = createChange(request(
                         s.contractId(),
                         "[\"SERVICE\"]",

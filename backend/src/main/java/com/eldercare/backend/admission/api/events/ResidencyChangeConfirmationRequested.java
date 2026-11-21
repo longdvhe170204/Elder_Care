@@ -32,7 +32,7 @@ public record ResidencyChangeConfirmationRequested(
                 new SourceRecord("M02.CHANGE_CONFIRMATION", String.valueOf(confirmationId)),
                 "RESIDENCY_CHANGE_CONFIRMATION_REQUESTED:" + confirmationId,
                 residentId,
-                "Đề nghị xác nhận thay đổi lưu trú",
+                "Đề nghị xác nhận điều chỉnh hợp đồng",
                 text,
                 at));
     }

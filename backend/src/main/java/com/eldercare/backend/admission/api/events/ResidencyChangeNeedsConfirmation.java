@@ -24,7 +24,7 @@ public record ResidencyChangeNeedsConfirmation(long requestId, long residentId, 
                 residentId,
                 Notices.OFFICE,
                 "Yêu cầu của Bác sĩ cần xác nhận với người đại diện",
-                "Bác sĩ lập yêu cầu thay đổi lưu trú. Hành chính xác nhận với người đại diện, đính kèm bằng chứng rồi"
+                "Bác sĩ lập yêu cầu điều chỉnh hợp đồng. Hành chính xác nhận với người đại diện, đính kèm bằng chứng rồi"
                         + " gửi Quản lý viện duyệt.",
                 at));
     }

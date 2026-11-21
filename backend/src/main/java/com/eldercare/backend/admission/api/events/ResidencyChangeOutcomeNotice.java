@@ -34,7 +34,7 @@ public record ResidencyChangeOutcomeNotice(
                 new SourceRecord("M02.RESIDENCY_CHANGE", String.valueOf(requestId)),
                 "RESIDENCY_CHANGE_OUTCOME:" + requestId + ":" + outcome,
                 residentId,
-                "Kết quả yêu cầu thay đổi lưu trú",
+                "Kết quả yêu cầu điều chỉnh hợp đồng",
                 text,
                 at));
     }

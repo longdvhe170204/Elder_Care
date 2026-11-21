@@ -29,7 +29,7 @@ class FR_043d_AddendumSignatureIT extends ChangeTestBase {
     }
 
     private long approvedNonMinor(Setup s, LocalDate effective) throws Exception {
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         return createApproveUnsigned(request(s.contractId(), "[\"SERVICE\"]", addNew(extra), effective));
     }
 

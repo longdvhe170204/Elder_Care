@@ -608,7 +608,8 @@ public class ApprovalRequestService implements ApprovalRequestApi {
                 null);
         ApprovalRequestView submitted = store.find(request.id()).orElseThrow();
         handler.onSubmit(submitted);
-        events.publishEvent(new RequestSubmitted(submitted, directory.approvers(submitted, handler), now));
+        events.publishEvent(new RequestSubmitted(
+                submitted, directory.approvers(submitted, handler), handler.submittedNoticeSummary(submitted), now));
         return submitted;
     }
 

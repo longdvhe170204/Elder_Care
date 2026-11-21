@@ -89,7 +89,7 @@ class FR_043b_RepresentativeConfirmationIT extends ChangeTestBase {
     @Test
     void serviceOutsidePackage_needsConfirmation() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Dịch vụ ngoài gói", null, 100_000);
+        long extra = service("ACTIVITY", "Dịch vụ ngoài gói", null, 100_000);
         ObjectNode body = request(
                 s.contractId(),
                 "[\"SERVICE\"]",

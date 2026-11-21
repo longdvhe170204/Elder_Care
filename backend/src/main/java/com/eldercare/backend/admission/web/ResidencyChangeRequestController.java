@@ -55,7 +55,8 @@ class ResidencyChangeRequestController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "422",
-                description = "Giá trị không hợp lệ, EFFECTIVE_DATE_BEFORE_CONTRACT_START",
+                description =
+                        "Giá trị không hợp lệ, EFFECTIVE_DATE_BEFORE_CONTRACT_START, SERVICE_TYPE_NOT_REGISTRABLE",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     ResponseEntity<ResidencyChangeRequestBody> create(
@@ -83,6 +84,10 @@ class ResidencyChangeRequestController {
         @ApiResponse(
                 responseCode = "412",
                 description = "If-Match không khớp",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "Giá trị không hợp lệ, SERVICE_TYPE_NOT_REGISTRABLE",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     ResponseEntity<Void> edit(

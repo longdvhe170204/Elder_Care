@@ -28,7 +28,7 @@ public record ResidencyChangeReturnedToDraft(
         if (requesterStaffId != null) {
             recipients.add(new RecipientGroup.Staff(requesterStaffId, "REQUESTER"));
         }
-        String text = "Yêu cầu thay đổi lưu trú được trả về Nháp để sửa: " + reason
+        String text = "Yêu cầu điều chỉnh hợp đồng được trả về Nháp để sửa: " + reason
                 + ". Xác nhận với người đại diện trước đó đã bị bỏ, cần xác nhận lại rồi gửi duyệt.";
         return List.of(new NotificationRequest(
                 "M02",
@@ -42,7 +42,7 @@ public record ResidencyChangeReturnedToDraft(
                 recipients,
                 List.of(new ContentPart(InformationType.GENERAL, text)),
                 Optional.of(text),
-                Optional.of("Yêu cầu thay đổi lưu trú được trả về Nháp"),
+                Optional.of("Yêu cầu điều chỉnh hợp đồng được trả về Nháp"),
                 Optional.empty(),
                 false,
                 at,

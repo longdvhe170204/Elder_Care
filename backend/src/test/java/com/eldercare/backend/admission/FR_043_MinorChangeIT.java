@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 004 T075 (US5 #6, #9; FR-043, Q-338; research T-06; 000 T105): Quản lý viện duyệt mọi yêu cầu thay đổi lưu trú; Hành chính
@@ -64,7 +66,7 @@ class FR_043_MinorChangeIT extends ChangeTestBase {
     @Test
     void R19_addNewServiceMarkedInPackage_isNotMinor_officeCannotApprove() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Dịch vụ mới " + System.nanoTime(), null, 100_000);
+        long extra = service("ACTIVITY", "Dịch vụ mới " + System.nanoTime(), null, 100_000);
         JsonNode created =
                 createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(extra), today().plusDays(3)));
         assertThat(created.get("minorChange").asBoolean()).isFalse();
@@ -82,9 +84,14 @@ class FR_043_MinorChangeIT extends ChangeTestBase {
     /** R19: thêm dịch vụ mà hợp đồng hiện hành có dòng thuộc gói là thay đổi nhỏ. */
     @Test
     void R19_addServiceAlreadyInPackage_isMinor() throws Exception {
-        Setup s = activeSetup();
+        // Dịch vụ thêm được theo FR-043k (hoạt động) có sẵn dòng thuộc gói trong hợp đồng
+        long residentId = residentWithRepresentative();
+        long activity = service("ACTIVITY", "Hoạt động thuộc gói", null, 100_000);
+        ObjectNode body = body(residentId);
+        ((ArrayNode) body.get("services")).add(line(meal)).add(line(activity));
+        long contractId = activeContract(residentId, body);
         JsonNode created =
-                createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(meal), today().plusDays(3)));
+                createChange(request(contractId, "[\"SERVICE\"]", addInPackage(activity), today().plusDays(3)));
         assertThat(created.get("minorChange").asBoolean()).isTrue();
     }
 

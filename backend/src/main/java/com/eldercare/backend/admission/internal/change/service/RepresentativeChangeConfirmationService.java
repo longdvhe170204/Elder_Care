@@ -109,7 +109,7 @@ public class RepresentativeChangeConfirmationService {
         long familyMemberId = familyMember();
         SimpleRecord<ChangeConfirmationRequest> record = confirmations.lock(id);
         if (record.residentId() == null || !isRepresentative(familyMemberId, record.residentId())) {
-            throw new PermissionDeniedException("Chỉ người đại diện hiện tại xác nhận thay đổi lưu trú");
+            throw new PermissionDeniedException("Chỉ người đại diện hiện tại xác nhận điều chỉnh hợp đồng");
         }
         if (!ChangeConfirmationRequest.AWAITING.equals(record.status())) {
             throw new BusinessException(
@@ -121,7 +121,7 @@ public class RepresentativeChangeConfirmationService {
         ApprovalRequestView request = approvals.getObject().find(requestId).orElseThrow(NotFoundException::new);
         if (!"DRAFT".equals(request.status())) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "REQUEST_NOT_DRAFT", "Yêu cầu thay đổi lưu trú không còn chờ xác nhận");
+                    HttpStatus.CONFLICT, "REQUEST_NOT_DRAFT", "Yêu cầu điều chỉnh hợp đồng không còn chờ xác nhận");
         }
         Instant now = time.now();
         confirmations.change(

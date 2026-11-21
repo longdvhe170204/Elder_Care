@@ -109,6 +109,15 @@ public interface RequestTypeHandler {
     default void onSubmit(ApprovalRequestView submitted) {}
 
     /**
+     * Mô tả yêu cầu cho nội dung đầy đủ của thông báo gửi duyệt tới người duyệt (người cao tuổi, hồ sơ liên quan, nội dung
+     * thay đổi; bổ sung theo 004, chủ dự án yêu cầu người duyệt biết yêu cầu của ai). Không đưa vào nội dung rút gọn (gửi ra
+     * kênh ngoài ứng dụng); không chứa thông tin sức khỏe. Mặc định không có, thông báo chỉ nêu mã yêu cầu.
+     */
+    default Optional<String> submittedNoticeSummary(ApprovalRequestView submitted) {
+        return Optional.empty();
+    }
+
+    /**
      * Người được Hủy yêu cầu Nháp, Chờ duyệt (000 FR-041a (4), bổ sung theo 004 Q-420): mặc định chỉ người yêu cầu. Hủy
      * yêu cầu Đã duyệt vẫn là người có quyền duyệt.
      */

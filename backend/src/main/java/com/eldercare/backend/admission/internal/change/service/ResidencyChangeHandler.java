@@ -30,7 +30,9 @@ import com.eldercare.backend.admission.api.events.ResidencyChangeSubmittedNotice
 import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.admission.internal.change.domain.Addendum;
 import com.eldercare.backend.admission.internal.change.domain.ChangeType;
+import com.eldercare.backend.admission.internal.change.domain.RegistrableServiceTypes;
 import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent;
+import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent.ServiceChange;
 import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeDigest;
 import com.eldercare.backend.admission.internal.change.domain.ResidentOpinion;
 import com.eldercare.backend.admission.internal.change.persistence.AddendumStore;
@@ -41,6 +43,7 @@ import com.eldercare.backend.admission.internal.contract.persistence.ContractSto
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
 import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
@@ -48,6 +51,7 @@ import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.AssessmentApi;
 import com.eldercare.backend.resident.api.CareLevelApi;
+import com.eldercare.backend.resident.api.ResidentApi;
 import com.eldercare.backend.resident.api.dto.AssessmentSummary;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.dto.ResidenceType;
@@ -66,6 +70,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 
@@ -114,6 +119,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     private final ChangeConfirmations confirmations;
     private final ObjectProvider<AssessmentApi> assessments;
     private final ResidentOpinionStore opinions;
+    private final ObjectProvider<ResidentApi> residents;
 
     ResidencyChangeHandler(
             ChangeConfirmations confirmations,
@@ -134,7 +140,8 @@ class ResidencyChangeHandler implements RequestTypeHandler {
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<RepresentativePort> representatives,
-            ObjectProvider<AccountApi> accounts) {
+            ObjectProvider<AccountApi> accounts,
+            ObjectProvider<ResidentApi> residents) {
         this.confirmations = confirmations;
         this.assessments = assessments;
         this.opinions = opinions;
@@ -154,6 +161,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         this.currentUser = currentUser;
         this.representatives = representatives;
         this.accounts = accounts;
+        this.residents = residents;
     }
 
     @Override
@@ -185,10 +193,41 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 throw new PermissionDeniedException("Chỉ người đại diện hiệu lực lập yêu cầu qua cổng (FR-039)");
             }
         }
+        List<UnmetCondition> serviceTypes = serviceTypeConditions(change);
+        if (!serviceTypes.isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    RegistrableServiceTypes.CODE,
+                    serviceTypes.stream().map(UnmetCondition::description).collect(Collectors.joining("; ")));
+        }
         List<UnmetCondition> careLevel = careLevelConditions(change);
         if (!careLevel.isEmpty()) {
             throw new ConditionNotMetException(careLevel);
         }
+    }
+
+    /**
+     * FR-043k (Q-425, R21): dòng thêm dịch vụ chỉ thuộc phục hồi chức năng, hoạt động, đưa đi khám, tiêm; bớt không xét
+     * loại. Lập, sửa: 422 qua {@link #validateContent}; gửi duyệt, duyệt: 409 cùng các điều kiện khác (yêu cầu lập trước khi
+     * có quy tắc).
+     */
+    List<UnmetCondition> serviceTypeConditions(ResidencyChangeContent change) {
+        if (!change.has(ChangeType.SERVICE)) {
+            return List.of();
+        }
+        List<UnmetCondition> unmet = new ArrayList<>();
+        for (ServiceChange line : change.services()) {
+            if (line.action() != ServiceChange.Action.ADD) {
+                continue;
+            }
+            contracts
+                    .serviceKind(line.serviceId())
+                    .filter(kind -> !RegistrableServiceTypes.registrable(kind.type()))
+                    .ifPresent(kind -> unmet.add(new UnmetCondition(
+                            RegistrableServiceTypes.CODE,
+                            RegistrableServiceTypes.description(line.serviceId(), kind.type()))));
+        }
+        return unmet;
     }
 
     /**
@@ -316,9 +355,11 @@ class ResidencyChangeHandler implements RequestTypeHandler {
      */
     @Override
     public List<UnmetCondition> checkOnSubmit(ApprovalRequestView request) {
-        List<UnmetCondition> careLevel = careLevelConditions(ResidencyChangeContent.parse(request.content()));
-        if (!careLevel.isEmpty()) {
-            return careLevel;
+        ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        List<UnmetCondition> content = new ArrayList<>(serviceTypeConditions(change));
+        content.addAll(careLevelConditions(change));
+        if (!content.isEmpty()) {
+            return content;
         }
         if (!confirmationRequired(request)
                 || confirmations
@@ -547,6 +588,39 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 submitted.requestedEffectiveDate(),
                 confirmerAccount(submitted),
                 time.now()));
+    }
+
+    private static final Map<ChangeType, String> TYPE_LABELS = Map.of(
+            ChangeType.RESIDENCE_TYPE, "Loại lưu trú",
+            ChangeType.CARE_LEVEL, "Mức chăm sóc",
+            ChangeType.SERVICE, "Dịch vụ",
+            ChangeType.DURATION, "Thời hạn",
+            ChangeType.BED, "Giường",
+            ChangeType.ARRIVAL_SCHEDULE, "Lịch đến");
+
+    /**
+     * Thông báo gửi duyệt tới Quản lý viện nêu người cao tuổi, số hợp đồng, loại thay đổi, ngày hiệu lực mong muốn (chủ dự
+     * án yêu cầu 2026-11-21: người duyệt biết yêu cầu của cụ nào, hợp đồng nào). Không nêu giá trị mới, giá.
+     */
+    @Override
+    public Optional<String> submittedNoticeSummary(ApprovalRequestView submitted) {
+        ResidencyChangeContent change = ResidencyChangeContent.parse(submitted.content());
+        String name =
+                residents.getObject().identity(submitted.target().residentId()).fullName();
+        String number = contracts
+                .find(change.contractId())
+                .map(Contract::contractNumber)
+                .orElse(null);
+        String types =
+                change.changeTypes().stream().sorted().map(TYPE_LABELS::get).collect(Collectors.joining(", "));
+        return Optional.of("Điều chỉnh hợp đồng " + (number == null ? "" : number + " ") + "của " + name + ": "
+                + types + "; ngày hiệu lực mong muốn "
+                + "%02d/%02d/%d"
+                        .formatted(
+                                submitted.requestedEffectiveDate().getDayOfMonth(),
+                                submitted.requestedEffectiveDate().getMonthValue(),
+                                submitted.requestedEffectiveDate().getYear())
+                + ".");
     }
 
     /**

@@ -84,6 +84,14 @@ class RequiresPermissionArchTest {
                     "com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.cancel",
                     "người yêu cầu, hoặc người duyệt khi đã Duyệt (ApproverDirectory.canDecide); 000 FR-034"),
             Map.entry(
+                    "com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.returnToDraft",
+                    "khóa Duyệt theo loại yêu cầu (ApproverDirectory.canDecide), loại cho phép trả về nháp"
+                            + " (RequestTypeHandler.allowReturnToDraft); 000 FR-041a"),
+            Map.entry(
+                    "com.eldercare.backend.admission.internal.change.service.ResidencyChangeService.recordOpinion",
+                    "vai trò Hành chính, Bác sĩ; Điều dưỡng khi người cao tuổi trong phạm vi phân công (ScopeApi); 004"
+                            + " FR-043h, Q-416"),
+            Map.entry(
                     "com.eldercare.backend.administration.correction.internal.service.CorrectionService.create",
                     "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026"),
             Map.entry(

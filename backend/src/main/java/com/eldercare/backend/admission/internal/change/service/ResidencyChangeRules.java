@@ -110,7 +110,7 @@ class ResidencyChangeRules {
         if (residents.isFinalStatus(contract.residentId())) {
             unmet.add(new UnmetCondition(
                     "RESIDENT_IN_FINAL_STATUS",
-                    "Người cao tuổi đã ở trạng thái cuối, không thay đổi lưu trú (FR-045)"));
+                    "Người cao tuổi đã ở trạng thái cuối, không điều chỉnh hợp đồng (FR-045)"));
         }
         if (effective.isBefore(contract.content().startDate())) {
             unmet.add(new UnmetCondition(
@@ -242,10 +242,10 @@ class ResidencyChangeRules {
             } else if (!kind.get().active()) {
                 unmet.add(new UnmetCondition(
                         "SERVICE_NOT_EFFECTIVE", "Dịch vụ " + line.serviceId() + " không Hiệu lực (FR-041)"));
-            } else if ("CARE".equals(kind.get().type())) {
-                unmet.add(new UnmetCondition(
-                        "CARE_SERVICE_NOT_ALLOWED", "Dịch vụ chăm sóc chỉ đổi qua loại đổi mức chăm sóc (Q-297)"));
             }
+            // Loại dịch vụ không thêm được (gồm dịch vụ chăm sóc, Q-297) kiểm ở
+            // ResidencyChangeHandler.serviceTypeConditions
+            // (FR-043k), chạy khi lập, sửa, gửi duyệt và duyệt
             if (inContract) {
                 unmet.add(new UnmetCondition(
                         "SERVICE_ALREADY_IN_CONTRACT", "Dịch vụ " + line.serviceId() + " đã có trong hợp đồng"));

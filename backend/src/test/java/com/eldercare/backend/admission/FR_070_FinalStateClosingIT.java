@@ -64,7 +64,7 @@ class FR_070_FinalStateClosingIT extends ChangeTestBase {
     @Test
     void FR_070_pendingSignatureAddendum_becomesNotApplied() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long extra = service("ACTIVITY", "Giặt là riêng " + System.nanoTime(), null, 300_000);
         long approved = createApproveUnsigned(request(
                 s.contractId(),
                 "[\"SERVICE\"]",
