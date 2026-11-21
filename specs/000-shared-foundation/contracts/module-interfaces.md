@@ -141,6 +141,12 @@ Sự kiện phát sau commit:
 
 **Danh sách người duyệt** *(bổ sung theo plan 004, Q-338)*: `danhSachNguoiDuyet` là danh sách tài khoản do 000 tính tại thời điểm phát sự kiện: `NguoiDuyetApi.danhSach(handler.quyenDuyet(), DoiTuong.tuPhamVi(handler.phamVi(yc)))`, rồi nếu `gioiHanVaiTroDuyet(yc)` có giá trị thì giữ tài khoản có ít nhất một vai trò trong tập (`TaiKhoanApi.coVaiTro`). Cùng danh sách này quyết định `conNguoiDuyet` của `NhacQuaHan` (BR-M15-09) và điều kiện "người duyệt không phải Quản lý viện" ở mốc CFG-M15-06 (FR-031a): mọi tài khoản trong danh sách đều là Quản lý viện thì không phát `YeuCauCanBaoQuanLyVien(QUA_CFG_M15_06)`. Yêu cầu thông báo của các sự kiện trên dùng nhóm `NguoiCoQuyenDuyet` mang sẵn danh sách này (009 contracts mục 1.1); 009 không tự tra lại `NguoiDuyetApi` cho yêu cầu của 000.
 
+**Bổ sung 2026-11-20 (FR-041a; Q-418 → Q-421, theo 004)**, mọi hàm mới có mặc định giữ hành vi cũ:
+
+- `RequestTypeHandler`: `checkOnSubmit(ApprovalRequestView, Optional<Reason>)` (mặc định gọi `checkOnSubmit(request)`), `readyToApply(request)` (mặc định `true`; `false` thì Bộ lập lịch bỏ qua, yêu cầu giữ Đã duyệt), `allowReturnToDraft()` (mặc định `false`), `onReturnToDraft(request, reason)`, `onSubmit(submitted)`, `mayCancel(user, request)` (mặc định người yêu cầu; hủy Đã duyệt vẫn là người duyệt).
+- `ApprovalRequestApi.postponeEffectiveDate(long id, LocalDate newDate, Reason reason)` (Propagation.MANDATORY): chỉ yêu cầu Đã duyệt (khác thì 409 `INVALID_STATE`), ngày mới không sau ngày đang có thì bỏ qua; nhật ký `REQUEST_EFFECTIVE_DATE_POSTPONED`.
+- Sự kiện `RequestReturnedToDraft(request, reason, at)`; lệnh HTTP `POST /approval-requests/{id}/return-to-draft`, `submit` nhận thân tùy chọn `{reason}`.
+
 ### 1.6. `administration.dinhchinh.api.DinhChinhApi`
 
 ```java

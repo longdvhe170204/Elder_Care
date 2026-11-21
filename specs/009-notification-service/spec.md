@@ -133,6 +133,10 @@ Chủ dự án chốt Q-365 → Q-371 (docs/business/nghiep-vu.md 24.2; Q-367 th
 
 - **Q-388**: dòng "Ghi kết quả gọi Đã liên lạc được" của bảng FR-030 chỉ áp cho thông báo gộp vào chính lượt vừa gọi. Gọi được người thân kế tiếp trong chuỗi (FR-029a) thì thông báo của người cần gọi trước giữ nguyên chưa xác nhận, không chuyển "Không liên lạc được" (FR-044, Q-104), chuỗi dừng. Kết quả gọi cung cấp cho module nguồn (FR-031, feature 007 FR-048b) gồm mọi lượt nhắc gọi của chuỗi, kèm người cần gọi của từng lượt.
 
+### Cập nhật 2026-11-20 (đồng bộ Q-414 → Q-423, thay đổi lưu trú)
+
+- **Q-418 → Q-423**: thêm 7 dòng vào bảng FR-043 (004: nhắc ký phụ lục, phụ lục quá hạn ký, trả về nháp, kết quả yêu cầu cho người đại diện, gửi duyệt cho người đại diện; 001: ngày xem lại quyết định giữ mức, gia đình chọn rời viện). Module nguồn nêu mức và người nhận như mọi thông báo khác; không đổi cơ chế gửi. Thông báo cho người đại diện là "về việc của chính người thân" (spec 004 FR-078), không gửi trong giờ yên tĩnh.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06; thực thể THONG_BAO):
@@ -424,6 +428,8 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 000 | Yêu cầu Chờ duyệt quá CFG-M15-05; quá CFG-M15-06 | Người có quyền duyệt; Quản lý viện | Trung bình |
 | 000 | Yêu cầu đã duyệt "Áp dụng không thành" (Q-11) | Người duyệt, người yêu cầu | Trung bình |
 | 001 | Yêu cầu đổi mức chăm sóc "Được thay thế" (FR-036a) | Người yêu cầu, người duyệt | Nhẹ |
+| 001 | *(bổ sung 2026-11-20, Q-423)* Tới ngày xem lại quyết định giữ mức cũ (`CARE_LEVEL_KEEP_REVIEW_DUE`, FR-036b) | Bác sĩ, Hành chính | Nhẹ |
+| 001 | *(bổ sung 2026-11-20, Q-423)* Gia đình chọn rời viện thay vì đổi mức (`CARE_LEVEL_DECLINED_LEAVE`, FR-036b) | Hành chính | Nhẹ |
 | 001, 004 | Chuyển viện; Ghi nhận qua đời | Người liên hệ chính | Khẩn cấp (Q-97) |
 | 003 | Yêu cầu chuyển giường khác giá gửi duyệt; kết quả duyệt (FR-030) | Quản lý viện; Hành chính, Trưởng tầng | Nhẹ |
 | 003 | Nhắc chu kỳ "chờ chuyển về phòng cùng giá", "phòng không còn phù hợp" (FR-030, FR-034) | Trưởng tầng, Hành chính | Nhẹ |
@@ -433,6 +439,11 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 004 | Nhắc chu kỳ danh sách việc sau qua đời (CFG-M02-09) | Hành chính, người đại diện | Nhẹ |
 | 004 | Hợp đồng quá hạn quá CFG-M02-10 | Quản lý viện | Trung bình |
 | 004 | *(bổ sung 2026-10-06)* Đánh giá đầu vào có mức chăm sóc khác mức của hợp đồng (FR-025b) | Hành chính | Trung bình (Q-302) |
+| 004 | *(bổ sung 2026-11-20, Q-419)* Nhắc ghi nhận phụ lục đã ký mỗi CFG-M02-17 (`ADDENDUM_SIGNATURE_REMINDER`) | Hành chính | Nhẹ |
+| 004 | *(bổ sung 2026-11-20, Q-419)* Phụ lục chưa ký quá CFG-M02-18 kể từ ngày duyệt (`ADDENDUM_SIGNATURE_OVERDUE`) | Quản lý viện | Trung bình |
+| 004 | *(bổ sung 2026-11-20, Q-418)* Yêu cầu thay đổi lưu trú bị Trả về nháp (`RESIDENCY_CHANGE_RETURNED_TO_DRAFT`) | Người lập, Hành chính | Nhẹ |
+| 004 | *(bổ sung 2026-11-20, Q-421)* Yêu cầu thay đổi lưu trú bị Từ chối, Áp dụng không thành, Hủy (`RESIDENCY_CHANGE_OUTCOME`, không kèm giá) | Mọi người đại diện hiện tại | Nhẹ |
+| 004 | *(bổ sung 2026-11-20, Q-421)* Yêu cầu thay đổi lưu trú được gửi duyệt (`RESIDENCY_CHANGE_SUBMITTED`) | Người đại diện hiện tại, trừ người đã xác nhận | Nhẹ |
 | 005 | Nhắc công việc quá hạn (FR-043) | Người thực hiện (hoặc mọi nhân viên đủ điều kiện của tầng với công việc chung) | Nhẹ (Q-117) |
 | 005 | Báo leo thang công việc Thường, Quan trọng quá hạn (FR-044) | Người phụ trách ca, Trưởng tầng | Trung bình |
 | 005 | Người bán trú vẫn "Có mặt" lúc hết ngày (FR-019) | Người phụ trách ca đang diễn ra của tầng; Trưởng tầng | Trung bình; Nhẹ (Q-115). Nếu xác minh là mất dấu, người kiểm tra ghi sự cố đi lạc theo feature 007 (mức Khẩn cấp) |

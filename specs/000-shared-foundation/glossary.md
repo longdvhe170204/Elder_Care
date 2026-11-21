@@ -204,6 +204,14 @@ Bổ sung theo từng feature khi dịch `contracts/api-NNN.yaml` (R-03).
 
 Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_LUU_TRU` → `M02.RESIDENCY_CHANGE`, `M07.LIEU_THUOC` → `M07.MEDICATION_DOSE` trong ví dụ của api-000) do feature sở hữu chốt khi dịch hợp đồng của mình.
 
+### 6.3a. Vòng đời yêu cầu phê duyệt bổ sung *(2026-11-20, FR-041a; Q-418 → Q-420)*
+
+| Tên tiếng Việt | Tên trong mã |
+| --- | --- |
+| Trả về nháp | lệnh `RETURN_TO_DRAFT`, đường dẫn `return-to-draft`, `ReturnToDraftInput`, sự kiện `RequestReturnedToDraft`, nhật ký `REQUEST_RETURNED_TO_DRAFT`, 409 `RETURN_TO_DRAFT_NOT_ALLOWED` |
+| hoãn áp dụng; dời ngày hiệu lực thực tế | `RequestTypeHandler.readyToApply`; `ApprovalRequestApi.postponeEffectiveDate`, nhật ký `REQUEST_EFFECTIVE_DATE_POSTPONED` |
+| quyền hủy theo loại; lý do khi gửi duyệt | `RequestTypeHandler.mayCancel`; `checkOnSubmit(request, reason)`, `SubmitInput`; `onSubmit` |
+
 ### 6.4. Bảng, view, trigger
 
 | Tên logic | Mã |
@@ -742,6 +750,15 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `canh_bao_tro_lai` | `V001_06__return_overdue_alert.sql`; `return_overdue_alert` (`absence_id`, `expected_return_at`, `resident_id`, `alerted_at`) |
 | lớp truy cập bảng nhắc, lần báo; bản ghi đọc từ các lớp đó | `PeriodicReminderStore` (`resident.internal.persistence`), `ReassessmentNoticeStore`, `ResidentStatusStore.recordOverdueAlert`, `EndOfLifeWishStore.dueReviews`; `DueReminder`, `ReassessmentNotice`, `PeriodicReassessmentDue`, `WishReviewDue`, `NewEndOfLifeWish`, `NewTreatmentWish`, `ResidentMatch` (gói `domain`) |
 
+### 8.6a. Quyết định khi gia đình không đồng ý đổi mức *(bổ sung 2026-11-20, FR-036b, Q-423)*
+
+| Tên tiếng Việt | Tên trong mã |
+| --- | --- |
+| quyết định khi gia đình không đồng ý đổi mức; giữ mức cũ, rời viện | bảng `care_level_change_decision` (`V001_98`), `CareLevelChangeDecision` (`KEEP_CURRENT_LEVEL`, `LEAVE_FACILITY`), `CareLevelChangeDecisionStore`, `CareLevelChangeDecisionService`; `POST|GET /residents/{residentId}/care-level-change-decisions` |
+| thỏa thuận lựa chọn có rủi ro đang hiệu lực (cổng của 001, 005 cài) | `resident.api.spi.CareRiskAgreementPort`, `CareRiskAgreementPortImpl` (005) |
+| mã lỗi | 409 `NOT_LATEST_ASSESSMENT`, `CARE_LEVEL_CHANGE_NOT_NEEDED`, `CHANGE_REQUEST_EXISTS`, `DECISION_EXISTS`, `RISK_AGREEMENT_REQUIRED`; 422 `REVIEW_DATE_INVALID` |
+| sự kiện | `CareLevelKeepReviewDue` (`CARE_LEVEL_KEEP_REVIEW_DUE`), `CareLevelChangeDeclinedLeave` (`CARE_LEVEL_DECLINED_LEAVE`) |
+
 ### 8.7. Bảng sau gộp R-15 *(bổ sung 2026-10-30; thay các dòng bảng đã bỏ ở 8.6; cột chi tiết ở data-model 001 mục 0.1)*
 
 | Tên logic | Mã |
@@ -1268,6 +1285,19 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | mã điều kiện chưa thỏa (409 `CONDITION_NOT_MET`) | `CONTRACT_NOT_ACTIVE`, `RESIDENT_IN_FINAL_STATUS`, `EFFECTIVE_DATE_BEFORE_CONTRACT_START`, `DUPLICATE_PENDING_ATTRIBUTE`, `RESIDENCE_TYPE_UNCHANGED`, `END_DATE_REQUIRED`, `ARRIVAL_SCHEDULE_REQUIRED`, `BED_REQUIRED`, `CARE_LEVEL_UNCHANGED`, `CARE_SERVICE_MISSING`, `SERVICE_NOT_FOUND`, `SERVICE_NOT_EFFECTIVE`, `SERVICE_PRICE_MISSING`, `SERVICE_NOT_IN_CONTRACT`, `SERVICE_ALREADY_IN_CONTRACT`, `CARE_SERVICE_NOT_ALLOWED`, `END_DATE_BEFORE_EFFECTIVE`, `CONTRACT_OVERLAP`, `NOT_INPATIENT`, `NOT_DAY_CARE`, `ADDENDUM_NOT_PENDING`, `BED_ALLOCATION_CHECK_UNAVAILABLE`, `DAY_CARE_CAPACITY_CHECK_UNAVAILABLE` |
 | nhật ký | `M02_ADDENDUM_CREATED` (khi duyệt), `M02_ADDENDUM_APPLIED`, `M02_ADDENDUM_NOT_APPLIED`; loại đối tượng `M02.ADDENDUM` |
 | test | `IsMinorChangeTest`, `BR_09_ApplyAddendumIT`, `DBR_07_AddendumIT`, `FR_041_CheckOnApprovalIT`, `FR_046_DuplicateAttributeIT`, `ApplyFailedIT`, `RepresentativeRequestIT`, `ChangeArrivalScheduleIT`, `CareLevelChangeRequestIT`, `FR_043_MinorChangeIT` |
+| xác nhận với người đại diện kèm bằng chứng (FR-043a, Q-414); cách `GAP_TRUC_TIEP`, `GOI_DIEN`, `TIN_NHAN` | `representativeConfirmation` trong nội dung yêu cầu, `RepresentativeConfirmation` (`internal.change.domain`), `method` `IN_PERSON`, `PHONE`, `MESSAGE`; điều kiện `REPRESENTATIVE_CONFIRMATION_REQUIRED`, `CONFIRMATION_DATE_IN_FUTURE`; `representativeConfirmationRequired`; SPI 000 `RequestTypeHandler.checkOnSubmit` |
+| gửi người đại diện xác nhận trên ứng dụng (FR-043c, 2026-11-20); lần gửi `CHO_NGUOI_DAI_DIEN`, `DONG_Y`, `KHONG_DONG_Y`, `BI_THAY_THE` | `simple_record` loại `M02.CHANGE_CONFIRMATION` (cha `M02.RESIDENCY_CHANGE`), `ChangeConfirmationRequest` (`AWAITING`, `ACCEPTED`, `DECLINED`, `SUPERSEDED`), `ChangeConfirmations`, `RepresentativeChangeConfirmationService`, `ChangeConfirmationReminderTask` (việc `CHANGE_CONFIRMATION_REMINDER` của `M02_DAILY`, CFG-M15-05) |
+| web, mã lỗi, sự kiện, nhật ký của FR-043c | `POST /residency-change-requests/{id}/send-for-confirmation`; `GET /family-portal/residency-change-confirmations`, `POST …/{id}/accept`, `POST …/{id}/decline` (`ResidencyChangeConfirmationController`, `ResidencyChangeDeclineBody`, `ResidencyChangeConfirmationBody`); trường `confirmationRequest` của `ResidencyChangeRequest`; 409 `REQUEST_NOT_DRAFT`, `CONFIRMATION_NOT_REQUIRED`, `NO_REPRESENTATIVE`, `CONFIRMATION_NOT_AWAITING`; sự kiện `ResidencyChangeConfirmationRequested`, `ResidencyChangeConfirmationAnswered`, `ResidencyChangeConfirmationReminder`; nhật ký `M02_CHANGE_CONFIRMATION_SENT`, `M02_CHANGE_CONFIRMATION_ACCEPTED`, `M02_CHANGE_CONFIRMATION_DECLINED` |
+| người đại diện đã xác nhận (FR-043a, Q-414, R16) | `representativeConfirmation.representativeFamilyMemberId`; 409 `CONFIRMER_NOT_REPRESENTATIVE` |
+| phụ lục Chờ ký, Đã hủy (FR-043d, FR-043f; Q-419, Q-420); số phụ lục; người ký phía viện | `addendum_status` `PENDING_SIGNATURE`, `CANCELLED` (`Addendum.Status`, API giữ `NOT_APPLICABLE` cho Không áp dụng); cột `addendum_no`, `signature_required`, `signed_date`, `signed_file_id`, `signed_by_family_member_id`, `facility_signatory_staff_id`, `signature_recorded_by`, `signature_recorded_at`, `signature_note` (`V004_95`); schema `ResidencyChangeAddendum`, trường `addendum` của `ResidencyChangeRequest` |
+| ghi nhận phụ lục đã ký (FR-043d) | `POST /residency-change-requests/{id}/addendum-signature`, `AddendumSignatureInput` (`AddendumSignatureBody`), `ResidencyChangeService.recordSignature`, `ResidencyChangeHandler.readyToApply`, `moveReservation`; 409 `ADDENDUM_NOT_PENDING_SIGNATURE`, `SIGNER_NOT_REPRESENTATIVE`; 422 `SIGNED_DATE_INVALID`, `FACILITY_SIGNATORY_INVALID`; nhật ký `M02_ADDENDUM_SIGNED`, `M02_ADDENDUM_CANCELLED` |
+| nhắc ký phụ lục (CFG-M02-17), báo quá hạn ký (CFG-M02-18) | `AddendumSignatureReminderTask` (việc `ADDENDUM_SIGNATURE_REMINDER` của `M02_DAILY`), sự kiện `AddendumSignatureReminder` (`ADDENDUM_SIGNATURE_REMINDER`), `AddendumSignatureOverdue` (`ADDENDUM_SIGNATURE_OVERDUE`); `ParameterCode.CFG_M02_17`, `CFG_M02_18` |
+| trả về nháp (FR-043e, Q-418) | `RequestTypeHandler.allowReturnToDraft`, `onReturnToDraft`; `ChangeConfirmations.voidAll`, `ConfirmationVoidStore` (`reminder_marker` loại `M02.CONFIRMATION_VOID`); sự kiện `ResidencyChangeReturnedToDraft` (`RESIDENCY_CHANGE_RETURNED_TO_DRAFT`) |
+| hủy yêu cầu thay đổi lưu trú (FR-043f, Q-420) | `ResidencyChangeHandler.mayCancel`, `AddendumClosing.cancel` |
+| báo người đại diện kết quả, gửi duyệt (FR-043g, Q-421) | `ResidencyChangeOutcomeNotice` (`RESIDENCY_CHANGE_OUTCOME`; `REJECTED`, `APPLY_FAILED`, `CANCELLED`), `ResidencyChangeSubmittedNotice` (`RESIDENCY_CHANGE_SUBMITTED`); `RequestTypeHandler.onSubmit`; `ResidencyChangeHandler.familyRelated` |
+| ý kiến người cao tuổi về thay đổi (FR-043h, Q-416); Đồng ý, Không đồng ý, Chưa nói được; nguồn người cao tuổi tự nói, nhân viên ghi nhận | bảng `residency_change_resident_opinion` (`V004_96`), `ResidentOpinion` (`AGREE`, `DISAGREE`, `UNABLE_TO_EXPRESS`; `RESIDENT`, `STAFF_OBSERVATION`), `ResidentOpinionStore`; `GET|POST /residency-change-requests/{id}/resident-opinions`, `ResidentOpinionInput`; trường `currentResidentOpinion`, `warnings`; 409 `RESIDENT_DISAGREE_REASON_REQUIRED`, `REQUEST_NOT_OPEN`; cảnh báo `RESIDENT_OPINION_MISSING`, `RESIDENT_OPINION_OUTDATED` |
+| dấu nội dung thực chất (R12, R18); xác nhận lại yêu cầu qua cổng (FR-043i, Q-417) | `ResidencyChangeDigest`, bảng `residency_change_portal_digest` (`V004_96`) |
+| mức chăm sóc theo đánh giá (FR-043j, R20) | 409 `CARE_LEVEL_NOT_FROM_ASSESSMENT`; trường `assessedCareLevel` (`AssessedCareLevel`) |
 
 ### 10.14. Bổ sung khi cài Phase 8 (US6, T048 → T055, 2026-10-26)
 

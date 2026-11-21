@@ -168,6 +168,12 @@ paths:
       summary: Gửi duyệt (Nháp → Chờ duyệt)
       x-fr: [FR-033]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
+      description: Lý do tùy chọn truyền cho loại yêu cầu và ghi nhật ký (FR-041a (5)); loại yêu cầu có thể bắt buộc (ví dụ 004 FR-043h).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitInput' }
       responses:
         '200': { $ref: '#/components/responses/Transitioned' }
         '403': { $ref: '#/components/responses/Problem' }
@@ -207,6 +213,24 @@ paths:
         content:
           application/json:
             schema: { type: object, required: [comment], properties: { comment: { $ref: '#/components/schemas/Reason' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Transitioned' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '412': { $ref: '#/components/responses/VersionMismatch' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /approval-requests/{id}/return-to-draft:
+    post:
+      tags: [approval-requests]
+      summary: Trả về nháp (Chờ duyệt → Nháp), bắt buộc lý do; chỉ loại yêu cầu cho phép (FR-041a (1), Q-418)
+      description: Cùng quyền, phạm vi, giới hạn vai trò như Duyệt. Loại yêu cầu không cho phép thì 409 `RETURN_TO_DRAFT_NOT_ALLOWED`.
+      x-fr: [FR-041a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReturnToDraftInput' }
       responses:
         '200': { $ref: '#/components/responses/Transitioned' }
         '403': { $ref: '#/components/responses/Problem' }
@@ -415,8 +439,15 @@ components:
         appliedAt: { type: [string, 'null'], format: date-time }
         catchUpApplied: { type: boolean }
         applicationResult: { type: [object, 'null'], properties: { type: { type: string }, id: { type: string } } }
-        allowedCommands: { type: array, items: { type: string }, description: 'Lệnh người xem hiện được làm, để client ẩn/hiện nút (kiểm tra thật vẫn ở backend); approve, reject xét cả approverRoleRestriction của loại yêu cầu' }
+        allowedCommands: { type: array, items: { type: string }, description: 'Lệnh người xem hiện được làm, để client ẩn/hiện nút (kiểm tra thật vẫn ở backend); approve, reject, return-to-draft xét cả approverRoleRestriction của loại yêu cầu; return-to-draft chỉ khi loại cho phép (FR-041a)' }
         version: { type: integer }
+    ReturnToDraftInput:
+      type: object
+      required: [reason]
+      properties: { reason: { $ref: '#/components/schemas/Reason' } }
+    SubmitInput:
+      type: object
+      properties: { reason: { $ref: '#/components/schemas/Reason' } }
     ApprovalRequestPage:
       type: object
       properties:
