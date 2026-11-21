@@ -193,7 +193,7 @@ Vai trò hệ thống là các vai trò ở bảng 2.3, được gán cho tài k
 | BR-Mxx-yy                           | Mã        | Quy tắc nghiệp vụ của module xx                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | CFG-Mxx-yy                          | Mã        | Tham số cấu hình (Phụ lục 25)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-Quyền **Duyệt kế hoạch chăm sóc** là một quyền trong phân quyền (19.2), mặc định gán cho bác sĩ; cơ sở có thể gán thêm cho điều dưỡng có đủ chuyên môn.
+*(Bỏ theo Q-414, 2026-11-22)* Quyền **Duyệt kế hoạch chăm sóc** không còn dùng: Bác sĩ lập và ban hành kế hoạch chăm sóc, không qua duyệt (8.1).
 
 **Điều dưỡng làm việc của Nhân viên chăm sóc.** Vai trò Điều dưỡng có mọi quyền thực hiện (T) của vai trò Nhân viên chăm sóc ở Phụ lục 27, trong phạm vi phân công (BR-M15-01), cùng các quyền riêng của Điều dưỡng. Nhân viên chăm sóc không có quyền của Điều dưỡng. Điều dưỡng được phân loại công việc chăm sóc (13.4) và được làm Trưởng đoàn, Người nhận tại tầng như Nhân viên chăm sóc. Điều dưỡng không được tính vào dòng phủ tối thiểu của Nhân viên chăm sóc (Q-221).
 
@@ -748,37 +748,50 @@ Mỗi tài sản thuộc một **bộ phận quản lý** (13.1a), ví dụ: gi�
 
 ### 8.1. Kế hoạch chăm sóc
 
-Kế hoạch được lập dựa trên kết quả đánh giá (nhận xét đánh giá của Bác sĩ, 5.3; điều dưỡng lập tay, hệ thống không chép sẵn hoạt động mẫu). Mỗi hoạt động chăm sóc có: nội dung; tần suất; thời gian; vai trò thực hiện; kết quả cần ghi; ngày hiệu lực.
+Kế hoạch được lập dựa trên kết quả đánh giá (nhận xét đánh giá và nhu cầu chăm sóc do Bác sĩ chọn, 5.3; **(sửa 2026-11-22, Q-414)** Bác sĩ lập tay và ban hành, không qua bước duyệt; hệ thống không chép sẵn hoạt động mẫu). Người cao tuổi khỏe bình thường (không có nhu cầu chăm sóc) thì phiên bản kế hoạch có thể không có mục nào, tức không có công việc chăm sóc riêng; lịch trong ngày của người đó chỉ gồm lịch sinh hoạt chung (8.2). Mỗi hoạt động chăm sóc có: nội dung; tần suất; thời gian; vai trò thực hiện; kết quả cần ghi; ngày hiệu lực.
 
 Mỗi hoạt động có thêm: khung thời gian cho phép (ví dụ ±\[15 phút\]); mức quan trọng (Thường / Quan trọng / Bắt buộc); có tính phí hay không.
 
 Ví dụ: xoay trở mỗi 2 giờ; hỗ trợ uống nước 3 giờ/lần; thay băng; tập phục hồi; hỗ trợ vệ sinh. Kế hoạch được lưu lịch sử khi thay đổi.
 
-Kế hoạch chăm sóc được quản lý theo **phiên bản**: Nháp → Hiệu lực từ ngày X → Hết hiệu lực (khi phiên bản mới có hiệu lực). Không sửa phiên bản đang hiệu lực; mọi thay đổi tạo phiên bản mới, kèm người lập, người duyệt và lý do.
+Kế hoạch chăm sóc được quản lý theo **phiên bản**: Nháp → Hiệu lực từ ngày X → Hết hiệu lực (khi phiên bản mới có hiệu lực). Không sửa phiên bản đang hiệu lực; mọi thay đổi tạo phiên bản mới, kèm người lập (Bác sĩ), thời điểm ban hành và lý do (Q-414).
 
 Vòng đời đầy đủ của phiên bản kế hoạch; bảng dưới là căn cứ khi khác câu trên.
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
-| — | Lập phiên bản | Nháp | Điều dưỡng (hệ thống không tự lập bản nháp khi bác sĩ xác nhận đánh giá) |
-| Nháp | Gửi duyệt | Chờ duyệt | Điều dưỡng |
-| Chờ duyệt | Duyệt; ngày hiệu lực muộn hơn ngày duyệt (Q-34) | Chờ hiệu lực | Người có quyền Duyệt kế hoạch chăm sóc (2.4) |
-| Chờ duyệt | Trả lại (bắt buộc lý do) | Nháp | Người có quyền duyệt |
-| Nháp, Chờ duyệt | Hủy phiên bản (bắt buộc lý do) | Đã hủy | Người lập, người có quyền duyệt |
-| Chờ hiệu lực | Thu hồi duyệt, trước ngày hiệu lực (bắt buộc lý do) | Đã hủy | Người có quyền duyệt |
+| — | Lập phiên bản | Nháp | Bác sĩ (hệ thống không tự lập bản nháp khi bác sĩ xác nhận đánh giá; Q-414) |
+| Nháp | Ban hành; ngày hiệu lực muộn hơn ngày ban hành (Q-34, Q-414) | Chờ hiệu lực | Bác sĩ |
+| Nháp | Hủy phiên bản (bắt buộc lý do) | Đã hủy | Bác sĩ |
+| Chờ hiệu lực | Thu hồi ban hành, trước ngày hiệu lực (bắt buộc lý do) | Đã hủy | Bác sĩ |
 | Chờ hiệu lực | Tới ngày hiệu lực | Hiệu lực | Bộ lập lịch |
 | Hiệu lực | Phiên bản mới có hiệu lực; người cao tuổi chuyển trạng thái cuối | Hết hiệu lực | Hệ thống |
-| Nháp, Chờ duyệt, Chờ hiệu lực | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống |
+| Nháp, Chờ hiệu lực | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống |
 
-Mỗi người cao tuổi có tối đa một phiên bản Hiệu lực tại một ngày và tối đa một phiên bản ở Nháp, Chờ duyệt hoặc Chờ hiệu lực. Người duyệt không sửa nội dung hay ngày hiệu lực; nếu ngày hiệu lực đề xuất không còn hợp lệ thì dùng lệnh Trả lại.
+Mỗi người cao tuổi có tối đa một phiên bản Hiệu lực tại một ngày và tối đa một phiên bản ở Nháp hoặc Chờ hiệu lực. **(Sửa 2026-11-22, Q-414)** Không còn trạng thái Chờ duyệt và các lệnh Gửi duyệt, Duyệt, Trả lại: Bác sĩ lập và ban hành; phiên bản Chờ hiệu lực muốn đổi nội dung thì Bác sĩ thu hồi rồi lập phiên bản mới. Điều dưỡng, Nhân viên chăm sóc, Trưởng tầng chỉ xem.
 
-- **Ngày hiệu lực (Q-34):** ngày hiệu lực sớm nhất của một phiên bản là ngày hôm sau ngày duyệt (DBR-11 giữ nguyên). Việc gấp trong ngày dùng công việc phát sinh (8.3).
+- **Ngày hiệu lực (Q-34):** ngày hiệu lực sớm nhất của một phiên bản là ngày hôm sau ngày ban hành (DBR-11 giữ nguyên; Q-414 thay "ngày duyệt" bằng "ngày ban hành"). Việc gấp trong ngày dùng công việc phát sinh (8.3).
 - **Mục tiêu lượng nước (Q-30):** lấy từ mục tiêu ml/ngày của mục kế hoạch "hỗ trợ uống nước" trong phiên bản Hiệu lực. Người bán trú và người vắng một phần ngày được so với mục tiêu theo tỷ lệ số giờ có mặt, tính từ đầu ngày tới mốc kiểm tra. Không có mục tiêu thì không kiểm tra.
-- **Thỏa thuận lựa chọn có rủi ro (Q-349):** phiên bản kế hoạch có thể có mục loại "thỏa thuận lựa chọn có rủi ro": người cao tuổi chọn gì (ví dụ vẫn uống trà thường dù khó nuốt), rủi ro đã trao đổi, người tham gia trao đổi (có người cao tuổi), nguồn của từng ý kiến (BR-M01-14), người quyết định theo BR-M01-15 và ngày xem lại. Mục này không tạo công việc và không chặn công việc; nó được duyệt cùng phiên bản kế hoạch, và hiển thị trên checklist của nhân viên chăm sóc người đó (Q-360). Tới ngày xem lại thỏa thuận hoặc ngày xem lại nhận định của Bác sĩ, hệ thống nhắc một lần (mức Nhẹ) Điều dưỡng phụ trách và Bác sĩ đã nhận định (Q-360). Cảnh báo theo BR-M07-13 vẫn áp dụng.
+- **Thỏa thuận lựa chọn có rủi ro (Q-349):** phiên bản kế hoạch có thể có mục loại "thỏa thuận lựa chọn có rủi ro": người cao tuổi chọn gì (ví dụ vẫn uống trà thường dù khó nuốt), rủi ro đã trao đổi, người tham gia trao đổi (có người cao tuổi), nguồn của từng ý kiến (BR-M01-14), người quyết định theo BR-M01-15 và ngày xem lại. Mục này không tạo công việc và không chặn công việc; nó được ban hành cùng phiên bản kế hoạch (Q-414), và hiển thị trên checklist của nhân viên chăm sóc người đó (Q-360). Tới ngày xem lại thỏa thuận hoặc ngày xem lại nhận định của Bác sĩ, hệ thống nhắc một lần (mức Nhẹ) Điều dưỡng phụ trách và Bác sĩ đã nhận định (Q-360). Cảnh báo theo BR-M07-13 vẫn áp dụng.
 
 ### 8.2. Thời khóa biểu cá nhân
 
 Lịch được tổng hợp từ: lịch sinh hoạt; kế hoạch chăm sóc; lịch đo chỉ số; lịch thuốc; lịch ăn; hoạt động; lịch thăm; các công việc phát sinh. Với bán trú, chỉ tạo công việc trong khoảng thời gian có mặt.
+
+**Lịch chăm sóc hằng ngày (bổ sung 2026-11-22, Q-416).** Màn hiển thị gộp theo giờ cho một người cao tuổi trong một ngày, cho người thân (14.6) và người cao tuổi (14.6a) xem; chỉ xem, không ai tick trên màn này. Màn ghép bốn nguồn, chỉ đọc từ module sở hữu:
+
+| Nguồn | Ví dụ | Module | Có trạng thái |
+| --- | --- | --- | --- |
+| Giờ bữa | 07:00 ăn sáng, 12:00 ăn trưa | Module 08 (12) | Không |
+| Buổi hoạt động người đó có tên tham gia hoặc mở cho toàn viện | 08:00 tập thể dục, 10:00 xem TV thể thao | Module 04 (8.8) | Không |
+| Mốc sinh hoạt cố định | 06:30 thức dậy, 13:00 ngủ trưa, 21:00 đi ngủ | Module 04 | Không |
+| Công việc chăm sóc riêng đã công bố | 08:30 hỗ trợ đi lại, 09:00 tập phục hồi chức năng | Module 04 (8.3) | Có |
+
+- **Mốc sinh hoạt cố định**: Quản lý viện lập một danh sách chung cho toàn viện (giờ, tên mục), là danh mục nhóm 1; sửa thì áp dụng từ ngày hôm sau. Không tạo công việc, không ai tick.
+- Người bán trú chỉ hiện các mục nằm trong giờ có mặt của ngày đó.
+- Trạng thái công việc hiển thị: **Hoàn thành** (gồm Hoàn thành trễ); **Chưa hoàn thành** (Chưa đến hạn, Đến hạn, Quá hạn); **Không thực hiện**, không kèm loại lý do hay ghi chú. Công việc Đã hủy không hiện. Công việc phát sinh đã ghi cũng hiện.
+- Kết quả ghi nhận không hiện, trừ kết quả đo chỉ số cho người thân có quyền xem sức khỏe có tác dụng (BR-M01-08); người cao tuổi không thấy kết quả đo (14.6a).
+- Liều thuốc không hiện trên màn này.
 
 ### 8.3. Công việc chăm sóc
 
@@ -792,6 +805,8 @@ Bao gồm: vệ sinh; tắm; thay quần áo; hỗ trợ ăn; hỗ trợ uống 
 
 ```mermaid
 stateDiagram-v2
+    [*] --> Nhap
+    Nhap --> ChuaDenHan: công bố
     [*] --> ChuaDenHan
     [*] --> HoanThanh
     ChuaDenHan --> DenHan
@@ -814,7 +829,10 @@ Bảng dưới nêu lệnh, sự kiện và người thực hiện của từng 
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
-| — | Lập công việc của ca (BR-M04-01) / tạo công việc phát sinh | Chưa đến hạn | Người phụ trách ca, Trưởng tầng / Trưởng tầng, Điều dưỡng |
+| — | Lập công việc tháng, gồm lệnh "Chép từ kế hoạch" (BR-M04-01, Q-415) | Nháp | Trưởng tầng |
+| Nháp | Công bố công việc tháng (Q-415) | Chưa đến hạn | Trưởng tầng |
+| Nháp | Bỏ khỏi bản Nháp | (xóa) | Trưởng tầng |
+| — | Tạo công việc phát sinh | Chưa đến hạn | Trưởng tầng, Điều dưỡng trong ca |
 | — | Ghi nhận phát sinh (Q-36) | Hoàn thành | Người ghi, trong phạm vi |
 | Chưa đến hạn | Tới đầu khung thời gian | Đến hạn | Bộ lập lịch |
 | Chưa đến hạn | Hủy tự động (vắng mặt, đã về, nguồn bị hủy, trạng thái cuối) | Hủy | Hệ thống |
@@ -838,7 +856,9 @@ Hệ thống hỗ trợ: nhân viên phụ trách chính; nhân viên hỗ trợ
 
 ### 8.5. Checklist theo ca
 
-Đầu ca, Người phụ trách ca lập công việc của ca (BR-M04-01); nhân viên nhận checklist gồm: công việc chăm sóc; công việc chuyên môn; công việc phát sinh; công việc tồn từ ca trước.
+**(Sửa 2026-11-22, Q-415)** Công việc của ca đã được Trưởng tầng lập và công bố theo tháng (BR-M04-01); Điều dưỡng và Nhân viên chăm sóc nhận checklist các việc được giao cho mình trong ca, trên ứng dụng di động và web, gồm: công việc chăm sóc; công việc chuyên môn; công việc phát sinh; công việc tồn từ ca trước. Tick Hoàn thành là thao tác chính; công việc cần số liệu thì nhập thêm kết quả theo 8.6. Lịch thuốc chỉ nhắc giờ trong checklist; liều được ghi ở chức năng phát thuốc (Module 07).
+
+**Nhãn theo dõi (Q-419).** Trong lúc người cao tuổi có cảnh báo đang mở, thẻ người đó trên checklist của mọi ca có nhãn "Đang theo dõi: <loại cảnh báo>". Nhân viên chăm sóc người đó ghi kết quả theo dõi vào cảnh báo (9.4). Nhãn không tạo công việc; cần đo thêm thì Trưởng tầng lập công việc phát sinh.
 
 Điều dưỡng có thêm: nhận bàn giao; kiểm tra đầu ca; giám sát; xử lý cảnh báo; lập bàn giao cuối ca.
 
@@ -917,9 +937,9 @@ Tâm trạng, hành vi bất thường được ghi qua công việc chăm sóc 
 
 **Lập công việc**
 
-- **BR-M04-01:** Người phụ trách ca lập công việc của ca cho tầng/khu vực của ca, sớm nhất từ \[1 giờ\] trước giờ bắt đầu ca (CFG-M04-01); Trưởng tầng lập được cho mọi ca đã công bố của tầng mình, kể cả lập trước. Người lập căn cứ kế hoạch chăm sóc (phiên bản đang hiệu lực), lịch đo, lịch ăn, hoạt động đã đăng ký và các việc theo dõi (sau ngã BR-M05-07, tiếp xúc BR-M05-10, hỗ trợ uống nước BR-M04-08, kiểm tra đầu ca và giám sát BR-M04-24) để lập công việc cho người đang có mặt hoặc dự kiến có mặt, ghi mục kế hoạch hoặc nguồn làm căn cứ; hệ thống không gợi ý hay chép sẵn công việc (Q-307). Lịch thuốc (Module 07) chỉ hiển thị chung trong checklist, không thành công việc. Tới giờ bắt đầu ca mà tầng/khu vực chưa có công việc của ca thì hệ thống nhắc Người phụ trách ca và Trưởng tầng (Q-306).
+- **BR-M04-01:** **(Viết lại 2026-11-22, Q-415)** Trưởng tầng lập công việc **cho cả tháng** của tầng mình, sau khi lịch ca tháng của tầng đã công bố, và công bố công việc tháng trước ngày đầu tháng; nhân viên chỉ thấy công việc đã công bố. Trưởng tầng dùng lệnh "Chép từ kế hoạch" để có bản Nháp công việc tháng theo các mục của phiên bản kế hoạch Hiệu lực và phân công trong lịch ca, rồi xem, sửa và công bố; lệnh chỉ chạy khi Trưởng tầng bấm, hệ thống không tự lập (ngoại lệ có giới hạn của Q-307, Q-415). Người cao tuổi được phân vào tầng giữa tháng thì Trưởng tầng thêm lịch chăm sóc của người đó vào tháng, bắt đầu từ ngày muộn nhất trong: ngày hợp đồng có hiệu lực, ngày Hoàn tất tiếp nhận, ngày phiên bản kế hoạch có hiệu lực. Công việc phát sinh do Trưởng tầng hoặc Điều dưỡng trong ca tạo bất kỳ lúc nào. CFG-M04-01 không còn dùng. Người lập căn cứ kế hoạch chăm sóc (phiên bản đang hiệu lực), lịch đo, lịch ăn, hoạt động đã đăng ký và các việc theo dõi (sau ngã BR-M05-07, tiếp xúc BR-M05-10, hỗ trợ uống nước BR-M04-08, kiểm tra đầu ca và giám sát BR-M04-24) để lập công việc cho người đang có mặt hoặc dự kiến có mặt, ghi mục kế hoạch hoặc nguồn làm căn cứ; hệ thống không gợi ý hay chép sẵn công việc (Q-307). Lịch thuốc (Module 07) chỉ hiển thị chung trong checklist, không thành công việc. Ngày \[25\] hằng tháng (CFG-M04-14) hệ thống nhắc Trưởng tầng nếu công việc tháng sau của tầng chưa công bố; tới ngày đầu tháng vẫn chưa công bố thì báo Quản lý viện; hệ thống không tự công bố (Q-415).
 - **BR-M04-02:** Với bán trú, công việc chỉ được lập sau khi điểm danh đến, và Người phụ trách ca được báo khi người bán trú điểm danh đến; khi điểm danh về, công việc Chưa đến hạn sau giờ về tự động chuyển Hủy (8.3).
-- **BR-M04-03:** Khi kế hoạch thay đổi, công việc đã lập không tự hủy hay lập lại. Từ ngày hiệu lực, hệ thống báo Người phụ trách ca và Trưởng tầng rằng kế hoạch đã đổi; Trưởng tầng hủy công việc không còn phù hợp (có lý do), Người phụ trách ca lập công việc mới. Công việc đã thực hiện không bị sửa.
+- **BR-M04-03:** **(Sửa 2026-11-22, Q-415)** Khi phiên bản kế hoạch mới có hiệu lực, trong cùng lần chuyển hệ thống hủy các công việc Chưa đến hạn lập theo mục của phiên bản cũ, kể từ ngày hiệu lực, và báo Trưởng tầng rằng kế hoạch đã đổi; Trưởng tầng dùng "Chép từ kế hoạch" cho phần còn lại của tháng. Công việc đã Đến hạn, Quá hạn hoặc đã thực hiện không bị hủy hay sửa.
 - **BR-M04-04:** Khi người cao tuổi chuyển sang Tạm vắng, Điều trị tại bệnh viện hoặc Hoạt động bên ngoài, công việc Chưa đến hạn trong khoảng thời gian vắng tự động chuyển Hủy (lý do: vắng mặt; 8.3).
 
 **Thời hạn và mức quan trọng**
@@ -950,7 +970,7 @@ Tâm trạng, hành vi bất thường được ghi qua công việc chăm sóc 
 
 **Kế hoạch chăm sóc**
 
-- **BR-M04-19:** Phiên bản kế hoạch đang hiệu lực không sửa được. Phiên bản mới chỉ có hiệu lực khi được người có quyền Duyệt kế hoạch chăm sóc (2.4) duyệt; từ ngày hiệu lực, công việc được lập theo phiên bản mới (BR-M04-01, 03).
+- **BR-M04-19:** Phiên bản kế hoạch đang hiệu lực không sửa được. **(Sửa 2026-11-22, Q-414)** Phiên bản mới do Bác sĩ lập và ban hành, không qua duyệt, có hiệu lực sớm nhất từ ngày hôm sau ngày ban hành; từ ngày hiệu lực, công việc được lập theo phiên bản mới (BR-M04-01, 03).
 - **BR-M04-20:** Khi đánh giá lại (BR-M01-03) hoặc sự cố ngã (BR-M05-07) xảy ra, khi phụ lục đổi mức chăm sóc có hiệu lực (6.6), hoặc khi Bác sĩ ghi lựa chọn "ở lại viện chăm sóc giảm nhẹ" (9.5), hệ thống báo điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc để xem xét kế hoạch. Điều dưỡng phụ trách quyết định lập phiên bản mới hay giữ kế hoạch hiện hành; hệ thống không tạo yêu cầu xem xét (Q-306). "Đánh giá lại" ở đây là lần đánh giá lại được xác nhận có mức chăm sóc hoặc tập nhu cầu chăm sóc khác lần đánh giá Đã xác nhận trước đó; chỉ đổi nhu cầu cũng được báo.
 
 **Hoạt động định kỳ và đời sống tinh thần**
@@ -962,7 +982,7 @@ Tâm trạng, hành vi bất thường được ghi qua công việc chăm sóc 
 
 - **BR-M04-23:** Mỗi ca, người kiểm tra (Trưởng tầng được giao, hoặc Người phụ trách ca theo đoạn dưới) lập danh sách kiểm tra chất lượng rồi kiểm tra lại (Đạt / Không đạt + ghi chú). Kết quả Không đạt thì người kiểm tra lập công việc làm lại cho ca hiện tại và được ghi vào báo cáo chất lượng theo nhân viên (18.2). Bản ghi gốc của công việc không bị sửa. Cách chọn: người kiểm tra tự chọn công việc Hoàn thành hoặc Hoàn thành trễ của ca, đủ ít nhất \[5%\] (CFG-M04-11; làm tròn lên, tối thiểu 1); hệ thống không chọn mẫu, chỉ kiểm tra tỷ lệ (Q-307). Tới mốc CFG-M09-04 trước khi kết ca mà ca chưa có danh sách thì hệ thống nhắc người kiểm tra (Q-306). Hạn kiểm tra là hết ca; mục chưa kiểm tra thành "Quá hạn kiểm tra" và Quản lý viện được báo; trưởng tầng được giao ghi được trong thời gian ca dù không có tên trong ca. Công việc làm lại thuộc chính ca đó. Không chọn: công việc do chính trưởng tầng được giao thực hiện (không có người kiểm tra thay), liều thuốc, công việc đã bị hủy ghi nhận, công việc ngoại tuyến đồng bộ sau khi ca đã kết thúc. Chỉ Trưởng tầng được giao của tầng ghi kết quả; Người phụ trách ca không có quyền này. Tỷ lệ Đạt = Đạt ÷ (Đạt + Không đạt). Với ca mà Trưởng tầng được giao của tầng không có tên trong ca (ví dụ ca đêm), Người phụ trách ca của tầng trong ca đó cũng ghi được kết quả; Trưởng tầng vẫn ghi được như trên. Trong ca này, công việc do chính Người phụ trách ca thực hiện không được chọn vào mẫu (như Q-168). Báo cáo chất lượng ghi người kiểm tra là Trưởng tầng hay Người phụ trách ca. "Ca không có Trưởng tầng được giao" là ca mà Trưởng tầng được giao của tầng (a) không có tên trong lịch ca đã công bố, hoặc (b) có tên nhưng đã được ghi nhận vắng ca hoặc có nghỉ đột xuất đã duyệt cho ca đó (13.2, 13.4); ở trường hợp (b) quyền của Người phụ trách ca bắt đầu từ lúc bản ghi vắng hoặc quyết định duyệt có hiệu lực. Người phụ trách ca không ghi kết quả cho công việc do chính mình thực hiện, kể cả công việc đã vào mẫu trước đó. Việc loại công việc của Người phụ trách ca khỏi mẫu xét theo người giữ nhiệm vụ tại lúc công việc hoàn thành và không xét lại khi nhiệm vụ được chuyển giữa ca. Ca không có Trưởng tầng được giao mà cũng không có Người phụ trách ca thì mẫu vẫn được lập; mục hết ca chưa kiểm tra thành "Quá hạn kiểm tra" với lý do "ca không có người kiểm tra", tính riêng trong báo cáo.
 - **BR-M04-24:** "Kiểm tra đầu ca" và "giám sát" (8.5) là hai loại công việc chuyên môn của danh mục, được lập mỗi loại một lần mỗi ca cho mỗi điều dưỡng có phân công trong ca, gắn tầng/khu vực của ca.
-- **BR-M04-25:** Công việc được lập theo ca, không lập theo ngày (Q-306). Với tần suất "mỗi N giờ", chuỗi thời điểm dự kiến của mỗi ngày bắt đầu lại từ mốc giờ bắt đầu và lặp mỗi N giờ tới hết ngày đó, không nối sang ngày sau.
+- **BR-M04-25:** **(Sửa 2026-11-22, Q-415)** Công việc được Trưởng tầng lập theo tháng; mỗi công việc vẫn thuộc đúng một ca (ca chứa thời điểm dự kiến) và có người thực hiện theo phân công của ca đó. Với tần suất "mỗi N giờ", chuỗi thời điểm dự kiến của mỗi ngày bắt đầu lại từ mốc giờ bắt đầu và lặp mỗi N giờ tới hết ngày đó, không nối sang ngày sau.
 - **BR-M04-26:** Công việc lập khi khung thời gian đã qua vẫn lập được và chuyển thẳng Đến hạn hoặc Quá hạn; lập lại không tạo trùng (DBR-12). Bộ lập lịch gián đoạn thì các lần nhắc bị dồn được gộp thành một lần cho mỗi người nhận.
 - **BR-M04-27:** Khi mất kết nối, thiết bị vẫn cho xem checklist đã tải lần gần nhất kèm dấu "chưa cập nhật" và cho ghi tạm; khi đồng bộ, bản ghi cho công việc đã Hủy hoặc đã được đóng bị từ chối đóng lần hai, người ghi được báo và nội dung được giữ để chuyển thành đính chính hoặc "Ghi nhận phát sinh"; với công việc đã bị hệ thống đóng vì người cao tuổi chuyển trạng thái cuối, bản ghi có thời điểm thực hiện trước thời điểm đó được nhận dưới dạng "Ghi nhận phát sinh", sau thời điểm đó thì bị từ chối.
 - **BR-M04-28:** Đổi phân công chăm sóc giữa ca thì công việc chưa đóng của người cao tuổi đó trong ca được gán lại cho người được phân công mới, hoặc thành công việc chung nếu không còn ai; lập công việc theo phiên bản kế hoạch mới không tạo trùng công việc đã có cho cùng mục và thời điểm; ca không có ai đủ điều kiện thực hiện thì báo Trưởng tầng.
@@ -1045,7 +1065,9 @@ stateDiagram-v2
     ChuyenSuCo --> [*]
 ```
 
-Đóng cảnh báo bắt buộc có kết quả xử lý.
+Đóng cảnh báo bắt buộc có kết quả xử lý. **(Sửa 2026-11-22, Q-418)** Chỉ Trưởng tầng (tầng của người cao tuổi) và Bác sĩ đóng cảnh báo, khi thấy vấn đề đã ổn; không giới hạn thời gian theo dõi. Điều dưỡng, Người phụ trách ca tiếp nhận, xử lý và ghi theo dõi, không đóng. Hệ thống chỉ tự đóng cảnh báo sinh từ công việc hoặc liều thuốc quá hạn khi việc, liều đó đã được làm, và cảnh báo của người cao tuổi chuyển trạng thái cuối; cảnh báo về tình trạng sức khỏe (vượt ngưỡng, xu hướng, uống nước thiếu, ăn kém kéo dài, tâm trạng, tạo thủ công) luôn do người đóng. Vấn đề lặp lại sau khi đóng thì tạo cảnh báo mới.
+
+**Theo dõi cảnh báo (Q-419).** Trong lúc cảnh báo đang mở, Điều dưỡng, Nhân viên chăm sóc chăm sóc người đó trong ca ghi kết quả theo dõi vào cảnh báo (lần đo mới, nhận xét); ghi theo dõi không đổi trạng thái cảnh báo. Checklist của mọi ca hiện nhãn "Đang theo dõi" (8.5); hệ thống không tự tạo công việc theo dõi.
 
 Bảng dưới nêu lệnh, sự kiện và người thực hiện của từng chuyển; "đang mở" là Mới, Leo thang, Đã tiếp nhận, Đang xử lý.
 
@@ -1057,10 +1079,11 @@ Bảng dưới nêu lệnh, sự kiện và người thực hiện của từng 
 | Đã tiếp nhận | Giao người phụ trách | Đã tiếp nhận | Quản lý viện, khi là người phụ trách |
 | Đã tiếp nhận | Bắt đầu xử lý | Đang xử lý | Người phụ trách |
 | Đã tiếp nhận, Đang xử lý | Ghi đã tới nơi (cảnh báo từ nút SOS hoặc nút hỗ trợ khẩn cấp; BR-M05-30) | Giữ nguyên | Người tiếp nhận, người phụ trách |
-| Đang xử lý | Đóng cảnh báo (bắt buộc kết quả) | Đã đóng | Điều dưỡng, Trưởng tầng, Bác sĩ |
+| Đang mở | Ghi kết quả theo dõi (Q-419) | Giữ nguyên | Điều dưỡng, Nhân viên chăm sóc trong phạm vi phân công; Trưởng tầng, Bác sĩ |
+| Đang xử lý | Đóng cảnh báo (bắt buộc kết quả) | Đã đóng | Trưởng tầng (tầng của người cao tuổi), Bác sĩ (Q-418) |
 | Đang xử lý | Chuyển sự cố | Chuyển sự cố | Điều dưỡng, Trưởng tầng, Bác sĩ |
 | Mới, Leo thang, Đã tiếp nhận | Kích hoạt khẩn cấp từ cảnh báo (Q-67) | Chuyển sự cố | Điều dưỡng, Trưởng tầng, Bác sĩ |
-| Đang mở | Mọi nguồn đã được xử lý, theo yêu cầu của module nguồn | Đã đóng | Hệ thống |
+| Đang mở | Mọi nguồn đã được xử lý, theo yêu cầu của module nguồn; chỉ cảnh báo quá hạn của công việc, liều thuốc và khi người cao tuổi chuyển trạng thái cuối (Q-418) | Đã đóng | Hệ thống |
 | Đang mở | Nâng mức / hạ mức (hạ từ Khẩn cấp: chỉ Bác sĩ); bàn giao ca được xác nhận (BR-M05-05) | Giữ nguyên | Điều dưỡng, Trưởng tầng, Bác sĩ; Hệ thống |
 
 Cảnh báo đã ở cấp 2 mà vẫn chưa tiếp nhận thì không leo thang thêm và mang dấu "đã leo thang tối đa". Cảnh báo mang dấu này được nhắc lại mức Trung bình cho Quản lý viện và Trưởng tầng của tầng người cao tuổi, mỗi khoảng bằng thời hạn tiếp nhận của mức cảnh báo (CFG-M05-01 với mức Trung bình; hết ca với mức Nhẹ), tới khi có người tiếp nhận. Lần nhắc lại không phải một lần leo thang: không đổi cấp, không ghi vào lịch sử leo thang và không tính vào chỉ tiêu "số lần leo thang" (18.3); hệ thống chỉ ghi lịch sử lần nhắc. Với mức Nhẹ, lần nhắc gửi khi hết mỗi ca của tầng và không thay việc người lập bàn giao ghi cảnh báo vào bàn giao (BR-M05-05, Q-312); tầng không có Trưởng tầng thì người nhận thay theo mục 17.
@@ -1607,7 +1630,7 @@ Quy trình: Lập bàn giao → Ca sau tiếp nhận → Xác nhận → Công v
 
 Trạng thái bàn giao: Bản nháp (Người phụ trách ca lập, BR-M09-06) → Đã lập (người bàn giao hoàn tất) → Đã xác nhận (ca sau) — hoặc Có ý kiến (ca sau phản hồi thiếu sót, quay lại người bàn giao).
 
-- Mỗi ca có yêu cầu bàn giao có đúng một bàn giao. Người bàn giao là Người phụ trách ca; người xác nhận là Người phụ trách ca sau hoặc Trưởng tầng của phạm vi, và bắt buộc có tên, đủ điều kiện làm việc trong đúng ca sau thuộc lịch đã công bố. "Ca sau" là ca cùng phạm vi bắt đầu sớm nhất trong khoảng ca trước; nếu không có thì ca cùng phạm vi bắt đầu sớm nhất sau giờ kết thúc, trong vòng \[24 giờ\] (CFG-M09-09). Nếu không tìm được ca sau thì chưa được xác nhận; không có ngoại lệ cho Trưởng tầng xác nhận ngoài lịch ca sau. Điều kiện người nhận này áp dụng cả khi gửi ý kiến về bàn giao. *(Chủ dự án chốt ngày 2026-11-05.)*
+- **(Sửa 2026-11-22, Q-417)** Bàn giao chỉ bắt buộc khi tới cửa sổ lập bàn giao (CFG-M09-04) mà ca còn công việc chưa đóng hoặc người cao tuổi trong phạm vi ca còn cảnh báo đang mở; ca không còn gì tồn thì không bắt buộc, vẫn lập được nếu Người phụ trách ca muốn ghi vấn đề cần theo dõi. Mỗi ca có tối đa một bàn giao. Người bàn giao là Người phụ trách ca; người xác nhận là Người phụ trách ca sau, bắt buộc có tên, đủ điều kiện làm việc trong đúng ca sau thuộc lịch đã công bố; khi người đó vắng ca hoặc chưa xác nhận, Trưởng tầng của phạm vi xác nhận thay, không cần có tên trong ca sau (Q-417 thay phần "không có ngoại lệ cho Trưởng tầng" của câu dưới). "Ca sau" là ca cùng phạm vi bắt đầu sớm nhất trong khoảng ca trước; nếu không có thì ca cùng phạm vi bắt đầu sớm nhất sau giờ kết thúc, trong vòng \[24 giờ\] (CFG-M09-09). Nếu không tìm được ca sau thì chưa được xác nhận; không có ngoại lệ cho Trưởng tầng xác nhận ngoài lịch ca sau. Điều kiện người nhận này áp dụng cả khi gửi ý kiến về bàn giao. *(Chủ dự án chốt ngày 2026-11-05.)*
 - Ở Bản nháp, người bàn giao sửa được các mục; mục có nguồn đã kết thúc thì người bàn giao ghi đã xử lý hoặc bỏ (công việc đóng; liều được ghi hoặc đính chính; cảnh báo, sự cố đóng); chỉ số vượt ngưỡng và biến động người cao tuổi trong ca luôn được giữ (Q-88). Khi Đã lập, nội dung được chốt; mục phát sinh sau đó được ghi thêm vào phần "Phát sinh sau khi lập".
 - Hoàn tất bàn giao bắt buộc có nhận định chung và ghi chú cho từng mục nghiêm trọng: cảnh báo, sự cố mức Khẩn cấp hoặc Trung bình; liều Bỏ lỡ, Từ chối; công việc Bắt buộc đang Quá hạn (Q-83).
 - Bàn giao ở Có ý kiến được coi là chưa lập xong: ca không đóng, nằm ở Chờ bàn giao tới khi người bàn giao bổ sung và gửi lại (Q-87).
@@ -1706,7 +1729,7 @@ Có thể cung cấp: tình trạng chăm sóc; hoạt động; thông báo; th�
 
 ### 14.6. Cổng thông tin người thân
 
-Người thân có thể: xem thông tin được cấp quyền; xem lịch sinh hoạt; đăng ký thăm; xem chi phí; nhận thông báo; gửi phản hồi. Camera, nếu có, được xem là tích hợp tùy chọn, không phải nghiệp vụ lõi của hệ thống. Cổng người thân có hai kênh cùng chức năng, cùng tài khoản và quyền: web trên trình duyệt và ứng dụng di động khi đăng nhập bằng tài khoản người thân (Q-305, Q-346).
+Người thân có thể: xem thông tin được cấp quyền; xem lịch sinh hoạt và "Lịch chăm sóc hằng ngày" của người cao tuổi có quan hệ Hiệu lực (8.2; bổ sung 2026-11-22, Q-416: mọi người thân thấy tên công việc chăm sóc và trạng thái, kết quả đo chỉ khi có quyền xem sức khỏe có tác dụng); đăng ký thăm; xem chi phí; nhận thông báo; gửi phản hồi. Camera, nếu có, được xem là tích hợp tùy chọn, không phải nghiệp vụ lõi của hệ thống. Cổng người thân có hai kênh cùng chức năng, cùng tài khoản và quyền: web trên trình duyệt và ứng dụng di động khi đăng nhập bằng tài khoản người thân (Q-305, Q-346).
 
 **Người thân thực hiện các việc khác (Q-341).** Người thân đăng ký tiếp nhận, cung cấp hồ sơ, chọn hình thức lưu trú, mức chăm sóc và dịch vụ, ký hợp đồng trực tiếp với viện; Hành chính ghi các nội dung này vào hệ thống (6.1 → 6.3), hợp đồng ký là bản ký scan. Cổng người thân không có chức năng đăng ký tiếp nhận hay ký hợp đồng, vì người thân chỉ có tài khoản sau khi có quan hệ Hiệu lực với một người cao tuổi (14.1). Ở lại qua đêm do Hành chính đăng ký theo yêu cầu của người thân (14.4, Q-123). Người thân xem khoản phải trả, số dư và thông tin nộp tiền trên cổng; việc nộp tiền là tiền mặt hoặc chuyển khoản ngoài hệ thống (Q-285). Người thân gửi yêu cầu qua cổng gồm: yêu cầu thay đổi dịch vụ của người đại diện (6.6), yêu cầu BR-M10-07, phản hồi (14.7); đề nghị mua hộ do Hành chính lập theo yêu cầu của gia đình, người đại diện đồng ý qua cổng (15.2).
 
@@ -1718,7 +1741,7 @@ Người cao tuổi đang lưu trú (nội trú, bán trú) có thể tự dùng
 
 Người cao tuổi có thể (Q-366):
 
-- Xem lịch sinh hoạt trong ngày của mình, cùng phạm vi lịch sinh hoạt trên cổng người thân (14.6).
+- **(Sửa 2026-11-22, Q-416)** Xem "Lịch chăm sóc hằng ngày" của mình (8.2): lịch sinh hoạt chung, giờ bữa, hoạt động và công việc chăm sóc riêng kèm trạng thái; không hiện kết quả đo.
 - Xem thực đơn tuần đã công bố và suất ăn dự kiến phục vụ cho mình, kể cả món thay thế; không hiện dị ứng, bệnh lý (12.5).
 - Xem hoạt động sắp tới của tầng mình và toàn viện (8.8), kèm việc mình đã có tên tham gia chưa; không hiện kết quả đánh giá khả năng tham gia.
 - Xem lượt thăm Đã duyệt của mình (14.2): ngày, khung giờ, người thăm.
@@ -2349,7 +2372,7 @@ Hiện không có quyết định còn mở (Q-355, Q-367 chốt 2026-10-19, chu
 
 **Bổ sung2026-11-05,008T041b:** chủ dự án chốt làm ghi vắng ca trên app trực tuyến trước như13.2; chưa mở đồng bộ ngoại tuyến cho lệnh này hoặc chốt mốc hiệu lực khi đồng bộ muộn.
 
-**Bổ sung ngày 2026-11-05, xác nhận bàn giao (008, mục 13.5):** chủ dự án chốt người xác nhận bắt buộc thuộc đúng ca sau trong lịch đã xếp; Trưởng tầng cũng phải đáp ứng điều kiện này. Bỏ ngoại lệ Trưởng tầng xác nhận khi không có ca sau hoặc không có tên trong ca sau. Có tên trong ca không tự cấp quyền xác nhận cho mọi nhân viên; vẫn kiểm nhiệm vụ, vai trò, phạm vi và điều kiện thời gian hiện có. Quyết định về quyền xác nhận này tách biệt với mốc nhận việc tồn bên dưới và chưa chốt đủ vòng đời hai cờ checklist bàn giao.
+**Bổ sung ngày 2026-11-05, xác nhận bàn giao (008, mục 13.5):** chủ dự án chốt người xác nhận bắt buộc thuộc đúng ca sau trong lịch đã xếp; Trưởng tầng cũng phải đáp ứng điều kiện này. Bỏ ngoại lệ Trưởng tầng xác nhận khi không có ca sau hoặc không có tên trong ca sau. *(Sửa 2026-11-22, Q-417: Trưởng tầng của phạm vi xác nhận thay khi Người phụ trách ca sau vắng ca hoặc chưa xác nhận.)* Có tên trong ca không tự cấp quyền xác nhận cho mọi nhân viên; vẫn kiểm nhiệm vụ, vai trò, phạm vi và điều kiện thời gian hiện có. Quyết định về quyền xác nhận này tách biệt với mốc nhận việc tồn bên dưới và chưa chốt đủ vòng đời hai cờ checklist bàn giao.
 
 **Bổ sung tiếp ngày 2026-11-05, mốc nhận việc tồn (005/008, mục 13.5):** chủ dự án chốt kiểm điều kiện người nhận theo thời điểm máy chủ xử lý lệnh nhận việc tồn, không theo giờ dự kiến cũ. Ca/phân công/phạm vi/vai trò/chứng chỉ phải hợp lệ tại mốc nhận thực tế; ca sau lấy từ lịch đã xếp. Giữ nguyên giờ dự kiến, trạng thái và lịch sử công việc, ghi thêm lịch sử nhận. Không đổi quy tắc giao/phân lại công việc thông thường. C/005 cài lệnh và allowedCommands; E/008 cung cấp dữ liệu ca/phân công/chứng chỉ. Không coi việc chốt quy tắc là bằng chứng mã 005 đã cài hoặc nguồn 008 đã được nghiệm thu.
 
@@ -2365,7 +2388,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-04  | Thời hạn lưu trữ hồ sơ và nhật ký                                                                        | Hồ sơ \[10 năm\] sau kết thúc lưu trú (CFG-M15-03); nhật ký \[10 năm\] (CFG-M15-04), không bị loại bỏ trước hồ sơ liên quan                                                                                                                | NFR-07, 19.4                                               | 000      |
 | Q-05 | Định dạng xuất cho kế toán (23) | Excel/CSV theo cột ở mục 23, thêm các cột của spec 010 FR-039 | 23 | 010 |
 | Q-06 | Nhà cung cấp SMS | Dùng kênh tin nhắn cho tự đặt lại mật khẩu của nhân viên, người thân (Q-399) và cho thông báo ngoài ứng dụng; nhà cung cấp là eSMS, gửi tin chăm sóc khách hàng có brandname (sửa 2026-11-03; chốt nhà cung cấp 2026-11-09). Chưa cấu hình nhà cung cấp thì chỉ thông báo trong ứng dụng và chưa có tự đặt lại mật khẩu | 17, 19.1, 23 | 009, 002 |
-| Q-07 | Ai có quyền Duyệt kế hoạch chăm sóc (2.4) | Bác sĩ; cơ sở được gán thêm cho điều dưỡng (Q-15) | 2.4, 8.1 | 005 |
+| Q-07 | Ai có quyền Duyệt kế hoạch chăm sóc (2.4) | *(Thay bằng Q-414, 2026-11-22: không còn bước duyệt)* Bác sĩ; cơ sở được gán thêm cho điều dưỡng (Q-15) | 2.4, 8.1 | 005 |
 | Q-08 | Bảng chính sách phí khi vắng (6.7) | *(Bỏ theo Q-395)* Bảng ví dụ 6.7 là giá trị khởi tạo; bảng là dữ liệu cấu hình của viện. Trường hợp chưa có dòng chính sách xử lý bằng dấu "không có dòng chính sách" và quyết định của Quản lý viện | 6.7 | 004, 010 |
 | Q-09 | Mẫu xoay ca thực tế (13.2) | *(Bỏ theo Q-397)* Cấu hình tham chiếu 2 ca ngày/đêm; mọi chu kỳ đều cấu hình được | 13.2 | 008, 015 |
 | Q-10  | Người lập yêu cầu có quyền duyệt có được tự duyệt không                                                  | Được, bắt buộc lý do, nhật ký đánh dấu "tự duyệt"                                                                                                                                                                                          | 6.6                                                        | 000      |
@@ -2772,6 +2795,12 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-411 | Phiếu đối chiếu thuốc: kiểm "thuốc đang dùng khi tiếp nhận đã có dòng" thế nào; phiếu không có dòng có gửi được không; dòng Ngừng, Thay đổi liều cần căn cứ gì để viện không quyết thay nơi điều trị | Chủ dự án 2026-11-18: (1) giữ phiếu đối chiếu thuốc ở cả ba lý do (tiếp nhận, trở về từ bệnh viện, theo yêu cầu chuyên môn). (2) "Thuốc đang sử dụng khi tiếp nhận" của hồ sơ sức khỏe ban đầu là chữ tự do, nên hệ thống không chặn tự động khi thuốc trong đó chưa có dòng; người xác nhận so phiếu với hồ sơ và trả lại phiếu khi thiếu (quy tắc hai người, Q-55). Hệ thống vẫn chặn gửi khi đơn Hiệu lực, Tạm dừng, Chờ hiệu lực của người đó chưa có dòng, dòng thiếu quyết định, dòng Ngừng thiếu lý do. (3) Người cao tuổi không có đơn nào phải đối chiếu thì phiếu không có dòng vẫn gửi, xác nhận được, để đóng hạn CFG-M07-05. (4) Dòng Ngừng, Thay đổi liều theo cùng điều kiện như lệnh đơn thuốc ngoài phiếu: Bác sĩ có quyền kê đơn hợp lệ (BR-M06-05) tự quyết; người khác ghi căn cứ từ cơ sở kê bên ngoài (đơn ra viện ghi ngừng, đổi liều hoặc ý kiến bác sĩ điều trị, kèm tên cơ sở, người, ngày) trong lý do của dòng, dòng Thay đổi liều có đơn thay thế là đơn bên ngoài có cơ sở kê (BR-M07-05); không có căn cứ thì để Tiếp tục hoặc hỏi cơ sở kê trước khi gửi. Người xác nhận kiểm căn cứ; hệ thống không đối chiếu nội dung căn cứ. Phiếu là việc đối chiếu và ghi theo đơn của nơi có thẩm quyền, không thay việc khám, chẩn đoán, kê đơn | 11.5, BR-M07-05, BR-M07-09, BR-M06-05, Q-55, Q-57, Q-306 | 006, 001 |
 | Q-412 | Hành chính có được ghi đánh giá đầu vào, nguyện vọng cuối đời, nguyện vọng khi điều trị lúc tiếp nhận không | Chủ dự án 2026-11-17: được ghi bản Nháp tự khai theo lời người cao tuổi hoặc gia đình khi người cao tuổi còn Đang tiếp nhận, như Q-400. Phiếu đánh giá đầu vào: chỉ phần "Gia đình khai" (trường riêng, tách khỏi nhận xét của Bác sĩ); Bác sĩ ghi nhận xét, chọn mức chăm sóc, xác nhận. Phiếu nguyện vọng: Bác sĩ hoặc Điều dưỡng kiểm chứng thì thành Hiệu lực; nhận định tự quyết chỉ Bác sĩ ghi. Khác Q-400: bản Nháp không có hiệu lực tới khi được kiểm chứng (nguyện vọng là căn cứ quyết định lúc nguy kịch). Hành chính chỉ xem bản Nháp do chính mình ghi. Hoàn tất tiếp nhận không bị chặn; cảnh báo và nhắc theo CFG-M01-06. Bổ sung cùng ngày: Hành chính ghi "Gia đình khai" vào lần đánh giá đầu vào Nháp đang mở (kể cả do Bác sĩ, Điều dưỡng lập), không hủy Nháp đánh giá; phiếu nguyện vọng tối đa một Nháp mỗi loại, kiểm chứng bằng lệnh mang đủ nội dung phiếu, Bác sĩ hoặc Điều dưỡng Hủy nháp kèm lý do, còn Nháp thì không ghi thẳng phiên bản mới; cảnh báo, nhắc thực tế chỉ với phiếu nguyện vọng (Nháp đánh giá đầu vào thì Hoàn tất đã bị từ chối theo 5.6) | 5.2, 5.3, 5.6, 19.3, BR-M01-16, BR-M01-18, Phụ lục 26, 27 (chú thích ³⁰, ⁵⁰, ⁵²) | 001 |
 | Q-413 | Lệnh nào trên đơn nội bộ cần Bác sĩ có quyền kê đơn hợp lệ (BR-M06-05), ngoài lệnh tạo đơn | Chủ dự án 2026-11-19: Gia hạn (đã có ở 006 FR-015) và Tiếp tục đơn nội bộ là cho dùng thuốc tiếp, nên cần Bác sĩ có quyền kê đơn hợp lệ tại thời điểm lệnh. Tạm dừng, Ngừng đơn nội bộ chỉ cần vai trò Bác sĩ như bảng FR-011, để vẫn dừng được thuốc khi giấy phép của bác sĩ hoặc phạm vi khám chữa bệnh của cơ sở hết hiệu lực; Điều dưỡng vẫn chỉ ra lệnh trên đơn bên ngoài có căn cứ từ cơ sở kê | 11.1, BR-M06-05, BR-M07-05, BR-M07-07, Q-411 | 006 |
+| Q-414 | Ai lập kế hoạch chăm sóc; còn bước duyệt không | Chủ dự án 2026-11-22: Bác sĩ lập kế hoạch chăm sóc cho từng người cao tuổi, dựa trên đánh giá (nhận xét, nhu cầu chăm sóc), và ban hành; không còn Gửi duyệt, Duyệt, Trả lại, trạng thái Chờ duyệt và quyền "Duyệt kế hoạch chăm sóc". Phiên bản có hiệu lực sớm nhất từ ngày hôm sau ngày ban hành (thay "ngày duyệt" ở Q-34). Bác sĩ hủy bản Nháp, thu hồi bản Chờ hiệu lực. Điều dưỡng, Nhân viên chăm sóc, Trưởng tầng, Quản lý viện chỉ xem. Người khỏe bình thường thì phiên bản có thể không có mục nào. Thay Q-07, phần duyệt kế hoạch của Q-10, Q-15 | 2.4, 8.1, BR-M04-19, Phụ lục 27 | 005, 002 |
+| Q-415 | Công việc chăm sóc được lập theo ca hay theo tháng; ai lập | Chủ dự án 2026-11-22: Trưởng tầng lập công việc cho cả tháng của tầng mình sau khi lịch ca tháng đã công bố, công bố trước ngày đầu tháng; công việc chưa công bố ở trạng thái Nháp, nhân viên không thấy. Lệnh "Chép từ kế hoạch" (Trưởng tầng bấm) cho bản Nháp theo mục của phiên bản Hiệu lực và phân công của lịch ca; đây là ngoại lệ có giới hạn của Q-306, Q-307 vì chỉ chạy theo lệnh và kết quả là bản Nháp người dùng xem, sửa rồi công bố. Mỗi công việc vẫn thuộc một ca, có người thực hiện, phải khớp mục kế hoạch (vai trò, giờ trong khung). Người cao tuổi vào tầng giữa tháng: thêm từ ngày muộn nhất trong ngày hợp đồng hiệu lực, ngày Hoàn tất tiếp nhận, ngày kế hoạch hiệu lực. Kế hoạch đổi giữa tháng: hệ thống hủy công việc Chưa đến hạn của phiên bản cũ từ ngày hiệu lực và báo Trưởng tầng. Ngày [25] (CFG-M04-14) nhắc Trưởng tầng nếu tháng sau chưa công bố; ngày đầu tháng vẫn chưa thì báo Quản lý viện. Công việc phát sinh: Trưởng tầng, Điều dưỡng trong ca. Người phụ trách ca không còn lập công việc của ca; bỏ CFG-M04-01 | 8.3, 8.5, BR-M04-01, 03, 25, Phụ lục 25, 27 | 005 |
+| Q-416 | Người thân, người cao tuổi xem công việc chăm sóc trong ngày thế nào | Chủ dự án 2026-11-22: màn "Lịch chăm sóc hằng ngày" ghép giờ bữa (Module 08), buổi hoạt động người đó tham gia hoặc mở cho toàn viện, mốc sinh hoạt cố định (Quản lý viện lập một danh sách chung, áp dụng từ ngày hôm sau) và công việc chăm sóc riêng đã công bố; chỉ xem, không tick. Trạng thái hiện: Hoàn thành (gồm trễ), Chưa hoàn thành, Không thực hiện (không kèm lý do); việc Đã hủy không hiện; liều thuốc không hiện. Mọi người thân có quan hệ Hiệu lực thấy tên việc và trạng thái; kết quả đo chỉ cho người có quyền xem sức khỏe có tác dụng; người cao tuổi không thấy kết quả đo. Thay phần "không có công việc chăm sóc" của Q-366 | 8.2, 14.6, 14.6a, Phụ lục 27 | 005, 012 |
+| Q-417 | Khi nào phải lập bàn giao ca; ai xác nhận khi người phụ trách ca sau vắng | Chủ dự án 2026-11-22: bàn giao chỉ bắt buộc khi tới cửa sổ CFG-M09-04 mà ca còn công việc chưa đóng hoặc còn cảnh báo đang mở trong phạm vi ca; ca không còn gì tồn thì không bắt buộc, vẫn lập được. Người phụ trách ca lập; Người phụ trách ca sau xác nhận; vắng ca hoặc chưa xác nhận thì Trưởng tầng của phạm vi xác nhận thay, không cần có tên trong ca sau (sửa ghi chú 2026-11-05 ở 24.2). Việc tồn chuyển ca lúc xác nhận như cũ | 13.5, BR-M09-06, 07 | 008 |
+| Q-418 | Ai đóng cảnh báo; có giới hạn thời gian theo dõi không | Chủ dự án 2026-11-22: chỉ Trưởng tầng (tầng của người cao tuổi) và Bác sĩ đóng cảnh báo, khi thấy vấn đề đã ổn, không giới hạn thời gian; bắt buộc kết quả xử lý. Điều dưỡng, Người phụ trách ca tiếp nhận, xử lý, ghi theo dõi, không đóng. Hệ thống chỉ tự đóng cảnh báo quá hạn của công việc, liều thuốc khi nguồn đã được làm, và khi người cao tuổi chuyển trạng thái cuối; cảnh báo tình trạng sức khỏe luôn do người đóng. Lặp lại sau khi đóng thì tạo cảnh báo mới | 9.4, BR-M05-03 | 007 |
+| Q-419 | "Các lần chăm sóc tiếp theo theo dõi vấn đề cảnh báo" làm thế nào | Chủ dự án 2026-11-22: trong lúc cảnh báo đang mở, checklist của mọi ca hiện nhãn "Đang theo dõi: <loại>" trên thẻ người cao tuổi; Điều dưỡng, Nhân viên chăm sóc trong phạm vi ghi kết quả theo dõi vào cảnh báo (lần đo mới, nhận xét), không đổi trạng thái. Hệ thống không tự tạo công việc theo dõi; cần đo thêm thì Trưởng tầng lập công việc phát sinh | 8.5, 9.4 | 005, 007 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -2849,7 +2878,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M03-07 | Khoảng lùi tối đa khi nhập bù phân bổ giường không cần duyệt                                                                                                                                                                                                                              | 24 giờ                                                 | 7.3                                                                                                    |
 | CFG-M03-08 | Độ trễ tối đa của việc tự động theo lịch (chuyển giường, bắt đầu/kết thúc phân bổ) trước khi báo Quản lý viện                                                                                                                                                                             | 30 phút                                                | 7.4                                                                                                    |
 | CFG-M03-09 | Nhắc trước hạn bảo trì, kiểm định, đăng kiểm, bảo hiểm tài sản | 30 ngày | BR-M03-17 |
-| CFG-M04-01 | Mốc sớm nhất Người phụ trách ca lập công việc của ca | 1 giờ trước giờ bắt đầu ca | BR-M04-01 |
+| CFG-M04-01 | *(Bỏ theo Q-415)* Mốc sớm nhất Người phụ trách ca lập công việc của ca | — | — |
 | CFG-M04-02 | Khung thời gian cho phép mặc định của công việc                                                                                                                                                                                                                                                                     | ±15 phút                                               | 8.1, BR-M04-05                                                                                         |
 | CFG-M04-03 | Mốc kiểm tra lượng nước / ngưỡng tối thiểu                                                                                                                                                                                                                                                                          | 16:00 / 60% mục tiêu                                   | BR-M04-08                                                                                              |
 | CFG-M04-04 | Số bữa ăn kém liên tiếp để cảnh báo                                                                                                                                                                                                                                                                                 | 3                                                      | BR-M04-09                                                                                              |
@@ -2860,6 +2889,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M04-11 | Tỷ lệ tối thiểu công việc người kiểm tra chọn để kiểm tra chất lượng                                                                                                                                                                                                                                                        | 5% mỗi ca                                              | BR-M04-23                                                                                              |
 | CFG-M04-12 | Khoảng chờ từ lúc công việc Thường Quá hạn tới khi báo người phụ trách ca                                                                                                                                                                                                                 | 30 phút                                                | 8.7                                                                                                    |
 | CFG-M04-13 | Thời gian sớm nhất được điểm danh rời viện trước giờ rời dự kiến của chuyến đi                                                                                                                                                                                                                  | 1 giờ                                                  | 8.9                                                                                                    |
+| CFG-M04-14 | Ngày trong tháng nhắc Trưởng tầng công bố công việc tháng sau (Q-415) | Ngày 25 | BR-M04-01 |
 | CFG-M05-01 | Thời hạn tiếp nhận cảnh báo mức trung bình                                                                                                                                                                                                                                                                          | 15 phút                                                | 9.3, BR-M05-01                                                                                         |
 | CFG-M05-02 | Số lần lặp cảnh báo trung bình để báo lặp lại                                                                                                                                                                                                                                                                  | 3 lần / 24 giờ                                         | BR-M05-03                                                                                              |
 | CFG-M05-03 | Ngưỡng sụt cân                                                                                                                                                                                                                                                                                                      | 5% trong 30 ngày                                       | BR-M05-04                                                                                              |
@@ -3008,7 +3038,7 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-20 | Phân bổ giường                        | Hành chính                              | 003      | BR-M03-01, 02       |
 | UC-21 | Chuyển giường                         | Trưởng tầng, Hành chính                 | 003      | BR-M03-04, 07       |
 | UC-22 | Lập phiên bản kế hoạch chăm sóc       | Điều dưỡng                              | 005      | 8.1                 |
-| UC-23 | Duyệt kế hoạch chăm sóc               | Bác sĩ                                  | 005      | BR-M04-19           |
+| UC-23 | Ban hành kế hoạch chăm sóc (thay Duyệt, Q-414) | Bác sĩ                                  | 005      | BR-M04-19           |
 | UC-24 | Lập công việc của ca                | Người phụ trách ca, Trưởng tầng                             | 005      | BR-M04-01 → 04      |
 | UC-25 | Xem checklist ca                      | Nhân viên chăm sóc, Điều dưỡng  | 005      | 8.5                 |
 | UC-26 | Ghi nhận thực hiện công việc          | Nhân viên chăm sóc, Điều dưỡng  | 005      | 8.6, BR-M04-12, 14  |
@@ -3114,8 +3144,10 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Phân bổ, chuyển giường | UC-20, 21, Q-43 | X, D | T | — | — | — | — | T | — | — | — |
 | Xử lý hư hỏng, đưa giường vào bảo trì | UC-74 | T | T | — | — | — | — | X | — | — | — |
 | Xác nhận giường sẵn sàng | UC-74 | X | T | — | T⁴⁰ | T⁴⁰ | — | X | — | — | — |
-| Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — | — |
-| Lập công việc của ca | UC-24 | X | T | — | T⁴¹ | — | — | — | — | — | — |
+| Kế hoạch chăm sóc | UC-22, 23 | X | X | T⁵³ | X | P | — | — | — | — | — |
+| Lập công việc tháng, công việc phát sinh | UC-24 | X | T⁵³ | — | T⁴¹ | — | — | — | — | — | — |
+| Mốc sinh hoạt cố định | Q-416 | T | X | X | X | X | — | — | — | — | — |
+| Lịch chăm sóc hằng ngày | Q-416 | X | X | X | X | P | — | — | X⁵⁴ | — | X⁴⁵ |
 | Checklist, ghi nhận công việc | UC-25, 26 | X | T | X²² | T | T | — | — | — | — | — |
 | Điểm danh bán trú đến/về | UC-28 | X | X | — | T²⁷ | T | — | T | — | — | — |
 | Xử lý việc quá hạn | UC-27 | X | T⁹ | — | — | — | — | — | — | — | — |
@@ -3214,7 +3246,7 @@ Cột KT (Kế toán): ô của các dòng không nêu ở đây là "—", tr�
 - ³⁸ Kế toán đối chiếu chứng từ của yêu cầu mua sắm ở Chờ đối chiếu: xác nhận khớp, trả lại hoặc ghi lệch (BR-M11-19); Kế toán không duyệt yêu cầu. Kế toán không được giao nhiệm vụ Phụ trách bộ phận, nên không có quyền ³⁷; Kế toán không lập yêu cầu mua sắm (BR-M11-19).
 - ³⁹ Kế toán chỉ lập yêu cầu ngoại lệ cho điều kiện quyết toán số dư, tiền cọc khi kết thúc lưu trú (Q-222, Q-313).
 - ⁴⁰ Người phụ trách ca (nhiệm vụ, mọi vai trò) của tầng/khu vực xác nhận giường sẵn sàng cho giường thuộc tầng/khu vực của ca, trong khoảng phạm vi của ca (Q-313).
-- ⁴¹ Điều dưỡng không giữ nhiệm vụ Người phụ trách ca chỉ tạo công việc phát sinh (19.3, Q-313).
+- ⁴¹ Điều dưỡng không giữ nhiệm vụ Người phụ trách ca chỉ tạo công việc phát sinh (19.3, Q-313). **(Sửa 2026-11-22, Q-415)** Mọi Điều dưỡng trong ca chỉ tạo công việc phát sinh; công việc tháng do Trưởng tầng lập.
 - ⁴² Hành chính duyệt thay đổi nhỏ (chỉ thêm/bớt dịch vụ thuộc gói, không đổi đơn giá, khoản phí); mọi yêu cầu khác chỉ Quản lý viện duyệt (6.6, Q-338).
 - ⁴³ Quản lý viện, Trưởng tầng, Bác sĩ giao người xử lý sự cố cho Điều dưỡng, Trưởng tầng hoặc Bác sĩ có quyền với người cao tuổi (9.4, Q-339); người xử lý hiện tại được giao lại cho người khác.
 - ⁴⁴ Điều dưỡng lập, gửi, rút lại, hủy yêu cầu mua sắm loại "thuốc" kể cả khi không là Phụ trách bộ phận; ghi đã mua vẫn do Phụ trách bộ phận (³⁷). Điều dưỡng ghi lần tiếp nhận thuốc cung ứng (11.7, Q-337).
@@ -3226,6 +3258,8 @@ Cột KT (Kế toán): ô của các dòng không nêu ở đây là "—", tr�
 - ⁵⁰ Hành chính chỉ ghi tự khai của gia đình khi người cao tuổi còn Đang tiếp nhận (Q-400, BR-M01-17): lập, sửa bản Nháp hồ sơ sức khỏe ban đầu và thêm mục dị ứng, bệnh nền, tiền sử bệnh mang dấu "chưa kiểm chứng"; không loại trừ mục, không xác nhận hồ sơ; chỉ xem bản Nháp và các mục chưa kiểm chứng do chính mình ghi, không xem hồ sơ đã xác nhận, chỉ số đo hay dữ liệu sức khỏe khác (19.3). Phiếu nguyện vọng khi điều trị (quyền theo dòng này, BR-M01-16): Hành chính chỉ lập bản Nháp theo chú thích ⁵². Dòng "Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc": Hành chính chỉ xem các mục Hiệu lực để chọn khi ghi tự khai, không tạo, sửa danh mục (chủ dự án 2026-11-20; trước đó ô này trống nên Hành chính không mở được form thêm mục).
 - ⁵¹ Hành chính chỉ xem phần người thân cần liên hệ của danh sách tiếp xúc (họ tên, quan hệ, số điện thoại, nội dung cần báo; BR-M05-24, 007 FR-062, Q-401); không xem người cao tuổi, nhân viên trong danh sách.
 - ⁵² Hành chính chỉ lập, sửa bản Nháp tự khai khi người cao tuổi còn Đang tiếp nhận (Q-412, BR-M01-18): phần "Gia đình khai" của phiếu đánh giá đầu vào, phiếu nguyện vọng cuối đời, phiếu nguyện vọng khi điều trị; không ghi nhận xét đánh giá, không chọn mức chăm sóc, nhu cầu chăm sóc, không xác nhận, không kiểm chứng; chỉ xem bản Nháp do chính mình ghi (19.3).
+- ⁵³ **(Bổ sung 2026-11-22)** Bác sĩ lập và ban hành kế hoạch chăm sóc, không qua duyệt (Q-414); Trưởng tầng lập và công bố công việc tháng của tầng mình (Q-415).
+- ⁵⁴ **(Bổ sung 2026-11-22, Q-416)** Người thân có quan hệ Hiệu lực thấy tên công việc chăm sóc và trạng thái; kết quả đo chỉ khi có quyền xem sức khỏe có tác dụng (¹).
 
 ## 28. Phụ lục – Quy tắc dữ liệu (DBR)
 
