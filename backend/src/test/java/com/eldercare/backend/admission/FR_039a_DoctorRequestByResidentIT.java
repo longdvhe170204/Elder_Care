@@ -31,6 +31,11 @@ class FR_039a_DoctorRequestByResidentIT extends ChangeTestBase {
     }
 
     private long doctorCreates(long residentId) throws Exception {
+        // FR-043j (R20): yêu cầu đổi mức cần lần đánh giá lại đã xác nhận ra đúng mức mới
+        assessedAs(
+                jdbc.queryForObject(
+                        "SELECT id FROM contract WHERE resident_id = ? AND status = 'ACTIVE'", Long.class, residentId),
+                com.eldercare.backend.resident.api.dto.CareLevel.REGULAR);
         user.set(doctor.user());
         JsonNode created = JSON.readTree(createRaw("/api/v1/residency-change-requests", byResident(residentId))
                 .andExpect(status().isCreated())

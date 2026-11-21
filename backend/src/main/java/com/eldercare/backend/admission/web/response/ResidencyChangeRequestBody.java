@@ -13,6 +13,7 @@ import com.eldercare.backend.common.Reason;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +44,15 @@ public record ResidencyChangeRequestBody(
         @Schema(accessMode = Schema.AccessMode.READ_ONLY) boolean minorChange,
         String status,
         Long addendumId,
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) AddendumSummary addendum,
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) AssessedCareLevel assessedCareLevel,
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) ResidentOpinionBody currentResidentOpinion,
+
+        @Schema(
+                accessMode = Schema.AccessMode.READ_ONLY,
+                description = "Cảnh báo không chặn: RESIDENT_OPINION_MISSING, RESIDENT_OPINION_OUTDATED (FR-043h)")
+        List<String> warnings,
+
         String requestedBy,
 
         @Schema(
@@ -50,6 +60,7 @@ public record ResidencyChangeRequestBody(
                 description = "Gửi duyệt cần xác nhận với người đại diện (yêu cầu không do người đại diện tự gửi)")
         boolean representativeConfirmationRequired,
 
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) ConfirmationRequest confirmationRequest,
         List<String> hiddenFields,
         @JsonIgnore @Schema(hidden = true) boolean financeVisible,
         @JsonIgnore @Schema(hidden = true) Target target)
@@ -71,6 +82,7 @@ public record ResidencyChangeRequestBody(
                                 c.method(),
                                 c.confirmedOn(),
                                 c.evidenceFileId(),
+                                c.representativeFamilyMemberId(),
                                 c.note(),
                                 view.confirmationRecordedBy(),
                                 c.recordedAt()))
@@ -81,8 +93,25 @@ public record ResidencyChangeRequestBody(
                 view.minorChange(),
                 request.status(),
                 view.addendumId(),
+                view.addendum().map(AddendumSummary::of).orElse(null),
+                view.assessed()
+                        .map(a -> new AssessedCareLevel(a.id(), a.careLevel().name(), a.confirmedAt()))
+                        .orElse(null),
+                view.currentOpinion()
+                        .map(o -> ResidentOpinionBody.of(
+                                new ResidencyChangeService.OpinionView(o, null, view.currentOpinionOutdated())))
+                        .orElse(null),
+                view.warnings(),
                 view.requestedBy(),
                 view.confirmationRequired(),
+                view.confirmationRequest()
+                        .map(r -> new ConfirmationRequest(
+                                r.id(),
+                                r.status(),
+                                r.content().sentAt(),
+                                r.content().respondedAt(),
+                                r.content().declineReason()))
+                        .orElse(null),
                 List.of(),
                 view.financeVisible(),
                 view.target());
@@ -100,6 +129,59 @@ public record ResidencyChangeRequestBody(
     public Set<String> selfHiddenFields() {
         return financeVisible ? Set.of() : Set.of("costImpact");
     }
+
+    /**
+     * Lần gửi người đại diện xác nhận trên ứng dụng mới nhất (FR-043c): Chờ người đại diện, Đồng ý, Không đồng ý (kèm lý
+     * do), Bị thay thế (nội dung đã sửa, phải gửi lại).
+     */
+    @Schema(name = "ResidencyChangeConfirmationRequest")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record ConfirmationRequest(
+            long id,
+
+            @Schema(allowableValues = {"AWAITING", "ACCEPTED", "DECLINED", "SUPERSEDED"})
+            String status,
+
+            Instant sentAt,
+            Instant respondedAt,
+            String declineReason) {}
+
+    /**
+     * Phụ lục của yêu cầu, không gồm nội dung tài chính (FR-043d): số phụ lục, trạng thái (Chờ ký, Chờ hiệu lực, Đã áp
+     * dụng, Không áp dụng, Đã hủy), ngày hiệu lực, thông tin ký.
+     */
+    @Schema(name = "ResidencyChangeAddendum")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record AddendumSummary(
+            long id,
+            int addendumNo,
+            AddendumBody.Status status,
+            LocalDate effectiveDate,
+            boolean signatureRequired,
+            LocalDate signedDate,
+            Long signedByFamilyMemberId,
+            Long facilitySignatoryStaffId,
+            Long signedFileId,
+            Instant createdAt) {
+
+        static AddendumSummary of(com.eldercare.backend.admission.internal.change.domain.Addendum addendum) {
+            return new AddendumSummary(
+                    addendum.id(),
+                    addendum.addendumNo(),
+                    AddendumBody.status(addendum.status()),
+                    addendum.effectiveDate(),
+                    addendum.signatureRequired(),
+                    addendum.signedDate(),
+                    addendum.signedByFamilyMemberId(),
+                    addendum.facilitySignatoryStaffId(),
+                    addendum.signedFileId(),
+                    addendum.createdAt());
+        }
+    }
+
+    /** Mức của lần đánh giá gần nhất đã xác nhận (FR-043j): mức chăm sóc mới của yêu cầu đổi mức phải bằng mức này. */
+    @Schema(name = "AssessedCareLevel")
+    public record AssessedCareLevel(long assessmentId, String careLevel, Instant confirmedAt) {}
 
     /** Căn cứ của yêu cầu (api-004 {@code reference}): lần đánh giá hoặc lệnh chuyển giường. */
     @Schema(name = "ResidencyChangeReference")

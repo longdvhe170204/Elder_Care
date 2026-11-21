@@ -4,26 +4,40 @@ import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.account.api.spi.StaffProfileApi;
+import com.eldercare.backend.administration.account.api.spi.StaffStatus;
 import com.eldercare.backend.administration.approval.api.ApprovalRequestApi;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestDetails;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
 import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
+import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.api.events.RepresentativeRequestNeedsCompletion;
+import com.eldercare.backend.admission.api.events.ResidencyChangeConfirmationRequested;
 import com.eldercare.backend.admission.api.events.ResidencyChangeNeedsConfirmation;
+import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.admission.internal.change.domain.Addendum;
+import com.eldercare.backend.admission.internal.change.domain.ChangeConfirmationRequest;
 import com.eldercare.backend.admission.internal.change.domain.RepresentativeConfirmation;
 import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeContent;
+import com.eldercare.backend.admission.internal.change.domain.ResidencyChangeDigest;
+import com.eldercare.backend.admission.internal.change.domain.ResidentOpinion;
 import com.eldercare.backend.admission.internal.change.persistence.AddendumStore;
+import com.eldercare.backend.admission.internal.change.persistence.ResidentOpinionStore;
 import com.eldercare.backend.admission.internal.contract.domain.Contract;
 import com.eldercare.backend.admission.internal.contract.domain.ContractVersion;
 import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
 import com.eldercare.backend.admission.internal.contract.service.ContractService;
+import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
@@ -33,11 +47,14 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.common.web.VersionEtag;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -67,7 +84,15 @@ public class ResidencyChangeService {
             Target target,
             boolean confirmationRequired,
             Optional<RepresentativeConfirmation> confirmation,
-            String confirmationRecordedBy) {}
+            String confirmationRecordedBy,
+            Optional<SimpleRecord<ChangeConfirmationRequest>> confirmationRequest,
+            Optional<Addendum> addendum,
+            Optional<com.eldercare.backend.resident.api.dto.AssessmentSummary> assessed,
+            Optional<ResidentOpinion> currentOpinion,
+            boolean currentOpinionOutdated,
+            List<String> warnings) {}
+
+    static final AuditAction CONFIRMATION_SENT = new AuditAction("M02_CHANGE_CONFIRMATION_SENT", false);
 
     private final ContractStore contracts;
     private final AddendumStore addenda;
@@ -80,8 +105,22 @@ public class ResidencyChangeService {
     private final ObjectProvider<AccountApi> accounts;
     private final ObjectProvider<PermissionApi> permissions;
     private final FileApi files;
+    private final ChangeConfirmations confirmations;
+    private final ObjectProvider<RepresentativePort> representatives;
+    private final AuditLogApi auditLog;
+    private final ResidencyLock residencyLock;
+    private final ObjectProvider<StaffProfileApi> staff;
+    private final ResidentOpinionStore opinions;
+    private final ObjectProvider<ScopeApi> scopes;
 
     ResidencyChangeService(
+            ResidencyLock residencyLock,
+            ObjectProvider<StaffProfileApi> staff,
+            ResidentOpinionStore opinions,
+            ObjectProvider<ScopeApi> scopes,
+            ChangeConfirmations confirmations,
+            ObjectProvider<RepresentativePort> representatives,
+            AuditLogApi auditLog,
             ContractStore contracts,
             AddendumStore addenda,
             ResidencyChangeRules rules,
@@ -93,6 +132,13 @@ public class ResidencyChangeService {
             ObjectProvider<AccountApi> accounts,
             ObjectProvider<PermissionApi> permissions,
             FileApi files) {
+        this.confirmations = confirmations;
+        this.residencyLock = residencyLock;
+        this.staff = staff;
+        this.opinions = opinions;
+        this.scopes = scopes;
+        this.representatives = representatives;
+        this.auditLog = auditLog;
         this.files = files;
         this.contracts = contracts;
         this.addenda = addenda;
@@ -144,7 +190,7 @@ public class ResidencyChangeService {
         ResidencyChangeContent change = ResidencyChangeContent.parse(input);
         Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
         ObjectNode content = withSystemValues(input, change, contract, requestedEffectiveDate);
-        recordConfirmation(content);
+        recordConfirmation(content, contract.residentId());
         ApprovalRequestView request = approvals
                 .getObject()
                 .create(new CreateRequest(ResidencyChangeHandler.TYPE, content, requestedEffectiveDate, reason, false));
@@ -154,6 +200,10 @@ public class ResidencyChangeService {
         handler.created(change, request.id());
         CurrentUser user = currentUser.getObject();
         if (user.type() == AccountType.FAMILY_MEMBER) {
+            // FR-043i (Q-417): dấu phần thực chất lúc người đại diện gửi, để biết Hành chính có đổi phần thực chất
+            // không
+            opinions.savePortalDigest(
+                    request.id(), ResidencyChangeDigest.of(content, requestedEffectiveDate), time.now());
             events.publishEvent(
                     new RepresentativeRequestNeedsCompletion(request.id(), contract.residentId(), time.now()));
         } else if (!mayConfirm(user)) {
@@ -190,8 +240,10 @@ public class ResidencyChangeService {
         ResidencyChangeContent change = ResidencyChangeContent.parse(input);
         Contract contract = contracts.find(change.contractId()).orElseThrow(NotFoundException::new);
         ObjectNode content = withSystemValues(input, change, contract, requestedEffectiveDate);
-        recordConfirmation(content);
+        recordConfirmation(content, contract.residentId());
         approvals.getObject().editDraft(approvalRequestId, ifMatch, content, requestedEffectiveDate, reason);
+        // Nội dung đã đổi: lần gửi người đại diện đang chờ hoặc đã đồng ý không còn đúng (FR-043c)
+        confirmations.supersede(approvalRequestId);
         attachEvidence(content, current.content(), contract.id());
         addenda.replaceAttributes(
                 approvalRequestId,
@@ -200,6 +252,262 @@ public class ResidencyChangeService {
                 change.changeTypes(),
                 currentUser.getObject().accountId());
         return view(approvals.getObject().detail(approvalRequestId));
+    }
+
+    /**
+     * Gửi yêu cầu ở Nháp cho người đại diện xác nhận trên ứng dụng (FR-043c): chỉ Hành chính, Quản lý viện (403); yêu cầu
+     * phải Nháp (409 {@code REQUEST_NOT_DRAFT}), cần xác nhận (409 {@code CONFIRMATION_NOT_REQUIRED} với thay đổi nhỏ, yêu
+     * cầu người đại diện tự gửi), người cao tuổi có người đại diện (409 {@code NO_REPRESENTATIVE}); {@code If-Match} là
+     * ETag của yêu cầu. Lần gửi trước còn chờ hoặc đã đồng ý thành Bị thay thế; người đại diện được báo.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCY_CHANGE_REQUEST, operation = Operation.CREATE)
+    @Transactional
+    public View sendForConfirmation(Target target, long approvalRequestId, String ifMatch) {
+        ApprovalRequestDetails details = approvals.getObject().detail(approvalRequestId);
+        ApprovalRequestView request = details.request();
+        if (!ResidencyChangeHandler.TYPE.equals(request.type())) {
+            throw new NotFoundException();
+        }
+        CurrentUser user = currentUser.getObject();
+        if (!mayConfirm(user)) {
+            throw new PermissionDeniedException("Chỉ Hành chính gửi người đại diện xác nhận");
+        }
+        VersionEtag.requireMatch(ifMatch, request.version(), null);
+        if (!"DRAFT".equals(request.status())) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "REQUEST_NOT_DRAFT", "Chỉ gửi người đại diện xác nhận khi yêu cầu còn Nháp");
+        }
+        if (!handler.confirmationRequired(request)) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "CONFIRMATION_NOT_REQUIRED",
+                    "Yêu cầu này không cần xác nhận với người đại diện (thay đổi nhỏ hoặc người đại diện tự gửi)");
+        }
+        ResidencyChangeContent change = ResidencyChangeContent.parse(request.content());
+        long residentId = contracts
+                .find(change.contractId())
+                .orElseThrow(NotFoundException::new)
+                .residentId();
+        if (representatives.getObject().activeRepresentative(residentId).isEmpty()) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "NO_REPRESENTATIVE", "Người cao tuổi chưa có người đại diện để gửi xác nhận");
+        }
+        SimpleRecord<ChangeConfirmationRequest> sent =
+                confirmations.send(approvalRequestId, residentId, user.accountId(), time.now());
+        auditLog.write(AuditLogEntry.builder()
+                .action(CONFIRMATION_SENT)
+                .entity(ChangeConfirmationRequest.KIND.code(), sent.id())
+                .resident(residentId)
+                .after(Map.of("approvalRequestId", approvalRequestId))
+                .build());
+        events.publishEvent(new ResidencyChangeConfirmationRequested(
+                sent.id(),
+                approvalRequestId,
+                residentId,
+                change.changeTypes().stream().map(Enum::name).collect(Collectors.toSet()),
+                request.requestedEffectiveDate(),
+                time.now()));
+        return view(approvals.getObject().detail(approvalRequestId));
+    }
+
+    /** Thân lệnh Ghi ý kiến người cao tuổi (FR-043h). */
+    public record OpinionInput(ResidentOpinion.Opinion opinion, ResidentOpinion.Source source, String note) {}
+
+    /** Ý kiến kèm dấu "ghi trước khi nội dung thay đổi" (R18). */
+    public record OpinionView(ResidentOpinion opinion, String recordedBy, boolean outdated) {}
+
+    /**
+     * Ghi ý kiến người cao tuổi về yêu cầu (FR-043h, Q-416): Hành chính, Bác sĩ; Điều dưỡng khi người cao tuổi trong phạm vi
+     * phân công (403 với người khác); yêu cầu ở Nháp, Chờ duyệt (409 {@code REQUEST_NOT_OPEN}); ghi thêm, bản mới là hiện
+     * hành; lưu dấu nội dung thực chất lúc ghi.
+     */
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public List<OpinionView> recordOpinion(long approvalRequestId, OpinionInput input) {
+        ApprovalRequestView request = opinionTarget(approvalRequestId);
+        if (input == null || input.opinion() == null || input.source() == null) {
+            throw new InvalidValueException("Cần ý kiến và nguồn của ý kiến");
+        }
+        String note = input.note() == null || input.note().isBlank()
+                ? null
+                : input.note().strip();
+        if (note != null && note.length() > ResidentOpinion.NOTE_MAX) {
+            throw new InvalidValueException("Ghi chú tối đa " + ResidentOpinion.NOTE_MAX + " ký tự");
+        }
+        if (!("DRAFT".equals(request.status()) || "PENDING_APPROVAL".equals(request.status()))) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "REQUEST_NOT_OPEN",
+                    "Chỉ ghi ý kiến người cao tuổi khi yêu cầu còn Nháp hoặc Chờ duyệt");
+        }
+        opinions.insert(
+                approvalRequestId,
+                request.target().residentId(),
+                input.opinion(),
+                input.source(),
+                note,
+                ResidencyChangeDigest.of(request.content(), request.requestedEffectiveDate()),
+                currentUser.getObject().accountId(),
+                time.now());
+        return opinionViews(request);
+    }
+
+    /** Lịch sử ý kiến người cao tuổi của yêu cầu, mới nhất trước (FR-043h); cùng quyền như lệnh ghi. */
+    @Transactional(readOnly = true)
+    public List<OpinionView> opinions(long approvalRequestId) {
+        return opinionViews(opinionTarget(approvalRequestId));
+    }
+
+    private List<OpinionView> opinionViews(ApprovalRequestView request) {
+        return opinions.ofRequest(request.id()).stream()
+                .map(o -> new OpinionView(
+                        o, accounts.getObject().fullName(o.recordedBy()).orElse(null), handler.outdated(request, o)))
+                .toList();
+    }
+
+    /**
+     * Yêu cầu để ghi, xem ý kiến: Điều dưỡng không xem được yêu cầu phê duyệt (000 FR-042) nên đọc thẳng, quyền xét theo vai
+     * trò và phạm vi người cao tuổi. Không phải loại này thì 404.
+     */
+    private ApprovalRequestView opinionTarget(long approvalRequestId) {
+        ApprovalRequestView request =
+                approvals.getObject().find(approvalRequestId).orElseThrow(NotFoundException::new);
+        if (!ResidencyChangeHandler.TYPE.equals(request.type())
+                || request.target().residentId() == null) {
+            throw new NotFoundException();
+        }
+        CurrentUser user = currentUser.getObject();
+        boolean allowed = user.type() != AccountType.FAMILY_MEMBER
+                && (user.roles().contains(Role.OFFICE_STAFF)
+                        || user.roles().contains(Role.NURSING_HOME_MANAGER)
+                        || user.roles().contains(Role.DOCTOR)
+                        || (user.roles().contains(Role.NURSING_STAFF)
+                                && scopes.getObject().inScope(user, request.target())));
+        if (!allowed) {
+            throw new PermissionDeniedException(
+                    "Chỉ Hành chính, Bác sĩ, Điều dưỡng phụ trách ghi, xem ý kiến người cao tuổi");
+        }
+        return request;
+    }
+
+    /** Thân lệnh Ghi nhận phụ lục đã ký (FR-043d). */
+    public record SignatureInput(
+            LocalDate signedDate,
+            Long signedByFamilyMemberId,
+            Long facilitySignatoryStaffId,
+            Long fileId,
+            String note) {}
+
+    /**
+     * Ghi nhận phụ lục đã ký (FR-043d, Q-419): Hành chính, Quản lý viện; yêu cầu Đã duyệt, phụ lục Chờ ký (409 {@code
+     * ADDENDUM_NOT_PENDING_SIGNATURE}); ngày ký không sau hôm nay, không trước ngày duyệt (422 {@code SIGNED_DATE_INVALID});
+     * người ký là người đại diện hiệu lực tại ngày ký (409 {@code SIGNER_NOT_REPRESENTATIVE}); người ký phía viện (nếu có)
+     * là nhân viên đang làm việc (422 {@code FACILITY_SIGNATORY_INVALID}); tệp gắn vào hợp đồng như bản scan hợp đồng.
+     * Phụ lục chuyển Chờ hiệu lực; ký muộn hơn ngày hiệu lực đang có thì dời ngày hiệu lực của yêu cầu, phụ lục và giữ
+     * giường. {@code If-Match} là ETag của yêu cầu.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCY_CHANGE_REQUEST, operation = Operation.CREATE)
+    @Transactional
+    public View recordSignature(Target target, long approvalRequestId, String ifMatch, SignatureInput input) {
+        CurrentUser user = currentUser.getObject();
+        if (!mayConfirm(user)) {
+            throw new PermissionDeniedException("Chỉ Hành chính, Quản lý viện ghi nhận phụ lục đã ký");
+        }
+        if (input == null
+                || input.signedDate() == null
+                || input.signedByFamilyMemberId() == null
+                || input.fileId() == null) {
+            throw new InvalidValueException("Cần ngày ký, người đại diện ký và bản scan phụ lục đã ký");
+        }
+        ApprovalRequestView request =
+                approvals.getObject().detail(approvalRequestId).request();
+        if (!ResidencyChangeHandler.TYPE.equals(request.type())) {
+            throw new NotFoundException();
+        }
+        long residentId = request.target().residentId();
+        residencyLock.lock(residentId);
+        VersionEtag.requireMatch(ifMatch, request.version(), null);
+        Addendum addendum = addenda.lockByRequest(approvalRequestId).orElse(null);
+        if (!"APPROVED".equals(request.status())
+                || addendum == null
+                || addendum.status() != Addendum.Status.PENDING_SIGNATURE) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "ADDENDUM_NOT_PENDING_SIGNATURE",
+                    "Phụ lục của yêu cầu này không ở Chờ ký; chỉ ghi nhận bản đã ký một lần, sau khi yêu cầu được duyệt");
+        }
+        LocalDate approvedOn = request.decidedAt() == null
+                ? addendum.createdAt().atZone(BusinessTime.ZONE).toLocalDate()
+                : request.decidedAt().atZone(BusinessTime.ZONE).toLocalDate();
+        LocalDate signed = input.signedDate();
+        if (signed.isAfter(time.today()) || signed.isBefore(approvedOn)) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    "SIGNED_DATE_INVALID",
+                    "Ngày ký phải từ ngày duyệt " + day(approvedOn) + " tới hôm nay");
+        }
+        if (!representatives.getObject().isActiveRepresentative(input.signedByFamilyMemberId(), residentId, signed)) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "SIGNER_NOT_REPRESENTATIVE",
+                    "Người ký phải là người đại diện hiện tại của người cao tuổi vào ngày ký");
+        }
+        if (input.facilitySignatoryStaffId() != null && !working(input.facilitySignatoryStaffId(), signed)) {
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_CONTENT,
+                    "FACILITY_SIGNATORY_INVALID",
+                    "Người ký phía viện phải là nhân viên đang làm việc");
+        }
+        files.attach(input.fileId(), ContractService.SCAN_OWNER_TYPE, addendum.contractId());
+        addenda.markSigned(
+                addendum.id(),
+                signed,
+                input.fileId(),
+                input.signedByFamilyMemberId(),
+                input.facilitySignatoryStaffId(),
+                user.accountId(),
+                time.now(),
+                input.note());
+        LocalDate before = request.actualEffectiveDate();
+        if (signed.isAfter(before)) {
+            // Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; không tính lùi (Q-419)
+            approvals
+                    .getObject()
+                    .postponeEffectiveDate(approvalRequestId, signed, new Reason("Ký phụ lục ngày " + day(signed)));
+            addenda.postponeEffective(addendum.id(), signed);
+            handler.moveReservation(request, signed);
+        }
+        Map<String, Object> after = new java.util.LinkedHashMap<>();
+        after.put("status", Addendum.Status.PENDING_EFFECTIVE.name());
+        after.put("signedDate", signed.toString());
+        after.put("signedByFamilyMemberId", input.signedByFamilyMemberId());
+        after.put("effectiveDate", (signed.isAfter(before) ? signed : before).toString());
+        if (input.facilitySignatoryStaffId() != null) {
+            after.put("facilitySignatoryStaffId", input.facilitySignatoryStaffId());
+        }
+        auditLog.write(AuditLogEntry.builder()
+                .action(ResidencyChangeHandler.ADDENDUM_SIGNED)
+                .entity(ResidencyChangeHandler.ADDENDUM_ENTITY, addendum.id())
+                .resident(residentId)
+                .before(Map.of("status", Addendum.Status.PENDING_SIGNATURE.name()))
+                .after(after)
+                .build());
+        return view(approvals.getObject().detail(approvalRequestId));
+    }
+
+    /**
+     * Hồ sơ nhân viên có và đang làm việc. Kiểm tồn tại bằng {@code fullName} trước: {@code status} ném 404 trong
+     * transaction của 008, sẽ đánh dấu rollback cả lệnh.
+     */
+    private boolean working(long staffId, LocalDate date) {
+        StaffProfileApi profiles = staff.getObject();
+        return profiles.fullName(staffId).isPresent() && profiles.status(staffId, date) == StaffStatus.WORKING;
+    }
+
+    private static String day(LocalDate date) {
+        return "%02d/%02d/%d".formatted(date.getDayOfMonth(), date.getMonthValue(), date.getYear());
     }
 
     /**
@@ -238,7 +546,7 @@ public class ResidencyChangeService {
      * sau hôm nay (422 {@code CONFIRMATION_DATE_IN_FUTURE}); hệ thống ghi người lưu và thời điểm. Sửa nháp không gửi lại
      * xác nhận thì xác nhận cũ bị bỏ, vì nội dung đã đổi phải xác nhận lại.
      */
-    private void recordConfirmation(ObjectNode content) {
+    private void recordConfirmation(ObjectNode content, long residentId) {
         Optional<RepresentativeConfirmation> confirmation = RepresentativeConfirmation.of(content);
         if (confirmation.isEmpty()) {
             return;
@@ -252,6 +560,19 @@ public class ResidencyChangeService {
                     HttpStatus.UNPROCESSABLE_CONTENT,
                     "CONFIRMATION_DATE_IN_FUTURE",
                     "Ngày xác nhận với người đại diện không được sau hôm nay");
+        }
+        Long confirmer = confirmation.get().representativeFamilyMemberId();
+        if (confirmer == null) {
+            throw new InvalidValueException("Cần chọn người đại diện đã xác nhận (Q-414)");
+        }
+        if (!representatives
+                .getObject()
+                .isActiveRepresentative(
+                        confirmer, residentId, confirmation.get().confirmedOn())) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "CONFIRMER_NOT_REPRESENTATIVE",
+                    "Người đã xác nhận phải là người đại diện hiện tại của người cao tuổi vào ngày xác nhận");
         }
         content.set(
                 RepresentativeConfirmation.FIELD,
@@ -334,7 +655,12 @@ public class ResidencyChangeService {
         ApprovalRequestView request = details.request();
         ResidencyChangeContent content = ResidencyChangeContent.parse(request.content());
         Optional<Addendum> addendum = addenda.findByRequest(request.id());
-        Optional<RepresentativeConfirmation> confirmation = RepresentativeConfirmation.of(request.content());
+        // Xác nhận bị bỏ khi người duyệt Trả về nháp thì không hiện nữa (Q-418)
+        Optional<java.time.Instant> voided = confirmations.voidedAt(request.id());
+        Optional<ResidentOpinion> currentOpinion = opinions.current(request.id());
+        Optional<RepresentativeConfirmation> confirmation = RepresentativeConfirmation.of(request.content())
+                .filter(c -> voided.isEmpty()
+                        || (c.recordedAt() != null && c.recordedAt().isAfter(voided.get())));
         return new View(
                 details,
                 content,
@@ -348,7 +674,15 @@ public class ResidencyChangeService {
                 confirmation
                         .map(RepresentativeConfirmation::recordedBy)
                         .flatMap(id -> accounts.getObject().fullName(id))
-                        .orElse(null));
+                        .orElse(null),
+                confirmations.latest(request.id()),
+                addendum,
+                request.target() == null || request.target().residentId() == null
+                        ? Optional.empty()
+                        : handler.assessedLevel(request.target().residentId()),
+                currentOpinion,
+                currentOpinion.map(o -> handler.outdated(request, o)).orElse(false),
+                handler.warnings(request));
     }
 
     /**

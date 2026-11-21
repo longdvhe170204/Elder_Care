@@ -7,6 +7,7 @@ import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView
 import com.eldercare.backend.administration.approval.api.dto.ExtendedTransitions;
 import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.UnmetCondition;
 import java.time.LocalDate;
@@ -72,6 +73,47 @@ public interface RequestTypeHandler {
      */
     default List<UnmetCondition> checkOnSubmit(ApprovalRequestView request) {
         return List.of();
+    }
+
+    /**
+     * Như {@link #checkOnSubmit(ApprovalRequestView)}, kèm lý do người gửi nhập (tùy chọn; 000 FR-041a (5), bổ sung theo
+     * 004 Q-416). Mặc định bỏ qua lý do.
+     */
+    default List<UnmetCondition> checkOnSubmit(ApprovalRequestView request, Optional<Reason> reason) {
+        return checkOnSubmit(request);
+    }
+
+    /**
+     * Yêu cầu Đã duyệt đã sẵn sàng áp dụng chưa (000 FR-041a (2), bổ sung theo 004 Q-419: phụ lục chưa ký). false thì Bộ
+     * lập lịch bỏ qua lần này, yêu cầu giữ Đã duyệt, không Áp dụng không thành.
+     */
+    default boolean readyToApply(ApprovalRequestView request) {
+        return true;
+    }
+
+    /** Loại cho phép lệnh Trả về nháp (Chờ duyệt → Nháp; 000 FR-041a (1), bổ sung theo 004 Q-418). */
+    default boolean allowReturnToDraft() {
+        return false;
+    }
+
+    /**
+     * Tác động kèm Trả về nháp, trong transaction của lệnh (bỏ phần đã xác nhận của nội dung); {@code request} là bản đã
+     * về Nháp, {@code reason} là lý do người duyệt nhập.
+     */
+    default void onReturnToDraft(ApprovalRequestView request, Reason reason) {}
+
+    /**
+     * Tác động kèm Gửi duyệt thành công, trong transaction của lệnh (bổ sung theo 004 Q-421: báo người đại diện khác);
+     * {@code submitted} là bản ở Chờ duyệt. Module nguồn không nghe được {@code RequestSubmitted} vì sự kiện có thông báo.
+     */
+    default void onSubmit(ApprovalRequestView submitted) {}
+
+    /**
+     * Người được Hủy yêu cầu Nháp, Chờ duyệt (000 FR-041a (4), bổ sung theo 004 Q-420): mặc định chỉ người yêu cầu. Hủy
+     * yêu cầu Đã duyệt vẫn là người có quyền duyệt.
+     */
+    default boolean mayCancel(CurrentUser user, ApprovalRequestView request) {
+        return request.requesterId() == user.accountId();
     }
 
     /** Kiểm thêm khi Duyệt, trước khi đổi trạng thái; không rỗng thì 409, yêu cầu giữ Chờ duyệt (bổ sung theo plan 003). */

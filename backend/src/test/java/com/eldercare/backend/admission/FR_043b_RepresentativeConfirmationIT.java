@@ -64,19 +64,42 @@ class FR_043b_RepresentativeConfirmationIT extends ChangeTestBase {
         assertThat(requestStatus(id)).isEqualTo("DRAFT");
     }
 
+    /** Thay đổi nhỏ (Q-338: chỉ dịch vụ thuộc gói, chi phí không đổi) viện tự quyết, không cần xác nhận (sửa 2026-11-20). */
     @Test
-    void minorChange_alsoNeedsConfirmation() throws Exception {
+    void minorChange_needsNoConfirmation() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Dịch vụ thuộc gói", null, 100_000);
+        // Bớt suất ăn thuộc gói của hợp đồng: thay đổi nhỏ (R19: dấu thuộc gói theo hợp đồng hiện hành)
         ObjectNode body = request(
                 s.contractId(),
                 "[\"SERVICE\"]",
-                "{\"services\": [{\"serviceId\": " + extra + ", \"action\": \"ADD\", \"inPackage\": true}]}",
+                "{\"services\": [{\"serviceId\": " + meal + ", \"action\": \"REMOVE\"}]}",
+                today().plusDays(3));
+        JsonNode created = createChange(unconfirmed(body));
+        long id = created.get("approvalRequestId").asLong();
+        assertThat(created.get("minorChange").asBoolean()).isTrue();
+        assertThat(created.get("representativeConfirmationRequired").asBoolean())
+                .isFalse();
+
+        user.set(office.user());
+        submitRaw(id).andExpect(status().isOk());
+        assertThat(requestStatus(id)).isEqualTo("PENDING_APPROVAL");
+    }
+
+    /** Dịch vụ ngoài gói làm đổi chi phí: không phải thay đổi nhỏ, vẫn cần xác nhận. */
+    @Test
+    void serviceOutsidePackage_needsConfirmation() throws Exception {
+        Setup s = activeSetup();
+        long extra = service("OTHER", "Dịch vụ ngoài gói", null, 100_000);
+        ObjectNode body = request(
+                s.contractId(),
+                "[\"SERVICE\"]",
+                "{\"services\": [{\"serviceId\": " + extra + ", \"action\": \"ADD\", \"inPackage\": false}]}",
                 today().plusDays(3));
         long id = createChange(unconfirmed(body)).get("approvalRequestId").asLong();
 
         user.set(office.user());
-        submitRaw(id).andExpect(status().isConflict());
+        MvcResult result = submitRaw(id).andExpect(status().isConflict()).andReturn();
+        assertThat(unmetCodes(result)).containsExactly("REPRESENTATIVE_CONFIRMATION_REQUIRED");
         assertThat(requestStatus(id)).isEqualTo("DRAFT");
     }
 
@@ -116,6 +139,59 @@ class FR_043b_RepresentativeConfirmationIT extends ChangeTestBase {
                 .andReturn();
 
         assertThat(result.getResponse().getContentAsString()).contains("CONFIRMATION_DATE_IN_FUTURE");
+    }
+
+    /** R16 (Q-414): xác nhận phải ghi người đại diện đã xác nhận. */
+    @Test
+    void R16_confirmationWithoutConfirmer_rejected() throws Exception {
+        Setup s = activeSetup();
+        ObjectNode body = careLevel(s);
+        ((ObjectNode) body.get("representativeConfirmation")).remove("representativeFamilyMemberId");
+        user.set(office.user());
+
+        // Thiếu trường bắt buộc của thân lệnh: lỗi kiểm dữ liệu vào như ca thiếu bằng chứng bên dưới
+        createRaw("/api/v1/residency-change-requests", body).andExpect(status().is4xxClientError());
+        assertThat(requestsOf(s)).isZero();
+    }
+
+    @Test
+    void R16_confirmerNotRepresentative_409() throws Exception {
+        Setup other = activeSetup();
+        Setup s = activeSetup();
+        ObjectNode body = careLevel(s);
+        body.set("representativeConfirmation", confirmation(today(), representativeOf(other.residentId())));
+        user.set(office.user());
+
+        MvcResult result = createRaw("/api/v1/residency-change-requests", body)
+                .andExpect(status().isConflict())
+                .andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains("CONFIRMER_NOT_REPRESENTATIVE");
+    }
+
+    /** Xác nhận ghi trước khi có trường người đại diện (dữ liệu cũ) đọc được nhưng phải xác nhận lại trước khi gửi duyệt. */
+    @Test
+    void R16_legacyConfirmationWithoutConfirmer_submitBlocked() throws Exception {
+        Setup s = activeSetup();
+        long id = createChange(careLevel(s)).get("approvalRequestId").asLong();
+        jdbc.update(
+                "UPDATE approval_request SET content = JSON_REMOVE(content,"
+                        + " '$.representativeConfirmation.representativeFamilyMemberId') WHERE id = ?",
+                id);
+
+        assertThat(getChange(id)
+                        .get("representativeConfirmation")
+                        .path("representativeFamilyMemberId")
+                        .isNull())
+                .isTrue();
+        MvcResult result = submitRaw(id).andExpect(status().isConflict()).andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains("REPRESENTATIVE_CONFIRMATION_REQUIRED");
+    }
+
+    private int requestsOf(Setup s) {
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM approval_request WHERE type = 'M02.RESIDENCY_CHANGE' AND resident_id = ?",
+                Integer.class,
+                s.residentId());
     }
 
     @Test

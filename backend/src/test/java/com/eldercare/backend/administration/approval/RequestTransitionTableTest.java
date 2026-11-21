@@ -40,7 +40,9 @@ class RequestTransitionTableTest {
             Command.APPLY, Map.of(APPROVED, APPLIED),
             Command.APPLY_FAILED, Map.of(APPROVED, APPLY_FAILED),
             Command.CLOSE_FOR_FINAL_STATE,
-                    Map.of(DRAFT, CANCELLED, PENDING_APPROVAL, CANCELLED, APPROVED, APPLY_FAILED)));
+                    Map.of(DRAFT, CANCELLED, PENDING_APPROVAL, CANCELLED, APPROVED, APPLY_FAILED),
+            // Trả về nháp (Q-418): chỉ từ Chờ duyệt; loại yêu cầu có cho phép không kiểm ở service
+            Command.RETURN_TO_DRAFT, Map.of(PENDING_APPROVAL, DRAFT)));
 
     private final RequestTransitionTable table = new RequestTransitionTable();
 

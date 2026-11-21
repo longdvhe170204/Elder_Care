@@ -8,8 +8,9 @@ import tools.jackson.databind.JsonNode;
 
 /**
  * "Thay đổi nhỏ" (FR-043, Q-338; research T-06), hàm thuần: yêu cầu chỉ thuộc loại đổi dịch vụ, mọi dịch vụ được thêm hoặc
- * bớt đều thuộc gói của hợp đồng (dòng thêm mang dấu thuộc gói; dòng bớt có trong hợp đồng hiện hành và thuộc gói) và ảnh
- * hưởng chi phí bằng 0 ở mọi khoản. Tính lại ở mỗi lần đọc và lúc duyệt trên hợp đồng hiện hành, không lưu.
+ * bớt đều thuộc gói của hợp đồng và ảnh hưởng chi phí bằng 0 ở mọi khoản. Dấu thuộc gói do hệ thống xác định theo hợp đồng
+ * hiện hành, không theo dấu người lập gửi (R19, sửa 2026-11-20): dịch vụ thuộc gói khi hợp đồng hiện hành có dòng dịch vụ
+ * đó mang dấu thuộc gói; chưa có trong hợp đồng thì không thuộc gói. Tính lại ở mỗi lần đọc và lúc duyệt, không lưu.
  */
 public final class IsMinorChange {
 
@@ -27,18 +28,18 @@ public final class IsMinorChange {
             return false;
         }
         for (ServiceChange line : change.services()) {
-            boolean inPackage = switch (line.action()) {
-                case ADD -> line.inPackage();
-                case REMOVE ->
-                    currentLine(currentContent, line.serviceId())
-                            .map(current -> current.path("inPackage").asBoolean(false))
-                            .orElse(false);
-            };
-            if (!inPackage) {
+            if (!inPackage(currentContent, line.serviceId())) {
                 return false;
             }
         }
         return noCostImpact(costImpact);
+    }
+
+    /** Dịch vụ thuộc gói theo hợp đồng hiện hành (R19): có dòng dịch vụ đó mang dấu thuộc gói. */
+    static boolean inPackage(JsonNode currentContent, long serviceId) {
+        return currentLine(currentContent, serviceId)
+                .map(current -> current.path("inPackage").asBoolean(false))
+                .orElse(false);
     }
 
     private static java.util.Optional<JsonNode> currentLine(JsonNode currentContent, long serviceId) {

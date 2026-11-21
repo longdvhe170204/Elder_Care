@@ -66,6 +66,12 @@ public record ResidencyChangeRequestInputBody(
             @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             Long evidenceFileId,
 
+            @NotNull
+            @Schema(
+                    requiredMode = Schema.RequiredMode.REQUIRED,
+                    description = "Người đại diện đã xác nhận, là người đại diện hiện tại tại ngày xác nhận (Q-414)")
+            Long representativeFamilyMemberId,
+
             @Size(max = RepresentativeConfirmation.NOTE_MAX) String note,
 
             @Schema(accessMode = Schema.AccessMode.READ_ONLY)
@@ -112,6 +118,7 @@ public record ResidencyChangeRequestInputBody(
                             ? null
                             : representativeConfirmation.confirmedOn().toString());
             confirmation.put("evidenceFileId", representativeConfirmation.evidenceFileId());
+            confirmation.put("representativeFamilyMemberId", representativeConfirmation.representativeFamilyMemberId());
             confirmation.put("note", representativeConfirmation.note());
         }
         return content;

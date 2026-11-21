@@ -59,4 +59,22 @@ class FR_070_FinalStateClosingIT extends ChangeTestBase {
         assertThat(requestStatus(superseded)).isEqualTo("SUPERSEDED");
         assertThat(requestStatus(pending)).isEqualTo("CANCELLED");
     }
+
+    /** R15 (plan-bf08): phụ lục còn Chờ ký khi người cao tuổi sang trạng thái cuối chuyển Không áp dụng. */
+    @Test
+    void FR_070_pendingSignatureAddendum_becomesNotApplied() throws Exception {
+        Setup s = activeSetup();
+        long extra = service("OTHER", "Giặt là riêng " + System.nanoTime(), null, 300_000);
+        long approved = createApproveUnsigned(request(
+                s.contractId(),
+                "[\"SERVICE\"]",
+                "{\"services\": [{\"serviceId\": " + extra + ", \"action\": \"ADD\"}]}",
+                today().plusDays(3)));
+        assertThat(addendumStatus(approved)).isEqualTo("PENDING_SIGNATURE");
+
+        transactions.executeWithoutResult(t -> closing.closeAll(s.residentId(), "FR-070"));
+
+        assertThat(requestStatus(approved)).isEqualTo("APPLY_FAILED");
+        assertThat(addendumStatus(approved)).isEqualTo("NOT_APPLIED");
+    }
 }

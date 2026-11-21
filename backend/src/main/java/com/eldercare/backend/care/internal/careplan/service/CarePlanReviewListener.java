@@ -7,11 +7,15 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.admission.api.events.AddendumApplied;
 import com.eldercare.backend.care.api.CarePlanReviewApi;
 import com.eldercare.backend.care.api.dto.CareEventContext;
+import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.api.events.CarePlanReviewNeeded;
+import com.eldercare.backend.care.internal.careplan.persistence.CarePlanStore;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.Substitution;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.AssessmentApi;
+import com.eldercare.backend.resident.api.dto.AssessmentSummary;
 import com.eldercare.backend.resident.api.events.AssessmentChangedCareLevelOrNeeds;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -45,18 +49,24 @@ class CarePlanReviewListener implements CarePlanReviewApi {
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
     private final ReminderMarkers markers;
+    private final AssessmentApi assessments;
+    private final CarePlanStore plans;
 
     CarePlanReviewListener(
             ApproverApi approvers,
             BedAllocationApi allocations,
             BusinessTime time,
             ApplicationEventPublisher events,
-            ReminderMarkers markers) {
+            ReminderMarkers markers,
+            AssessmentApi assessments,
+            CarePlanStore plans) {
         this.approvers = approvers;
         this.allocations = allocations;
         this.time = time;
         this.events = events;
         this.markers = markers;
+        this.assessments = assessments;
+        this.plans = plans;
     }
 
     @EventListener
@@ -64,11 +74,24 @@ class CarePlanReviewListener implements CarePlanReviewApi {
         review(event.residentId(), "M01.ASSESSMENT", event.assessmentId());
     }
 
+    /**
+     * Phụ lục đổi mức được áp dụng (BR-M04-20, Q-422): Điều dưỡng đã được báo ngay khi Bác sĩ xác nhận lần đánh giá lại ra
+     * mức khác ({@link #onAssessment}); đã có phiên bản kế hoạch (không tính bản Đã hủy) lập sau lần xác nhận đó thì không
+     * báo lần nữa, chưa có thì báo như cũ.
+     */
     @EventListener
     public void onAddendum(AddendumApplied event) {
-        if (event.changeTypes().contains("CARE_LEVEL")) {
+        if (event.changeTypes().contains("CARE_LEVEL") && !planRevisedAfterReassessment(event.residentId())) {
             review(event.residentId(), "M02.ADDENDUM", event.addendumId());
         }
+    }
+
+    private boolean planRevisedAfterReassessment(long residentId) {
+        Optional<Instant> assessedAt = assessments.latestConfirmed(residentId).map(AssessmentSummary::confirmedAt);
+        return assessedAt.isPresent()
+                && plans.list(residentId, false).stream()
+                        .anyMatch(p -> p.status() != CarePlanStatus.CANCELLED
+                                && p.createdAt().isAfter(assessedAt.get()));
     }
 
     /** 007 gọi trong lệnh ghi sự cố ngã; dấu theo sự cố chống báo lặp. */

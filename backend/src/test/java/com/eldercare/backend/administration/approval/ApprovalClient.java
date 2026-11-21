@@ -73,6 +73,14 @@ record ApprovalClient(MockMvc mvc, JsonMapper json) {
         return command(id, "cancel", etag(id), reason == null ? "{}" : "{\"reason\":\"" + reason + "\"}");
     }
 
+    ResultActions returnToDraft(long id, String reason) throws Exception {
+        return command(id, "return-to-draft", etag(id), reason == null ? "{}" : "{\"reason\":\"" + reason + "\"}");
+    }
+
+    ResultActions submitWithReason(long id, String reason) throws Exception {
+        return command(id, "submit", etag(id), "{\"reason\":\"" + reason + "\"}");
+    }
+
     JsonNode body(MvcResult result) throws Exception {
         return json.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }

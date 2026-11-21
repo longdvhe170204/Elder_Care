@@ -16,7 +16,13 @@ import tools.jackson.databind.node.ObjectNode;
  * ghi theo người lưu.
  */
 public record RepresentativeConfirmation(
-        Method method, LocalDate confirmedOn, long evidenceFileId, String note, Long recordedBy, Instant recordedAt) {
+        Method method,
+        LocalDate confirmedOn,
+        long evidenceFileId,
+        Long representativeFamilyMemberId,
+        String note,
+        Long recordedBy,
+        Instant recordedAt) {
 
     public static final String FIELD = "representativeConfirmation";
     public static final int NOTE_MAX = 500;
@@ -53,6 +59,9 @@ public record RepresentativeConfirmation(
         if (file == null || !file.isIntegralNumber() || file.asLong() <= 0) {
             throw new InvalidValueException("representativeConfirmation.evidenceFileId là tệp bằng chứng bắt buộc");
         }
+        Long representative = node.hasNonNull("representativeFamilyMemberId")
+                ? node.get("representativeFamilyMemberId").asLong()
+                : null;
         String note = node.hasNonNull("note") ? node.get("note").asString().strip() : null;
         if (note != null && note.length() > NOTE_MAX) {
             throw new InvalidValueException("Ghi chú xác nhận tối đa " + NOTE_MAX + " ký tự");
@@ -65,13 +74,23 @@ public record RepresentativeConfirmation(
                 method,
                 confirmedOn,
                 file.asLong(),
+                representative,
                 note == null || note.isEmpty() ? null : note,
                 recordedBy,
                 recordedAt));
     }
 
     public RepresentativeConfirmation recordedBy(long accountId, Instant at) {
-        return new RepresentativeConfirmation(method, confirmedOn, evidenceFileId, note, accountId, at);
+        return new RepresentativeConfirmation(
+                method, confirmedOn, evidenceFileId, representativeFamilyMemberId, note, accountId, at);
+    }
+
+    /**
+     * Đủ để gửi duyệt: có người đại diện đã xác nhận (Q-414, R16). Xác nhận ghi trước khi có trường này coi như thiếu,
+     * phải xác nhận lại.
+     */
+    public boolean names() {
+        return representativeFamilyMemberId != null;
     }
 
     public ObjectNode toJson() {
@@ -79,6 +98,9 @@ public record RepresentativeConfirmation(
         node.put("method", method.name());
         node.put("confirmedOn", confirmedOn.toString());
         node.put("evidenceFileId", evidenceFileId);
+        if (representativeFamilyMemberId != null) {
+            node.put("representativeFamilyMemberId", representativeFamilyMemberId);
+        }
         if (note != null) {
             node.put("note", note);
         }

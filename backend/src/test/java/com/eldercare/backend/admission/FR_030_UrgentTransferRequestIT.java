@@ -1,6 +1,7 @@
 package com.eldercare.backend.admission;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -60,6 +61,7 @@ class FR_030_UrgentTransferRequestIT extends ChangeTestBase {
                         u.allocationId()))
                 .as("không đặt trước phân bổ")
                 .isZero();
+        sign(id, today()).andExpect(status().isOk()); // FR-043d: phụ lục Chờ ký phải được ký trước khi áp dụng
         applyDueOn(today());
 
         assertThat(requestStatus(id)).isEqualTo("APPLIED");

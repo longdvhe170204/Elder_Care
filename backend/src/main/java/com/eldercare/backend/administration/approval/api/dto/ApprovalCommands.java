@@ -8,6 +8,8 @@ public final class ApprovalCommands {
     public static final String APPROVE = "approve";
     public static final String REJECT = "reject";
     public static final String CANCEL = "cancel";
+    /** Trả về nháp (000 FR-041a (1); Q-418). */
+    public static final String RETURN_TO_DRAFT = "return-to-draft";
 
     private ApprovalCommands() {}
 }

@@ -33,9 +33,12 @@ class FR_043_MinorChangeIT extends ChangeTestBase {
     @Test
     void US5_9_officeCreatesAndSelfApprovesAMinorChange() throws Exception {
         Setup s = activeSetup();
-        long extra = service("OTHER", "Dịch vụ thuộc gói", null, 100_000);
-        JsonNode created =
-                createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(extra), today().plusDays(3)));
+        // Bớt suất ăn thuộc gói của hợp đồng: thay đổi nhỏ (R19: dấu thuộc gói theo hợp đồng hiện hành)
+        JsonNode created = createChange(request(
+                s.contractId(),
+                "[\"SERVICE\"]",
+                "{\"services\": [{\"serviceId\": " + meal + ", \"action\": \"REMOVE\"}]}",
+                today().plusDays(3)));
         assertThat(created.get("minorChange").asBoolean()).isTrue();
         long id = created.get("approvalRequestId").asLong();
         submit(id);
@@ -55,6 +58,34 @@ class FR_043_MinorChangeIT extends ChangeTestBase {
                 .as("nhật ký ghi tự duyệt")
                 .isEqualTo("true");
         assertThat(addenda(s.contractId())).hasSize(1);
+    }
+
+    /** R19: thêm dịch vụ chưa có trong hợp đồng, dù người lập gửi dấu thuộc gói, không phải thay đổi nhỏ. */
+    @Test
+    void R19_addNewServiceMarkedInPackage_isNotMinor_officeCannotApprove() throws Exception {
+        Setup s = activeSetup();
+        long extra = service("OTHER", "Dịch vụ mới " + System.nanoTime(), null, 100_000);
+        JsonNode created =
+                createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(extra), today().plusDays(3)));
+        assertThat(created.get("minorChange").asBoolean()).isFalse();
+        assertThat(created.get("representativeConfirmationRequired").asBoolean())
+                .isTrue();
+        long id = created.get("approvalRequestId").asLong();
+        submit(id);
+
+        user.set(office.user());
+        approveRaw(id).andExpect(status().isForbidden());
+        managerApproves(id);
+        assertThat(addendumStatus(id)).isEqualTo("PENDING_SIGNATURE");
+    }
+
+    /** R19: thêm dịch vụ mà hợp đồng hiện hành có dòng thuộc gói là thay đổi nhỏ. */
+    @Test
+    void R19_addServiceAlreadyInPackage_isMinor() throws Exception {
+        Setup s = activeSetup();
+        JsonNode created =
+                createChange(request(s.contractId(), "[\"SERVICE\"]", addInPackage(meal), today().plusDays(3)));
+        assertThat(created.get("minorChange").asBoolean()).isTrue();
     }
 
     private java.util.List<Long> approversOf(long requestId) {

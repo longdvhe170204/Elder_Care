@@ -31,7 +31,9 @@ public class RequestTransitionTable {
         APPLY,
         APPLY_FAILED,
         /** Người cao tuổi sang trạng thái cuối (bổ sung theo plan 004). */
-        CLOSE_FOR_FINAL_STATE
+        CLOSE_FOR_FINAL_STATE,
+        /** Người duyệt trả yêu cầu về Nháp để sửa (bổ sung theo 004 Q-418; loại yêu cầu phải cho phép). */
+        RETURN_TO_DRAFT
     }
 
     private static final Set<String> FINAL = Set.of(APPLIED, APPLY_FAILED, REJECTED, CANCELLED);
@@ -45,7 +47,8 @@ public class RequestTransitionTable {
             Command.APPLY, Map.of(APPROVED, APPLIED),
             Command.APPLY_FAILED, Map.of(APPROVED, APPLY_FAILED),
             Command.CLOSE_FOR_FINAL_STATE,
-                    Map.of(DRAFT, CANCELLED, PENDING_APPROVAL, CANCELLED, APPROVED, APPLY_FAILED)));
+                    Map.of(DRAFT, CANCELLED, PENDING_APPROVAL, CANCELLED, APPROVED, APPLY_FAILED),
+            Command.RETURN_TO_DRAFT, Map.of(PENDING_APPROVAL, DRAFT)));
 
     public String next(String status, Command command) {
         String to = TABLE.get(command).get(status);

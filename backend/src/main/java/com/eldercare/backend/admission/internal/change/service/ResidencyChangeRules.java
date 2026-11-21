@@ -371,7 +371,8 @@ class ResidencyChangeRules {
         if (change.has(ChangeType.SERVICE)) {
             for (ServiceChange line : change.services()) {
                 if (line.action() == ServiceChange.Action.ADD) {
-                    BigDecimal price = line.inPackage()
+                    // R19: dấu thuộc gói theo hợp đồng hiện hành, bỏ qua dấu người lập gửi
+                    BigDecimal price = IsMinorChange.inPackage(base, line.serviceId())
                             ? BigDecimal.ZERO
                             : line.customUnitPrice() != null
                                     ? BigDecimal.valueOf(line.customUnitPrice())
