@@ -224,35 +224,15 @@ public class ResidenceRegistrationStore {
                         c.deregistrationEvidenceFileId()));
     }
 
-    /** Ghi đã nộp (FR-005): Cần khai báo → Đã nộp, lần nộp hiện hành. */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public boolean markSubmitted(long id, long submissionId) {
-        return transition(
-                id,
-                EnumSet.of(RegistrationStatus.TO_SUBMIT),
-                RegistrationStatus.SUBMITTED,
-                c -> new RegistrationContent(
-                        c.type(),
-                        c.renewal(),
-                        c.obligationId(),
-                        c.dueAt(),
-                        c.localPermanentResident(),
-                        c.basisNote(),
-                        c.expiryDate(),
-                        submissionId,
-                        c.evidenceFileId(),
-                        c.replacedRegistrationId(),
-                        c.deregisteredAt(),
-                        c.deregisteredById(),
-                        c.deregistrationEvidenceFileId()));
-    }
-
-    /** Ghi được chấp nhận (FR-005): Đã nộp → Đã xác nhận, ngày hết hạn, bằng chứng. */
+    /**
+     * Ghi đã tiếp nhận (FR-005, Q-414): Cần khai báo (hoặc Đã nộp của dữ liệu trước Q-414) → Đã xác nhận, ngày hết hạn,
+     * bằng chứng.
+     */
     @Transactional(propagation = Propagation.MANDATORY)
     public boolean markConfirmed(long id, LocalDate expiryDate, long evidenceFileId) {
         return transition(
                 id,
-                EnumSet.of(RegistrationStatus.SUBMITTED),
+                EnumSet.of(RegistrationStatus.TO_SUBMIT, RegistrationStatus.SUBMITTED),
                 RegistrationStatus.CONFIRMED,
                 c -> new RegistrationContent(
                         c.type(),
@@ -264,29 +244,6 @@ public class ResidenceRegistrationStore {
                         expiryDate,
                         c.currentSubmissionId(),
                         evidenceFileId,
-                        c.replacedRegistrationId(),
-                        c.deregisteredAt(),
-                        c.deregisteredById(),
-                        c.deregistrationEvidenceFileId()));
-    }
-
-    /** Ghi bị từ chối (FR-005): Đã nộp → Cần khai báo, hạn mới của khai báo; lần nộp hiện hành giữ (đã từ chối). */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public boolean markRejected(long id, Instant newDueAt) {
-        return transition(
-                id,
-                EnumSet.of(RegistrationStatus.SUBMITTED),
-                RegistrationStatus.TO_SUBMIT,
-                c -> new RegistrationContent(
-                        c.type(),
-                        c.renewal(),
-                        c.obligationId(),
-                        newDueAt,
-                        c.localPermanentResident(),
-                        c.basisNote(),
-                        c.expiryDate(),
-                        c.currentSubmissionId(),
-                        c.evidenceFileId(),
                         c.replacedRegistrationId(),
                         c.deregisteredAt(),
                         c.deregisteredById(),

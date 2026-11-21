@@ -576,7 +576,7 @@ Người cao tuổi vào ở nội trú tại viện phải được khai báo c
 
 Người bán trú không cần khai báo. Khi người bán trú chuyển sang nội trú, kể cả nội trú ngắn ngày để ở lại qua đêm (3.3), phần nội trú được khai báo như người vào ở nội trú (BR-M02-11).
 
-**Nội dung ghi nhận:** loại; ngày nộp; kênh nộp (Cổng dịch vụ công hoặc trực tiếp); cơ quan tiếp nhận; mã hồ sơ; ngày hết hạn (với đăng ký tạm trú); bằng chứng (bản scan hoặc ảnh màn hình kết quả); người thực hiện. Hành chính thực hiện.
+**Nội dung ghi nhận (Q-414):** loại; ngày hết hạn (với đăng ký tạm trú); ảnh bằng chứng đã được cơ quan công an tiếp nhận; người thực hiện. Hành chính khai báo với công an ngoài hệ thống; hệ thống không ghi ngày nộp, kênh nộp, cơ quan tiếp nhận, mã hồ sơ và không liên kết cổng dịch vụ công.
 
 **Trạng thái khai báo:**
 
@@ -584,15 +584,13 @@ Người bán trú không cần khai báo. Khi người bán trú chuyển sang 
 | ---------- | -------------- | -------------- | --------------- |
 | — | Lập khai báo khi được nhắc: sau Hoàn tất tiếp nhận nội trú, khi phần nội trú có hiệu lực, hoặc khi gia hạn hợp đồng chỉ có thông báo lưu trú (BR-M02-11, 14) | Cần khai báo | Hành chính |
 | Cần khai báo | Xác nhận thường trú cùng xã/phường với viện, có ghi chú căn cứ: loại chuyển Thông báo lưu trú (Q-215) | Cần khai báo | Hành chính |
-| Cần khai báo | Ghi đã nộp | Đã nộp | Hành chính |
-| Đã nộp | Ghi kết quả được chấp nhận, kèm bằng chứng | Đã xác nhận | Hành chính |
-| Đã nộp | Ghi kết quả bị từ chối, kèm lý do | Cần khai báo | Hành chính |
+| Cần khai báo | Ghi đã tiếp nhận, kèm ảnh bằng chứng (đăng ký tạm trú kèm ngày hết hạn) (Q-414) | Đã xác nhận | Hành chính |
 | — | Hành chính lập khai báo gia hạn khi được nhắc (BR-M02-12) | Cần khai báo | Hành chính |
 | Đã xác nhận | Qua ngày hết hạn mà chưa có khai báo gia hạn Đã xác nhận (BR-M02-12); nếu chưa có khai báo gia hạn đang xử lý thì Hành chính được nhắc lập khai báo | Hết hạn | Bộ lập lịch |
 | Đã xác nhận, Hết hạn | Ghi đã khai báo xóa tạm trú sau kết thúc lưu trú, qua đời (BR-M02-13) | Đã xóa | Hành chính |
 | Đã xác nhận | Có khai báo gia hạn mới, hoặc khai báo mới sau gia hạn hợp đồng (BR-M02-14), Đã xác nhận | Được thay thế | Hệ thống |
 
-Đã xóa, Được thay thế và Đã hủy là trạng thái cuối. Với mỗi người cao tuổi, tại một thời điểm có tối đa một khai báo Đã xác nhận và tối đa một khai báo đang xử lý (Cần khai báo hoặc Đã nộp) (DBR-33). Khi hồ sơ ở trạng thái cuối, khai báo đang xử lý chuyển Đã hủy, trừ việc khai báo xóa tạm trú.
+Đã xóa, Được thay thế và Đã hủy là trạng thái cuối. Với mỗi người cao tuổi, tại một thời điểm có tối đa một khai báo Đã xác nhận và tối đa một khai báo đang xử lý (Cần khai báo) (DBR-33). Khi hồ sơ ở trạng thái cuối, khai báo đang xử lý chuyển Đã hủy, trừ việc khai báo xóa tạm trú.
 
 ## 7. Module 03 – Phòng và giường
 
@@ -2772,6 +2770,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-411 | Phiếu đối chiếu thuốc: kiểm "thuốc đang dùng khi tiếp nhận đã có dòng" thế nào; phiếu không có dòng có gửi được không; dòng Ngừng, Thay đổi liều cần căn cứ gì để viện không quyết thay nơi điều trị | Chủ dự án 2026-11-18: (1) giữ phiếu đối chiếu thuốc ở cả ba lý do (tiếp nhận, trở về từ bệnh viện, theo yêu cầu chuyên môn). (2) "Thuốc đang sử dụng khi tiếp nhận" của hồ sơ sức khỏe ban đầu là chữ tự do, nên hệ thống không chặn tự động khi thuốc trong đó chưa có dòng; người xác nhận so phiếu với hồ sơ và trả lại phiếu khi thiếu (quy tắc hai người, Q-55). Hệ thống vẫn chặn gửi khi đơn Hiệu lực, Tạm dừng, Chờ hiệu lực của người đó chưa có dòng, dòng thiếu quyết định, dòng Ngừng thiếu lý do. (3) Người cao tuổi không có đơn nào phải đối chiếu thì phiếu không có dòng vẫn gửi, xác nhận được, để đóng hạn CFG-M07-05. (4) Dòng Ngừng, Thay đổi liều theo cùng điều kiện như lệnh đơn thuốc ngoài phiếu: Bác sĩ có quyền kê đơn hợp lệ (BR-M06-05) tự quyết; người khác ghi căn cứ từ cơ sở kê bên ngoài (đơn ra viện ghi ngừng, đổi liều hoặc ý kiến bác sĩ điều trị, kèm tên cơ sở, người, ngày) trong lý do của dòng, dòng Thay đổi liều có đơn thay thế là đơn bên ngoài có cơ sở kê (BR-M07-05); không có căn cứ thì để Tiếp tục hoặc hỏi cơ sở kê trước khi gửi. Người xác nhận kiểm căn cứ; hệ thống không đối chiếu nội dung căn cứ. Phiếu là việc đối chiếu và ghi theo đơn của nơi có thẩm quyền, không thay việc khám, chẩn đoán, kê đơn | 11.5, BR-M07-05, BR-M07-09, BR-M06-05, Q-55, Q-57, Q-306 | 006, 001 |
 | Q-412 | Hành chính có được ghi đánh giá đầu vào, nguyện vọng cuối đời, nguyện vọng khi điều trị lúc tiếp nhận không | Chủ dự án 2026-11-17: được ghi bản Nháp tự khai theo lời người cao tuổi hoặc gia đình khi người cao tuổi còn Đang tiếp nhận, như Q-400. Phiếu đánh giá đầu vào: chỉ phần "Gia đình khai" (trường riêng, tách khỏi nhận xét của Bác sĩ); Bác sĩ ghi nhận xét, chọn mức chăm sóc, xác nhận. Phiếu nguyện vọng: Bác sĩ hoặc Điều dưỡng kiểm chứng thì thành Hiệu lực; nhận định tự quyết chỉ Bác sĩ ghi. Khác Q-400: bản Nháp không có hiệu lực tới khi được kiểm chứng (nguyện vọng là căn cứ quyết định lúc nguy kịch). Hành chính chỉ xem bản Nháp do chính mình ghi. Hoàn tất tiếp nhận không bị chặn; cảnh báo và nhắc theo CFG-M01-06. Bổ sung cùng ngày: Hành chính ghi "Gia đình khai" vào lần đánh giá đầu vào Nháp đang mở (kể cả do Bác sĩ, Điều dưỡng lập), không hủy Nháp đánh giá; phiếu nguyện vọng tối đa một Nháp mỗi loại, kiểm chứng bằng lệnh mang đủ nội dung phiếu, Bác sĩ hoặc Điều dưỡng Hủy nháp kèm lý do, còn Nháp thì không ghi thẳng phiên bản mới; cảnh báo, nhắc thực tế chỉ với phiếu nguyện vọng (Nháp đánh giá đầu vào thì Hoàn tất đã bị từ chối theo 5.6) | 5.2, 5.3, 5.6, 19.3, BR-M01-16, BR-M01-18, Phụ lục 26, 27 (chú thích ³⁰, ⁵⁰, ⁵²) | 001 |
 | Q-413 | Lệnh nào trên đơn nội bộ cần Bác sĩ có quyền kê đơn hợp lệ (BR-M06-05), ngoài lệnh tạo đơn | Chủ dự án 2026-11-19: Gia hạn (đã có ở 006 FR-015) và Tiếp tục đơn nội bộ là cho dùng thuốc tiếp, nên cần Bác sĩ có quyền kê đơn hợp lệ tại thời điểm lệnh. Tạm dừng, Ngừng đơn nội bộ chỉ cần vai trò Bác sĩ như bảng FR-011, để vẫn dừng được thuốc khi giấy phép của bác sĩ hoặc phạm vi khám chữa bệnh của cơ sở hết hiệu lực; Điều dưỡng vẫn chỉ ra lệnh trên đơn bên ngoài có căn cứ từ cơ sở kê | 11.1, BR-M06-05, BR-M07-05, BR-M07-07, Q-411 | 006 |
+| Q-414 | Khai báo cư trú ghi những gì trên hệ thống | Chủ dự án 2026-11-20: Hành chính khai báo với công an ngoài hệ thống; trên hệ thống chỉ lập khai báo (Cần khai báo) rồi ghi đã tiếp nhận kèm ảnh bằng chứng (đăng ký tạm trú kèm ngày hết hạn) để chuyển Đã xác nhận. Bỏ trạng thái Đã nộp, lệnh Ghi đã nộp (ngày nộp, kênh, cơ quan, mã hồ sơ) và Ghi bị từ chối; bị từ chối thì khai báo vẫn Cần khai báo, nhắc quá hạn chạy theo hạn cũ. Không liên kết cổng dịch vụ công. Giữ nhắc gia hạn, Hết hạn, khai báo xóa | 6.10, BR-M02-11, DBR-33 | 018 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -3265,7 +3264,7 @@ Quy tắc dữ liệu là các ràng buộc luôn đúng trên dữ liệu (tín
 | DBR-30 | Mỗi bảng chi phí Đã chốt có đúng một giao dịch "thanh toán bảng chi phí" có số tiền bằng tổng bảng | BANG_CHI_PHI, GIAO_DICH_SO_DU | BR-M11-11 |
 | DBR-31 | *(Bỏ theo Q-392; không còn kho nguyên liệu)* | — | — |
 | DBR-32 | Mỗi tài sản có đúng một trạng thái và một vị trí hiện hành, lịch sử vị trí không chồng khoảng; mỗi giường có đúng một bản ghi tài sản; một xe không có hai lịch sử dụng chưa hủy chồng giờ, trừ chồng giờ do gia hạn giờ về của chuyến đi đang diễn ra (Q-236) | TAI_SAN, LICH_XE | 7.7, BR-M03-15, 16 |
-| DBR-33 | Mỗi người cao tuổi có tối đa một khai báo tạm trú Đã xác nhận và tối đa một khai báo đang xử lý (Cần khai báo, Đã nộp) tại một thời điểm | KHAI_BAO_TAM_TRU | 6.10 |
+| DBR-33 | Mỗi người cao tuổi có tối đa một khai báo tạm trú Đã xác nhận và tối đa một khai báo đang xử lý (Cần khai báo) tại một thời điểm | KHAI_BAO_TAM_TRU | 6.10 |
 | DBR-34 | Mỗi người cao tuổi có tối đa một phiên bản nguyện vọng cuối đời Hiệu lực; phiên bản đã thay thế không sửa; mỗi dấu nguy kịch đang mở có đúng một cảnh báo "nguy kịch" | NGUYEN_VONG_CUOI_DOI, DAU_NGUY_KICH | 5.2, BR-M05-15 |
 | DBR-35 | *(Bỏ theo Q-385; không còn số phiếu thu, chi và chốt quỹ ngày)* | — | — |
 | DBR-36 | Mỗi yêu cầu mua sắm thuộc đúng một bộ phận; ghi tăng tài sản mua mới, kết quả bảo trì thuê ngoài có chi phí trỏ tới đúng một yêu cầu mua sắm Đã duyệt của cùng bộ phận (trừ hàng tặng, chuyển, ghi nguồn); tổng số tiền đã mua của một yêu cầu không vượt số được duyệt quá CFG-M11-07; mỗi tài khoản nhân viên thuộc đúng một bộ phận tại một thời điểm (nhân viên không có tài khoản không thuộc ràng buộc này) | YEU_CAU_MUA_SAM, BO_PHAN, TAI_SAN | BR-M11-17 → 19 |

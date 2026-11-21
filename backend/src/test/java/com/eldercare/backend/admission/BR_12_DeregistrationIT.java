@@ -10,7 +10,6 @@ import com.eldercare.backend.admission.api.events.ResidenceRegistrationReminder.
 import com.eldercare.backend.admission.internal.registration.domain.ObligationTrigger;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
-import com.eldercare.backend.admission.internal.registration.domain.SubmissionChannel;
 import com.eldercare.backend.admission.internal.registration.persistence.RegistrationObligationStore;
 import com.eldercare.backend.admission.internal.registration.service.RegistrationDeregistration;
 import com.eldercare.backend.admission.internal.registration.service.RegistrationOverdueReminders;
@@ -85,20 +84,10 @@ class BR_12_DeregistrationIT extends DeathTestBase {
         return registrations.createRegistration(ResidenceRegistrationService.targetForResident(residentId), residentId);
     }
 
-    private void submit(ResidenceRegistration registration) {
-        user.set(office.user());
-        registrations.recordSubmitted(
-                registrations.targetOf(registration.id()),
-                registration.id(),
-                new ResidenceRegistrationService.Submission(
-                        today(), SubmissionChannel.IN_PERSON, "Công an phường X", null));
-    }
-
     /** Khai báo Đã xác nhận (Đăng ký tạm trú của người nội trú dài hạn). */
     private ResidenceRegistration confirmed(long residentId) {
         ResidenceRegistration registration = toSubmit(residentId);
         assertThat(registration.type()).isEqualTo(RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION);
-        submit(registration);
         registrations.recordAccepted(
                 registrations.targetOf(registration.id()),
                 registration.id(),

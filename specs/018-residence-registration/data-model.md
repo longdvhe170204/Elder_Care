@@ -68,8 +68,7 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 | --- | --- | --- | --- |
 | — | Lập khai báo; lập khai báo gia hạn | `CAN_KHAI_BAO` | Hành chính |
 | `CAN_KHAI_BAO` | Xác nhận thường trú cùng xã/phường | `CAN_KHAI_BAO` | Hành chính |
-| `CAN_KHAI_BAO` | Ghi đã nộp | `DA_NOP` | Hành chính |
-| `DA_NOP` | Ghi chấp nhận / từ chối | `DA_XAC_NHAN` / `CAN_KHAI_BAO` | Hành chính |
+| `CAN_KHAI_BAO` | Ghi đã tiếp nhận (Q-414; `DA_NOP` chỉ còn ở dữ liệu cũ, cũng được ghi) | `DA_XAC_NHAN` | Hành chính |
 | `DA_XAC_NHAN` | Qua ngày hết hạn chưa có gia hạn Đã xác nhận | `HET_HAN` | Bộ lập lịch |
 | `DA_XAC_NHAN`, `HET_HAN` | Ghi đã khai báo xóa (người đã Kết thúc lưu trú / Qua đời) | `DA_XOA` | Hành chính |
 | `DA_XAC_NHAN` | Khai báo mới cùng người Đã xác nhận | `DUOC_THAY_THE` | Hệ thống (kèm lệnh) |
