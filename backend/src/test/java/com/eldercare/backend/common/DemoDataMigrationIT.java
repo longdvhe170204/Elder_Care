@@ -108,5 +108,38 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                                 + " AND a.staff_id=9010",
                         Integer.class))
                 .isEqualTo(1);
+        // V900_09: ca ngày Tầng 2 (9002) đã công bố 7 ngày với Điều dưỡng thứ hai (demo.dieuduong2, 9011, phụ trách ca,
+        // giấy phép NURSING_LICENSE) và Nhân viên chăm sóc thứ hai (demo.chamsoc2, 9012); demo.truongtang là Trưởng
+        // tầng
+        // cả Tầng 2. Người ở Tầng 2 phân công được Điều dưỡng để lập kế hoạch chăm sóc (BF-01 bước 16)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM work_shift s JOIN shift_schedule h ON h.id=s.schedule_id"
+                                + " AND h.status='PUBLISHED' WHERE s.scope_type='FLOOR' AND s.scope_id=9002"
+                                + " AND s.status='PUBLISHED' AND s.lead_staff_id=9011",
+                        Integer.class))
+                .isEqualTo(7);
+        assertThat(jdbc.queryForList(
+                        "SELECT DISTINCT m.staff_id FROM shift_staff m JOIN work_shift s ON s.id=m.shift_id"
+                                + " WHERE s.scope_type='FLOOR' AND s.scope_id=9002 ORDER BY m.staff_id",
+                        Long.class))
+                .containsExactly(9011L, 9012L);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM account a JOIN permission_assignment r ON r.account_id=a.id"
+                                + " AND r.kind='ROLE_ASSIGNMENT' JOIN staff_profile s ON s.id=a.staff_id"
+                                + " AND s.account_id=a.id WHERE a.status='ACTIVE' AND ((a.username='demo.dieuduong2'"
+                                + " AND a.staff_id=9011 AND r.role='AC-04') OR (a.username='demo.chamsoc2'"
+                                + " AND a.staff_id=9012 AND r.role='AC-05'))",
+                        Integer.class))
+                .isEqualTo(2);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM credential c JOIN catalog_item t ON t.id=c.credential_type_id"
+                                + " AND t.code='NURSING_LICENSE' WHERE c.staff_id=9011",
+                        Integer.class))
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM staff_assignment WHERE kind='FLOOR_MANAGER' AND staff_id=9003"
+                                + " AND floor_area_id=9002 AND status='ACTIVE'",
+                        Integer.class))
+                .isEqualTo(1);
     }
 }
