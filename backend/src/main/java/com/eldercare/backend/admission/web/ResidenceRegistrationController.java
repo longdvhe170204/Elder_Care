@@ -40,9 +40,7 @@ class ResidenceRegistrationController {
 
     private static final String PROBLEM = "application/problem+json";
     private static final String CONFIRM_LOCAL = ResidenceRegistrationService.CONFIRM_LOCAL;
-    private static final String RECORD_SUBMITTED = ResidenceRegistrationService.RECORD_SUBMITTED;
     private static final String RECORD_ACCEPTED = ResidenceRegistrationService.RECORD_ACCEPTED;
-    private static final String RECORD_REJECTED = ResidenceRegistrationService.RECORD_REJECTED;
     private static final String RECORD_DEREGISTERED = ResidenceRegistrationService.RECORD_DEREGISTERED;
 
     private final ResidenceRegistrationService registrations;
@@ -102,9 +100,9 @@ class ResidenceRegistrationController {
     }
 
     /**
-     * Lệnh theo bảng FR-005: {@code confirm-local-permanent-resident} (T008), {@code record-submitted}, {@code
-     * record-accepted}, {@code record-rejected} (T010), {@code record-deregistered} (T014). Lệnh khác trả 422 {@code
-     * INVALID_COMMAND} (hợp đồng đã duyệt, BL-95).
+     * Lệnh theo bảng FR-005: {@code confirm-local-permanent-resident} (T008), {@code record-accepted} (ghi đã tiếp nhận,
+     * Q-414), {@code record-deregistered} (T014). Lệnh khác, cả {@code record-submitted}, {@code record-rejected} đã bỏ theo
+     * Q-414, trả 422 {@code INVALID_COMMAND} (hợp đồng đã duyệt, BL-95).
      */
     @PostMapping("/residence-registrations/{id}/{command}")
     @ApiResponses({
@@ -115,8 +113,7 @@ class ResidenceRegistrationController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                description =
-                        "STATE_CHANGED, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED",
+                description = "STATE_CHANGED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "422",
@@ -130,31 +127,18 @@ class ResidenceRegistrationController {
                             schema =
                                     @Schema(
                                             type = "string",
-                                            allowableValues = {
-                                                CONFIRM_LOCAL,
-                                                RECORD_SUBMITTED,
-                                                RECORD_ACCEPTED,
-                                                RECORD_REJECTED,
-                                                RECORD_DEREGISTERED
-                                            }))
+                                            allowableValues = {CONFIRM_LOCAL, RECORD_ACCEPTED, RECORD_DEREGISTERED}))
                     String command,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody RegistrationCommandBody body) {
         Target target = registrations.targetOf(id);
         switch (command) {
             case CONFIRM_LOCAL -> registrations.confirmLocalPermanentResident(target, id, body.basisNote());
-            case RECORD_SUBMITTED ->
-                registrations.recordSubmitted(
-                        target,
-                        id,
-                        new ResidenceRegistrationService.Submission(
-                                body.submittedDate(), body.channel(), body.receivingAuthority(), body.dossierCode()));
             case RECORD_ACCEPTED ->
                 registrations.recordAccepted(
                         target,
                         id,
                         new ResidenceRegistrationService.Acceptance(body.evidenceFileId(), body.expiryDate()));
-            case RECORD_REJECTED -> registrations.recordRejected(target, id, body.reason());
             case RECORD_DEREGISTERED -> registrations.recordDeregistered(target, id, body.evidenceFileId());
             default ->
                 throw new BusinessException(

@@ -19,7 +19,6 @@ import com.eldercare.backend.admission.internal.registration.domain.Registration
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationSubmission;
 import com.eldercare.backend.admission.internal.registration.domain.RegistrationType;
 import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
-import com.eldercare.backend.admission.internal.registration.domain.SubmissionChannel;
 import com.eldercare.backend.admission.internal.registration.domain.SubmissionResult;
 import com.eldercare.backend.admission.internal.registration.persistence.RegistrationObligationStore;
 import com.eldercare.backend.admission.internal.registration.persistence.RegistrationResidentStore;
@@ -61,10 +60,12 @@ public class ResidenceRegistrationService {
 
     static final AuditAction CREATED = new AuditAction("M02_REGISTRATION_CREATED", false);
     static final AuditAction LOCAL_CONFIRMED = new AuditAction("M02_REGISTRATION_LOCAL_CONFIRMED", false);
-    static final AuditAction SUBMITTED = new AuditAction("M02_REGISTRATION_SUBMITTED", false);
     static final AuditAction ACCEPTED = new AuditAction("M02_REGISTRATION_ACCEPTED", false);
-    static final AuditAction REJECTED = new AuditAction("M02_REGISTRATION_REJECTED", false);
     static final AuditAction DEREGISTERED = new AuditAction("M02_REGISTRATION_DEREGISTERED", false);
+
+    /** Khai báo đang xử lý ghi đã tiếp nhận được: Cần khai báo, và Đã nộp của dữ liệu trước Q-414. */
+    private static final Set<RegistrationStatus> PROCESSING =
+            Set.of(RegistrationStatus.TO_SUBMIT, RegistrationStatus.SUBMITTED);
 
     private static final Set<ContractStatus> SIGNED =
             Set.of(ContractStatus.ACTIVE, ContractStatus.ENDED, ContractStatus.TERMINATED);
@@ -127,9 +128,7 @@ public class ResidenceRegistrationService {
     /** Lệnh {@code {command}} của api-018 (FR-005). */
     public static final String CONFIRM_LOCAL = "confirm-local-permanent-resident";
 
-    public static final String RECORD_SUBMITTED = "record-submitted";
     public static final String RECORD_ACCEPTED = "record-accepted";
-    public static final String RECORD_REJECTED = "record-rejected";
     public static final String RECORD_DEREGISTERED = "record-deregistered";
 
     public record Task(
@@ -140,11 +139,7 @@ public class ResidenceRegistrationService {
             Long registrationId,
             List<String> allowedCommands) {}
 
-    /** Nội dung ghi đã nộp (FR-003): ngày nộp, kênh, cơ quan bắt buộc; mã hồ sơ không bắt buộc. */
-    public record Submission(
-            LocalDate submittedDate, SubmissionChannel channel, String receivingAuthority, String dossierCode) {}
-
-    /** Nội dung ghi được chấp nhận (FR-003): bằng chứng; ngày hết hạn với Đăng ký tạm trú. */
+    /** Nội dung ghi đã tiếp nhận (FR-003, Q-414): ảnh bằng chứng; ngày hết hạn với Đăng ký tạm trú. */
     public record Acceptance(Long evidenceFileId, LocalDate expiryDate) {}
 
     public static Target targetForResident(long residentId) {
@@ -241,9 +236,9 @@ public class ResidenceRegistrationService {
         return switch (registration.status()) {
             case TO_SUBMIT ->
                 registration.localPermanentResident()
-                        ? List.of(RECORD_SUBMITTED)
-                        : List.of(CONFIRM_LOCAL, RECORD_SUBMITTED);
-            case SUBMITTED -> List.of(RECORD_ACCEPTED, RECORD_REJECTED);
+                        ? List.of(RECORD_ACCEPTED)
+                        : List.of(CONFIRM_LOCAL, RECORD_ACCEPTED);
+            case SUBMITTED -> List.of(RECORD_ACCEPTED);
             case CONFIRMED, EXPIRED ->
                 RegistrationDeregistration.ENDED.contains(residents.status(registration.residentId()))
                         ? List.of(RECORD_DEREGISTERED)
@@ -431,60 +426,19 @@ public class ResidenceRegistrationService {
     }
 
     /**
-     * Ghi đã nộp (FR-003, FR-005; US2 #1): Cần khai báo → Đã nộp; thêm lần nộp mới ({@code PENDING}), lần nộp cũ giữ
-     * nguyên; nghĩa vụ của khai báo thôi nhắc quá hạn.
-     */
-    @BusinessCommand(requiresReason = false)
-    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
-    @Transactional
-    public ResidenceRegistration recordSubmitted(Target target, long id, Submission submission) {
-        if (submission.submittedDate() == null
-                || submission.channel() == null
-                || isBlank(submission.receivingAuthority())) {
-            throw new InvalidValueException("Cần ngày nộp, kênh nộp và cơ quan tiếp nhận (FR-005)");
-        }
-        ResidenceRegistration before = locked(id);
-        if (before.status() != RegistrationStatus.TO_SUBMIT) {
-            throw stateChanged("Chỉ ghi đã nộp khi khai báo ở Cần khai báo (FR-005)");
-        }
-        String dossierCode = isBlank(submission.dossierCode())
-                ? null
-                : submission.dossierCode().strip();
-        long submissionId = submissions.add(
-                before.residentId(),
-                id,
-                submission.submittedDate(),
-                submission.channel(),
-                submission.receivingAuthority().strip(),
-                dossierCode,
-                currentUser.getObject().accountId(),
-                time.now());
-        if (!registrations.markSubmitted(id, submissionId)) {
-            throw stateChanged("Chỉ ghi đã nộp khi khai báo ở Cần khai báo (FR-005)");
-        }
-        obligations.markSubmitted(before.residentId(), id, true);
-        Map<String, Object> after = new LinkedHashMap<>();
-        after.put("status", RegistrationStatus.SUBMITTED.name());
-        after.put("submissionId", submissionId);
-        after.put("submittedDate", submission.submittedDate().toString());
-        after.put("channel", submission.channel().name());
-        after.put("receivingAuthority", submission.receivingAuthority().strip());
-        after.put("dossierCode", dossierCode);
-        audit(SUBMITTED, before, after);
-        return registrations.find(id).orElseThrow();
-    }
-
-    /**
-     * Ghi được chấp nhận (FR-003, FR-005; US2 #2, #5): Đã nộp → Đã xác nhận; bằng chứng bắt buộc, Đăng ký tạm trú có ngày
-     * hết hạn (Thông báo lưu trú không có). Khai báo Đã xác nhận cũ của người đó chuyển Được thay thế trước, cùng
-     * transaction (DBR-33).
+     * Ghi đã tiếp nhận (FR-003, FR-005; US2, Q-414): Cần khai báo → Đã xác nhận (khai báo Đã nộp của dữ liệu trước Q-414
+     * cũng được, lần nộp đó ghi Được chấp nhận); ảnh bằng chứng bắt buộc, Đăng ký tạm trú có ngày hết hạn (Thông báo lưu trú
+     * không có); nghĩa vụ của khai báo thôi nhắc quá hạn. Khai báo Đã xác nhận cũ của người đó chuyển Được thay thế trước,
+     * cùng transaction (DBR-33).
      */
     @BusinessCommand(requiresReason = false)
     @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
     @Transactional
     public ResidenceRegistration recordAccepted(Target target, long id, Acceptance acceptance) {
         ResidenceRegistration before = locked(id);
-        requireSubmitted(before);
+        if (!PROCESSING.contains(before.status())) {
+            throw stateChanged("Chỉ ghi đã tiếp nhận khi khai báo ở Cần khai báo (FR-005, Q-414)");
+        }
         if (acceptance.evidenceFileId() == null) {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "EVIDENCE_REQUIRED", "Cần bằng chứng khi ghi được chấp nhận (FR-003)");
@@ -506,10 +460,15 @@ public class ResidenceRegistrationService {
         if (superseded != null) {
             registrations.markSuperseded(superseded);
         }
-        if (!submissions.setResult(before.currentSubmissionId(), SubmissionResult.ACCEPTED, null, time.now())
+        boolean legacySubmission =
+                before.status() == RegistrationStatus.SUBMITTED && before.currentSubmissionId() != null;
+        if ((legacySubmission
+                        && !submissions.setResult(
+                                before.currentSubmissionId(), SubmissionResult.ACCEPTED, null, time.now()))
                 || !registrations.markConfirmed(id, acceptance.expiryDate(), acceptance.evidenceFileId())) {
-            throw stateChanged("Lần nộp đã có kết quả (FR-003)");
+            throw stateChanged("Khai báo đã được ghi (FR-003)");
         }
+        obligations.markSubmitted(before.residentId(), id, true);
         files.attach(acceptance.evidenceFileId(), RegistrationNames.EVIDENCE_OWNER_TYPE, id);
         Map<String, Object> after = new LinkedHashMap<>();
         after.put("status", RegistrationStatus.CONFIRMED.name());
@@ -520,36 +479,6 @@ public class ResidenceRegistrationService {
                 acceptance.expiryDate() == null ? null : acceptance.expiryDate().toString());
         after.put("supersededRegistrationId", superseded);
         audit(ACCEPTED, before, after);
-        return registrations.find(id).orElseThrow();
-    }
-
-    /**
-     * Ghi bị từ chối (FR-005; US2 #3): Đã nộp → Cần khai báo, cùng khai báo (không lập khai báo mới); hạn mới của khai báo
-     * = thời điểm ghi + CFG-M02-12. Nghĩa vụ giữ hạn gốc và mốc đã báo Quản lý viện, chỉ đặt lại cờ đã ghi nộp để nhắc quá
-     * hạn chạy lại theo hạn mới (plan 018 "Phase 4 hoàn thành").
-     */
-    @BusinessCommand(requiresReason = false)
-    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
-    @Transactional
-    public ResidenceRegistration recordRejected(Target target, long id, String reason) {
-        if (isBlank(reason)) {
-            throw new InvalidValueException("Cần lý do khi ghi bị từ chối (FR-005)");
-        }
-        ResidenceRegistration before = locked(id);
-        requireSubmitted(before);
-        Instant newDueAt =
-                time.now().plus(parameters.read(ParameterCode.CFG_M02_12).asDuration());
-        if (!submissions.setResult(before.currentSubmissionId(), SubmissionResult.REJECTED, reason.strip(), time.now())
-                || !registrations.markRejected(id, newDueAt)) {
-            throw stateChanged("Lần nộp đã có kết quả (FR-003)");
-        }
-        obligations.markSubmitted(before.residentId(), id, false);
-        Map<String, Object> after = new LinkedHashMap<>();
-        after.put("status", RegistrationStatus.TO_SUBMIT.name());
-        after.put("submissionId", before.currentSubmissionId());
-        after.put("rejectionReason", reason.strip());
-        after.put("dueAt", newDueAt.toString());
-        audit(REJECTED, before, after);
         return registrations.find(id).orElseThrow();
     }
 
@@ -629,16 +558,6 @@ public class ResidenceRegistrationService {
         long residentId = registrations.residentOf(id).orElseThrow(NotFoundException::new);
         residentLock.lock(residentId);
         return registrations.findForUpdate(id).orElseThrow(NotFoundException::new);
-    }
-
-    private static void requireSubmitted(ResidenceRegistration registration) {
-        if (registration.status() == RegistrationStatus.TO_SUBMIT) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "NOT_SUBMITTED", "Chưa ghi đã nộp nên chưa ghi được kết quả (US2 #4)");
-        }
-        if (registration.status() != RegistrationStatus.SUBMITTED) {
-            throw stateChanged("Chỉ ghi kết quả khi khai báo ở Đã nộp (FR-005)");
-        }
     }
 
     /** Loại khai báo theo FR-001, FR-001a: tổng thời gian lưu trú dự kiến, CFG-M02-11 đọc lúc gọi, cờ thường trú. */

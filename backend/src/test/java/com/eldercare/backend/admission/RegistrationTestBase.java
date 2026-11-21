@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.admission.internal.registration.domain.ResidenceRegistration;
-import com.eldercare.backend.admission.internal.registration.domain.SubmissionChannel;
 import com.eldercare.backend.admission.internal.registration.service.RegistrationOverdueReminders;
 import com.eldercare.backend.admission.internal.registration.service.ResidenceRegistrationService;
 import com.eldercare.backend.common.Reason;
@@ -122,15 +121,10 @@ abstract class RegistrationTestBase extends M02TestBase {
         return registrations.createRegistration(ResidenceRegistrationService.targetForResident(residentId), residentId);
     }
 
-    /** Ghi nộp rồi ghi được chấp nhận (US2); {@code expiry} chỉ với Đăng ký tạm trú, {@code evidenceFileId} đã tải lên. */
+    /** Ghi đã tiếp nhận (US2, Q-414); {@code expiry} chỉ với Đăng ký tạm trú, {@code evidenceFileId} đã tải lên. */
     protected void confirm(ResidenceRegistration registration, LocalDate expiry, long evidenceFileId) {
         user.set(office.user());
         Target target = registrations.targetOf(registration.id());
-        registrations.recordSubmitted(
-                target,
-                registration.id(),
-                new ResidenceRegistrationService.Submission(
-                        today(), SubmissionChannel.IN_PERSON, "Công an phường X", null));
         registrations.recordAccepted(
                 target, registration.id(), new ResidenceRegistrationService.Acceptance(evidenceFileId, expiry));
     }

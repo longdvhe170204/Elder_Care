@@ -28,19 +28,19 @@ frontend/ npm ci && npm test && npm run dev
 | Q4 | Hết 02/10 chưa ghi nộp | HC nhắc mỗi ngày; QL báo một lần | US1 #4 |
 | Q5 | Hoàn tất tiếp nhận khi chưa có khai báo; Kết thúc lưu trú khi khai báo chưa xong | Không bị chặn | US1 #5, SC-004 |
 | Q6 | HC xác nhận F thường trú cùng phường | Loại → Thông báo lưu trú, hạn giữ; gia hạn sau vẫn Thông báo lưu trú | US1 #6, Q-215 |
-| Q7 | Ghi đã nộp; ghi chấp nhận thiếu ngày hết hạn; đủ | Đã nộp, dừng nhắc; 409 `THIEU_NGAY_HET_HAN`; Đã xác nhận | US2 |
-| Q8 | Ghi chấp nhận khi chưa ghi nộp | 409 `CHUA_GHI_NOP` | US2 #4 |
-| Q9 | Ghi từ chối | Về Cần khai báo; hạn mới = lúc ghi + 1 ngày | US2 #3 |
-| Q10 | DD, KT gọi lệnh | 403 | US2 #6 |
+| Q7 | Ghi đã tiếp nhận thiếu ngày hết hạn, thiếu ảnh; đủ (Q-414) | 409 `EXPIRY_DATE_REQUIRED`, `EVIDENCE_REQUIRED`; Đã xác nhận, dừng nhắc | US2 #1, #3 |
+| Q8 | Ghi đã tiếp nhận Thông báo lưu trú, không có ngày hết hạn | Đã xác nhận | US2 #2 |
+| Q9 | Lệnh `record-submitted`, `record-rejected` (bỏ theo Q-414) | 422 `INVALID_COMMAND` | Q-414 |
+| Q10 | DD, KT gọi lệnh | 403 | US2 #4 |
 | Q11 | 31/08/2027 (CFG-M02-13) | HC nhắc lập khai báo gia hạn mỗi ngày | US3 #1 |
 | Q12 | Gia hạn Đã xác nhận | Khai báo cũ Được thay thế; đúng một Đã xác nhận | US3 #2, SC-003 |
 | Q13 | Qua hết hạn không có gia hạn Đã xác nhận | Hết hạn; HC nhắc lập; QL báo; không có khai báo tự tạo | US3 #3 |
 | Q14 | Phụ lục gia hạn B lên 60 ngày | HC nhắc; lập → Đăng ký tạm trú | US3 #4, BR-M02-14 |
-| Q15 | Lập khai báo thứ hai khi có khai báo Đã nộp | 409 `DA_CO_KHAI_BAO_DANG_XU_LY` | US3 #5, DBR-33 |
+| Q15 | Lập khai báo thứ hai khi có khai báo Cần khai báo | 409 `DA_CO_KHAI_BAO_DANG_XU_LY` | US3 #5, DBR-33 |
 | Q16 | Phụ lục gia hạn E lên 21 ngày | HC nhắc; lập → Thông báo lưu trú; khi Đã xác nhận, cũ Được thay thế | US3 #6 |
 | Q17 | Chuyển người bán trú sang nội trú ngắn ngày (phụ lục) | HC nhắc lập; tổng thời gian tính từ ngày hiệu lực phần nội trú | FR-001a, Q-289 |
 | Q18 | A Kết thúc lưu trú khi có khai báo Đã xác nhận | A "cần khai báo xóa", HC nhắc mỗi ngày; ghi đã khai báo xóa (hồ sơ trạng thái cuối) → Đã xóa | US4 #1, #2, #4 |
-| Q19 | B qua đời khi khai báo Đã nộp | Khai báo Đã hủy; không nhắc khai báo xóa | US4 #3 |
+| Q19 | B qua đời khi khai báo Cần khai báo | Khai báo Đã hủy; không nhắc khai báo xóa | US4 #3 |
 | Q20 | Hai hợp đồng có khoảng trống 1 ngày | Tổng thời gian tính lại từ hợp đồng sau | Q-241 |
 | Q21 | Lập khai báo gia hạn cho A rồi không nộp; qua hết ngày hết hạn một ngày nữa | Khai báo gia hạn có trong bảng việc ("Sắp hết hạn", rồi "Quá hạn"); HC nhắc mỗi ngày; QL báo một lần; tính vào số liệu 016 | US3, FR-002, FR-011 |
 | Q22 | Người chỉ có Thông báo lưu trú ký hợp đồng nội trú mới bắt đầu ngay ngày sau hợp đồng cũ | HC nhắc lập khai báo như khi gia hạn; có khoảng trống thì không nhắc | BR-M02-14, Q-241 |
