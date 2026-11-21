@@ -165,4 +165,45 @@ class InboxIT extends M13IntegrationTestBase {
                 .hasSize(1);
         assertThat(getJson(INBOX, token).get("unreadCount").asInt()).isZero();
     }
+
+    /**
+     * FR-034 (chủ dự án chốt 2026-11-21, F14 BF-01 bước 15a): nhân viên có phạm vi Toàn viện ở Hồ sơ người cao tuổi
+     * (Phụ lục 27, Hành chính) thấy Phần chung của thông báo về người cao tuổi dù không có phân công; nhân viên theo
+     * phân công mà không được phân công thì chỉ thấy tiêu đề.
+     */
+    @Test
+    void FR_034_facilityWideStaff_seesGeneralPart_withoutAssignment() throws Exception {
+        TestUser office = users.staff(Role.OFFICE_STAFF);
+        TestUser caregiver = users.staff(Role.CAREGIVER);
+        String key = send(new NotificationRequest(
+                "M05",
+                "TEST_EVENT",
+                SourceGroup.OTHER,
+                new SourceRecord("M05.TEST", "fr034fw-" + resident),
+                "fr034fw-" + resident,
+                Optional.of(NotificationLevel.LOW),
+                Optional.of(resident),
+                Optional.empty(),
+                List.of(staff(office), staff(caregiver)),
+                List.of(new ContentPart(InformationType.GENERAL, "Phần GENERAL")),
+                Optional.of("Rút gọn"),
+                Optional.of("Tiêu đề"),
+                Optional.empty(),
+                false,
+                time.now(),
+                Map.of(),
+                false,
+                Optional.empty(),
+                Optional.empty()));
+
+        JsonNode toOffice =
+                getJson(INBOX + "/" + notificationId(key, office.accountId()), users.session(office.accountId()));
+        JsonNode toCaregiver =
+                getJson(INBOX + "/" + notificationId(key, caregiver.accountId()), users.session(caregiver.accountId()));
+
+        assertThat(toOffice.get("content")).hasSize(1);
+        assertThat(toOffice.get("hiddenParts")).isEmpty();
+        assertThat(toCaregiver.get("content")).isEmpty();
+        assertThat(toCaregiver.get("hiddenParts").get(0).asString()).isEqualTo("GENERAL");
+    }
 }
