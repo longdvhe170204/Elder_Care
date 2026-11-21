@@ -467,7 +467,9 @@ Sổ tiền cọc và trạng thái đặt cọc:
 
 Việc chuyển sang trạng thái lưu trú chính thức phải tuân theo điều kiện của cơ sở/hợp đồng (xem 5.6).
 
-### 6.6. Thay đổi lưu trú
+### 6.6. Điều chỉnh hợp đồng (trước đây: Thay đổi lưu trú)
+
+Tên hiển thị "Điều chỉnh hợp đồng" (Q-424, chủ dự án chốt 2026-11-21; trước đây gọi là "Thay đổi lưu trú"): yêu cầu gồm loại lưu trú, mức chăm sóc, dịch vụ, thời hạn, giường, lịch đến, kết quả là phụ lục hợp đồng. Tên trong mã, API, mã loại yêu cầu (`M02.RESIDENCY_CHANGE`) giữ nguyên.
 
 Có thể thay đổi: loại lưu trú; mức chăm sóc; dịch vụ; thời gian; phòng/giường. Mọi yêu cầu thay đổi lưu trú đều phải được phê duyệt trước khi có hiệu lực (DBR-07): Quản lý viện duyệt mọi yêu cầu; riêng **thay đổi nhỏ** thì Hành chính cũng được duyệt (xem quy tắc "Người duyệt" bên dưới, Q-338). Chuyển giường trực tiếp theo 7.4 không phải thay đổi lưu trú.
 
@@ -2787,6 +2789,8 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-421 | Người cao tuổi có nhiều người đại diện | Chủ dự án 2026-11-20: Một người xác nhận và ký là đủ; người đại diện khác được báo mức Nhẹ khi gửi duyệt và khi áp dụng; báo người đại diện khi yêu cầu bị từ chối, hủy, áp dụng không thành | 6.6 | 004, 009 |
 | Q-422 | Khi nào báo Điều dưỡng xem xét kế hoạch chăm sóc khi đổi mức | Chủ dự án 2026-11-20: Ngay khi xác nhận đánh giá lại; phụ lục đổi mức áp dụng không báo lại nếu đã có phiên bản kế hoạch lập sau lần báo đó; chi phí vẫn theo mức của hợp đồng tới khi phụ lục áp dụng | BR-M01-03, BR-M04-20 | 001, 005 |
 | Q-423 | (a) Gia đình không đồng ý đổi mức theo đánh giá lại; (b) dừng nhắc lập yêu cầu đổi mức; (c) chênh lệch giá khi chuyển giường gấp | Chủ dự án 2026-11-20: (a) Hành chính ghi quyết định: giữ mức cũ kèm thỏa thuận lựa chọn có rủi ro và ngày xem lại, hoặc rời viện (BF-10); (b) có quyết định thì dừng nhắc CFG-M03-02, đánh giá lại mới thì nhắc lại; (c) giường mới đắt hơn: tính giá cũ tới khi phụ lục đổi phòng áp dụng; rẻ hơn: giá mới từ ngày chuyển | 7.4, 8.1, CFG-M03-02 | 001, 004, 005, 010 |
+| Q-424 | Tên gọi của chức năng "Thay đổi lưu trú" (6.6, BF-08) | Chủ dự án 2026-11-21: đổi tên hiển thị thành "Điều chỉnh hợp đồng" vì yêu cầu gồm cả dịch vụ, giường, mức chăm sóc, thời hạn, lịch đến, không chỉ loại lưu trú; "yêu cầu thay đổi lưu trú" đọc là "yêu cầu điều chỉnh hợp đồng". Chỉ đổi tên hiển thị và tài liệu; tên trong mã, API, mã loại yêu cầu giữ nguyên. Phụ lục, trạng thái không đổi tên | 6.6, BF-08 | 004 |
+| Q-425 | Loại dịch vụ nào được thêm vào hợp đồng qua yêu cầu thay đổi lưu trú | Chỉ phục hồi chức năng, hoạt động đăng ký dài hạn, đưa đi khám, tiêm theo y lệnh (dịch vụ đi kèm đăng ký riêng, 6.4). Dịch vụ chăm sóc đổi qua mức chăm sóc; phí lưu trú qua giường; buổi bán trú qua loại lưu trú, lịch đến; suất ăn, người thân ở lại, thuốc nguồn viện, vật phẩm tiêu hao, vật tư y tế đi theo luồng riêng (15.2, BF-12, BR-M07-14, UC-79), không đăng ký trong hợp đồng. Bớt được mọi dòng đang có. Dịch vụ thuộc gói thì công việc, điểm danh không sinh phí riêng; ngoài gói tính theo lần | 6.4, 6.6, 15.2 | 004 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 

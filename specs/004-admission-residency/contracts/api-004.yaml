@@ -452,7 +452,8 @@ paths:
         reference là lần đánh giá (BR-M01-03) hoặc lệnh chuyển giường gấp (003 FR-030). Hệ thống không tự lập yêu cầu (Q-306).
         Gửi duyệt, duyệt, từ chối, hủy qua api-000; khi duyệt, kiểm FR-041, FR-046 và tạo phụ lục (FR-042).
         minorChange do hệ thống tính (FR-043): Quản lý viện duyệt mọi yêu cầu, Hành chính chỉ duyệt yêu cầu là thay đổi nhỏ; kiểm lại lúc duyệt.
-      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043]
+        Loại thay đổi Dịch vụ chỉ thêm được REHABILITATION, ACTIVITY, MEDICAL_ESCORT, INJECTION (FR-043k, Q-425): thêm loại khác 422 SERVICE_TYPE_NOT_REGISTRABLE, mô tả chỉ đúng luồng cần dùng; bớt được mọi dòng đang có; gửi duyệt, duyệt kiểm lại (409 cùng mã).
+      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043, FR-043k]
       x-br: [BR-M01-03, BR-M02-16]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequestInput' } } } }
@@ -470,7 +471,7 @@ paths:
       x-fr: [FR-038, FR-039]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResidencyChangeRequestInput' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Problem' }, '412': { $ref: '#/components/responses/Problem' } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Problem' }, '412': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-change-requests/{id}/send-for-confirmation:
     post:
       tags: [change-requests]

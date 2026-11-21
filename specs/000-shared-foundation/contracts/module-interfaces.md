@@ -143,7 +143,7 @@ Sự kiện phát sau commit:
 
 **Bổ sung 2026-11-20 (FR-041a; Q-418 → Q-421, theo 004)**, mọi hàm mới có mặc định giữ hành vi cũ:
 
-- `RequestTypeHandler`: `checkOnSubmit(ApprovalRequestView, Optional<Reason>)` (mặc định gọi `checkOnSubmit(request)`), `readyToApply(request)` (mặc định `true`; `false` thì Bộ lập lịch bỏ qua, yêu cầu giữ Đã duyệt), `allowReturnToDraft()` (mặc định `false`), `onReturnToDraft(request, reason)`, `onSubmit(submitted)`, `mayCancel(user, request)` (mặc định người yêu cầu; hủy Đã duyệt vẫn là người duyệt).
+- `RequestTypeHandler`: `checkOnSubmit(ApprovalRequestView, Optional<Reason>)` (mặc định gọi `checkOnSubmit(request)`), `readyToApply(request)` (mặc định `true`; `false` thì Bộ lập lịch bỏ qua, yêu cầu giữ Đã duyệt), `allowReturnToDraft()` (mặc định `false`), `onReturnToDraft(request, reason)`, `onSubmit(submitted)`, `mayCancel(user, request)` (mặc định người yêu cầu; hủy Đã duyệt vẫn là người duyệt). *(2026-11-21)* `submittedNoticeSummary(submitted)` (mặc định rỗng): mô tả yêu cầu (người cao tuổi, hồ sơ, nội dung) đưa vào nội dung đầy đủ của thông báo `REQUEST_SUBMITTED` tới người duyệt; nội dung rút gọn chỉ nêu mã yêu cầu; sự kiện `RequestSubmitted` thêm trường `summary`.
 - `ApprovalRequestApi.postponeEffectiveDate(long id, LocalDate newDate, Reason reason)` (Propagation.MANDATORY): chỉ yêu cầu Đã duyệt (khác thì 409 `INVALID_STATE`), ngày mới không sau ngày đang có thì bỏ qua; nhật ký `REQUEST_EFFECTIVE_DATE_POSTPONED`.
 - Sự kiện `RequestReturnedToDraft(request, reason, at)`; lệnh HTTP `POST /approval-requests/{id}/return-to-draft`, `submit` nhận thân tùy chọn `{reason}`.
 

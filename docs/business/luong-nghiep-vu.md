@@ -253,7 +253,9 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 
 ---
 
-## BF-08 – Thay đổi lưu trú (yêu cầu thay đổi và phụ lục hợp đồng)
+## BF-08 – Điều chỉnh hợp đồng (trước đây: Thay đổi lưu trú; yêu cầu điều chỉnh và phụ lục hợp đồng)
+
+Tên hiển thị "Điều chỉnh hợp đồng" (Q-424, chủ dự án chốt 2026-11-21; trước đây gọi là "Thay đổi lưu trú"): yêu cầu gồm loại lưu trú, mức chăm sóc, dịch vụ, thời hạn, giường, lịch đến, kết quả là phụ lục hợp đồng. Tên trong mã, API, mã loại yêu cầu (`M02.RESIDENCY_CHANGE`) giữ nguyên.
 
 Khởi phát: người đại diện đề nghị thay đổi, Bác sĩ đánh giá lại ra mức chăm sóc khác, hoặc viện cần đổi phòng/giường. Kết thúc: yêu cầu Đã áp dụng, Từ chối, Hủy, Được thay thế hoặc Áp dụng không thành; kế hoạch chăm sóc đã được xem xét. Chuyển giường trực tiếp (7.4), tạm vắng (6.7) và đánh giá lại chỉ đổi nhu cầu chăm sóc không đi qua luồng này.
 

@@ -1272,6 +1272,8 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 
 *Tên cài thực tế của phần thay đổi lưu trú, phụ lục. Chờ chủ dự án duyệt cùng PR.*
 
+*Tên hiển thị "Điều chỉnh hợp đồng" (Q-424, chủ dự án chốt 2026-11-21; trước đây gọi là "Thay đổi lưu trú"): yêu cầu gồm loại lưu trú, mức chăm sóc, dịch vụ, thời hạn, giường, lịch đến, kết quả là phụ lục hợp đồng. Tên trong mã, API, mã loại yêu cầu (`M02.RESIDENCY_CHANGE`) giữ nguyên.*
+
 | Tên logic | Mã |
 | --- | --- |
 | `V004_06__phu_luc.sql` (đổi tên theo 10.6: `V004_06__addendum.sql`); `phu_luc_hop_dong`, `yeu_cau_thay_doi_thuoc_tinh` | `V004_06__addendum.sql`; `contract_addendum` (`contract_id`, `approval_request_id`, `change_types`, `content_before`, `content_after`, `effective_date`, `status`, `content_version_id`, `created_at`), `change_request_attribute` (`approval_request_id`, `contract_id`, `resident_id`, `attribute`, `pending_effective`, `lock_key`) |
@@ -1298,6 +1300,7 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | ý kiến người cao tuổi về thay đổi (FR-043h, Q-416); Đồng ý, Không đồng ý, Chưa nói được; nguồn người cao tuổi tự nói, nhân viên ghi nhận | bảng `residency_change_resident_opinion` (`V004_96`), `ResidentOpinion` (`AGREE`, `DISAGREE`, `UNABLE_TO_EXPRESS`; `RESIDENT`, `STAFF_OBSERVATION`), `ResidentOpinionStore`; `GET|POST /residency-change-requests/{id}/resident-opinions`, `ResidentOpinionInput`; trường `currentResidentOpinion`, `warnings`; 409 `RESIDENT_DISAGREE_REASON_REQUIRED`, `REQUEST_NOT_OPEN`; cảnh báo `RESIDENT_OPINION_MISSING`, `RESIDENT_OPINION_OUTDATED` |
 | dấu nội dung thực chất (R12, R18); xác nhận lại yêu cầu qua cổng (FR-043i, Q-417) | `ResidencyChangeDigest`, bảng `residency_change_portal_digest` (`V004_96`) |
 | mức chăm sóc theo đánh giá (FR-043j, R20) | 409 `CARE_LEVEL_NOT_FROM_ASSESSMENT`; trường `assessedCareLevel` (`AssessedCareLevel`) |
+| loại dịch vụ thêm được qua yêu cầu điều chỉnh hợp đồng (FR-043k, Q-425, R21) | 422 `SERVICE_TYPE_NOT_REGISTRABLE` (409 cùng mã khi gửi duyệt, duyệt); `RegistrableServiceTypes.REGISTRABLE` (`REHABILITATION`, `ACTIVITY`, `MEDICAL_ESCORT`, `INJECTION`), `ResidencyChangeHandler.serviceTypeConditions` |
 
 ### 10.14. Bổ sung khi cài Phase 8 (US6, T048 → T055, 2026-10-26)
 
