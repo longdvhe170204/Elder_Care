@@ -296,6 +296,8 @@ paths:
       description: |
         Chặn khi thiếu nội dung bắt buộc (FR-019), không có đúng một dịch vụ chăm sóc theo mức của hợp đồng (FR-025, Q-297),
         hoặc có điều khoản khác chuẩn chưa được duyệt cho đúng nội dung hiện tại (FR-025a). Cảnh báo theo FR-025 không chặn.
+        Hợp đồng nội trú có loại phòng mà dòng phí lưu trú thuộc loại phòng khác: 409 CONDITION_NOT_MET, điều kiện
+        CONTRACT_RESIDENCY_FEE_MISMATCH (bổ sung 2026-11-21, chủ dự án duyệt).
       x-fr: [FR-020, FR-025, FR-025a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ContractResult' } } } }, '409': { $ref: '#/components/responses/Conflict' } }
