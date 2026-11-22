@@ -35,7 +35,12 @@ class MedicationScheduleControllerTest {
         when(doseViews.views(List.of())).thenReturn(List.of());
 
         MedicationScheduleController controller = new MedicationScheduleController(
-                schedules, administration, doseViews, new BusinessTime(Clock.fixed(now, ZoneOffset.UTC)), calculator);
+                schedules,
+                administration,
+                doseViews,
+                mock(com.eldercare.backend.medication.internal.dose.service.DoseExtrasService.class),
+                new BusinessTime(Clock.fixed(now, ZoneOffset.UTC)),
+                calculator);
 
         assertThat(controller.getMedicationRound(null, null, null)).isEmpty();
 

@@ -16,7 +16,11 @@ final class M07TestParameters implements ParameterApi {
             ParameterCode.CFG_M07_01, "{\"value\":30,\"unit\":\"MINUTES\"}",
             ParameterCode.CFG_M07_02, "{\"value\":30,\"unit\":\"MINUTES\"}",
             ParameterCode.CFG_M07_04, "{\"value\":3,\"unit\":\"DAYS\"}",
-            ParameterCode.CFG_M07_05, "{\"value\":4,\"unit\":\"HOURS\"}");
+            ParameterCode.CFG_M07_05, "{\"value\":4,\"unit\":\"HOURS\"}",
+            ParameterCode.CFG_M07_08, "{\"value\":15,\"unit\":\"MINUTES\"}",
+            ParameterCode.CFG_M07_09, "{\"value\":15,\"unit\":\"MINUTES\"}",
+            ParameterCode.CFG_M07_10, "{\"value\":8,\"unit\":\"HOURS\"}",
+            ParameterCode.CFG_M07_11, "{\"value\":60,\"unit\":\"MINUTES\"}");
 
     static ParameterApi defaults() {
         return new M07TestParameters();

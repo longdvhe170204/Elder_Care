@@ -4,12 +4,16 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.AdministerDoseRequest;
+import com.eldercare.backend.medication.api.dto.DoseMeasurement;
 import com.eldercare.backend.medication.api.dto.RefuseDoseRequest;
 import com.eldercare.backend.medication.api.dto.SkipDoseRequest;
+import com.eldercare.backend.medication.internal.dose.domain.DoseDetailView;
 import com.eldercare.backend.medication.internal.dose.domain.DoseReviewStatus;
 import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.service.DoseExtrasService;
 import com.eldercare.backend.medication.internal.dose.service.DoseReviewService;
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService;
+import com.eldercare.backend.medication.internal.dose.service.DoseWorkflowService;
 import com.eldercare.backend.medication.web.request.DoseRequests.DoseResultRequest;
 import com.eldercare.backend.medication.web.request.DoseRequests.DoseReviewResultRequest;
 import com.eldercare.backend.medication.web.request.DoseRequests.ReviewResult;
@@ -42,6 +46,8 @@ public class DoseController {
     private final DoseAdministrationService doseAdministrationService;
     private final DoseReviewService doseReviewService;
     private final DoseViewService doseViews;
+    private final DoseExtrasService doseExtras;
+    private final DoseWorkflowService doseWorkflow;
     private final CurrentUser currentUser;
     private final BusinessTime businessTime;
 
@@ -49,11 +55,15 @@ public class DoseController {
             DoseAdministrationService doseAdministrationService,
             DoseReviewService doseReviewService,
             DoseViewService doseViews,
+            DoseExtrasService doseExtras,
+            DoseWorkflowService doseWorkflow,
             CurrentUser currentUser,
             BusinessTime businessTime) {
         this.doseAdministrationService = doseAdministrationService;
         this.doseReviewService = doseReviewService;
         this.doseViews = doseViews;
+        this.doseExtras = doseExtras;
+        this.doseWorkflow = doseWorkflow;
         this.currentUser = currentUser;
         this.businessTime = businessTime;
     }
@@ -91,9 +101,14 @@ public class DoseController {
                 body.adverseReaction(),
                 body.note(),
                 Boolean.TRUE.equals(body.recordedAfterDisconnect()),
-                null);
-        return DoseBody.of(doseViews.view(doseAdministrationService.administerDose(
-                doseKey, request, currentUser.accountId(), null, businessTime.now())));
+                null,
+                body.measurements() == null
+                        ? null
+                        : body.measurements().stream()
+                                .map(m -> new DoseMeasurement(m.code(), m.value()))
+                                .toList());
+        return view(doseAdministrationService.administerDose(
+                doseKey, request, currentUser.accountId(), null, businessTime.now()));
     }
 
     @PostMapping("/api/v1/medication-doses/{doseKey}/refuse")
@@ -148,6 +163,54 @@ public class DoseController {
                 null,
                 businessTime.now());
         return ResponseEntity.ok().build();
+    }
+
+    private DoseBody view(DoseDetailView detail) {
+        var view = doseViews.view(detail);
+        return DoseBody.of(view, doseExtras.of(view));
+    }
+
+    @PostMapping("/api/v1/medication-doses/{doseKey}/postpone")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Hoãn có chủ đích"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public DoseBody postpone(
+            @PathVariable("doseKey") String doseKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseResultRequest body) {
+        return view(doseWorkflow.postpone(doseKey, body.reason(), currentUser.accountId(), businessTime.now()));
+    }
+
+    @PostMapping("/api/v1/medication-doses/{doseKey}/claim")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã nhận liều"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public DoseBody claim(
+            @PathVariable("doseKey") String doseKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        return view(doseWorkflow.claim(doseKey, currentUser.accountId(), businessTime.now()));
+    }
+
+    @PostMapping("/api/v1/medication-doses/{doseKey}/release")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã bỏ nhận liều"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public DoseBody release(
+            @PathVariable("doseKey") String doseKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        return view(doseWorkflow.release(doseKey, currentUser.accountId(), businessTime.now()));
     }
 
     @GetMapping("/api/v1/dose-reviews")

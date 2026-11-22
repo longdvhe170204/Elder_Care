@@ -88,6 +88,9 @@ public class DoseResult {
     @Column(name = "leave_handover_id")
     private Long leaveHandoverId;
 
+    @Column(name = "pre_dose_measurements", columnDefinition = "json")
+    private String preDoseMeasurements;
+
     protected DoseResult() {}
 
     public DoseResult(
@@ -211,6 +214,15 @@ public class DoseResult {
 
     public boolean isSyncedAfterPermissionLoss() {
         return syncedAfterPermissionLoss;
+    }
+
+    /** Chỉ số đo trước khi dùng, JSON mảng {code, value}; gán trước khi lưu (bản ghi chỉ INSERT). */
+    public void attachPreDoseMeasurements(String json) {
+        this.preDoseMeasurements = json;
+    }
+
+    public String getPreDoseMeasurements() {
+        return preDoseMeasurements;
     }
 
     public Long getLeaveHandoverId() {

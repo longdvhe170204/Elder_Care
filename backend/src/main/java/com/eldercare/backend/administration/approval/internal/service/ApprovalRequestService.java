@@ -14,6 +14,7 @@ import com.eldercare.backend.administration.approval.api.events.RequestApplyFail
 import com.eldercare.backend.administration.approval.api.events.RequestCancelled;
 import com.eldercare.backend.administration.approval.api.events.RequestCreated;
 import com.eldercare.backend.administration.approval.api.events.RequestDecided;
+import com.eldercare.backend.administration.approval.api.events.RequestReturnedToDraft;
 import com.eldercare.backend.administration.approval.api.events.RequestSubmitted;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.administration.approval.internal.domain.ApprovalActions;
@@ -143,7 +144,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         log(ApprovalActions.CREATED, created, null, Map.of("status", ApprovalStatus.DRAFT), command.reason(), null);
         events.publishEvent(new RequestCreated(created));
         if (command.submitImmediately()) {
-            return submitLocked(user, created, handler);
+            return submitLocked(user, created, handler, Optional.empty());
         }
         return created;
     }
@@ -180,7 +181,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     @Transactional(propagation = Propagation.MANDATORY)
     public void closeForFinalState(long requestId, Basis basis) {
         ApprovalRequestView request = store.lock(requestId).orElseThrow(NotFoundException::new);
-        if (table.isFinal(request.status())) {
+        if (table.isFinal(request.status(), directory.handler(request.type()).extendedTransitions())) {
             return;
         }
         String to = table.next(request.status(), Command.CLOSE_FOR_FINAL_STATE);
@@ -225,6 +226,29 @@ public class ApprovalRequestService implements ApprovalRequestApi {
                 .build());
         ApprovalRequestView failed = store.find(requestId).orElseThrow();
         events.publishEvent(new RequestApplyFailed(failed, unmet, time.now(), directory.requesterStaffId(failed)));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void postponeEffectiveDate(long requestId, LocalDate newDate, Reason reason) {
+        ApprovalRequestView request = store.lock(requestId).orElseThrow(NotFoundException::new);
+        if (!ApprovalStatus.APPROVED.equals(request.status())) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "INVALID_STATE",
+                    "Không dời được ngày hiệu lực ở trạng thái " + request.status());
+        }
+        if (!newDate.isAfter(request.actualEffectiveDate())) {
+            return;
+        }
+        store.update(requestId, "actual_effective_date = ?", newDate);
+        log(
+                ApprovalActions.EFFECTIVE_DATE_POSTPONED,
+                request,
+                Map.of("actualEffectiveDate", request.actualEffectiveDate().toString()),
+                Map.of("actualEffectiveDate", newDate.toString()),
+                reason,
+                null);
     }
 
     // ---- Lệnh qua HTTP ------------------------------------------------------------------------------------------
@@ -279,13 +303,50 @@ public class ApprovalRequestService implements ApprovalRequestApi {
 
     @Transactional
     public ApprovalRequestView submit(long id, String ifMatch) {
+        return submit(id, ifMatch, Optional.empty());
+    }
+
+    /** Gửi duyệt kèm lý do tùy chọn, truyền cho loại yêu cầu và ghi nhật ký (000 FR-041a (5)). */
+    @Transactional
+    public ApprovalRequestView submit(long id, String ifMatch, Optional<Reason> reason) {
         CurrentUser user = currentUser.getObject();
         ApprovalRequestView request = locked(id);
         RequestTypeHandler handler = directory.handler(request.type());
         requireDraftActor(user, request, handler);
         table.next(request.status(), Command.SUBMIT);
         requireVersion(request, ifMatch);
-        return submitLocked(user, request, handler);
+        return submitLocked(user, request, handler, reason);
+    }
+
+    /**
+     * Trả về nháp (000 FR-041a (1); Q-419): loại yêu cầu phải cho phép; cùng quyền như Duyệt; bắt buộc lý do. Handler
+     * được báo trong transaction của lệnh.
+     */
+    @BusinessCommand(requiresReason = true)
+    @Transactional
+    public ApprovalRequestView returnToDraft(long id, String ifMatch, Reason reason) {
+        CurrentUser user = currentUser.getObject();
+        ApprovalRequestView request = locked(id);
+        RequestTypeHandler handler = directory.handler(request.type());
+        if (!handler.allowReturnToDraft()) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "RETURN_TO_DRAFT_NOT_ALLOWED", "Loại yêu cầu này không có lệnh Trả về nháp");
+        }
+        requireDecider(user, request, handler);
+        String to = table.next(request.status(), Command.RETURN_TO_DRAFT);
+        requireVersion(request, ifMatch);
+        store.update(id, "status = ?, submitted_at = NULL, reminded_at = NULL, escalated_at = NULL", to);
+        log(
+                ApprovalActions.RETURNED_TO_DRAFT,
+                request,
+                Map.of("status", request.status()),
+                Map.of("status", ApprovalStatus.DRAFT),
+                reason,
+                null);
+        ApprovalRequestView returned = store.find(id).orElseThrow();
+        handler.onReturnToDraft(returned, reason);
+        events.publishEvent(new RequestReturnedToDraft(returned, reason, time.now()));
+        return returned;
     }
 
     @Transactional
@@ -384,8 +445,9 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         RequestTypeHandler handler = directory.handler(request.type());
         if (ApprovalStatus.APPROVED.equals(request.status())) {
             requireDecider(user, request, handler);
-        } else if (!table.isFinal(request.status())) {
-            requireRequester(user, request);
+        } else if (!table.isFinal(request.status()) && !handler.mayCancel(user, request)) {
+            // Người được hủy Nháp, Chờ duyệt do loại yêu cầu quy định, mặc định người yêu cầu (000 FR-041a (4))
+            throw new PermissionDeniedException("Chỉ người yêu cầu được thực hiện lệnh này");
         }
         String to = table.next(request.status(), Command.CANCEL);
         requireVersion(request, ifMatch);
@@ -480,15 +542,19 @@ public class ApprovalRequestService implements ApprovalRequestApi {
                 if (handler.mayActOnDraft(user, request)) {
                     commands.addAll(List.of(ApprovalCommands.EDIT_CONTENT, ApprovalCommands.SUBMIT));
                 }
-                if (requester) {
+                if (handler.mayCancel(user, request)) {
                     commands.add(ApprovalCommands.CANCEL);
                 }
             }
             case ApprovalStatus.PENDING_APPROVAL -> {
-                if (directory.canDecide(user, request, handler) && (!requester || handler.allowSelfApproval())) {
+                boolean decider = directory.canDecide(user, request, handler);
+                if (decider && (!requester || handler.allowSelfApproval())) {
                     commands.addAll(List.of(ApprovalCommands.APPROVE, ApprovalCommands.REJECT));
                 }
-                if (requester) {
+                if (decider && handler.allowReturnToDraft()) {
+                    commands.add(ApprovalCommands.RETURN_TO_DRAFT);
+                }
+                if (handler.mayCancel(user, request)) {
                     commands.add(ApprovalCommands.CANCEL);
                 }
             }
@@ -518,10 +584,14 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     }
 
     private ApprovalRequestView submitLocked(
-            CurrentUser user, ApprovalRequestView request, RequestTypeHandler handler) {
+            CurrentUser user, ApprovalRequestView request, RequestTypeHandler handler, Optional<Reason> reason) {
         // FR-034a: người yêu cầu mất quyền tạo thì Nháp không gửi duyệt được nữa
         if (!mayCreate(user, handler, request.content(), request.target())) {
             throw new PermissionDeniedException("Không còn quyền lập loại yêu cầu " + request.type());
+        }
+        List<UnmetCondition> unmet = handler.checkOnSubmit(request, reason);
+        if (!unmet.isEmpty()) {
+            throw new ConditionNotMetException(unmet);
         }
         Instant now = time.now();
         store.update(
@@ -534,21 +604,17 @@ public class ApprovalRequestService implements ApprovalRequestApi {
                 request,
                 Map.of("status", request.status()),
                 Map.of("status", ApprovalStatus.PENDING_APPROVAL),
-                null,
+                reason.orElse(null),
                 null);
         ApprovalRequestView submitted = store.find(request.id()).orElseThrow();
-        events.publishEvent(new RequestSubmitted(submitted, directory.approvers(submitted, handler), now));
+        handler.onSubmit(submitted);
+        events.publishEvent(new RequestSubmitted(
+                submitted, directory.approvers(submitted, handler), handler.submittedNoticeSummary(submitted), now));
         return submitted;
     }
 
     private ApprovalRequestView locked(long id) {
         return store.lock(id).orElseThrow(NotFoundException::new);
-    }
-
-    private static void requireRequester(CurrentUser user, ApprovalRequestView request) {
-        if (request.requesterId() != user.accountId()) {
-            throw new PermissionDeniedException("Chỉ người yêu cầu được thực hiện lệnh này");
-        }
     }
 
     /** Sửa, gửi duyệt Nháp: người yêu cầu, hoặc người loại yêu cầu cho thêm (plan 004 FR-039). */

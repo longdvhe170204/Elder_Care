@@ -87,6 +87,12 @@ public class FamilyMedicationController {
         command.setDelivererName(body.deliverer().fullName());
         command.setRelationship(body.deliverer().relationship());
         command.setPurchaseRequestId(body.purchaseAssistanceId());
+        if (body.intakeChecks() != null) {
+            command.setLabelOk(body.intakeChecks().labelOk());
+            command.setExpiryOk(body.intakeChecks().expiryOk());
+            command.setPackagingOk(body.intakeChecks().packagingOk());
+            command.setNameOk(body.intakeChecks().nameOk());
+        }
         command.setReceivedAt(body.receivedAt());
         familyMedicationService.receiveBatch(residentId, command, currentUser.accountId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -183,6 +189,7 @@ public class FamilyMedicationController {
         command.setRecipientName(body.recipient().fullName());
         command.setRelationship(body.recipient().relationship());
         command.setReturnedAt(body.returnedAt());
+        command.setWitness(body.witness());
         familyMedicationService.returnBatch(id, command, currentUser.accountId());
         return ResponseEntity.ok().build();
     }
@@ -200,6 +207,7 @@ public class FamilyMedicationController {
             @Valid @RequestBody DisposeRequest body) {
         DisposeBatchBody command = new DisposeBatchBody();
         command.setQuantity(body.quantity());
+        command.setKind(body.kind() == null ? null : body.kind().name());
         command.setRepresentativeId(body.representativeId());
         command.setRequestMethod(body.requestMethod());
         command.setWitness(body.witness());

@@ -118,7 +118,15 @@ public final class PrescriptionBodies {
             List<IssueBody> confirmedIssues,
             List<Long> boundBatchIds,
             List<String> allowedCommands,
-            List<String> hiddenFields) {
+            List<String> hiddenFields,
+
+            @Schema(allowableValues = {"NORMAL", "CRITICAL"})
+            String timeCriticality,
+
+            List<String> requiredMeasurements,
+            String indication,
+            Instant tempResumedAt,
+            String tempResumeBasis) {
 
         public static PrescriptionBody of(PrescriptionResponse p) {
             PrescriptionResponse.FrequencyResponse f = p.frequency();
@@ -160,7 +168,12 @@ public final class PrescriptionBodies {
                     IssueBody.all(p.confirmedIssues()),
                     p.boundBatchIds(),
                     p.allowedCommands(),
-                    p.hiddenFields());
+                    p.hiddenFields(),
+                    p.timeCriticality(),
+                    p.requiredMeasurements(),
+                    p.indication(),
+                    p.tempResumedAt(),
+                    p.tempResumeBasis());
         }
     }
 

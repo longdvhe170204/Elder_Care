@@ -26,4 +26,9 @@ public interface MedicationReconciliationRepository extends JpaRepository<Medica
     @Query(
             "SELECT r FROM MedicationReconciliation r WHERE r.status IN ('OPEN', 'PENDING_CONFIRMATION') AND r.deadlineAt IS NOT NULL AND r.deadlineAt <= :now AND r.overdueAt IS NULL")
     List<MedicationReconciliation> findOverdueTickets(@Param("now") Instant now);
+
+    /** Phiếu mở quá hạn lần hai chưa báo thêm Trưởng tầng, Quản lý viện (BR-M07-29, CFG-M07-10). */
+    @Query(
+            "SELECT r FROM MedicationReconciliation r WHERE r.status IN ('OPEN', 'PENDING_CONFIRMATION') AND r.deadlineAt IS NOT NULL AND r.deadlineAt <= :cutoff AND r.escalatedAt IS NULL")
+    List<MedicationReconciliation> findNeedingEscalation(@Param("cutoff") Instant cutoff);
 }

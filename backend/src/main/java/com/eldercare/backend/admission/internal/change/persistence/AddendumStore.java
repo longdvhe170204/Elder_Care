@@ -60,7 +60,10 @@ public class AddendumStore {
         this.time = time;
     }
 
-    /** Thêm phụ lục ở Chờ hiệu lực; trả mã phụ lục. */
+    /**
+     * Thêm phụ lục ở {@code initial} (Chờ ký hoặc Chờ hiệu lực, FR-043d); số phụ lục là số lớn nhất của hợp đồng cộng 1
+     * (kể cả phụ lục Đã hủy, Không áp dụng; hợp đồng đã bị khóa ở lệnh duyệt nên không tranh chấp). Trả mã phụ lục.
+     */
     public long insert(
             long contractId,
             long approvalRequestId,
@@ -68,14 +71,22 @@ public class AddendumStore {
             JsonNode before,
             JsonNode after,
             LocalDate effectiveDate,
-            Instant now) {
+            Instant now,
+            boolean signatureRequired,
+            Addendum.Status initial) {
+        Integer last = jdbc.queryForObject(
+                "SELECT MAX(addendum_no) FROM contract_version WHERE kind = 'ADDENDUM' AND contract_id = ?",
+                Integer.class,
+                contractId);
+        int addendumNo = last == null ? 1 : last + 1;
         GeneratedKeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(
                 connection -> {
                     PreparedStatement statement = connection.prepareStatement(
                             "INSERT INTO contract_version (kind, contract_id, approval_request_id, change_types,"
-                                    + " content_before, content_after, effective_date, addendum_status, created_at)"
-                                    + " VALUES ('ADDENDUM', ?, ?, ?, ?, ?, ?, 'PENDING_EFFECTIVE', ?)",
+                                    + " content_before, content_after, effective_date, addendum_status, created_at,"
+                                    + " addendum_no, signature_required)"
+                                    + " VALUES ('ADDENDUM', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     statement.setLong(1, contractId);
                     statement.setLong(2, approvalRequestId);
@@ -83,7 +94,10 @@ public class AddendumStore {
                     statement.setString(4, before.toString());
                     statement.setString(5, after.toString());
                     statement.setObject(6, effectiveDate);
-                    statement.setObject(7, LocalDateTime.ofInstant(now, ZoneOffset.UTC));
+                    statement.setString(7, initial.name());
+                    statement.setObject(8, LocalDateTime.ofInstant(now, ZoneOffset.UTC));
+                    statement.setInt(9, addendumNo);
+                    statement.setBoolean(10, signatureRequired);
                     return statement;
                 },
                 keys);
@@ -121,6 +135,50 @@ public class AddendumStore {
                 "UPDATE contract_version SET addendum_status = 'NOT_APPLIED', locked_at = ? WHERE id = ?",
                 LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC),
                 id);
+    }
+
+    /** Hủy cùng yêu cầu (Q-421): Đã hủy, khóa dòng. */
+    public void markCancelled(long id) {
+        jdbc.update(
+                "UPDATE contract_version SET addendum_status = 'CANCELLED', locked_at = ? WHERE id = ?",
+                LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC),
+                id);
+    }
+
+    /** Ghi nhận bản đã ký (FR-043d): chỉ phụ lục Chờ ký, chuyển Chờ hiệu lực; trả false khi không ở Chờ ký. */
+    public boolean markSigned(
+            long id,
+            LocalDate signedDate,
+            long fileId,
+            long familyMemberId,
+            Long facilitySignatoryStaffId,
+            long recordedBy,
+            Instant at,
+            String note) {
+        return jdbc.update(
+                        "UPDATE contract_version SET addendum_status = 'PENDING_EFFECTIVE', signed_date = ?,"
+                                + " signed_file_id = ?, signed_by_family_member_id = ?, facility_signatory_staff_id = ?,"
+                                + " signature_recorded_by = ?, signature_recorded_at = ?, signature_note = ?"
+                                + " WHERE id = ? AND addendum_status = 'PENDING_SIGNATURE'",
+                        signedDate,
+                        fileId,
+                        familyMemberId,
+                        facilitySignatoryStaffId,
+                        recordedBy,
+                        LocalDateTime.ofInstant(at, ZoneOffset.UTC),
+                        note,
+                        id)
+                == 1;
+    }
+
+    /** Dời ngày hiệu lực khi ký muộn (Q-420); trigger chỉ cho dời muộn hơn khi phụ lục còn chờ. */
+    public void postponeEffective(long id, LocalDate newDate) {
+        jdbc.update("UPDATE contract_version SET effective_date = ? WHERE id = ?", newDate, id);
+    }
+
+    /** Phụ lục Chờ ký, theo mã (job nhắc ký, CFG-M02-17, 18). */
+    public List<Addendum> pendingSignature() {
+        return jdbc.query(SELECT + " AND addendum_status = 'PENDING_SIGNATURE' ORDER BY id", (rs, i) -> map(rs));
     }
 
     // ---- Chỉ mục thuộc tính (FR-046) ------------------------------------------------------------------------------
@@ -257,7 +315,13 @@ public class AddendumStore {
                 rs.getObject("effective_date", LocalDate.class),
                 Addendum.Status.valueOf(rs.getString("addendum_status")),
                 rs.getObject("content_version_id", Long.class),
-                created.toInstant(ZoneOffset.UTC));
+                created.toInstant(ZoneOffset.UTC),
+                rs.getInt("addendum_no"),
+                rs.getBoolean("signature_required"),
+                rs.getObject("signed_date", LocalDate.class),
+                rs.getObject("signed_file_id", Long.class),
+                rs.getObject("signed_by_family_member_id", Long.class),
+                rs.getObject("facility_signatory_staff_id", Long.class));
     }
 
     private static String setValue(Set<ChangeType> types) {

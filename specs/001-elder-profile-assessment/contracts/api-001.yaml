@@ -793,6 +793,21 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses:
         '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ReassessmentStatus' } } } }
+  /residents/{residentId}/care-level-change-decisions:
+    get:
+      tags: [assessments]
+      summary: Quyết định khi gia đình không đồng ý đổi mức chăm sóc, mới nhất trước
+      x-fr: [FR-036b]
+      parameters: [ { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CareLevelChangeDecision' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+    post:
+      tags: [assessments]
+      summary: Ghi quyết định khi gia đình không đồng ý đổi mức chăm sóc (Hành chính)
+      description: 'FR-036b (Q-424): giữ mức cũ (kèm thỏa thuận lựa chọn có rủi ro đang hiệu lực và ngày xem lại sau hôm nay) hoặc rời viện, cho lần đánh giá gần nhất đã xác nhận. Có quyết định thì dừng nhắc lập yêu cầu đổi mức; rời viện thì Hành chính được báo lập hồ sơ kết thúc lưu trú. 409 NOT_LATEST_ASSESSMENT, CARE_LEVEL_CHANGE_NOT_NEEDED, CHANGE_REQUEST_EXISTS, DECISION_EXISTS, RISK_AGREEMENT_REQUIRED; 422 REVIEW_DATE_INVALID.'
+      x-fr: [FR-036b]
+      parameters: [ { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }, { name: Idempotency-Key, in: header, required: false, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CareLevelChangeDecisionInput' } } } }
+      responses: { '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/CareLevelChangeDecision' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
   /reassessments/due:
     get:
       tags: [assessments]
@@ -1358,6 +1373,28 @@ components:
         current: { $ref: '#/components/schemas/EndOfLifeWish' }
         history: { type: array, items: { $ref: '#/components/schemas/EndOfLifeWish' } }
         hiddenFields: { type: array, items: { type: string } }
+    CareLevelChangeDecisionInput:
+      type: object
+      required: [assessmentId, decision]
+      properties:
+        assessmentId: { type: integer, format: int64 }
+        decision: { type: string, enum: [KEEP_CURRENT_LEVEL, LEAVE_FACILITY] }
+        riskAgreementId: { type: integer, format: int64, description: 'Bắt buộc khi KEEP_CURRENT_LEVEL' }
+        reviewDate: { type: string, format: date, description: 'Bắt buộc khi KEEP_CURRENT_LEVEL, sau hôm nay' }
+        note: { type: string, maxLength: 1000 }
+    CareLevelChangeDecision:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        assessmentId: { type: integer, format: int64 }
+        decision: { type: string, enum: [KEEP_CURRENT_LEVEL, LEAVE_FACILITY] }
+        riskAgreementId: { type: integer, format: int64 }
+        reviewDate: { type: string, format: date }
+        note: { type: string }
+        recordedBy: { type: integer, format: int64 }
+        recordedAt: { type: string, format: date-time }
+        reviewNotifiedAt: { type: string, format: date-time }
     Assessment:
       type: object
       properties:

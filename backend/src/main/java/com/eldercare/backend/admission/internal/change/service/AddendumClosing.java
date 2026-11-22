@@ -13,9 +13,10 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Đóng phụ lục khi yêu cầu của nó không còn được áp dụng (FR-042, FR-045; data-model mục 7): phụ lục Chờ hiệu lực chuyển
- * Không áp dụng và thuộc tính được nhả để yêu cầu khác dùng (FR-046). Dùng ở ba chỗ: yêu cầu Áp dụng không thành, yêu cầu Đã
- * duyệt bị hủy, yêu cầu bị thay thế bởi đánh giá. Chạy trong transaction của chỗ gọi.
+ * Đóng phụ lục khi yêu cầu của nó không còn được áp dụng (FR-042, FR-045, FR-043f; data-model mục 7): phụ lục còn chờ (Chờ
+ * ký, Chờ hiệu lực) chuyển Không áp dụng ({@link #close}: yêu cầu Áp dụng không thành, bị thay thế, người cao tuổi sang
+ * trạng thái cuối) hoặc Đã hủy ({@link #cancel}: yêu cầu bị hủy, Q-421); thuộc tính được nhả để yêu cầu khác dùng (FR-046),
+ * giữ giường đặt lúc duyệt bị hủy. Chạy trong transaction của chỗ gọi.
  */
 @Component
 class AddendumClosing {
@@ -31,27 +32,43 @@ class AddendumClosing {
     }
 
     void close(long approvalRequestId, long residentId, Basis basis) {
+        end(approvalRequestId, residentId, basis, false);
+    }
+
+    /** Yêu cầu bị hủy (Q-421): phụ lục còn chờ chuyển Đã hủy. */
+    void cancel(long approvalRequestId, long residentId, Basis basis) {
+        end(approvalRequestId, residentId, basis, true);
+    }
+
+    private void end(long approvalRequestId, long residentId, Basis basis, boolean cancelled) {
         addenda.setPending(approvalRequestId, false);
-        addenda.lockByRequest(approvalRequestId)
-                .filter(addendum -> addendum.status() == Addendum.Status.PENDING_EFFECTIVE)
-                .ifPresent(addendum -> {
-                    addenda.markNotApplied(addendum.id());
-                    if (addendum.changeTypes().contains(ChangeType.BED)
-                            || addendum.changeTypes().contains(ChangeType.RESIDENCE_TYPE)) {
-                        // Phân bổ đặt lúc duyệt (chuyển theo lịch, hoặc phân bổ đầu tiên của người bán trú sang nội
-                        // trú) phải hủy cùng phụ lục (FR-045); 003 không có phân bổ đặt trước thì không làm gì
-                        beds.getObject()
-                                .cancelScheduledAllocation(
-                                        approvalRequestId, new Reason("Phụ lục không áp dụng (FR-045)"));
-                    }
-                    auditLog.write(AuditLogEntry.builder()
-                            .action(ResidencyChangeHandler.ADDENDUM_NOT_APPLIED)
-                            .entity(ResidencyChangeHandler.ADDENDUM_ENTITY, addendum.id())
-                            .resident(residentId)
-                            .before(Map.of("status", Addendum.Status.PENDING_EFFECTIVE.name()))
-                            .after(Map.of("status", Addendum.Status.NOT_APPLIED.name()))
-                            .basis(basis)
-                            .build());
-                });
+        addenda.lockByRequest(approvalRequestId).filter(Addendum::open).ifPresent(addendum -> {
+            if (cancelled) {
+                addenda.markCancelled(addendum.id());
+            } else {
+                addenda.markNotApplied(addendum.id());
+            }
+            if (addendum.changeTypes().contains(ChangeType.BED)
+                    || addendum.changeTypes().contains(ChangeType.RESIDENCE_TYPE)) {
+                // Phân bổ đặt lúc duyệt (chuyển theo lịch, hoặc phân bổ đầu tiên của người bán trú sang nội
+                // trú) phải hủy cùng phụ lục (FR-045); 003 không có phân bổ đặt trước thì không làm gì
+                beds.getObject()
+                        .cancelScheduledAllocation(
+                                approvalRequestId,
+                                new Reason(cancelled ? "Yêu cầu bị hủy (FR-043f)" : "Phụ lục không áp dụng (FR-045)"));
+            }
+            Addendum.Status to = cancelled ? Addendum.Status.CANCELLED : Addendum.Status.NOT_APPLIED;
+            auditLog.write(AuditLogEntry.builder()
+                    .action(
+                            cancelled
+                                    ? ResidencyChangeHandler.ADDENDUM_CANCELLED
+                                    : ResidencyChangeHandler.ADDENDUM_NOT_APPLIED)
+                    .entity(ResidencyChangeHandler.ADDENDUM_ENTITY, addendum.id())
+                    .resident(residentId)
+                    .before(Map.of("status", addendum.status().name()))
+                    .after(Map.of("status", to.name()))
+                    .basis(basis)
+                    .build());
+        });
     }
 }

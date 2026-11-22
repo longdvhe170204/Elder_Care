@@ -45,7 +45,47 @@ public class ReceiveBatchBody {
 
     private Long purchaseRequestId;
 
+    private Boolean labelOk;
+
+    private Boolean expiryOk;
+
+    private Boolean packagingOk;
+
+    private Boolean nameOk;
+
     // Getters and Setters
+    public Boolean getLabelOk() {
+        return labelOk;
+    }
+
+    public void setLabelOk(Boolean labelOk) {
+        this.labelOk = labelOk;
+    }
+
+    public Boolean getExpiryOk() {
+        return expiryOk;
+    }
+
+    public void setExpiryOk(Boolean expiryOk) {
+        this.expiryOk = expiryOk;
+    }
+
+    public Boolean getPackagingOk() {
+        return packagingOk;
+    }
+
+    public void setPackagingOk(Boolean packagingOk) {
+        this.packagingOk = packagingOk;
+    }
+
+    public Boolean getNameOk() {
+        return nameOk;
+    }
+
+    public void setNameOk(Boolean nameOk) {
+        this.nameOk = nameOk;
+    }
+
     public Long getMedicationId() {
         return medicationId;
     }

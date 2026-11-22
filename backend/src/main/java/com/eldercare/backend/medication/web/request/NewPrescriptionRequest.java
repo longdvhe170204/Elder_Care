@@ -42,7 +42,15 @@ public record NewPrescriptionRequest(
         PrescriberInput prescriber,
 
         String instructionNote,
-        List<@Valid IssueConfirmationInput> issueConfirmations) {
+        List<@Valid IssueConfirmationInput> issueConfirmations,
+        TimeCriticality timeCriticality,
+        List<String> requiredMeasurements,
+        @Size(max = 500) String indication) {
+
+    public enum TimeCriticality {
+        NORMAL,
+        CRITICAL
+    }
 
     public enum PrescriptionType {
         PERIODIC,

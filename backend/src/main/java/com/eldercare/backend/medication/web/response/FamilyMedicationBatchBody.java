@@ -31,7 +31,23 @@ public record FamilyMedicationBatchBody(
 
         List<Long> boundPrescriptionIds,
         BigDecimal finalQuantity,
-        Instant closedAt) {
+        Instant closedAt,
+
+        @Schema(description = "Kiểm tra khi tiếp nhận (BR-M07-30); trống ở lô cũ chưa kiểm")
+        IntakeChecksBody intakeChecks,
+
+        @Schema(description = "Người chứng kiến Hoàn trả, Hủy (BR-M07-30)")
+        String witness,
+
+        @Schema(allowableValues = {"FAMILY_REQUEST", "EXPIRED"})
+        String disposeKind) {
+
+    /** Kết quả kiểm tra khi tiếp nhận: mỗi mục Đạt (true) hoặc Không đạt (false). */
+    public record IntakeChecksBody(
+            @Schema(requiredMode = RequiredMode.REQUIRED) Boolean labelOk,
+            @Schema(requiredMode = RequiredMode.REQUIRED) Boolean expiryOk,
+            @Schema(requiredMode = RequiredMode.REQUIRED) Boolean packagingOk,
+            @Schema(requiredMode = RequiredMode.REQUIRED) Boolean nameOk) {}
 
     public static FamilyMedicationBatchBody of(FamilyMedicationBatchResponse b) {
         return new FamilyMedicationBatchBody(
@@ -56,7 +72,12 @@ public record FamilyMedicationBatchBody(
                 b.getStatus(),
                 b.getBoundPrescriptionIds(),
                 b.getFinalQuantity(),
-                b.getClosedAt());
+                b.getClosedAt(),
+                b.getLabelOk() == null
+                        ? null
+                        : new IntakeChecksBody(b.getLabelOk(), b.getExpiryOk(), b.getPackagingOk(), b.getNameOk()),
+                b.getWitness(),
+                b.getDisposeKind());
     }
 
     /** Người giao nhân viên mua hộ là {@code STAFF} của {@code ExternalPerson} (Q-139). */

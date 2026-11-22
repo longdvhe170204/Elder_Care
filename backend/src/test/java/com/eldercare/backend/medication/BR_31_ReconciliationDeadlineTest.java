@@ -58,7 +58,7 @@ class BR_31_ReconciliationDeadlineTest {
     private final ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
     private final BusinessTime time = mock(BusinessTime.class);
     private final ReconciliationDeadlines deadlines =
-            new ReconciliationDeadlines(prescriptions, doses, tickets, due, parameters, events, time);
+            new ReconciliationDeadlines(prescriptions, doses, tickets, due, parameters, events, time, null);
 
     private static void setField(Object target, Class<?> type, String name, Object value) {
         try {

@@ -13,6 +13,8 @@ import com.eldercare.backend.administration.approval.web.request.CancelBody;
 import com.eldercare.backend.administration.approval.web.request.CreateRequestBody;
 import com.eldercare.backend.administration.approval.web.request.EditContentBody;
 import com.eldercare.backend.administration.approval.web.request.RejectBody;
+import com.eldercare.backend.administration.approval.web.request.ReturnToDraftBody;
+import com.eldercare.backend.administration.approval.web.request.SubmitBody;
 import com.eldercare.backend.administration.approval.web.response.ApprovalRequestPageBody;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.web.VersionEtag;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
@@ -123,8 +126,18 @@ public class ApprovalRequestController {
     @PostMapping("/{id}/submit")
     @CommandResponses
     public ResponseEntity<ApprovalRequestBody> submit(
-            @PathVariable long id, @RequestHeader("If-Match") String ifMatch) {
-        requests.submit(id, ifMatch);
+            @PathVariable long id,
+            @RequestHeader("If-Match") String ifMatch,
+            @RequestBody(required = false) SubmitBody body) {
+        requests.submit(id, ifMatch, Optional.ofNullable(body == null ? null : body.reason()));
+        return withEtag(HttpStatus.OK, requests.detail(id));
+    }
+
+    @PostMapping("/{id}/return-to-draft")
+    @CommandResponses
+    public ResponseEntity<ApprovalRequestBody> returnToDraft(
+            @PathVariable long id, @RequestHeader("If-Match") String ifMatch, @RequestBody ReturnToDraftBody body) {
+        requests.returnToDraft(id, ifMatch, body.reason());
         return withEtag(HttpStatus.OK, requests.detail(id));
     }
 

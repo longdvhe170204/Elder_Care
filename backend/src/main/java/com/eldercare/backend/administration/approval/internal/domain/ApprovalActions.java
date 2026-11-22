@@ -22,6 +22,11 @@ public final class ApprovalActions {
     public static final AuditAction ESCALATED = new AuditAction("REQUEST_ESCALATED", false);
     public static final AuditAction EXTENDED_TRANSITION = new AuditAction("REQUEST_EXTENDED_TRANSITION", false);
     public static final AuditAction CLOSED_FOR_FINAL_STATE = new AuditAction("REQUEST_CLOSED_FOR_FINAL_STATE", false);
+    /** Trả về nháp, bắt buộc lý do (Q-419). */
+    public static final AuditAction RETURNED_TO_DRAFT = new AuditAction("REQUEST_RETURNED_TO_DRAFT", false);
+    /** Dời ngày hiệu lực thực tế của yêu cầu Đã duyệt theo lệnh của module (Q-420). */
+    public static final AuditAction EFFECTIVE_DATE_POSTPONED =
+            new AuditAction("REQUEST_EFFECTIVE_DATE_POSTPONED", false);
 
     private ApprovalActions() {}
 }

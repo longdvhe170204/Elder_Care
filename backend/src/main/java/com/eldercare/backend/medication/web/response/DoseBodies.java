@@ -1,5 +1,6 @@
 package com.eldercare.backend.medication.web.response;
 
+import com.eldercare.backend.medication.internal.dose.service.DoseExtras;
 import com.eldercare.backend.medication.internal.dose.service.DoseReviewService.ReviewView;
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService.DoseView;
 import com.eldercare.backend.medication.internal.dose.service.DoseViewService.ResultView;
@@ -34,9 +35,23 @@ public final class DoseBodies {
             String adverseReaction,
             String reason,
             String note,
-            Boolean recordedAfterDisconnect) {
+            Boolean recordedAfterDisconnect,
+
+            @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Đã dùng muộn (BR-M07-26)")
+            Boolean late,
+
+            List<MeasurementBody> measurements,
+
+            @Schema(
+                    accessMode = Schema.AccessMode.READ_ONLY,
+                    description = "Mã kết quả liều, dùng để đính chính (api-000)")
+            Long id) {
 
         static ResultBody of(ResultView r) {
+            return of(r, DoseExtras.NONE);
+        }
+
+        static ResultBody of(ResultView r, DoseExtras x) {
             if (r == null) {
                 return null;
             }
@@ -50,9 +65,22 @@ public final class DoseBodies {
                     r.adverseReaction(),
                     r.reason(),
                     r.note(),
-                    r.recordedAfterDisconnect());
+                    r.recordedAfterDisconnect(),
+                    x.late(),
+                    x.measurements().stream()
+                            .map(m -> new MeasurementBody(m.code(), m.value()))
+                            .toList(),
+                    x.resultId());
         }
     }
+
+    /** Chỉ số đo trước khi dùng đã ghi cùng kết quả (BR-M07-26). */
+    public record MeasurementBody(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String code,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            BigDecimal value) {}
 
     public record UsableBatchBody(Long batchId, LocalDate expiryDate) {}
 
@@ -114,9 +142,29 @@ public final class DoseBodies {
             ResultBody result,
             String closedBy,
             Boolean needsReview,
-            List<String> hiddenFields) {
+            List<String> hiddenFields,
+
+            @Schema(description = "Có dấu Hoãn có chủ đích (BR-M07-26); liều vẫn ở Đến giờ hoặc Trễ")
+            Boolean postponed,
+
+            String postponedReason,
+
+            @Schema(description = "Điều dưỡng đang nhận liều còn hạn (BR-M07-26)")
+            Long claimedBy,
+
+            Instant claimExpiresAt,
+
+            @Schema(allowableValues = {"NORMAL", "CRITICAL"})
+            String timeCriticality,
+
+            @Schema(description = "Mã chỉ số phải đo trước khi dùng (BR-M07-26)")
+            List<String> requiredMeasurements) {
 
         public static DoseBody of(DoseView v) {
+            return of(v, DoseExtras.NONE);
+        }
+
+        public static DoseBody of(DoseView v, DoseExtras x) {
             var d = v.dose();
             return new DoseBody(
                     d.doseKey(),
@@ -139,10 +187,16 @@ public final class DoseBodies {
                     d.medicationSource() == null ? null : d.medicationSource().name(),
                     v.usableBatches().stream().map(DoseBodies::batch).toList(),
                     v.handoverId(),
-                    ResultBody.of(v.result()),
+                    ResultBody.of(v.result(), x),
                     v.closedBy(),
                     v.needsReview(),
-                    List.of());
+                    List.of(),
+                    x.postponed(),
+                    x.postponedReason(),
+                    x.claimedBy(),
+                    x.claimExpiresAt(),
+                    x.timeCriticality(),
+                    x.requiredMeasurements());
         }
 
         /** Liều trong lịch tính từ đơn (research D-06): chưa vật hóa thì chưa có kết quả, lần giao. */
@@ -171,6 +225,12 @@ public final class DoseBodies {
                     null,
                     null,
                     null,
+                    List.of(),
+                    false,
+                    null,
+                    null,
+                    null,
+                    "NORMAL",
                     List.of());
         }
     }

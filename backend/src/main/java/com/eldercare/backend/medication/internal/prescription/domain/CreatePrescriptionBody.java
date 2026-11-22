@@ -52,6 +52,12 @@ public class CreatePrescriptionBody {
 
     private boolean pendingAdmission;
 
+    private String timeCriticality; // NORMAL | CRITICAL
+
+    private List<String> requiredMeasurements;
+
+    private String indication;
+
     @Valid
     private List<ConfirmedIssueBody> confirmedIssues;
 
@@ -165,6 +171,30 @@ public class CreatePrescriptionBody {
 
     public void setInstructionNote(String instructionNote) {
         this.instructionNote = instructionNote;
+    }
+
+    public String getTimeCriticality() {
+        return timeCriticality;
+    }
+
+    public void setTimeCriticality(String timeCriticality) {
+        this.timeCriticality = timeCriticality;
+    }
+
+    public List<String> getRequiredMeasurements() {
+        return requiredMeasurements;
+    }
+
+    public void setRequiredMeasurements(List<String> requiredMeasurements) {
+        this.requiredMeasurements = requiredMeasurements;
+    }
+
+    public String getIndication() {
+        return indication;
+    }
+
+    public void setIndication(String indication) {
+        this.indication = indication;
     }
 
     public boolean isPendingAdmission() {
