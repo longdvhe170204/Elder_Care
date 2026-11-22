@@ -10,7 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.eldercare.backend.admission.api.dto.ContractStatus;
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.support.TestUsers;
+import com.eldercare.backend.support.fake.admission.FakeRepresentatives;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 017 T009, T045 (US1 #1 → #6; FR-001 → FR-004; quickstart Q1, Q1a, Q2): một sổ, một mã nộp tiền mỗi hồ sơ dù sự kiện
@@ -20,6 +22,9 @@ import org.junit.jupiter.api.Test;
 class US1_BalanceIT extends BalanceTestBase {
 
     private static final String CFG = "/api/v1/parameters/CFG-M11-10";
+
+    @Autowired
+    FakeRepresentatives representatives;
 
     @Test
     void Q1_Q1a_Q2_oneLedgerPerProfile_paymentInstructionsFromCfg_andVisibilityByRole() throws Exception {
@@ -50,7 +55,23 @@ class US1_BalanceIT extends BalanceTestBase {
                 .andExpect(jsonPath("$.status").value("NORMAL"))
                 .andExpect(jsonPath("$.paymentInstructions").doesNotExist());
         getAs(accountant, "/api/v1/residents/" + b + "/balance")
-                .andExpect(jsonPath("$.depositStatus").value("NOT_SATISFIED"));
+                .andExpect(jsonPath("$.depositStatus").value("NOT_SATISFIED"))
+                .andExpect(jsonPath("$.representative").doesNotExist());
+
+        // BF-16 (2026-11-22): Kế toán thấy người đại diện hiện tại để chọn người nhận hoàn tiền; Hành chính không thấy
+        long representative = TestUsers.nextId();
+        representatives.representative(b, representative);
+        relationships.name(representative, "Trần Thị Đại Diện");
+        try {
+            getAs(accountant, "/api/v1/residents/" + b + "/balance")
+                    .andExpect(jsonPath("$.representative.familyMemberId").value(representative))
+                    .andExpect(jsonPath("$.representative.fullName").value("Trần Thị Đại Diện"));
+            getAs(office, "/api/v1/residents/" + b + "/balance")
+                    .andExpect(jsonPath("$.representative").doesNotExist())
+                    .andExpect(jsonPath("$.hiddenFields", hasItem("representative")));
+        } finally {
+            representatives.reset();
+        }
         String typed =
                 code.toLowerCase().substring(0, 5) + "-" + code.toLowerCase().substring(5);
         getAs(accountant, "/api/v1/balances/by-payment-code?code=" + typed)

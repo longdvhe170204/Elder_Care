@@ -8,6 +8,7 @@ import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipApi;
 import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
+import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceDetails;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceTransactionView;
 import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceTypes;
@@ -48,6 +49,8 @@ public class BalanceQueries {
     private final ObjectProvider<FamilyRelationshipApi> relationships;
     private final CurrentUser user;
     private final BusinessTime time;
+    private final AccountNames names;
+    private final ObjectProvider<RepresentativePort> representatives;
 
     public BalanceQueries(
             LedgerStore ledgers,
@@ -57,7 +60,11 @@ public class BalanceQueries {
             ObjectProvider<CostForBalancePort> costs,
             ObjectProvider<FamilyRelationshipApi> relationships,
             CurrentUser user,
-            BusinessTime time) {
+            BusinessTime time,
+            AccountNames names,
+            ObjectProvider<RepresentativePort> representatives) {
+        this.names = names;
+        this.representatives = representatives;
         this.ledgers = ledgers;
         this.transactions = transactions;
         this.deposits = deposits;
@@ -98,7 +105,7 @@ public class BalanceQueries {
                                 : to.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant(),
                         status)
                 .stream()
-                .map(BalanceTransactionView::of)
+                .map(t -> BalanceTransactionView.of(t, names))
                 .toList();
     }
 
@@ -128,7 +135,7 @@ public class BalanceQueries {
         LedgerState ledger = require(residentId);
         List<BalanceTransactionView> confirmed =
                 transactions.list(residentId, null, null, null, TransactionStatus.CONFIRMED).stream()
-                        .map(BalanceTransactionView::of)
+                        .map(t -> BalanceTransactionView.of(t, names))
                         .toList();
         return new Portal(details(ledger), confirmed);
     }
@@ -157,7 +164,24 @@ public class BalanceQueries {
                 deposits.current(l.residentId(), l.depositBalance()).orElse(null),
                 l.remindersStopped(),
                 accounts.instructions(l.paymentCode()).orElse(null),
+                representative(l.residentId()),
                 null);
+    }
+
+    /** Họ tên giao dịch lập, duyệt (test BF-16). */
+    public AccountNames names() {
+        return names;
+    }
+
+    /** Người đại diện hiệu lực hiện tại để Kế toán chọn người nhận hoàn tiền (FR-014; chủ dự án chọn 2026-11-22). */
+    private BalanceDetails.Representative representative(long residentId) {
+        RepresentativePort port = representatives.getIfAvailable();
+        FamilyRelationshipApi api = relationships.getIfAvailable();
+        if (port == null) return null;
+        return port.activeRepresentative(residentId)
+                .map(id -> new BalanceDetails.Representative(
+                        id, api == null ? null : api.familyMemberName(id).orElse(null)))
+                .orElse(null);
     }
 
     private LedgerState require(long residentId) {
