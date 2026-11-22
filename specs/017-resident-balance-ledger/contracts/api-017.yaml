@@ -448,7 +448,7 @@ components:
         balance: { type: integer, format: int64 }
         depositBalance: { type: integer, format: int64 }
         debt: { type: [integer, 'null'], format: int64 }
-        transactions: { type: array, items: { $ref: '#/components/schemas/BalanceTransaction' }, description: 'Chỉ Đã xác nhận; thanh toán bảng chỉ hiện tổng (Q-133)' }
+        transactions: { type: array, items: { $ref: '#/components/schemas/BalanceTransaction' }, description: 'Chỉ Đã xác nhận; thanh toán bảng chỉ hiện tổng (Q-133); note (ghi chú nội bộ của Kế toán) luôn rỗng (chủ dự án chốt 2026-11-22)' }
         paymentInstructions: { $ref: '#/components/schemas/PaymentInstructions' }
     BalanceTransaction:
       type: object
