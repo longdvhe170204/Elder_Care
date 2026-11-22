@@ -3149,7 +3149,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — | — |
 | Lập công việc tháng, công việc phát sinh | UC-24 | X | T⁵³ | — | T⁴¹ | — | — | — | — | — | — |
 | Mốc sinh hoạt cố định | Q-416 | T | X | X | X | X | — | — | — | — | — |
-| Lịch chăm sóc hằng ngày | Q-416 | X | X | X | X | P | — | — | X⁵⁴ | — | X⁴⁵ |
+| Lịch chăm sóc hằng ngày | Q-416 | — | — | — | — | — | — | — | X⁵⁴ | — | X⁴⁵ |
 | Checklist, ghi nhận công việc | UC-25, 26 | X | T | X²² | T | T | — | — | — | — | — |
 | Điểm danh bán trú đến/về | UC-28 | X | X | — | T²⁷ | T | — | T | — | — | — |
 | Xử lý việc quá hạn | UC-27 | X | T⁹ | — | — | — | — | — | — | — | — |
