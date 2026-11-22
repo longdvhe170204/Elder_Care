@@ -26,6 +26,7 @@ public class HandoverReminders implements M09TimedTask {
     private final HandoverNotifications notifications;
     private final ApplicationEventPublisher events;
     private final AuditLogApi audit;
+    private final HandoverSources sources;
 
     public HandoverReminders(
             HandoverStore store,
@@ -34,7 +35,8 @@ public class HandoverReminders implements M09TimedTask {
             ParameterApi parameters,
             HandoverNotifications notifications,
             ApplicationEventPublisher events,
-            AuditLogApi audit) {
+            AuditLogApi audit,
+            HandoverSources sources) {
         this.store = store;
         this.shifts = shifts;
         this.service = service;
@@ -42,6 +44,7 @@ public class HandoverReminders implements M09TimedTask {
         this.notifications = notifications;
         this.events = events;
         this.audit = audit;
+        this.sources = sources;
     }
 
     public Cadence cadence() {
@@ -56,6 +59,17 @@ public class HandoverReminders implements M09TimedTask {
             var handover = store.forShift(id);
             boolean handled = false;
             if (handover.filter(h -> "CONFIRMED".equals(h.status())).isPresent()) continue;
+            // Q-417: chưa có bàn giao hoặc còn Bản nháp mà ca không còn gì tồn thì bàn giao không bắt buộc, không nhắc.
+            boolean optional = handover.filter(h -> !"DRAFT".equals(h.status())).isEmpty() && !sources.outstanding(s);
+            if (optional) {
+                // Hết ca mà vẫn không bắt buộc: chốt các mốc để ca rời danh sách xét nhắc, không gửi gì.
+                if (!now.isBefore(s.endsAt()))
+                    for (var milestone : List.of(
+                            "prepare_handover_reminded_at",
+                            "shift_end_reminded_at",
+                            "unconfirmed_handover_reminded_at")) store.claimReminder(id, milestone, now);
+                continue;
+            }
             if (handover.isEmpty()
                     && !now.isBefore(service.preparationStarts(s))
                     && store.claimReminder(id, "prepare_handover_reminded_at", now)) {

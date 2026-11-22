@@ -53,7 +53,9 @@ public class ShiftLifecycle implements M09TimedTask {
                 shift = shifts.shift(shift.id(), false);
             }
             if ("IN_PROGRESS".equals(shift.status()) && !shift.endsAt().isAfter(actualAt)) {
-                String status = !shift.handoverRequired() || prepared(shift.id()) ? "CLOSED" : "AWAITING_HANDOVER";
+                String status = !shift.handoverRequired() || prepared(shift.id()) || !mandatory(shift.id())
+                        ? "CLOSED"
+                        : "AWAITING_HANDOVER";
                 handled = true;
                 change(shift, status, "SHIFT_ENDED");
                 shifts.closeOpenLead(shift.id(), shift.endsAt());
@@ -69,6 +71,12 @@ public class ShiftLifecycle implements M09TimedTask {
 
     private boolean prepared(long id) {
         return handovers.orderedStream().anyMatch(reader -> reader.prepared(id));
+    }
+
+    /** Q-417: xét lại tại giờ kết thúc ca; chưa có phần bàn giao thì coi như bắt buộc. */
+    private boolean mandatory(long id) {
+        var readers = handovers.orderedStream().toList();
+        return readers.isEmpty() || readers.stream().anyMatch(reader -> reader.mandatory(id));
     }
 
     private void change(WorkShift shift, String status, String trigger) {

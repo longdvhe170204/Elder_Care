@@ -83,6 +83,21 @@ public class HandoverSources {
         return api;
     }
 
+    /**
+     * Q-417 (FR-061): phạm vi ca còn công việc chưa đóng hoặc cảnh báo đang mở; nguồn chưa đọc được thì coi như còn,
+     * để bàn giao vẫn bắt buộc.
+     */
+    public boolean outstanding(WorkShift s) {
+        if (s.scopeId() == null) return true;
+        long floor = s.scopeId();
+        try {
+            return !require(tasks).unclosed(floor, s.id()).isEmpty()
+                    || !require(alerts).open(floor, s.id()).isEmpty();
+        } catch (RuntimeException ex) {
+            return true;
+        }
+    }
+
     public static BusinessException unavailable() {
         return new BusinessException(
                 HttpStatus.CONFLICT,

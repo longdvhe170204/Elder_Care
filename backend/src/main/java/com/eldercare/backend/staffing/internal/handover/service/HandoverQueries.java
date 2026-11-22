@@ -22,6 +22,7 @@ public class HandoverQueries implements ShiftHandoverState {
     private final com.eldercare.backend.common.time.BusinessTime time;
     private final AccountApi accounts;
     private final HandoverAccess access;
+    private final HandoverSources sources;
 
     public HandoverQueries(
             HandoverStore store,
@@ -29,13 +30,15 @@ public class HandoverQueries implements ShiftHandoverState {
             com.eldercare.backend.administration.parameter.api.ParameterApi parameters,
             com.eldercare.backend.common.time.BusinessTime time,
             AccountApi accounts,
-            HandoverAccess access) {
+            HandoverAccess access,
+            HandoverSources sources) {
         this.store = store;
         this.shifts = shifts;
         this.parameters = parameters;
         this.time = time;
         this.accounts = accounts;
         this.access = access;
+        this.sources = sources;
     }
 
     public HandoverTasksView tasks(long staffId, long shiftId) {
@@ -50,7 +53,8 @@ public class HandoverQueries implements ShiftHandoverState {
         var status = store.statusForShift(shiftId);
         boolean prepare = !time.now().isBefore(access.preparationStarts(s))
                 && status.filter(Set.of("PREPARED", "CONFIRMED")::contains).isEmpty()
-                && access.sender(s, user);
+                && access.sender(s, user)
+                && (status.isPresent() || sources.outstanding(s));
         boolean receive = access.receiver(s, user) && preparedPreviousFor(s);
         return new HandoverTasksView(receive, prepare);
     }
@@ -112,6 +116,11 @@ public class HandoverQueries implements ShiftHandoverState {
         return store.statusForShift(shiftId)
                 .filter(Set.of("PREPARED", "CONFIRMED")::contains)
                 .isPresent();
+    }
+
+    @Override
+    public boolean mandatory(long shiftId) {
+        return shifts.find(shiftId).map(sources::outstanding).orElse(true);
     }
 
     public boolean confirmed(long shiftId) {
