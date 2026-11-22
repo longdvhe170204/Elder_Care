@@ -14,7 +14,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * Trả về nháp (000 FR-041a (1); Q-418): chỉ loại yêu cầu cho phép, người có quyền duyệt (kể cả giới hạn vai trò), bắt
+ * Trả về nháp (000 FR-041a (1); Q-419): chỉ loại yêu cầu cho phép, người có quyền duyệt (kể cả giới hạn vai trò), bắt
  * buộc lý do; yêu cầu về Nháp sửa và gửi lại được; handler được báo, sự kiện phát, nhật ký ghi lý do.
  */
 class ApprovalReturnToDraftIT extends ApprovalTestBase {

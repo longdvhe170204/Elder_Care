@@ -336,7 +336,7 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - [x] T077 [US4] *(chủ dự án duyệt 2026-11-19)* Web `ReconciliationPanel`: mỗi đề nghị đính chính hiện nội dung đúng, lý do, người lập, trạng thái, lý do trả lại; nút "Xác nhận đính chính", "Trả lại" (bắt buộc lý do) theo `allowedCommands`; gửi đề nghị xong hiện ngay trên phiếu. Test Vitest đỏ trước khi cài
 - [x] T078 [US4] *(chủ dự án duyệt 2026-11-19)* Web: chế độ "Đối chiếu thuốc" có dải `NowStrip` "Cần đối chiếu (n)" từ `GET /medication-reconciliation-worklist` (họ tên từ api-001; phiếu quá hạn chữ đỏ; bấm tên mở phiếu người đó); màn Cảnh báo, cảnh báo `CHUA_DOI_CHIEU` có nút "Mở đối chiếu thuốc của <họ tên>" chuyển sang Phát thuốc, chế độ "Đối chiếu thuốc", đúng người (api-007 đã có `residentId`, loại). Test Vitest đỏ trước khi cài
 
-## Phase 11: Sửa BF-07 (2026-11-22, Q-426 → Q-436)
+## Phase 11: Sửa BF-07 (2026-11-22, Q-427 → Q-437)
 
 **Mục đích**: đưa các thay đổi nghiệp vụ BF-07 (xác nhận liều, mức quan trọng, tiếp tục tạm, phiếu đối chiếu quá hạn, PRN, nguồn thuốc, chỉ định Điều dưỡng tạm) vào backend, hợp đồng, web, app. Làm theo yêu cầu sửa BF-07 của chủ dự án; không đổi nghiệp vụ ngoài nghiep-vu.md (BR-M07-26 → 32, BR-M11-22, CFG-M07-08 → 11, CFG-M11-12).
 

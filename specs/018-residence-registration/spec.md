@@ -10,6 +10,10 @@
 
 ## Clarifications
 
+### Session 2026-11-20
+
+- **Q-414** (chủ dự án): Hành chính khai báo với công an ngoài hệ thống; trên hệ thống chỉ ghi đã tiếp nhận kèm ảnh bằng chứng (đăng ký tạm trú kèm ngày hết hạn), Cần khai báo → Đã xác nhận. Bỏ Đã nộp, Ghi đã nộp (ngày, kênh, cơ quan, mã hồ sơ), Ghi bị từ chối; không liên kết cổng dịch vụ công. Sửa phạm vi mục 2, User Story 2, User Story 3 #5, User Story 4, FR-002, FR-003, FR-004, FR-005. Khai báo đã ở Đã nộp từ trước (dữ liệu cũ) chỉ còn lệnh Ghi đã tiếp nhận.
+
 ### Session 2026-09-29
 
 - Q: Mốc đăng ký tạm trú tính thế nào? → A: Thời gian lưu trú dự kiến từ CFG-M02-11 (30 ngày) trở lên, tính tổng từ ngày bắt đầu hợp đồng đầu tiên tới ngày kết thúc dự kiến mới nhất, gồm cả các phụ lục gia hạn (Q-215).
@@ -43,7 +47,7 @@
 **Trong phạm vi** (Module 02, mục 6.10; UC-80, UC-81; nhóm chức năng "Lưu trú và tạm trú", 1.6):
 
 1. Nhắc Hành chính lập khai báo khi người nội trú Hoàn tất tiếp nhận; Hành chính lập khai báo ở "Cần khai báo", loại khai báo theo thời gian lưu trú dự kiến (BR-M02-11, CFG-M02-11, Q-215; **sửa, 2026-10-06, Q-306**).
-2. Hành chính ghi đã nộp, kết quả được chấp nhận hoặc bị từ chối, kèm bằng chứng (6.10, UC-80).
+2. Hành chính ghi đã tiếp nhận kèm ảnh bằng chứng (6.10, UC-80; **sửa, 2026-11-20, Q-414**).
 3. Nhắc khai báo quá hạn; nhắc gia hạn đăng ký tạm trú trước ngày hết hạn; chuyển Hết hạn (BR-M02-11, BR-M02-12, CFG-M02-12, CFG-M02-13, UC-81).
 4. Nhắc lập khai báo mới khi gia hạn hợp đồng ngắn ngày, gồm chuyển từ thông báo lưu trú sang đăng ký tạm trú khi vượt ngưỡng (BR-M02-14).
 5. Nhắc khai báo xóa tạm trú khi Kết thúc lưu trú hoặc Qua đời (BR-M02-13).
@@ -71,28 +75,26 @@ Khi người cao tuổi nội trú Hoàn tất tiếp nhận, hệ thống nhắ
 1. **Given** A nội trú dài hạn có hợp đồng từ 01/10/2026 đến 30/09/2027, **When** Hoàn tất tiếp nhận ngày 01/10, **Then** Hành chính được nhắc lập khai báo cho A, hạn khai báo 02/10 (CFG-M02-12 mặc định \[1 ngày\]); chưa có khai báo nào. **When** Hành chính lập khai báo cho A, **Then** có một khai báo "Đăng ký tạm trú" ở "Cần khai báo", hạn khai báo vẫn là 02/10 (BR-M02-11, Q-215, Q-306).
 2. **Given** B nội trú ngắn ngày 14 ngày, CFG-M02-11 mặc định \[30 ngày\], **When** Hoàn tất tiếp nhận và Hành chính lập khai báo, **Then** khai báo là "Thông báo lưu trú" ở "Cần khai báo".
 3. **Given** C bán trú, **When** Hoàn tất tiếp nhận, **Then** không có lời nhắc; lệnh lập khai báo cho C bị chặn.
-4. **Given** A cần khai báo với hạn 02/10 (đã hoặc chưa được lập khai báo), **When** hết ngày 02/10 mà chưa ghi đã nộp, **Then** Hành chính được nhắc mỗi ngày và Quản lý viện được báo (BR-M02-11).
+4. **Given** A cần khai báo với hạn 02/10 (đã hoặc chưa được lập khai báo), **When** hết ngày 02/10 mà khai báo chưa Đã xác nhận, **Then** Hành chính được nhắc mỗi ngày và Quản lý viện được báo (BR-M02-11).
 5. **Given** khai báo chưa có, **When** hành chính thực hiện Hoàn tất tiếp nhận, **Then** lệnh không bị chặn vì khai báo (Q-215).
 6. **Given** F nội trú dài hạn, thường trú cùng phường với viện, có khai báo "Đăng ký tạm trú" ở "Cần khai báo", **When** Hành chính xác nhận "thường trú cùng xã/phường với viện" kèm ghi chú căn cứ, **Then** loại khai báo chuyển "Thông báo lưu trú", hạn khai báo giữ nguyên; khi F được gia hạn hợp đồng, khai báo mới vẫn là "Thông báo lưu trú" (Q-215).
 
 ---
 
-### User Story 2 - Hành chính ghi nộp và kết quả khai báo (Priority: P1)
+### User Story 2 - Hành chính ghi khai báo đã được tiếp nhận (Priority: P1)
 
-Sau khi khai báo trên Cổng dịch vụ công hoặc tại công an, Hành chính ghi đã nộp (ngày, kênh, cơ quan, mã hồ sơ), rồi ghi kết quả: được chấp nhận (kèm bằng chứng, với đăng ký tạm trú ghi ngày hết hạn) hoặc bị từ chối (kèm lý do, khai báo quay về "Cần khai báo").
+**(Sửa, 2026-11-20, Q-414)** Hành chính khai báo với công an ngoài hệ thống. Khi công an đã tiếp nhận, Hành chính ghi đã tiếp nhận kèm ảnh bằng chứng (với đăng ký tạm trú ghi ngày hết hạn); khai báo chuyển "Đã xác nhận". Hệ thống không ghi ngày nộp, kênh, cơ quan, mã hồ sơ, không ghi bị từ chối.
 
 **Why this priority**: Đây là thao tác chính của UC-80; không có nó hệ thống không biết việc khai báo đã xong.
 
-**Independent Test**: Ghi nộp rồi xác nhận một khai báo; ghi nộp rồi từ chối một khai báo khác; thử ghi kết quả khi chưa ghi nộp.
+**Independent Test**: Ghi đã tiếp nhận một khai báo Cần khai báo; thử ghi khi thiếu ảnh hoặc thiếu ngày hết hạn.
 
 **Acceptance Scenarios**:
 
-1. **Given** khai báo của A ở "Cần khai báo", **When** Hành chính ghi đã nộp ngày 02/10, kênh "Cổng dịch vụ công", cơ quan "Công an phường X", mã hồ sơ, **Then** khai báo chuyển "Đã nộp"; việc nhắc quá hạn dừng.
-2. **Given** khai báo "Đã nộp", **When** Hành chính ghi được chấp nhận kèm ảnh kết quả và ngày hết hạn tạm trú 30/09/2027, **Then** khai báo chuyển "Đã xác nhận" (6.10).
-3. **Given** khai báo "Đã nộp", **When** Hành chính ghi bị từ chối kèm lý do "thiếu giấy tờ", **Then** khai báo về "Cần khai báo", hạn khai báo mới là ngày ghi từ chối cộng CFG-M02-12.
-4. **Given** khai báo "Cần khai báo", **When** Hành chính ghi được chấp nhận mà chưa ghi đã nộp, **Then** hệ thống chặn.
-5. **Given** khai báo "Đăng ký tạm trú" "Đã nộp", **When** Hành chính ghi được chấp nhận mà thiếu ngày hết hạn hoặc thiếu bằng chứng, **Then** hệ thống chặn.
-6. **Given** Điều dưỡng, Trưởng tầng hoặc Kế toán, **When** tìm cách ghi khai báo, **Then** hệ thống từ chối; Quản lý viện chỉ xem (Phụ lục 27).
+1. **Given** khai báo Đăng ký tạm trú của A ở "Cần khai báo", **When** Hành chính ghi đã tiếp nhận kèm ảnh bằng chứng và ngày hết hạn tạm trú 30/09/2027, **Then** khai báo chuyển "Đã xác nhận"; việc nhắc quá hạn dừng (6.10, Q-414).
+2. **Given** khai báo Thông báo lưu trú ở "Cần khai báo", **When** Hành chính ghi đã tiếp nhận kèm ảnh bằng chứng, không có ngày hết hạn, **Then** khai báo chuyển "Đã xác nhận".
+3. **Given** khai báo "Đăng ký tạm trú" "Cần khai báo", **When** Hành chính ghi đã tiếp nhận mà thiếu ngày hết hạn hoặc thiếu ảnh bằng chứng, **Then** hệ thống chặn.
+4. **Given** Điều dưỡng, Trưởng tầng hoặc Kế toán, **When** tìm cách ghi khai báo, **Then** hệ thống từ chối; Quản lý viện chỉ xem (Phụ lục 27).
 
 ---
 
@@ -110,7 +112,7 @@ Trước ngày hết hạn tạm trú 30 ngày, nếu người cao tuổi vẫn 
 2. **Given** Hành chính lập khai báo gia hạn cho A, **When** khai báo gia hạn được ghi "Đã xác nhận" với ngày hết hạn mới, **Then** khai báo cũ chuyển "Được thay thế"; A có đúng một khai báo Đã xác nhận (DBR-33).
 3. **Given** tới hết 30/09/2027 mà khai báo gia hạn của D chưa được xác nhận và chưa có khai báo đang xử lý, **When** qua ngày hết hạn, **Then** khai báo cũ chuyển "Hết hạn", Hành chính được nhắc lập khai báo mới, Quản lý viện được báo; hệ thống không tự tạo khai báo (BR-M02-12, Q-306).
 4. **Given** B nội trú ngắn ngày 14 ngày có thông báo lưu trú "Đã xác nhận", **When** phụ lục gia hạn hợp đồng làm tổng thời gian lưu trú thành 60 ngày được áp dụng, **Then** Hành chính được nhắc lập khai báo; khi Hành chính lập, khai báo là "Đăng ký tạm trú" ở "Cần khai báo" (BR-M02-14, Q-306).
-5. **Given** khai báo gia hạn của A đang "Đã nộp", **When** Hành chính lập thêm một khai báo khác cho A, **Then** hệ thống chặn vì đã có khai báo đang xử lý (DBR-33).
+5. **Given** khai báo gia hạn của A đang "Cần khai báo", **When** Hành chính lập thêm một khai báo khác cho A, **Then** hệ thống chặn vì đã có khai báo đang xử lý (DBR-33).
 6. **Given** E nội trú ngắn ngày 14 ngày có thông báo lưu trú "Đã xác nhận", **When** phụ lục gia hạn thêm 7 ngày (tổng 21 ngày, dưới CFG-M02-11) được áp dụng, **Then** Hành chính được nhắc lập khai báo "Thông báo lưu trú" cho ngày kết thúc mới; khi khai báo mới Đã xác nhận, thông báo lưu trú cũ chuyển "Được thay thế" (Q-215).
 
 ---
@@ -121,13 +123,13 @@ Khi người cao tuổi Kết thúc lưu trú hoặc Qua đời mà còn khai b�
 
 **Why this priority**: Kết thúc đúng nghĩa vụ khai báo; không ảnh hưởng tới luồng kết thúc lưu trú.
 
-**Independent Test**: Kết thúc lưu trú cho A có khai báo Đã xác nhận, và cho B có khai báo đang "Đã nộp"; ghi đã khai báo xóa cho A.
+**Independent Test**: Kết thúc lưu trú cho A có khai báo Đã xác nhận, và cho B có khai báo đang "Cần khai báo"; ghi đã khai báo xóa cho A.
 
 **Acceptance Scenarios**:
 
 1. **Given** A có khai báo "Đã xác nhận", **When** lệnh Kết thúc lưu trú của A thành công, **Then** Hành chính được nhắc khai báo xóa tạm trú cho A; lệnh Kết thúc lưu trú không bị chặn vì khai báo (BR-M02-13, 6.8).
 2. **Given** A cần khai báo xóa, **When** Hành chính ghi đã khai báo xóa kèm bằng chứng, **Then** khai báo chuyển "Đã xóa"; việc nhắc dừng; thao tác được phép dù hồ sơ A ở trạng thái cuối (ngoại lệ (3) của BR-M01-05).
-3. **Given** B qua đời khi khai báo đang "Đã nộp", **When** lệnh Ghi nhận qua đời thành công, **Then** khai báo "Đã nộp" chuyển "Đã hủy"; không có nhắc khai báo xóa (vì chưa có khai báo Đã xác nhận).
+3. **Given** B qua đời khi khai báo đang "Cần khai báo", **When** lệnh Ghi nhận qua đời thành công, **Then** khai báo "Cần khai báo" chuyển "Đã hủy"; không có nhắc khai báo xóa (vì chưa có khai báo Đã xác nhận).
 4. **Given** khai báo của A chưa chuyển Đã xóa, **When** mỗi ngày trôi qua, **Then** Hành chính được nhắc mỗi CFG-M02-09 (mặc định \[1 ngày\]).
 
 ---
@@ -155,9 +157,9 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 
 - **FR-001**: **(Sửa, 2026-10-06, Q-306)** Khi lệnh Hoàn tất tiếp nhận của người **nội trú** thành công (feature 001, 004), hệ thống MUST nhắc Hành chính lập khai báo và MUST NOT tự tạo khai báo. Hành chính MUST lập được bằng lệnh **"Lập khai báo"** đúng một khai báo ở "Cần khai báo" cho người nội trú đã Hoàn tất tiếp nhận mà chưa có khai báo đang xử lý (FR-004). Loại khai báo MUST được xác định khi lập là "Đăng ký tạm trú" nếu tổng thời gian lưu trú dự kiến (từ ngày bắt đầu hợp đồng đầu tiên của chuỗi hợp đồng nối tiếp không gián đoạn trong cùng hồ sơ tới ngày kết thúc dự kiến mới nhất, gồm cả các phụ lục gia hạn; có khoảng trống giữa hai hợp đồng thì tính lại từ hợp đồng sau, Q-241) từ CFG-M02-11 (mặc định \[30 ngày\]) trở lên, hoặc hợp đồng không có ngày kết thúc; ngược lại là "Thông báo lưu trú". Người bán trú MUST NOT có khai báo; lệnh lập cho người bán trú MUST bị chặn. Khi khai báo còn "Cần khai báo", Hành chính MUST xác nhận được "thường trú cùng xã/phường với viện" (đối chiếu địa chỉ thường trú trên hồ sơ, feature 001 FR-001, Q-244; có ghi chú căn cứ); khi đó loại MUST chuyển thành "Thông báo lưu trú", và mọi khai báo sau của cùng hồ sơ (FR-006, FR-007) MUST dùng loại này, bất kể thời gian lưu trú. Xác nhận nhầm được gỡ bằng đính chính khi khai báo còn "Cần khai báo". *(Nguồn: 6.10, BR-M02-11; Q-215)*
 - **FR-001a** *(bổ sung, 2026-10-06, Q-286)*: Khi người đang lưu trú bán trú được chuyển sang nội trú (gồm nội trú ngắn ngày để ở lại qua đêm) bằng hợp đồng mới hoặc phụ lục đổi loại lưu trú được áp dụng (feature 004), hệ thống MUST nhắc Hành chính lập khai báo như FR-001 (**sửa, 2026-10-06, Q-306**), với tổng thời gian lưu trú dự kiến tính từ ngày hiệu lực của phần nội trú (ngày hiệu lực của phụ lục đổi loại lưu trú, hoặc ngày bắt đầu hợp đồng nội trú mới; Q-336); các quy tắc FR-002 → FR-007 áp như với người vào ở nội trú. *(Nguồn: 6.10, BR-M02-11, 3.3; Q-286, Q-289)*
-- **FR-002**: **(Sửa, 2026-10-06, Q-306)** Hạn khai báo MUST là mốc phát sinh nghĩa vụ cộng CFG-M02-12 (mặc định \[1 ngày\]); mốc là thời điểm Hoàn tất tiếp nhận (FR-001), ngày phần nội trú có hiệu lực, kể cả khi ngày đó ở tương lai so với lúc phụ lục hoặc hợp đồng được áp dụng (FR-001a, Q-336), thời điểm phụ lục gia hạn được áp dụng (FR-007), hoặc ngày khai báo chuyển Hết hạn (FR-006). Hạn không phụ thuộc thời điểm Hành chính lập khai báo. Khi quá hạn mà chưa ghi đã nộp, dù khai báo đã được lập hay chưa, Hành chính MUST được nhắc mỗi ngày và Quản lý viện MUST được báo một lần vào ngày quá hạn đầu tiên. Khai báo MUST NOT là điều kiện chặn Hoàn tất tiếp nhận. *(Nguồn: BR-M02-11, CFG-M02-12; Q-215, Q-306)*
-- **FR-003**: Khai báo MUST ghi: người cao tuổi, loại, xác nhận "thường trú cùng xã/phường với viện" (có hoặc không, ghi chú căn cứ), hạn khai báo, ngày nộp, kênh nộp (Cổng dịch vụ công / trực tiếp), cơ quan tiếp nhận, mã hồ sơ, kết quả, ngày hết hạn (bắt buộc khi đăng ký tạm trú được chấp nhận), bằng chứng (bắt buộc khi ghi chấp nhận và khi ghi đã khai báo xóa), lý do từ chối, người thực hiện từng lệnh, thời điểm, khai báo được thay thế. *(Nguồn: 6.10)*
-- **FR-004**: Với mỗi người cao tuổi, tại một thời điểm MUST có tối đa một khai báo "Đã xác nhận" và tối đa một khai báo đang xử lý ("Cần khai báo" hoặc "Đã nộp"). *(Nguồn: DBR-33)*
+- **FR-002**: **(Sửa, 2026-10-06, Q-306)** Hạn khai báo MUST là mốc phát sinh nghĩa vụ cộng CFG-M02-12 (mặc định \[1 ngày\]); mốc là thời điểm Hoàn tất tiếp nhận (FR-001), ngày phần nội trú có hiệu lực, kể cả khi ngày đó ở tương lai so với lúc phụ lục hoặc hợp đồng được áp dụng (FR-001a, Q-336), thời điểm phụ lục gia hạn được áp dụng (FR-007), hoặc ngày khai báo chuyển Hết hạn (FR-006). Hạn không phụ thuộc thời điểm Hành chính lập khai báo. Khi quá hạn mà khai báo chưa Đã xác nhận (Q-414), dù khai báo đã được lập hay chưa, Hành chính MUST được nhắc mỗi ngày và Quản lý viện MUST được báo một lần vào ngày quá hạn đầu tiên. Khai báo MUST NOT là điều kiện chặn Hoàn tất tiếp nhận. *(Nguồn: BR-M02-11, CFG-M02-12; Q-215, Q-306)*
+- **FR-003**: Khai báo MUST ghi: người cao tuổi, loại, xác nhận "thường trú cùng xã/phường với viện" (có hoặc không, ghi chú căn cứ), hạn khai báo, ngày hết hạn (bắt buộc khi ghi đã tiếp nhận đăng ký tạm trú), ảnh bằng chứng (bắt buộc khi ghi đã tiếp nhận và khi ghi đã khai báo xóa), người thực hiện từng lệnh, thời điểm, khai báo được thay thế. *(Nguồn: 6.10)*
+- **FR-004**: Với mỗi người cao tuổi, tại một thời điểm MUST có tối đa một khai báo "Đã xác nhận" và tối đa một khai báo đang xử lý ("Cần khai báo"). *(Nguồn: DBR-33)*
 - **FR-005**: Vòng đời khai báo MUST theo bảng dưới; không có chuyển nào khác. *(Nguồn: 6.10, BR-M02-11 → 14, constitution IV)*
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái kế tiếp | Ai thực hiện | Điều kiện (chặn nếu không đạt) | Tác động |
@@ -165,13 +167,11 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 | (chưa có) | Lập khai báo (sau nhắc: Hoàn tất tiếp nhận nội trú, FR-001; phần nội trú có hiệu lực, FR-001a; phụ lục gia hạn khi người đó chỉ có Thông báo lưu trú, FR-007; Hết hạn mà chưa có khai báo đang xử lý, FR-006) | Cần khai báo | Hành chính | Nghĩa vụ khai báo đã phát sinh; FR-004 | Xác định loại (FR-001, FR-007); hạn khai báo theo mốc (FR-002) |
 | (chưa có) | Lập khai báo gia hạn | Cần khai báo | Hành chính | Có khai báo Đăng ký tạm trú Đã xác nhận; FR-004 | Tính hạn khai báo |
 | Cần khai báo | Xác nhận thường trú cùng xã/phường với viện (FR-001) | Cần khai báo | Hành chính | Có ghi chú căn cứ | Loại chuyển Thông báo lưu trú; hạn khai báo giữ nguyên |
-| Cần khai báo | Ghi đã nộp | Đã nộp | Hành chính | Có ngày nộp, kênh, cơ quan | Dừng nhắc quá hạn |
-| Đã nộp | Ghi được chấp nhận | Đã xác nhận | Hành chính | Có bằng chứng; đăng ký tạm trú có ngày hết hạn | Nếu là gia hạn hoặc chuyển loại: khai báo Đã xác nhận cũ → Được thay thế |
-| Đã nộp | Ghi bị từ chối | Cần khai báo | Hành chính | Có lý do | Hạn khai báo mới = thời điểm ghi + CFG-M02-12 |
+| Cần khai báo | Ghi đã tiếp nhận (Q-414) | Đã xác nhận | Hành chính | Có ảnh bằng chứng; đăng ký tạm trú có ngày hết hạn | Dừng nhắc quá hạn; nếu là gia hạn hoặc chuyển loại: khai báo Đã xác nhận cũ → Được thay thế |
 | Đã xác nhận | Qua ngày hết hạn mà chưa có khai báo gia hạn Đã xác nhận | Hết hạn | Bộ lập lịch | — | Báo Quản lý viện; FR-006 |
 | Đã xác nhận, Hết hạn | Ghi đã khai báo xóa (FR-008) | Đã xóa | Hành chính | Có bằng chứng; người cao tuổi đã Kết thúc lưu trú hoặc Qua đời | Dừng nhắc khai báo xóa (FR-008) |
 | Đã xác nhận | Khai báo mới cùng người được Đã xác nhận | Được thay thế | Hệ thống | — | — |
-| Cần khai báo, Đã nộp | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống | — | Dừng nhắc |
+| Cần khai báo | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống | — | Dừng nhắc |
 
 Đã xóa, Được thay thế và Đã hủy là trạng thái cuối. Hết hạn chỉ còn chuyển sang Đã xóa.
 

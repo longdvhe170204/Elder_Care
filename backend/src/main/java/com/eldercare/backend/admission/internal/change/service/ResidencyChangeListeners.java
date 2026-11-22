@@ -55,7 +55,7 @@ class ResidencyChangeListeners {
             return;
         }
         residencyLock.lock(request.target().residentId());
-        // Q-420: phụ lục Chờ ký, Chờ hiệu lực của yêu cầu bị hủy chuyển Đã hủy
+        // Q-421: phụ lục Chờ ký, Chờ hiệu lực của yêu cầu bị hủy chuyển Đã hủy
         closing.cancel(request.id(), request.target().residentId(), new Basis(null, request.id(), null, null));
         handler.withdrawn(request);
         // Hủy vì người cao tuổi sang trạng thái cuối (FR-070) không báo người đại diện như một kết quả của yêu cầu

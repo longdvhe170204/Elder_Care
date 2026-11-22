@@ -57,7 +57,7 @@ import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 
 /**
- * Sửa BF-07 (Q-426 → Q-436): các lệnh mới chạy trên MySQL thật — Nhận liều, Hoãn, chỉ số trước khi dùng, Tiếp tục tạm,
+ * Sửa BF-07 (Q-427 → Q-437): các lệnh mới chạy trên MySQL thật — Nhận liều, Hoãn, chỉ số trước khi dùng, Tiếp tục tạm,
  * hiệu quả và nhắc PRN, Điều dưỡng phụ trách tạm, kiểm tra tiếp nhận và Hủy do hết hạn của thuốc gia đình gửi.
  */
 @Import(FakeM07Config.class)

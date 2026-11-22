@@ -1,4 +1,4 @@
--- 004 Phase 14, Bước 5 (FR-043h, FR-043i; Q-416, Q-417, chủ dự án chốt 2026-11-20).
+-- 004 Phase 14, Bước 5 (FR-043h, FR-043i; Q-417, Q-418, chủ dự án chốt 2026-11-20).
 -- residency_change_resident_opinion: ý kiến của chính người cao tuổi về một yêu cầu thay đổi lưu trú, chỉ thêm (nhóm 3);
 --   bản mới nhất là hiện hành; content_digest là dấu nội dung thực chất của yêu cầu lúc ghi (R18).
 -- residency_change_portal_digest: dấu nội dung thực chất lúc người đại diện gửi qua cổng, để biết Hành chính có đổi phần

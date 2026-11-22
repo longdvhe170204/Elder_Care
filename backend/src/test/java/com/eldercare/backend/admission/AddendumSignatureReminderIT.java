@@ -11,7 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 
 /**
- * FR-043d (Q-419, R7): phụ lục Chờ ký thì Hành chính được nhắc mỗi CFG-M02-17 (mặc định 1 ngày) từ ngày sau ngày duyệt;
+ * FR-043d (Q-420, R7): phụ lục Chờ ký thì Hành chính được nhắc mỗi CFG-M02-17 (mặc định 1 ngày) từ ngày sau ngày duyệt;
  * từ ngày duyệt cộng CFG-M02-18 (mặc định 7 ngày) thì Quản lý viện được báo đúng một lần; ký xong thì thôi nhắc.
  */
 @AutoConfigureMockMvc

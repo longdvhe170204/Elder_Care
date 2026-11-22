@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Dấu "xác nhận người đại diện bị bỏ" khi người duyệt Trả về nháp (FR-043e, Q-418) ở {@code reminder_marker}: marker là
+ * Dấu "xác nhận người đại diện bị bỏ" khi người duyệt Trả về nháp (FR-043e, Q-419) ở {@code reminder_marker}: marker là
  * thời điểm (mili giây, đệm 0 để so chuỗi). Xác nhận ghi trước dấu mới nhất hết tác dụng.
  */
 @Repository

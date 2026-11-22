@@ -26,7 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Hiệu quả lần dùng thuốc khi cần và nhắc ghi sau CFG-M07-11 (BR-M07-04, Q-431). */
+/** Hiệu quả lần dùng thuốc khi cần và nhắc ghi sau CFG-M07-11 (BR-M07-04, Q-432). */
 @Service
 public class PrnEffectivenessService {
 

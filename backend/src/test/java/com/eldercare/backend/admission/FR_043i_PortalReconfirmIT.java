@@ -18,7 +18,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * FR-043i (Q-417, R12): yêu cầu người đại diện gửi qua cổng mà Hành chính đổi phần thực chất (ngày hiệu lực, giường, dịch
+ * FR-043i (Q-418, R12): yêu cầu người đại diện gửi qua cổng mà Hành chính đổi phần thực chất (ngày hiệu lực, giường, dịch
  * vụ…) thì phải xác nhận người đại diện mới gửi duyệt được; chỉ đổi lý do, ghi chú thì không. Như {@code FR_043b}, lập bằng
  * Hành chính rồi đổi người yêu cầu thành tài khoản người thân và ghi dấu nội dung như lúc gửi qua cổng.
  */

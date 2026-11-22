@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Loại dịch vụ thêm được vào hợp đồng qua loại thay đổi "Dịch vụ" (004 FR-043k, Q-425, R21): phục hồi chức năng, hoạt động
+ * Loại dịch vụ thêm được vào hợp đồng qua loại thay đổi "Dịch vụ" (004 FR-043k, Q-426, R21): phục hồi chức năng, hoạt động
  * đăng ký dài hạn, đưa đi khám, tiêm theo y lệnh. Loại khác đi theo luồng riêng; mô tả lỗi chỉ đúng luồng cần dùng. Bớt
  * dòng đang có không xét loại.
  */

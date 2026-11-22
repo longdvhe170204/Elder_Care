@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Phần của liều thêm khi sửa BF-07 (Q-426 → Q-428): dấu Hoãn, người nhận liều, mức quan trọng của đơn, chỉ số cần đo và
+ * Phần của liều thêm khi sửa BF-07 (Q-427 → Q-429): dấu Hoãn, người nhận liều, mức quan trọng của đơn, chỉ số cần đo và
  * đã đo, dấu dùng muộn. Tính khi xem, không là cột của liều tính từ đơn (Q-306).
  */
 public record DoseExtras(

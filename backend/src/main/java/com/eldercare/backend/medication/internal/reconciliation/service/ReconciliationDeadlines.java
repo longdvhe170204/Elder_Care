@@ -156,7 +156,7 @@ public class ReconciliationDeadlines {
 
     /**
      * Quá CFG-M07-10 (8 giờ) kể từ lúc bắt đầu mà phiếu chưa được xác nhận thì báo thêm Trưởng tầng, Quản lý viện; mức giữ
-     * Trung bình vì hệ thống chỉ có ba mức độ (BR-M07-29, Q-430).
+     * Trung bình vì hệ thống chỉ có ba mức độ (BR-M07-29, Q-431).
      */
     private void escalate(Instant now) {
         var extra = parameters

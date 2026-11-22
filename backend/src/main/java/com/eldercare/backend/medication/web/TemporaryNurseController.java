@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng (BR-M07-31, Q-435). */
+/** Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng (BR-M07-31, Q-436). */
 @RestController
 @Tag(name = "dose")
 public class TemporaryNurseController {

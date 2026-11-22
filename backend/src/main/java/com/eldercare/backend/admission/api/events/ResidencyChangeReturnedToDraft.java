@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Người duyệt trả yêu cầu thay đổi lưu trú về Nháp kèm lý do (FR-043e, Q-418): báo người lập (nhân viên) và Hành chính,
+ * Người duyệt trả yêu cầu thay đổi lưu trú về Nháp kèm lý do (FR-043e, Q-419): báo người lập (nhân viên) và Hành chính,
  * mức Nhẹ. Xác nhận người đại diện cũ đã bị bỏ, phải xác nhận lại trước khi gửi duyệt.
  */
 public record ResidencyChangeReturnedToDraft(

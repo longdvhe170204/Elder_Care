@@ -45,7 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 
 /**
- * Sửa BF-07 (Q-426 → Q-428): Bỏ lỡ theo mức quan trọng của đơn (BR-M07-27), Nhận liều chặn người khác và chỉ số đo
+ * Sửa BF-07 (Q-427 → Q-429): Bỏ lỡ theo mức quan trọng của đơn (BR-M07-27), Nhận liều chặn người khác và chỉ số đo
  * trước khi dùng bắt buộc khi đơn yêu cầu (BR-M07-26).
  */
 class BF07_DoseRulesTest {

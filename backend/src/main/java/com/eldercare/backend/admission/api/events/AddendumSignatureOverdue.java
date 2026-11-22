@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Phụ lục chưa ký quá CFG-M02-18 kể từ ngày duyệt (FR-043d, Q-419): báo Quản lý viện đúng một lần, mức Trung bình. Gia đình
+ * Phụ lục chưa ký quá CFG-M02-18 kể từ ngày duyệt (FR-043d, Q-420): báo Quản lý viện đúng một lần, mức Trung bình. Gia đình
  * đổi ý thì hủy yêu cầu (FR-043f).
  */
 public record AddendumSignatureOverdue(long addendumId, long requestId, long residentId, int addendumNo, Instant at)

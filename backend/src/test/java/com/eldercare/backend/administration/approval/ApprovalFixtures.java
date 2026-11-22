@@ -51,13 +51,13 @@ public class ApprovalFixtures {
         volatile Set<Role> roleRestriction;
         /** Vai trò được sửa, gửi duyệt Nháp của người khác (plan 004 FR-039); null là chỉ người yêu cầu. */
         volatile Set<Role> draftActorRoles;
-        /** Loại cho phép Trả về nháp (Q-418). */
+        /** Loại cho phép Trả về nháp (Q-419). */
         volatile boolean allowReturnToDraft;
-        /** Yêu cầu Đã duyệt chưa sẵn sàng áp dụng (Q-419, ví dụ phụ lục chưa ký). */
+        /** Yêu cầu Đã duyệt chưa sẵn sàng áp dụng (Q-420, ví dụ phụ lục chưa ký). */
         volatile boolean notReadyToApply;
-        /** Vai trò được hủy Nháp, Chờ duyệt của người khác (Q-420); null là chỉ người yêu cầu. */
+        /** Vai trò được hủy Nháp, Chờ duyệt của người khác (Q-421); null là chỉ người yêu cầu. */
         volatile Set<Role> cancelRoles;
-        /** Gửi duyệt bắt buộc lý do (Q-416, ví dụ người cao tuổi không đồng ý). */
+        /** Gửi duyệt bắt buộc lý do (Q-417, ví dụ người cao tuổi không đồng ý). */
         volatile boolean submitReasonRequired;
         /** Yêu cầu đã được báo Trả về nháp. */
         final List<Long> returnedToDraft = new java.util.concurrent.CopyOnWriteArrayList<>();

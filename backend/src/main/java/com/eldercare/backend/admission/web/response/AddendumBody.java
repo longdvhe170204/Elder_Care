@@ -40,7 +40,7 @@ public record AddendumBody(
 
     /**
      * Giá trị theo hợp đồng api-004 (glossary 10.3 ghi {@code NOT_APPLIED}, lệch hợp đồng, báo ở plan); Chờ ký, Đã hủy
-     * thêm 2026-11-20 (Q-419, Q-420), cùng tên ở cơ sở dữ liệu và API.
+     * thêm 2026-11-20 (Q-420, Q-421), cùng tên ở cơ sở dữ liệu và API.
      */
     public enum Status {
         PENDING_SIGNATURE,

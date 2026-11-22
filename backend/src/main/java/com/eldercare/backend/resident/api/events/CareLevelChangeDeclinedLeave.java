@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Gia đình không đồng ý đổi mức chăm sóc và chọn rời viện (001 FR-036b, Q-423): báo Hành chính lập hồ sơ kết thúc lưu trú
+ * Gia đình không đồng ý đổi mức chăm sóc và chọn rời viện (001 FR-036b, Q-424): báo Hành chính lập hồ sơ kết thúc lưu trú
  * (004); hệ thống không tự lập (Q-306). Mức Nhẹ.
  */
 public record CareLevelChangeDeclinedLeave(long residentId, long decisionId, Instant at)

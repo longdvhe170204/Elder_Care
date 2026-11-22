@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 /**
  * Đóng phụ lục khi yêu cầu của nó không còn được áp dụng (FR-042, FR-045, FR-043f; data-model mục 7): phụ lục còn chờ (Chờ
  * ký, Chờ hiệu lực) chuyển Không áp dụng ({@link #close}: yêu cầu Áp dụng không thành, bị thay thế, người cao tuổi sang
- * trạng thái cuối) hoặc Đã hủy ({@link #cancel}: yêu cầu bị hủy, Q-420); thuộc tính được nhả để yêu cầu khác dùng (FR-046),
+ * trạng thái cuối) hoặc Đã hủy ({@link #cancel}: yêu cầu bị hủy, Q-421); thuộc tính được nhả để yêu cầu khác dùng (FR-046),
  * giữ giường đặt lúc duyệt bị hủy. Chạy trong transaction của chỗ gọi.
  */
 @Component
@@ -35,7 +35,7 @@ class AddendumClosing {
         end(approvalRequestId, residentId, basis, false);
     }
 
-    /** Yêu cầu bị hủy (Q-420): phụ lục còn chờ chuyển Đã hủy. */
+    /** Yêu cầu bị hủy (Q-421): phụ lục còn chờ chuyển Đã hủy. */
     void cancel(long approvalRequestId, long residentId, Basis basis) {
         end(approvalRequestId, residentId, basis, true);
     }

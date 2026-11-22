@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Phụ lục còn Chờ ký (FR-043d, Q-419): nhắc Hành chính in phụ lục cho người đại diện ký và ghi nhận bản đã ký, mỗi
+ * Phụ lục còn Chờ ký (FR-043d, Q-420): nhắc Hành chính in phụ lục cho người đại diện ký và ghi nhận bản đã ký, mỗi
  * CFG-M02-17. Mức Nhẹ; nguồn là yêu cầu thay đổi lưu trú để mở đúng màn.
  */
 public record AddendumSignatureReminder(long addendumId, long requestId, long residentId, int addendumNo, Instant at)

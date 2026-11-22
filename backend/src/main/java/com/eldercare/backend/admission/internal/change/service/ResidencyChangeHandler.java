@@ -207,7 +207,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * FR-043k (Q-425, R21): dòng thêm dịch vụ chỉ thuộc phục hồi chức năng, hoạt động, đưa đi khám, tiêm; bớt không xét
+     * FR-043k (Q-426, R21): dòng thêm dịch vụ chỉ thuộc phục hồi chức năng, hoạt động, đưa đi khám, tiêm; bớt không xét
      * loại. Lập, sửa: 422 qua {@link #validateContent}; gửi duyệt, duyệt: 409 cùng các điều kiện khác (yêu cầu lập trước khi
      * có quy tắc).
      */
@@ -389,7 +389,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         if (!portal) {
             return true;
         }
-        // FR-043i (Q-417): Hành chính đổi phần thực chất của yêu cầu người đại diện gửi qua cổng thì phải xác nhận lại;
+        // FR-043i (Q-418): Hành chính đổi phần thực chất của yêu cầu người đại diện gửi qua cổng thì phải xác nhận lại;
         // yêu cầu gửi trước khi có dấu nội dung thì giữ hành vi cũ
         return opinions.portalDigest(request.id())
                 .map(sent ->
@@ -398,7 +398,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * FR-043h (Q-416, R11): như {@link #checkOnSubmit(ApprovalRequestView)}, thêm: ý kiến hiện hành của người cao tuổi là
+     * FR-043h (Q-417, R11): như {@link #checkOnSubmit(ApprovalRequestView)}, thêm: ý kiến hiện hành của người cao tuổi là
      * Không đồng ý thì gửi duyệt bắt buộc lý do. Thiếu ý kiến không chặn (chỉ cảnh báo trong phản hồi). Thay đổi nhỏ không xét.
      */
     @Override
@@ -441,7 +441,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
 
     /**
      * DBR-07: tạo phụ lục, khóa thuộc tính (FR-046); đổi giường thì giữ giường theo lịch ở 003 (FR-041). Không phải thay
-     * đổi nhỏ thì phụ lục ở Chờ ký tới khi Hành chính ghi nhận bản đã ký (FR-043d, Q-419); thay đổi nhỏ thì Chờ hiệu lực.
+     * đổi nhỏ thì phụ lục ở Chờ ký tới khi Hành chính ghi nhận bản đã ký (FR-043d, Q-420); thay đổi nhỏ thì Chờ hiệu lực.
      */
     @Override
     public void onApprove(ApprovalRequestView request, LocalDate actualEffectiveDate) {
@@ -501,7 +501,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * Ký phụ lục muộn (FR-043d, Q-419): giữ giường đặt lúc duyệt (chuyển theo lịch, hoặc phân bổ đầu tiên của người bán
+     * Ký phụ lục muộn (FR-043d, Q-420): giữ giường đặt lúc duyệt (chuyển theo lịch, hoặc phân bổ đầu tiên của người bán
      * trú sang nội trú) dời sang ngày hiệu lực mới, cùng logic và điều kiện như {@link #onApprove}; không đạt thì 409 liệt
      * kê điều kiện, cả lệnh rollback. Sau chuyển gấp thì không có giữ giường nên bỏ qua.
      */
@@ -517,7 +517,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         }
         BedAllocationCommandApi api = beds.getObject();
         api.cancelScheduledAllocation(
-                request.id(), new com.eldercare.backend.common.Reason("Ký phụ lục muộn, dời ngày hiệu lực (Q-419)"));
+                request.id(), new com.eldercare.backend.common.Reason("Ký phụ lục muộn, dời ngày hiệu lực (Q-420)"));
         List<UnmetCondition> unmet = first
                 ? api.checkFirstAllocationReservation(
                         contract.residentId(),
@@ -542,7 +542,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
         }
     }
 
-    /** FR-043e (Q-418): người duyệt trả về Nháp thay vì sửa nội dung. */
+    /** FR-043e (Q-419): người duyệt trả về Nháp thay vì sửa nội dung. */
     @Override
     public boolean allowReturnToDraft() {
         return true;
@@ -562,7 +562,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
     }
 
     /**
-     * FR-043f (Q-420): Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện hủy; tài khoản người thân chỉ hủy yêu cầu do
+     * FR-043f (Q-421): Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện hủy; tài khoản người thân chỉ hủy yêu cầu do
      * chính mình lập. Đã duyệt vẫn do người duyệt (000).
      */
     @Override
@@ -574,7 +574,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 && (user.roles().contains(Role.OFFICE_STAFF) || user.roles().contains(Role.NURSING_HOME_MANAGER));
     }
 
-    /** FR-043g (Q-421): gửi duyệt yêu cầu liên quan tới gia đình thì người đại diện khác được báo. */
+    /** FR-043g (Q-422): gửi duyệt yêu cầu liên quan tới gia đình thì người đại diện khác được báo. */
     @Override
     public void onSubmit(ApprovalRequestView submitted) {
         if (!familyRelated(submitted)) {
@@ -665,7 +665,7 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 .orElse(null);
     }
 
-    /** FR-043d (Q-419): phụ lục còn Chờ ký thì chưa áp dụng; yêu cầu giữ Đã duyệt, không Áp dụng không thành. */
+    /** FR-043d (Q-420): phụ lục còn Chờ ký thì chưa áp dụng; yêu cầu giữ Đã duyệt, không Áp dụng không thành. */
     @Override
     public boolean readyToApply(ApprovalRequestView request) {
         return addenda.findByRequest(request.id())

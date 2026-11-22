@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Cài {@link CareRiskAgreementPort} của 001 (FR-036b, Q-423) bằng thỏa thuận đang dùng của kế hoạch Hiệu lực, như checklist
+ * Cài {@link CareRiskAgreementPort} của 001 (FR-036b, Q-424) bằng thỏa thuận đang dùng của kế hoạch Hiệu lực, như checklist
  * ca (FR-030).
  */
 @Service

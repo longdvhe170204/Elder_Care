@@ -27,7 +27,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * 005 FR-011 (BR-M04-20, Q-422; R1, R2): phụ lục đổi mức được áp dụng không báo xem xét kế hoạch lần nữa khi đã có phiên
+ * 005 FR-011 (BR-M04-20, Q-423; R1, R2): phụ lục đổi mức được áp dụng không báo xem xét kế hoạch lần nữa khi đã có phiên
  * bản kế hoạch lập sau lần đánh giá lại gần nhất; chưa có thì báo; phiên bản Đã hủy không tính.
  */
 class CarePlanReviewDedupTest {

@@ -137,7 +137,7 @@ public class AddendumStore {
                 id);
     }
 
-    /** Hủy cùng yêu cầu (Q-420): Đã hủy, khóa dòng. */
+    /** Hủy cùng yêu cầu (Q-421): Đã hủy, khóa dòng. */
     public void markCancelled(long id) {
         jdbc.update(
                 "UPDATE contract_version SET addendum_status = 'CANCELLED', locked_at = ? WHERE id = ?",
@@ -171,7 +171,7 @@ public class AddendumStore {
                 == 1;
     }
 
-    /** Dời ngày hiệu lực khi ký muộn (Q-419); trigger chỉ cho dời muộn hơn khi phụ lục còn chờ. */
+    /** Dời ngày hiệu lực khi ký muộn (Q-420); trigger chỉ cho dời muộn hơn khi phụ lục còn chờ. */
     public void postponeEffective(long id, LocalDate newDate) {
         jdbc.update("UPDATE contract_version SET effective_date = ? WHERE id = ?", newDate, id);
     }

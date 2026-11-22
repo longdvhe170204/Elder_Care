@@ -90,7 +90,7 @@ class RequiresPermissionArchTest {
             Map.entry(
                     "com.eldercare.backend.admission.internal.change.service.ResidencyChangeService.recordOpinion",
                     "vai trò Hành chính, Bác sĩ; Điều dưỡng khi người cao tuổi trong phạm vi phân công (ScopeApi); 004"
-                            + " FR-043h, Q-416"),
+                            + " FR-043h, Q-417"),
             Map.entry(
                     "com.eldercare.backend.administration.correction.internal.service.CorrectionService.create",
                     "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026"),

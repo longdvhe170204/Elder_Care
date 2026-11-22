@@ -141,7 +141,7 @@ class FR_043b_RepresentativeConfirmationIT extends ChangeTestBase {
         assertThat(result.getResponse().getContentAsString()).contains("CONFIRMATION_DATE_IN_FUTURE");
     }
 
-    /** R16 (Q-414): xác nhận phải ghi người đại diện đã xác nhận. */
+    /** R16 (Q-415): xác nhận phải ghi người đại diện đã xác nhận. */
     @Test
     void R16_confirmationWithoutConfirmer_rejected() throws Exception {
         Setup s = activeSetup();

@@ -53,7 +53,7 @@ public interface ApprovalRequestApi {
 
     /**
      * Dời ngày hiệu lực thực tế của yêu cầu Đã duyệt sang {@code newDate} kèm lệnh của actor ở module khác
-     * (Propagation.MANDATORY; 000 FR-041a (3), bổ sung theo 004 Q-419: ký phụ lục muộn hơn ngày hiệu lực). Ngày mới không
+     * (Propagation.MANDATORY; 000 FR-041a (3), bổ sung theo 004 Q-420: ký phụ lục muộn hơn ngày hiệu lực). Ngày mới không
      * sau ngày đang có thì không làm gì; yêu cầu không ở Đã duyệt thì 409 {@code INVALID_STATE}. Ghi nhật ký kèm lý do.
      */
     void postponeEffectiveDate(long requestId, LocalDate newDate, Reason reason);

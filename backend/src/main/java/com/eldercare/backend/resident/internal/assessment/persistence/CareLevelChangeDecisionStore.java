@@ -14,7 +14,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 /**
- * Quyết định khi gia đình không đồng ý đổi mức chăm sóc ({@code care_level_change_decision}, nhóm 3; 001 FR-036b, Q-423).
+ * Quyết định khi gia đình không đồng ý đổi mức chăm sóc ({@code care_level_change_decision}, nhóm 3; 001 FR-036b, Q-424).
  * {@code UNIQUE(assessment_id)} giữ tối đa một quyết định mỗi lần đánh giá; trigger chỉ cho đặt {@code review_notified_at}.
  */
 @Repository

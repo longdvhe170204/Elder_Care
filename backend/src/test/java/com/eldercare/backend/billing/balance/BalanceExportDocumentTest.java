@@ -58,6 +58,20 @@ class BalanceExportDocumentTest {
     }
 
     @Test
+    void FR_025_statementShowsLedgerTypeAndMethodInVietnamese() {
+        List<ResidentStatement> statements = List.of(statement());
+
+        String pdf = pdfText(BalanceExportDocument.statementPdf(FACILITY, null, statements, FROM, TO));
+        List<String> excel = excelCells(BalanceExportDocument.statementExcel(FACILITY, statements, FROM, TO));
+
+        for (String text : List.of(pdf, String.join("\n", excel))) {
+            assertThat(text)
+                    .contains("Số dư", "Nộp chuyển khoản", "Thanh toán bảng chi phí", "Tiền mặt")
+                    .doesNotContain("BALANCE", "BANK_TRANSFER_PAYMENT", "STATEMENT_PAYMENT", "CASH");
+        }
+    }
+
+    @Test
     void FR_025_incomeExpensePdfAndExcelCarryTheSameFigures() {
         IncomeExpenseReport report = new IncomeExpenseReport(
                 55_000_000, 48_000_000, 2_000_000, List.of(new Debtor(8, 1_500_000), new Debtor(9, 300_000)));

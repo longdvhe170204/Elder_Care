@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/** Quyết định khi gia đình không đồng ý đổi mức chăm sóc (api-001 {@code CareLevelChangeDecision}; FR-036b, Q-423). */
+/** Quyết định khi gia đình không đồng ý đổi mức chăm sóc (api-001 {@code CareLevelChangeDecision}; FR-036b, Q-424). */
 @Schema(name = "CareLevelChangeDecision")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record CareLevelChangeDecisionBody(

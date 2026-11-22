@@ -88,5 +88,70 @@ class DemoDataMigrationIT extends MySqlIntegrationTestBase {
                         "SELECT attributes->>'$.careLevelCode' FROM catalog_item WHERE id=9302 AND catalog_type='M02.SERVICE'",
                         String.class))
                 .isEqualTo("REGULAR");
+        // V900_07: phòng demo có danh sách mức chăm sóc được phép khởi tạo từ loại phòng (003 FR-004); V900_01 để trống
+        // nên mọi giường trượt FR-018(a) và không phân bổ được giường cho người mới (BF-01 bước 8)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM room r JOIN room_type t ON t.id=r.room_type_id WHERE r.id IN"
+                                + " (9001,9002,9003,9004) AND JSON_LENGTH(r.allowed_care_levels)>0"
+                                + " AND JSON_CONTAINS(r.allowed_care_levels, t.allowed_care_levels)"
+                                + " AND JSON_CONTAINS(t.allowed_care_levels, r.allowed_care_levels)",
+                        Integer.class))
+                .isEqualTo(4);
+        // V900_08: Bác sĩ thứ hai (demo.bacsi2, hồ sơ 9010, giấy phép DOCTOR_LICENSE) để thử quy tắc hai người của
+        // phiếu
+        // đối chiếu thuốc trước Hoàn tất tiếp nhận (BF-01 bước 12, Q-55; Điều dưỡng chỉ thấy người trong phân công)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM account a JOIN permission_assignment r ON r.account_id=a.id AND r.kind='ROLE_ASSIGNMENT' AND r.role='AC-03'"
+                                + " JOIN staff_profile s ON s.id=a.staff_id AND s.account_id=a.id"
+                                + " JOIN credential c ON c.staff_id=s.id JOIN catalog_item t ON t.id=c.credential_type_id"
+                                + " AND t.code='DOCTOR_LICENSE' WHERE a.username='demo.bacsi2' AND a.status='ACTIVE'"
+                                + " AND a.staff_id=9010",
+                        Integer.class))
+                .isEqualTo(1);
+        // V900_09: ca ngày Tầng 2 (9002) đã công bố 7 ngày với Điều dưỡng thứ hai (demo.dieuduong2, 9011, phụ trách ca,
+        // giấy phép NURSING_LICENSE) và Nhân viên chăm sóc thứ hai (demo.chamsoc2, 9012); demo.truongtang là Trưởng
+        // tầng
+        // cả Tầng 2. Người ở Tầng 2 phân công được Điều dưỡng để lập kế hoạch chăm sóc (BF-01 bước 16)
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM work_shift s JOIN shift_schedule h ON h.id=s.schedule_id"
+                                + " AND h.status='PUBLISHED' WHERE s.scope_type='FLOOR' AND s.scope_id=9002"
+                                + " AND s.status='PUBLISHED' AND s.lead_staff_id=9011",
+                        Integer.class))
+                .isEqualTo(7);
+        assertThat(jdbc.queryForList(
+                        "SELECT DISTINCT m.staff_id FROM shift_staff m JOIN work_shift s ON s.id=m.shift_id"
+                                + " WHERE s.scope_type='FLOOR' AND s.scope_id=9002 ORDER BY m.staff_id",
+                        Long.class))
+                .containsExactly(9011L, 9012L);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM account a JOIN permission_assignment r ON r.account_id=a.id"
+                                + " AND r.kind='ROLE_ASSIGNMENT' JOIN staff_profile s ON s.id=a.staff_id"
+                                + " AND s.account_id=a.id WHERE a.status='ACTIVE' AND ((a.username='demo.dieuduong2'"
+                                + " AND a.staff_id=9011 AND r.role='AC-04') OR (a.username='demo.chamsoc2'"
+                                + " AND a.staff_id=9012 AND r.role='AC-05'))",
+                        Integer.class))
+                .isEqualTo(2);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM credential c JOIN catalog_item t ON t.id=c.credential_type_id"
+                                + " AND t.code='NURSING_LICENSE' WHERE c.staff_id=9011",
+                        Integer.class))
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM staff_assignment WHERE kind='FLOOR_MANAGER' AND staff_id=9003"
+                                + " AND floor_area_id=9002 AND status='ACTIVE'",
+                        Integer.class))
+                .isEqualTo(1);
+        // V900_10: nghiệp vụ Phát thuốc có loại giấy phép NURSING_LICENSE để Trưởng tầng đặt được Điều dưỡng phụ trách
+        // (008 AssignmentService, BF-01 bước 16; F17); Điều dưỡng demo 9005, 9011 có giấy phép đó
+        assertThat(jdbc.queryForObject(
+                        "SELECT attributes->>'$.requiredLicenseType' FROM catalog_item"
+                                + " WHERE catalog_type='M15.PROFESSIONAL_ACTIVITY' AND code='MEDICATION_ADMINISTRATION'",
+                        String.class))
+                .isEqualTo("NURSING_LICENSE");
+        assertThat(jdbc.queryForList(
+                        "SELECT c.staff_id FROM credential c JOIN catalog_item t ON t.id=c.credential_type_id"
+                                + " AND t.code='NURSING_LICENSE' WHERE c.staff_id IN (9005, 9011) ORDER BY c.staff_id",
+                        Long.class))
+                .containsExactly(9005L, 9011L);
     }
 }

@@ -147,7 +147,7 @@ paths:
     post:
       tags: [prescription]
       summary: Tiếp tục tạm đơn Quan trọng có trong giấy ra viện, khi đang chờ đối chiếu
-      description: 'Chỉ khi người cao tuổi trở về từ bệnh viện (đơn Tạm dừng "chờ đối chiếu") và đơn có timeCriticality CRITICAL. Bắt buộc externalBasis loại DISCHARGE_PAPER (giấy ra viện, BR-M07-16). Bác sĩ có quyền kê đơn hợp lệ làm được với mọi đơn; Điều dưỡng chỉ với đơn bên ngoài có căn cứ từ cơ sở kê (Q-413). Phiếu đối chiếu được xác nhận thì quyết định từng dòng của phiếu thay cho lệnh này (BR-M07-28, Q-429).'
+      description: 'Chỉ khi người cao tuổi trở về từ bệnh viện (đơn Tạm dừng "chờ đối chiếu") và đơn có timeCriticality CRITICAL. Bắt buộc externalBasis loại DISCHARGE_PAPER (giấy ra viện, BR-M07-16). Bác sĩ có quyền kê đơn hợp lệ làm được với mọi đơn; Điều dưỡng chỉ với đơn bên ngoài có căn cứ từ cơ sở kê (Q-413). Phiếu đối chiếu được xác nhận thì quyết định từng dòng của phiếu thay cho lệnh này (BR-M07-28, Q-430).'
       x-fr: [FR-011, FR-013, FR-037]
       x-br: [BR-M07-28]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -270,7 +270,7 @@ paths:
     post:
       tags: [dose]
       summary: Nhận liều trước khi soạn thuốc
-      description: 'Liều Đến giờ hoặc Trễ (kể cả Hoãn). Người khác không xác nhận được tới khi hết hạn CFG-M07-08 (15 phút) hoặc người nhận bỏ nhận. Không đổi trạng thái liều; bản ghi ngoại tuyến không bị chặn (BR-M07-20, BR-M07-26, Q-427).'
+      description: 'Liều Đến giờ hoặc Trễ (kể cả Hoãn). Người khác không xác nhận được tới khi hết hạn CFG-M07-08 (15 phút) hoặc người nhận bỏ nhận. Không đổi trạng thái liều; bản ghi ngoại tuyến không bị chặn (BR-M07-20, BR-M07-26, Q-428).'
       x-fr: [FR-026]
       x-br: [BR-M07-26]
       parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -297,7 +297,7 @@ paths:
     post:
       tags: [dose]
       summary: Quản lý viện chỉ định Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng nào có ca
-      description: 'Chỉ Quản lý viện. Tầng không còn Điều dưỡng có ca (409 FLOOR_HAS_NURSE), tầng có ca đang diễn ra (409 NO_SHIFT), Điều dưỡng được chỉ định đang có ca ở tầng khác (409 NURSE_NOT_ON_SHIFT). Quyền hết khi hết ca của tầng (BR-M07-31, Q-435).'
+      description: 'Chỉ Quản lý viện. Tầng không còn Điều dưỡng có ca (409 FLOOR_HAS_NURSE), tầng có ca đang diễn ra (409 NO_SHIFT), Điều dưỡng được chỉ định đang có ca ở tầng khác (409 NURSE_NOT_ON_SHIFT). Quyền hết khi hết ca của tầng (BR-M07-31, Q-436).'
       x-br: [BR-M07-31]
       parameters: [ { name: floorAreaId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nurseAccountId], properties: { nurseAccountId: { type: integer, format: int64 } } } } } }
@@ -349,7 +349,7 @@ paths:
     post:
       tags: [prn]
       summary: Ghi hiệu quả của một lần dùng PRN
-      description: 'Mỗi lần dùng một lần ghi (409 EFFECTIVENESS_ALREADY_RECORDED). Sau CFG-M07-11 (60 phút) chưa ghi thì hệ thống nhắc Điều dưỡng (mức Nhẹ; BR-M07-04, Q-431).'
+      description: 'Mỗi lần dùng một lần ghi (409 EFFECTIVENESS_ALREADY_RECORDED). Sau CFG-M07-11 (60 phút) chưa ghi thì hệ thống nhắc Điều dưỡng (mức Nhẹ; BR-M07-04, Q-432).'
       x-br: [BR-M07-04]
       parameters: [ { $ref: '#/components/parameters/Id' }, { name: prnId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [effectiveness], properties: { effectiveness: { type: string, minLength: 1, maxLength: 2000 } } } } } }
@@ -412,7 +412,7 @@ paths:
     put:
       tags: [reconciliation]
       summary: Thay danh sách dòng và quyết định (chỉ khi Mở)
-      description: 'Dòng CHANGE_DOSE, ADD_NEW kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng. Người không phải Bác sĩ có quyền kê đơn hợp lệ (FR-005) ghi dòng DISCONTINUE, CHANGE_DOSE mà reason trống (căn cứ từ cơ sở kê bên ngoài: cơ sở, người, ngày) hoặc newPrescription không phải đơn bên ngoài thì 409 EXTERNAL_BASIS_REQUIRED (FR-035, FR-006, Q-411).'
+      description: 'Dòng tạo đơn (CHANGE_DOSE, ADD_NEW; CONTINUE của dòng DISCHARGE_PRESCRIPTION, ADMISSION_CURRENT_MEDICATION, ghi kèm newPrescription theo đơn bệnh viện, FR-034a, User Story 4 kịch bản 10) kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng. Người không phải Bác sĩ có quyền kê đơn hợp lệ (FR-005) ghi dòng DISCONTINUE, CHANGE_DOSE mà reason trống (căn cứ từ cơ sở kê bên ngoài: cơ sở, người, ngày) hoặc newPrescription không phải đơn bên ngoài thì 409 EXTERNAL_BASIS_REQUIRED (FR-035, FR-006, Q-411).'
       x-fr: [FR-035, FR-036, FR-007]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ReconciliationItem' } } } } }
@@ -421,7 +421,7 @@ paths:
     post:
       tags: [reconciliation]
       summary: Gửi xác nhận
-      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do (FR-034, FR-034a).'
+      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Hiệu lực, Tạm dừng, Chờ hiệu lực chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do, dòng tạo đơn thiếu newPrescription (FR-034, FR-034a).'
       x-fr: [FR-034, FR-034a, FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/Blocked' } }
@@ -554,7 +554,7 @@ paths:
     post:
       tags: [family-medication]
       summary: Hủy cả lô, theo yêu cầu gia đình (mặc định) hoặc do hết hạn dùng; có người chứng kiến; quantity đếm thực tế
-      description: 'kind FAMILY_REQUEST (mặc định) cần representativeId và requestMethod (422 REQUEST_BASIS_REQUIRED). kind EXPIRED chỉ khi lô đã qua ngày hạn dùng (409 NOT_EXPIRED); người thân được thông báo như khi hết hạn dùng (BR-M07-30, Q-433).'
+      description: 'kind FAMILY_REQUEST (mặc định) cần representativeId và requestMethod (422 REQUEST_BASIS_REQUIRED). kind EXPIRED chỉ khi lô đã qua ngày hạn dùng (409 NOT_EXPIRED); người thân được thông báo như khi hết hạn dùng (BR-M07-30, Q-434).'
       x-fr: [FR-041, FR-045]
       x-br: [BR-M07-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]

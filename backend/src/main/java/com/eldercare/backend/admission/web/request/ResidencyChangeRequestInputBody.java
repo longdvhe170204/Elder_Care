@@ -69,7 +69,7 @@ public record ResidencyChangeRequestInputBody(
             @NotNull
             @Schema(
                     requiredMode = Schema.RequiredMode.REQUIRED,
-                    description = "Người đại diện đã xác nhận, là người đại diện hiện tại tại ngày xác nhận (Q-414)")
+                    description = "Người đại diện đã xác nhận, là người đại diện hiện tại tại ngày xác nhận (Q-415)")
             Long representativeFamilyMemberId,
 
             @Size(max = RepresentativeConfirmation.NOTE_MAX) String note,

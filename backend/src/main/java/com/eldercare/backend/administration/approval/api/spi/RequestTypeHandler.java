@@ -77,21 +77,21 @@ public interface RequestTypeHandler {
 
     /**
      * Như {@link #checkOnSubmit(ApprovalRequestView)}, kèm lý do người gửi nhập (tùy chọn; 000 FR-041a (5), bổ sung theo
-     * 004 Q-416). Mặc định bỏ qua lý do.
+     * 004 Q-417). Mặc định bỏ qua lý do.
      */
     default List<UnmetCondition> checkOnSubmit(ApprovalRequestView request, Optional<Reason> reason) {
         return checkOnSubmit(request);
     }
 
     /**
-     * Yêu cầu Đã duyệt đã sẵn sàng áp dụng chưa (000 FR-041a (2), bổ sung theo 004 Q-419: phụ lục chưa ký). false thì Bộ
+     * Yêu cầu Đã duyệt đã sẵn sàng áp dụng chưa (000 FR-041a (2), bổ sung theo 004 Q-420: phụ lục chưa ký). false thì Bộ
      * lập lịch bỏ qua lần này, yêu cầu giữ Đã duyệt, không Áp dụng không thành.
      */
     default boolean readyToApply(ApprovalRequestView request) {
         return true;
     }
 
-    /** Loại cho phép lệnh Trả về nháp (Chờ duyệt → Nháp; 000 FR-041a (1), bổ sung theo 004 Q-418). */
+    /** Loại cho phép lệnh Trả về nháp (Chờ duyệt → Nháp; 000 FR-041a (1), bổ sung theo 004 Q-419). */
     default boolean allowReturnToDraft() {
         return false;
     }
@@ -103,7 +103,7 @@ public interface RequestTypeHandler {
     default void onReturnToDraft(ApprovalRequestView request, Reason reason) {}
 
     /**
-     * Tác động kèm Gửi duyệt thành công, trong transaction của lệnh (bổ sung theo 004 Q-421: báo người đại diện khác);
+     * Tác động kèm Gửi duyệt thành công, trong transaction của lệnh (bổ sung theo 004 Q-422: báo người đại diện khác);
      * {@code submitted} là bản ở Chờ duyệt. Module nguồn không nghe được {@code RequestSubmitted} vì sự kiện có thông báo.
      */
     default void onSubmit(ApprovalRequestView submitted) {}
@@ -118,7 +118,7 @@ public interface RequestTypeHandler {
     }
 
     /**
-     * Người được Hủy yêu cầu Nháp, Chờ duyệt (000 FR-041a (4), bổ sung theo 004 Q-420): mặc định chỉ người yêu cầu. Hủy
+     * Người được Hủy yêu cầu Nháp, Chờ duyệt (000 FR-041a (4), bổ sung theo 004 Q-421): mặc định chỉ người yêu cầu. Hủy
      * yêu cầu Đã duyệt vẫn là người có quyền duyệt.
      */
     default boolean mayCancel(CurrentUser user, ApprovalRequestView request) {

@@ -100,7 +100,7 @@ class DBR_28_BalanceInvariantIT extends BalanceTestBase {
         getAs(accountant, "/api/v1/residents/" + a + "/balance-transactions?ledger=BALANCE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].type").value("STATEMENT_PAYMENT"))
-                .andExpect(jsonPath("$[0].createdBy").value("SYSTEM"));
+                .andExpect(jsonPath("$[0].createdBy").value("Hệ thống"));
         if (balance < 0) {
             getAs(accountant, "/api/v1/residents/" + a + "/balance")
                     .andExpect(jsonPath("$.debt").value(-balance));

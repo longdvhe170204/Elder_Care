@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Quản lý viện chỉ định Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng nào có ca (BR-M07-31, Q-435). Người
+ * Quản lý viện chỉ định Điều dưỡng tầng khác phụ trách tạm khi tầng không có Điều dưỡng nào có ca (BR-M07-31, Q-436). Người
  * được chỉ định xác nhận được liều của tầng đó như Điều dưỡng có ca tại tầng; quyền hết khi hết ca của tầng.
  */
 @Service

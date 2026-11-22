@@ -14,7 +14,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 
 /**
- * FR-043g (Q-421, R10, R16): người đại diện được báo khi yêu cầu liên quan tới gia đình được gửi duyệt (bỏ người đã xác
+ * FR-043g (Q-422, R10, R16): người đại diện được báo khi yêu cầu liên quan tới gia đình được gửi duyệt (bỏ người đã xác
  * nhận), bị Từ chối, bị Hủy; thay đổi nhỏ không báo. Người nhận là nhóm người đại diện của người cao tuổi (009 phân giải
  * mọi người đại diện hiện tại).
  */

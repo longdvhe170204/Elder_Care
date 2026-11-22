@@ -255,9 +255,17 @@ public class BalanceExportService {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
                     "EXPORT_RANGE_EXCEEDED",
-                    "Khoảng xuất dài hơn giới hạn " + maximum + " (CFG-M14-01)",
+                    "Khoảng xuất không được dài hơn " + months(maximum),
                     Map.of("maximum", maximum.toString()));
         }
+    }
+
+    /** CFG-M14-01 viết cho người đọc: "12 tháng", "45 ngày", "1 tháng 15 ngày". */
+    private static String months(Period period) {
+        long months = period.toTotalMonths();
+        int days = period.getDays();
+        if (days == 0) return months + " tháng";
+        return months == 0 ? days + " ngày" : months + " tháng " + days + " ngày";
     }
 
     private FacilityInfo facility() {

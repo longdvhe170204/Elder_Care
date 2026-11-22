@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Yêu cầu thay đổi lưu trú liên quan tới gia đình được gửi duyệt (FR-043g, Q-421): báo các người đại diện hiện tại, mức Nhẹ,
+ * Yêu cầu thay đổi lưu trú liên quan tới gia đình được gửi duyệt (FR-043g, Q-422): báo các người đại diện hiện tại, mức Nhẹ,
  * không kèm giá. {@code confirmerAccountId} là tài khoản của người đại diện đã xác nhận (kèm bằng chứng hoặc đồng ý trên
  * ứng dụng), được bỏ khỏi người nhận (009 bỏ người gây ra thông báo mức Nhẹ).
  */

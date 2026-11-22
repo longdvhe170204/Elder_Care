@@ -16,7 +16,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Việc {@code ADDENDUM_SIGNATURE_REMINDER} của job hằng ngày (FR-043d, Q-419): phụ lục còn Chờ ký thì nhắc Hành chính mỗi
+ * Việc {@code ADDENDUM_SIGNATURE_REMINDER} của job hằng ngày (FR-043d, Q-420): phụ lục còn Chờ ký thì nhắc Hành chính mỗi
  * CFG-M02-17 kể từ ngày duyệt (ngày tạo phụ lục); từ ngày duyệt cộng CFG-M02-18 thì báo Quản lý viện đúng một lần. Không
  * tự hủy (Q-306). Dấu nhắc theo ngày ở {@code reminder_marker} nên chạy lại cùng ngày không nhắc lặp.
  */

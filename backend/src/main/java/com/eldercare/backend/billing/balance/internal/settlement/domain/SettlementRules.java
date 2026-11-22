@@ -66,7 +66,7 @@ public final class SettlementRules {
             boolean byException = result.settlement().status() == Status.NOT_MET;
             return new PostDeathItemStatusView(
                     PostDeathItemStatus.COMPLETED,
-                    byException ? "Đã xác nhận quyết toán theo ngoại lệ đã duyệt (Q-387)" : "Đã xác nhận quyết toán");
+                    byException ? "Đã xác nhận quyết toán theo ngoại lệ đã duyệt" : "Đã xác nhận quyết toán");
         }
         List<Reason> reasons = new ArrayList<>(result.confirmation().reasons());
         if (!exceptionApproved) reasons.addAll(0, result.settlement().reasons());

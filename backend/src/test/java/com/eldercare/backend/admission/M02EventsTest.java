@@ -56,7 +56,7 @@ class M02EventsTest {
         assertRecipient(request, Role.NURSING_HOME_MANAGER);
     }
 
-    /** FR-043d (Q-419): nhắc ký phụ lục cho Hành chính, mức Nhẹ; quá hạn ký báo Quản lý viện, mức Trung bình. */
+    /** FR-043d (Q-420): nhắc ký phụ lục cho Hành chính, mức Nhẹ; quá hạn ký báo Quản lý viện, mức Trung bình. */
     @Test
     void FR_043d_addendumSignatureNotices() {
         NotificationRequest reminder = single(new AddendumSignatureReminder(5L, 9L, 11L, 2, AT));
@@ -69,7 +69,7 @@ class M02EventsTest {
         assertRecipient(overdue, Role.NURSING_HOME_MANAGER);
     }
 
-    /** FR-043e, FR-043g (Q-418, Q-421): trả về nháp báo Hành chính và người lập; kết quả, gửi duyệt báo người đại diện. */
+    /** FR-043e, FR-043g (Q-419, Q-422): trả về nháp báo Hành chính và người lập; kết quả, gửi duyệt báo người đại diện. */
     @Test
     void FR_043e_g_residencyChangeNotices() {
         NotificationRequest returned = single(new ResidencyChangeReturnedToDraft(9L, 11L, 40L, "Sửa ngày", AT));

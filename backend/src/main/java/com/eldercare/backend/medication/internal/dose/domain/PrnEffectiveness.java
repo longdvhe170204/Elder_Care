@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
-/** Hiệu quả của một lần dùng thuốc khi cần (BR-M07-04, Q-431); chỉ thêm, mỗi lần dùng tối đa một dòng. */
+/** Hiệu quả của một lần dùng thuốc khi cần (BR-M07-04, Q-432); chỉ thêm, mỗi lần dùng tối đa một dòng. */
 @Entity
 @Table(name = "prn_effectiveness")
 @DataGroup(DataGroup.Group.RECORD)

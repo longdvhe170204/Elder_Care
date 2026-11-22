@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Quyết định khi gia đình không đồng ý đổi mức chăm sóc (001 FR-036b, Q-423; contracts/api-001.yaml, tag {@code
+ * Quyết định khi gia đình không đồng ý đổi mức chăm sóc (001 FR-036b, Q-424; contracts/api-001.yaml, tag {@code
  * assessments}).
  */
 @RestController

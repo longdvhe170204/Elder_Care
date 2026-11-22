@@ -9,7 +9,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 
 /**
- * FR-043f (Q-420, R9): Hành chính khác người lập, Quản lý viện hủy được yêu cầu Nháp, Chờ duyệt; Điều dưỡng không; Đã duyệt
+ * FR-043f (Q-421, R9): Hành chính khác người lập, Quản lý viện hủy được yêu cầu Nháp, Chờ duyệt; Điều dưỡng không; Đã duyệt
  * do người duyệt. Hủy khi phụ lục Chờ ký, Chờ hiệu lực thì phụ lục Đã hủy, thuộc tính được nhả (lập lại cùng loại được).
  */
 @AutoConfigureMockMvc

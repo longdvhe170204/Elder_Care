@@ -104,5 +104,7 @@ class FR_004_ConditionsMatchCommandIT extends M02TestBase {
                 .map(w -> w.get("code").asString())
                 .toList();
         assertThat(codes).contains("MISSING_CONSENT").doesNotHaveDuplicates();
+        // Nhóm A BF-01 việc 1 (chủ dự án duyệt 2026-11-21): câu cảnh báo cho người dùng không mang mã spec
+        assertThat(list.get("warnings").toString()).doesNotContainPattern("\\((FR|BR)-[^)]*\\)");
     }
 }

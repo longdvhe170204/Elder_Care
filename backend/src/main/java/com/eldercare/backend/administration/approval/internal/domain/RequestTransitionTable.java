@@ -32,7 +32,7 @@ public class RequestTransitionTable {
         APPLY_FAILED,
         /** Người cao tuổi sang trạng thái cuối (bổ sung theo plan 004). */
         CLOSE_FOR_FINAL_STATE,
-        /** Người duyệt trả yêu cầu về Nháp để sửa (bổ sung theo 004 Q-418; loại yêu cầu phải cho phép). */
+        /** Người duyệt trả yêu cầu về Nháp để sửa (bổ sung theo 004 Q-419; loại yêu cầu phải cho phép). */
         RETURN_TO_DRAFT
     }
 

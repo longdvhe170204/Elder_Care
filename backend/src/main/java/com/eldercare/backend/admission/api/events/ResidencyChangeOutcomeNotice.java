@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Kết quả yêu cầu thay đổi lưu trú liên quan tới gia đình (FR-043g, Q-421): Từ chối, Áp dụng không thành, Hủy. Báo mọi
+ * Kết quả yêu cầu thay đổi lưu trú liên quan tới gia đình (FR-043g, Q-422): Từ chối, Áp dụng không thành, Hủy. Báo mọi
  * người đại diện hiện tại, mức Nhẹ, nội dung loại thay đổi, không kèm giá.
  */
 public record ResidencyChangeOutcomeNotice(

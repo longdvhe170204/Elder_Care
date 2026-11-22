@@ -293,7 +293,7 @@ Nội dung của yêu cầu (giá trị trước/sau, ảnh hưởng chi phí, t
 
 ---
 
-### Bổ sung 2026-11-20 (FR-043d → FR-043i; Q-416 → Q-420; migration `V004_95`, `V004_96`)
+### Bổ sung 2026-11-20 (FR-043d → FR-043i; Q-417 → Q-421; migration `V004_95`, `V004_96`)
 
 - `contract_version` (dòng `ADDENDUM`): `addendum_status` thêm `PENDING_SIGNATURE` (Chờ ký), `CANCELLED` (Đã hủy); cột `addendum_no SMALLINT` (`UNIQUE (contract_id, addendum_no)`, bắt buộc với `ADDENDUM`, cấp khi tạo bằng số lớn nhất của hợp đồng cộng 1, không đổi), `signature_required BOOLEAN` (không phải thay đổi nhỏ), `signed_date`, `signed_file_id`, `signed_by_family_member_id`, `facility_signatory_staff_id`, `signature_recorded_by`, `signature_recorded_at`, `signature_note`; `CHECK chk_contract_version_signed`: cần ký thì chỉ ở Chờ ký, Không áp dụng, Đã hủy khi chưa có `signed_date`. Trigger `trg_contract_version_row_lock` tạo lại: nội dung, số phụ lục, dấu cần ký không đổi; `effective_date` chỉ dời muộn hơn khi còn Chờ ký, Chờ hiệu lực; cột ký đặt một lần khi Chờ ký. Phụ lục có sẵn: `signature_required = FALSE`, số theo `(created_at, id)`.
 - Vòng đời phụ lục: Chờ ký → Chờ hiệu lực (ghi nhận đã ký) → Đã áp dụng; Chờ ký, Chờ hiệu lực → Không áp dụng (Áp dụng không thành, Được thay thế, trạng thái cuối) hoặc Đã hủy (yêu cầu bị hủy). Thay đổi nhỏ tạo thẳng Chờ hiệu lực.

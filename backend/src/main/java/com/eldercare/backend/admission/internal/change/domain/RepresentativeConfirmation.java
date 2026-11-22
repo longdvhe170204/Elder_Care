@@ -86,7 +86,7 @@ public record RepresentativeConfirmation(
     }
 
     /**
-     * Đủ để gửi duyệt: có người đại diện đã xác nhận (Q-414, R16). Xác nhận ghi trước khi có trường này coi như thiếu,
+     * Đủ để gửi duyệt: có người đại diện đã xác nhận (Q-415, R16). Xác nhận ghi trước khi có trường này coi như thiếu,
      * phải xác nhận lại.
      */
     public boolean names() {

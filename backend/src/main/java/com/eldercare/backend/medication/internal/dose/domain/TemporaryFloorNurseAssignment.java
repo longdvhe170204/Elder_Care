@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 /**
- * Điều dưỡng tầng khác được Quản lý viện chỉ định phụ trách tạm khi tầng không có Điều dưỡng nào có ca (BR-M07-31, Q-435).
+ * Điều dưỡng tầng khác được Quản lý viện chỉ định phụ trách tạm khi tầng không có Điều dưỡng nào có ca (BR-M07-31, Q-436).
  * Bảng {@code temporary_floor_nurse_assignment}; quyền hết ở {@code expiresAt}.
  */
 @Entity

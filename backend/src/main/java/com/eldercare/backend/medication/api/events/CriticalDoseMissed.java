@@ -17,7 +17,7 @@ import java.util.Optional;
 
 /**
  * Liều Bỏ lỡ của đơn Quan trọng về thời gian: báo ngay Điều dưỡng phụ trách, Trưởng tầng và Bác sĩ trực, không chờ leo
- * thang (BR-M07-27, Q-428). Mức Trung bình vì hệ thống chỉ có ba mức độ (9.3). {@code floorAreaId} trống thì không có
+ * thang (BR-M07-27, Q-429). Mức Trung bình vì hệ thống chỉ có ba mức độ (9.3). {@code floorAreaId} trống thì không có
  * Trưởng tầng.
  */
 public record CriticalDoseMissed(long doseId, long residentId, Long floorAreaId, Instant occurredAt)

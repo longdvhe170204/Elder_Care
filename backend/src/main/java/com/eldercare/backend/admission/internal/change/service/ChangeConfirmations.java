@@ -35,7 +35,7 @@ class ChangeConfirmations {
     }
 
     /**
-     * Trả về nháp (Q-418): xác nhận kèm bằng chứng ghi trước thời điểm này hết tác dụng, lần gửi trên ứng dụng đang chờ
+     * Trả về nháp (Q-419): xác nhận kèm bằng chứng ghi trước thời điểm này hết tác dụng, lần gửi trên ứng dụng đang chờ
      * hoặc đã đồng ý thành Bị thay thế. Nội dung yêu cầu không sửa ở đây (người duyệt không có quyền sửa Nháp).
      */
     void voidAll(long requestId, Instant at) {
@@ -49,7 +49,7 @@ class ChangeConfirmations {
     }
 
     /**
-     * Xác nhận kèm bằng chứng còn dùng được để gửi duyệt (Q-414, Q-418): có người đại diện đã xác nhận và ghi sau lần
+     * Xác nhận kèm bằng chứng còn dùng được để gửi duyệt (Q-415, Q-419): có người đại diện đã xác nhận và ghi sau lần
      * Trả về nháp gần nhất.
      */
     Optional<RepresentativeConfirmation> validConfirmation(long requestId, JsonNode content) {

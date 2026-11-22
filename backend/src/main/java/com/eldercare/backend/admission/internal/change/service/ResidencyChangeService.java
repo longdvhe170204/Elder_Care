@@ -200,7 +200,7 @@ public class ResidencyChangeService {
         handler.created(change, request.id());
         CurrentUser user = currentUser.getObject();
         if (user.type() == AccountType.FAMILY_MEMBER) {
-            // FR-043i (Q-417): dấu phần thực chất lúc người đại diện gửi, để biết Hành chính có đổi phần thực chất
+            // FR-043i (Q-418): dấu phần thực chất lúc người đại diện gửi, để biết Hành chính có đổi phần thực chất
             // không
             opinions.savePortalDigest(
                     request.id(), ResidencyChangeDigest.of(content, requestedEffectiveDate), time.now());
@@ -318,7 +318,7 @@ public class ResidencyChangeService {
     public record OpinionView(ResidentOpinion opinion, String recordedBy, boolean outdated) {}
 
     /**
-     * Ghi ý kiến người cao tuổi về yêu cầu (FR-043h, Q-416): Hành chính, Bác sĩ; Điều dưỡng khi người cao tuổi trong phạm vi
+     * Ghi ý kiến người cao tuổi về yêu cầu (FR-043h, Q-417): Hành chính, Bác sĩ; Điều dưỡng khi người cao tuổi trong phạm vi
      * phân công (403 với người khác); yêu cầu ở Nháp, Chờ duyệt (409 {@code REQUEST_NOT_OPEN}); ghi thêm, bản mới là hiện
      * hành; lưu dấu nội dung thực chất lúc ghi.
      */
@@ -406,7 +406,7 @@ public class ResidencyChangeService {
             String note) {}
 
     /**
-     * Ghi nhận phụ lục đã ký (FR-043d, Q-419): Hành chính, Quản lý viện; yêu cầu Đã duyệt, phụ lục Chờ ký (409 {@code
+     * Ghi nhận phụ lục đã ký (FR-043d, Q-420): Hành chính, Quản lý viện; yêu cầu Đã duyệt, phụ lục Chờ ký (409 {@code
      * ADDENDUM_NOT_PENDING_SIGNATURE}); ngày ký không sau hôm nay, không trước ngày duyệt (422 {@code SIGNED_DATE_INVALID});
      * người ký là người đại diện hiệu lực tại ngày ký (409 {@code SIGNER_NOT_REPRESENTATIVE}); người ký phía viện (nếu có)
      * là nhân viên đang làm việc (422 {@code FACILITY_SIGNATORY_INVALID}); tệp gắn vào hợp đồng như bản scan hợp đồng.
@@ -478,7 +478,7 @@ public class ResidencyChangeService {
                 input.note());
         LocalDate before = request.actualEffectiveDate();
         if (signed.isAfter(before)) {
-            // Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; không tính lùi (Q-419)
+            // Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; không tính lùi (Q-420)
             approvals
                     .getObject()
                     .postponeEffectiveDate(approvalRequestId, signed, new Reason("Ký phụ lục ngày " + day(signed)));
@@ -569,7 +569,7 @@ public class ResidencyChangeService {
         }
         Long confirmer = confirmation.get().representativeFamilyMemberId();
         if (confirmer == null) {
-            throw new InvalidValueException("Cần chọn người đại diện đã xác nhận (Q-414)");
+            throw new InvalidValueException("Cần chọn người đại diện đã xác nhận (Q-415)");
         }
         if (!representatives
                 .getObject()
@@ -662,7 +662,7 @@ public class ResidencyChangeService {
         ApprovalRequestView request = details.request();
         ResidencyChangeContent content = ResidencyChangeContent.parse(request.content());
         Optional<Addendum> addendum = addenda.findByRequest(request.id());
-        // Xác nhận bị bỏ khi người duyệt Trả về nháp thì không hiện nữa (Q-418)
+        // Xác nhận bị bỏ khi người duyệt Trả về nháp thì không hiện nữa (Q-419)
         Optional<java.time.Instant> voided = confirmations.voidedAt(request.id());
         Optional<ResidentOpinion> currentOpinion = opinions.current(request.id());
         Optional<RepresentativeConfirmation> confirmation = RepresentativeConfirmation.of(request.content())

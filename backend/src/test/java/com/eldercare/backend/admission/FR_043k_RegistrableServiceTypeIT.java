@@ -12,7 +12,7 @@ import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * FR-043k (Q-425, R21): loại thay đổi "Dịch vụ" chỉ thêm được phục hồi chức năng, hoạt động, đưa đi khám, tiêm; loại khác
+ * FR-043k (Q-426, R21): loại thay đổi "Dịch vụ" chỉ thêm được phục hồi chức năng, hoạt động, đưa đi khám, tiêm; loại khác
  * bị chặn 422 {@code SERVICE_TYPE_NOT_REGISTRABLE} kèm mô tả chỉ đúng luồng cần dùng; bớt được mọi dòng đang có trong hợp
  * đồng; yêu cầu lập trước khi có quy tắc bị chặn lại khi gửi duyệt.
  */

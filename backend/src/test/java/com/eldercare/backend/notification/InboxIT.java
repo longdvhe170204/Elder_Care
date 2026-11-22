@@ -167,36 +167,43 @@ class InboxIT extends M13IntegrationTestBase {
     }
 
     /**
-     * FR-034: phạm vi của nhân viên theo 002 (quyền xem hồ sơ người cao tuổi, kể cả phạm vi toàn viện), không chỉ theo phân
-     * công tầng, ca: Quản lý viện, Hành chính thấy nội dung thông báo về người cao tuổi không thuộc tầng nào của mình;
-     * Điều dưỡng không phụ trách người đó chỉ thấy tiêu đề.
+     * FR-034 (chủ dự án chốt 2026-11-21, F14 BF-01 bước 15a): nhân viên có phạm vi Toàn viện ở Hồ sơ người cao tuổi
+     * (Phụ lục 27, Hành chính) thấy Phần chung của thông báo về người cao tuổi dù không có phân công; nhân viên theo
+     * phân công mà không được phân công thì chỉ thấy tiêu đề.
      */
     @Test
-    void FR_034_facilityWideStaffSeeContent_unassignedNurseDoesNot() throws Exception {
-        TestUser manager = users.staff(Role.NURSING_HOME_MANAGER);
+    void FR_034_facilityWideStaff_seesGeneralPart_withoutAssignment() throws Exception {
         TestUser office = users.staff(Role.OFFICE_STAFF);
-        TestUser nurse = users.staff(Role.NURSING_STAFF);
-        String key = send(notice(
-                "fr034b-" + resident,
-                NotificationLevel.LOW,
-                new RecipientGroup.Staff(manager.staffId(), "TEST"),
+        TestUser caregiver = users.staff(Role.CAREGIVER);
+        String key = send(new NotificationRequest(
+                "M05",
+                "TEST_EVENT",
+                SourceGroup.OTHER,
+                new SourceRecord("M05.TEST", "fr034fw-" + resident),
+                "fr034fw-" + resident,
+                Optional.of(NotificationLevel.LOW),
+                Optional.of(resident),
                 Optional.empty(),
-                InformationType.GENERAL));
-        String officeKey = send(notice(
-                "fr034c-" + resident, NotificationLevel.LOW, staff(office), Optional.empty(), InformationType.GENERAL));
-        String nurseKey = send(notice(
-                "fr034d-" + resident, NotificationLevel.LOW, staff(nurse), Optional.empty(), InformationType.GENERAL));
+                List.of(staff(office), staff(caregiver)),
+                List.of(new ContentPart(InformationType.GENERAL, "Phần GENERAL")),
+                Optional.of("Rút gọn"),
+                Optional.of("Tiêu đề"),
+                Optional.empty(),
+                false,
+                time.now(),
+                Map.of(),
+                false,
+                Optional.empty(),
+                Optional.empty()));
 
-        JsonNode toManager =
-                getJson(INBOX + "/" + notificationId(key, manager.accountId()), users.session(manager.accountId()));
         JsonNode toOffice =
-                getJson(INBOX + "/" + notificationId(officeKey, office.accountId()), users.session(office.accountId()));
-        JsonNode toNurse =
-                getJson(INBOX + "/" + notificationId(nurseKey, nurse.accountId()), users.session(nurse.accountId()));
+                getJson(INBOX + "/" + notificationId(key, office.accountId()), users.session(office.accountId()));
+        JsonNode toCaregiver =
+                getJson(INBOX + "/" + notificationId(key, caregiver.accountId()), users.session(caregiver.accountId()));
 
-        assertThat(toManager.get("content")).hasSize(1);
         assertThat(toOffice.get("content")).hasSize(1);
-        assertThat(toNurse.get("content")).isEmpty();
-        assertThat(toNurse.get("hiddenParts").toString()).contains("GENERAL");
+        assertThat(toOffice.get("hiddenParts")).isEmpty();
+        assertThat(toCaregiver.get("content")).isEmpty();
+        assertThat(toCaregiver.get("hiddenParts").get(0).asString()).isEqualTo("GENERAL");
     }
 }

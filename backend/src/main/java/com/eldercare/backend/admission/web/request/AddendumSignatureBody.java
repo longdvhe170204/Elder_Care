@@ -4,7 +4,7 @@ import com.eldercare.backend.admission.internal.change.service.ResidencyChangeSe
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
-/** Ghi nhận phụ lục đã ký (api-004 {@code AddendumSignatureInput}; FR-043d, Q-419). */
+/** Ghi nhận phụ lục đã ký (api-004 {@code AddendumSignatureInput}; FR-043d, Q-420). */
 @Schema(name = "AddendumSignatureInput")
 public record AddendumSignatureBody(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) LocalDate signedDate,

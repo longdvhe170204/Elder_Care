@@ -12,7 +12,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.JsonNode;
 
 /**
- * FR-043d (Q-419, plan-bf08 Bước 3; R3 → R6, R17): duyệt yêu cầu không phải thay đổi nhỏ tạo phụ lục Chờ ký; chưa ký thì
+ * FR-043d (Q-420, plan-bf08 Bước 3; R3 → R6, R17): duyệt yêu cầu không phải thay đổi nhỏ tạo phụ lục Chờ ký; chưa ký thì
  * không áp dụng, yêu cầu giữ Đã duyệt; ghi nhận bản đã ký (ngày, người đại diện, bản scan, người ký phía viện) chuyển
  * Chờ hiệu lực; ký muộn dời ngày hiệu lực; số phụ lục tăng dần theo hợp đồng, không tái sử dụng; trigger giữ nội dung.
  */

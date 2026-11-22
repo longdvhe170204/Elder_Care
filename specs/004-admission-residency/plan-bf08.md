@@ -6,8 +6,8 @@
 
 ## Cập nhật 2026-11-21 (đọc trước)
 
-- **Tên hiển thị đã đổi** thành **"Điều chỉnh hợp đồng"** (Q-424, đã có trong `nghiep-vu.md` mục 6.6, BF-08 và ở web, app). Mọi chữ hiển thị mới (tiêu đề, nút, thông báo, mô tả lỗi tiếng Việt, bản in) dùng "điều chỉnh hợp đồng" / "yêu cầu điều chỉnh hợp đồng"; chỗ nào trong plan này còn ghi "thay đổi lưu trú" ở **văn bản hiển thị** thì hiểu là tên mới. **Tên trong mã giữ nguyên** (`M02.RESIDENCY_CHANGE`, `ResidencyChange*`, `/residency-change-requests`, `RESIDENCY_CHANGE_REQUEST`).
-- **Q-424 đã dùng cho việc đổi tên.** Quy tắc 4 loại dịch vụ (R21) dùng **Q-425**. Nếu Bước 1 đã chạy xong: thêm dòng Q-425 (Phụ lục B) vào cuối bảng 24.2, thêm **FR-043k** vào spec 004, `SERVICE_TYPE_NOT_REGISTRABLE` vào `api-004.yaml`, rồi làm 5.4a và W15.
+- **Tên hiển thị đã đổi** thành **"Điều chỉnh hợp đồng"** (Q-425, đã có trong `nghiep-vu.md` mục 6.6, BF-08 và ở web, app). Mọi chữ hiển thị mới (tiêu đề, nút, thông báo, mô tả lỗi tiếng Việt, bản in) dùng "điều chỉnh hợp đồng" / "yêu cầu điều chỉnh hợp đồng"; chỗ nào trong plan này còn ghi "thay đổi lưu trú" ở **văn bản hiển thị** thì hiểu là tên mới. **Tên trong mã giữ nguyên** (`M02.RESIDENCY_CHANGE`, `ResidencyChange*`, `/residency-change-requests`, `RESIDENCY_CHANGE_REQUEST`).
+- **Q-425 đã dùng cho việc đổi tên.** Quy tắc 4 loại dịch vụ (R21) dùng **Q-426**. Nếu Bước 1 đã chạy xong: thêm dòng Q-426 (Phụ lục B) vào cuối bảng 24.2, thêm **FR-043k** vào spec 004, `SERVICE_TYPE_NOT_REGISTRABLE` vào `api-004.yaml`, rồi làm 5.4a và W15.
 - Trước khi làm tiếp, đối chiếu `tasks.md` Phase 14 với mã hiện có (một số phần như trang in phụ lục, hộp thoại quyết định giữ mức đã có): chỉ làm phần chưa có, không làm lại.
 
 ---
@@ -35,7 +35,7 @@
 
 | Khu vực | Được sửa | Giới hạn |
 | ------- | -------- | -------- |
-| Tài liệu | `docs/business/luong-nghiep-vu.md` (chỉ mục BF-08); `docs/business/nghiep-vu.md` (chỉ 6.6, BR-M01-03, BR-M04-20, 7.4, 8.1, Phụ lục 25 dòng CFG-M02-17/18, bảng 24.2 dòng Q-414 → Q-425); spec, plan, tasks, data-model, contracts, glossary của 000, 001, 004, 005, 009 (và 010 chỉ ở Đợt 2) theo mục 2 | Không sửa mục khác của hai file nghiệp vụ |
+| Tài liệu | `docs/business/luong-nghiep-vu.md` (chỉ mục BF-08); `docs/business/nghiep-vu.md` (chỉ 6.6, BR-M01-03, BR-M04-20, 7.4, 8.1, Phụ lục 25 dòng CFG-M02-17/18, bảng 24.2 dòng Q-415 → Q-426); spec, plan, tasks, data-model, contracts, glossary của 000, 001, 004, 005, 009 (và 010 chỉ ở Đợt 2) theo mục 2 | Không sửa mục khác của hai file nghiệp vụ |
 | `administration/approval` (000) | `api/spi/RequestTypeHandler.java`, `api/ApprovalRequestApi.java`, `api/events/RequestReturnedToDraft.java` (mới), `internal/domain/RequestTransitionTable.java`, `internal/domain/ApprovalActions.java`, `internal/service/ApplyTransaction.java`, `internal/service/ApprovalRequestService.java`, `internal/persistence/ApprovalRequestStore.java`, `web/ApprovalRequestController.java`, `web/request/` (body mới) | **Mọi hàm SPI mới phải có mặc định giữ nguyên hành vi cũ**; không đổi hành vi của loại yêu cầu khác; không đổi chữ ký hàm cũ (chỉ thêm overload) |
 | `admission` (004) | Toàn bộ `internal/change/`, `web/ResidencyChangeRequestController.java`, `web/ResidencyChangeConfirmationController.java`, `web/ContractController.java` (chỉ phần phụ lục), `web/request/`, `web/response/` liên quan thay đổi lưu trú và phụ lục, `api/events/` (sự kiện mới), `scheduling/` (job nhắc ký) | Không sửa phần tiếp nhận, hợp đồng gốc, tạm vắng, kết thúc lưu trú, qua đời, tạm trú |
 | Migration | Tạo mới `V004_07`, `V004_08`, `V004_09`, `V001_<kế tiếp>` | **Không sửa migration đã có.** Trigger `trg_contract_version_row_lock`: DROP/CREATE lại trong migration mới, chép **nguyên văn** phần DRAFT và `locked_at`, chỉ đổi phần ADDENDUM |
@@ -50,7 +50,7 @@
 
 **Hai đợt:**
 - **Đợt 1** (làm ngay): Bước 1 → 8 và Bước 10.
-- **Đợt 2** (chỉ làm khi người dùng yêu cầu riêng): Bước 9 – chênh lệch giá khi chuyển giường gấp (R14). Ở Đợt 1, phần R14 trong tài liệu vẫn ghi (Q-423 (c)) nhưng **không** sửa mã `billing`; ghi vào `tasks.md` là task chưa làm.
+- **Đợt 2** (chỉ làm khi người dùng yêu cầu riêng): Bước 9 – chênh lệch giá khi chuyển giường gấp (R14). Ở Đợt 1, phần R14 trong tài liệu vẫn ghi (Q-424 (c)) nhưng **không** sửa mã `billing`; ghi vào `tasks.md` là task chưa làm.
 
 ---
 
@@ -91,37 +91,37 @@ Thay **nguyên mục** `## BF-08 – Thay đổi lưu trú` (từ tiêu đề t�
 
 ### 1.2 `docs/business/nghiep-vu.md`
 - Mục **6.6**: sửa dòng trạng thái thành
-  `Trạng thái yêu cầu thay đổi: Nháp → Chờ duyệt → Đã duyệt (chờ hiệu lực) → Đã áp dụng / Từ chối / Hủy; Chờ duyệt → Nháp (Trả về nháp, Q-418).`
+  `Trạng thái yêu cầu thay đổi: Nháp → Chờ duyệt → Đã duyệt (chờ hiệu lực) → Đã áp dụng / Từ chối / Hủy; Chờ duyệt → Nháp (Trả về nháp, Q-419).`
   Thêm các gạch đầu dòng sau, đặt sau gạch "Người duyệt (Q-338)":
-  - Xác nhận người đại diện trước khi gửi duyệt (Q-414), gồm xác nhận kèm bằng chứng hoặc đồng ý trên ứng dụng (Q-415); sửa phần thực chất sau khi xác nhận, kể cả yêu cầu người đại diện gửi qua cổng, thì xác nhận lại (Q-417).
-  - Ý kiến người cao tuổi về thay đổi được ghi riêng, có nguồn; không chặn gửi duyệt; "Không đồng ý" thì gửi duyệt bắt buộc lý do (Q-416).
-  - Phụ lục của yêu cầu không phải thay đổi nhỏ ở **Chờ ký** cho tới khi Hành chính ghi nhận bản đã ký (ngày ký, người đại diện ký, bản scan); chưa ký thì không áp dụng. Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký (Q-419). Trạng thái phụ lục: Chờ ký → Chờ hiệu lực → Đã áp dụng / Không áp dụng / Đã hủy.
-  - Hủy: Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu mình gửi; Đã duyệt do người duyệt. Phụ lục của yêu cầu bị hủy chuyển Đã hủy (Q-420).
-  - Nhiều người đại diện: một người xác nhận và ký là đủ; người đại diện khác được báo khi gửi duyệt và khi áp dụng (Q-421).
-- **BR-M01-03**: thêm câu cuối: "Điều dưỡng phụ trách được báo xem xét kế hoạch ngay khi lần đánh giá lại được xác nhận; kế hoạch có thể đổi trước khi phụ lục đổi mức được áp dụng (Q-422)."
-- **BR-M04-20**: thêm câu: "Phụ lục đổi mức được áp dụng không báo lại khi đã có phiên bản kế hoạch lập sau lần báo từ đánh giá lại (Q-422)."
-- Mục **8.1** (thỏa thuận lựa chọn có rủi ro): thêm câu: "Gia đình không đồng ý đổi mức chăm sóc theo đánh giá lại thì có thể giữ mức cũ kèm thỏa thuận lựa chọn có rủi ro (Q-423)."
-- Mục **7.4** (chuyển giường gấp): thêm câu về chênh lệch đơn giá như R14 (Q-423 phần (c)).
+  - Xác nhận người đại diện trước khi gửi duyệt (Q-415), gồm xác nhận kèm bằng chứng hoặc đồng ý trên ứng dụng (Q-416); sửa phần thực chất sau khi xác nhận, kể cả yêu cầu người đại diện gửi qua cổng, thì xác nhận lại (Q-418).
+  - Ý kiến người cao tuổi về thay đổi được ghi riêng, có nguồn; không chặn gửi duyệt; "Không đồng ý" thì gửi duyệt bắt buộc lý do (Q-417).
+  - Phụ lục của yêu cầu không phải thay đổi nhỏ ở **Chờ ký** cho tới khi Hành chính ghi nhận bản đã ký (ngày ký, người đại diện ký, bản scan); chưa ký thì không áp dụng. Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký (Q-420). Trạng thái phụ lục: Chờ ký → Chờ hiệu lực → Đã áp dụng / Không áp dụng / Đã hủy.
+  - Hủy: Nháp, Chờ duyệt do người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu mình gửi; Đã duyệt do người duyệt. Phụ lục của yêu cầu bị hủy chuyển Đã hủy (Q-421).
+  - Nhiều người đại diện: một người xác nhận và ký là đủ; người đại diện khác được báo khi gửi duyệt và khi áp dụng (Q-422).
+- **BR-M01-03**: thêm câu cuối: "Điều dưỡng phụ trách được báo xem xét kế hoạch ngay khi lần đánh giá lại được xác nhận; kế hoạch có thể đổi trước khi phụ lục đổi mức được áp dụng (Q-423)."
+- **BR-M04-20**: thêm câu: "Phụ lục đổi mức được áp dụng không báo lại khi đã có phiên bản kế hoạch lập sau lần báo từ đánh giá lại (Q-423)."
+- Mục **8.1** (thỏa thuận lựa chọn có rủi ro): thêm câu: "Gia đình không đồng ý đổi mức chăm sóc theo đánh giá lại thì có thể giữ mức cũ kèm thỏa thuận lựa chọn có rủi ro (Q-424)."
+- Mục **7.4** (chuyển giường gấp): thêm câu về chênh lệch đơn giá như R14 (Q-424 phần (c)).
 - **Phụ lục 25**: thêm 2 dòng sau dòng `CFG-M02-13` (mã CFG-M02-14 → 16 đã bỏ theo Q-385, Q-380, **không dùng lại**):
   `| CFG-M02-17 | Chu kỳ nhắc ghi nhận phụ lục đã ký | 1 ngày | 6.6 |`
   `| CFG-M02-18 | Báo Quản lý viện khi phụ lục chưa ký sau ngày duyệt | 7 ngày | 6.6 |`
-- **Mục 24.2**: thêm các dòng Q-414 → Q-425 ở **Phụ lục B** vào cuối bảng (sau Q-413).
+- **Mục 24.2**: thêm các dòng Q-415 → Q-426 ở **Phụ lục B** vào cuối bảng (sau Q-413).
 
 ### 1.3 Spec
 | File | Sửa |
 | ---- | --- |
-| `specs/004-admission-residency/spec.md` | FR-043a, FR-043c: bỏ chữ "chờ chủ dự án duyệt", ghi nguồn Q-414, Q-415. Thêm **FR-043d** (R3–R7, Q-419), **FR-043e** (R8, Q-418), **FR-043f** (R9, Q-420), **FR-043g** (R10, Q-421), **FR-043h** (R11, Q-416), **FR-043i** (R12, Q-417), **FR-043j** (R20, BR-M02-22), **FR-043k** (R21, Q-425). Bổ sung vào FR đã có: FR-043a – xác nhận ghi người đại diện đã xác nhận (R16, Q-414); FR-043d – số phụ lục, người ký phía viện (R17, Q-419); FR-043h – dấu nội dung của ý kiến (R18, Q-416); FR-043 – thay đổi nhỏ do hệ thống xác định theo hợp đồng hiện hành, không theo dấu người lập (R19, Q-338). Bảng trạng thái phụ lục (dòng ~612): thêm Chờ ký, Đã hủy. Mục tham số: CFG-M02-17, 16. |
-| `specs/001-elder-profile-assessment/spec.md` | Thêm FR cho R13 (quyết định khi gia đình không đồng ý đổi mức), nguồn Q-423. |
-| `specs/005-daily-care-tasks/spec.md` | FR-011: thêm R2, nguồn Q-422. |
+| `specs/004-admission-residency/spec.md` | FR-043a, FR-043c: bỏ chữ "chờ chủ dự án duyệt", ghi nguồn Q-415, Q-416. Thêm **FR-043d** (R3–R7, Q-420), **FR-043e** (R8, Q-419), **FR-043f** (R9, Q-421), **FR-043g** (R10, Q-422), **FR-043h** (R11, Q-417), **FR-043i** (R12, Q-418), **FR-043j** (R20, BR-M02-22), **FR-043k** (R21, Q-426). Bổ sung vào FR đã có: FR-043a – xác nhận ghi người đại diện đã xác nhận (R16, Q-415); FR-043d – số phụ lục, người ký phía viện (R17, Q-420); FR-043h – dấu nội dung của ý kiến (R18, Q-417); FR-043 – thay đổi nhỏ do hệ thống xác định theo hợp đồng hiện hành, không theo dấu người lập (R19, Q-338). Bảng trạng thái phụ lục (dòng ~612): thêm Chờ ký, Đã hủy. Mục tham số: CFG-M02-17, 16. |
+| `specs/001-elder-profile-assessment/spec.md` | Thêm FR cho R13 (quyết định khi gia đình không đồng ý đổi mức), nguồn Q-424. |
+| `specs/005-daily-care-tasks/spec.md` | FR-011: thêm R2, nguồn Q-423. |
 | `specs/000-shared-foundation/spec.md` | Vòng đời yêu cầu phê duyệt: thêm Trả về nháp (tùy loại khai báo), hoãn áp dụng (loại chưa sẵn sàng), dời ngày hiệu lực của yêu cầu Đã duyệt, quyền hủy do loại quy định, lý do khi gửi duyệt (tùy chọn). |
-| `specs/010-incurred-costs/spec.md` | Thêm FR cho R14, nguồn Q-423. |
+| `specs/010-incurred-costs/spec.md` | Thêm FR cho R14, nguồn Q-424. |
 | `specs/009-notification-service/spec.md` | Thêm loại thông báo ở mục 9 (Bước 7). |
 | `data-model.md` của 004, 001, 000 | Cột, bảng mới ở Bước 3, 5, 6. |
 | `contracts/api-004.yaml`, `contracts/api-000.yaml`, `contracts/api-001.yaml` | Theo **Phụ lục C**. Sau đó ở kho web chạy `npm run gen:api`. |
 | `contracts/module-interfaces.md` của 000, 004, 005 | SPI, API mới ở Bước 2, 6, 8. |
 | `specs/004-admission-residency/tasks.md` | Thêm "Phase 14: BF-08 sửa đổi" liệt kê task theo các Bước 2 → 10 của file này, đánh `[x]` khi xong. |
 
-**Xong khi:** các file trên đã sửa; `grep -n "Q-414" docs/business/nghiep-vu.md` có kết quả; BF-08 mới có ở `luong-nghiep-vu.md`.
+**Xong khi:** các file trên đã sửa; `grep -n "Q-415" docs/business/nghiep-vu.md` có kết quả; BF-08 mới có ở `luong-nghiep-vu.md`.
 
 ---
 
@@ -414,7 +414,7 @@ Bác sĩ đánh giá lại lên Đặc biệt → Điều dưỡng nhận báo x
 ## 13. Kết thúc
 
 - `specs/004-admission-residency/tasks.md` Phase 14 (và task tương ứng ở 000, 001, 005, 010): đánh `[x]` task có test đã chạy xanh.
-- Thêm **một dòng cuối** `docs/progress.md` (chỉ thêm, không sửa dòng cũ): ngày, "BF-08 sửa đổi (Q-414 → Q-425)", nhánh của ba kho, kết quả test (số test, lớp đỏ còn lại nếu có), việc còn lại.
+- Thêm **một dòng cuối** `docs/progress.md` (chỉ thêm, không sửa dòng cũ): ngày, "BF-08 sửa đổi (Q-415 → Q-426)", nhánh của ba kho, kết quả test (số test, lớp đỏ còn lại nếu có), việc còn lại.
 - `docs/team-plan.md` mục 8: sửa hai dòng "Chủ dự án, B (004)" ngày 2026-11-18 và 2026-11-20 thành đã xong (ghi kết quả ở progress.md theo quy định đầu mục 8), bỏ chữ "chờ chủ dự án duyệt".
 - Báo lại cho người dùng: danh sách file đã sửa ở từng kho, test đã chạy và kết quả, chỗ lệch so với plan này, và **mọi file ngoài mục 0a đã phải dừng không sửa** (kèm đề xuất).
 - Kiểm phạm vi trước khi báo xong: `git status --short` ở ba kho; mọi file thay đổi phải thuộc bảng mục 0a.
@@ -430,31 +430,31 @@ Khởi phát: người đại diện đề nghị thay đổi, Bác sĩ đánh g
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 0 | Bác sĩ; Hệ thống | Bác sĩ xác nhận lần đánh giá lại ra mức chăm sóc khác. Hệ thống báo ngay Điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc để xem xét kế hoạch theo tình trạng mới, không chờ phụ lục; báo Hành chính lập yêu cầu đổi mức (bước 1). Chăm sóc theo đánh giá; mức của hợp đồng, dịch vụ chăm sóc và đơn giá đổi theo phụ lục. Trong lúc chờ phụ lục, chi phí tính theo mức cũ của hợp đồng | Mức của hợp đồng giữ nguyên tới bước 4 | BR-M01-03, BR-M04-20, Q-306, Q-422 |
+| 0 | Bác sĩ; Hệ thống | Bác sĩ xác nhận lần đánh giá lại ra mức chăm sóc khác. Hệ thống báo ngay Điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc để xem xét kế hoạch theo tình trạng mới, không chờ phụ lục; báo Hành chính lập yêu cầu đổi mức (bước 1). Chăm sóc theo đánh giá; mức của hợp đồng, dịch vụ chăm sóc và đơn giá đổi theo phụ lục. Trong lúc chờ phụ lục, chi phí tính theo mức cũ của hợp đồng | Mức của hợp đồng giữ nguyên tới bước 4 | BR-M01-03, BR-M04-20, Q-306, Q-423 |
 | 1 | Hành chính, Bác sĩ; Người đại diện | Lập yêu cầu thay đổi: loại lưu trú, mức chăm sóc, dịch vụ, thời gian, phòng/giường; ngày hiệu lực mong muốn; lý do. Đánh giá lại ra mức khác thì Hành chính lập yêu cầu đổi mức, chưa lập thì được nhắc mỗi [1 ngày] (CFG-M03-02) tới khi lập hoặc có quyết định ở nhánh "Gia đình không đồng ý đổi mức"; yêu cầu đổi mức chăm sóc chưa áp dụng trước đó chuyển Được thay thế. Người đại diện gửi qua cổng thì yêu cầu ở Nháp để Hành chính hoàn thiện. Bác sĩ lập thì yêu cầu ở Nháp, Hành chính được báo; Bác sĩ không tự gửi duyệt | Yêu cầu: Nháp | UC-13, 6.6, BR-M01-03, Q-306 |
-| 1a | Hành chính (hoặc Quản lý viện) | Yêu cầu do Hành chính hoặc Bác sĩ lập: xác nhận ý định thay đổi với người đại diện (gặp trực tiếp, gọi điện hoặc tin nhắn), ghi cách xác nhận, ngày xác nhận và đính kèm bằng chứng; thiếu thì không gửi duyệt được. Thay đổi nhỏ (Q-338) không cần bước này. Xác nhận này dùng để gửi duyệt, không thay phụ lục đã ký ở bước 3a | Yêu cầu: Nháp (đã có xác nhận) | Q-414 |
-| 1b | Hành chính; Người đại diện | Thay cho 1a khi gia đình dùng ứng dụng: Hành chính gửi người đại diện xác nhận; người đại diện xem loại thay đổi, giá trị trước, giá trị mới, ảnh hưởng chi phí, ngày hiệu lực rồi Đồng ý hoặc Không đồng ý kèm lý do. Đồng ý thì Hành chính gửi duyệt; Không đồng ý thì Hành chính sửa, hủy hoặc xử lý theo nhánh "Gia đình không đồng ý đổi mức". Quá [48 giờ] (CFG-M15-05) chưa trả lời thì nhắc người đại diện và báo Hành chính liên hệ trực tiếp, một lần, không tự hủy | Lần gửi xác nhận: Chờ người đại diện → Đồng ý / Không đồng ý / Bị thay thế; yêu cầu vẫn ở Nháp | Q-415 |
-| 1c | Hành chính, Điều dưỡng, Bác sĩ | Ghi ý kiến của chính người cao tuổi về thay đổi, có nguồn (người cao tuổi tự nói hoặc nhân viên ghi nhận khi người cao tuổi không diễn đạt được); ý kiến người cao tuổi và người đại diện là hai mục riêng. Không chặn gửi duyệt: chưa có ý kiến thì cảnh báo; ý kiến "Không đồng ý" thì gửi duyệt bắt buộc lý do. Thay đổi nhỏ không cần | Ý kiến người cao tuổi: đã ghi / chưa ghi | 1.3, BR-M01-14, BR-M01-15, Q-347, Q-348, Q-416 |
-| 1d | Hành chính; Hệ thống | Gửi duyệt. Hệ thống xác định dấu "thay đổi nhỏ" và kiểm đủ xác nhận (1a hoặc 1b). Sửa phần thực chất (loại thay đổi, giá trị mới, ngày hiệu lực, giường, lịch đến, dịch vụ) sau khi đã xác nhận thì phải xác nhận lại; áp cả cho yêu cầu người đại diện tự gửi qua cổng khi Hành chính đổi phần thực chất | Yêu cầu: Nháp → Chờ duyệt | 6.6, Q-417 |
+| 1a | Hành chính (hoặc Quản lý viện) | Yêu cầu do Hành chính hoặc Bác sĩ lập: xác nhận ý định thay đổi với người đại diện (gặp trực tiếp, gọi điện hoặc tin nhắn), ghi cách xác nhận, ngày xác nhận và đính kèm bằng chứng; thiếu thì không gửi duyệt được. Thay đổi nhỏ (Q-338) không cần bước này. Xác nhận này dùng để gửi duyệt, không thay phụ lục đã ký ở bước 3a | Yêu cầu: Nháp (đã có xác nhận) | Q-415 |
+| 1b | Hành chính; Người đại diện | Thay cho 1a khi gia đình dùng ứng dụng: Hành chính gửi người đại diện xác nhận; người đại diện xem loại thay đổi, giá trị trước, giá trị mới, ảnh hưởng chi phí, ngày hiệu lực rồi Đồng ý hoặc Không đồng ý kèm lý do. Đồng ý thì Hành chính gửi duyệt; Không đồng ý thì Hành chính sửa, hủy hoặc xử lý theo nhánh "Gia đình không đồng ý đổi mức". Quá [48 giờ] (CFG-M15-05) chưa trả lời thì nhắc người đại diện và báo Hành chính liên hệ trực tiếp, một lần, không tự hủy | Lần gửi xác nhận: Chờ người đại diện → Đồng ý / Không đồng ý / Bị thay thế; yêu cầu vẫn ở Nháp | Q-416 |
+| 1c | Hành chính, Điều dưỡng, Bác sĩ | Ghi ý kiến của chính người cao tuổi về thay đổi, có nguồn (người cao tuổi tự nói hoặc nhân viên ghi nhận khi người cao tuổi không diễn đạt được); ý kiến người cao tuổi và người đại diện là hai mục riêng. Không chặn gửi duyệt: chưa có ý kiến thì cảnh báo; ý kiến "Không đồng ý" thì gửi duyệt bắt buộc lý do. Thay đổi nhỏ không cần | Ý kiến người cao tuổi: đã ghi / chưa ghi | 1.3, BR-M01-14, BR-M01-15, Q-347, Q-348, Q-417 |
+| 1d | Hành chính; Hệ thống | Gửi duyệt. Hệ thống xác định dấu "thay đổi nhỏ" và kiểm đủ xác nhận (1a hoặc 1b). Sửa phần thực chất (loại thay đổi, giá trị mới, ngày hiệu lực, giường, lịch đến, dịch vụ) sau khi đã xác nhận thì phải xác nhận lại; áp cả cho yêu cầu người đại diện tự gửi qua cổng khi Hành chính đổi phần thực chất | Yêu cầu: Nháp → Chờ duyệt | 6.6, Q-418 |
 | 2 | Bộ lập lịch | Quá [48 giờ] chưa duyệt: nhắc người duyệt. Quá [96 giờ]: báo Quản lý viện. Không tự hủy | — | 6.6, CFG-M15-05, 06 |
-| 3 | Quản lý viện; Hành chính (chỉ thay đổi nhỏ, Q-338) | Duyệt, Từ chối kèm lý do, hoặc Trả về nháp kèm lý do khi muốn sửa nội dung (không sửa trực tiếp; trả về thì xác nhận cũ bị bỏ). Hệ thống kiểm điều kiện của từng loại thay đổi và chặn khi đã có yêu cầu cùng loại Đã duyệt (chờ hiệu lực). Người lập có quyền duyệt loại yêu cầu đó thì được tự duyệt, bắt buộc lý do. Từ chối thì người lập và người đại diện được báo | Đã duyệt (chờ hiệu lực) / Từ chối / Nháp. Duyệt: phụ lục Chờ ký (thay đổi nhỏ: Chờ hiệu lực); đổi giường thì giữ giường từ ngày hiệu lực | UC-14, 6.6, Q-10, Q-338, Q-418 |
-| 3a | Người đại diện, Hành chính | Ký phụ lục: Hành chính in phụ lục (giá trị trước, giá trị sau, đơn giá, ngày hiệu lực), người đại diện ký; Hành chính ghi nhận đã ký (ngày ký, người đại diện ký, bản scan). Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; không tính lùi. Chưa ký thì Hành chính được nhắc mỗi [1 ngày] (CFG-M02-17) | Phụ lục: Chờ ký → Chờ hiệu lực | Bộ luật Dân sự 2015 Điều 403; 6.3; Q-419 |
+| 3 | Quản lý viện; Hành chính (chỉ thay đổi nhỏ, Q-338) | Duyệt, Từ chối kèm lý do, hoặc Trả về nháp kèm lý do khi muốn sửa nội dung (không sửa trực tiếp; trả về thì xác nhận cũ bị bỏ). Hệ thống kiểm điều kiện của từng loại thay đổi và chặn khi đã có yêu cầu cùng loại Đã duyệt (chờ hiệu lực). Người lập có quyền duyệt loại yêu cầu đó thì được tự duyệt, bắt buộc lý do. Từ chối thì người lập và người đại diện được báo | Đã duyệt (chờ hiệu lực) / Từ chối / Nháp. Duyệt: phụ lục Chờ ký (thay đổi nhỏ: Chờ hiệu lực); đổi giường thì giữ giường từ ngày hiệu lực | UC-14, 6.6, Q-10, Q-338, Q-419 |
+| 3a | Người đại diện, Hành chính | Ký phụ lục: Hành chính in phụ lục (giá trị trước, giá trị sau, đơn giá, ngày hiệu lực), người đại diện ký; Hành chính ghi nhận đã ký (ngày ký, người đại diện ký, bản scan). Ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; không tính lùi. Chưa ký thì Hành chính được nhắc mỗi [1 ngày] (CFG-M02-17) | Phụ lục: Chờ ký → Chờ hiệu lực | Bộ luật Dân sự 2015 Điều 403; 6.3; Q-420 |
 | 4 | Bộ lập lịch | Tới ngày hiệu lực của phụ lục Chờ hiệu lực: áp dụng trong cùng một lần: đổi mức chăm sóc của hợp đồng, đổi dịch vụ chăm sóc sang dịch vụ của mức mới, đổi đơn giá từ ngày hiệu lực, chuyển giường, đổi ngày kết thúc, đổi dịch vụ đăng ký. Bỏ lỡ ngày thì áp dụng bù ở lần chạy kế tiếp. Điều kiện không còn thỏa thì Áp dụng không thành. Phụ lục còn Chờ ký thì không áp dụng, chờ bước 3a | Yêu cầu: Đã áp dụng / Áp dụng không thành. Phụ lục: Đã áp dụng / Không áp dụng | BR-M02-04, Q-11 |
-| 4a | Hệ thống | Báo mọi người đại diện (mức Nhẹ; loại thay đổi, ngày hiệu lực, không kèm giá) khi phụ lục Đã áp dụng. Áp dụng không thành thì báo người duyệt, người lập và người đại diện kèm lý do | — | Q-11, Q-421 |
-| 5 | Hệ thống | Báo Điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc xem xét kế hoạch, trừ khi đã có phiên bản kế hoạch lập sau lần báo ở bước 0. Không tạo yêu cầu, không có hạn | — | BR-M04-20, Q-306, Q-422 |
+| 4a | Hệ thống | Báo mọi người đại diện (mức Nhẹ; loại thay đổi, ngày hiệu lực, không kèm giá) khi phụ lục Đã áp dụng. Áp dụng không thành thì báo người duyệt, người lập và người đại diện kèm lý do | — | Q-11, Q-422 |
+| 5 | Hệ thống | Báo Điều dưỡng phụ trách và người có quyền Duyệt kế hoạch chăm sóc xem xét kế hoạch, trừ khi đã có phiên bản kế hoạch lập sau lần báo ở bước 0. Không tạo yêu cầu, không có hạn | — | BR-M04-20, Q-306, Q-423 |
 | 6 | Điều dưỡng; người có quyền Duyệt kế hoạch chăm sóc | Điều dưỡng quyết định lập phiên bản mới hay giữ kế hoạch hiện hành; phiên bản mới do người có quyền duyệt. Việc gấp trước khi phiên bản mới có hiệu lực thì dùng công việc phát sinh | Kế hoạch: Nháp → Chờ duyệt → Hiệu lực, từ ngày hôm sau ngày duyệt | BR-M04-19, Q-34 |
-| 7 | Người lập, Hành chính, Quản lý viện; Người đại diện | Hủy yêu cầu, bắt buộc lý do. Nháp, Chờ duyệt: người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu do mình gửi. Đã duyệt (chờ hiệu lực): người duyệt. Phụ lục Chờ ký, Chờ hiệu lực chuyển Đã hủy, giữ giường (nếu có) bị hủy. Người đại diện được báo | Yêu cầu: Hủy. Phụ lục: Đã hủy | 6.6, Q-420 |
+| 7 | Người lập, Hành chính, Quản lý viện; Người đại diện | Hủy yêu cầu, bắt buộc lý do. Nháp, Chờ duyệt: người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu do mình gửi. Đã duyệt (chờ hiệu lực): người duyệt. Phụ lục Chờ ký, Chờ hiệu lực chuyển Đã hủy, giữ giường (nếu có) bị hủy. Người đại diện được báo | Yêu cầu: Hủy. Phụ lục: Đã hủy | 6.6, Q-421 |
 
 **Nhánh ngoại lệ**
 
 | Tình huống | Vai trò | Xử lý | Căn cứ |
 | ---------- | ------- | ----- | ------ |
-| Gia đình không đồng ý đổi mức chăm sóc mà Bác sĩ đánh giá là cần | Hành chính; Bác sĩ | Hành chính ghi quyết định cho lần đánh giá lại: (a) giữ mức cũ của hợp đồng, kèm thỏa thuận lựa chọn có rủi ro đang hiệu lực (Bác sĩ đã xác nhận) và ngày xem lại; viện vẫn chăm sóc theo tình trạng thực; dừng nhắc CFG-M03-02; tới ngày xem lại thì nhắc Bác sĩ và Hành chính; (b) rời viện: dừng nhắc, Hành chính lập hồ sơ kết thúc lưu trú (BF-10). Đánh giá lại mới thì quyết định cũ hết tác dụng | 8.1, Q-349, Q-423 |
-| Người đại diện Không đồng ý ở 1b với thay đổi khác | Hành chính | Sửa rồi gửi lại, hoặc hủy (bước 7) | Q-415 |
-| Người đại diện không ký phụ lục sau khi đã xác nhận ý định | Hành chính; Quản lý viện | Phụ lục giữ Chờ ký, Hành chính được nhắc mỗi [1 ngày] (CFG-M02-17); quá [7 ngày] (CFG-M02-18) từ ngày duyệt thì báo Quản lý viện. Gia đình đổi ý thì hủy (bước 7); với đổi mức chăm sóc thì xử lý như dòng đầu | Q-419 |
-| Có nhiều người đại diện | Người đại diện; Hệ thống | Một người đại diện hiện tại xác nhận và ký là đủ; người đại diện khác được báo mức Nhẹ khi yêu cầu được gửi duyệt và khi phụ lục được áp dụng | Q-421 |
+| Gia đình không đồng ý đổi mức chăm sóc mà Bác sĩ đánh giá là cần | Hành chính; Bác sĩ | Hành chính ghi quyết định cho lần đánh giá lại: (a) giữ mức cũ của hợp đồng, kèm thỏa thuận lựa chọn có rủi ro đang hiệu lực (Bác sĩ đã xác nhận) và ngày xem lại; viện vẫn chăm sóc theo tình trạng thực; dừng nhắc CFG-M03-02; tới ngày xem lại thì nhắc Bác sĩ và Hành chính; (b) rời viện: dừng nhắc, Hành chính lập hồ sơ kết thúc lưu trú (BF-10). Đánh giá lại mới thì quyết định cũ hết tác dụng | 8.1, Q-349, Q-424 |
+| Người đại diện Không đồng ý ở 1b với thay đổi khác | Hành chính | Sửa rồi gửi lại, hoặc hủy (bước 7) | Q-416 |
+| Người đại diện không ký phụ lục sau khi đã xác nhận ý định | Hành chính; Quản lý viện | Phụ lục giữ Chờ ký, Hành chính được nhắc mỗi [1 ngày] (CFG-M02-17); quá [7 ngày] (CFG-M02-18) từ ngày duyệt thì báo Quản lý viện. Gia đình đổi ý thì hủy (bước 7); với đổi mức chăm sóc thì xử lý như dòng đầu | Q-420 |
+| Có nhiều người đại diện | Người đại diện; Hệ thống | Một người đại diện hiện tại xác nhận và ký là đủ; người đại diện khác được báo mức Nhẹ khi yêu cầu được gửi duyệt và khi phụ lục được áp dụng | Q-422 |
 | Đánh giá lại mới ra mức khác khi yêu cầu đổi mức chưa áp dụng | Hệ thống; Hành chính | Yêu cầu cũ chuyển Được thay thế, phụ lục cũ (nếu có) Không áp dụng; Hành chính được báo lập yêu cầu mới | 6.6, BR-M01-03 |
-| Viện phải chuyển giường gấp vì lý do vận hành hoặc an toàn | Hành chính, Trưởng tầng | Chuyển giường trực tiếp theo 7.4, không qua BF-08. Giường mới đơn giá cao hơn: tới khi phụ lục đổi phòng được áp dụng, phí tính theo đơn giá cũ; thấp hơn thì tính giá mới từ ngày chuyển. Hành chính lập yêu cầu đổi phòng nếu người cao tuổi ở lâu dài tại giường mới | 7.4, Q-306, Q-423 |
+| Viện phải chuyển giường gấp vì lý do vận hành hoặc an toàn | Hành chính, Trưởng tầng | Chuyển giường trực tiếp theo 7.4, không qua BF-08. Giường mới đơn giá cao hơn: tới khi phụ lục đổi phòng được áp dụng, phí tính theo đơn giá cũ; thấp hơn thì tính giá mới từ ngày chuyển. Hành chính lập yêu cầu đổi phòng nếu người cao tuổi ở lâu dài tại giường mới | 7.4, Q-306, Q-424 |
 | Người cao tuổi chuyển trạng thái cuối khi yêu cầu chưa áp dụng | Hệ thống | Yêu cầu Nháp, Chờ duyệt chuyển Hủy; Đã duyệt chuyển Áp dụng không thành; phụ lục Chờ ký, Chờ hiệu lực chuyển Không áp dụng | 6.6 |
 | Đổi loại lưu trú từ bán trú sang nội trú | Hành chính; Hệ thống | Yêu cầu kèm giường mới. Khi phần nội trú có hiệu lực, Hành chính được nhắc lập khai báo tạm trú, lưu trú "Cần khai báo" như BF-01 bước 15a | BR-M02-11, Q-286, Q-336 |
 
@@ -469,23 +469,23 @@ Khởi phát: người đại diện đề nghị thay đổi, Bác sĩ đánh g
 
 ---
 
-## Phụ lục B – Dòng Q-414 → Q-425 (thêm vào cuối bảng 24.2 của `nghiep-vu.md`)
+## Phụ lục B – Dòng Q-415 → Q-426 (thêm vào cuối bảng 24.2 của `nghiep-vu.md`)
 
 Định dạng cột theo bảng hiện có: `| Mã | Câu hỏi | Quyết định | Mục liên quan | Feature |`. Ghi "Chủ dự án 2026-11-20".
 
 | Mã | Câu hỏi | Quyết định | Mục | Feature |
 | -- | ------- | ---------- | --- | ------- |
-| Q-414 | Yêu cầu thay đổi lưu trú do viện lập có cần ý kiến người đại diện trước khi duyệt | Có, trừ thay đổi nhỏ: Hành chính xác nhận với người đại diện (gặp, gọi điện, tin nhắn) kèm bằng chứng trước khi gửi Quản lý viện duyệt; yêu cầu người đại diện tự gửi qua cổng không cần | 6.6 | 004 |
-| Q-415 | Người đại diện xác nhận trên ứng dụng được không | Được: Hành chính gửi xác nhận, người đại diện xem chi phí rồi Đồng ý hoặc Không đồng ý kèm lý do; Đồng ý thay cho xác nhận kèm bằng chứng; quá CFG-M15-05 nhắc một lần, không tự hủy | 6.6 | 004, 012 |
-| Q-416 | Có ghi ý kiến người cao tuổi về thay đổi lưu trú không | Có, mục riêng, có nguồn; không chặn gửi duyệt; "Không đồng ý" thì gửi duyệt bắt buộc lý do; thay đổi nhỏ không cần | 6.6, 1.3, BR-M01-14, 15 | 004 |
-| Q-417 | Sửa yêu cầu sau khi người đại diện đã xác nhận, hoặc Hành chính sửa yêu cầu người đại diện gửi qua cổng | Đổi phần thực chất (loại, giá trị mới, ngày hiệu lực, giường, lịch đến, dịch vụ) thì phải xác nhận lại; đổi ghi chú, tệp thì không | 6.6 | 004 |
-| Q-418 | Người duyệt muốn sửa nội dung yêu cầu | Không sửa trực tiếp; có lệnh Trả về nháp (Chờ duyệt → Nháp, bắt buộc lý do), xác nhận cũ bị bỏ | 6.6 | 000, 004 |
-| Q-419 | Phụ lục có cần ký trước khi áp dụng | Có, trừ thay đổi nhỏ: duyệt tạo phụ lục Chờ ký; Hành chính ghi nhận ngày ký, người đại diện ký, bản scan thì phụ lục Chờ hiệu lực; chưa ký không áp dụng; ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; nhắc theo CFG-M02-17, báo Quản lý viện theo CFG-M02-18 | 6.6, Phụ lục 25 | 000, 004 |
-| Q-420 | Ai hủy yêu cầu thay đổi lưu trú, phụ lục của yêu cầu bị hủy thế nào | Nháp, Chờ duyệt: người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu mình gửi; Đã duyệt: người duyệt. Phụ lục Chờ ký, Chờ hiệu lực chuyển Đã hủy, giữ giường bị hủy | 6.6 | 000, 004 |
-| Q-421 | Người cao tuổi có nhiều người đại diện | Một người xác nhận và ký là đủ; người đại diện khác được báo mức Nhẹ khi gửi duyệt và khi áp dụng; báo người đại diện khi yêu cầu bị từ chối, hủy, áp dụng không thành | 6.6 | 004, 009 |
-| Q-422 | Khi nào báo Điều dưỡng xem xét kế hoạch chăm sóc khi đổi mức | Ngay khi xác nhận đánh giá lại; phụ lục đổi mức áp dụng không báo lại nếu đã có phiên bản kế hoạch lập sau lần báo đó; chi phí vẫn theo mức của hợp đồng tới khi phụ lục áp dụng | BR-M01-03, BR-M04-20 | 001, 005 |
-| Q-423 | (a) Gia đình không đồng ý đổi mức theo đánh giá lại; (b) dừng nhắc lập yêu cầu đổi mức; (c) chênh lệch giá khi chuyển giường gấp | (a) Hành chính ghi quyết định: giữ mức cũ kèm thỏa thuận lựa chọn có rủi ro và ngày xem lại, hoặc rời viện (BF-10); (b) có quyết định thì dừng nhắc CFG-M03-02, đánh giá lại mới thì nhắc lại; (c) giường mới đắt hơn: tính giá cũ tới khi phụ lục đổi phòng áp dụng; rẻ hơn: giá mới từ ngày chuyển | 7.4, 8.1, CFG-M03-02 | 001, 004, 005, 010 |
-| Q-425 | Loại dịch vụ nào được thêm vào hợp đồng qua yêu cầu thay đổi lưu trú | Chỉ phục hồi chức năng, hoạt động đăng ký dài hạn, đưa đi khám, tiêm theo y lệnh (dịch vụ đi kèm đăng ký riêng, 6.4). Dịch vụ chăm sóc đổi qua mức chăm sóc; phí lưu trú qua giường; buổi bán trú qua loại lưu trú, lịch đến; suất ăn, người thân ở lại, thuốc nguồn viện, vật phẩm tiêu hao, vật tư y tế đi theo luồng riêng (15.2, BF-12, BR-M07-14, UC-79), không đăng ký trong hợp đồng. Bớt được mọi dòng đang có. Dịch vụ thuộc gói thì công việc, điểm danh không sinh phí riêng; ngoài gói tính theo lần | 6.4, 6.6, 15.2 | 004 |
+| Q-415 | Yêu cầu thay đổi lưu trú do viện lập có cần ý kiến người đại diện trước khi duyệt | Có, trừ thay đổi nhỏ: Hành chính xác nhận với người đại diện (gặp, gọi điện, tin nhắn) kèm bằng chứng trước khi gửi Quản lý viện duyệt; yêu cầu người đại diện tự gửi qua cổng không cần | 6.6 | 004 |
+| Q-416 | Người đại diện xác nhận trên ứng dụng được không | Được: Hành chính gửi xác nhận, người đại diện xem chi phí rồi Đồng ý hoặc Không đồng ý kèm lý do; Đồng ý thay cho xác nhận kèm bằng chứng; quá CFG-M15-05 nhắc một lần, không tự hủy | 6.6 | 004, 012 |
+| Q-417 | Có ghi ý kiến người cao tuổi về thay đổi lưu trú không | Có, mục riêng, có nguồn; không chặn gửi duyệt; "Không đồng ý" thì gửi duyệt bắt buộc lý do; thay đổi nhỏ không cần | 6.6, 1.3, BR-M01-14, 15 | 004 |
+| Q-418 | Sửa yêu cầu sau khi người đại diện đã xác nhận, hoặc Hành chính sửa yêu cầu người đại diện gửi qua cổng | Đổi phần thực chất (loại, giá trị mới, ngày hiệu lực, giường, lịch đến, dịch vụ) thì phải xác nhận lại; đổi ghi chú, tệp thì không | 6.6 | 004 |
+| Q-419 | Người duyệt muốn sửa nội dung yêu cầu | Không sửa trực tiếp; có lệnh Trả về nháp (Chờ duyệt → Nháp, bắt buộc lý do), xác nhận cũ bị bỏ | 6.6 | 000, 004 |
+| Q-420 | Phụ lục có cần ký trước khi áp dụng | Có, trừ thay đổi nhỏ: duyệt tạo phụ lục Chờ ký; Hành chính ghi nhận ngày ký, người đại diện ký, bản scan thì phụ lục Chờ hiệu lực; chưa ký không áp dụng; ngày hiệu lực thực tế là ngày muộn nhất trong ngày mong muốn, ngày duyệt, ngày ký; nhắc theo CFG-M02-17, báo Quản lý viện theo CFG-M02-18 | 6.6, Phụ lục 25 | 000, 004 |
+| Q-421 | Ai hủy yêu cầu thay đổi lưu trú, phụ lục của yêu cầu bị hủy thế nào | Nháp, Chờ duyệt: người lập, Hành chính, Quản lý viện; người đại diện chỉ hủy yêu cầu mình gửi; Đã duyệt: người duyệt. Phụ lục Chờ ký, Chờ hiệu lực chuyển Đã hủy, giữ giường bị hủy | 6.6 | 000, 004 |
+| Q-422 | Người cao tuổi có nhiều người đại diện | Một người xác nhận và ký là đủ; người đại diện khác được báo mức Nhẹ khi gửi duyệt và khi áp dụng; báo người đại diện khi yêu cầu bị từ chối, hủy, áp dụng không thành | 6.6 | 004, 009 |
+| Q-423 | Khi nào báo Điều dưỡng xem xét kế hoạch chăm sóc khi đổi mức | Ngay khi xác nhận đánh giá lại; phụ lục đổi mức áp dụng không báo lại nếu đã có phiên bản kế hoạch lập sau lần báo đó; chi phí vẫn theo mức của hợp đồng tới khi phụ lục áp dụng | BR-M01-03, BR-M04-20 | 001, 005 |
+| Q-424 | (a) Gia đình không đồng ý đổi mức theo đánh giá lại; (b) dừng nhắc lập yêu cầu đổi mức; (c) chênh lệch giá khi chuyển giường gấp | (a) Hành chính ghi quyết định: giữ mức cũ kèm thỏa thuận lựa chọn có rủi ro và ngày xem lại, hoặc rời viện (BF-10); (b) có quyết định thì dừng nhắc CFG-M03-02, đánh giá lại mới thì nhắc lại; (c) giường mới đắt hơn: tính giá cũ tới khi phụ lục đổi phòng áp dụng; rẻ hơn: giá mới từ ngày chuyển | 7.4, 8.1, CFG-M03-02 | 001, 004, 005, 010 |
+| Q-426 | Loại dịch vụ nào được thêm vào hợp đồng qua yêu cầu thay đổi lưu trú | Chỉ phục hồi chức năng, hoạt động đăng ký dài hạn, đưa đi khám, tiêm theo y lệnh (dịch vụ đi kèm đăng ký riêng, 6.4). Dịch vụ chăm sóc đổi qua mức chăm sóc; phí lưu trú qua giường; buổi bán trú qua loại lưu trú, lịch đến; suất ăn, người thân ở lại, thuốc nguồn viện, vật phẩm tiêu hao, vật tư y tế đi theo luồng riêng (15.2, BF-12, BR-M07-14, UC-79), không đăng ký trong hợp đồng. Bớt được mọi dòng đang có. Dịch vụ thuộc gói thì công việc, điểm danh không sinh phí riêng; ngoài gói tính theo lần | 6.4, 6.6, 15.2 | 004 |
 
 ---
 

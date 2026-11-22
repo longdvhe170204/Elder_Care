@@ -2,7 +2,6 @@ package com.eldercare.backend.notification.internal.inbox.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.FieldVisibilityApi;
-import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
@@ -72,7 +71,6 @@ public class InboxService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<ScopeApi> scope;
-    private final ObjectProvider<PermissionApi> permissions;
     private final ObjectProvider<FieldVisibilityApi> fields;
     private final ObjectProvider<FamilyNotificationPort> family;
     private final ResidentFacts facts;
@@ -86,7 +84,6 @@ public class InboxService {
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<ScopeApi> scope,
-            ObjectProvider<PermissionApi> permissions,
             ObjectProvider<FieldVisibilityApi> fields,
             ObjectProvider<FamilyNotificationPort> family,
             ResidentFacts facts) {
@@ -98,7 +95,6 @@ public class InboxService {
         this.time = time;
         this.currentUser = currentUser;
         this.scope = scope;
-        this.permissions = permissions;
         this.fields = fields;
         this.family = family;
         this.facts = facts;
@@ -213,12 +209,19 @@ public class InboxService {
         };
     }
 
+    private static final PermissionKey RESIDENT_PROFILE_VIEW =
+            new PermissionKey(Function.RESIDENT_PROFILE, Operation.VIEW);
+
     private Set<InformationType> staffAllowed(CurrentUser user, InboxItem row, Set<InformationType> allowed) {
         if (row.residentId() == null) {
             return allowed;
         }
         Target target = new Target("M13.NOTIFICATION", Long.toString(row.id()), row.residentId(), row.floorAreaId());
-        if (!inScope(user, target)) {
+        // Phạm vi của 002 (FR-034): vai trò Toàn viện ở Hồ sơ người cao tuổi (Phụ lục 27) trong phạm vi mọi người cao
+        // tuổi; vai trò theo phân công thì theo phân công hiện hành (chủ dự án chốt 2026-11-21)
+        ScopeApi scopes = scope.getObject();
+        boolean facilityWide = scopes.filter(user, RESIDENT_PROFILE_VIEW).facilityWide();
+        if (!facilityWide && !scopes.inScope(user, target)) {
             return EnumSet.noneOf(InformationType.class);
         }
         FieldVisibilityApi visibility = fields.getObject();
@@ -229,22 +232,6 @@ public class InboxService {
             allowed.remove(InformationType.COSTS);
         }
         return allowed;
-    }
-
-    /**
-     * Phạm vi của nhân viên theo 002 (FR-034): phân công tầng, phòng, ca, hoặc quyền xem hồ sơ người cao tuổi trong phạm vi
-     * vai trò (Quản lý viện, Hành chính, Bác sĩ toàn viện). Chỉ xét phân công thì vai trò toàn viện không được phân tầng
-     * luôn bị ẩn nội dung.
-     */
-    private boolean inScope(CurrentUser user, Target target) {
-        if (scope.getObject().inScope(user, target)) {
-            return true;
-        }
-        PermissionApi permission = permissions.getIfAvailable();
-        return permission != null
-                && permission
-                        .hasPermission(user, new PermissionKey(Function.RESIDENT_PROFILE, Operation.VIEW), target)
-                        .allowed();
     }
 
     /** Người thân: quan hệ còn hiệu lực, quyền hiện hành và bản đồng ý Hiệu lực hiện hành (FR-013, DBR-03). */

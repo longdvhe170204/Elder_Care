@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Quyết định khi gia đình không đồng ý đổi mức chăm sóc theo lần đánh giá lại (001 FR-036b, Q-423; plan-bf08 Bước 6):
+ * Quyết định khi gia đình không đồng ý đổi mức chăm sóc theo lần đánh giá lại (001 FR-036b, Q-424; plan-bf08 Bước 6):
  * Hành chính ghi giữ mức cũ (kèm thỏa thuận lựa chọn có rủi ro đang hiệu lực, ngày xem lại) hoặc rời viện. Có quyết định
  * thì nhắc lập yêu cầu đổi mức (CFG-M03-02) của lần đánh giá đó dừng ({@link CareLevelChangeRequestReminderService}); rời
  * viện thì Hành chính được báo lập hồ sơ kết thúc lưu trú, hệ thống không tự lập (Q-306). Quyết định gắn lần đánh giá nên
@@ -186,7 +186,7 @@ public class CareLevelChangeDecisionService {
         return sent;
     }
 
-    /** Lần đánh giá đã có quyết định thì dừng nhắc lập yêu cầu đổi mức của lần đó (Q-423 (b)). */
+    /** Lần đánh giá đã có quyết định thì dừng nhắc lập yêu cầu đổi mức của lần đó (Q-424 (b)). */
     boolean decided(long assessmentId) {
         return decisions.existsFor(assessmentId);
     }

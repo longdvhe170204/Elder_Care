@@ -319,7 +319,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     }
 
     /**
-     * Trả về nháp (000 FR-041a (1); Q-418): loại yêu cầu phải cho phép; cùng quyền như Duyệt; bắt buộc lý do. Handler
+     * Trả về nháp (000 FR-041a (1); Q-419): loại yêu cầu phải cho phép; cùng quyền như Duyệt; bắt buộc lý do. Handler
      * được báo trong transaction của lệnh.
      */
     @BusinessCommand(requiresReason = true)

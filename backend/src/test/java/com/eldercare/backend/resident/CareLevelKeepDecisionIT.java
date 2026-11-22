@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 /**
- * 001 FR-036b (Q-423, R13; plan-bf08 Bước 6): gia đình không đồng ý đổi mức. Giữ mức cũ cần thỏa thuận lựa chọn có rủi ro
+ * 001 FR-036b (Q-424, R13; plan-bf08 Bước 6): gia đình không đồng ý đổi mức. Giữ mức cũ cần thỏa thuận lựa chọn có rủi ro
  * đang hiệu lực và ngày xem lại; có quyết định thì dừng nhắc lập yêu cầu đổi mức; tới ngày xem lại nhắc Bác sĩ, Hành
  * chính một lần; đánh giá lại mới thì nhắc lại. Rời viện thì báo Hành chính lập hồ sơ kết thúc lưu trú.
  */

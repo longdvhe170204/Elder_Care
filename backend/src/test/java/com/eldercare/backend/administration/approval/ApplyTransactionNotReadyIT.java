@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 /**
- * Hoãn áp dụng (000 FR-041a (2); Q-419): yêu cầu Đã duyệt mà loại báo chưa sẵn sàng thì Bộ lập lịch bỏ qua, giữ Đã duyệt,
+ * Hoãn áp dụng (000 FR-041a (2); Q-420): yêu cầu Đã duyệt mà loại báo chưa sẵn sàng thì Bộ lập lịch bỏ qua, giữ Đã duyệt,
  * không Áp dụng không thành, không nhật ký lỗi; sẵn sàng thì lần chạy sau áp dụng bù.
  */
 class ApplyTransactionNotReadyIT extends ApprovalTestBase {

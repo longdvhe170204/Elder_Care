@@ -12,7 +12,7 @@ import java.util.Map;
 import tools.jackson.databind.JsonNode;
 
 /**
- * Dấu SHA-256 phần thực chất của yêu cầu thay đổi lưu trú (Q-416, Q-417; R12, R18): loại thay đổi, giá trị mới (mức, loại
+ * Dấu SHA-256 phần thực chất của yêu cầu thay đổi lưu trú (Q-417, Q-418; R12, R18): loại thay đổi, giá trị mới (mức, loại
  * lưu trú, giường, lịch đến, dịch vụ, thời hạn) và ngày hiệu lực mong muốn. Ghi chú, lý do, tệp, xác nhận không thuộc
  * phần thực chất. Khóa đối tượng JSON được sắp, nên thứ tự trường không làm đổi dấu.
  */

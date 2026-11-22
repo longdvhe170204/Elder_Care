@@ -75,7 +75,7 @@ class CarePlanReviewListener implements CarePlanReviewApi {
     }
 
     /**
-     * Phụ lục đổi mức được áp dụng (BR-M04-20, Q-422): Điều dưỡng đã được báo ngay khi Bác sĩ xác nhận lần đánh giá lại ra
+     * Phụ lục đổi mức được áp dụng (BR-M04-20, Q-423): Điều dưỡng đã được báo ngay khi Bác sĩ xác nhận lần đánh giá lại ra
      * mức khác ({@link #onAssessment}); đã có phiên bản kế hoạch (không tính bản Đã hủy) lập sau lần xác nhận đó thì không
      * báo lần nữa, chưa có thì báo như cũ.
      */

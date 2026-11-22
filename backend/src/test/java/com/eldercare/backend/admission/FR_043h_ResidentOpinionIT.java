@@ -19,7 +19,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * FR-043h (Q-416, R11, R18): ý kiến người cao tuổi ghi riêng, có nguồn; thiếu ý kiến không chặn gửi duyệt nhưng có cảnh báo;
+ * FR-043h (Q-417, R11, R18): ý kiến người cao tuổi ghi riêng, có nguồn; thiếu ý kiến không chặn gửi duyệt nhưng có cảnh báo;
  * ý kiến Không đồng ý thì gửi duyệt bắt buộc lý do; thay đổi nhỏ không cảnh báo; đổi phần thực chất sau khi ghi ý kiến thì
  * cảnh báo ý kiến đã cũ, chỉ đổi lý do thì không.
  */

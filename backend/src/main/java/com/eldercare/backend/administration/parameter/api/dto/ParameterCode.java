@@ -38,9 +38,9 @@ public enum ParameterCode {
     CFG_M02_12,
     /** Nhắc gia hạn tạm trú trước ngày hết hạn (mặc định: 30 ngày) */
     CFG_M02_13,
-    /** Chu kỳ nhắc ghi nhận phụ lục đã ký (mặc định: 1 ngày; Q-419) */
+    /** Chu kỳ nhắc ghi nhận phụ lục đã ký (mặc định: 1 ngày; Q-420) */
     CFG_M02_17,
-    /** Báo Quản lý viện khi phụ lục chưa ký sau ngày duyệt (mặc định: 7 ngày; Q-419) */
+    /** Báo Quản lý viện khi phụ lục chưa ký sau ngày duyệt (mặc định: 7 ngày; Q-420) */
     CFG_M02_18,
     /** Sức chứa khu nghỉ bán trú mỗi buổi (mặc định: Theo cơ sở) */
     CFG_M03_01,

@@ -43,8 +43,8 @@ paths:
       tags: [residence-registrations]
       summary: Lệnh trên khai báo theo bảng FR-005
       description: |
-        confirm-local-permanent-resident (basisNote; khi Cần khai báo), record-submitted (ngày, kênh, cơ quan, mã hồ sơ),
-        record-accepted (bằng chứng; ngày hết hạn với Đăng ký tạm trú), record-rejected (lý do),
+        confirm-local-permanent-resident (basisNote; khi Cần khai báo), record-accepted (ghi đã tiếp nhận, Q-414: Cần khai báo
+        → Đã xác nhận; ảnh bằng chứng; ngày hết hạn với Đăng ký tạm trú; khai báo Đã nộp của dữ liệu cũ cũng được),
         record-deregistered (bằng chứng; người đã Kết thúc lưu trú hoặc Qua đời; được khi hồ sơ ở trạng thái cuối).
         Một thủ tục khai báo xóa theo người (A duyệt 2026-11-05): ghi trên một khai báo thì mọi khai báo Đã xác nhận, Hết hạn
         của người đó cùng chuyển Đã xóa với một bằng chứng.
@@ -53,7 +53,7 @@ paths:
       x-br: [BR-M02-11, BR-M02-13]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: command, in: path, required: true, schema: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [confirm-local-permanent-resident, record-accepted, record-deregistered] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RegistrationCommand' } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Conflict' }, '422': { $ref: '#/components/responses/Problem' } }
@@ -70,7 +70,7 @@ components:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
     Conflict:
-      description: 'STATE_CHANGED, NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS, NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED'
+      description: 'STATE_CHANGED, NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS, NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
     Problem:
@@ -97,13 +97,13 @@ components:
         type: { type: string, enum: [TEMPORARY_RESIDENCE_REGISTRATION, STAY_NOTIFICATION] }
         renewal: { type: boolean }
         dueAt: { type: string, format: date-time }
-        status: { type: string, enum: [TO_SUBMIT, SUBMITTED, CONFIRMED, EXPIRED, DEREGISTERED, SUPERSEDED, CANCELLED] }
+        status: { type: string, description: 'SUBMITTED chỉ còn ở dữ liệu trước Q-414', enum: [TO_SUBMIT, SUBMITTED, CONFIRMED, EXPIRED, DEREGISTERED, SUPERSEDED, CANCELLED] }
         expiryDate: { type: string, format: date }
         evidenceFileId: { type: integer, format: int64, description: 'Tệp bằng chứng của kết quả được chấp nhận (mở bằng GET /files/{id})' }
         localPermanentResident: { type: boolean }
         basisNote: { type: string, description: 'Căn cứ xác nhận thường trú cùng xã/phường' }
-        allowedCommands: { type: array, description: 'Lệnh còn làm được theo trạng thái (chưa xét quyền)', items: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } }
-        submissions: { type: array, items: { $ref: '#/components/schemas/RegistrationSubmission' } }
+        allowedCommands: { type: array, description: 'Lệnh còn làm được theo trạng thái (chưa xét quyền)', items: { type: string, enum: [confirm-local-permanent-resident, record-accepted, record-deregistered] } }
+        submissions: { type: array, readOnly: true, description: 'Các lần nộp ghi trước Q-414 (chỉ đọc); khai báo mới không có', items: { $ref: '#/components/schemas/RegistrationSubmission' } }
     RegistrationSubmission:
       type: object
       properties:
@@ -117,15 +117,10 @@ components:
         recordedAt: { type: string, format: date-time }
     RegistrationTask:
       type: object
-      properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, taskType: { type: string, enum: [TO_CREATE, OVERDUE, EXPIRING_SOON, EXPIRED, TO_DEREGISTER] }, dueAt: { type: string, format: date-time }, registrationId: { type: integer, format: int64 }, allowedCommands: { type: array, items: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } } }
+      properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, taskType: { type: string, enum: [TO_CREATE, OVERDUE, EXPIRING_SOON, EXPIRED, TO_DEREGISTER] }, dueAt: { type: string, format: date-time }, registrationId: { type: integer, format: int64 }, allowedCommands: { type: array, items: { type: string, enum: [confirm-local-permanent-resident, record-accepted, record-deregistered] } } }
     RegistrationCommand:
       type: object
       properties:
         basisNote: { type: string }
-        submittedDate: { type: string, format: date }
-        channel: { type: string, enum: [PUBLIC_SERVICE_PORTAL, IN_PERSON] }
-        receivingAuthority: { type: string }
-        dossierCode: { type: string }
         evidenceFileId: { type: integer, format: int64 }
         expiryDate: { type: string, format: date }
-        reason: { type: string }

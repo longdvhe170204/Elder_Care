@@ -1,5 +1,6 @@
 package com.eldercare.backend.admission;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -101,12 +102,6 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                 .content(body));
     }
 
-    private static String submittedBody(LocalDate date) {
-        return """
-                {"submittedDate":"%s","channel":"PUBLIC_SERVICE_PORTAL","receivingAuthority":"Công an phường X",\
-                "dossierCode":"G22.%s"}""".formatted(date, UUID.randomUUID().toString().substring(0, 8));
-    }
-
     private static String acceptedBody(Long evidenceFileId, LocalDate expiryDate) {
         StringBuilder body = new StringBuilder("{");
         if (evidenceFileId != null) {
@@ -119,11 +114,6 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                     .append('"');
         }
         return body.append('}').toString();
-    }
-
-    private void submit(ResidenceRegistration registration) throws Exception {
-        command(office, registration.id(), "record-submitted", submittedBody(today()))
-                .andExpect(status().isOk());
     }
 
     private List<Map<String, Object>> submissions(long registrationId) {
@@ -143,7 +133,7 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
         return content.hasNonNull(field) ? content.get(field).asLong() : null;
     }
 
-    // ---- Q7: ghi đã nộp, ghi được chấp nhận ------------------------------------------------------------------------
+    // ---- Q7: ghi đã tiếp nhận (Q-414) ------------------------------------------------------------------------------
 
     @Test
     void Q7_accepted_exposesEvidenceFileId_onTheRegistration() throws Exception {
@@ -155,7 +145,6 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                 .andExpect(jsonPath("$[?(@.id == %d)].evidenceFileId".formatted(registration.id()))
                         .isEmpty());
 
-        submit(registration);
         long evidence = evidence();
         command(office, registration.id(), "record-accepted", acceptedBody(evidence, today().plusYears(1)))
                 .andExpect(status().isOk());
@@ -167,9 +156,46 @@ class RegistrationSubmissionResultIT extends RegistrationTestBase {
                         .value(org.hamcrest.Matchers.contains((int) evidence)));
     }
 
-    // ---- Q8: chưa ghi nộp -------------------------------------------------------------------------------------
+    @Test
+    void Q414_acceptedDirectlyFromToSubmit_confirmsAndStopsOverdueReminders() throws Exception {
+        ResidenceRegistration registration = created();
+        assertThat(registrations.allowedCommands(registration))
+                .contains(ResidenceRegistrationService.RECORD_ACCEPTED)
+                .doesNotContain("record-submitted", "record-rejected");
 
-    // ---- Q9: bị từ chối ---------------------------------------------------------------------------------------
+        command(office, registration.id(), "record-accepted", acceptedBody(evidence(), today().plusYears(1)))
+                .andExpect(status().isOk());
+
+        assertThat(statusOf(registration.id())).isEqualTo("CONFIRMED");
+        assertThat(obligations(registration.residentId()))
+                .extracting(o -> o.get("submitted"))
+                .containsOnly(true);
+    }
+
+    @Test
+    void Q414_acceptedWithoutEvidenceOrExpiry_isBlocked() throws Exception {
+        ResidenceRegistration registration = created();
+
+        command(office, registration.id(), "record-accepted", acceptedBody(null, today().plusYears(1)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("EVIDENCE_REQUIRED"));
+        command(office, registration.id(), "record-accepted", acceptedBody(evidence(), null))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("EXPIRY_DATE_REQUIRED"));
+        assertThat(statusOf(registration.id())).isEqualTo("TO_SUBMIT");
+    }
+
+    @Test
+    void Q414_submittedAndRejectedCommands_areNoLongerAccepted() throws Exception {
+        ResidenceRegistration registration = created();
+
+        command(office, registration.id(), "record-submitted", "{}")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_COMMAND"));
+        command(office, registration.id(), "record-rejected", "{\"reason\":\"thiếu giấy tờ\"}")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_COMMAND"));
+    }
 
     // ---- Thay thế khai báo Đã xác nhận cũ (FR-005, DBR-33) ------------------------------------------------------
 

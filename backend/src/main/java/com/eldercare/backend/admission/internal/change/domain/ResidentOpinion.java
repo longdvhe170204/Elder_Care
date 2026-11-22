@@ -3,7 +3,7 @@ package com.eldercare.backend.admission.internal.change.domain;
 import java.time.Instant;
 
 /**
- * Ý kiến của chính người cao tuổi về một yêu cầu thay đổi lưu trú (FR-043h, Q-416): mục riêng với xác nhận người đại diện,
+ * Ý kiến của chính người cao tuổi về một yêu cầu thay đổi lưu trú (FR-043h, Q-417): mục riêng với xác nhận người đại diện,
  * có nguồn; chỉ thêm, bản mới nhất là hiện hành. {@code contentDigest} là dấu nội dung thực chất của yêu cầu lúc ghi (R18).
  */
 public record ResidentOpinion(

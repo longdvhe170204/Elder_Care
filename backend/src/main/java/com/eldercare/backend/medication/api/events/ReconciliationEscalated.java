@@ -18,7 +18,7 @@ import java.util.Optional;
 
 /**
  * Phiếu đối chiếu thuốc quá CFG-M07-10 (8 giờ) chưa được xác nhận: báo thêm Trưởng tầng và Quản lý viện (BR-M07-29,
- * Q-430). Mức Trung bình vì hệ thống chỉ có ba mức độ (9.3).
+ * Q-431). Mức Trung bình vì hệ thống chỉ có ba mức độ (9.3).
  */
 public record ReconciliationEscalated(long ticketId, long residentId, Long floorAreaId, Instant occurredAt)
         implements HasNotificationRequests {

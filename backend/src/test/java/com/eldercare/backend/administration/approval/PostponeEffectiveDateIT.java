@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Dời ngày hiệu lực thực tế của yêu cầu Đã duyệt (000 FR-041a (3); Q-419): chỉ sang ngày muộn hơn, ghi nhật ký; ngày
+ * Dời ngày hiệu lực thực tế của yêu cầu Đã duyệt (000 FR-041a (3); Q-420): chỉ sang ngày muộn hơn, ghi nhật ký; ngày
  * sớm hơn hoặc bằng thì bỏ qua; yêu cầu không ở Đã duyệt thì 409; tới ngày cũ không áp dụng, tới ngày mới thì áp dụng.
  */
 class PostponeEffectiveDateIT extends ApprovalTestBase {

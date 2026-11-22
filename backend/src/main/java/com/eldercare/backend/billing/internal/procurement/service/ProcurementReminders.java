@@ -76,7 +76,7 @@ public class ProcurementReminders {
                     "PROCUREMENT_RECONCILIATION_OVERDUE",
                     "Yêu cầu mua sắm #" + row.id() + " chờ đối chiếu quá hạn",
                     ProcurementNotices.accountant());
-        // BR-M11-22 (Q-434): yêu cầu thuốc mức Gấp chờ Quản lý viện duyệt quá CFG-M11-12 thì báo Quản lý viện
+        // BR-M11-22 (Q-435): yêu cầu thuốc mức Gấp chờ Quản lý viện duyệt quá CFG-M11-12 thì báo Quản lý viện
         for (var row : store.urgentMedicationWaitingApproval(
                 now.minus(parameters.read(ParameterCode.CFG_M11_12).asDuration())))
             count += remind(

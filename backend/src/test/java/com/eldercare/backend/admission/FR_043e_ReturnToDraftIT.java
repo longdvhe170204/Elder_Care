@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
 
 /**
- * FR-043e (Q-418, R8): Quản lý viện trả yêu cầu Chờ duyệt về Nháp kèm lý do; xác nhận người đại diện cũ bị bỏ, gửi duyệt
+ * FR-043e (Q-419, R8): Quản lý viện trả yêu cầu Chờ duyệt về Nháp kèm lý do; xác nhận người đại diện cũ bị bỏ, gửi duyệt
  * lại thì bị chặn tới khi xác nhận lại; người lập và Hành chính được báo. Hành chính không trả về được yêu cầu không phải
  * thay đổi nhỏ (không có quyền duyệt yêu cầu đó).
  */

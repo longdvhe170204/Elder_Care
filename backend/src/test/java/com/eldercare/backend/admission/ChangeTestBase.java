@@ -98,7 +98,7 @@ abstract class ChangeTestBase extends ContractTestBase {
 
     /**
      * Xác nhận gặp trực tiếp người đại diện ngày {@code on}, kèm tệp bằng chứng mới; người đã xác nhận là người đại diện
-     * của người cao tuổi dựng gần nhất bằng {@link #activeSetup()} (Q-414).
+     * của người cao tuổi dựng gần nhất bằng {@link #activeSetup()} (Q-415).
      */
     protected ObjectNode confirmation(LocalDate on) {
         return confirmation(on, lastRepresentative);

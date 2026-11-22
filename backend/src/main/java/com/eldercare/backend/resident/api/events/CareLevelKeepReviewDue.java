@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Tới ngày xem lại quyết định giữ mức chăm sóc cũ khi gia đình không đồng ý đổi mức (001 FR-036b, Q-423): nhắc Bác sĩ và
+ * Tới ngày xem lại quyết định giữ mức chăm sóc cũ khi gia đình không đồng ý đổi mức (001 FR-036b, Q-424): nhắc Bác sĩ và
  * Hành chính một lần, mức Nhẹ.
  */
 public record CareLevelKeepReviewDue(long residentId, long decisionId, Instant at) implements HasNotificationRequests {

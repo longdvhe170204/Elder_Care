@@ -137,7 +137,7 @@ class ResidencyChangeRequestController {
                 .body(ResidencyChangeRequestBody.of(view));
     }
 
-    /** Ghi nhận phụ lục đã ký (FR-043d, Q-419): phụ lục Chờ ký → Chờ hiệu lực; ký muộn thì dời ngày hiệu lực. */
+    /** Ghi nhận phụ lục đã ký (FR-043d, Q-420): phụ lục Chờ ký → Chờ hiệu lực; ký muộn thì dời ngày hiệu lực. */
     @PostMapping("/residency-change-requests/{id}/addendum-signature")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Đã ghi nhận"),
@@ -186,7 +186,7 @@ class ResidencyChangeRequestController {
         return changes.opinions(id).stream().map(ResidentOpinionBody::of).toList();
     }
 
-    /** Ghi ý kiến người cao tuổi (FR-043h, Q-416): Hành chính, Bác sĩ, Điều dưỡng phụ trách; trả lịch sử ý kiến. */
+    /** Ghi ý kiến người cao tuổi (FR-043h, Q-417): Hành chính, Bác sĩ, Điều dưỡng phụ trách; trả lịch sử ý kiến. */
     @PostMapping("/residency-change-requests/{id}/resident-opinions")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Đã ghi"),

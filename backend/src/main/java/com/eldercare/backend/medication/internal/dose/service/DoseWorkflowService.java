@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Hoãn có chủ đích và Nhận liều (BR-M07-26, Q-426, Q-427). Hoãn không đổi trạng thái hay mốc Bỏ lỡ của liều (BR-M07-02);
+ * Hoãn có chủ đích và Nhận liều (BR-M07-26, Q-427, Q-428). Hoãn không đổi trạng thái hay mốc Bỏ lỡ của liều (BR-M07-02);
  * Nhận liều không đổi trạng thái liều và tự hết sau CFG-M07-08.
  */
 @Service

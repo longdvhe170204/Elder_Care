@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Job nhắc Hành chính lập yêu cầu đổi mức chăm sóc, mỗi 15 phút (001 T064; FR-036, CFG-M03-02); cùng lượt nhắc ngày xem lại
- * quyết định giữ mức cũ (FR-036b, Q-423).
+ * quyết định giữ mức cũ (FR-036b, Q-424).
  */
 @Component
 public class RemindCareLevelChangeRequestJob implements ScheduledJob {

@@ -13,7 +13,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * Quyền hủy Nháp, Chờ duyệt do loại yêu cầu quy định (000 FR-041a (4); Q-420), mặc định chỉ người yêu cầu; lý do khi gửi
+ * Quyền hủy Nháp, Chờ duyệt do loại yêu cầu quy định (000 FR-041a (4); Q-421), mặc định chỉ người yêu cầu; lý do khi gửi
  * duyệt truyền cho loại yêu cầu (FR-041a (5)).
  */
 class ApprovalCancelPermissionIT extends ApprovalTestBase {
