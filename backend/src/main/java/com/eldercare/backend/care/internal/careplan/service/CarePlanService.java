@@ -39,10 +39,12 @@ public class CarePlanService {
     private final ParameterApi parameters;
     private final ResidentApi residents;
     private final CurrentUser user;
+    private final PermissionApi permissions;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final CareRiskStore risks;
+    private final CarePlanNotices notices;
     private final AccountApi accounts;
 
     public CarePlanService(
@@ -52,10 +54,12 @@ public class CarePlanService {
             ParameterApi parameters,
             ResidentApi residents,
             CurrentUser user,
+            PermissionApi permissions,
             AuditLogApi audit,
             ApplicationEventPublisher events,
             BusinessTime time,
             CareRiskStore risks,
+            CarePlanNotices notices,
             AccountApi accounts) {
         this.store = store;
         this.locks = locks;
@@ -63,10 +67,12 @@ public class CarePlanService {
         this.parameters = parameters;
         this.residents = residents;
         this.user = user;
+        this.permissions = permissions;
         this.audit = audit;
         this.events = events;
         this.time = time;
         this.risks = risks;
+        this.notices = notices;
         this.accounts = accounts;
     }
 
@@ -98,7 +104,8 @@ public class CarePlanService {
         writable(residentId);
         var revisions = store.list(residentId, true);
         if (revisions.stream()
-                .anyMatch(p -> Set.of(CarePlanStatus.DRAFT, CarePlanStatus.PENDING_EFFECT)
+                .anyMatch(p -> Set.of(
+                                CarePlanStatus.DRAFT, CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.PENDING_EFFECT)
                         .contains(p.status()))) throw conflict("OPEN_REVISION_EXISTS", "Đã có phiên bản đang mở");
         var previous = revisions.stream()
                 .filter(p -> p.status() == CarePlanStatus.EFFECTIVE)
@@ -209,18 +216,15 @@ public class CarePlanService {
         if (plan.status() != CarePlanStatus.DRAFT) throw conflict("REVISION_LOCKED", "Chỉ sửa bản Nháp");
     }
 
-    /**
-     * Q-414: Bác sĩ ban hành bản Nháp (Nháp → Chờ hiệu lực), không qua duyệt; ngày hiệu lực sớm nhất là ngày hôm sau.
-     * Phiên bản được phép không có mục nào (người khỏe bình thường chỉ có lịch sinh hoạt chung).
-     */
     @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void issue(Target target, long id, LocalDate effectiveFrom, Reason reason) {
+    public void submit(Target target, long id, LocalDate effectiveFrom, Reason reason) {
         var plan = locked(id);
         writable(plan.residentId());
-        var status = CarePlanTransitions.next(plan.status(), "ISSUE", effectiveFrom, time.today());
+        var status = CarePlanTransitions.next(plan.status(), "SUBMIT", effectiveFrom, time.today());
         var items = store.lockedItems(id);
+        if (items.isEmpty()) throw conflict("EMPTY_PLAN", "Kế hoạch cần ít nhất một mục công việc");
         if (plan.previousPlanId() != null && reason == null) throw new ReasonRequiredException();
         var frozen = new ArrayList<CarePlanItem>();
         for (var item : items) {
@@ -244,30 +248,64 @@ public class CarePlanService {
                     item.data().windows(before, after)));
         }
         store.saveItems(id, frozen);
-        // Người ban hành ghi vào cột người duyệt cũ (approved_by, approved_at) để giữ ràng buộc ngày hiệu lực của bảng.
         store.transition(
                 plan,
                 status,
                 effectiveFrom,
                 reason == null ? null : reason.value(),
-                user.accountId(),
-                time.now(),
+                null,
+                null,
                 false,
                 time.now(),
                 null);
-        log("ISSUED", plan, store.locked(id), reason);
+        var after = store.locked(id);
+        log("SUBMITTED", plan, after, reason);
+        notices.submitted(after, time.now());
     }
 
-    /** Q-414: Bác sĩ hủy bản Nháp (bắt buộc lý do). */
-    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.UPDATE)
+    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.APPROVE)
+    @BusinessCommand(requiresReason = false)
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void approve(Target target, long id, Reason reason) {
+        var plan = locked(id);
+        writable(plan.residentId());
+        var status = CarePlanTransitions.next(plan.status(), "APPROVE", plan.effectiveFrom(), time.today());
+        boolean self = plan.createdBy() == user.accountId();
+        if (self && reason == null) throw new ReasonRequiredException();
+        store.transition(
+                plan,
+                status,
+                plan.effectiveFrom(),
+                plan.changeReason(),
+                user.accountId(),
+                time.now(),
+                self,
+                plan.submittedAt(),
+                null);
+        log(self ? "SELF_APPROVED" : "APPROVED", plan, store.locked(id), reason);
+    }
+
+    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.APPROVE)
+    @BusinessCommand
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void returnToDraft(Target target, long id, Reason reason) {
+        change(id, "RETURN", reason);
+    }
+
+    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.VIEW)
     @BusinessCommand
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void cancel(Target target, long id, Reason reason) {
-        change(id, "CANCEL", reason);
+        var plan = locked(id);
+        if (plan.createdBy() != user.accountId()
+                && !permissions
+                        .hasPermission(user, new PermissionKey(Function.CARE_PLAN, Operation.APPROVE), target)
+                        .allowed())
+            throw new PermissionDeniedException("Chỉ người lập hoặc người có quyền duyệt được hủy");
+        changeLocked(plan, "CANCEL", reason);
     }
 
-    /** Q-414: Bác sĩ thu hồi bản Chờ hiệu lực trước ngày hiệu lực (bắt buộc lý do). */
-    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.UPDATE)
+    @RequiresPermission(function = Function.CARE_PLAN, operation = Operation.APPROVE)
     @BusinessCommand
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void withdraw(Target target, long id, Reason reason) {
@@ -290,12 +328,15 @@ public class CarePlanService {
                 command.equals("WITHDRAW") ? plan.approvedBy() : null,
                 command.equals("WITHDRAW") ? plan.approvedAt() : null,
                 command.equals("WITHDRAW") && plan.selfApproved(),
-                plan.submittedAt(),
-                command.equals("WITHDRAW") ? "WITHDRAWN" : "CANCELLED");
+                command.equals("RETURN") ? null : plan.submittedAt(),
+                switch (command) {
+                    case "RETURN" -> "RETURNED";
+                    case "WITHDRAW" -> "WITHDRAWN";
+                    default -> "CANCELLED";
+                });
         var after = store.locked(plan.id());
         log(command, plan, after, reason);
-        // Báo người lập khi Bác sĩ khác thu hồi bản đã ban hành
-        if (command.equals("WITHDRAW") && plan.createdBy() != user.accountId()) {
+        if (!command.equals("CANCEL")) {
             long creatorStaff = accounts.byId(plan.createdBy())
                     .map(account -> account.staffId())
                     .orElseThrow(() -> new BusinessException(
@@ -303,7 +344,10 @@ public class CarePlanService {
                             "CARE_SOURCE_UNAVAILABLE",
                             "Chưa tra cứu được người lập kế hoạch"));
             var context = context(after, command, List.of(new RecipientGroup.Staff(creatorStaff, "CARE_PLAN_CREATOR")));
-            events.publishEvent(new CarePlanApprovalWithdrawn(plan.id(), plan.residentId(), context));
+            if (command.equals("RETURN"))
+                events.publishEvent(new CarePlanReturned(plan.id(), plan.residentId(), context, reason.value()));
+            if (command.equals("WITHDRAW"))
+                events.publishEvent(new CarePlanApprovalWithdrawn(plan.id(), plan.residentId(), context));
         }
     }
 

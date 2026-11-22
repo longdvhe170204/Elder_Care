@@ -34,8 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RecordApplicationEvents
 class BR_17_CarePlanReviewIT extends MySqlIntegrationTestBase {
-    // Q-414: người xem xét kế hoạch là Bác sĩ (quyền sửa kế hoạch), không còn quyền duyệt
-    private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.UPDATE);
+    private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.APPROVE);
 
     @Autowired
     CarePlanReviewApi review;

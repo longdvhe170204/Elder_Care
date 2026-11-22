@@ -94,8 +94,7 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                         null,
                         time.now().minus(Duration.ofDays(1)),
                         null));
-        // Q-414: Bác sĩ lập và ban hành kế hoạch
-        user.set(doctor.user());
+        user.set(nurse.user());
         taskTypeId = TestUsers.nextId();
         jdbc.update(
                 "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE',?)",
@@ -127,54 +126,50 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                 + ",\"content\":\"Nội dung kiểm thử\",\"frequencyType\":\"ONCE_PER_SHIFT\",\"performerRole\":\"CAREGIVER\",\"resultType\":\"PERFORMED\",\"importance\":\"NORMAL\",\"billable\":false}]";
     }
 
-    private void issue(long id) throws Exception {
+    private void submit(long id) throws Exception {
         mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", "\"0\""), items()))
                 .andExpect(status().isOk());
         mvc.perform(write(
-                        post("/api/v1/care-plans/" + id + "/issue"),
+                        post("/api/v1/care-plans/" + id + "/submit"),
                         "{\"effectiveFrom\":\"" + time.today().plusDays(1) + "\"}"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void Q_414_secondOpenRevisionRejectedAndIssueNeedsDateAfterToday() throws Exception {
+    void FR_003_createPreventsSecondOpenRevisionAndEmptySubmission() throws Exception {
         long id = create();
         mvc.perform(write(post("/api/v1/residents/" + residentId + "/care-plans"), "{}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("OPEN_REVISION_EXISTS"));
-        mvc.perform(write(post("/api/v1/care-plans/" + id + "/issue"), "{\"effectiveFrom\":\"" + time.today() + "\"}"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_EFFECTIVE_DATE"));
+        mvc.perform(write(
+                        post("/api/v1/care-plans/" + id + "/submit"),
+                        "{\"effectiveFrom\":\"" + time.today().plusDays(1) + "\"}"))
+                .andExpect(status().isConflict());
     }
 
     @Test
-    void Q_414_doctorIssuesWithoutApprovalThenWithdraws() throws Exception {
+    void FR_003_submitApproveAndWithdrawKeepItemsLockedAndAuditAtomic() throws Exception {
         long id = create();
-        issue(id);
+        submit(id);
         mvc.perform(write(put("/api/v1/care-plans/" + id + "/items").header("If-Match", "\"2\""), items()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("REVISION_LOCKED"));
+        user.set(doctor.user());
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/approve"), "{}")).andExpect(status().isOk());
         mvc.perform(get("/api/v1/care-plans/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PENDING_EFFECT"))
-                .andExpect(jsonPath("$.allowedCommands[0]").value("withdraw"));
-        assertThat(jdbc.queryForObject("SELECT approved_by FROM care_plan WHERE id=?", Long.class, id))
-                .isEqualTo(doctor.accountId());
-        mvc.perform(write(post("/api/v1/care-plans/" + id + "/withdraw"), "{\"reason\":\"Cần xem lại\"}"))
+                .andExpect(jsonPath("$.selfApproved").value(false));
+        mvc.perform(write(post("/api/v1/care-plans/" + id + "/withdraw-approval"), "{\"reason\":\"Cần xem lại\"}"))
                 .andExpect(status().isOk());
         assertThat(jdbc.queryForObject("SELECT status FROM care_plan WHERE id=?", String.class, id))
                 .isEqualTo("CANCELLED");
+        assertThat(jdbc.queryForObject("SELECT approved_by FROM care_plan WHERE id=?", Long.class, id))
+                .isEqualTo(doctor.accountId());
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE entity_type='M04.CARE_PLAN' AND entity_id=?",
                         Integer.class,
                         Long.toString(id)))
-                .isEqualTo(4);
-    }
-
-    @Test
-    void Q_414_nurseOnlyViewsCarePlan() throws Exception {
-        user.set(nurse.user());
-        mvc.perform(write(post("/api/v1/residents/" + residentId + "/care-plans"), "{\"copyCurrent\":false}"))
-                .andExpect(status().isForbidden());
+                .isEqualTo(5);
     }
 }

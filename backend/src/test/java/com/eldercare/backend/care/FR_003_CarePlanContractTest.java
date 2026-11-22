@@ -57,10 +57,7 @@ class FR_003_CarePlanContractTest {
                     .extracting(parameter -> parameter.get$ref())
                     .contains("#/components/parameters/IfMatch", "#/components/parameters/IdempotencyKey");
         }
-        // Q-414: Bác sĩ ban hành, không còn gửi duyệt, duyệt, trả lại
-        assertThat(paths)
-                .doesNotContainKeys("/care-plans/{id}/submit", "/care-plans/{id}/approve", "/care-plans/{id}/return");
-        for (String action : List.of("issue", "cancel", "withdraw")) {
+        for (String action : List.of("submit", "approve", "return", "cancel", "withdraw-approval")) {
             Operation operation = paths.get("/care-plans/{id}/" + action).getPost();
             assertThat(operation).isNotNull();
             assertThat(operation.getParameters())

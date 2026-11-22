@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Bảng chuyển FR-003 (sửa 2026-11-22, Q-414: bỏ duyệt): kiểm đủ cặp trạng thái/lệnh, gồm mốc ngày nghiệp vụ. */
+/** Bảng chuyển FR-003: kiểm đủ cặp trạng thái/lệnh, gồm mốc ngày nghiệp vụ. */
 class FR_003_CarePlanTransitionsTest {
     private CarePlanStatus next(CarePlanStatus before, String command, LocalDate from, LocalDate today)
             throws Exception {
@@ -27,11 +27,15 @@ class FR_003_CarePlanTransitionsTest {
     @Test
     void FR_003_allCommandStatePairsFollowTheApprovedTable() throws Exception {
         var allowed = Map.of(
-                "ISSUE", Map.of(CarePlanStatus.DRAFT, CarePlanStatus.PENDING_EFFECT),
-                "CANCEL", Map.of(CarePlanStatus.DRAFT, CarePlanStatus.CANCELLED),
-                "SUBMIT", Map.<CarePlanStatus, CarePlanStatus>of(),
-                "APPROVE", Map.<CarePlanStatus, CarePlanStatus>of(),
-                "RETURN", Map.<CarePlanStatus, CarePlanStatus>of(),
+                "SUBMIT", Map.of(CarePlanStatus.DRAFT, CarePlanStatus.PENDING_APPROVAL),
+                "APPROVE", Map.of(CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.PENDING_EFFECT),
+                "RETURN", Map.of(CarePlanStatus.PENDING_APPROVAL, CarePlanStatus.DRAFT),
+                "CANCEL",
+                        Map.of(
+                                CarePlanStatus.DRAFT,
+                                CarePlanStatus.CANCELLED,
+                                CarePlanStatus.PENDING_APPROVAL,
+                                CarePlanStatus.CANCELLED),
                 "WITHDRAW", Map.of(CarePlanStatus.PENDING_EFFECT, CarePlanStatus.CANCELLED));
         var today = LocalDate.of(2026, 10, 31);
         for (var command : allowed.entrySet()) {
@@ -52,10 +56,10 @@ class FR_003_CarePlanTransitionsTest {
     }
 
     @Test
-    void Q_414_issueNeedsEffectiveDateAfterToday() {
+    void FR_004_approvalCannotChangeOrAcceptAnExpiredProposedDate() {
         var today = LocalDate.of(2026, 11, 1);
         for (var date : new LocalDate[] {null, today, today.minusDays(1)}) {
-            assertThatThrownBy(() -> next(CarePlanStatus.DRAFT, "ISSUE", date, today))
+            assertThatThrownBy(() -> next(CarePlanStatus.PENDING_APPROVAL, "APPROVE", date, today))
                     .isInstanceOf(BusinessException.class)
                     .extracting("errorCode")
                     .isEqualTo("INVALID_EFFECTIVE_DATE");

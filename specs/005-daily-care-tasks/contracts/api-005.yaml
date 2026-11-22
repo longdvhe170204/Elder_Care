@@ -113,34 +113,55 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '412': { $ref: '#/components/responses/CarePlanProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
-  # Sửa 2026-11-22 (Q-414): bỏ Gửi duyệt, Duyệt, Trả lại; Bác sĩ ban hành bản Nháp, không qua duyệt.
-  /care-plans/{id}/issue:
+  /care-plans/{id}/submit:
     post:
       x-implementation-phase: 3
-      operationId: issueCarePlan
+      operationId: submitCarePlan
       tags: [ke-hoach]
-      summary: Ban hành kèm ngày hiệu lực (Bác sĩ, Q-414)
-      description: 'Mọi mục đủ trường FR-002, được phép không có mục nào; ngày hiệu lực muộn hơn hôm nay (sớm nhất là ngày hôm sau); bắt buộc changeReason khi đã có phiên bản trước. Không qua duyệt.'
-      x-fr: [FR-003]
+      summary: Gửi duyệt kèm ngày hiệu lực đề xuất
+      description: 'Có ít nhất một mục, mọi mục đủ trường FR-002; ngày hiệu lực muộn hơn hôm nay; bắt buộc changeReason khi đã có phiên bản trước.'
+      x-fr: [FR-003, FR-005]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [effectiveFrom], properties: { effectiveFrom: { type: string, format: date }, changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
-      responses: { '200': { description: Chờ hiệu lực }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+      responses: { '200': { description: Chờ duyệt }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/approve:
+    post:
+      x-implementation-phase: 3
+      operationId: approveCarePlan
+      tags: [ke-hoach]
+      summary: Duyệt (Bác sĩ; Điều dưỡng được gán quyền)
+      description: 'Ngày hiệu lực phải muộn hơn ngày duyệt, ngược lại 409 INVALID_EFFECTIVE_DATE và người duyệt dùng Trả lại (Q-34, FR-004). Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
+      x-fr: [FR-003, FR-004, FR-005]
+      x-br: [BR-M04-19]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/return:
+    post:
+      x-implementation-phase: 3
+      operationId: returnCarePlan
+      tags: [ke-hoach]
+      summary: Trả lại về Nháp (bắt buộc lý do)
+      x-fr: [FR-003]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      responses: { '200': { description: Nháp }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-plans/{id}/cancel:
     post:
       x-implementation-phase: 3
       operationId: cancelCarePlan
       tags: [ke-hoach]
-      summary: Hủy phiên bản Nháp (Bác sĩ, Q-414)
+      summary: Hủy phiên bản Nháp hoặc Chờ duyệt (người lập, người có quyền duyệt)
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
-  /care-plans/{id}/withdraw:
+  /care-plans/{id}/withdraw-approval:
     post:
       x-implementation-phase: 3
-      operationId: withdrawCarePlan
+      operationId: withdrawCarePlanApproval
       tags: [ke-hoach]
-      summary: Thu hồi ban hành trước ngày hiệu lực (Bác sĩ, Q-414)
+      summary: Thu hồi duyệt trước ngày hiệu lực
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }

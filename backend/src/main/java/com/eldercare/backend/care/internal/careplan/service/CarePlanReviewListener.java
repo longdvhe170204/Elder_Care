@@ -35,9 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 class CarePlanReviewListener implements CarePlanReviewApi {
     private static final String CARE_PLAN = "M04.CARE_PLAN";
-    /** Q-414: người xem xét kế hoạch là Bác sĩ (quyền lập, sửa kế hoạch), không còn người duyệt. */
-    private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.UPDATE);
-
+    private static final PermissionKey APPROVE = new PermissionKey(Function.CARE_PLAN, Operation.APPROVE);
     private static final String REVIEW_MARKER = "M04.CARE_PLAN_REVIEW";
     private static final String INCIDENT = "M05.INCIDENT";
     private static final String PALLIATIVE = "M05.PALLIATIVE_CARE_CHOICE";
