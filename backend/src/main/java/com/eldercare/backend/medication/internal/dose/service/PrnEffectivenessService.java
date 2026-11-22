@@ -15,7 +15,6 @@ import com.eldercare.backend.medication.internal.dose.persistence.PrnEffectivene
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.schedule.persistence.M07JobRunStore;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,7 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PrnEffectivenessService {
 
     private static final String JOB = "PRN_EFFECTIVENESS_REMINDER";
-    private static final Duration SCAN_BACK = Duration.ofHours(24);
+    // Giới hạn kỹ thuật của lần quét (không phải mốc nghiệp vụ): chỉ xét lần dùng trong 24 giờ gần nhất
+    private static final int SCAN_BACK_HOURS = 24;
 
     private final PrnAdministrationRepository prn;
     private final PrnEffectivenessRepository effectiveness;
@@ -100,7 +100,8 @@ public class PrnEffectivenessService {
     @Transactional
     public void remind(Instant now) {
         Instant cutoff = now.minus(parameters.read(ParameterCode.CFG_M07_11).asDuration());
-        for (PrnAdministration a : prn.findAwaitingEffectiveness(cutoff, now.minus(SCAN_BACK))) {
+        for (PrnAdministration a : prn.findAwaitingEffectiveness(
+                cutoff, now.minus(SCAN_BACK_HOURS, java.time.temporal.ChronoUnit.HOURS))) {
             String checkpoint = String.valueOf(a.getId());
             if (jobRuns.isCompleted(JOB, checkpoint)) {
                 continue;

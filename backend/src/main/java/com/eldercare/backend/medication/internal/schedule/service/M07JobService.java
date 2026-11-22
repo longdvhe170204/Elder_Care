@@ -62,22 +62,11 @@ public class M07JobService {
 
     private final ReconciliationDeadlines deadlines;
 
-    private com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService tempNurses;
-    private com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService prnEffectiveness;
+    /** BR-M07-31: Điều dưỡng tầng khác được chỉ định phụ trách tạm thì tầng không còn "không có Điều dưỡng". */
+    private final com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService tempNurses;
 
-    /** Tùy chọn (BR-M07-04): nhắc ghi hiệu quả thuốc khi cần sau CFG-M07-11. */
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    void setPrnEffectivenessService(
-            com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService prnEffectiveness) {
-        this.prnEffectiveness = prnEffectiveness;
-    }
-
-    /** Tùy chọn (BR-M07-31): Điều dưỡng tầng khác được chỉ định phụ trách tạm thì tầng không còn "không có Điều dưỡng". */
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    void setTemporaryNurseAssignments(
-            com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService tempNurses) {
-        this.tempNurses = tempNurses;
-    }
+    /** BR-M07-04: nhắc ghi hiệu quả thuốc khi cần sau CFG-M07-11. */
+    private final com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService prnEffectiveness;
 
     public M07JobService(
             M07JobRunStore jobRunStore,
@@ -93,7 +82,11 @@ public class M07JobService {
             ResidentLocationApi locations,
             NursingShiftPort shifts,
             AbsenceScheduleContexts absenceContexts,
-            ReconciliationDeadlines deadlines) {
+            ReconciliationDeadlines deadlines,
+            com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService tempNurses,
+            com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService prnEffectiveness) {
+        this.tempNurses = tempNurses;
+        this.prnEffectiveness = prnEffectiveness;
         this.deadlines = deadlines;
         this.absenceContexts = absenceContexts;
         this.jobRunStore = jobRunStore;

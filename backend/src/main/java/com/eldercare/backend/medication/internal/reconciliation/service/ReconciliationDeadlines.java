@@ -36,14 +36,6 @@ public class ReconciliationDeadlines {
     static final String ALERT_TYPE = "CHUA_DOI_CHIEU";
     static final String ESCALATED_ALERT_TYPE = "CHUA_DOI_CHIEU_QUA_8_GIO";
 
-    private com.eldercare.backend.roombedallocation.api.ResidentLocationApi locations;
-
-    /** Tùy chọn: tầng của người cao tuổi để báo Trưởng tầng (BR-M07-29). */
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    void setResidentLocations(com.eldercare.backend.roombedallocation.api.ResidentLocationApi locations) {
-        this.locations = locations;
-    }
-
     private static final List<PrescriptionStatus> UNENDED =
             List.of(PrescriptionStatus.ACTIVE, PrescriptionStatus.PENDING_EFFECTIVE);
     private static final List<ReconciliationStatus> OPEN =
@@ -57,6 +49,9 @@ public class ReconciliationDeadlines {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
+    /** Tầng của người cao tuổi để báo Trưởng tầng (BR-M07-29). */
+    private final com.eldercare.backend.roombedallocation.api.ResidentLocationApi locations;
+
     public ReconciliationDeadlines(
             PrescriptionRepository prescriptions,
             MedicationDoseRepository doses,
@@ -64,7 +59,9 @@ public class ReconciliationDeadlines {
             ReconciliationDueStore due,
             ParameterApi parameters,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            com.eldercare.backend.roombedallocation.api.ResidentLocationApi locations) {
+        this.locations = locations;
         this.prescriptions = prescriptions;
         this.doses = doses;
         this.tickets = tickets;

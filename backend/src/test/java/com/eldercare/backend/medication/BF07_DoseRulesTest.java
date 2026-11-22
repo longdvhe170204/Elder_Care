@@ -116,7 +116,9 @@ class BF07_DoseRulesTest {
                 mock(com.eldercare.backend.roombedallocation.api.ResidentLocationApi.class),
                 mock(com.eldercare.backend.medication.api.spi.NursingShiftPort.class),
                 mock(AbsenceScheduleContexts.class),
-                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class));
+                mock(com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationDeadlines.class),
+                mock(com.eldercare.backend.medication.internal.dose.service.TemporaryNurseAssignmentService.class),
+                mock(com.eldercare.backend.medication.internal.dose.service.PrnEffectivenessService.class));
         return new Jobs(service, events);
     }
 
