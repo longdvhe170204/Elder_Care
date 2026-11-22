@@ -56,7 +56,7 @@ public class CareAbsenceTasks implements AbsenceTaskApi {
         cancel(tasks.notYetDueFrom(residentId, at));
     }
 
-    /** FR-020, FR-017: chỉ báo Người phụ trách ca của tầng. */
+    /** FR-020, FR-017: báo Trưởng tầng của tầng, người duy nhất lập công việc của ca (Q-420). */
     public void planningNeeded(long residentId, String reason, Instant at, String milestone) {
         var floor = beds.openAt(residentId, at).map(BedAllocationView::floorAreaId);
         if (floor.isEmpty()) return;
@@ -66,7 +66,7 @@ public class CareAbsenceTasks implements AbsenceTaskApi {
                 milestone,
                 at,
                 floor,
-                List.of(new RecipientGroup.ShiftLead(floor.get(), new Substitution.Default())));
+                List.of(new RecipientGroup.FloorManager(floor.get(), new Substitution.Default())));
         events.publishEvent(new TaskPlanningNeeded(residentId, reason, at, context));
     }
 
