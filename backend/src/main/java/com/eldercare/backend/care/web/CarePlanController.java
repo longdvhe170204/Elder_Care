@@ -130,7 +130,8 @@ public class CarePlanController {
                 body.stream().map(item -> item.item(id)).toList());
     }
 
-    @PostMapping("/care-plans/{id}/submit")
+    /** Q-414: Bác sĩ ban hành bản Nháp, không qua duyệt. */
+    @PostMapping("/care-plans/{id}/issue")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(
             responseCode = "409",
@@ -138,49 +139,9 @@ public class CarePlanController {
                     @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(implementation = CareProblemBody.class)))
-    public void submit(
+    public void issue(
             @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CarePlanSubmit body) {
-        service.submit(service.target(id), id, body.effectiveFrom(), body.changeReason());
-    }
-
-    @PostMapping("/care-plans/{id}/approve")
-    @ApiResponse(responseCode = "200", description = "OK")
-    @ApiResponse(
-            responseCode = "403",
-            content =
-                    @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = CareProblemBody.class)))
-    @ApiResponse(
-            responseCode = "409",
-            content =
-                    @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = CareProblemBody.class)))
-    public void approve(
-            @PathVariable long id,
-            @RequestHeader("Idempotency-Key") String key,
-            @RequestBody(required = false) CarePlanApprovalWrite body) {
-        service.approve(service.target(id), id, body == null ? null : body.reason());
-    }
-
-    @PostMapping("/care-plans/{id}/return")
-    @ApiResponse(responseCode = "200", description = "OK")
-    @ApiResponse(
-            responseCode = "409",
-            content =
-                    @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = CareProblemBody.class)))
-    @ApiResponse(
-            responseCode = "422",
-            content =
-                    @Content(
-                            mediaType = "application/problem+json",
-                            schema = @Schema(implementation = CareProblemBody.class)))
-    public void returnToDraft(
-            @PathVariable long id, @RequestHeader("Idempotency-Key") String key, @RequestBody CareCatalogReason body) {
-        service.returnToDraft(service.target(id), id, body.reason());
+        service.issue(service.target(id), id, body.effectiveFrom(), body.changeReason());
     }
 
     @PostMapping("/care-plans/{id}/cancel")
@@ -196,7 +157,7 @@ public class CarePlanController {
         service.cancel(service.target(id), id, body.reason());
     }
 
-    @PostMapping("/care-plans/{id}/withdraw-approval")
+    @PostMapping("/care-plans/{id}/withdraw")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(
             responseCode = "409",
@@ -271,17 +232,10 @@ public class CarePlanController {
             case DRAFT -> {
                 commands.put("replaceItems", key(Operation.UPDATE));
                 commands.put("replaceRiskAgreements", key(Operation.UPDATE));
-                commands.put("submit", key(Operation.UPDATE));
-                commands.put(
-                        "cancel", row.createdBy() == user.accountId() ? key(Operation.VIEW) : key(Operation.APPROVE));
+                commands.put("issue", key(Operation.UPDATE));
+                commands.put("cancel", key(Operation.UPDATE));
             }
-            case PENDING_APPROVAL -> {
-                commands.put("approve", key(Operation.APPROVE));
-                commands.put("return", key(Operation.APPROVE));
-                commands.put(
-                        "cancel", row.createdBy() == user.accountId() ? key(Operation.VIEW) : key(Operation.APPROVE));
-            }
-            case PENDING_EFFECT -> commands.put("withdrawApproval", key(Operation.APPROVE));
+            case PENDING_EFFECT -> commands.put("withdraw", key(Operation.UPDATE));
             default -> {}
         }
         return new CarePlanResponse(

@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 005 FR-056 (Q-416): Quản lý viện lập, sửa, ngừng mốc sinh hoạt cố định của toàn viện; mọi thay đổi áp dụng từ ngày hôm
- * sau. Dùng quyền "Danh mục công việc chăm sóc" (Phụ lục 27, Q-391): Quản lý viện cấu hình, nhân viên khác xem.
+ * sau. Quyền theo dòng "Mốc sinh hoạt cố định" của Phụ lục 27: Quản lý viện cấu hình, nhân viên khác xem.
  */
 @Service
 public class DailyRoutineService {
@@ -45,7 +45,7 @@ public class DailyRoutineService {
 
     public record Routine(long id, String name, LocalTime time, boolean active, LocalDate effectiveFrom, int version) {}
 
-    @RequiresPermission(function = Function.CARE_TASK_CATALOG, operation = Operation.VIEW)
+    @RequiresPermission(function = Function.DAILY_ROUTINE, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<Routine> list() {
         return store.list(DAILY_ROUTINES).stream()
@@ -54,7 +54,7 @@ public class DailyRoutineService {
                 .toList();
     }
 
-    @RequiresPermission(function = Function.CARE_TASK_CATALOG, operation = Operation.CREATE)
+    @RequiresPermission(function = Function.DAILY_ROUTINE, operation = Operation.CREATE)
     @BusinessCommand(requiresReason = false)
     @Transactional
     public CatalogItem<DailyRoutineAttributes> create(String name, String at) {
@@ -64,7 +64,7 @@ public class DailyRoutineService {
         return row;
     }
 
-    @RequiresPermission(function = Function.CARE_TASK_CATALOG, operation = Operation.UPDATE)
+    @RequiresPermission(function = Function.DAILY_ROUTINE, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
     @Transactional
     public CatalogItem<DailyRoutineAttributes> update(long id, String etag, String name, String at) {
@@ -77,7 +77,7 @@ public class DailyRoutineService {
         return row;
     }
 
-    @RequiresPermission(function = Function.CARE_TASK_CATALOG, operation = Operation.UPDATE)
+    @RequiresPermission(function = Function.DAILY_ROUTINE, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void deactivate(long id, String etag) {

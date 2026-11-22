@@ -24,7 +24,7 @@ public enum Function {
     BED_MAINTENANCE("Xử lý hư hỏng, đưa giường vào bảo trì"),
     BED_READINESS("Xác nhận giường sẵn sàng"),
     CARE_PLAN("Kế hoạch chăm sóc"),
-    SHIFT_TASK_PLANNING("Lập công việc của ca"),
+    SHIFT_TASK_PLANNING("Lập công việc tháng, công việc phát sinh"), // Phụ lục 27 đổi tên 2026-11-22 (Q-415)
     TASK_CHECKLIST("Checklist, ghi nhận công việc"),
     DAY_CARE_ATTENDANCE("Điểm danh bán trú đến/về"),
     OVERDUE_TASK_HANDLING("Xử lý việc quá hạn"),
@@ -32,6 +32,8 @@ public enum Function {
     LATE_RETURN_CONSENT("Đồng ý về muộn"),
     QUALITY_CHECK("Kiểm tra chất lượng"),
     CARE_TASK_CATALOG("Danh mục công việc chăm sóc"),
+    DAILY_ROUTINE("Mốc sinh hoạt cố định"), // Q-416, Phụ lục 27 thêm 2026-11-22
+    DAILY_CARE_SCHEDULE("Lịch chăm sóc hằng ngày"), // Q-416, Phụ lục 27 thêm 2026-11-22
     ACTIVITY_CATALOG("Danh mục loại hoạt động, nhóm sở thích"),
     VITAL_SIGN("Chỉ số sức khỏe"),
     ALERT_THRESHOLD("Ngưỡng cảnh báo"),

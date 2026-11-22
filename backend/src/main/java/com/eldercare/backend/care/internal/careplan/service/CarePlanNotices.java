@@ -24,12 +24,8 @@ public class CarePlanNotices {
 
     public List<Long> approvers(CarePlan plan) {
         return approvers.approvers(
-                new PermissionKey(Function.CARE_PLAN, Operation.APPROVE),
+                new PermissionKey(Function.CARE_PLAN, Operation.UPDATE), // Q-414: Bác sĩ, không còn quyền duyệt
                 CarePlanService.residentTarget(plan.residentId(), plan.id()));
-    }
-
-    public void submitted(CarePlan plan, Instant now) {
-        publish(plan, now, approvers(plan), false);
     }
 
     public void overdue(CarePlan plan, Instant now, List<Long> recipients) {
