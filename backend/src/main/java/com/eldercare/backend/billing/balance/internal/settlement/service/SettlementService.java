@@ -451,7 +451,8 @@ public class SettlementService {
                 now,
                 Map.of(),
                 basis == Basis.POST_DEATH,
-                Optional.of(InformationSubject.ABOUT_RESIDENT),
+                Optional.of(
+                        InformationSubject.ABOUT_FAMILY_MATTER), // khoản phải trả, việc của người thân (Q-353, Q-362)
                 Optional.empty());
     }
 
