@@ -4200,6 +4200,14 @@ Gói `billing.balance.internal.<chức năng>.{domain, service}` (mục 23.5; ch
 | nhắc sau trạng thái cuối (FR-024) | `status.service.AfterFinalStatusReminders` (thông báo `M11_SETTLEMENT_AFTER_FINAL_STATUS`), `status.persistence.AfterFinalStatusMarks`, `status.domain.AfterFinalCandidate`; cột `resident_balance.final_status_reminded_at` |
 | test Phase 8 | `US7_SettlementIT`, `SettlementRulesTest` |
 
+### 23.10. Test luồng BF-16 (2026-11-22, chủ dự án duyệt)
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| người đại diện trong sổ (để Kế toán chọn người nhận hoàn tiền) | trường `representative` của `Balance`, schema `BalanceRepresentative` (`familyMemberId`, `fullName`); `ledger.domain.BalanceDetails.Representative`; Hành chính không thấy (`hiddenFields`) |
+| họ tên người lập, người duyệt giao dịch | `createdBy`, `approvedBy` mang họ tên ("Hệ thống" với giao dịch kèm lệnh chốt bảng); `ledger.service.AccountNames` (đọc `AccountApi.fullName`) |
+| job số dư chạy theo yêu cầu của test | giá trị `COMPUTE_BALANCE_STATUS` của `runJobs` (`/testing/clock`, `TestClockController.TestJob`) |
+
 ## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
 "Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).

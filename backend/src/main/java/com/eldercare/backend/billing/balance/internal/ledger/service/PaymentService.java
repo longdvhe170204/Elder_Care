@@ -117,7 +117,9 @@ public class PaymentService {
                     "Mã giao dịch ngân hàng đã có ở giao dịch khác; kiểm tra rồi xác nhận lại nếu đúng",
                     Map.of(
                             "duplicateTransactions",
-                            used.stream().map(BalanceTransactionView::of).toList()));
+                            used.stream()
+                                    .map(t -> BalanceTransactionView.of(t, queries.names()))
+                                    .toList()));
         }
         var at = time.startOfDay(transfer.receivedOn());
         List<BalanceTransactionRow> rows = new ArrayList<>();
@@ -163,7 +165,11 @@ public class PaymentService {
                 .ifPresent(r -> deposits.recheck(residentId, r.id(), r.createdBy()));
         hooks.orderedStream().forEach(h -> h.paymentRecorded(residentId, rows));
         var ledger = ledgers.find(residentId).orElseThrow();
-        return new Payments.Result(rows.stream().map(BalanceTransactionView::of).toList(), queries.details(ledger));
+        return new Payments.Result(
+                rows.stream()
+                        .map(t -> BalanceTransactionView.of(t, queries.names()))
+                        .toList(),
+                queries.details(ledger));
     }
 
     private static void positive(long amount) {

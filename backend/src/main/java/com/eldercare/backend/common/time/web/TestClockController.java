@@ -91,7 +91,9 @@ public class TestClockController {
         // Ba job nhắc của 019 (019 T025; chủ dự án duyệt 2026-11-07)
         REMIND_PROCUREMENT_REQUESTS,
         REMIND_ASSET_DUE_DATES,
-        REMIND_VEHICLE_SCHEDULES
+        REMIND_VEHICLE_SCHEDULES,
+        // Job số dư của 017 (tính tình trạng, báo sắp hết tiền, nhắc; chủ dự án duyệt 2026-11-22, test BF-16)
+        COMPUTE_BALANCE_STATUS
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}

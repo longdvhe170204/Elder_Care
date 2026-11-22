@@ -20,6 +20,7 @@ import com.eldercare.backend.billing.balance.internal.ledger.domain.BalanceTypes
 import com.eldercare.backend.billing.balance.internal.ledger.domain.LedgerState;
 import com.eldercare.backend.billing.balance.internal.ledger.persistence.BalanceTransactionStore;
 import com.eldercare.backend.billing.balance.internal.ledger.persistence.LedgerStore;
+import com.eldercare.backend.billing.balance.internal.ledger.service.AccountNames;
 import com.eldercare.backend.billing.balance.internal.ledger.service.DepositStatuses;
 import com.eldercare.backend.billing.balance.internal.ledger.service.LedgerPosting;
 import com.eldercare.backend.billing.balance.internal.settlement.service.SettlementChanges;
@@ -94,6 +95,7 @@ public class BalanceTransactionService {
     private final AuditLogApi audit;
     private final CurrentUser user;
     private final BusinessTime time;
+    private final AccountNames names;
 
     public BalanceTransactionService(
             LedgerPosting posting,
@@ -110,7 +112,9 @@ public class BalanceTransactionService {
             SettlementChanges settlement,
             AuditLogApi audit,
             CurrentUser user,
-            BusinessTime time) {
+            BusinessTime time,
+            AccountNames names) {
+        this.names = names;
         this.posting = posting;
         this.ledgers = ledgers;
         this.transactions = transactions;
@@ -217,7 +221,7 @@ public class BalanceTransactionService {
                 .resident(residentId)
                 .after(after)
                 .build());
-        return BalanceTransactionView.of(transactions.find(id).orElseThrow());
+        return BalanceTransactionView.of(transactions.find(id).orElseThrow(), names);
     }
 
     /** Giao dịch Chờ duyệt của mọi hồ sơ (FR-013): Kế toán, Quản lý viện; Hành chính chỉ xem số dư (FR-028). */
@@ -231,7 +235,7 @@ public class BalanceTransactionService {
         for (long id : pending.pendingIds()) {
             BalanceTransactionRow row = transactions.find(id).orElseThrow();
             result.add(new Pending(
-                    BalanceTransactionView.of(row),
+                    BalanceTransactionView.of(row, names),
                     row.residentId(),
                     residents.identity(row.residentId()).fullName()));
         }
@@ -297,7 +301,7 @@ public class BalanceTransactionService {
         deposits.recheck(residentId, depositSide, by);
         settlement.changed(residentId);
         return List.of(depositSide, balanceSide).stream()
-                .map(id -> BalanceTransactionView.of(transactions.find(id).orElseThrow()))
+                .map(id -> BalanceTransactionView.of(transactions.find(id).orElseThrow(), names))
                 .toList();
     }
 
@@ -315,7 +319,7 @@ public class BalanceTransactionService {
 
     private String recipientJson(long residentId, Recipient recipient) {
         if (recipient == null || (recipient.familyMemberId() == null && blank(recipient.fullName()))) {
-            throw new InvalidValueException("Hoàn tiền cần người nhận (FR-014)");
+            throw new InvalidValueException("Hoàn tiền cần người nhận");
         }
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         if (recipient.familyMemberId() != null) {
@@ -324,7 +328,7 @@ public class BalanceTransactionService {
             RepresentativePort port = representatives.getIfAvailable();
             if (port != null && port.hasRepresentative(residentId)) {
                 throw new InvalidValueException(
-                        "Người cao tuổi còn người đại diện: người nhận phải là người đại diện Hiệu lực (FR-014)");
+                        "Người cao tuổi còn người đại diện: người nhận phải là người đại diện Hiệu lực");
             }
             node.put("fullName", recipient.fullName().strip());
             if (!blank(recipient.identityDocument())) node.put("identityDocument", recipient.identityDocument());

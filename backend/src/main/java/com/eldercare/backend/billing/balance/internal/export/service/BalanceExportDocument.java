@@ -7,6 +7,9 @@ import static com.eldercare.backend.billing.balance.internal.document.domain.Doc
 import com.eldercare.backend.billing.balance.internal.export.domain.BalanceStatement;
 import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport;
 import com.eldercare.backend.billing.balance.internal.export.domain.IncomeExpenseReport.Debtor;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.Ledger;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.PaymentMethod;
+import com.eldercare.backend.billing.balance.internal.transaction.domain.TransactionType;
 import com.eldercare.backend.common.document.ExcelDocument;
 import com.eldercare.backend.common.document.ExcelDocument.Column;
 import com.eldercare.backend.common.document.ExcelDocument.Format;
@@ -30,10 +33,31 @@ public final class BalanceExportDocument {
     private static final String STATEMENT_TITLE = "SAO KÊ SỐ DƯ";
     private static final String REPORT_TITLE = "BÁO CÁO THU CHI";
 
+    // Nhãn tiếng Việt của sổ, loại giao dịch, phương thức (glossary 23; cùng chữ với màn số dư của web)
+    private static final Map<Ledger, String> LEDGERS = Map.of(Ledger.BALANCE, "Số dư", Ledger.DEPOSIT, "Tiền cọc");
+    private static final Map<TransactionType, String> TYPES = Map.of(
+            TransactionType.CASH_PAYMENT, "Nộp tiền mặt",
+            TransactionType.BANK_TRANSFER_PAYMENT, "Nộp chuyển khoản",
+            TransactionType.STATEMENT_PAYMENT, "Thanh toán bảng chi phí",
+            TransactionType.REFUND, "Hoàn tiền",
+            TransactionType.DEPOSIT_OFFSET, "Cấn trừ tiền cọc",
+            TransactionType.ADJUSTMENT, "Điều chỉnh",
+            TransactionType.DEPOSIT_RECEIPT, "Thu tiền cọc",
+            TransactionType.DEPOSIT_REFUND, "Hoàn tiền cọc");
+    private static final Map<PaymentMethod, String> METHODS = Map.of(
+            PaymentMethod.CASH, "Tiền mặt",
+            PaymentMethod.BANK_TRANSFER, "Chuyển khoản",
+            PaymentMethod.INTERNAL, "Nội bộ",
+            PaymentMethod.OTHER, "Khác");
+
     /** Sao kê của một người cao tuổi kèm họ tên để in. */
     public record ResidentStatement(String residentName, BalanceStatement statement) {}
 
     private BalanceExportDocument() {}
+
+    private static <T> String label(Map<T, String> labels, T code) {
+        return code == null ? "" : labels.getOrDefault(code, code.toString());
+    }
 
     public static byte[] statementPdf(
             FacilityInfo facility, byte[] logo, List<ResidentStatement> statements, LocalDate from, LocalDate to) {
@@ -49,10 +73,10 @@ public final class BalanceExportDocument {
                     statement.lines().stream()
                             .map(line -> List.of(
                                     dateTime(line.at()),
-                                    line.ledger().name(),
-                                    line.type().name(),
+                                    label(LEDGERS, line.ledger()),
+                                    label(TYPES, line.type()),
                                     money(line.amount()),
-                                    line.method().name(),
+                                    label(METHODS, line.method()),
                                     line.reference() == null ? "" : line.reference()))
                             .toList());
             pdf.paragraph("Số dư cuối kỳ: " + money(statement.closingBalance()) + " đ    Số dư cọc cuối kỳ: "
@@ -73,10 +97,10 @@ public final class BalanceExportDocument {
             for (var line : statement.lines()) {
                 rows.add(Arrays.asList(
                         LocalDateTime.ofInstant(line.at(), BusinessTime.ZONE),
-                        line.ledger().name(),
-                        line.type().name(),
+                        label(LEDGERS, line.ledger()),
+                        label(TYPES, line.type()),
                         line.amount(),
-                        line.method().name(),
+                        label(METHODS, line.method()),
                         line.reference()));
             }
             sheet.line("Người cao tuổi: " + item.residentName())
