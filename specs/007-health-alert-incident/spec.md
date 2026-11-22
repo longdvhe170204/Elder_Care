@@ -174,7 +174,7 @@ Ngày 2026-11-22 chủ dự án chốt lại cách đóng và theo dõi cảnh b
 
 - **Q-418 (người đóng cảnh báo)**: lệnh **Đóng cảnh báo** chỉ do Trưởng tầng (tầng của người cao tuổi, kể cả Trưởng tầng thay theo feature 008) và Bác sĩ; bắt buộc kết quả xử lý; không giới hạn thời gian theo dõi. Điều dưỡng, Người phụ trách ca vẫn tiếp nhận, bắt đầu xử lý, nâng/hạ mức, chuyển sự cố, ghi theo dõi, nhưng không đóng (FR-029, FR-036). Hệ thống tự đóng (FR-032) chỉ khi: nguồn là công việc quá hạn (feature 005) hoặc liều thuốc quá hạn, Bỏ lỡ (feature 006) và nguồn đã được làm; hoặc người cao tuổi chuyển trạng thái cuối (FR-038). Cảnh báo vượt ngưỡng, xu hướng, uống nước thiếu, ăn kém kéo dài, tâm trạng tiêu cực, xung đột dị ứng, tạo thủ công: yêu cầu đóng từ module nguồn chỉ ghi vào lịch sử, không đổi trạng thái. Vấn đề lặp lại sau khi đóng thì tạo cảnh báo mới (FR-030 giữ nguyên).
 - **Q-419 (theo dõi)**: thêm FR-087; feature 005 hiện nhãn "Đang theo dõi" trên checklist (feature 005 FR-057).
-- Cảnh báo từ nút SOS và nút hỗ trợ khẩn cấp (FR-047d, FR-047i) theo cùng quy tắc đóng của Q-418, trừ khi chủ dự án chốt khác.
+- **Gác lại**: cảnh báo từ nút SOS và nút hỗ trợ khẩn cấp (FR-047d, FR-047i) thuộc luồng khẩn cấp riêng; giữ nguyên quy tắc tiếp nhận, đóng hiện hành của các FR đó, Q-418 không áp cho hai loại này cho tới khi chủ dự án chốt luồng đó.
 
 ## Phạm vi
 

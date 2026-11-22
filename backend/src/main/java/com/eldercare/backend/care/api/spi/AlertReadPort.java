@@ -8,5 +8,6 @@ public interface AlertReadPort {
 
     Map<Long, List<Long>> byTask(Collection<Long> taskIds);
 
-    record AlertView(long id, long residentId) {}
+    /** {@code type}: loại cảnh báo (api-007 {@code Alert.type}) cho nhãn "Đang theo dõi" (005 FR-057, Q-419). */
+    record AlertView(long id, long residentId, String type) {}
 }

@@ -78,7 +78,7 @@ public class AlertSourceResolver {
             if (!markResolved(alertId, sourceType, sourceId, at)) continue;
             if (!allSourcesResolved(alertId)) continue;
             if (open) {
-                if (alert.residentId() != null) {
+                if (alert.residentId() != null && closesBySystem(alert.typeLock())) {
                     alertService.closeBySystem(
                             alert.residentId(), alert.typeLock(), "Nguồn đã được xử lý: " + reason, at);
                 }
@@ -86,6 +86,14 @@ public class AlertSourceResolver {
                 notifyIncident(alert, reason, at);
             }
         }
+    }
+
+    /**
+     * Q-418: hệ thống chỉ tự đóng cảnh báo quá hạn của công việc (công việc Bắt buộc quá hạn, bỏ lỡ lần đo theo lịch);
+     * cảnh báo về tình trạng sức khỏe chỉ được ghi nguồn đã xử lý, người đóng là Trưởng tầng hoặc Bác sĩ.
+     */
+    public static boolean closesBySystem(String typeLock) {
+        return typeLock != null && (typeLock.startsWith("QUA_HAN:") || typeLock.startsWith("BO_LO_LAN_DO:"));
     }
 
     private void notifyIncident(AlertRecord alert, String reason, Instant at) {

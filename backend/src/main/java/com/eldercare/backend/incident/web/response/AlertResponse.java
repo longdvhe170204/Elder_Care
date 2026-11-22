@@ -52,13 +52,17 @@ public record AlertResponse(
 
         Boolean skipArrivalTime,
         List<AlertSource> sources,
-        List<String> allowedCommands) {
+        List<String> allowedCommands,
+        List<AlertFollowUp> followUps) {
 
     private static final String STAFF_ASSIST = "STAFF_ASSIST_REQUEST";
     private static final String RESIDENT_HELP = "RESIDENT_HELP_REQUEST";
 
     public record AlertSource(
             String sourceType, Long sourceId, IncidentLevel level, Instant occurredAt, Instant resolvedAt) {}
+
+    /** Kết quả theo dõi (FR-087, Q-419). */
+    public record AlertFollowUp(String content, Instant at, String recordedBy) {}
 
     public static AlertResponse of(AlertDetails details, boolean merged) {
         AlertRecord alert = details.alert();
@@ -96,7 +100,10 @@ public record AlertResponse(
                                 source.occurredAt(),
                                 source.resolvedAt()))
                         .toList(),
-                details.allowedCommands().stream().sorted().toList());
+                details.allowedCommands().stream().sorted().toList(),
+                details.followUps().stream()
+                        .map(f -> new AlertFollowUp(f.content(), f.at(), f.recordedBy()))
+                        .toList());
     }
 
     /** Nguồn tạo (FR-026): (d) nút SOS, (e) nút hỗ trợ khẩn cấp, còn lại thủ công hoặc hệ thống. */
