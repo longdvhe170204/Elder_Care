@@ -157,7 +157,8 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
                                 content.adverseReaction(),
                                 content.note(),
                                 true,
-                                content.leaveHandoverId()),
+                                content.leaveHandoverId(),
+                                content.measurements()),
                         user.accountId(),
                         null,
                         effectiveAt);

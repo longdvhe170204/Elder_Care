@@ -50,7 +50,8 @@ public class ProcurementRequestStore {
             "reconciliation_result",
             "discrepancy_amount",
             "discrepancy_resolution",
-            "reconciled_by_staff_id");
+            "reconciled_by_staff_id",
+            "submitted_at");
     private static final TypeReference<List<Line>> LINES = new TypeReference<>() {};
     private static final TypeReference<List<LinkedSource>> SOURCES = new TypeReference<>() {};
     private static final TypeReference<List<Long>> IDS = new TypeReference<>() {};
@@ -152,6 +153,15 @@ public class ProcurementRequestStore {
                 "SELECT " + COLUMNS + " FROM procurement_request WHERE status = ? AND " + since + " < ? ORDER BY id",
                 this::row,
                 status.name(),
+                local(cutoff));
+    }
+
+    /** BR-M11-22: yêu cầu thuốc mức Gấp chờ duyệt, gửi duyệt trước {@code cutoff}. */
+    public List<ProcurementRequestRow> urgentMedicationWaitingApproval(Instant cutoff) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM procurement_request WHERE status = 'PENDING_APPROVAL'"
+                        + " AND type = 'MEDICATION' AND priority = 'URGENT' AND submitted_at < ? ORDER BY id",
+                this::row,
                 local(cutoff));
     }
 

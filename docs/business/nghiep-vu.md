@@ -370,7 +370,7 @@ Sơ đồ trên thể hiện cùng bảng chuyển trạng thái; hồ sơ ở t
 | Đang lưu trú → Tạm vắng               | Người đón thuộc danh sách được phép đón (14.3)                                                                                                                                                                                                           | Hủy công việc và suất ăn trong thời gian vắng; liều thuốc chuyển "Mang theo" hoặc "Tạm dừng"; giường chuyển Giữ chỗ hoặc Trống theo chính sách; áp chính sách phí vắng (BR-M02-06) |
 | Đang lưu trú → Hoạt động bên ngoài    | Điểm danh rời viện của chuyến đi (8.9); do trưởng đoàn hoặc trưởng tầng thay, chỉ từ Đang lưu trú; ngược lại khi điểm danh về                                                                                                    | Hủy công việc Chưa đến hạn trong khoảng thời gian đi theo BR-M04-04 (không "tạm dừng"); khi trở về, Người phụ trách ca lập lại công việc (BR-M04-01); liều thuốc chuyển "Mang theo"            |
 | → Điều trị tại bệnh viện              | Có sự cố hoặc chỉ định chuyển viện                                                                                                                                                                                                                       | Như Tạm vắng; thông báo người liên hệ chính                                                                                                                                        |
-| Điều trị tại bệnh viện → Đang lưu trú | —                                                                                                                                                                                                                                                        | Tạm dừng toàn bộ lịch thuốc cũ; báo cần lập phiếu đối chiếu thuốc (BR-M07-09) và cần đánh giá lại (BR-M01-02); đính kèm được giấy ra viện, đơn thuốc (BR-M05-32)                                                                        |
+| Điều trị tại bệnh viện → Đang lưu trú | —                                                                                                                                                                                                                                                        | Tạm dừng mọi đơn thuốc cũ (đơn Quan trọng có trong giấy ra viện: Tiếp tục tạm, BR-M07-28); báo cần lập phiếu đối chiếu thuốc (BR-M07-09) và cần đánh giá lại (BR-M01-02); đính kèm được giấy ra viện, đơn thuốc (BR-M05-32)                                                                        |
 | → Kết thúc lưu trú                    | Không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng (BR-M12-03, Q-148); không còn thuốc gửi đang giữ; chi phí kỳ cuối đã chốt theo trình tự 6.8 (Q-21); không còn cảnh báo/sự cố mở — trừ khi quản lý duyệt ngoại lệ; đã bàn giao người cao tuổi. Số dư và tiền cọc đã quyết toán (15.9), được quản lý duyệt ngoại lệ | Hủy mọi lịch tương lai; giải phóng giường; khóa tài khoản người thân sau \[30 ngày\] (CFG-M01-04)                                                                                               |
 | → Qua đời                             | Có người xác nhận: bác sĩ khi mất tại viện; khi mất ngoài viện, bác sĩ hoặc hành chính kèm giấy tờ bằng chứng do cơ sở y tế hoặc cơ quan có thẩm quyền cấp (giấy báo tử, giấy chứng tử), là xác nhận chuyên môn về tử vong (Q-342)                                                                                                                                            | Như Kết thúc lưu trú; thông báo người liên hệ chính; hồ sơ chỉ đọc                                                                                                                 |
 | Đang tiếp nhận → Hủy tiếp nhận        | Có lý do                                                                                                                                                                                                                                                 | Hủy giữ chỗ giường nếu có; đóng hồ sơ chờ liên quan                                                                                                                                |
@@ -1253,9 +1253,9 @@ Module quản lý đơn thuốc, lịch thuốc, thực hiện thuốc, đối c
 
 Đơn thuốc có: người cao tuổi; thuốc; liều; đường dùng; thời gian; người kê; cơ sở kê; nguồn thuốc; ghi chú. Mọi thay đổi phải lưu lịch sử.
 
-Đơn thuốc có thêm: hoạt chất; ngày bắt đầu; ngày kết thúc (nếu có); loại đơn (định kỳ / khi cần – PRN); với PRN: khoảng cách tối thiểu giữa hai lần và số lần tối đa mỗi ngày; nguồn thuốc (viện cung cấp / gia đình gửi). Trạng thái đơn: Chờ hiệu lực, Hiệu lực, Tạm dừng, Đã ngừng, Hết hạn (bảng dưới).
+Đơn thuốc có thêm: hoạt chất; ngày bắt đầu; ngày kết thúc (nếu có); loại đơn (định kỳ / khi cần – PRN); với PRN: chỉ định dùng, khoảng cách tối thiểu giữa hai lần và số lần tối đa mỗi ngày (BR-M07-04); mức quan trọng về thời gian: Thường (mặc định) hoặc Quan trọng (BR-M07-27); chỉ số cần đo trước khi dùng, nếu có (BR-M07-26); nguồn thuốc (viện cung cấp / gia đình gửi). Trạng thái đơn: Chờ hiệu lực, Hiệu lực, Tạm dừng, Đã ngừng, Hết hạn (bảng dưới).
 
-Đơn thuốc đã Hiệu lực **không sửa liều, thuốc hay tần suất**. Đổi liều hoặc đổi thuốc = ngừng đơn cũ và tạo đơn thay thế, hai đơn liên kết với nhau ("thay thế cho"). Chỉ được sửa các trường không ảnh hưởng đến việc dùng thuốc, như ghi chú hướng dẫn, và vẫn lưu lịch sử.
+Đơn thuốc đã Hiệu lực **không sửa liều, thuốc hay tần suất**. Đổi liều hoặc đổi thuốc = ngừng đơn cũ và tạo đơn thay thế, hai đơn liên kết với nhau ("thay thế cho"). Chỉ được sửa các trường không ảnh hưởng đến việc dùng thuốc, như ghi chú hướng dẫn, và vẫn lưu lịch sử. Mức quan trọng về thời gian và chỉ số cần đo trước khi dùng cũng sửa được theo cách này (không đổi thuốc, liều, tần suất), do người có quyền Tạm dừng đơn đó.
 
 Vòng đời đơn thuốc; Đã ngừng và Hết hạn là trạng thái cuối.
 
@@ -1266,7 +1266,7 @@ Vòng đời đơn thuốc; Đã ngừng và Hết hạn là trạng thái cuố
 | Chờ hiệu lực | Tới ngày giờ bắt đầu; hoặc lệnh Hoàn tất tiếp nhận với đơn "chờ tiếp nhận" | Hiệu lực | Bộ lập lịch; Hệ thống |
 | Hiệu lực | Tạm dừng đơn (bắt buộc lý do) | Tạm dừng | Bác sĩ; Điều dưỡng chỉ với đơn bên ngoài có căn cứ từ cơ sở kê |
 | Hiệu lực | Tiếp nhận hoặc trở về từ bệnh viện (BR-M07-09) | Tạm dừng (lý do "chờ đối chiếu") | Hệ thống |
-| Tạm dừng | Tiếp tục đơn, khi không đang chờ đối chiếu; phiếu đối chiếu xác nhận Tiếp tục | Hiệu lực | Như Tạm dừng đơn; Hệ thống |
+| Tạm dừng | Tiếp tục đơn, khi không đang chờ đối chiếu; phiếu đối chiếu xác nhận Tiếp tục; Tiếp tục tạm đơn Quan trọng có trong giấy ra viện khi đang chờ đối chiếu (BR-M07-28) | Hiệu lực | Như Tạm dừng đơn, kèm điều kiện của Q-413 (BR-M07-28); Hệ thống |
 | Hiệu lực, Tạm dừng, Chờ hiệu lực | Ngừng đơn; đổi liều / đổi thuốc (tạo đơn thay thế); phiếu đối chiếu xác nhận Ngừng hoặc Thay đổi liều; người cao tuổi chuyển trạng thái cuối | Đã ngừng | Như Tạm dừng đơn; Hệ thống |
 | Hiệu lực, Tạm dừng | Hết ngày kết thúc mà không được gia hạn (BR-M07-08) | Hết hạn | Bộ lập lịch |
 
@@ -1288,18 +1288,25 @@ stateDiagram-v2
     DenGio --> TuChoi
     DenGio --> KhongThucHien
     DenGio --> Tre
-    Tre --> DaDung
+    DenGio --> Hoan
+    Tre --> Hoan
+    Hoan --> DaDungMuon
+    Hoan --> TuChoi
+    Hoan --> KhongThucHien
+    Hoan --> BoLo
+    Tre --> DaDungMuon
     Tre --> BoLo
     MangTheo --> DaDung
     MangTheo --> KhongThucHien
     TamDung --> ChuaDenGio
     DaDung --> [*]
+    DaDungMuon --> [*]
     TuChoi --> [*]
     KhongThucHien --> [*]
     BoLo --> [*]
 ```
 
-Sơ đồ trên là vòng đời của một liều; Tạm dừng do vắng mặt hoặc đang chờ đối chiếu, Mang theo do hoạt động ngoài viện hoặc tạm vắng có mang thuốc.
+Sơ đồ trên là vòng đời của một liều; Tạm dừng do vắng mặt hoặc đang chờ đối chiếu, Mang theo do hoạt động ngoài viện hoặc tạm vắng có mang thuốc. Hoãn là Hoãn có chủ đích do Điều dưỡng ghi kèm lý do; Đã dùng muộn là kết quả ghi giờ dùng thực tế khi liều đã Trễ, Hoãn hoặc Bỏ lỡ (BR-M07-26). Mức quan trọng của đơn đổi mốc từ Trễ sang Bỏ lỡ (BR-M07-02, 27).
 
 Ngoài các chuyển ở sơ đồ trên, vòng đời liều có thêm các chuyển dưới đây.
 
@@ -1307,20 +1314,25 @@ Ngoài các chuyển ở sơ đồ trên, vòng đời liều có thêm các chu
 | --- | --- | --- | --- |
 | Tạm dừng | Trở về từ Tạm vắng; đơn Tiếp tục; phiếu đối chiếu xác nhận Tiếp tục; cuối cửa sổ chưa qua | Chưa đến giờ, hoặc Đến giờ nếu đã trong cửa sổ | Hệ thống |
 | Mang theo | Người cao tuổi trở về trước cuối cửa sổ, liều chưa được ghi nhận (Q-60) | Chưa đến giờ, hoặc Đến giờ | Hệ thống |
-| Trễ | Ghi Từ chối / Không thực hiện (bắt buộc lý do) | Từ chối / Không thực hiện | Điều dưỡng |
-| Chưa đến giờ, Đến giờ, Tạm dừng, Mang theo (chưa ghi nhận) | Ngừng đơn, đổi liều, Hết hạn, quyết định Ngừng hoặc Thay đổi liều trên phiếu đối chiếu (BR-M07-07) | **Đã hủy** | Hệ thống |
+| Đến giờ, Trễ | Hoãn có chủ đích (bắt buộc lý do; không đổi mốc Bỏ lỡ, BR-M07-26) | Hoãn | Điều dưỡng |
+| Trễ, Hoãn | Ghi Từ chối / Không thực hiện (bắt buộc lý do) | Từ chối / Không thực hiện | Điều dưỡng |
+| Hoãn | Ghi đã dùng, kèm giờ thực tế | Đã dùng muộn | Điều dưỡng |
+| Hoãn | Tới mốc Bỏ lỡ mà chưa ghi (BR-M07-02) | Bỏ lỡ | Hệ thống |
+| Bỏ lỡ | Ghi đã dùng, kèm giờ thực tế: tạo bản ghi kèm bản đính chính (Q-327, BR-M07-26) | Đã dùng muộn (hiện hành); lịch sử vẫn có Bỏ lỡ | Điều dưỡng |
+| Chưa đến giờ, Đến giờ, Hoãn, Tạm dừng, Mang theo (chưa ghi nhận) | Ngừng đơn, đổi liều, Hết hạn, quyết định Ngừng hoặc Thay đổi liều trên phiếu đối chiếu (BR-M07-07) | **Đã hủy** | Hệ thống |
 | Chưa đến giờ, Tạm dừng, Mang theo (chưa ghi nhận) | Người cao tuổi chuyển trạng thái cuối | Đã hủy | Hệ thống |
-| Đến giờ, Trễ | Người cao tuổi chuyển trạng thái cuối | Không thực hiện | Hệ thống |
+| Đến giờ, Trễ, Hoãn | Người cao tuổi chuyển trạng thái cuối | Không thực hiện | Hệ thống |
 
-Trở về từ Điều trị tại bệnh viện không khôi phục liều: liều giữ Tạm dừng tới khi phiếu đối chiếu được xác nhận (BR-M07-09). Đã dùng, Từ chối, Không thực hiện, Bỏ lỡ và Đã hủy là trạng thái cuối. Liều Tạm dừng đã qua cuối cửa sổ kết thúc ở Tạm dừng, không tính Bỏ lỡ và không cảnh báo.
+Trở về từ Điều trị tại bệnh viện không khôi phục liều: liều giữ Tạm dừng tới khi phiếu đối chiếu được xác nhận (BR-M07-09), trừ liều của đơn Quan trọng được Tiếp tục tạm (BR-M07-28). Đã dùng, Đã dùng muộn, Từ chối, Không thực hiện, Bỏ lỡ và Đã hủy là trạng thái cuối. Liều Tạm dừng đã qua cuối cửa sổ kết thúc ở Tạm dừng, không tính Bỏ lỡ, không cảnh báo và không tính phí (liều chỉ tính phí khi Đã dùng hoặc Đã dùng muộn, BR-M07-14). Việc này áp cho mọi lượt vắng mặt: nằm viện, về nhà, đi ngoài viện không mang thuốc.
 
 Số lần tối đa mỗi ngày của thuốc khi cần (PRN) được tính theo 24 giờ trượt: đếm các lần Đã dùng trong 24 giờ liền trước thời điểm dùng mới.
 
 ### 11.3. Thực hiện thuốc
 
-Ghi nhận: đã thực hiện; không thực hiện; từ chối; chưa thực hiện; lý do; phản ứng; ghi chú. Các trường hợp bất thường tạo cảnh báo/sự cố theo chính sách.
+Ghi nhận: đã thực hiện (kể cả đã dùng muộn, ghi giờ thực tế); hoãn có chủ đích; không thực hiện; từ chối; chưa thực hiện; lý do (bắt buộc với hoãn, từ chối, không thực hiện); chỉ số đo trước khi dùng (khi đơn yêu cầu); phản ứng; hiệu quả (thuốc khi cần); ghi chú. Các trường hợp bất thường tạo cảnh báo/sự cố theo chính sách.
 
-- **Liều chung của tầng (Q-61):** khi người cao tuổi không có điều dưỡng được phân công trong ca, liều thành "liều chung của tầng". Mọi Điều dưỡng có ca tại tầng thấy được, và người có giấy phép còn hiệu lực xác nhận được. Trưởng tầng và Người phụ trách ca được thông báo.
+- **Nhận liều (Q-427, BR-M07-26):** trước khi soạn thuốc, Điều dưỡng ghi "Nhận liều"; liều đã có người nhận thì Điều dưỡng khác không xác nhận được. Nhận liều tự hết sau \[15 phút\] (CFG-M07-08) nếu chưa xác nhận.
+- **Liều chung của tầng (Q-61):** khi người cao tuổi không có điều dưỡng được phân công trong ca, liều thành "liều chung của tầng". Mọi Điều dưỡng có ca tại tầng thấy được, và người có giấy phép còn hiệu lực xác nhận được. Trưởng tầng và Người phụ trách ca được thông báo. Tầng không có Điều dưỡng nào có ca: BR-M07-21, BR-M07-31.
 - **Liều Mang theo (Q-54):** chỉ Điều dưỡng ghi nhận. Điều dưỡng đi cùng thì ghi tại chỗ. Không có điều dưỡng đi cùng thì Điều dưỡng phụ trách ghi sau khi người cao tuổi trở về, theo báo lại của nhân viên đi cùng hoặc người thân; bản ghi gắn căn cứ "ghi theo báo lại" và lưu người báo lại.
 - **Giao thuốc mang theo (Q-58):** khi người cao tuổi rời viện có mang thuốc, điều dưỡng ghi "Giao thuốc mang theo" với số lượng từng đơn. Với thuốc viện, lần giao là sự kiện tính phí (BR-M07-14); thuốc gia đình gửi chỉ ghi số lượng đã giao, không trừ số lượng của lô (Q-393). Khi trở về, điều dưỡng ghi "Nhận lại" với số lượng mang về; với thuốc viện, phần nhận lại giảm số tính phí. Liều ghi sau đó không tính phí lần nữa.
 - **Trở về sớm (Q-60, Q-65):** liều Mang theo chưa tới giờ thôi thuộc lần giao. Điều dưỡng chỉ dùng viên thuốc đã giao cho liều ở viện sau khi đã ghi "Nhận lại". Liều dùng ở viện tính phí như bình thường (thuốc viện). Nếu lần giao còn mở khi xác nhận liều, hệ thống nhắc ghi nhận lại, không chặn.
@@ -1333,22 +1345,23 @@ Ghi nhận: đã thực hiện; không thực hiện; từ chối; chưa thực 
 
 ### 11.4. Thuốc gia đình gửi
 
-Khi tiếp nhận: tên thuốc; hàm lượng; số lượng; hạn dùng; bao bì; đơn thuốc/toa; người giao; người nhận.
+Khi tiếp nhận: tên thuốc; hàm lượng; số lượng; hạn dùng; bao bì; đơn thuốc/toa; người giao; người nhận; kết quả kiểm tra Đạt hoặc Không đạt cho nhãn thuốc, hạn dùng, bao bì, đúng tên người cao tuổi (BR-M07-30).
 
 Thuốc gia đình gửi không tự động trở thành lịch thuốc. Phải được đối chiếu với đơn thuốc hiện hành và xác nhận bởi vai trò được cơ sở phân quyền. Nếu không rõ nguồn gốc hoặc không có căn cứ sử dụng: chỉ ghi nhận/giữ hộ, không đưa vào lịch sử dụng.
 
-Trạng thái thuốc gia đình gửi: Chờ đối chiếu, Được sử dụng (gắn với đơn thuốc), Chỉ giữ hộ, Đã dùng hết, Đã hoàn trả, Đã hủy theo yêu cầu gia đình (bảng dưới). Đã hoàn trả, Đã hủy theo yêu cầu gia đình và Đã dùng hết là trạng thái cuối.
+Trạng thái thuốc gia đình gửi: Chờ đối chiếu, Được sử dụng (gắn với đơn thuốc), Chỉ giữ hộ, Đã dùng hết, Đã hoàn trả, Đã hủy theo yêu cầu gia đình, Đã hủy do hết hạn dùng (bảng dưới). Đã hoàn trả, Đã hủy theo yêu cầu gia đình, Đã hủy do hết hạn dùng và Đã dùng hết là trạng thái cuối.
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
 | — | Tiếp nhận | Chờ đối chiếu | Điều dưỡng |
-| Chờ đối chiếu, Chỉ giữ hộ | Xác nhận sử dụng, gắn với đơn nguồn "gia đình gửi" cùng thuốc | Được sử dụng | Bác sĩ, Điều dưỡng |
+| Chờ đối chiếu, Chỉ giữ hộ | Xác nhận sử dụng, gắn với đơn nguồn "gia đình gửi" cùng thuốc; chỉ khi cả bốn mục kiểm tra tiếp nhận Đạt (BR-M07-30) | Được sử dụng | Bác sĩ, Điều dưỡng |
 | Chờ đối chiếu | Chỉ giữ hộ (bắt buộc lý do) | Chỉ giữ hộ | Bác sĩ, Điều dưỡng |
 | Được sử dụng | Ngừng sử dụng (bắt buộc lý do) | Chỉ giữ hộ | Bác sĩ, Điều dưỡng |
 | Được sử dụng | Đơn gắn chuyển Đã ngừng hoặc Hết hạn mà không có đơn thay thế cùng thuốc; qua ngày hạn dùng | Chỉ giữ hộ | Hệ thống; Bộ lập lịch |
 | Được sử dụng | Ghi dùng hết (Q-393) | Đã dùng hết | Điều dưỡng |
-| Chờ đối chiếu, Chỉ giữ hộ | Hoàn trả | Đã hoàn trả | Điều dưỡng |
-| Chờ đối chiếu, Chỉ giữ hộ | Hủy theo yêu cầu của người đại diện | Đã hủy theo yêu cầu gia đình | Điều dưỡng |
+| Chờ đối chiếu, Chỉ giữ hộ | Hoàn trả, kèm người chứng kiến và thời điểm (BR-M07-30) | Đã hoàn trả | Điều dưỡng |
+| Chờ đối chiếu, Chỉ giữ hộ | Hủy theo yêu cầu của người đại diện, kèm người chứng kiến và thời điểm (BR-M07-30) | Đã hủy theo yêu cầu gia đình | Điều dưỡng |
+| Chờ đối chiếu, Chỉ giữ hộ | Hủy khi đã qua ngày hạn dùng, bắt buộc lý do, kèm người chứng kiến và thời điểm (BR-M07-30) | Đã hủy do hết hạn dùng | Điều dưỡng |
 
 Thuốc Được sử dụng muốn hoàn trả hoặc hủy phải qua Ngừng sử dụng trước.
 
@@ -1364,21 +1377,22 @@ Thuốc mua hộ (15.2) được tiếp nhận như thuốc gia đình gửi, c�
 
 - **Người xác nhận (Q-55):** Bác sĩ hoặc Điều dưỡng lập phiếu; một Bác sĩ hoặc Điều dưỡng **khác** xác nhận, theo quy tắc hai người, không tự xác nhận. Quy tắc áp như nhau khi cơ sở có hay không có phạm vi khám chữa bệnh. Phiếu có dòng tạo đơn nội bộ chỉ được xác nhận bởi Bác sĩ có quyền kê đơn.
 - **Người mới tiếp nhận (Q-57):** phiếu "tiếp nhận" được lập, gửi, xác nhận khi hồ sơ còn Đang tiếp nhận. Đơn tạo ra ở trạng thái chờ và có hiệu lực ngay tại lệnh Hoàn tất tiếp nhận. Nếu tới lúc đó phiếu chưa được xác nhận thì chưa có liều, và hạn CFG-M07-05 tính từ Hoàn tất tiếp nhận.
+- **Trả lại, hạn, giấy ra viện (BR-M07-29, Q-430):** người xác nhận Trả lại phiếu kèm lý do để đưa về Mở; phiếu trở về từ bệnh viện được so với giấy ra viện và đơn trước khi nhập viện; quá 8 giờ chưa xác nhận thì báo thêm Trưởng tầng và Quản lý viện.
 - **Kiểm đủ dòng và căn cứ (Q-411):** hệ thống chặn gửi khi đơn hiện có của người đó chưa có dòng; thuốc đang dùng khi tiếp nhận (ghi bằng chữ ở hồ sơ sức khỏe ban đầu) do người xác nhận so với phiếu và trả lại khi thiếu. Phiếu không có dòng gửi được khi người cao tuổi không có đơn nào phải đối chiếu. Dòng Ngừng, Thay đổi liều do Bác sĩ có quyền kê đơn quyết, hoặc ghi căn cứ từ cơ sở kê bên ngoài (cơ sở, người, ngày); phiếu không thay việc khám, chẩn đoán, kê đơn.
 
-Các quy tắc chi tiết của mục này mang mã BR-M07-15 → BR-M07-23 (11.6).
+Các quy tắc chi tiết của mục này mang mã BR-M07-15 → BR-M07-23, BR-M07-25, BR-M07-28, BR-M07-29 (11.6).
 
 ### 11.6. Quy tắc nghiệp vụ Module 07
 
 **Lịch liều và thời hạn**
 
 - **BR-M07-01:** Lịch thuốc tính các liều cụ thể từ các đơn Hiệu lực loại định kỳ để Điều dưỡng xem và ghi nhận; hệ thống không lập sẵn bản ghi liều (Q-306).
-- **BR-M07-02:** Quá cửa sổ thời gian mà chưa xác nhận thì liều chuyển Trễ và hệ thống nhắc điều dưỡng. Quá thêm \[30 phút\] thì chuyển Bỏ lỡ và tạo cảnh báo mức trung bình.
+- **BR-M07-02:** Quá cửa sổ thời gian mà chưa xác nhận thì liều chuyển Trễ và hệ thống nhắc điều dưỡng. Quá thêm \[30 phút\] (CFG-M07-02) thì chuyển Bỏ lỡ và tạo cảnh báo mức Trung bình. Đơn Quan trọng về thời gian: quá thêm \[15 phút\] (CFG-M07-09) thì chuyển Bỏ lỡ, cảnh báo vẫn mức Trung bình nhưng báo ngay đồng thời Điều dưỡng phụ trách, Trưởng tầng và Bác sĩ trực (BR-M07-27). Hoãn có chủ đích không đổi các mốc này (BR-M07-26).
 - **BR-M07-03:** Khi người cao tuổi vắng mặt (Tạm vắng, Điều trị tại bệnh viện), các liều trong thời gian vắng chuyển Tạm dừng; khi đi hoạt động ngoài viện hoặc tạm vắng có mang thuốc thì chuyển Mang theo. Với chuyến đi, Điều dưỡng ghi được quyết định "không mang thuốc" (có lý do) trước khi rời viện; liều trong khoảng đi khi đó chuyển Tạm dừng như tạm vắng không mang thuốc. Chuyến bị hủy hoặc người không đi sau khi đã giao thuốc mang theo thì điều dưỡng phụ trách được nhắc ghi Nhận lại (Q-58).
 
 **Thuốc khi cần (PRN)**
 
-- **BR-M07-04:** Thuốc PRN không có lịch. Mỗi lần dùng phải ghi lý do. Hệ thống chặn nếu chưa đủ khoảng cách tối thiểu hoặc đã đạt số lần tối đa trong ngày. "Trong ngày" là 24 giờ trượt: đếm các lần Đã dùng trong 24 giờ liền trước thời điểm dùng mới (11.2).
+- **BR-M07-04:** Thuốc PRN không có lịch. Mỗi lần dùng phải ghi lý do. Hệ thống chặn nếu chưa đủ khoảng cách tối thiểu hoặc đã đạt số lần tối đa trong ngày. "Trong ngày" là 24 giờ trượt: đếm các lần Đã dùng trong 24 giờ liền trước thời điểm dùng mới (11.2). Đơn PRN ghi chỉ định dùng; lý do mỗi lần dùng đối chiếu với chỉ định đó. Sau \[60 phút\] (CFG-M07-11) kể từ lần dùng mà chưa ghi hiệu quả thì hệ thống nhắc Điều dưỡng đã ghi lần dùng (nhắc mức Nhẹ, không tạo cảnh báo).
 
 **Kê và thay đổi đơn**
 
@@ -1389,7 +1403,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M07-15 → BR-M07-23 (11.
 
 **Đối chiếu thuốc**
 
-- **BR-M07-09:** Khi tiếp nhận hoặc trở về từ bệnh viện, mọi đơn cũ chuyển Tạm dừng; Bác sĩ hoặc Điều dưỡng lập phiếu đối chiếu (11.5), Điều dưỡng phụ trách được báo (Q-306). Lịch thuốc chỉ chạy lại khi phiếu được xác nhận. Quá \[4 giờ\] chưa đối chiếu thì tạo cảnh báo mức trung bình.
+- **BR-M07-09:** Khi tiếp nhận hoặc trở về từ bệnh viện, mọi đơn cũ chuyển Tạm dừng (đối tượng tạm dừng là đơn; liều của đơn Tạm dừng được tính Tạm dừng theo 11.2); Bác sĩ hoặc Điều dưỡng lập phiếu đối chiếu (11.5), Điều dưỡng phụ trách được báo (Q-306). Lịch thuốc chỉ chạy lại khi phiếu được xác nhận, trừ đơn Quan trọng được Tiếp tục tạm khi trở về từ bệnh viện (BR-M07-28). Quá \[4 giờ\] (CFG-M07-05) chưa đối chiếu thì tạo cảnh báo mức Trung bình; quá \[8 giờ\] (CFG-M07-10) thì leo thang theo BR-M07-29.
 
 **Thuốc gia đình gửi**
 
@@ -1407,17 +1421,34 @@ Các quy tắc chi tiết của mục này mang mã BR-M07-15 → BR-M07-23 (11.
 - **BR-M07-18:** Một lô thuốc gia đình gửi gắn được nhiều đơn cùng thuốc của cùng người. *(Phần tính số ngày còn lại bỏ theo Q-393.)*
 - **BR-M07-19:** *(Sửa theo Q-393)* Hoàn trả, hủy theo yêu cầu gia đình áp cho cả lô và ghi số lượng đếm thực tế lúc trả; không hoàn trả một phần lô; không có Kiểm kê điều chỉnh.
 - **BR-M07-20:** Hai bản ghi ngoại tuyến cho cùng một liều: bản hệ thống nhận trước đóng liều, bản sau bị từ chối; nếu cả hai đều là Đã dùng thì hệ thống tạo cảnh báo mức Trung bình "nghi dùng trùng liều" (9.1).
-- **BR-M07-21:** Tầng/khu vực không có Điều dưỡng nào có ca thì hệ thống báo ngay Trưởng tầng và Quản lý viện mức Trung bình, kèm danh sách liều sắp tới giờ; không ai ngoài Điều dưỡng được xác nhận liều.
+- **BR-M07-21:** Tầng/khu vực không có Điều dưỡng nào có ca thì hệ thống báo ngay Trưởng tầng và Quản lý viện mức Trung bình, kèm danh sách liều sắp tới giờ; không ai ngoài Điều dưỡng được xác nhận liều. Quản lý viện chỉ định được một Điều dưỡng tầng khác phụ trách tạm trong ca (BR-M07-31). Hệ thống chỉ có ba mức độ (9.3) nên không có mức "Cao": giữ Trung bình (Q-435).
 - **BR-M07-22:** Một lượt vắng có thể có nhiều lần "Giao thuốc mang theo". Khi "thuốc đang sử dụng khi tiếp nhận" của hồ sơ sức khỏe ban đầu đổi sau khi phiếu đối chiếu tiếp nhận đã lập: phiếu còn Mở thì hệ thống báo người thực hiện để thêm dòng cho thuốc mới và tự sửa dòng của thuốc đã bỏ (dấu "thuốc đã bỏ" chỉ tính khi hiển thị, hệ thống không sửa phiếu); phiếu Chờ xác nhận hoặc Đã xác nhận không tự đổi, hệ thống báo người thực hiện và người xác nhận.
-- **BR-M07-23:** Ngoài phạm vi: hệ thống không kiểm tra tương tác thuốc – thuốc và liều tối đa.
+- **BR-M07-23:** Ngoài phạm vi: hệ thống không kiểm tra tương tác thuốc – thuốc và liều tối đa. Người kê đơn (Bác sĩ; hoặc cơ sở kê bên ngoài) chịu trách nhiệm kiểm tra tương tác thuốc và liều tối đa trước khi kê; Điều dưỡng nhập đơn bên ngoài đúng theo đơn của cơ sở kê. Việc hệ thống kiểm trùng hoạt chất và dị ứng (BR-M07-06) không thay trách nhiệm này (Q-436).
 - **BR-M07-24:** Thuốc do viện cung cấp được cung ứng qua yêu cầu mua sắm loại "thuốc" (15.10) và được Điều dưỡng ghi lần tiếp nhận (11.7). Lần tiếp nhận ghi kết quả kiểm tra Đạt hoặc Không đạt; Không đạt bắt buộc ghi sai lệch và lý do. Lần tiếp nhận là dữ liệu nhóm 3, không tạo tồn kho và không là sự kiện tính phí; chi phí thuốc cho người cao tuổi vẫn tính theo liều (BR-M07-14). Đơn thuốc nguồn viện không bị chặn khi chưa có lần tiếp nhận (Q-337).
 - **BR-M07-25:** Ngoài hai trường hợp ở BR-M07-09, Bác sĩ hoặc Điều dưỡng lập phiếu đối chiếu loại "theo yêu cầu chuyên môn" khi có thay đổi lớn về tình trạng điều trị theo quy trình của viện, bắt buộc lý do; hệ thống không tự xác định trường hợp này và không nhắc lập (Q-307). Phiếu chỉ lập cho người cao tuổi Đang lưu trú, Tạm vắng hoặc Hoạt động bên ngoài; lập phiếu không tạm dừng đơn, các quyết định từng dòng có hiệu lực khi phiếu được xác nhận. Phiếu theo quy tắc hai người (Q-55), mỗi người cao tuổi tối đa một phiếu Mở hoặc Chờ xác nhận; phiếu loại này không có hạn CFG-M07-05 và không tạo cảnh báo quá hạn (Q-340).
+
+**Xác nhận liều, mức quan trọng và chuyển giao đơn (Q-426 → Q-436)**
+
+- **BR-M07-26 (Q-426, Q-427):** Xác nhận liều có các kết quả: Đã dùng, Đã dùng muộn, Hoãn có chủ đích, Từ chối, Không thực hiện.
+  - Đã dùng muộn: dùng khi liều đã Trễ, Hoãn hoặc Bỏ lỡ; bắt buộc ghi giờ dùng thực tế; tính như Đã dùng ở mọi quy tắc khác (tính phí BR-M07-14, đóng cảnh báo nguồn). Liều Bỏ lỡ vẫn là trạng thái cuối trong lịch sử (Q-327); hệ thống tạo kèm bản đính chính để trạng thái hiện hành là Đã dùng muộn, cảnh báo Bỏ lỡ đã tạo giữ trong lịch sử.
+  - Hoãn, Từ chối, Không thực hiện bắt buộc lý do. Hoãn không phải xác nhận cuối: ghi tiếp được Đã dùng muộn, Từ chối, Không thực hiện. Hoãn dừng nhắc Trễ nhưng không đổi mốc Bỏ lỡ (BR-M07-02); tới mốc đó chưa ghi thì chuyển Bỏ lỡ.
+  - Đơn có chỉ số cần đo trước khi dùng (ví dụ huyết áp, mạch, đường huyết, theo danh mục chỉ số 10): ghi Đã dùng hoặc Đã dùng muộn bắt buộc có giá trị chỉ số nhập tại lúc xác nhận; giá trị đi qua quy tắc chỉ số (BR-M06-01, 03, 04) và gắn với liều. Hoãn, Từ chối, Không thực hiện không cần chỉ số. Hệ thống không tự quyết định dùng hay không dùng thuốc theo chỉ số; Điều dưỡng quyết định và báo Bác sĩ khi cần.
+  - Nhận liều: Điều dưỡng ghi "Nhận liều" cho liều Đến giờ, Trễ hoặc Hoãn trước khi soạn thuốc. Liều đã có người nhận thì Điều dưỡng khác xem được nhưng không xác nhận được. Nhận liều tự hết sau \[15 phút\] (CFG-M07-08) nếu chưa xác nhận; người nhận bỏ nhận được; xác nhận xong thì hết. Nhận liều không đổi trạng thái liều, không áp cho liều Mang theo và thuốc PRN; áp cho liều chung của tầng (Q-61). Nhận liều cần trực tuyến; bản ghi ngoại tuyến không bị chặn bởi lượt nhận của người khác mà theo BR-M07-20.
+- **BR-M07-27 (Q-428):** Mỗi đơn có mức quan trọng về thời gian: Thường (mặc định) hoặc Quan trọng, do người nhập đơn chọn (Bác sĩ với đơn nội bộ). Thường giữ BR-M07-02. Quan trọng: Bỏ lỡ sau \[15 phút\] (CFG-M07-09) kể từ khi Trễ; cảnh báo Bỏ lỡ báo ngay đồng thời Điều dưỡng phụ trách, Trưởng tầng và Bác sĩ trực, không chờ leo thang. Mức độ cảnh báo giữ Trung bình vì hệ thống chỉ có ba mức (9.3, Q-113); Khẩn cấp dành cho nguy cơ trực tiếp, kích hoạt quy trình khẩn cấp (9.5).
+- **BR-M07-28 (Q-429):** Khi trở về từ bệnh viện (không áp khi tiếp nhận), đơn Quan trọng có trong giấy ra viện được Tiếp tục tạm cho tới khi phiếu đối chiếu được xác nhận. Lệnh bắt buộc ghi căn cứ là giấy ra viện (BR-M07-16, đính kèm ảnh); hệ thống không tự kiểm "có trong giấy ra viện". Người thực hiện: Bác sĩ có quyền kê đơn hợp lệ (mọi đơn); Điều dưỡng chỉ với đơn bên ngoài có căn cứ từ cơ sở kê, đúng Q-413. Đơn chuyển Hiệu lực, liều tính từ lúc lệnh, liều trước đó giữ Tạm dừng. Phiếu đối chiếu được xác nhận thì quyết định từng dòng của phiếu thay cho Tiếp tục tạm.
+- **BR-M07-29 (Q-430):** Phiếu đối chiếu: Mở → Chờ xác nhận → Đã xác nhận. Người xác nhận Trả lại phiếu Chờ xác nhận bắt buộc có lý do, phiếu về Mở để người thực hiện sửa rồi gửi lại. Phiếu lập khi trở về từ bệnh viện: người xác nhận so với giấy ra viện (BR-M05-32) và các đơn trước khi nhập viện; thiếu thì Trả lại. Quá \[8 giờ\] (CFG-M07-10) chưa được xác nhận thì ngoài cảnh báo ở BR-M07-09, báo thêm Trưởng tầng và Quản lý viện, mức độ giữ Trung bình (9.3, BR-M05-01). Hệ thống không tự lập phiếu "theo yêu cầu chuyên môn" khi nhập đơn bên ngoài (BR-M07-25, Q-306, Q-307, Q-340); khi nhập đơn bên ngoài trùng hoạt chất hoặc thay thuốc đang dùng, hệ thống cảnh báo theo BR-M07-06 và người nhập tự lập phiếu bằng lệnh nếu cần.
+
+**Thuốc gia đình gửi, tầng thiếu Điều dưỡng và phạm vi**
+
+- **BR-M07-30 (Q-433):** Khi tiếp nhận thuốc gia đình gửi, Điều dưỡng kiểm bốn mục, mỗi mục Đạt hoặc Không đạt: nhãn thuốc, hạn dùng, bao bì, đúng tên người cao tuổi. Có mục Không đạt thì không chọn được "Được sử dụng" (chỉ Chỉ giữ hộ, Hoàn trả, hoặc Hủy); sửa kết quả kiểm tra bằng bản đính chính có lý do. Khi đơn gắn bị ngừng, người cao tuổi chuyển đi hoặc qua đời, hoặc thuốc hết hạn dùng, Điều dưỡng ghi Hoàn trả hoặc Hủy; cả hai bắt buộc ghi người chứng kiến (một nhân viên khác người thực hiện, hoặc người đại diện nhận trả) và thời điểm. Hủy do hết hạn dùng chỉ khi đã qua ngày hạn dùng, bắt buộc lý do và người thân được thông báo như khi hết hạn dùng. Các điều kiện chặn Kết thúc lưu trú (5.6) và danh sách việc sau qua đời (6.8) giữ nguyên. Quy tắc này không áp cho thuốc kiểm soát đặc biệt ở mức pháp lý (Q-63).
+- **BR-M07-31 (Q-435):** Khi tầng/khu vực không có Điều dưỡng nào có ca (BR-M07-21), Quản lý viện chỉ định một Điều dưỡng đang có ca ở tầng khác, có giấy phép còn hiệu lực (Q-61), phụ trách tạm; lệnh ghi tầng, ca, người chỉ định và lưu lịch sử. Người được chỉ định xác nhận được liều của tầng đó như Điều dưỡng có ca tại tầng (kể cả liều chung); quyền hết khi hết ca của tầng được chỉ định hoặc hết ca của chính người đó, mốc nào sớm hơn.
+- **BR-M07-32 (Q-436):** Không có kho thuốc nên hệ thống không cảnh báo thuốc nguồn viện sắp hết hoặc sắp hết hạn; Điều dưỡng tự theo dõi và lập yêu cầu mua sắm (11.7). Đây là rủi ro đã chấp nhận (Q-337). Thuốc gây nghiện, hướng thần: sổ theo dõi, đếm số lượng còn, người chứng kiến quản lý ngoài hệ thống theo quy định của Bộ Y tế (Q-63, 24.4); hệ thống chỉ ghi liều và xử lý ghi sau mất kết nối (11.3).
 
 ### 11.7. Cung ứng và tiếp nhận thuốc do viện cung cấp
 
 Khi thuốc nguồn viện của một người cao tuổi sắp hết, đã hết, có đơn mới, Bác sĩ đổi thuốc hoặc phát sinh nhu cầu điều trị mới, Điều dưỡng lập **yêu cầu mua sắm loại "thuốc"** (15.10). Mỗi dòng của yêu cầu gồm: người cao tuổi, đơn thuốc liên quan, tên thuốc, hoạt chất, hàm lượng, dạng thuốc, số lượng, đơn vị, đơn giá dự kiến; yêu cầu có thêm lý do, mức ưu tiên (Thường / Gấp), thời điểm cần thuốc và tài liệu liên quan nếu có. Dòng phải gắn một đơn thuốc nguồn "viện cung cấp" Hiệu lực, Tạm dừng hoặc Chờ hiệu lực của người cao tuổi đó. Hệ thống không tự lập yêu cầu (Q-307).
 
-Quản lý viện duyệt hoặc từ chối có lý do như mọi yêu cầu mua sắm; Quản lý viện không đi mua. Phụ trách bộ phận của người lập ghi đã mua kèm ngày giao, nhà cung cấp, số tiền thực tế, chứng từ và người giao (BR-M11-18); Kế toán đối chiếu chứng từ (BR-M11-19).
+Quản lý viện duyệt hoặc từ chối có lý do như mọi yêu cầu mua sắm; Quản lý viện không đi mua. Yêu cầu mức Gấp chờ duyệt quá \[24 giờ\] thì Quản lý viện được báo (BR-M11-22, Q-434); Phụ trách bộ phận không duyệt. Phụ trách bộ phận của người lập ghi đã mua kèm ngày giao, nhà cung cấp, số tiền thực tế, chứng từ và người giao (BR-M11-18); Kế toán đối chiếu chứng từ (BR-M11-19).
 
 Khi thuốc được giao, Điều dưỡng ghi **lần tiếp nhận thuốc cung ứng** gắn với yêu cầu: kiểm tra đúng thuốc, đúng hàm lượng, đúng dạng, đúng số lượng, hạn dùng, tình trạng; kết quả Đạt hoặc Không đạt (sai lệch, lý do). Một yêu cầu có thể có nhiều lần tiếp nhận (giao nhiều đợt, giao bù sau sai lệch). Không đạt thì người lập yêu cầu và Phụ trách bộ phận được báo để xử lý theo quy trình của viện (đổi, trả, giao bù).
 
@@ -1982,6 +2013,7 @@ Bộ phận cần chi tiền (mua nguyên liệu, mua tài sản, thuê sửa ch
 - **BR-M11-18:** "Ghi đã mua" bắt buộc có chứng từ (ảnh hóa đơn hoặc phiếu bán hàng). Số tiền thực tế vượt số được duyệt không quá \[10%\] (CFG-M11-07) thì được ghi; vượt hơn thì bị chặn, và bộ phận phải lập yêu cầu bổ sung cho phần vượt, Quản lý viện duyệt như yêu cầu mới, có tham chiếu yêu cầu gốc.
 - **BR-M11-19:** Kế toán xác nhận khớp khi số tiền trên chứng từ bằng số tiền thực tế đã ghi, và, với loại tài sản, bằng tổng nguyên giá các tài sản gắn với yêu cầu; loại nguyên liệu chỉ so chứng từ với số tiền thực tế (Q-392). Nguyên giá bắt buộc khi tài sản gắn yêu cầu mua sắm (7.7). Kế toán không lập, không duyệt yêu cầu mua sắm; người ghi đã mua không tự đối chiếu.
 - **BR-M11-20:** Yêu cầu Đã duyệt quá \[30 ngày\] (CFG-M11-08) mà chưa ghi đã mua thì hệ thống nhắc Phụ trách bộ phận. Yêu cầu Chờ đối chiếu quá \[7 ngày\] (CFG-M11-09) thì nhắc Kế toán. Báo cáo chi phí (18.4) có tổng chi mua sắm theo bộ phận, theo trạng thái.
+- **BR-M11-22 (Q-434):** Yêu cầu mua sắm loại "thuốc" mức Gấp (11.7) vẫn do Quản lý viện duyệt; Phụ trách bộ phận không duyệt (Q-284). Chờ duyệt quá \[24 giờ\] (CFG-M11-12) thì hệ thống báo Quản lý viện mức Trung bình.
 
 ## 16. Module 12 – Đồ dùng và tài sản gửi
 
@@ -2075,6 +2107,7 @@ Mức độ thông báo phụ thuộc vào mức độ nghiệp vụ.
   - Người cao tuổi trở về giường ở phòng cách ly hoặc vùng khoanh vùng: Khẩn cấp cho Bác sĩ trực và Trưởng tầng (Q-114).
   - Hết ngày mà người bán trú vẫn "Có mặt": Trung bình cho Người phụ trách ca, Nhẹ cho Trưởng tầng; mất dấu thì ghi sự cố đi lạc (Q-115).
   - Thuốc gia đình gửi sắp hết (Điều dưỡng báo bằng lệnh, Q-393): Trung bình cho người thân, nội dung chia phần "chung" và "sức khỏe" (Q-116).
+  - Liều Bỏ lỡ của đơn Quan trọng về thời gian: Trung bình, báo ngay Điều dưỡng phụ trách, Trưởng tầng, Bác sĩ trực (BR-M07-27, Q-428). Phiếu đối chiếu thuốc quá \[8 giờ\]: Trung bình cho Trưởng tầng và Quản lý viện (BR-M07-29, Q-430). Yêu cầu mua thuốc mức Gấp chờ duyệt quá \[24 giờ\]: Trung bình cho Quản lý viện (BR-M11-22, Q-434).
   - Nhắc công việc quá hạn cho chính người thực hiện: Nhẹ; báo leo thang giữ Trung bình (Q-117).
   - Mức chăm sóc của đánh giá đầu vào khác mức của hợp đồng: Trung bình cho Hành chính (Q-302).
   - Nguy kịch: Khẩn cấp cho mọi người nhận ở 9.5 (Q-213). Số dư thấp, còn nợ: Trung bình cho người đại diện, Nhẹ cho Kế toán (Q-211). Phiếu báo phí, bảng quyết toán mới phát hành: Nhẹ cho người thân có quyền xem chi phí (Q-378, Q-379). Khai báo tạm trú quá hạn, tài sản quá hạn bảo trì, nguyên liệu sắp hết hạn: Nhẹ.
@@ -2791,6 +2824,17 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-423 | (a) Gia đình không đồng ý đổi mức theo đánh giá lại; (b) dừng nhắc lập yêu cầu đổi mức; (c) chênh lệch giá khi chuyển giường gấp | Chủ dự án 2026-11-20: (a) Hành chính ghi quyết định: giữ mức cũ kèm thỏa thuận lựa chọn có rủi ro và ngày xem lại, hoặc rời viện (BF-10); (b) có quyết định thì dừng nhắc CFG-M03-02, đánh giá lại mới thì nhắc lại; (c) giường mới đắt hơn: tính giá cũ tới khi phụ lục đổi phòng áp dụng; rẻ hơn: giá mới từ ngày chuyển | 7.4, 8.1, CFG-M03-02 | 001, 004, 005, 010 |
 | Q-424 | Tên gọi của chức năng "Thay đổi lưu trú" (6.6, BF-08) | Chủ dự án 2026-11-21: đổi tên hiển thị thành "Điều chỉnh hợp đồng" vì yêu cầu gồm cả dịch vụ, giường, mức chăm sóc, thời hạn, lịch đến, không chỉ loại lưu trú; "yêu cầu thay đổi lưu trú" đọc là "yêu cầu điều chỉnh hợp đồng". Chỉ đổi tên hiển thị và tài liệu; tên trong mã, API, mã loại yêu cầu giữ nguyên. Phụ lục, trạng thái không đổi tên | 6.6, BF-08 | 004 |
 | Q-425 | Loại dịch vụ nào được thêm vào hợp đồng qua yêu cầu thay đổi lưu trú | Chỉ phục hồi chức năng, hoạt động đăng ký dài hạn, đưa đi khám, tiêm theo y lệnh (dịch vụ đi kèm đăng ký riêng, 6.4). Dịch vụ chăm sóc đổi qua mức chăm sóc; phí lưu trú qua giường; buổi bán trú qua loại lưu trú, lịch đến; suất ăn, người thân ở lại, thuốc nguồn viện, vật phẩm tiêu hao, vật tư y tế đi theo luồng riêng (15.2, BF-12, BR-M07-14, UC-79), không đăng ký trong hợp đồng. Bớt được mọi dòng đang có. Dịch vụ thuộc gói thì công việc, điểm danh không sinh phí riêng; ngoài gói tính theo lần | 6.4, 6.6, 15.2 | 004 |
+| Q-426 | BF-07 bước 4: kết quả xác nhận liều có thêm "Đã dùng muộn", "Hoãn có chủ đích" không; lý do, chỉ số trước khi dùng, liều đã Bỏ lỡ | Có. Yêu cầu sửa BF-07 ngày 2026-11-22. Đã dùng muộn ghi giờ thực tế khi liều Trễ, Hoãn hoặc Bỏ lỡ, tính như Đã dùng. Hoãn, Từ chối, Không thực hiện bắt buộc lý do; Hoãn không đổi mốc Bỏ lỡ. Đơn có chỉ số cần đo thì phải nhập chỉ số mới ghi Đã dùng, Đã dùng muộn; hệ thống không tự quyết định dùng thuốc theo chỉ số. Mâu thuẫn với Q-327 ("Bỏ lỡ vẫn là trạng thái cuối"): giữ Q-327, liều Bỏ lỡ ghi Đã dùng muộn bằng bản ghi kèm bản đính chính | 11.2, 11.3, BR-M07-26 | 006 |
+| Q-427 | Nhận liều trước khi soạn thuốc | Có. Điều dưỡng ghi "Nhận liều", người khác không xác nhận được; tự hết sau [15 phút] (CFG-M07-08). Không đổi trạng thái liều; áp cho liều chung của tầng (Q-61); ghi ngoại tuyến không bị chặn, trùng thì BR-M07-20 | 11.3, BR-M07-26 | 006 |
+| Q-428 | Mức quan trọng về thời gian của đơn (Thường / Quan trọng) và mức cảnh báo "Cao" | Có hai mức, mặc định Thường. Quan trọng: Bỏ lỡ sau [15 phút] (CFG-M07-09). Yêu cầu nêu cảnh báo mức "Cao" mâu thuẫn Q-113 (ba mức Nhẹ, Trung bình, Khẩn cấp) nên giữ Trung bình, thể hiện khác biệt bằng người nhận: báo ngay Điều dưỡng phụ trách, Trưởng tầng, Bác sĩ trực | 11.1, 11.2, BR-M07-02, 27, 9.3 | 006, 007, 009 |
+| Q-429 | Trở về từ bệnh viện: đối tượng tạm dừng; đơn Quan trọng có trong giấy ra viện | Đối tượng tạm dừng là đơn (đã đúng ở 11.1, bỏ câu "liều: Tạm dừng" ở BF-07 bước 6). Đơn Quan trọng có trong giấy ra viện được Tiếp tục tạm kèm căn cứ giấy ra viện; Điều dưỡng chỉ với đơn bên ngoài, đơn nội bộ cần Bác sĩ có quyền kê đơn hợp lệ (giữ Q-413) | 5.6, 11.1, BR-M07-09, 28 | 006, 001 |
+| Q-430 | Phiếu đối chiếu: Trả lại, hạn 8 giờ, phiếu trở về từ bệnh viện, tự lập phiếu "theo yêu cầu chuyên môn" | Phiếu Mở → Chờ xác nhận → Đã xác nhận; Trả lại có lý do đưa về Mở. Phiếu trở về từ bệnh viện so với giấy ra viện và đơn trước nhập viện. Quá [4 giờ] cảnh báo Trung bình (giữ), quá [8 giờ] báo thêm Trưởng tầng, Quản lý viện, mức giữ Trung bình (Q-113, "Cao" không có). Không tự lập phiếu khi nhập đơn bên ngoài: mâu thuẫn Q-306, Q-307, Q-340, giữ các quyết định đó; hệ thống chỉ cảnh báo trùng hoạt chất (BR-M07-06) và người nhập tự lập phiếu bằng lệnh | 11.5, BR-M07-09, 25, 29 | 006, 007, 009 |
+| Q-431 | Thuốc khi cần (PRN): chỉ định, giới hạn, nhắc ghi hiệu quả | Đơn PRN ghi chỉ định; khoảng cách tối thiểu, số lần tối đa, lý do mỗi lần và không sinh lịch liều đã có (BR-M07-04, Q-56). Thêm nhắc mức Nhẹ sau [60 phút] (CFG-M07-11) nếu chưa ghi hiệu quả | 11.1, 11.3, BR-M07-04 | 006 |
+| Q-432 | Liều khi người cao tuổi vắng mặt có trạng thái "Vắng mặt" riêng không | Không thêm trạng thái. Đã có Tạm dừng (nằm viện, về nhà không mang thuốc) và Mang theo (BR-M07-03): không thành Bỏ lỡ, không cảnh báo, không tính phí (liều chỉ tính phí khi Đã dùng, Đã dùng muộn). Chỉ làm rõ câu chữ ở 11.2 | 11.2, BR-M07-03 | 006 |
+| Q-433 | Thuốc gia đình gửi: kiểm tra khi tiếp nhận; Trả, Hủy kèm người chứng kiến | Kiểm bốn mục (nhãn, hạn dùng, bao bì, đúng tên), có mục Không đạt thì không được chọn "Được sử dụng". Hoàn trả, Hủy kèm người chứng kiến và thời điểm; thêm trạng thái Đã hủy do hết hạn dùng. Không bổ sung quy trình thuốc kiểm soát pháp lý (giữ Q-63) | 11.4, BR-M07-30 | 006 |
+| Q-434 | Yêu cầu mua thuốc mức "Khẩn": Phụ trách bộ phận duyệt trước, Quản lý viện duyệt bổ sung trong 24 giờ | Tên mức giữ "Gấp" (11.7). Mâu thuẫn Q-284, 15.10, BR-M11-19: Phụ trách bộ phận không duyệt yêu cầu mua sắm, chỉ Quản lý viện duyệt. Giữ quy định đó; thêm báo Quản lý viện mức Trung bình khi yêu cầu Gấp chờ duyệt quá [24 giờ] (CFG-M11-12) | 11.7, 15.10, BR-M11-22 | 006, 019 |
+| Q-435 | Tầng không có Điều dưỡng: mức cảnh báo, chỉ định Điều dưỡng tầng khác | Mức "Cao" không có (Q-113): giữ Trung bình, người nhận Trưởng tầng và Quản lý viện như BR-M07-21. Quản lý viện chỉ định Điều dưỡng tầng khác có giấy phép còn hiệu lực phụ trách tạm; quyền hết khi hết ca | 11.3, BR-M07-21, 31, Phụ lục 27 | 006, 008 |
+| Q-436 | Phạm vi: tương tác thuốc, liều tối đa, tồn kho thuốc viện, thuốc gây nghiện | Người kê đơn chịu trách nhiệm kiểm tương tác và liều tối đa; không có tồn kho nên không cảnh báo thuốc viện sắp hết, sắp hết hạn (rủi ro chấp nhận); thuốc gây nghiện, hướng thần quản lý ngoài hệ thống theo quy định của Bộ Y tế (giữ Q-63) | BR-M07-23, 32 | 006 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -2900,6 +2944,10 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M07-05 | Hạn hoàn thành đối chiếu thuốc                                                                                                                                                                                                                                                                                      | 4 giờ                                                  | BR-M07-09                                                                                              |
 | CFG-M07-06 | *(Bỏ theo Q-393)* Nhắc gia đình khi thuốc gửi sắp hết                                                                                                                                                                                                                                                                                 | — | — |
 | CFG-M07-07 | *(Bỏ theo Q-393)* Mốc nhắc lần hai khi thuốc gia đình gửi sắp hết | — | — |
+| CFG-M07-08 | Thời hạn nhận liều tự hết nếu chưa xác nhận | 15 phút | BR-M07-26 |
+| CFG-M07-09 | Thời gian từ Trễ chuyển sang Bỏ lỡ của đơn Quan trọng về thời gian | 15 phút | BR-M07-27 |
+| CFG-M07-10 | Hạn đối chiếu thuốc để báo thêm Trưởng tầng và Quản lý viện | 8 giờ | BR-M07-29 |
+| CFG-M07-11 | Nhắc ghi hiệu quả sau lần dùng thuốc khi cần (PRN) | 60 phút | BR-M07-04 |
 | CFG-M08-01 | Mốc Nhân viên bếp được chốt suất ăn                                                                                                                                                                                                                                                                                              | 2 giờ trước bữa                                        | BR-M08-01                                                                                              |
 | CFG-M08-03 | Số ngày lặp món liên tiếp để cảnh báo                                                                                                                                                                                                                                                                               | 3 ngày                                                 | BR-M08-07                                                                                              |
 | CFG-M08-04 | Giờ bữa dự kiến / ngưỡng giao trễ                                                                                                                                                                                                                                                                                   | Theo cơ sở / 30 phút                                   | BR-M08-12                                                                                              |
@@ -2944,6 +2992,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M11-09 | Thời gian yêu cầu mua sắm Chờ đối chiếu thì nhắc Kế toán | 7 ngày | BR-M11-20 |
 | CFG-M11-10 | Tài khoản thu của viện (ngân hàng, số tài khoản, tên chủ tài khoản) dùng cho sao kê và mã QR nộp tiền (Q-335) | Viện nhập khi cài đặt | 15.9 |
 | CFG-M11-11 | Thông tin viện in trên chứng từ, phiếu tóm tắt chuyển viện và hiện ở màn gọi 115 (tên, địa chỉ, mã số thuế, điện thoại, logo) | Viện nhập khi cài đặt | 15.9a, BR-M05-31, BR-M05-32 |
+| CFG-M11-12 | Thời gian yêu cầu mua thuốc mức Gấp chờ Quản lý viện duyệt thì báo Quản lý viện | 24 giờ | BR-M11-22 |
 | CFG-M12-01 | Danh mục đồ có giá trị bắt buộc chụp ảnh                                                                                                                                                                                                                                                                            | Điện thoại, trang sức, tiền mặt                        | BR-M12-05                                                                                              |
 | CFG-M12-02 | Chu kỳ nhắc đồ gửi chưa trả sau khi hồ sơ ở trạng thái cuối                                                                                                                                                                                                                                     | 7 ngày                                                 | 16.4, 6.8                                                                                              |
 | CFG-M12-03 | Thời gian tối thiểu từ khi hồ sơ ở trạng thái cuối tới khi được lập đề nghị xử lý đồ không người nhận                                                                                                                                                                                    | 90 ngày                                                | BR-M12-08                                                                                              |
@@ -3045,12 +3094,12 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-36 | Kích hoạt quy trình khẩn cấp          | Nhân viên                               | 007      | 9.5, BR-M05-06, 13  |
 | UC-37 | Khoanh vùng lây nhiễm                 | Bác sĩ                                  | 007      | 9.6, BR-M05-10 → 12 |
 | UC-38 | Leo thang cảnh báo quá hạn            | Bộ lập lịch                             | 007      | BR-M05-01           |
-| UC-39 | Nhập đơn thuốc / đơn thay thế         | Bác sĩ                                  | 006      | 11.1, BR-M07-05, 06 |
+| UC-39 | Nhập đơn thuốc / đơn thay thế         | Bác sĩ                                  | 006      | 11.1, BR-M07-05, 06, 27 |
 | UC-40 | Ngừng đơn thuốc                       | Bác sĩ                                  | 006      | BR-M07-07           |
-| UC-41 | Phát thuốc và xác nhận liều           | Điều dưỡng                              | 006      | BR-M07-02, 12       |
+| UC-41 | Phát thuốc và xác nhận liều           | Điều dưỡng; Quản lý viện (chỉ định tạm) | 006      | BR-M07-02, 12, 26, 27, 31 |
 | UC-42 | Dùng thuốc khi cần (PRN)              | Điều dưỡng                              | 006      | BR-M07-04           |
-| UC-43 | Đối chiếu thuốc                       | Bác sĩ, Điều dưỡng                      | 006      | 11.5, BR-M07-09     |
-| UC-44 | Tiếp nhận thuốc gia đình gửi          | Điều dưỡng                              | 006      | 11.4, BR-M07-10, 11 |
+| UC-43 | Đối chiếu thuốc                       | Bác sĩ, Điều dưỡng                      | 006      | 11.5, BR-M07-09, 28, 29 |
+| UC-44 | Tiếp nhận thuốc gia đình gửi          | Điều dưỡng                              | 006      | 11.4, BR-M07-10, 11, 30 |
 | UC-45 | Gán chế độ ăn  | Bác sĩ | 011 | BR-M08-03 |
 | UC-46 | Lập và công bố thực đơn               | Nhân viên bếp (lập, gửi, đổi món); Bác sĩ (xác nhận món, công bố, trả lại) | 011      | BR-M08-06 → 08, Q-308 |
 | UC-47 | Xem số suất đã chốt và phiếu bữa ăn   | Nhân viên bếp                           | 011      | BR-M08-01, 09       |
@@ -3157,6 +3206,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Đơn thuốc | UC-39, 40 | X | — | T³ | T⁴ | — | — | — | X¹ | — | — |
 | Danh mục thuốc | 11.1 | C | — | X | X | — | — | — | — | — | — |
 | Phát thuốc, thuốc khi cần | UC-41, 42 | X | X | X | T | — | — | — | — | — | — |
+| Chỉ định Điều dưỡng phụ trách tạm | UC-41, BR-M07-31 | T | — | — | — | — | — | — | — | — | — |
 | Đối chiếu thuốc, thuốc gia đình gửi | UC-43, 44 | X | — | T | T | — | — | — | X | — | — |
 | Tiếp nhận thuốc cung ứng | 11.7 | X | — | X | T⁴⁴ | — | — | — | — | X | — |
 | Chế độ ăn | UC-45 | X | — | T | X | — | X | — | X | — | — |

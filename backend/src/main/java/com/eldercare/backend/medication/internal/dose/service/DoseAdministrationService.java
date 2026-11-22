@@ -8,6 +8,7 @@ import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.AdministerDoseRequest;
+import com.eldercare.backend.medication.api.dto.DoseMeasurement;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.dto.RefuseDoseRequest;
 import com.eldercare.backend.medication.api.dto.SkipDoseRequest;
@@ -29,11 +30,13 @@ import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepo
 import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
 import com.eldercare.backend.medication.internal.family.service.FamilyMedicationService;
 import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
 import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
 import com.eldercare.backend.medication.internal.schedule.service.AbsenceScheduleContexts;
 import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -110,6 +113,8 @@ public class DoseAdministrationService {
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
         rejectIfClosed(dose, administeredContent(request));
+        rejectIfClaimedByOther(dose, recorderId, now, request.offlineFlag());
+        String measurementsJson = requireMeasurements(dose.getPrescriptionId(), request.measurements());
 
         // Check offline restrictions for special control drugs (BR-M07-20)
         if (dose.isSpecialControl() && request.offlineFlag()) {
@@ -153,6 +158,7 @@ public class DoseAdministrationService {
 
         // Close dose record
         dose.closeAdministered(recorderId, "EMPLOYEE", floorAreaId, now);
+        dose.clearClaim(now);
         doseRepository.save(dose);
 
         // Create append-only result
@@ -177,6 +183,7 @@ public class DoseAdministrationService {
                 false,
                 request.leaveHandoverId(),
                 businessTime.now());
+        result.attachPreDoseMeasurements(measurementsJson);
         doseResultRepository.save(result);
 
         // Facility source fee event (FR-033)
@@ -235,8 +242,10 @@ public class DoseAdministrationService {
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
         rejectIfClosed(dose, reasonContent(request.reason(), request.note(), request.offlineFlag()));
+        rejectIfClaimedByOther(dose, recorderId, now, request.offlineFlag());
 
         dose.closeRefused(recorderId, "EMPLOYEE", floorAreaId, now);
+        dose.clearClaim(now);
         doseRepository.save(dose);
 
         DoseResult result = new DoseResult(
@@ -285,8 +294,10 @@ public class DoseAdministrationService {
 
         MedicationDose dose = getOrMaterializeDose(parsed, now, floorAreaId);
         rejectIfClosed(dose, reasonContent(request.reason(), request.note(), request.offlineFlag()));
+        rejectIfClaimedByOther(dose, recorderId, now, request.offlineFlag());
 
         dose.closeNotAdministered(recorderId, "EMPLOYEE", floorAreaId, now);
+        dose.clearClaim(now);
         doseRepository.save(dose);
 
         DoseResult result = new DoseResult(
@@ -338,6 +349,59 @@ public class DoseAdministrationService {
                 "DOSE_ALREADY_CLOSED",
                 "Liều đã được xác nhận; nội dung được giữ để chuyển thành đính chính (DBR-13)",
                 properties);
+    }
+
+    /**
+     * Nhận liều (BR-M07-26): liều đang có người khác nhận còn hạn thì chặn 409 {@code DOSE_CLAIMED}. Bản ghi ngoại tuyến
+     * không biết lượt nhận nên không bị chặn, trùng liều xử lý theo BR-M07-20.
+     */
+    private static void rejectIfClaimedByOther(MedicationDose dose, Long recorderId, Instant now, boolean offline) {
+        if (offline || !dose.isClaimActive(now) || dose.getClaimedById().equals(recorderId)) {
+            return;
+        }
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("claimedBy", dose.getClaimedById().toString());
+        properties.put("claimExpiresAt", dose.getClaimExpiresAt());
+        throw new BusinessException(
+                HttpStatus.CONFLICT, "DOSE_CLAIMED", "Liều đã có Điều dưỡng nhận (BR-M07-26)", properties);
+    }
+
+    /**
+     * Đơn có chỉ số cần đo trước khi dùng thì Đã dùng bắt buộc có đủ giá trị (BR-M07-26); hệ thống không quyết định dùng hay
+     * không theo giá trị. Trả JSON chỉ số để lưu cùng kết quả, rỗng khi đơn không yêu cầu và không có giá trị nào.
+     */
+    private String requireMeasurements(Long prescriptionId, List<DoseMeasurement> given) {
+        List<String> required = prescriptionRepository
+                .findById(prescriptionId)
+                .map(p -> PrescriptionResponse.parseMeasurements(p.getPreDoseMeasurements()))
+                .orElse(List.of());
+        Map<String, BigDecimal> byCode = new LinkedHashMap<>();
+        if (given != null) {
+            for (DoseMeasurement m : given) {
+                if (m != null && m.code() != null && !m.code().isBlank() && m.value() != null) {
+                    byCode.put(m.code().trim(), m.value());
+                }
+            }
+        }
+        List<UnmetCondition> missing = required.stream()
+                .filter(code -> !byCode.containsKey(code))
+                .map(code -> new UnmetCondition(
+                        "MEASUREMENT_REQUIRED", "Đơn yêu cầu đo " + code + " trước khi dùng (BR-M07-26)"))
+                .toList();
+        if (!missing.isEmpty()) {
+            throw new ConditionNotMetException(missing);
+        }
+        if (byCode.isEmpty()) {
+            return null;
+        }
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .writeValueAsString(byCode.entrySet().stream()
+                            .map(e -> new DoseMeasurement(e.getKey(), e.getValue()))
+                            .toList());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /** Nội dung lệnh Đã dùng theo tên trường của api-006 {@code DoseResult}. */

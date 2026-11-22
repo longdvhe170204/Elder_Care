@@ -108,6 +108,14 @@ public enum ParameterCode {
     CFG_M07_04,
     /** Hạn hoàn thành đối chiếu thuốc (mặc định: 4 giờ) */
     CFG_M07_05,
+    /** Thời hạn nhận liều tự hết nếu chưa xác nhận (mặc định: 15 phút) */
+    CFG_M07_08,
+    /** Thời gian từ Trễ chuyển sang Bỏ lỡ của đơn Quan trọng về thời gian (mặc định: 15 phút) */
+    CFG_M07_09,
+    /** Hạn đối chiếu thuốc để báo thêm Trưởng tầng và Quản lý viện (mặc định: 8 giờ) */
+    CFG_M07_10,
+    /** Nhắc ghi hiệu quả sau lần dùng thuốc khi cần (mặc định: 60 phút) */
+    CFG_M07_11,
     /** Mốc Nhân viên bếp được chốt suất ăn (mặc định: 2 giờ trước bữa) */
     CFG_M08_01,
     /** Số ngày lặp món liên tiếp để cảnh báo (mặc định: 3 ngày) */
@@ -182,6 +190,8 @@ public enum ParameterCode {
     CFG_M11_10,
     /** Thông tin viện in trên chứng từ, phiếu tóm tắt chuyển viện và hiện ở màn gọi 115 (tên, địa chỉ, mã số thuế, điện thoại, logo) (mặc định: Viện nhập khi cài đặt) */
     CFG_M11_11,
+    /** Thời gian yêu cầu mua thuốc mức Gấp chờ duyệt thì báo Quản lý viện (mặc định: 24 giờ) */
+    CFG_M11_12,
     /** Danh mục đồ có giá trị bắt buộc chụp ảnh (mặc định: Điện thoại, trang sức, tiền mặt) */
     CFG_M12_01,
     /** Chu kỳ nhắc đồ gửi chưa trả sau khi hồ sơ ở trạng thái cuối (mặc định: 7 ngày) */

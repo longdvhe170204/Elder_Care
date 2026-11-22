@@ -14,4 +14,18 @@ public record DoseResultOfflineContent(
         String reason,
         String adverseReaction,
         String note,
-        Long leaveHandoverId) {}
+        Long leaveHandoverId,
+        java.util.List<com.eldercare.backend.medication.api.dto.DoseMeasurement> measurements) {
+
+    public DoseResultOfflineContent(
+            String doseKey,
+            Long residentId,
+            DoseResultType resultType,
+            Instant administeredAt,
+            String reason,
+            String adverseReaction,
+            String note,
+            Long leaveHandoverId) {
+        this(doseKey, residentId, resultType, administeredAt, reason, adverseReaction, note, leaveHandoverId, null);
+    }
+}

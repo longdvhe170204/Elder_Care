@@ -30,6 +30,60 @@ public class FamilyMedicationBatchResponse {
     private List<Long> boundPrescriptionIds;
     private BigDecimal finalQuantity;
     private Instant closedAt;
+    private Boolean labelOk;
+    private Boolean expiryOk;
+    private Boolean packagingOk;
+    private Boolean nameOk;
+    private String witness;
+    private String disposeKind;
+
+    public Boolean getLabelOk() {
+        return labelOk;
+    }
+
+    public void setLabelOk(Boolean labelOk) {
+        this.labelOk = labelOk;
+    }
+
+    public Boolean getExpiryOk() {
+        return expiryOk;
+    }
+
+    public void setExpiryOk(Boolean expiryOk) {
+        this.expiryOk = expiryOk;
+    }
+
+    public Boolean getPackagingOk() {
+        return packagingOk;
+    }
+
+    public void setPackagingOk(Boolean packagingOk) {
+        this.packagingOk = packagingOk;
+    }
+
+    public Boolean getNameOk() {
+        return nameOk;
+    }
+
+    public void setNameOk(Boolean nameOk) {
+        this.nameOk = nameOk;
+    }
+
+    public String getWitness() {
+        return witness;
+    }
+
+    public void setWitness(String witness) {
+        this.witness = witness;
+    }
+
+    public String getDisposeKind() {
+        return disposeKind;
+    }
+
+    public void setDisposeKind(String disposeKind) {
+        this.disposeKind = disposeKind;
+    }
 
     public String getDelivererType() {
         return delivererType;

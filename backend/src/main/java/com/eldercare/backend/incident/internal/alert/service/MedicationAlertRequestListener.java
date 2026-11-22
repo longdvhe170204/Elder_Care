@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class MedicationAlertRequestListener {
 
     static final String UNRECONCILED = "CHUA_DOI_CHIEU";
+    static final String UNRECONCILED_ESCALATED = "CHUA_DOI_CHIEU_QUA_8_GIO";
     private static final String MARKER_KIND = "M07.MEDICATION_ALERT";
     private static final Map<String, String> DESCRIPTIONS = Map.of(
             "BO_LO_LIEU",
@@ -33,7 +34,9 @@ public class MedicationAlertRequestListener {
             "POSSIBLE_DUPLICATE_DOSE",
             "Nghi dùng trùng liều",
             UNRECONCILED,
-            "Chưa đối chiếu thuốc");
+            "Chưa đối chiếu thuốc",
+            UNRECONCILED_ESCALATED,
+            "Chưa đối chiếu thuốc quá hạn lần hai: báo thêm Trưởng tầng, Quản lý viện");
     private static final Pattern SOURCE = Pattern.compile("([A-Za-z]+):(\\d+)(?:-\\d+)?");
 
     private final AlertService alerts;
@@ -73,6 +76,11 @@ public class MedicationAlertRequestListener {
         alerts.closeBySystem(
                 event.residentId(),
                 TypeLock.forMedication(UNRECONCILED, event.residentId()),
+                "Nguồn đã được xử lý: phiếu đối chiếu thuốc đã xác nhận",
+                event.occurredAt());
+        alerts.closeBySystem(
+                event.residentId(),
+                TypeLock.forMedication(UNRECONCILED_ESCALATED, event.residentId()),
                 "Nguồn đã được xử lý: phiếu đối chiếu thuốc đã xác nhận",
                 event.occurredAt());
     }
