@@ -70,8 +70,14 @@ class US9_PaymentNoticeIT extends BalanceTestBase {
                         .flatMap(n -> n.notificationRequests().stream())
                         .filter(r -> r.eventType().equals("M11_PAYMENT_NOTICE_ISSUED")))
                 .singleElement()
-                .satisfies(r -> assertThat(r.recipientGroups())
-                        .containsExactly(new RecipientGroup.FamilyWithRight(a, FamilyRight.VIEW_COSTS)));
+                .satisfies(r -> {
+                    assertThat(r.recipientGroups())
+                            .containsExactly(new RecipientGroup.FamilyWithRight(a, FamilyRight.VIEW_COSTS));
+                    // Khoản phải trả là việc của chính người thân, không theo mục "nhận thông báo" (Q-353, Q-362;
+                    // BF-16)
+                    assertThat(r.informationSubject())
+                            .contains(com.eldercare.backend.common.notification.InformationSubject.ABOUT_FAMILY_MATTER);
+                });
 
         // danh sách theo hồ sơ
         getAs(accountant, "/api/v1/residents/" + a + "/payment-notices")
