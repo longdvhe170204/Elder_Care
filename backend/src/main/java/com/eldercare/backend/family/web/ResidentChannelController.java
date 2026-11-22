@@ -41,10 +41,29 @@ class ResidentChannelController {
 
     private final ResidentChannelService channel;
     private final FeedbackService feedback;
+    private final com.eldercare.backend.family.internal.portal.service.DailyCareScheduleView dailyCare;
 
-    ResidentChannelController(ResidentChannelService channel, FeedbackService feedback) {
+    ResidentChannelController(
+            ResidentChannelService channel,
+            FeedbackService feedback,
+            com.eldercare.backend.family.internal.portal.service.DailyCareScheduleView dailyCare) {
         this.channel = channel;
         this.feedback = feedback;
+        this.dailyCare = dailyCare;
+    }
+
+    /** 012 FR-083 (a) (Q-416): Lịch chăm sóc hằng ngày của chính mình, không có giá trị đo. */
+    @GetMapping("/daily-care-schedule")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                description = "PERMISSION_DENIED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    com.eldercare.backend.family.internal.portal.service.DailyCareScheduleView.Schedule dailyCareSchedule(
+            @RequestParam(required = false) LocalDate date) {
+        return dailyCare.forResident(date);
     }
 
     @GetMapping("/today")

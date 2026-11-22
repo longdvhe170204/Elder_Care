@@ -28,9 +28,27 @@ class PortalController {
     private static final String PROBLEM = "application/problem+json";
 
     private final PortalService portal;
+    private final com.eldercare.backend.family.internal.portal.service.DailyCareScheduleView dailyCare;
 
-    PortalController(PortalService portal) {
+    PortalController(
+            PortalService portal,
+            com.eldercare.backend.family.internal.portal.service.DailyCareScheduleView dailyCare) {
         this.portal = portal;
+        this.dailyCare = dailyCare;
+    }
+
+    /** 012 FR-076 (Q-416): Lịch chăm sóc hằng ngày, mặc định hôm nay. */
+    @GetMapping("/family-portal/residents/{residentId}/daily-care-schedule")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                description = "PERMISSION_DENIED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    com.eldercare.backend.family.internal.portal.service.DailyCareScheduleView.Schedule dailyCareSchedule(
+            @PathVariable long residentId, @RequestParam(required = false) LocalDate date) {
+        return dailyCare.forFamily(residentId, date);
     }
 
     @GetMapping("/family-portal/residents")
