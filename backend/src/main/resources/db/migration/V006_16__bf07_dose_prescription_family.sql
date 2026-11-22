@@ -1,4 +1,4 @@
--- 006, sửa BF-07 (2026-11-22, Q-427 → Q-437). Chỉ thêm cột, thêm hai bảng; không sửa migration cũ. Cú pháp MySQL 8.0 và 8.4.
+-- 006, sửa BF-07 (2026-11-22, Q-426 → Q-436). Chỉ thêm cột, thêm hai bảng; không sửa migration cũ. Cú pháp MySQL 8.0 và 8.4.
 --   Phần 1, 2: Hoãn, Nhận liều, chỉ số trước khi dùng, mức quan trọng về thời gian (medication_dose, prescription, dose_result).
 --   Phần 3: Tiếp tục tạm đơn Quan trọng khi trở về từ bệnh viện (prescription).
 --   Phần 4: mốc leo thang đối chiếu quá 8 giờ (medication_reconciliation).

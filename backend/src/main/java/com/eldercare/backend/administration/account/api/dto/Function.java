@@ -45,6 +45,7 @@ public enum Function {
     PRESCRIPTION("Đơn thuốc"),
     MEDICATION_CATALOG("Danh mục thuốc"),
     MEDICATION_ADMINISTRATION("Phát thuốc, thuốc khi cần"),
+    TEMPORARY_NURSE_ASSIGNMENT("Chỉ định Điều dưỡng phụ trách tạm"),
     MEDICATION_RECONCILIATION("Đối chiếu thuốc, thuốc gia đình gửi"),
     MEDICATION_RECEIPT("Tiếp nhận thuốc cung ứng"),
     DIET("Chế độ ăn"),

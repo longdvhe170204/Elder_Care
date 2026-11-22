@@ -1,4 +1,4 @@
--- 001 FR-036b (Q-424, chủ dự án chốt 2026-11-20; plan-bf08 Bước 6): quyết định của Hành chính khi gia đình không đồng ý đổi
+-- 001 FR-036b (Q-423, chủ dự án chốt 2026-11-20; plan-bf08 Bước 6): quyết định của Hành chính khi gia đình không đồng ý đổi
 -- mức chăm sóc theo lần đánh giá lại: giữ mức cũ (kèm thỏa thuận lựa chọn có rủi ro đang hiệu lực và ngày xem lại) hoặc rời
 -- viện. Mỗi lần đánh giá tối đa một quyết định; chỉ thêm, trừ cột review_notified_at (đánh dấu đã nhắc ngày xem lại).
 -- Cú pháp dùng được ở MySQL 8.0 và 8.4 (research R-01 của 000).
