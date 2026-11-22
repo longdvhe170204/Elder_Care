@@ -1,5 +1,5 @@
--- 004 Phase 14, Bước 3 (FR-043d; Q-420, chủ dự án chốt 2026-11-20): phụ lục của yêu cầu không phải thay đổi nhỏ ở Chờ ký tới
--- khi Hành chính ghi nhận bản đã ký; yêu cầu bị hủy thì phụ lục Đã hủy (FR-043f, Q-421); số phụ lục tăng dần theo hợp đồng.
+-- 004 Phase 14, Bước 3 (FR-043d; Q-419, chủ dự án chốt 2026-11-20): phụ lục của yêu cầu không phải thay đổi nhỏ ở Chờ ký tới
+-- khi Hành chính ghi nhận bản đã ký; yêu cầu bị hủy thì phụ lục Đã hủy (FR-043f, Q-420); số phụ lục tăng dần theo hợp đồng.
 -- Đánh số 95 (không phải 07 như plan-bf08.md): sau V004_94 đã chạy, số nhỏ hơn phải bật out-of-order (team-plan mục 8).
 -- Phụ lục có sẵn: signature_required = FALSE (giữ hành vi cũ), số phụ lục theo (created_at, id) của từng hợp đồng.
 -- Tham số CFG-M02-17, 18 nạp ở V099_09 (sau khi parameter_history gộp vào status_history ở V099_06; nạp ở đây thì
@@ -34,7 +34,7 @@ ALTER TABLE contract_version
         OR signed_date IS NOT NULL);
 
 -- Dòng đã khóa không đổi (constitution XII). DRAFT: chép nguyên V004_03. ADDENDUM: nội dung, số phụ lục, dấu cần ký không
--- đổi (FR-047, FR-043d); ngày hiệu lực chỉ dời muộn hơn khi còn Chờ ký, Chờ hiệu lực (ký muộn, Q-420); các cột ký đặt một
+-- đổi (FR-047, FR-043d); ngày hiệu lực chỉ dời muộn hơn khi còn Chờ ký, Chờ hiệu lực (ký muộn, Q-419); các cột ký đặt một
 -- lần khi phụ lục còn Chờ ký.
 DELIMITER $$
 
@@ -71,7 +71,7 @@ BEGIN
     IF OLD.kind = 'ADDENDUM' AND NOT (NEW.effective_date <=> OLD.effective_date)
         AND NOT (OLD.addendum_status IN ('PENDING_SIGNATURE', 'PENDING_EFFECTIVE')
             AND NEW.effective_date > OLD.effective_date) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'addendum effective date only moves later before it is applied (Q-420)';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'addendum effective date only moves later before it is applied (Q-419)';
     END IF;
     IF OLD.kind = 'ADDENDUM' AND NOT (NEW.signed_date <=> OLD.signed_date
         AND NEW.signed_file_id <=> OLD.signed_file_id
@@ -81,7 +81,7 @@ BEGIN
         AND NEW.signature_recorded_at <=> OLD.signature_recorded_at
         AND NEW.signature_note <=> OLD.signature_note)
         AND (OLD.signed_date IS NOT NULL OR OLD.addendum_status <> 'PENDING_SIGNATURE') THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'addendum signature is recorded once, while pending signature (Q-420)';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'addendum signature is recorded once, while pending signature (Q-419)';
     END IF;
 END$$
 

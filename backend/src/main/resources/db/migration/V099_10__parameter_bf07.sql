@@ -1,4 +1,4 @@
--- Phụ lục 25 thêm CFG-M07-08 → 11 và CFG-M11-12 (2026-11-22, Q-427 → Q-437, sửa BF-07): thời hạn nhận liều, mốc Bỏ lỡ của đơn
+-- Phụ lục 25 thêm CFG-M07-08 → 11 và CFG-M11-12 (2026-11-22, Q-426 → Q-436, sửa BF-07): thời hạn nhận liều, mốc Bỏ lỡ của đơn
 -- Quan trọng về thời gian, hạn leo thang đối chiếu thuốc, nhắc ghi hiệu quả PRN, nhắc yêu cầu mua thuốc Gấp chờ duyệt.
 -- Đặt sau V099_09, cùng cách ghi lịch sử tham số. Cú pháp MySQL 8.0 và 8.4.
 
