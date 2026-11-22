@@ -3067,7 +3067,7 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-10 | Chọn hồ sơ chờ khi có giường trống | Hành chính                 | 004      | BR-M02-01, 02, 10   |
 | UC-11 | Lập hợp đồng lưu trú                  | Hành chính                              | 004      | 6.3, BR-M02-08, 22  |
 | UC-12 | Xác nhận đặt cọc                      | Kế toán  | 004      | 6.5                 |
-| UC-13 | Yêu cầu thay đổi lưu trú              | Hành chính, Bác sĩ                      | 004      | 6.6                 |
+| UC-13 | Yêu cầu điều chỉnh hợp đồng           | Hành chính, Bác sĩ                      | 004      | 6.6                 |
 | UC-14 | Duyệt yêu cầu                         | Quản lý viện                            | 000, 004 | 1.5, BR-M02-04      |
 | UC-15 | Cho tạm vắng / ghi nhận trở về        | Hành chính, Trưởng tầng                 | 004      | 6.7, 5.6, BR-M02-06 |
 | UC-16 | Chuyển viện                           | Điều dưỡng, Bác sĩ                      | 004, 007 | 5.6, BR-M05-14      |
@@ -3173,7 +3173,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Đánh giá, mức chăm sóc | UC-05, 06 | X | P | T, D | T | — | — | T⁵² | — | — | — |
 | Tiếp nhận, hợp đồng, đặt cọc | UC-08, 09, 11, 12 | X, D⁶ | — | — | — | — | — | T²⁶ | X⁷ | T²⁶ | — |
 | Danh sách chờ, dấu ưu tiên | UC-10 | X | — | — | — | — | — | T | — | — | — |
-| Yêu cầu thay đổi lưu trú | UC-13, 14 | D | — | T | — | — | — | T, D⁴² | T² | — | — |
+| Yêu cầu điều chỉnh hợp đồng | UC-13, 14 | D | — | T | — | — | — | T, D⁴² | T² | — | — |
 | Tạm vắng, trở về | UC-15 | T⁸ | T | — | X | — | — | T | X | — | — |
 | Kết thúc lưu trú, qua đời | UC-17, 18 | D | — | T | — | — | — | T | X | T³⁹ | — |
 | Chuyển viện | UC-16 | X | — | T | T | — | — | — | — | — | — |
