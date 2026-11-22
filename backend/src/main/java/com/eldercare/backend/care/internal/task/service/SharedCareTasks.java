@@ -173,14 +173,17 @@ public class SharedCareTasks {
         }
     }
 
-    /** Người được phân công khớp vai trò, đủ chứng chỉ; giữ người hiện tại nếu vẫn hợp lệ, phân công chính trước. */
+    /**
+     * Người được phân công khớp vai trò, đủ chứng chỉ; giữ người hiện tại nếu vẫn hợp lệ, còn lại theo
+     * {@link CareTaskValidator#assigneeOrder} (đúng vai trò trước, phân công chính trước).
+     */
     private Long assignee(CareTask task, long shiftId, Long current) {
         var certificates = certificates(task);
         var today = time.today();
         var valid = commands.staff().assignments(task.residentId(), shiftId).stream()
                 .filter(a -> CareTaskValidator.roleMatches(task.performerRole(), a.role()))
                 .filter(a -> commands.staff().qualified(a.staffId(), certificates, today))
-                .sorted(Comparator.comparing(a -> !a.primary()))
+                .sorted(CareTaskValidator.assigneeOrder(task.performerRole()))
                 .map(a -> a.staffId())
                 .toList();
         if (current != null && valid.contains(current)) return current;

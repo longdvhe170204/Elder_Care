@@ -301,6 +301,17 @@ public class CareTaskService {
                 .before(before == null ? Map.of() : Map.of("status", before.status()))
                 .after(Map.of("status", after.status(), "content", after.data().content()))
                 .reason(reason)
+                // FR-045 (000): thay đổi do hệ thống (job phút, sự kiện) ghi căn cứ; thiếu thì nhật ký từ chối và
+                // cả bước chuyển Đến hạn, Quá hạn bị hủy
+                .basis(
+                        system
+                                ? new com.eldercare.backend.administration.auditlog.api.dto.Basis(
+                                        "FR-026",
+                                        null,
+                                        after.id(),
+                                        org.slf4j.MDC.get(
+                                                com.eldercare.backend.common.scheduling.SchedulerRuns.MDC_KEY))
+                                : null)
                 .build());
     }
 }

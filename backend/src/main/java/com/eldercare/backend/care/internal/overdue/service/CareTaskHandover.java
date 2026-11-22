@@ -102,6 +102,7 @@ public class CareTaskHandover implements ShiftTaskApi {
                                                     a.staffId(),
                                                     certificates,
                                                     at.atZone(BusinessTime.ZONE).toLocalDate()))
+                                    .sorted(CareTaskValidator.assigneeOrder(before.performerRole()))
                                     .map(a -> a.staffId())
                                     .findFirst()
                                     .orElse(null);
