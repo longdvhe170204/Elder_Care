@@ -14,6 +14,9 @@ import java.util.Map;
  * thì bỏ qua (test đơn vị).
  */
 final class AlertHistory {
+    /** Lần báo sau của nhân viên gộp vào cảnh báo thủ công đang mở: giữ người báo và mô tả (FR-030). */
+    static final String MERGED = "MERGED";
+
     static final SharedKind<Map> KIND = SharedKind.of("M05.ALERT_HISTORY", Map.class);
 
     private final RecordEventApi records;

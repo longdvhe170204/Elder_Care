@@ -12,7 +12,8 @@ public record TransferOutCommand(
         String companion,
         Boolean requiredContactReached,
         String notAskedFirstReason,
-        List<Long> attachmentIds) {
+        List<Long> attachmentIds,
+        Boolean includeWishes) {
 
     public TransferOutCommand {
         attachmentIds = attachmentIds == null ? List.of() : List.copyOf(attachmentIds);

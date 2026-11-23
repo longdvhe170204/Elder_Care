@@ -133,8 +133,9 @@ public class CareTaskService {
     public CareTask adHoc(Target target, CareTaskDraft row) {
         if (Collections.disjoint(user.roles(), Set.of(Role.FLOOR_MANAGER, Role.NURSING_STAFF)))
             throw new PermissionDeniedException("Chỉ Trưởng tầng hoặc Điều dưỡng tạo công việc phát sinh");
-        if (row.basisType() != SourceType.AD_HOC)
-            throw new InvalidValueException("Công việc phát sinh phải có căn cứ AD_HOC");
+        // FR-025 (007 FR-045b): việc tiếp theo của sự cố là công việc phát sinh có căn cứ sự cố
+        if (row.basisType() != SourceType.AD_HOC && row.basisType() != SourceType.INCIDENT_FOLLOW_UP)
+            throw new InvalidValueException("Công việc phát sinh phải có căn cứ AD_HOC hoặc INCIDENT_FOLLOW_UP");
         var s = staff().shiftContaining(target.floorAreaId(), row.plannedAt()).orElseThrow(NotFoundException::new);
         return saveRows(List.of(row), s, null, Function.TASK_CHECKLIST).getFirst();
     }

@@ -65,6 +65,8 @@ void khiXacNhanBanGiao(long banGiaoId, long caTruocId, long caSauId, long tangKh
     // chuyển người phụ trách các mục thuộc ca trước và các mục tạm nhận; gỡ dấu tạm nhận; giữ trạng thái, cấp, hạn
 ```
 
+*(Đề xuất 2026-11-23, chờ chủ dự án duyệt.)* `AlertHandoverView` thêm `Boolean nextStepMissing` (FR-045b): sự cố đang mở không có công việc `INCIDENT_FOLLOW_UP`, `POST_FALL_MONITORING` nào chưa đóng; null với cảnh báo hoặc khi chưa có `care.api.SourceTaskReadApi`. Constructor cũ giữ nguyên cho caller cũ. 007 cài thêm bean `TaskSourcePort` `IncidentFollowUpTaskSource` (căn cứ `INCIDENT_FOLLOW_UP`) và gọi `care.api.SourceTaskReadApi` để hiện việc trong hồ sơ sự cố.
+
 ### 1.6. `incident.api.SuCoLenhApi` (011, 013, 014; MANDATORY)
 
 ```java

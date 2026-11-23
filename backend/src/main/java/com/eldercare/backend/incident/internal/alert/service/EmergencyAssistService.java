@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EmergencyAssistService {
     public static final String ALERT_TYPE = "STAFF_ASSIST_REQUEST";
+    private static final int PLACE_NOTE_MAX = 200;
     static final String PRESS_SOURCE = "M05.ASSIST_PRESS";
     static final SharedKind<AssistPressContent> PRESS =
             SharedKind.of(PRESS_SOURCE, AssistPressContent.class).notDeletable();
@@ -167,6 +168,11 @@ public class EmergencyAssistService {
         if (details.floorAreaId() != null) fields.put("floorAreaId", details.floorAreaId());
         if (details.place() != null) fields.put("place", details.place().name());
         if (details.residentId() != null) fields.put("residentId", details.residentId());
+        if (details.placeNote() != null && !details.placeNote().isBlank()) {
+            String note = details.placeNote().trim();
+            if (note.length() > PLACE_NOTE_MAX) throw new InvalidValueException("Nơi cần hỗ trợ dài quá 200 ký tự");
+            fields.put("placeNote", note);
+        }
         for (String field : fields.keySet()) {
             if (records.findByUniqueKey(DETAIL, key(alertId, field)).isPresent()) {
                 throw new AlreadyProcessedException("Đã chọn " + field + " cho cảnh báo này");

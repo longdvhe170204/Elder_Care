@@ -136,11 +136,16 @@ public class IncidentQueryService {
                 && (roles.contains(Role.NURSING_STAFF) || roles.contains(Role.DOCTOR))) {
             commands.add("transfer-out");
         }
+        // FR-041: "Tham gia xử lý" chỉ để ghi tên vào danh sách người xử lý, nên không trả cho người đã có tên
         if (incident.level() == IncidentLevel.CRITICAL
                 && !manager
+                && !current
+                && !progressions.handlerAccountIds(incident.id()).contains(user.accountId())
                 && permissions.hasPermission(user, CREATE, target).allowed()) {
             commands.add("join-handling");
         }
+        // FR-047k, BR-M05-31 (Q-376): nút "Gọi 115" ở sự cố Khẩn cấp đang mở, như màn cảnh báo
+        if (handler && incident.level() == IncidentLevel.CRITICAL) commands.add("call-115");
         // FR-052, BR-M05-07: chỉ Bác sĩ kết thúc sớm khoảng theo dõi sau ngã của chính sự cố này
         if (handler
                 && roles.contains(Role.DOCTOR)

@@ -214,7 +214,10 @@ public class TransferOutService {
                 user.accountId(),
                 preparedBy,
                 now,
-                result.historyId());
+                result.historyId(),
+                Boolean.TRUE.equals(command.includeWishes()),
+                handoverCondition(incident),
+                card.chronicConditions());
         byte[] pdf = TransferSummaryDocument.render(draft, facility());
         long fileId = files.upload(
                 "phieu-tom-tat-chuyen-vien-" + incidentId + ".pdf", "application/pdf", pdf, user.accountId());
@@ -378,7 +381,18 @@ public class TransferOutService {
                 s.preparedById(),
                 s.preparedBy(),
                 s.preparedAt(),
-                s.statusHistoryId());
+                s.statusHistoryId(),
+                s.includeWishes(),
+                s.handoverCondition(),
+                s.chronicConditions());
+    }
+
+    /** Lý do chuyển và tình trạng lúc bàn giao: lấy từ mô tả và xử trí ban đầu đã ghi ở sự cố, không bắt nhập lại. */
+    private static String handoverCondition(IncidentView incident) {
+        var parts = java.util.stream.Stream.of(incident.description(), incident.initialResponse())
+                .filter(p -> p != null && !p.isBlank())
+                .toList();
+        return parts.isEmpty() ? null : String.join(". ", parts);
     }
 
     private FacilityInfo facility() {

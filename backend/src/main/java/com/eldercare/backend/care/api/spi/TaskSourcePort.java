@@ -31,7 +31,9 @@ public interface TaskSourcePort {
         SUPERVISION,
         AD_HOC,
         AD_HOC_RECORDING,
-        REWORK
+        REWORK,
+        /** Việc tiếp theo của một sự cố đang mở (007 FR-045b); căn cứ là mã sự cố. */
+        INCIDENT_FOLLOW_UP
     }
 
     record SourceValidation(boolean valid, boolean residentMatches, boolean timeMatches, boolean prescribed) {}

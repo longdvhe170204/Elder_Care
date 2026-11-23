@@ -31,4 +31,13 @@ public interface AlertStaffPort {
     Optional<Long> floorDuringShift(long staffId, Instant at);
 
     List<Long> floorsWithShift(Instant at);
+
+    /**
+     * Nhân viên đang làm việc, đang có mặt trong ca của tầng/khu vực lúc {@code at}, để chọn người bàn giao cho lệnh Chuyển
+     * viện (FR-049; Đổi api 2026-11-22, chờ chủ dự án duyệt). Mặc định rỗng để bản giả cũ không phải đổi.
+     */
+    default List<com.eldercare.backend.incident.api.dto.HandoverCandidateView> handoverCandidates(
+            long floorAreaId, Instant at) {
+        return List.of();
+    }
 }

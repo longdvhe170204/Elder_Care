@@ -1419,6 +1419,8 @@ Chưa dịch các endpoint/schema nghiệp vụ api-005. Riêng operation công 
 | CanhBaoView, BanGhiDonView, KetQuaKiemTraView, MucThoiKhoaBieuView | `AlertReadPort.AlertView`, `DayCarePickupPort.PickupView`, `QualityCheckPort.FailedCheckView`, `TimetableSourcePort.TimetableItemView` |
 | MUC_KE_HOACH, LAN_DO, BUA, BUOI_HOAT_DONG | `CARE_PLAN_ITEM`, `MEASUREMENT`, `MEAL`, `ACTIVITY_SESSION` |
 | THEO_DOI_SAU_NGA, THEO_DOI_TIEP_XUC, CANH_BAO_UONG_NUOC | `POST_FALL_MONITORING`, `CONTACT_MONITORING`, `WATER_INTAKE_ALERT` |
+| Việc tiếp theo của sự cố (007 FR-045b, đề xuất 2026-11-23) | `INCIDENT_FOLLOW_UP`; `SourceTaskReadApi`, `SourceTaskView`; `IncidentFollowUpTask`, `GET /incidents/{id}/follow-up-tasks`; `nextStepMissing` |
+| Gắn cảnh báo vào sự cố, tạo sự cố riêng; tầng chọn khi báo (007, đề xuất 2026-11-23) | `existingIncidentId`, `createDespiteOpen`; `IncidentFloor`, `GET /incident-floors`; `placeNote`, `floorName`, `reports` |
 | KIEM_TRA_DAU_CA, GIAM_SAT, PHAT_SINH, GHI_NHAN_PHAT_SINH, LAM_LAI | `SHIFT_START_CHECK`, `SUPERVISION`, `AD_HOC`, `AD_HOC_RECORDING`, `REWORK` |
 | BAN_GHI_DON_DA_DUNG | `PICKUP_RECORD_ALREADY_USED` (lỗi fake, chưa là schema lỗi HTTP nghiệp vụ) |
 | Bản giả SPI 005 | `support/fake/m04/`: `FakeShiftStaff`, `FakeTaskSource`, `FakeVitalSigns`, `FakeMedicationChecklist`, `FakeAlertReader`, `FakeDayCarePickups`, `FakeQualityChecks`, `FakeTimetableSource` |

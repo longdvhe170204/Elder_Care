@@ -42,6 +42,24 @@ public record AlertResponse(
 
         @Schema(types = {"string", "null"}) String chosenPlace,
 
+        @Schema(
+                types = {"string", "null"},
+                description = "Nơi người bấm nút hỗ trợ gõ tự do")
+        String placeNote,
+
+        @Schema(
+                types = {"string", "null"},
+                description = "Mô tả lúc tạo (cảnh báo thủ công) hoặc của nguồn")
+        String description,
+
+        @Schema(
+                types = {"string", "null"},
+                description = "Tên tầng của cảnh báo")
+        String floorName,
+
+        @Schema(description = "Các lần báo sau đã gộp vào cảnh báo thủ công (FR-030)")
+        List<AlertReport> reports,
+
         @Schema(description = "LocationView hoặc null (FR-047h)")
         Object latestLocation,
 
@@ -56,6 +74,8 @@ public record AlertResponse(
 
     private static final String STAFF_ASSIST = "STAFF_ASSIST_REQUEST";
     private static final String RESIDENT_HELP = "RESIDENT_HELP_REQUEST";
+
+    public record AlertReport(String reportedBy, String description, Instant at) {}
 
     public record AlertSource(
             String sourceType, Long sourceId, IncidentLevel level, Instant occurredAt, Instant resolvedAt) {}
@@ -85,6 +105,12 @@ public record AlertResponse(
                 details.press().pressedBy(),
                 details.press().eventType(),
                 details.press().chosenPlace(),
+                details.press().placeNote(),
+                alert.description(),
+                details.floorName(),
+                details.reports().stream()
+                        .map(report -> new AlertReport(report.reportedBy(), report.description(), report.at()))
+                        .toList(),
                 LocationResponse.of(details.press().latestLocation()),
                 alert.arrivedAt(),
                 alert.skipArrivalTime(),

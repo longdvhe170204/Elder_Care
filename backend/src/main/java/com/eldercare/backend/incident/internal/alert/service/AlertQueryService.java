@@ -20,8 +20,10 @@ import com.eldercare.backend.incident.internal.alert.domain.AlertRecord;
 import com.eldercare.backend.incident.internal.alert.domain.AlertStatus;
 import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ public class AlertQueryService {
     private final AccountApi accounts;
     private final Optional<RecordEventApi> records;
     private final AlertLocationService locations;
+    private final Optional<LocationStructureApi> structure;
+    private final AlertHistory history;
 
     public AlertQueryService(
             AlertStore alerts,
@@ -55,13 +59,16 @@ public class AlertQueryService {
             ScopeApi scopes,
             AccountApi accounts,
             @Autowired(required = false) RecordEventApi records,
-            AlertLocationService locations) {
+            AlertLocationService locations,
+            @Autowired(required = false) LocationStructureApi structure) {
         this.alerts = alerts;
         this.permissions = permissions;
         this.scopes = scopes;
         this.accounts = accounts;
         this.records = Optional.ofNullable(records);
         this.locations = locations;
+        this.structure = Optional.ofNullable(structure);
+        this.history = new AlertHistory(records);
     }
 
     /** Danh sách theo bộ lọc, đã giới hạn theo phạm vi; không kèm nguồn; có lệnh được phép để thẻ hiện nút ngay trên danh sách. */
@@ -73,6 +80,7 @@ public class AlertQueryService {
             Boolean maxEscalationReached,
             CurrentUser user) {
         var scope = scopes.filter(user, VIEW);
+        var floors = new HashMap<Long, String>();
         return alerts
                 .search(
                         statuses,
@@ -83,7 +91,16 @@ public class AlertQueryService {
                         scope.floorAreaIds(),
                         scope.residentIds())
                 .stream()
-                .map(alert -> new AlertDetails(alert, assigneeName(alert), List.of(), allowedCommands(alert, user)))
+                .map(alert -> new AlertDetails(
+                        alert,
+                        assigneeName(alert),
+                        List.of(),
+                        allowedCommands(alert, user),
+                        AlertDetails.Press.NONE,
+                        alert.floorAreaId() == null
+                                ? null
+                                : floors.computeIfAbsent(alert.floorAreaId(), this::floorName),
+                        List.of()))
                 .toList();
     }
 
@@ -102,7 +119,9 @@ public class AlertQueryService {
                 assigneeName(alert),
                 sources,
                 allowedCommands(alert, user),
-                press(alert, sources).withLocation(locations.latest(alert).orElse(null)));
+                press(alert, sources).withLocation(locations.latest(alert).orElse(null)),
+                alert.floorAreaId() == null ? null : floorName(alert.floorAreaId()),
+                reports(alertId));
     }
 
     /** Người bấm, loại sự việc, nơi đã chọn (nút hỗ trợ: dòng M05.ASSIST_DETAIL; SOS: nơi của lần bấm mới nhất). */
@@ -117,7 +136,12 @@ public class AlertQueryService {
             String pressedBy = alert.requesterId() == null
                     ? null
                     : accounts.fullName(alert.requesterId()).orElse(null);
-            return new AlertDetails.Press(pressedBy, (String) details.get("eventType"), (String) details.get("place"));
+            return new AlertDetails.Press(
+                    pressedBy,
+                    (String) details.get("eventType"),
+                    (String) details.get("place"),
+                    (String) details.get("placeNote"),
+                    null);
         }
         if (SosService.ALERT_TYPE.equals(alert.type())) {
             String place = sources.stream()
@@ -191,6 +215,29 @@ public class AlertQueryService {
                         })
                         .toList())
                 .orElse(List.of());
+    }
+
+    /** Mô tả của các lần báo sau, ghi khi gộp vào cảnh báo thủ công đang mở ({@link AlertService}, FR-030). */
+    @SuppressWarnings("unchecked")
+    private List<AlertDetails.Report> reports(long alertId) {
+        return history.list(alertId).stream()
+                .filter(row -> AlertHistory.MERGED.equals(row.get("action")))
+                .map(row -> {
+                    var detail = (Map<String, Object>) row.get("detail");
+                    Long by = detail.get("by") instanceof Number number ? number.longValue() : null;
+                    return new AlertDetails.Report(
+                            by == null ? null : accounts.fullName(by).orElse(null),
+                            (String) detail.get("description"),
+                            Instant.parse((String) detail.get("at")));
+                })
+                .toList();
+    }
+
+    private String floorName(long floorAreaId) {
+        return structure
+                .flatMap(api -> api.floor(floorAreaId))
+                .map(floor -> floor.name())
+                .orElse(null);
     }
 
     private static Instant resolvedAt(Object value) {

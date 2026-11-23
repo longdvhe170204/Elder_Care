@@ -191,6 +191,36 @@ public class IncidentHandlingService {
         throw new PermissionDeniedException("Không có quyền xử lý sự cố");
     }
 
+    /**
+     * Gắn một cảnh báo cùng vụ vào sự cố đang mở của cùng người cao tuổi (FR-029, FR-041): không tạo sự cố, không đổi trạng
+     * thái, mức của sự cố; người gắn được ghi vào danh sách người xử lý như "Tham gia xử lý". Cảnh báo Khẩn cấp chỉ gắn
+     * được vào sự cố Khẩn cấp, vì sự cố mức thấp hơn chưa chạy quy trình khẩn cấp (FR-047).
+     */
+    @Transactional
+    public void linkAlert(long incidentId, Long alertResidentId, IncidentLevel alertLevel, CurrentUser user) {
+        var incident = incidents.lock(incidentId).orElseThrow(NotFoundException::new);
+        var permission = permissions.hasPermission(
+                user, new PermissionKey(Function.INCIDENT_EMERGENCY, Operation.CREATE), target(incident));
+        if (!permission.allowed()) throw new PermissionDeniedException("Không có quyền với sự cố này");
+        if (!OPEN.contains(incident.status())) throw blocked("Chỉ gắn cảnh báo vào sự cố đang mở");
+        if (incident.residentId() == null
+                || (alertResidentId != null && !alertResidentId.equals(incident.residentId()))) {
+            throw blocked("Cảnh báo và sự cố không cùng người cao tuổi");
+        }
+        if (alertLevel == IncidentLevel.CRITICAL && incident.level() != IncidentLevel.CRITICAL) {
+            throw blocked("Cảnh báo Khẩn cấp chỉ gắn vào sự cố Khẩn cấp; nâng mức sự cố hoặc tạo sự cố riêng");
+        }
+        if (!incidents.assignee(incidentId).filter(id -> id == user.accountId()).isPresent()) {
+            progressions.join(incidentId, user.accountId(), time.now(), incident.floorAreaId());
+        }
+    }
+
+    /** Người cao tuổi của sự cố (null với sự cố cơ sở vật chất). */
+    @Transactional(readOnly = true)
+    public Long residentOf(long incidentId) {
+        return incidents.view(incidentId).orElseThrow(NotFoundException::new).residentId();
+    }
+
     private static Target target(IncidentState incident) {
         return new Target(ENTITY, Long.toString(incident.id()), incident.residentId(), incident.floorAreaId());
     }

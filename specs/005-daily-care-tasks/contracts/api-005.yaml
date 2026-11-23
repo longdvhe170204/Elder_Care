@@ -662,7 +662,7 @@ paths:
     post:
       tags:
         - cong-viec
-      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng)
+      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng); căn cứ AD_HOC hoặc INCIDENT_FOLLOW_UP
       x-fr:
         - FR-025
         - FR-023
@@ -1276,6 +1276,11 @@ components:
           type: string
         shared:
           type: boolean
+        shiftId:
+          type: integer
+          format: int64
+          readOnly: true
+          description: Ca của công việc, để mở đúng việc từ cảnh báo quá hạn, sự cố (007 FR-045b). Đổi api 2026-11-23, chờ chủ dự án duyệt.
         carryover:
           type: string
           enum:
@@ -1434,6 +1439,8 @@ components:
         - AD_HOC
         - AD_HOC_RECORDING
         - REWORK
+        # Đổi api 2026-11-23, chờ chủ dự án duyệt: việc tiếp theo của sự cố đang mở (007 FR-045b)
+        - INCIDENT_FOLLOW_UP
     CareTaskStatus:
       type: string
       enum:

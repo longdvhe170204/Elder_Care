@@ -198,15 +198,16 @@ public class HandoverSources {
                                 "M05.ALERT",
                                 () -> require(alerts).open(floor, s.id()).stream()
                                         .map(r -> row(
-                                                r.group(),
-                                                "M05." + r.group(),
-                                                r.id(),
-                                                r.residentId(),
-                                                r.roomId(),
-                                                r.description(),
-                                                r.status(),
-                                                r.level(),
-                                                r.createdAt()))
+                                                        r.group(),
+                                                        "M05." + r.group(),
+                                                        r.id(),
+                                                        r.residentId(),
+                                                        r.roomId(),
+                                                        r.description(),
+                                                        r.status(),
+                                                        r.level(),
+                                                        r.createdAt())
+                                                .withNextStepMissing(r.nextStepMissing()))
                                         .toList()),
                         () -> safe(
                                 "VITAL_SIGN",

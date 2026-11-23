@@ -35,7 +35,7 @@ class FR_027_AlertListCommandsTest {
     private final AccountApi accounts = mock(AccountApi.class);
     private final CurrentUser user = mock(CurrentUser.class);
     private final AlertQueryService service =
-            new AlertQueryService(alerts, permissions, scopes, accounts, null, mock(AlertLocationService.class));
+            new AlertQueryService(alerts, permissions, scopes, accounts, null, mock(AlertLocationService.class), null);
 
     @Test
     void FR_027_listCarriesAllowedCommandsLikeDetail() {

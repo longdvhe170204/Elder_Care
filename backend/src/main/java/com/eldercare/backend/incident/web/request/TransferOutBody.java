@@ -19,7 +19,10 @@ public record TransferOutBody(
         @Schema(minLength = 1) String companion,
         Boolean requiredContactReached,
         Reason notAskedFirstReason,
-        @ArraySchema(maxItems = 10) List<Long> attachmentIds) {
+        @ArraySchema(maxItems = 10) List<Long> attachmentIds,
+
+        @Schema(description = "Gửi kèm nguyện vọng liên quan đến ca này trên phiếu tóm tắt; mặc định không in")
+        Boolean includeWishes) {
 
     /** Lệnh Chuyển viện của dịch vụ; {@code null} khi thân lệnh không có khối này. */
     public static TransferOutCommand toCommand(TransferOutBody body) {
@@ -34,6 +37,7 @@ public record TransferOutBody(
                 body.notAskedFirstReason() == null
                         ? null
                         : body.notAskedFirstReason().value(),
-                body.attachmentIds());
+                body.attachmentIds(),
+                body.includeWishes());
     }
 }
