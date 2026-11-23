@@ -12,6 +12,7 @@ import com.eldercare.backend.belongings.internal.belonging.service.BelongingReca
 import com.eldercare.backend.belongings.internal.ending.domain.PostDeathBelongings;
 import com.eldercare.backend.belongings.internal.ending.persistence.BelongingEndingStore;
 import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -49,12 +50,22 @@ public class BelongingPostDeathItem implements PostDeathItemPort {
         return PostDeathItemCode.BELONGINGS;
     }
 
+    /** Mục "xử lý đồ gửi" chỉ có khi người cao tuổi đã qua đời (FR-026). */
+    @Transactional(readOnly = true)
+    public boolean appliesTo(long residentId) {
+        return residents.status(residentId) == ResidentStatus.DECEASED;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PostDeathItemStatusView status(long residentId) {
+        // Mục chỉ của người đã qua đời (FR-026); trạng thái cuối khác (Hủy tiếp nhận, Kết thúc lưu trú) không áp dụng
+        if (residents.status(residentId) != ResidentStatus.DECEASED) {
+            return new PostDeathItemStatusView(PostDeathItemStatus.NOT_APPLICABLE, "Người cao tuổi chưa qua đời");
+        }
         Instant deathAt = residents.finalStatusAt(residentId).orElse(null);
         if (deathAt == null) {
-            return new PostDeathItemStatusView(PostDeathItemStatus.NOT_COMPLETED, "Chưa có thời điểm qua đời (FR-026)");
+            return new PostDeathItemStatusView(PostDeathItemStatus.NOT_COMPLETED, "Chưa có thời điểm qua đời");
         }
         List<BelongingView> all = belongings.ofResident(residentId, null);
         List<Long> ids = all.stream().map(BelongingView::belongingId).toList();

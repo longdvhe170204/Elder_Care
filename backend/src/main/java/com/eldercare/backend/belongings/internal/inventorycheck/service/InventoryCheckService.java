@@ -579,6 +579,11 @@ public class InventoryCheckService {
         return user;
     }
 
+    /** Người dùng hiện tại xem được tab Kiểm kê (mở nguồn kiểm kê từ thông báo, test luồng BF-14 2026-11-23). */
+    public boolean canRead() {
+        return users.getObject().roles().stream().anyMatch(READERS::contains);
+    }
+
     private void requireReader() {
         if (users.getObject().roles().stream().noneMatch(READERS::contains)) {
             throw new PermissionDeniedException("Không có quyền xem phiếu kiểm kê");

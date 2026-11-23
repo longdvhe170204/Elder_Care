@@ -71,7 +71,9 @@ public class BelongingEndingService implements BelongingApi {
         List<BelongingView> lost = all.stream()
                 .filter(b -> condition.lostWithOpenIncidentBelongingIds().contains(b.belongingId()))
                 .toList();
-        return new Ending(condition, blocking, lost, postDeathItem.status(resident.residentId()));
+        PostDeathItemStatusView item = postDeathItem.status(resident.residentId());
+        // Màn điều kiện chỉ nêu mục "xử lý đồ gửi" khi người cao tuổi đã qua đời (FR-026)
+        return new Ending(condition, blocking, lost, postDeathItem.appliesTo(resident.residentId()) ? item : null);
     }
 
     private BelongingEndingConditionView calculate(List<BelongingView> all) {

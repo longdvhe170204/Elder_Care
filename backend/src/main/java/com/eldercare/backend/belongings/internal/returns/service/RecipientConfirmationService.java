@@ -175,6 +175,24 @@ public class RecipientConfirmationService {
                 .toList();
     }
 
+    /**
+     * Nhân viên mở được yêu cầu từ thông báo (test luồng BF-14 2026-11-23): Hành chính, Quản lý viện như {@link #listAll},
+     * và yêu cầu có tồn tại.
+     */
+    @Transactional(readOnly = true)
+    public boolean staffCanOpen(long id) {
+        Set<Role> roles = users.getObject().roles();
+        if (!roles.contains(Role.OFFICE_STAFF) && !roles.contains(Role.NURSING_HOME_MANAGER)) {
+            return false;
+        }
+        try {
+            records.require(RecipientConfirmation.KIND, id);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
+
     /** Không lọc người cao tuổi: chỉ Hành chính, Quản lý viện (FR-029). */
     public List<View> listAll(Set<String> statuses) {
         Set<Role> roles = users.getObject().roles();
