@@ -83,6 +83,19 @@ public class CareTaskController {
 
     /** Lịch sử công việc đã lập, không theo ca, ngày: việc lập gần nhất trước, phân trang (màn Lập công việc ca, FR-017). */
     @GetMapping("/care-tasks")
+    @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content =
+                    @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CareTaskPageResponse.class)))
+    @ApiResponse(
+            responseCode = "403",
+            content =
+                    @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = CareProblemBody.class)))
     public CareTaskPageResponse history(
             @RequestParam(required = false) Long floorAreaId,
             @RequestParam(required = false) Long residentId,
