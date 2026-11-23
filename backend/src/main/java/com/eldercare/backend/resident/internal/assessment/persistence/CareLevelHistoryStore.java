@@ -85,7 +85,8 @@ public class CareLevelHistoryStore {
         return new CareLevelAtDate(
                 CareLevel.valueOf(row.value()),
                 row.startsAt(),
-                CareLevelBasisType.valueOf(row.basisType()),
-                row.basisId());
+                // Dòng không ghi căn cứ (dữ liệu mẫu demo V900_02): trả căn cứ trống thay vì lỗi 500 ở màn Đánh giá
+                row.basisType() == null ? null : CareLevelBasisType.valueOf(row.basisType()),
+                row.basisId() == null ? 0L : row.basisId());
     }
 }

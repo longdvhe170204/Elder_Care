@@ -46,12 +46,15 @@ import com.eldercare.backend.resident.api.EndOfLifeWishApi;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TreatmentWishView;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -158,8 +161,12 @@ public class TransferOutService {
                     List.of(new UnmetCondition("FR-049", "Chỉ chuyển viện từ sự cố Mới hoặc Đang xử lý")));
         }
         if (blank(command.transferUnit())) throw new InvalidValueException("Thiếu cơ sở tiếp nhận");
-        if (command.transferAt() == null) throw new InvalidValueException("Thiếu thời điểm chuyển");
         if (blank(command.companion())) throw new InvalidValueException("Thiếu người đi kèm");
+        // Đề xuất 2026-11-23 lượt 3: không gửi thời điểm thì là lúc thực hiện lệnh; gửi thì không trước lúc xảy ra sự
+        // cố
+        // và không sau hiện tại (diễn biến "Đã chuyển viện" không được đứng trước sự cố, không ghi trước một việc chưa
+        // xảy ra)
+        command = command.withTransferAt(transferTime(command.transferAt(), incident, time.now()));
         var treatment = wishes.currentTreatmentWish(residentId);
         boolean mustAskFirst = treatment.map(TreatmentWishView::askFamilyFirst).orElse(false);
         String notAskedReason = null;
@@ -232,6 +239,21 @@ public class TransferOutService {
         // FR-050h: lần tải đầu trong lệnh cũng là một lần in.
         printed(summaryId, residentId, false);
         return summaryId;
+    }
+
+    private static Instant transferTime(Instant requested, IncidentView incident, Instant now) {
+        if (requested == null) return now;
+        if (requested.isAfter(now)) {
+            throw new InvalidValueException("Thời điểm chuyển không được sau thời điểm hiện tại");
+        }
+        Instant start = Stream.of(incident.occurredAt(), incident.discoveredAt())
+                .filter(Objects::nonNull)
+                .min(Instant::compareTo)
+                .orElse(null);
+        if (start != null && requested.isBefore(start)) {
+            throw new InvalidValueException("Thời điểm chuyển không được trước lúc xảy ra sự cố");
+        }
+        return requested;
     }
 
     /** Ghi lần thử bị 001 từ chối thành diễn biến {@code TRANSFER_REFUSED} (FR-049), sau khi lệnh đã rollback. */

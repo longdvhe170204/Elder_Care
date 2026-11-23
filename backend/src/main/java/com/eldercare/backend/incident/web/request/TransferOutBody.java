@@ -10,10 +10,17 @@ import java.util.List;
 /** Thông tin Chuyển viện (schema {@code TransferOut} của api-007; FR-049, Q-383, Q-384). */
 @Schema(
         name = "TransferOut",
-        requiredProperties = {"transferUnit", "transferAt", "companion"})
+        requiredProperties = {"transferUnit", "companion"})
 public record TransferOutBody(
         String transferUnit,
+
+        @Schema(
+                types = {"string", "null"},
+                format = "date-time",
+                description =
+                        "Không gửi thì là lúc thực hiện lệnh; không trước lúc xảy ra sự cố, không sau hiện tại (đề xuất 2026-11-23)")
         Instant transferAt,
+
         Instant expectedReturnAt,
         Long handoverStaffId,
         @Schema(minLength = 1) String companion,

@@ -1248,11 +1248,11 @@ components:
         snapshotAt: { type: string, format: date-time }
     TransferOut:
       type: object
-      required: [transferUnit, transferAt, companion]
+      required: [transferUnit, companion]
       description: 'Bổ sung 2026-10-22 (FR-049, Q-383, Q-384): companion bắt buộc; requiredContactReached bắt buộc khi phiếu nguyện vọng khi điều trị có askFamilyFirst; notAskedFirstReason bắt buộc khi requiredContactReached = false và sự cố không ở mức Khẩn cấp (plan điểm báo lại 11); attachmentIds chuyển cho lệnh TRANSFER_OUT của 001.'
       properties:
         transferUnit: { type: string }
-        transferAt: { type: string, format: date-time }
+        transferAt: { type: [string, 'null'], format: date-time, description: 'Không gửi thì là lúc thực hiện lệnh; không trước lúc xảy ra sự cố, không sau hiện tại (Đổi api 2026-11-23 lượt 3, chờ A duyệt)' }
         expectedReturnAt: { type: string, format: date-time }
         handoverStaffId: { type: integer, format: int64 }
         companion: { type: string, minLength: 1, description: 'Họ tên và quan hệ hoặc chức danh' }
