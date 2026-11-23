@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /** T007: khung HOURLY, nghiệp vụ đăng ký ở các story; không tự lập khoản hoặc bảng. */
-
 @Component
 public class M11HourlyJob implements ScheduledJob {
     private final M11Jobs jobs;
