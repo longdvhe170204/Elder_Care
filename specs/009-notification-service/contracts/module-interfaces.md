@@ -116,6 +116,17 @@ interface NguoiThanNhanThongBaoPort {             // 012 cài; chỉ đọc
 
 Bean thiếu thì nhóm (e) trả rỗng và nhóm (d) người thân không có số: thông báo người thân rơi vào danh sách "cần liên hệ trực tiếp" (mặc định an toàn: không gửi sai người).
 
+*(Bổ sung 2026-11-23, BF-14 test web, chủ dự án chọn port chung)* Mở bản ghi nguồn từ thông báo (FR-033, FR-034 "nếu có quyền"):
+
+```java
+interface SourceRecordAccessPort {                // module nguồn cài, mỗi bản cài một loại nguồn; chỉ đọc
+  String sourceRecordType();                      // như SourceRecord.type của yêu cầu, ví dụ "M12.RECIPIENT_CONFIRMATION"
+  boolean canOpen(String sourceRecordId);         // người dùng hiện tại mở được bản ghi theo quyền hiện hành của API xem bản ghi đó
+}
+```
+
+Hộp thông báo đặt `sourceRecord.canOpen` theo bản cài của đúng loại nguồn; loại không có bản cài, hoặc bản cài ném lỗi, là `false`. Bản cài hiện có: 013 cho `M12.RECIPIENT_CONFIRMATION` (người đại diện hiện tại, như `GET /family-portal/recipient-confirmations/{id}`).
+
 ### 2.2. Sự kiện 009 nghe
 
 | Sự kiện | Module | Xử lý | FR |

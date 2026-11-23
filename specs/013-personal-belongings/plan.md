@@ -36,6 +36,10 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Đồ gửi trên kênh người cao tuổi** (FR-030a): 013 cài SPI `family.api.DoGuiKenhNctPort.dangGiu(nctId)` (012 module-interfaces 1.4): đồ ở Đang giữ, Đang được sử dụng, tên, trạng thái, ảnh; không có lịch sử bàn giao, yêu cầu xác nhận, đồng ý cho tự giữ (research K-16). Ảnh trả qua `QuyenTepProvider` `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ. Không thêm bảng.
 
+### Cập nhật 2026-11-23 (BF-14 test web, chủ dự án chọn port chung của 009)
+
+- **Mở yêu cầu xác nhận người nhận khác từ thông báo** (FR-017, FR-030): 013 cài `notification.api.spi.SourceRecordAccessPort` cho loại `M12.RECIPIENT_CONFIRMATION` (`RecipientConfirmationSourceAccess`, gói `internal/returns/service`): mở được khi `RecipientConfirmationService.viewOnPortal(id)` cho xem (tài khoản người thân là người đại diện hiện tại của người cao tuổi), lỗi nghiệp vụ hoặc mã không phải số thì không. Trước đó 009 để `canOpen` luôn `false` nên cổng không hiện nút "Xem yêu cầu xác nhận". Test `RecipientConfirmationSourceAccessTest`.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
