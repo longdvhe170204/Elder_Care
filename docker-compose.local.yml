@@ -1,0 +1,11 @@
+# Bản demo từ mã hiện tại trên máy; giữ nguyên dịch vụ và volume MySQL.
+# Cấu hình máy nằm ở .local/demo.env (Git bỏ qua), không đưa mật khẩu vào file này.
+# docker compose --env-file .local/demo.env -f docker-compose.yml -f docker-compose.local.yml build backend frontend
+# docker compose --env-file .local/demo.env -f docker-compose.yml -f docker-compose.local.yml up -d --no-deps backend frontend
+services:
+  backend:
+    image: eldercare-backend:local-demo
+    build: ./backend
+  frontend:
+    image: eldercare-frontend:local-demo
+    build: ./frontend-source
