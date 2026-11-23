@@ -51,4 +51,50 @@ class FR_017a_ApproveOnBehalfIT extends ReturnTestBase {
         });
         assertThat(representative).isPositive();
     }
+
+    /**
+     * Test luồng BF-14 2026-11-23 (chủ dự án duyệt đổi api-013): Quản lý viện xem được các lần liên hệ đã ghi trước khi
+     * duyệt thay; duyệt sớm bị chặn với lời báo nói lúc nào được duyệt, không hiện mã FR, CFG.
+     */
+    @Test
+    void FR_017a_listShowsContactAttempts_andEarlyApprovalSaysWhenAllowed() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long phone = intake(resident, "PHONE", "\"quantity\": 1", location());
+        long representative = representative(resident, "012346");
+        long id = confirmation(resident, "Trần Thị M", "998", phone);
+
+        postJson(
+                        tokenA,
+                        "/api/v1/recipient-confirmations/" + id + "/contact-evidence",
+                        "{\"familyMemberId\": " + representative + ", \"channel\": \"PHONE_CALL\", \"at\": \""
+                                + time.now() + "\", \"result\": \"Không nghe máy\"}")
+                .andExpect(status().isCreated());
+
+        getJson(managerToken, "/api/v1/recipient-confirmations?residentId=" + resident)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].contactAttempts.length()").value(1))
+                .andExpect(jsonPath("$[0].contactAttempts[0].familyMemberId").value(representative))
+                .andExpect(jsonPath("$[0].contactAttempts[0].channel").value("PHONE_CALL"))
+                .andExpect(jsonPath("$[0].contactAttempts[0].result").value("Không nghe máy"));
+
+        String detail = postJson(
+                        managerToken,
+                        "/api/v1/recipient-confirmations/" + id + "/approve-on-behalf",
+                        "{\"reason\": \"Không liên hệ được\", \"basis\": \"REPRESENTATIVE_UNREACHABLE\"}")
+                .andExpect(status().isConflict())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThat(detail).contains("Được duyệt thay từ").doesNotContain("FR-").doesNotContain("CFG-");
+
+        String noRepresentative = postJson(
+                        managerToken,
+                        "/api/v1/recipient-confirmations/" + id + "/approve-on-behalf",
+                        "{\"reason\": \"Không có người đại diện\", \"basis\": \"NO_REPRESENTATIVE\"}")
+                .andExpect(status().isConflict())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThat(noRepresentative).contains("đang có người đại diện").doesNotContain("FR-");
+    }
 }

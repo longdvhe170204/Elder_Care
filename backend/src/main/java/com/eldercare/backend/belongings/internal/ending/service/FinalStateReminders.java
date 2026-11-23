@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.belongings.api.dto.BelongingEndingConditionView;
 import com.eldercare.backend.belongings.api.dto.BelongingStatus;
 import com.eldercare.backend.belongings.internal.belonging.domain.BelongingNotices;
+import com.eldercare.backend.belongings.internal.belonging.service.StaffNoticeDetails;
 import com.eldercare.backend.belongings.internal.ending.domain.OpenBelonging;
 import com.eldercare.backend.belongings.internal.ending.persistence.BelongingEndingStore;
 import com.eldercare.backend.common.Role;
@@ -49,6 +50,7 @@ public class FinalStateReminders {
     private final ReminderMarkers markers;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
+    private final StaffNoticeDetails details;
 
     FinalStateReminders(
             BelongingEndingStore store,
@@ -57,7 +59,9 @@ public class FinalStateReminders {
             ParameterApi parameters,
             ReminderMarkers markers,
             ApplicationEventPublisher events,
-            BusinessTime time) {
+            BusinessTime time,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.store = store;
         this.ending = ending;
         this.residents = residents;
@@ -82,7 +86,7 @@ public class FinalStateReminders {
         collect(residents.byStatus(ENDED), false, now, cycle, wait, due, eligible);
         collect(residents.byStatus(Set.of(ResidentStatus.DECEASED)), true, now, cycle, wait, due, eligible);
         due.forEach((residentId, ids) -> {
-            events.publishEvent(BelongingNotices.notice(
+            events.publishEvent(details.forStaff(BelongingNotices.notice(
                     "BELONGING_UNRETURNED_AFTER_FINAL",
                     SOURCE,
                     residentId,
@@ -93,7 +97,7 @@ public class FinalStateReminders {
                     "Còn " + ids.size() + " đồ gửi chưa trả sau khi hồ sơ ở trạng thái cuối: liên hệ người nhận",
                     null,
                     now,
-                    false));
+                    false)));
             store.markReminded(ids, now);
         });
         eligible.forEach((residentId, ids) -> {
@@ -104,7 +108,7 @@ public class FinalStateReminders {
                 }
             });
             if (!fresh.isEmpty()) {
-                events.publishEvent(BelongingNotices.notice(
+                events.publishEvent(details.forStaff(BelongingNotices.notice(
                         "BELONGING_DISPOSAL_ELIGIBLE",
                         SOURCE,
                         residentId,
@@ -115,7 +119,7 @@ public class FinalStateReminders {
                         fresh.size() + " đồ gửi đủ thời gian chờ: có thể lập đề nghị xử lý đồ không người nhận",
                         null,
                         now,
-                        false));
+                        false)));
             }
         });
         return due.size();

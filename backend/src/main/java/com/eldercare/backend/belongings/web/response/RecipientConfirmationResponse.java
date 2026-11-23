@@ -1,11 +1,16 @@
 package com.eldercare.backend.belongings.web.response;
 
 import com.eldercare.backend.belongings.internal.returns.service.RecipientConfirmationService;
+import com.eldercare.backend.belongings.web.request.ReturnRequests;
+import com.eldercare.backend.common.time.BusinessTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
 
-/** Schema {@code RecipientConfirmation} của api-013; {@code belongingIds} là đồ còn trong danh sách (FR-017b). */
+/**
+ * Schema {@code RecipientConfirmation} của api-013; {@code belongingIds} là đồ còn trong danh sách (FR-017b);
+ * {@code contactAttempts} là các lần liên hệ người đại diện đã ghi (FR-017a), trống trên cổng người thân.
+ */
 @Schema(requiredProperties = {"residentId", "recipientName", "recipientIdDocument", "belongingIds"})
 public record RecipientConfirmationResponse(
         long id,
@@ -17,7 +22,8 @@ public record RecipientConfirmationResponse(
         String status,
         String method,
         Instant expiresAt,
-        SignedForm signedForm) {
+        SignedForm signedForm,
+        List<ReturnRequests.ContactAttempt> contactAttempts) {
 
     /** Phiếu người đại diện ký (cách lập "phiếu ký", FR-017a); trống khi lập cách khác. */
     @Schema(name = "RecipientSignedForm")
@@ -36,6 +42,13 @@ public record RecipientConfirmationResponse(
                 view.expiresAt(),
                 view.signedFormFileId() == null
                         ? null
-                        : new SignedForm(view.signedRepresentativeId(), view.signedFormFileId()));
+                        : new SignedForm(view.signedRepresentativeId(), view.signedFormFileId()),
+                view.contactAttempts().stream()
+                        .map(a -> new ReturnRequests.ContactAttempt(
+                                a.familyMemberId(),
+                                a.channel(),
+                                a.at().atZone(BusinessTime.ZONE).toOffsetDateTime(),
+                                a.result()))
+                        .toList());
     }
 }

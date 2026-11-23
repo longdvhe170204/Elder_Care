@@ -49,4 +49,23 @@ class BR_55_HandoverIT extends HandoverTestBase {
                         "SELECT kind FROM belonging_handover WHERE belonging_id = ? ORDER BY id", String.class, split))
                 .containsExactly("TRANSFER_CUSTODY");
     }
+
+    /**
+     * FR-011, FR-020 (test luồng BF-14 2026-11-23): lịch sử bàn giao nêu tên người giao, người nhận cả khi họ là người cao
+     * tuổi, nhân viên (bản ghi chỉ lưu mã).
+     */
+    @Test
+    void FR_011_historyNamesResidentGiverAndStaffRecipient() throws Exception {
+        shifts.staff(new com.eldercare.backend.staffing.api.dto.StaffPublicView(
+                officeA.staffId(), "Hành chính thử A", "Hành chính", null, null));
+        long resident = resident("IN_RESIDENCE");
+        long clothes = intake(resident, "CLOTHING", "\"quantity\": 2", location());
+
+        getJson(tokenA, "/api/v1/belongings/" + clothes)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.handovers[0].giverType").value("RESIDENT"))
+                .andExpect(jsonPath("$.handovers[0].giverName").value("Người cao tuổi thử"))
+                .andExpect(jsonPath("$.handovers[0].recipientType").value("STAFF"))
+                .andExpect(jsonPath("$.handovers[0].recipientName").value("Hành chính thử A"));
+    }
 }

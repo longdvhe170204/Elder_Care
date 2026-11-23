@@ -21,6 +21,7 @@ import com.eldercare.backend.belongings.internal.belonging.domain.ReturnFacts;
 import com.eldercare.backend.belongings.internal.belonging.persistence.BelongingHandoverStore;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingHandoverService;
 import com.eldercare.backend.belongings.internal.belonging.service.BelongingLocks;
+import com.eldercare.backend.belongings.internal.belonging.service.StaffNoticeDetails;
 import com.eldercare.backend.belongings.internal.belonging.service.ValuableTypes;
 import com.eldercare.backend.belongings.internal.catalog.domain.BelongingCatalogs;
 import com.eldercare.backend.belongings.internal.returns.domain.RecipientConfirmation;
@@ -78,6 +79,7 @@ public class ReturnTransaction {
     private final ApplicationEventPublisher publisher;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
+    private final StaffNoticeDetails details;
 
     ReturnTransaction(
             BelongingLocks locks,
@@ -92,7 +94,9 @@ public class ReturnTransaction {
             AuditLogApi audit,
             ApplicationEventPublisher publisher,
             BusinessTime time,
-            ObjectProvider<CurrentUser> users) {
+            ObjectProvider<CurrentUser> users,
+            StaffNoticeDetails details) {
+        this.details = details;
         this.locks = locks;
         this.handovers = handovers;
         this.handoverStore = handoverStore;
@@ -353,7 +357,7 @@ public class ReturnTransaction {
                     deceased));
         }
         if (verdict.missingRegisteredDocument()) {
-            publisher.publishEvent(BelongingNotices.notice(
+            publisher.publishEvent(details.forStaff(BelongingNotices.notice(
                     "FAMILY_ID_DOCUMENT_MISSING",
                     RECORD_TYPE,
                     firstHandoverId,
@@ -362,7 +366,7 @@ public class ReturnTransaction {
                     List.of(new RecipientGroup.FacilityRole(Role.OFFICE_STAFF)),
                     "Hồ sơ người thân nhận đồ chưa có giấy tờ, cần bổ sung",
                     user.accountId(),
-                    now));
+                    now)));
         }
     }
 
