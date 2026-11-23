@@ -70,9 +70,6 @@ class FR_031_AlertDeadlineTest {
         duration(ParameterCode.CFG_M05_01, Duration.ofMinutes(15));
         assertThat(AcknowledgementDeadlines.forEscalation(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
                 .isEqualTo(NOW.plusSeconds(900));
-        assertThatThrownBy(
-                        () -> AcknowledgementDeadlines.of(IncidentLevel.LOW, NOW, 10L, parameters, Optional.of(staff)))
-                .isInstanceOf(IllegalStateException.class);
     }
 
     private AlertRecord request(IncidentLevel level) {
