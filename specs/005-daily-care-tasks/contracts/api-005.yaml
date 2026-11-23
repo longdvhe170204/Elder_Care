@@ -347,6 +347,22 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [recipientId], properties: { recipientId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: Đã phân lại }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanProblem' } }
+  /care-tasks:
+    get:
+      x-implementation-phase: 11
+      operationId: listCareTaskHistory
+      tags: [cong-viec]
+      summary: Lịch sử công việc đã lập, không theo ca, ngày (màn Lập công việc ca)
+      description: 'Việc lập gần nhất trước (id giảm dần), phân trang; lọc theo tầng, người cao tuổi, loại công việc, người làm. Chỉ trong phạm vi quyền xem lập công việc của người gọi; lọc tầng ngoài phạm vi thì 403. size tối đa 100. Thêm 2026-11-23, chờ chủ dự án duyệt.'
+      x-fr: [FR-017]
+      parameters:
+        - { name: floorAreaId, in: query, schema: { type: integer, format: int64 } }
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: taskTypeId, in: query, schema: { type: integer, format: int64 } }
+        - { name: performerId, in: query, schema: { type: integer, format: int64 } }
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CareTaskPage' } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-tasks/overdue:
     get:
       x-implementation-phase: 7
@@ -1264,6 +1280,12 @@ components:
           format: int64
         shared:
           type: boolean
+    CareTaskPage:
+      type: object
+      required: [items, total]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/CareTask' } }
+        total: { type: integer, format: int64, description: Tổng số công việc khớp bộ lọc }
     CareTask:
       type: object
       properties:

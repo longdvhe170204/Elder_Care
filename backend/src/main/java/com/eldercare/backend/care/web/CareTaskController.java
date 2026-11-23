@@ -39,6 +39,7 @@ public class CareTaskController {
     private final com.eldercare.backend.administration.correction.api.CorrectionApi corrections;
     private final SharedCareTasks shared;
     private final com.eldercare.backend.care.internal.timetable.service.CareTimetable timetable;
+    private final CareTaskHistory taskHistory;
 
     public CareTaskController(
             CareTaskService commands,
@@ -55,7 +56,8 @@ public class CareTaskController {
             com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist,
             com.eldercare.backend.administration.correction.api.CorrectionApi corrections,
             SharedCareTasks shared,
-            com.eldercare.backend.care.internal.timetable.service.CareTimetable timetable) {
+            com.eldercare.backend.care.internal.timetable.service.CareTimetable timetable,
+            CareTaskHistory taskHistory) {
         this.commands = commands;
         this.queries = queries;
         this.user = user;
@@ -71,11 +73,26 @@ public class CareTaskController {
         this.corrections = corrections;
         this.shared = shared;
         this.timetable = timetable;
+        this.taskHistory = taskHistory;
     }
 
     @GetMapping("/shifts/{shiftId}/source-data")
     public CareShiftSourceResponse sources(@PathVariable long shiftId) {
         return CareShiftSourceResponse.of(queries.sources(commands.shiftTarget(shiftId), shiftId));
+    }
+
+    /** Lịch sử công việc đã lập, không theo ca, ngày: việc lập gần nhất trước, phân trang (màn Lập công việc ca, FR-017). */
+    @GetMapping("/care-tasks")
+    public CareTaskPageResponse history(
+            @RequestParam(required = false) Long floorAreaId,
+            @RequestParam(required = false) Long residentId,
+            @RequestParam(required = false) Long taskTypeId,
+            @RequestParam(required = false) Long performerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        var result = taskHistory.list(floorAreaId, residentId, taskTypeId, performerId, page, size);
+        return new CareTaskPageResponse(
+                result.items().stream().map(this::response).toList(), result.total());
     }
 
     @GetMapping("/shifts/{shiftId}/care-tasks")
