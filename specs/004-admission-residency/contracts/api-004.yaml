@@ -726,13 +726,13 @@ paths:
           application/json:
             schema:
               type: object
-              required: [recipientType, handoverAt, handoverStaffId]
+              required: [recipientType, handoverAt]
               properties:
                 recipientType: { type: string, enum: [FAMILY_MEMBER, RECEIVING_FACILITY] }
                 familyMemberId: { type: integer, format: int64 }
                 facilityName: { type: string }
                 handoverAt: { type: string, format: date-time }
-                handoverStaffId: { type: integer, format: int64 }
+                handoverStaffId: { type: integer, format: int64, description: 'Bỏ trống thì nhân viên bàn giao là chính người ghi (BF-10 bước 6; Hành chính không xem được hồ sơ nhân viên, Phụ lục 27; sửa 2026-11-24, phương án A)' }
                 pickupRecordId: { type: integer, format: int64, description: 'Bản ghi đón của 012 (chỉ khi recipientType = FAMILY_MEMBER); hợp lệ thì được dùng một lần, không hợp lệ thì 422 (A duyệt 2026-11-05, 004-2)' }
       responses: { '201': { description: Đã ghi }, '422': { $ref: '#/components/responses/Problem' } }
   /residency-endings/{id}/request-exception:
