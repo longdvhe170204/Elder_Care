@@ -94,6 +94,10 @@ public class BelongingHandoverService {
     private static final Set<BelongingStatus> CONSENT_ENDS = EnumSet.of(
             BelongingStatus.RETURNED, BelongingStatus.LOST, BelongingStatus.DAMAGED, BelongingStatus.DISPOSED);
 
+    /** Đã trả, Thất lạc, Đã xử lý: không còn người giữ (data-model mục 3). */
+    private static final Set<BelongingStatus> NO_HOLDER =
+            EnumSet.of(BelongingStatus.RETURNED, BelongingStatus.LOST, BelongingStatus.DISPOSED);
+
     private static final Set<String> INVALID_CODES = Set.of("REASON_REQUIRED", "STORAGE_LOCATION_REQUIRED");
 
     /** Bản ghi đã tạo. */
@@ -747,8 +751,10 @@ public class BelongingHandoverService {
             Long location,
             long levelId) {
         BelongingView source = belongings.find(b.id()).orElseThrow(NotFoundException::new);
-        HolderType holderType =
-                holder == null ? null : holder == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
+        // Như applyHandover: phần tách sang Đã trả, Thất lạc, Đã xử lý không còn người giữ (data-model mục 3)
+        HolderType holderType = holder == null || NO_HOLDER.contains(status)
+                ? null
+                : holder == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
         long part = belongings.insertSplit(
                 new NewBelonging(
                         ctx.residentId(),
@@ -828,10 +834,7 @@ public class BelongingHandoverService {
         HolderType holderType = recipientType == null
                 ? null
                 : recipientType == GiverType.RESIDENT ? HolderType.RESIDENT : HolderType.STAFF;
-        // Đã trả, Thất lạc, Đã xử lý: không còn người giữ (data-model mục 3)
-        boolean noHolder = target == BelongingStatus.LOST
-                || target == BelongingStatus.RETURNED
-                || target == BelongingStatus.DISPOSED;
+        boolean noHolder = NO_HOLDER.contains(target);
         belongings.applyHandover(
                 belongingId,
                 target,

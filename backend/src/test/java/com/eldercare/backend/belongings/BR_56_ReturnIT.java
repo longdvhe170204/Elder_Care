@@ -62,4 +62,50 @@ class BR_56_ReturnIT extends ReturnTestBase {
                     .doesNotContain(new RecipientGroup.FamilyMember(picker, "REPRESENTATIVE"));
         });
     }
+
+    /**
+     * BF-14 test web 2026-11-23: trả một phần (FR-012) thì phần tách sang Đã trả không còn người giữ như khi trả cả đồ (data-model
+     * mục 3); trước đây phần tách mang người nhận làm người giữ, trả cho người khác (không có mã) thì 500 {@code
+     * ck_belonging_holder}.
+     */
+    @Test
+    void FR_012_partialReturn_returnedPartHasNoHolder_alsoForOtherPerson() throws Exception {
+        long resident = resident("IN_RESIDENCE");
+        long clothes = intake(resident, "CLOTHING", "\"quantity\": 10", location());
+        long picker = representative(resident, "012345");
+        String partOf4 = "{\"belongingId\": " + clothes
+                + ", \"version\": %d, \"quantity\": 4, \"condition\": {\"levelId\": " + levelId("SIGNS_OF_USE") + "}}";
+
+        giveBack(
+                        tokenA,
+                        returnBody(
+                                List.of(partOf4.formatted(version(clothes))),
+                                familyRecipient(picker, "Người thân " + picker, "CCCD", "012345"),
+                                ""))
+                .andExpect(status().isCreated());
+
+        long confirmationId = confirmation(resident, "Trần Văn Nhận", "CCCD 777", clothes);
+        postJson(
+                        portalSession(picker),
+                        "/api/v1/family-portal/recipient-confirmations/" + confirmationId + "/confirm",
+                        "{}")
+                .andExpect(status().isOk());
+        giveBack(
+                        tokenA,
+                        returnBody(
+                                List.of(partOf4.formatted(version(clothes))),
+                                otherRecipient("Trần Văn Nhận", "777"),
+                                ", \"recipientConfirmationId\": " + confirmationId))
+                .andExpect(status().isCreated());
+
+        assertThat(jdbc.queryForList(
+                        "SELECT holder_type, holder_id FROM belonging WHERE original_belonging_id = ? AND status = 'RETURNED'",
+                        clothes))
+                .hasSize(2)
+                .allSatisfy(row ->
+                        assertThat(row).containsEntry("holder_type", null).containsEntry("holder_id", null));
+        assertThat(jdbc.queryForObject(
+                        "SELECT quantity FROM belonging WHERE id = ?", java.math.BigDecimal.class, clothes))
+                .isEqualByComparingTo("2");
+    }
 }
